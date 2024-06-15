@@ -1,5 +1,7 @@
 "use client";
 
+import DynamicChatbox from "./dynamic-chatbox/dynamic-chatbox";
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
@@ -14,7 +16,7 @@ export default function Home() {
           maxWidth: 1100,
         }}
       >
-        <h1>Template</h1>
+        <DynamicChatbox />
       </div>
     </main>
   );
