@@ -1,9 +1,10 @@
+import { generateResponse } from "../../../actions/ai";
 import { DynamicMessage } from "../model/dynamic-message";
 
 export const generateDynamicMessage = async (
   message: string
 ): Promise<DynamicMessage> => {
-  //TODO: actually call service or package
+  const response = await generateResponse("graph", message);
   return { message: message, type: "graph", componentData: exampleGraphData };
 };
 
