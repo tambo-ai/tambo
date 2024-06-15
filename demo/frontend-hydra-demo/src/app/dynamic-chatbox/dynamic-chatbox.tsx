@@ -10,7 +10,10 @@ export default function DynamicChatbox() {
   const handleSendMessage = async (text: string) => {
     if (!text) return;
     console.log("Sending message:", text);
-    setMessageHistory([...messageHistory, { message: text, type: "string" }]);
+    setMessageHistory([
+      ...messageHistory,
+      { message: `user: ${text}`, type: "string" },
+    ]);
     await processUserMessage(text);
     setInputMessage("");
   };

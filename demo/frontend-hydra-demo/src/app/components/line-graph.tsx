@@ -43,15 +43,16 @@ export default function LineGraph({
       });
     }
 
-    console.log(data);
-
     return { label, data };
   }
 
-  const data: Series[] = [
-    generateDataSeries("SeriesA", 20, new Date(2024, 0, 1), 10),
-    generateDataSeries("SeriesB", 102, new Date(2024, 0, 1), 10),
-  ];
+  const data: Series[] = useMemo(
+    () => [
+      generateDataSeries("SeriesA", 20, new Date(2024, 0, 1), 10),
+      generateDataSeries("SeriesB", 102, new Date(2024, 0, 1), 10),
+    ],
+    []
+  ); // Empty dependency array ensures this is only run once
 
   const primaryAxis = useMemo(
     (): AxisOptions<DailyStars> => ({
