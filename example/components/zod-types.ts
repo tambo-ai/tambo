@@ -67,6 +67,7 @@ export const QuoteProps = z
     errorMessage: z.string().describe("Message displayed on error"),
     successTitle: z.string().describe("Title displayed on success"),
     errorTitle: z.string().describe("Title displayed on error"),
+    errorTitleClassName : z.string().describe("this a tailwinds class"),
     services: z.array(z.string()).describe("A list of all the services above"),
   })
   .describe(
