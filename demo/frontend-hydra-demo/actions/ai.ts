@@ -18,7 +18,7 @@ type ComponentType = {
 };
 
 const component_types: { [key: string]: ComponentType } = {
-  TimeSeriesData: { props: TimeSeriesDataProps },
+  graph: { props: TimeSeriesDataProps },
 };
 
 export async function generateResponse(
