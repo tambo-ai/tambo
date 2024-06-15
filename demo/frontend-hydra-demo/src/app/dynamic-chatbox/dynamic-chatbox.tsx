@@ -1,23 +1,23 @@
 import { useState } from "react";
 import { DynamicMessage } from "../model/dynamic-message";
+import { generateDynamicMessage } from "../services/component-gen.service";
 import DynamicMessageHistory from "./dynamic-message-history";
 
 export default function DynamicChatbox() {
   const [inputMessage, setInputMessage] = useState("");
   const [messageHistory, setMessageHistory] = useState<DynamicMessage[]>([]);
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!text) return;
     console.log("Sending message:", text);
-    setMessageHistory([...messageHistory, { message: text }]);
-    processUserMessage(text);
+    setMessageHistory([...messageHistory, { message: text, type: "string" }]);
+    await processUserMessage(text);
     setInputMessage("");
   };
 
   const processUserMessage = async (message: string) => {
-    //send message to 'component generation package'
-    //convert response to 'DynamicMessage'
-    //add to messageHistory
+    const response = await generateDynamicMessage(message);
+    setMessageHistory([...messageHistory, response]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

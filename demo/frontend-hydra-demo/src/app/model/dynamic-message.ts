@@ -1,3 +1,5 @@
 export interface DynamicMessage {
-  message: string;
+  message?: string;
+  type: "string" | "graph";
+  componentData?: any;
 }
