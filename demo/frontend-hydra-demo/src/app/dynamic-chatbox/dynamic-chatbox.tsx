@@ -20,6 +20,7 @@ export default function DynamicChatbox() {
 
   const processUserMessage = async (message: string) => {
     const response = await generateDynamicMessage(message);
+    console.log("Response:", response);
     setMessageHistory([...messageHistory, response]);
   };
 

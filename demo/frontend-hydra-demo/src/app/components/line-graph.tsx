@@ -1,82 +1,40 @@
 import { useMemo } from "react";
 import { AxisOptions, Chart } from "react-charts";
+import { LineGraphProps } from "./types";
+import { z } from "zod";
 
-interface LineGraphProps {
-  backgroundColor: string;
-  titleClassName: string;
-  title: string;
-  descriptionClassName: string;
-  description: string;
-}
-
-export default function LineGraph({
-  backgroundColor,
-  titleClassName,
-  title,
-  descriptionClassName,
-  description,
-}: LineGraphProps) {
-  type DailyStars = {
-    date: Date;
-    stars: number;
-  };
-
-  type Series = {
-    label: string;
-    data: DailyStars[];
-  };
-
-  function generateDataSeries(
-    label: string,
-    startStars: number,
-    startDate: Date,
-    days: number
-  ): Series {
-    const data: DailyStars[] = [];
-    let currentStars = startStars;
-
-    for (let i = 0; i < days; i++) {
-      currentStars += Math.floor(Math.random() * 100); // Increment stars by a random amount between 0 and 100
-      data.push({
-        date: new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000), // Increment date by one day
-        stars: currentStars,
-      });
-    }
-
-    return { label, data };
-  }
-
-  const data: Series[] = useMemo(
-    () => [
-      generateDataSeries("SeriesA", 20, new Date(2024, 0, 1), 10),
-      generateDataSeries("SeriesB", 102, new Date(2024, 0, 1), 10),
-    ],
-    []
-  ); // Empty dependency array ensures this is only run once
-
+export default function LineGraph(props: z.infer<typeof LineGraphProps>) {
   const primaryAxis = useMemo(
-    (): AxisOptions<DailyStars> => ({
-      getValue: (datum) => datum.date,
+    (): AxisOptions<(typeof props.series)[0]["data"][0]> => ({
+      getValue: (datum) => new Date(datum.timestamp),
     }),
-    []
+    [props.series]
   );
 
   const secondaryAxes = useMemo(
-    (): AxisOptions<DailyStars>[] => [
+    (): AxisOptions<(typeof props.series)[0]["data"][0]>[] => [
       {
-        getValue: (datum) => datum.stars,
+        getValue: (datum) => Number(datum.value),
       },
     ],
-    []
+    [props.series]
   );
 
+  console.log(props);
+
   return (
-    <div className={`h-[300px] w-full ${backgroundColor} rounded-md`}>
-      <h1 className={titleClassName}>{title}</h1>
-      <p className={descriptionClassName}>{description}</p>
+    <div className={`h-[300px] w-full ${props.backgroundColor} rounded-md`}>
+      <h1 className={props.titleClassName}>{props.title}</h1>
+      <p className={props.descriptionClassName}>{props.description}</p>
       <Chart
         options={{
-          data,
+          data: props.series.map((series: any) => ({
+            ...series,
+            data: series.data.map((dataPoint: any) => ({
+              ...dataPoint,
+              value: Number(dataPoint.value),
+            })),
+          })),
           primaryAxis,
           secondaryAxes,
         }}

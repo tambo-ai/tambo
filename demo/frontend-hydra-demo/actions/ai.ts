@@ -7,13 +7,15 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
 
 import { TimeSeriesDataProps } from "../components/types";
+import { LineGraphProps } from "../src/app/components/types";
 
 type ComponentType = {
   props: z.ZodSchema<any>;
 };
 
 const component_types: { [key: string]: ComponentType } = {
-  graph: { props: TimeSeriesDataProps },
+  graphold: { props: TimeSeriesDataProps },
+  graph: { props: LineGraphProps },
 };
 
 export async function generateResponse(
@@ -63,9 +65,9 @@ export async function generateResponse(
       user_instruction: user_instruction,
     });
     console.log(parser.getFormatInstructions());
-    console.log(response);
+    console.log(JSON.stringify(response));
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Error generating response:", error);
     console.log(parser.getFormatInstructions());

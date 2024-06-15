@@ -5,5 +5,10 @@ export const generateDynamicMessage = async (
   message: string
 ): Promise<DynamicMessage> => {
   const response = await generateResponse("graph", message);
-  return { message: message, type: "graph", componentData: response };
+  console.log("Response:", response);
+  return {
+    message: message,
+    type: "graph",
+    componentData: response,
+  };
 };
