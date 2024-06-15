@@ -10,7 +10,7 @@ export const generateDynamicMessage = async (
 const exampleGraphData = {
   title: "Monthly Sales Data",
   description: "Sales data for the year 2024",
-  titleClassName: "title-class",
+  titleClassName: "text-2xl",
   descriptionClassName: "description-class",
   dataClassName: "data-class",
   data: [

@@ -13,14 +13,7 @@ export default function DynamicMessageHistory({
         <div key={index} className="p-4 m-2 rounded-md text-white">
           {message.message}
           {message.type === "graph" && (
-            <TimeSeriesData
-              data={message.componentData.data}
-              title={message.componentData.title}
-              titleClassName={message.componentData.titleClassName}
-              description={message.componentData.description}
-              descriptionClassName={message.componentData.descriptionClassName}
-              dataClassName={message.componentData.dataClassName}
-            />
+            <TimeSeriesData {...message.componentData} />
           )}
         </div>
       ))}
