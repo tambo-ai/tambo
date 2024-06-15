@@ -8,11 +8,6 @@ import { z } from "zod";
 
 import { TimeSeriesDataProps } from "../components/types";
 
-const ScratchPadSchema = z.object({
-  explanation: z.string(),
-  data: z.any(),
-});
-
 type ComponentType = {
   props: z.ZodSchema<any>;
 };
@@ -32,11 +27,7 @@ export async function generateResponse(
   let componentProps, parser;
   try {
     ({ props: componentProps } = component);
-    parser = StructuredOutputParser.fromZodSchema(
-      ScratchPadSchema.extend({
-        data: componentProps,
-      })
-    );
+    parser = StructuredOutputParser.fromZodSchema(componentProps);
   } catch (error) {
     console.error(
       "Error extracting component properties or creating parser:",
@@ -52,7 +43,6 @@ export async function generateResponse(
         Generate a JSON object that matches the given Zod schema based on the user instrucitons above:
         If a field is Optional and there is no input don't include in the JSON response. 
         {format_instructions}
-        Always think step-by-step and show all your work in the explanation.
         `
       ),
       new ChatOpenAI({
