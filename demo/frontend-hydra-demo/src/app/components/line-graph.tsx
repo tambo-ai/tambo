@@ -34,6 +34,8 @@ export default function LineGraph(props: z.infer<typeof LineGraphProps>) {
               ...dataPoint,
               value: Number(dataPoint.value),
             })),
+            borderColor: series.lineColor,
+            backgroundColor: series.lineColor,
           })),
           primaryAxis,
           secondaryAxes,

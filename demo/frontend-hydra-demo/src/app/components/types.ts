@@ -8,8 +8,11 @@ const DataPoint = z.object({
 const Series = z.object({
   label: z.string().describe("Label for the series"),
   data: z.array(DataPoint).describe("Array of data points"),
+  lineColor: z
+    .string()
+    .regex(/^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/)
+    .describe("RGB for color of the line in the format rgb(r, g, b)"),
 });
-
 export const LineGraphProps = z.object({
   backgroundColor: z
     .string()
