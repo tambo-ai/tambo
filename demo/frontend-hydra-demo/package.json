@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "zod": "3.21.4",
     "@supabase/auth-ui-react": "^0.4.5",
     "@supabase/auth-ui-shared": "^0.1.7",
     "@supabase/supabase-js": "^2.33.2",

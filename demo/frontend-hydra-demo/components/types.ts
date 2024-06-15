@@ -1,8 +1,5 @@
 import { z } from "zod";
 
-export const TimeSeriesDataPrompt =
-  "Based on the provided information, fill in the below for a Time Series Data component:";
-
 export const TimeSeriesDataProps = z
   .object({
     title: z.string().describe("Title of the time series data"),
