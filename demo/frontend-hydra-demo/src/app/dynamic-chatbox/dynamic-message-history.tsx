@@ -8,7 +8,7 @@ export default function DynamicMessageHistory({
   messages,
 }: DynamicMessageHistoryProps) {
   return (
-    <div className="flex flex-col items-center justify-center w-full max-h-[80%]">
+    <div className="flex flex-col items-center justify-bottom w-full">
       {messages.map((message, index) => {
         return (
           <div

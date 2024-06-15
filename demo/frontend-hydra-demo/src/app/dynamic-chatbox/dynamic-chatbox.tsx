@@ -31,22 +31,26 @@ export default function DynamicChatbox() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full max-h-full max-w-1100">
-      <input
-        type="text"
-        placeholder="Type a message"
-        className="text-black p-4 m-4 rounded-md"
-        onChange={(e) => setInputMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        value={inputMessage}
-      />
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 m-4 rounded"
-        onClick={() => handleSendMessage(inputMessage)}
-      >
-        send
-      </button>
-      <DynamicMessageHistory messages={messageHistory} />
+    <div className="flex flex-col items-center justify-center w-full max-w-1100">
+      <div className="w-full">
+        <DynamicMessageHistory messages={messageHistory} />
+      </div>
+      <div className="w-full fixed bottom-0 flex items-center">
+        <input
+          type="text"
+          placeholder="Type a message"
+          className="text-black p-4 m-4 rounded-md max-w-[75%] w-full h-12"
+          onChange={(e) => setInputMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          value={inputMessage}
+        />
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 m-4 rounded max-w-[20%] w-full h-12"
+          onClick={() => handleSendMessage(inputMessage)}
+        >
+          send
+        </button>
+      </div>
     </div>
   );
 }
