@@ -1,5 +1,5 @@
-import LineGraph from "../components/line-graph";
 import { DynamicMessage } from "../model/dynamic-message";
+import ProfilePhotosRow from "../components/profile-photos-row";
 
 interface DynamicMessageHistoryProps {
   messages: DynamicMessage[];
@@ -16,8 +16,8 @@ export default function DynamicMessageHistory({
             className="p-4 m-2 rounded-md text-white w-full h-full text-center"
           >
             {message.message}
-            {message.type === "graph" && (
-              <LineGraph {...message.componentData} />
+            {message.type === "profile_photos_row" && (
+              <ProfilePhotosRow {...message.componentData} />
             )}
           </div>
         );

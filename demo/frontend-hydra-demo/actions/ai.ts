@@ -6,7 +6,10 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
 
-import { LineGraphProps } from "../src/app/components/types";
+import {
+  LineGraphProps,
+  ProfilePhotoPropsArray,
+} from "../src/app/components/types";
 
 type ComponentType = {
   props: z.ZodSchema<any>;
@@ -14,6 +17,7 @@ type ComponentType = {
 
 const component_types: { [key: string]: ComponentType } = {
   graph: { props: LineGraphProps },
+  profile_photos_row: { props: ProfilePhotoPropsArray },
 };
 
 export async function generateResponse(
