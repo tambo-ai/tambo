@@ -6,7 +6,6 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
 
-import { TimeSeriesDataProps } from "../components/types";
 import { LineGraphProps } from "../src/app/components/types";
 
 type ComponentType = {
@@ -14,7 +13,6 @@ type ComponentType = {
 };
 
 const component_types: { [key: string]: ComponentType } = {
-  graphold: { props: TimeSeriesDataProps },
   graph: { props: LineGraphProps },
 };
 
