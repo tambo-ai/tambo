@@ -34,13 +34,14 @@ export default function DynamicChatbox() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSendMessage(inputMessage);
+      setInputMessage(""); // Clear the input after submission
     }
   };
 
   return (
     <div className="flex flex-col bg-black text-white p-4 w-full">
       <DynamicMessageHistory messages={messageHistory} />
-      <div className="flex items-center bg-gray-900 rounded-lg p-2 fixed bottom-0 w-1/3">
+      <div className="flex items-center bg-gray-900 rounded-lg p-2 fixed bottom-4  w-1/3">
         <input
           type="text"
           placeholder="message hydraai..."
@@ -52,7 +53,10 @@ export default function DynamicChatbox() {
         <div className="flex ml-2">
           <SendIcon
             className="w-6 h-6"
-            onClick={() => handleSendMessage(inputMessage)}
+            onClick={() => {
+              handleSendMessage(inputMessage);
+              setInputMessage(""); // Clear the input after submission
+            }}
           />
         </div>
       </div>
@@ -75,8 +79,8 @@ function SendIcon(props: React.SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       onClick={props.onClick}
     >
-      <path d="m22 2-7 20-4-9-9-4Z" />
-      <path d="M22 2 11 13" />
+      <path d="M2 12h20" />
+      <path d="M12 2l10 10-10 10" />
     </svg>
   );
 }
