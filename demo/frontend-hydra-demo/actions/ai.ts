@@ -50,7 +50,7 @@ export async function generateResponse(
         `
       ),
       new ChatOpenAI({
-        model: "gpt-4o",
+        model: "gpt-4-turbo",
         temperature: 0.7,
         apiKey: process.env.OPENAI_API_KEY,
       }).bind({

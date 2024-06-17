@@ -42,36 +42,50 @@ export const ProfilePhotoProps = z
       .object({
         className: z
           .string()
-          .default("profile-photo bg-black text-white p-4 rounded-lg")
-          .optional(),
+          .optional()
+          .describe(
+            "Use tailwinds classes to style the container here is an example: 'profile-photo bg-black text-white p-4 rounded-lg'"
+          ),
       })
       .optional(),
     info: z
       .object({
-        className: z.string().default("profile-photo__info p-2").optional(),
+        className: z
+          .string()
+          .optional()
+          .describe(
+            "Use tailwinds classes to style the info here is an example: 'profile-photo__info p-2'"
+          ),
         name: z.string().optional(),
         nameClass: z
           .string()
-          .default("profile-photo__name text-lg font-bold")
-          .optional(),
+          .optional()
+          .describe(
+            "Use tailwinds classes to style the name here is an example: 'profile-photo__name text-lg font-bold'"
+          ),
         description: z.string().optional(),
         descriptionClass: z
           .string()
-          .default("profile-photo__description text-sm")
-          .optional(),
+          .optional()
+          .describe(
+            "Use tailwinds classes to style the description here is an example: 'profile-photo__description text-sm'"
+          ),
       })
       .optional(),
     image: z
       .object({
         url: z
           .string()
-          .default("/profile_1.webp")
           .optional()
-          .describe("always use default image as a relative url."),
+          .describe(
+            "Use one of these profiles: /profile_man_1.webp, /profile_woman_2.webp, /profile_woman_3.webp"
+          ),
         className: z
           .string()
-          .default("profile-photo__image w-full h-32 object-cover rounded-t-lg")
-          .optional(),
+          .optional()
+          .describe(
+            "Use tailwinds classes to style the image here is an example: 'profile-photo__image w-full h-32 object-cover rounded-t-lg'"
+          ),
       })
       .optional(),
   })
