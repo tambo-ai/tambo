@@ -10,10 +10,12 @@ export default function DynamicChatbox() {
   const handleSendMessage = async (text: string) => {
     if (!text) return;
     console.log("Sending message:", text);
-    setMessageHistory([
-      ...messageHistory,
-      { message: `user: ${text}`, type: "string" },
-    ]);
+    const userMessage: DynamicMessage = {
+      who: "Input",
+      message: text,
+      type: "string",
+    };
+    setMessageHistory((prevHistory) => [...prevHistory, userMessage]);
     await processUserMessage(text);
     setInputMessage("");
   };
@@ -21,7 +23,12 @@ export default function DynamicChatbox() {
   const processUserMessage = async (message: string) => {
     const response = await generateDynamicMessage(message);
     console.log("Response:", response);
-    setMessageHistory([...messageHistory, response]);
+    const hydraMessage: DynamicMessage = {
+      ...response,
+      who: "HydraAI",
+      message: "Here is your component rendered by HydraAI",
+    };
+    setMessageHistory((prevHistory) => [...prevHistory, hydraMessage]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -31,26 +38,45 @@ export default function DynamicChatbox() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-1100">
-      <div className="w-full">
-        <DynamicMessageHistory messages={messageHistory} />
-      </div>
-      <div className="w-full fixed bottom-0 flex items-center">
+    <div className="flex flex-col bg-black text-white p-4 w-full">
+      <DynamicMessageHistory messages={messageHistory} />
+      <div className="flex items-center bg-gray-900 rounded-lg p-2 fixed bottom-0 w-1/3">
         <input
           type="text"
-          placeholder="Type a message"
-          className="text-black p-4 m-4 rounded-md max-w-[75%] w-full h-12"
+          placeholder="message hydraai..."
+          className="flex-grow bg-transparent text-white placeholder-gray-500 outline-none"
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           value={inputMessage}
         />
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 m-4 rounded max-w-[20%] w-full h-12"
-          onClick={() => handleSendMessage(inputMessage)}
-        >
-          send
-        </button>
+        <div className="flex ml-2">
+          <SendIcon
+            className="w-6 h-6"
+            onClick={() => handleSendMessage(inputMessage)}
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+function SendIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      onClick={props.onClick}
+    >
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
   );
 }
