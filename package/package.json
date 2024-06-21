@@ -1,0 +1,37 @@
+{
+  "name": "hydra-ai",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "bugs": {},
+  "keywords": [
+    "hydra",
+    "ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2"
+  },
+  "peerDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@langchain/openai": "^0.1.3"
+  }
+}
