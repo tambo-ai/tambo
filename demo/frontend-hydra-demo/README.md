@@ -1,34 +1,93 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Hydra-AI History App Demo
 
-## Getting Started
+In this demo app, we showcase how the `hydra-ai` package can be used to create a history learning application where the AI chooses between different pre-built React components and hydrates them to display historical information dynamically within a chatbox.
 
-First, run the development server:
+After each User message hydra will try to respond with one of the registered components.
+
+The app uses several components such as `HistoricalEventCard`, `TimelineCard`, `HistoricalFigureCard`, and `HistoricalQuote` to display information in a way that makes sense based on the content.
+
+## Usage
+
+### Steps
+
+1. **Add your OpenAI Key**
+
+Create a file called `.env.local` under `/src/`.
+
+Add your OpenAI Key, like:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+OPENAI_API_KEY=<your key>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+3. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
 
-## Learn More
+## About
 
-To learn more about Next.js, take a look at the following resources:
+This app is a NextJS where the package is used from within server actions, and resulting components are sent to the frontend to be displayed in the chatbox.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+under `src/app/services/hydra.ts` we register the components:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```jsx
+export const initHydra = (openAIKey: string) => {
+  const hydra = new Hydra(openAIKey);
 
-## Deploy on Vercel
+  hydra.registerComponent("HistoricalEventCard", HistoricalEventCard, {
+    title: "string",
+    date: "string",
+    description: "string",
+  });
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+  hydra.registerComponent("HistoricalFigureCard", HistoricalFigureCard, {
+    name: "string",
+    birthDate: "string",
+    deathDate: "string",
+    bio: "string",
+    awards: "string",
+  });
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+  hydra.registerComponent("TimelineCard", TimelineCard, {
+    period: "string",
+    events: "Array<{ year: string, event: string }>",
+  });
+
+  hydra.registerComponent("HistoricalQuote", HistoricalQuote, {
+    quote: "string",
+    author: "string",
+    year: "string",
+  });
+
+  return hydra;
+};
+```
+
+and under `src/app/services/component-gen.service.ts` we call hydra to generate components:
+
+```jsx
+"use server";
+
+import Hydra from "hydra-ai";
+import { ReactElement } from "react";
+import { initHydra } from "./hydra";
+
+let hydra: Hydra | null;
+
+export const generateDynamicMessage = async (
+  message: string
+): Promise<ReactElement> => {
+  if (!hydra) {
+    hydra = initHydra(process.env.OPENAI_API_KEY ?? "");
+  }
+  const response = await hydra.generateComponent(message);
+  return response;
+};
+```

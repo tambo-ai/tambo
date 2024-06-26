@@ -1,14 +1,17 @@
-import { generateResponse } from "../../../actions/ai";
-import { DynamicMessage } from "../model/dynamic-message";
+"use server";
+
+import Hydra from "hydra-ai";
+import { ReactElement } from "react";
+import { initHydra } from "./hydra";
+
+let hydra: Hydra | null;
 
 export const generateDynamicMessage = async (
   message: string
-): Promise<DynamicMessage> => {
-  const response = await generateResponse("profile_photos_row", message);
-  console.log("Response:", response);
-  return {
-    message: message,
-    type: "profile_photos_row",
-    componentData: response,
-  };
+): Promise<ReactElement> => {
+  if (!hydra) {
+    hydra = initHydra(process.env.OPENAI_API_KEY ?? "");
+  }
+  const response = await hydra.generateComponent(message);
+  return response;
 };

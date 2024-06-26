@@ -3,30 +3,41 @@ import { DynamicMessage } from "../model/dynamic-message";
 import { generateDynamicMessage } from "../services/component-gen.service";
 import DynamicMessageHistory from "./dynamic-message-history";
 
+const initialMessage: DynamicMessage = {
+  who: "HydraAI",
+  message:
+    "Hello! Hydra is a package that lets you register components, and lets AI choose them based on context. This is a demo 'history teacher' app that registers components for historical events, figures, quotes, and timelines. Try typing 'show me a historical event' or 'tell me about a historical figure'",
+  type: "text",
+};
+
 export default function DynamicChatbox() {
   const [inputMessage, setInputMessage] = useState("");
-  const [messageHistory, setMessageHistory] = useState<DynamicMessage[]>([]);
+  const [messageHistory, setMessageHistory] = useState<DynamicMessage[]>([
+    initialMessage,
+  ]);
 
   const handleSendMessage = async (text: string) => {
     if (!text) return;
-    console.log("Sending message:", text);
     const userMessage: DynamicMessage = {
       who: "Input",
       message: text,
-      type: "string",
+      type: "text",
     };
     setMessageHistory((prevHistory) => [...prevHistory, userMessage]);
     await processUserMessage(text);
-    setInputMessage("");
   };
 
   const processUserMessage = async (message: string) => {
-    const response = await generateDynamicMessage(message);
-    console.log("Response:", response);
+    const response = await generateDynamicMessage(
+      `previous messages ${JSON.stringify(
+        messageHistory
+      )} latest message: ${message}`
+    );
     const hydraMessage: DynamicMessage = {
-      ...response,
+      component: response,
       who: "HydraAI",
-      message: "Here is your component rendered by HydraAI",
+      type: "component",
+      message: "",
     };
     setMessageHistory((prevHistory) => [...prevHistory, hydraMessage]);
   };
