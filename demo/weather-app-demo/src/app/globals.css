@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+html, body, main {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* color: rgb(var(--foreground-rgb)); */
+  background: #121212;
+  color: #FFF7B2;
+}
+
+a {
+  color: #a4f9f9;
+}
+
+a:hover {
+  color: #71a4a4;
+}
+
+.submit-button {
+    width: 90%;
+    height: 40px;
+    border-radius: 5px;
+    border: none;
+    background-color: #A4C1AE;
+    color: white;
+}
+
+.button {
+  cursor: pointer;
+}
+.button:hover {
+  opacity: 0.8;
+}
+
+.floating-element {
+  box-shadow: 0 2px 5px 0 rgba(0,0,0,0.15);
+  transition: box-shadow .2s ease-in-out;
+}
+
+.floating-element:focus{
+   box-shadow: 0 5px 9px 0 rgba(0,0,0,0.1);
+  transition: box-shadow .2s ease-in-out; 
+}
+
+.general-input {
+    margin: 10px;
+    height: 40px;
+    width: 90%;
+    border-radius: 5px;
+    border: none;
+    background: #ffffff;
+    padding:20px;
+    color: rgb(31, 31, 31);
+    box-sizing: border-box;
+}
+
+.general-input:focus {
+    border: 1px solid black;
+    outline: none;
+}
+
+.elipses-overflow {
+  white-space: nowrap; /* Prevent text from wrapping to the next line */
+  overflow: hidden; /* Hide overflowing content */
+  text-overflow: ellipsis;
+}
+
+.floating-solid {
+  box-shadow: 2px 2px 0px 0px rgb(20, 20, 20); 
+}
+
+.context-menu-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.context-menu-item:hover {
+  background-color: #d3d3d3;
+}
+
+.context-menu-icon {
+  height: 15px;
+  width: 15px;
+  margin-right: 10px;
+}
+
+.error-message {
+  color: #c34a4a;
+}
+ .no-scroll {
+  overflow: hidden;
+}
