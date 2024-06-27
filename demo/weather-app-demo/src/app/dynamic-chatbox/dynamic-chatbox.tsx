@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DynamicMessage } from "../model/dynamic-message";
 import { generateDynamicMessage } from "../services/component-gen.service";
 import DynamicMessageHistory from "./dynamic-message-history";
+import { Info } from "./info";
 
 const initialMessages: DynamicMessage[] = [
   {
@@ -24,6 +25,7 @@ export default function DynamicChatbox() {
   const [messageHistory, setMessageHistory] = useState<DynamicMessage[]>([
     ...initialMessages,
   ]);
+  const [viewingInfo, setViewingInfo] = useState(false);
 
   const handleSendMessage = async (text: string) => {
     if (!text) return;
@@ -61,28 +63,44 @@ export default function DynamicChatbox() {
   };
 
   return (
-    <div className="flex flex-col bg-black text-white p-4 w-full">
-      <DynamicMessageHistory messages={messageHistory} />
-      {isLoading && <div className="text-center">Loading...</div>}
-      <div className="flex items-center bg-gray-900 rounded-lg p-2 fixed bottom-4  w-1/3">
-        <input
-          type="text"
-          placeholder="message hydraai..."
-          className="flex-grow bg-transparent text-white placeholder-gray-500 outline-none"
-          onChange={(e) => setInputMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          value={inputMessage}
-        />
-        <div className="flex ml-2">
-          <SendIcon
-            className="w-6 h-6"
-            onClick={() => {
-              handleSendMessage(inputMessage);
-              setInputMessage(""); // Clear the input after submission
-            }}
-          />
-        </div>
+    <div className="relative flex flex-col bg-black text-white p-4 h-full w-full max-w-[500px] mx-auto">
+      <div className="flex justify-center items-center mb-4">
+        <button
+          className="text-white bg-gray-900 rounded-lg p-2 button"
+          onClick={() => setViewingInfo(!viewingInfo)}
+        >
+          {viewingInfo ? "Close Info" : "Show Info"}
+        </button>
       </div>
+      {viewingInfo ? (
+        <Info />
+      ) : (
+        <>
+          <div className="flex-grow overflow-auto mb-20">
+            <DynamicMessageHistory messages={messageHistory} />
+            {isLoading && <div className="text-center">Loading...</div>}
+          </div>
+          <div className="flex items-center bg-gray-900 rounded-lg p-2 fixed bottom-4 left-0 right-0 w-full max-w-[500px] mx-auto">
+            <input
+              type="text"
+              placeholder="message hydraai..."
+              className="flex-grow bg-transparent text-white placeholder-gray-500 outline-none"
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              value={inputMessage}
+            />
+            <div className="flex ml-2">
+              <SendIcon
+                className="w-6 h-6 cursor-pointer button"
+                onClick={() => {
+                  handleSendMessage(inputMessage);
+                  setInputMessage(""); // Clear the input after submission
+                }}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

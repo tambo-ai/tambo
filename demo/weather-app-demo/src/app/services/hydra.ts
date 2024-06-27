@@ -14,7 +14,7 @@ export const initHydra = (openAIKey: string) => {
   });
 
   hydra.registerComponent("RainChart", RainChart, {
-    data: "Array<{ hour: string; rainAmountInches: number }>",
+    data: "Array<{ hourOrDay: string; rainChancePercent: number }>",
   });
 
   hydra.registerComponent("WeatherTimeChart", WeatherTimeChart, {
