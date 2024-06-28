@@ -12,8 +12,8 @@ export default class Hydra {
   private componentList: ComponentRegistry = {};
   private aiService: AIService;
 
-  constructor(openAIKey: string) {
-    this.aiService = new AIService(openAIKey);
+  constructor(openAIKey: string, openAIModel = "gpt-4o") {
+    this.aiService = new AIService(openAIKey, openAIModel);
   }
 
   public registerComponent(

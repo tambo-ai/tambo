@@ -7,12 +7,14 @@ import { ComponentChoice } from "./model/component-choice";
 import { InputContext } from "./model/input-context";
 
 export default class AIService {
-  model: OpenAI;
+  client: OpenAI;
+  model: string;
 
-  constructor(openAIKey: string) {
-    this.model = new OpenAI({
+  constructor(openAIKey: string, model: string = "gpt-4o") {
+    this.client = new OpenAI({
       apiKey: openAIKey,
     });
+    this.model = model;
   }
 
   chooseComponent = async (context: InputContext): Promise<ComponentChoice> => {
@@ -51,13 +53,11 @@ export default class AIService {
   async callStructuredOpenAI(
     prompt: string,
     content: string,
-    schema: z.ZodSchema<any>,
-    model: string = "gpt-4o"
+    schema: z.ZodSchema<any>
   ): Promise<any> {
     const responseContent = await this.callOpenAI(
       prompt,
       "You only respond in JSON." + content,
-      model,
       true
     );
     return await this.parseAndReturnData(schema, responseContent);
@@ -66,11 +66,10 @@ export default class AIService {
   async callOpenAI(
     userPrompt: string,
     systemPrompt: string,
-    model: string,
     jsonMode: boolean = false
   ): Promise<string> {
-    const response = await this.model.chat.completions.create({
-      model: model,
+    const response = await this.client.chat.completions.create({
+      model: this.model,
       messages: [
         {
           role: "system",
