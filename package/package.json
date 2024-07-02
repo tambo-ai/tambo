@@ -11,9 +11,12 @@
     "test": "jest"
   },
   "repository": {
-    "type": "git"
+    "type": "git",
+    "url": "https://github.com/michaelmagan/hydraai"
   },
-  "bugs": {},
+  "bugs": {
+    "url": "https://github.com/michaelmagan/hydraai/issues"
+  },
   "keywords": [
     "hydra",
     "ai"

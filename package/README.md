@@ -2,9 +2,12 @@
 
 A tool to generate React components on-the-fly using AI.
 
-### note:
+### notes:
 
-This package is a work-in-progress. By following the instructions here currently, you will be exposing your OpenAI key to users, unless you have your users enter their own key. Our advice is to use this only for experimentation until the package structure is updated.
+This package is a work-in-progress. Note the following issues:
+
+- expects to be used in a NextJS project
+- components that have function props do not work.
 
 ## Getting started
 
@@ -14,29 +17,44 @@ This package is a work-in-progress. By following the instructions here currently
 npm i hydra-ai
 ```
 
-2. **Initialize Hydra and register components**
+2 **Set your OpenAI API key environment variable**
 
-To create a list of components that the AI can choose from, call `registerComponent(name, component)` with each, where `name` is a unique name for the component.
+In a file called `.env.local`, add:
+
+```
+OPENAI_API_KEY=<your openai api key>
+```
+
+This will be used by the HydraBackend class server-side and is used to make requests to OpenAI.
+
+3. **Initialize HydraClient and register components**
+
+Somewhere in your app, create a new instance of `HydraClient`.
+
+Then to create a list of components that the AI can choose from, call `registerComponent(name, component, propsDefinition)` with each, where `name` is a unique name for the component, `component` is the actual component, and `props` is an object that describes each available prop of the component.
 
 ```typescript
-import Hydra from "hydra-ai";
-import { FC } from "react";
+//hydra-client.ts
 
-export const initHydra = (openAIKey: string) => {
-  const hydra = new Hydra(openAIKey);
+import { HydraClient } from "hydra-ai";
+import CurrentWeather from "./components/current-weather";
+import RainChart from "./components/rain-chart";
+import WeatherTimeChart from "./components/weather-timechart";
+import WindTimeChart from "./components/wind-timechart";
 
-  const TestComp: FC<{}> = () => {
-    return <div>Test</div>;
-  };
+const hydra = new HydraClient();
 
-  const TestComp2: FC = () => {
-    return <div>Test2</div>;
-  };
+hydra.registerComponent("CurrentWeather", CurrentWeather, {
+  temperatureFahrenheit: "number",
+  description: "string",
+  weather: '"rain" | "sun" | "cloud" | "snow" | "clear"',
+});
 
-  hydra.registerComponent("testComp", TestComp);
-  hydra.registerComponent("testComp2", TestComp2);
-  return hydra;
-};
+hydra.registerComponent("RainChart", RainChart, {
+  data: "Array<{ hourOrDay: string; rainChancePercent: number }>",
+});
+
+export default hydra;
 ```
 
 3. **Generate components**
@@ -45,13 +63,13 @@ export const initHydra = (openAIKey: string) => {
 const component = await hydra.generateComponent(message);
 ```
 
-You will likely want to have a state variable to hold the generated component. Here's a full example page (using NextJS) that uses Hydra:
+You will likely want to have a state variable to hold the generated component. Here's a full example page (using NextJS) that uses Hydra, assuming the `hydra-client.ts` file shown above is created:
 
 ```typescript
 "use client";
 
 import { ReactElement, useEffect, useState } from "react";
-import { initHydra } from "./hydra";
+import hydra from "./hydra-client";
 
 export default function Home() {
   const [dynamicComponent, setDynamicComponent] = useState<ReactElement | null>(
@@ -66,7 +84,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchComponent("please show me testComp2");
+    fetchComponent("please show me ");
   }, []);
 
   return (
