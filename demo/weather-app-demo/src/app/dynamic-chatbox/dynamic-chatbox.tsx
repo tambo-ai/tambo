@@ -1,6 +1,6 @@
 import { useState } from "react";
+import hydra from "../hydra-client";
 import { DynamicMessage } from "../model/dynamic-message";
-import { generateDynamicMessage } from "../services/component-gen.service";
 import DynamicMessageHistory from "./dynamic-message-history";
 import { Info } from "./info";
 
@@ -40,7 +40,7 @@ export default function DynamicChatbox() {
 
   const processUserMessage = async (message: string) => {
     setIsLoading(true);
-    const response = await generateDynamicMessage(
+    const response = await hydra.generateComponent(
       `previous messages ${JSON.stringify(
         messageHistory
       )} latest message: ${message}`
