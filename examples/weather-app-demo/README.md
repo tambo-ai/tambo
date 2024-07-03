@@ -82,3 +82,7 @@ export const generateDynamicMessage = async (
   return response;
 };
 ```
+
+## Report a bug or Request a feature
+
+Make a GitHub issue [here.](https://github.com/michaelmagan/hydraai/issues/new)

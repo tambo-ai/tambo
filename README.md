@@ -1,64 +1,48 @@
-# HydraAI
+# Hydra AI
 
-A framework to generate a user interface with AI inside your production app.
+A framework for generating React components on-the-fly using AI. Register your components, and let Hydra choose when to show them in your App.
 
-## What is it?
-It’s a framework and component library for building AI-generated components inside a React app.
-
-## How is this different from V0?
-V0 generates a “static” component you can copy into your project. This is useful for a developer “designing” the app but not helpful if you need to generate it in production.
-
-## Why do you need this?
-Chat interfaces are a paradigm shift in UI. Allowing people to interact with technology through natural language. While this is a vast improvement for many user experiences, not every interface is improved with natural language.
-
-HydraAI is a way to give AI models the ability to generate user experiences in your app.
-
-## What are some use cases for HydraAI?
-* Excepting structured data.
-* Collecting sensitive data that shouldn’t pass to an AI model.
-* Displaying visual information: graphs, tables, images, etc.
-
-## How to start the project
-
-To get started with HydraAI, follow these steps:
-
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/michaelmagan/hydraai.git
-   cd hydraai
-   ```
-
-2. **Install dependencies:**
-   ```sh
-   npm install
-   ```
-
-3. **Add your .env variables:**
-   Copy the `.env.example` file to `.env.local` and update the `OPENAI_API_KEY` with your actual API key.
-   ```sh
-   cp demo/frontend-hydra-demo/.env.example demo/frontend-hydra-demo/.env.local
-   # Open .env.local and replace "YOUR_OPENAI_API_KEY" with your actual API key
-   ```
-
-4. **Run the development server:**
-   ```sh
-   npm run dev
-   ```
-
-5. **Open your browser:**
-   Navigate to `http://localhost:3000` to see the application running.
-
-Note: To get full use of tailwinds classes you need to have tailwinds generate all the classes and it can take up to 20s per compilation...
-
-When developing locally you can comment out:
+```typescript
+const dynamicComponent = await hydra.generateComponent(context);
 ```
-  // safelist: [
-  //   {
-  //     pattern: /./, // the "." means "everything"
-  //   },
-  // ],
-```
-but not all tailwinds stylings will work.
 
+### Note:
 
-By following these steps, you will have HydraAI up and running on your local machine. For more detailed instructions, refer to the project's documentation.
+Hydra development is still early, and patterns for different types of components and apps are still being developed.
+
+## This Repo
+
+- `hydra-ai` package is here: [/package](/package)
+- Example apps that use `hydra-ai`:
+  - ToDo app demo here: [/examples/todo-app-demo](/examples/todo-app-demo/)
+  - Weather app demo here: [/examples/weather-app-demo](/examples/weather-app-demo/)
+
+## Use Cases
+
+The clearest use case is in chat-based applications. If you have a ChatGPT style app that lets a user chat with an AI, Hydra lets your AI respond with interactive components instead of just text. Interacting through natural language is often a great experience, but sometimes a user needs more.
+
+Some examples that enhance a chat-based app:
+
+- **Forms:**
+  - If a user wants to login to service, or create a new entry, Hydra can show them a form with the required fields.
+- **Visual Information:**
+  - If a user asks something like, "I want to see available T-Shirts," Hydra can show a list of Product Cards with images.
+  - If a user is asking about trends or comparisons, Hydra can respond with an interactive graph.
+- **Interactive Components:**
+  - If a user asks to see a list of ToDo items, Hydra can respond with a list of ToDo components, where the user can then click to mark them as done.
+
+In general, beyond chat apps, we imagine that the UX of an app could be completely controlled by Hydra.
+
+## Getting Started
+
+To use Hydra in your own NextJS app, follow the instructions in the package's readme [here.](/package/README.md)
+
+To run one of the example apps, follow the instructions in that example's readme. ToDo app instructions [here.](/examples/todo-app-demo/README.md)
+
+## How is this different from Vercel V0?
+
+We've been asked this a few times. For clarification, Vercel V0 lets you generate a component that you can copy/paste into your app's code. Hydra is for injecting components into your running app's UI on-the-fly based on context.
+
+## Report a bug or Request a feature
+
+Make a GitHub issue [here.](https://github.com/michaelmagan/hydraai/issues/new)

@@ -1,6 +1,6 @@
 # Hydra AI
 
-A tool to generate React components on-the-fly using AI.
+A framework for generating React components on-the-fly using AI. Register your components, and let Hydra choose when to show them in your App.
 
 ### notes:
 
@@ -31,7 +31,11 @@ This will be used by the HydraBackend class server-side and is used to make requ
 
 Somewhere in your app, create a new instance of `HydraClient`.
 
-Then to create a list of components that the AI can choose from, call `registerComponent(name, component, propsDefinition)` with each, where `name` is a unique name for the component, `component` is the actual component, and `props` is an object that describes each available prop of the component.
+Then to create a list of components that the AI can choose from, call `registerComponent(name, component, propsDefinition)` with each, where:
+
+- `name` is a unique name for the component
+- `component` is the actual component
+- `props` is an object that describes each available prop of the component.
 
 ```typescript
 //hydra-client.ts
@@ -76,15 +80,13 @@ export default function Home() {
     null
   );
 
-  const hydra = initHydra(process.env.NEXT_PUBLIC_OPEN_AI_KEY!);
-
   const fetchComponent = async (message: string) => {
     const component = await hydra.generateComponent(message);
     setDynamicComponent(component);
   };
 
   useEffect(() => {
-    fetchComponent("please show me ");
+    fetchComponent("please show me a weather forecast");
   }, []);
 
   return (
@@ -94,3 +96,7 @@ export default function Home() {
   );
 }
 ```
+
+## Report a bug or Request a feature
+
+Make a GitHub issue [here.](https://github.com/michaelmagan/hydraai/issues/new)
