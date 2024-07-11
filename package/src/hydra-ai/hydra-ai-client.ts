@@ -1,11 +1,14 @@
 import React, { ComponentType, ReactElement } from "react";
 import chooseComponent from "./hydra-server-action";
 import { ComponentChoice } from "./model/component-choice";
-import { ComponentMetadata } from "./model/component-metadata";
+import {
+  ComponentMetadata,
+  RegisteredComponent,
+} from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
 
 interface ComponentRegistry {
-  [key: string]: ComponentMetadata;
+  [key: string]: RegisteredComponent;
 }
 
 export default class HydraClient {
@@ -14,10 +17,16 @@ export default class HydraClient {
   public registerComponent(
     name: string,
     component: ComponentType<any>,
-    propsDefinition?: ComponentPropsMetadata
+    propsDefinition?: ComponentPropsMetadata,
+    getData?: () => any
   ): void {
     if (!this.componentList[name]) {
-      this.componentList[name] = { component, props: propsDefinition || {} };
+      this.componentList[name] = {
+        component,
+        name,
+        props: propsDefinition || {},
+        getData,
+      };
     } else {
       throw new Error(
         `A component with name: ${name} is already registered. Try another name.`
@@ -29,14 +38,26 @@ export default class HydraClient {
     message: string,
     callback: (
       message: string,
-      availableComponents: { componentName: string; props: any }[]
+      availableComponents: ComponentMetadata[]
     ) => Promise<ComponentChoice> = chooseComponent
   ): Promise<ReactElement> {
-    const availableComponents = Object.keys(this.componentList).map((name) => ({
-      componentName: name,
-      props: this.componentList[name].props,
-    }));
-    const response = await callback(message, availableComponents);
+    const availableComponents = this.getAvailableComponents(this.componentList);
+
+    const componentMetadataList: ComponentMetadata[] = availableComponents.map(
+      (component) => {
+        return {
+          name: component.name,
+          props: component.props,
+        } as ComponentMetadata;
+      }
+    );
+
+    const messageWithData = this.generateContextMessage(
+      message,
+      this.componentList
+    );
+
+    const response = await callback(messageWithData, componentMetadataList);
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
     }
@@ -50,4 +71,38 @@ export default class HydraClient {
 
     return React.createElement(componentEntry.component, response.props);
   }
+
+  private generateContextMessage = (
+    userContext: string,
+    componentRegistry: ComponentRegistry
+  ): string => {
+    const availableComponents = this.getAvailableComponents(componentRegistry);
+
+    const componentDataMessage = availableComponents
+      .map((component) => {
+        if (component.getData) {
+          return ` for ${
+            component.name
+          } the available data is: ${JSON.stringify(component.getData())}`;
+        }
+      })
+      .join(", ");
+    const messageWithData = `${userContext} ${componentDataMessage}`;
+
+    return messageWithData;
+  };
+
+  private getAvailableComponents = (
+    componentRegistry: ComponentRegistry
+  ): RegisteredComponent[] => {
+    return Object.keys(componentRegistry).map((name) => {
+      const componentEntry: RegisteredComponent = componentRegistry[name];
+      return {
+        component: componentEntry.component,
+        name: componentEntry.name,
+        props: componentEntry.props,
+        getData: componentEntry.getData,
+      };
+    });
+  };
 }

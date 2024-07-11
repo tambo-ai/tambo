@@ -2,12 +2,13 @@
 
 import HydraBackend from "./hydra-ai-backend";
 import { ComponentChoice } from "./model/component-choice";
+import { ComponentMetadata } from "./model/component-metadata";
 
 let hydra: HydraBackend | null;
 
 export default async function chooseComponent(
   message: string,
-  availableComponents: { componentName: string; props: any }[]
+  availableComponents: ComponentMetadata[]
 ): Promise<ComponentChoice> {
   if (!hydra) {
     hydra = new HydraBackend(process.env.OPENAI_API_KEY ?? "");

@@ -38,7 +38,7 @@ export default class AIService {
       Here is the list of available components with their props:
       ${JSON.stringify(context.availableComponents)}
       ${this.generateZodTypePrompt(schema)} 
-      The latest user message is: ${context.chatMessage}
+      The latest user message is: ${context.prompt}
     `;
 
     const response = await this.callStructuredOpenAI(

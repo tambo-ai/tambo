@@ -1,5 +1,7 @@
 import "server-only";
 import AIService from "./ai-service";
+import { ComponentChoice } from "./model/component-choice";
+import { ComponentMetadata } from "./model/component-metadata";
 import { InputContext } from "./model/input-context";
 
 export default class HydraBackend {
@@ -11,10 +13,10 @@ export default class HydraBackend {
 
   public async generateComponent(
     message: string,
-    availableComponents: { componentName: string; props: any }[]
-  ): Promise<{ componentName: string; props: any }> {
+    availableComponents: ComponentMetadata[]
+  ): Promise<ComponentChoice> {
     const context: InputContext = {
-      chatMessage: message,
+      prompt: message,
       availableComponents,
     };
 

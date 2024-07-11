@@ -1,14 +1,6 @@
-import { z } from "zod";
-import { ComponentPropsMetadataSchema } from "./component-props-metadata";
+import { ComponentMetadata } from "./component-metadata";
 
-const InputContextSchema = z.object({
-  chatMessage: z.string(),
-  availableComponents: z.array(
-    z.object({
-      componentName: z.string(),
-      props: ComponentPropsMetadataSchema,
-    })
-  ),
-});
-
-export type InputContext = z.infer<typeof InputContextSchema>;
+export type InputContext = {
+  prompt: string;
+  availableComponents: ComponentMetadata[];
+};
