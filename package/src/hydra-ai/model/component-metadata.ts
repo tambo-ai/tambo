@@ -8,5 +8,5 @@ export interface ComponentMetadata {
 
 export interface RegisteredComponent extends ComponentMetadata {
   component: ComponentType<any>;
-  getData?: () => any;
+  getComponentContext?: () => Promise<any>;
 }

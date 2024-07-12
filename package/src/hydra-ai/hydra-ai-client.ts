@@ -18,14 +18,17 @@ export default class HydraClient {
     name: string,
     component: ComponentType<any>,
     propsDefinition?: ComponentPropsMetadata,
-    getData?: () => any
+    getComponentContext?: () => any | Promise<any>
   ): void {
     if (!this.componentList[name]) {
+      const asyncGetComponentContext = getComponentContext
+        ? async () => await getComponentContext()
+        : undefined;
       this.componentList[name] = {
         component,
         name,
         props: propsDefinition || {},
-        getData,
+        getComponentContext: asyncGetComponentContext,
       };
     } else {
       throw new Error(
@@ -52,7 +55,7 @@ export default class HydraClient {
       }
     );
 
-    const messageWithData = this.generateContextMessage(
+    const messageWithData = await this.generateContextMessage(
       message,
       this.componentList
     );
@@ -72,21 +75,26 @@ export default class HydraClient {
     return React.createElement(componentEntry.component, response.props);
   }
 
-  private generateContextMessage = (
+  private generateContextMessage = async (
     userContext: string,
     componentRegistry: ComponentRegistry
-  ): string => {
+  ): Promise<string> => {
     const availableComponents = this.getAvailableComponents(componentRegistry);
 
-    const componentDataMessage = availableComponents
-      .map((component) => {
-        if (component.getData) {
+    const componentDataMessagePromises = availableComponents.map(
+      async (component) => {
+        if (component.getComponentContext) {
+          const componentContext = await component.getComponentContext();
           return ` for ${
             component.name
-          } the available data is: ${JSON.stringify(component.getData())}`;
+          } the available data is: ${JSON.stringify(componentContext)}`;
         }
-      })
-      .join(", ");
+      }
+    );
+
+    const componentDataMessage = (
+      await Promise.all(componentDataMessagePromises)
+    ).join(", ");
     const messageWithData = `${userContext} ${componentDataMessage}`;
 
     return messageWithData;
@@ -101,7 +109,7 @@ export default class HydraClient {
         component: componentEntry.component,
         name: componentEntry.name,
         props: componentEntry.props,
-        getData: componentEntry.getData,
+        getComponentContext: componentEntry.getComponentContext,
       };
     });
   };
