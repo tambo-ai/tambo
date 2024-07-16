@@ -1,5 +1,7 @@
 # Hydra AI
 
+[Join the Discord!](https://discord.gg/TNgMMAUedB)
+
 A framework for generating React components on-the-fly using AI. Register your components, and let Hydra choose when to show them in your App.
 
 ```typescript
