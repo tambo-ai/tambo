@@ -1,4 +1,4 @@
-import React, { ComponentType, ReactElement } from "react";
+import React, { ComponentType } from "react";
 import chooseComponent from "./hydra-server-action";
 import { ComponentChoice } from "./model/component-choice";
 import {
@@ -6,6 +6,7 @@ import {
   RegisteredComponent,
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
+import { GenerateComponentResponse } from "./model/generate-component-response";
 
 interface ComponentRegistry {
   [key: string]: RegisteredComponent;
@@ -43,7 +44,7 @@ export default class HydraClient {
       message: string,
       availableComponents: ComponentMetadata[]
     ) => Promise<ComponentChoice> = chooseComponent
-  ): Promise<ReactElement> {
+  ): Promise<GenerateComponentResponse> {
     const availableComponents = this.getAvailableComponents(this.componentList);
 
     const componentMetadataList: ComponentMetadata[] = availableComponents.map(
@@ -72,7 +73,10 @@ export default class HydraClient {
       );
     }
 
-    return React.createElement(componentEntry.component, response.props);
+    return {
+      component: React.createElement(componentEntry.component, response.props),
+      message: response.message,
+    };
   }
 
   private generateContextMessage = async (

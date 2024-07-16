@@ -26,6 +26,11 @@ export default class AIService {
         .describe(
           "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)"
         ),
+      message: z
+        .string()
+        .describe(
+          "The message to be displayed to the user alongside the chosen component."
+        ),
     });
 
     // ToDo: We will need to chain these as two steps because otherwise the prompt needs to
@@ -43,11 +48,17 @@ export default class AIService {
 
     const response = await this.callStructuredOpenAI(
       prompt,
-      "You are a frontend developer, designer and copywriter extraordinaire.",
+      `You are an AI assistant that can respond to the user with text and UI components. 
+      As of now, with components you only have the ability to determine which ones to use and the data passed in, so you cannot control any 'state' data.
+      For example, if you show a todo item, and the user asks you to mark it as done, make sure to note that not 'behind the scenes' data is actually updated.`,
       schema
     );
 
-    return response as ComponentChoice;
+    return {
+      componentName: response.componentName,
+      props: response.props,
+      message: response.message,
+    };
   };
 
   async callStructuredOpenAI(

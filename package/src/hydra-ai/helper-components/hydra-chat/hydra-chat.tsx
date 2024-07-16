@@ -45,10 +45,10 @@ export default function HydraChat({
       )} latest message: ${message}`
     );
     const hydraMessage: HydraChatMessage = {
-      component: response,
+      component: response.component,
       sender: aiName,
       type: "component",
-      message: "",
+      message: response.message,
     };
     setIsLoading(false);
     setMessageHistory((prevHistory) => [...prevHistory, hydraMessage]);
