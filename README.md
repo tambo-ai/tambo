@@ -14,6 +14,7 @@ Hydra development is still early, and patterns for different types of components
 
 - `hydra-ai` package is here: [/package](/package)
 - Example apps that use `hydra-ai`:
+  - Social app (Mage) here: [/examples/mage-demo](/examples/mage-demo)
   - ToDo app demo here: [/examples/todo-app-demo](/examples/todo-app-demo/)
   - Weather app demo here: [/examples/weather-app-demo](/examples/weather-app-demo/)
 

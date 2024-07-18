@@ -1,13 +1,14 @@
 {
   "name": "hydra-ai",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "",
   "main": "dist/index.js",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build:css": "postcss src/hydra-ai/helper-components/hydra-chat/styles.css -o dist/hydra-ai/helper-components/hydra-chat/styles.css",
+    "build": "npm run build:css && tsc",
     "test": "jest"
   },
   "repository": {
@@ -35,8 +36,12 @@
     "typescript": ">=5.0.0"
   },
   "dependencies": {
+    "autoprefixer": "^10.4.19",
     "openai": "^4.52.0",
+    "postcss": "^8.4.39",
+    "postcss-cli": "^11.0.0",
     "server-only": "^0.0.1",
+    "tailwindcss": "^3.4.6",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.1"
   }

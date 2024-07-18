@@ -4,6 +4,7 @@ import HydraChatMessage from "./hydra-chat-message";
 import HydraMessageHistory from "./hydra-message-history";
 import SendIcon from "./send-icon";
 import SpokeSpinner from "./spoke-spinner";
+import "./styles.css";
 
 interface HydraChatProps {
   hydraClient: HydraClient;
@@ -72,7 +73,7 @@ export default function HydraChat({
         )}
       </div>
       <div
-        className={`flex items-center rounded-lg p-2 m-2 absolute bottom-4 left-0 right-0 w-full max-w-full mx-auto`}
+        className={`flex items-center rounded-lg p-2 m-2 bottom-4 left-0 right-0 w-full max-w-full mx-auto`}
         style={{ backgroundColor: inputBackgroundColor }}
       >
         <input
