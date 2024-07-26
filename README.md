@@ -2,7 +2,7 @@
 
 [Join the Discord!](https://discord.gg/TNgMMAUedB)
 
-A framework for generating React components on-the-fly using AI. Register your components, and let Hydra choose when to show them in your App.
+A framework for generating React components on-the-fly at runtime using AI. Register your components, and let Hydra choose when to show them in your App.
 
 ```typescript
 const dynamicComponent = await hydra.generateComponent(context);
@@ -15,7 +15,9 @@ Hydra development is still early, and patterns for different types of components
 ## This Repo
 
 - `hydra-ai` package is here: [/package](/package)
+
 - Example apps that use `hydra-ai`:
+  - Charts app here [/examples/charts-demo](/examples/charts-demo/)
   - Social app (Mage) here: [/examples/mage-demo](/examples/mage-demo)
   - ToDo app demo here: [/examples/todo-app-demo](/examples/todo-app-demo/)
   - Weather app demo here: [/examples/weather-app-demo](/examples/weather-app-demo/)
@@ -40,7 +42,7 @@ In general, beyond chat apps, we imagine that the UX of an app could be complete
 
 To use Hydra in your own NextJS app, follow the instructions in the package's readme [here.](/package/README.md)
 
-To run one of the example apps, follow the instructions in that example's readme. ToDo app instructions [here.](/examples/todo-app-demo/README.md)
+To run one of the example apps, follow the instructions in that example's readme. Charts app instructions [here.](/examples/charts-demo/README.md)
 
 ## How is this different from Vercel V0?
 

@@ -1,0 +1,148 @@
+import { Transaction } from "../model/transaction";
+
+export const getTransactions = async (): Promise<Transaction[]> => {
+  return sampleTransactions;
+};
+
+export const sampleTransactions: Transaction[] = [
+  {
+    id: 1,
+    dollarAmount: 1000,
+    dateIso: "2024-06-01T00:00:00Z",
+    category: "Salary",
+    type: "income",
+  },
+  {
+    id: 2,
+    dollarAmount: 50,
+    dateIso: "2024-06-02T00:00:00Z",
+    category: "Groceries",
+    type: "expense",
+  },
+  {
+    id: 3,
+    dollarAmount: 200,
+    dateIso: "2024-06-03T00:00:00Z",
+    category: "Rent",
+    type: "expense",
+  },
+  {
+    id: 4,
+    dollarAmount: 5,
+    dateIso: "2024-06-04T08:00:00Z",
+    category: "Coffee",
+    type: "expense",
+  },
+  {
+    id: 5,
+    dollarAmount: 30,
+    dateIso: "2024-06-05T14:00:00Z",
+    category: "Transportation",
+    type: "expense",
+  },
+  {
+    id: 6,
+    dollarAmount: 50,
+    dateIso: "2024-06-06T09:00:00Z",
+    category: "Dining Out",
+    type: "expense",
+  },
+  {
+    id: 7,
+    dollarAmount: 100,
+    dateIso: "2024-06-07T00:00:00Z",
+    category: "Freelance",
+    type: "income",
+  },
+  {
+    id: 8,
+    dollarAmount: 20,
+    dateIso: "2024-06-08T12:00:00Z",
+    category: "Entertainment",
+    type: "expense",
+  },
+  {
+    id: 9,
+    dollarAmount: 250,
+    dateIso: "2024-06-09T00:00:00Z",
+    category: "Rent",
+    type: "expense",
+  },
+  {
+    id: 10,
+    dollarAmount: 75,
+    dateIso: "2024-06-10T17:00:00Z",
+    category: "Groceries",
+    type: "expense",
+  },
+  {
+    id: 11,
+    dollarAmount: 40,
+    dateIso: "2024-06-11T15:00:00Z",
+    category: "Dog Grooming",
+    type: "expense",
+  },
+  {
+    id: 12,
+    dollarAmount: 500,
+    dateIso: "2024-06-12T00:00:00Z",
+    category: "Salary",
+    type: "income",
+  },
+  {
+    id: 13,
+    dollarAmount: 15,
+    dateIso: "2024-06-13T11:00:00Z",
+    category: "Coffee",
+    type: "expense",
+  },
+  {
+    id: 14,
+    dollarAmount: 120,
+    dateIso: "2024-06-14T18:00:00Z",
+    category: "Utilities",
+    type: "expense",
+  },
+  {
+    id: 15,
+    dollarAmount: 45,
+    dateIso: "2024-06-15T13:00:00Z",
+    category: "Transportation",
+    type: "expense",
+  },
+  {
+    id: 16,
+    dollarAmount: 60,
+    dateIso: "2024-06-16T20:00:00Z",
+    category: "Dining Out",
+    type: "expense",
+  },
+  {
+    id: 17,
+    dollarAmount: 150,
+    dateIso: "2024-06-17T00:00:00Z",
+    category: "Freelance",
+    type: "income",
+  },
+  {
+    id: 18,
+    dollarAmount: 25,
+    dateIso: "2024-06-18T19:00:00Z",
+    category: "Entertainment",
+    type: "expense",
+  },
+  {
+    id: 19,
+    dollarAmount: 250,
+    dateIso: "2024-06-19T00:00:00Z",
+    category: "Rent",
+    type: "expense",
+  },
+  {
+    id: 20,
+    dollarAmount: 90,
+    dateIso: "2024-06-20T07:00:00Z",
+    category: "Groceries",
+    type: "expense",
+  },
+];

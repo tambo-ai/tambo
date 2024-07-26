@@ -29,7 +29,7 @@ export default class AIService {
       message: z
         .string()
         .describe(
-          "The message to be displayed to the user alongside the chosen component."
+          "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does."
         ),
     });
 
