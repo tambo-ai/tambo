@@ -1,14 +1,16 @@
-# Hydra AI
+<p align="center">
+  <img src="github-hydra-ai.png" alt="Hydra AI Logo">
+</p>
 
-[Join the Discord!](https://discord.gg/TNgMMAUedB)
-
-A framework for generating React components on-the-fly at runtime using AI. Register your components, and let Hydra choose when to show them in your App.
+Generate React components on-the-fly at runtime using AI. Register your components, and let Hydra choose when to show them in your App.
 
 ```typescript
 const dynamicComponent = await hydra.generateComponent(context);
 ```
 
-### Note:
+### Chat with the Team
+
+[![Join the Discord](https://discord.com/api/guilds/1251581895414911016/widget.png?style=shield)](https://discord.gg/TNgMMAUedB)
 
 Hydra development is still early, and patterns for different types of components and apps are still being developed.
 
