@@ -2,7 +2,7 @@
   <img src="github-hydra-ai.png" alt="Hydra AI Logo">
 </p>
 
-[![Hydra AI](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/maxresdefault.jpg)](https://www.youtube.com/watch?v=-OkR1ogD-k8 "Hydra AI: Introduction")
+[![Hydra AI](https://img.youtube.com/vi/-OkR1ogD-k8/maxresdefault.jpg)](https://www.youtube.com/watch?v=-OkR1ogD-k8 "Hydra AI: Introduction")
 
 Generate React components on-the-fly at runtime using AI. Register your components, and let Hydra choose when to show them in your App.
 
