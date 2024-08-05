@@ -1,6 +1,15 @@
 <p align="center">
   <img src="github-hydra-ai.png" alt="Hydra AI Logo">
 </p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/v/hydra-ai.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/dm/hydra-ai.svg" alt="npm downloads"></a>
+  <a href="https://github.com/michaelmagan/hydraai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/michaelmagan/hydraai.svg" alt="license"></a>
+  <a href="https://github.com/michaelmagan/hydraai/commits/main"><img src="https://img.shields.io/github/last-commit/michaelmagan/hydraai.svg" alt="GitHub last commit"></a>
+    <a href="https://github.com/michaelmagan/hydraai/stargazers"><img src="https://img.shields.io/github/stars/michaelmagan/hydraai.svg?style=social" alt="GitHub stars"></a>
+
+</p>
+
 
 https://github.com/user-attachments/assets/2501fd99-f768-43f5-96cc-d113c4f95903
 
@@ -10,11 +19,11 @@ Generate React components on-the-fly at runtime using AI. Register your componen
 const dynamicComponent = await hydra.generateComponent(context);
 ```
 
+
+
+Hydra development is still early, and patterns for different types of components and apps are still being developed. Join the discord to chat with the developers.
+
 [![Join the Discord](https://discord.com/api/guilds/1251581895414911016/widget.png?style=shield)](https://discord.gg/TNgMMAUedB)
-
-We are running a hackathon this weekend at irl. We are giving away **$175 in gift cards** to our favorite projects. Go here to [learn more](https://docs.google.com/document/d/1_SC-cWpMyltOZPKkymZPw5lr3WD3auRfjoMfaLW6A_c/edit).
-
-Hydra development is still early, and patterns for different types of components and apps are still being developed.
 
 ## Table of Contents
 
