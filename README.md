@@ -6,6 +6,7 @@
   <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/dm/hydra-ai.svg" alt="npm downloads"></a>
   <a href="https://github.com/michaelmagan/hydraai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/michaelmagan/hydraai.svg" alt="license"></a>
   <a href="https://github.com/michaelmagan/hydraai/commits/main"><img src="https://img.shields.io/github/last-commit/michaelmagan/hydraai.svg" alt="GitHub last commit"></a>
+  <a href="https://discord.gg/8RMRUPZ9RS"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a>
     <a href="https://github.com/michaelmagan/hydraai/stargazers"><img src="https://img.shields.io/github/stars/michaelmagan/hydraai.svg?style=social" alt="GitHub stars"></a>
 
 </p>
@@ -19,15 +20,10 @@ Generate React components on-the-fly at runtime using AI. Register your componen
 const dynamicComponent = await hydra.generateComponent(context);
 ```
 
-
-
-Hydra development is still early, and patterns for different types of components and apps are still being developed. Join the discord to chat with the developers.
-
-[![Join the Discord](https://discord.com/api/guilds/1251581895414911016/widget.png?style=shield)](https://discord.gg/TNgMMAUedB)
-
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Notes](#notes)
 - [Report a Bug](#report-a-bug-or-request-a-feature)
 - [How is this different from Vercel V0?](#how-is-this-different-from-vercel-v0)
 - [Report a bug or Request a feature](#report-a-bug-or-request-a-feature)
@@ -133,10 +129,13 @@ export default function Home() {
 }
 ```
 
-This package is a work-in-progress. Note the following issues:
-
+## Notes
+Hydra development is still early, and patterns for different types of components and apps are still being developed. Join the discord to chat with the developers.
 - expects to be used in a NextJS project
 - components that have function props do not work.
+
+Chat with other users and the developers here:
+<p>  <a href="https://discord.gg/8RMRUPZ9RS"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a></p>
 
 
 ## Report a bug or Request a feature
