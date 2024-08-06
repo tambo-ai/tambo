@@ -19,9 +19,8 @@ Generate React components on-the-fly at runtime using AI. Register your componen
 ```typescript
 const dynamicComponent = await hydra.generateComponent(context);
 ```
-## Growing on Github!
-<iframe style="width:100%;height:auto;min-width:600px;min-height:400px;" src="https://star-history.com/embed?secret=Z2hwX3F5RURweXN1UVFHNDBYNmRiSkVDUjVPVE5aeEhndDFqZW15Qg==#michaelmagan/hydraai&Timeline" frameBorder="0"></iframe>
-
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=michaelmagan/hydraai&type=Timeline)](https://star-history.com/#michaelmagan/hydraai&Timeline)
 ## Table of Contents
 
 - [Getting Started](#getting-started)
