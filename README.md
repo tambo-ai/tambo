@@ -6,7 +6,7 @@
   <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/dm/hydra-ai.svg" alt="npm downloads"></a>
   <a href="https://github.com/michaelmagan/hydraai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/michaelmagan/hydraai.svg" alt="license"></a>
   <a href="https://github.com/michaelmagan/hydraai/commits/main"><img src="https://img.shields.io/github/last-commit/michaelmagan/hydraai.svg" alt="GitHub last commit"></a>
-  <a href="https://discord.gg/8RMRUPZ9RS"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a>
+  <a href="https://discord.gg/dJNvPEHth6"><img src="https://img.shields.io/discord/989291457397538866?color=7289da&label=discord" alt="Discord"></a>
     <a href="https://github.com/michaelmagan/hydraai/stargazers"><img src="https://img.shields.io/github/stars/michaelmagan/hydraai.svg?style=social" alt="GitHub stars"></a>
 
 </p>
