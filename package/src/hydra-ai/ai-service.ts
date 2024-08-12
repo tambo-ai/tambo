@@ -6,51 +6,51 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { ComponentChoice } from "./model/component-choice";
 import { InputContext } from "./model/input-context";
 
+const schema = z.object({
+  componentName: z.string().describe("The name of the chosen component"),
+  props: z
+    .object({})
+    .passthrough()
+    .describe(
+      "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)"
+    ),
+  message: z
+    .string()
+    .describe(
+      "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does."
+    ),
+});
+
+const defaultSystemInstructions = `You are a UI/UX designer that decides what component should be rendered based on what the user interaction is.`;
+
 export default class AIService {
   client: OpenAI;
   model: string;
+  systemInstructions: string;
 
-  constructor(openAIKey: string, model: string = "gpt-4o") {
+  constructor(
+    openAIKey: string,
+    model: string = "gpt-4o",
+    systemInstructions: string = defaultSystemInstructions
+  ) {
     this.client = new OpenAI({
       apiKey: openAIKey,
     });
     this.model = model;
+    this.systemInstructions = systemInstructions;
   }
 
   chooseComponent = async (context: InputContext): Promise<ComponentChoice> => {
-    const schema = z.object({
-      componentName: z.string().describe("The name of the chosen component"),
-      props: z
-        .object({})
-        .passthrough()
-        .describe(
-          "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)"
-        ),
-      message: z
-        .string()
-        .describe(
-          "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does."
-        ),
-    });
-
-    // ToDo: We will need to chain these as two steps because otherwise the prompt needs to
-    // include every components props. That would make the prompt too big and the model would
-    // struggle to understand it. -- Magán
-    const prompt = `
-      You are a UI/UX designer that decides what component should be rendered based on what the user interaction is.
-      You have a list of available components, and you should choose one of them.
-      Each component has a name and a set of props that you can use.
-      Here is the list of available components with their props:
-      ${JSON.stringify(context.availableComponents)}
-      ${this.generateZodTypePrompt(schema)} 
-      The latest user message is: ${context.prompt}
-    `;
+    const systemPrompt = this.generateSystemPrompt(
+      context,
+      this.systemInstructions,
+      schema
+    );
+    const contentPrompt = `${context.prompt}`;
 
     const response = await this.callStructuredOpenAI(
-      prompt,
-      `You are an AI assistant that can respond to the user with text and UI components. 
-      As of now, with components you only have the ability to determine which ones to use and the data passed in, so you cannot control any 'state' data.
-      For example, if you show a todo item, and the user asks you to mark it as done, make sure to note that not 'behind the scenes' data is actually updated.`,
+      systemPrompt,
+      contentPrompt,
       schema
     );
 
@@ -61,22 +61,37 @@ export default class AIService {
     };
   };
 
+  private generateSystemPrompt = (
+    context: InputContext,
+    systemInstructionPrompt: string,
+    schema: z.ZodSchema<any>
+  ): string => {
+    return `
+      ${systemInstructionPrompt}
+      You have a list of available components, and you should choose one of them.
+      Each component has a name and a set of props that you can use.
+      Here is the list of available components with their props:
+      ${JSON.stringify(context.availableComponents)}
+      ${this.generateZodTypePrompt(schema)} 
+    `;
+  };
+
   async callStructuredOpenAI(
-    prompt: string,
-    content: string,
+    systemPrompt: string,
+    userPrompt: string,
     schema: z.ZodSchema<any>
   ): Promise<any> {
     const responseContent = await this.callOpenAI(
-      prompt,
-      "You only respond in JSON." + content,
+      systemPrompt,
+      "You only respond in JSON." + userPrompt,
       true
     );
     return await this.parseAndReturnData(schema, responseContent);
   }
 
   async callOpenAI(
-    userPrompt: string,
     systemPrompt: string,
+    userPrompt: string,
     jsonMode: boolean = false
   ): Promise<string> {
     const response = await this.client.chat.completions.create({
@@ -127,6 +142,15 @@ export default class AIService {
     }
   }
 
+  generateZodTypePrompt(schema: z.ZodSchema<any>): string {
+    return `
+      Return a JSON object that matches the given Zod schema.
+      If a field is Optional and there is no input don't include in the JSON response.
+      Only use tailwinds classes where it explicitly says to use them.
+      ${this.generateFormatInstructions(schema)}
+    `;
+  }
+
   generateFormatInstructions(schema: any): string {
     return `You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
 
@@ -141,15 +165,6 @@ export default class AIService {
     \`\`\`json
     ${JSON.stringify(zodToJsonSchema(schema))}
     \`\`\`
-    `;
-  }
-
-  generateZodTypePrompt(schema: z.ZodSchema<any>): string {
-    return `
-      Return a JSON object that matches the given Zod schema.
-      If a field is Optional and there is no input don't include in the JSON response.
-      Only use tailwinds classes where it explicitly says to use them.
-      ${this.generateFormatInstructions(schema)}
     `;
   }
 }

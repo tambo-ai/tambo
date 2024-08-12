@@ -7,8 +7,12 @@ import { InputContext } from "./model/input-context";
 export default class HydraBackend {
   private aiService: AIService;
 
-  constructor(openAIKey: string, openAIModel = "gpt-4o") {
-    this.aiService = new AIService(openAIKey, openAIModel);
+  constructor(
+    openAIKey: string,
+    openAIModel = "gpt-4o",
+    systemInstructions?: string
+  ) {
+    this.aiService = new AIService(openAIKey, openAIModel, systemInstructions);
   }
 
   public async generateComponent(
@@ -25,5 +29,3 @@ export default class HydraBackend {
     return componentChoice;
   }
 }
-
-export const hydraBackend = new HydraBackend(process.env.OPENAI_API_KEY!);

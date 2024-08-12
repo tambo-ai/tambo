@@ -13,7 +13,12 @@ interface ComponentRegistry {
 }
 
 export default class HydraClient {
+  systemInstructions?: string;
   private componentList: ComponentRegistry = {};
+
+  constructor(systemInstructions?: string) {
+    this.systemInstructions = systemInstructions;
+  }
 
   public registerComponent(
     name: string,
@@ -42,7 +47,8 @@ export default class HydraClient {
     message: string,
     callback: (
       message: string,
-      availableComponents: ComponentMetadata[]
+      availableComponents: ComponentMetadata[],
+      systemInstructions?: string
     ) => Promise<ComponentChoice> = chooseComponent
   ): Promise<GenerateComponentResponse> {
     const availableComponents = this.getAvailableComponents(this.componentList);
@@ -61,7 +67,11 @@ export default class HydraClient {
       this.componentList
     );
 
-    const response = await callback(messageWithData, componentMetadataList);
+    const response = await callback(
+      messageWithData,
+      componentMetadataList,
+      this.systemInstructions
+    );
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
     }
