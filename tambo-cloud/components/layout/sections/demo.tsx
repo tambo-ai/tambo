@@ -28,7 +28,7 @@ export const DemoSection: React.FC = () => {
 
   return (
     <section className="container w-full">
-      <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 mx-auto py-16 md:py-24">
+      <div className="flex flex-col lg:flex-row items-center lg:items-start lg:w-[75%] lg:max-w-screen-xl gap-8 mx-auto py-12 md:py-20">
         <div className="lg:w-1/2 lg:sticky lg:top-24">
           <div className="w-full max-w-3xl rounded-3xl overflow-hidden relative pointer-events-auto shadow-[0_0_30px_rgba(210,71,191,0.3)] transition-shadow duration-300 hover:shadow-[0_0_40px_rgba(210,71,191,0.5)]">
             <video
@@ -75,7 +75,7 @@ export const DemoSection: React.FC = () => {
             <h2 className="text-2xl md:text-4xl font-bold">
               Curious what you can do with
               <span className="text-transparent px-2 bg-gradient-to-r from-[#D247BF] to-primary bg-clip-text">
-                Hydra AI
+                hydra-ai
               </span>
               ?
             </h2>
@@ -87,7 +87,7 @@ export const DemoSection: React.FC = () => {
           <div className="flex justify-center lg:justify-start">
             <Button asChild className="font-bold">
               <Link href="https://useorigin.dev" target="_blank">
-                Check out Origin
+                Sign up for Origin
               </Link>
             </Button>
           </div>

@@ -29,10 +29,13 @@ import { ReactElement, useEffect, useState } from "react";
 import hydra from "./hydra-client";
 
 export default function Home() {
-  const [weatherComponent, setWeatherComponent] = useState<ReactElement | null>(null);
+  const [weatherComponent, setWeatherComponent] = 
+    useState<ReactElement | null>(null);
 
   const generateWeatherForecast = async () => {
-    const component = await hydra.generateComponent("Show a 5-day weather forecast for New York");
+    const component = await hydra.generateComponent(
+      "Show a 5-day weather forecast for New York"
+    );
     setWeatherComponent(component);
   };
 
@@ -41,7 +44,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
+    <main>
       {weatherComponent}
     </main>
   );
@@ -50,7 +53,7 @@ export default function Home() {
 
 export const HowItWorksSection = () => {
   return (
-    <section className="bg-background pb-24">
+    <section className="bg-background pb-24 place-items-center lg:max-w-screen-xl lg:w-[75%] gap-8 mx-auto py-20 md:py-32">
       <div className="container mx-auto">
         <div className="space-y-16">
           {/* Row 1 */}

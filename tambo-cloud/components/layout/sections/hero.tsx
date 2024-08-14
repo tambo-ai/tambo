@@ -25,7 +25,7 @@ export const HeroSection = () => {
             <h1>
               Revolutionize UI with
               <span className="text-transparent px-2 bg-gradient-to-r from-[#D247BF] to-primary bg-clip-text">
-                Hydra AI
+                hydra-ai
               </span>
             </h1>
           </div>
