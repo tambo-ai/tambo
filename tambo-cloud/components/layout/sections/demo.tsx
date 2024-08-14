@@ -13,6 +13,7 @@ export const DemoSection: React.FC = () => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play();
+      videoRef.current.muted = false;
       setIsPlaying(true);
       setShowControls(true);
     }
