@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 
 export const DemoSection: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -16,6 +17,7 @@ export const DemoSection: React.FC = () => {
       videoRef.current.muted = false;
       setIsPlaying(true);
       setShowControls(true);
+      track("Video Play");
     }
   };
 
@@ -25,6 +27,10 @@ export const DemoSection: React.FC = () => {
     } else {
       handlePlayClick();
     }
+  };
+
+  const handleOriginSignup = () => {
+    track("Origin Signup");
   };
 
   return (
@@ -86,7 +92,7 @@ export const DemoSection: React.FC = () => {
             </p>
           </div>
           <div className="flex justify-center lg:justify-start">
-            <Button asChild className="font-bold">
+            <Button asChild className="font-bold" onClick={handleOriginSignup}>
               <Link href="https://useorigin.dev" target="_blank">
                 Sign up for Origin
               </Link>

@@ -22,6 +22,7 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { ToggleTheme } from "./toogle-theme";
+import { track } from "@vercel/analytics";
 
 interface RouteProps {
   href: string;
@@ -39,6 +40,11 @@ const featureList: FeatureProps[] = [];
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleNavClick = (label: string) => {
+    track(`Nav Click: ${label}`);
+  };
+
   return (
     <header className="shadow-inner bg-opacity-15 w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky border border-secondary z-40 rounded-2xl flex justify-between items-center p-2 bg-card">
       <Link href="/" className="font-bold text-lg flex items-center">
@@ -49,7 +55,10 @@ export const Navbar = () => {
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Menu
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => {
+                setIsOpen(!isOpen);
+                handleNavClick("Mobile Menu");
+              }}
               className="cursor-pointer lg:hidden"
             />
           </SheetTrigger>
@@ -71,7 +80,10 @@ export const Navbar = () => {
                 {routeList.map(({ href, label }) => (
                   <Button
                     key={href}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      handleNavClick(`Mobile ${label}`);
+                    }}
                     asChild
                     variant="ghost"
                     className="justify-start text-base"
@@ -97,7 +109,10 @@ export const Navbar = () => {
           <NavigationMenuItem>
             {featureList && featureList.length > 0 && (
               <>
-                <NavigationMenuTrigger className="bg-card text-base">
+                <NavigationMenuTrigger
+                  className="bg-card text-base"
+                  onClick={() => handleNavClick("Features")}
+                >
                   Features
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -114,6 +129,7 @@ export const Navbar = () => {
                         <li
                           key={title}
                           className="rounded-md p-3 text-sm hover:bg-muted"
+                          onClick={() => handleNavClick(`Feature: ${title}`)}
                         >
                           <p className="mb-1 font-semibold leading-none text-foreground">
                             {title}
@@ -133,7 +149,11 @@ export const Navbar = () => {
           <NavigationMenuItem>
             {routeList.map(({ href, label }) => (
               <NavigationMenuLink key={href} asChild>
-                <Link href={href} className="text-base px-2">
+                <Link
+                  href={href}
+                  className="text-base px-2"
+                  onClick={() => handleNavClick(label)}
+                >
                   {label}
                 </Link>
               </NavigationMenuLink>
@@ -150,6 +170,7 @@ export const Navbar = () => {
             aria-label="View on GitHub"
             href="https://github.com/michaelmagan/hydraai"
             target="_blank"
+            onClick={() => handleNavClick("GitHub")}
           >
             <Github className="size-5" />
           </Link>

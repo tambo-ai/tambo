@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import Terminal from "@/components/terminal";
+import { track } from "@vercel/analytics";
 
-import Image from "next/image";
 import Link from "next/link";
 
 export const HeroSection = () => {
@@ -38,6 +38,7 @@ export const HeroSection = () => {
             <Link
               href="https://github.com/MichaelMilstead/hydra-template"
               target="_blank"
+              onClick={() => track("Use Template")}
             >
               <Button className="w-5/6 md:w-1/4 font-bold group/arrow">
                 Use our template
@@ -49,6 +50,7 @@ export const HeroSection = () => {
               asChild
               variant="secondary"
               className="w-5/6 md:w-1/4 font-bold"
+              onClick={() => track("View Github")}
             >
               <Link
                 href="https://github.com/michaelmagan/hydraai"

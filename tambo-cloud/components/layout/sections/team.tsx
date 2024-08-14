@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
+
 interface TeamProps {
   imageUrl: string;
   firstName: string;
@@ -132,6 +134,11 @@ export const TeamSection = () => {
                     href={url}
                     target="_blank"
                     className="hover:opacity-80 transition-all"
+                    onClick={() => {
+                      track(
+                        `Team Social Click: ${firstName} ${lastName} - ${name}`
+                      );
+                    }}
                   >
                     {socialIcon(name)}
                   </Link>
