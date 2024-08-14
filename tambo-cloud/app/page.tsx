@@ -8,20 +8,27 @@ import { ServicesSection } from "@/components/layout/sections/services";
 import { SponsorsSection } from "@/components/layout/sections/sponsors";
 import { TeamSection } from "@/components/layout/sections/team";
 import { TestimonialSection } from "@/components/layout/sections/testimonial";
+import { HowItWorksSection } from "@/components/layout/sections/howitworks";
+import { DiscordSection } from "@/components/layout/sections/discord";
+import { DemoSection } from "@/components/layout/sections/demo";
 
 export default function Home() {
   return (
     <>
       <HeroSection />
-      <SponsorsSection />
-      <BenefitsSection />
-      <FeaturesSection />
-      <ServicesSection />
-      <TestimonialSection />
+      <DemoSection />
+      <HowItWorksSection />
+      {/* <SponsorsSection /> */}
+      {/* <BenefitsSection /> */}
+      {/* <FeaturesSection /> */}
+      {/* <ServicesSection /> */}
+
+      {/* <TestimonialSection /> */}
       <TeamSection />
-      <PricingSection />
-      <FAQSection />
-      <FooterSection />
+      {/* <PricingSection /> */}
+      {/* <FAQSection /> */}
+      <DiscordSection />
+      {/* <FooterSection /> */}
     </>
   );
 }

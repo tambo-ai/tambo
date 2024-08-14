@@ -7,8 +7,9 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Shadcn - Landing template",
-  description: "Landing template from Shadcn",
+  title: "hydra-ai - Generative UI for your web app",
+  description:
+    "hydra-ai is a generative UI for your web app. It allows you to create custom UI components for your web app.",
 };
 
 export default function RootLayout({

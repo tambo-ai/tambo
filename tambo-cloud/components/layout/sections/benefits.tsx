@@ -10,28 +10,28 @@ interface BenefitsProps {
 
 const benefitList: BenefitsProps[] = [
   {
-    icon: "Blocks",
-    title: "Build Brand Trust",
+    icon: "Zap",
+    title: "Rapid Prototyping",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. A odio velit cum aliquam. Natus consectetur dolores.",
+      "Accelerate your development process with Hydra AI's ability to quickly generate and iterate on UI components based on natural language instructions.",
   },
   {
-    icon: "LineChart",
-    title: "More Leads",
+    icon: "Palette",
+    title: "Dynamic UI Generation",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. A odio velit cum aliquam, natus consectetur.",
+      "Create responsive and context-aware user interfaces on-the-fly, adapting to user needs and preferences in real-time.",
   },
   {
-    icon: "Wallet",
-    title: "Higher Conversions",
+    icon: "Code",
+    title: "Simplified Development",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Natus consectetur. A odio velit cum aliquam",
+      "Reduce boilerplate code and streamline your workflow by leveraging Hydra AI's intelligent component generation and management system.",
   },
   {
-    icon: "Sparkle",
-    title: "Test Marketing Ideas",
+    icon: "Lightbulb",
+    title: "AI-Powered Creativity",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. A odio velit cum aliquam. Natus consectetur dolores.",
+      "Unlock new possibilities in UI design by harnessing the creative potential of AI to generate unique and innovative interface solutions.",
   },
 ];
 
@@ -43,12 +43,14 @@ export const BenefitsSection = () => {
           <h2 className="text-lg text-primary mb-2 tracking-wider">Benefits</h2>
 
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Your Shortcut to Success
+            Empowering Developers with AI-Driven UI
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Non
-            ducimus reprehenderit architecto rerum similique facere odit
-            deleniti necessitatibus quo quae.
+            Hydra AI revolutionizes React development by seamlessly integrating
+            artificial intelligence into your UI creation process. Our
+            innovative package enables rapid prototyping, dynamic component
+            generation, and intuitive user interfaces, all powered by
+            cutting-edge AI technology.
           </p>
         </div>
 

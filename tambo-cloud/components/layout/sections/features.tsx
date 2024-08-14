@@ -10,40 +10,40 @@ interface FeaturesProps {
 
 const featureList: FeaturesProps[] = [
   {
-    icon: "TabletSmartphone",
-    title: "Mobile Friendly",
+    icon: "Brain",
+    title: "AI-Powered UI Generation",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. A odio velit cum aliquam, consectetur.",
+      "Hydra AI leverages advanced machine learning to generate responsive and context-aware user interfaces based on natural language instructions.",
   },
   {
-    icon: "BadgeCheck",
-    title: "Social Proof",
+    icon: "Zap",
+    title: "Rapid Prototyping",
     description:
-      "Lorem ipsum dolor sit amet consectetur. Natus consectetur, odio ea accusamus aperiam.",
+      "Accelerate your development process with Hydra AI's ability to quickly generate and iterate on UI components, reducing time-to-market.",
   },
   {
-    icon: "Goal",
-    title: "Targeted Content",
+    icon: "Puzzle",
+    title: "Seamless Integration",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. odio ea accusamus aperiam.",
+      "Easily integrate Hydra AI into your existing React projects with our intuitive API and comprehensive documentation.",
   },
   {
-    icon: "PictureInPicture",
-    title: "Strong Visuals",
+    icon: "Palette",
+    title: "Customizable Styling",
     description:
-      "Lorem elit. A odio velit cum aliquam. Natus consectetur dolores, odio ea accusamus aperiam.",
+      "Maintain brand consistency with Hydra AI's ability to adapt to your project's design system and theming preferences.",
   },
   {
-    icon: "MousePointerClick",
-    title: "Clear CTA",
+    icon: "Code",
+    title: "Code Generation",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing. odio ea accusamus consectetur.",
+      "Generate clean, maintainable React code for your AI-created components, allowing for easy customization and extension.",
   },
   {
-    icon: "Newspaper",
-    title: "Clear Headline",
+    icon: "Sparkles",
+    title: "Intelligent Suggestions",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. A odio velit cum aliquam. Natus consectetur.",
+      "Receive AI-powered suggestions for UI improvements and optimizations based on best practices and user interaction patterns.",
   },
 ];
 
@@ -55,13 +55,13 @@ export const FeaturesSection = () => {
       </h2>
 
       <h2 className="text-3xl md:text-4xl text-center font-bold mb-4">
-        What Makes Us Different
+        Empowering Your Development with Hydra AI
       </h2>
 
       <h3 className="md:w-1/2 mx-auto text-xl text-center text-muted-foreground mb-8">
-        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatem
-        fugiat, odit similique quasi sint reiciendis quidem iure veritatis optio
-        facere tenetur.
+        Discover how Hydra AI revolutionizes React development with its
+        innovative features, designed to streamline your workflow and enhance
+        your UI creation process.
       </h3>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
