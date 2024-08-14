@@ -23,7 +23,7 @@ export const HeroSection = () => {
 
           <div className="max-w-screen-md mx-auto text-center text-4xl md:text-6xl font-bold">
             <h1>
-              Revolutionize UI with
+              Install generative UI with
               <span className="text-transparent px-2 bg-gradient-to-r from-[#D247BF] to-primary bg-clip-text">
                 hydra-ai
               </span>
@@ -31,7 +31,7 @@ export const HeroSection = () => {
           </div>
 
           <p className="max-w-screen-sm mx-auto text-xl text-muted-foreground">
-            {`Empower your development with our AI-driven React UI package.`}
+            {`Improve your UX with AI-driven React components.`}
           </p>
           <Terminal command="npm i hydra-ai" />
           <div className="space-y-4 md:space-y-0 md:space-x-4">
