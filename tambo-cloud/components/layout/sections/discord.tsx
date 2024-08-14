@@ -22,7 +22,7 @@ export const DiscordSection = () => {
           </p>
 
           <div>
-            <Link href="https://discord.gg/aQG5RxzKJg" target="_blank">
+            <Link href="https://discord.gg/dJNvPEHth6" target="_blank">
               <Button className="w-5/6 md:w-1/3 font-bold group/arrow">
                 Join our Discord
                 <ArrowRight className="size-5 ml-2 group-hover/arrow:translate-x-1 transition-transform" />
