@@ -1,5 +1,5 @@
 import React, { ComponentType } from "react";
-import chooseComponent from "./hydra-server-action";
+import { chooseComponent, saveComponent } from "./hydra-server-action";
 import { ComponentChoice } from "./model/component-choice";
 import {
   ComponentMetadata,
@@ -13,19 +13,26 @@ interface ComponentRegistry {
 }
 
 export default class HydraClient {
-  systemInstructions?: string;
   private componentList: ComponentRegistry = {};
 
-  constructor(systemInstructions?: string) {
-    this.systemInstructions = systemInstructions;
-  }
-
-  public registerComponent(
+  public async registerComponent(
     name: string,
+    description: string,
     component: ComponentType<any>,
     propsDefinition?: ComponentPropsMetadata,
-    getComponentContext?: () => any | Promise<any>
-  ): void {
+    getComponentContext?: () => any | Promise<any>,
+    callback: (
+      name: string,
+      description: string,
+      propsDefinition: ComponentPropsMetadata
+    ) => Promise<boolean> = saveComponent
+  ): Promise<void> {
+    let success = await callback(name, description, propsDefinition);
+
+    if (!success) {
+      return;
+    }
+
     if (!this.componentList[name]) {
       const asyncGetComponentContext = getComponentContext
         ? async () => await getComponentContext()
@@ -48,7 +55,6 @@ export default class HydraClient {
     callback: (
       message: string,
       availableComponents: ComponentMetadata[],
-      systemInstructions?: string
     ) => Promise<ComponentChoice> = chooseComponent
   ): Promise<GenerateComponentResponse> {
     const availableComponents = this.getAvailableComponents(this.componentList);
@@ -70,7 +76,6 @@ export default class HydraClient {
     const response = await callback(
       messageWithData,
       componentMetadataList,
-      this.systemInstructions
     );
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
