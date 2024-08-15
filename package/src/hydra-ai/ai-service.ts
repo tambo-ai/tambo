@@ -151,42 +151,6 @@ ${this.generateZodTypePrompt(schema)}`;
     }
   };
 
-  private generateSystemPrompt = (
-    context: InputContext,
-    systemInstructionPrompt: string,
-    schema: z.ZodSchema<any>
-  ): string => {
-    return `
-      ${systemInstructionPrompt}
-      You have a list of available components, and you should choose one of them.
-      Each component has a name and a set of props that you can use.
-      Here is the list of available components with their props:
-      ${JSON.stringify(context.availableComponents)}
-      ${this.generateZodTypePrompt(schema)} 
-    `;
-  };
-
-  async callStructuredOpenAI(
-    systemPrompt: string,
-    userPrompt: string,
-    schema: z.ZodSchema<any>
-  ): Promise<any> {
-    const responseContent = await this.callOpenAI(
-      [
-        {
-          role: "system",
-          content: "You only respond in JSON." + systemPrompt,
-        },
-        {
-          role: "user",
-          content: userPrompt,
-        },
-      ],
-      true
-    );
-    return await this.parseAndReturnData(schema, responseContent);
-  }
-
   async callOpenAI(
     messages: ChatCompletionMessageParam[],
     jsonMode: boolean = false,
