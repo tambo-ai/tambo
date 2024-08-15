@@ -199,12 +199,17 @@ ${
     tools?: ChatCompletionTool[],
     jsonMode: boolean = false
   ): Promise<OpenAIResponse> {
+    let componentTools = tools;
+    if (tools?.length === 0) {
+      componentTools = undefined;
+    }
+
     const response = await this.client.chat.completions.create({
       model: this.model,
       messages: messages,
       temperature: 0.7,
       response_format: jsonMode ? { type: "json_object" } : undefined,
-      tools: tools,
+      tools: componentTools,
     });
 
     const openAIResponse: OpenAIResponse = {
