@@ -7,7 +7,7 @@ import { ComponentPropsMetadata } from "./model/component-props-metadata";
 
 let hydraBackend: HydraBackend | null;
 
-const getHydraBackend = (systemInstructions?: string): HydraBackend => {
+const getHydraBackend = (): HydraBackend => {
   if (!hydraBackend) {
     hydraBackend = new HydraBackend(
       process.env.POSTGRES_DB_URL ?? "",

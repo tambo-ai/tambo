@@ -27,7 +27,7 @@ export default class HydraClient {
       propsDefinition: ComponentPropsMetadata
     ) => Promise<boolean> = saveComponent
   ): Promise<void> {
-    let success = await callback(name, description, propsDefinition);
+    const success = await callback(name, description, propsDefinition);
 
     if (!success) {
       return;

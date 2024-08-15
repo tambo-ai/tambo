@@ -27,7 +27,7 @@ export default class HydraBackend {
     propsDefinition?: ComponentPropsMetadata
   ): Promise<boolean> {
     try {
-      let _ = await this.dbConnection.insert(registeredComponents).values({
+      await this.dbConnection.insert(registeredComponents).values({
         name,
         description,
         prop_definitions: propsDefinition,
