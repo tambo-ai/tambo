@@ -59,19 +59,6 @@ export default class AIService {
 
     const componentNames = Object.keys(context.availableComponents);
 
-    // console.log("context", context);
-
-    // ToDo: We will need to chain these as two steps because otherwise the prompt needs to
-    // include every components props. That would make the prompt too big and the model would
-    // struggle to understand it. -- Magán
-
-// You are an AI assistant that interacts with users and helps them to perform tasks.
-// When prompted, you will be given the latest user message and a list of available components. These components will assist the user in completing their task.
-// You will generate your response in steps:
-// 1. Decide whether you should generate a component or not. You will output a boolean value between <shouldGenerate></shouldGenerate> tags.
-// 2.1. If a component should not be generated, simply respond to the user with a message and ignore the rest of the instructions.
-// 2.2. If a component should be generated, follow the instructions below.
-// 3. Choose one of the available components. You will output the name of the component between <componentName></componentName> tags.
     const decisionPrompt = `You are a simple AI assistant. Your goal is to output a boolean flag (true or false) indicating whether or not a UI component should be generated.
 To accomplish your task, you will be given a list of available components and the latest user message.
 First you will reason about whether you think a component should be generated. Reasioning should be a single sentence and output between <reasoning></reasoning> tags.
@@ -92,7 +79,6 @@ Finally, if you decide that a component should be generated, you will output the
       },
     ]);
 
-    console.log("response", decisionResponse);
     const shouldGenerate = decisionResponse.match(/<decision>(.*?)<\/decision>/)?.[1];
     if (shouldGenerate === "false") {
       const reasoning = decisionResponse.match(/<reasoning>(.*?)<\/reasoning>/)?.[1];
@@ -115,8 +101,6 @@ This response should be short and concise.`;
         },
       ]);
 
-      console.log("messageResponse", messageResponse);
-
       return {
         componentName: null,
         props: null,
@@ -129,8 +113,6 @@ This response should be short and concise.`;
         throw new Error("Invalid component name");
       }
 
-      console.log("componentName", componentName);
-
       const component = context.availableComponents[componentName];
 
       if (!component) {
@@ -140,57 +122,33 @@ This response should be short and concise.`;
       const generateComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
 To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
 When prompted, you will be told the component to display, a description of any props to pass in, and any other related context.
-You will also be given a user message. Use the user message to determine what props to pass in.
+You will also be given a user message. Use the user message and the provided context to determine what props to pass in.
 
 ${this.generateZodTypePrompt(schema)}`;
 
-      const generateComponentResponse = await this.callOpenAI([
-        {
-          role: "system",
-          content: generateComponentPrompt,
-        },
-        {
-          role: "user",
-          content: `<componentName>${componentName}</componentName>
+      const generateComponentResponse = await this.callOpenAI(
+        [
+          {
+            role: "system",
+            content: generateComponentPrompt,
+          },
+          {
+            role: "user",
+            content: `<componentName>${componentName}</componentName>
 <expectedProps>${JSON.stringify(component.props)}</expectedProps>
-<context>${component.context}</context>
+<context>${JSON.stringify(component.context)}</context>
 <userMessage>${context.prompt}</userMessage>`,
-        },
-      ]);
-
-      console.log("generateComponentResponse", generateComponentResponse);
+          },
+        ], 
+        true
+      );
 
       const parsedResponse = await this.parseAndReturnData(schema, generateComponentResponse);
-
-      console.log("parsedResponse", parsedResponse);
       return parsedResponse;
     } else {
       // TODO: Handle this case. Maybe repeat the decision prompt.
       throw new Error("Invalid decision");
     }
-
-    // const prompt = `
-      
-    //   Here is the list of available components with their props:
-    //   ${JSON.stringify(context.availableComponents)}
-    //   ${this.generateZodTypePrompt(schema)} 
-    //   The latest user message is: ${context.prompt}
-    // `;
-
-    // const response = await this.callStructuredOpenAI(
-    //   prompt,
-    //   `You are an AI assistant that can respond to the user with text and UI components. 
-    //   As of now, with components you only have the ability to determine which ones to use and the data passed in, so you cannot control any 'state' data.
-    //   For example, if you show a todo item, and the user asks you to mark it as done, make sure to note that not 'behind the scenes' data is actually updated.`,
-    //   schema
-    // );
-
-
-    // return {
-    //   componentName: response.componentName,
-    //   props: response.props,
-    //   message: response.message,
-    // };
   };
 
   private generateSystemPrompt = (
@@ -232,14 +190,11 @@ ${this.generateZodTypePrompt(schema)}`;
   async callOpenAI(
     messages: ChatCompletionMessageParam[],
     jsonMode: boolean = false,
-    temperature: number = 0.7
   ): Promise<string> {
-    // console.log("messages", messages);
-
     const response = await this.client.chat.completions.create({
       model: this.model,
       messages: messages,
-      temperature: temperature,
+      temperature: 0.7,
       response_format: jsonMode ? { type: "json_object" } : undefined,
     });
 

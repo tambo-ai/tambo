@@ -3,8 +3,6 @@ import { chooseComponent, saveComponent } from "./hydra-server-action";
 import { ComponentChoice } from "./model/component-choice";
 import {
   AvailableComponents,
-  ComponentMetadata,
-  ComponentWithContext,
   RegisteredComponent,
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
@@ -61,11 +59,6 @@ export default class HydraClient {
   ): Promise<GenerateComponentResponse | string> {
     const availableComponents = await this.getAvailableComponents(this.componentList);
 
-    // const messageWithData = await this.generateContextMessage(
-    //   message,
-    //   this.componentList
-    // );
-
     const response = await callback(message, availableComponents);
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
@@ -88,33 +81,6 @@ export default class HydraClient {
       message: response.message,
     };
   }
-
-  // private generateContextMessage = async (
-  //   userContext: string,
-  //   componentRegistry: ComponentRegistry
-  // ): Promise<string> => {
-  //   const availableComponents = this.getAvailableComponents(componentRegistry);
-
-  //   const componentDataMessagePromises = availableComponents.map(
-  //     async (component) => {
-  //       if (component.getComponentContext) {
-  //         const componentContext = await component.getComponentContext();
-  //         console.log("componentContext", componentContext);
-
-  //         return ` for ${
-  //           component.name
-  //         } the available data is: ${JSON.stringify(componentContext)}`;
-  //       }
-  //     }
-  //   );
-
-  //   const componentDataMessage = (
-  //     await Promise.all(componentDataMessagePromises)
-  //   ).join(", ");
-  //   const messageWithData = `${userContext} ${componentDataMessage}`;
-
-  //   return messageWithData;
-  // };
 
   private getAvailableComponents = async (
     componentRegistry: ComponentRegistry
