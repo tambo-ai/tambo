@@ -10,3 +10,11 @@ export interface RegisteredComponent extends ComponentMetadata {
   component: ComponentType<any>;
   getComponentContext?: () => Promise<any>;
 }
+
+export interface ComponentWithContext extends ComponentMetadata {
+  context: any;
+}
+
+export interface AvailableComponents {
+  [key: string]: ComponentWithContext;
+}

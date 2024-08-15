@@ -1,7 +1,7 @@
 import "server-only";
 import AIService from "./ai-service";
 import { ComponentChoice } from "./model/component-choice";
-import { ComponentMetadata } from "./model/component-metadata";
+import { AvailableComponents, ComponentMetadata } from "./model/component-metadata";
 import { InputContext } from "./model/input-context";
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -46,7 +46,7 @@ export default class HydraBackend {
 
   public async generateComponent(
     message: string,
-    availableComponents: ComponentMetadata[]
+    availableComponents: AvailableComponents
   ): Promise<ComponentChoice> {
     const context: InputContext = {
       prompt: message,

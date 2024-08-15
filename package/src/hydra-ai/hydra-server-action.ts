@@ -2,7 +2,7 @@
 
 import HydraBackend from "./hydra-ai-backend";
 import { ComponentChoice } from "./model/component-choice";
-import { ComponentMetadata } from "./model/component-metadata";
+import { AvailableComponents, ComponentMetadata, RegisteredComponent } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
 
 let hydraBackend: HydraBackend | null;
@@ -19,7 +19,7 @@ const getHydraBackend = (systemInstructions?: string): HydraBackend => {
 };
 export async function chooseComponent(
   message: string,
-  availableComponents: ComponentMetadata[],
+  availableComponents: AvailableComponents
 ): Promise<ComponentChoice> {
   const hydra = getHydraBackend();
   const response = await hydra.generateComponent(message, availableComponents);
