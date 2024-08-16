@@ -6,6 +6,7 @@ import {
   saveComponent,
 } from "./hydra-server-action";
 import { ComponentChoice } from "./model";
+import { ChatMessage } from "./model/chat-message";
 import { ComponentDecision } from "./model/component-choice";
 import {
   AvailableComponent,
@@ -23,6 +24,7 @@ interface ComponentRegistry {
 
 export default class HydraClient {
   private componentList: ComponentRegistry = {};
+  private chatHistory: ChatMessage[] = [];
 
   public async registerComponent(
     name: string,
@@ -66,11 +68,11 @@ export default class HydraClient {
   public async generateComponent(
     message: string,
     getComponentChoice: (
-      message: string,
+      messageHistory: ChatMessage[],
       availableComponents: AvailableComponents
     ) => Promise<ComponentDecision> = chooseComponent,
     hydrateComponentWithToolResponse: (
-      message: string,
+      messageHistory: ChatMessage[],
       component: AvailableComponent,
       toolResponse: any
     ) => Promise<ComponentChoice> = hydrateComponent
@@ -78,12 +80,17 @@ export default class HydraClient {
     const messageWithContextAdditions =
       updateMessageWithContextAdditions(message);
 
+    this.chatHistory.push({
+      sender: "user",
+      message: messageWithContextAdditions,
+    });
+
     const availableComponents = await this.getAvailableComponents(
       this.componentList
     );
 
     const response = await getComponentChoice(
-      messageWithContextAdditions,
+      this.chatHistory,
       availableComponents
     );
     if (!response) {
@@ -107,10 +114,15 @@ export default class HydraClient {
       const chosenComponent: AvailableComponent =
         availableComponents[response.componentName];
       const hydratedComponentChoice = await hydrateComponentWithToolResponse(
-        messageWithContextAdditions,
+        this.chatHistory,
         chosenComponent,
         toolResponse
       );
+
+      this.chatHistory.push({
+        sender: "hydra",
+        message: hydratedComponentChoice.message,
+      });
 
       return {
         component: React.createElement(
@@ -120,6 +132,8 @@ export default class HydraClient {
         message: hydratedComponentChoice.message,
       };
     }
+
+    this.chatHistory.push({ sender: "hydra", message: response.message });
 
     return {
       component: React.createElement(componentEntry.component, response.props),

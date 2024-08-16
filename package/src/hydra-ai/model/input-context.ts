@@ -1,6 +1,7 @@
-import { AvailableComponents, ComponentMetadata } from "./component-metadata";
+import { ChatMessage } from "./chat-message";
+import { AvailableComponents } from "./component-metadata";
 
 export type InputContext = {
-  prompt: string;
+  messageHistory: ChatMessage[];
   availableComponents: AvailableComponents;
 };

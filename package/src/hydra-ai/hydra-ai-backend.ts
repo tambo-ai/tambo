@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import "server-only";
 import { registeredComponents } from "../db/schema";
 import AIService from "./ai-service";
+import { ChatMessage } from "./model/chat-message";
 import { ComponentDecision } from "./model/component-choice";
 import {
   AvailableComponent,
@@ -55,11 +56,11 @@ export default class HydraBackend {
   }
 
   public async generateComponent(
-    message: string,
+    messageHistory: ChatMessage[],
     availableComponents: AvailableComponents
   ): Promise<ComponentDecision> {
     const context: InputContext = {
-      prompt: message,
+      messageHistory,
       availableComponents,
     };
 
@@ -67,10 +68,14 @@ export default class HydraBackend {
   }
 
   public async hydrateComponentWithData(
-    message: string,
+    messageHistory: ChatMessage[],
     component: AvailableComponent,
     toolResponse: any
   ): Promise<ComponentDecision> {
-    return this.aiService.hydrateComponent(message, component, toolResponse);
+    return this.aiService.hydrateComponent(
+      messageHistory,
+      component,
+      toolResponse
+    );
   }
 }
