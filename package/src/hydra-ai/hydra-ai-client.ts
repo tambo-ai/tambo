@@ -98,6 +98,7 @@ export default class HydraClient {
     }
 
     if (response.componentName === null) {
+      this.chatHistory.push({ sender: "hydra", message: response.message });
       return response.message;
     }
 
@@ -124,6 +125,13 @@ export default class HydraClient {
         message: hydratedComponentChoice.message,
       });
 
+      this.chatHistory.push({
+        sender: "hydra",
+        message: `componentName: ${
+          hydratedComponentChoice.componentName
+        } \n props: ${JSON.stringify(hydratedComponentChoice.props)}`,
+      });
+
       return {
         component: React.createElement(
           componentEntry.component,
@@ -134,6 +142,12 @@ export default class HydraClient {
     }
 
     this.chatHistory.push({ sender: "hydra", message: response.message });
+    this.chatHistory.push({
+      sender: "hydra",
+      message: `componentName: ${
+        response.componentName
+      } \n props: ${JSON.stringify(response.props)}`,
+    });
 
     return {
       component: React.createElement(componentEntry.component, response.props),
