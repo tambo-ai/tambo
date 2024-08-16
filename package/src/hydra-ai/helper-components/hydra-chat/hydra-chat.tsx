@@ -60,16 +60,27 @@ export default function HydraChat({
       )} latest message: ${message}`
     );
 
-    if (response.component && handleComponent) {
-      handleComponent(response.component);
-    }
+    let hydraMessage: HydraChatMessage;
+    if (
+      typeof response === "object"
+    ) {
+      if (response.component && handleComponent) {
+        handleComponent(response.component);
+      }
 
-    const hydraMessage: HydraChatMessage = {
-      component: response.component,
-      sender: aiName,
-      type: "component",
-      message: response.message,
-    };
+      hydraMessage = {
+        component: response.component,
+        sender: aiName,
+        type: "component",
+        message: response.message,
+      };
+    } else {
+      hydraMessage = {
+        sender: aiName,
+        message: response,
+        type: "text",
+      };
+    }
     setIsLoading(false);
     setMessageHistory((prevHistory) => [...prevHistory, hydraMessage]);
   };

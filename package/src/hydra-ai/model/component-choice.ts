@@ -1,5 +1,5 @@
 export interface ComponentChoice {
-  componentName: string;
-  props: any;
+  componentName: string | null;
+  props: any | null;
   message: string;
 }

@@ -1,8 +1,8 @@
 import React, { ComponentType } from "react";
-import chooseComponent from "./hydra-server-action";
+import { chooseComponent, saveComponent } from "./hydra-server-action";
 import { ComponentChoice } from "./model/component-choice";
 import {
-  ComponentMetadata,
+  AvailableComponents,
   RegisteredComponent,
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
@@ -13,19 +13,26 @@ interface ComponentRegistry {
 }
 
 export default class HydraClient {
-  systemInstructions?: string;
   private componentList: ComponentRegistry = {};
 
-  constructor(systemInstructions?: string) {
-    this.systemInstructions = systemInstructions;
-  }
-
-  public registerComponent(
+  public async registerComponent(
     name: string,
+    description: string,
     component: ComponentType<any>,
     propsDefinition?: ComponentPropsMetadata,
-    getComponentContext?: () => any | Promise<any>
-  ): void {
+    getComponentContext?: () => any | Promise<any>,
+    callback: (
+      name: string,
+      description: string,
+      propsDefinition: ComponentPropsMetadata
+    ) => Promise<boolean> = saveComponent
+  ): Promise<void> {
+    const success = await callback(name, description, propsDefinition);
+
+    if (!success) {
+      return;
+    }
+
     if (!this.componentList[name]) {
       const asyncGetComponentContext = getComponentContext
         ? async () => await getComponentContext()
@@ -47,34 +54,20 @@ export default class HydraClient {
     message: string,
     callback: (
       message: string,
-      availableComponents: ComponentMetadata[],
-      systemInstructions?: string
+      availableComponents: AvailableComponents
     ) => Promise<ComponentChoice> = chooseComponent
-  ): Promise<GenerateComponentResponse> {
-    const availableComponents = this.getAvailableComponents(this.componentList);
+  ): Promise<GenerateComponentResponse | string> {
+    const availableComponents = await this.getAvailableComponents(this.componentList);
 
-    const componentMetadataList: ComponentMetadata[] = availableComponents.map(
-      (component) => {
-        return {
-          name: component.name,
-          props: component.props,
-        } as ComponentMetadata;
-      }
-    );
-
-    const messageWithData = await this.generateContextMessage(
-      message,
-      this.componentList
-    );
-
-    const response = await callback(
-      messageWithData,
-      componentMetadataList,
-      this.systemInstructions
-    );
+    const response = await callback(message, availableComponents);
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
     }
+
+    if (response.componentName === null) {
+      return response.message;
+    }
+    
     const componentEntry = this.componentList[response.componentName];
 
     if (!componentEntry) {
@@ -89,42 +82,24 @@ export default class HydraClient {
     };
   }
 
-  private generateContextMessage = async (
-    userContext: string,
+  private getAvailableComponents = async (
     componentRegistry: ComponentRegistry
-  ): Promise<string> => {
-    const availableComponents = this.getAvailableComponents(componentRegistry);
+  ): Promise<AvailableComponents> => {
+    // TODO: filter list to only include components that are relevant to user query
+    
+    const availableComponents: AvailableComponents = {};
 
-    const componentDataMessagePromises = availableComponents.map(
-      async (component) => {
-        if (component.getComponentContext) {
-          const componentContext = await component.getComponentContext();
-          return ` for ${
-            component.name
-          } the available data is: ${JSON.stringify(componentContext)}`;
-        }
-      }
-    );
-
-    const componentDataMessage = (
-      await Promise.all(componentDataMessagePromises)
-    ).join(", ");
-    const messageWithData = `${userContext} ${componentDataMessage}`;
-
-    return messageWithData;
-  };
-
-  private getAvailableComponents = (
-    componentRegistry: ComponentRegistry
-  ): RegisteredComponent[] => {
-    return Object.keys(componentRegistry).map((name) => {
+    for (let name of Object.keys(componentRegistry)) {
       const componentEntry: RegisteredComponent = componentRegistry[name];
-      return {
-        component: componentEntry.component,
+      availableComponents[name] = {
         name: componentEntry.name,
         props: componentEntry.props,
-        getComponentContext: componentEntry.getComponentContext,
+        context: componentEntry.getComponentContext
+          ? await componentEntry.getComponentContext()
+          : {},
       };
-    });
+    }
+
+    return availableComponents;
   };
 }

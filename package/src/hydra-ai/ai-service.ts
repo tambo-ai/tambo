@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { ComponentChoice } from "./model/component-choice";
 import { InputContext } from "./model/input-context";
+import { ChatCompletionMessageParam } from "openai/resources";
 
 const schema = z.object({
   componentName: z.string().describe("The name of the chosen component"),
@@ -41,71 +42,122 @@ export default class AIService {
   }
 
   chooseComponent = async (context: InputContext): Promise<ComponentChoice> => {
-    const systemPrompt = this.generateSystemPrompt(
-      context,
-      this.systemInstructions,
-      schema
-    );
-    const contentPrompt = `${context.prompt}`;
+    const schema = z.object({
+      componentName: z.string().describe("The name of the chosen component"),
+      props: z
+        .object({})
+        .passthrough()
+        .describe(
+          "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)"
+        ),
+      message: z
+        .string()
+        .describe(
+          "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does."
+        ),
+    });
 
-    const response = await this.callStructuredOpenAI(
-      systemPrompt,
-      contentPrompt,
-      schema
-    );
+    const componentNames = Object.keys(context.availableComponents);
 
-    return {
-      componentName: response.componentName,
-      props: response.props,
-      message: response.message,
-    };
-  };
+    const decisionPrompt = `You are a simple AI assistant. Your goal is to output a boolean flag (true or false) indicating whether or not a UI component should be generated.
+To accomplish your task, you will be given a list of available components and the latest user message.
+First you will reason about whether you think a component should be generated. Reasioning should be a single sentence and output between <reasoning></reasoning> tags.
+Then you will output a boolean flag (true or false) <decision></decision> tags.
+Finally, if you decide that a component should be generated, you will output the name of the component between <component></component> tags.`;
 
-  private generateSystemPrompt = (
-    context: InputContext,
-    systemInstructionPrompt: string,
-    schema: z.ZodSchema<any>
-  ): string => {
-    return `
-      ${systemInstructionPrompt}
-      You have a list of available components, and you should choose one of them.
-      Each component has a name and a set of props that you can use.
-      Here is the list of available components with their props:
-      ${JSON.stringify(context.availableComponents)}
-      ${this.generateZodTypePrompt(schema)} 
-    `;
-  };
+    const decisionResponse = await this.callOpenAI([
+      {
+        role: "system",
+        content: decisionPrompt,
+      },
+      {
+        role: "user",
+        content: `<availableComponents>
+  ${JSON.stringify(context.availableComponents)}
+</availableComponents>
+<userMessage>${context.prompt}</userMessage>`,
+      },
+    ]);
 
-  async callStructuredOpenAI(
-    systemPrompt: string,
-    userPrompt: string,
-    schema: z.ZodSchema<any>
-  ): Promise<any> {
-    const responseContent = await this.callOpenAI(
-      systemPrompt,
-      "You only respond in JSON." + userPrompt,
-      true
-    );
-    return await this.parseAndReturnData(schema, responseContent);
-  }
+    const shouldGenerate = decisionResponse.match(/<decision>(.*?)<\/decision>/)?.[1];
+    if (shouldGenerate === "false") {
+      const reasoning = decisionResponse.match(/<reasoning>(.*?)<\/reasoning>/)?.[1];
+      const messagePrompt = `You are an AI assistant that interacts with users and helps them perform tasks. You have determined that you cannot generate any components to help the user with their latest query for the following reason:
+<reasoning>${reasoning}</reasoning>.
+<availableComponents>
+  ${componentNames.join(", ")}
+</availableComponents>
+Respond to the user's latest query to the best of your ability. If they have requested a task that you cannot help with, tell them so and recommend something you can help with.
+This response should be short and concise.`;
 
-  async callOpenAI(
-    systemPrompt: string,
-    userPrompt: string,
-    jsonMode: boolean = false
-  ): Promise<string> {
-    const response = await this.client.chat.completions.create({
-      model: this.model,
-      messages: [
+      const messageResponse = await this.callOpenAI([
         {
           role: "system",
-          content: systemPrompt,
+          content: messagePrompt,
         },
         {
           role: "user",
-          content: userPrompt,
+          content: context.prompt,
         },
-      ],
+      ]);
+
+      return {
+        componentName: null,
+        props: null,
+        message: messageResponse,
+      };
+    } else if (shouldGenerate === "true") {
+      const componentName = decisionResponse.match(/<component>(.*?)<\/component>/)?.[1];
+
+      if (!componentName) {
+        throw new Error("Invalid component name");
+      }
+
+      const component = context.availableComponents[componentName];
+
+      if (!component) {
+        throw new Error(`Component ${componentName} not found`);
+      }
+
+      const generateComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
+To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
+When prompted, you will be told the component to display, a description of any props to pass in, and any other related context.
+You will also be given a user message. Use the user message and the provided context to determine what props to pass in.
+
+${this.generateZodTypePrompt(schema)}`;
+
+      const generateComponentResponse = await this.callOpenAI(
+        [
+          {
+            role: "system",
+            content: generateComponentPrompt,
+          },
+          {
+            role: "user",
+            content: `<componentName>${componentName}</componentName>
+<expectedProps>${JSON.stringify(component.props)}</expectedProps>
+<context>${JSON.stringify(component.context)}</context>
+<userMessage>${context.prompt}</userMessage>`,
+          },
+        ], 
+        true
+      );
+
+      const parsedResponse = await this.parseAndReturnData(schema, generateComponentResponse);
+      return parsedResponse;
+    } else {
+      // TODO: Handle this case. Maybe repeat the decision prompt.
+      throw new Error("Invalid decision");
+    }
+  };
+
+  async callOpenAI(
+    messages: ChatCompletionMessageParam[],
+    jsonMode: boolean = false,
+  ): Promise<string> {
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      messages: messages,
       temperature: 0.7,
       response_format: jsonMode ? { type: "json_object" } : undefined,
     });
