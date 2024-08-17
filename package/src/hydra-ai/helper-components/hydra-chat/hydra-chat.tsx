@@ -46,7 +46,6 @@ export default function HydraChat({
     const userMessage: HydraChatMessage = {
       sender: "Input",
       message: text,
-      type: "text",
     };
     setMessageHistory((prevHistory) => [...prevHistory, userMessage]);
     await processUserMessage(text);
@@ -54,35 +53,48 @@ export default function HydraChat({
 
   const processUserMessage = async (message: string) => {
     setIsLoading(true);
-    const response = await hydra.generateComponent(
-      `previous messages are ${JSON.stringify(
-        messageHistory
-      )} latest message: ${message}`
-    );
-
-    let hydraMessage: HydraChatMessage;
-    if (
-      typeof response === "object"
-    ) {
-      if (response.component && handleComponent) {
-        handleComponent(response.component);
+    try {
+      const response = await hydra.generateComponent(message);
+      if (
+        typeof response === "object" &&
+        response.component &&
+        response.message
+      ) {
+        if (handleComponent) {
+          handleComponent(response.component);
+        }
+        addMessage({
+          sender: aiName,
+          message: response.message,
+          component: response.component,
+        });
+      } else if (typeof response === "string") {
+        addMessage({
+          sender: aiName,
+          message: response,
+        });
+      } else {
+        console.error("Unexpected response type:", response);
+        addMessage({
+          sender: aiName,
+          message: "Sorry, I received an unexpected response type.",
+        });
       }
-
-      hydraMessage = {
-        component: response.component,
+    } catch (error) {
+      console.error("Error fetching response:", error);
+      addMessage({
         sender: aiName,
-        type: "component",
-        message: response.message,
-      };
-    } else {
-      hydraMessage = {
-        sender: aiName,
-        message: response,
-        type: "text",
-      };
+        message: "Sorry, I encountered an error while processing your request.",
+      });
+    } finally {
+      setIsLoading(false);
     }
+
     setIsLoading(false);
-    setMessageHistory((prevHistory) => [...prevHistory, hydraMessage]);
+  };
+
+  const addMessage = (message: HydraChatMessage) => {
+    setMessageHistory((prevHistory) => [...prevHistory, message]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

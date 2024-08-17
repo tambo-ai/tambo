@@ -1,6 +1,5 @@
 export default interface HydraChatMessage {
   sender: string;
-  message?: string;
-  type: "text" | "component";
+  message: string;
   component?: React.ReactElement;
 }

@@ -55,9 +55,7 @@ export default function HydraMessageHistory({
                 {message.message}
               </div>
             </div>
-            {message.type === "component" &&
-              !hideComponent &&
-              message.component}
+            {!hideComponent && message.component}
           </div>
         ))}
         <div ref={messagesEndRef} />
