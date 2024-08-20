@@ -1,8 +1,12 @@
 "use server";
 
 import HydraBackend from "./hydra-ai-backend";
-import { ComponentChoice } from "./model/component-choice";
-import { AvailableComponents, ComponentMetadata, RegisteredComponent } from "./model/component-metadata";
+import { ComponentDecision } from "./model/component-choice";
+import {
+  AvailableComponent,
+  AvailableComponents,
+  ComponentContextToolMetadata,
+} from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
 
 let hydraBackend: HydraBackend | null;
@@ -12,7 +16,7 @@ const getHydraBackend = (): HydraBackend => {
     hydraBackend = new HydraBackend(
       process.env.POSTGRES_DB_URL ?? "",
       process.env.OPENAI_API_KEY ?? "",
-      "gpt-4o",
+      "gpt-4o"
     );
   }
   return hydraBackend;
@@ -20,7 +24,7 @@ const getHydraBackend = (): HydraBackend => {
 export async function chooseComponent(
   message: string,
   availableComponents: AvailableComponents
-): Promise<ComponentChoice> {
+): Promise<ComponentDecision> {
   const hydra = getHydraBackend();
   const response = await hydra.generateComponent(message, availableComponents);
   return response;
@@ -29,9 +33,29 @@ export async function chooseComponent(
 export async function saveComponent(
   name: string,
   description: string,
-  propsDefinition: ComponentPropsMetadata
+  propsDefinition: ComponentPropsMetadata,
+  contextToolDefinitions: ComponentContextToolMetadata[]
 ): Promise<boolean> {
   const hydra = getHydraBackend();
-  const success = await hydra.registerComponent(name, description, propsDefinition);
+  const success = await hydra.registerComponent(
+    name,
+    description,
+    propsDefinition,
+    contextToolDefinitions
+  );
   return success;
+}
+
+export async function hydrateComponent(
+  message: string,
+  component: AvailableComponent,
+  toolResponse: any
+): Promise<ComponentDecision> {
+  const hydra = getHydraBackend();
+  const response = await hydra.hydrateComponentWithData(
+    message,
+    component,
+    toolResponse
+  );
+  return response;
 }

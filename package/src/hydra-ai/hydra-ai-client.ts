@@ -1,8 +1,16 @@
 import React, { ComponentType } from "react";
-import { chooseComponent, saveComponent } from "./hydra-server-action";
-import { ComponentChoice } from "./model/component-choice";
 import {
+  chooseComponent,
+  hydrateComponent,
+  saveComponent,
+} from "./hydra-server-action";
+import { ComponentChoice } from "./model";
+import { ComponentDecision } from "./model/component-choice";
+import {
+  AvailableComponent,
   AvailableComponents,
+  ComponentContextTool,
+  ComponentContextToolMetadata,
   RegisteredComponent,
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
@@ -19,29 +27,33 @@ export default class HydraClient {
     name: string,
     description: string,
     component: ComponentType<any>,
-    propsDefinition?: ComponentPropsMetadata,
-    getComponentContext?: () => any | Promise<any>,
+    propsDefinition: ComponentPropsMetadata = {},
+    contextTools: ComponentContextTool[] = [],
     callback: (
       name: string,
       description: string,
-      propsDefinition: ComponentPropsMetadata
+      propsDefinition: ComponentPropsMetadata,
+      contextToolDefinitions: ComponentContextToolMetadata[]
     ) => Promise<boolean> = saveComponent
   ): Promise<void> {
-    const success = await callback(name, description, propsDefinition);
+    const success = await callback(
+      name,
+      description,
+      propsDefinition,
+      contextTools.map((tool) => tool.definition)
+    );
 
     if (!success) {
       return;
     }
 
     if (!this.componentList[name]) {
-      const asyncGetComponentContext = getComponentContext
-        ? async () => await getComponentContext()
-        : undefined;
       this.componentList[name] = {
         component,
         name,
-        props: propsDefinition || {},
-        getComponentContext: asyncGetComponentContext,
+        description,
+        props: propsDefinition,
+        contextTools: contextTools,
       };
     } else {
       throw new Error(
@@ -52,14 +64,21 @@ export default class HydraClient {
 
   public async generateComponent(
     message: string,
-    callback: (
+    getComponentChoice: (
       message: string,
       availableComponents: AvailableComponents
-    ) => Promise<ComponentChoice> = chooseComponent
+    ) => Promise<ComponentDecision> = chooseComponent,
+    hydrateComponentWithToolResponse: (
+      message: string,
+      component: AvailableComponent,
+      toolResponse: any
+    ) => Promise<ComponentChoice> = hydrateComponent
   ): Promise<GenerateComponentResponse | string> {
-    const availableComponents = await this.getAvailableComponents(this.componentList);
+    const availableComponents = await this.getAvailableComponents(
+      this.componentList
+    );
 
-    const response = await callback(message, availableComponents);
+    const response = await getComponentChoice(message, availableComponents);
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
     }
@@ -67,13 +86,32 @@ export default class HydraClient {
     if (response.componentName === null) {
       return response.message;
     }
-    
+
     const componentEntry = this.componentList[response.componentName];
 
     if (!componentEntry) {
       throw new Error(
         `Hydra tried to use Component ${response.componentName}, but it was not found.`
       );
+    }
+
+    if (response.toolCallRequest) {
+      const toolResponse = await this.runToolChoice(response);
+      const chosenComponent: AvailableComponent =
+        availableComponents[response.componentName];
+      const hydratedComponentChoice = await hydrateComponentWithToolResponse(
+        message,
+        chosenComponent,
+        toolResponse
+      );
+
+      return {
+        component: React.createElement(
+          componentEntry.component,
+          hydratedComponentChoice.props
+        ),
+        message: hydratedComponentChoice.message,
+      };
     }
 
     return {
@@ -86,20 +124,52 @@ export default class HydraClient {
     componentRegistry: ComponentRegistry
   ): Promise<AvailableComponents> => {
     // TODO: filter list to only include components that are relevant to user query
-    
+
     const availableComponents: AvailableComponents = {};
 
     for (let name of Object.keys(componentRegistry)) {
       const componentEntry: RegisteredComponent = componentRegistry[name];
       availableComponents[name] = {
         name: componentEntry.name,
+        description: componentEntry.description,
         props: componentEntry.props,
-        context: componentEntry.getComponentContext
-          ? await componentEntry.getComponentContext()
-          : {},
+        contextTools: componentEntry.contextTools.map(
+          (tool) => tool.definition
+        ),
       };
     }
 
     return availableComponents;
+  };
+
+  private runToolChoice = async (
+    componentChoice: ComponentChoice
+  ): Promise<any> => {
+    const { componentName, toolCallRequest } = componentChoice;
+
+    if (!componentName) {
+      throw new Error("Component name is required to run a tool choice");
+    }
+
+    if (!toolCallRequest) {
+      throw new Error("Tool call request is required to run a tool choice");
+    }
+
+    const tool = this.componentList[componentName].contextTools.find(
+      (tool) => tool.definition.name === toolCallRequest.toolName
+    );
+
+    if (!tool) {
+      throw new Error(
+        `Hydra tried to use Tool ${toolCallRequest.toolName}, but it was not found.`
+      );
+    }
+
+    // Assumes parameters are in the order they are defined in the tool
+    const parameterValues = toolCallRequest.parameters.map(
+      (param) => param.parameterValue
+    );
+
+    return tool.getComponentContext(...parameterValues);
   };
 }

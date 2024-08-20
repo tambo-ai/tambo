@@ -1,11 +1,20 @@
 import "server-only"; // So this only runs on a server component.
 
 import { OpenAI } from "openai";
+import {
+  ChatCompletion,
+  ChatCompletionMessageParam,
+  ChatCompletionTool,
+} from "openai/resources";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { ComponentChoice } from "./model/component-choice";
+import { ComponentDecision, ToolCallRequest } from "./model/component-choice";
+import {
+  AvailableComponent,
+  ComponentContextToolMetadata,
+} from "./model/component-metadata";
 import { InputContext } from "./model/input-context";
-import { ChatCompletionMessageParam } from "openai/resources";
+import { OpenAIResponse } from "./model/openai-response";
 
 const schema = z.object({
   componentName: z.string().describe("The name of the chosen component"),
@@ -41,27 +50,14 @@ export default class AIService {
     this.systemInstructions = systemInstructions;
   }
 
-  chooseComponent = async (context: InputContext): Promise<ComponentChoice> => {
-    const schema = z.object({
-      componentName: z.string().describe("The name of the chosen component"),
-      props: z
-        .object({})
-        .passthrough()
-        .describe(
-          "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)"
-        ),
-      message: z
-        .string()
-        .describe(
-          "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does."
-        ),
-    });
-
+  chooseComponent = async (
+    context: InputContext
+  ): Promise<ComponentDecision> => {
     const componentNames = Object.keys(context.availableComponents);
 
     const decisionPrompt = `You are a simple AI assistant. Your goal is to output a boolean flag (true or false) indicating whether or not a UI component should be generated.
 To accomplish your task, you will be given a list of available components and the latest user message.
-First you will reason about whether you think a component should be generated. Reasioning should be a single sentence and output between <reasoning></reasoning> tags.
+First you will reason about whether you think a component should be generated. Reasoning should be a single sentence and output between <reasoning></reasoning> tags.
 Then you will output a boolean flag (true or false) <decision></decision> tags.
 Finally, if you decide that a component should be generated, you will output the name of the component between <component></component> tags.`;
 
@@ -79,9 +75,15 @@ Finally, if you decide that a component should be generated, you will output the
       },
     ]);
 
-    const shouldGenerate = decisionResponse.match(/<decision>(.*?)<\/decision>/)?.[1];
+    const shouldGenerate = decisionResponse.message.match(
+      /<decision>(.*?)<\/decision>/
+    )?.[1];
+
     if (shouldGenerate === "false") {
-      const reasoning = decisionResponse.match(/<reasoning>(.*?)<\/reasoning>/)?.[1];
+      const reasoning = decisionResponse.message.match(
+        /<reasoning>(.*?)<\/reasoning>/
+      )?.[1];
+
       const messagePrompt = `You are an AI assistant that interacts with users and helps them perform tasks. You have determined that you cannot generate any components to help the user with their latest query for the following reason:
 <reasoning>${reasoning}</reasoning>.
 <availableComponents>
@@ -104,10 +106,12 @@ This response should be short and concise.`;
       return {
         componentName: null,
         props: null,
-        message: messageResponse,
+        message: messageResponse.message,
       };
     } else if (shouldGenerate === "true") {
-      const componentName = decisionResponse.match(/<component>(.*?)<\/component>/)?.[1];
+      const componentName = decisionResponse.message.match(
+        /<component>(.*?)<\/component>/
+      )?.[1];
 
       if (!componentName) {
         throw new Error("Invalid component name");
@@ -119,51 +123,103 @@ This response should be short and concise.`;
         throw new Error(`Component ${componentName} not found`);
       }
 
-      const generateComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
-To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
-When prompted, you will be told the component to display, a description of any props to pass in, and any other related context.
-You will also be given a user message. Use the user message and the provided context to determine what props to pass in.
-
-${this.generateZodTypePrompt(schema)}`;
-
-      const generateComponentResponse = await this.callOpenAI(
-        [
-          {
-            role: "system",
-            content: generateComponentPrompt,
-          },
-          {
-            role: "user",
-            content: `<componentName>${componentName}</componentName>
-<expectedProps>${JSON.stringify(component.props)}</expectedProps>
-<context>${JSON.stringify(component.context)}</context>
-<userMessage>${context.prompt}</userMessage>`,
-          },
-        ], 
-        true
-      );
-
-      const parsedResponse = await this.parseAndReturnData(schema, generateComponentResponse);
-      return parsedResponse;
+      return this.hydrateComponent(context.prompt, component);
     } else {
       // TODO: Handle this case. Maybe repeat the decision prompt.
       throw new Error("Invalid decision");
     }
   };
 
+  async hydrateComponent(
+    message: string,
+    component: AvailableComponent,
+    toolResponse?: any
+  ): Promise<ComponentDecision> {
+    const generateComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
+To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
+When prompted, you will be told the component to display, a description of any props to pass in, and any other related context.
+You will also be given a user message. Use the user message and the provided context to determine what props to pass in.
+${
+  toolResponse
+    ? `You have received a response from a tool. Use this data to help determine what props to pass in: ${JSON.stringify(
+        toolResponse
+      )}`
+    : `You can also use any of the provided tools to fetch data needed to pass into the component.`
+}
+
+${this.generateZodTypePrompt(schema)}`;
+
+    const tools = toolResponse
+      ? undefined
+      : this.openAIToolFromMetadata(component.contextTools);
+
+    const generateComponentResponse = await this.callOpenAI(
+      [
+        {
+          role: "system",
+          content: generateComponentPrompt,
+        },
+        {
+          role: "user",
+          content: `<componentName>${component.name}</componentName>
+<expectedProps>${JSON.stringify(component.props)}</expectedProps>
+<userMessage>${message}</userMessage>
+${
+  toolResponse && `<toolResponse>${JSON.stringify(toolResponse)}</toolResponse>`
+}`,
+        },
+      ],
+      tools,
+      true
+    );
+
+    const componentDecision: ComponentDecision = {
+      message: "Fetching additional data",
+      componentName: component.name,
+      props: null,
+      toolCallRequest: generateComponentResponse.toolCallRequest,
+    };
+
+    if (!componentDecision.toolCallRequest) {
+      const parsedData = await this.parseAndReturnData(
+        schema,
+        generateComponentResponse.message
+      );
+
+      componentDecision.componentName = parsedData.componentName;
+      componentDecision.props = parsedData.props;
+      componentDecision.message = parsedData.message;
+    }
+
+    return componentDecision;
+  }
+
   async callOpenAI(
     messages: ChatCompletionMessageParam[],
-    jsonMode: boolean = false,
-  ): Promise<string> {
+    tools?: ChatCompletionTool[],
+    jsonMode: boolean = false
+  ): Promise<OpenAIResponse> {
     const response = await this.client.chat.completions.create({
       model: this.model,
       messages: messages,
       temperature: 0.7,
       response_format: jsonMode ? { type: "json_object" } : undefined,
+      tools: tools,
     });
 
-    const responseContent = response.choices[0].message.content || "";
-    return responseContent;
+    const openAIResponse: OpenAIResponse = {
+      message: response.choices[0].message.content || "",
+    };
+
+    if (
+      response.choices[0].finish_reason === "function_call" ||
+      response.choices[0].finish_reason === "tool_calls"
+    ) {
+      openAIResponse.toolCallRequest =
+        this.toolCallRequestFromOpenaiResponse(response);
+    }
+
+    return openAIResponse;
   }
 
   async parseAndReturnData<T extends z.ZodTypeAny>(
@@ -193,6 +249,59 @@ ${this.generateZodTypePrompt(schema)}`;
       );
     }
   }
+
+  openAIToolFromMetadata(
+    toolsMetadata: ComponentContextToolMetadata[]
+  ): ChatCompletionTool[] {
+    const tools: ChatCompletionTool[] = toolsMetadata.map((tool) => ({
+      type: "function",
+      function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: {
+          type: "object",
+          properties: {
+            ...Object.fromEntries(
+              tool.parameters.map((parameter) => [
+                parameter.name,
+                {
+                  type: parameter.type,
+                },
+              ])
+            ),
+          },
+          required: [
+            ...tool.parameters
+              .filter((parameter) => parameter.isRequired)
+              .map((parameter) => parameter.name),
+          ],
+          additionalProperties: false,
+        },
+      },
+    }));
+    return tools;
+  }
+
+  toolCallRequestFromOpenaiResponse = (
+    response: ChatCompletion
+  ): ToolCallRequest => {
+    if (!response.choices[0].message.tool_calls) {
+      throw new Error("No tool calls found in response");
+    }
+    const toolArgs = JSON.parse(
+      response.choices[0].message.tool_calls[0].function.arguments
+    );
+
+    return {
+      toolName: response.choices[0].message.tool_calls[0].function.name,
+      parameters: [
+        ...Object.entries(toolArgs).map(([key, value]) => ({
+          parameterName: key,
+          parameterValue: value,
+        })),
+      ],
+    };
+  };
 
   generateZodTypePrompt(schema: z.ZodSchema<any>): string {
     return `
