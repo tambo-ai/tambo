@@ -1,4 +1,5 @@
 import React, { ComponentType } from "react";
+import { updateMessageWithContextAdditions } from "./context-utils";
 import {
   chooseComponent,
   hydrateComponent,
@@ -74,11 +75,17 @@ export default class HydraClient {
       toolResponse: any
     ) => Promise<ComponentChoice> = hydrateComponent
   ): Promise<GenerateComponentResponse | string> {
+    const messageWithContextAdditions =
+      updateMessageWithContextAdditions(message);
+
     const availableComponents = await this.getAvailableComponents(
       this.componentList
     );
 
-    const response = await getComponentChoice(message, availableComponents);
+    const response = await getComponentChoice(
+      messageWithContextAdditions,
+      availableComponents
+    );
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
     }
@@ -100,7 +107,7 @@ export default class HydraClient {
       const chosenComponent: AvailableComponent =
         availableComponents[response.componentName];
       const hydratedComponentChoice = await hydrateComponentWithToolResponse(
-        message,
+        messageWithContextAdditions,
         chosenComponent,
         toolResponse
       );
