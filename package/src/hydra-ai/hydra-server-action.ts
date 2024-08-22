@@ -1,6 +1,7 @@
 "use server";
 
 import HydraBackend from "./hydra-ai-backend";
+import { ChatMessage } from "./model/chat-message";
 import { ComponentDecision } from "./model/component-choice";
 import {
   AvailableComponent,
@@ -21,14 +22,6 @@ const getHydraBackend = (): HydraBackend => {
   }
   return hydraBackend;
 };
-export async function chooseComponent(
-  message: string,
-  availableComponents: AvailableComponents
-): Promise<ComponentDecision> {
-  const hydra = getHydraBackend();
-  const response = await hydra.generateComponent(message, availableComponents);
-  return response;
-}
 
 export async function saveComponent(
   name: string,
@@ -46,14 +39,26 @@ export async function saveComponent(
   return success;
 }
 
+export async function chooseComponent(
+  messageHistory: ChatMessage[],
+  availableComponents: AvailableComponents
+): Promise<ComponentDecision> {
+  const hydra = getHydraBackend();
+  const response = await hydra.generateComponent(
+    messageHistory,
+    availableComponents
+  );
+  return response;
+}
+
 export async function hydrateComponent(
-  message: string,
+  messageHistory: ChatMessage[],
   component: AvailableComponent,
   toolResponse: any
 ): Promise<ComponentDecision> {
   const hydra = getHydraBackend();
   const response = await hydra.hydrateComponentWithData(
-    message,
+    messageHistory,
     component,
     toolResponse
   );

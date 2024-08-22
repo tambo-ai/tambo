@@ -8,6 +8,7 @@ import {
 } from "openai/resources";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { ChatMessage } from "./model/chat-message";
 import { ComponentDecision, ToolCallRequest } from "./model/component-choice";
 import {
   AvailableComponent,
@@ -56,7 +57,7 @@ export default class AIService {
     const componentNames = Object.keys(context.availableComponents);
 
     const decisionPrompt = `You are a simple AI assistant. Your goal is to output a boolean flag (true or false) indicating whether or not a UI component should be generated.
-To accomplish your task, you will be given a list of available components and the latest user message.
+To accomplish your task, you will be given a list of available components and the existing message history.
 First you will reason about whether you think a component should be generated. Reasoning should be a single sentence and output between <reasoning></reasoning> tags.
 Then you will output a boolean flag (true or false) <decision></decision> tags.
 Finally, if you decide that a component should be generated, you will output the name of the component between <component></component> tags.`;
@@ -69,10 +70,11 @@ Finally, if you decide that a component should be generated, you will output the
       {
         role: "user",
         content: `<availableComponents>
-  ${JSON.stringify(context.availableComponents)}
-</availableComponents>
-<userMessage>${context.prompt}</userMessage>`,
+           ${JSON.stringify(context.availableComponents)}
+            </availableComponents>
+            `,
       },
+      ...this.chatHistoryToChatCompletionParam(context.messageHistory),
     ]);
 
     const shouldGenerate = decisionResponse.message.match(
@@ -97,10 +99,7 @@ This response should be short and concise.`;
           role: "system",
           content: messagePrompt,
         },
-        {
-          role: "user",
-          content: context.prompt,
-        },
+        ...this.chatHistoryToChatCompletionParam(context.messageHistory),
       ]);
 
       return {
@@ -123,22 +122,31 @@ This response should be short and concise.`;
         throw new Error(`Component ${componentName} not found`);
       }
 
-      return this.hydrateComponent(context.prompt, component);
+      return this.hydrateComponent(context.messageHistory, component);
     } else {
       // TODO: Handle this case. Maybe repeat the decision prompt.
       throw new Error("Invalid decision");
     }
   };
 
+  chatHistoryToChatCompletionParam(
+    messageHistory: ChatMessage[]
+  ): ChatCompletionMessageParam[] {
+    return messageHistory.map((message) => ({
+      role: message.sender == "user" ? "user" : "system",
+      content: message.message,
+    }));
+  }
+
   async hydrateComponent(
-    message: string,
+    messageHistory: ChatMessage[],
     component: AvailableComponent,
     toolResponse?: any
   ): Promise<ComponentDecision> {
     const generateComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
 To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
 When prompted, you will be told the component to display, a description of any props to pass in, and any other related context.
-You will also be given a user message. Use the user message and the provided context to determine what props to pass in.
+You will also be given the existing conversation history. Use the latest user message and the provided context to determine what props to pass in.
 ${
   toolResponse
     ? `You have received a response from a tool. Use this data to help determine what props to pass in: ${JSON.stringify(
@@ -159,14 +167,15 @@ ${this.generateZodTypePrompt(schema)}`;
           role: "system",
           content: generateComponentPrompt,
         },
+        ...this.chatHistoryToChatCompletionParam(messageHistory),
         {
           role: "user",
           content: `<componentName>${component.name}</componentName>
-<expectedProps>${JSON.stringify(component.props)}</expectedProps>
-<userMessage>${message}</userMessage>
-${
-  toolResponse && `<toolResponse>${JSON.stringify(toolResponse)}</toolResponse>`
-}`,
+          <expectedProps>${JSON.stringify(component.props)}</expectedProps>
+          ${
+            toolResponse &&
+            `<toolResponse>${JSON.stringify(toolResponse)}</toolResponse>`
+          }`,
         },
       ],
       tools,
