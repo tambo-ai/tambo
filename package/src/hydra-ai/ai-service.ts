@@ -30,6 +30,7 @@ const schema = z.object({
     .describe(
       "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does."
     ),
+  reasoning: z.string().describe("The reasoning behind the decision"),
 });
 
 const defaultSystemInstructions = `You are a UI/UX designer that decides what component should be rendered based on what the user interaction is.`;
@@ -145,8 +146,8 @@ This response should be short and concise.`;
   ): Promise<ComponentDecision> {
     const generateComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
 To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
-When prompted, you will be told the component to display, a description of any props to pass in, and any other related context.
-You will also be given the existing conversation history. Use the latest user message and the provided context to determine what props to pass in.
+When prompted, you will be given the existing conversation history, followed by the component to display, its description provided by the user, the shape of any props to pass in, and any other related context.
+Use the conversation history and other provided context to determine what props to pass in.
 ${
   toolResponse
     ? `You have received a response from a tool. Use this data to help determine what props to pass in: ${JSON.stringify(
@@ -171,6 +172,9 @@ ${this.generateZodTypePrompt(schema)}`;
         {
           role: "user",
           content: `<componentName>${component.name}</componentName>
+          <componentDescription>${JSON.stringify(
+            component.description
+          )}</componentDescription>
           <expectedProps>${JSON.stringify(component.props)}</expectedProps>
           ${
             toolResponse &&
@@ -216,7 +220,7 @@ ${this.generateZodTypePrompt(schema)}`;
     const response = await this.client.chat.completions.create({
       model: this.model,
       messages: messages,
-      temperature: 0.7,
+      temperature: 0.1,
       response_format: jsonMode ? { type: "json_object" } : undefined,
       tools: componentTools,
     });
