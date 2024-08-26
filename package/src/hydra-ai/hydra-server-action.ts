@@ -15,9 +15,9 @@ let hydraBackend: HydraBackend | null;
 const getHydraBackend = (): HydraBackend => {
   if (!hydraBackend) {
     hydraBackend = new HydraBackend(
-      process.env.POSTGRES_DB_URL ?? "",
       process.env.OPENAI_API_KEY ?? "",
-      "gpt-4o"
+      "gpt-4o",
+      process.env.POSTGRES_DB_URL
     );
   }
   return hydraBackend;

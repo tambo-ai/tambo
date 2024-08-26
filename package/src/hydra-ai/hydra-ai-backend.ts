@@ -15,18 +15,20 @@ import { InputContext } from "./model/input-context";
 
 export default class HydraBackend {
   private aiService: AIService;
-  private dbConnection: NodePgDatabase;
+  private dbConnection?: NodePgDatabase;
 
   constructor(
-    dbConnectionUrl: string,
     openAIKey: string,
-    openAIModel = "gpt-4o"
+    openAIModel = "gpt-4o",
+    dbConnectionUrl?: string
   ) {
-    const pool = new Pool({
-      connectionString: dbConnectionUrl,
-    });
+    if (dbConnectionUrl) {
+      const pool = new Pool({
+        connectionString: dbConnectionUrl,
+      });
 
-    this.dbConnection = drizzle(pool);
+      this.dbConnection = drizzle(pool);
+    }
     this.aiService = new AIService(openAIKey, openAIModel);
   }
 
@@ -36,23 +38,26 @@ export default class HydraBackend {
     propsDefinition?: ComponentPropsMetadata,
     contextToolDefinitions?: ComponentContextToolMetadata[]
   ): Promise<boolean> {
-    try {
-      await this.dbConnection.insert(registeredComponents).values({
-        name,
-        description,
-        prop_definitions: propsDefinition,
-        context_tools: contextToolDefinitions,
-      });
+    if (this.dbConnection) {
+      try {
+        await this.dbConnection.insert(registeredComponents).values({
+          name,
+          description,
+          prop_definitions: propsDefinition,
+          context_tools: contextToolDefinitions,
+        });
 
-      return true;
-    } catch (error: any) {
-      if (error.code === "23505") {
-        // Component already registered in DB
         return true;
-      }
+      } catch (error: any) {
+        if (error.code === "23505") {
+          // Component already registered in DB
+          return true;
+        }
 
-      throw error;
+        throw error;
+      }
     }
+    return true;
   }
 
   public async generateComponent(
