@@ -106,7 +106,7 @@ export default function HydraChat({
 
   return (
     <div className="relative flex flex-col p-4 h-full w-full">
-      <div className="flex-grow overflow-auto mb-20">
+      <div className="flex-grow overflow-auto mb-4">
         <HydraMessageHistory
           messages={messageHistory}
           hideComponent={handleComponent ? true : false}
