@@ -10,18 +10,17 @@ import {
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
 
-let hydraBackend: HydraBackend | null;
+let hydraBackend: HydraBackend;
 
-const getHydraBackend = (): HydraBackend => {
+export async function initBackend(model?: string): Promise<void> {
   if (!hydraBackend) {
     hydraBackend = new HydraBackend(
       process.env.OPENAI_API_KEY ?? "",
-      "gpt-4o",
+      model,
       process.env.POSTGRES_DB_URL
     );
   }
-  return hydraBackend;
-};
+}
 
 export async function saveComponent(
   name: string,
@@ -29,8 +28,7 @@ export async function saveComponent(
   propsDefinition: ComponentPropsMetadata,
   contextToolDefinitions: ComponentContextToolMetadata[]
 ): Promise<boolean> {
-  const hydra = getHydraBackend();
-  const success = await hydra.registerComponent(
+  const success = await hydraBackend.registerComponent(
     name,
     description,
     propsDefinition,
@@ -43,8 +41,7 @@ export async function chooseComponent(
   messageHistory: ChatMessage[],
   availableComponents: AvailableComponents
 ): Promise<ComponentDecision> {
-  const hydra = getHydraBackend();
-  const response = await hydra.generateComponent(
+  const response = await hydraBackend.generateComponent(
     messageHistory,
     availableComponents
   );
@@ -56,8 +53,7 @@ export async function hydrateComponent(
   component: AvailableComponent,
   toolResponse: any
 ): Promise<ComponentDecision> {
-  const hydra = getHydraBackend();
-  const response = await hydra.hydrateComponentWithData(
+  const response = await hydraBackend.hydrateComponentWithData(
     messageHistory,
     component,
     toolResponse

@@ -3,6 +3,7 @@ import { updateMessageWithContextAdditions } from "./context-utils";
 import {
   chooseComponent,
   hydrateComponent,
+  initBackend,
   saveComponent,
 } from "./hydra-server-action";
 import { ComponentChoice } from "./model";
@@ -25,6 +26,19 @@ interface ComponentRegistry {
 export default class HydraClient {
   private componentList: ComponentRegistry = {};
   private chatHistory: ChatMessage[] = [];
+  private model?: string;
+  private backendInitialized: boolean = false;
+
+  constructor(model?: string) {
+    this.model = model;
+  }
+
+  private async ensureBackendInitialized(): Promise<void> {
+    if (!this.backendInitialized) {
+      await initBackend(this.model);
+      this.backendInitialized = true;
+    }
+  }
 
   public async registerComponent(
     name: string,
@@ -39,6 +53,7 @@ export default class HydraClient {
       contextToolDefinitions: ComponentContextToolMetadata[]
     ) => Promise<boolean> = saveComponent
   ): Promise<void> {
+    await this.ensureBackendInitialized();
     const success = await callback(
       name,
       description,
@@ -77,6 +92,7 @@ export default class HydraClient {
       toolResponse: any
     ) => Promise<ComponentChoice> = hydrateComponent
   ): Promise<GenerateComponentResponse | string> {
+    await this.ensureBackendInitialized();
     const messageWithContextAdditions =
       updateMessageWithContextAdditions(message);
 
