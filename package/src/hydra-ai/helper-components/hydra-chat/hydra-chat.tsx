@@ -55,11 +55,7 @@ export default function HydraChat({
     setIsLoading(true);
     try {
       const response = await hydra.generateComponent(message);
-      if (
-        typeof response === "object" &&
-        response.component &&
-        response.message
-      ) {
+      if (response.component) {
         if (handleComponent) {
           handleComponent(response.component);
         }
@@ -68,16 +64,10 @@ export default function HydraChat({
           message: response.message,
           component: response.component,
         });
-      } else if (typeof response === "string") {
-        addMessage({
-          sender: aiName,
-          message: response,
-        });
       } else {
-        console.error("Unexpected response type:", response);
         addMessage({
           sender: aiName,
-          message: "Sorry, I received an unexpected response type.",
+          message: response.message,
         });
       }
     } catch (error) {
