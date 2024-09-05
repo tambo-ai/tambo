@@ -282,21 +282,23 @@ ${this.generateZodTypePrompt(schema)}`;
             ...Object.fromEntries(
               tool.parameters.map((parameter) => [
                 parameter.name,
-                {
-                  type: parameter.type,
-                },
+                parameter.type === "array"
+                  ? {
+                      type: "array",
+                      items: { type: parameter.items?.type || "string" },
+                    } // Handle array type
+                  : { type: parameter.type }, // Handle non-array types
               ])
             ),
           },
-          required: [
-            ...tool.parameters
-              .filter((parameter) => parameter.isRequired)
-              .map((parameter) => parameter.name),
-          ],
+          required: tool.parameters
+            .filter((parameter) => parameter.isRequired)
+            .map((parameter) => parameter.name),
           additionalProperties: false,
         },
       },
     }));
+
     return tools;
   }
 

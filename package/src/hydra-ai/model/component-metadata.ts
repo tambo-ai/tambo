@@ -15,6 +15,7 @@ export interface ComponentContextToolMetadata {
     type: string;
     description: string;
     isRequired: boolean;
+    items?: { type: string };
   }[];
 }
 
