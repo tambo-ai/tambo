@@ -16,6 +16,7 @@ export interface ComponentContextToolMetadata {
     description: string;
     isRequired: boolean;
     items?: { type: string };
+    enumValues?: string[];
   }[];
 }
 

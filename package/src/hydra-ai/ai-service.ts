@@ -280,15 +280,27 @@ ${this.generateZodTypePrompt(schema)}`;
           type: "object",
           properties: {
             ...Object.fromEntries(
-              tool.parameters.map((parameter) => [
-                parameter.name,
-                parameter.type === "array"
-                  ? {
+              tool.parameters.map((parameter) => {
+                if (parameter.type === "enum") {
+                  return [
+                    parameter.name,
+                    {
+                      type: "string",
+                      enum: parameter.enumValues || [],
+                    },
+                  ];
+                } else if (parameter.type === "array") {
+                  return [
+                    parameter.name,
+                    {
                       type: "array",
                       items: { type: parameter.items?.type || "string" },
-                    } // Handle array type
-                  : { type: parameter.type }, // Handle non-array types
-              ])
+                    },
+                  ];
+                } else {
+                  return [parameter.name, { type: parameter.type }];
+                }
+              })
             ),
           },
           required: tool.parameters
