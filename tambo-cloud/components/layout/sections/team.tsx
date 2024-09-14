@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+import { motion } from "framer-motion";
 import GithubIcon from "@/components/icons/github-icon";
 import LinkedInIcon from "@/components/icons/linkedin-icon";
 import XIcon from "@/components/icons/x-icon";
@@ -25,6 +27,33 @@ interface SocialNetworkProps {
   name: string;
   url: string;
 }
+
+const cardVariantsLeft = {
+  hidden: { opacity: 0, x: -100, rotate: -10 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    rotate: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+const cardVariantsRight = {
+  hidden: { opacity: 0, x: 100, rotate: 10 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    rotate: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
 export const TeamSection = () => {
   const teamList: TeamProps[] = [
     {
@@ -98,55 +127,60 @@ export const TeamSection = () => {
             { imageUrl, firstName, lastName, positions, socialNetworks },
             index
           ) => (
-            <Card
+            <motion.div
               key={index}
-              className="bg-muted/60 dark:bg-card flex flex-col h-full overflow-hidden group/hoverimg"
+              variants={index % 2 === 0 ? cardVariantsLeft : cardVariantsRight}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
             >
-              <CardHeader className="p-0 gap-0">
-                <div className="h-full overflow-hidden">
-                  <Image
-                    src={imageUrl}
-                    alt=""
-                    width={300}
-                    height={300}
-                    className="w-full aspect-square object-cover saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]"
-                  />
-                </div>
-                <CardTitle className="py-6 pb-4 px-6">
-                  {firstName}
-                  <span className="text-primary ml-2">{lastName}</span>
-                </CardTitle>
-              </CardHeader>
-              {positions.map((position, index) => (
-                <CardContent
-                  key={index}
-                  className={`pb-0 text-muted-foreground ${
-                    index === positions.length - 1 && "pb-6"
-                  }`}
-                >
-                  {position}
-                  {index < positions.length - 1 && <span>,</span>}
-                </CardContent>
-              ))}
-
-              <CardFooter className="space-x-4 mt-auto">
-                {socialNetworks.map(({ name, url }, index) => (
-                  <Link
+              <Card className="bg-muted/60 dark:bg-card flex flex-col h-full overflow-hidden group/hoverimg">
+                <CardHeader className="p-0 gap-0">
+                  <div className="h-full overflow-hidden">
+                    <Image
+                      src={imageUrl}
+                      alt=""
+                      width={300}
+                      height={300}
+                      className="w-full aspect-square object-cover saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]"
+                    />
+                  </div>
+                  <CardTitle className="py-6 pb-4 px-6">
+                    {firstName}
+                    <span className="text-primary ml-2">{lastName}</span>
+                  </CardTitle>
+                </CardHeader>
+                {positions.map((position, index) => (
+                  <CardContent
                     key={index}
-                    href={url}
-                    target="_blank"
-                    className="hover:opacity-80 transition-all"
-                    onClick={() => {
-                      track(
-                        `Team Social Click: ${firstName} ${lastName} - ${name}`
-                      );
-                    }}
+                    className={`pb-0 text-muted-foreground ${
+                      index === positions.length - 1 && "pb-6"
+                    }`}
                   >
-                    {socialIcon(name)}
-                  </Link>
+                    {position}
+                    {index < positions.length - 1 && <span>,</span>}
+                  </CardContent>
                 ))}
-              </CardFooter>
-            </Card>
+
+                <CardFooter className="space-x-4 mt-auto">
+                  {socialNetworks.map(({ name, url }, index) => (
+                    <Link
+                      key={index}
+                      href={url}
+                      target="_blank"
+                      className="hover:opacity-80 transition-all"
+                      onClick={() => {
+                        track(
+                          `Team Social Click: ${firstName} ${lastName} - ${name}`
+                        );
+                      }}
+                    >
+                      {socialIcon(name)}
+                    </Link>
+                  ))}
+                </CardFooter>
+              </Card>
+            </motion.div>
           )
         )}
       </div>

@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { motion } from "framer-motion";
 import Code from "@/components/code";
 import Example from "@/components/example";
 
@@ -51,14 +54,68 @@ export default function Home() {
 }`,
 };
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.3,
+    },
+  },
+};
+
+const textVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+const codeVariantsRight = {
+  hidden: { opacity: 0, x: 100, rotate: 10 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    rotate: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+const codeVariantsLeft = {
+  hidden: { opacity: 0, x: -100, rotate: -10 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    rotate: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
 export const HowItWorksSection = () => {
   return (
     <section className="bg-background pb-24 place-items-center lg:max-w-screen-xl lg:w-[75%] gap-8 mx-auto py-20 md:py-32">
       <div className="container mx-auto">
         <div className="space-y-16">
           {/* Row 1 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-4">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            <motion.div className="space-y-4" variants={textVariants}>
               <h3 className="text-2xl font-semibold">
                 1. Register Your Components
               </h3>
@@ -66,17 +123,35 @@ export const HowItWorksSection = () => {
                 Define and register your custom components with Hydra AI to
                 enable AI-driven rendering.
               </p>
-            </div>
-            <Code
-              language="javascript"
-              fileName="app/hydra-client.ts"
-              code={codeExamples.registerComponents}
-            />
-          </div>
+            </motion.div>
+            <motion.div variants={codeVariantsRight}>
+              <Code
+                language="javascript"
+                fileName="app/hydra-client.ts"
+                code={codeExamples.registerComponents}
+              />
+            </motion.div>
+          </motion.div>
 
           {/* Row 2 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-4 md:order-2">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            <motion.div variants={codeVariantsLeft}>
+              <Code
+                language="jsx"
+                fileName="app/page.tsx"
+                code={codeExamples.useHydraComponent}
+              />
+            </motion.div>
+            <motion.div
+              className="space-y-4 md:order-2"
+              variants={textVariants}
+            >
               <h3 className="text-2xl font-semibold">
                 2. Use Hydra to Generate Components
               </h3>
@@ -84,17 +159,18 @@ export const HowItWorksSection = () => {
                 Utilize Hydra AI to dynamically generate and render components
                 based on user input or context.
               </p>
-            </div>
-            <Code
-              language="jsx"
-              fileName="app/page.tsx"
-              code={codeExamples.useHydraComponent}
-            />
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Row 3 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-4">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            <motion.div className="space-y-4" variants={textVariants}>
               <h3 className="text-2xl font-semibold">
                 3. Interact with Generated UI
               </h3>
@@ -103,9 +179,11 @@ export const HowItWorksSection = () => {
                 elements, allowing users to dynamically modify and control the
                 generated UI.
               </p>
-            </div>
-            <Example />
-          </div>
+            </motion.div>
+            <motion.div variants={codeVariantsRight}>
+              <Example />
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>
