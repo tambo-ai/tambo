@@ -12,13 +12,13 @@ import { ComponentPropsMetadata } from "./model/component-props-metadata";
 
 let hydraBackend: HydraBackend;
 
-export async function initBackend(model?: string): Promise<void> {
+export async function initBackend(
+  model?: string,
+  openAiKey?: string
+): Promise<void> {
   if (!hydraBackend) {
-    hydraBackend = new HydraBackend(
-      process.env.OPENAI_API_KEY ?? "",
-      model,
-      process.env.POSTGRES_DB_URL
-    );
+    const apiKey = openAiKey ?? process.env.OPENAI_API_KEY ?? "";
+    hydraBackend = new HydraBackend(apiKey, model, process.env.POSTGRES_DB_URL);
   }
 }
 
