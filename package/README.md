@@ -1,111 +1,119 @@
 # Hydra AI
 
-A framework for generating React components on-the-fly using AI. Register your components, and let Hydra choose when to show them in your App.
+A framework for creating context-aware UI in React apps. Register your components, and let Hydra decide when to show them and how to hydrate them with the right props and context.
 
-### notes:
-
-This package is a work-in-progress. Note the following issues:
-
-- expects to be used in a NextJS project
-- components that have function props do not work.
-
-## Getting started
+## Getting Started
 
 1. **Install the package**
 
-```shell
-npm i hydra-ai
-```
+   ```shell
+   npm i hydra-ai
+   ```
 
-2 **Set your OpenAI API key environment variable**
+2. **Set your OpenAI API key environment variable**
 
-In a file called `.env.local`, add:
+   In a file called `.env.local` add:
 
-```
-OPENAI_API_KEY=<your openai api key>
-```
+   ```
+   OPENAI_API_KEY=<your openai api key>
+   ```
 
-This will be used by the HydraBackend class server-side and is used to make requests to OpenAI.
+   This will be used by the HydraBackend class server-side to make requests to OpenAI.
 
-3. **Initialize HydraClient and register components**
+3. **Initialize HydraClient and Register Components**
 
-Somewhere in your app, create a new instance of `HydraClient`.
+   Somewhere in your app, create a new instance of `HydraClient`.
 
-Then to create a list of components that the AI can choose from, call `registerComponent(name, component, propsDefinition, getComponentContext)` with each, where:
+   Use the `registerComponent` method to create a list of components that Hydra can choose from. The method signature is:
 
-- `name` is a unique name for the component
-- `component` is the actual component
-- `props` is an object that describes each available prop of the component.
-- `getComponentContext` is an optional prop that takes a function which Hydra will use to pre-fetch any data Hydra should know about when hydrating this component. For example, if I am registering a "ToDoList" component, I might pass a function that fetches and returns my list of todo items, so Hydra can show real data.
+   ```typescript
+   hydra.registerComponent(
+     name,
+     description,
+     component,
+     propsDefinition,
+     contextTools
+   );
+   ```
 
-```typescript
-//hydra-client.ts
+   - `name`: A unique name for the component.
+   - `description`: A description of the component for Hydra to understand when to use it.
+   - `component`: The actual React component.
+   - `propsDefinition`: An object defining each available prop and its type.
+   - `contextTools`: (optional) An array of functions that Hydra can call to gather extra data (e.g., fetching items from an API) when hydrating the component. Find information on how to define contextTools [here.](/package/docs/context-tools.md)
 
-import { HydraClient } from "hydra-ai";
-import CurrentWeather from "./components/current-weather";
-import RainChart from "./components/rain-chart";
-import WeatherTimeChart from "./components/weather-timechart";
-import WindTimeChart from "./components/wind-timechart";
+   Here’s an example:
 
-const hydra = new HydraClient();
+   ```typescript
+   // hydra-client.ts
 
-hydra.registerComponent("CurrentWeather", CurrentWeather, {
-  temperatureFahrenheit: "number",
-  description: "string",
-  weather: '"rain" | "sun" | "cloud" | "snow" | "clear"',
-});
+   import { HydraClient } from "hydra-ai";
+   import CurrentWeather from "./components/current-weather";
+   import RainChart from "./components/rain-chart";
 
-hydra.registerComponent("RainChart", RainChart, {
-  data: "Array<{ hourOrDay: string; rainChancePercent: number }>",
-});
+   const hydra = new HydraClient();
 
-hydra.registerComponent(
-  "TodoList",
-  TodoList,
-  {
-    todoItems: "{id: string; title: string; isDone: boolean}[]",
-  },
-  getTodoItems
-);
+   hydra.registerComponent(
+     "CurrentWeather",
+     "Displays the current weather conditions",
+     CurrentWeather,
+     {
+       temperatureFahrenheit: "number",
+       description: "string",
+       weather: '"rain" | "sun" | "cloud" | "snow" | "clear"',
+     }
+   );
 
-export default hydra;
-```
+   hydra.registerComponent(
+     "RainChart",
+     "Shows rain probability over time",
+     RainChart,
+     {
+       data: "{ hourOrDay: string; rainChancePercent: number }[]",
+     }
+   );
 
-3. **Generate components**
+   export default hydra;
+   ```
 
-```typescript
-const component = await hydra.generateComponent(message);
-```
+4. **Have Hydra Pick and Hydrate Components Based on Context**
 
-You will likely want to have a state variable to hold the generated component. Here's a full example page (using NextJS) that uses Hydra, assuming the `hydra-client.ts` file shown above is created:
+   To have Hydra use one of the registered components, you can call `generateComponent`:
 
-```typescript
-"use client";
+   ```typescript
+   const component = await hydra.generateComponent(message);
+   ```
 
-import { ReactElement, useEffect, useState } from "react";
-import hydra from "./hydra-client";
+   Here’s an example that fetches a component dynamically and renders it:
 
-export default function Home() {
-  const [dynamicComponent, setDynamicComponent] = useState<ReactElement | null>(
-    null
-  );
+   ```typescript
+   "use client";
 
-  const fetchComponent = async (message: string) => {
-    const component = await hydra.generateComponent(message);
-    setDynamicComponent(component);
-  };
+   import { ReactElement, useEffect, useState } from "react";
+   import hydra from "./hydra-client";
 
-  useEffect(() => {
-    fetchComponent("please show me a weather forecast");
-  }, []);
+   export default function Home() {
+     const [dynamicComponent, setDynamicComponent] =
+       useState<ReactElement | null>(null);
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      {dynamicComponent}
-    </main>
-  );
-}
-```
+     const fetchComponent = async (message: string) => {
+       const component = await hydra.generateComponent(message);
+       setDynamicComponent(component);
+     };
+
+     useEffect(() => {
+       fetchComponent("show me today's weather");
+     }, []);
+
+     return (
+       <main className="flex min-h-screen flex-col items-center justify-center">
+         {dynamicComponent}
+       </main>
+     );
+   }
+   ```
+
+   If you've registered a weather-related component, Hydra will choose it based on the message and display it in the app. If you included a `contextTool` with that weather component, Hydra will handle requesting the correct data before filling in the component.
 
 ## Report a bug or Request a feature
 
