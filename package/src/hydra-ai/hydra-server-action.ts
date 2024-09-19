@@ -14,11 +14,25 @@ let hydraBackend: HydraBackend;
 
 export async function initBackend(
   model?: string,
-  openAiKey?: string
+  openAiKey?: string,
+  provider?:
+    | "openai"
+    | "mistral"
+    | "anthropic"
+    | "bedrock"
+    | "gemini"
+    | "groq"
+    | "openrouter"
+    | undefined
 ): Promise<void> {
   if (!hydraBackend) {
     const apiKey = openAiKey ?? process.env.OPENAI_API_KEY ?? "";
-    hydraBackend = new HydraBackend(apiKey, model, process.env.POSTGRES_DB_URL);
+    hydraBackend = new HydraBackend(
+      apiKey,
+      model,
+      process.env.POSTGRES_DB_URL,
+      provider
+    );
   }
 }
 

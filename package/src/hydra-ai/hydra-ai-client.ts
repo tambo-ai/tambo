@@ -27,13 +27,15 @@ export default class HydraClient {
   private componentList: ComponentRegistry = {};
   private chatHistory: ChatMessage[] = [];
   private model?: string;
+  private provider?: string;
 
-  constructor(model?: string) {
+  constructor(model?: string, provider?: string) {
     this.model = model;
+    this.provider = provider;
   }
 
   private async ensureBackendInitialized(): Promise<void> {
-    await initBackend(this.model);
+    await initBackend(this.model, this.provider);
   }
 
   public async registerComponent(

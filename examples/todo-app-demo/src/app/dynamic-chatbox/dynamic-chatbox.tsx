@@ -42,7 +42,7 @@ export default function DynamicChatbox() {
        )} latest message: ${message}`
     );
     const hydraMessage: DynamicMessage = {
-      component: response,
+      component: response.component,
       who: "HydraAI",
       type: "component",
       message: "",

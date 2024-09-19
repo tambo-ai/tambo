@@ -1,6 +1,6 @@
 import "server-only"; // So this only runs on a server component.
 
-import { OpenAI } from "openai";
+import { TokenJS } from "token.js";
 import {
   ChatCompletion,
   ChatCompletionMessageParam,
@@ -35,20 +35,32 @@ const schema = z.object({
 
 const defaultSystemInstructions = `You are a UI/UX designer that decides what component should be rendered based on what the user interaction is.`;
 
+type SupportedProvider =
+  | "openai"
+  | "mistral"
+  | "anthropic"
+  | "bedrock"
+  | "gemini"
+  | "groq"
+  | "openrouter";
+
 export default class AIService {
-  client: OpenAI;
+  client: TokenJS;
   model: string;
+  provider: SupportedProvider;
   systemInstructions: string;
 
   constructor(
-    openAIKey: string,
+    tokenJSKey: string,
     model: string = "gpt-4o",
+    provider: SupportedProvider = "openai",
     systemInstructions: string = defaultSystemInstructions
   ) {
-    this.client = new OpenAI({
-      apiKey: openAIKey,
+    this.client = new TokenJS({
+      apiKey: tokenJSKey,
     });
     this.model = model;
+    this.provider = provider;
     this.systemInstructions = systemInstructions;
   }
 
@@ -63,7 +75,7 @@ First you will reason about whether you think a component should be generated. R
 Then you will output a boolean flag (true or false) <decision></decision> tags.
 Finally, if you decide that a component should be generated, you will output the name of the component between <component></component> tags.`;
 
-    const decisionResponse = await this.callOpenAI([
+    const decisionResponse = await this.callTokenJS([
       {
         role: "system",
         content: decisionPrompt,
@@ -95,7 +107,7 @@ Finally, if you decide that a component should be generated, you will output the
 Respond to the user's latest query to the best of your ability. If they have requested a task that you cannot help with, tell them so and recommend something you can help with.
 This response should be short and concise.`;
 
-      const messageResponse = await this.callOpenAI([
+      const messageResponse = await this.callTokenJS([
         {
           role: "system",
           content: messagePrompt,
@@ -162,7 +174,7 @@ ${this.generateZodTypePrompt(schema)}`;
       ? undefined
       : this.openAIToolFromMetadata(component.contextTools);
 
-    const generateComponentResponse = await this.callOpenAI(
+    const generateComponentResponse = await this.callTokenJS(
       [
         {
           role: "system",
@@ -207,7 +219,7 @@ ${this.generateZodTypePrompt(schema)}`;
     return componentDecision;
   }
 
-  async callOpenAI(
+  async callTokenJS(
     messages: ChatCompletionMessageParam[],
     tools?: ChatCompletionTool[],
     jsonMode: boolean = false
@@ -218,6 +230,7 @@ ${this.generateZodTypePrompt(schema)}`;
     }
 
     const response = await this.client.chat.completions.create({
+      provider: this.provider,
       model: this.model,
       messages: messages,
       temperature: 0.1,
@@ -233,8 +246,9 @@ ${this.generateZodTypePrompt(schema)}`;
       response.choices[0].finish_reason === "function_call" ||
       response.choices[0].finish_reason === "tool_calls"
     ) {
-      openAIResponse.toolCallRequest =
-        this.toolCallRequestFromOpenaiResponse(response);
+      openAIResponse.toolCallRequest = this.toolCallRequestFromTokenJSResponse(
+        response as ChatCompletion
+      );
     }
 
     return openAIResponse;
@@ -314,11 +328,11 @@ ${this.generateZodTypePrompt(schema)}`;
     return tools;
   }
 
-  toolCallRequestFromOpenaiResponse = (
+  toolCallRequestFromTokenJSResponse = (
     response: ChatCompletion
-  ): ToolCallRequest => {
+  ): ToolCallRequest | undefined => {
     if (!response.choices[0].message.tool_calls) {
-      throw new Error("No tool calls found in response");
+      return undefined;
     }
     const toolArgs = JSON.parse(
       response.choices[0].message.tool_calls[0].function.arguments

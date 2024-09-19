@@ -1,6 +1,7 @@
+import "server-only";
+
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import "server-only";
 import { registeredComponents } from "../db/schema";
 import AIService from "./ai-service";
 import { ChatMessage } from "./model/chat-message";
@@ -20,7 +21,15 @@ export default class HydraBackend {
   constructor(
     openAIKey: string,
     openAIModel = "gpt-4o",
-    dbConnectionUrl?: string
+    dbConnectionUrl?: string,
+    provider:
+      | "openai"
+      | "mistral"
+      | "anthropic"
+      | "bedrock"
+      | "gemini"
+      | "groq"
+      | "openrouter" = "openai"
   ) {
     if (dbConnectionUrl) {
       const pool = new Pool({
@@ -29,7 +38,7 @@ export default class HydraBackend {
 
       this.dbConnection = drizzle(pool);
     }
-    this.aiService = new AIService(openAIKey, openAIModel);
+    this.aiService = new AIService(openAIKey, openAIModel, provider);
   }
 
   public async registerComponent(
