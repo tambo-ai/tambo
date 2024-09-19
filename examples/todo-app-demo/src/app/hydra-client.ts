@@ -3,7 +3,7 @@ import AddTodoItemForm from "./components/add-todo-form";
 import { TodoItemCard } from "./components/todo-item";
 import TodoList from "./components/todo-list";
 
-const hydra = new HydraClient("gpt-4o", "openai");
+const hydra = new HydraClient("claude-3-5-sonnet-20240620", "anthropic");
 
 hydra.registerComponent(
   "TodoItem",

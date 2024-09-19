@@ -18,7 +18,7 @@ import {
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
 import { GenerateComponentResponse } from "./model/generate-component-response";
-
+import { Provider } from "./model/providers";
 interface ComponentRegistry {
   [key: string]: RegisteredComponent;
 }
@@ -35,7 +35,7 @@ export default class HydraClient {
   }
 
   private async ensureBackendInitialized(): Promise<void> {
-    await initBackend(this.model, this.provider);
+    await initBackend(this.model, this.provider as Provider | undefined);
   }
 
   public async registerComponent(
