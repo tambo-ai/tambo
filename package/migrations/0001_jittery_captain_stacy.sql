@@ -1,1 +1,0 @@
-ALTER TABLE "registered_components" ADD COLUMN "context_tools" jsonb;

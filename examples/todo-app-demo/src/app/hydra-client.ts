@@ -1,4 +1,4 @@
-import { HydraClient } from "hydra-ai-asdfasdfasd";
+import { HydraClient } from "hydra-ai";
 import AddTodoItemForm from "./components/add-todo-form";
 import { TodoItemCard } from "./components/todo-item";
 import TodoList from "./components/todo-list";

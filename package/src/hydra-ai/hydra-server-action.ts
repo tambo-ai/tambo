@@ -27,12 +27,7 @@ export async function initBackend(
 ): Promise<void> {
   if (!hydraBackend) {
     const apiKey = openAiKey ?? process.env.OPENAI_API_KEY ?? "";
-    hydraBackend = new HydraBackend(
-      apiKey,
-      model,
-      process.env.POSTGRES_DB_URL,
-      provider
-    );
+    hydraBackend = new HydraBackend(apiKey, model, provider);
   }
 }
 
