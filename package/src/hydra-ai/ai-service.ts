@@ -332,7 +332,7 @@ ${this.generateZodTypePrompt(schema)}`;
     response: ChatCompletion
   ): ToolCallRequest | undefined => {
     if (!response.choices[0].message.tool_calls) {
-      return undefined;
+      throw new Error("No tool calls found in response");
     }
     const toolArgs = JSON.parse(
       response.choices[0].message.tool_calls[0].function.arguments
