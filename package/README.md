@@ -1,7 +1,23 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/michaelmagan/hydraai/main/github-hydra-ai.png" alt="Hydra AI Logo" width="200">
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/v/hydra-ai.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/dm/hydra-ai.svg" alt="npm downloads"></a>
+  <a href="https://github.com/michaelmagan/hydraai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/michaelmagan/hydraai.svg" alt="license"></a>
+  <a href="https://github.com/michaelmagan/hydraai/commits/main"><img src="https://img.shields.io/github/last-commit/michaelmagan/hydraai.svg" alt="GitHub last commit"></a>
+  <a href="https://discord.gg/dJNvPEHth6"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a>
+  <a href="https://github.com/michaelmagan/hydraai/stargazers"><img src="https://img.shields.io/github/stars/michaelmagan/hydraai.svg?style=social" alt="GitHub stars"></a>
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/2501fd99-f768-43f5-96cc-d113c4f95903" alt="Hydra AI Demo" width="600">
+</p>
+
 # Hydra AI
 
 A framework for creating context-aware UI in React apps. Register your components, and let Hydra decide when to show them and how to hydrate them with the right props and context.
-
 ## Getting Started
 
 1. **Install the package**
