@@ -12,6 +12,24 @@ export const metadata: Metadata = {
   title: "hydra-ai - Generative UI for your web app",
   description:
     "hydra-ai is a generative UI for your web app. It allows you to create custom UI components for your web app.",
+  openGraph: {
+    title: "hydra-ai - Generative UI for your web app",
+    description: "Create custom UI components for your web app with hydra-ai",
+    images: [
+      {
+        url: "https://usehydra.ai/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "hydra-ai Open Graph Image",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "hydra-ai - Generative UI for your web app",
+    description: "Create custom UI components for your web app with hydra-ai",
+    images: ["https://usehydra.ai/twitter-image.png"],
+  },
 };
 
 export default function RootLayout({
