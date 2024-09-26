@@ -1,5 +1,5 @@
 "use client";
-import { ChevronsDown, Github, Menu } from "lucide-react";
+import { ChevronsDown, Github, Menu, Twitter } from "lucide-react";
 import React from "react";
 import {
   Sheet,
@@ -98,6 +98,42 @@ export const Navbar = () => {
               <Separator className="mb-2" />
 
               <ToggleTheme />
+
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                aria-label="View on GitHub"
+                className="w-full justify-start"
+              >
+                <Link
+                  aria-label="View on GitHub"
+                  href="https://github.com/michaelmagan/hydraai"
+                  target="_blank"
+                  onClick={() => handleNavClick("GitHub")}
+                >
+                  <Github className="size-5 mr-2" />
+                  GitHub
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                aria-label="Follow on Twitter"
+                className="w-full justify-start"
+              >
+                <Link
+                  aria-label="Follow on Twitter"
+                  href="https://x.com/usehydraai"
+                  target="_blank"
+                  onClick={() => handleNavClick("Twitter")}
+                >
+                  <Twitter className="size-5 mr-2" />
+                  Twitter
+                </Link>
+              </Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>
@@ -173,6 +209,22 @@ export const Navbar = () => {
             onClick={() => handleNavClick("GitHub")}
           >
             <Github className="size-5" />
+          </Link>
+        </Button>
+
+        <Button
+          asChild
+          size="sm"
+          variant="ghost"
+          aria-label="Follow on Twitter"
+        >
+          <Link
+            aria-label="Follow on Twitter"
+            href="https://x.com/usehydraai"
+            target="_blank"
+            onClick={() => handleNavClick("Twitter")}
+          >
+            <Twitter className="size-5" />
           </Link>
         </Button>
       </div>
