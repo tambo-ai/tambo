@@ -106,6 +106,7 @@ export const HowItWorksSection = () => {
   return (
     <section className="bg-background pb-24 place-items-center lg:max-w-screen-xl lg:w-[75%] gap-8 mx-auto py-20 md:py-32">
       <div className="container mx-auto">
+        <h2 className="text-4xl font-bold text-center mb-16">How It Works</h2>
         <div className="space-y-16">
           {/* Row 1 */}
           <motion.div
