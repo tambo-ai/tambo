@@ -58,10 +58,7 @@ export const DemoSection: React.FC = () => {
             playsInline
             controls={showControls}
           >
-            <source
-              src="/videos/2024-08-26-hydra-ai-yc-demo.mp4"
-              type="video/mp4"
-            />
+            <source src="/videos/yage-demo.mp4" type="video/mp4" />
           </video>
           {!isPlaying && (
             <button

@@ -44,7 +44,7 @@ export const LiveDemoSection = () => {
               <span className="text-transparent px-2 bg-gradient-to-r from-[#D247BF] to-primary bg-clip-text">
                 live demo
               </span>
-              of Hydra AI
+              for yourself.
             </h2>
           </motion.div>
 
@@ -52,7 +52,7 @@ export const LiveDemoSection = () => {
             className="max-w-screen-sm mx-auto text-xl text-muted-foreground"
             variants={floatUpVariants}
           >
-            Chat with 4500+ YC company data.
+            Chat with 4500+ YC company data powered by hydra-ai.
           </motion.p>
 
           <motion.div variants={floatUpVariants}>
