@@ -24,6 +24,13 @@ interface ComponentRegistry {
   [key: string]: RegisteredComponent;
 }
 
+export interface HydraClientOptions {
+  model?: string;
+  provider?: string;
+  hydraApiKey?: string;
+  hydraApiUrl?: string;
+}
+
 export default class HydraClient {
   private componentList: ComponentRegistry = {};
   private chatHistory: ChatMessage[] = [];
@@ -32,12 +39,12 @@ export default class HydraClient {
   private hydraApiKey?: string;
   private hydraApiUrl?: string;
 
-  constructor(
-    model?: string,
-    provider?: string,
-    hydraApiKey?: string,
-    hydraApiUrl?: string
-  ) {
+  constructor({
+    model,
+    provider,
+    hydraApiKey,
+    hydraApiUrl,
+  }: HydraClientOptions = {}) {
     this.model = model;
     this.provider = provider;
     this.hydraApiKey = hydraApiKey;

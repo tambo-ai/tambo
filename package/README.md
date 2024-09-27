@@ -18,6 +18,7 @@
 # Hydra AI
 
 A framework for creating context-aware UI in React apps. Register your components, and let Hydra decide when to show them and how to hydrate them with the right props and context.
+
 ## Getting Started
 
 1. **Install the package**
@@ -50,7 +51,7 @@ A framework for creating context-aware UI in React apps. Register your component
    ```typescript
    import { HydraClient } from "hydra-ai";
 
-   const hydra = new HydraClient("gpt-4o", "openai");
+   const hydra = new HydraClient({ model: "gpt-4o", provider: "openai" });
    ```
 
    Use the `registerComponent` method to create a list of components that Hydra can choose from. The method signature is:
@@ -81,7 +82,7 @@ A framework for creating context-aware UI in React apps. Register your component
    import TodoList from "./components/todo-list";
    import AddTodoItemForm from "./components/add-todo-form";
 
-   const hydra = new HydraClient("gpt-4o", "openai");
+   const hydra = new HydraClient({ model: "gpt-4o", provider: "openai" });
 
    hydra.registerComponent(
      "TodoItem",
@@ -92,14 +93,9 @@ A framework for creating context-aware UI in React apps. Register your component
      }
    );
 
-   hydra.registerComponent(
-     "TodoList",
-     "A list of todo items",
-     TodoList,
-     {
-       todoItems: "{id: string; title: string; isDone: boolean}[]",
-     }
-   );
+   hydra.registerComponent("TodoList", "A list of todo items", TodoList, {
+     todoItems: "{id: string; title: string; isDone: boolean}[]",
+   });
 
    hydra.registerComponent(
      "AddTodoItemForm",
@@ -128,11 +124,14 @@ A framework for creating context-aware UI in React apps. Register your component
    import hydra from "./hydra-client";
 
    export default function Home() {
-     const [dynamicComponent, setDynamicComponent] = useState<ReactElement | null>(null);
+     const [dynamicComponent, setDynamicComponent] =
+       useState<ReactElement | null>(null);
      const [message, setMessage] = useState<string>("");
 
      const fetchComponent = async (userMessage: string) => {
-       const { component, message } = await hydra.generateComponent(userMessage);
+       const { component, message } = await hydra.generateComponent(
+         userMessage
+       );
        setDynamicComponent(component);
        setMessage(message);
      };

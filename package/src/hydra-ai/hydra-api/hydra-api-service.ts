@@ -6,17 +6,16 @@ import {
   AvailableComponents,
 } from "../model/component-metadata";
 
+const defaultUrl = "https://api.usehydra.ai";
+
 export const hydraGenerate = async (
   messageHistory: ChatMessage[],
   availableComponents: AvailableComponents,
   apiKey?: string,
-  url?: string
+  url: string = defaultUrl
 ): Promise<ComponentDecision> => {
   if (!apiKey) {
     throw new Error("API key is required for using hydraAPI");
-  }
-  if (!url) {
-    throw new Error("URL is required for using hydraAPI");
   }
 
   try {
@@ -49,7 +48,7 @@ export const hydraHydrate = async (
   component: AvailableComponent,
   toolResponse: any,
   apiKey?: string,
-  url?: string
+  url: string = defaultUrl
 ): Promise<ComponentChoice> => {
   if (!apiKey) {
     throw new Error("API key is required for using hydraAPI");
