@@ -98,7 +98,7 @@ export default function Home() {
                 y1={prevPoint.y}
                 x2={point.x}
                 y2={point.y}
-                stroke={`rgba(210, 71, 191, ${point.opacity})`}
+                stroke={`rgba(230, 131, 215, ${point.opacity})`}
                 strokeWidth="2"
               />
             );
@@ -111,7 +111,7 @@ export default function Home() {
             left: 0,
             width: "100%",
             height: "100%",
-            background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(210, 71, 191, ${gradientOpacity}), transparent ${gradientSize}%)`,
+            background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(230, 131, 215, ${gradientOpacity}), transparent ${gradientSize}%)`,
             transition: "background 0.2s ease",
           }}
         />

@@ -102,11 +102,31 @@ const codeVariantsLeft = {
   },
 };
 
+const titleVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
 export const HowItWorksSection = () => {
   return (
     <section className="bg-background pb-24 place-items-center lg:max-w-screen-xl lg:w-[75%] gap-8 mx-auto py-20 md:py-32">
       <div className="container mx-auto">
-        <h2 className="text-4xl font-bold text-center mb-16">How It Works</h2>
+        <motion.h2
+          className="text-4xl font-bold text-center mb-16"
+          variants={titleVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          How It Works
+        </motion.h2>
         <div className="space-y-16">
           {/* Row 1 */}
           <motion.div
