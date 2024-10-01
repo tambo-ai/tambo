@@ -35,14 +35,9 @@ const dynamicComponent = await hydra.generateComponent(context);
 
 ## Getting Started
 
-Follow the instructions [here](/package/README.md) or use our [template](https://github.com/MichaelMilstead/hydra-template) project.
+Follow the instructions [here](/hydra-client/README.md) or use our [template](https://github.com/MichaelMilstead/hydra-template) project.
 
-## Notes
-
-Hydra development is still early, and patterns for different types of components and apps are still being developed.
-
-- expects to be used in a NextJS project
-- components that have function props will not work properly.
+## Community
 
 Chat with other users and the developers here:
 
@@ -58,7 +53,8 @@ Make a GitHub issue [here.](https://github.com/michaelmagan/hydraai/issues/new)
 
 ## This Repo
 
-- `hydra-ai` package is here: [/package](/package)
+- `hydra-ai` client-side package is here: [/hydra-client](/hydra-client)
+- `hydra-ai-backend` package for self-hosting ist here: [/hydra-server](/hydra-server/)
 
 - Example apps that use `hydra-ai`:
   - Charts app here [/examples/charts-demo](/examples/charts-demo/)

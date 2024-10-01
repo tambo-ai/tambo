@@ -27,33 +27,28 @@ A framework for creating context-aware UI in React apps. Register your component
    npm i hydra-ai
    ```
 
-2. **Set up your API key environment variable**
+2. **Initialize HydraClient**
 
-   In a file called `.env.local` add your API key for the AI provider you want to use:
-
-   ```
-   OPENAI_API_KEY=<your openai api key>
-   # Or for other providers:
-   # ANTHROPIC_API_KEY=<your anthropic api key>
-   # COHERE_API_KEY=<your cohere api key>
-   # GEMINI_API_KEY=<your gemini api key>
-   # GROQ_API_KEY=<your groq api key>
-   # MISTRAL_API_KEY=<your mistral api key>
-   # OPENROUTER_API_KEY=<your openrouter api key>
-   ```
-
-   This will be used by the HydraClient to make requests to the chosen AI provider.
-
-3. **Initialize HydraClient and Register Components**
-
-   Create a new instance of `HydraClient`, specifying the model and provider:
+   Create a new instance of `HydraClient`. You can use a `hydraApiKey`, and the HydraClient will make requests to the Hydra API:
 
    ```typescript
    import { HydraClient } from "hydra-ai";
 
-   const hydra = new HydraClient({ model: "gpt-4o", provider: "openai" });
+   const hydra = new HydraClient({ hydraApiKey: "key-here" });
    ```
 
+   Or, you can self-host hydra on your own backend using the `hydra-ai-backend` package. In that case, you'll want to add a reference to functions that satisfy the `getComponentChoice` and `hydrateComponentWithToolResponse` parameters, where your function calls your backend:
+
+   ```typescript
+   import { HydraClient } from "hydra-ai";
+
+   const hydra = new HydraClient({
+     getComponentChoice: myComponentChoiceFunction,
+     hydrateComponentWithToolResponse: myHydrateFunction,
+   });
+   ```
+
+3. **Register Components**
    Use the `registerComponent` method to create a list of components that Hydra can choose from. The method signature is:
 
    ```typescript
@@ -82,7 +77,7 @@ A framework for creating context-aware UI in React apps. Register your component
    import TodoList from "./components/todo-list";
    import AddTodoItemForm from "./components/add-todo-form";
 
-   const hydra = new HydraClient({ model: "gpt-4o", provider: "openai" });
+   const hydra = new HydraClient({ hydraApiKey: "my-key" });
 
    hydra.registerComponent(
      "TodoItem",

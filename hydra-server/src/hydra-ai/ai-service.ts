@@ -1,11 +1,9 @@
-import "server-only"; // So this only runs on a server component.
-
-import { TokenJS } from "token.js";
+import { ChatCompletion } from "openai/resources";
 import {
-  ChatCompletion,
   ChatCompletionMessageParam,
   ChatCompletionTool,
-} from "openai/resources";
+  TokenJS,
+} from "token.js";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { ChatMessage } from "./model/chat-message";

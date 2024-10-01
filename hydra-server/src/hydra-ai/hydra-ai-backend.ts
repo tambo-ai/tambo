@@ -1,5 +1,3 @@
-import "server-only";
-
 import AIService from "./ai-service";
 import { ChatMessage } from "./model/chat-message";
 import { ComponentDecision } from "./model/component-choice";
@@ -10,6 +8,7 @@ import {
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
 import { InputContext } from "./model/input-context";
+import { Provider } from "./model/providers";
 
 export default class HydraBackend {
   private aiService: AIService;
@@ -17,14 +16,7 @@ export default class HydraBackend {
   constructor(
     openAIKey: string,
     openAIModel = "gpt-4o",
-    provider:
-      | "openai"
-      | "mistral"
-      | "anthropic"
-      | "bedrock"
-      | "gemini"
-      | "groq"
-      | "openrouter" = "openai"
+    provider: Provider = "openai"
   ) {
     this.aiService = new AIService(openAIKey, openAIModel, provider);
   }

@@ -1,12 +1,6 @@
 import React, { ComponentType } from "react";
 import { updateMessageWithContextAdditions } from "./context-utils";
 import { hydraGenerate, hydraHydrate } from "./hydra-api/hydra-api-service";
-import {
-  chooseComponent,
-  hydrateComponent,
-  initBackend,
-  saveComponent,
-} from "./hydra-server-action";
 import { ComponentChoice } from "./model";
 import { ChatMessage } from "./model/chat-message";
 import { ComponentDecision } from "./model/component-choice";
@@ -14,12 +8,10 @@ import {
   AvailableComponent,
   AvailableComponents,
   ComponentContextTool,
-  ComponentContextToolMetadata,
   RegisteredComponent,
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
 import { GenerateComponentResponse } from "./model/generate-component-response";
-import { Provider } from "./model/providers";
 interface ComponentRegistry {
   [key: string]: RegisteredComponent;
 }
@@ -29,6 +21,19 @@ export interface HydraClientOptions {
   provider?: string;
   hydraApiKey?: string;
   hydraApiUrl?: string;
+  getComponentChoice?: (
+    messageHistory: ChatMessage[],
+    availableComponents: AvailableComponents,
+    apiKey?: string,
+    url?: string
+  ) => Promise<ComponentDecision>;
+  hydrateComponentWithToolResponse?: (
+    messageHistory: ChatMessage[],
+    component: AvailableComponent,
+    toolResponse: any,
+    apiKey?: string,
+    url?: string
+  ) => Promise<ComponentChoice>;
 }
 
 export default class HydraClient {
@@ -38,124 +43,67 @@ export default class HydraClient {
   private provider?: string;
   private hydraApiKey?: string;
   private hydraApiUrl?: string;
+  private getComponentChoice: (
+    messageHistory: ChatMessage[],
+    availableComponents: AvailableComponents,
+    apiKey?: string,
+    url?: string
+  ) => Promise<ComponentDecision>;
+  private hydrateComponentWithToolResponse: (
+    messageHistory: ChatMessage[],
+    component: AvailableComponent,
+    toolResponse: any,
+    apiKey?: string,
+    url?: string
+  ) => Promise<ComponentChoice>;
 
   constructor({
     model,
     provider,
     hydraApiKey,
     hydraApiUrl,
+    getComponentChoice = hydraGenerate,
+    hydrateComponentWithToolResponse = hydraHydrate,
   }: HydraClientOptions = {}) {
     this.model = model;
     this.provider = provider;
     this.hydraApiKey = hydraApiKey;
     this.hydraApiUrl = hydraApiUrl;
+    this.getComponentChoice = getComponentChoice;
+    this.hydrateComponentWithToolResponse = hydrateComponentWithToolResponse;
   }
-
-  private ensureBackendInitialized = async (): Promise<void> => {
-    if (!this.hydraApiKey) {
-      await initBackend(this.model, this.provider as Provider | undefined);
-    }
-  };
-
-  private storeComponent = async (
-    name: string,
-    description: string,
-    propsDefinition: ComponentPropsMetadata,
-    contextToolDefinitions: ComponentContextToolMetadata[]
-  ): Promise<boolean> => {
-    if (!this.hydraApiKey) {
-      await this.ensureBackendInitialized();
-      return saveComponent(
-        name,
-        description,
-        propsDefinition,
-        contextToolDefinitions
-      );
-    }
-    return true;
-  };
 
   public async registerComponent(
     name: string,
     description: string,
     component: ComponentType<any>,
     propsDefinition: ComponentPropsMetadata = {},
-    contextTools: ComponentContextTool[] = [],
-    storeComponent: (
-      name: string,
-      description: string,
-      propsDefinition: ComponentPropsMetadata,
-      contextToolDefinitions: ComponentContextToolMetadata[]
-    ) => Promise<boolean> = this.storeComponent
+    contextTools: ComponentContextTool[] = []
   ): Promise<void> {
-    const success = await storeComponent(
+    if (this.componentList[name]) {
+      console.warn(`overwriting component ${name}`);
+    }
+    this.componentList[name] = {
+      component,
       name,
       description,
-      propsDefinition,
-      contextTools.map((tool) => tool.definition)
-    );
-
-    if (!success) {
-      return;
-    }
-
-    if (!this.componentList[name]) {
-      this.componentList[name] = {
-        component,
-        name,
-        description,
-        props: propsDefinition,
-        contextTools: contextTools,
-      };
-    } else {
-      throw new Error(
-        `A component with name: ${name} is already registered. Try another name.`
-      );
-    }
+      props: propsDefinition,
+      contextTools: contextTools,
+    };
   }
-
-  private getDefaultComponentChoiceFunction = () => {
-    if (this.hydraApiKey) {
-      return hydraGenerate;
-    } else {
-      return chooseComponent;
-    }
-  };
-
-  private getDefaultHydrateComponentFunction = () => {
-    if (this.hydraApiKey) {
-      return hydraHydrate;
-    } else {
-      return hydrateComponent;
-    }
-  };
 
   public async generateComponent(
     message: string,
-    onProgressUpdate: (stage: string) => void = (progressMessage) => {},
-    getComponentChoice: (
-      messageHistory: ChatMessage[],
-      availableComponents: AvailableComponents,
-      apiKey?: string,
-      url?: string
-    ) => Promise<ComponentDecision> = this.getDefaultComponentChoiceFunction(),
-    hydrateComponentWithToolResponse: (
-      messageHistory: ChatMessage[],
-      component: AvailableComponent,
-      toolResponse: any,
-      apiKey?: string,
-      url?: string
-    ) => Promise<ComponentChoice> = this.getDefaultHydrateComponentFunction()
+    onProgressUpdate: (stage: string) => void = (progressMessage) => {}
   ): Promise<GenerateComponentResponse> {
     onProgressUpdate("Choosing component");
-    await this.ensureBackendInitialized();
     const availableComponents = await this.getAvailableComponents(
       this.componentList
     );
     const componentDecision = await this.getComponent(
       message,
       availableComponents,
-      getComponentChoice
+      this.getComponentChoice
     );
     if (componentDecision.componentName === null) {
       return componentDecision;
@@ -166,7 +114,7 @@ export default class HydraClient {
       return await this.handleToolCallRequest(
         componentDecision,
         availableComponents,
-        hydrateComponentWithToolResponse
+        this.hydrateComponentWithToolResponse
       );
     } else {
       this.chatHistory.push({

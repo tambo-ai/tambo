@@ -1,0 +1,31 @@
+{
+  "name": "hydra-ai-backend",
+  "version": "0.0.1",
+  "description": "Server package for self-hosting hydra-ai",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michaelmagan/hydraai"
+  },
+  "bugs": {
+    "url": "https://github.com/michaelmagan/hydraai/issues"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "openai": "^4.63.0",
+    "token.js": "^0.4.5",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}
