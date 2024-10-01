@@ -54,7 +54,7 @@ Make a GitHub issue [here.](https://github.com/michaelmagan/hydraai/issues/new)
 ## This Repo
 
 - `hydra-ai` client-side package is here: [/hydra-client](/hydra-client)
-- `hydra-ai-backend` package for self-hosting ist here: [/hydra-server](/hydra-server/)
+- `hydra-ai-backend` package for self-hosting is here: [/hydra-server](/hydra-server/)
 
 - Example apps that use `hydra-ai`:
   - Charts app here [/examples/charts-demo](/examples/charts-demo/)
