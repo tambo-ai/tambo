@@ -35,9 +35,15 @@ export default function Home() {
     setGradientOpacity(0.1 + (distanceFromCenter / maxDistance) * 0.1);
 
     // Add new position to trail with full opacity
-    setTrail((prevTrail) =>
-      [...prevTrail, { ...newPosition, opacity: 1 }].slice(-50)
-    ); // Keep last 50 points
+    setTrail((prevTrail) => {
+      const newTrail = [...prevTrail, { ...newPosition, opacity: 1 }].slice(
+        -30
+      ); // Keep last 30 points for faster disappearance
+      return newTrail.map((point, index) => ({
+        ...point,
+        opacity: Math.min(1, 0.7 + (index / newTrail.length) * 0.3), // Increase starting opacity and make it more opaque as it gets further
+      }));
+    });
   }, []);
 
   useEffect(() => {
@@ -53,11 +59,11 @@ export default function Home() {
         prevTrail
           .map((point) => ({
             ...point,
-            opacity: Math.max(0, point.opacity - 0.02),
+            opacity: Math.max(0, point.opacity - 0.05), // Faster fade out
           }))
           .filter((point) => point.opacity > 0)
       );
-    }, 50);
+    }, 30); // Shorter interval for faster updates
 
     return () => clearInterval(fadeInterval);
   }, []);
