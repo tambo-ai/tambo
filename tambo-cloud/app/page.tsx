@@ -7,6 +7,7 @@ import { HowItWorksSection } from "@/components/layout/sections/howitworks";
 import { TeamSection } from "@/components/layout/sections/team";
 import { DiscordSection } from "@/components/layout/sections/discord";
 import { LiveDemoSection } from "@/components/layout/sections/app";
+import { FooterSection } from "@/components/layout/sections/footer";
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -128,6 +129,7 @@ export default function Home() {
       <HowItWorksSection />
       <TeamSection />
       <DiscordSection />
+      <FooterSection />
     </div>
   );
 }
