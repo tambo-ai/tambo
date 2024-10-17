@@ -13,7 +13,7 @@ export const HeroSection = () => {
 
   return (
     <section className="container w-full px-4 sm:px-6 lg:px-8">
-      <div className="grid place-items-center gap-8 mx-auto py-12 sm:py-16 md:py-20 lg:py-24">
+      <div className="grid place-items-center gap-8 mx-auto py-auto mt-10">
         <div className="text-center space-y-6 sm:space-y-8">
           <Link
             href="https://www.npmjs.com/package/hydra-ai"

@@ -8,6 +8,7 @@ import { TeamSection } from "@/components/layout/sections/team";
 import { DiscordSection } from "@/components/layout/sections/discord";
 import { LiveDemoSection } from "@/components/layout/sections/app";
 import { FooterSection } from "@/components/layout/sections/footer";
+import { ExamplesSection } from "@/components/layout/sections/domains";
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -70,31 +71,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div
-      style={{
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-        }}
-      >
-        <svg
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-          }}
-        >
+    <div className="relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none">
+        <svg className="absolute inset-0 w-full h-full">
           {trail.map((point, index, array) => {
             if (index === 0) return null;
             const prevPoint = array[index - 1];
@@ -112,21 +91,17 @@ export default function Home() {
           })}
         </svg>
         <div
+          className="absolute inset-0 transition-background duration-200 ease-in-out"
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
             background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(230, 131, 215, ${gradientOpacity}), transparent ${gradientSize}%)`,
-            transition: "background 0.2s ease",
           }}
         />
       </div>
       <HeroSection />
+      <ExamplesSection />
+      <HowItWorksSection />
       <DemoSection />
       <LiveDemoSection />
-      <HowItWorksSection />
       <TeamSection />
       <DiscordSection />
       <FooterSection />

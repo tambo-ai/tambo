@@ -7,21 +7,32 @@ import Example from "@/components/example";
 
 const codeExamples = {
   registerComponents: `import { HydraClient } from "hydra-ai";
-import WeatherForecast from "./components/weather-forecast";
-import DailyForecast from "./components/daily-forecast";
+import TransferMoney from "./components/transfer-money";
+import FindTransaction from "./components/find-transaction";
+import TakeLoan from "./components/take-loan";
 
 const hydra = new HydraClient();
 
-hydra.registerComponent("WeatherForecast", WeatherForecast, {
-  city: "string",
-  country: "string",
-  unit: '"celsius" | "fahrenheit"',
+hydra.registerComponent("TransferMoney", TransferMoney, {
+  fromAccount: "string",
+  toAccount: "string",
+  amount: "number",
+  currency: '"USD" | "EUR" | "GBP"',
 });
 
-hydra.registerComponent("DailyForecast", DailyForecast, {
-  day: "string",
-  temperature: "number",
-  condition: '"sunny" | "cloudy" | "rainy" | "snowy"',
+hydra.registerComponent("FindTransaction", FindTransaction, {
+  transactionId: "string",
+  dateRange: {
+    start: "Date",
+    end: "Date",
+  },
+});
+
+hydra.registerComponent("TakeLoan", TakeLoan, {
+  amount: "number",
+  interestRate: "number",
+  term: "number",
+  purpose: '"personal" | "business" | "mortgage"',
 });
 
 export default hydra;`,
@@ -31,24 +42,26 @@ export default hydra;`,
 import { ReactElement, useEffect, useState } from "react";
 import hydra from "./hydra-client";
 
-export default function Home() {
-  const [weatherComponent, setWeatherComponent] = 
+export default function BankingDashboard() {
+  const [bankingComponent, setBankingComponent] = 
     useState<ReactElement | null>(null);
 
-  const generateWeatherForecast = async () => {
+  const generateBankingUI = async () => {
     const component = await hydra.generateComponent(
-      "Show a 5-day weather forecast for New York"
+      "Create a UI for transferring money between accounts"
     );
-    setWeatherComponent(component);
+    setBankingComponent(component);
   };
 
   useEffect(() => {
-    generateWeatherForecast();
+    generateBankingUI();
   }, []);
 
   return (
     <main>
-      {weatherComponent}
+      <h1>Banking Dashboard</h1>
+      {bankingComponent}
+      <button onClick={generateBankingUI}>Generate New Banking UI</button>
     </main>
   );
 }`,
