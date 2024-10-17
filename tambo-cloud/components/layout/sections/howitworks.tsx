@@ -162,13 +162,6 @@ export const HowItWorksSection = () => {
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
           >
-            <motion.div variants={codeVariantsLeft}>
-              <Code
-                language="jsx"
-                fileName="app/page.tsx"
-                code={codeExamples.useHydraComponent}
-              />
-            </motion.div>
             <motion.div
               className="space-y-4 md:order-2"
               variants={textVariants}
@@ -180,6 +173,13 @@ export const HowItWorksSection = () => {
                 Utilize Hydra AI to dynamically generate and render components
                 based on user input or context.
               </p>
+            </motion.div>
+            <motion.div variants={codeVariantsLeft}>
+              <Code
+                language="jsx"
+                fileName="app/page.tsx"
+                code={codeExamples.useHydraComponent}
+              />
             </motion.div>
           </motion.div>
 
