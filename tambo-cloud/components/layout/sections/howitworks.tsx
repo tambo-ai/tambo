@@ -141,7 +141,7 @@ export const HowItWorksSection = () => {
           How It Works
         </motion.h2>
         <div className="space-y-16">
-          {/* Row 1 */}
+          {/* Step 1: Register Your Components */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
             variants={containerVariants}
@@ -154,8 +154,7 @@ export const HowItWorksSection = () => {
                 1. Register Your Components
               </h3>
               <p className="text-lg text-muted-foreground">
-                Define and register your custom components with Hydra AI to
-                enable AI-driven rendering.
+                Define the functionalities for users in your application.
               </p>
             </motion.div>
             <motion.div variants={codeVariantsRight}>
@@ -167,7 +166,7 @@ export const HowItWorksSection = () => {
             </motion.div>
           </motion.div>
 
-          {/* Row 2 */}
+          {/* Step 2: Uncover User Intent */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
             variants={containerVariants}
@@ -179,12 +178,9 @@ export const HowItWorksSection = () => {
               className="space-y-4 md:order-2"
               variants={textVariants}
             >
-              <h3 className="text-2xl font-semibold">
-                2. Use Hydra to Generate Components
-              </h3>
+              <h3 className="text-2xl font-semibold">2. Uncover User Intent</h3>
               <p className="text-lg text-muted-foreground">
-                Utilize Hydra AI to dynamically generate and render components
-                based on user input or context.
+                Use Hydra AI to analyze context and surface relevant components.
               </p>
             </motion.div>
             <motion.div variants={codeVariantsLeft}>
@@ -196,7 +192,7 @@ export const HowItWorksSection = () => {
             </motion.div>
           </motion.div>
 
-          {/* Row 3 */}
+          {/* Step 3: Interactive UI */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
             variants={containerVariants}
@@ -205,13 +201,9 @@ export const HowItWorksSection = () => {
             viewport={{ once: true, amount: 0.3 }}
           >
             <motion.div className="space-y-4" variants={textVariants}>
-              <h3 className="text-2xl font-semibold">
-                3. Interact with Generated UI
-              </h3>
+              <h3 className="text-2xl font-semibold">3. Interactive UI</h3>
               <p className="text-lg text-muted-foreground">
-                Engage with your Hydra AI components through interactive
-                elements, allowing users to dynamically modify and control the
-                generated UI.
+                Let Hydra AI display appropriate interactive elements.
               </p>
             </motion.div>
             <motion.div variants={codeVariantsRight}>
