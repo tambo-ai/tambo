@@ -5,26 +5,32 @@ import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 
 interface ChatExampleProps {
-  userMessage: string;
-  component: React.ReactNode;
+  userMessages: string[];
+  components: React.ReactNode[];
   userLabel?: string;
   aiLabel?: string;
-  aiResponseText?: string;
+  aiResponseTexts?: string[];
   inputPlaceholder?: string;
 }
 
 const ChatExample: React.FC<ChatExampleProps> = ({
-  userMessage,
-  component,
+  userMessages,
+  components,
   userLabel = "User",
   aiLabel = "AI",
-  aiResponseText = "Here&apos;s the component you requested:",
+  aiResponseTexts = ["Here's the component you requested:"],
   inputPlaceholder = "Type your message...",
 }) => {
-  const [messages, setMessages] = useState([
-    { sender: userLabel, content: userMessage },
-    { sender: aiLabel, content: aiResponseText, component },
+  const initialMessages = userMessages.flatMap((msg, index) => [
+    { sender: userLabel, content: msg },
+    {
+      sender: aiLabel,
+      content: aiResponseTexts[index] || aiResponseTexts[0],
+      component: components[index],
+    },
   ]);
+
+  const [messages, setMessages] = useState(initialMessages);
   const [inputMessage, setInputMessage] = useState("");
 
   const handleSendMessage = () => {
@@ -38,7 +44,7 @@ const ChatExample: React.FC<ChatExampleProps> = ({
           {
             sender: aiLabel,
             content:
-              "I'm sorry, I can only provide the initial response for this demo.",
+              "I'm sorry, I can only provide the initial responses for this demo.",
           },
         ]);
       }, 1000);

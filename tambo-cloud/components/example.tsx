@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ChatExample from "@/components/chat-example";
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, ArrowRight, Mail, Phone, User, X } from "lucide-react";
@@ -229,6 +229,16 @@ export const CustomerInfoComponent = () => {
     plan: "Premium",
     subscriptionStatus: "Active",
   });
+  const [showUpgradeAnimation, setShowUpgradeAnimation] = useState(false);
+  const [isUpgraded, setIsUpgraded] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowUpgradeAnimation(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCancelSubscription = () => {
     setCustomer({ ...customer, subscriptionStatus: "Cancelled" });
@@ -236,6 +246,8 @@ export const CustomerInfoComponent = () => {
 
   const handleUpgradePlan = () => {
     setCustomer({ ...customer, plan: "Premium Plus" });
+    setShowUpgradeAnimation(false);
+    setIsUpgraded(true);
   };
 
   return (
@@ -286,7 +298,11 @@ export const CustomerInfoComponent = () => {
             <Button
               onClick={handleUpgradePlan}
               disabled={customer.plan === "Premium Plus"}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+              className={`w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white transition-all duration-300 ${
+                showUpgradeAnimation
+                  ? "animate-pulse ring-4 ring-green-400"
+                  : ""
+              }`}
             >
               Upgrade to Premium Plus
             </Button>
@@ -297,13 +313,67 @@ export const CustomerInfoComponent = () => {
   );
 };
 
+export const UpgradeMessageComponent: React.FC<{ customer: Customer }> = ({
+  customer,
+}) => {
+  const [subject, setSubject] = useState("Your Account Upgrade Confirmation");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setEmail(customer.email);
+    setMessage(
+      `Dear ${customer.name},\n\nYour account has been upgraded to Premium Plus. Enjoy your new features!\n\nBest,\nYour Account Team`
+    );
+  }, [customer]);
+
+  const handleSendMessage = () => {
+    // Logic to send the message would go here
+    console.log("Sending message:", { email, subject, message });
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold text-foreground">
+        Send Upgrade Confirmation
+      </h3>
+      <Input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        className="w-full"
+      />
+      <Input
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
+        placeholder="Subject"
+        className="w-full"
+      />
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        className="w-full h-32 p-2 text-sm border rounded-md resize-none"
+        rows={6}
+      />
+      <Button
+        onClick={handleSendMessage}
+        className="w-full bg-primary hover:bg-primary/90 text-white"
+      >
+        Send Confirmation Message
+      </Button>
+    </div>
+  );
+};
+
 const TransferExample = () => {
   return (
     <div className="space-y-8">
       <ChatExample
-        userMessage="Send $500 to my mom."
-        component={<TransferComponent />}
-        aiResponseText="Here is how you can send $500 to your mom's account:"
+        userMessages={["Send $500 to my mom."]}
+        components={[<TransferComponent key="transfer" />]}
+        aiResponseTexts={[
+          "Here is how you can send $500 to your mom's account:",
+        ]}
       />
     </div>
   );

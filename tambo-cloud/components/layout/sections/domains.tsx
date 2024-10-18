@@ -4,6 +4,7 @@ import {
   HSAAccountComponent,
   LeadsComponent,
   CustomerInfoComponent,
+  UpgradeMessageComponent,
 } from "@/components/example";
 import { motion } from "framer-motion";
 
@@ -15,23 +16,40 @@ const ExamplesSection: React.FC = () => {
     {
       title: "Users find what they need fast",
       subtitle: "No more clicking around to find the feature they need.",
-      userMessage: "double my monthly contributions.",
+      userMessages: ["double my monthly contributions."],
       component: <HSAAccountComponent />,
-      aiResponseText: "I've doubled your contributions for the year 2024. ",
+      aiResponseTexts: ["I've doubled your contributions for the year 2024. "],
     },
     {
       title: "Guide users to their next action",
       subtitle: "Have AI create better workflows.",
-      userMessage: "What should I do next",
+      userMessages: ["What should I do next"],
       component: <LeadsComponent />,
-      aiResponseText: "Here are leads marked with follow up:",
+      aiResponseTexts: ["Here are leads marked with follow up:"],
     },
     {
       title: "Build more intuitive tools",
       subtitle: "Build products user can use from day 1.",
       component: <CustomerInfoComponent />,
-      userMessage: "Customer 123-acme",
-      aiResponseText: "Here's information about a customer with that id.",
+      userMessages: ["Customer 123-acme"],
+      aiResponseTexts: ["Here's information about a customer with that id."],
+    },
+    {
+      title: "User Generated Workflows",
+      subtitle: "Allow users to recombine features to fit their needs.",
+      userMessages: ["Send a message"],
+      component: (
+        <UpgradeMessageComponent
+          customer={{
+            id: "123-acme",
+            name: "Acme Corporation",
+            email: "contact@acme.com",
+            plan: "Premium Plus",
+            subscriptionStatus: "Active",
+          }}
+        />
+      ),
+      aiResponseTexts: ["I've generated a message to user you just upgraded."],
     },
   ];
 
@@ -77,9 +95,9 @@ const ExamplesSection: React.FC = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
                 <ChatExample
-                  userMessage={example.userMessage}
-                  component={example.component}
-                  aiResponseText={example.aiResponseText}
+                  userMessages={example.userMessages}
+                  components={[example.component]}
+                  aiResponseTexts={example.aiResponseTexts}
                 />
               </motion.div>
               <motion.div
