@@ -46,7 +46,7 @@ export const HeroSection = () => {
           </div>
 
           <p className="max-w-screen-sm mx-auto text-base sm:text-lg md:text-xl text-muted-foreground">
-            {`Improve your UX with AI-driven React components.`}
+            {`Fewer Clicks, More Value with Our AI-Powered Router`}
           </p>
           <div className="w-full sm:w-[400px] md:w-[500px] mx-auto">
             <Terminal command="npm i hydra-ai" />
