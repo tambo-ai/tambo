@@ -8,7 +8,6 @@ import { track } from "@vercel/analytics";
 import { TypeAnimation } from "react-type-animation";
 import Link from "next/link";
 import GithubIcon from "@/components/icons/github-icon";
-import { motion, AnimatePresence } from "framer-motion";
 
 export const HeroSection = () => {
   const { theme } = useTheme();
@@ -29,7 +28,7 @@ export const HeroSection = () => {
   return (
     <section className="container w-full px-4 sm:px-6 lg:px-8">
       <div className="grid place-items-center gap-8 mx-auto py-auto mt-10">
-        <div className="text-center space-y-6 sm:space-y-8">
+        <div className="text-center space-y-8 sm:space-y-10 mt-10">
           <Link
             href="https://www.npmjs.com/package/hydra-ai"
             className="inline-block"
@@ -45,23 +44,29 @@ export const HeroSection = () => {
             </Button>
           </Link>
 
-          <div className="max-w-screen-md mx-auto text-center text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold">
-            <h1>Build Adaptive UIs with AI</h1>
-          </div>
-          <div className="max-w-screen-md mx-auto text-center text-lg sm:text-xl md:text-2xl mt-4 text-muted-foreground">
-            <p>
+          <div className="relative max-w-screen-md mx-auto text-center">
+            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl"></div>
+            <h1 className="relative z-10 text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
+              Build{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-500 to-purple-600">
+                Adaptive
+              </span>{" "}
+              UIs with AI
+            </h1>
+            <p className="relative z-10 text-xl sm:text-2xl font-semibold text-muted-foreground">
               Works Out-of-the-Box with React, Next.js, and Major Frameworks
             </p>
           </div>
-          <div className="w-full sm:w-[400px] md:w-[500px] mx-auto mt-8">
+
+          <div className="w-full sm:w-[400px] md:w-[500px] mx-auto mt-12">
             <Terminal command="npm i hydra-ai" />
           </div>
           <div className="w-full sm:w-[400px] md:w-[500px] mx-auto flex flex-col items-center justify-center">
-            <p className="text-lg sm:text-xl font-semibold text-center">
+            <p className="text-xl sm:text-2xl font-semibold text-center mb-4">
               What will you build?
             </p>
-            <div className="h-[1.5em] flex items-center">
-              <span className="font-bold text-primary">
+            <div className="h-[2em] flex items-center">
+              <span className="font-bold text-blue-500 text-2xl sm:text-3xl ">
                 <TypeAnimation
                   sequence={[
                     buildExamples[0],
