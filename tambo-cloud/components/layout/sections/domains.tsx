@@ -14,22 +14,27 @@ const ExamplesSection: React.FC = () => {
 
   const examples = [
     {
-      title: "Users find what they need fast",
-      subtitle: "No more clicking around to find the feature they need.",
-      userMessages: ["double my monthly contributions."],
+      title: "Streamline User Experience",
+      subtitle: "Instantly access features without navigating complex menus.",
+      userMessages: ["Increase my monthly HSA contributions"],
       component: <HSAAccountComponent />,
-      aiResponseTexts: ["I've doubled your contributions for the year 2024. "],
+      aiResponseTexts: [
+        "I've updated your HSA contributions for the year 2024.",
+      ],
     },
     {
-      title: "Guide users to their next action",
-      subtitle: "Have AI create better workflows.",
-      userMessages: ["What should I do next"],
+      title: "Understand User Jargon",
+      subtitle:
+        "Let AI interpret user-specific terminology and respond accordingly.",
+      userMessages: ["Show me my fu"],
       component: <LeadsComponent />,
-      aiResponseTexts: ["Here are leads marked with follow up:"],
+      aiResponseTexts: [
+        "I understand 'fu' might mean 'follow-ups' in your context. Here are the leads requiring follow-up:",
+      ],
     },
     {
       title: "Build more intuitive tools",
-      subtitle: "Build products user can use from day 1.",
+      subtitle: "Build products user can use day 1.",
       component: <CustomerInfoComponent />,
       userMessages: ["Customer 123-acme"],
       aiResponseTexts: ["Here's information about a customer with that id."],
@@ -77,7 +82,7 @@ const ExamplesSection: React.FC = () => {
   }, [examples.length]);
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="bg-background text-foreground">
       {examples.map((example, index) => (
         <section
           key={index}
@@ -109,10 +114,12 @@ const ExamplesSection: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                <h2 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">
                   {example.title}
                 </h2>
-                <p className="text-lg text-gray-600">{example.subtitle}</p>
+                <p className="text-lg text-muted-foreground">
+                  {example.subtitle}
+                </p>
               </motion.div>
             </div>
           </div>
