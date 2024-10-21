@@ -40,10 +40,11 @@ export const DiscordSection = () => {
             variants={floatUpVariants}
           >
             <h2>
-              Join Our
+              Curious how to get started
               <span className="text-transparent px-2 bg-gradient-to-r from-[#5865F2] to-[#7289DA] bg-clip-text">
-                Discord Community
+                Today
               </span>
+              ?
             </h2>
           </motion.div>
 
@@ -51,7 +52,8 @@ export const DiscordSection = () => {
             className="max-w-screen-sm mx-auto text-xl text-muted-foreground"
             variants={floatUpVariants}
           >
-            Connect with developers, share ideas, and get support for Hydra AI.
+            Connect directly with the Hydra AI founders, get insider updates,
+            and shape the future of adaptive UIs.
           </motion.p>
 
           <motion.div variants={floatUpVariants}>
@@ -61,7 +63,7 @@ export const DiscordSection = () => {
               onClick={handleDiscordClick}
             >
               <Button className="w-5/6 md:w-1/3 font-bold group/arrow">
-                Join our Discord
+                Talk To us
                 <ArrowRight className="size-5 ml-2 group-hover/arrow:translate-x-1 transition-transform" />
               </Button>
             </Link>
