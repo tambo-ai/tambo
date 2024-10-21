@@ -54,9 +54,9 @@ export default function Home() {
       <HeroSection />
       <ExamplesSection />
       <HowItWorksSection />
-      <DemoSection />
       <LiveDemoSection />
-      <TeamSection />
+      <DemoSection />
+      {/* <TeamSection /> */}
       <DiscordSection />
       <FooterSection />
     </div>

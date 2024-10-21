@@ -54,7 +54,8 @@ export const HeroSection = () => {
               UIs with AI
             </h1>
             <p className="relative z-10 text-xl sm:text-2xl font-semibold text-muted-foreground">
-              Works Out-of-the-Box with React, Next.js, and Major Frameworks
+              AI-powered router surfaces the right features to users based on
+              context
             </p>
           </div>
 

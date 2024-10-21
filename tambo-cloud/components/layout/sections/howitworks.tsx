@@ -13,27 +13,31 @@ import TakeLoan from "./components/take-loan";
 
 const hydra = new HydraClient();
 
-hydra.registerComponent("TransferMoney", TransferMoney, {
-  fromAccount: "string",
-  toAccount: "string",
-  amount: "number",
-  currency: '"USD" | "EUR" | "GBP"',
-});
+hydra.registerComponent(
+  "TransferMoney",
+  "Transfer money between accounts",
+  TransferMoney,
+  {
+    fromAccount: "string",
+    toAccount: "string",
+    amount: "number",
+    currency: '"USD" | "EUR" | "GBP"',
+  }
+);
 
-hydra.registerComponent("FindTransaction", FindTransaction, {
-  transactionId: "string",
-  dateRange: {
-    start: "Date",
-    end: "Date",
-  },
-});
+...
 
-hydra.registerComponent("TakeLoan", TakeLoan, {
-  amount: "number",
-  interestRate: "number",
-  term: "number",
-  purpose: '"personal" | "business" | "mortgage"',
-});
+hydra.registerComponent(
+  "TakeLoan",
+  "Apply for a loan with specified terms",
+  TakeLoan,
+  {
+    amount: "number",
+    interestRate: "number",
+    term: "number",
+    purpose: '"personal" | "business" | "mortgage"',
+  }
+);
 
 export default hydra;`,
 
@@ -48,7 +52,7 @@ export default function BankingDashboard() {
 
   const generateBankingUI = async () => {
     const component = await hydra.generateComponent(
-      "Create a UI for transferring money between accounts"
+      "Transfer $500 to my mom's account"
     );
     setBankingComponent(component);
   };
