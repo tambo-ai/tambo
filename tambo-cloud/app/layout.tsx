@@ -9,28 +9,30 @@ import { Analytics } from "@vercel/analytics/react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "hydra-ai - Generative UI for your web app",
+  title: "Build Adaptive UIs with AI | Hydra AI",
   description:
-    "hydra-ai is a generative UI for your web app. It allows you to create custom UI components for your web app.",
+    "Hydra AI is an AI-powered router that surfaces the right features to users based on context. Build adaptive UIs for your web app with ease.",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "hydra-ai - Generative UI for your web app",
-    description: "Create custom UI components for your web app with hydra-ai",
+    title: "Build Adaptive UIs with AI | Hydra AI",
+    description:
+      "AI-powered router surfaces the right features to users based on context",
     images: [
       {
         url: "https://usehydra.ai/og-image.png",
         width: 1200,
         height: 630,
-        alt: "hydra-ai Open Graph Image",
+        alt: "Hydra AI - Build Adaptive UIs with AI",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "hydra-ai - Generative UI for your web app",
-    description: "Create custom UI components for your web app with hydra-ai",
+    title: "Build Adaptive UIs with AI | Hydra AI",
+    description:
+      "AI-powered router surfaces the right features to users based on context",
     images: ["https://usehydra.ai/twitter-image.png"],
   },
 };
@@ -42,9 +44,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
       <body className={cn("min-h-screen bg-background", inter.className)}>
         <ThemeProvider
           attribute="class"
