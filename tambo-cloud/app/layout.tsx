@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "hydra-ai - Generative UI for your web app",
   description:
     "hydra-ai is a generative UI for your web app. It allows you to create custom UI components for your web app.",
+  icons: {
+    icon: "/favicon.ico",
+  },
   openGraph: {
     title: "hydra-ai - Generative UI for your web app",
     description: "Create custom UI components for your web app with hydra-ai",
@@ -39,6 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body className={cn("min-h-screen bg-background", inter.className)}>
         <ThemeProvider
           attribute="class"
