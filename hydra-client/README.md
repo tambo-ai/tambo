@@ -57,7 +57,8 @@ A framework for creating context-aware UI in React apps. Register your component
      description,
      component,
      propsDefinition,
-     contextTools
+     contextTools,
+     loadingComponent
    );
    ```
 
@@ -66,15 +67,17 @@ A framework for creating context-aware UI in React apps. Register your component
    - `component`: The actual React component.
    - `propsDefinition`: An object defining each available prop and its type.
    - `contextTools`: (optional) An array of functions that Hydra can call to gather extra data (e.g., fetching items from an API) when hydrating the component. Find information on how to define contextTools [here.](/package/docs/context-tools.md)
+   - `loadingComponent`: (optional) A React component to display while the main component is loading or being hydrated with data. If not provided, the main component will be shown with its initial props during loading states.
 
-   Here's an example:
+   Here's an example with a loading component:
 
    ```typescript
    // hydra-client.ts
-
    import { HydraClient } from "hydra-ai";
    import TodoItemCard from "./components/todo-item";
+   import TodoItemSkeleton from "./components/todo-item-skeleton";
    import TodoList from "./components/todo-list";
+   import TodoListSkeleton from "./components/todo-list-skeleton";
    import AddTodoItemForm from "./components/add-todo-form";
 
    const hydra = new HydraClient({ hydraApiKey: "my-key" });
@@ -85,12 +88,21 @@ A framework for creating context-aware UI in React apps. Register your component
      TodoItemCard,
      {
        item: "{id: string; title: string; isDone: boolean}",
-     }
+     },
+     [],
+     TodoItemSkeleton
    );
 
-   hydra.registerComponent("TodoList", "A list of todo items", TodoList, {
-     todoItems: "{id: string; title: string; isDone: boolean}[]",
-   });
+   hydra.registerComponent(
+     "TodoList", 
+     "A list of todo items", 
+     TodoList,
+     {
+       todoItems: "{id: string; title: string; isDone: boolean}[]",
+     },
+     [],
+     TodoListSkeleton
+   );
 
    hydra.registerComponent(
      "AddTodoItemForm",
@@ -101,6 +113,8 @@ A framework for creating context-aware UI in React apps. Register your component
 
    export default hydra;
    ```
+
+   When Hydra is fetching data or hydrating a component with context tools, it will display the loading component if one is provided. This is useful for showing skeleton states or loading indicators while the full component data is being prepared.
 
 4. **Have Hydra Pick and Hydrate Components Based on Context**
 

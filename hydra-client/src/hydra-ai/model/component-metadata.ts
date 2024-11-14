@@ -27,6 +27,7 @@ export interface ComponentContextTool {
 
 export interface RegisteredComponent extends ComponentMetadata {
   component: ComponentType<any>;
+  loadingComponent?: ComponentType<any>;
   contextTools: ComponentContextTool[];
 }
 
