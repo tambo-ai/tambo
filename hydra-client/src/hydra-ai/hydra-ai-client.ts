@@ -17,6 +17,15 @@ interface ComponentRegistry {
   [key: string]: RegisteredComponent;
 }
 
+export interface RegisterComponentOptions {
+  name: string;
+  description: string;
+  component: ComponentType<any>;
+  propsDefinition?: ComponentPropsMetadata;
+  contextTools?: ComponentContextTool[];
+  loadingComponent?: ComponentType<any>;
+}
+
 export interface HydraClientOptions {
   hydraApiKey?: string;
   hydraApiUrl?: string;
@@ -66,14 +75,16 @@ export default class HydraClient {
     this.hydrateComponentWithToolResponse = hydrateComponentWithToolResponse;
   }
 
-  public async registerComponent(
-    name: string,
-    description: string,
-    component: ComponentType<any>,
-    propsDefinition: ComponentPropsMetadata = {},
-    contextTools: ComponentContextTool[] = [],
-    loadingComponent?: ComponentType<any>
-  ): Promise<void> {
+  public async registerComponent(options: RegisterComponentOptions): Promise<void> {
+    const {
+      name,
+      description,
+      component,
+      propsDefinition = {},
+      contextTools = [],
+      loadingComponent,
+    } = options;
+
     if (this.componentList[name]) {
       console.warn(`overwriting component ${name}`);
     }

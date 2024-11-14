@@ -49,25 +49,20 @@ A framework for creating context-aware UI in React apps. Register your component
    ```
 
 3. **Register Components**
-   Use the `registerComponent` method to create a list of components that Hydra can choose from. The method signature is:
+   Use the `registerComponent` method to create a list of components that Hydra can choose from. The method accepts an options object with the following properties:
 
    ```typescript
-   hydra.registerComponent(
-     name,
-     description,
-     component,
-     propsDefinition,
-     contextTools,
-     loadingComponent
-   );
+   hydra.registerComponent({
+     name: string,            // A unique name for the component
+     description: string,     // A description of the component for Hydra to understand when to use it
+     component: Component,    // The actual React component
+     propsDefinition?: {},    // An object defining each available prop and its type
+     contextTools?: [],       // Optional: An array of functions that Hydra can call to gather extra data
+     loadingComponent?: Component  // Optional: A React component to display while Hydra is generating props
+   });
    ```
 
-   - `name`: A unique name for the component.
-   - `description`: A description of the component for Hydra to understand when to use it.
-   - `component`: The actual React component.
-   - `propsDefinition`: An object defining each available prop and its type.
-   - `contextTools`: (optional) An array of functions that Hydra can call to gather extra data (e.g., fetching items from an API) when hydrating the component. Find information on how to define contextTools [here.](/package/docs/context-tools.md)
-   - `loadingComponent`: (optional) A React component to display while the main component is loading or being hydrated with data. If not provided, the main component will be shown with its initial props during loading states.
+   Find information on how to define contextTools [here.](/package/docs/context-tools.md)
 
    Here's an example with a loading component:
 
@@ -82,34 +77,31 @@ A framework for creating context-aware UI in React apps. Register your component
 
    const hydra = new HydraClient({ hydraApiKey: "my-key" });
 
-   hydra.registerComponent(
-     "TodoItem",
-     "A card representing a todo item",
-     TodoItemCard,
-     {
+   hydra.registerComponent({
+     name: "TodoItem",
+     description: "A card representing a todo item",
+     component: TodoItemCard,
+     propsDefinition: {
        item: "{id: string; title: string; isDone: boolean}",
      },
-     [],
-     TodoItemSkeleton
-   );
+     loadingComponent: TodoItemSkeleton
+   });
 
-   hydra.registerComponent(
-     "TodoList", 
-     "A list of todo items", 
-     TodoList,
-     {
+   hydra.registerComponent({
+     name: "TodoList",
+     description: "A list of todo items",
+     component: TodoList,
+     propsDefinition: {
        todoItems: "{id: string; title: string; isDone: boolean}[]",
      },
-     [],
-     TodoListSkeleton
-   );
+     loadingComponent: TodoListSkeleton
+   });
 
-   hydra.registerComponent(
-     "AddTodoItemForm",
-     "A form to add a new todo item",
-     AddTodoItemForm,
-     {}
-   );
+   hydra.registerComponent({
+     name: "AddTodoItemForm",
+     description: "A form to add a new todo item",
+     component: AddTodoItemForm
+   });
 
    export default hydra;
    ```
