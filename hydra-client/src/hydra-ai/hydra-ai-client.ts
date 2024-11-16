@@ -129,7 +129,7 @@ export default class HydraClient {
       return response;
     }
 
-    const componentToHydrate = componentDecision.componentName
+    const componentToHydrate = componentDecision.componentName && this.componentList[componentDecision.componentName].loadingComponent
       ? this.createComponentElement(
         componentDecision.componentName,
         componentDecision.props,
