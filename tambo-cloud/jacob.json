@@ -1,0 +1,17 @@
+{
+  "language": "TypeScript",
+  "installCommand": "npm",
+  "formatCommand": "npx eslint --fix .",
+  "buildCommand": "npm run build",
+  "style": "Tailwind",
+  "iconSet": "Lucide",
+  "directories": {
+    "components": "/components",
+    "pages": "/app",
+    "types": "/types",
+    "styles": "/styles",
+    "tailwindConfig": "/tailwind.config.js",
+    "staticAssets": "/public/assets"
+  },
+  "env": ""
+}
