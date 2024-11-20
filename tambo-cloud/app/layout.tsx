@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { Navbar } from "@/components/layout/navbar";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Analytics } from "@vercel/analytics/react";
+import { RootProvider } from "fumadocs-ui/provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -43,17 +43,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background", inter.className)}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(
+          "min-h-screen bg-background flex flex-col",
+          inter.className
+        )}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-
-          {children}
+          <RootProvider>{children}</RootProvider>
         </ThemeProvider>
         <Analytics />
       </body>

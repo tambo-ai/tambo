@@ -1,5 +1,5 @@
 "use client";
-import { ChevronsDown, Github, Menu, Twitter } from "lucide-react";
+import { ChevronsDown, Github, Menu, Twitter, BookOpen } from "lucide-react";
 import React from "react";
 import {
   Sheet,
@@ -103,17 +103,16 @@ export const Navbar = () => {
                 asChild
                 size="sm"
                 variant="ghost"
-                aria-label="View on GitHub"
+                aria-label="View Documentation"
                 className="w-full justify-start"
               >
                 <Link
-                  aria-label="View on GitHub"
-                  href="https://github.com/michaelmagan/hydraai"
-                  target="_blank"
-                  onClick={() => handleNavClick("GitHub")}
+                  aria-label="View Documentation"
+                  href="/docs"
+                  onClick={() => handleNavClick("Documentation")}
                 >
-                  <Github className="size-5 mr-2" />
-                  GitHub
+                  <BookOpen className="size-5 mr-2" />
+                  Documentation
                 </Link>
               </Button>
 
@@ -201,14 +200,18 @@ export const Navbar = () => {
       <div className="hidden lg:flex">
         <ToggleTheme />
 
-        <Button asChild size="sm" variant="ghost" aria-label="View on GitHub">
+        <Button
+          asChild
+          size="sm"
+          variant="ghost"
+          aria-label="View Documentation"
+        >
           <Link
-            aria-label="View on GitHub"
-            href="https://github.com/michaelmagan/hydraai"
-            target="_blank"
-            onClick={() => handleNavClick("GitHub")}
+            aria-label="View Documentation"
+            href="/docs"
+            onClick={() => handleNavClick("Documentation")}
           >
-            <Github className="size-5" />
+            <BookOpen className="size-5" />
           </Link>
         </Button>
 

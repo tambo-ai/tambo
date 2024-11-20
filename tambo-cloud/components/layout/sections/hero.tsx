@@ -1,13 +1,12 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
 import { useTheme } from "next-themes";
 import Terminal from "@/components/terminal";
 import { track } from "@vercel/analytics";
 import { TypeAnimation } from "react-type-animation";
 import Link from "next/link";
-import GithubIcon from "@/components/icons/github-icon";
 
 export const HeroSection = () => {
   const { theme } = useTheme();
@@ -102,17 +101,11 @@ export const HeroSection = () => {
               asChild
               variant="secondary"
               className="w-full sm:w-auto font-bold"
-              onClick={() => track("View Github")}
+              onClick={() => track("View Docs")}
             >
-              <Link
-                href="https://github.com/michaelmagan/hydraai"
-                target="_blank"
-                className="flex items-center"
-              >
-                <div className="mr-2">
-                  <GithubIcon />
-                </div>
-                Our Github
+              <Link href="/docs" className="flex items-center">
+                <BookOpen className="size-5 mr-2" />
+                Documentation
               </Link>
             </Button>
           </div>

@@ -1,0 +1,272 @@
+---
+title: Manual Setup
+description: Set up Hydra AI manually without using the CLI
+---
+
+# Manual Setup Guide
+
+While the CLI provides the easiest way to get started with Hydra AI, you can also set up everything manually. This guide walks you through the process step by step.
+
+## Prerequisites
+
+1. **Node.js** (v16+ recommended)
+2. **NPM** or **Yarn**
+3. A Hydra AI account and API key
+
+## Installation
+
+Install the Hydra AI package in your project:
+
+```bash
+npm install hydra-ai
+# or
+yarn add hydra-ai
+```
+
+## Step 1: Environment Setup
+
+1. Create a `.env` file in your project root:
+
+```env
+NEXT_PUBLIC_HYDRAAI_API_KEY=your_api_key_here
+```
+
+2. If you're using TypeScript, ensure your `tsconfig.json` includes:
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "esModuleInterop": true
+    // ... other options
+  }
+}
+```
+
+## Step 2: Create Configuration File
+
+Create a `hydra-config.ts` file in your project:
+
+```typescript
+import { HydraClient } from "hydra-ai";
+
+export function initializeHydra() {
+  const hydra = new HydraClient({
+    hydraApiKey: process.env.NEXT_PUBLIC_HYDRAAI_API_KEY,
+    // Optional configuration
+    options: {
+      debug: process.env.NODE_ENV === "development",
+      enableLogging: true,
+      // Add any other options here
+    },
+  });
+
+  return hydra;
+}
+```
+
+## Step 3: Register Components
+
+Create a component registry file, for example `component-registry.ts`:
+
+```typescript
+import { initializeHydra } from "./hydra-config";
+import MyComponent from "./components/MyComponent";
+import AnotherComponent from "./components/AnotherComponent";
+
+export function registerComponents() {
+  const hydra = initializeHydra();
+
+  // Register your components
+  hydra.registerComponent(
+    "MyComponent",
+    {
+      description: "Description of MyComponent",
+      props: {
+        title: {
+          type: "string",
+          description: "The title to display",
+          required: true,
+        },
+        // ... other props
+      },
+    },
+    MyComponent
+  );
+
+  // Register more components as needed
+  hydra.registerComponent(/* ... */);
+
+  return hydra;
+}
+```
+
+## Step 4: Integration with Your App
+
+### React Applications
+
+For React applications, create a provider component:
+
+```typescript
+// src/providers/HydraProvider.tsx
+import React from "react";
+import { registerComponents } from "../component-registry";
+
+export const HydraContext = React.createContext(null);
+
+export const HydraProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const hydraInstance = React.useMemo(() => registerComponents(), []);
+
+  return (
+    <HydraContext.Provider value={hydraInstance}>
+      {children}
+    </HydraContext.Provider>
+  );
+};
+
+// Custom hook for using Hydra
+export const useHydra = () => {
+  const context = React.useContext(HydraContext);
+  if (!context) {
+    throw new Error("useHydra must be used within a HydraProvider");
+  }
+  return context;
+};
+```
+
+### Next.js Applications
+
+For Next.js, wrap your app with the provider:
+
+```typescript
+// pages/_app.tsx
+import { HydraProvider } from "../providers/HydraProvider";
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <HydraProvider>
+      <Component {...pageProps} />
+    </HydraProvider>
+  );
+}
+
+export default MyApp;
+```
+
+## Step 5: Using Hydra AI
+
+Now you can use Hydra AI in your components:
+
+```typescript
+import { useHydra } from "../providers/HydraProvider";
+
+function MyPage() {
+  const hydra = useHydra();
+
+  return (
+    <div>
+      {hydra.render("MyComponent", {
+        title: "Hello, World!",
+      })}
+    </div>
+  );
+}
+```
+
+## Type Safety
+
+To ensure type safety, create a types file:
+
+```typescript
+// types/hydra.d.ts
+declare module "hydra-ai" {
+  export interface HydraClientOptions {
+    hydraApiKey: string;
+    options?: {
+      debug?: boolean;
+      enableLogging?: boolean;
+      // Add other options as needed
+    };
+  }
+
+  export class HydraClient {
+    constructor(options: HydraClientOptions);
+    registerComponent(
+      name: string,
+      metadata: any,
+      component: React.ComponentType<any>
+    ): void;
+    render(componentName: string, props: any): React.ReactElement;
+    // Add other methods as needed
+  }
+}
+```
+
+## Error Handling
+
+Implement error boundaries for Hydra AI components:
+
+```typescript
+// components/HydraErrorBoundary.tsx
+import React from "react";
+
+class HydraErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Hydra AI Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong with this component.</div>;
+    }
+
+    return this.props.children;
+  }
+}
+
+export default HydraErrorBoundary;
+```
+
+## Troubleshooting
+
+Common issues you might encounter:
+
+1. **API Key Issues**
+
+   ```
+   Error: Invalid API key provided
+   ```
+
+   Solution: Double-check your `.env` file and ensure the API key is correctly set.
+
+2. **Component Registration Errors**
+
+   ```
+   Error: Component "X" already registered
+   ```
+
+   Solution: Ensure you're not registering the same component multiple times.
+
+3. **Type Errors**
+   ```
+   Type 'X' is not assignable to type 'Y'
+   ```
+   Solution: Verify your component props match the registered prop types.
+
+---
+
+This manual setup gives you more control over the integration process and might be preferred for complex applications or when you need custom configuration options.

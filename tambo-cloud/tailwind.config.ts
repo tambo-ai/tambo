@@ -1,3 +1,4 @@
+import { createPreset } from "fumadocs-ui/tailwind-plugin";
 const animate = require("tailwindcss-animate");
 
 /** @type {import('tailwindcss').Config} */
@@ -5,11 +6,15 @@ module.exports = {
   darkMode: ["class"],
   safelist: ["dark"],
   prefix: "",
+  presets: [createPreset()],
 
   content: [
+    "./node_modules/fumadocs-ui/dist/**/*.js",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./content/**/*.mdx",
+    "./mdx-components.tsx",
   ],
 
   theme: {

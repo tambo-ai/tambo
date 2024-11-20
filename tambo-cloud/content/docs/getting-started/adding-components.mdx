@@ -1,0 +1,185 @@
+---
+title: Adding Components
+description: Learn how to add and register new components with Hydra AI
+---
+
+# Adding Components to Hydra AI
+
+This guide will walk you through the process of adding and registering new components with Hydra AI.
+
+## Creating a New Component
+
+First, create your React component as you normally would. Here's a simple example:
+
+```tsx
+// src/components/WelcomeCard.tsx
+import React from 'react';
+
+interface WelcomeCardProps {
+  userName: string;
+  role?: string;
+  theme?: 'light' | 'dark';
+}
+
+export const WelcomeCard: React.FC<WelcomeCardProps> = ({ 
+  userName, 
+  role = 'user',
+  theme = 'light' 
+}) => {
+  return (
+    <div className={`welcome-card ${theme}`}>
+      <h2>Welcome, {userName}!</h2>
+      {role && <p>Role: {role}</p>}
+    </div>
+  );
+};
+
+export default WelcomeCard;
+```
+
+## Registering the Component
+
+### Step 1: Update hydra-config.ts
+
+Add your new component to your `hydra-config.ts` file:
+
+```typescript
+import WelcomeCard from "./components/WelcomeCard";
+import { HydraClient } from "hydra-ai";
+
+export function registerComponents() {
+  const hydra = new HydraClient({
+    hydraApiKey: process.env.NEXT_PUBLIC_HYDRAAI_API_KEY,
+  });
+
+  hydra.registerComponent(
+    "WelcomeCard",           // Component name
+    "A welcoming card that displays user information", // Description
+    WelcomeCard,            // Component reference
+    {
+      userName: "string",   // Required prop
+      role: "string?",      // Optional prop (note the ?)
+      theme: "enum",        // Enum prop
+      themeOptions: ["light", "dark"] // Possible enum values
+    }
+  );
+
+  return hydra;
+}
+```
+
+### Step 2: Define Component Metadata
+
+To help Hydra AI better understand your component, you can add detailed metadata:
+
+```typescript
+hydra.registerComponent(
+  "WelcomeCard",
+  {
+    description: "A welcoming card that displays user information",
+    usage: "Use this component for greeting users after login or on dashboard pages",
+    examples: [
+      {
+        props: { userName: "John Doe", role: "admin", theme: "dark" },
+        description: "Admin welcome card with dark theme"
+      }
+    ],
+    props: {
+      userName: {
+        type: "string",
+        description: "The name of the user to display",
+        required: true
+      },
+      role: {
+        type: "string",
+        description: "User's role in the system",
+        required: false,
+        default: "user"
+      },
+      theme: {
+        type: "enum",
+        options: ["light", "dark"],
+        description: "Visual theme of the card",
+        required: false,
+        default: "light"
+      }
+    }
+  },
+  WelcomeCard
+);
+```
+
+## Using the Component
+
+Once registered, you can use your component through Hydra AI's dynamic rendering:
+
+```typescript
+// In your application code
+const hydra = registerComponents();
+
+// Basic usage
+hydra.render("WelcomeCard", { userName: "Alice" });
+
+// With all props
+hydra.render("WelcomeCard", {
+  userName: "Bob",
+  role: "admin",
+  theme: "dark"
+});
+```
+
+## Best Practices
+
+1. **Prop Types**
+   - Always define clear prop types using TypeScript
+   - Mark optional props with `?` in the interface
+   - Provide default values where appropriate
+
+2. **Component Documentation**
+   - Write clear descriptions for your component and its props
+   - Include usage examples in the metadata
+   - Document any special behaviors or requirements
+
+3. **Component Design**
+   - Keep components focused and single-purpose
+   - Make components as reusable as possible
+   - Follow React best practices for performance
+
+4. **Testing**
+   - Test your component independently before registering
+   - Verify that all props work as expected
+   - Test different prop combinations
+
+## Advanced Registration
+
+For more complex components, you can add additional metadata:
+
+```typescript
+hydra.registerComponent(
+  "WelcomeCard",
+  {
+    description: "A welcoming card that displays user information",
+    category: "User Interface",
+    tags: ["greeting", "user", "card"],
+    version: "1.0.0",
+    author: "Your Name",
+    dependencies: ["@emotion/styled"], // If your component has specific dependencies
+    styling: {
+      customizable: true,
+      cssProperties: ["backgroundColor", "color", "padding"]
+    },
+    props: {
+      // ... prop definitions
+    },
+    events: {
+      onClick: "Triggered when the card is clicked",
+      onHover: "Triggered when user hovers over the card"
+    }
+  },
+  WelcomeCard
+);
+```
+
+---
+
+Now you're ready to create and register components with Hydra AI! Remember to test your components thoroughly before deploying them to production. 
