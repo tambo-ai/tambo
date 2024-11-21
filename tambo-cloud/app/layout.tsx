@@ -1,10 +1,11 @@
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/react";
+import { RootProvider } from "fumadocs-ui/provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import { Analytics } from "@vercel/analytics/react";
-import { RootProvider } from "fumadocs-ui/provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -58,6 +59,7 @@ export default function RootLayout({
         >
           <RootProvider>{children}</RootProvider>
         </ThemeProvider>
+        <Toaster />
         <Analytics />
       </body>
     </html>
