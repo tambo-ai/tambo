@@ -1,0 +1,192 @@
+---
+title: CLI
+description: How to use the Hydra AI CLI
+---
+
+# CLI Troubleshooting Guide
+
+This guide covers common issues you might encounter when using the Hydra AI CLI and how to resolve them.
+
+## Common Issues
+
+### Installation Problems
+
+#### CLI Not Found
+
+If you get a "command not found" error after installation:
+
+```bash
+hydra: command not found
+```
+
+Try these solutions:
+
+1. Reinstall the CLI globally:
+
+```bash
+npm install --global hydra-ai-cli
+```
+
+2. Check if your PATH includes npm global binaries:
+
+```bash
+echo $PATH
+```
+
+3. Run the CLI using npx:
+
+```bash
+npx hydra-ai-cli
+```
+
+### Authentication Issues
+
+#### Login and Signup
+
+If you encounter issues during login or signup:
+
+```bash
+Error: Failed to log in
+```
+
+Solutions:
+
+1. Ensure you have a stable internet connection
+2. Try the signup command first if you're a new user:
+
+```bash
+hydra signup
+# or
+npx hydra-ai-cli signup
+```
+
+3. For existing users, use:
+
+```bash
+hydra login
+# or
+npx hydra-ai-cli login
+```
+
+### Project Management
+
+#### Listing Projects
+
+If you can't see your projects:
+
+```bash
+hydra listProjects
+# or
+npx hydra-ai-cli listProjects
+```
+
+The command will show a table with project IDs and names. If it fails:
+
+1. Verify you're logged in
+2. Check your internet connection
+3. Try logging out and back in
+
+#### Creating New Projects
+
+To create a new project:
+
+```bash
+hydra createProject
+# or
+npx hydra-ai-cli createProject
+```
+
+You'll be prompted to enter a project name. If creation fails:
+
+1. Ensure you have a valid login session
+2. Try using a different project name
+3. Check for network connectivity
+
+#### Adding Provider Keys
+
+To add an OpenAI API key to your project:
+
+```bash
+hydra addProvider --id <project_id>
+# or
+npx hydra-ai-cli addProvider --id <project_id>
+```
+
+You'll be prompted to enter your OpenAI API key securely.
+
+## Debug Mode
+
+Enable debug logging for more detailed error information:
+
+```bash
+hydra --debug <command>
+# or
+npx hydra-ai-cli --debug <command>
+```
+
+## Version Conflicts
+
+If you experience version-related issues:
+
+1. Check your CLI version:
+
+````bash
+hydra --version
+# or
+npx hydra-ai-cli --version
+    ```
+
+2. Update to the latest version:
+
+```bash
+npm update --global hydra-ai-cli
+# or
+npm update --global @hydra-ai/cli
+````
+
+## Network Problems
+
+### Timeout Issues
+
+For slow connections, increase the timeout:
+
+```bash
+hydra <command> --timeout 30000
+# or
+npx hydra-ai-cli <command> --timeout 30000
+```
+
+## Getting Help
+
+If you're still experiencing issues:
+
+1. Run the help command:
+
+```bash
+hydra help
+# or
+npx hydra-ai-cli help
+```
+
+2. Check the verbose logs:
+
+```bash
+hydra <command> --verbose
+# or
+npx hydra-ai-cli <command> --verbose
+```
+
+3. Contact support:
+
+- Open an issue on GitHub
+- Join our Discord community
+
+## Best Practices
+
+1. Always use the latest CLI version
+2. Initialize projects in clean directories
+3. Keep your API keys secure
+4. Use version control for your projects
+5. Back up your configuration files
+
+Remember to check our [GitHub repository](https://github.com/use-hydra-ai/hydra-cli) for the latest updates and known issues.

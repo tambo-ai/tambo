@@ -9,21 +9,22 @@ This guide will walk you through the process of adding and registering new compo
 
 ## Creating a New Component
 
-First, create your React component as you normally would. Here's a simple example:
+First, create your React component as you normally would:
+
 ```tsx
 // src/components/WelcomeCard.tsx
-import React from 'react';
+import React from "react";
 
 interface WelcomeCardProps {
   userName: string;
   role?: string;
-  theme?: 'light' | 'dark';
+  theme?: "light" | "dark";
 }
 
-export const WelcomeCard: React.FC<WelcomeCardProps> = ({ 
-  userName, 
-  role = 'user',
-  theme = 'light' 
+export const WelcomeCard: React.FC<WelcomeCardProps> = ({
+  userName,
+  role = "user",
+  theme = "light",
 }) => {
   return (
     <div className={`welcome-card ${theme}`}>
@@ -40,6 +41,11 @@ export default WelcomeCard;
 
 ### Step 1: Update hydra-config.ts
 
+> 💡 **Recommended: Use Zod for Type Definitions**
+>
+> While this example uses JSON Schema, we recommend using Zod for better type safety and validation.
+> Check out our [Using Zod guide](/docs/getting-started/using-zod) to learn more.
+
 Add your new component to your `hydra-config.ts` file:
 
 ```typescript
@@ -47,124 +53,65 @@ import WelcomeCard from "./components/WelcomeCard";
 import { HydraClient } from "hydra-ai";
 
 export function registerComponents() {
-  const hydra = new HydraClient();
+  const hydra = new HydraClient({
+    hydraApiKey: process.env.NEXT_PUBLIC_HYDRAAI_API_KEY,
+  });
 
-  hydra.registerComponent(
-    "WelcomeCard",           // Component name
-    "A welcoming card that displays user information", // Description
-    WelcomeCard,            // Component reference
-    {                       // Props definition
-      userName: {
-        type: "string",
-        description: "The name of the user to display",
-        required: true
+  hydra.registerComponent({
+    name: "WelcomeCard",
+    description: "A welcoming card that displays user information",
+    component: WelcomeCard,
+    propsDefinition: {
+      WelcomeCard: {
+        type: "object",
+        properties: {
+          userName: {
+            type: "string",
+            description: "The name of the user to display",
+          },
+          role: {
+            type: "string",
+            description: "User's role in the system",
+            default: "user",
+          },
+          theme: {
+            type: "string",
+            enum: ["light", "dark"],
+            description: "Visual theme of the card",
+            default: "light",
+          },
+        },
+        required: ["userName"],
       },
-      role: {
-        type: "string",
-        description: "User's role in the system",
-        required: false,
-        default: "user"
-      },
-      theme: {
-        type: "enum",
-        options: ["light", "dark"],
-        description: "Visual theme of the card",
-        required: false,
-        default: "light"
-      }
     },
-    []  // Optional context tools array
-  );
+  });
 
   return hydra;
 }
 ```
 
-## Using the Component
+## Using Context Tools
 
-Once registered, you can use your component through Hydra AI's dynamic component generation:
+When adding components that need to fetch data, you can include context tools:
 
 ```typescript
-// In your React component
-function MyComponent() {
-  const [generatedComponent, setGeneratedComponent] = useState<React.ReactElement | null>(null);
-  const [explanation, setExplanation] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
-  
-  const handleUserMessage = async () => {
-    // Reset states
-    setGeneratedComponent(null);
-    setExplanation("");
-    setStatus("Starting...");
-    
-    const result = await hydra.generateComponent(
-      "Show me a welcome message for Alice",
-      // Update status during generation
-      (stage) => setStatus(stage)
-    );
-
-    // Update states with result
-    setGeneratedComponent(result.component);
-    setExplanation(result.message);
-    setStatus("Complete");
-  };
-
-  return (
-    <div>
-      <button onClick={handleUserMessage}>
-        Generate Welcome Message
-      </button>
-
-      {/* Show current status */}
-      {status && (
-        <div className="status">
-          Status: {status}
-        </div>
-      )}
-
-      {/* AI's explanation */}
-      {explanation && (
-        <div className="explanation">
-          {explanation}
-        </div>
-      )}
-      
-      {/* The generated component */}
-      {generatedComponent && (
-        <div className="component">
-          {generatedComponent}
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-The `generateComponent` method will:
-1. Analyze the user's message
-2. Choose the most appropriate component (status: "Choosing component")
-3. Get any additional data if needed (status: "Getting additional data")
-4. Return an object containing:
-   - `component`: A React element ready to render
-   - `message`: An explanation of why this component was chosen and how it was configured
-
-If your component uses context tools, Hydra will automatically:
-1. Determine when additional data is needed
-2. Call the appropriate context tools
-3. Use the retrieved data to hydrate the component with the correct props
-
-## Adding Context Tools
-
-You can also add context tools to your components to fetch dynamic data:
-```typescript
-hydra.registerComponent(
-  "UserDashboard",
-  "Dashboard showing user activity",
-  UserDashboard,
-  {
-    userId: { type: "string", required: true }
+hydra.registerComponent({
+  name: "UserDashboard",
+  description: "Dashboard showing user activity",
+  component: UserDashboard,
+  propsDefinition: {
+    UserDashboard: {
+      type: "object",
+      properties: {
+        userId: {
+          type: "string",
+          description: "The ID of the user",
+        },
+      },
+      required: ["userId"],
+    },
   },
-  [
+  contextTools: [
     {
       definition: {
         name: "fetchUserData",
@@ -173,18 +120,30 @@ hydra.registerComponent(
           {
             name: "userId",
             type: "string",
-            description: "The ID of the user"
-          }
-        ]
+            description: "The ID of the user",
+          },
+        ],
       },
       getComponentContext: async (userId: string) => {
-        // Fetch and return user data
         return await getUserData(userId);
-      }
-    }
-  ]
-);
+      },
+    },
+  ],
+});
 ```
+
+> 🔒 **Type Safety Tip**
+>
+> Using Zod can help ensure type safety for your context tools' return values.
+> More information on Zod context tools can be found in our next guide.
+
+## Best Practices
+
+1. **Type Definitions**:
+   - Consider using Zod for better type safety
+   - Keep prop definitions clear and well-documented
+   - Use TypeScript
+
 ---
 
-Now you're ready to create and register components with Hydra AI! Remember to test your components thoroughly before deploying them to production. 
+Now you're ready to create and register components with Hydra AI! Remember to test your components thoroughly before deploying them to production.

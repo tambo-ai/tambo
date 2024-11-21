@@ -1,0 +1,204 @@
+---
+title: Using Zod with Components
+description: Learn how to use Zod schemas to define strongly-typed components in Hydra AI
+---
+
+# Using Zod with Hydra AI Components
+
+Hydra AI recommends using Zod for component prop validation. Zod provides runtime type checking and automatic TypeScript type inference, making your components more reliable and easier to maintain.
+## Getting Started
+
+First, install the required dependencies:
+
+```bash
+npm install zod zod-to-json-schema hydra-ai
+```
+```bash
+yarn add zod zod-to-json-schema hydra-ai
+```
+```bash
+pnpm add zod zod-to-json-schema hydra-ai
+```
+
+## Component Registration with Zod
+
+Here's how to register components using Zod schemas:
+
+```typescript
+import { HydraClient } from "hydra-ai";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+
+// 1. Define your Zod schemas
+const cardSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  image: z.string().optional(),
+});
+
+const carouselSchema = z.object({
+  cards: z.array(cardSchema),
+  className: z.string().optional(),
+});
+
+// 2. Create your React component
+const HydraCarousel: React.FC<z.infer<typeof carouselSchema>> = ({ cards, className }) => {
+  // Component implementation
+};
+
+// 3. Initialize Hydra client
+const hydra = new HydraClient({
+  hydraApiKey: process.env.NEXT_PUBLIC_HYDRAAI_API_KEY,
+});
+
+// 4. Register component with Zod schema
+hydra.registerComponent({
+  name: "HydraCarousel",
+  description: "A carousel of cards component",
+  component: HydraCarousel,
+  propsDefinition: {
+    HydraCarousel: zodToJsonSchema(carouselSchema)
+  }
+});
+```
+
+## Organizing Component Registration
+
+For larger applications, it's recommended to organize your schemas and registrations:
+
+```typescript
+// model/hydra-carousel.ts
+export const HydraCarouselSchema = z.object({
+  cards: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+    image: z.string().optional(),
+  })),
+  className: z.string().optional(),
+});
+
+export const HydraTextSchema = z.object({
+  content: z.string(),
+  format: z.enum(["plain", "markdown"]),
+});
+
+// hydra-client.ts - Register components
+import { HydraClient } from "hydra-ai";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { HydraCarouselSchema, HydraTextSchema } from "./model/hydra-carousel";
+
+export const registerHydraComponents = async (hydra: HydraClient) => {
+  try {
+    await Promise.all([
+      // Register HydraCarousel component
+      hydra.registerComponent({
+        name: "HydraCarousel",
+        description: "A carousel of cards component...",
+        component: HydraCarousel,
+        propsDefinition: {
+          HydraCarousel: zodToJsonSchema(HydraCarouselSchema)
+        },
+      }),
+
+      // Register HydraText component
+      hydra.registerComponent({
+        name: "HydraText",
+        description: "A text component...",
+        component: HydraText,
+        propsDefinition: {
+          HydraText: zodToJsonSchema(HydraTextSchema)
+        },
+      }),
+    ]);
+  } catch (error) {
+    console.error("Error registering components:", error);
+  }
+};
+```
+
+## Adding Context Tools
+
+Components can include context tools for data fetching:
+
+```typescript
+// Define a context tool
+const getDataTool = {
+  getComponentContext: fetchData,
+  definition: {
+    name: "getData",
+    description: "Fetch data for the component",
+    parameters: [{
+      name: "query",
+      type: "string",
+      description: "Search query",
+      isRequired: true,
+    }],
+  },
+};
+
+// Register component with context tool
+hydra.registerComponent({
+  name: "HydraCarousel",
+  description: "A carousel component with data fetching...",
+  component: HydraCarousel,
+  propsDefinition: {
+    HydraCarousel: zodToJsonSchema(HydraCarouselSchema)
+  },
+  contextTools: [getDataTool], // Add context tools here
+});
+```
+
+## Best Practices
+
+1. **Separate Schema Definitions**:
+   Keep your Zod schemas in a separate file (e.g., `model/hydra-carousel.ts`) for better organization.
+
+2. **Use Type Inference**:
+```typescript
+// Define schema once, use types everywhere
+export const ButtonSchema = z.object({/*...*/});
+export type ButtonProps = z.infer<typeof ButtonSchema>;
+
+const Button: React.FC<ButtonProps> = (props) => {/*...*/};
+```
+
+3. **Centralize Registration**:
+   Create a single function to handle all component registrations:
+```typescript
+export const initializeHydra = () => {
+  const hydra = new HydraClient({
+    hydraApiKey: process.env.NEXT_PUBLIC_HYDRAAI_API_KEY,
+  });
+  
+  registerHydraComponents(hydra);
+  return hydra;
+};
+```
+
+## Type Safety with Context Tools
+
+When using context tools, ensure your schema matches the returned data:
+
+```typescript
+const dataSchema = z.object({
+  results: z.array(z.object({
+    id: z.string(),
+    data: z.any(),
+  })),
+});
+
+const getDataTool = {
+  getComponentContext: async (query: string) => {
+    const data = await fetchData(query);
+    return dataSchema.parse(data); // Validates the fetched data
+  },
+  definition: {
+    name: "getData",
+    parameters: [/*...*/],
+  },
+};
+```
+
+---
+
+This approach provides a robust way to register components with type safety while maintaining clean and maintainable code. The `zodToJsonSchema` conversion allows Hydra to understand your Zod schemas while preserving all type information for runtime validation.

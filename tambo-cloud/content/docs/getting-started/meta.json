@@ -1,4 +1,4 @@
 {
   "title": "Getting Started",
-  "pages": ["installation", "adding-components", "manual-setup"]
+  "pages": ["installation", "adding-components", "using-zod"]
 }
