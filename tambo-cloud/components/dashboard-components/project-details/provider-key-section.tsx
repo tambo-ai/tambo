@@ -2,7 +2,7 @@ import { addProviderKey, getProviderKeys } from "@/app/services/hydra.service";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
-import { ProjectResponseDto, ProviderKeyResponseDto } from "../../types/types";
+import { ProjectResponseDto, ProviderKeyResponseDto } from "../../../app/dashboard/types/types";
 
 interface ProviderKeySectionProps {
   project: ProjectResponseDto;

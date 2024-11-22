@@ -1,15 +1,11 @@
 "use client";
-import { ChevronsDown, Github, Menu, Twitter, BookOpen } from "lucide-react";
+import { track } from "@vercel/analytics";
+import { BookOpen, Menu, Twitter } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import React from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "../ui/sheet";
-import { Separator } from "../ui/separator";
+import { LogoutButton } from "../auth/logout-button";
+import { Button } from "../ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -18,11 +14,16 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "../ui/navigation-menu";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import Image from "next/image";
+import { Separator } from "../ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 import { ToggleTheme } from "./toogle-theme";
-import { track } from "@vercel/analytics";
 
 interface RouteProps {
   href: string;
@@ -38,7 +39,13 @@ const routeList: RouteProps[] = [];
 
 const featureList: FeatureProps[] = [];
 
-export const Navbar = () => {
+interface NavbarProps {
+  showBackground?: boolean;
+  showDashboardButton?: boolean;
+  showLogoutButton?: boolean;
+}
+
+export const Navbar = ({ showBackground=true, showDashboardButton=true, showLogoutButton=false }: NavbarProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const handleNavClick = (label: string) => {
@@ -46,7 +53,7 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="shadow-inner bg-opacity-15 w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky border border-secondary z-40 rounded-2xl flex justify-between items-center p-2 bg-card">
+    <header className={`${showBackground ? 'shadow-inner bg-opacity-15 border border-secondary' : ''} w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky  z-40 rounded-2xl flex justify-between items-center p-2 bg-card`}>
       <Link href="/" className="font-bold text-lg flex items-center">
         Hydra-AI
       </Link>
@@ -77,6 +84,20 @@ export const Navbar = () => {
               </SheetHeader>
 
               <div className="flex flex-col gap-2">
+                <Button
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleNavClick("Mobile Dashboard");
+                  }}
+                  asChild
+                  variant="ghost"
+                  className={`${showDashboardButton ? 'justify-start text-base' : 'hidden'}`}
+                >
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                {showLogoutButton && (
+                  <LogoutButton variant="ghost" mobile />
+                )}
                 {routeList.map(({ href, label }) => (
                   <Button
                     key={href}
@@ -197,7 +218,17 @@ export const Navbar = () => {
         </NavigationMenuList>
       </NavigationMenu>
 
-      <div className="hidden lg:flex">
+      <div className="hidden lg:flex items-center gap-1">
+        <Link
+          href="/dashboard"
+          onClick={() => handleNavClick("Dashboard")}
+          className={`${showDashboardButton ? 'block' : 'hidden'}`}
+        >
+          <Button className="text-xs px-2 ">dashboard</Button>
+        </Link>
+        {showLogoutButton && (
+          <LogoutButton />
+        )}
         <ToggleTheme />
 
         <Button

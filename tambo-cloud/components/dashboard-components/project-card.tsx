@@ -1,7 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
-import { ProjectResponseDto } from "../types/types";
+import { ProjectResponseDto } from "../../app/dashboard/types/types";
 import { ProjectDetailsDialog } from "./project-details/project-details-dialog";
 
 interface ProjectCardProps {
@@ -14,16 +13,16 @@ export function ProjectCard({ project, onProjectDeleted }: ProjectCardProps) {
 
   return (
     <>
-      <Card>
+      <Card 
+        className="hover:bg-accent transition-colors cursor-pointer" 
+        onClick={() => setShowDetails(true)}
+      >
         <CardHeader>
-          <CardTitle>{typeof project.name === 'string' ? project.name : project.name.projectName}</CardTitle>
+          <CardTitle className="text-md font-semibold">{project.name}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Project ID: {project.id}</p>
+          <p className="text-xs text-muted-foreground">Project ID: {project.id}</p>
         </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button onClick={() => setShowDetails(true)}>View Details</Button>
-        </CardFooter>
       </Card>
 
       <ProjectDetailsDialog 

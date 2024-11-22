@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
-import { APIKeyResponseDto, ProjectResponseDto } from "../../types/types";
+import { APIKeyResponseDto, ProjectResponseDto } from "../../../app/dashboard/types/types";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { AlertState } from "./project-details-dialog";
 
@@ -146,7 +146,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
                     size="sm"
                     onClick={() => setShowNameInput(true)}
                   >
-                    Create New Key
+                    + Create API Key
                   </Button>
                 )}
               </div>

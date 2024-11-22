@@ -1,5 +1,4 @@
-import React from "react";
-import { ProjectResponseDto } from "../../types/types";
+import { ProjectResponseDto } from "../../../app/dashboard/types/types";
 
 interface ProjectInfoProps {
   project: ProjectResponseDto;

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ProjectResponseDto } from "../../types/types";
+import { ProjectResponseDto } from "../../../app/dashboard/types/types";
 import { APIKeyList } from "./api-key-list";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { ProjectInfo } from "./project-info";
@@ -65,7 +65,7 @@ export function ProjectDetailsDialog({
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>
-            {typeof project.name === 'string' ? project.name : project.name.projectName}
+            {project.name}
           </DialogTitle>
         </DialogHeader>
         
