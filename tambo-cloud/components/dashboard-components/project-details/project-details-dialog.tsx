@@ -62,13 +62,13 @@ export function ProjectDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {project.name}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="py-4">
           <div className="space-y-4">
             <ProjectInfo project={project} />
