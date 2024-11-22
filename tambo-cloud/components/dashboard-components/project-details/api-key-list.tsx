@@ -26,6 +26,10 @@ export function APIKeyList({ project }: APIKeyListProps) {
   });
   const { toast } = useToast();
 
+  useEffect(() => {
+    loadApiKeys();
+  }, [project.id]);
+
   const loadApiKeys = async () => {
     try {
       setIsLoading(true);
@@ -41,11 +45,6 @@ export function APIKeyList({ project }: APIKeyListProps) {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadApiKeys();
-  }, [project.id, loadApiKeys]);
-
 
   const handleCreateApiKey = async () => {
     if (!newKeyName.trim()) {

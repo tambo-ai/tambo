@@ -19,6 +19,10 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
   const checkAuth = async () => {
     console.log("Checking auth status");
     try {
@@ -30,17 +34,13 @@ export default function DashboardPage() {
       }
       else {
         setIsLoading(false);
-      } 
+      }
     } catch (error) {
       console.error("Error checking auth status:", error);
       setIsAuthenticated(false);
       setIsLoading(false)
     }
   };
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
 
   const loadProjects = async () => {
     try {
@@ -109,30 +109,30 @@ export default function DashboardPage() {
       ) : (
         isLoading ? (
           <LoadingCards />
-      ) : (
-        <>
-          <div className="flex justify-between items-center w-full mb-8 border-b p-4 pb-2 gap-4">
-            <span className="text-sm text-muted-foreground">
-              {projects.length} project{projects.length !== 1 ? 's' : ''}
-            </span>
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="text-xs px-3"
-              variant="default">
-              + New
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project: ProjectResponseDto) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onProjectDeleted={loadProjects}
-              />
-            ))}
-          </div>
-          <CreateProjectDialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-            onSubmit={handleCreateProject} />
+        ) : (
+          <>
+            <div className="flex justify-between items-center w-full mb-8 border-b p-4 pb-2 gap-4">
+              <span className="text-sm text-muted-foreground">
+                {projects.length} project{projects.length !== 1 ? 's' : ''}
+              </span>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="text-xs px-3"
+                variant="default">
+                + New
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projects.map((project: ProjectResponseDto) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onProjectDeleted={loadProjects}
+                />
+              ))}
+            </div>
+            <CreateProjectDialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+              onSubmit={handleCreateProject} />
           </>
         )
       )}

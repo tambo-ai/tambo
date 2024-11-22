@@ -15,6 +15,10 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  useEffect(() => {
+    loadProviderKeys();
+  }, [project.id]);
+
   const loadProviderKeys = async () => {
     try {
       setIsLoading(true);
@@ -30,10 +34,6 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadProviderKeys();
-  }, [project.id, loadProviderKeys]);
 
   const handleUpdateProviderKey = async () => {
     try {
