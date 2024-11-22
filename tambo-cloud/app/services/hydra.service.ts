@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { UserDto } from '../types/user.dto';
 import { getSupabaseClient } from '../utils/supabase';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_HYDRA_API_URL || 'https://api.usehydra.ai';
@@ -91,4 +92,13 @@ export const getProviderKeys = async (projectId: string) => {
         { headers: await getHeaders() }
     );
     return response.data;
-}; 
+};
+
+export const createUser = async (userData: UserDto) => {
+    const response = await axios.post(
+        `${API_BASE_URL}/users`,
+        userData,
+        { headers: await getHeaders() }
+    );
+    return response.data;
+};

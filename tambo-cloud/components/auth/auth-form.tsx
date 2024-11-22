@@ -1,3 +1,5 @@
+import { createUser } from "@/app/services/hydra.service";
+import { UserDto } from "@/app/types/user.dto";
 import { getSupabaseClient } from "@/app/utils/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,18 +25,22 @@ export function AuthForm({ isSignUpInitialValue, routeOnSuccess }: AuthFormProps
 
     try {
       if (isSignUp) {
-        const { error } = await getSupabaseClient().auth.signUp({
+        const { data: { user }, error } = await getSupabaseClient().auth.signUp({
           email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
+          password
         });
         if (error) throw error;
+        if (!user) throw new Error("User creation failed.");
+        const userData: UserDto = {
+          authId: user.id,
+          email: email,
+        };
+        await createUser(userData);
         toast({
-          title: "Check your email",
-          description: "We sent you a confirmation link to complete your signup.",
+          title: "Success",
+          description: "Account created!",
         });
+        window.location.href = routeOnSuccess;
       } else {
         const { error } = await getSupabaseClient().auth.signInWithPassword({
           email,

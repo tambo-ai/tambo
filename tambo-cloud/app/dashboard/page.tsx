@@ -19,10 +19,6 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
   const checkAuth = async () => {
     console.log("Checking auth status");
     try {
@@ -41,6 +37,10 @@ export default function DashboardPage() {
       setIsLoading(false)
     }
   };
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const loadProjects = async () => {
     try {
