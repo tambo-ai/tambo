@@ -41,8 +41,8 @@ export function Community() {
         <Ripple />
         <div className="p-6 text-center py-12">
           <p className="text-muted-foreground mb-6 text-balance max-w-prose mx-auto font-medium">
-            We&apos;re grateful for the amazing open-source community that helps
-            make our project better every day.
+            We&apos;re grateful to our users and contributors that help us
+            improve the project every day.
           </p>
           <div className="flex justify-center -space-x-6 mb-8">
             {contributors.map((contributor, index) => (
@@ -66,9 +66,9 @@ export function Community() {
               className="flex items-center gap-2"
               asChild
             >
-              <a href="https://github.com/use-hydra-ai/hydra-ai">
-                <Icons.github className="h-5 w-5" />
-                Become a contributor
+              <a href="https://discord.gg/dJNvPEHth6">
+                <Icons.discord className="h-5 w-5" />
+                Join the Discord
               </a>
             </Button>
           </div>
