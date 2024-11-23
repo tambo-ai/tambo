@@ -157,8 +157,7 @@ export function ExampleChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content:
-        "Welcome to SecureBank! I'm your virtual assistant. How can I help you today?",
+      content: "Welcome to AI Bank! How can I help you today?",
     },
   ]);
   const [showTransfer, setShowTransfer] = useState(false);
@@ -174,7 +173,7 @@ export function ExampleChat() {
     // Show typing indicator
     const typingTimer = setTimeout(() => {
       setIsTyping(true);
-    }, 1000);
+    }, 200);
 
     // Add user message
     const messageTimer = setTimeout(() => {
@@ -184,13 +183,13 @@ export function ExampleChat() {
         { role: "user", content: "send $500 to my mom" },
       ]);
       setIsLoading(true);
-    }, 4000);
+    }, 2000);
 
     // Show transfer form
     const transferTimer = setTimeout(() => {
       setIsLoading(false);
       setShowTransfer(true);
-    }, 7000);
+    }, 4000);
 
     return () => {
       clearTimeout(typingTimer);

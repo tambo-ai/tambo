@@ -22,8 +22,8 @@ interface ProcessedFeature {
 const featureOptions: FeatureOption[] = [
   {
     id: 1,
-    title: "Create Transfer Component",
-    description: "Define a simple transfer component.",
+    title: "Define a Component",
+    description: "Define a component with React.",
     code: `interface TransferProps {
   amount: number;
   recipient: string;
@@ -40,8 +40,8 @@ const TransferCard = ({ amount, recipient, accountType = "checking" }: TransferP
   },
   {
     id: 2,
-    title: "Register Component",
-    description: "Register with Hydra AI",
+    title: "Register Components",
+    description: "Register it with Hydra AI",
     code: `hydra.registerComponent({
   name: "TransferCard",
   description: "Money transfer component",
@@ -59,8 +59,8 @@ const TransferCard = ({ amount, recipient, accountType = "checking" }: TransferP
   },
   {
     id: 3,
-    title: "Add Bank API",
-    description: "Connect to banking API",
+    title: "Add tool calls",
+    description: "Add your APIs to Hydra AI",
     code: `const transferMoney = {
   definition: {
     name: "transfer",
@@ -69,13 +69,30 @@ const TransferCard = ({ amount, recipient, accountType = "checking" }: TransferP
   execute: async (amount, recipient) => {
     return await bankAPI.transfer(amount, recipient);
   }
-}`,
+}
+hydra.registerComponent({
+  name: "TransferCard",
+  ...
+  contextTools: [{
+    definition: {
+      name: "transferMoney",
+      description: "Executes a money transfer", 
+      parameters: [
+        { name: "amount", type: "number" },
+        { name: "recipient", type: "string" }
+      ]
+    },
+    getComponentContext: async (amount, recipient) => {
+      return await bankAPI.transfer(amount, recipient);
+    }
+  }]
+});`,
     isComponent: false,
   },
   {
     id: 4,
-    title: "The Result",
-    description: "Preview the transfer card.",
+    title: "Render Interactive UI",
+    description: "Surface the right features to the user",
     code: "",
     isComponent: true,
   },
