@@ -16,8 +16,7 @@ export const Icons = {
       strokeLinejoin="round"
       {...props}
     >
-      <polyline points="4 17 10 11 4 5"></polyline>
-      <line x1="12" x2="20" y1="19" y2="19"></line>
+      <path d="M4 10l16-6 -6 16 -2 -8 -8 -2z"></path>
     </svg>
   ),
   discord: DiscordLogoIcon,
