@@ -1,41 +1,43 @@
+import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Toaster } from "@/components/ui/toaster";
-import { cn } from "@/lib/utils";
+import { siteConfig } from "@/lib/config";
+import { cn, constructMetadata } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
 import { RootProvider } from "fumadocs-ui/provider";
-import type { Metadata } from "next";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Build Adaptive UIs with AI | Hydra AI",
-  description:
-    "Hydra AI is an AI-powered router that surfaces the right features to users based on context. Build adaptive UIs for your web app with ease.",
-  icons: {
-    icon: "/favicon.ico",
-  },
+export const metadata: Metadata = constructMetadata({
+  title: `${siteConfig.name} | ${siteConfig.description}`,
+  description: siteConfig.metadata.description,
+  keywords: siteConfig.keywords,
   openGraph: {
-    title: "Build Adaptive UIs with AI | Hydra AI",
-    description:
-      "AI-powered router surfaces the right features to users based on context",
-    images: [
-      {
-        url: "https://usehydra.ai/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Hydra AI - Build Adaptive UIs with AI",
-      },
-    ],
+    title: siteConfig.metadata.openGraph.title,
+    description: siteConfig.metadata.openGraph.description,
+    images: siteConfig.metadata.openGraph.images,
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Build Adaptive UIs with AI | Hydra AI",
-    description:
-      "AI-powered router surfaces the right features to users based on context",
-    images: ["https://usehydra.ai/twitter-image.png"],
+    card: siteConfig.metadata.twitter.card,
+    title: siteConfig.metadata.twitter.title,
+    description: siteConfig.metadata.twitter.description,
+    images: siteConfig.metadata.twitter.images,
   },
+  icons: siteConfig.metadata.icons,
+});
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
 };
 
 export default function RootLayout({
@@ -44,20 +46,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(
+        `${GeistSans.variable} ${GeistMono.variable}`,
+        inter.className
+      )}
+    >
       <body
         className={cn(
-          "min-h-screen bg-background flex flex-col",
-          inter.className
+          "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col"
         )}
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+          defaultTheme="dark"
+          enableSystem={false}
         >
           <RootProvider>{children}</RootProvider>
+          <ThemeToggle />
+          <TailwindIndicator />
         </ThemeProvider>
         <Toaster />
         <Analytics />
