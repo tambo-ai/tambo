@@ -197,7 +197,7 @@ Once the process completes, you should see:
 Hydra AI initialization complete. Your components are now registered!
 ```
 
-import { NavigationIcon } from "lucide-react";
+import { NavigationIcon, LayoutDashboardIcon } from "lucide-react";
 
 <Cards>
   <Card
@@ -206,6 +206,13 @@ import { NavigationIcon } from "lucide-react";
     title="Try the Control Bar Template"
   >
     Get started with natural language component control
+  </Card>
+  <Card
+    icon={<LayoutDashboardIcon />}
+    href="/dashboard"
+    title="Login to your Dashboard"
+  >
+    View your project dashboard.
   </Card>
 </Cards>
 
