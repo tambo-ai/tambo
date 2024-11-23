@@ -1,5 +1,5 @@
 ---
-title: Adding Components
+title: Add Components & Tools
 description: Learn how to add and register new components with Hydra AI
 ---
 
@@ -11,8 +11,7 @@ This guide will walk you through the process of adding and registering new compo
 
 First, create your React component as you normally would:
 
-```tsx
-// src/components/WelcomeCard.tsx
+```tsx title="src/components/WelcomeCard.tsx"
 import React from "react";
 
 interface WelcomeCardProps {
@@ -48,7 +47,7 @@ export default WelcomeCard;
 
 Add your new component to your `hydra-config.ts` file:
 
-```typescript
+```typescript title="src/hydra-config.ts"
 import WelcomeCard from "./components/WelcomeCard";
 import { HydraClient } from "hydra-ai";
 
@@ -94,7 +93,7 @@ export function registerComponents() {
 
 When adding components that need to fetch data, you can include context tools:
 
-```typescript
+```typescript title="src/hydra-config.ts"
 hydra.registerComponent({
   name: "UserDashboard",
   description: "Dashboard showing user activity",

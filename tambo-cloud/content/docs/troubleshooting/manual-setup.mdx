@@ -3,6 +3,8 @@ title: Manual Setup
 description: Set up Hydra AI manually without using the CLI
 ---
 
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
 # Manual Setup Guide
 
 While the CLI provides the easiest way to get started with Hydra AI, you can also set up everything manually. This guide walks you through the process step by step.
@@ -17,13 +19,21 @@ While the CLI provides the easiest way to get started with Hydra AI, you can als
 
 Install the Hydra AI package in your project:
 
-```bash
+<Tabs items={["npm", "yarn", "pnpm"]}>
+
+```bash tab="npm"
 npm install hydra-ai
-# or
-yarn add hydra-ai
-# or
-pnpm install hydra-ai
 ```
+
+```bash tab="yarn"
+yarn add hydra-ai
+```
+
+```bash tab="pnpm"
+pnpm add hydra-ai
+```
+
+</Tabs>
 
 ## Step 1: Environment Setup
 
@@ -37,7 +47,7 @@ NEXT_PUBLIC_HYDRAAI_API_KEY=your_api_key_here
 
 2. If you're using TypeScript, ensure your `tsconfig.json` includes:
 
-```json
+```json title="tsconfig.json"
 {
   "compilerOptions": {
     "jsx": "react",
@@ -51,7 +61,7 @@ NEXT_PUBLIC_HYDRAAI_API_KEY=your_api_key_here
 
 Create a `hydra-client.ts` file in your project:
 
-```typescript
+```typescript title="src/hydra-client.ts"
 import { HydraClient } from "hydra-ai";
 
 export const getHydraClient = (): HydraClient => {
@@ -89,7 +99,7 @@ export const registerHydraComponents = async (hydra: HydraClient) => {
 
 Create your main chat or interaction component:
 
-```typescript
+```typescript title="src/mainComponent.tsx"
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -162,8 +172,7 @@ export default function MainComponent() {
 
 To ensure type safety, we recommend using Zod schemas for your components. Here's how to set up your types:
 
-```typescript
-// types/hydra.d.ts
+```typescript title="types/hydra.d.ts"
 import { z } from "zod";
 
 declare module "hydra-ai" {
@@ -192,8 +201,7 @@ See the [Zod guide](/docs/getting-started/zod) for more information on using Zod
 
 Implement error boundaries for Hydra AI components:
 
-```typescript
-// components/HydraErrorBoundary.tsx
+```typescript title="src/components/HydraErrorBoundary.tsx"
 import React from "react";
 
 class HydraErrorBoundary extends React.Component<

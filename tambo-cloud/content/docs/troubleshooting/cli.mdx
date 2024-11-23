@@ -3,6 +3,8 @@ title: CLI
 description: How to use the Hydra AI CLI
 ---
 
+import { Tabs, Tab } from "fumadocs-ui/components/tabs";
+
 # CLI Troubleshooting Guide
 
 This guide covers common issues you might encounter when using the Hydra AI CLI and how to resolve them.
@@ -15,58 +17,50 @@ This guide covers common issues you might encounter when using the Hydra AI CLI 
 
 If you get a "command not found" error after installation:
 
-```bash
+<Tabs items={["Error", "Solutions"]}>
+
+```bash tab="Error"
 hydra: command not found
 ```
 
-Try these solutions:
-
-1. Reinstall the CLI globally:
-
-```bash
+```bash tab="Solutions"
+# 1. Reinstall globally
 npm install --global hydra-ai-cli
-```
 
-2. Check if your PATH includes npm global binaries:
-
-```bash
+# 2. Check PATH
 echo $PATH
-```
 
-3. Run the CLI using npx:
-
-```bash
+# 3. Use npx instead
 npx hydra-ai-cli
 ```
+
+</Tabs>
 
 ### Authentication Issues
 
 #### Login and Signup
 
-If you encounter issues during login or signup:
+<Tabs items={["Error", "New Users", "Existing Users"]}>
 
-```bash
+```bash tab="Error"
 Error: Failed to log in
 ```
 
-Solutions:
-
-1. Ensure you have a stable internet connection
-2. Try the signup command first if you're a new user:
-
-```bash
+```bash tab="New Users"
+# Create a new account
 hydra signup
 # or
 npx hydra-ai-cli signup
 ```
 
-3. For existing users, use:
-
-```bash
+```bash tab="Existing Users"
+# Login to existing account
 hydra login
 # or
 npx hydra-ai-cli login
 ```
+
+</Tabs>
 
 ### Project Management
 
@@ -74,7 +68,7 @@ npx hydra-ai-cli login
 
 If you can't see your projects:
 
-```bash
+```bash title="List projects"
 hydra listProjects
 # or
 npx hydra-ai-cli listProjects
@@ -90,7 +84,7 @@ The command will show a table with project IDs and names. If it fails:
 
 To create a new project:
 
-```bash
+```bash title="Create a new project"
 hydra createProject
 # or
 npx hydra-ai-cli createProject
@@ -106,7 +100,7 @@ You'll be prompted to enter a project name. If creation fails:
 
 To add an OpenAI API key to your project:
 
-```bash
+```bash title="Add an OpenAI API key"
 hydra addProvider --id <project_id>
 # or
 npx hydra-ai-cli addProvider --id <project_id>
@@ -116,13 +110,23 @@ You'll be prompted to enter your OpenAI API key securely.
 
 ## Debug Mode
 
-Enable debug logging for more detailed error information:
+<Tabs items={["Debug Logging", "Sample Output"]}>
 
-```bash
+```bash tab="Debug Logging"
+# Enable detailed logging
 hydra --debug <command>
 # or
 npx hydra-ai-cli --debug <command>
 ```
+
+```bash tab="Sample Output"
+[DEBUG] Initializing CLI...
+[DEBUG] Checking authentication...
+[DEBUG] Loading configuration from ~/.hydra/config.json
+[DEBUG] Making API request to https://api.hydra.ai/v1/...
+```
+
+</Tabs>
 
 ## Version Conflicts
 
@@ -130,19 +134,19 @@ If you experience version-related issues:
 
 1. Check your CLI version:
 
-````bash
+```bash title="Check CLI version"
 hydra --version
 # or
 npx hydra-ai-cli --version
-    ```
+```
 
 2. Update to the latest version:
 
-```bash
+```bash title="Update CLI"
 npm update --global hydra-ai-cli
 # or
 npm update --global @hydra-ai/cli
-````
+```
 
 ## Network Problems
 
@@ -150,7 +154,7 @@ npm update --global @hydra-ai/cli
 
 For slow connections, increase the timeout:
 
-```bash
+```bash title="Increase timeout"
 hydra <command> --timeout 30000
 # or
 npx hydra-ai-cli <command> --timeout 30000
@@ -162,7 +166,7 @@ If you're still experiencing issues:
 
 1. Run the help command:
 
-```bash
+```bash title="Run help command"
 hydra help
 # or
 npx hydra-ai-cli help
@@ -170,23 +174,27 @@ npx hydra-ai-cli help
 
 2. Check the verbose logs:
 
-```bash
+```bash title="Check verbose logs"
 hydra <command> --verbose
 # or
 npx hydra-ai-cli <command> --verbose
 ```
 
-3. Contact support:
+import { MailIcon, MessageCircleIcon } from "lucide-react";
 
-- Open an issue on GitHub
-- Join our Discord community
-
-## Best Practices
-
-1. Always use the latest CLI version
-2. Initialize projects in clean directories
-3. Keep your API keys secure
-4. Use version control for your projects
-5. Back up your configuration files
-
-Remember to check our [GitHub repository](https://github.com/use-hydra-ai/hydra-cli) for the latest updates and known issues.
+<Cards>
+  <Card
+    icon={<MailIcon />}
+    href="mailto:support@usehydra.ai"
+    title="Email Support"
+  >
+    Contact us at support@usehydra.ai
+  </Card>
+  <Card
+    icon={<MessageCircleIcon />}
+    href="https://discord.gg/AkCvQ3sM"
+    title="Discord Community"
+  >
+    Join our Discord community for help
+  </Card>
+</Cards>
