@@ -36,15 +36,27 @@ export async function POST(request: Request) {
       stack: error instanceof Error ? error.stack : undefined,
     });
 
+    const userFacingErrors = {
+      "Invalid email format": "Please use your company email address",
+      "Email domain not allowed": "Please use your company email address",
+      "Channel already exists": "A channel for your company already exists",
+      "Company name results in invalid channel name":
+        "Please modify your company name to make it more unique - it may contain invalid characters or be too similar to an existing name",
+    };
+
     const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
-    const errorDetails =
-      error instanceof Error && error.cause ? error.cause : undefined;
+      error instanceof Error ? error.message : "Unknown error";
+    const userFriendlyMessage =
+      userFacingErrors[errorMessage as keyof typeof userFacingErrors];
+    const isUserFacingError = Boolean(userFriendlyMessage);
 
     return NextResponse.json(
       {
-        error: errorMessage,
-        details: errorDetails,
+        error: isUserFacingError
+          ? userFriendlyMessage
+          : "An unexpected error occurred",
+        details:
+          error instanceof Error && error.cause ? error.cause : undefined,
         stack:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -52,7 +64,7 @@ export async function POST(request: Request) {
               : undefined
             : undefined,
       },
-      { status: 500 }
+      { status: isUserFacingError ? 400 : 500 }
     );
   }
 }

@@ -39,13 +39,20 @@ export async function createSlackChannel(
   companyName: string,
   email: string
 ): Promise<CreateChannelResult> {
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw new Error("Invalid email format");
+  }
   // Validate email domain if needed
-  if (process.env.ALLOWED_EMAIL_DOMAINS) {
-    const allowedDomains = process.env.ALLOWED_EMAIL_DOMAINS.split(",");
+  if (process.env.DISALLOWED_EMAIL_DOMAINS) {
+    const disallowedDomains = process.env.DISALLOWED_EMAIL_DOMAINS.split(",");
     const emailDomain = email.split("@")[1];
 
-    if (!allowedDomains.includes(emailDomain)) {
-      throw new Error("Email domain not allowed");
+    if (disallowedDomains.includes(emailDomain)) {
+      throw new Error(
+        "Email domain not allowed. Please use a work email domain."
+      );
     }
   }
 
