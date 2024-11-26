@@ -36,24 +36,14 @@ export async function POST(request: Request) {
       stack: error instanceof Error ? error.stack : undefined,
     });
 
-    const userFacingErrors = {
-      "Invalid email format": "Please use your company email address",
-      "Email domain not allowed": "Please use your company email address",
-      "Channel already exists": "A channel for your company already exists",
-      "Company name results in invalid channel name":
-        "Please modify your company name to make it more unique - it may contain invalid characters or be too similar to an existing name",
-    };
-
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    const userFriendlyMessage =
-      userFacingErrors[errorMessage as keyof typeof userFacingErrors];
-    const isUserFacingError = Boolean(userFriendlyMessage);
+    const isUserFacingError = Boolean(errorMessage);
 
     return NextResponse.json(
       {
         error: isUserFacingError
-          ? userFriendlyMessage
+          ? errorMessage
           : "An unexpected error occurred",
         details:
           error instanceof Error && error.cause ? error.cause : undefined,

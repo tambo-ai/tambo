@@ -101,86 +101,128 @@ export function SlackChannelForm({ onSuccess }: SlackChannelFormProps) {
 
   return (
     <Form {...form}>
-      {!inviteData ? (
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full max-w-[400px] space-y-4"
-        >
-          <FormField
-            control={form.control}
-            name="companyName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter your company name"
-                    disabled={isLoading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+      <div className="flex flex-col items-center w-full max-w-lg mx-auto">
+        {!inviteData ? (
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="w-full space-y-6"
+          >
+            <FormField
+              control={form.control}
+              name="companyName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Company Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your company name"
+                      disabled={isLoading}
+                      className="w-full"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Email Address
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your email"
+                      type="email"
+                      autoCapitalize="none"
+                      disabled={isLoading}
+                      className="w-full"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {error && (
+              <div className="text-center">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
             )}
-          />
 
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email Address</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter your email"
-                    type="email"
-                    autoCapitalize="none"
-                    disabled={isLoading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {error && <p className="text-center text-destructive">{error}</p>}
-
-          <div className="flex justify-center">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating Channel..." : "Create Slack Channel"}
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? (
+                <>
+                  <span className="mr-2">Creating Channel</span>
+                  <span className="animate-pulse">...</span>
+                </>
+              ) : (
+                "Create Slack Channel"
+              )}
             </Button>
-          </div>
-        </form>
-      ) : (
-        <div className="w-full max-w-[400px] space-y-4">
-          <p className="text-center text-muted-foreground">
-            Your Slack channel &quot;{inviteData.channelName}&quot; has been
-            created!
-          </p>
-          <div className="flex flex-col gap-4">
-            {inviteData.inviteLink ? (
-              <Button asChild size="lg">
-                <a
-                  href={inviteData.inviteLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full"
-                >
-                  Join Slack Channel
-                </a>
+          </form>
+        ) : (
+          <div className="w-full space-y-6 text-center">
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Channel Created!</h3>
+            </div>
+
+            <div className="space-y-4">
+              {inviteData.inviteLink ? (
+                <Button asChild size="lg" className="w-full">
+                  <Link
+                    href={inviteData.inviteLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Join &quot;{inviteData.channelName}&quot; Slack Channel
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <p className="text-sm text-green-600 font-medium">
+                    We sent you an invite to &quot;{inviteData.channelName}
+                    &quot;
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" asChild>
+                      <Link
+                        href="https://mail.google.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center"
+                      >
+                        Gmail
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link
+                        href="https://outlook.live.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center"
+                      >
+                        Outlook
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              <Button variant="outline" asChild className="w-full">
+                <Link href="/docs">View Documentation</Link>
               </Button>
-            ) : (
-              <p className="text-center text-green-500">
-                We sent you an invite link via email.
-              </p>
-            )}
-            <Button variant="outline" className="w-full">
-              <Link href="/docs">Check out the docs</Link>
-            </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Form>
   );
 }
