@@ -1,4 +1,5 @@
 import Author from "@/components/blog-author";
+import { BlogCTA } from "@/components/blog-cta";
 import { CTA } from "@/components/sections/cta";
 import { getPost } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
@@ -122,6 +123,7 @@ export default async function Page(props: {
           dangerouslySetInnerHTML={{ __html: post.source }}
         ></article>
       </div>
+      <BlogCTA />
     </section>
   );
 }
