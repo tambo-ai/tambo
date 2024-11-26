@@ -27,8 +27,8 @@ export default async function Blog() {
           </p>
         </div>
       </div>
-      <div className="min-h-[50vh] bg-white/50 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur-lg">
-        <div className="mx-auto grid w-full max-w-screen-xl grid-cols-1 gap-8 px-2.5 py-10 lg:px-20 lg:grid-cols-3">
+      <div className="min-h-[50vh] bg-background/50 dark:bg-background/80 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] dark:shadow-[inset_10px_-50px_94px_0_rgb(0,0,0,0.2)] backdrop-blur-lg">
+        <div className="mx-auto grid w-full max-w-screen-xl grid-cols-1 gap-8 px-2.5 py-10 lg:px-20 lg:grid-cols-3 [&>a]:hover:scale-[1.02] [&>a]:transition-transform [&>a]:duration-200 [&>a]:ease-in-out [&>a]:shadow-lg dark:[&>a]:shadow-gray-900/20 [&>a]:hover:shadow-xl dark:[&>a]:hover:shadow-gray-900/30">
           {articles.map((data, idx) => (
             <BlogCard key={data.slug} data={data} priority={idx <= 1} />
           ))}
