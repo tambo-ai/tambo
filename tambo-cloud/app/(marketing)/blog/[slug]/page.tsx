@@ -53,6 +53,7 @@ export default async function Page(props: {
   if (!post) {
     notFound();
   }
+
   return (
     <section id="blog">
       <script
@@ -113,15 +114,14 @@ export default async function Page(props: {
           <Author
             twitterUsername={post.metadata.author}
             name={post.metadata.author}
-            image={"/author.jpg"}
+            image={"/michael-magan-li.jpeg"}
           />
         </div>
         <article
-          className="prose dark:prose-invert mx-auto max-w-full"
+          className="prose mx-auto max-w-full"
           dangerouslySetInnerHTML={{ __html: post.source }}
         ></article>
       </div>
-      <CTA />
     </section>
   );
 }

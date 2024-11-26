@@ -19,6 +19,10 @@ const config = {
         protocol: "https",
         hostname: "github.com",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
     ],
   },
 };
