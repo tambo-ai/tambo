@@ -2,11 +2,15 @@ import { siteConfig } from "@/lib/config";
 import fs from "fs";
 import path from "path";
 import rehypePrettyCode from "rehype-pretty-code";
+import { type Options } from "rehype-pretty-code";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
+import rehypeRaw from "rehype-raw";
+import rehypeMinifyWhitespace from "rehype-minify-whitespace";
 import { unified } from "unified";
+import { transformerCopyButton } from "@rehype-pretty/transformers";
 
 export type Post = {
   title: string;
@@ -40,22 +44,26 @@ function getMDXFiles(dir: string) {
 }
 
 export async function markdownToHTML(markdown: string) {
-  const p = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkRehype)
+  const result = await unified()
+    .use(remarkParse) // Parse markdown into mdast
+    .use(remarkGfm) // Support GFM (tables, footnotes, etc.)
+    .use(remarkRehype, { allowDangerousHtml: true }) // Transform to hast
+    .use(rehypeRaw) // Allow raw HTML
     .use(rehypePrettyCode, {
-      // https://rehype-pretty.pages.dev/#usage
-      theme: {
-        light: "min-light",
-        dark: "min-dark",
-      },
-      keepBackground: false,
-    })
+      theme: "one-dark-pro",
+      keepBackground: true,
+      transformers: [
+        transformerCopyButton({
+          visibility: "always",
+          feedbackDuration: 3_000,
+        } as any),
+      ],
+    } satisfies Partial<Options>)
+    .use(rehypeMinifyWhitespace)
     .use(rehypeStringify)
     .process(markdown);
 
-  return p.toString();
+  return result.toString();
 }
 
 export async function getPost(slug: string) {
