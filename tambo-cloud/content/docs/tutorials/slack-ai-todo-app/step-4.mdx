@@ -1,0 +1,112 @@
+---
+title: "Step 4: Register Components With Hydra"
+---
+
+In this step, we'll register the Todo list components with Hydra so that Hydra can respond with interactive UI components instead of just text.
+
+## Register Components
+
+Let's start by "telling" Hydra about the components we want it to be able to control and show in responses.
+
+We already have the components we need for a Todo list app under `/src/components` defined using `jsx-slack`. They are:
+ - `TaskForm`: A form for adding a new task to the list.
+ - `TaskList`: A list of tasks, with buttons to mark them as 'complete'.
+
+There are also a couple of loading components that we'll show while the "main" components are loading.
+
+To register them with Hydra, we'll update the `hydra-config.ts` file we created earlier to make a `registerComponnet` call for each of them.
+
+    1. **Update `hydra-config.ts`**
+
+        Let's update the `hydra-config.ts` file to register these components. Replace the contents of the file with the following:
+
+        ```ts
+        import { HydraClient } from "@hydra-ai/slack";
+        import { ComponentContextTool } from "@hydra-ai/slack/dist/hydra-ai/model/component-metadata";
+        import { getTasks, getTasksByIds } from "./api/task-service";
+        import { TaskForm } from "./components/task-form";
+        import { TaskFormLoading } from "./components/task-form-loading";
+        import { TaskList } from "./components/task-list";
+        import { TaskListLoading } from "./components/task-list-loading";
+
+
+        const editTaskPropsDefinition = {
+            taskId: 'string',
+            name: 'string',
+            isEditing: 'boolean == true',
+        }
+
+        const createTaskPropsDefinition = {
+        name: 'string',
+        }
+
+        export function initializeHydra() {
+            const hydra = new HydraClient({
+                hydraApiKey: process.env.HYDRAAI_API_KEY,
+            });
+
+            hydra.registerComponent({
+                name: 'create-task-form',
+                description: 'A form to create a new task',
+                component: TaskForm,
+                propsDefinition: createTaskPropsDefinition,
+                contextTools: [tasksContextTool],
+                loadingComponent: TaskFormLoading,
+            });
+
+            hydra.registerComponent({
+                name: 'edit-task-form',
+                description: 'A form to edit an existing task. Use this whenever the user wants to edit or update a task.',
+                component: TaskForm,
+                propsDefinition: editTaskPropsDefinition,
+                contextTools: [tasksContextTool],
+                loadingComponent: TaskFormLoading,
+            });
+
+            hydra.registerComponent({
+                name: 'task-list',
+                description: 'A list of tasks',
+                component: TaskList,
+                propsDefinition: {
+                    taskIdList: 'string[]',
+                },
+                contextTools: [tasksContextTool],
+                loadingComponent: TaskListLoading,
+                generateProps: async (context: { taskIdList: string[] }) => {
+                    const tasks = await getTasksByIds(context.taskIdList);
+                    return { tasks: tasks };
+                },
+            });
+
+            return hydra;
+        }
+
+        const tasksContextTool: ComponentContextTool = {
+            getComponentContext: async () => {
+                const tasks = await getTasks();
+                return tasks;
+            },
+            definition: {
+                name: "getAllTasks",
+                description: "Gets the list of all tasks",
+                parameters: [],
+            }
+        }
+       
+        ```
+
+    **Some things to note:**
+
+    In each `registerComponent` call, we need to tell Hydra about the component's name, description, input data (or 'props') schema, and the reference to the actual component.
+
+    In addition, we also are using optional fields:
+    - `loadingComponent`: A component to show while the main component is loading.
+    - `contextTools`: A list of functions that Hydra can call to get extra context data when the component is chosen. In this case, we're using the `tasksContextTool` to let Hydra see the list of all tasks when deciding how to generate the input data for the components.
+    - `generateProps`: A function that runs after Hydra generates input data for the component and before the component is shown. It is used when we don't want Hydra to generate the entire input data for the component.
+
+    The buttons in the `TaskForm` and `TaskList` components are both hooked up to actions that interact with the stored task data. 
+
+    The stored task data is handled in the `/src/api/task-service.ts` file. This is a simple in-memory data store for this tutorial, but in a real app the functions in this file would likely be replaced with a call to an external API.
+
+
+

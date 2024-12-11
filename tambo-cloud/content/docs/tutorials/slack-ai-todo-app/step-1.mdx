@@ -1,0 +1,81 @@
+---
+title: "Step 1: Setup repo"
+---
+
+In this step we'll get the starter app running locally, and install the test app into a Slack workspace.
+
+## Get the repository setup locally
+
+1. **Clone the repository**
+
+    First, we'll get the starting code for the app by running the following command:
+
+    ```bash
+    git clone -b tutorial-start https://github.com/use-hydra-ai/slack-ai-app-template.git
+    ```
+
+2. **Install dependencies**
+
+    Next, we'll install the dependencies by running the following command:
+
+    ```bash
+    npm install
+    ```
+
+We can see in the code that there is a message listener that will respond to any user message that includes "hello" with a message saying "Hello, world!".
+
+Let's install the app into a Slack workspace and test it out.
+
+## Install the app into a Slack workspace
+
+1. **Create and install Slack app**
+
+    Follow instructions here to install the app in your Slack workspace and get your Slack app token and bot token: [Slack app setup instructions](https://github.com/slack-samples/bolt-ts-starter-template?tab=readme-ov-file#create-a-slack-app)
+
+2. **Set up environment variables**
+
+    The instructions above should have guided you through setting up the necessary environment variables. Double check that you now have a `.env` file in the root of the project with the following variables:
+
+    ```bash
+    SLACK_APP_TOKEN=<your-slack-app-token>
+    SLACK_BOT_TOKEN=<your-slack-bot-token>
+    ```
+
+## Run the app!
+
+Finally, let's run the app and test it out in Slack!
+
+1. **Run the app**
+
+    First, we'll get the app running by using the following command:
+
+    ```bash
+    npm start
+    ```
+
+    You should see some output in the terminal ending with a line that says: `⚡️ Bolt app is running! ⚡️`
+
+2. **Add the app to a channel and say "hello"**
+
+    Add the app to a channel in your Slack workspace by typing `@hydra-slack-app-template`. Then, say "hello" in the channel.
+
+    If you've done everything correctly, you should see the app respond with "Hello, world!". Now we've got an app that can respond to messages in Slack!
+
+    <p align="center">
+        <img 
+            src="/assets/hello-listener.gif" 
+            alt="Demo of Slack App saying hello" 
+            width="600"
+            className="rounded-lg border dark:border-zinc-800"
+        />
+    </p>
+
+
+In the next step, we'll send messages through Hydra AI and let it respond to messages in a conversational way with interactive UI components.
+
+
+
+
+
+
+
