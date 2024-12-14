@@ -1,0 +1,73 @@
+---
+title: "Step 4: Test the app!"
+---
+
+import GitHubLink from "@/components/github-button";
+
+Now that we've registered the components with Hydra, we can hook up the control bar to hydra and test the app!
+
+## Add the control bar to the home page
+
+Let's add the control bar to the home page, and pass our Hydra instance to it.
+
+We can replace `src/app/page.tsx` with the following:
+
+```tsx
+"use client";
+import CRMDashboard from "@/components/dashboard/crm-dashboard";
+import ControlBar from "@/components/ui/control-bar";
+import hydra, { initializeHydra } from "@/hydra-config";
+import { useEffect } from "react";
+
+export default function Home() {
+
+  useEffect(() => {
+    initializeHydra();
+  }, []);
+
+  return (
+    <div className="min-h-screen p-8 pb-20 font-[family-name:var(--font-geist-sans)] bg-[#2E3645]">
+      <main className="flex flex-col gap-8 items-center justify-center pt-24">
+        <ControlBar hydra={hydra} />
+        <CRMDashboard />
+      </main>
+    </div>
+  );
+}
+```
+
+## Try it out!
+
+    If you don't still have the app running, you can start it up again with 
+
+    ```bash
+    npm run dev
+    ```
+
+    Try some commands like:
+
+    - "show my leads who work at MegaCorp"
+    - "add a meeting with John for next week"
+
+<p align="center">
+  <img 
+    src="/assets/control-bar/tutorial-end.gif" 
+    alt="Demo of Hydra AI Control Bar" 
+    width="600"
+    className="rounded-lg border dark:border-zinc-800"
+  />
+</p>
+
+
+## Congratulations!
+
+Now you've got an AI React app that responds to user messages with interactive UI components!
+
+To make an app for a different purpose, all you have to do is change the components you register with Hydra.
+
+If you have any questions, reach out at [support@usehydra.ai](mailto:support@usehydra.ai), or you can join our Discord community [here](https://discord.gg/WKTDBb5H).
+
+If this tutorial was helpful, consider giving the repo a star on GitHub!
+<GitHubLink href="https://github.com/use-hydra-ai/hydra-controlbar-starter" />
+
+Happy Coding 🎈
