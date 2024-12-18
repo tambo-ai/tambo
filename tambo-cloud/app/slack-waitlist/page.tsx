@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { useSearchParams } from "next/navigation";
 
-export default function SlackWaitlistPage() {
+function WaitlistContent() {
   const searchParams = useSearchParams();
   const companyName = searchParams.get("company");
 
@@ -39,5 +40,13 @@ export default function SlackWaitlistPage() {
         Request Early Access
       </a>
     </main>
+  );
+}
+
+export default function SlackWaitlistPage() {
+  return (
+    <Suspense>
+      <WaitlistContent />
+    </Suspense>
   );
 }
