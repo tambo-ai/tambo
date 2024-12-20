@@ -2,6 +2,7 @@ export interface ComponentDecision {
   componentName: string | null;
   props: any | null;
   message: string;
+  suggestedActions: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
 }
 
@@ -11,4 +12,9 @@ export interface ToolCallRequest {
     parameterName: string;
     parameterValue: any;
   }[];
+}
+
+export interface SuggestedAction {
+  label: string;
+  actionText: string;
 }
