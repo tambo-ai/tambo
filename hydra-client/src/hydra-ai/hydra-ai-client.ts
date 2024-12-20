@@ -123,7 +123,8 @@ export default class HydraClient {
         component: null,
         message: componentDecision.message,
         stage: GenerationStage.COMPLETE,
-        loading: false
+        loading: false,
+        suggestedActions: componentDecision.suggestedActions
       };
       onProgressUpdate(response);
       return response;
@@ -173,7 +174,8 @@ export default class HydraClient {
         ),
         message: componentDecision.message,
         stage: GenerationStage.COMPLETE,
-        loading: false
+        loading: false,
+        suggestedActions: componentDecision.suggestedActions
       };
 
       onProgressUpdate(response);
@@ -267,7 +269,8 @@ export default class HydraClient {
       ),
       message: hydratedComponentChoice.message,
       stage: GenerationStage.COMPLETE,
-      loading: false
+      loading: false,
+      suggestedActions: hydratedComponentChoice.suggestedActions
     };
   }
 
