@@ -4,7 +4,7 @@ title: API Reference
 
 # registerComponent
 
-This function is used to "tell" Hydra about a component, allowing it to be a possible returned component from a `generateComponent` call.
+This function is used to "tell" Hydra about a component, allowing it to be a possible returned component from a `generateComponent` call. This should be called before any `generateComponent` calls are made, usually on app initialization.
 
 ```tsx
     hydraClient.registerComponent({
@@ -36,6 +36,10 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
        A reference to the actual component function or class.
 
 `propsDefinition`: `object` **optional** 
+
+        > 💡 Note: The size of the props passed into a component impacts Hydra's performance as larger props obects require Hydra to generate more data.   
+        >
+        > If your component takes a large object or array as a prop, check out this guide to see how you might restructure the component for performance improvements: [Optimizing Component Performance](/docs/getting-started/optimizing-component-performance)
 
        A definition of the props that the component accepts. When Hydra decides to use this component, it will look at this definition to know what props to pass to the component, and how they should be structured.
 
@@ -74,8 +78,7 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
        }
        ```
 
-
-       A component that takes no props can leave this out.
+       If the component takes no props, this parameter can be left out.
 
 `contextTools`: `ContextTool[]` **optional** 
 
@@ -90,7 +93,6 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
 `loadingComponent`: `React.ComponentType<any>` **optional** 
 
        A reference to a component that Hydra will show while it generates the props for the component. For example, if the 'real' component is a list of meetings, the context tool calling and prop generation may take a couple seconds, so Hydra can show a "Skeleton" list component in the meantime.
-
 
 
 # generateComponent
