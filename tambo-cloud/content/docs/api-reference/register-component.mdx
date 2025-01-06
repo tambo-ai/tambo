@@ -10,7 +10,7 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
         description: "A list of meetings with their details. Use this when the user wants to view all meetings, filter them by date, or search for specific meetings.",
         component: MeetingsListContainer,
         propsDefinition: {
-            filters: " 
+            meetings: "{id: string, title: string, date: string, location: string, attendees: string[]}[]" 
         },
         contextTools: [getLeadsTool],
         loadingComponent: MeetingsListSkeleton
