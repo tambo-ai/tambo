@@ -12,7 +12,7 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
         propsDefinition: {
             meetings: "{id: string, title: string, date: string, location: string, attendees: string[]}[]" 
         },
-        contextTools: [getLeadsTool],
+        contextTools: [getMeetingssTool],
         loadingComponent: MeetingsListSkeleton
     }),
 ```
@@ -34,6 +34,10 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
        A reference to the actual component function or class.
 
 `propsDefinition`: `object` **optional** 
+
+        > 💡 Note: The size of the props passed into a component impacts Hydra's performance as larger props obects require Hydra to generate more data.   
+        >
+        > If your component takes a large object or array as a prop, check out this guide to see how you might restructure the component for performance improvements: [Optimizing Component Performance](/docs/getting-started/optimizing-component-performance)
 
        A definition of the props that the component accepts. When Hydra decides to use this component, it will look at this definition to know what props to pass to the component, and how they should be structured.
 
