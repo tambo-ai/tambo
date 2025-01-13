@@ -72,7 +72,7 @@ export async function getPost(slug: string) {
   const { content: rawContent, data: metadata } = parseFrontmatter(source);
   const content = await markdownToHTML(rawContent);
   const defaultImage = `${siteConfig.url}/og?title=${encodeURIComponent(
-    metadata.title
+    metadata.title,
   )}`;
   return {
     source: content,
@@ -95,7 +95,7 @@ async function getAllPosts(dir: string) {
         slug,
         source,
       };
-    })
+    }),
   );
 }
 

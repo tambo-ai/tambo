@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
   const handleCreateProject = async (
     projectName: string,
-    providerKey: string
+    providerKey: string,
   ) => {
     try {
       const project = await createProject(projectName);

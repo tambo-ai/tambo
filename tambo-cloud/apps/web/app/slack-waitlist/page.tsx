@@ -33,7 +33,7 @@ function WaitlistContent() {
 
       <a
         href={`mailto:magan@usehydra.ai?subject=${encodeURIComponent(
-          `I want early access${companyName ? ` - ${companyName}` : ""}`
+          `I want early access${companyName ? ` - ${companyName}` : ""}`,
         )}`}
         className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-lg font-medium text-white shadow transition-colors hover:bg-primary/90"
       >

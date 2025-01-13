@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       console.warn("Invalid input validation:", result.error.format());
       return NextResponse.json(
         { error: "Invalid input", details: result.error.format() },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
               : undefined
             : undefined,
       },
-      { status: isUserFacingError ? 400 : 500 }
+      { status: isUserFacingError ? 400 : 500 },
     );
   }
 }

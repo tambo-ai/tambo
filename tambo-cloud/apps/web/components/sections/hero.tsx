@@ -101,7 +101,7 @@ function HeroCTA() {
           href="/docs"
           className={cn(
             buttonVariants({ variant: "default" }),
-            "w-full sm:w-auto text-background flex gap-2 rounded-lg"
+            "w-full sm:w-auto text-background flex gap-2 rounded-lg",
           )}
         >
           <Icons.logo className="h-6 w-6" />

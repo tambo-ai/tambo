@@ -17,7 +17,7 @@ interface SectionProps {
 const Section = forwardRef<HTMLElement, SectionProps>(
   (
     { id, title, subtitle, description, children, className, align },
-    forwardedRef
+    forwardedRef,
   ) => {
     const internalRef = useRef<HTMLElement>(null);
     const ref = forwardedRef || internalRef;
@@ -26,8 +26,8 @@ const Section = forwardRef<HTMLElement, SectionProps>(
       align === "left"
         ? "text-left"
         : align === "right"
-        ? "text-right"
-        : "text-center";
+          ? "text-right"
+          : "text-center";
 
     return (
       <section id={id} ref={ref}>
@@ -36,7 +36,7 @@ const Section = forwardRef<HTMLElement, SectionProps>(
             <div
               className={cn(
                 alignmentClass,
-                "relative mx-auto border-x border-t overflow-hidden p-2 py-8 md:p-12"
+                "relative mx-auto border-x border-t overflow-hidden p-2 py-8 md:p-12",
               )}
             >
               {title && (
@@ -52,8 +52,8 @@ const Section = forwardRef<HTMLElement, SectionProps>(
                     align === "center"
                       ? "mx-auto"
                       : align === "right"
-                      ? "ml-auto"
-                      : ""
+                        ? "ml-auto"
+                        : "",
                   )}
                 >
                   {subtitle}
@@ -66,8 +66,8 @@ const Section = forwardRef<HTMLElement, SectionProps>(
                     align === "center"
                       ? "mx-auto"
                       : align === "right"
-                      ? "ml-auto"
-                      : ""
+                        ? "ml-auto"
+                        : "",
                   )}
                 >
                   {description}
@@ -88,7 +88,7 @@ const Section = forwardRef<HTMLElement, SectionProps>(
         </div>
       </section>
     );
-  }
+  },
 );
 
 Section.displayName = "Section";

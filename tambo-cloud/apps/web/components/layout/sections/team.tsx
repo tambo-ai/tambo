@@ -125,7 +125,7 @@ export const TeamSection = () => {
         {teamList.map(
           (
             { imageUrl, firstName, lastName, positions, socialNetworks },
-            index
+            index,
           ) => (
             <motion.div
               key={index}
@@ -171,7 +171,7 @@ export const TeamSection = () => {
                       className="hover:opacity-80 transition-all"
                       onClick={() => {
                         track(
-                          `Team Social Click: ${firstName} ${lastName} - ${name}`
+                          `Team Social Click: ${firstName} ${lastName} - ${name}`,
                         );
                       }}
                     >
@@ -181,7 +181,7 @@ export const TeamSection = () => {
                 </CardFooter>
               </Card>
             </motion.div>
-          )
+          ),
         )}
       </div>
     </section>

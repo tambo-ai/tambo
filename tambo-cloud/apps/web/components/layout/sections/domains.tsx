@@ -71,7 +71,7 @@ const ExamplesSection: React.FC = () => {
           Math.abs(rect.top) / (sectionHeight - windowHeight);
         const newIndex = Math.min(
           Math.floor(scrollProgress * examples.length),
-          examples.length - 1
+          examples.length - 1,
         );
         setCurrentIndex(newIndex);
       }

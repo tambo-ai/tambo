@@ -16,7 +16,7 @@ export function Features() {
                 "flex flex-col gap-y-2 items-center justify-center py-8 px-4 border-b transition-colors hover:bg-secondary/20",
                 "last:border-b-0",
                 "md:[&:nth-child(2n+1)]:border-r md:[&:nth-child(n+5)]:border-b-0",
-                "lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(n+4)]:border-b-0 lg:border-r"
+                "lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(n+4)]:border-b-0 lg:border-r",
               )}
             >
               <div className="flex flex-col gap-y-2 items-center">

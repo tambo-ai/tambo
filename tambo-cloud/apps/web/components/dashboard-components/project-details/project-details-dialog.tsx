@@ -1,6 +1,11 @@
 import { removeProject } from "@/app/services/hydra.service";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -9,7 +14,6 @@ import { APIKeyList } from "./api-key-list";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { ProjectInfo } from "./project-info";
 import { ProviderKeySection } from "./provider-key-section";
-
 
 interface ProjectDetailsDialogProps {
   project: ProjectResponseDto;
@@ -33,8 +37,8 @@ export function ProjectDetailsDialog({
 }: ProjectDetailsDialogProps) {
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
-    title: '',
-    description: '',
+    title: "",
+    description: "",
   });
   const { toast } = useToast();
 
@@ -54,19 +58,20 @@ export function ProjectDetailsDialog({
         variant: "destructive",
       });
     } finally {
-      setAlertState({ show: false, title: '', description: '', data: undefined });
+      setAlertState({
+        show: false,
+        title: "",
+        description: "",
+        data: undefined,
+      });
     }
   };
-
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {project.name}
-          </DialogTitle>
+          <DialogTitle>{project.name}</DialogTitle>
         </DialogHeader>
 
         <div className="py-4">
@@ -81,11 +86,14 @@ export function ProjectDetailsDialog({
           <Button
             variant="ghost"
             className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-2"
-            onClick={() => setAlertState({
-              show: true,
-              title: "Delete Project",
-              description: "Are you sure you want to delete this project? This action cannot be undone.",
-            })}
+            onClick={() =>
+              setAlertState({
+                show: true,
+                title: "Delete Project",
+                description:
+                  "Are you sure you want to delete this project? This action cannot be undone.",
+              })
+            }
           >
             <Trash2 className="h-4 w-4" />
             delete project
@@ -100,4 +108,4 @@ export function ProjectDetailsDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

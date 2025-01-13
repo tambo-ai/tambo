@@ -112,7 +112,7 @@ export async function Examples() {
           theme: "github-dark",
         })
       ),
-    }))
+    })),
   );
 
   return (

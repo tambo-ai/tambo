@@ -34,7 +34,7 @@ export function Testimonials() {
               className={cn(
                 "flex flex-col border-b break-inside-avoid border-l",
                 "transition-colors hover:bg-secondary/20",
-                !showAll && index >= initialDisplayCount && "hidden"
+                !showAll && index >= initialDisplayCount && "hidden",
               )}
             >
               <div className="px-4 py-5 sm:p-6 flex-grow">

@@ -19,7 +19,7 @@ export const Ripple = memo(function Ripple({
     <div
       className={cn(
         "pointer-events-none select-none absolute inset-0 [mask-image:linear-gradient(to_bottom,white,transparent)]",
-        className
+        className,
       )}
     >
       {Array.from({ length: numCircles }, (_, i) => {

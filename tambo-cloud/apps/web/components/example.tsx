@@ -323,7 +323,7 @@ export const UpgradeMessageComponent: React.FC<{ customer: Customer }> = ({
   useEffect(() => {
     setEmail(customer.email);
     setMessage(
-      `Dear ${customer.name},\n\nYour account has been upgraded to Premium Plus. Enjoy your new features!\n\nBest,\nYour Account Team`
+      `Dear ${customer.name},\n\nYour account has been upgraded to Premium Plus. Enjoy your new features!\n\nBest,\nYour Account Team`,
     );
   }, [customer]);
 

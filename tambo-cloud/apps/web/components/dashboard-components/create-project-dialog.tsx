@@ -1,6 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -50,7 +63,10 @@ export function CreateProjectDialog({
           <DialogTitle>Create New Project</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="projectName"
@@ -75,13 +91,18 @@ export function CreateProjectDialog({
                   </FormControl>
                   <FormMessage />
                   <p className="text-sm text-muted-foreground">
-                    Hydra will use your API key to make AI calls on your behalf until we implement our payment system.
+                    Hydra will use your API key to make AI calls on your behalf
+                    until we implement our payment system.
                   </p>
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
@@ -100,4 +121,4 @@ export function CreateProjectDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

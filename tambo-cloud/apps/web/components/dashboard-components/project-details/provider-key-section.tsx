@@ -2,7 +2,10 @@ import { addProviderKey, getProviderKeys } from "@/app/services/hydra.service";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
-import { ProjectResponseDto, ProviderKeyResponseDto } from "../../../app/dashboard/types/types";
+import {
+  ProjectResponseDto,
+  ProviderKeyResponseDto,
+} from "../../../app/dashboard/types/types";
 
 interface ProviderKeySectionProps {
   project: ProjectResponseDto;
@@ -10,8 +13,10 @@ interface ProviderKeySectionProps {
 
 export function ProviderKeySection({ project }: ProviderKeySectionProps) {
   const [isEditingProviderKey, setIsEditingProviderKey] = useState(false);
-  const [providerKey, setProviderKey] = useState('');
-  const [providerKeys, setProviderKeys] = useState<ProviderKeyResponseDto[]>([]);
+  const [providerKey, setProviderKey] = useState("");
+  const [providerKeys, setProviderKeys] = useState<ProviderKeyResponseDto[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -59,10 +64,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         <h4 className="text-sm font-semibold">OpenAI API Key</h4>
         {isEditingProviderKey ? (
           <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={handleUpdateProviderKey}
-            >
+            <Button size="sm" onClick={handleUpdateProviderKey}>
               Save
             </Button>
             <Button
@@ -96,16 +98,17 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         />
       ) : (
         <p className="text-sm text-muted-foreground">
-          {isLoading ? 'Loading...' : (
-            providerKeys.length > 0
-              ? (providerKeys[providerKeys.length - 1].partiallyHiddenKey
-                ? providerKeys[providerKeys.length - 1].partiallyHiddenKey.slice(0, 15)
-                : `${providerKeys[providerKeys.length - 1].providerKeyEncrypted.slice(0, 15)}...`)
-              : 'No provider key set'
-          )}
+          {isLoading
+            ? "Loading..."
+            : providerKeys.length > 0
+              ? providerKeys[providerKeys.length - 1].partiallyHiddenKey
+                ? providerKeys[
+                    providerKeys.length - 1
+                  ].partiallyHiddenKey.slice(0, 15)
+                : `${providerKeys[providerKeys.length - 1].providerKeyEncrypted.slice(0, 15)}...`
+              : "No provider key set"}
         </p>
       )}
     </div>
-
   );
-} 
+}

@@ -15,7 +15,7 @@ export function AuroraText({
     <span
       className={cn(
         "relative overflow-hidden inline-flex bg-background",
-        className
+        className,
       )}
     >
       {children}

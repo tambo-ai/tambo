@@ -11,4 +11,4 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
       <p className="text-sm text-muted-foreground">{project.id}</p>
     </div>
   );
-} 
+}

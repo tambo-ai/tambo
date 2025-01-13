@@ -48,7 +48,7 @@ export default function OrbitingCircles({
         className={cn(
           "absolute flex size-[2rem] transform-gpu animate-orbit items-center justify-center rounded-full border border-border bg-background [animation-delay:calc(var(--delay)*1000ms)] dark:bg-background",
           { "[animation-direction:reverse]": reverse },
-          className
+          className,
         )}
       >
         {children}

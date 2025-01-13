@@ -5,7 +5,9 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "prettier-check": "prettier --check \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo check-types"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
@@ -15,8 +17,12 @@
   "engines": {
     "node": "20.x"
   },
-  "packageManager": "npm@10.8.3",
+  "packageManager": "npm@10.9.2",
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "volta": {
+    "node": "20.18.1",
+    "npm": "10.9.2"
+  }
 }

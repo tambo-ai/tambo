@@ -51,12 +51,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn(
         `${GeistSans.variable} ${GeistMono.variable}`,
-        inter.className
+        inter.className,
       )}
     >
       <body
         className={cn(
-          "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col"
+          "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col",
         )}
       >
         <ThemeProvider

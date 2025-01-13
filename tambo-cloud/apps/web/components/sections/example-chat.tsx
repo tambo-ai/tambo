@@ -166,7 +166,7 @@ export function ExampleChat() {
   const [amount, setAmount] = useState(500);
   const [recipient, setRecipient] = useState("Mom");
   const [accountType, setAccountType] = useState<"checking" | "savings">(
-    "checking"
+    "checking",
   );
 
   useEffect(() => {

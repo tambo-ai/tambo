@@ -46,7 +46,7 @@ export function MobileDrawer({
               href="/dashboard"
               className={cn(
                 buttonVariants({ variant: "ghost" }),
-                "justify-start text-base w-full"
+                "justify-start text-base w-full",
               )}
             >
               Dashboard
@@ -56,7 +56,7 @@ export function MobileDrawer({
             <button
               className={cn(
                 buttonVariants({ variant: "ghost" }),
-                "justify-start text-base w-full"
+                "justify-start text-base w-full",
               )}
             >
               Logout
@@ -68,7 +68,7 @@ export function MobileDrawer({
             href="#"
             className={cn(
               buttonVariants({ variant: "default" }),
-              "text-white rounded-full group"
+              "text-white rounded-full group",
             )}
           >
             {siteConfig.cta}

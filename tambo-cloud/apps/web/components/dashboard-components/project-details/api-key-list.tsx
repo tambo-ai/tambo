@@ -1,10 +1,17 @@
-import { generateApiKey, getApiKeys, removeApiKey } from "@/app/services/hydra.service";
+import {
+  generateApiKey,
+  getApiKeys,
+  removeApiKey,
+} from "@/app/services/hydra.service";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
-import { APIKeyResponseDto, ProjectResponseDto } from "../../../app/dashboard/types/types";
+import {
+  APIKeyResponseDto,
+  ProjectResponseDto,
+} from "../../../app/dashboard/types/types";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { AlertState } from "./project-details-dialog";
 
@@ -21,8 +28,8 @@ export function APIKeyList({ project }: APIKeyListProps) {
   const [newGeneratedKey, setNewGeneratedKey] = useState<string | null>(null);
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
-    title: '',
-    description: '',
+    title: "",
+    description: "",
   });
   const { toast } = useToast();
 
@@ -95,13 +102,18 @@ export function APIKeyList({ project }: APIKeyListProps) {
         variant: "destructive",
       });
     } finally {
-      setAlertState({ show: false, title: '', description: '', data: undefined });
-      setIsLoading(false)
+      setAlertState({
+        show: false,
+        title: "",
+        description: "",
+        data: undefined,
+      });
+      setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleCreateApiKey();
     }
   };
@@ -142,10 +154,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
             </Button>
           </div>
         ) : (
-          <Button
-            size="sm"
-            onClick={() => setShowNameInput(true)}
-          >
+          <Button size="sm" onClick={() => setShowNameInput(true)}>
             + Create API Key
           </Button>
         )}
@@ -185,7 +194,8 @@ export function APIKeyList({ project }: APIKeyListProps) {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                Make sure to copy this key now. You won&apos;t be able to see it again!
+                Make sure to copy this key now. You won&apos;t be able to see it
+                again!
               </p>
             </div>
           )}
@@ -202,7 +212,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
                       <p className="text-sm text-muted-foreground">
                         {key.lastUsed
                           ? `Last used: ${DateTime.fromISO(key.lastUsed).toFormat("EEE MMM d 'at' h:mma")}`
-                          : 'Never used'}
+                          : "Never used"}
                       </p>
                       <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis">
                         {key.partiallyHiddenKey.slice(0, 15)}
@@ -212,12 +222,15 @@ export function APIKeyList({ project }: APIKeyListProps) {
                       size="icon"
                       variant="ghost"
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => setAlertState({
-                        show: true,
-                        title: "Delete API Key",
-                        description: "Are you sure you want to delete this API key? This action cannot be undone.",
-                        data: { id: key.id }
-                      })}
+                      onClick={() =>
+                        setAlertState({
+                          show: true,
+                          title: "Delete API Key",
+                          description:
+                            "Are you sure you want to delete this API key? This action cannot be undone.",
+                          data: { id: key.id },
+                        })
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -226,7 +239,9 @@ export function APIKeyList({ project }: APIKeyListProps) {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No API keys available</p>
+            <p className="text-sm text-muted-foreground">
+              No API keys available
+            </p>
           )}
         </>
       )}
@@ -237,4 +252,4 @@ export function APIKeyList({ project }: APIKeyListProps) {
       />
     </div>
   );
-} 
+}

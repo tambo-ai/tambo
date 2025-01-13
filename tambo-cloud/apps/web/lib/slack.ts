@@ -9,7 +9,7 @@ const SLACK_API_BASE = "https://slack.com/api";
 
 export async function callSlackAPI<T>(
   endpoint: string,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
 ): Promise<T> {
   const response = await fetch(`${SLACK_API_BASE}/${endpoint}`, {
     method: "POST",
@@ -37,7 +37,7 @@ interface CreateChannelResult {
 
 export async function createSlackChannel(
   companyName: string,
-  email: string
+  email: string,
 ): Promise<CreateChannelResult> {
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,7 +51,7 @@ export async function createSlackChannel(
 
     if (disallowedDomains.includes(emailDomain)) {
       throw new Error(
-        "Email domain not allowed. Please use a work email domain."
+        "Email domain not allowed. Please use a work email domain.",
       );
     }
   }
@@ -96,14 +96,14 @@ function formatChannelName(companyName: string): string {
 }
 
 async function createChannel(
-  channelName: string
+  channelName: string,
 ): Promise<CreateChannelResponse> {
   const channelData = await callSlackAPI<CreateChannelResponse>(
     "conversations.create",
     {
       name: channelName,
       is_private: false,
-    }
+    },
   );
 
   if (!channelData?.channel?.id) {
@@ -115,14 +115,14 @@ async function createChannel(
 
 async function inviteUserToChannel(
   channelId: string,
-  email: string
+  email: string,
 ): Promise<InviteResponse> {
   const inviteData = await callSlackAPI<InviteResponse>(
     "conversations.inviteShared",
     {
       channel: channelId,
       emails: [email],
-    }
+    },
   );
 
   if (!inviteData?.invite_id) {

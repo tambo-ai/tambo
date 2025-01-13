@@ -67,7 +67,7 @@ export function SlackChannelForm({ onSuccess }: SlackChannelFormProps) {
         throw new Error(
           errorData.details
             ? `${errorData.error}: ${JSON.stringify(errorData.details)}`
-            : errorData.error || "Failed to create Slack channel"
+            : errorData.error || "Failed to create Slack channel",
         );
       }
 
@@ -86,7 +86,7 @@ export function SlackChannelForm({ onSuccess }: SlackChannelFormProps) {
     } catch (err) {
       console.error("Slack channel creation error:", err);
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred",
       );
     } finally {
       setIsLoading(false);

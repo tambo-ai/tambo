@@ -27,10 +27,10 @@ export default function Home() {
     // Dynamically change gradient opacity based on mouse position
     const distanceFromCenter = Math.sqrt(
       (event.clientX - window.innerWidth / 2) ** 2 +
-        (event.clientY - window.innerHeight / 2) ** 2
+        (event.clientY - window.innerHeight / 2) ** 2,
     );
     const maxDistance = Math.sqrt(
-      (window.innerWidth / 2) ** 2 + (window.innerHeight / 2) ** 2
+      (window.innerWidth / 2) ** 2 + (window.innerHeight / 2) ** 2,
     );
     setGradientOpacity(0.1 + (distanceFromCenter / maxDistance) * 0.1);
   }, []);

@@ -31,7 +31,7 @@ export function Header({
             href="/docs"
             className={cn(
               buttonVariants({ variant: "outline" }),
-              "h-8 rounded-lg group tracking-tight font-medium"
+              "h-8 rounded-lg group tracking-tight font-medium",
             )}
           >
             Documentation
@@ -41,7 +41,7 @@ export function Header({
               href="/dashboard"
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "h-8 text-primary-foreground rounded-lg group tracking-tight font-medium"
+                "h-8 text-primary-foreground rounded-lg group tracking-tight font-medium",
               )}
             >
               Dashboard

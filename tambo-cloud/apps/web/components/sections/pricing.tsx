@@ -33,7 +33,7 @@ const Tabs = ({ activeTab, setActiveTab, className, children }: TabsProps) => {
     <div
       className={cn(
         "mx-auto flex w-full items-center justify-center",
-        className
+        className,
       )}
     >
       {children(activeTab)}
@@ -76,7 +76,7 @@ const TabsTrigger = ({
       <span
         className={cn(
           "relative block text-sm font-medium duration-200",
-          isActive ? "delay-100 text-primary" : ""
+          isActive ? "delay-100 text-primary" : "",
         )}
       >
         {children}
@@ -96,7 +96,7 @@ function PricingTier({
     <div
       className={cn(
         "outline-focus transition-transform-background relative z-10 box-border grid h-full w-full overflow-hidden text-foreground motion-reduce:transition-none lg:border-r border-t last:border-r-0",
-        tier.popular ? "bg-primary/5" : "text-foreground"
+        tier.popular ? "bg-primary/5" : "text-foreground",
       )}
     >
       <div className="flex flex-col h-full">
@@ -156,7 +156,7 @@ function PricingTier({
             "w-full rounded-none shadow-none",
             tier.popular
               ? "bg-primary text-primary-foreground hover:bg-secondary-foreground"
-              : "bg-muted text-foreground hover:bg-muted/80"
+              : "bg-muted text-foreground hover:bg-muted/80",
           )}
         >
           {tier.cta}
@@ -168,7 +168,7 @@ function PricingTier({
 
 export function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "yearly"
+    "yearly",
   );
 
   const handleTabChange = (tab: "yearly" | "monthly") => {

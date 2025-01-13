@@ -13,19 +13,23 @@ export function ProjectCard({ project, onProjectDeleted }: ProjectCardProps) {
 
   return (
     <>
-      <Card 
-        className="hover:bg-accent transition-colors cursor-pointer" 
+      <Card
+        className="hover:bg-accent transition-colors cursor-pointer"
         onClick={() => setShowDetails(true)}
       >
         <CardHeader>
-          <CardTitle className="text-md font-semibold">{project.name}</CardTitle>
+          <CardTitle className="text-md font-semibold">
+            {project.name}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-xs text-muted-foreground">Project ID: {project.id}</p>
+          <p className="text-xs text-muted-foreground">
+            Project ID: {project.id}
+          </p>
         </CardContent>
       </Card>
 
-      <ProjectDetailsDialog 
+      <ProjectDetailsDialog
         project={project}
         open={showDetails}
         onOpenChange={setShowDetails}
@@ -33,4 +37,4 @@ export function ProjectCard({ project, onProjectDeleted }: ProjectCardProps) {
       />
     </>
   );
-} 
+}

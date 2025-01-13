@@ -2,7 +2,14 @@ import { createUser } from "@/app/services/hydra.service";
 import { UserDto } from "@/app/types/user.dto";
 import { getSupabaseClient } from "@/app/utils/supabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -12,7 +19,10 @@ interface AuthFormProps {
   routeOnSuccess: string;
 }
 
-export function AuthForm({ isSignUpInitialValue, routeOnSuccess }: AuthFormProps) {
+export function AuthForm({
+  isSignUpInitialValue,
+  routeOnSuccess,
+}: AuthFormProps) {
   const [isSignUp, setIsSignUp] = useState(isSignUpInitialValue);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,9 +35,12 @@ export function AuthForm({ isSignUpInitialValue, routeOnSuccess }: AuthFormProps
 
     try {
       if (isSignUp) {
-        const { data: { user }, error } = await getSupabaseClient().auth.signUp({
+        const {
+          data: { user },
+          error,
+        } = await getSupabaseClient().auth.signUp({
           email,
-          password
+          password,
         });
         if (error) throw error;
         if (!user) throw new Error("User creation failed.");
@@ -101,10 +114,12 @@ export function AuthForm({ isSignUpInitialValue, routeOnSuccess }: AuthFormProps
             className="w-full"
             onClick={() => setIsSignUp(!isSignUp)}
           >
-            {isSignUp ? "Already have an account? Sign in" : "Need an account? Sign up"}
+            {isSignUp
+              ? "Already have an account? Sign in"
+              : "Need an account? Sign up"}
           </Button>
         </CardFooter>
       </form>
     </Card>
   );
-} 
+}

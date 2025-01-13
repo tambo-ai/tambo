@@ -132,7 +132,7 @@ export const PricingSection = () => {
                 </Button>
               </CardFooter>
             </Card>
-          )
+          ),
         )}
       </div>
     </section>

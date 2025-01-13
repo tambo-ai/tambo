@@ -1,4 +1,13 @@
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AlertState } from "./project-details-dialog";
 
 interface DeleteAlertDialogProps {
@@ -13,9 +22,11 @@ export function DeleteAlertDialog({
   onConfirm,
 }: DeleteAlertDialogProps) {
   return (
-    <AlertDialog 
-      open={alertState.show} 
-      onOpenChange={(open) => !open && setAlertState({...alertState, show: false })}
+    <AlertDialog
+      open={alertState.show}
+      onOpenChange={(open) =>
+        !open && setAlertState({ ...alertState, show: false })
+      }
     >
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -36,4 +47,4 @@ export function DeleteAlertDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-} 
+}

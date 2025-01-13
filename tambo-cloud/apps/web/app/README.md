@@ -1,4 +1,3 @@
-
 # Landing Page Notes
 
 ## Removed Components
@@ -6,7 +5,7 @@
 Brief overview of components commented out in `app/page.tsx`:
 
 - `<Logos />` - Partner/client brand showcase
-- `<UseCases />` - Product application examples 
+- `<UseCases />` - Product application examples
 - `<Features />` - Core product capabilities
 - `<Statistics />` - Key metrics and numbers
 - `<Testimonials />` - Customer reviews
@@ -51,7 +50,6 @@ export default function Home() {
   );
 }
 ```
-
 
 ## Other
 

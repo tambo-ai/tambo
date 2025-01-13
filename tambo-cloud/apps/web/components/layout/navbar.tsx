@@ -45,7 +45,11 @@ interface NavbarProps {
   showLogoutButton?: boolean;
 }
 
-export const Navbar = ({ showBackground=true, showDashboardButton=true, showLogoutButton=false }: NavbarProps) => {
+export const Navbar = ({
+  showBackground = true,
+  showDashboardButton = true,
+  showLogoutButton = false,
+}: NavbarProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const handleNavClick = (label: string) => {
@@ -53,7 +57,9 @@ export const Navbar = ({ showBackground=true, showDashboardButton=true, showLogo
   };
 
   return (
-    <header className={`${showBackground ? 'shadow-inner bg-opacity-15 border border-secondary' : ''} w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky  z-40 rounded-2xl flex justify-between items-center p-2 bg-card`}>
+    <header
+      className={`${showBackground ? "shadow-inner bg-opacity-15 border border-secondary" : ""} w-[90%] md:w-[70%] lg:w-[75%] lg:max-w-screen-xl top-5 mx-auto sticky  z-40 rounded-2xl flex justify-between items-center p-2 bg-card`}
+    >
       <Link href="/" className="font-bold text-lg flex items-center">
         Hydra-AI
       </Link>
@@ -91,13 +97,11 @@ export const Navbar = ({ showBackground=true, showDashboardButton=true, showLogo
                   }}
                   asChild
                   variant="ghost"
-                  className={`${showDashboardButton ? 'justify-start text-base' : 'hidden'}`}
+                  className={`${showDashboardButton ? "justify-start text-base" : "hidden"}`}
                 >
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                {showLogoutButton && (
-                  <LogoutButton variant="ghost" mobile />
-                )}
+                {showLogoutButton && <LogoutButton variant="ghost" mobile />}
                 {routeList.map(({ href, label }) => (
                   <Button
                     key={href}
@@ -222,13 +226,11 @@ export const Navbar = ({ showBackground=true, showDashboardButton=true, showLogo
         <Link
           href="/dashboard"
           onClick={() => handleNavClick("Dashboard")}
-          className={`${showDashboardButton ? 'block' : 'hidden'}`}
+          className={`${showDashboardButton ? "block" : "hidden"}`}
         >
           <Button className="text-xs px-2 ">dashboard</Button>
         </Link>
-        {showLogoutButton && (
-          <LogoutButton />
-        )}
+        {showLogoutButton && <LogoutButton />}
         <ToggleTheme />
 
         <Button
