@@ -19,7 +19,8 @@
   },
   "packageManager": "npm@10.9.2",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "volta": {
     "node": "20.18.1",
