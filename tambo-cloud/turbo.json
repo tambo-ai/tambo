@@ -1,11 +1,22 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
+  "globalEnv": [
+    "GOOGLE_APPLICATION_CREDENTIALS_JSON",
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "NEXT_PUBLIC_HYDRA_API_URL",
+    "SLACK_OAUTH_TOKEN",
+    "SLACK_TEAM_ID",
+    "INTERNAL_SLACK_USER_ID",
+    "RESEND_API_KEY",
+    "DISALLOWED_EMAIL_DOMAINS",
+    "NODE_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -14,6 +25,10 @@
       "dependsOn": ["^check-types"]
     },
     "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
       "cache": false,
       "persistent": true
     }

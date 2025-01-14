@@ -1,0 +1,12 @@
+{
+  "extends": "@use-hydra-ai/typescript-config/base",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "noImplicitAny": false,
+    "moduleResolution": "bundler",
+    "module": "Preserve"
+  }
+}

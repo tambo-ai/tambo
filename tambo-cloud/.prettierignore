@@ -1,2 +1,5 @@
 # Ignore the apps/web/.source/ directory
 apps/web/.source/
+apps/web/.next/
+apps/*/dist/
+packages/*/dist/

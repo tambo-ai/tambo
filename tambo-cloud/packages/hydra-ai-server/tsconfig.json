@@ -1,0 +1,20 @@
+{
+  "extends": "@use-hydra-ai/typescript-config/base",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "declaration": true,
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "module": "Preserve",
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "./dist",
+    "./docs"
+  ]
+}
