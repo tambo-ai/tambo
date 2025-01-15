@@ -5,8 +5,8 @@
     "declaration": true,
     "outDir": "./dist",
     "esModuleInterop": true,
-    "moduleResolution": "bundler",
-    "module": "Preserve",
+    "moduleResolution": "node",
+    "module": "CommonJS",
   },
   "include": [
     "src/**/*.ts",

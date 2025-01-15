@@ -2,13 +2,10 @@
   "name": "@use-hydra-ai/hydra-ai-server",
   "version": "0.0.4",
   "description": "Server package for running hydra-ai",
-  "type": "module",
+  "main": "./dist/index.js",
   "files": [
     "dist"
   ],
-  "exports": {
-    ".": "./src/index.ts"
-  },
   "scripts": {
     "build": "tsc",
     "test": "jest",

@@ -22,12 +22,12 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",
-    "@use-hydra-ai/hydra-ai-server": "^0.0.4",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.4.2",
+    "@use-hydra-ai/hydra-ai-server": "^0.0.4",
     "class-validator": "^0.14.1",
     "firebase-admin": "^12.5.0",
     "nest-supabase-guard": "^1.0.2",

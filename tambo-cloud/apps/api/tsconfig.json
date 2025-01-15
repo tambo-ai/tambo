@@ -6,7 +6,13 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "noImplicitAny": false,
-    "moduleResolution": "bundler",
-    "module": "Preserve"
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "paths": {
+      "@use-hydra-ai/hydra-ai-server": [
+        "../../packages/hydra-ai-server"
+      ]
+    }
   }
 }
