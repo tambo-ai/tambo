@@ -10,6 +10,9 @@ jobs:
   checks:
     name: Basic code checks
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "dummy-anon-key"
+      NEXT_PUBLIC_SUPABASE_URL: "https://dummy-project.supabase.co"
 
     steps:
       - name: Checkout repository

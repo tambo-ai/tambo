@@ -1,9 +1,9 @@
+import { env } from "@/lib/env";
 import axios from "axios";
 import { UserDto } from "../types/user.dto";
 import { getSupabaseClient } from "../utils/supabase";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_HYDRA_API_URL || "https://api.usehydra.ai";
+const API_BASE_URL = env.NEXT_PUBLIC_HYDRA_API_URL || "https://api.usehydra.ai";
 
 const getHeaders = async () => {
   const supabase = getSupabaseClient();

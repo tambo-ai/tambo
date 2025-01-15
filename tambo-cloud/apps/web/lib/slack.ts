@@ -1,3 +1,4 @@
+import { env } from "./env";
 import {
   ConversationInfoResponse,
   CreateChannelResponse,
@@ -15,7 +16,7 @@ export async function callSlackAPI<T>(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.SLACK_OAUTH_TOKEN}`,
+      Authorization: `Bearer ${env.SLACK_OAUTH_TOKEN}`,
     },
     body: JSON.stringify(body),
   });
@@ -45,8 +46,8 @@ export async function createSlackChannel(
     throw new Error("Invalid email format");
   }
   // Validate email domain if needed
-  if (process.env.DISALLOWED_EMAIL_DOMAINS) {
-    const disallowedDomains = process.env.DISALLOWED_EMAIL_DOMAINS.split(",");
+  if (env.DISALLOWED_EMAIL_DOMAINS) {
+    const disallowedDomains = env.DISALLOWED_EMAIL_DOMAINS.split(",");
     const emailDomain = email.split("@")[1];
 
     if (disallowedDomains.includes(emailDomain)) {
@@ -133,7 +134,7 @@ async function inviteUserToChannel(
 }
 
 async function inviteInternalUser(channelId: string): Promise<void> {
-  const internalUserId = process.env.INTERNAL_SLACK_USER_ID;
+  const internalUserId = env.INTERNAL_SLACK_USER_ID;
   if (!internalUserId) {
     throw new Error("INTERNAL_SLACK_USER_ID environment variable is not set");
   }

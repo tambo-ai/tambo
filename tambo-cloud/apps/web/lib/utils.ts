@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/config";
+import { env } from "@/lib/env";
 import { type ClassValue, clsx } from "clsx";
 import { Metadata } from "next";
 import { twMerge } from "tailwind-merge";
@@ -8,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function absoluteUrl(path: string) {
-  return `${process.env.NEXT_PUBLIC_APP_URL || siteConfig.url}${path}`;
+  return `${env.NEXT_PUBLIC_APP_URL || siteConfig.url}${path}`;
 }
 
 export function constructMetadata({

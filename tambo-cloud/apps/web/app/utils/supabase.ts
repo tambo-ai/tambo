@@ -1,19 +1,17 @@
+import { env } from "@/lib/env";
 import { createClient } from "@supabase/supabase-js";
 
 let supabase: ReturnType<typeof createClient>;
 
 export function getSupabaseClient() {
   if (!supabase) {
-    if (
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ) {
+    if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       throw new Error("Supabase credentials are not provided");
     }
 
     supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     );
   }
   return supabase;

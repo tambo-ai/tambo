@@ -1,14 +1,11 @@
 import { Icons } from "@/components/icons";
+import { env } from "@/lib/env";
 import {
   BrainIcon,
   CodeIcon,
-  CrownIcon,
-  GlobeIcon,
   PaletteIcon,
-  PlugIcon,
   PuzzleIcon,
   SparklesIcon,
-  UsersIcon,
   ZapIcon,
 } from "lucide-react";
 
@@ -18,7 +15,7 @@ export const siteConfig = {
   name: "Hydra AI",
   description: "Build Adaptive UIs with AI",
   cta: "Get Started",
-  url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  url: env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   keywords: [
     "AI UI Generation",
     "React Components",
