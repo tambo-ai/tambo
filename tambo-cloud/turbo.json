@@ -10,7 +10,8 @@
     "INTERNAL_SLACK_USER_ID",
     "RESEND_API_KEY",
     "DISALLOWED_EMAIL_DOMAINS",
-    "NODE_ENV"
+    "NODE_ENV",
+    "PORT"
   ],
   "tasks": {
     "build": {

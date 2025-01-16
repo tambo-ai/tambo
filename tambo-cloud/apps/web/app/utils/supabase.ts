@@ -1,7 +1,8 @@
 import { env } from "@/lib/env";
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import { type SupabaseClient } from "@supabase/supabase-js";
 
-let supabase: ReturnType<typeof createClient>;
+let supabase: SupabaseClient;
 
 export function getSupabaseClient() {
   if (!supabase) {
@@ -9,7 +10,7 @@ export function getSupabaseClient() {
       throw new Error("Supabase credentials are not provided");
     }
 
-    supabase = createClient(
+    supabase = createBrowserClient(
       env.NEXT_PUBLIC_SUPABASE_URL,
       env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     );
