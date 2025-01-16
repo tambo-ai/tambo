@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1737053823079,
+      "tag": "0000_init_setup",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1737057387666,
+      "tag": "0001_clean_alex_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737058792220,
+      "tag": "0002_gray_iron_lad",
+      "breakpoints": true
+    }
+  ]
+}

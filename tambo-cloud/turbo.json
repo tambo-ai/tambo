@@ -11,7 +11,8 @@
     "RESEND_API_KEY",
     "DISALLOWED_EMAIL_DOMAINS",
     "NODE_ENV",
-    "PORT"
+    "PORT",
+    "DATABASE_URL"
   ],
   "tasks": {
     "build": {

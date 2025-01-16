@@ -1,0 +1,25 @@
+{
+  "name": "@use-hydra-ai/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@use-hydra-ai/eslint-config": "*",
+    "@use-hydra-ai/typescript-config": "*",
+    "drizzle-kit": "^0.30.2"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38.4",
+    "postgres": "^3.4.5"
+  }
+}

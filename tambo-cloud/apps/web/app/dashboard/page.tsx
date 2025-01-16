@@ -5,7 +5,7 @@ import { Header } from "@/components/sections/header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CreateProjectDialog } from "../../components/dashboard-components/create-project-dialog";
 import { ProjectCard } from "../../components/dashboard-components/project-card";
 import {
@@ -23,11 +23,22 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const loadProjects = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const projectsData = await getUserProjects();
+      setProjects(projectsData);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load projects",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+  const checkAuth = useCallback(async () => {
     console.log("Checking auth status");
     try {
       const supabase = getSupabaseClient();
@@ -45,23 +56,11 @@ export default function DashboardPage() {
       setIsAuthenticated(false);
       setIsLoading(false);
     }
-  };
+  }, [loadProjects]);
 
-  const loadProjects = async () => {
-    try {
-      setIsLoading(true);
-      const projectsData = await getUserProjects();
-      setProjects(projectsData);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load projects",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleCreateProject = async (
     projectName: string,

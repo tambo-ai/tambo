@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ALTER COLUMN "id" SET DEFAULT generate_custom_id('p_');

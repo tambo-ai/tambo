@@ -1,0 +1,11 @@
+{
+    "extends": "@use-hydra-ai/typescript-config/base.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "module": "ESNext",
+        "moduleResolution": "Bundler"
+    },
+    "include": [
+        "src"
+    ]
+}

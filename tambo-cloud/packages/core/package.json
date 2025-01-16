@@ -1,0 +1,20 @@
+{
+  "name": "@use-hydra-ai/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@use-hydra-ai/eslint-config": "*",
+    "@use-hydra-ai/typescript-config": "*"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  }
+}

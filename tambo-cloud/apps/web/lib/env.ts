@@ -17,6 +17,7 @@ export const env = createEnv({
     INTERNAL_SLACK_USER_ID: z.string().min(1).optional(),
     SLACK_OAUTH_TOKEN: z.string().min(1).optional(),
     PORT: z.string().min(1).optional(),
+    DATABASE_URL: z.string().min(1),
   },
   /*
    * Environment variables available on the client (and server).
@@ -45,5 +46,6 @@ export const env = createEnv({
     NEXT_PUBLIC_HYDRA_API_URL: process.env.NEXT_PUBLIC_HYDRA_API_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    DATABASE_URL: process.env.DATABASE_URL,
   },
 });
