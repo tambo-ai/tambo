@@ -12,7 +12,9 @@
     "DISALLOWED_EMAIL_DOMAINS",
     "NODE_ENV",
     "PORT",
-    "DATABASE_URL"
+    "DATABASE_URL",
+    "API_KEY_SECRET",
+    "PROVIDER_KEY_SECRET"
   ],
   "tasks": {
     "build": {

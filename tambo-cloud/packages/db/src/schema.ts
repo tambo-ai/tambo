@@ -76,25 +76,22 @@ export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
   }),
 }));
 
-export const providerKeys = pgTable(
-  "provider_keys",
-  ({ text, timestamp, uuid }) => ({
-    id: text("id")
-      .primaryKey()
-      .notNull()
-      .unique()
-      .default(sql`generate_custom_id('pvk_')`),
-    projectId: text("project_id")
-      .references(() => projects.id)
-      .notNull(),
-    providerName: text("provider_name").notNull(),
-    providerKeyEncrypted: text("provider_key_encrypted").notNull(),
-    partiallyHiddenKey: text("partially_hidden_key").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    lastUsedAt: timestamp("last_used_at"),
-  }),
-);
+export const providerKeys = pgTable("provider_keys", ({ text, timestamp }) => ({
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .unique()
+    .default(sql`generate_custom_id('pvk_')`),
+  projectId: text("project_id")
+    .references(() => projects.id)
+    .notNull(),
+  providerName: text("provider_name").notNull(),
+  providerKeyEncrypted: text("provider_key_encrypted").notNull(),
+  partiallyHiddenKey: text("partially_hidden_key").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+}));
 
 export const providerKeyRelations = relations(providerKeys, ({ one }) => ({
   project: one(projects, {

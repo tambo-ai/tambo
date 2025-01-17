@@ -18,6 +18,8 @@ export const env = createEnv({
     SLACK_OAUTH_TOKEN: z.string().min(1).optional(),
     PORT: z.string().min(1).optional(),
     DATABASE_URL: z.string().min(1),
+    API_KEY_SECRET: z.string().min(1),
+    PROVIDER_KEY_SECRET: z.string().min(1),
   },
   /*
    * Environment variables available on the client (and server).
@@ -47,5 +49,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     DATABASE_URL: process.env.DATABASE_URL,
+    API_KEY_SECRET: process.env.API_KEY_SECRET,
+    PROVIDER_KEY_SECRET: process.env.PROVIDER_KEY_SECRET,
   },
 });
