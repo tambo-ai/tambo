@@ -195,7 +195,7 @@ export class FirebaseRepository<
   convertFirestoreTimestampsToDates(entity: Record<string, any>): void {
     for (const key in entity) {
       if (
-        entity.hasOwnProperty(key) &&
+        Object.prototype.hasOwnProperty.call(entity, key) &&
         entity[key] instanceof admin.firestore.Timestamp
       ) {
         entity[key] = new Date(entity[key].seconds * 1000);

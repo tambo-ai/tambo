@@ -13,8 +13,8 @@ export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata | undefined> {
   const params = await props.params;
-  let post = await getPost(params.slug);
-  let {
+  const post = await getPost(params.slug);
+  const {
     title,
     publishedAt: publishedTime,
     summary: description,
