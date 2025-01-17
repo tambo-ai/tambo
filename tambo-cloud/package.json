@@ -8,7 +8,8 @@
     "lint:fix": "turbo lint -- --fix",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prettier-check": "prettier --check \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo check-types"
+    "check-types": "turbo check-types",
+    "hydra-api:start": "turbo run start --filter=hydra-api"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
@@ -16,7 +17,8 @@
     "typescript": "^5.7.3"
   },
   "engines": {
-    "node": "20.x"
+    "node": "20.x",
+    "npm": "10.x"
   },
   "packageManager": "npm@10.9.2",
   "workspaces": [
