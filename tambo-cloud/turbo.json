@@ -35,6 +35,9 @@
     "clean": {
       "cache": false,
       "persistent": true
+    },
+    "start": {
+      "dependsOn": ["^build"]
     }
   }
 }
