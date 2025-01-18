@@ -53,7 +53,7 @@ export const apiKeys = pgTable("api_keys", ({ text, timestamp, uuid }) => ({
     .default(sql`generate_custom_id('hk_')`),
   name: text("name").notNull(),
   hashedKey: text("hashed_key").notNull(),
-  partiallyHiddenKey: text("partially_hidden_key").notNull(),
+  partiallyHiddenKey: text("partially_hidden_key"),
   projectId: text("project_id")
     .references(() => projects.id)
     .notNull(),
@@ -87,7 +87,7 @@ export const providerKeys = pgTable("provider_keys", ({ text, timestamp }) => ({
     .notNull(),
   providerName: text("provider_name").notNull(),
   providerKeyEncrypted: text("provider_key_encrypted").notNull(),
-  partiallyHiddenKey: text("partially_hidden_key").notNull(),
+  partiallyHiddenKey: text("partially_hidden_key"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastUsedAt: timestamp("last_used_at"),

@@ -10,6 +10,7 @@ const getHeaders = async () => {
   const {
     data: { session },
   } = await supabase.auth.getSession();
+  console.log("have session", session);
   return {
     Authorization: `Bearer ${session?.access_token}`,
     "Content-Type": "application/json",
@@ -32,12 +33,12 @@ export const getUserProjects = async () => {
   return response.data;
 };
 
-export const getProject = async (id: string) => {
-  const response = await axios.get(`${API_BASE_URL}/projects/${id}`, {
-    headers: await getHeaders(),
-  });
-  return response.data;
-};
+// export const getProject = async (id: string) => {
+//   const response = await axios.get(`${API_BASE_URL}/projects/${id}`, {
+//     headers: await getHeaders(),
+//   });
+//   return response.data;
+// };
 
 export const removeProject = async (id: string) => {
   const response = await axios.delete(`${API_BASE_URL}/projects/${id}`, {
@@ -84,16 +85,16 @@ export const addProviderKey = async (
   return response.data;
 };
 
-export const removeProviderKey = async (
-  projectId: string,
-  providerKeyId: string,
-) => {
-  const response = await axios.delete(
-    `${API_BASE_URL}/projects/${projectId}/provider-key/${providerKeyId}`,
-    { headers: await getHeaders() },
-  );
-  return response.data;
-};
+// export const removeProviderKey = async (
+//   projectId: string,
+//   providerKeyId: string,
+// ) => {
+//   const response = await axios.delete(
+//     `${API_BASE_URL}/projects/${projectId}/provider-key/${providerKeyId}`,
+//     { headers: await getHeaders() },
+//   );
+//   return response.data;
+// };
 
 export const getProviderKeys = async (projectId: string) => {
   const response = await axios.get(

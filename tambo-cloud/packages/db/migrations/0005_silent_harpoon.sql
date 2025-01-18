@@ -1,0 +1,1 @@
+ALTER TABLE "provider_keys" ALTER COLUMN "partially_hidden_key" DROP NOT NULL;
