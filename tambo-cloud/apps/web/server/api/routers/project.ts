@@ -1,12 +1,13 @@
 import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { encryptApiKey, encryptProviderKey, hashKey } from "@use-hydra-ai/core";
-import { HydraDatabase, schema } from "@use-hydra-ai/db";
+import { HydraDatabase, HydraTransaction, schema } from "@use-hydra-ai/db";
 import { randomBytes } from "crypto";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const projectRouter = createTRPCRouter({
-  getProjects: protectedProcedure.query(async ({ ctx }) => {
+  getUserProjects: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const db = ctx.db;
 
@@ -30,39 +31,63 @@ export const projectRouter = createTRPCRouter({
       },
     });
 
-    return projects;
+    return projects.map((project) => ({
+      id: project.id,
+      name: project.name,
+      userId: userId,
+    }));
   }),
 
   createProject: protectedProcedure
-    .input(
-      z.object({
-        name: z.string(),
-      }),
-    )
+    .input(z.string())
     .mutation(async ({ ctx, input }) => {
       const db = ctx.db;
+      const userId = ctx.session.user.id;
 
       const project = await db.transaction(async (tx) => {
         const [project] = await tx
           .insert(schema.projects)
           .values({
-            name: input.name,
+            name: input,
           })
           .returning();
+
         await tx.insert(schema.projectMembers).values({
           projectId: project.id,
-          userId: ctx.session.user.id,
+          userId,
           role: "admin",
         });
 
         // TODO: auto-generate first API key
 
-        return tx.query.projects.findFirst({
-          where: (projects, { eq }) => eq(projects.id, project.id),
-        });
+        return project;
       });
 
-      return project;
+      return {
+        id: project.id,
+        name: project.name,
+        userId: userId,
+      };
+    }),
+
+  removeProject: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input: projectId }) => {
+      const db = ctx.db;
+      await ensureProjectAccess(db, projectId, ctx.session.user.id);
+      await db
+        .delete(schema.providerKeys)
+        .where(eq(schema.providerKeys.projectId, projectId));
+      await db
+        .delete(schema.apiKeys)
+        .where(eq(schema.apiKeys.projectId, projectId));
+      await db
+        .delete(schema.projectMembers)
+        .where(eq(schema.projectMembers.projectId, projectId));
+      await db
+        .delete(schema.projectMembers)
+        .where(eq(schema.projectMembers.projectId, projectId));
+      await db.delete(schema.projects).where(eq(schema.projects.id, projectId));
     }),
 
   addProviderKey: protectedProcedure
@@ -70,20 +95,20 @@ export const projectRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         provider: z.string(),
-        apiKey: z.string(),
+        providerKey: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { projectId, provider, apiKey } = input;
+      const { projectId, provider, providerKey: apiKey } = input;
       const db = ctx.db;
+      // make sure the user has access to the project by checking the project members table
+      await ensureProjectAccess(db, projectId, ctx.session.user.id);
+
       const encryptedKey = encryptProviderKey(
         provider,
         apiKey,
         env.PROVIDER_KEY_SECRET,
       );
-
-      // make sure the user has access to the project by checking the project members table
-      await ensureProjectAccess(db, projectId, ctx.session.user.id);
 
       const providerKey = await db
         .insert(schema.providerKeys)
@@ -98,7 +123,17 @@ export const projectRouter = createTRPCRouter({
       return providerKey;
     }),
 
-  addApiKey: protectedProcedure
+  getProviderKeys: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: projectId }) => {
+      const db = ctx.db;
+      await ensureProjectAccess(db, projectId, ctx.session.user.id);
+      return db.query.providerKeys.findMany({
+        where: eq(schema.providerKeys.projectId, projectId),
+      });
+    }),
+
+  generateApiKey: protectedProcedure
     .input(
       z.object({
         projectId: z.string(),
@@ -108,13 +143,12 @@ export const projectRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { projectId, name } = input;
       const db = ctx.db;
+      await ensureProjectAccess(db, projectId, ctx.session.user.id);
 
       // generate a fresh api key and return that, but store just the encrypted key in the db
       const apiKey = randomBytes(16).toString("hex");
       const encryptedKey = encryptApiKey(projectId, apiKey, env.API_KEY_SECRET);
       const hashedKey = hashKey(encryptedKey);
-
-      await ensureProjectAccess(db, projectId, ctx.session.user.id);
 
       const [row] = await db
         .insert(schema.apiKeys)
@@ -133,10 +167,40 @@ export const projectRouter = createTRPCRouter({
         apiKey,
       };
     }),
+
+  getApiKeys: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: projectId }) => {
+      const db = ctx.db;
+      await ensureProjectAccess(db, projectId, ctx.session.user.id);
+      return db.query.apiKeys.findMany({
+        where: eq(schema.apiKeys.projectId, projectId),
+      });
+    }),
+
+  removeApiKey: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        apiKeyId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = ctx.db;
+      await ensureProjectAccess(db, input.projectId, ctx.session.user.id);
+      await db
+        .delete(schema.apiKeys)
+        .where(
+          and(
+            eq(schema.apiKeys.id, input.apiKeyId),
+            eq(schema.apiKeys.projectId, input.projectId),
+          ),
+        );
+    }),
 });
 
 async function ensureProjectAccess(
-  db: HydraDatabase,
+  db: HydraDatabase | HydraTransaction,
   projectId: string,
   userId: string,
 ) {

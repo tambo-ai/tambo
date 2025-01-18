@@ -13,11 +13,11 @@ import { ZodError } from "zod";
 
 import { env } from "@/lib/env";
 import { Session, SupabaseClient } from "@supabase/supabase-js";
-import { getDb, HydraDatabase } from "@use-hydra-ai/db";
+import { getDb, HydraDatabase, HydraTransaction } from "@use-hydra-ai/db";
 import { getServerSupabaseclient } from "../supabase";
 
 export type Context = {
-  db: HydraDatabase;
+  db: HydraDatabase | HydraTransaction;
   session: Session | null;
   supabase: SupabaseClient;
   headers: Headers;
@@ -117,6 +117,12 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   return result;
 });
 
+const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
+  return ctx.db.transaction(async (tx) => {
+    return next({ ctx: { ...ctx, db: tx } });
+  });
+});
+
 /**
  * Public (unauthenticated) procedure
  *
@@ -124,7 +130,9 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(transactionMiddleware);
 
 /**
  * Protected (authenticated) procedure
@@ -136,6 +144,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
+  .use(transactionMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
