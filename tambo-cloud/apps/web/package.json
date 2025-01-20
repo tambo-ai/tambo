@@ -81,7 +81,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.13",
     "@types/luxon": "^3.4.2",
-    "@types/node": "20.17.6",
+    "@types/node": "20.17.14",
     "@types/react": "18.3.12",
     "@types/react-dom": "^18",
     "@types/react-syntax-highlighter": "^15.5.13",
