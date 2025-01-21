@@ -1,6 +1,11 @@
 import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { encryptApiKey, encryptProviderKey, hashKey } from "@use-hydra-ai/core";
+import {
+  encryptApiKey,
+  encryptProviderKey,
+  hashKey,
+  hideApiKey,
+} from "@use-hydra-ai/core";
 import { HydraDatabase, HydraTransaction, schema } from "@use-hydra-ai/db";
 import { randomBytes } from "crypto";
 import { and, eq } from "drizzle-orm";
@@ -164,7 +169,7 @@ export const projectRouter = createTRPCRouter({
       return {
         ...row,
         // return the full api key to the client one time
-        apiKey,
+        apiKey: encryptedKey,
       };
     }),
 
@@ -215,10 +220,4 @@ async function ensureProjectAccess(
   if (!projectMembers) {
     throw new Error("You are not a member of this project");
   }
-}
-
-// todo: move to core?
-function hideApiKey(apiKey: string, visibleCharacters = 4): string {
-  const hiddenPart = apiKey.substring(visibleCharacters).replace(/./g, "*");
-  return apiKey.substring(0, visibleCharacters) + hiddenPart;
 }

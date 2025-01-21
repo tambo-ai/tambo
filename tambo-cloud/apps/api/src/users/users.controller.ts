@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { SupabaseAuthGuard } from 'nest-supabase-guard/dist/supabase-auth.guard';
-import { UserDto } from './dto/user.dto';
 import { UserAccessOwnGuard } from './guards/user-access-own.guard';
 import { UsersService } from './users.service';
 
@@ -10,11 +9,6 @@ import { UsersService } from './users.service';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  create(@Body() createUserDto: UserDto) {
-    return this.usersService.create(createUserDto);
-  }
 
   @UseGuards(UserAccessOwnGuard)
   @Get(':id')

@@ -4,7 +4,14 @@ import {
   createHash,
   randomBytes,
 } from 'crypto';
-import { ConfigServiceSingleton } from 'src/config.service';
+import { ConfigServiceSingleton } from '../config.service';
+
+function splitFromEnd(str, delimiter) {
+  const parts = str.split(delimiter);
+  const lastPart = parts.pop();
+
+  return [parts.join(delimiter), lastPart];
+}
 
 const algorithm = 'aes-256-cbc';
 const IV_LENGTH = 16; // 16 bytes for AES
@@ -40,7 +47,7 @@ export function decryptApiKey(encryptedData: string): {
   }
   const secretKey = getHashedKey(apiKeySecret);
 
-  const [ivHex, encrypted] = encryptedData.split('.');
+  const [ivHex, encrypted] = splitFromEnd(encryptedData, '.');
 
   if (!ivHex || !encrypted) {
     console.error('Invalid encrypted data format in apikey');
@@ -59,7 +66,7 @@ export function decryptApiKey(encryptedData: string): {
     throw new Error('Failed to decrypt API key');
   }
 
-  const [storedString, apiKey] = decrypted.split('.');
+  const [storedString, apiKey] = splitFromEnd(decrypted, '.');
   return { storedString, apiKey };
 }
 
@@ -99,7 +106,7 @@ export function decryptProviderKey(encryptedData: string): {
   }
   const secretKey = getHashedKey(providerKeySecret);
 
-  const [ivHex, encrypted] = encryptedData.split('.');
+  const [ivHex, encrypted] = splitFromEnd(encryptedData, '.');
 
   if (!ivHex || !encrypted) {
     throw new Error('Invalid encrypted data format');
@@ -117,6 +124,6 @@ export function decryptProviderKey(encryptedData: string): {
     throw new Error('Failed to decrypt provider key');
   }
 
-  const [providerName, providerKey] = decrypted.split('.');
+  const [providerName, providerKey] = splitFromEnd(decrypted, '.');
   return { providerName, providerKey };
 }

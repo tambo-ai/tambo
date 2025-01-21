@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { CorrelationLoggerService } from 'src/common/services/logger.service';
-import { AuthUser } from 'src/users/entities/authuser.entity';
-import { UsersService } from 'src/users/users.service';
+import { CorrelationLoggerService } from '../../common/services/logger.service';
+import { AuthUser } from '../../users/entities/authuser.entity';
+import { UsersService } from '../../users/users.service';
 
 @Injectable()
 export class ValidUserGuard implements CanActivate {

@@ -88,12 +88,18 @@ export class ProjectsController {
   addProviderKey(
     @Param('id') id: string,
     @Body() addProviderKeyDto: AddProviderKeyDto,
+    @Req() request,
   ) {
     const { providerName, providerKey } = addProviderKeyDto;
     if (!providerName || !providerKey) {
       throw new BadRequestException('Provider name and key are required');
     }
-    return this.projectsService.addProviderKey(id, providerName, providerKey);
+    return this.projectsService.addProviderKey(
+      id,
+      providerName,
+      providerKey,
+      request.userId,
+    );
   }
 
   @UseGuards(ProjectAccessOwnGuard)

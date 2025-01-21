@@ -4,38 +4,45 @@ import {
   LoggerService,
   NotFoundException,
 } from '@nestjs/common';
-import * as repositoryInterface from 'src/common/repository.interface';
-import { UserDto } from './dto/user.dto';
+import { HydraDatabase, schema } from '@use-hydra-ai/db';
+import { eq } from 'drizzle-orm';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   private readonly logger: LoggerService | undefined;
   constructor(
-    @Inject('UsersRepository')
-    private readonly repository: repositoryInterface.RepositoryInterface<
-      User,
-      UserDto
-    >,
+    @Inject('DbRepository')
+    private readonly db: HydraDatabase,
   ) {}
 
-  async create(createUserDto: UserDto): Promise<User> {
-    const user = await this.repository.create(createUserDto);
-    return user;
-  }
-
   async findOne(id: string): Promise<User> {
-    const user = await this.repository.get(id);
+    const user = await this.db.query.authUsers.findFirst({
+      where: eq(schema.authUsers.id, id),
+    });
     if (!user) {
       throw new NotFoundException();
     }
-    return user;
+    return {
+      id: user.id,
+      authId: user.id,
+      email: user.email ?? undefined,
+    };
   }
 
   async findOneByAuthId(id: string): Promise<User | null> {
     try {
-      const user = await this.repository.getByField('authId', id);
-      return user;
+      const user = await this.db.query.authUsers.findFirst({
+        where: eq(schema.authUsers.id, id),
+      });
+      if (!user) {
+        throw new NotFoundException();
+      }
+      return {
+        authId: user.id,
+        id: user.id,
+        email: user.email ?? undefined,
+      };
     } catch (e) {
       this.logger?.error(e);
       throw new NotFoundException();

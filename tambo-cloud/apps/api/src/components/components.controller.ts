@@ -1,9 +1,9 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
 import { ComponentDecision, HydraBackend } from '@use-hydra-ai/hydra-ai-server';
-import { decryptProviderKey } from 'src/common/key.utils';
-import { CorrelationLoggerService } from 'src/common/services/logger.service';
-import { ProjectsService } from 'src/projects/projects.service';
+import { decryptProviderKey } from '../common/key.utils';
+import { CorrelationLoggerService } from '../common/services/logger.service';
+import { ProjectsService } from '../projects/projects.service';
 import { GenerateComponentDto } from './dto/generate-component.dto';
 import { HydrateComponentDto } from './dto/hydrate-component.dto';
 import { ApiKeyGuard } from './guards/apikey.guard';

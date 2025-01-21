@@ -1,7 +1,7 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common';
-import * as aiServiceInterface from 'src/ai/interfaces/ai.service.interface';
-import { ExtractComponentResponseDto } from 'src/extractor/dto/extract-component-response.dto';
-import { ExtractComponentDto } from 'src/extractor/dto/extract-component.dto';
+import * as aiServiceInterface from '../ai/interfaces/ai.service.interface';
+import { ExtractComponentResponseDto } from './dto/extract-component-response.dto';
+import { ExtractComponentDto } from './dto/extract-component.dto';
 
 @Controller('extract')
 export class ExtractorController {

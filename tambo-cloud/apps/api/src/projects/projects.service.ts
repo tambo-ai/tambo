@@ -1,65 +1,151 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { hideApiKey } from '@use-hydra-ai/core';
+import { HydraTransaction, schema } from '@use-hydra-ai/db';
 import { createHash, randomBytes } from 'crypto';
+import { and, eq } from 'drizzle-orm';
 import {
   encryptApiKey,
   encryptProviderKey,
   hashKey,
-} from 'src/common/key.utils';
-import * as repositoryInterface from 'src/common/repository.interface';
+} from '../common/key.utils';
 import { APIKeyResponseDto } from './dto/api-key-response.dto';
 import { ProjectResponseDto } from './dto/project-response.dto';
 import { ProjectDto } from './dto/project.dto';
 import { ProviderKeyResponseDto } from './dto/provider-key-response.dto';
+import { APIKey } from './entities/api-key.entity';
 import { Project } from './entities/project.entity';
+import { ProviderKey } from './entities/provider-key.entity';
 
 @Injectable()
 export class ProjectsService {
   constructor(
-    @Inject('ProjectsRepository')
-    private readonly repository: repositoryInterface.RepositoryInterface<
-      Project,
-      ProjectDto
-    >,
+    @Inject('DbRepository')
+    private readonly db: HydraTransaction,
   ) {}
 
   async create(createProjectDto: ProjectDto): Promise<ProjectResponseDto> {
-    const projectWithKeys = { ...createProjectDto, apiKeys: [] };
-    return this.repository.create(projectWithKeys);
-  }
-
-  async findAll(): Promise<ProjectResponseDto[]> {
-    return this.repository.getAll();
+    if (!createProjectDto.userId) {
+      throw new Error('User ID is required');
+    }
+    const [project] = await this.db
+      .insert(schema.projects)
+      .values({
+        name: createProjectDto.name ?? 'New Project',
+      })
+      .returning();
+    await this.db.insert(schema.projectMembers).values({
+      projectId: project.id,
+      userId: createProjectDto.userId,
+      role: 'admin',
+    });
+    return {
+      id: project.id,
+      name: project.name,
+      userId: createProjectDto.userId,
+    };
   }
 
   async findAllForUser(userId: string): Promise<ProjectResponseDto[]> {
-    return this.repository.getAllByField('userId', userId);
+    const projects = await this.db.query.projects.findMany({
+      where: (projects, { eq, inArray }) =>
+        inArray(
+          projects.id,
+          this.db
+            .select({ id: schema.projectMembers.projectId })
+            .from(schema.projectMembers)
+            .where(eq(schema.projectMembers.userId, userId)),
+        ),
+    });
+    return projects.map((project) => ({
+      id: project.id,
+      name: project.name,
+      userId,
+    }));
   }
 
   async findOne(id: string): Promise<ProjectResponseDto | null> {
-    return this.repository.get(id);
+    const project = await this.db.query.projects.findFirst({
+      where: (projects, { eq }) => eq(schema.projects.id, id),
+      with: {
+        members: true,
+      },
+    });
+    if (!project) {
+      return null;
+    }
+    return {
+      id: project.id,
+      name: project.name,
+      userId: project.members[0].userId,
+    };
   }
 
   async findOneWithKeys(id: string): Promise<Project | null> {
-    return this.repository.get(id);
+    const project = await this.db.query.projects.findFirst({
+      where: (projects, { eq }) => eq(projects.id, id),
+      with: {
+        members: true,
+        apiKeys: true,
+        providerKeys: true,
+      },
+    });
+    if (!project) {
+      return null;
+    }
+    const projectEntity = new Project();
+    projectEntity.id = project.id;
+    projectEntity.name = project.name;
+    projectEntity.userId = project.members[0].userId;
+    projectEntity.apiKeys = project.apiKeys.map(
+      (apiKey): APIKey => ({
+        id: apiKey.id,
+        name: apiKey.name,
+        hashedKey: apiKey.hashedKey,
+        partiallyHiddenKey: apiKey.partiallyHiddenKey ?? undefined,
+        lastUsed: apiKey.lastUsedAt ?? undefined,
+        created: apiKey.createdAt,
+        createdByUserId: apiKey.createdByUserId,
+      }),
+    );
+    projectEntity.providerKeys = project.providerKeys.map(
+      (providerKey): ProviderKey => ({
+        id: providerKey.id,
+        providerName: providerKey.providerName,
+        providerKeyEncrypted: providerKey.providerKeyEncrypted,
+        partiallyHiddenKey: providerKey.partiallyHiddenKey ?? undefined,
+      }),
+    );
+    return projectEntity;
   }
 
   async update(
     id: string,
     updateProjectDto: ProjectDto,
   ): Promise<ProjectResponseDto | null> {
-    const project = await this.repository.get(id);
-    if (!project) {
-      throw new Error('Project not found');
+    const updatedProjects = await this.db
+      .update(schema.projects)
+      .set({
+        name: updateProjectDto.name,
+      })
+      .where(eq(schema.projects.id, id))
+      .returning();
+
+    if (!updatedProjects.length) {
+      return null;
     }
-    const updatedProject = {
-      ...updateProjectDto,
-      apiKeys: project.getApiKeys(),
+    return {
+      id: updatedProjects[0].id,
+      name: updatedProjects[0].name,
+      userId: updateProjectDto.userId,
     };
-    return this.repository.update(id, updatedProject);
   }
 
   async remove(id: string): Promise<boolean> {
-    return this.repository.delete(id);
+    const row = await this.db
+      .delete(schema.projects)
+      .where(eq(schema.projects.id, id))
+      .returning();
+    return row.length > 0;
   }
 
   async generateApiKey(
@@ -70,20 +156,26 @@ export class ProjectsService {
     const apiKey = randomBytes(16).toString('hex');
     const encryptedKey = encryptApiKey(projectId, apiKey);
     const hashedKey = hashKey(encryptedKey);
+    const project = await this.findOneWithKeys(projectId);
 
-    const project = await this.repository.get(projectId);
     if (!project) {
       throw new Error('Project not found');
     }
 
     project.addApiKey(name, encryptedKey, hashedKey, userId);
-    await this.repository.update(projectId, project);
+    await this.db.insert(schema.apiKeys).values({
+      projectId,
+      name,
+      hashedKey,
+      createdByUserId: userId,
+      partiallyHiddenKey: hideApiKey(encryptedKey),
+    });
 
     return encryptedKey;
   }
 
   async findAllApiKeys(projectId: string): Promise<APIKeyResponseDto[]> {
-    const project = await this.repository.get(projectId);
+    const project = await this.findOneWithKeys(projectId);
     if (!project) {
       throw new Error('Project not found');
     }
@@ -115,36 +207,31 @@ export class ProjectsService {
     hashedKey: string,
     lastUsed: Date,
   ) {
-    const project = await this.repository.get(projectId);
-    if (!project) {
-      throw new Error('Project not found');
+    const apiKeys = await this.db
+      .update(schema.apiKeys)
+      .set({
+        lastUsedAt: lastUsed,
+      })
+      .where(
+        and(
+          eq(schema.apiKeys.hashedKey, hashedKey),
+          eq(schema.apiKeys.projectId, projectId),
+        ),
+      )
+      .returning();
+    if (!apiKeys.length) {
+      throw new Error('API Key not found');
     }
-
-    const apiKeys = project.getApiKeys();
-    const index = apiKeys.findIndex((apiKey) => apiKey.hashedKey === hashedKey);
-    if (index === -1) {
-      throw new Error('API key not found');
-    }
-
-    apiKeys[index].lastUsed = lastUsed;
-    await this.repository.update(projectId, project);
   }
 
   async removeApiKey(projectId: string, apiKeyId: string): Promise<boolean> {
-    const project = await this.repository.get(projectId);
-    if (!project) {
-      return false; // Project not found
+    const apiKeys = await this.db
+      .delete(schema.apiKeys)
+      .where(eq(schema.apiKeys.id, apiKeyId))
+      .returning();
+    if (!apiKeys.length) {
+      return false;
     }
-
-    const apiKeys = project.getApiKeys();
-    const index = apiKeys.findIndex((apiKey) => apiKey.id === apiKeyId);
-    if (index === -1) {
-      return false; // API key not found
-    }
-
-    apiKeys.splice(index, 1);
-    await this.repository.update(projectId, project);
-
     return true;
   }
 
@@ -156,50 +243,71 @@ export class ProjectsService {
       .update(providedApiKey)
       .digest('hex');
 
-    const project = await this.repository.get(projectId);
-    if (!project) {
-      return false; // Project not found
+    const apiKeys = await this.db
+      .select()
+      .from(schema.apiKeys)
+      .where(
+        and(
+          eq(schema.apiKeys.hashedKey, hashedProvidedKey),
+          eq(schema.apiKeys.projectId, projectId),
+        ),
+      );
+    if (!apiKeys.length) {
+      return false;
     }
 
-    return project
-      .getApiKeys()
-      .some((apiKey) => apiKey.hashedKey === hashedProvidedKey);
+    return true;
   }
 
   async addProviderKey(
     projectId: string,
     providerName: string,
     providerKey: string,
-  ) {
-    const project = await this.repository.get(projectId);
-    if (!project) {
-      throw new Error('Project not found');
-    }
-
+    userId: string,
+  ): Promise<ProjectResponseDto | null> {
     const providerKeyEncrypted = encryptProviderKey(providerName, providerKey);
-    project.addProviderKey(providerName, providerKeyEncrypted, providerKey);
-    await this.repository.update(projectId, project);
-    return project;
+    await this.db.insert(schema.apiKeys).values({
+      projectId,
+      name: providerName,
+      hashedKey: providerKeyEncrypted,
+      partiallyHiddenKey: hideApiKey(providerKey),
+      createdByUserId: userId,
+    });
+    return this.findOneWithKeys(projectId);
   }
 
   async findAllProviderKeys(
     projectId: string,
   ): Promise<ProviderKeyResponseDto[]> {
-    const project = await this.repository.get(projectId);
+    const project = await this.findOneWithKeys(projectId);
     if (!project) {
       throw new Error('Project not found');
     }
-    const providerKeys = project.getProviderKeys();
-    return providerKeys;
+    const providerKeys = await this.db
+      .select()
+      .from(schema.providerKeys)
+      .where(eq(schema.providerKeys.projectId, projectId));
+    return providerKeys.map((providerKey) => ({
+      id: providerKey.id,
+      providerName: providerKey.providerName,
+      partiallyHiddenKey: providerKey.partiallyHiddenKey ?? undefined,
+      providerKeyEncrypted: providerKey.providerKeyEncrypted,
+    }));
   }
 
   async removeProviderKey(projectId: string, providerKeyId: string) {
-    const project = await this.repository.get(projectId);
+    await this.db
+      .delete(schema.providerKeys)
+      .where(
+        and(
+          eq(schema.providerKeys.id, providerKeyId),
+          eq(schema.providerKeys.projectId, projectId),
+        ),
+      );
+    const project = await this.findOneWithKeys(projectId);
     if (!project) {
       throw new Error('Project not found');
     }
-    project.removeProviderKey(providerKeyId);
-    await this.repository.update(projectId, project);
     return project;
   }
 }

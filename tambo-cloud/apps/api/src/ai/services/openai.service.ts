@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
-import { ExtractComponentResponseDto } from 'src/extractor/dto/extract-component-response.dto';
+import { ExtractComponentResponseDto } from '../../extractor/dto/extract-component-response.dto';
 import { AIServiceInterface } from '../interfaces/ai.service.interface';
 
 @Injectable()

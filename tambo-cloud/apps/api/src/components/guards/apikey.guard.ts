@@ -5,9 +5,9 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { decryptApiKey, hashKey } from 'src/common/key.utils';
-import { CorrelationLoggerService } from 'src/common/services/logger.service';
-import { ProjectsService } from 'src/projects/projects.service';
+import { decryptApiKey, hashKey } from '../../common/key.utils';
+import { CorrelationLoggerService } from '../../common/services/logger.service';
+import { ProjectsService } from '../../projects/projects.service';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
