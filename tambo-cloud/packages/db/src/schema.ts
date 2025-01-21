@@ -9,6 +9,7 @@ export const projects = pgTable("projects", ({ text, timestamp }) => ({
     .notNull()
     .unique()
     .default(sql`generate_custom_id('p_')`),
+  legacyId: text("legacy_id").unique(),
   name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

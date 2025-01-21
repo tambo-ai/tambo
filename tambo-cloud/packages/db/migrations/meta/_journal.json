@@ -43,6 +43,13 @@
       "when": 1737156291683,
       "tag": "0005_silent_harpoon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1737503291151,
+      "tag": "0006_worthless_ultimates",
+      "breakpoints": true
     }
   ]
 }

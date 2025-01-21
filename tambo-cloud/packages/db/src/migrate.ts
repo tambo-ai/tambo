@@ -131,6 +131,18 @@ async function run() {
           );
         if (existingProject) {
           console.log("project already exists ", existingProject.id);
+          console.log(
+            "    updating legacy id to ",
+            existingProject.id,
+            "to",
+            project.id,
+          );
+          await tx
+            .update(schema.projects)
+            .set({
+              legacyId: project.id,
+            })
+            .where(eq(schema.projects.id, existingProject.id));
           continue;
         }
         console.log(
