@@ -1,0 +1,30 @@
+# Run lint-staged
+npx lint-staged
+
+# Run type checking and build in web app if files changed in web app
+if git diff --cached --name-only | grep -q "^apps/web/"; then
+  echo "🔍 Running type check and build for web app..."
+  
+  # Clear Next.js cache if package.json or next.config.mjs changed
+  if git diff --cached --name-only | grep -q "apps/web/\(package.json\|next.config.mjs\)"; then
+    echo "📦 Detected changes in package.json or next.config.mjs, clearing Next.js cache..."
+    cd apps/web && rm -rf .next/cache
+  fi
+  
+  # Run type check and build with timeout
+  cd apps/web
+  
+  echo "🔍 Running type check..."
+  if ! timeout 2m npm run check-types; then
+    echo "❌ Type check failed or took too long (>2 minutes)"
+    exit 1
+  fi
+  
+  echo "🏗️ Running build..."
+  if ! timeout 5m npm run build; then
+    echo "❌ Build failed or took too long (>5 minutes)"
+    exit 1
+  fi
+  
+  echo "✅ All checks passed!"
+fi 

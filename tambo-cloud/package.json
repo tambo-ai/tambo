@@ -9,9 +9,12 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prettier-check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo check-types",
-    "hydra-api:start": "turbo run start --filter=hydra-api"
+    "hydra-api:start": "turbo run start --filter=hydra-api",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.1",
     "prettier": "^3.2.5",
     "turbo": "^2.3.3",
     "typescript": "^5.7.3"
@@ -31,5 +34,15 @@
   },
   "dependencies": {
     "resend": "^4.1.1"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix --config apps/web/eslint.config.mjs",
+      "cd apps/web && tsc --noEmit"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }
