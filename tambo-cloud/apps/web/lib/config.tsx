@@ -26,7 +26,7 @@ export const siteConfig = {
     email: "support@usehydra.ai",
     twitter: "https://x.com/usehydraai",
     discord: "https://discord.gg/dJNvPEHth6",
-    github: "https://github.com/usehydraai",
+    github: "https://github.com/use-hydra-ai/hydra-ai",
   },
   metadata: {
     title: "Build Adaptive UIs with AI | Hydra AI",

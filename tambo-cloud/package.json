@@ -28,5 +28,8 @@
   "volta": {
     "node": "20.18.1",
     "npm": "10.9.2"
+  },
+  "dependencies": {
+    "resend": "^4.1.1"
   }
 }

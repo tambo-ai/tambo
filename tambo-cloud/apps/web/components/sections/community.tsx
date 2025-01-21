@@ -1,78 +1,92 @@
 "use client";
 
-import { Icons } from "@/components/icons";
+import { motion } from "framer-motion";
 import { Section } from "@/components/section";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Ripple } from "@/components/ui/ripple";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import {
+  BookOpenIcon,
+  SmartphoneIcon,
+  PackageIcon,
+  BookIcon,
+} from "lucide-react";
+import { AuroraText } from "@/components/aurora-text";
+import { copy } from "@/lib/copy";
 
-const contributors = [
-  {
-    name: "Alice Johnson",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cG9ydHJhaXR8ZW58MHx8MHx8fDA%3D",
-  },
-  {
-    name: "Bob Brown",
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fHBvcnRyYWl0fGVufDB8fDB8fHww",
-  },
-  {
-    name: "Charlie Davis",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHBvcnRyYWl0fGVufDB8fDB8fHww",
-  },
-  {
-    name: "Diana Evans",
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjh8fHBvcnRyYWl0fGVufDB8fDB8fHww",
-  },
-  {
-    name: "Ethan Ford",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fHBvcnRyYWl0fGVufDB8fDB8fHww",
-  },
-];
+const iconMap = {
+  BookOpen: BookOpenIcon,
+  Smartphone: SmartphoneIcon,
+  Package: PackageIcon,
+  Book: BookIcon,
+} as const;
+
+const content = copy.community;
 
 export function Community() {
   return (
-    <Section id="community" title="Community">
-      <div className="border-x border-t overflow-hidden relative">
-        <Ripple />
-        <div className="p-6 text-center py-12">
-          <p className="text-muted-foreground mb-6 text-balance max-w-prose mx-auto font-medium">
-            We&apos;re grateful to our users and contributors that help us
-            improve the project every day.
-          </p>
-          <div className="flex justify-center -space-x-6 mb-8">
-            {contributors.map((contributor, index) => (
-              <div key={index}>
-                <Avatar className="size-12 relative border-2 border-background bg-muted">
-                  <AvatarImage
-                    src={contributor.avatar}
-                    alt={contributor.name}
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="text-lg font-semibold">
-                    {contributor.name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-center">
-            <Button
-              variant="secondary"
-              className="flex items-center gap-2"
-              asChild
+    <Section id="developers">
+      <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
+        <motion.div
+          className="flex flex-col space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
+            <AuroraText>{content.title}</AuroraText>
+          </h2>
+          <p className="text-lg text-muted-foreground">{content.description}</p>
+        </motion.div>
+
+        <motion.div
+          className="mt-12 grid gap-8 md:grid-cols-3"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          {content.features.map((feature, index) => (
+            <div
+              key={index}
+              className="flex flex-col items-center space-y-4 p-6 rounded-lg bg-muted/50"
             >
-              <a href="https://discord.gg/dJNvPEHth6">
-                <Icons.discord className="h-5 w-5" />
-                Join the Discord
-              </a>
-            </Button>
-          </div>
-        </div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                {(() => {
+                  const Icon = iconMap[feature.icon as keyof typeof iconMap];
+                  return <Icon className="h-6 w-6 text-primary" />;
+                })()}
+              </div>
+              <div className="space-y-2 text-center">
+                <h3 className="text-xl font-medium">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          className="mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          <Link
+            href={content.cta.link}
+            className={cn(
+              buttonVariants({ variant: "default" }),
+              "text-lg flex items-center gap-2",
+            )}
+          >
+            {(() => {
+              const Icon = iconMap[content.cta.icon as keyof typeof iconMap];
+              return <Icon className="h-4 w-4" />;
+            })()}
+            {content.cta.text}
+          </Link>
+        </motion.div>
       </div>
     </Section>
   );

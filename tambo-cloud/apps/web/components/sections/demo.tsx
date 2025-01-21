@@ -9,14 +9,11 @@ export function Demo() {
       <div className="border overflow-hidden relative p-20 md:p-32">
         <div className="relative">
           <HeroVideoDialog
-            className="dark:hidden block"
-            animationStyle="from-center"
             videoSrc="/videos/yage-demo.mp4"
-          />
-          <HeroVideoDialog
-            className="hidden dark:block"
+            darkModeVideoSrc="/videos/yage-demo.mp4"
             animationStyle="from-center"
-            videoSrc="/videos/yage-demo.mp4"
+            theme="system"
+            className="w-full"
           />
         </div>
       </div>

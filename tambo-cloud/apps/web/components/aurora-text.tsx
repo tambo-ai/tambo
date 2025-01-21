@@ -27,9 +27,7 @@ export function AuroraText({
             style={{
               backgroundColor: `hsl(var(--color-${i + 1}))`,
               filter: "blur(1rem)",
-              animation: `aurora-border 6s ease-in-out infinite, aurora-${
-                i + 1
-              } 12s ease-in-out infinite alternate`,
+              animation: `aurora-${i + 1} 12s ease-in-out infinite alternate`,
               mixBlendMode: "overlay",
               ...getInitialPosition(i),
             }}
@@ -37,21 +35,6 @@ export function AuroraText({
         ))}
       </div>
       <style jsx>{`
-        @keyframes aurora-border {
-          0%,
-          100% {
-            border-radius: 37% 29% 27% 27% / 28% 25% 41% 37%;
-          }
-          25% {
-            border-radius: 47% 29% 39% 49% / 61% 19% 66% 26%;
-          }
-          50% {
-            border-radius: 57% 23% 47% 72% / 63% 17% 66% 33%;
-          }
-          75% {
-            border-radius: 28% 49% 29% 100% / 93% 20% 64% 25%;
-          }
-        }
         @keyframes aurora-1 {
           0%,
           100% {

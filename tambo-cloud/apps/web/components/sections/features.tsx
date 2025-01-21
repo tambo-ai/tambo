@@ -1,44 +1,51 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { icons } from "lucide-react";
 import { Section } from "@/components/section";
-import { siteConfig } from "@/lib/config";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { copy } from "@/lib/copy";
+
+const content = copy.features;
 
 export function Features() {
-  const services = siteConfig.features;
   return (
-    <Section id="features" title="Features">
-      <div className="border-x border-t">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {services.map(({ name, description, icon: Icon }, index) => (
-            <div
-              key={index}
-              className={cn(
-                "flex flex-col gap-y-2 items-center justify-center py-8 px-4 border-b transition-colors hover:bg-secondary/20",
-                "last:border-b-0",
-                "md:[&:nth-child(2n+1)]:border-r md:[&:nth-child(n+5)]:border-b-0",
-                "lg:[&:nth-child(3n)]:border-r-0 lg:[&:nth-child(n+4)]:border-b-0 lg:border-r",
-              )}
-            >
-              <div className="flex flex-col gap-y-2 items-center">
-                <div className="bg-gradient-to-b from-primary to-primary/80 p-2 rounded-lg text-white transition-colors group-hover:from-secondary group-hover:to-secondary/80">
-                  {Icon}
+    <Section id="features" className="container py-24 sm:py-32">
+      <h2 className="text-lg text-primary text-center mb-2 tracking-wider">
+        {content.title}
+      </h2>
+
+      <h2 className="text-3xl md:text-4xl text-center font-bold mb-4">
+        {content.heading}
+      </h2>
+
+      <h3 className="md:w-1/2 mx-auto text-xl text-center text-muted-foreground mb-8">
+        {content.description}
+      </h3>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {content.list.map(({ icon, title, description }) => (
+          <div key={title}>
+            <Card className="h-full bg-background border-0 shadow-none">
+              <CardHeader className="flex justify-center items-center">
+                <div className="bg-primary/20 p-2 rounded-full ring-8 ring-primary/10 mb-4">
+                  <Icon
+                    name={icon as keyof typeof icons}
+                    size={24}
+                    color="hsl(var(--primary))"
+                    className="text-primary"
+                  />
                 </div>
-                <h2 className="text-xl font-medium text-card-foreground text-center text-balance">
-                  {name}
-                </h2>
-              </div>
-              <p className="text-sm text-muted-foreground text-balance text-center max-w-md mx-auto">
+
+                <CardTitle>{title}</CardTitle>
+              </CardHeader>
+
+              <CardContent className="text-muted-foreground text-center">
                 {description}
-              </p>
-              <Link
-                href="#"
-                className="text-sm text-primary hover:underline underline-offset-4 transition-colors hover:text-secondary-foreground"
-              >
-                Learn more &gt;
-              </Link>
-            </div>
-          ))}
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        ))}
       </div>
     </Section>
   );

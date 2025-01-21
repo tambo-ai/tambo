@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Play } from "lucide-react";
+import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
+import { useTheme } from "next-themes";
 
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,9 @@ type AnimationStyle =
 interface HeroVideoProps {
   animationStyle?: AnimationStyle;
   videoSrc: string;
+  darkModeVideoSrc?: string;
   className?: string;
+  theme?: "light" | "dark" | "system";
 }
 
 const animationVariants = {
@@ -69,34 +71,55 @@ const animationVariants = {
 export default function HeroVideoDialog({
   animationStyle = "from-center",
   videoSrc,
+  darkModeVideoSrc,
   className,
+  theme = "system",
 }: HeroVideoProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(false);
-  const [animationStarted, setAnimationStarted] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const [currentVideoSrc, setCurrentVideoSrc] = useState(videoSrc);
   const videoRef = useRef<HTMLVideoElement>(null);
   const selectedAnimation = animationVariants[animationStyle];
+  const { theme: systemTheme } = useTheme();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimationStarted(true);
-    }, 500);
+    const effectiveTheme = theme === "system" ? systemTheme : theme;
+    const newVideoSrc =
+      effectiveTheme === "dark" && darkModeVideoSrc
+        ? darkModeVideoSrc
+        : videoSrc;
+    setCurrentVideoSrc(newVideoSrc);
+  }, [systemTheme, theme, videoSrc, darkModeVideoSrc]);
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handlePlayClick = () => {
+  // Auto-play muted on mount
+  useEffect(() => {
     if (videoRef.current) {
+      videoRef.current.play().catch((error) => {
+        console.error("Failed to autoplay video:", error);
+      });
+    }
+  }, [currentVideoSrc]);
+
+  const handlePlayClick = async () => {
+    if (!videoRef.current) return;
+
+    try {
       videoRef.current.currentTime = 0;
-      videoRef.current.play();
       videoRef.current.muted = false;
+      await videoRef.current.play();
       setIsPlaying(true);
       setShowControls(true);
-      track("Video Play");
+      track("Video Play", { src: currentVideoSrc });
+    } catch (error) {
+      console.error("Failed to play video:", error);
+      setVideoError(true);
     }
   };
 
   const handleVideoClick = () => {
+    if (!videoRef.current) return;
+
     if (isPlaying) {
       setShowControls(!showControls);
     } else {
@@ -104,33 +127,53 @@ export default function HeroVideoDialog({
     }
   };
 
+  const handleVideoError = () => {
+    setVideoError(true);
+    console.error(`Failed to load video: ${currentVideoSrc}`);
+  };
+
+  if (videoError) {
+    return (
+      <div
+        className={cn(
+          "relative bg-muted rounded-3xl p-8 text-center",
+          className,
+        )}
+      >
+        <p className="text-muted-foreground">Failed to load video</p>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative group", className)}>
       <motion.div
         {...selectedAnimation}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="rounded-3xl overflow-hidden relative pointer-events-auto shadow-[0_0_30px_rgba(210,71,191,0.3)] transition-shadow duration-300 hover:shadow-[0_0_40px_rgba(210,71,191,0.5)]"
+        className="rounded-3xl overflow-hidden relative shadow-[0_0_30px_rgba(210,71,191,0.3)] transition-shadow duration-300 group-hover:shadow-[0_0_40px_rgba(210,71,191,0.5)]"
       >
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-black/10 to-transparent pointer-events-none" />
         <video
           ref={videoRef}
           onClick={handleVideoClick}
-          className={`w-full ${
-            isPlaying ? "opacity-100" : "opacity-50"
-          } transition-opacity duration-300`}
-          autoPlay
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-300",
+            isPlaying ? "opacity-100" : "opacity-50",
+          )}
           muted
           loop
           playsInline
           controls={showControls}
+          onError={handleVideoError}
+          preload="auto"
+          autoPlay
         >
-          <source src={videoSrc} type="video/mp4" />
+          <source src={currentVideoSrc} type="video/mp4" />
         </video>
         {!isPlaying && (
           <button
             onClick={handlePlayClick}
-            className={`absolute inset-0 w-full h-full flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-20 transition-all duration-300 ${
-              isPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
-            }`}
+            className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/30 hover:bg-black/20 transition-colors duration-300"
           >
             <svg
               className="w-20 h-20 text-white"
