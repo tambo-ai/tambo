@@ -42,7 +42,9 @@ export class ApiKeyGuard implements CanActivate {
         `Error validating API key: ${error.message}`,
         error.stack,
       );
-      throw new UnauthorizedException(error.message);
+      throw new UnauthorizedException(error.message, {
+        cause: error,
+      });
     }
   }
 
@@ -67,7 +69,9 @@ export class ApiKeyGuard implements CanActivate {
 
       return isValid;
     } catch (error: any) {
-      throw new UnauthorizedException(error.message);
+      throw new UnauthorizedException(error.message, {
+        cause: error,
+      });
     }
   }
 

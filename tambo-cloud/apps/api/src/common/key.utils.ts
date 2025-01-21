@@ -63,7 +63,9 @@ export function decryptApiKey(encryptedData: string): {
     decrypted += decipher.final('utf-8');
   } catch (error) {
     console.error(error);
-    throw new Error('Failed to decrypt API key');
+    throw new Error('Failed to decrypt API key', {
+      cause: error,
+    });
   }
 
   const [storedString, apiKey] = splitFromEnd(decrypted, '.');
@@ -121,7 +123,9 @@ export function decryptProviderKey(encryptedData: string): {
     decrypted += decipher.final('utf-8');
   } catch (error) {
     console.error(error);
-    throw new Error('Failed to decrypt provider key');
+    throw new Error('Failed to decrypt provider key', {
+      cause: error,
+    });
   }
 
   const [providerName, providerKey] = splitFromEnd(decrypted, '.');
