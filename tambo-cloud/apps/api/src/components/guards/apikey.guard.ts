@@ -22,19 +22,16 @@ export class ApiKeyGuard implements CanActivate {
 
     if (!apiKey) {
       this.logger.error('Missing API key in request');
-      console.error('missing api key', apiKey);
       throw new ForbiddenException('API key is required in x-api-key header');
     }
 
     try {
       const { storedString: projectId } = decryptApiKey(apiKey);
-      console.log('guard resolved projectId:', apiKey, ' to ', projectId);
       request.projectId = projectId;
 
       const isValid = await this.validateApiKeyWithProject(apiKey, projectId);
       if (!isValid) {
         this.logger.error(`Invalid API key for project ${projectId}`);
-        console.error('invalid api key', apiKey, projectId);
         throw new UnauthorizedException('Invalid API key');
       }
 
@@ -56,7 +53,6 @@ export class ApiKeyGuard implements CanActivate {
     try {
       const project = await this.projectsService.findOneWithKeys(projectId);
       if (!project) {
-        console.error('project not found', projectId);
         throw new Error('Project not found');
       }
 
