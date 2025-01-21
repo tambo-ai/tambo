@@ -5,39 +5,38 @@ import { Header } from "@/components/sections/header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/trpc/react";
 import { useCallback, useEffect, useState } from "react";
 import { CreateProjectDialog } from "../../components/dashboard-components/create-project-dialog";
 import { ProjectCard } from "../../components/dashboard-components/project-card";
-import {
-  addProviderKey,
-  createProject,
-  getUserProjects,
-} from "../services/hydra.service";
 import { getSupabaseClient } from "../utils/supabase";
 import { ProjectResponseDto } from "./types/types";
 
 export default function DashboardPage() {
-  const [projects, setProjects] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  //  const [projects, setProjects] = useState([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
 
-  const loadProjects = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const projectsData = await getUserProjects();
-      setProjects(projectsData);
-    } catch (error) {
+  const {
+    data: projects,
+    isLoading,
+    error: projectLoadingError,
+    refetch: refetchProjects,
+  } = api.project.getUserProjects.useQuery(undefined, {
+    enabled: !!isAuthenticated,
+  });
+
+  useEffect(() => {
+    if (projectLoadingError) {
       toast({
         title: "Error",
         description: "Failed to load projects",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
-  }, [toast]);
+  }, [projectLoadingError, toast]);
+
   const checkAuth = useCallback(async () => {
     console.log("Checking auth status");
     try {
@@ -46,21 +45,21 @@ export default function DashboardPage() {
         data: { session },
       } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
-      if (session) {
-        loadProjects();
-      } else {
-        setIsLoading(false);
-      }
     } catch (error) {
       console.error("Error checking auth status:", error);
       setIsAuthenticated(false);
-      setIsLoading(false);
     }
-  }, [loadProjects]);
+  }, []);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  const { mutateAsync: createProject } =
+    api.project.createProject.useMutation();
+
+  const { mutateAsync: addProviderKey } =
+    api.project.addProviderKey.useMutation();
 
   const handleCreateProject = async (
     projectName: string,
@@ -68,8 +67,12 @@ export default function DashboardPage() {
   ) => {
     try {
       const project = await createProject(projectName);
-      await addProviderKey(project.id, "openai", providerKey);
-      await loadProjects();
+      await addProviderKey({
+        projectId: project.id,
+        provider: "openai",
+        providerKey: providerKey,
+      });
+      await refetchProjects();
       setIsCreateDialogOpen(false);
       toast({
         title: "Success",
@@ -117,7 +120,7 @@ export default function DashboardPage() {
         <>
           <div className="flex justify-between items-center w-full mb-8 border-b p-4 pb-2 gap-4">
             <span className="text-sm text-muted-foreground">
-              {projects.length} project{projects.length !== 1 ? "s" : ""}
+              {projects?.length} project{projects?.length !== 1 ? "s" : ""}
             </span>
             <Button
               onClick={() => setIsCreateDialogOpen(true)}
@@ -128,11 +131,11 @@ export default function DashboardPage() {
             </Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project: ProjectResponseDto) => (
+            {projects?.map((project: ProjectResponseDto) => (
               <ProjectCard
                 key={project.id}
                 project={project}
-                onProjectDeleted={loadProjects}
+                onProjectDeleted={refetchProjects}
               />
             ))}
           </div>

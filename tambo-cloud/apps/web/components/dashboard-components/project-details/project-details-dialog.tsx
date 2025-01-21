@@ -1,4 +1,3 @@
-import { removeProject } from "@/app/services/hydra.service";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/trpc/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ProjectResponseDto } from "../../../app/dashboard/types/types";
@@ -42,9 +42,12 @@ export function ProjectDetailsDialog({
   });
   const { toast } = useToast();
 
+  const { mutateAsync: deleteProject } =
+    api.project.removeProject.useMutation();
+
   const handleDeleteProject = async () => {
     try {
-      await removeProject(project.id);
+      await deleteProject(project.id);
       onOpenChange(false);
       onProjectDeleted?.();
       toast({

@@ -1,17 +1,10 @@
-import {
-  generateApiKey,
-  getApiKeys,
-  removeApiKey,
-} from "@/app/services/hydra.service";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/trpc/react";
 import { Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
-import {
-  APIKeyResponseDto,
-  ProjectResponseDto,
-} from "../../../app/dashboard/types/types";
+import { ProjectResponseDto } from "../../../app/dashboard/types/types";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { AlertState } from "./project-details-dialog";
 
@@ -20,8 +13,6 @@ interface APIKeyListProps {
 }
 
 export function APIKeyList({ project }: APIKeyListProps) {
-  const [apiKeys, setApiKeys] = useState<APIKeyResponseDto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [showNameInput, setShowNameInput] = useState(false);
@@ -33,25 +24,23 @@ export function APIKeyList({ project }: APIKeyListProps) {
   });
   const { toast } = useToast();
 
+  const {
+    data: apiKeys,
+    isLoading: apiKeysLoading,
+    refetch: refetchApiKeys,
+    error: apiKeysError,
+  } = api.project.getApiKeys.useQuery(project.id);
   useEffect(() => {
-    loadApiKeys();
-  }, [project.id]);
-
-  const loadApiKeys = async () => {
-    try {
-      setIsLoading(true);
-      const keys = await getApiKeys(project.id);
-      setApiKeys(keys);
-    } catch (error) {
+    if (apiKeysError) {
       toast({
         title: "Error",
         description: "Failed to load API keys",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [apiKeysError, toast]);
+  const { mutateAsync: generateApiKey, isPending: isGeneratingKey } =
+    api.project.generateApiKey.useMutation();
 
   const handleCreateApiKey = async () => {
     if (!newKeyName.trim()) {
@@ -65,9 +54,12 @@ export function APIKeyList({ project }: APIKeyListProps) {
 
     try {
       setIsCreating(true);
-      const newKey = await generateApiKey(project.id, newKeyName);
-      setNewGeneratedKey(newKey);
-      await loadApiKeys();
+      const newKey = await generateApiKey({
+        projectId: project.id,
+        name: newKeyName,
+      });
+      setNewGeneratedKey(newKey.apiKey);
+      await refetchApiKeys();
       setNewKeyName("");
       setShowNameInput(false);
       toast({
@@ -85,12 +77,17 @@ export function APIKeyList({ project }: APIKeyListProps) {
     }
   };
 
+  const { mutateAsync: removeApiKey, isPending: isRemovingKey } =
+    api.project.removeApiKey.useMutation();
+
   const handleDeleteApiKey = async () => {
-    setIsLoading(true);
     try {
       if (!alertState.data) return;
-      await removeApiKey(project.id, alertState.data?.id);
-      await loadApiKeys();
+      await removeApiKey({
+        projectId: project.id,
+        apiKeyId: alertState.data.id,
+      });
+      await refetchApiKeys();
       toast({
         title: "Success",
         description: "API key deleted successfully",
@@ -108,7 +105,6 @@ export function APIKeyList({ project }: APIKeyListProps) {
         description: "",
         data: undefined,
       });
-      setIsLoading(false);
     }
   };
 
@@ -117,6 +113,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
       handleCreateApiKey();
     }
   };
+  const isLoading = apiKeysLoading || isRemovingKey || isGeneratingKey;
 
   return (
     <div>
@@ -199,7 +196,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
               </p>
             </div>
           )}
-          {apiKeys.length > 0 ? (
+          {apiKeys?.length ? (
             <div className="space-y-2">
               {apiKeys.map((key) => (
                 <div
@@ -210,12 +207,12 @@ export function APIKeyList({ project }: APIKeyListProps) {
                     <div>
                       <p className="text-sm font-medium">{key.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {key.lastUsed
-                          ? `Last used: ${DateTime.fromISO(key.lastUsed).toFormat("EEE MMM d 'at' h:mma")}`
+                        {key.lastUsedAt
+                          ? `Last used: ${DateTime.fromJSDate(key.lastUsedAt).toFormat("EEE MMM d 'at' h:mma")}`
                           : "Never used"}
                       </p>
                       <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis">
-                        {key.partiallyHiddenKey.slice(0, 15)}
+                        {key.partiallyHiddenKey?.slice(0, 15)}
                       </p>
                     </div>
                     <Button

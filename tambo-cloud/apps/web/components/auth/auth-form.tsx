@@ -1,5 +1,3 @@
-import { createUser } from "@/app/services/hydra.service";
-import { UserDto } from "@/app/types/user.dto";
 import { getSupabaseClient } from "@/app/utils/supabase";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,11 +42,12 @@ export function AuthForm({
         });
         if (error) throw error;
         if (!user) throw new Error("User creation failed.");
-        const userData: UserDto = {
-          authId: user.id,
-          email: email,
-        };
-        await createUser(userData);
+        // User is now automatically created by supabase
+        // const userData: UserDto = {
+        //   authId: user.id,
+        //   email: email,
+        // };
+        // await createUser(userData);
         toast({
           title: "Success",
           description: "Account created!",

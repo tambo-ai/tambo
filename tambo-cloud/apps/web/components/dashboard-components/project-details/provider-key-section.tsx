@@ -1,11 +1,8 @@
-import { addProviderKey, getProviderKeys } from "@/app/services/hydra.service";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
-import {
-  ProjectResponseDto,
-  ProviderKeyResponseDto,
-} from "../../../app/dashboard/types/types";
+import { api } from "@/trpc/react";
+import { useState } from "react";
+import { ProjectResponseDto } from "../../../app/dashboard/types/types";
 
 interface ProviderKeySectionProps {
   project: ProjectResponseDto;
@@ -14,36 +11,25 @@ interface ProviderKeySectionProps {
 export function ProviderKeySection({ project }: ProviderKeySectionProps) {
   const [isEditingProviderKey, setIsEditingProviderKey] = useState(false);
   const [providerKey, setProviderKey] = useState("");
-  const [providerKeys, setProviderKeys] = useState<ProviderKeyResponseDto[]>(
-    [],
-  );
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadProviderKeys();
-  }, [project.id]);
+  const {
+    data: providerKeys,
+    isLoading: isLoading,
+    refetch: refetchProviderKeys,
+  } = api.project.getProviderKeys.useQuery(project.id);
 
-  const loadProviderKeys = async () => {
-    try {
-      setIsLoading(true);
-      const keys = await getProviderKeys(project.id);
-      setProviderKeys(keys);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load provider keys",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { mutateAsync: addProviderKey, isPending: isAddingProviderKey } =
+    api.project.addProviderKey.useMutation();
 
   const handleUpdateProviderKey = async () => {
     try {
-      await addProviderKey(project.id, "openai", providerKey);
-      await loadProviderKeys();
+      await addProviderKey({
+        projectId: project.id,
+        provider: "openai",
+        providerKey: providerKey,
+      });
+      await refetchProviderKeys();
       setIsEditingProviderKey(false);
       toast({
         title: "Success",
@@ -100,12 +86,12 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         <p className="text-sm text-muted-foreground">
           {isLoading
             ? "Loading..."
-            : providerKeys.length > 0
-              ? providerKeys[providerKeys.length - 1].partiallyHiddenKey
+            : providerKeys?.length
+              ? providerKeys[providerKeys.length - 1]?.partiallyHiddenKey
                 ? providerKeys[
                     providerKeys.length - 1
-                  ].partiallyHiddenKey.slice(0, 15)
-                : `${providerKeys[providerKeys.length - 1].providerKeyEncrypted.slice(0, 15)}...`
+                  ]?.partiallyHiddenKey?.slice(0, 15)
+                : `${providerKeys[providerKeys.length - 1]?.providerKeyEncrypted?.slice(0, 15)}...`
               : "No provider key set"}
         </p>
       )}
