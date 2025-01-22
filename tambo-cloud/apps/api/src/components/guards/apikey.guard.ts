@@ -26,14 +26,17 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     try {
-      const { storedString: projectId } = decryptApiKey(apiKey);
-      request.projectId = projectId;
+      const { storedString: projectIdOrLegacyId } = decryptApiKey(apiKey);
 
-      const isValid = await this.validateApiKeyWithProject(apiKey, projectId);
-      if (!isValid) {
-        this.logger.error(`Invalid API key for project ${projectId}`);
+      const projectId = await this.validateApiKeyWithProject(
+        apiKey,
+        projectIdOrLegacyId,
+      );
+      if (!projectId) {
+        this.logger.error(`Invalid API key for project ${projectIdOrLegacyId}`);
         throw new UnauthorizedException('Invalid API key');
       }
+      request.projectId = projectId;
 
       this.logger.log(`Valid API key used for project ${projectId}`);
       return true;
@@ -50,11 +53,12 @@ export class ApiKeyGuard implements CanActivate {
 
   private async validateApiKeyWithProject(
     apiKey: string,
-    projectId: string,
-  ): Promise<boolean> {
+    projectIdOrLegacyId: string,
+  ): Promise<string> {
     try {
-      const project = await this.projectsService.findOneWithKeys(projectId);
-      if (!project) {
+      const project =
+        await this.projectsService.findOneWithKeys(projectIdOrLegacyId);
+      if (!project?.id) {
         throw new Error('Project not found');
       }
 
@@ -64,10 +68,10 @@ export class ApiKeyGuard implements CanActivate {
         .some((key) => key.hashedKey === hashedKey);
 
       if (isValid) {
-        await this.updateApiKeyLastUsed(projectId, hashedKey);
+        await this.updateApiKeyLastUsed(project.id, hashedKey);
       }
 
-      return isValid;
+      return project.id;
     } catch (error: any) {
       throw new UnauthorizedException(error.message, {
         cause: error,

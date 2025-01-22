@@ -65,7 +65,11 @@ export class ProjectsService {
 
   async findOne(id: string): Promise<ProjectResponseDto | null> {
     const project = await this.db.query.projects.findFirst({
-      where: (projects, { eq }) => eq(schema.projects.id, id),
+      where: (projects, { eq, or, and, isNotNull }) =>
+        or(
+          eq(projects.id, id),
+          and(isNotNull(projects.legacyId), eq(projects.legacyId, id)),
+        ),
       with: {
         members: true,
       },
@@ -82,7 +86,11 @@ export class ProjectsService {
 
   async findOneWithKeys(id: string): Promise<Project | null> {
     const project = await this.db.query.projects.findFirst({
-      where: (projects, { eq }) => eq(projects.id, id),
+      where: (projects, { eq, or, and, isNotNull }) =>
+        or(
+          eq(projects.id, id),
+          and(isNotNull(projects.legacyId), eq(projects.legacyId, id)),
+        ),
       with: {
         members: true,
         apiKeys: true,
