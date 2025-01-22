@@ -50,6 +50,13 @@
       "when": 1737503291151,
       "tag": "0006_worthless_ultimates",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1737586307088,
+      "tag": "0007_daily_slyde",
+      "breakpoints": true
     }
   ]
 }
