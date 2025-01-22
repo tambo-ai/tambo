@@ -11,15 +11,9 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {
-      "@use-hydra-ai/hydra-ai-server": [
-        "../../packages/hydra-ai-server",
-      ],
-      "@use-hydra-ai/core": [
-        "../../packages/core/src"
-      ],
-      "@use-hydra-ai/db": [
-        "../../packages/db/src"
-      ]
+      "@use-hydra-ai/hydra-ai-server": ["../../packages/hydra-ai-server/src"],
+      "@use-hydra-ai/core": ["../../packages/core/src"],
+      "@use-hydra-ai/db": ["../../packages/db/src"]
     }
   }
 }

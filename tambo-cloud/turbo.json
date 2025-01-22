@@ -29,7 +29,7 @@
       "dependsOn": ["^lint"]
     },
     "check-types": {
-      "dependsOn": ["^check-types", "^build"]
+      "dependsOn": ["^check-types"]
     },
     "dev": {
       "dependsOn": ["^build"],

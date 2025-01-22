@@ -13,6 +13,7 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^20.17.14",
     "@use-hydra-ai/eslint-config": "*",
     "@use-hydra-ai/typescript-config": "*"
   },

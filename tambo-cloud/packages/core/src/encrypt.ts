@@ -13,6 +13,7 @@ function getHashedKey(key: string): Buffer {
   return createHash("sha256").update(key).digest();
 }
 
+/** Turn a raw api key into an encrypted string, signed */
 export function encryptApiKey(
   storedString: string,
   apiKey: string,
