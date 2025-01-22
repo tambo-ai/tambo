@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable } from "drizzle-orm/pg-core";
+import { index, pgTable } from "drizzle-orm/pg-core";
 import { authUsers } from "drizzle-orm/supabase";
 export { authUsers } from "drizzle-orm/supabase";
 
@@ -105,4 +105,57 @@ export const projectRelations = relations(projects, ({ many }) => ({
   members: many(projectMembers),
   apiKeys: many(apiKeys),
   providerKeys: many(providerKeys),
+}));
+
+export const threads = pgTable(
+  "threads",
+  ({ text, timestamp, jsonb }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('thr_')`),
+    projectId: text("project_id")
+      .references(() => projects.id)
+      .notNull(),
+    contextKey: text("context_key"),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  }),
+  (table) => {
+    return {
+      contextKeyIdx: index("threads_context_key_idx").on(table.contextKey),
+    };
+  },
+);
+
+export const messages = pgTable("messages", ({ text, timestamp, jsonb }) => ({
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .unique()
+    .default(sql`generate_custom_id('msg_')`),
+  threadId: text("thread_id")
+    .references(() => threads.id)
+    .notNull(),
+  role: text("role").notNull(),
+  content: jsonb("content").notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}));
+
+export const threadRelations = relations(threads, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [threads.projectId],
+    references: [projects.id],
+  }),
+  messages: many(messages),
+}));
+
+export const messageRelations = relations(messages, ({ one }) => ({
+  thread: one(threads, {
+    fields: [messages.threadId],
+    references: [threads.id],
+  }),
 }));
