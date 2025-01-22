@@ -35,7 +35,8 @@
     "drizzle-orm": "^0.38.4",
     "nest-supabase-guard": "^1.0.2",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
