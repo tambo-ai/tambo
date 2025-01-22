@@ -162,7 +162,7 @@ export const projectRouter = createTRPCRouter({
           projectId: projectId,
           name: name,
           hashedKey: hashedKey,
-          partiallyHiddenKey: hideApiKey(apiKey, 10),
+          partiallyHiddenKey: hideApiKey(encryptedKey, 10),
         })
         .returning();
 
