@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return "Welcome to the Hydra AI API!"', () => {
+      expect(appController.getHello()).toBe('Welcome to the Hydra AI API!');
     });
   });
 });

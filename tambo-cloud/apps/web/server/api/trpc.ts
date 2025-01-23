@@ -13,11 +13,11 @@ import { ZodError } from "zod";
 
 import { env } from "@/lib/env";
 import { Session, SupabaseClient } from "@supabase/supabase-js";
-import { getDb, HydraDatabase, HydraTransaction } from "@use-hydra-ai/db";
+import { getDb, HydraDb } from "@use-hydra-ai/db";
 import { getServerSupabaseclient } from "../supabase";
 
 export type Context = {
-  db: HydraDatabase | HydraTransaction;
+  db: HydraDb;
   session: Session | null;
   supabase: SupabaseClient;
   headers: Headers;
