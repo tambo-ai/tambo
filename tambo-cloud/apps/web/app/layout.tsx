@@ -10,6 +10,8 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { PHProvider, PostHogPageview } from "./providers";
+import { Suspense } from "react";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -54,23 +56,28 @@ export default function RootLayout({
         inter.className,
       )}
     >
-      <body
-        className={cn(
-          "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col",
-        )}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
+      <Suspense>
+        <PostHogPageview />
+      </Suspense>
+      <PHProvider>
+        <body
+          className={cn(
+            "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col",
+          )}
         >
-          <RootProvider>{children}</RootProvider>
-          <ThemeToggle />
-          <TailwindIndicator />
-        </ThemeProvider>
-        <Toaster />
-        <Analytics />
-      </body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+          >
+            <RootProvider>{children}</RootProvider>
+            <ThemeToggle />
+            <TailwindIndicator />
+          </ThemeProvider>
+          <Toaster />
+          <Analytics />
+        </body>
+      </PHProvider>
     </html>
   );
 }
