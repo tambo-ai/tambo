@@ -31,6 +31,8 @@ export const env = createEnv({
     NEXT_PUBLIC_HYDRA_API_URL: z.string().min(1).optional(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
     NEXT_PUBLIC_SUPABASE_URL: z.string().min(1),
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1).optional(),
   },
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
@@ -51,5 +53,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     API_KEY_SECRET: process.env.API_KEY_SECRET,
     PROVIDER_KEY_SECRET: process.env.PROVIDER_KEY_SECRET,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
 });
