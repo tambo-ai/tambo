@@ -3,6 +3,14 @@ import { index, pgTable } from "drizzle-orm/pg-core";
 import { authUsers } from "drizzle-orm/supabase";
 export { authUsers } from "drizzle-orm/supabase";
 
+export enum MessageRole {
+  User = "user",
+  Assistant = "assistant",
+  System = "system",
+  Function = "function",
+  Hydra = "hydra",
+}
+
 export const projects = pgTable("projects", ({ text, timestamp }) => ({
   id: text("id")
     .primaryKey()
@@ -139,8 +147,11 @@ export const messages = pgTable("messages", ({ text, timestamp, jsonb }) => ({
   threadId: text("thread_id")
     .references(() => threads.id)
     .notNull(),
-  role: text("role").notNull(),
+  role: text("role", {
+    enum: Object.values<string>(MessageRole) as [MessageRole],
+  }).notNull(),
   content: jsonb("content").notNull(),
+  componentDecision: jsonb("component_decision"),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }));

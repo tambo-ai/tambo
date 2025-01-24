@@ -58,7 +58,7 @@ export class ComponentDecisionService {
   private async handleNoComponentCase(
     decisionResponse: any,
     context: InputContext,
-  ) {
+  ): Promise<ComponentDecision> {
     const reasoning = decisionResponse.message.match(
       /<reasoning>(.*?)<\/reasoning>/,
     )?.[1];

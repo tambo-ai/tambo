@@ -1,8 +1,11 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { CorrelationLoggerService } from '../../common/services/logger.service';
 import { AuthUser } from '../../users/entities/authuser.entity';
 import { UsersService } from '../../users/users.service';
 import { ProjectsService } from '../projects.service';
+
+export const ProjectIdParameterKey = Reflector.createDecorator<string>({});
 
 @Injectable()
 export class ProjectAccessOwnGuard implements CanActivate {
@@ -10,6 +13,7 @@ export class ProjectAccessOwnGuard implements CanActivate {
     private readonly projectsService: ProjectsService,
     private readonly usersService: UsersService,
     private readonly logger: CorrelationLoggerService,
+    private reflector: Reflector,
   ) {}
 
   //request only allowed if project being accessed belongs to user making request
@@ -18,6 +22,10 @@ export class ProjectAccessOwnGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const correlationId = request['correlationId'];
     const authUser: AuthUser = request.authUser;
+    const projectIdParameterKey = this.reflector.get<string>(
+      ProjectIdParameterKey,
+      context.getHandler(),
+    );
     try {
       const user = await this.usersService.findOneByAuthId(authUser.id);
       if (request.params.userId) {
@@ -28,7 +36,9 @@ export class ProjectAccessOwnGuard implements CanActivate {
           return false;
         }
       }
-      const projectId = request.params.id;
+      const projectId = projectIdParameterKey
+        ? request.params[projectIdParameterKey]
+        : request.params.id;
       const project = await this.projectsService.findOne(projectId);
       if (!project) {
         this.logger.warn(

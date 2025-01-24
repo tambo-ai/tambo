@@ -6,4 +6,6 @@ import {
 export class GenerateComponentDto {
   messageHistory?: ChatMessage[];
   availableComponents?: AvailableComponents;
+  /** Optional threadId to generate a component for */
+  threadId?: string;
 }

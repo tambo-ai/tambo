@@ -7,14 +7,8 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "module": "CommonJS",
+    "sourceMap": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "./dist",
-    "./docs"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "./dist", "./docs"]
 }

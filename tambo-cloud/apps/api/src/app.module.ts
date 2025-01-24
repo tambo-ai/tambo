@@ -9,6 +9,7 @@ import { ConfigServiceSingleton } from './config.service';
 import { ExtractorModule } from './extractor/extractor.module';
 import { ProjectsModule } from './projects/projects.module';
 import { RegistryModule } from './registry/registry.module';
+import { ThreadsModule } from './threads/threads.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RegistryModule } from './registry/registry.module';
     ProjectsModule,
     RegistryModule,
     ExtractorModule,
+    ThreadsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

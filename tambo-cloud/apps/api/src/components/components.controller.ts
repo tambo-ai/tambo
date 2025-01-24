@@ -1,9 +1,11 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
+import { schema } from '@use-hydra-ai/db';
 import { ComponentDecision, HydraBackend } from '@use-hydra-ai/hydra-ai-server';
 import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
+import { ThreadsService } from '../threads/threads.service';
 import { GenerateComponentDto } from './dto/generate-component.dto';
 import { HydrateComponentDto } from './dto/hydrate-component.dto';
 import { ApiKeyGuard } from './guards/apikey.guard';
@@ -14,6 +16,7 @@ import { ApiKeyGuard } from './guards/apikey.guard';
 export class ComponentsController {
   constructor(
     private projectsService: ProjectsService,
+    private threadsService: ThreadsService,
     private logger: CorrelationLoggerService,
   ) {}
 
@@ -21,7 +24,7 @@ export class ComponentsController {
   async generateComponent(
     @Body() generateComponentDto: GenerateComponentDto,
     @Req() request, // Assumes the request object has the projectId
-  ): Promise<ComponentDecision> {
+  ): Promise<ComponentDecision & { threadId: string }> {
     if (!generateComponentDto.messageHistory?.length) {
       throw new Error('Message history is required and cannot be empty');
     }
@@ -52,8 +55,27 @@ export class ComponentsController {
       generateComponentDto.messageHistory,
       generateComponentDto.availableComponents ?? {},
     );
-    this.logger.log(`generated component: ${JSON.stringify(component)}`);
-    return component;
+
+    let resolvedThreadId: string;
+    if (generateComponentDto.threadId) {
+      resolvedThreadId = generateComponentDto.threadId;
+    } else {
+      const newThread = await this.threadsService.create({
+        projectId,
+      });
+      resolvedThreadId = newThread.id;
+    }
+    await this.threadsService.addMessage(resolvedThreadId, {
+      role: schema.MessageRole.Hydra,
+      message: component.message,
+      // HACK: for now just jam the full component decision into the content
+      component: component as unknown as Record<string, unknown>,
+    });
+
+    return {
+      ...component,
+      threadId: resolvedThreadId,
+    };
   }
 
   @Post('hydrate')
