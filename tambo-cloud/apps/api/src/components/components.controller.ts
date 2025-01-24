@@ -56,9 +56,26 @@ export class ComponentsController {
       generateComponentDto.availableComponents ?? {},
     );
 
+    const resolvedThreadId: string = await this.addDecisionToThread(
+      projectId,
+      generateComponentDto.threadId,
+      component,
+    );
+
+    return {
+      ...component,
+      threadId: resolvedThreadId,
+    };
+  }
+
+  private async addDecisionToThread(
+    projectId: string,
+    threadId: string | undefined,
+    component: ComponentDecision,
+  ) {
     let resolvedThreadId: string;
-    if (generateComponentDto.threadId) {
-      resolvedThreadId = generateComponentDto.threadId;
+    if (threadId) {
+      resolvedThreadId = threadId;
     } else {
       const newThread = await this.threadsService.create({
         projectId,
@@ -71,11 +88,7 @@ export class ComponentsController {
       // HACK: for now just jam the full component decision into the content
       component: component as unknown as Record<string, unknown>,
     });
-
-    return {
-      ...component,
-      threadId: resolvedThreadId,
-    };
+    return resolvedThreadId;
   }
 
   @Post('hydrate')
@@ -112,7 +125,17 @@ export class ComponentsController {
       hydrateComponentDto.component,
       hydrateComponentDto.toolResponse,
     );
+
+    const resolvedThreadId: string = await this.addDecisionToThread(
+      projectId,
+      hydrateComponentDto.threadId,
+      hydratedComponent,
+    );
+
     this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
-    return hydratedComponent;
+    return {
+      ...hydratedComponent,
+      threadId: resolvedThreadId,
+    };
   }
 }

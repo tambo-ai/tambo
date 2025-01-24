@@ -4,4 +4,5 @@ export class HydrateComponentDto {
   messageHistory?: ChatMessage[];
   component?: AvailableComponent;
   toolResponse?: any;
+  threadId?: string;
 }
