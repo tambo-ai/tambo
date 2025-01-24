@@ -11,7 +11,7 @@ export class ThreadsService {
     private readonly db: HydraDatabase,
   ) {}
 
-  async create(createThreadDto: ThreadDto) {
+  async createThread(createThreadDto: ThreadDto) {
     return operations.createThread(this.db, {
       projectId: createThreadDto.projectId,
       contextKey: createThreadDto.contextKey,

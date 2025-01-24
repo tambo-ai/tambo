@@ -8,4 +8,6 @@ export class GenerateComponentDto {
   availableComponents?: AvailableComponents;
   /** Optional threadId to generate a component for */
   threadId?: string;
+  /** Optional contextKey to generate a component for */
+  contextKey?: string;
 }

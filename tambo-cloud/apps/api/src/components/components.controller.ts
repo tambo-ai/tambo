@@ -1,7 +1,11 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
 import { schema } from '@use-hydra-ai/db';
-import { ComponentDecision, HydraBackend } from '@use-hydra-ai/hydra-ai-server';
+import {
+  ChatMessage,
+  ComponentDecision,
+  HydraBackend,
+} from '@use-hydra-ai/hydra-ai-server';
 import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
@@ -25,12 +29,18 @@ export class ComponentsController {
     @Body() generateComponentDto: GenerateComponentDto,
     @Req() request, // Assumes the request object has the projectId
   ): Promise<ComponentDecision & { threadId: string }> {
-    if (!generateComponentDto.messageHistory?.length) {
+    const { messageHistory, availableComponents, threadId, contextKey } =
+      generateComponentDto;
+    if (!messageHistory?.length) {
       throw new Error('Message history is required and cannot be empty');
     }
-
+    // TODO: this assumes that only the last message is new - if the payload has
+    // additional messages that aren't previously present in the thread, should
+    // we add them? Or perhaps this API should only accept a single message and get
+    // the rest of the thread from the db.
+    const lastMessageEntry = messageHistory[messageHistory.length - 1];
     this.logger.log(
-      `generating component for project ${request.projectId}, with message: ${generateComponentDto.messageHistory[generateComponentDto.messageHistory.length - 1].message}`,
+      `generating component for project ${request.projectId}, with message: ${lastMessageEntry.message}`,
     );
     const projectId = request.projectId;
     const project = await this.projectsService.findOneWithKeys(projectId);
@@ -52,14 +62,16 @@ export class ComponentsController {
     const hydraBackend = new HydraBackend(decryptedProviderKey.providerKey);
 
     const component = await hydraBackend.generateComponent(
-      generateComponentDto.messageHistory,
-      generateComponentDto.availableComponents ?? {},
+      messageHistory,
+      availableComponents ?? {},
     );
 
     const resolvedThreadId: string = await this.addDecisionToThread(
       projectId,
-      generateComponentDto.threadId,
+      threadId,
       component,
+      contextKey,
+      lastMessageEntry,
     );
 
     return {
@@ -72,16 +84,23 @@ export class ComponentsController {
     projectId: string,
     threadId: string | undefined,
     component: ComponentDecision,
+    contextKey?: string,
+    messageEntry?: ChatMessage,
   ) {
     let resolvedThreadId: string;
     if (threadId) {
       resolvedThreadId = threadId;
     } else {
-      const newThread = await this.threadsService.create({
+      const newThread = await this.threadsService.createThread({
         projectId,
+        contextKey,
       });
       resolvedThreadId = newThread.id;
     }
+    await this.threadsService.addMessage(resolvedThreadId, {
+      role: schema.MessageRole.User,
+      message: messageEntry?.message ?? '',
+    });
     await this.threadsService.addMessage(resolvedThreadId, {
       role: schema.MessageRole.Hydra,
       message: component.message,
@@ -96,6 +115,13 @@ export class ComponentsController {
     @Body() hydrateComponentDto: HydrateComponentDto,
     @Req() request, // Assumes the request object has the projectId
   ) {
+    const {
+      messageHistory = [],
+      component,
+      toolResponse,
+      threadId,
+      contextKey,
+    } = hydrateComponentDto;
     const projectId = request.projectId;
 
     const project = await this.projectsService.findOneWithKeys(projectId);
@@ -116,20 +142,24 @@ export class ComponentsController {
 
     const hydraBackend = new HydraBackend(decryptedProviderKey.providerKey);
 
-    if (!hydrateComponentDto.component) {
+    if (!component) {
       throw new Error('Component is required');
     }
 
     const hydratedComponent = await hydraBackend.hydrateComponentWithData(
-      hydrateComponentDto.messageHistory ?? [],
-      hydrateComponentDto.component,
-      hydrateComponentDto.toolResponse,
+      messageHistory,
+      component,
+      toolResponse,
     );
+
+    const lastMessage = messageHistory[messageHistory.length - 1];
 
     const resolvedThreadId: string = await this.addDecisionToThread(
       projectId,
-      hydrateComponentDto.threadId,
+      threadId,
       hydratedComponent,
+      contextKey,
+      lastMessage,
     );
 
     this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);

@@ -5,4 +5,5 @@ export class HydrateComponentDto {
   component?: AvailableComponent;
   toolResponse?: any;
   threadId?: string;
+  contextKey?: string;
 }

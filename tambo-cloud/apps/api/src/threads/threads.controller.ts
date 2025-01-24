@@ -30,7 +30,7 @@ export class ThreadsController {
   @UseGuards(ProjectAccessOwnGuard)
   @Post()
   create(@Body() createThreadDto: ThreadDto) {
-    return this.threadsService.create(createThreadDto);
+    return this.threadsService.createThread(createThreadDto);
   }
 
   @ProjectIdParameterKey('projectId')
