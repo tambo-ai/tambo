@@ -4,6 +4,7 @@ export interface ComponentDecision {
   message: string;
   suggestedActions: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
+  threadId: string;
 }
 
 export interface ToolCallRequest {
