@@ -33,14 +33,16 @@ export interface HydraClientOptions {
     messageHistory: ChatMessage[],
     availableComponents: AvailableComponents,
     apiKey?: string,
-    url?: string
+    url?: string,
+    threadId?: string,
   ) => Promise<ComponentDecision>;
   hydrateComponentWithToolResponse?: (
     messageHistory: ChatMessage[],
     component: AvailableComponent,
     toolResponse: any,
     apiKey?: string,
-    url?: string
+    url?: string,
+    threadId?: string,
   ) => Promise<ComponentChoice>;
 }
 
@@ -49,18 +51,21 @@ export default class HydraClient {
   private chatHistory: ChatMessage[] = [];
   private hydraApiKey?: string;
   private hydraApiUrl?: string;
+  private currentThreadId?: string;
   private getComponentChoice: (
     messageHistory: ChatMessage[],
     availableComponents: AvailableComponents,
     apiKey?: string,
-    url?: string
+    url?: string,
+    threadId?: string,
   ) => Promise<ComponentDecision>;
   private hydrateComponentWithToolResponse: (
     messageHistory: ChatMessage[],
     component: AvailableComponent,
     toolResponse: any,
     apiKey?: string,
-    url?: string
+    url?: string,
+    threadId?: string,
   ) => Promise<ComponentChoice>;
 
   constructor({
@@ -100,7 +105,8 @@ export default class HydraClient {
 
   public async generateComponent(
     message: string,
-    onProgressUpdate: (response: GenerateComponentResponse) => void = () => { }
+    onProgressUpdate: (response: GenerateComponentResponse) => void = () => {},
+    threadId?: string,
   ): Promise<GenerateComponentResponse> {
     onProgressUpdate({
       component: null,
@@ -108,6 +114,11 @@ export default class HydraClient {
       stage: GenerationStage.CHOOSING_COMPONENT,
       loading: true
     });
+
+    // Before sending, check if user has specified a specific threadId
+    if (threadId) {
+      this.currentThreadId = threadId;
+    }
 
     const availableComponents = await this.getAvailableComponents(
       this.componentList
@@ -178,6 +189,10 @@ export default class HydraClient {
         suggestedActions: componentDecision.suggestedActions
       };
 
+      if (componentDecision.threadId) {
+        this.currentThreadId = componentDecision.threadId;
+      }
+
       onProgressUpdate(response);
       return response;
     }
@@ -190,8 +205,9 @@ export default class HydraClient {
       messageHistory: ChatMessage[],
       availableComponents: AvailableComponents,
       apiKey?: string,
-      url?: string
-    ) => Promise<ComponentDecision>
+      url?: string,
+      threadId?: string,
+    ) => Promise<ComponentDecision>,
   ): Promise<ComponentDecision> {
     const messageWithContextAdditions =
       updateMessageWithContextAdditions(message);
@@ -205,7 +221,8 @@ export default class HydraClient {
       this.chatHistory,
       availableComponents,
       this.hydraApiKey,
-      this.hydraApiUrl
+      this.hydraApiUrl,
+      this.currentThreadId,
     );
     if (!response) {
       throw new Error("Failed to fetch component choice from backend");
@@ -227,8 +244,9 @@ export default class HydraClient {
       component: AvailableComponent,
       toolResponse: any,
       apiKey?: string,
-      url?: string
-    ) => Promise<ComponentDecision>
+      url?: string,
+      threadId?: string,
+    ) => Promise<ComponentDecision>,
   ): Promise<GenerateComponentResponse> {
     if (!response.componentName) {
       throw new Error("Component name is required to run a tool choice");
@@ -241,7 +259,8 @@ export default class HydraClient {
       chosenComponent,
       toolResponse,
       this.hydraApiKey,
-      this.hydraApiUrl
+      this.hydraApiUrl,
+      this.currentThreadId,
     );
 
     if (!hydratedComponentChoice.componentName) {
