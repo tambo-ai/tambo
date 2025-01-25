@@ -3,6 +3,7 @@ import postgres from "postgres";
 import * as operations from "./operations";
 import * as schema from "./schema";
 import type { HydraDatabase } from "./types";
+export { MessageRole } from "./MessageRole";
 
 let globalDb: HydraDatabase | null = null;
 

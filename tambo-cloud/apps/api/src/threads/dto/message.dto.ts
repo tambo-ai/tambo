@@ -1,9 +1,10 @@
-import { schema } from '@use-hydra-ai/db';
+import { MessageRole } from '@use-hydra-ai/db';
+import { ComponentDecision } from '@use-hydra-ai/hydra-ai-server';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class MessageDto {
-  @IsEnum(schema.MessageRole)
-  role!: schema.MessageRole;
+  @IsEnum(MessageRole)
+  role!: MessageRole;
 
   @IsNotEmpty()
   message!: string;
@@ -12,5 +13,5 @@ export class MessageDto {
   metadata?: Record<string, unknown>;
 
   @IsOptional()
-  component?: Record<string, unknown>;
+  component?: ComponentDecision;
 }

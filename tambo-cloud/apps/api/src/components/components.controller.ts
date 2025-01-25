@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
-import { schema } from '@use-hydra-ai/db';
+import { MessageRole } from '@use-hydra-ai/db';
 import {
   ChatMessage,
   ComponentDecision,
@@ -98,14 +98,14 @@ export class ComponentsController {
       resolvedThreadId = newThread.id;
     }
     await this.threadsService.addMessage(resolvedThreadId, {
-      role: schema.MessageRole.User,
+      role: MessageRole.User,
       message: messageEntry?.message ?? '',
     });
     await this.threadsService.addMessage(resolvedThreadId, {
-      role: schema.MessageRole.Hydra,
+      role: MessageRole.Hydra,
       message: component.message,
       // HACK: for now just jam the full component decision into the content
-      component: component as unknown as Record<string, unknown>,
+      component: component,
     });
     return resolvedThreadId;
   }

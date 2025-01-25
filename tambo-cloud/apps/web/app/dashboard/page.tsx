@@ -81,7 +81,7 @@ export default function DashboardPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create project",
+        description: `Failed to create project: ${error}`,
         variant: "destructive",
       });
     }

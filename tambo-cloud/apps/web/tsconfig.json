@@ -7,7 +7,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@use-hydra-ai/hydra-ai-server": ["../../packages/hydra-ai-server/src"]
     }
   },
   "include": [

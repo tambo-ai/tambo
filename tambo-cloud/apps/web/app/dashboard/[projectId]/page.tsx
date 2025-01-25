@@ -1,0 +1,131 @@
+"use client";
+
+import { Header } from "@/components/sections/header";
+import { ThreadList } from "@/components/thread/thread-list";
+import { ThreadMessages } from "@/components/thread/thread-messages";
+import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/trpc/react";
+import { use, useEffect, useState } from "react";
+
+interface ProjectPageProps {
+  params: Promise<{
+    projectId: string;
+  }>;
+}
+
+export default function ProjectPage({ params }: ProjectPageProps) {
+  const { projectId } = use(params);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Fetch project details
+  const { data: project, isLoading: isLoadingProject } =
+    api.project.getUserProjects.useQuery(undefined, {
+      select: (projects) => projects.find((p) => p.id === projectId),
+    });
+
+  // Fetch threads for the project
+  const {
+    data: threads,
+    isLoading: isLoadingThreads,
+    error: threadsError,
+  } = api.thread.getThreads.useQuery({ projectId });
+
+  // Fetch selected thread details
+  const { data: selectedThread, error: threadError } =
+    api.thread.getThread.useQuery(
+      { threadId: selectedThreadId!, projectId },
+      {
+        enabled: !!selectedThreadId,
+      },
+    );
+
+  // Handle errors with useEffect
+  useEffect(() => {
+    if (threadsError) {
+      toast({
+        title: "Error",
+        description: "Failed to load threads",
+        variant: "destructive",
+      });
+    }
+  }, [threadsError, toast]);
+
+  useEffect(() => {
+    if (threadError) {
+      toast({
+        title: "Error",
+        description: "Failed to load thread details",
+        variant: "destructive",
+      });
+    }
+  }, [threadError, toast]);
+
+  if (isLoadingProject) {
+    return (
+      <div className="container">
+        <Card className="h-32 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="container">
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold">Project not found</h2>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container flex flex-col min-h-screen">
+      <Header showDashboardButton showLogoutButton />
+
+      {/* Project Metadata */}
+      <div className="my-6 p-6 border rounded-lg">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">{project.name}</h1>
+            <p className="text-sm text-muted-foreground">ID: {project.id}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Thread List */}
+        <div className="border rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-4">Threads</h2>
+          {isLoadingThreads ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="h-16 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <ThreadList
+              threads={threads || []}
+              selectedThreadId={selectedThreadId}
+              onThreadSelect={setSelectedThreadId}
+            />
+          )}
+        </div>
+
+        {/* Thread Messages */}
+        <div className="border rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-4">Messages</h2>
+          {selectedThread ? (
+            <ThreadMessages thread={selectedThread} />
+          ) : (
+            <p className="text-muted-foreground text-center py-8">
+              Select a thread to view messages
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

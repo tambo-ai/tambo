@@ -1,11 +1,12 @@
+import type { ComponentDecision } from "@use-hydra-ai/hydra-ai-server";
 import { and, eq } from "drizzle-orm";
+import { MessageRole } from "../MessageRole";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
 export type ThreadMetadata = Record<string, unknown>;
 export type MessageContent = string | Record<string, unknown>;
 export type MessageMetadata = Record<string, unknown>;
-export type MessageComponent = Record<string, unknown>;
 export async function createThread(
   db: HydraDb,
   {
@@ -34,7 +35,9 @@ export async function getThread(db: HydraDb, threadId: string) {
   return db.query.threads.findFirst({
     where: eq(schema.threads.id, threadId),
     with: {
-      messages: true,
+      messages: {
+        orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+      },
     },
   });
 }
@@ -109,9 +112,9 @@ export async function addMessage(
     metadata,
   }: {
     threadId: string;
-    role: schema.MessageRole;
+    role: MessageRole;
     content: MessageContent;
-    component?: MessageComponent;
+    component?: ComponentDecision;
     metadata?: MessageMetadata;
   },
 ) {
