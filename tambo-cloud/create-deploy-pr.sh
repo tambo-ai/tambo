@@ -32,6 +32,7 @@ fi
 
 # Pull latest main
 git pull origin main
+git fetch origin deploy:deploy
 
 # Get the changes between deploy and main
 echo "Changes from deploy -> main:"
