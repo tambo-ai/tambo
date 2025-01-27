@@ -23,6 +23,8 @@ function configureSwagger(app: INestApplication) {
       'bearer',
     )
     .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'apiKey')
+    .addSecurityRequirements('apiKey')
+    .addSecurityRequirements('bearer')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
