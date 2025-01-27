@@ -20,7 +20,7 @@ import { ThreadDto } from './dto/thread.dto';
 import { ThreadsService } from './threads.service';
 
 @ApiBearerAuth()
-@ApiSecurity('x-api-key')
+@ApiSecurity('apiKey')
 @UseGuards(SupabaseAuthGuard)
 @Controller('threads')
 export class ThreadsController {

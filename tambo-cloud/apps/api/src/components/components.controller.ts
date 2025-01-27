@@ -14,7 +14,7 @@ import { GenerateComponentDto } from './dto/generate-component.dto';
 import { HydrateComponentDto } from './dto/hydrate-component.dto';
 import { ApiKeyGuard } from './guards/apikey.guard';
 
-@ApiSecurity('x-api-key')
+@ApiSecurity('apiKey')
 @UseGuards(ApiKeyGuard)
 @Controller('components')
 export class ComponentsController {

@@ -20,7 +20,7 @@ import { ValidUserGuard } from './guards/valid-user.guard';
 import { ProjectsService } from './projects.service';
 
 @ApiBearerAuth()
-@ApiSecurity('x-api-key')
+@ApiSecurity('apiKey')
 // @UseGuards(AdminKeyGuard)
 @UseGuards(SupabaseAuthGuard)
 @Controller('projects')
