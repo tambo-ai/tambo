@@ -72,4 +72,4 @@ echo
 echo "Deployment PR created: $pr_url"
 echo
 echo "To merge this PR into deploy, run:"
-echo "gh pr merge $pr_url --merge --delete-branch=false" 
+echo "gh pr merge $pr_url --merge --delete-branch"
