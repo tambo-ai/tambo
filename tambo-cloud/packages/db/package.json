@@ -29,6 +29,6 @@
     "@use-hydra-ai/core": "*",
     "drizzle-orm": "^0.38.4",
     "postgres": "^3.4.5",
-    "superjson": "^2.2.2"
+    "superjson": "^1.13.3"
   }
 }

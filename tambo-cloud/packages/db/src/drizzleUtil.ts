@@ -1,7 +1,9 @@
 // from https://orm.drizzle.team/docs/custom-types
 
 import { customType } from "drizzle-orm/pg-core";
-import { deserialize, stringify, SuperJSONResult } from "superjson";
+import { deserialize, type serialize, stringify } from "superjson";
+
+type SuperJSONResult = ReturnType<typeof serialize>;
 
 export const customJsonb = <TData>(name: string) =>
   customType<{ data: TData; driverData: string }>({
