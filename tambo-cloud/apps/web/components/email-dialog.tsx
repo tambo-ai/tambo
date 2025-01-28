@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { api } from "@/trpc/react";
 import { useState } from "react";
 
 interface EmailDialogProps {
@@ -19,33 +20,17 @@ interface EmailDialogProps {
 
 export function EmailDialog({ open, onOpenChange }: EmailDialogProps) {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const {
+    mutateAsync: subscribe,
+    isPending,
+    error,
+    isSuccess,
+  } = api.app.subscribe.useMutation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to subscribe");
-      }
-
-      setSuccess(true);
-      setEmail("");
-    } catch (_err) {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    await subscribe({ email });
+    setEmail("");
   }
 
   return (
@@ -64,17 +49,17 @@ export function EmailDialog({ open, onOpenChange }: EmailDialogProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            disabled={isLoading || success}
+            disabled={isPending || isSuccess}
           />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          {success ? (
+          {error && <p className="text-sm text-red-500">{error.message}</p>}
+          {isSuccess ? (
             <div className="flex items-center gap-2 text-green-500">
               <Icons.logo className="h-4 w-4" />
               <span>Thanks for reaching out!</span>
             </div>
           ) : (
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? (
+            <Button type="submit" disabled={isPending} className="w-full">
+              {isPending ? (
                 <>
                   <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                   Sending email...

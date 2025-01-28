@@ -1,18 +1,19 @@
 import { TailwindIndicator } from "@/components/tailwind-indicator";
-import { ThemeProvider } from "@/components/ui/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/lib/config";
 import { cn, constructMetadata } from "@/lib/utils";
+import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/react";
 import { RootProvider } from "fumadocs-ui/provider";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { PHProvider, PostHogPageview } from "./providers";
 import { Suspense } from "react";
 import "./globals.css";
+import { PHProvider, PostHogPageview } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -59,25 +60,27 @@ export default function RootLayout({
       <Suspense>
         <PostHogPageview />
       </Suspense>
-      <PHProvider>
-        <body
-          className={cn(
-            "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col",
-          )}
-        >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem={false}
+      <TRPCReactProvider>
+        <PHProvider>
+          <body
+            className={cn(
+              "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col",
+            )}
           >
-            <RootProvider>{children}</RootProvider>
-            <ThemeToggle />
-            <TailwindIndicator />
-          </ThemeProvider>
-          <Toaster />
-          <Analytics />
-        </body>
-      </PHProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem={false}
+            >
+              <RootProvider>{children}</RootProvider>
+              <ThemeToggle />
+              <TailwindIndicator />
+            </ThemeProvider>
+            <Toaster />
+            <Analytics />
+          </body>
+        </PHProvider>
+      </TRPCReactProvider>
     </html>
   );
 }
