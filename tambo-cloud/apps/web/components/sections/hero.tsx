@@ -1,14 +1,14 @@
 "use client";
 
 import { AuroraText } from "@/components/aurora-text";
+import { EmailDialog } from "@/components/email-dialog";
 import { Icons } from "@/components/icons";
 import { Section } from "@/components/section";
-import { buttonVariants, Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { copy } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { EmailDialog } from "@/components/email-dialog";
-import { copy } from "@/lib/copy";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -130,7 +130,7 @@ function SplineAnimation() {
 }
 
 export function Hero() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [_isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // Use a more reliable way to detect mobile devices

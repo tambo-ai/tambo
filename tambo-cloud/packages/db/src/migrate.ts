@@ -197,8 +197,8 @@ async function run() {
       }
     });
     console.log("migration transaction complete");
-  } catch (e: any) {
-    if (e.message === "Rollback") {
+  } catch (e) {
+    if (e instanceof Error && e.message === "Rollback") {
       console.log("rollback detected");
     } else {
       console.error("error: ", e);

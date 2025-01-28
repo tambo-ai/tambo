@@ -19,7 +19,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
     refetch: refetchProviderKeys,
   } = api.project.getProviderKeys.useQuery(project.id);
 
-  const { mutateAsync: addProviderKey, isPending: isAddingProviderKey } =
+  const { mutateAsync: addProviderKey } =
     api.project.addProviderKey.useMutation();
 
   const handleUpdateProviderKey = async () => {
@@ -35,7 +35,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         title: "Success",
         description: "Provider key updated successfully",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to update provider key",

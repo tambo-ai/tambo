@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Icons } from "@/components/icons";
+import { useState } from "react";
 
 interface EmailDialogProps {
   open: boolean;
@@ -41,7 +41,7 @@ export function EmailDialog({ open, onOpenChange }: EmailDialogProps) {
 
       setSuccess(true);
       setEmail("");
-    } catch (err) {
+    } catch (_err) {
       setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

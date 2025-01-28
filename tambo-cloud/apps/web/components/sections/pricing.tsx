@@ -28,7 +28,7 @@ interface TabsTriggerProps {
   isActive: boolean;
 }
 
-const Tabs = ({ activeTab, setActiveTab, className, children }: TabsProps) => {
+const Tabs = ({ activeTab, className, children }: TabsProps) => {
   return (
     <div
       className={cn(
@@ -49,12 +49,7 @@ const TabsList = ({ children }: TabsListProps) => {
   );
 };
 
-const TabsTrigger = ({
-  value,
-  onClick,
-  children,
-  isActive,
-}: TabsTriggerProps) => {
+const TabsTrigger = ({ onClick, children, isActive }: TabsTriggerProps) => {
   return (
     <button
       onClick={onClick}

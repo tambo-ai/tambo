@@ -1,8 +1,7 @@
 "use client";
 
-import FlickeringGrid from "@/components/ui/flickering-grid";
 import { cn } from "@/lib/utils";
-import React, { forwardRef, useRef } from "react";
+import React from "react";
 
 interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   id?: string;

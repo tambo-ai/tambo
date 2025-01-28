@@ -66,7 +66,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
         title: "Success",
         description: "New API key created successfully",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to create API key",
@@ -92,7 +92,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
         title: "Success",
         description: "API key deleted successfully",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to delete API key",

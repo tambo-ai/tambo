@@ -245,7 +245,6 @@ export async function addProviderKey(
     projectId,
     providerName,
     providerKey,
-    userId,
   }: {
     projectId: string;
     providerName: string;

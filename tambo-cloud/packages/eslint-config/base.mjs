@@ -6,13 +6,11 @@ import tseslint from "typescript-eslint";
 
 /**
  * A shared ESLint configuration for the repository.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
-export const config = [
+ */
+export default tseslint.config(
   js.configs.recommended,
   eslintConfigPrettier,
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
   {
     plugins: {
       turbo: turboPlugin,
@@ -23,10 +21,23 @@ export const config = [
   },
   {
     plugins: {
+      // @ts-expect-error not sure why this is not working
       onlyWarn,
     },
   },
   {
     ignores: ["dist/**"],
   },
-];
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
+);

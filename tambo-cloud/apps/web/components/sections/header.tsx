@@ -1,19 +1,19 @@
 "use client";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { Icons } from "@/components/icons";
 import { MobileDrawer } from "@/components/mobile-drawer";
 import { buttonVariants } from "@/components/ui/button";
-import { easeInOutCubic } from "@/lib/animation";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
-import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { LogoutButton } from "@/components/auth/logout-button";
 
 export function Header({
   showDashboardButton = true,
   showLogoutButton = false,
+}: {
+  showDashboardButton?: boolean;
+  showLogoutButton?: boolean;
 }) {
   return (
     <header className="sticky top-0 h-[var(--header-height)] z-50 p-0 bg-background/60 backdrop-blur">

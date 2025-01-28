@@ -1,6 +1,5 @@
 import Author from "@/components/blog-author";
 import { BlogCTA } from "@/components/blog-cta";
-import { CTA } from "@/components/sections/cta";
 import { getPost } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
 import { formatDate } from "@/lib/utils";

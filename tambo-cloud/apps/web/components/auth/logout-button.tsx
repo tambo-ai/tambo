@@ -35,7 +35,7 @@ export function LogoutButton({
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
     });
 
@@ -47,8 +47,8 @@ export function LogoutButton({
       const supabase = getSupabaseClient();
       await supabase.auth.signOut();
       track("User Logout");
-      window.location.href = window.location.href;
-    } catch (error) {
+      window.location.href = "/";
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to logout",

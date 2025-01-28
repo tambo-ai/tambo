@@ -1,8 +1,7 @@
-import { ReactNode } from "react";
 import { FeatureSelector } from "@/components/feature-selector";
 import { Section } from "@/components/section";
-import { codeToHtml } from "shiki";
 import { ExampleChat } from "@/components/sections/example-chat";
+import { codeToHtml } from "shiki";
 
 interface FeatureOption {
   id: number;
@@ -10,13 +9,6 @@ interface FeatureOption {
   description: string;
   code: string;
   isComponent?: boolean;
-}
-
-interface ProcessedFeature {
-  id: number;
-  title: string;
-  description: string;
-  code: string | ReactNode;
 }
 
 const featureOptions: FeatureOption[] = [

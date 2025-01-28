@@ -1,19 +1,18 @@
 "use client";
 
-import { Suspense } from "react";
-import HeroVideoDialog from "@/components/ui/hero-video-dialog";
-import { useSearchParams } from "next/navigation";
-import { ArrowRight, BarChart3, Brain, Zap } from "lucide-react";
 import { EmailDialog } from "@/components/email-dialog";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import HeroVideoDialog from "@/components/ui/hero-video-dialog";
+import { ArrowRight, BarChart3, Brain, Zap } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 function Feature({
   icon: Icon,
   title,
   description,
 }: {
-  icon: any;
+  icon: React.ElementType;
   title: string;
   description: string;
 }) {

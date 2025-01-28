@@ -65,7 +65,7 @@ export async function createSlackChannel(
       channel: channelName,
     });
     throw new Error("Channel already exists");
-  } catch (error) {
+  } catch (_error) {
     // Channel does not exist, proceed with creation
   }
 

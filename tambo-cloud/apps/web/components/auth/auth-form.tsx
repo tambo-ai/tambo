@@ -61,10 +61,13 @@ export function AuthForm({
         if (error) throw error;
         window.location.href = routeOnSuccess;
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description:
+          error instanceof Error
+            ? error.message
+            : `An unknown error occurred: ${error}`,
         variant: "destructive",
       });
     } finally {

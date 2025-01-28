@@ -1,9 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -12,10 +9,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import Link from "next/link";
-import { CreateSlackChannelSchema } from "@/lib/types/slack";
+import { Input } from "@/components/ui/input";
 import type { CreateSlackChannelInput } from "@/lib/types/slack";
+import { CreateSlackChannelSchema } from "@/lib/types/slack";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 interface SlackChannelFormProps {
   onSuccess?: (data: {
@@ -44,7 +44,7 @@ export function SlackChannelForm({ onSuccess }: SlackChannelFormProps) {
 
   interface APIError {
     error: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
   }
 
   async function onSubmit(values: CreateSlackChannelInput) {
@@ -92,12 +92,6 @@ export function SlackChannelForm({ onSuccess }: SlackChannelFormProps) {
       setIsLoading(false);
     }
   }
-
-  const resetForm = () => {
-    setError(null);
-    setInviteData(null);
-    form.reset();
-  };
 
   return (
     <Form {...form}>

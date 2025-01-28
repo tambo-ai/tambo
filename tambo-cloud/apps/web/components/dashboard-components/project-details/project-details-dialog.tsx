@@ -54,7 +54,7 @@ export function ProjectDetailsDialog({
         title: "Success",
         description: "Project deleted successfully",
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to delete project",

@@ -34,7 +34,7 @@ export function AuroraText({
           />
         ))}
       </div>
-      <style jsx>{`
+      <style>{`
         @keyframes aurora-1 {
           0%,
           100% {

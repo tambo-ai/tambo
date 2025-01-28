@@ -1,16 +1,15 @@
 import { siteConfig } from "@/lib/config";
+import { transformerCopyButton } from "@rehype-pretty/transformers";
 import fs from "fs";
 import path from "path";
-import rehypePrettyCode from "rehype-pretty-code";
-import { type Options } from "rehype-pretty-code";
+import rehypeMinifyWhitespace from "rehype-minify-whitespace";
+import rehypePrettyCode, { type Options } from "rehype-pretty-code";
+import rehypeRaw from "rehype-raw";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
-import rehypeRaw from "rehype-raw";
-import rehypeMinifyWhitespace from "rehype-minify-whitespace";
 import { unified } from "unified";
-import { transformerCopyButton } from "@rehype-pretty/transformers";
 
 export type Post = {
   title: string;
@@ -56,7 +55,7 @@ export async function markdownToHTML(markdown: string) {
         transformerCopyButton({
           visibility: "always",
           feedbackDuration: 3_000,
-        } as any),
+        }),
       ],
     } satisfies Partial<Options>)
     .use(rehypeMinifyWhitespace)
