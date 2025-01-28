@@ -17,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "openai": "^4.63.0",
+    "openai": "^4.80.1",
     "token.js": "^0.4.5",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.3"
