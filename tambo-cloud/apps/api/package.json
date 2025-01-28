@@ -6,12 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
-    "start": "nest start",
-    "dev": "nest start --watch",
-    "start:dev": "nest start --watch -e 'node --experimental-require-module'",
-    "start:debug": "nest start --debug --watch ",
-    "start:prod": "node dist/apps/api/src/main",
+    "build": "NODE_OPTIONS=--experimental-require-module nest build",
+    "start": "NODE_OPTIONS=--experimental-require-module nest start",
+    "dev": "NODE_OPTIONS=--experimental-require-module nest start --watch",
+    "start:dev": "NODE_OPTIONS=--experimental-require-module nest start --watch",
+    "start:debug": "NODE_OPTIONS=--experimental-require-module nest start --debug --watch ",
+    "start:prod": "NODE_OPTIONS=--experimental-require-module node dist/apps/api/src/main",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -36,7 +36,7 @@
     "nest-supabase-guard": "^1.0.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "superjson": "^1.13.3",
+    "superjson": "^2.2.2",
     "uuid": "^11.0.5"
   },
   "devDependencies": {

@@ -70,7 +70,7 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.1",
     "shiki": "^2.0.3",
-    "superjson": "^1.13.3",
+    "superjson": "^2.2.2",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "unified": "^11.0.5",
