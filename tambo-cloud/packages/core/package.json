@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "import": "./src/index.ts",
-    "require": "./cjs/index.js"
+    "import": "./src/index.ts"
   },
   "main": "./src/index.ts",
   "scripts": {
