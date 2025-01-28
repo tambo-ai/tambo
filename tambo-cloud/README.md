@@ -42,6 +42,19 @@ These are also available as npm scripts:
 - `npm run lint` - Lints the api and web apps
 - `npm run check-types` - Checks the types in the api and web apps
 
+### Environment Variables
+
+To run the apps locally, you need to create a `.env` file in the `apps/api` and `apps/web` directories. You can use the `.env.example` files in each directory as a reference.
+
+- api `.env.example` [here](./apps/api/.env.example)
+- web `.env.example` [here](./apps/web/.env.example)
+
+Additionally, when using the `db` package to perform migrations, you need to create a `.env` file in the `packages/db` directory. You can use the `.env.example` file in that directory as a reference.
+
+- db `.env.example` [here](./packages/db/.env.example)
+
+Note: Some values may be identical in all the `.env` files, so remember to change them in all of them when updating.
+
 ### Database setup
 
 The database is setup with [Drizzle](https://orm.drizzle.team/docs/introduction/getting-started) and [Supabase](https://supabase.com/). The following instructions will get a local database running and setup the database schema.
