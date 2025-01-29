@@ -112,7 +112,8 @@ export default class HydraClient {
       component: null,
       message: "Choosing component...",
       stage: GenerationStage.CHOOSING_COMPONENT,
-      loading: true
+      loading: true,
+      threadId: threadId || this.currentThreadId,
     });
 
     // Before sending, check if user has specified a specific threadId
@@ -129,13 +130,18 @@ export default class HydraClient {
       this.getComponentChoice
     );
 
+    if (componentDecision.threadId) {
+      this.currentThreadId = componentDecision.threadId;
+    }
+
     if (componentDecision.componentName === null) {
       const response = {
         component: null,
         message: componentDecision.message,
         stage: GenerationStage.COMPLETE,
         loading: false,
-        suggestedActions: componentDecision.suggestedActions
+        suggestedActions: componentDecision.suggestedActions,
+        threadId: threadId || this.currentThreadId,
       };
       onProgressUpdate(response);
       return response;
@@ -154,7 +160,8 @@ export default class HydraClient {
         component: componentToHydrate,
         message: "Fetching additional context...",
         stage: GenerationStage.FETCHING_CONTEXT,
-        loading: true
+        loading: true,
+        threadId: threadId || this.currentThreadId,
       });
 
       const response = await this.handleToolCallRequest(
@@ -186,12 +193,9 @@ export default class HydraClient {
         message: componentDecision.message,
         stage: GenerationStage.COMPLETE,
         loading: false,
-        suggestedActions: componentDecision.suggestedActions
+        suggestedActions: componentDecision.suggestedActions,
+        threadId: threadId || this.currentThreadId,
       };
-
-      if (componentDecision.threadId) {
-        this.currentThreadId = componentDecision.threadId;
-      }
 
       onProgressUpdate(response);
       return response;
