@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class ThreadDto {
+export class ThreadRequest {
   @IsString()
   projectId!: string;
 

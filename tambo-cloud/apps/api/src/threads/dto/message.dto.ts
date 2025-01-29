@@ -2,7 +2,7 @@ import { MessageRole } from '@use-hydra-ai/db';
 import { ComponentDecision } from '@use-hydra-ai/hydra-ai-server';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class MessageDto {
+export class MessageRequest {
   @IsEnum(MessageRole)
   role!: MessageRole;
 

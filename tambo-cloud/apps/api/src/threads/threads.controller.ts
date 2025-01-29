@@ -15,8 +15,8 @@ import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
 } from '../projects/guards/project-access-own.guard';
-import { MessageDto } from './dto/message.dto';
-import { ThreadDto } from './dto/thread.dto';
+import { MessageRequest } from './dto/message.dto';
+import { ThreadRequest } from './dto/thread.dto';
 import { ThreadsService } from './threads.service';
 
 @ApiBearerAuth()
@@ -29,7 +29,7 @@ export class ThreadsController {
   @ProjectIdParameterKey('projectId')
   @UseGuards(ProjectAccessOwnGuard)
   @Post()
-  create(@Body() createThreadDto: ThreadDto) {
+  create(@Body() createThreadDto: ThreadRequest) {
     return this.threadsService.createThread(createThreadDto);
   }
 
@@ -52,7 +52,7 @@ export class ThreadsController {
 
   //   @UseGuards(ProjectAccessOwnGuard)
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateThreadDto: ThreadDto) {
+  update(@Param('id') id: string, @Body() updateThreadDto: ThreadRequest) {
     return this.threadsService.update(id, updateThreadDto);
   }
 
@@ -64,7 +64,10 @@ export class ThreadsController {
 
   //   @UseGuards(ProjectAccessOwnGuard)
   @Post(':id/messages')
-  addMessage(@Param('id') threadId: string, @Body() messageDto: MessageDto) {
+  addMessage(
+    @Param('id') threadId: string,
+    @Body() messageDto: MessageRequest,
+  ) {
     return this.threadsService.addMessage(threadId, messageDto);
   }
 

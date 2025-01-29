@@ -3,7 +3,7 @@ import {
   ChatMessage,
 } from '@use-hydra-ai/hydra-ai-server';
 
-export class GenerateComponentDto {
+export class GenerateComponentRequest {
   messageHistory?: ChatMessage[];
   availableComponents?: AvailableComponents;
   /** Optional threadId to generate a component for */

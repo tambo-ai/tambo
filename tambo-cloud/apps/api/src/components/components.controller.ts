@@ -11,8 +11,8 @@ import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
 import { ThreadsService } from '../threads/threads.service';
 import { ComponentDecisionWithThreadId } from './dto/component-decision.dto';
-import { GenerateComponentDto } from './dto/generate-component.dto';
-import { HydrateComponentDto } from './dto/hydrate-component.dto';
+import { GenerateComponentRequest } from './dto/generate-component.dto';
+import { HydrateComponentRequest } from './dto/hydrate-component.dto';
 import { ApiKeyGuard } from './guards/apikey.guard';
 
 @ApiSecurity('apiKey')
@@ -27,7 +27,7 @@ export class ComponentsController {
 
   @Post('generate')
   async generateComponent(
-    @Body() generateComponentDto: GenerateComponentDto,
+    @Body() generateComponentDto: GenerateComponentRequest,
     @Req() request, // Assumes the request object has the projectId
   ): Promise<ComponentDecisionWithThreadId> {
     const { messageHistory, availableComponents, threadId, contextKey } =
@@ -113,7 +113,7 @@ export class ComponentsController {
 
   @Post('hydrate')
   async hydrateComponent(
-    @Body() hydrateComponentDto: HydrateComponentDto,
+    @Body() hydrateComponentDto: HydrateComponentRequest,
     @Req() request, // Assumes the request object has the projectId
   ): Promise<ComponentDecisionWithThreadId> {
     const {

@@ -1,4 +1,4 @@
-export class APIKeyResponseDto {
+export class APIKeyResponse {
   id?: string;
   name?: string;
   partiallyHiddenKey?: string;

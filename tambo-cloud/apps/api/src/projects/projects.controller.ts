@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { SupabaseAuthGuard } from 'nest-supabase-guard/dist/supabase-auth.guard';
-import { AddProviderKeyDto } from './dto/add-provider-key.dto';
-import { ProjectDto } from './dto/project.dto';
+import { AddProviderKeyRequest } from './dto/add-provider-key.dto';
+import { ProjectResponse } from './dto/project-response.dto';
 import { ProjectAccessOwnGuard } from './guards/project-access-own.guard';
 import { ValidUserGuard } from './guards/valid-user.guard';
 import { ProjectsService } from './projects.service';
@@ -30,7 +30,7 @@ export class ProjectsController {
   @UseGuards(ValidUserGuard)
   @Post()
   create(@Body() { projectName }, @Req() request) {
-    const createProjectDto: ProjectDto = {
+    const createProjectDto: ProjectResponse = {
       name: projectName,
       userId: request.userId,
     };
@@ -51,7 +51,7 @@ export class ProjectsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: ProjectDto) {
+  update(@Param('id') id: string, @Body() updateProjectDto: ProjectResponse) {
     return this.projectsService.update(id, updateProjectDto);
   }
 
@@ -87,7 +87,7 @@ export class ProjectsController {
   @Put(':id/provider-key')
   addProviderKey(
     @Param('id') id: string,
-    @Body() addProviderKeyDto: AddProviderKeyDto,
+    @Body() addProviderKeyDto: AddProviderKeyRequest,
     @Req() request,
   ) {
     const { providerName, providerKey } = addProviderKeyDto;

@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class AddProviderKeyDto {
+export class AddProviderKeyRequest {
   @IsString()
   providerName?: string;
 

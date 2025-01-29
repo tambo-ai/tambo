@@ -1,6 +1,6 @@
 import { AvailableComponent, ChatMessage } from '@use-hydra-ai/hydra-ai-server';
 
-export class HydrateComponentDto {
+export class HydrateComponentRequest {
   messageHistory?: ChatMessage[];
   component?: AvailableComponent;
   toolResponse?: any;

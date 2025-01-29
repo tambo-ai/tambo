@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { HydraDatabase } from '@use-hydra-ai/db';
 import { operations } from '@use-hydra-ai/db';
-import { MessageDto } from './dto/message.dto';
-import { ThreadDto } from './dto/thread.dto';
+import { MessageRequest } from './dto/message.dto';
+import { ThreadRequest } from './dto/thread.dto';
 
 @Injectable()
 export class ThreadsService {
@@ -11,7 +11,7 @@ export class ThreadsService {
     private readonly db: HydraDatabase,
   ) {}
 
-  async createThread(createThreadDto: ThreadDto) {
+  async createThread(createThreadDto: ThreadRequest) {
     return operations.createThread(this.db, {
       projectId: createThreadDto.projectId,
       contextKey: createThreadDto.contextKey,
@@ -30,7 +30,7 @@ export class ThreadsService {
     return operations.getThread(this.db, id);
   }
 
-  async update(id: string, updateThreadDto: ThreadDto) {
+  async update(id: string, updateThreadDto: ThreadRequest) {
     return operations.updateThread(this.db, id, {
       contextKey: updateThreadDto.contextKey,
       metadata: updateThreadDto.metadata,
@@ -41,7 +41,7 @@ export class ThreadsService {
     return operations.deleteThread(this.db, id);
   }
 
-  async addMessage(threadId: string, messageDto: MessageDto) {
+  async addMessage(threadId: string, messageDto: MessageRequest) {
     return operations.addMessage(this.db, {
       threadId,
       role: messageDto.role,
