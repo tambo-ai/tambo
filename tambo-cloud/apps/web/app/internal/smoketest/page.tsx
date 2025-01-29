@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import { api } from "@/trpc/react";
 import { useMutation } from "@tanstack/react-query";
+import { TRPCClientErrorLike } from "@trpc/client";
 import { ComponentContextTool } from "@use-hydra-ai/hydra-ai-server";
 import { HydraClient } from "hydra-ai";
+import { X } from "lucide-react";
 import { ReactElement, useMemo, useState } from "react";
+
 interface Message {
   role: "user" | "assistant";
   content: (string | ReactElement)[];
@@ -18,13 +21,23 @@ export default function SmokePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [threadId, setThreadId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
+    [],
+  );
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
-    api.demo.aqi.useMutation();
+    api.demo.aqi.useMutation({
+      onError: (error) => setErrors((prev) => [...prev, error]),
+    });
   const { mutateAsync: getForecast, isPending: isForecastPending } =
-    api.demo.forecast.useMutation();
+    api.demo.forecast.useMutation({
+      onError: (error) => setErrors((prev) => [...prev, error]),
+    });
   const { mutateAsync: getHistoricalWeather, isPending: isHistoryPending } =
-    api.demo.history.useMutation();
+    api.demo.history.useMutation({
+      onError: (error) => setErrors((prev) => [...prev, error]),
+    });
   const hydraClient = useWeatherHydra({
     getForecast,
     getHistoricalWeather,
@@ -34,15 +47,20 @@ export default function SmokePage() {
   const { mutateAsync: generateComponent, isPending: isGenerating } =
     useMutation({
       mutationFn: async () => {
-        const response = await hydraClient.generateComponent(
-          input,
-          (msg) => {
-            console.log(msg);
-          },
-          threadId ?? undefined,
-        );
-        setThreadId(response.threadId ?? null);
-        return response;
+        try {
+          const response = await hydraClient.generateComponent(
+            input,
+            (msg) => {
+              console.log(msg);
+            },
+            threadId ?? undefined,
+          );
+          setThreadId(response.threadId ?? null);
+          return response;
+        } catch (error) {
+          setErrors((prev) => [...prev, error as Error]);
+          throw error;
+        }
       },
     });
 
@@ -74,7 +92,7 @@ export default function SmokePage() {
   };
 
   return (
-    <div className="container max-w-2xl py-8">
+    <div className="container max-w-2xl py-8 space-y-4">
       <Card className="p-4 min-h-[500px] flex flex-col">
         <div className="flex-1 overflow-y-auto space-y-4 mb-4">
           {messages.map((message, index) => (
@@ -110,6 +128,29 @@ export default function SmokePage() {
           </Button>
         </form>
       </Card>
+
+      {errors.length > 0 && (
+        <Card className="p-4 bg-destructive/10">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold">Errors</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setErrors([])}
+              className="h-8 px-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {errors.map((error, index) => (
+              <div key={index} className="text-sm font-mono">
+                {error.message || String(error)}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
