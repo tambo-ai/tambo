@@ -7,6 +7,7 @@ export interface GenerateComponentResponse {
   stage: GenerationStage;
   loading: boolean;
   suggestedActions?: SuggestedAction[];
+  threadId?: string;
 }
 
 export enum GenerationStage {

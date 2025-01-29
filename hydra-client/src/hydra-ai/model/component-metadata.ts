@@ -1,3 +1,4 @@
+import { type JSONSchema7 } from "json-schema";
 import { ComponentType } from "react";
 import { ComponentPropsMetadata } from "./component-props-metadata";
 
@@ -17,6 +18,7 @@ export interface ComponentContextToolMetadata {
     isRequired: boolean;
     items?: { type: string };
     enumValues?: string[];
+    schema?: JSONSchema7;
   }[];
 }
 
