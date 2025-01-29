@@ -33,6 +33,11 @@ export class ToolService {
                       items: { type: parameter.items?.type || "string" },
                     },
                   ];
+                } else if (parameter.type === "object") {
+                  return [
+                    parameter.name,
+                    { type: "object", ...parameter.schema },
+                  ];
                 } else {
                   return [parameter.name, { type: parameter.type }];
                 }
