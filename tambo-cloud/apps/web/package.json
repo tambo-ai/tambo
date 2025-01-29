@@ -15,6 +15,7 @@
   "dependencies": {
     "@devnomic/marquee": "^1.0.2",
     "@hookform/resolvers": "^3.9.1",
+    "@hydra-ai/client": "^0.1.0-alpha.3",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.1.5",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -34,6 +35,7 @@
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
     "@t3-oss/env-nextjs": "^0.11.1",
+    "@tanstack/react-query": "^5.65.1",
     "@trpc/client": "^11.0.0-rc.730",
     "@trpc/react-query": "^11.0.0-rc.730",
     "@trpc/server": "^11.0.0-rc.700",
@@ -50,6 +52,7 @@
     "fumadocs-mdx": "^11.3.1",
     "fumadocs-ui": "^14.7.7",
     "geist": "^1.3.1",
+    "hydra-ai": "^0.0.50",
     "i": "^0.3.7",
     "jiti": "^2.4.2",
     "lucide-react": "^0.474.0",
