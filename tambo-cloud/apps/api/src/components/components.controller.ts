@@ -10,7 +10,7 @@ import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
 import { ThreadsService } from '../threads/threads.service';
-import { ComponentDecisionWithThreadId } from './dto/component-decision.dto';
+import { ComponentDecision as ComponentDecisionDto } from './dto/component-decision.dto';
 import { GenerateComponentRequest } from './dto/generate-component.dto';
 import { HydrateComponentRequest } from './dto/hydrate-component.dto';
 import { ApiKeyGuard } from './guards/apikey.guard';
@@ -29,7 +29,7 @@ export class ComponentsController {
   async generateComponent(
     @Body() generateComponentDto: GenerateComponentRequest,
     @Req() request, // Assumes the request object has the projectId
-  ): Promise<ComponentDecisionWithThreadId> {
+  ): Promise<ComponentDecisionDto> {
     const { messageHistory, availableComponents, threadId, contextKey } =
       generateComponentDto;
     if (!messageHistory?.length) {
@@ -115,7 +115,7 @@ export class ComponentsController {
   async hydrateComponent(
     @Body() hydrateComponentDto: HydrateComponentRequest,
     @Req() request, // Assumes the request object has the projectId
-  ): Promise<ComponentDecisionWithThreadId> {
+  ): Promise<ComponentDecisionDto> {
     const {
       messageHistory = [],
       component,
