@@ -12,13 +12,15 @@ export class ComponentDecision {
   threadId?: string;
 }
 
+export class ComponentParameter {
+  parameterName!: string;
+  parameterValue!: any;
+}
+
 export class ToolCallRequest implements Partial<ToolCallRequestInterface> {
   toolCallId?: string;
   tool?: string;
-  parameters?: {
-    parameterName: string;
-    parameterValue: any;
-  }[];
+  parameters?: ComponentParameter[];
   toolName?: string;
 }
 
