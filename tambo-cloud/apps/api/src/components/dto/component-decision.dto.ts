@@ -4,9 +4,9 @@ import {
 } from '@use-hydra-ai/hydra-ai-server';
 
 export class ComponentDecision {
-  componentName?: string | null;
-  props?: Record<string, any>;
-  message?: string;
+  componentName!: string | null;
+  props!: Record<string, any>;
+  message!: string;
   suggestedActions?: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
   threadId?: string;
@@ -20,11 +20,11 @@ export class ComponentParameter {
 export class ToolCallRequest implements Partial<ToolCallRequestInterface> {
   toolCallId?: string;
   tool?: string;
-  parameters?: ComponentParameter[];
-  toolName?: string;
+  parameters!: ComponentParameter[];
+  toolName!: string;
 }
 
 export class SuggestedAction implements Partial<SuggestedActionInterface> {
-  label?: string;
-  actionText?: string;
+  label!: string;
+  actionText!: string;
 }

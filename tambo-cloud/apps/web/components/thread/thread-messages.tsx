@@ -39,7 +39,7 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
                   )}
                 </div>
 
-                {message.componentDecision.suggestedActions?.length > 0 && (
+                {!!message.componentDecision.suggestedActions?.length && (
                   <div className="mt-1">
                     Suggested Actions:
                     <ul className="list-disc list-inside">

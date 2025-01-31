@@ -1,6 +1,6 @@
 import { MessageRole } from '@use-hydra-ai/db';
-import { ComponentDecision } from '@use-hydra-ai/hydra-ai-server';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { ComponentDecision } from '../../components/dto/component-decision.dto';
 
 export class MessageRequest {
   @IsEnum(MessageRole)
@@ -13,5 +13,13 @@ export class MessageRequest {
   metadata?: Record<string, unknown>;
 
   @IsOptional()
+  component?: ComponentDecision;
+}
+
+export class Message {
+  id!: string;
+  role!: MessageRole;
+  content!: string;
+  metadata?: Record<string, unknown>;
   component?: ComponentDecision;
 }

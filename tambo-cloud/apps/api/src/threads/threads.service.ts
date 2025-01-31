@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { HydraDatabase } from '@use-hydra-ai/db';
 import { operations } from '@use-hydra-ai/db';
-import { MessageRequest } from './dto/message.dto';
+import { ComponentDecision } from '../components/dto/component-decision.dto';
+import { Message, MessageRequest } from './dto/message.dto';
 import { ThreadRequest } from './dto/thread.dto';
 
 @Injectable()
@@ -41,18 +42,35 @@ export class ThreadsService {
     return operations.deleteThread(this.db, id);
   }
 
-  async addMessage(threadId: string, messageDto: MessageRequest) {
-    return operations.addMessage(this.db, {
+  async addMessage(
+    threadId: string,
+    messageDto: MessageRequest,
+  ): Promise<Message> {
+    const message = await operations.addMessage(this.db, {
       threadId,
       role: messageDto.role,
       content: messageDto.message,
-      component: messageDto.component,
+      component: messageDto.component ?? undefined,
       metadata: messageDto.metadata,
     });
+    return {
+      id: message.id,
+      role: message.role,
+      content: message.content as string,
+      metadata: message.metadata as Record<string, unknown>,
+      component: message.componentDecision as ComponentDecision,
+    };
   }
 
-  async getMessages(threadId: string) {
-    return operations.getMessages(this.db, threadId);
+  async getMessages(threadId: string): Promise<Message[]> {
+    const messages = await operations.getMessages(this.db, threadId);
+    return messages.map((message) => ({
+      id: message.id,
+      role: message.role,
+      content: message.content as string,
+      metadata: message.metadata as Record<string, unknown>,
+      component: message.componentDecision as ComponentDecision,
+    }));
   }
 
   async deleteMessage(messageId: string) {

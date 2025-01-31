@@ -2,7 +2,7 @@ export interface ComponentDecision {
   componentName: string | null;
   props: any | null;
   message: string;
-  suggestedActions: SuggestedAction[];
+  suggestedActions?: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
 }
 
