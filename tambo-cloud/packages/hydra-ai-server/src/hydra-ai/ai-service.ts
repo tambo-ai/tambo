@@ -34,7 +34,6 @@ export default class AIService {
     this.decisionService = new ComponentDecisionService(
       this.llmClient,
       this.promptService,
-      this.parserService,
       this.hydrationService,
     );
   }

@@ -4,8 +4,16 @@ import { ChatMessage } from "../../model/chat-message";
 export function chatHistoryToParams(
   messageHistory: ChatMessage[],
 ): ChatCompletionMessageParam[] {
-  return messageHistory.map((message) => ({
-    role: message.sender === "user" ? "user" : "system",
-    content: message.message,
-  }));
+  const messages: ChatCompletionMessageParam[] = [];
+
+  messageHistory.forEach((message) => {
+    messages.push({
+      role: message.sender === "user" ? "user" : "system",
+      content:
+        message.message +
+        `<System> The following is additional context provided by the system that you can use when responding to the user:  ${message.additionalContext} </System>`,
+    });
+  });
+
+  return messages;
 }

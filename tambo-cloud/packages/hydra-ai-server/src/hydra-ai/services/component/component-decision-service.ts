@@ -2,7 +2,6 @@ import { ComponentDecision } from "../../model/component-choice";
 import { InputContext } from "../../model/input-context";
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
-import { ResponseParserService } from "../parser/response-parser-service";
 import { PromptService } from "../prompt/prompt-service";
 import { ComponentHydrationService } from "./component-hydration-service";
 
@@ -10,7 +9,6 @@ export class ComponentDecisionService {
   constructor(
     private llmClient: LLMClient,
     private promptService: PromptService,
-    private parserService: ResponseParserService,
     private hydrationService: ComponentHydrationService,
   ) {}
 
