@@ -11,7 +11,9 @@ export function chatHistoryToParams(
       role: message.sender === "user" ? "user" : "system",
       content:
         message.message +
-        `<System> The following is additional context provided by the system that you can use when responding to the user:  ${message.additionalContext} </System>`,
+        (message.additionalContext
+          ? `<System> The following is additional context provided by the system that you can use when responding to the user:  ${message.additionalContext} </System>`
+          : ""),
     });
   });
 

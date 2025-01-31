@@ -1,6 +1,6 @@
 {
   "name": "@use-hydra-ai/hydra-ai-server",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Server package for running hydra-ai",
   "type": "module",
   "exports": {

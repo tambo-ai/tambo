@@ -30,7 +30,7 @@
     "@nestjs/swagger": "^11.0.3",
     "@use-hydra-ai/core": "*",
     "@use-hydra-ai/db": "*",
-    "@use-hydra-ai/hydra-ai-server": "^0.0.5",
+    "@use-hydra-ai/hydra-ai-server": "^0.0.6",
     "class-validator": "^0.14.1",
     "drizzle-orm": "^0.39.0",
     "nest-supabase-guard": "^1.0.2",
