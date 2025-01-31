@@ -1,9 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { HydraDatabase } from '@use-hydra-ai/db';
 import { operations } from '@use-hydra-ai/db';
-import { ComponentDecision } from '../components/dto/component-decision.dto';
 import { Message, MessageRequest } from './dto/message.dto';
-import { ThreadRequest } from './dto/thread.dto';
+import { Thread, ThreadRequest } from './dto/thread.dto';
 
 @Injectable()
 export class ThreadsService {
@@ -27,8 +26,19 @@ export class ThreadsService {
     return operations.getThreadsByProject(this.db, projectId, { contextKey });
   }
 
-  async findOne(id: string) {
-    return operations.getThread(this.db, id);
+  async findOne(id: string): Promise<Thread> {
+    const thread = await operations.getThread(this.db, id);
+    if (!thread) {
+      throw new NotFoundException('Thread not found');
+    }
+    return {
+      id: thread.id,
+      createdAt: thread.createdAt,
+      updatedAt: thread.updatedAt,
+      contextKey: thread.contextKey ?? undefined,
+      metadata: thread.metadata ?? undefined,
+      projectId: thread.projectId,
+    };
   }
 
   async update(id: string, updateThreadDto: ThreadRequest) {
@@ -57,8 +67,8 @@ export class ThreadsService {
       id: message.id,
       role: message.role,
       content: message.content as string,
-      metadata: message.metadata as Record<string, unknown>,
-      component: message.componentDecision as ComponentDecision,
+      metadata: message.metadata ?? undefined,
+      component: message.componentDecision ?? undefined,
     };
   }
 
@@ -68,12 +78,12 @@ export class ThreadsService {
       id: message.id,
       role: message.role,
       content: message.content as string,
-      metadata: message.metadata as Record<string, unknown>,
-      component: message.componentDecision as ComponentDecision,
+      metadata: message.metadata ?? undefined,
+      component: message.componentDecision ?? undefined,
     }));
   }
 
   async deleteMessage(messageId: string) {
-    return operations.deleteMessage(this.db, messageId);
+    await operations.deleteMessage(this.db, messageId);
   }
 }

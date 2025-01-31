@@ -15,8 +15,8 @@ import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
 } from '../projects/guards/project-access-own.guard';
-import { MessageRequest } from './dto/message.dto';
-import { ThreadRequest } from './dto/thread.dto';
+import { Message, MessageRequest } from './dto/message.dto';
+import { Thread, ThreadRequest } from './dto/thread.dto';
 import { ThreadsService } from './threads.service';
 
 @ApiBearerAuth()
@@ -46,14 +46,22 @@ export class ThreadsController {
 
   //   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<Thread> {
     return this.threadsService.findOne(id);
   }
 
   //   @UseGuards(ProjectAccessOwnGuard)
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateThreadDto: ThreadRequest) {
-    return this.threadsService.update(id, updateThreadDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateThreadDto: ThreadRequest,
+  ): Promise<Thread> {
+    const thread = await this.threadsService.update(id, updateThreadDto);
+    return {
+      ...thread,
+      contextKey: thread.contextKey ?? undefined,
+      metadata: thread.metadata ?? undefined,
+    };
   }
 
   //   @UseGuards(ProjectAccessOwnGuard)
@@ -73,7 +81,7 @@ export class ThreadsController {
 
   //   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id/messages')
-  getMessages(@Param('id') threadId: string) {
+  getMessages(@Param('id') threadId: string): Promise<Message[]> {
     return this.threadsService.getMessages(threadId);
   }
 

@@ -122,7 +122,7 @@ export const threads = pgTable(
       .references(() => projects.id)
       .notNull(),
     contextKey: text("context_key"),
-    metadata: jsonb("metadata"),
+    metadata: customJsonb<Record<string, unknown>>("metadata"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   }),
@@ -147,7 +147,7 @@ export const messages = pgTable("messages", ({ text, timestamp, jsonb }) => ({
   }).notNull(),
   content: jsonb("content").notNull(),
   componentDecision: customJsonb<ComponentDecision>("component_decision"),
-  metadata: jsonb("metadata"),
+  metadata: customJsonb<Record<string, unknown>>("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }));
 export type DBMessage = typeof messages.$inferSelect;

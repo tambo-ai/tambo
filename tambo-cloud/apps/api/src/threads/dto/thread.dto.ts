@@ -11,3 +11,9 @@ export class ThreadRequest {
   @IsOptional()
   metadata?: Record<string, unknown>;
 }
+
+export class Thread extends ThreadRequest {
+  id!: string;
+  createdAt!: Date;
+  updatedAt!: Date;
+}
