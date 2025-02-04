@@ -3,9 +3,12 @@
 import { Header } from "@/components/sections/header";
 import { ThreadList } from "@/components/thread/thread-list";
 import { ThreadMessages } from "@/components/thread/thread-messages";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
+import { RefreshCw } from "lucide-react";
 import { use, useEffect, useState } from "react";
 
 interface ProjectPageProps {
@@ -30,6 +33,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     data: threads,
     isLoading: isLoadingThreads,
     error: threadsError,
+    refetch: refetchThreads,
   } = api.thread.getThreads.useQuery({ projectId });
 
   // Fetch selected thread details
@@ -98,7 +102,19 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Thread List */}
         <div className="border rounded-lg p-4">
-          <h2 className="text-lg font-semibold mb-4">Threads</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Threads</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refetchThreads()}
+              disabled={isLoadingThreads}
+            >
+              <RefreshCw
+                className={cn("h-4 w-4", isLoadingThreads && "animate-spin")}
+              />
+            </Button>
+          </div>
           {isLoadingThreads ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
