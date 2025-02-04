@@ -7,6 +7,12 @@ import { ProjectsService } from '../projects.service';
 
 export const ProjectIdParameterKey = Reflector.createDecorator<string>({});
 
+/** Makes sure that the project being accessed belongs to the user making the
+ * request. Stores the current user's id in `request.userId`
+ *
+ * If the parameter name is not `'id'`, then use the ProjectIdParameterKey
+ * decorator to specify the parameter name.
+ */
 @Injectable()
 export class ProjectAccessOwnGuard implements CanActivate {
   constructor(

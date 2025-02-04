@@ -14,7 +14,10 @@ import {
 import { ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { SupabaseAuthGuard } from 'nest-supabase-guard/dist/supabase-auth.guard';
 import { AddProviderKeyRequest } from './dto/add-provider-key.dto';
-import { ProjectResponse } from './dto/project-response.dto';
+import {
+  ProjectCreateRequest,
+  ProjectUpdateRequest,
+} from './dto/project-response.dto';
 import { ProjectAccessOwnGuard } from './guards/project-access-own.guard';
 import { ValidUserGuard } from './guards/valid-user.guard';
 import { ProjectsService } from './projects.service';
@@ -29,8 +32,8 @@ export class ProjectsController {
 
   @UseGuards(ValidUserGuard)
   @Post()
-  create(@Body() { projectName }, @Req() request) {
-    const createProjectDto: ProjectResponse = {
+  create(@Body() { projectName }: ProjectCreateRequest, @Req() request) {
+    const createProjectDto = {
       name: projectName,
       userId: request.userId,
     };
@@ -51,8 +54,15 @@ export class ProjectsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: ProjectResponse) {
-    return this.projectsService.update(id, updateProjectDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateProjectDto: ProjectUpdateRequest,
+    @Req() request,
+  ) {
+    return this.projectsService.update(id, {
+      name: updateProjectDto.name,
+      userId: request.userId,
+    });
   }
 
   @UseGuards(ProjectAccessOwnGuard)

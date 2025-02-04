@@ -3,9 +3,9 @@ import { APIKey } from './api-key.entity';
 import { ProviderKey } from './provider-key.entity';
 
 export class Project {
-  id?: string;
-  name?: string;
-  userId?: string;
+  id!: string;
+  name!: string;
+  userId!: string;
   apiKeys?: APIKey[];
   providerKeys: ProviderKey[] = [];
 

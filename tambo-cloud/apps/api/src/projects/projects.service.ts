@@ -15,7 +15,10 @@ export class ProjectsService {
     private readonly config: ConfigService,
   ) {}
 
-  async create(createProjectDto: ProjectResponse): Promise<ProjectResponse> {
+  async create(createProjectDto: {
+    name: string;
+    userId: string;
+  }): Promise<ProjectResponse> {
     if (!createProjectDto.userId) {
       throw new Error('User ID is required');
     }
@@ -85,7 +88,10 @@ export class ProjectsService {
 
   async update(
     id: string,
-    updateProjectDto: ProjectResponse,
+    updateProjectDto: {
+      name: string;
+      userId: string;
+    },
   ): Promise<ProjectResponse | null> {
     if (!updateProjectDto.name) {
       throw new Error('Project name is required');
@@ -100,7 +106,7 @@ export class ProjectsService {
     return {
       id: updated.id,
       name: updated.name,
-      userId: updateProjectDto.userId ?? '',
+      userId: updateProjectDto.userId,
     };
   }
 
@@ -164,12 +170,20 @@ export class ProjectsService {
     userId: string,
   ): Promise<ProjectResponse | null | undefined> {
     const providerKeySecret = this.config.getOrThrow('PROVIDER_KEY_SECRET');
-    return operations.addProviderKey(this.db, providerKeySecret, {
+    const result = await operations.addProviderKey(this.db, providerKeySecret, {
       projectId,
       providerName,
       providerKey,
       userId,
     });
+    if (!result) {
+      return null;
+    }
+    return {
+      id: result.id,
+      name: result.name,
+      userId,
+    };
   }
 
   async findAllProviderKeys(projectId: string): Promise<ProviderKeyResponse[]> {
@@ -191,6 +205,10 @@ export class ProjectsService {
     if (!project) {
       throw new Error('Project not found');
     }
-    return project;
+    return {
+      id: project.id,
+      name: project.name,
+      userId: project.userId,
+    };
   }
 }
