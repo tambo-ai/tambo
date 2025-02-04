@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiSecurity } from '@nestjs/swagger';
@@ -46,8 +48,13 @@ export class ThreadsController {
 
   //   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Thread> {
-    return this.threadsService.findOne(id);
+  findOne(@Param('id') id: string, @Req() request): Promise<Thread> {
+    if (!request.projectId) {
+      // TODO: this is probably because the endpoint is using bearer auth
+      // and not apiKey auth
+      throw new BadRequestException('Project ID is required');
+    }
+    return this.threadsService.findOne(id, request.projectId);
   }
 
   //   @UseGuards(ProjectAccessOwnGuard)

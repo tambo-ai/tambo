@@ -35,24 +35,28 @@ export default class HydraBackend {
   public async generateComponent(
     messageHistory: ChatMessage[],
     availableComponents: AvailableComponents,
+    threadId: string,
   ): Promise<ComponentDecision> {
     const context: InputContext = {
       messageHistory,
       availableComponents,
+      threadId: threadId,
     };
 
-    return this.aiService.chooseComponent(context);
+    return this.aiService.chooseComponent(context, threadId);
   }
 
   public async hydrateComponentWithData(
     messageHistory: ChatMessage[],
     component: AvailableComponent,
     toolResponse: any,
+    threadId: string,
   ): Promise<ComponentDecision> {
     return this.aiService.hydrateComponent(
       messageHistory,
       component,
       toolResponse,
+      threadId,
     );
   }
 }

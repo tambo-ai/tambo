@@ -12,7 +12,10 @@ export class ComponentDecisionService {
     private hydrationService: ComponentHydrationService,
   ) {}
 
-  async decideComponent(context: InputContext): Promise<ComponentDecision> {
+  async decideComponent(
+    context: InputContext,
+    threadId: string,
+  ): Promise<ComponentDecision> {
     const decisionResponse = await this.llmClient.complete([
       {
         role: "system",
@@ -36,7 +39,7 @@ export class ComponentDecisionService {
     )?.[1];
 
     if (shouldGenerate === "false") {
-      return this.handleNoComponentCase(decisionResponse, context);
+      return this.handleNoComponentCase(decisionResponse, context, threadId);
     } else if (shouldGenerate === "true" && componentName) {
       const component = context.availableComponents[componentName];
       if (!component) {
@@ -47,6 +50,7 @@ export class ComponentDecisionService {
         component,
         undefined,
         context.availableComponents,
+        threadId,
       );
     }
 
@@ -56,6 +60,7 @@ export class ComponentDecisionService {
   private async handleNoComponentCase(
     decisionResponse: any,
     context: InputContext,
+    threadId: string,
   ): Promise<ComponentDecision> {
     const reasoning = decisionResponse.message.match(
       /<reasoning>(.*?)<\/reasoning>/,
@@ -77,6 +82,7 @@ export class ComponentDecisionService {
       props: null,
       message: noComponentResponse.message,
       suggestedActions: [],
+      threadId,
     };
   }
 }

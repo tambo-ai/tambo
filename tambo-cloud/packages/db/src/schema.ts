@@ -112,7 +112,7 @@ export const projectRelations = relations(projects, ({ many }) => ({
 
 export const threads = pgTable(
   "threads",
-  ({ text, timestamp, jsonb }) => ({
+  ({ text, timestamp }) => ({
     id: text("id")
       .primaryKey()
       .notNull()

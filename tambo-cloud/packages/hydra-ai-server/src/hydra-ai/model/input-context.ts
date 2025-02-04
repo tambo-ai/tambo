@@ -4,4 +4,5 @@ import { AvailableComponents } from "./component-metadata";
 export type InputContext = {
   messageHistory: ChatMessage[];
   availableComponents: AvailableComponents;
+  threadId: string;
 };

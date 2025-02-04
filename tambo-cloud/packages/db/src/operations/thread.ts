@@ -31,9 +31,41 @@ export async function createThread(
   return thread;
 }
 
-export async function getThread(db: HydraDb, threadId: string) {
+export async function getThreadForProjectId(
+  db: HydraDb,
+  threadId: string,
+  projectId: string,
+) {
   return db.query.threads.findFirst({
-    where: eq(schema.threads.id, threadId),
+    where: and(
+      eq(schema.threads.id, threadId),
+      eq(schema.threads.projectId, projectId),
+    ),
+    with: {
+      messages: {
+        orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+      },
+    },
+  });
+}
+
+export async function getThreadForUserId(
+  db: HydraDb,
+  threadId: string,
+  userId: string,
+) {
+  return db.query.threads.findFirst({
+    where: (threads, { eq, inArray }) =>
+      and(
+        eq(threads.id, threadId),
+        inArray(
+          threads.projectId,
+          db
+            .select({ id: schema.projectMembers.projectId })
+            .from(schema.projectMembers)
+            .where(eq(schema.projectMembers.userId, userId)),
+        ),
+      ),
     with: {
       messages: {
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
@@ -152,4 +184,18 @@ export async function deleteMessage(db: HydraDb, messageId: string) {
     .returning();
 
   return deleted;
+}
+
+/**
+ * Ensures that the thread exists and belongs to the project
+ */
+export async function ensureThreadByProjectId(
+  db: HydraDb,
+  threadId: string,
+  projectId: string,
+) {
+  const thread = await getThreadForProjectId(db, threadId, projectId);
+  if (!thread) {
+    throw new Error("Thread not found");
+  }
 }

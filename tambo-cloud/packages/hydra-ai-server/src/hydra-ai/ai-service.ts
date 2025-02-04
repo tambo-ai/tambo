@@ -38,21 +38,25 @@ export default class AIService {
     );
   }
 
-  async chooseComponent(context: InputContext): Promise<ComponentDecision> {
-    return this.decisionService.decideComponent(context);
+  async chooseComponent(
+    context: InputContext,
+    threadId: string,
+  ): Promise<ComponentDecision> {
+    return this.decisionService.decideComponent(context, threadId);
   }
 
   async hydrateComponent(
     messageHistory: any[],
     component: any,
-    toolResponse?: any,
-    availableComponents?: any,
+    toolResponse: any,
+    threadId: string,
   ): Promise<ComponentDecision> {
     return this.hydrationService.hydrateComponent(
       messageHistory,
       component,
       toolResponse,
-      availableComponents,
+      undefined,
+      threadId,
     );
   }
 }

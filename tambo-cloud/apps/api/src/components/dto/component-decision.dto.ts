@@ -9,7 +9,7 @@ export class ComponentDecision {
   message!: string;
   suggestedActions?: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
-  threadId?: string;
+  threadId!: string;
 }
 
 export class ComponentParameter {

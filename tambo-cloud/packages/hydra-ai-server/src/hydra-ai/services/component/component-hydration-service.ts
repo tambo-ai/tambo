@@ -21,8 +21,9 @@ export class ComponentHydrationService {
   async hydrateComponent(
     messageHistory: ChatMessage[],
     chosenComponent: AvailableComponent,
-    toolResponse?: any,
-    availableComponents?: AvailableComponents,
+    toolResponse: any | undefined,
+    availableComponents: AvailableComponents | undefined,
+    threadId: string,
   ): Promise<ComponentDecision> {
     //only define tools if we don't have a tool response
     const tools = toolResponse
@@ -57,6 +58,7 @@ export class ComponentHydrationService {
       props: null,
       suggestedActions: [],
       toolCallRequest: generateComponentResponse.toolCallRequest,
+      threadId,
     };
 
     if (!componentDecision.toolCallRequest) {
