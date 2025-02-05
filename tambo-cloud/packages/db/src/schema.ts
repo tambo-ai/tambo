@@ -2,6 +2,7 @@ import type { ComponentDecision } from "@use-hydra-ai/hydra-ai-server";
 import { relations, sql } from "drizzle-orm";
 import { index, pgTable } from "drizzle-orm/pg-core";
 import { authUsers } from "drizzle-orm/supabase";
+import { ActionType } from "./ActionType";
 import { MessageRole } from "./MessageRole";
 import { customJsonb } from "./drizzleUtil";
 export { authUsers } from "drizzle-orm/supabase";
@@ -147,9 +148,13 @@ export const messages = pgTable("messages", ({ text, timestamp, jsonb }) => ({
   }).notNull(),
   content: jsonb("content").notNull(),
   componentDecision: customJsonb<ComponentDecision>("component_decision"),
+  actionType: text("action_type", {
+    enum: Object.values<string>(ActionType) as [ActionType],
+  }),
   metadata: customJsonb<Record<string, unknown>>("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }));
+
 export type DBMessage = typeof messages.$inferSelect;
 
 export const threadRelations = relations(threads, ({ one, many }) => ({
