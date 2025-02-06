@@ -1,0 +1,178 @@
+---
+title: Message Threads
+description: Understanding message threads as the foundation of Hydra AI applications.
+---
+
+Message threads are the core building block for creating interactive AI experiences with Hydra. They provide a structured way to manage conversations between users and AI, complete with status tracking, streaming responses, and interactive components.
+
+## Core Concepts
+
+A message thread consists of:
+
+- Messages from both user and AI
+- Status indicators for ongoing operations
+- Streaming state management
+- Interactive components
+- Suggestions for next actions
+
+## Available Hooks
+
+### Core Thread Management
+
+```tsx title="Thread Core Hooks"
+// Access thread state and operations
+const { messages, operations, suggestions, components } = useHydraThread(threadId);
+
+// Access global thread state
+const { threads } = useHydraContext();
+
+// Thread lifecycle operations
+const {
+  create,    // Create new thread
+  delete,    // Remove thread
+  update,    // Update thread properties
+  updateMessageComponent    // Update component state
+} = useHydraContext().threads.operations;
+```
+
+### Message Management
+
+```tsx title="Message Management Hooks"
+// Main hook for message generation
+const { generate } = useHydraContext().messages;
+
+// Access message status
+const {
+  isThinking,
+  thinkingStatus,
+  isLoading,
+  isStreaming,
+  error,
+  validationState,
+} = useHydraContext().messages.status;
+```
+
+### Thread Operations
+
+```tsx title="Specialized Thread Operations"
+// Thread filtering
+const threadsByContext = useHydraContext().threads.getByContext(contextId);
+
+// Thread state access
+const allThreads = useHydraContext().threads.all;
+const threadStates = useHydraContext().threads.state;
+```
+
+## Implementation Examples
+
+### Basic Message Thread
+
+```tsx title="Basic Message Thread Component"
+import {
+  useHydraThread,
+  useHydraContext,
+  type HydraThreadMessage,
+  type HydraComponentInjectedProps,
+} from "hydra-ai-react";
+import { type FormEvent, useState } from "react";
+
+function BasicMessageThread({ threadId }: { threadId: string }) {
+  const { messages, suggestions } = useHydraThread(threadId);
+  const { generate } = useHydraContext().messages;
+  const { isThinking, isLoading, error } = useHydraContext().messages.status;
+  const [inputValue, setInputValue] = useState("");
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isLoading) return;
+
+    try {
+      await generate(threadId, inputValue);
+      setInputValue("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
+  };
+
+  return (
+    <div className="message-thread">
+      {/* Message List */}
+      <div className="flex flex-col gap-4">
+        {messages.map((message: HydraThreadMessage, index: number) => (
+          <div
+            key={`${message.type}-${index}`}
+            className={`${message.type === "user" ? "ml-auto" : "mr-auto"}`}
+          >
+            <div>{message.content}</div>
+            {message.component && (
+              <div className="mt-2">
+                {(() => {
+                  const Component = message.component.Component;
+                  const injectedProps: HydraComponentInjectedProps = {
+                    syncProp: <T,>(
+                      propName: keyof T,
+                      value: T[keyof T],
+                      metadata?: Record<string, unknown>
+                    ) => {
+                      console.log("Syncing prop:", propName, value, metadata);
+                    },
+                    threadId,
+                    messageId: message.id,
+                  };
+                  return (
+                    <Component
+                      {...message.component.props}
+                      {...injectedProps}
+                    />
+                  );
+                })()}
+              </div>
+            )}
+            {message.suggestions && message.suggestions.length > 0 && (
+              <div className="mt-2">
+                {message.suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.title}
+                    onClick={() => suggestions.accept(suggestion)}
+                  >
+                    {suggestion.title}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Input Form */}
+      <form onSubmit={handleSubmit}>
+        <input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Type your message..."
+          disabled={isLoading || isThinking}
+          className="w-full p-2 border rounded"
+        />
+        <button
+          type="submit"
+          disabled={isLoading || isThinking}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          {isThinking ? "Thinking..." : isLoading ? "Sending..." : "Send"}
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+## Advanced Features
+
+<Cards>
+  <Card href="/vnext/overview/status" title="Thread Hooks for Status">
+    Learn how to use the thread hooks for status updates.
+  </Card>
+  <Card href="/vnext/overview/suggestions" title="Thread Hooks for Suggestions">
+    Learn how to use the thread hooks for suggestions.
+  </Card>
+</Cards>

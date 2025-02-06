@@ -1,0 +1,12 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "---AI Assistant Quickstart---",
+    "...ai-assistant-quickstart",
+    "---Overview---",
+    "...overview",
+    "---What's Next?---",
+    "...future"
+  ]
+}

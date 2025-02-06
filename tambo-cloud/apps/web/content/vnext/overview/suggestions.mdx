@@ -1,0 +1,128 @@
+---
+title: Suggestions
+description: Implementing intelligent suggestions and recommendations.
+---
+
+Hydra AI automatically analyzes user interactions and generates contextual suggestions. As users interact with your application, Hydra:
+
+### When Suggestions Appear
+
+Hydra generates suggestions appear after a component has been rendered.
+
+### Types of Suggestions
+
+- "Analyze this data in a chart"
+- "Export results to PDF"
+- "Filter these results"
+
+## How Suggestions Work
+
+When Hydra generates a suggestion, it provides:
+
+```tsx title="AI-Generated Suggestion Structure"
+interface HydraSuggestion {
+  title: string; // A short title for the suggested action. // [!code highlight]
+  detailedSuggestion: string; // Detailed action to send to hydra. // [!code highlight]
+  suggestedTools?: string[]; // Tools the AI should use to complete the action. // [!code highlight]
+  components?: string[]; // Any components the AI should render. // [!code highlight]
+}
+```
+
+## Displaying Suggestions
+
+Hydra automatically adds suggestions to your message thread. Here's how to display them:
+
+```tsx title="Displaying AI Suggestions"
+function ThreadWithSuggestions() {
+  const {
+    suggestions, // AI-generated suggestions // [!code highlight]
+    accept, // Accept an AI suggestion // [!code highlight]
+  } = useThreadSuggestions(threadId);
+
+  if (!suggestions.length) return null;
+
+  return (
+    <div role="group" aria-label="Suggested actions">
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion.title}
+          onClick={() => accept(suggestion)}
+          title={suggestion.detailedSuggestion} // Show full description on hover
+        >
+          {suggestion.title}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+### Common Patterns
+
+Here are some common ways to present suggestions:
+
+```tsx title="Horizontal Option Group"
+function SuggestionOptions({ suggestions, onAccept }) {
+  if (!suggestions.length) return null;
+
+  return (
+    <div role="group" aria-label="Suggested next actions">
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion.title}
+          onClick={() => onAccept(suggestion)}
+          title={suggestion.detailedSuggestion}
+        >
+          {suggestion.title}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+```tsx title="Vertical Menu"
+function SuggestionMenu({ suggestions, onAccept }) {
+  if (!suggestions.length) return null;
+
+  return (
+    <div role="menu" aria-label="Suggested actions">
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion.title}
+          role="menuitem"
+          onClick={() => onAccept(suggestion)}
+          title={suggestion.detailedSuggestion}
+        >
+          <span>{suggestion.title}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+## Message Integration
+
+Suggestions appear as options within the message thread:
+
+```tsx title="Messages with AI Suggestions"
+function MessageThread() {
+  const { messages } = useHydraThreadMessages(threadId);
+  const { accept } = useThreadSuggestions(threadId);
+
+  return messages.map((message) => (
+    <div key={message.id}>
+      <div>{message.content}</div>
+
+      {/* Display suggestions as options */}
+      {message.suggestions?.length > 0 && (
+        <SuggestionOptions
+          suggestions={message.suggestions}
+          onAccept={accept}
+        />
+      )}
+    </div>
+  ));
+}
+```

@@ -1,0 +1,167 @@
+---
+title: Adding Interactive Components
+description: Learn how to add AI-powered UI components to your chat interface.
+---
+
+Now that we have our basic note and email components, let's make them interactive so users can edit notes and send emails.
+
+## Creating Interactive Components
+
+```tsx title="src/components/InteractiveNote.tsx"
+import React from "react";
+import {
+  useHydraState,
+  type HydraComponentInjectedProps,
+} from "@hydra-ai/react";
+import type { CustomerNoteProps } from "../schemas/crm-components";
+
+export const InteractiveNote = ({
+  title,
+  content: initialContent,
+  associatedLeadId,
+  ...injectedProps // Hydra automatically injects threadId and messageId
+}: CustomerNoteProps & HydraComponentInjectedProps) => {
+  const { value, setValue } = useHydraState<{
+    content: string;
+    isEditing: boolean;
+  }>();
+
+  // Initialize state if needed
+  const currentContent = value?.content ?? initialContent;
+  const isEditing = value?.isEditing ?? false;
+
+  return (
+    <div>
+      <div>
+        <span>Lead ID: {associatedLeadId}</span>
+        <h3>{title}</h3>
+        <button onClick={() => setValue({ ...value, isEditing: !isEditing })}>
+          {isEditing ? "Cancel" : "Edit"}
+        </button>
+      </div>
+      {isEditing ? (
+        <div>
+          <textarea
+            value={currentContent}
+            onChange={(e) => setValue({ ...value, content: e.target.value })}
+          />
+          <button onClick={() => setValue({ ...value, isEditing: false })}>
+            Save
+          </button>
+        </div>
+      ) : (
+        <div>{currentContent}</div>
+      )}
+    </div>
+  );
+};
+
+export const InteractiveEmail = ({
+  to,
+  subject,
+  content: initialContent,
+  ...injectedProps // Hydra automatically injects threadId and messageId
+}: EmailPreviewProps & HydraComponentInjectedProps) => {
+  const { value, setValue } = useHydraState<{
+    content: string;
+    isEditing: boolean;
+  }>();
+
+  // Initialize state if needed
+  const currentContent = value?.content ?? initialContent;
+  const isEditing = value?.isEditing ?? false;
+
+  return (
+    <div>
+      <div>
+        <span>To: {to}</span>
+        <h3>{subject}</h3>
+        <button onClick={() => setValue({ ...value, isEditing: !isEditing })}>
+          {isEditing ? "Cancel" : "Edit"}
+        </button>
+      </div>
+      {isEditing ? (
+        <div>
+          <textarea
+            value={currentContent}
+            onChange={(e) => setValue({ ...value, content: e.target.value })}
+          />
+          <button onClick={() => setValue({ ...value, isEditing: false })}>
+            Done
+          </button>
+        </div>
+      ) : (
+        <div>{currentContent}</div>
+      )}
+    </div>
+  );
+};
+```
+
+## Registering Components
+
+Register the components in your Hydra configuration:
+
+```tsx title="src/config/hydraConfig.ts"
+import { InteractiveNote } from "../components/InteractiveNote";
+import { InteractiveEmail } from "../components/InteractiveEmail";
+import {
+  customerNoteSchema,
+  emailPreviewSchema,
+} from "../schemas/crm-components";
+
+export const componentRegistry = createHydraComponentRegistry({
+  CustomerNote: {
+    component: InteractiveNote,
+    description: "Displays an editable customer note",
+    propsSchema: customerNoteSchema,
+  },
+  EmailPreview: {
+    component: InteractiveEmail,
+    description: "Displays an editable email",
+    propsSchema: emailPreviewSchema,
+  },
+});
+```
+
+## Using in Message Thread
+
+The components work automatically in the message thread:
+
+```tsx title="src/components/CrmChatThread.tsx"
+export const CrmChatThread = () => {
+  const { messages } = useHydraThread("thread-id");
+
+  return (
+    <div>
+      {messages.map((message) => (
+        <div key={message.id}>
+          <div>{message.content}</div>
+          {message.component && (
+            <message.component.Component
+              {...message.component.props}
+              // threadId and messageId are automatically injected
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+<Callout>
+  Components automatically receive thread and message context through Hydra's
+  provider system. The useHydraState hook connects to this context to provide
+  persistent, synchronized state management without any manual configuration.
+</Callout>
+
+What's happening here:
+
+- Components automatically receive threadId and messageId from Hydra
+- useHydraState hook automatically connects to the thread context
+- State is automatically persisted and synchronized
+- Components remain pure and focused on UI concerns
+- No manual context or state management needed
+
+<Callout title="Next Steps">We'll see how to add advanced features.</Callout>

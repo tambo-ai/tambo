@@ -1,0 +1,89 @@
+---
+title: Status
+description: Learn about the different status states in Hydra AI conversations.
+---
+
+Status in Hydra AI represents the current state of the conversation and any ongoing operations. Understanding these states is crucial for building responsive and user-friendly AI applications.
+
+## Process Status
+
+The core status system is represented by the `ProcessStatus` type, which combines several aspects of state:
+
+```typescript
+interface ProcessStatus {
+  state: "evaluating" | "tools" | "generating" | "complete" | "error";
+  message: string;
+  isLoading: boolean;
+  isThinking?: boolean;
+  streamingState?: StreamingState;
+  validationState?: ValidationState;
+}
+```
+
+### State Types
+
+- `evaluating` - AI is analyzing the input or context
+- `tools` - AI is using tools to perform operations
+- `generating` - AI is generating a response
+- `complete` - Operation has finished successfully
+- `error` - An error occurred during processing
+
+## Streaming State
+
+Streaming state tracks the progress of streaming operations:
+
+```typescript
+interface StreamingState {
+  isStreaming: boolean;
+  isComplete: boolean;
+  progress?: number;
+  error?: string;
+}
+```
+
+## Validation State
+
+Validation state tracks the validity of data and paths being processed:
+
+```typescript
+interface ValidationState {
+  isValid: boolean;
+  activePath: (string | number)[];
+  completedPaths: (string | number)[];
+}
+```
+
+## Usage Examples
+
+### Checking Message Status
+
+```typescript
+const { messages } = useHydraContext();
+const status = messages.status;
+
+if (status.state === "generating") {
+  // Show generating indicator
+}
+
+if (status.streamingState?.isStreaming) {
+  // Handle streaming UI
+}
+```
+
+### Handling Errors
+
+```typescript
+if (status.state === "error") {
+  // Display error message
+  console.error(status.message);
+}
+```
+
+### Tracking Progress
+
+```typescript
+if (status.streamingState?.progress) {
+  // Update progress bar
+  updateProgress(status.streamingState.progress);
+}
+```

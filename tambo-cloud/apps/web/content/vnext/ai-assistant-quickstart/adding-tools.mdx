@@ -1,0 +1,143 @@
+---
+title: Adding Tools
+description: Learn how to add tools that help your AI assistant work with your data.
+---
+
+Now that we have our note and email components set up, let's add tools that help your AI assistant work with your CRM data. Tools are how your components get the data they need to be useful.
+
+<Callout title="Why associate tools with components?">
+  <ul>
+    <li>Helps provide context to the AI when choosing a component</li>
+    <li>Helps the AI generate or fill in the props for the component</li>
+  </ul>
+</Callout>
+
+## 1. Define Tool Schemas
+
+First, let's define the schemas for our CRM tools:
+
+```tsx title="src/schemas/crm-tools.ts"
+import { z } from "zod";
+
+// Search leads schema
+export const leadSearchSchema = z.object({
+  query: z.string().describe("Search query for finding leads"),
+  limit: z.number().optional().default(10),
+});
+
+// Lead details schema
+export const leadDetailsSchema = z.object({
+  leadId: z.string().describe("The ID of the lead to fetch details for"),
+});
+
+// Response types
+export const leadSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  company: z.string(),
+  lastContact: z.string().datetime(),
+});
+
+export type LeadSearchInput = z.infer<typeof leadSearchSchema>;
+export type LeadDetailsInput = z.infer<typeof leadDetailsSchema>;
+export type Lead = z.infer<typeof leadSchema>;
+```
+
+## 2. Create Tool Registry
+
+Now let's register our tools using these schemas:
+
+```tsx title="src/config/tool-registry.ts"
+import { createHydraToolRegistry } from "hydra-ai-react";
+import {
+  leadSearchSchema,
+  leadDetailsSchema,
+  type LeadSearchInput,
+  type LeadDetailsInput,
+  type Lead,
+} from "../schemas/crm-tools";
+
+// Define the tool definitions
+export const toolDefinitions = {
+  searchLeads: {
+    description: "Search for leads in the CRM system",
+    inputSchema: leadSearchSchema,
+  },
+  getLeadDetails: {
+    description: "Get detailed information about a specific lead",
+    inputSchema: leadDetailsSchema,
+  },
+};
+
+// Create the registry with the definitions
+export const toolRegistry = createHydraToolRegistry(toolDefinitions);
+
+// Register the implementations
+toolRegistry.registerTool(
+  "searchLeads",
+  async (input: LeadSearchInput): Promise<Lead[]> => {
+    // In a real app, this would call your CRM API
+    return await searchLeadsInCrm(input.query, input.limit);
+  }
+);
+
+toolRegistry.registerTool(
+  "getLeadDetails",
+  async (input: LeadDetailsInput): Promise<Lead> => {
+    // In a real app, this would call your CRM API
+    return await getLeadFromCrm(input.leadId);
+  }
+);
+```
+
+What's happening here:
+
+- Tool definitions specify the schema and description for each tool
+- Tool implementations are registered separately with type-safe handlers
+- Return types are properly typed to match the expected response schemas
+
+## 3. Connecting Tools to Components
+
+Now connect these tools to your note and email components:
+
+```tsx title="src/config/component-registry.ts"
+import { createHydraComponentRegistry } from "hydra-ai-react";
+import { CustomerNote } from "../components/CustomerNote";
+import { EmailPreview } from "../components/EmailPreview";
+import {
+  customerNoteSchema,
+  emailPreviewSchema,
+} from "../schemas/crm-components";
+
+export const componentRegistry = createHydraComponentRegistry({
+  CustomerNote: {
+    component: CustomerNote,
+    description: "Display a note about a customer lead",
+    propsSchema: customerNoteSchema,
+    associatedTools: ["searchLeads", "getLeadDetails"],
+  },
+  EmailPreview: {
+    component: EmailPreview,
+    description: "Preview an email to a lead",
+    propsSchema: emailPreviewSchema,
+    associatedTools: ["searchLeads", "getLeadDetails"],
+  },
+});
+```
+
+Key points:
+
+- Component registry is generic over the tool registry type
+- Props schemas are properly typed to match component props
+- Associated tools are type-checked against available tool names
+
+<Cards>
+  <Card href="/vnext/overview/tools" title="Tools Overview">
+    Want a deeper dive into tools? Check out the tools overview
+  </Card>
+</Cards>
+
+<Callout title="Next Steps">
+  We'll see how to make these components interactive!
+</Callout>

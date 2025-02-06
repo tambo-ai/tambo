@@ -1,0 +1,356 @@
+---
+title: Generative UX
+description: Building dynamic interfaces with Hydra AI components.
+---
+
+Hydra AI enables you to create dynamic interfaces by orchestrating your React components. This guide will show you how to build components that work seamlessly with Hydra, starting with simple display components and progressing to fully interactive experiences.
+
+## Building Components
+
+When building components for Hydra, you have two main approaches: stateless display components and interactive components with state management. Let's explore both approaches using real-world examples.
+
+### Simple Components (Without State)
+
+The simplest way to build components for Hydra is to create display-only components that render data without managing state. This approach is ideal when:
+
+- You're displaying static content or read-only data
+- The component doesn't need to respond to user interactions
+- The data flow is one-way (just receiving props)
+
+Here's how you define a simple data table component:
+
+```tsx title="Simple Data Table"
+// First, define your component interface
+interface DataTableProps {
+  data: unknown[];
+  columns: string[];
+  title?: string;
+}
+
+// Create a simple display component
+const DataTable = ({ data, columns, title }: Readonly<DataTableProps>) => {
+  return (
+    <div className="data-table">
+      {title && <h3>{title}</h3>}
+      <table>
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th key={column}>{column}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i}>
+              {columns.map((column) => (
+                <td key={column}>{row[column]}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// Register it with Hydra
+const DataTableDefinition: HydraComponentDefinition = {
+  component: DataTable,
+  propsSchema: z.object({
+    data: z.array(z.unknown()),
+    columns: z.array(z.string()),
+    title: z.string().optional(),
+  }),
+  description: "Display data in a simple table format",
+};
+```
+
+This component works great for displaying data, but what if you need to add sorting, filtering, or other interactions? That's where state management comes in.
+
+### Adding State Management
+
+For interactive components, Hydra provides the `useHydraState` hook which automatically connects to the thread context. Let's enhance our data table with sorting and filtering:
+
+```tsx title="Interactive Data Table"
+// Extend props with Hydra's injected props
+interface InteractiveDataTableProps extends HydraComponentInjectedProps {
+  data: unknown[];
+  columns: string[];
+  title?: string;
+}
+
+// Enhanced version with state management
+const InteractiveDataTable = ({
+  data,
+  columns,
+  title,
+  ...injectedProps // Hydra automatically injects threadId and messageId
+}: Readonly<InteractiveDataTableProps>) => {
+  const { value, setValue } = useHydraState<{
+    sortColumn?: string;
+    sortDirection?: "asc" | "desc";
+    filters: Record<string, unknown>;
+  }>();
+
+  // Initialize state if needed
+  const currentFilters = value?.filters ?? {};
+  const currentSort = {
+    column: value?.sortColumn,
+    direction: value?.sortDirection,
+  };
+
+  // Handle sorting
+  const handleSort = (column: string) => {
+    setValue({
+      ...value,
+      sortColumn: column,
+      sortDirection: currentSort.direction === "asc" ? "desc" : "asc",
+    });
+  };
+
+  // Handle filtering
+  const handleFilter = (column: string, filterValue: unknown) => {
+    setValue({
+      ...value,
+      filters: {
+        ...currentFilters,
+        [column]: filterValue,
+      },
+    });
+  };
+
+  return (
+    <div className="data-table">
+      {title && <h3>{title}</h3>}
+
+      {/* Filter controls */}
+      <div className="filters">
+        {columns.map((column) => (
+          <input
+            key={`filter-${column}`}
+            placeholder={`Filter ${column}...`}
+            onChange={(e) => handleFilter(column, e.target.value)}
+            value={currentFilters[column] || ""}
+          />
+        ))}
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th
+                key={column}
+                onClick={() => handleSort(column)}
+                className={
+                  currentSort.column === column
+                    ? `sort-${currentSort.direction}`
+                    : ""
+                }
+              >
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i}>
+              {columns.map((column) => (
+                <td key={column}>{row[column]}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// Updated definition with state schema
+const InteractiveDataTableDefinition: HydraComponentDefinition = {
+  component: InteractiveDataTable,
+  propsSchema: z.object({
+    data: z.array(z.unknown()),
+    columns: z.array(z.string()),
+    title: z.string().optional(),
+  }),
+  description: "Interactive data table with sorting and filtering",
+};
+```
+
+The key differences in the interactive version:
+
+1. Props extend `HydraComponentInjectedProps` for automatic context
+2. Uses `useHydraState` for state management
+3. State is automatically persisted and synced
+4. No manual context or state management needed
+
+## Real-World Examples
+
+Let's look at more examples of components implemented both ways:
+
+### Form Component
+
+Simple version (display only):
+
+```tsx title="Display Form"
+const SimpleForm: HydraComponentDefinition = {
+  component: ({
+    fields,
+  }: {
+    fields: Array<{ name: string; type: string }>;
+  }) => (
+    <div className="form">
+      {fields.map((field) => (
+        <div key={field.name} className="field">
+          <label>{field.name}</label>
+          <input type={field.type} disabled />
+        </div>
+      ))}
+    </div>
+  ),
+  propsSchema: z.object({
+    fields: z.array(
+      z.object({
+        name: z.string(),
+        type: z.string(),
+      })
+    ),
+  }),
+  description: "Display form fields without interaction",
+};
+```
+
+Interactive version with validation and submission:
+
+```tsx title="Interactive Form"
+const InteractiveForm: HydraComponentDefinition = {
+  component: ({
+    fields,
+    ...injectedProps
+  }: HydraComponentInjectedProps & {
+    fields: Array<{ name: string; type: string }>;
+  }) => {
+    const { value, setValue } = useHydraState<{
+      values: Record<string, unknown>;
+      errors?: Record<string, string>;
+      submitted?: boolean;
+    }>();
+
+    const currentValues = value?.values ?? {};
+    const currentErrors = value?.errors;
+
+    const handleChange = (name: string, fieldValue: unknown) => {
+      setValue({
+        ...value,
+        values: { ...currentValues, [name]: fieldValue },
+      });
+    };
+
+    const handleSubmit = () => {
+      setValue({
+        ...value,
+        submitted: true,
+      });
+    };
+
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
+        {fields.map((field) => (
+          <div key={field.name} className="field">
+            <label>{field.name}</label>
+            <input
+              type={field.type}
+              value={currentValues[field.name] || ""}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+            {currentErrors?.[field.name] && (
+              <span className="error">{currentErrors[field.name]}</span>
+            )}
+          </div>
+        ))}
+        <button type="submit">Submit</button>
+      </form>
+    );
+  },
+  propsSchema: z.object({
+    fields: z.array(
+      z.object({
+        name: z.string(),
+        type: z.string(),
+      })
+    ),
+  }),
+  description: "Interactive form with validation and submission",
+};
+```
+
+### When to Use Each Approach
+
+Use simple components when:
+
+- The component only needs to display data
+- No user interaction is required
+- Performance is critical
+- The component is part of a larger interactive component
+
+Use interactive components when:
+
+- Users need to modify data
+- The component needs to maintain state
+- You need to sync state with the AI
+- Complex interactions are required
+
+## Best Practices
+
+1. **Start Simple**
+
+   - Begin with a display-only version
+   - Add interactivity only when needed
+   - Keep components focused and single-purpose
+
+2. **State Management**
+
+   - Use `useHydraState` for all interactive state
+   - Keep state minimal and necessary
+   - Let Hydra handle persistence and synchronization
+
+3. **Type Safety**
+
+   - Always use TypeScript interfaces
+   - Define clear prop types
+   - Use Zod schemas for runtime validation
+
+4. **Performance**
+   - Avoid unnecessary state updates
+   - Use appropriate data structures
+   - Consider memoization for complex components
+
+```tsx title="Core Component Interface"
+interface HydraComponent {
+  type: string;
+  Component: ComponentType<any>;
+  props: Record<string, unknown>;
+}
+
+interface HydraComponentDefinition {
+  component: ComponentType<any>;
+  propsSchema: z.ZodSchema;
+  description?: string;
+  associatedTools?: string[];
+}
+```
+
+```tsx title="Interactive Component Interface"
+interface HydraComponentInjectedProps {
+  threadId: string;
+  messageId: string;
+}
+```

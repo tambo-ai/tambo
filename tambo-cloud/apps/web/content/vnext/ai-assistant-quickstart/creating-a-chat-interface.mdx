@@ -1,0 +1,107 @@
+---
+title: Creating a Chat Interface
+description: Build a chat interface for your CRM assistant to manage customer notes and emails.
+---
+
+Let's build a chat interface that helps users manage customer interactions through natural language. This interface will allow users to request note generation and email drafts for their leads.
+
+## Setting Up the Message Thread
+
+First, let's import what we need from Hydra:
+
+```tsx title="src/components/CrmChatThread.tsx"
+import { useHydraThread, type HydraThreadMessage } from "hydra-ai-react";
+import { useState } from "react";
+```
+
+The `useHydraThreadMessages` hook will power our CRM chat interface, managing the conversation state and interactions with our assistant.
+
+## Creating the Component
+
+Let's set up the chat with a customer context:
+
+```tsx
+export const CrmChatThread = () => {
+  const { messages, operations } = useHydraThread('thread-id');
+  const [input, setInput] = useState('');
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    await operations.generate(input);
+    setInput('');
+  };
+```
+
+What's happening here:
+
+- We use `useHydraThread` to manage our conversation state
+- The hook provides messages and operations for the thread
+- We maintain a simple input state for the message field
+
+## Displaying Messages
+
+Now let's show the conversation:
+
+```tsx
+<div>
+  {messages.map((message: HydraThreadMessage, index) => (
+    <div key={`${message.type}-${index}`}>
+      <div>{message.content}</div>
+      {message.component && (
+        <div>
+          {/* Components like notes or email previews will render here */}
+          {message.component}
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+```
+
+What's happening here:
+
+- Display the conversation history
+- Shows both user requests and assistant responses
+- Renders any AI-injected components (notes/email previews)
+- Messages maintain professional CRM context
+
+## Adding the Input Form
+
+Finally, let's add the input form:
+
+```tsx
+<form onSubmit={handleSend}>
+  <input
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    placeholder="Type a message..."
+    disabled={messages.status?.isLoading}
+  />
+  <button type="submit" disabled={messages.status?.isLoading}>
+    Send
+  </button>
+</form>
+```
+
+What's happening here:
+
+- Controlled input field with local state
+- Form submission handled by our `handleSend` function
+- Input and button are disabled while loading
+- Simple UX with just an input and send button
+
+## Putting It All Together
+
+Here's how everything connects:
+
+1. The `useHydraThread` hook manages all our state and message handling
+2. Users type messages and submit them
+3. The AI processes the message and responds
+4. New messages appear in the thread automatically
+5. AI can inject interactive components when needed
+
+<Callout>
+  In the next sections, we'll add the components for note generation and email
+  drafting.
+</Callout>

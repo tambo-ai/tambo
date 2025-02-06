@@ -1,0 +1,202 @@
+---
+title: Advanced UI Features
+description: Learn how to enhance your AI interface with suggestions, status updates, and streaming.
+---
+
+Let's explore advanced UI features that make your AI interface more dynamic and user-friendly.
+
+## Adding Suggestions
+
+Suggestions help users discover what your AI can do:
+
+- Suggestions are rendered after a component has been generated
+- They are based on the current conversation context
+- They can be added by the hydra or the developer
+
+**What's happening here:**
+
+- Get suggestions using the dedicated hook
+- Display them as clickable buttons with detailed descriptions
+- Accept or dismiss suggestions
+- Suggestions update based on context
+
+```tsx title="Adding Suggestions to Message Thread"
+import {
+  useHydraThreadMessages,
+  useThreadSuggestions,
+  type HydraSuggestion,
+} from "hydra-ai-react";
+
+export const MessageThread = () => {
+  const { messages, input, handleInputChange, handleSubmit } =
+    useHydraThreadMessages("my-thread");
+
+  const { suggestions, accept, dismiss } = useThreadSuggestions("my-thread");
+
+  return (
+    <div>
+      {/* Messages */}
+      <div>{/* ... existing message rendering ... */}</div>
+
+      {/* Render AI Suggestions */}
+      {suggestions.length > 0 && (
+        <div role="group" aria-label="Available actions">
+          {suggestions.map((suggestion: HydraSuggestion) => (
+            <button
+              key={suggestion.title}
+              onClick={() => accept(suggestion)}
+              title={suggestion.detailedSuggestion}
+            >
+              {suggestion.title}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Input form */}
+      <form>{/* ... existing form ... */}</form>
+    </div>
+  );
+};
+```
+
+<Cards>
+  <Card href="/vnext/overview/suggestions" title="Suggestions Overview">
+    Learn more about how to add suggestions to your AI interface
+  </Card>
+</Cards>
+
+## Status Updates
+
+Show users what the AI is doing with status updates:
+
+- Status updates are generated as soon as the message is received
+- They include the 'thinking' the AI is doing to find the right tools or components
+- There are 5 possible statuses: `evaluating`, `tools`, `generating`, `complete`, and `error`
+
+**What's happening here:**
+
+- Get the status of the AI
+- Render the status as an icon and a message
+
+```tsx title="Rendering Status Updates"
+import {
+  type HydraThreadMessage,
+  type HydraProcessStatus,
+} from "hydra-ai-react";
+
+export const MessageThread = () => {
+  const { messages } = useHydraThreadMessages("my-thread");
+
+  const renderStatus = (status: HydraProcessStatus) => {
+    const icons = {
+      evaluating: "🤔",
+      tools: "🔧",
+      generating: "✨",
+    };
+
+    return (
+      <div role="status">
+        {icons[status.state]} {status.message}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {messages.map((message: HydraThreadMessage) => (
+        <div key={message.content}>
+          <div>{message.content}</div>
+          {/* Render AI Status Updates */}
+          {message.status?.map((status, index) => (
+            <div key={index}>{renderStatus(status)}</div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+<Cards>
+  <Card href="/vnext/overview/status" title="Status Overview">
+    Learn more about how to show users what the AI is doing with status updates
+  </Card>
+</Cards>
+
+## Streaming Responses
+
+Latency is a big issue when it comes to AI. Streaming responses help reduce the latency by sending the response in chunks.
+
+**What's happening here:**
+
+- Enable streaming responses with `stream: true`
+- Show partial messages via `onProgress`
+- Allow stopping generation with `abort`
+- Update UI in real-time with `isStreaming`
+
+```tsx title="Implementing Streaming Responses"
+export const MessageThread = () => {
+  const { messages, handleSubmit, isStreaming, abort } =
+    useHydraThreadMessages("my-thread");
+
+  const handleSend = async (input: string) => {
+    await handleSubmit(input, {
+      stream: true,
+      onProgress: (partial: Partial<HydraThreadMessage>) => {
+        // Access streaming validation state
+        const validationState = partial._meta;
+        console.log("Streaming progress:", partial);
+        console.log("Validation state:", validationState);
+      },
+      onError: (error: Error) => {
+        console.error("Stream error:", error);
+      },
+      onFinish: (message: HydraThreadMessage) => {
+        console.log("Stream complete:", message);
+      },
+    });
+  };
+
+  return (
+    <div>
+      {/* Regular messages */}
+      {messages.map((message) => (
+        <div key={message.content}>
+          <div>{message.content}</div>
+          {message.status?.map((status, index) => (
+            <div key={index}>{renderStatus(status)}</div>
+          ))}
+          {/* Show streaming state if available */}
+          {message.streamState &&
+            Object.entries(message.streamState).map(([key, state]) => (
+              <div key={key}>
+                {key}:{" "}
+                {state.isStreaming
+                  ? "Streaming..."
+                  : state.isComplete
+                    ? "Complete"
+                    : ""}
+                {state.error && <span className="error">{state.error}</span>}
+              </div>
+            ))}
+        </div>
+      ))}
+
+      {/* Streaming Controls */}
+      {isStreaming && (
+        <button onClick={abort} aria-label="Stop generating">
+          Stop Generating
+        </button>
+      )}
+    </div>
+  );
+};
+```
+
+<Cards>
+  <Card href="/vnext/overview/streaming" title="Streaming Overview">
+    Learn more about how to make your interface feel more responsive with
+    streaming
+  </Card>
+</Cards>

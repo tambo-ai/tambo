@@ -1,0 +1,12 @@
+{
+  "title": "AI Assistant Quickstart",
+  "description": "Get started quickly with building an AI assistant",
+  "pages": [
+    "initial-hydra-setup",
+    "creating-a-chat-interface",
+    "adding-components",
+    "adding-tools",
+    "making-components-interactive",
+    "advanced-ui-features"
+  ]
+}

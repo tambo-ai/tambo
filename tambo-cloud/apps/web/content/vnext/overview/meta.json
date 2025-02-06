@@ -1,0 +1,13 @@
+{
+  "title": "Overview",
+  "description": "Introduction to building AI-powered applications with Hydra",
+  "pages": [
+    "message-threads",
+    "tools",
+    "generative-ux",
+    "suggestions",
+    "streaming",
+    "status",
+    "decision-loop"
+  ]
+}

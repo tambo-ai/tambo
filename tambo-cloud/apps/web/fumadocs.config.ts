@@ -1,12 +1,8 @@
 import { remarkMermaid } from "@theguild/remark-mermaid";
 import { defineConfig, defineDocs } from "fumadocs-mdx/config";
 
-export const { docs: mainDocs, meta: mainMeta } = defineDocs({
-  dir: "content/docs",
-});
-
-export const { docs: vnextDocs, meta: vnextMeta } = defineDocs({
-  dir: "content/vnext",
+export const { docs, meta } = defineDocs({
+  dir: "content/vnext", // Updated to match your actual docs directory
 });
 
 export default defineConfig({

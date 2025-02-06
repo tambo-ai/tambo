@@ -1,0 +1,275 @@
+---
+title: Streaming
+description: Implementing real-time updates and streaming responses.
+---
+
+Streaming in Hydra AI enables real-time updates and progressive rendering of AI responses, creating more responsive and engaging user experiences.
+
+## Core Concepts
+
+- **Streaming State**: Track completion status of AI responses
+- **Schema-Based Streaming**: Type-safe streaming with Zod schemas
+- **Component Updates**: Progressive prop updates
+- **Abort Control**: Cancel ongoing operations
+
+## Implementation
+
+### Basic Streaming
+
+```tsx title="Basic Streaming Setup"
+// Define your schema
+const responseSchema = z.object({
+  content: z.string(),
+  metadata: z.object({
+    type: z.string(),
+    timestamp: z.number(),
+  }),
+});
+
+function StreamingThread() {
+  const { messages, handleSubmit } = useHydraThreadMessages(threadId);
+
+  const sendMessage = async (content: string) => {
+    await handleSubmit(content, {
+      stream: true,
+      schema: responseSchema,
+      onProgress: (value: Partial<z.infer<typeof responseSchema>>) => {
+        console.log("Received partial:", value);
+      },
+    });
+  };
+}
+```
+
+### Streaming State
+
+```tsx title="Streaming State Management"
+function StreamingStatus() {
+  const { streamState } = useHydraThreadMessages(threadId);
+
+  return (
+    <div>
+      {streamState && (
+        <div>
+          <span>
+            Status: {streamState.isStreaming ? "Streaming" : "Complete"}
+          </span>
+          {streamState.error && <span>Error: {streamState.error}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Component Streaming
+
+```tsx title="Progressive Component Updates"
+interface DataViewProps {
+  data: {
+    title: string;
+    content: string;
+  };
+}
+
+function ProgressiveDataView({
+  data,
+  onPropStream,
+}: DataViewProps & HydraComponentInjectedProps<DataViewProps>) {
+  const [validation, setValidation] = useState<ValidationState>();
+
+  // Show initial loading state
+  useEffect(() => {
+    onPropStream?.("data", false, {
+      title: "Loading...",
+      content: "Generating content...",
+    });
+  }, []);
+
+  // Helper to check if a field is being updated
+  const isUpdating = (field: string) => validation?.activePath.includes(field);
+
+  return (
+    <div>
+      {/* Title with loading state */}
+      <h2 style={{ opacity: isUpdating("title") ? 0.5 : 1 }}>{data.title}</h2>
+
+      {/* Content with loading state */}
+      <div style={{ opacity: isUpdating("content") ? 0.5 : 1 }}>
+        {data.content}
+      </div>
+
+      {/* Simple progress indicator */}
+      {validation && (
+        <div style={{ fontSize: "0.875rem", color: "#666" }}>
+          {validation.activePath.length > 0 ? "Updating..." : "Complete"}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+Here's how the streaming updates flow:
+
+```tsx title="Streaming Flow Example"
+// 1. Initial loading state
+onPropStream?.("data", false, {
+  title: "Loading...",
+  content: "Generating content...",
+});
+
+// 2. Title updates first
+onPropStream?.(
+  "data",
+  false,
+  {
+    title: "Q1 Sales Report", // as tokens "Q1", "Sales", "Report" are generated
+    content: "Generating content...",
+  },
+  {
+    activePath: ["content"],
+    completedPaths: [["title"]],
+  }
+);
+
+// 3. Content streams in
+onPropStream?.(
+  "data",
+  false,
+  {
+    title: "Q1 Sales Report",
+    content: "Total sales for Q1 2024 reached...", // as tokens "Total", "Sales", "Q1", ...
+  },
+  {
+    activePath: ["content"],
+    completedPaths: [["title"]],
+  }
+);
+
+// 4. Final state
+onPropStream?.(
+  "data",
+  true,
+  {
+    title: "Q1 Sales Report",
+    content: "Total sales for Q1 2024 reached $1.2M",
+  },
+  {
+    activePath: [],
+    completedPaths: [["title"], ["content"]],
+  }
+);
+```
+
+The component:
+
+- Shows loading states for fields being updated
+- Uses simple opacity for visual feedback
+- Displays a basic progress indicator
+- Updates smoothly as content streams in
+
+### Abort Control
+
+```tsx title="Streaming Control"
+function StreamingControls() {
+  const { handleSubmit } = useHydraThreadMessages(threadId);
+  const abortController = new AbortController();
+
+  const sendMessage = async (content: string) => {
+    try {
+      await handleSubmit(content, {
+        stream: true,
+        abortSignal: abortController.signal,
+        onProgress: (value) => {
+          // Handle progress
+        },
+        onError: (error) => {
+          console.error("Stream error:", error);
+        },
+        onFinish: (message) => {
+          console.log("Stream complete:", message);
+        },
+      });
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("Stream aborted");
+      }
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={() => abortController.abort()}>Stop Generating</button>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+1. **Type Safety**
+
+```tsx title="Type-Safe Streaming"
+// Define schema first
+const schema = z.object({
+  content: z.string(),
+  metadata: z.record(z.unknown()),
+});
+
+// Use with proper types
+const options: StreamOptions<typeof schema> = {
+  stream: true,
+  schema,
+  onProgress: (value) => {
+    // value is properly typed from schema
+    console.log(value.content); // string | undefined
+  },
+};
+```
+
+2. **State Management**
+
+```tsx title="State Handling"
+function StreamingComponent() {
+  const [streamingState, setStreamingState] = useState<StreamingState>({
+    isStreaming: false,
+    isComplete: false,
+  });
+
+  // Update on stream events
+  const handleProgress = () => {
+    setStreamingState({
+      isStreaming: true,
+      isComplete: false,
+    });
+  };
+
+  const handleComplete = () => {
+    setStreamingState({
+      isStreaming: false,
+      isComplete: true,
+    });
+  };
+}
+```
+
+3. **Error Handling**
+
+```tsx title="Error Management"
+const streamOptions: StreamOptions<typeof schema> = {
+  stream: true,
+  schema,
+  onProgress: (value) => {
+    try {
+      // Handle progress
+    } catch (error) {
+      console.error("Progress error:", error);
+    }
+  },
+  onError: (error) => {
+    // Handle stream errors
+    console.error("Stream error:", error);
+  },
+};
+```

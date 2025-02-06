@@ -1,0 +1,203 @@
+---
+title: Making Components Interactive
+description: Learn how to add AI-powered UI components to your chat interface.
+---
+
+Now that we have our basic note and email components, let's make them interactive so users can edit notes and send emails we created in the previous section [Adding Components](/vnext/ai-assistant-quickstart/adding-components).
+
+## Creating Interactive Components
+
+First, let's define our types:
+
+```tsx title="src/schemas/crm-components.ts"
+import { z } from "zod";
+
+export const customerNoteSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  associatedLeadId: z.string(),
+});
+
+export const emailPreviewSchema = z.object({
+  to: z.string(),
+  subject: z.string(),
+  content: z.string(),
+});
+
+export type CustomerNoteProps = z.infer<typeof customerNoteSchema>;
+export type EmailPreviewProps = z.infer<typeof emailPreviewSchema>;
+```
+
+Now let's create our interactive components:
+
+```tsx title="src/components/InteractiveNote.tsx"
+import React from "react";
+import type { CustomerNoteProps } from "../schemas/crm-components";
+import { useHydraState } from "hydra-ai-react";
+
+interface InteractiveNoteProps extends Readonly<CustomerNoteProps> {
+  threadId: string;
+  messageId: string;
+}
+
+export const InteractiveNote: React.FC<InteractiveNoteProps> = ({
+  title,
+  content: initialContent,
+  associatedLeadId,
+}) => {
+  const { value, setValue } = useHydraState({
+    content: initialContent,
+    isEditing: false,
+  });
+
+  return (
+    <div>
+      <div>
+        <span>Lead ID: {associatedLeadId}</span>
+        <h3>{title}</h3>
+        <button
+          onClick={() => setValue({ ...value, isEditing: !value.isEditing })}
+        >
+          {value.isEditing ? "Cancel" : "Edit"}
+        </button>
+      </div>
+      {value.isEditing ? (
+        <div>
+          <textarea
+            value={value.content}
+            onChange={(e) => setValue({ ...value, content: e.target.value })}
+          />
+          <button onClick={() => setValue({ ...value, isEditing: false })}>
+            Save
+          </button>
+        </div>
+      ) : (
+        <div>{value.content}</div>
+      )}
+    </div>
+  );
+};
+
+interface InteractiveEmailProps extends Readonly<EmailPreviewProps> {
+  threadId: string;
+  messageId: string;
+}
+
+export const InteractiveEmail: React.FC<InteractiveEmailProps> = ({
+  to,
+  subject,
+  content: initialContent,
+}) => {
+  const { value, setValue } = useHydraState({
+    content: initialContent,
+    isEditing: false,
+  });
+
+  return (
+    <div>
+      <div>
+        <span>To: {to}</span>
+        <h3>{subject}</h3>
+        <button
+          onClick={() => setValue({ ...value, isEditing: !value.isEditing })}
+        >
+          {value.isEditing ? "Cancel" : "Edit"}
+        </button>
+      </div>
+      {value.isEditing ? (
+        <div>
+          <textarea
+            value={value.content}
+            onChange={(e) => setValue({ ...value, content: e.target.value })}
+          />
+          <button onClick={() => setValue({ ...value, isEditing: false })}>
+            Done
+          </button>
+        </div>
+      ) : (
+        <div>{value.content}</div>
+      )}
+    </div>
+  );
+};
+```
+
+## Registering Components
+
+Register the components in your Hydra configuration:
+
+```tsx title="src/config/hydraConfig.ts"
+import { createHydraComponentRegistry } from "hydra-ai-react";
+import {
+  InteractiveNote,
+  InteractiveEmail,
+} from "../components/InteractiveNote";
+import {
+  customerNoteSchema,
+  emailPreviewSchema,
+} from "../schemas/crm-components";
+
+export const componentRegistry = createHydraComponentRegistry({
+  CustomerNote: {
+    component: InteractiveNote,
+    description: "Displays an editable customer note",
+    propsSchema: customerNoteSchema,
+  },
+  EmailPreview: {
+    component: InteractiveEmail,
+    description: "Displays an editable email",
+    propsSchema: emailPreviewSchema,
+  },
+});
+```
+
+## Using in Message Thread
+
+The components work automatically in the message thread:
+
+```tsx title="src/components/CrmChatThread.tsx"
+import { useHydraThread } from "hydra-ai-react";
+
+export const CrmChatThread = () => {
+  const { messages } = useHydraThread("thread-id");
+
+  return (
+    <div>
+      {messages.map((message) => (
+        <div key={message.id}>
+          <div>{message.content}</div>
+          {message.component && (
+            <message.component.Component
+              {...message.component.props}
+              threadId={message.id}
+              messageId={message.id}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+What's happening here:
+
+- Components use `useHydraState` for automatic state management
+- State updates are synced with the AI backend automatically
+- Props are properly typed with `Readonly<T>`
+
+<Callout>
+  The Hydra framework manages state synchronization between components and the
+  AI backend through useHydraState. All state updates are automatically synced
+  with no additional code needed.
+</Callout>
+
+<Cards>
+  <Card title="Generative UX" href="/vnext/overview/generating-ux">
+    <p>Learn how to use Hydra to generate user experiences.</p>
+  </Card>
+  <Card title="Streaming" href="/vnext/overview/streaming">
+    <p>Learn how to use Hydra to stream data to the component.</p>
+  </Card>
+</Cards>
+<Callout title="Next Steps">We'll see how to add advanced features.</Callout>

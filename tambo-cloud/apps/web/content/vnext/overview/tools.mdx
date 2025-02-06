@@ -1,0 +1,184 @@
+---
+title: Tools
+description: Extending Hydra AI with custom tools and capabilities.
+---
+
+Tools enable Hydra to interact with your application's data and functionality. They provide a type-safe way to extend the AI's capabilities with custom business logic.
+
+## Core Concepts
+
+Tools in Hydra consist of three main parts:
+
+- **Tool Definition**: Describes the tool and its input schema
+- **Tool Implementation**: The actual function that executes the tool's logic
+- **Tool Registry**: A collection of tools available to the AI
+
+## Creating Tools
+
+### 1. Define Tool Schema
+
+```tsx title="Tool Definition"
+import { z } from "zod";
+import type { HydraToolDefinition } from "hydra-ai-react";
+
+const searchToolDefinition: HydraToolDefinition<typeof searchSchema> = {
+  description: "Search for items in the database", // [!code highlight]
+  inputSchema: z.object({
+    query: z.string().describe("Search query"),
+    limit: z.number().optional().default(10),
+  }), // [!code highlight]
+};
+```
+
+### 2. Implement Tool Logic
+
+```tsx title="Tool Implementation"
+// Type-safe implementation function
+const searchImplementation = async (input: z.infer<typeof searchSchema>) => {
+  // [!code highlight]
+  const { query, limit } = input;
+  // Your search logic here
+  return results;
+};
+```
+
+### 3. Register Tools
+
+```tsx title="Tool Registry Setup"
+import { createHydraToolRegistry } from "hydra-ai-react";
+
+// Create registry with tool definitions
+const toolRegistry = createHydraToolRegistry({
+  // [!code highlight]
+  search: searchToolDefinition,
+  createUser: createUserDefinition,
+  updateProfile: updateProfileDefinition,
+}); // [!code highlight]
+
+// Register implementations
+toolRegistry.registerTool("search", searchImplementation); // [!code highlight]
+```
+
+## Using Tools in Components
+
+### Hook-based Usage
+
+```tsx title="Using Tools in Components"
+import { useTool } from "hydra-ai-react";
+
+function SearchComponent() {
+  // Get type-safe tool implementation
+  const searchTool = useTool("search"); // [!code highlight]
+
+  const handleSearch = async () => {
+    const results = await searchTool({
+      // [!code highlight]
+      query: "example",
+      limit: 5,
+    });
+  };
+}
+```
+
+### Associating Tools with Components
+
+```tsx title="Component with Associated Tools"
+const UserProfileComponent = {
+  component: ProfileView,
+  propsSchema: z.object({
+    userId: z.string(),
+    editable: z.boolean(),
+  }),
+  description: "Display and edit user profiles",
+  associatedTools: ["updateProfile", "getUser"], // [!code highlight]
+};
+```
+
+## Tool Definition Examples
+
+### Data Operations
+
+```tsx title="Database Tool Example"
+const dbTools = {
+  queryDatabase: {
+    description: "Execute a database query",
+    inputSchema: z.object({
+      table: z.string().describe("Target table name"), // [!code highlight]
+      fields: z.array(z.string()).describe("Fields to retrieve"), // [!code highlight]
+      where: z.record(z.unknown()).optional(), // [!code highlight]
+    }),
+  },
+};
+```
+
+### File Operations
+
+```tsx title="File System Tool Example"
+const fileTools = {
+  readFile: {
+    description: "Read file contents",
+    inputSchema: z.object({
+      path: z.string().describe("File path"), // [!code highlight]
+      encoding: z.enum(["utf8", "binary"]).default("utf8"), // [!code highlight]
+    }),
+  },
+};
+```
+
+### API Integration
+
+```tsx title="API Tool Example"
+const apiTools = {
+  fetchData: {
+    description: "Fetch data from external API",
+    inputSchema: z.object({
+      endpoint: z.string().url(), // [!code highlight]
+      method: z.enum(["GET", "POST"]), // [!code highlight]
+      body: z.unknown().optional(), // [!code highlight]
+    }),
+  },
+};
+```
+
+## Best Practices
+
+1. **Type Safety**
+
+```tsx title="Type-Safe Tool Definition"
+// Define strict input types
+const inputSchema = z.object({
+  // [!code highlight]
+  id: z.string().uuid(),
+  data: z.record(z.unknown()),
+}); // [!code highlight]
+
+// Type-safe implementation
+const implementation = async (input: z.infer<typeof inputSchema>) => {
+  // [!code highlight]
+  // TypeScript knows the shape of input
+};
+```
+
+2. **Error Handling**
+
+```tsx title="Error Handling Example"
+const robustImplementation = async (input: z.infer<typeof schema>) => {
+  try {
+    // Tool logic
+  } catch (error) {
+    throw new Error(`Tool failed: ${error.message}`); // [!code highlight]
+  }
+};
+```
+
+3. **Documentation**
+
+```tsx title="Well-Documented Tool"
+const documentedTool = {
+  description: "Comprehensive description of what the tool does", // [!code highlight]
+  inputSchema: z.object({
+    param1: z.string().describe("Detailed description of param1"), // [!code highlight]
+    param2: z.number().describe("Detailed description of param2"), // [!code highlight]
+  }),
+};
+```
