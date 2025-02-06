@@ -8,12 +8,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
-import { MessageRole } from '@use-hydra-ai/db';
-import {
-  ChatMessage,
-  ComponentDecision,
-  HydraBackend,
-} from '@use-hydra-ai/hydra-ai-server';
+import { ActionType, MessageRole } from '@use-hydra-ai/db';
+import { ComponentDecision, HydraBackend } from '@use-hydra-ai/hydra-ai-server';
 import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
@@ -86,11 +82,7 @@ export class ComponentsController {
       availableComponents ?? {},
       resolvedThreadId,
     );
-    await this.addDecisionToThread(
-      resolvedThreadId,
-      component,
-      lastMessageEntry,
-    );
+    await this.addDecisionToThread(resolvedThreadId, component);
 
     return {
       ...component,
@@ -101,13 +93,13 @@ export class ComponentsController {
   private async addDecisionToThread(
     threadId: string,
     component: ComponentDecision,
-    messageEntry?: ChatMessage,
   ) {
     await this.threadsService.addMessage(threadId, {
       role: MessageRole.Hydra,
       message: component.message,
       // HACK: for now just jam the full component decision into the content
       component: component,
+      actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
     });
   }
 
@@ -154,6 +146,7 @@ export class ComponentsController {
     await this.threadsService.addMessage(resolvedThreadId, {
       role: MessageRole.User,
       message: JSON.stringify(toolResponse),
+      actionType: ActionType.ToolResponse,
     });
 
     const hydratedComponent = await hydraBackend.hydrateComponentWithData(
@@ -163,12 +156,7 @@ export class ComponentsController {
       resolvedThreadId,
     );
 
-    const lastMessage = messageHistory[messageHistory.length - 1];
-    await this.addDecisionToThread(
-      resolvedThreadId,
-      hydratedComponent,
-      lastMessage,
-    );
+    await this.addDecisionToThread(resolvedThreadId, hydratedComponent);
 
     this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
     return {

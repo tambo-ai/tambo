@@ -72,8 +72,9 @@ export class ThreadsService {
       threadId,
       role: messageDto.role,
       content: messageDto.message,
-      component: messageDto.component ?? undefined,
+      componentDecision: messageDto.component ?? undefined,
       metadata: messageDto.metadata,
+      actionType: messageDto.actionType ?? undefined,
     });
     return {
       id: message.id,
@@ -81,6 +82,7 @@ export class ThreadsService {
       content: message.content as string,
       metadata: message.metadata ?? undefined,
       component: message.componentDecision ?? undefined,
+      actionType: message.actionType ?? undefined,
     };
   }
 
@@ -93,6 +95,7 @@ export class ThreadsService {
         content: message.content as string,
         metadata: message.metadata ?? undefined,
         component: message.componentDecision ?? undefined,
+        actionType: message.actionType ?? undefined,
       }),
     );
   }

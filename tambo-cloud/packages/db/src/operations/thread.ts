@@ -1,6 +1,4 @@
-import type { ComponentDecision } from "@use-hydra-ai/hydra-ai-server";
 import { and, eq } from "drizzle-orm";
-import { MessageRole } from "../MessageRole";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
@@ -136,36 +134,18 @@ export async function deleteThread(db: HydraDb, threadId: string) {
 
 export async function addMessage(
   db: HydraDb,
-  {
-    threadId,
-    role,
-    content,
-    component,
-    metadata,
-  }: {
-    threadId: string;
-    role: MessageRole;
-    content: MessageContent;
-    component?: ComponentDecision;
-    metadata?: MessageMetadata;
-  },
+  messageInput: typeof schema.messages.$inferInsert,
 ) {
   const [message] = await db
     .insert(schema.messages)
-    .values({
-      threadId,
-      role,
-      content,
-      metadata,
-      componentDecision: component,
-    })
+    .values(messageInput)
     .returning();
 
   // Update the thread's updatedAt timestamp
   await db
     .update(schema.threads)
     .set({ updatedAt: new Date() })
-    .where(eq(schema.threads.id, threadId));
+    .where(eq(schema.threads.id, message.threadId));
 
   return message;
 }

@@ -15,12 +15,17 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
       {messages.map((message) => (
         <Card key={message.id} className="p-4">
           <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-baseline">
               <p className="text-sm text-muted-foreground capitalize">
                 {message.role}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(message.createdAt).toLocaleString()}
+              <p className="flex flex-col gap-1">
+                <p className="text-xs text-muted-foreground">
+                  {new Date(message.createdAt).toLocaleString()}
+                </p>
+                {message.actionType && (
+                  <p className="text-sm font-medium">{message.actionType}</p>
+                )}
               </p>
             </div>
             <div className="whitespace-pre-wrap">
