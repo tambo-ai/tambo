@@ -2,86 +2,93 @@ import { ComponentDecision } from "@use-hydra-ai/core";
 import { InputContext } from "../../model/input-context";
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
-import { PromptService } from "../prompt/prompt-service";
-import { ComponentHydrationService } from "./component-hydration-service";
-export class ComponentDecisionService {
-  constructor(
-    private llmClient: LLMClient,
-    private promptService: PromptService,
-    private hydrationService: ComponentHydrationService,
-  ) {}
+import {
+  generateAvailableComponentsPrompt,
+  generateDecisionPrompt,
+  generateNoComponentPrompt,
+} from "../prompt/prompt-service";
+import { hydrateComponent } from "./component-hydration-service";
 
-  async decideComponent(
-    context: InputContext,
-    threadId: string,
-  ): Promise<ComponentDecision> {
-    const decisionResponse = await this.llmClient.complete([
-      {
-        role: "system",
-        content: this.promptService.generateDecisionPrompt(),
-      },
-      {
-        role: "user",
-        content: `<availableComponents>
-        ${this.promptService.generateAvailableComponentsPrompt(context.availableComponents)}
-        </availableComponents>`,
-      },
-      ...chatHistoryToParams(context.messageHistory),
-    ]);
+// Public function
+export async function decideComponent(
+  llmClient: LLMClient,
+  context: InputContext,
+  threadId: string,
+): Promise<ComponentDecision> {
+  const decisionResponse = await llmClient.complete([
+    {
+      role: "system",
+      content: generateDecisionPrompt(),
+    },
+    {
+      role: "user",
+      content: `<availableComponents>
+      ${generateAvailableComponentsPrompt(context.availableComponents)}
+      </availableComponents>`,
+    },
+    ...chatHistoryToParams(context.messageHistory),
+  ]);
 
-    const shouldGenerate = decisionResponse.message.match(
-      /<decision>(.*?)<\/decision>/,
-    )?.[1];
+  const shouldGenerate = decisionResponse.message.match(
+    /<decision>(.*?)<\/decision>/,
+  )?.[1];
 
-    const componentName = decisionResponse.message.match(
-      /<component>(.*?)<\/component>/,
-    )?.[1];
+  const componentName = decisionResponse.message.match(
+    /<component>(.*?)<\/component>/,
+  )?.[1];
 
-    if (shouldGenerate === "false") {
-      return this.handleNoComponentCase(decisionResponse, context, threadId);
-    } else if (shouldGenerate === "true" && componentName) {
-      const component = context.availableComponents[componentName];
-      if (!component) {
-        throw new Error(`Component ${componentName} not found`);
-      }
-      return this.hydrationService.hydrateComponent(
-        context.messageHistory,
-        component,
-        undefined,
-        context.availableComponents,
-        threadId,
-      );
-    }
-
-    throw new Error("Invalid decision");
-  }
-
-  private async handleNoComponentCase(
-    decisionResponse: any,
-    context: InputContext,
-    threadId: string,
-  ): Promise<ComponentDecision> {
-    const reasoning = decisionResponse.message.match(
-      /<reasoning>(.*?)<\/reasoning>/,
-    )?.[1];
-
-    const noComponentResponse = await this.llmClient.complete([
-      {
-        role: "system",
-        content: this.promptService.generateNoComponentPrompt(
-          reasoning,
-          context.availableComponents,
-        ),
-      },
-      ...chatHistoryToParams(context.messageHistory),
-    ]);
-
-    return {
-      componentName: null,
-      props: null,
-      message: noComponentResponse.message,
-      suggestedActions: [],
+  if (shouldGenerate === "false") {
+    return handleNoComponentCase(
+      llmClient,
+      decisionResponse,
+      context,
       threadId,
-    };
+    );
+  } else if (shouldGenerate === "true" && componentName) {
+    const component = context.availableComponents[componentName];
+    if (!component) {
+      throw new Error(`Component ${componentName} not found`);
+    }
+    return hydrateComponent(
+      llmClient,
+      context.messageHistory,
+      component,
+      undefined,
+      context.availableComponents,
+      threadId,
+    );
   }
+
+  throw new Error("Invalid decision");
+}
+
+// Private function
+async function handleNoComponentCase(
+  llmClient: LLMClient,
+  decisionResponse: any,
+  context: InputContext,
+  threadId: string,
+): Promise<ComponentDecision> {
+  const reasoning = decisionResponse.message.match(
+    /<reasoning>(.*?)<\/reasoning>/,
+  )?.[1];
+
+  const noComponentResponse = await llmClient.complete([
+    {
+      role: "system",
+      content: generateNoComponentPrompt(
+        reasoning,
+        context.availableComponents,
+      ),
+    },
+    ...chatHistoryToParams(context.messageHistory),
+  ]);
+
+  return {
+    componentName: null,
+    props: null,
+    message: noComponentResponse.message,
+    suggestedActions: [],
+    threadId,
+  };
 }
