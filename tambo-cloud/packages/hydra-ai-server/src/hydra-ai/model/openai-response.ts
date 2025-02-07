@@ -1,4 +1,4 @@
-import { ToolCallRequest } from "../../../../core/src/ComponentDecision";
+import { ToolCallRequest } from "@use-hydra-ai/core";
 
 export interface OpenAIResponse {
   message: string;

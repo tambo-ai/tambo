@@ -9,10 +9,6 @@
     "module": "CommonJS",
     "sourceMap": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "../core/src/ComponentDecision.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "./dist", "./docs"]
 }

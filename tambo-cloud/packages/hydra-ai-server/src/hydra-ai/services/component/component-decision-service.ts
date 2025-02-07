@@ -1,10 +1,9 @@
-import { ComponentDecision } from "../../../../../core/src/ComponentDecision";
+import { ComponentDecision } from "@use-hydra-ai/core";
 import { InputContext } from "../../model/input-context";
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
 import { PromptService } from "../prompt/prompt-service";
 import { ComponentHydrationService } from "./component-hydration-service";
-
 export class ComponentDecisionService {
   constructor(
     private llmClient: LLMClient,

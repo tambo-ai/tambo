@@ -1,4 +1,4 @@
-import { ComponentDecision } from "../../../core/src/ComponentDecision";
+import { ComponentDecision } from "@use-hydra-ai/core";
 import { InputContext } from "./model/input-context";
 import { Provider } from "./model/providers";
 import { ComponentDecisionService } from "./services/component/component-decision-service";

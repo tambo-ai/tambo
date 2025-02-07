@@ -1,4 +1,4 @@
-import { ComponentDecision } from "../../../../../core/src/ComponentDecision";
+import { ComponentDecision } from "@use-hydra-ai/core";
 import { ChatMessage } from "../../model/chat-message";
 import {
   AvailableComponent,
