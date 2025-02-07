@@ -40,9 +40,10 @@ export class TokenJSClient implements LLMClient {
     };
 
     if (
-      response.choices[0].finish_reason === "function_call" ||
-      response.choices[0].finish_reason === "tool_calls" ||
-      response.choices[0].finish_reason === "stop"
+      (response.choices[0].finish_reason === "function_call" ||
+        response.choices[0].finish_reason === "tool_calls" ||
+        response.choices[0].finish_reason === "stop") &&
+      response.choices[0].message.tool_calls?.length
     ) {
       openAIResponse.toolCallRequest = this.toolCallRequestFromResponse(
         response as ChatCompletion,
