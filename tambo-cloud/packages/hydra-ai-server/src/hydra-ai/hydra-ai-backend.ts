@@ -1,6 +1,6 @@
+import { ComponentDecision } from "../../../core/src/ComponentDecision";
 import AIService from "./ai-service";
 import { ChatMessage } from "./model/chat-message";
-import { ComponentDecision } from "./model/component-choice";
 import {
   AvailableComponent,
   AvailableComponents,

@@ -17,7 +17,7 @@ import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
 } from '../projects/guards/project-access-own.guard';
-import { Message, MessageRequest } from './dto/message.dto';
+import { MessageRequest, ThreadMessage } from './dto/message.dto';
 import { Thread, ThreadRequest } from './dto/thread.dto';
 import { ThreadsService } from './threads.service';
 
@@ -88,7 +88,7 @@ export class ThreadsController {
 
   //   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id/messages')
-  getMessages(@Param('id') threadId: string): Promise<Message[]> {
+  getMessages(@Param('id') threadId: string): Promise<ThreadMessage[]> {
     return this.threadsService.getMessages(threadId);
   }
 

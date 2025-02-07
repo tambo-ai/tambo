@@ -1,4 +1,4 @@
-import { ComponentDecision } from "./model/component-choice";
+import { ComponentDecision } from "../../../core/src/ComponentDecision";
 import { InputContext } from "./model/input-context";
 import { Provider } from "./model/providers";
 import { ComponentDecisionService } from "./services/component/component-decision-service";

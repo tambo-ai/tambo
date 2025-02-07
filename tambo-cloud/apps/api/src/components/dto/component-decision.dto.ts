@@ -1,7 +1,7 @@
 import {
   SuggestedAction as SuggestedActionInterface,
   ToolCallRequest as ToolCallRequestInterface,
-} from '@use-hydra-ai/hydra-ai-server';
+} from '@use-hydra-ai/core';
 
 export class ComponentDecision {
   componentName!: string | null;

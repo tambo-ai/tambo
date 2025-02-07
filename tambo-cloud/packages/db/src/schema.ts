@@ -1,9 +1,12 @@
-import type { ComponentDecision } from "@use-hydra-ai/hydra-ai-server";
+import type { ComponentDecision } from "@use-hydra-ai/core";
+import {
+  ActionType,
+  ChatCompletionContentPart,
+  MessageRole,
+} from "@use-hydra-ai/core";
 import { relations, sql } from "drizzle-orm";
 import { index, pgTable } from "drizzle-orm/pg-core";
 import { authUsers } from "drizzle-orm/supabase";
-import { ActionType } from "./ActionType";
-import { MessageRole } from "./MessageRole";
 import { customJsonb } from "./drizzleUtil";
 export { authUsers } from "drizzle-orm/supabase";
 
@@ -134,7 +137,7 @@ export const threads = pgTable(
   },
 );
 export type DBThread = typeof threads.$inferSelect;
-export const messages = pgTable("messages", ({ text, timestamp, jsonb }) => ({
+export const messages = pgTable("messages", ({ text, timestamp }) => ({
   id: text("id")
     .primaryKey()
     .notNull()
@@ -146,7 +149,9 @@ export const messages = pgTable("messages", ({ text, timestamp, jsonb }) => ({
   role: text("role", {
     enum: Object.values<string>(MessageRole) as [MessageRole],
   }).notNull(),
-  content: jsonb("content").notNull(),
+  content: customJsonb<string | ChatCompletionContentPart[]>(
+    "content",
+  ).notNull(),
   componentDecision: customJsonb<ComponentDecision>("component_decision"),
   actionType: text("action_type", {
     enum: Object.values<string>(ActionType) as [ActionType],

@@ -135,7 +135,7 @@ export async function deleteThread(db: HydraDb, threadId: string) {
 export async function addMessage(
   db: HydraDb,
   messageInput: typeof schema.messages.$inferInsert,
-) {
+): Promise<typeof schema.messages.$inferSelect> {
   const [message] = await db
     .insert(schema.messages)
     .values(messageInput)
@@ -150,14 +150,20 @@ export async function addMessage(
   return message;
 }
 
-export async function getMessages(db: HydraDb, threadId: string) {
+export async function getMessages(
+  db: HydraDb,
+  threadId: string,
+): Promise<(typeof schema.messages.$inferSelect)[]> {
   return db.query.messages.findMany({
     where: eq(schema.messages.threadId, threadId),
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });
 }
 
-export async function deleteMessage(db: HydraDb, messageId: string) {
+export async function deleteMessage(
+  db: HydraDb,
+  messageId: string,
+): Promise<typeof schema.messages.$inferSelect> {
   const [deleted] = await db
     .delete(schema.messages)
     .where(eq(schema.messages.id, messageId))

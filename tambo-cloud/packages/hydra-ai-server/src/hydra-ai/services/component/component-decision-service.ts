@@ -1,4 +1,4 @@
-import { ComponentDecision } from "../../model/component-choice";
+import { ComponentDecision } from "../../../../../core/src/ComponentDecision";
 import { InputContext } from "../../model/input-context";
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";

@@ -1,6 +1,6 @@
 import { ChatCompletion } from "openai/resources/chat/completions";
 import { ChatCompletionTool } from "token.js";
-import { ToolCallRequest } from "../../model/component-choice";
+import { ToolCallRequest } from "../../../../../core/src/ComponentDecision";
 import { ComponentContextToolMetadata } from "../../model/component-metadata";
 
 export class ToolService {
