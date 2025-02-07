@@ -52,6 +52,15 @@ export class TokenJSClient implements LLMClient {
         "No message or tool call request found in response: ",
         response.choices[0],
       );
+      if (response.choices[0].message.tool_calls) {
+        console.error(
+          "Falling back to tool calls found in response: ",
+          response.choices[0].message.tool_calls,
+        );
+        openAIResponse.toolCallRequest = this.toolCallRequestFromResponse(
+          response as ChatCompletion,
+        );
+      }
     }
 
     return openAIResponse;
