@@ -18,7 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@use-hydra-ai/core": "*",
-    "openai": "^4.80.1",
+    "openai": "^4.83.0",
     "token.js": "^0.5.0",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.3"
