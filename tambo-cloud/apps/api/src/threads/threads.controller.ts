@@ -31,7 +31,7 @@ export class ThreadsController {
   @ProjectIdParameterKey('projectId')
   @UseGuards(ProjectAccessOwnGuard)
   @Post()
-  create(@Body() createThreadDto: ThreadRequest) {
+  create(@Body() createThreadDto: ThreadRequest): Promise<Thread> {
     return this.threadsService.createThread(createThreadDto);
   }
 
@@ -42,7 +42,7 @@ export class ThreadsController {
   findAllForProject(
     @Param('projectId') projectId: string,
     @Query('contextKey') contextKey?: string,
-  ) {
+  ): Promise<Thread[]> {
     return this.threadsService.findAllForProject(projectId, { contextKey });
   }
 

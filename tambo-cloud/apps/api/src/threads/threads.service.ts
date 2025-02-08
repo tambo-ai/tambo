@@ -21,19 +21,37 @@ export class ThreadsService {
     private readonly db: HydraDatabase,
   ) {}
 
-  async createThread(createThreadDto: ThreadRequest) {
-    return operations.createThread(this.db, {
+  async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
+    const thread = await operations.createThread(this.db, {
       projectId: createThreadDto.projectId,
       contextKey: createThreadDto.contextKey,
       metadata: createThreadDto.metadata,
     });
+    return {
+      id: thread.id,
+      createdAt: thread.createdAt,
+      updatedAt: thread.updatedAt,
+      contextKey: thread.contextKey ?? undefined,
+      metadata: thread.metadata ?? undefined,
+      projectId: thread.projectId,
+    };
   }
 
   async findAllForProject(
     projectId: string,
     { contextKey }: { contextKey?: string } = {},
-  ) {
-    return operations.getThreadsByProject(this.db, projectId, { contextKey });
+  ): Promise<Thread[]> {
+    const threads = await operations.getThreadsByProject(this.db, projectId, {
+      contextKey,
+    });
+    return threads.map((thread) => ({
+      id: thread.id,
+      createdAt: thread.createdAt,
+      updatedAt: thread.updatedAt,
+      contextKey: thread.contextKey ?? undefined,
+      metadata: thread.metadata ?? undefined,
+      projectId: thread.projectId,
+    }));
   }
 
   async findOne(id: string, projectId: string): Promise<Thread> {
