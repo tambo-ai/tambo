@@ -73,7 +73,7 @@
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.1",
-    "shiki": "^2.2.0",
+    "shiki": "^2.3.2",
     "superjson": "^2.2.2",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
