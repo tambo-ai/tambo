@@ -13,7 +13,6 @@
     "clean": "rm -rf dist .next"
   },
   "dependencies": {
-    "@devnomic/marquee": "^1.0.2",
     "@hookform/resolvers": "^3.9.1",
     "@hydra-ai/client": "^0.1.0-alpha.3",
     "@radix-ui/react-accordion": "^1.2.3",
