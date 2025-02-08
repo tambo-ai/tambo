@@ -34,6 +34,6 @@
   },
   "dependencies": {
     "posthog-js": "^1.210.2",
-    "resend": "^4.1.1"
+    "resend": "^4.1.2"
   }
 }
