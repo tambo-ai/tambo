@@ -14,7 +14,15 @@ Now that we have our note and email components set up, let's add tools that help
 
 ## 1. Define Tool Schemas
 
-First, let's define the schemas for our CRM tools:
+First, let's define the schemas for our CRM tools.
+
+**What's happening here:**
+
+- Define schemas and types first
+- Use inferred types in components
+- Register components with their schemas
+- Schemas are used to generate type-safe props for the component
+- They are alos used to understand when and how to use the component
 
 ```tsx title="src/schemas/crm-tools.ts"
 import { z } from "zod";
@@ -46,7 +54,13 @@ export type Lead = z.infer<typeof leadSchema>;
 
 ## 2. Create Tool Registry
 
-Now let's register our tools using these schemas:
+Now let's register our tools using these schemas.
+
+**What's happening here:**
+
+- Tool definitions specify the schema and description for each tool
+- Tool implementations are registered separately with type-safe handlers
+- Return types are properly typed to match the expected response schemas
 
 ```tsx title="src/config/tool-registry.ts"
 import { createHydraToolRegistry } from "hydra-ai-react";
@@ -91,15 +105,15 @@ toolRegistry.registerTool(
 );
 ```
 
-What's happening here:
-
-- Tool definitions specify the schema and description for each tool
-- Tool implementations are registered separately with type-safe handlers
-- Return types are properly typed to match the expected response schemas
-
 ## 3. Connecting Tools to Components
 
-Now connect these tools to your note and email components:
+Now connect these tools to your note and email components.
+
+**What's happening here:**
+
+- Component registry is generic over the tool registry type
+- Props schemas are properly typed to match component props
+- Associated tools are type-checked against available tool names
 
 ```tsx title="src/config/component-registry.ts"
 import { createHydraComponentRegistry } from "hydra-ai-react";
@@ -125,18 +139,6 @@ export const componentRegistry = createHydraComponentRegistry({
   },
 });
 ```
-
-Key points:
-
-- Component registry is generic over the tool registry type
-- Props schemas are properly typed to match component props
-- Associated tools are type-checked against available tool names
-
-<Cards>
-  <Card href="/vnext/overview/tools" title="Tools Overview">
-    Want a deeper dive into tools? Check out the tools overview
-  </Card>
-</Cards>
 
 <Callout title="Next Steps">
   We'll see how to make these components interactive!

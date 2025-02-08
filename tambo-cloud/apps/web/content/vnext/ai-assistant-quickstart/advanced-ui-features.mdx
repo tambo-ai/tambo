@@ -5,33 +5,42 @@ description: Learn how to enhance your AI interface with suggestions, status upd
 
 Let's explore advanced UI features that make your AI interface more dynamic and user-friendly.
 
-## Adding Suggestions
+In this section, we'll add suggestions, status updates, and streaming to our AI assistant.
 
-Suggestions help users discover what your AI can do:
+[**Suggestions**](#1-adding-suggestions) help users discover what your AI can do:
 
-- Suggestions are rendered after a component has been generated
+- Suggestions are rendered after a message and its component has been generated
 - They are based on the current conversation context
-- They can be added by the hydra or the developer
+- They leverage the tools and components your AI has access to
+
+[**Status updates**](#2-status-updates) help users understand what your AI is doing:
+
+- Status updates are rendered after a message has been received
+- They give the user a visual indication of the AI's progress
+- Explain the AI is thinking, using tools, or generating a response
+
+[**Streaming**](#3-streaming-responses) help reduce latency by sending the response in chunks:
+
+- Streaming starts showing the user every response as it comes in
+- It's great for long responses or when you want to show the user the AI is still thinking
+- It's also great for reducing the load on the server
+
+## 1. Adding Suggestions
 
 **What's happening here:**
 
-- Get suggestions using the dedicated hook
+- Get suggestions using the `useHydraThread` hook
 - Display them as clickable buttons with detailed descriptions
 - Accept or dismiss suggestions
 - Suggestions update based on context
 
 ```tsx title="Adding Suggestions to Message Thread"
-import {
-  useHydraThreadMessages,
-  useThreadSuggestions,
-  type HydraSuggestion,
-} from "hydra-ai-react";
+import { useHydraThread } from "hydra-ai-react";
 
 export const MessageThread = () => {
-  const { messages, input, handleInputChange, handleSubmit } =
-    useHydraThreadMessages("my-thread");
-
-  const { suggestions, accept, dismiss } = useThreadSuggestions("my-thread");
+  const { messages, operations } = useHydraThread("my-thread");
+  const { suggestions } = useHydraThread("my-thread"); // [!code highlight]
+  const { items, accept, dismiss } = suggestions; // [!code highlight]
 
   return (
     <div>
@@ -39,16 +48,23 @@ export const MessageThread = () => {
       <div>{/* ... existing message rendering ... */}</div>
 
       {/* Render AI Suggestions */}
-      {suggestions.length > 0 && (
-        <div role="group" aria-label="Available actions">
-          {suggestions.map((suggestion: HydraSuggestion) => (
-            <button
-              key={suggestion.title}
-              onClick={() => accept(suggestion)}
-              title={suggestion.detailedSuggestion}
-            >
-              {suggestion.title}
-            </button>
+      {items.length > 0 && (
+        <div>
+          {items.map((suggestion) => (
+            <div key={suggestion.title}>
+              <button
+                onClick={() => accept(suggestion)}
+                title={suggestion.detailedSuggestion}
+              >
+                {suggestion.title}
+              </button>
+              <button
+                onClick={() => dismiss(suggestion)}
+                aria-label={`Dismiss ${suggestion.title} suggestion`}
+              >
+                ✕
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -66,7 +82,7 @@ export const MessageThread = () => {
   </Card>
 </Cards>
 
-## Status Updates
+## 2. Status Updates
 
 Show users what the AI is doing with status updates:
 
@@ -76,19 +92,18 @@ Show users what the AI is doing with status updates:
 
 **What's happening here:**
 
-- Get the status of the AI
-- Render the status as an icon and a message
+- Get the status from the `useHydraThread` hook
+- Render different icons and messages based on the status state
+- Show loading indicators when appropriate
 
 ```tsx title="Rendering Status Updates"
-import {
-  type HydraThreadMessage,
-  type HydraProcessStatus,
-} from "hydra-ai-react";
+import { useHydraThread } from "hydra-ai-react";
 
 export const MessageThread = () => {
-  const { messages } = useHydraThreadMessages("my-thread");
+  const { messages } = useHydraThread("my-thread");
 
-  const renderStatus = (status: HydraProcessStatus) => {
+  const renderStatus = (status) => {
+    // Status icons for each state
     const icons = {
       evaluating: "🤔",
       tools: "🔧",
@@ -119,80 +134,58 @@ export const MessageThread = () => {
 ```
 
 <Cards>
-  <Card href="/vnext/overview/status" title="Status Overview">
+  <Card href="/vnext/overview/status" title="Status Updates Overview">
     Learn more about how to show users what the AI is doing with status updates
   </Card>
 </Cards>
 
-## Streaming Responses
+## 3. Streaming Responses
 
 Latency is a big issue when it comes to AI. Streaming responses help reduce the latency by sending the response in chunks.
 
 **What's happening here:**
 
-- Enable streaming responses with `stream: true`
-- Show partial messages via `onProgress`
-- Allow stopping generation with `abort`
-- Update UI in real-time with `isStreaming`
+- Enable streaming with `stream: true` option
+- Messages automatically update as they arrive
 
-```tsx title="Implementing Streaming Responses"
+```tsx title="Enabling Streaming Responses"
+import { useHydraThread } from "hydra-ai-react";
+
 export const MessageThread = () => {
-  const { messages, handleSubmit, isStreaming, abort } =
-    useHydraThreadMessages("my-thread");
+  {
+    /* Same as before */
+  }
 
   const handleSend = async (input: string) => {
-    await handleSubmit(input, {
-      stream: true,
-      onProgress: (partial: Partial<HydraThreadMessage>) => {
-        // Access streaming validation state
-        const validationState = partial._meta;
-        console.log("Streaming progress:", partial);
-        console.log("Validation state:", validationState);
-      },
-      onError: (error: Error) => {
-        console.error("Stream error:", error);
-      },
-      onFinish: (message: HydraThreadMessage) => {
-        console.log("Stream complete:", message);
-      },
+    await operations.messages.generate(input, {
+      stream: true, // [!code focus]
     });
   };
 
-  return (
-    <div>
-      {/* Regular messages */}
-      {messages.map((message) => (
-        <div key={message.content}>
-          <div>{message.content}</div>
-          {message.status?.map((status, index) => (
-            <div key={index}>{renderStatus(status)}</div>
-          ))}
-          {/* Show streaming state if available */}
-          {message.streamState &&
-            Object.entries(message.streamState).map(([key, state]) => (
-              <div key={key}>
-                {key}:{" "}
-                {state.isStreaming
-                  ? "Streaming..."
-                  : state.isComplete
-                    ? "Complete"
-                    : ""}
-                {state.error && <span className="error">{state.error}</span>}
-              </div>
-            ))}
-        </div>
-      ))}
-
-      {/* Streaming Controls */}
-      {isStreaming && (
-        <button onClick={abort} aria-label="Stop generating">
-          Stop Generating
-        </button>
-      )}
-    </div>
-  );
+  {
+    /* Same as before */
+  }
 };
 ```
+
+Setting up streaming is that easy! Now if you want to more advanced control of streaming, you can use the `useMessageStreaming` & `useComponentStreaming` hooks.
+
+Which gives you:
+
+- `isStreaming`: Boolean flag indicating if a message is currently streaming
+- `abort`: Function to stop the current streaming message
+- `validation`: Validation state tracking including:
+  - `completedPaths`: Paths that are fully received and validated
+  - `validPaths`: Paths that are safe to use (even if incomplete)
+  - `errors`: Any validation errors by path
+  - `isComplete`: Whether the entire data structure is complete
+
+This is useful when you need:
+
+- Show partial updates in real-time
+- Allow users to cancel generation
+- Track completion status of different parts of the response
+- Handle validation states for complex streaming data
 
 <Cards>
   <Card href="/vnext/overview/streaming" title="Streaming Overview">
@@ -200,3 +193,9 @@ export const MessageThread = () => {
     streaming
   </Card>
 </Cards>
+
+## What you have now?
+
+- Your AI assistant can now add suggestions to the message thread
+- Your AI assistant can now show AI status updates to the user
+- Your AI assistant can now stream responses to the user!

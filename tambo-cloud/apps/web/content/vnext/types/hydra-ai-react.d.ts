@@ -13,7 +13,7 @@ declare module "hydra-ai-react" {
    *
    * @example
    * ```tsx
-   * // Within a Hydra component (automatically receives threadId and messageId)
+   * // Within a Hydra component (automatically receives messageId)
    * const { value, setValue } = useHydraState<{
    *   content: string;
    *   isEditing: boolean;
@@ -30,36 +30,145 @@ declare module "hydra-ai-react" {
    * @returns {Object} State management object
    * @property {T} value - The current state value
    * @property {(value: T) => void} setValue - Function to update the state
-   * @property {boolean} isStreaming - Whether the state is currently streaming
-   * @property {Partial<T>} [partial] - Partial updates during streaming
-   * @property {string[]} [activePaths] - Active paths during streaming
-   * @property {() => void} [abort] - Function to abort streaming
    */
   export function useHydraState<T>(): {
     value: T;
     setValue: (value: T) => void;
-    isStreaming: boolean;
-    partial?: Partial<T>;
-    activePaths?: string[];
-    abort?: () => void;
   };
 
   // ===============================
-  // Component Types
+  // Streaming
   // ===============================
 
   /**
-   * Props injected by the Hydra wrapper into components.
-   * These props are automatically provided to any component rendered through the Hydra system.
-   * Components using useHydraState will automatically have access to this context.
+   * Validation state for tracking data completeness and validity
+   * Used for both streaming and non-streaming data validation
    *
-   * @property {string} threadId - Unique thread identifier, automatically provided
-   * @property {string} messageId - Unique message identifier, automatically provided
+   * @property completedPaths - Paths that are fully received and validated
+   * @property validPaths - Paths that are safe to use (even if incomplete)
+   * @property errors - Validation errors by path
+   * @property isComplete - Whether the entire data structure is complete
+   *
+   * @example
+   * ```ts
+   * // Check if path is fully complete
+   * if (validation.completedPaths.includes('items')) {
+   *   // Safe to use entire items array
+   * }
+   *
+   * // Check if path is safe to use (even if incomplete)
+   * if (validation.validPaths.includes('items')) {
+   *   // Can use partial items data
+   * }
+   * ```
    */
-  export interface HydraComponentInjectedProps {
-    threadId: string;
-    messageId: string;
+  export interface ValidationState {
+    completedPaths: string[];
+    validPaths: string[];
+    errors: Record<string, string>;
+    isComplete: boolean;
   }
+
+  /**
+   * Core streaming status interface used for component streaming
+   * Provides real-time information about streaming state
+   *
+   * @template T - The type of data being streamed
+   * @property isStreaming - Whether the stream is active
+   * @property activePaths - Array of paths that are currently being streamed
+   * @property validation - Validation state including partial validity
+   * @property partialData - Partial data that has been streamed
+   */
+  export interface ComponentStreamingStatus<T> {
+    isStreaming: boolean;
+    activePaths: string[];
+    validation: ValidationState;
+    partialData: Partial<T>;
+  }
+
+  /**
+   * Core streaming status interface used for message streaming
+   * Extends ComponentStreamingStatus to add abort control
+   * Right now we only support aborting the message stream
+   * not the component stream for now.
+   *
+   * @template T - The type of data being streamed
+   * @property abort - Function to abort the stream
+   */
+  export interface MessageStreamingStatus<T>
+    extends ComponentStreamingStatus<T> {
+    abort: () => void;
+  }
+
+  /**
+   * Helper for checking path completion in stream
+   * @param path - Path to check
+   * @param validationState - Current validation state
+   * @returns True if the path is complete
+   */
+  export function isPathComplete(
+    path: (string | number)[],
+    validationState: ValidationState,
+  ): boolean;
+
+  /**
+   * Hook for accessing message streaming state
+   * Uses the current message context from HydraContext automatically
+   *
+   * @example
+   * ```tsx
+   * // Within any component under HydraProvider
+   * const { isStreaming, partial, abort } = useMessageStreaming();
+   *
+   * // No need to pass messageId - it's handled by context
+   * return (
+   *   <div>
+   *     {isStreaming && <LoadingIndicator />}
+   *     {partialData && <PartialContent content={partialData} />}
+   *     <button onClick={abort}>Cancel Stream</button>
+   *   </div>
+   * );
+   * ```
+   */
+  export function useMessageStreaming(): MessageStreamingStatus<
+    HydraThreadMessage & ValidationState
+  >;
+
+  /**
+   * Hook for accessing component streaming state
+   * Uses the current message and component context from HydraContext automatically
+   *
+   * @example
+   * ```tsx
+   * // Within a Hydra component
+   * const { isStreaming, partial } = useComponentStreaming<MyProps>();
+   *
+   * return (
+   *   <div>
+   *     {isStreaming && <LoadingIndicator />}
+   *     {partial && <PartialContent {...partial} />}
+   *   </div>
+   * );
+   * ```
+   */
+  export function useComponentStreaming<T>(): ComponentStreamingStatus<T>;
+
+  /**
+   * Configuration for message streaming
+   * Simplified to just control streaming - state management handled by context
+   *
+   * @param stream - Whether to stream the response
+   * @param abortSignal - Optional abort signal for cancellation
+   */
+  export interface StreamOptions {
+    stream?: boolean;
+    abortSignal?: AbortSignal;
+  }
+
+  // Component Types
+  // ===============================
+  // Component Types
+  // ===============================
 
   /**
    * Component definition with schema.
@@ -94,13 +203,25 @@ declare module "hydra-ai-react" {
 
   /**
    * Represents a component in a message thread
+   * Props will automatically update as valid JSON streams in, even if incomplete.
+   *
+   * @example
+   * ```tsx
+   * // As JSON streams in, props update with each valid chunk:
+   * { "title": "My" }                      // First update
+   * { "title": "My List" }                 // Second update
+   * { "title": "My List", "items": [] }    // Third update
+   * { "title": "My List", "items": ["A"] } // Fourth update etc.
+   * ```
+   *
+   * @property type - The type identifier for the component
+   * @property Component - The React component to render
+   * @property props - Current validated props that automatically update as JSON streams in
    */
   export interface HydraComponent {
     type: string;
     Component: ComponentType<any>;
     props: Record<string, unknown>;
-    partial?: Record<string, unknown>;
-    isStreaming?: boolean;
   }
 
   /**
@@ -112,7 +233,6 @@ declare module "hydra-ai-react" {
    * @property status - Current processing status of the message
    * @property suggestions - AI-generated suggestions for next actions
    * @property selectedSuggestion - User's selected suggestion from the list
-   * @property _meta - Internal validation and state metadata
    */
   export interface HydraThreadMessage {
     id: string;
@@ -122,7 +242,6 @@ declare module "hydra-ai-react" {
     status?: ProcessStatus;
     suggestions?: HydraSuggestion[];
     selectedSuggestion?: HydraSuggestion;
-    _meta?: ValidationState;
   }
 
   // ===============================
@@ -143,34 +262,11 @@ declare module "hydra-ai-react" {
     isThinking?: boolean;
   }
 
-  /**
-   * Validation state for streaming and data validation
-   * @property completedPaths - Array of paths that have been validated
-   * @property errors - Map of validation errors by path
-   * @property isComplete - Whether all paths have been validated
-   */
-  export interface ValidationState {
-    completedPaths: string[];
-    errors: Record<string, string>;
-    isComplete: boolean;
-  }
-
   // ===============================
   // Core Types
   // These define the shape of data used throughout the system
   // In a mock environment, these types represent the structure of  data
   // ===============================
-
-  /**
-   * Helper for checking path completion in stream
-   * @param path - Path to check
-   * @param chunk - Current validation state
-   * @returns True if the path is complete
-   */
-  export function isPathComplete(
-    path: (string | number)[],
-    chunk: { _meta: ValidationState }, // Current validation state
-  ): boolean;
 
   /**
    * Represents a conversation thread with optional auto-generated titles
@@ -195,24 +291,6 @@ declare module "hydra-ai-react" {
    */
   export interface HydraThreadState {
     messages: HydraThreadMessage[];
-  }
-
-  /**
-   * Configuration for message streaming
-   * @param stream - Whether to stream the response
-   * @param schema - Schema for validation
-   * @param abortSignal - Abort signal for cancellation
-   * @param onProgress - Callback for partial updates
-   * @param onError - Callback for errors
-   * @param onFinish - Callback for completion
-   */
-  export interface StreamOptions<T extends z.ZodSchema = z.ZodSchema> {
-    stream?: boolean;
-    schema?: T;
-    abortSignal?: AbortSignal;
-    onProgress?: (value: Partial<z.infer<T>>) => void;
-    onError?: (error: Error) => void;
-    onFinish?: (message: HydraThreadMessage) => void;
   }
 
   /**
@@ -310,10 +388,16 @@ declare module "hydra-ai-react" {
 
   /**
    * Registry for component management
+   * @template TComponents - Type of component definitions
    * @property components - Map of component definitions
    */
-  export interface HydraComponentRegistry {
-    components: Record<string, HydraComponentDefinition>;
+  export interface HydraComponentRegistry<
+    TComponents extends Record<string, HydraComponentDefinition> = Record<
+      string,
+      HydraComponentDefinition
+    >,
+  > {
+    components: TComponents;
   }
 
   // ===============================
@@ -417,6 +501,7 @@ declare module "hydra-ai-react" {
       ) => Promise<void>;
       state: Record<string, HydraThreadMessage[]>;
       status: ProcessStatus;
+      context: HydraMessageContext; // Current message context
     };
 
     // Component Management
@@ -566,4 +651,42 @@ declare module "hydra-ai-react" {
     isAutoTitle?: boolean;
     userProfile?: string;
   }
+
+  /**
+   * Context for message and streaming state
+   * Automatically provided by HydraProvider to all child components
+   *
+   * @property messageId - Current message ID from context
+   * @property threadId - Current thread ID from context
+   * @property streaming - Streaming state and controls
+   */
+  export interface HydraMessageContext {
+    messageId: string;
+    threadId: string;
+    streaming: {
+      isEnabled: boolean;
+      status: MessageStreamingStatus<ValidationState>;
+    };
+  }
+
+  /**
+   * Hook for accessing the message context
+   * Use this to get the current message ID and streaming state
+   *
+   * @example
+   * ```tsx
+   * const { messageId, streaming } = useHydraMessageContext();
+   * ```
+   */
+  export function useHydraMessageContext(): HydraMessageContext;
+
+  /**
+   * Creates a new component registry
+   * @template TComponents - Type of component definitions
+   * @param config - Initial component definitions
+   * @returns New component registry instance
+   */
+  export function createHydraComponentRegistry<
+    TComponents extends Record<string, HydraComponentDefinition>,
+  >(config: TComponents): HydraComponentRegistry<TComponents>;
 }

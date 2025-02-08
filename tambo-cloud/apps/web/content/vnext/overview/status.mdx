@@ -3,11 +3,13 @@ title: Status
 description: Learn about the different status states in Hydra AI conversations.
 ---
 
-Status in Hydra AI represents the current state of the conversation and any ongoing operations. Understanding these states is crucial for building responsive and user-friendly AI applications.
+Hydra AI provides human readable status updates about its process finding the right infomration and UI to help your end users.
+
+You can expose that status to your users so they know what their AI assistant is doing.
 
 ## Process Status
 
-The core status system is represented by the `ProcessStatus` type, which combines several aspects of state:
+The core status system is represented by the `ProcessStatus` type:
 
 ```typescript
 interface ProcessStatus {
@@ -15,8 +17,6 @@ interface ProcessStatus {
   message: string;
   isLoading: boolean;
   isThinking?: boolean;
-  streamingState?: StreamingState;
-  validationState?: ValidationState;
 }
 ```
 
@@ -28,28 +28,37 @@ interface ProcessStatus {
 - `complete` - Operation has finished successfully
 - `error` - An error occurred during processing
 
-## Streaming State
+## Message Streaming
 
-Streaming state tracks the progress of streaming operations:
+Hydra provides streaming state management for messages:
 
 ```typescript
-interface StreamingState {
+interface MessageStreamingStatus<T> {
   isStreaming: boolean;
-  isComplete: boolean;
-  progress?: number;
-  error?: string;
+  activePaths: string[];
+  validation: ValidationState;
+  partialData: Partial<T>;
+  abort: () => void;
 }
 ```
 
-## Validation State
+<Cards>
+  <Card href="/vnext/overview/streaming" title="Streaming Overview">
+    Learn more about how to make your interface feel more responsive with
+    streaming
+  </Card>
+</Cards>
 
-Validation state tracks the validity of data and paths being processed:
+### Validation State
+
+The validation state tracks the validity and completeness of streamed data:
 
 ```typescript
 interface ValidationState {
-  isValid: boolean;
-  activePath: (string | number)[];
-  completedPaths: (string | number)[];
+  completedPaths: string[];
+  validPaths: string[];
+  errors: Record<string, string>;
+  isComplete: boolean;
 }
 ```
 
@@ -64,26 +73,44 @@ const status = messages.status;
 if (status.state === "generating") {
   // Show generating indicator
 }
-
-if (status.streamingState?.isStreaming) {
-  // Handle streaming UI
-}
 ```
 
-### Handling Errors
+### Working with Message Streaming
 
 ```typescript
-if (status.state === "error") {
-  // Display error message
-  console.error(status.message);
+const { isStreaming, partialData, abort } = useMessageStreaming();
+
+if (isStreaming) {
+  // Show streaming content
+  return (
+    <div>
+      <div className="loading-indicator" />
+      {partialData && <div>{partialData.content}</div>}
+      <button onClick={abort}>Cancel</button>
+    </div>
+  );
 }
 ```
 
-### Tracking Progress
+### Handling Message Validation
 
 ```typescript
-if (status.streamingState?.progress) {
-  // Update progress bar
-  updateProgress(status.streamingState.progress);
+const { validation } = useMessageStreaming();
+
+// Check if message content is complete
+if (validation.completedPaths.includes("content")) {
+  // Safe to use entire message content
+}
+
+// Check if message content is valid
+if (validation.validPaths.includes("content")) {
+  // Can use partial message content
+}
+
+// Handle message validation errors
+if (validation.errors["content"]) {
+  console.error(validation.errors["content"]);
 }
 ```
+
+The streaming and validation systems work together to provide real-time updates while ensuring message integrity. The validation state helps you understand which parts of your message are safe to use, even before the stream is complete.

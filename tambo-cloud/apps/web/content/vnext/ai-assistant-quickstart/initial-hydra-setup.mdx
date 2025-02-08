@@ -5,26 +5,63 @@ description: Learn how to set up and configure Hydra AI for building a CRM chat 
 
 In this quickstart, we'll build an AI-powered CRM assistant that helps users manage customer notes and emails. We'll start by setting up the core Hydra configuration.
 
-First, let's create a configuration file for Hydra. We'll break this down into several parts:
+## 1. Adding the Context Provider
 
-### 1. Import Dependencies
+<Callout>
+  Make sure to set your `NEXT_PUBLIC_HYDRA_API_KEY` in your environment
+  variables before initializing the application.
+</Callout>
 
-```tsx
-// src/config/hydraConfig.ts
-import {
-  createHydraComponentRegistry,
-  createHydraToolRegistry,
-  type HydraConfig,
-  type HydraPersonality,
-} from "hydra-ai-react";
+Next, wrap your application with the `HydraProvider` to make Hydra's functionality available throughout your app.
+
+**What's happening here:**
+
+- Wrap your application with the `HydraProvider` to make Hydra's functionality available throughout your app.
+
+### Implementing the App Wrapper
+
+```tsx title="src/App.tsx"
+import { HydraProvider } from "hydra-ai-react";
+import { initializeHydra } from "./config/hydraConfig";
+
+export const App = (): ReactElement => {
+  const hydraConfig = initializeHydra();
+
+  return (
+    <HydraProvider config={hydraConfig}>
+      {/* Your app components */}
+    </HydraProvider>
+  );
+};
 ```
 
-### 2. Define AI Personality
+### 2. Configure Hydra
+
+**Definitions:**
+
+- **Hydra Config:** The configuration for the Hydra AI SDK
+- **Personality:** The personality of the AI assistant
+- **Tool Registry:** A registry of tools (sometimes called function calls) that the AI can use to interact with the world
+- **Component Registry:** A registry of UI components that the AI can use to interact with the user
 
 The personality configuration defines how our CRM assistant will interact with users.
 
-```tsx
-const personality: HydraPersonality = {
+**What's happening here:**
+
+- Define personality configuration
+- Define tool registry
+- Define component registry
+- Initialize Hydra with all the necessary configuration
+
+<Callout>We will add tools, and components latter in this quickstart.</Callout>
+
+```tsx title="src/config/hydraConfig.ts"
+import {
+  createHydraComponentRegistry,
+  createHydraToolRegistry,
+} from "hydra-ai-react";
+
+const personality = {
   role: `You are a helpful CRM assistant focused on helping users manage customer interactions. You specialize in helping users create notes, edit them, and convert them into follow-up emails.`,
 
   style: `You communicate professionally while helping users manage their customer relationships efficiently. You provide clear suggestions for notes and emails while maintaining a helpful, business-appropriate tone.`,
@@ -36,13 +73,7 @@ const personality: HydraPersonality = {
     "Ask for clarification when customer details are unclear",
   ],
 };
-```
 
-### 3. Create Registries
-
-Set up registries for your tools and components. We'll add specific implementations in later sections.
-
-```tsx
 // Create registries for tools and components
 export const toolRegistry = createHydraToolRegistry({
   // Tool definitions will be added here
@@ -51,24 +82,7 @@ export const toolRegistry = createHydraToolRegistry({
 export const componentRegistry = createHydraComponentRegistry({
   // Component definitions will be added here
 });
-```
 
-<Callout>We will add tools, and components latter in this quickstart.</Callout>
-
-<Cards>
-  <Card href="/vnext/overview/tools" title="Tools Overview">
-    Learn more about tools and how they work
-  </Card>
-  <Card href="/vnext/overview/components" title="Components Overview">
-    Learn more about components and how they work
-  </Card>
-</Cards>
-
-### 4. Initialize Configuration
-
-Create a function to initialize Hydra with all the necessary configuration.
-
-```tsx
 export const initializeHydra = (): HydraConfig => {
   if (!process.env.NEXT_PUBLIC_HYDRA_API_KEY) {
     throw new Error("NEXT_PUBLIC_HYDRA_API_KEY is not set");
@@ -84,37 +98,12 @@ export const initializeHydra = (): HydraConfig => {
 };
 ```
 
-<Callout>
-  Make sure to set your `NEXT_PUBLIC_HYDRA_API_KEY` in your environment
-  variables before initializing the application.
-</Callout>
+## What you have now?
 
-## Adding the Context Provider
-
-Next, wrap your application with the `HydraProvider` to make Hydra's functionality available throughout your app.
-
-### Setting up the Provider
-
-```tsx
-// src/App.tsx or pages/_app.tsx
-import { HydraProvider } from "hydra-ai-react";
-import { type ReactElement } from "react";
-import { initializeHydra } from "./config/hydraConfig";
-```
-
-### Implementing the App Wrapper
-
-```tsx
-export const App = (): ReactElement => {
-  const hydraConfig = initializeHydra();
-
-  return (
-    <HydraProvider config={hydraConfig}>
-      {/* Your app components */}
-    </HydraProvider>
-  );
-};
-```
+- Defined the function and personality of your AI assistant
+- Created empty registries for tools and components
+- Initialized Hydra with the necessary configuration
+- You know have access to the powerful context hooks to create a chat interface
 
 <Callout>
   In the next section, we'll use the context hooks to create a chat interface.
