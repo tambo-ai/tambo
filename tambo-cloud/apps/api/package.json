@@ -32,7 +32,7 @@
     "@use-hydra-ai/db": "*",
     "@use-hydra-ai/hydra-ai-server": "^0.0.6",
     "class-validator": "^0.14.1",
-    "drizzle-orm": "^0.39.1",
+    "drizzle-orm": "^0.39.2",
     "nest-supabase-guard": "^1.0.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
