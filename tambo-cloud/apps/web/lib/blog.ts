@@ -16,6 +16,7 @@ export type Post = {
   publishedAt: string;
   summary: string;
   author: string;
+  authorTwitter?: string;
   slug: string;
   image?: string;
 };

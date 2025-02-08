@@ -112,9 +112,9 @@ export default async function Page(props: {
         </div>
         <div className="flex items-center space-x-2">
           <Author
-            twitterUsername={post.metadata.author}
             name={post.metadata.author}
             image={"/michael-magan-li.jpeg"}
+            twitterUsername={post.metadata.authorTwitter}
           />
         </div>
         <article

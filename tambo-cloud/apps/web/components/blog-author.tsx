@@ -11,7 +11,7 @@ export default function Author({
 }: {
   name: string;
   image: string;
-  twitterUsername: string;
+  twitterUsername?: string;
   updatedAt?: string;
   imageOnly?: boolean;
 }) {
@@ -47,9 +47,9 @@ export default function Author({
     );
   }
 
-  return (
+  return twitterUsername ? (
     <Link
-      href={`https://twitter.com/${twitterUsername}`}
+      href={`https://x.com/${twitterUsername}`}
       className="group flex items-center space-x-3"
       target="_blank"
       rel="noopener noreferrer"
@@ -66,5 +66,18 @@ export default function Author({
         <p className="text-sm text-muted-foreground">@{twitterUsername}</p>
       </div>
     </Link>
+  ) : (
+    <div className="flex items-center space-x-3">
+      <Image
+        src={image}
+        alt={name}
+        width={40}
+        height={40}
+        className="rounded-full transition-all group-hover:brightness-90"
+      />
+      <div className="flex flex-col">
+        <p className="text-sm text-muted-foreground">Written by {name}</p>
+      </div>
+    </div>
   );
 }
