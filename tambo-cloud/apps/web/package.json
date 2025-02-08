@@ -31,7 +31,7 @@
     "@radix-ui/react-toast": "^1.2.6",
     "@rehype-pretty/transformers": "^0.13.2",
     "@splinetool/react-spline": "^4.0.0",
-    "@splinetool/runtime": "^1.9.37",
+    "@splinetool/runtime": "^1.9.63",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
     "@t3-oss/env-nextjs": "^0.11.1",
