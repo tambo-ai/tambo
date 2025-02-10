@@ -8,3 +8,9 @@ export class HydrateComponentRequest {
   threadId?: string;
   contextKey?: string;
 }
+export class HydrateComponentRequest2 {
+  component!: AvailableComponent;
+  toolResponse?: any;
+  threadId!: string;
+  contextKey?: string;
+}

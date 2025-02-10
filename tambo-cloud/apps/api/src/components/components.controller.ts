@@ -14,14 +14,22 @@ import {
   ContentPartType,
   MessageRole,
 } from '@use-hydra-ai/core';
-import { HydraBackend } from '@use-hydra-ai/hydra-ai-server';
+import { ChatMessage, HydraBackend } from '@use-hydra-ai/hydra-ai-server';
 import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
+import { ThreadMessage } from '../threads/dto/message.dto';
 import { ThreadsService } from '../threads/threads.service';
 import { ComponentDecision as ComponentDecisionDto } from './dto/component-decision.dto';
-import { GenerateComponentRequest } from './dto/generate-component.dto';
-import { HydrateComponentRequest } from './dto/hydrate-component.dto';
+import {
+  AvailableComponent,
+  GenerateComponentRequest,
+  GenerateComponentRequest2,
+} from './dto/generate-component.dto';
+import {
+  HydrateComponentRequest,
+  HydrateComponentRequest2,
+} from './dto/hydrate-component.dto';
 import { ApiKeyGuard } from './guards/apikey.guard';
 
 @ApiSecurity('apiKey')
@@ -33,6 +41,23 @@ export class ComponentsController {
     private threadsService: ThreadsService,
     private logger: CorrelationLoggerService,
   ) {}
+
+  private async validateProjectAndProviderKeys(projectId: string) {
+    const project = await this.projectsService.findOneWithKeys(projectId);
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+    const providerKeys = project.getProviderKeys();
+    if (!providerKeys?.length) {
+      throw new NotFoundException('No provider keys found for project');
+    }
+    const providerKey =
+      providerKeys[providerKeys.length - 1].providerKeyEncrypted; // Use the last provider key
+    if (!providerKey) {
+      throw new NotFoundException('No provider key found for project');
+    }
+    return decryptProviderKey(providerKey);
+  }
 
   @Post('generate')
   async generateComponent(
@@ -55,20 +80,8 @@ export class ComponentsController {
       `generating component for project ${request.projectId}, with message: ${lastMessageEntry.message}`,
     );
     const projectId = request.projectId;
-    const project = await this.projectsService.findOneWithKeys(projectId);
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-    const providerKeys = project.getProviderKeys();
-    if (!providerKeys?.length) {
-      throw new NotFoundException('No provider keys found for project');
-    }
-    const providerKey =
-      providerKeys[providerKeys.length - 1].providerKeyEncrypted; // Use the last provider key
-    if (!providerKey) {
-      throw new NotFoundException('No provider key found for project');
-    }
-    const decryptedProviderKey = decryptProviderKey(providerKey);
+    const decryptedProviderKey =
+      await this.validateProjectAndProviderKeys(projectId);
 
     //TODO: Don't instantiate HydraBackend every request
     const hydraBackend = new HydraBackend(decryptedProviderKey.providerKey);
@@ -85,6 +98,64 @@ export class ComponentsController {
     const component = await hydraBackend.generateComponent(
       messageHistory,
       availableComponents ?? {},
+      resolvedThreadId,
+    );
+    await this.addDecisionToThread(resolvedThreadId, component);
+
+    return {
+      ...component,
+      threadId: resolvedThreadId,
+    };
+  }
+
+  @Post('generate2')
+  async generateComponent2(
+    @Body() generateComponentDto: GenerateComponentRequest2,
+    @Req() request, // Assumes the request object has the projectId
+  ): Promise<ComponentDecisionDto> {
+    const { content, availableComponents, threadId, contextKey } =
+      generateComponentDto;
+    if (!content?.length) {
+      throw new BadRequestException(
+        'Message history is required and cannot be empty',
+      );
+    }
+    const projectId = request.projectId;
+    const decryptedProviderKey =
+      await this.validateProjectAndProviderKeys(projectId);
+
+    const contentText = content.map((part) => part.text).join('');
+    this.logger.log(
+      `generating component for project ${projectId}, with message: ${contentText}`,
+    );
+
+    //TODO: Don't instantiate HydraBackend every request
+    const hydraBackend = new HydraBackend(decryptedProviderKey.providerKey);
+
+    const resolvedThreadId = await this.ensureThread(
+      projectId,
+      threadId,
+      contextKey,
+    );
+    await this.threadsService.addMessage(resolvedThreadId, {
+      role: MessageRole.User,
+      content,
+    });
+
+    // Now refetch the whole thread to get the entire message history
+    const currentThreadMessages =
+      await this.threadsService.getMessages(resolvedThreadId);
+    const messageHistory = convertThreadMessagesToLegacyThreadMessages(
+      currentThreadMessages,
+    );
+    const availableComponentMap: Record<string, AvailableComponent> =
+      availableComponents.reduce((acc, component) => {
+        acc[component.name] = component;
+        return acc;
+      }, {});
+    const component = await hydraBackend.generateComponent(
+      messageHistory,
+      availableComponentMap,
       resolvedThreadId,
     );
     await this.addDecisionToThread(resolvedThreadId, component);
@@ -121,22 +192,8 @@ export class ComponentsController {
       contextKey,
     } = hydrateComponentDto;
     const projectId = request.projectId;
-
-    const project = await this.projectsService.findOneWithKeys(projectId);
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    const providerKeys = project.getProviderKeys();
-    if (!providerKeys?.length) {
-      throw new NotFoundException('No provider keys found for project');
-    }
-    const providerKey =
-      providerKeys[providerKeys.length - 1].providerKeyEncrypted; // Use the last provider key
-    if (!providerKey) {
-      throw new NotFoundException('No provider key found for project');
-    }
-    const decryptedProviderKey = decryptProviderKey(providerKey);
+    const decryptedProviderKey =
+      await this.validateProjectAndProviderKeys(projectId);
 
     const hydraBackend = new HydraBackend(decryptedProviderKey.providerKey);
 
@@ -174,16 +231,76 @@ export class ComponentsController {
     };
   }
 
+  @Post('hydrate2')
+  async hydrateComponent2(
+    @Body() hydrateComponentDto: HydrateComponentRequest2,
+    @Req() request, // Assumes the request object has the projectId
+  ): Promise<ComponentDecisionDto> {
+    const { component, toolResponse, threadId, contextKey } =
+      hydrateComponentDto;
+    const projectId = request.projectId;
+    const decryptedProviderKey =
+      await this.validateProjectAndProviderKeys(projectId);
+
+    const hydraBackend = new HydraBackend(decryptedProviderKey.providerKey);
+
+    if (!component) {
+      throw new BadRequestException('Component is required');
+    }
+    const resolvedThreadId = await this.ensureThread(
+      projectId,
+      threadId,
+      contextKey,
+      true,
+    );
+    const toolResponseString =
+      typeof toolResponse === 'string'
+        ? toolResponse
+        : JSON.stringify(toolResponse);
+    await this.threadsService.addMessage(resolvedThreadId, {
+      role: MessageRole.Tool,
+      content: [{ type: ContentPartType.Text, text: toolResponseString }],
+      actionType: ActionType.ToolResponse,
+    });
+
+    const currentThreadMessages =
+      await this.threadsService.getMessages(resolvedThreadId);
+    const messageHistory = convertThreadMessagesToLegacyThreadMessages(
+      currentThreadMessages,
+    );
+    const hydratedComponent = await hydraBackend.hydrateComponentWithData(
+      messageHistory,
+      component,
+      toolResponse,
+      resolvedThreadId,
+    );
+
+    await this.addDecisionToThread(resolvedThreadId, hydratedComponent);
+
+    this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
+    return {
+      ...hydratedComponent,
+      threadId: resolvedThreadId,
+    };
+  }
+
   private async ensureThread(
     projectId: string,
     threadId: string | undefined,
     contextKey: string | undefined,
+    preventCreate: boolean = false,
   ) {
     // If the threadId is provided, ensure that the thread belongs to the project
     if (threadId) {
       await this.threadsService.ensureThreadByProjectId(threadId, projectId);
       // TODO: should we update contextKey?
       return threadId;
+    }
+
+    if (preventCreate) {
+      throw new BadRequestException(
+        'Thread ID is required, and cannot be created',
+      );
     }
     // If the threadId is not provided, create a new thread
     const newThread = await this.threadsService.createThread({
@@ -192,4 +309,14 @@ export class ComponentsController {
     });
     return newThread.id;
   }
+}
+function convertThreadMessagesToLegacyThreadMessages(
+  currentThreadMessages: ThreadMessage[],
+) {
+  return currentThreadMessages.map(
+    (message): ChatMessage => ({
+      sender: message.role === MessageRole.User ? 'user' : 'hydra',
+      message: message.content.map((part) => part.text ?? '').join(''),
+    }),
+  );
 }
