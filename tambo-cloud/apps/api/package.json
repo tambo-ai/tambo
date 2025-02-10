@@ -23,10 +23,10 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",
-    "@nestjs/common": "^11.0.8",
+    "@nestjs/common": "^11.0.9",
     "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.8",
-    "@nestjs/platform-express": "^11.0.8",
+    "@nestjs/core": "^11.0.9",
+    "@nestjs/platform-express": "^11.0.9",
     "@nestjs/swagger": "^11.0.3",
     "@use-hydra-ai/core": "*",
     "@use-hydra-ai/db": "*",
@@ -42,7 +42,7 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.2",
     "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.8",
+    "@nestjs/testing": "^11.0.9",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",
     "@types/json-schema": "^7.0.15",
