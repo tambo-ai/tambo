@@ -25,3 +25,8 @@ updates:
         patterns:
           - "@eslint/*"
           - "eslint"
+          - "typescript-eslint"
+          - "eslint-plugin-*"
+      fumadocs:
+        patterns:
+          - "fumadocs-*"
