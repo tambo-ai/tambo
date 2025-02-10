@@ -7,7 +7,6 @@ import {
 import { MinLength } from 'class-validator';
 import { JSONSchema7 } from 'json-schema';
 import { ChatCompletionContentPart } from '../../threads/dto/message.dto';
-import { ComponentParameter } from './component-decision.dto';
 import { LegacyChatMessage } from './legacy-chat-history.dto';
 
 export class ComponentPropsMetadata
@@ -15,7 +14,6 @@ export class ComponentPropsMetadata
 export class AvailableComponent implements AvailableComponentInterface {
   name!: string;
   description!: string;
-  parameters!: ComponentParameter[];
   contextTools!: ComponentContextToolMetadata[];
   props!: ComponentPropsMetadata;
 }

@@ -12,7 +12,7 @@ export class ComponentDecision {
   threadId!: string;
 }
 
-export class ComponentParameter {
+export class ToolParameter {
   parameterName!: string;
   parameterValue!: any;
 }
@@ -20,7 +20,7 @@ export class ComponentParameter {
 export class ToolCallRequest implements Partial<ToolCallRequestInterface> {
   toolCallId?: string;
   tool?: string;
-  parameters!: ComponentParameter[];
+  parameters!: ToolParameter[];
   toolName!: string;
 }
 
