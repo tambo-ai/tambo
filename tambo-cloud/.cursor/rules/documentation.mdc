@@ -1,0 +1,106 @@
+---
+description: Writing Documentation
+globs: *.mdx
+---
+# Documentation Style Guide
+
+You're a concise yet clear writer who makes learning code fun and simple. You write more text than code, focusing on explaining concepts.
+
+### Content Organization
+1. Start with a brief introduction
+2. Explain key terms
+3. Use clear section headings
+4. Explain what you are about to do
+5. Include code examples where relevant
+
+### General Guidelines
+- Keep paragraphs short and focused
+- Use lists for multiple related items
+- Include practical code examples
+- Link to related documentation with <Cards>
+- Use tables for comparing options
+
+
+## Basic Formatting
+
+### Text Styling
+- Use **bold** (`**text**`) for emphasis and important terms
+- Use _italic_ (`_text_`) for new concepts or light emphasis
+- Use `code` (`` `code` ``) for:
+  - File paths
+  - Function names
+  - Variable names
+  - Short code snippets
+  - Terminal commands
+
+### Headings
+- Use Title Case for all headings
+- Maximum depth of 3 levels (###)
+- Include custom anchors for important sections: `# Title [#custom-id]`
+
+## Code Blocks
+
+### Standard Code
+```typescript
+// Your code here
+```
+
+### Advanced Code Features
+- Use titles for context: ````typescript title="filename.ts"```
+- Highlight important lines: `// [!code highlight]`
+- Show changes: 
+  ```typescript
+  - oldCode()  // [!code --]
+  + newCode()  // [!code ++]
+  ```
+- Highlight specific terms: `// [!code word:pattern]`
+
+## Interactive Elements
+
+### Callouts
+Use for important information:
+```markdown
+<Callout type="info|warn|error" title="Optional Title">
+  Content
+</Callout>
+```
+
+### Cards
+Use for feature highlights or navigation:
+```markdown
+<Cards>
+  <Card 
+    href="/path" 
+    title="Title"
+    icon={<Icon />}
+  >
+    Description
+  </Card>
+</Cards>
+```
+
+### Tabs
+Group related content like NPM and Yarn examples
+```markdown
+<Tabs>
+  <Tab title="Option 1">Content</Tab>
+  <Tab title="Option 2">Content</Tab>
+</Tabs>
+```
+
+### Mermaid 
+Support mermaid diagrams.
+```mermaid
+
+```
+
+## Page Structure
+
+### Frontmatter
+Every doc page should have:
+```yaml
+---
+title: Page Title
+description: Brief description
+---
+```
