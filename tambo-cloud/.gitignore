@@ -41,3 +41,6 @@ next-env.d.ts
 
 # check-types
 *.tsbuildinfo
+
+# vscode/cursor
+*.code*
