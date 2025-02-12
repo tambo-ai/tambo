@@ -5,7 +5,8 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
-      "@use-hydra-ai/hydra-ai-server": ["../hydra-ai-server/src"]
+      "@use-hydra-ai/hydra-ai-server": ["../hydra-ai-server/src"],
+      "@use-hydra-ai/core": ["../core/src"]
     }
   },
   "include": ["src/**/*"]
