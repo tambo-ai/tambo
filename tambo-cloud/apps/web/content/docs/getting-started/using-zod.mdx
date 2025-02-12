@@ -85,7 +85,7 @@ export const HydraCarouselSchema = z.object({
       title: z.string(),
       description: z.string(),
       image: z.string().optional(),
-    })
+    }),
   ),
   className: z.string().optional(),
 });
@@ -207,7 +207,7 @@ const dataSchema = z.object({
     z.object({
       id: z.string(),
       data: z.any(),
-    })
+    }),
   ),
 });
 

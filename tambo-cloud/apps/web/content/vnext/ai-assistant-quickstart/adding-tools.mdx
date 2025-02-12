@@ -93,7 +93,7 @@ toolRegistry.registerTool(
   async (input: LeadSearchInput): Promise<Lead[]> => {
     // In a real app, this would call your CRM API
     return await searchLeadsInCrm(input.query, input.limit);
-  }
+  },
 );
 
 toolRegistry.registerTool(
@@ -101,7 +101,7 @@ toolRegistry.registerTool(
   async (input: LeadDetailsInput): Promise<Lead> => {
     // In a real app, this would call your CRM API
     return await getLeadFromCrm(input.leadId);
-  }
+  },
 );
 ```
 

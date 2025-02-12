@@ -5,3 +5,5 @@ apps/*/dist/
 packages/*/dist/
 # Managed by release-please
 CHANGELOG.md
+packages/db/migrations/
+.vscode/

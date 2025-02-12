@@ -6,7 +6,7 @@ When Hydra chooses a component to use, it will look at the component's `propsDef
 
 If the size of the props object passed to a component is large, it can impact Hydra's performance, since Hydra needs to generate more data. Essentially, the response time of a request to Hydra is directly related to, and mostly determined by, the size (token count) of the props object generated for the chosen component.
 
-This is most relevant when using components that need to show real data, such as a component that shows a list of fetched objects. 
+This is most relevant when using components that need to show real data, such as a component that shows a list of fetched objects.
 
 For example, consider this component which shows a list of meetings:
 
@@ -24,17 +24,18 @@ Where the registration of the component might be:
 
 ```tsx
 hydra.registerComponent({
-    name: 'MeetingsList',
-    description: 'A list of meetings',
-    component: MeetingsList,
-    propsDefinition: {
-        meetings: '{id: string, title: string, date: string, location: string, attendees: string[]}[]'
-    },
-    contextTools: [meetingsTool]
-})
+  name: "MeetingsList",
+  description: "A list of meetings",
+  component: MeetingsList,
+  propsDefinition: {
+    meetings:
+      "{id: string, title: string, date: string, location: string, attendees: string[]}[]",
+  },
+  contextTools: [meetingsTool],
+});
 ```
 
-When the user asks for a list of meetings and Hydra decides to use this component, Hydra will need to generate every meeting object. If there are many meetings, this can take a long time. 
+When the user asks for a list of meetings and Hydra decides to use this component, Hydra will need to generate every meeting object. If there are many meetings, this can take a long time.
 
 ### A Workaround
 
@@ -45,39 +46,42 @@ Instead of having Hydra generate the list of meeting objects, we can have Hydra 
 Heres what the MeetingsList component would look like restructured in this way:
 
 ```tsx
-const MeetingsList = ({ meetingsRequest: {startDate: string, endDate: string}}) => {
+const MeetingsList = ({
+  meetingsRequest: { startDate: string, endDate: string },
+}) => {
+  const [meetings, setMeetings] = useState([]);
 
-    const [meetings, setMeetings] = useState([])
+  useEffect(() => {
+    fetchMeetings(startDate, endDate);
+  }, [startDate, endDate]);
 
-    useEffect(() => {
-        fetchMeetings(startDate, endDate)
-    }, [startDate, endDate])
+  const fetchMeetings = async (startDate: string, endDate: string) => {
+    const meetings = await getMeetings(startDate, endDate); // Assuming there is a function to fetch meetings somewhere
+    setMeetings(meetings);
+  };
 
-    const fetchMeetings = async (startDate: string, endDate: string) => {
-        const meetings = await getMeetings(startDate, endDate) // Assuming there is a function to fetch meetings somewhere
-        setMeetings(meetings)
-    }
-
-    return (
-        <div>
-            {meetings.map(meeting => <MeetingCard key={meeting.id} meeting={meeting} />)}
-        </div>
-    )
-}
+  return (
+    <div>
+      {meetings.map((meeting) => (
+        <MeetingCard key={meeting.id} meeting={meeting} />
+      ))}
+    </div>
+  );
+};
 ```
 
 Where the registration of the component would be updated to:
 
 ```tsx
 hydra.registerComponent({
-    name: 'MeetingsList',
-    description: 'A list of meetings',
-    component: MeetingsList,
-    propsDefinition: {
-        meetingsRequest: '{startDate: string, endDate: string}'
-    },
-    contextTools: [meetingsTool]
-})
+  name: "MeetingsList",
+  description: "A list of meetings",
+  component: MeetingsList,
+  propsDefinition: {
+    meetingsRequest: "{startDate: string, endDate: string}",
+  },
+  contextTools: [meetingsTool],
+});
 ```
 
 Now, Hydra only needs to generate the startDate and endDate strings.

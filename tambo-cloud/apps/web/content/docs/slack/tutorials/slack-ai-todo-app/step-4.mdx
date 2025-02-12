@@ -9,8 +9,9 @@ In this step, we'll register the Todo list components with Hydra so that Hydra c
 Let's start by "telling" Hydra about the components we want it to be able to control and show in responses.
 
 We already have the components we need for a Todo list app under `/src/components` defined using `jsx-slack`. They are:
- - `TaskForm`: A form for adding a new task to the list.
- - `TaskList`: A list of tasks, with buttons to mark them as 'complete'.
+
+- `TaskForm`: A form for adding a new task to the list.
+- `TaskList`: A list of tasks, with buttons to mark them as 'complete'.
 
 There are also a couple of loading components that we'll show while the "main" components are loading.
 
@@ -92,7 +93,7 @@ To register them with Hydra, we'll update the `hydra-config.ts` file we created 
                 parameters: [],
             }
         }
-       
+
         ```
 
     **Some things to note:**
@@ -104,9 +105,6 @@ To register them with Hydra, we'll update the `hydra-config.ts` file we created 
     - `contextTools`: A list of functions that Hydra can call to get extra context data when the component is chosen. In this case, we're using the `tasksContextTool` to let Hydra see the list of all tasks when deciding how to generate the input data for the components.
     - `generateProps`: A function that runs after Hydra generates input data for the component and before the component is shown. It is used when we don't want Hydra to generate the entire input data for the component.
 
-    The buttons in the `TaskForm` and `TaskList` components are both hooked up to actions that interact with the stored task data. 
+    The buttons in the `TaskForm` and `TaskList` components are both hooked up to actions that interact with the stored task data.
 
     The stored task data is handled in the `/src/api/task-service.ts` file. This is a simple in-memory data store for this tutorial, but in a real app the functions in this file would likely be replaced with a call to an external API.
-
-
-

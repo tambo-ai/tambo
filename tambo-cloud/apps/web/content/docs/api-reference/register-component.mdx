@@ -10,7 +10,7 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
         description: "A list of meetings with their details. Use this when the user wants to view all meetings, filter them by date, or search for specific meetings.",
         component: MeetingsListContainer,
         propsDefinition: {
-            meetings: "{id: string, title: string, date: string, location: string, attendees: string[]}[]" 
+            meetings: "{id: string, title: string, date: string, location: string, attendees: string[]}[]"
         },
         contextTools: [getMeetingssTool],
         loadingComponent: MeetingsListSkeleton
@@ -19,29 +19,29 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
 
 ### Parameters
 
-`name`: `string` **required** 
+`name`: `string` **required**
 
        The name of the component. This should be unique and descriptive.
 
-`description`: `string` **required** 
+`description`: `string` **required**
 
         A natural language description of the component that is used to help Hydra understand the component and its purpose, and when it should be used.
-       
+
         If you experience Hydra using one component when you expect another, updating the description of each component to differentiate them usually fixes the issue.
 
-`component`: `React.ComponentType<any>` **required** 
+`component`: `React.ComponentType<any>` **required**
 
        A reference to the actual component function or class.
 
-`propsDefinition`: `object` **optional** 
+`propsDefinition`: `object` **optional**
 
-        > 💡 Note: The size of the props passed into a component impacts Hydra's performance as larger props obects require Hydra to generate more data.   
+        > 💡 Note: The size of the props passed into a component impacts Hydra's performance as larger props obects require Hydra to generate more data.
         >
         > If your component takes a large object or array as a prop, check out this guide to see how you might restructure the component for performance improvements: [Component Props and Performance](/docs/concepts/component-data-props)
 
        A definition of the props that the component accepts. When Hydra decides to use this component, it will look at this definition to know what props to pass to the component, and how they should be structured.
 
-       This is an object where the keys are the names of the props, and the values are the types of the props. 
+       This is an object where the keys are the names of the props, and the values are the types of the props.
 
        For example, if the component takes a `name` prop, an `age` prop, and a `tags` array prop, the propsDefinition would be:
 
@@ -61,7 +61,7 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
        }
        ```
 
-       When the prop types get more complex and involve nested object types, we recommend using Zod to define the schema. 
+       When the prop types get more complex and involve nested object types, we recommend using Zod to define the schema.
 
        For example, if the component takes a `user` prop, which is an object with a `name` and `age` property, the propsDefinition would be:
 
@@ -78,7 +78,7 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
 
        If the component takes no props, this parameter can be left out.
 
-`contextTools`: `ContextTool[]` **optional** 
+`contextTools`: `ContextTool[]` **optional**
 
        A list of function definitions that Hydra can use when this component is chosen to get extra information needed to generate the props. For example, if the component is a "MeetingList" component, the context tools could include a function that gets the list of meetings from the database. Then, when Hydra decides to use this component, it will call the function and use the result to generate the props with real meeting data.
 
@@ -88,6 +88,6 @@ This function is used to "tell" Hydra about a component, allowing it to be a pos
 
        Find more information on how to define context tools [here](/docs/getting-started/adding-components#using-context-tools).
 
-`loadingComponent`: `React.ComponentType<any>` **optional** 
+`loadingComponent`: `React.ComponentType<any>` **optional**
 
        A reference to a component that Hydra will show while it generates the props for the component. For example, if the 'real' component is a list of meetings, the context tool calling and prop generation may take a couple seconds, so Hydra can show a "Skeleton" list component in the meantime.
