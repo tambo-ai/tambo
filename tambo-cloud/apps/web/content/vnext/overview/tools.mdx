@@ -69,7 +69,19 @@ If you already have the tool functionality defined when you register your compon
 
 ```tsx
 const weatherTool: HydraTool = {
-  // tool definition
+  name: "getForecast",
+  description: "Call the weather API to get today's forecast",
+  // a function, called with `await fetchForecast("Las Vegas")`
+  tool: fetchForecast,
+  toolSchema: z
+    .function()
+    .args(
+      z
+        .string()
+        .describe(
+          "The geographic location, such as a city, state, or zip code",
+        ),
+    ),
 };
 
 hydraClient.registerComponent({
