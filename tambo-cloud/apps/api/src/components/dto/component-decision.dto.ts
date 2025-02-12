@@ -38,5 +38,5 @@ export class SuggestedAction implements Partial<SuggestedActionInterface> {
 }
 
 export class GenerateComponentResponse {
-  message?: ThreadMessage;
+  message!: ThreadMessage;
 }
