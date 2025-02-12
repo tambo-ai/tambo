@@ -55,6 +55,7 @@ interface InternalThreadMessage {
 }
 export class ThreadMessage implements InternalThreadMessage {
   id!: string;
+  threadId!: string;
   @IsEnum(MessageRole)
   role!: MessageRole;
   content!: ChatCompletionContentPart[];

@@ -106,6 +106,7 @@ export class ThreadsService {
     });
     return {
       id: message.id,
+      threadId,
       role: message.role,
       content: convertContentPartToDto(message.content),
       metadata: message.metadata ?? undefined,
@@ -120,6 +121,7 @@ export class ThreadsService {
     return messages.map(
       (message): ThreadMessage => ({
         id: message.id,
+        threadId,
         role: message.role,
         content: convertContentPartToDto(message.content),
         metadata: message.metadata ?? undefined,
