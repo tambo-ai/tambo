@@ -70,13 +70,8 @@ export default function SmokePage() {
     });
   }, [registerComponent, tools]);
 
-  // const hydraClient = useWeatherHydra({
-  //   getForecast,
-  //   getHistoricalWeather,
-  //   getAirQuality,
-  // });
   useEffect(() => {
-    console.log("thread update", thread);
+    console.log("thread updated", thread);
   }, [thread]);
 
   const { mutateAsync: generateComponent, isPending: isGenerating } =
@@ -140,7 +135,9 @@ export default function SmokePage() {
           ))}
         </div>
         <div>
-          <p>Generation stage: {generationStage}</p>
+          <p className="text-sm text-muted-foreground p-2">
+            Generation stage: {generationStage}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-2">
