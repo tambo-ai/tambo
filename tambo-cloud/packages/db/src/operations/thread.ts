@@ -42,6 +42,9 @@ export async function getThreadForProjectId(
     with: {
       messages: {
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+        with: {
+          suggestions: true,
+        },
       },
     },
   });

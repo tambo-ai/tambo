@@ -71,6 +71,13 @@
       "when": 1738797172618,
       "tag": "0009_crazy_grim_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1739390355487,
+      "tag": "0010_nostalgic_yellowjacket",
+      "breakpoints": true
     }
   ]
 }

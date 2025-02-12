@@ -52,7 +52,15 @@ export const threadRouter = createTRPCRouter({
       if (thread?.projectId !== input.projectId) {
         throw new Error("Thread not found");
       }
-      return thread;
+      return {
+        ...thread,
+        messages: thread.messages.map((message) => ({
+          ...message,
+          componentDecision: message.componentDecision ?? undefined,
+          toolCallRequest: message.toolCallRequest ?? undefined,
+          suggestedActions: message.suggestions ?? undefined,
+        })),
+      };
     }),
 
   deleteThread: protectedProcedure

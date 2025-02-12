@@ -111,6 +111,7 @@ export class ThreadsService {
       metadata: message.metadata ?? undefined,
       component: message.componentDecision ?? undefined,
       actionType: message.actionType ?? undefined,
+      createdAt: message.createdAt,
     };
   }
 
@@ -124,6 +125,7 @@ export class ThreadsService {
         metadata: message.metadata ?? undefined,
         component: message.componentDecision ?? undefined,
         actionType: message.actionType ?? undefined,
+        createdAt: message.createdAt,
       }),
     );
   }

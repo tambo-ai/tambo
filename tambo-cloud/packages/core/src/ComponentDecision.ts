@@ -7,6 +7,12 @@ export interface ComponentDecision {
   threadId: string;
 }
 
+export interface ComponentDecisionV2 {
+  componentName: string | null;
+  props: any | null;
+  message: string;
+}
+
 export interface ToolCallRequest {
   toolName: string;
   parameters: {

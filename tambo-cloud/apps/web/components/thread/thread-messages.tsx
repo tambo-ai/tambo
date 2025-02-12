@@ -52,36 +52,28 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
                   )}
                 </div>
 
-                {!!message.componentDecision.suggestedActions?.length && (
+                {!!message.suggestedActions?.length && (
                   <div className="mt-1">
                     Suggested Actions:
                     <ul className="list-disc list-inside">
-                      {message.componentDecision.suggestedActions.map(
-                        (action, i) => (
-                          <li key={i}>{action.label}</li>
-                        ),
-                      )}
+                      {message.suggestedActions.map((action, i) => (
+                        <li key={i}>{action.title}</li>
+                      ))}
                     </ul>
                   </div>
                 )}
 
-                {message.componentDecision.toolCallRequest && (
+                {message.toolCallRequest && (
                   <div className="mt-1">
-                    Tool Call:{" "}
-                    <pre>
-                      {message.componentDecision.toolCallRequest.toolName}
-                    </pre>
-                    {message.componentDecision.toolCallRequest.parameters
-                      .length > 0 && (
+                    Tool Call: <pre>{message.toolCallRequest.toolName}</pre>
+                    {message.toolCallRequest.parameters.length > 0 && (
                       <ul className="list-disc list-inside">
-                        {message.componentDecision.toolCallRequest.parameters.map(
-                          (param, i) => (
-                            <li key={i}>
-                              {param.parameterName} ={" "}
-                              {JSON.stringify(param.parameterValue)}
-                            </li>
-                          ),
-                        )}
+                        {message.toolCallRequest.parameters.map((param, i) => (
+                          <li key={i}>
+                            {param.parameterName} ={" "}
+                            {JSON.stringify(param.parameterValue)}
+                          </li>
+                        ))}
                       </ul>
                     )}
                   </div>
