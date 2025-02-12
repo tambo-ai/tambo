@@ -186,9 +186,6 @@ export default function SmokePage() {
       <div>
         <p>Thread ID: &apos;{thread.id}&apos;</p>
       </div>
-      <div>
-        <pre>Thread: {JSON.stringify(thread, null, 2)}</pre>
-      </div>
     </div>
   );
 }
