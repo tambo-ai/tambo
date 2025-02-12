@@ -185,7 +185,7 @@ export class ComponentsController {
   async hydrateComponent(
     @Body() hydrateComponentDto: HydrateComponentRequest,
     @Req() request, // Assumes the request object has the projectId
-  ): Promise<GenerateComponentResponse> {
+  ): Promise<ComponentDecisionDto> {
     const {
       messageHistory = [],
       component,
@@ -224,14 +224,12 @@ export class ComponentsController {
       resolvedThreadId,
     );
 
-    const message = await this.addDecisionToThread(
-      resolvedThreadId,
-      hydratedComponent,
-    );
+    await this.addDecisionToThread(resolvedThreadId, hydratedComponent);
 
     this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
     return {
-      message,
+      ...hydratedComponent,
+      threadId: resolvedThreadId,
     };
   }
 
@@ -239,7 +237,7 @@ export class ComponentsController {
   async hydrateComponent2(
     @Body() hydrateComponentDto: HydrateComponentRequest2,
     @Req() request, // Assumes the request object has the projectId
-  ): Promise<ComponentDecisionDto> {
+  ): Promise<GenerateComponentResponse> {
     const { component, toolResponse, threadId, contextKey } =
       hydrateComponentDto;
     const projectId = request.projectId;
@@ -279,12 +277,14 @@ export class ComponentsController {
       resolvedThreadId,
     );
 
-    await this.addDecisionToThread(resolvedThreadId, hydratedComponent);
+    const message = await this.addDecisionToThread(
+      resolvedThreadId,
+      hydratedComponent,
+    );
 
     this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
     return {
-      ...hydratedComponent,
-      threadId: resolvedThreadId,
+      message,
     };
   }
 
