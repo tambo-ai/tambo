@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { HydraThreadMessage, useHydra } from "@hydra-ai/react";
+import { useHydra } from "@hydra-ai/react";
 import { HydraTool } from "@hydra-ai/react/dist/model/component-metadata";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
@@ -16,7 +16,6 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
 export default function SmokePage() {
-  const [messages, setMessages] = useState<HydraThreadMessage[]>([]);
   const [input, setInput] = useState("");
 
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
@@ -24,6 +23,7 @@ export default function SmokePage() {
   );
   const { sendThreadMessage, registerComponent, generationStage, thread } =
     useHydra();
+  const messages = thread?.messages ?? [];
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
     api.demo.aqi.useMutation({
@@ -90,18 +90,8 @@ export default function SmokePage() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const response = await generateComponent();
+    await generateComponent();
 
-    // Add user message
-    const userMessage: HydraThreadMessage = {
-      role: "user",
-      content: [{ type: "text", text: input }],
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      threadId: thread.id,
-    };
-
-    setMessages((prev) => [...prev, userMessage, response]);
     setInput("");
   };
 
