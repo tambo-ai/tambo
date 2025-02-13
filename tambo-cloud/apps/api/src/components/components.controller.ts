@@ -164,7 +164,7 @@ export class ComponentsController {
     const message = await this.addDecisionToThread(resolvedThreadId, component);
 
     return {
-      message,
+      message: message,
     };
   }
 
@@ -175,9 +175,11 @@ export class ComponentsController {
     return this.threadsService.addMessage(threadId, {
       role: MessageRole.Hydra,
       content: [{ type: ContentPartType.Text, text: component.message }],
-      // HACK: for now just jam the full component decision into the content
+      // HACK: for now just jam the full component decision into the content,
+      // but we should filter out the old toolCallRequest / suggestedActions
       component: component,
       actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
+      toolCallRequest: component.toolCallRequest,
     });
   }
 

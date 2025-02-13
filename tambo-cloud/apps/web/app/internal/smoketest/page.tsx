@@ -5,23 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { useHydra } from "@hydra-ai/react";
+import { HydraThreadMessage, useHydra } from "@hydra-ai/react";
 import { HydraTool } from "@hydra-ai/react/dist/model/component-metadata";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { ComponentContextTool } from "@use-hydra-ai/hydra-ai-server";
 import { HydraClient } from "hydra-ai";
 import { X } from "lucide-react";
-import { ReactElement, ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
-interface Message {
-  role: "user" | "assistant";
-  content: (string | ReactElement)[];
-}
-
 export default function SmokePage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<HydraThreadMessage[]>([]);
   const [input, setInput] = useState("");
 
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
@@ -98,20 +93,15 @@ export default function SmokePage() {
     const response = await generateComponent();
 
     // Add user message
-    const userMessage: Message = {
+    const userMessage: HydraThreadMessage = {
       role: "user",
-      content: [input],
+      content: [{ type: "text", text: input }],
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      threadId: thread.id,
     };
 
-    // Add assistant response
-    const assistantMessage: Message = {
-      role: "assistant",
-      content: [response.message],
-    };
-    if (response?.component) {
-      assistantMessage.content.push(response.component);
-    }
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
+    setMessages((prev) => [...prev, userMessage, response]);
     setInput("");
   };
 
@@ -129,8 +119,15 @@ export default function SmokePage() {
               }`}
             >
               {message.content.map((content, index) => (
-                <div key={index}>{content}</div>
+                <div key={index}>
+                  {content.type === "text"
+                    ? content.text
+                    : `[Unhandled ${content.type}]`}
+                </div>
               ))}
+              {message.renderedComponent && (
+                <div className="mt-2">{message.renderedComponent}</div>
+              )}
             </div>
           ))}
         </div>

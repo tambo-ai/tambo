@@ -103,6 +103,7 @@ export class ThreadsService {
       componentDecision: messageDto.component ?? undefined,
       metadata: messageDto.metadata,
       actionType: messageDto.actionType ?? undefined,
+      toolCallRequest: messageDto.toolCallRequest ?? undefined,
     });
     return {
       id: message.id,
@@ -113,6 +114,7 @@ export class ThreadsService {
       component: message.componentDecision ?? undefined,
       actionType: message.actionType ?? undefined,
       createdAt: message.createdAt,
+      toolCallRequest: message.toolCallRequest ?? undefined,
     };
   }
 
