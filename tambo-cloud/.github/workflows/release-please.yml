@@ -41,3 +41,15 @@ jobs:
           git checkout deploy
           git merge --no-ff main -m "chore: merge main into deploy for release ${{ steps.release.outputs.tag_name }}"
           git push origin deploy
+      - name: Notify Slack of Deploy Start
+        if: ${{ steps.release.outputs.release_created }}
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          payload: |
+            text: |
+              :rocket: *Production Deployment Started*
+              • Version: ${{ steps.release.outputs.tag_name }}
+              • Release PR: https://github.com/${{ github.repository }}/pull/${{ fromJson(steps.release.outputs.pr).number }}"
+              • Triggered by: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
