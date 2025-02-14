@@ -1,6 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   ChatCompletionContentPart as ChatCompletionContentPartInterface,
+  ComponentDecision,
   ContentPartType,
 } from '@use-hydra-ai/core';
 import type { HydraDatabase } from '@use-hydra-ai/db';
@@ -115,6 +116,11 @@ export class ThreadsService {
       actionType: message.actionType ?? undefined,
       createdAt: message.createdAt,
       toolCallRequest: message.toolCallRequest ?? undefined,
+
+      // TODO: promote suggestionActions to the message level in the db, this is just
+      // relying on the internal ComponentDecision type
+      suggestions: (message.componentDecision as ComponentDecision)
+        ?.suggestedActions,
     };
   }
 

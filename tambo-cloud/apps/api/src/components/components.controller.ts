@@ -186,6 +186,7 @@ export class ComponentsController {
       component: component,
       actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
       toolCallRequest: component.toolCallRequest,
+      suggestedActions: component.suggestedActions,
     });
   }
 
