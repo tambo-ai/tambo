@@ -4,6 +4,7 @@ import { IsEnum } from 'class-validator';
 export enum ChatMessageSender {
   Hydra = 'hydra',
   User = 'user',
+  Tool = 'tool',
 }
 
 export class LegacyChatMessage implements ChatMessageInterface {

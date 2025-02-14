@@ -105,10 +105,7 @@ export class ComponentsController {
     );
     await this.addDecisionToThread(resolvedThreadId, component);
 
-    return {
-      ...component,
-      threadId: resolvedThreadId,
-    };
+    return { ...component, threadId: resolvedThreadId };
   }
 
   @Post('generate2')
@@ -163,9 +160,7 @@ export class ComponentsController {
     );
     const message = await this.addDecisionToThread(resolvedThreadId, component);
 
-    return {
-      message: message,
-    };
+    return { message: message };
   }
 
   private async addDecisionToThread(
@@ -229,10 +224,7 @@ export class ComponentsController {
     await this.addDecisionToThread(resolvedThreadId, hydratedComponent);
 
     this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
-    return {
-      ...hydratedComponent,
-      threadId: resolvedThreadId,
-    };
+    return { ...hydratedComponent, threadId: resolvedThreadId };
   }
 
   @Post('hydrate2')
@@ -285,9 +277,7 @@ export class ComponentsController {
     );
 
     this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
-    return {
-      message,
-    };
+    return { message };
   }
 
   private async ensureThread(
@@ -321,7 +311,9 @@ function convertThreadMessagesToLegacyThreadMessages(
 ) {
   return currentThreadMessages.map(
     (message): ChatMessage => ({
-      sender: message.role === MessageRole.User ? 'user' : 'hydra',
+      sender: [MessageRole.User, MessageRole.Tool].includes(message.role)
+        ? (message.role as 'user' | 'tool')
+        : 'hydra',
       message: message.content.map((part) => part.text ?? '').join(''),
     }),
   );

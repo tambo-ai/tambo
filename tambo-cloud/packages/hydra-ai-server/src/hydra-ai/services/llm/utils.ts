@@ -8,7 +8,7 @@ export function chatHistoryToParams(
 
   messageHistory.forEach((message) => {
     messages.push({
-      role: message.sender === "user" ? "user" : "system",
+      role: ["user", "tool"].includes(message.sender) ? "user" : "assistant",
       content:
         message.message +
         (message.additionalContext
