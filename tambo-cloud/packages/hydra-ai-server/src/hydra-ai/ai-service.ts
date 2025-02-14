@@ -12,8 +12,9 @@ export default class AIService {
     openAiKey: string,
     model: string = "gpt-4o",
     provider: Provider = "openai",
+    chainId: string,
   ) {
-    this.llmClient = new TokenJSClient(openAiKey, model, provider);
+    this.llmClient = new TokenJSClient(openAiKey, model, provider, chainId);
   }
 
   async chooseComponent(

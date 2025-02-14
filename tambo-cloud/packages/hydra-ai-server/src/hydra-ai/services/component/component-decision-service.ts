@@ -1,11 +1,13 @@
+import { objectTemplate } from "@libretto/openai";
+import { type ChatCompletionMessageParam } from "@libretto/token.js";
 import { ComponentDecision } from "@use-hydra-ai/core";
 import { InputContext } from "../../model/input-context";
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
 import {
-  generateAvailableComponentsPrompt,
   generateDecisionPrompt,
-  generateNoComponentPrompt,
+  getAvailableComponentsPromptTemplate,
+  getNoComponentPromptTemplate,
 } from "../prompt/prompt-service";
 import { hydrateComponent } from "./component-hydration-service";
 
@@ -15,19 +17,24 @@ export async function decideComponent(
   context: InputContext,
   threadId: string,
 ): Promise<ComponentDecision> {
-  const decisionResponse = await llmClient.complete([
-    {
-      role: "system",
-      content: generateDecisionPrompt(),
-    },
-    {
-      role: "user",
-      content: `<availableComponents>
-      ${generateAvailableComponentsPrompt(context.availableComponents)}
-      </availableComponents>`,
-    },
-    ...chatHistoryToParams(context.messageHistory),
-  ]);
+  const {
+    template: availableComponentsTemplate,
+    args: availableComponentsArgs,
+  } = getAvailableComponentsPromptTemplate(context.availableComponents);
+  const chatHistory = chatHistoryToParams(context.messageHistory);
+  const decisionResponse = await llmClient.complete(
+    objectTemplate<ChatCompletionMessageParam[]>([
+      { role: "system", content: generateDecisionPrompt() },
+      {
+        role: "user",
+        content:
+          "<availableComponents>{availableComponents}</availableComponents>",
+      },
+      { role: "chat_history" as "user", content: "{chat_history}" },
+    ]),
+    "component-decision",
+    { chat_history: chatHistory, ...availableComponentsArgs },
+  );
 
   const shouldGenerate = decisionResponse.message.match(
     /<decision>(.*?)<\/decision>/,
@@ -73,16 +80,19 @@ async function handleNoComponentCase(
     /<reasoning>(.*?)<\/reasoning>/,
   )?.[1];
 
-  const noComponentResponse = await llmClient.complete([
-    {
-      role: "system",
-      content: generateNoComponentPrompt(
-        reasoning,
-        context.availableComponents,
-      ),
-    },
-    ...chatHistoryToParams(context.messageHistory),
-  ]);
+  const chatHistory = chatHistoryToParams(context.messageHistory);
+  const { template, args } = getNoComponentPromptTemplate(
+    reasoning,
+    context.availableComponents,
+  );
+  const noComponentResponse = await llmClient.complete(
+    objectTemplate<ChatCompletionMessageParam[]>([
+      { role: "system", content: template },
+      { role: "chat_history" as "user", content: "{chat_history}" },
+    ]),
+    "no-component-decision",
+    { chat_history: chatHistory, ...args },
+  );
 
   return {
     componentName: null,

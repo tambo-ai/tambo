@@ -12,55 +12,135 @@ Then you will output a boolean flag (true or false) between <decision></decision
 Finally, if you decide that a component should be generated, you will output the name of the component between <component></component> tags.`;
 }
 
-export function generateNoComponentPrompt(
-  reasoning: string,
-  availableComponents: AvailableComponents,
-): string {
-  return `You are an AI assistant that interacts with users and helps them perform tasks. You have determined that you cannot generate any components to help the user with their latest query for the following reason:
-<reasoning>${reasoning}</reasoning>.
+export const noComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks. You have determined that you cannot generate any components to help the user with their latest query for the following reason:
+<reasoning>{reasoning}</reasoning>.
 <availableComponents>
-${generateAvailableComponentsPrompt(availableComponents)}
+{availableComponents}
 </availableComponents>
 Respond to the user's latest query to the best of your ability. If they have requested a task that you cannot help with, tell them so and recommend something you can help with.
 This response should be short and concise.`;
+
+export interface PromptTemplate {
+  template: string;
+  args: Record<string, string>;
 }
 
-export function generateComponentHydrationPrompt(
-  toolResponse: any | undefined,
+export function getNoComponentPromptTemplate(
+  reasoning: string,
   availableComponents: AvailableComponents,
+): PromptTemplate {
+  const availableComponentsStr =
+    generateAvailableComponentsPrompt(availableComponents);
+  return {
+    template: noComponentPrompt,
+    args: { reasoning, availableComponents: availableComponentsStr },
+  };
+}
+
+function replaceTemplateVariables(
+  template: string,
+  variables: Record<string, string>,
 ): string {
-  return `You are an AI assistant that interacts with users and helps them perform tasks.
+  return Object.entries(variables).reduce(
+    (result, [key, value]) => result.replace(`{${key}}`, value),
+    template,
+  );
+}
+
+const basePrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
 To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
 When prompted, you will be given the existing conversation history, followed by the component to display, its description provided by the user, the shape of any props to pass in, and any other related context.
-Use the conversation history and other provided context to determine what props to pass in.
-${
-  toolResponse
-    ? `You have received a response from a tool. Use this data to help determine what props to pass in: ${JSON.stringify(toolResponse)}`
-    : `You can also use any of the provided tools to fetch data needed to pass into the component.`
-}
+Use the conversation history and other provided context to determine what props to pass in.`;
 
-When generating suggestedActions, consider the following:
+const suggestedActionsGuidelines = `When generating suggestedActions, consider the following:
 1. Each suggestion should be a natural follow-up action that would make use of an available components
 2. The actionText should be phrased as a user message that would trigger the use of a specific component
 3. Suggestions should be contextually relevant to what the user is trying to accomplish
 4. Include 1-3 suggestions that would help the user progress in their current task
-5. The label should be a clear, concise button text, while the actionText can be more detailed
+5. The label should be a clear, concise button text, while the actionText can be more detailed`;
 
-${generateAvailableComponentsPrompt(availableComponents)}
+const componentHydrationPromptWithToolResponse = `${basePrompt}
+You have received a response from a tool. Use this data to help determine what props to pass in: {toolResponseString}
 
-${generateZodTypePrompt(schema)}`;
+${suggestedActionsGuidelines}
+
+{availableComponentsPrompt}
+
+{zodTypePrompt}`;
+
+const componentHydrationPromptWithoutToolResponse = `${basePrompt}
+You can also use any of the provided tools to fetch data needed to pass into the component.
+
+${suggestedActionsGuidelines}
+
+{availableComponentsPrompt}
+
+{zodTypePrompt}`;
+
+function getComponentHydrationPromptWithToolResponseTemplate(
+  toolResponseString: string,
+  availableComponentsPrompt: string,
+  zodTypePrompt: string,
+): PromptTemplate {
+  return {
+    template: componentHydrationPromptWithToolResponse,
+    args: { toolResponseString, availableComponentsPrompt, zodTypePrompt },
+  };
 }
 
-// Private functions
-export function generateAvailableComponentsPrompt(
+function getComponentHydrationPromptWithoutToolResponseTemplate(
+  availableComponentsPrompt: string,
+  zodTypePrompt: string,
+): PromptTemplate {
+  return {
+    template: componentHydrationPromptWithoutToolResponse,
+    args: { availableComponentsPrompt, zodTypePrompt },
+  };
+}
+
+export function getComponentHydrationPromptTemplate(
+  toolResponse: any | undefined,
+  availableComponents: AvailableComponents,
+): PromptTemplate {
+  const toolResponseString = toolResponse
+    ? JSON.stringify(toolResponse)
+    : undefined;
+  const availableComponentsPrompt =
+    generateAvailableComponentsPrompt(availableComponents);
+  const zodTypePrompt = generateZodTypePrompt(schema);
+
+  if (toolResponseString) {
+    return getComponentHydrationPromptWithToolResponseTemplate(
+      toolResponseString,
+      availableComponentsPrompt,
+      zodTypePrompt,
+    );
+  }
+
+  return getComponentHydrationPromptWithoutToolResponseTemplate(
+    availableComponentsPrompt,
+    zodTypePrompt,
+  );
+}
+
+export function getAvailableComponentsPromptTemplate(
+  availableComponents: AvailableComponents,
+): PromptTemplate {
+  const availableComponentsStr = Object.values(availableComponents)
+    .map((component) => `- ${component.name}: ${component.description}`)
+    .join("\n");
+  return {
+    template: `Available components and their descriptions:
+    {availableComponents}`,
+    args: { availableComponents: availableComponentsStr },
+  };
+}
+
+function generateAvailableComponentsPrompt(
   availableComponents: AvailableComponents,
 ): string {
-  return `
-    Available components and their descriptions:
-    ${Object.values(availableComponents)
-      .map((component) => `- ${component.name}: ${component.description}`)
-      .join("\n")}
-    `;
+  const template = getAvailableComponentsPromptTemplate(availableComponents);
+  return replaceTemplateVariables(template.template, template.args);
 }
 
 function generateZodTypePrompt(schema: z.ZodSchema<any>): string {

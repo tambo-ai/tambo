@@ -15,10 +15,11 @@ export default class HydraBackend {
 
   constructor(
     openAIKey: string,
+    chainId: string,
     openAIModel = "gpt-4o",
     provider: Provider = "openai",
   ) {
-    this.aiService = new AIService(openAIKey, openAIModel, provider);
+    this.aiService = new AIService(openAIKey, openAIModel, provider, chainId);
   }
 
   public async registerComponent(
@@ -59,4 +60,34 @@ export default class HydraBackend {
       threadId,
     );
   }
+}
+/**
+ * Generate a consistent, valid UUID from a string using SHA-256
+ * This is used to ensure that the same string will always generate the same UUID
+ * This is important for consistent logging and tracing
+ */
+export async function generateChainId(stringValue: string) {
+  const hashedValueBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(stringValue),
+  );
+  const hashedValue = Array.from(new Uint8Array(hashedValueBuffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+
+  // Set the version to 4 (UUIDv4)
+  const versioned = hashedValue.slice(0, 12) + "4" + hashedValue.slice(13, 32);
+
+  // Set the variant to 8, 9, A, or B
+  const variant = ((parseInt(hashedValue[16], 16) & 0x3) | 0x8).toString(16);
+  const varianted = versioned.slice(0, 16) + variant + versioned.slice(17);
+
+  const consistentUUID = [
+    varianted.slice(0, 8),
+    varianted.slice(8, 12),
+    varianted.slice(12, 16),
+    varianted.slice(16, 20),
+    varianted.slice(20, 32),
+  ].join("-");
+  return consistentUUID;
 }

@@ -1,4 +1,4 @@
-import { ChatCompletionTool } from "token.js";
+import { ChatCompletionTool } from "@libretto/token.js";
 import { ComponentContextToolMetadata } from "../../model/component-metadata";
 
 // Public functions

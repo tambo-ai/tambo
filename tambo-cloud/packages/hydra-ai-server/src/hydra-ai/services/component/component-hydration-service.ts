@@ -1,3 +1,5 @@
+import { objectTemplate } from "@libretto/openai";
+import { ChatCompletionMessageParam } from "@libretto/token.js";
 import { ComponentDecision } from "@use-hydra-ai/core";
 import { ChatMessage } from "../../model/chat-message";
 import {
@@ -7,7 +9,10 @@ import {
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
 import { parseAndValidate } from "../parser/response-parser-service";
-import { generateComponentHydrationPrompt } from "../prompt/prompt-service";
+import {
+  getAvailableComponentsPromptTemplate,
+  getComponentHydrationPromptTemplate,
+} from "../prompt/prompt-service";
 import { schema as promptSchema } from "../prompt/schemas";
 import { convertMetadataToTools } from "../tool/tool-service";
 
@@ -25,24 +30,47 @@ export async function hydrateComponent(
     ? undefined
     : convertMetadataToTools(chosenComponent.contextTools);
 
+  const chosenComponentDescription = JSON.stringify(
+    chosenComponent.description,
+  );
+  const chosenComponentProps = JSON.stringify(chosenComponent.props);
+  const toolResponseString = toolResponse ? JSON.stringify(toolResponse) : "";
+  const { template, args: componentHydrationArgs } =
+    getComponentHydrationPromptTemplate(
+      toolResponse,
+      availableComponents || { [chosenComponent.name]: chosenComponent },
+    );
+  const chatHistory = chatHistoryToParams(messageHistory);
+  const {
+    template: availableComponentsTemplate,
+    args: availableComponentsArgs,
+  } = getAvailableComponentsPromptTemplate(
+    availableComponents || { [chosenComponent.name]: chosenComponent },
+  );
   const generateComponentResponse = await llmClient.complete(
-    [
-      {
-        role: "system",
-        content: generateComponentHydrationPrompt(
-          toolResponse,
-          availableComponents || { [chosenComponent.name]: chosenComponent },
-        ),
-      },
-      ...chatHistoryToParams(messageHistory),
+    objectTemplate([
+      { role: "system", content: template },
+      { role: "chat_history", content: "{chatHistory}" },
       {
         role: "user",
-        content: `<componentName>${chosenComponent.name}</componentName>
-        <componentDescription>${JSON.stringify(chosenComponent.description)}</componentDescription>
-        <expectedProps>${JSON.stringify(chosenComponent.props)}</expectedProps>
-        ${toolResponse ? `<toolResponse>${JSON.stringify(toolResponse)}</toolResponse>` : ""}`,
+        content: `<componentName>{chosenComponentName}</componentName>
+        <componentDescription>{chosenComponentDescription}</componentDescription>
+        <expectedProps>{chosenComponentProps}</expectedProps>
+        ${toolResponseString ? `<toolResponse>{toolResponseString}</toolResponse>` : ""}`,
       },
-    ],
+    ] as ChatCompletionMessageParam[]),
+    toolResponseString
+      ? "component-hydration-with-tool-response"
+      : "component-hydration",
+    {
+      chatHistory,
+      chosenComponentName: chosenComponent.name,
+      chosenComponentDescription,
+      chosenComponentProps,
+      toolResponseString,
+      ...componentHydrationArgs,
+      ...availableComponentsArgs,
+    },
     tools,
     true,
   );
