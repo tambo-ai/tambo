@@ -18,17 +18,54 @@ There also are some basic supporting packages only used during development:
 - [@use-hydra-ai/eslint-config](./packages/eslint-config) - All the eslint config files for the project, with specific configs for NextJS apps and libraries
 - [@use-hydra-ai/typescript-config](./packages/typescript-config) - All the typescript config files for the project, with specific configs for NextJS apps and libraries
 
-## Development
+## Quick Start
 
-Everything in this repo is built do run with [Turborepo](https://turbo.build/).
+We provide a setup script that will help you get started quickly:
 
-To use, install turbo globally:
+```bash
+# Make the script executable
+chmod +x setup.sh
+
+# Run the setup script
+./setup.sh
+```
+
+The setup script will:
+
+1. Check and install prerequisites (Node.js, npm, Supabase CLI)
+2. Install project dependencies
+3. Set up Supabase locally
+4. Create environment files from templates
+
+You can also preview what the script will do without making any changes:
+
+```bash
+./setup.sh --dry-run
+```
+
+## Manual Development Setup
+
+If you prefer to set things up manually, follow these steps:
+
+### Prerequisites
+
+1. Install Node.js and npm
+2. Install Supabase CLI
+3. Install Turbo globally:
 
 ```bash
 npm install -g turbo
 ```
 
-Basic commands:
+### Environment Setup
+
+Create `.env` files in the following locations using their respective `.env.example` templates:
+
+- `apps/api/.env`
+- `apps/web/.env.local`
+- `packages/db/.env`
+
+### Basic Commands
 
 - `turbo dev` - Runs the api and web apps in dev mode
 - `turbo build` - Builds the api and web apps
@@ -42,28 +79,11 @@ These are also available as npm scripts:
 - `npm run lint` - Lints the api and web apps
 - `npm run check-types` - Checks the types in the api and web apps
 
-### Environment Variables
+### Database Setup
 
-To run the apps locally, you need to create a `.env` file in the `apps/api` and `apps/web` directories. You can use the `.env.example` files in each directory as a reference.
+The database is setup with [Drizzle](https://orm.drizzle.team/docs/introduction/getting-started) and [Supabase](https://supabase.com/).
 
-- api `.env.example` [here](./apps/api/.env.example)
-- web `.env.example` [here](./apps/web/.env.example)
-
-Additionally, when using the `db` package to perform migrations, you need to create a `.env` file in the `packages/db` directory. You can use the `.env.example` file in that directory as a reference.
-
-- db `.env.example` [here](./packages/db/.env.example)
-
-Note: Some values may be identical in all the `.env` files, so remember to change them in all of them when updating.
-
-### Database setup
-
-The database is setup with [Drizzle](https://orm.drizzle.team/docs/introduction/getting-started) and [Supabase](https://supabase.com/). The following instructions will get a local database running and setup the database schema.
-
-The following is a shortened version of the instructions from the supabase docs: https://supabase.com/docs/guides/local-development
-
-#### Initialize supabase:
-
-You generally only need to do this once:
+#### Initialize Supabase:
 
 ```bash
 npx supabase login
@@ -72,22 +92,48 @@ npx supabase link
 npx supabase start
 ```
 
-Now configure the database in the `apps/api/.env` and `apps/web/.env` files:
+Configure the database in the `apps/api/.env` and `apps/web/.env` files:
 
 ```bash
-SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_ANON_KEY=xxxxxx # get from `supabase start` output
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 ```
 
-#### Run the database migrations:
-
-This will set up the database schema and run the migrations.
+#### Run Database Migrations:
 
 ```bash
 cd packages/db
 npm run db:migrate
 ```
+
+### Hydra API Key Setup
+
+After setting up your local environment, you'll need to configure your Hydra API key:
+
+1. Start your local environment:
+
+```bash
+npm run dev
+```
+
+2. Get your Hydra API key:
+
+   - Visit: `http://localhost:3000/dashboard`
+   - Login with your credentials
+   - Create a new Project The key
+   - Generate your API key
+   - [ ] replace this with the CLI :)
+
+3. Configure the API key:
+
+   - Add the key to `apps/web/.env.local`:
+
+   ```bash
+   NEXT_PUBLIC_HYDRA_API_KEY=your_generated_key_here
+   ```
+
+4. Verify your setup:
+   - Visit: `http://localhost:3000/internal/smoketest`
 
 # Shadcn Landing Page Template
 
