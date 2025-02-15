@@ -51,6 +51,7 @@ export default function SmokePage() {
       duration: null,
       isPaused: false,
       shouldError: false,
+      tokens: null,
     },
     forecast: {
       isRunning: false,
@@ -58,6 +59,7 @@ export default function SmokePage() {
       duration: null,
       isPaused: false,
       shouldError: false,
+      tokens: null,
     },
     history: {
       isRunning: false,
@@ -65,6 +67,7 @@ export default function SmokePage() {
       duration: null,
       isPaused: false,
       shouldError: false,
+      tokens: null,
     },
   });
 
@@ -72,24 +75,40 @@ export default function SmokePage() {
 
   const wrappedApis = useMemo(
     () => ({
-      aqi: wrapApiCall(getAirQuality, (isRunning, startTime, duration) =>
-        setApiStates((prev) => ({
-          ...prev,
-          aqi: { ...prev.aqi, isRunning, startTime, duration },
-        })),
+      aqi: wrapApiCall(
+        getAirQuality,
+        (isRunning, startTime, duration, tokens) =>
+          setApiStates((prev) => ({
+            ...prev,
+            aqi: { ...prev.aqi, isRunning, startTime, duration, tokens },
+          })),
       ),
-      forecast: wrapApiCall(getForecast, (isRunning, startTime, duration) =>
-        setApiStates((prev) => ({
-          ...prev,
-          forecast: { ...prev.forecast, isRunning, startTime, duration },
-        })),
+      forecast: wrapApiCall(
+        getForecast,
+        (isRunning, startTime, duration, tokens) =>
+          setApiStates((prev) => ({
+            ...prev,
+            forecast: {
+              ...prev.forecast,
+              isRunning,
+              startTime,
+              duration,
+              tokens,
+            },
+          })),
       ),
       history: wrapApiCall(
         getHistoricalWeather,
-        (isRunning, startTime, duration) =>
+        (isRunning, startTime, duration, tokens) =>
           setApiStates((prev) => ({
             ...prev,
-            history: { ...prev.history, isRunning, startTime, duration },
+            history: {
+              ...prev.history,
+              isRunning,
+              startTime,
+              duration,
+              tokens,
+            },
           })),
       ),
     }),
@@ -279,6 +298,7 @@ export default function SmokePage() {
           <ApiActivityMonitor
             name="Air Quality"
             state={apiStates.aqi}
+            tokens={apiStates.aqi.tokens ?? undefined}
             onPauseToggle={(isPaused) => {
               updateApiStates();
               if (isPaused) {
@@ -294,6 +314,7 @@ export default function SmokePage() {
           <ApiActivityMonitor
             name="Forecast"
             state={apiStates.forecast}
+            tokens={apiStates.forecast.tokens ?? undefined}
             onPauseToggle={(isPaused) => {
               updateApiStates();
               if (isPaused) {
@@ -309,6 +330,7 @@ export default function SmokePage() {
           <ApiActivityMonitor
             name="History"
             state={apiStates.history}
+            tokens={apiStates.history.tokens ?? undefined}
             onPauseToggle={(isPaused) => {
               updateApiStates();
               if (isPaused) {

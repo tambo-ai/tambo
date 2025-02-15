@@ -1,3 +1,5 @@
+import { encodingForModel } from "js-tiktoken";
+
 interface WrappedApi<T> {
   call: (...args: any[]) => Promise<T>;
   pause: () => void;
@@ -9,6 +11,7 @@ interface WrappedApi<T> {
     isRunning: boolean;
     startTime: number | null;
     duration: number | null;
+    tokens: number | null;
   };
 }
 
@@ -18,6 +21,7 @@ export function wrapApiCall<A extends unknown[], T>(
     isRunning: boolean,
     startTime: number | null,
     duration: number | null,
+    tokens: number | null,
   ) => void,
 ): WrappedApi<T> {
   let isPaused = false;
@@ -26,9 +30,12 @@ export function wrapApiCall<A extends unknown[], T>(
   let isPausedWhileRunning = false;
   let startTime: number | null = null;
   let duration: number | null = null;
+  let tokens: number | null = null;
 
   let pauseResolve: (() => void) | null = null;
   let currentPausePromise: Promise<void> | null = null;
+
+  const tokenizer = encodingForModel("gpt-4o");
 
   const waitForUnpause = async () => {
     if (!isPaused) return;
@@ -46,33 +53,38 @@ export function wrapApiCall<A extends unknown[], T>(
     startTime = Date.now();
     isRunning = true;
     duration = null;
-    onStateChange(true, startTime, null);
+    tokens = null;
+    onStateChange(true, startTime, null, null);
 
     try {
       if (shouldError) {
-        shouldError = false; // Reset after use
+        shouldError = false;
         throw new Error("API error triggered");
       }
 
       await waitForUnpause();
 
       if (!isPausedWhileRunning) {
-        // Only update time if we weren't paused
         startTime = Date.now();
-        onStateChange(true, startTime, null);
+        onStateChange(true, startTime, null, null);
       }
 
       const result = await apiCall(...args);
       duration = (Date.now() - startTime) / 1000;
+
+      const responseText =
+        typeof result === "string" ? result : JSON.stringify(result);
+      tokens = tokenizer.encode(responseText).length;
+
       isRunning = false;
       isPausedWhileRunning = false;
-      onStateChange(false, null, duration);
+      onStateChange(false, null, duration, tokens);
       return result;
     } catch (error) {
       duration = (Date.now() - startTime) / 1000;
       isRunning = false;
       isPausedWhileRunning = false;
-      onStateChange(false, null, duration);
+      onStateChange(false, null, duration, null);
       throw error;
     }
   };
@@ -105,6 +117,7 @@ export function wrapApiCall<A extends unknown[], T>(
       isRunning: isRunning || isPausedWhileRunning,
       startTime,
       duration,
+      tokens,
     }),
   };
 }

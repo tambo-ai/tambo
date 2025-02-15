@@ -8,6 +8,7 @@ interface ApiState {
   duration: number | null;
   isPaused: boolean;
   shouldError: boolean;
+  tokens: number | null;
 }
 
 interface ApiActivityMonitorProps {
@@ -15,6 +16,7 @@ interface ApiActivityMonitorProps {
   state: ApiState;
   onPauseToggle: (currentlyPaused: boolean) => void;
   onErrorToggle: (currentlyErroring: boolean) => void;
+  tokens?: number;
 }
 
 export function ApiActivityMonitor({
@@ -22,6 +24,7 @@ export function ApiActivityMonitor({
   state,
   onPauseToggle,
   onErrorToggle,
+  tokens,
 }: ApiActivityMonitorProps) {
   const [currentDuration, setCurrentDuration] = useState<number | null>(null);
 
@@ -67,8 +70,13 @@ export function ApiActivityMonitor({
       >
         <AlertCircle size={16} />
       </Button>
+      {!!tokens && (
+        <span className="w-20 text-muted-foreground">
+          {tokens.toLocaleString()} tokens
+        </span>
+      )}
     </div>
   );
 }
 
-export type { ApiState };
+export type { ApiActivityMonitorProps, ApiState };
