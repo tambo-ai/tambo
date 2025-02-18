@@ -12,7 +12,14 @@ import { TRPCClientErrorLike } from "@trpc/client";
 import { ComponentContextTool } from "@use-hydra-ai/hydra-ai-server";
 import { HydraClient } from "hydra-ai";
 import { X } from "lucide-react";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ReactNode,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { z } from "zod";
 import {
   ApiActivityMonitor,
@@ -73,46 +80,11 @@ export default function SmokePage() {
 
   const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
 
-  const wrappedApis = useMemo(
-    () => ({
-      aqi: wrapApiCall(
-        getAirQuality,
-        (isRunning, startTime, duration, tokens) =>
-          setApiStates((prev) => ({
-            ...prev,
-            aqi: { ...prev.aqi, isRunning, startTime, duration, tokens },
-          })),
-      ),
-      forecast: wrapApiCall(
-        getForecast,
-        (isRunning, startTime, duration, tokens) =>
-          setApiStates((prev) => ({
-            ...prev,
-            forecast: {
-              ...prev.forecast,
-              isRunning,
-              startTime,
-              duration,
-              tokens,
-            },
-          })),
-      ),
-      history: wrapApiCall(
-        getHistoricalWeather,
-        (isRunning, startTime, duration, tokens) =>
-          setApiStates((prev) => ({
-            ...prev,
-            history: {
-              ...prev.history,
-              isRunning,
-              startTime,
-              duration,
-              tokens,
-            },
-          })),
-      ),
-    }),
-    [getAirQuality, getForecast, getHistoricalWeather],
+  const wrappedApis = useWrappedApis(
+    setApiStates,
+    getAirQuality,
+    getForecast,
+    getHistoricalWeather,
   );
   const isAnyApiRunning = Object.values(apiStates).some(
     (state) => state.isRunning,
@@ -300,15 +272,16 @@ export default function SmokePage() {
             state={apiStates.aqi}
             tokens={apiStates.aqi.tokens ?? undefined}
             onPauseToggle={(isPaused) => {
-              updateApiStates();
               if (isPaused) {
                 wrappedApis.aqi.unpause();
               } else {
                 wrappedApis.aqi.pause();
               }
+              updateApiStates();
             }}
             onErrorToggle={(isErroring) => {
               wrappedApis.aqi.setNextError(!isErroring);
+              updateApiStates();
             }}
           />
           <ApiActivityMonitor
@@ -316,15 +289,16 @@ export default function SmokePage() {
             state={apiStates.forecast}
             tokens={apiStates.forecast.tokens ?? undefined}
             onPauseToggle={(isPaused) => {
-              updateApiStates();
               if (isPaused) {
                 wrappedApis.forecast.unpause();
               } else {
                 wrappedApis.forecast.pause();
               }
+              updateApiStates();
             }}
             onErrorToggle={(isErroring) => {
               wrappedApis.forecast.setNextError(!isErroring);
+              updateApiStates();
             }}
           />
           <ApiActivityMonitor
@@ -332,15 +306,16 @@ export default function SmokePage() {
             state={apiStates.history}
             tokens={apiStates.history.tokens ?? undefined}
             onPauseToggle={(isPaused) => {
-              updateApiStates();
               if (isPaused) {
                 wrappedApis.history.unpause();
               } else {
                 wrappedApis.history.pause();
               }
+              updateApiStates();
             }}
             onErrorToggle={(isErroring) => {
               wrappedApis.history.setNextError(!isErroring);
+              updateApiStates();
             }}
           />
         </div>
@@ -479,6 +454,55 @@ const AirQuality = ({ data }: AirQualityProps): ReactNode => {
     </Card>
   );
 };
+
+function useWrappedApis(
+  setApiStates: (value: SetStateAction<Record<string, ApiState>>) => void,
+  getAirQuality: (...args: any[]) => Promise<any>,
+  getForecast: (...args: any[]) => Promise<any>,
+  getHistoricalWeather: (...args: any[]) => Promise<any>,
+) {
+  return useMemo(() => {
+    console.warn("Regenerating wrapped apis");
+    return {
+      aqi: wrapApiCall(
+        getAirQuality,
+        (isRunning, startTime, duration, tokens) =>
+          setApiStates((prev) => ({
+            ...prev,
+            aqi: { ...prev.aqi, isRunning, startTime, duration, tokens },
+          })),
+      ),
+      forecast: wrapApiCall(
+        getForecast,
+        (isRunning, startTime, duration, tokens) =>
+          setApiStates((prev) => ({
+            ...prev,
+            forecast: {
+              ...prev.forecast,
+              isRunning,
+              startTime,
+              duration,
+              tokens,
+            },
+          })),
+      ),
+      history: wrapApiCall(
+        getHistoricalWeather,
+        (isRunning, startTime, duration, tokens) =>
+          setApiStates((prev) => ({
+            ...prev,
+            history: {
+              ...prev.history,
+              isRunning,
+              startTime,
+              duration,
+              tokens,
+            },
+          })),
+      ),
+    };
+  }, [getAirQuality, getForecast, getHistoricalWeather, setApiStates]);
+}
 
 function makeWeatherTools(
   getForecast: (...args: any[]) => Promise<any>,
