@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { AvailableComponents } from "../../model/component-metadata";
-import { schema } from "./schemas";
+import { schemaV1, schemaV2 } from "./schemas";
+
+export interface PromptTemplate {
+  template: string;
+  args: Record<string, string>;
+  version?: "v1" | "v2";
+}
 
 // Public functions
 export function generateDecisionPrompt(): string {
@@ -19,11 +25,6 @@ export const noComponentPrompt = `You are an AI assistant that interacts with us
 </availableComponents>
 Respond to the user's latest query to the best of your ability. If they have requested a task that you cannot help with, tell them so and recommend something you can help with.
 This response should be short and concise.`;
-
-export interface PromptTemplate {
-  template: string;
-  args: Record<string, string>;
-}
 
 export function getNoComponentPromptTemplate(
   reasoning: string,
@@ -59,19 +60,23 @@ const suggestedActionsGuidelines = `When generating suggestedActions, consider t
 4. Include 1-3 suggestions that would help the user progress in their current task
 5. The label should be a clear, concise button text, while the actionText can be more detailed`;
 
-const componentHydrationPromptWithToolResponse = `${basePrompt}
-You have received a response from a tool. Use this data to help determine what props to pass in: {toolResponseString}
+// Version-specific base prompts
+const basePromptV1 = `${basePrompt}\n${suggestedActionsGuidelines}`;
+const basePromptV2 = basePrompt;
 
-${suggestedActionsGuidelines}
+const componentHydrationPromptWithToolResponse = (
+  version: "v1" | "v2",
+) => `${version === "v1" ? basePromptV1 : basePromptV2}
+You have received a response from a tool. Use this data to help determine what props to pass in: {toolResponseString}
 
 {availableComponentsPrompt}
 
 {zodTypePrompt}`;
 
-const componentHydrationPromptWithoutToolResponse = `${basePrompt}
+const componentHydrationPromptWithoutToolResponse = (
+  version: "v1" | "v2",
+) => `${version === "v1" ? basePromptV1 : basePromptV2}
 You can also use any of the provided tools to fetch data needed to pass into the component.
-
-${suggestedActionsGuidelines}
 
 {availableComponentsPrompt}
 
@@ -81,45 +86,54 @@ function getComponentHydrationPromptWithToolResponseTemplate(
   toolResponseString: string,
   availableComponentsPrompt: string,
   zodTypePrompt: string,
+  version: "v1" | "v2" = "v1",
 ): PromptTemplate {
   return {
-    template: componentHydrationPromptWithToolResponse,
+    template: componentHydrationPromptWithToolResponse(version),
     args: { toolResponseString, availableComponentsPrompt, zodTypePrompt },
+    version,
   };
 }
 
 function getComponentHydrationPromptWithoutToolResponseTemplate(
   availableComponentsPrompt: string,
   zodTypePrompt: string,
+  version: "v1" | "v2" = "v1",
 ): PromptTemplate {
   return {
-    template: componentHydrationPromptWithoutToolResponse,
+    template: componentHydrationPromptWithoutToolResponse(version),
     args: { availableComponentsPrompt, zodTypePrompt },
+    version,
   };
 }
 
 export function getComponentHydrationPromptTemplate(
   toolResponse: any | undefined,
   availableComponents: AvailableComponents,
+  version: "v1" | "v2" = "v1",
 ): PromptTemplate {
   const toolResponseString = toolResponse
     ? JSON.stringify(toolResponse)
     : undefined;
   const availableComponentsPrompt =
     generateAvailableComponentsPrompt(availableComponents);
-  const zodTypePrompt = generateZodTypePrompt(schema);
+  const zodTypePrompt = generateZodTypePrompt(
+    version === "v1" ? schemaV1 : schemaV2,
+  );
 
   if (toolResponseString) {
     return getComponentHydrationPromptWithToolResponseTemplate(
       toolResponseString,
       availableComponentsPrompt,
       zodTypePrompt,
+      version,
     );
   }
 
   return getComponentHydrationPromptWithoutToolResponseTemplate(
     availableComponentsPrompt,
     zodTypePrompt,
+    version,
   );
 }
 

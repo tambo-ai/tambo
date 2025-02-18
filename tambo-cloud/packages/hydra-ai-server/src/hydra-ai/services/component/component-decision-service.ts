@@ -16,6 +16,7 @@ export async function decideComponent(
   llmClient: LLMClient,
   context: InputContext,
   threadId: string,
+  version: "v1" | "v2" = "v1",
 ): Promise<ComponentDecision> {
   const {
     template: availableComponentsTemplate,
@@ -75,6 +76,7 @@ async function handleNoComponentCase(
   decisionResponse: any,
   context: InputContext,
   threadId: string,
+  version: "v1" | "v2" = "v1",
 ): Promise<ComponentDecision> {
   const reasoning = decisionResponse.message.match(
     /<reasoning>(.*?)<\/reasoning>/,
@@ -98,7 +100,7 @@ async function handleNoComponentCase(
     componentName: null,
     props: null,
     message: noComponentResponse.message,
-    suggestedActions: [],
+    ...(version === "v1" ? { suggestedActions: [] } : {}),
     threadId,
   };
 }

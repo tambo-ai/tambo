@@ -1,11 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   ChatCompletionContentPart as ChatCompletionContentPartInterface,
-  ComponentDecision,
   ContentPartType,
 } from '@use-hydra-ai/core';
 import type { HydraDatabase } from '@use-hydra-ai/db';
 import { operations } from '@use-hydra-ai/db';
+import type { DBSuggestion } from '@use-hydra-ai/db/src/schema';
+import { CorrelationLoggerService } from '../common/services/logger.service';
 import {
   AudioFormat,
   ChatCompletionContentPart,
@@ -13,13 +14,21 @@ import {
   MessageRequest,
   ThreadMessage,
 } from './dto/message.dto';
+import { SuggestionDto } from './dto/suggestion.dto';
+import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
 import { Thread, ThreadRequest } from './dto/thread.dto';
+import {
+  InvalidSuggestionRequestError,
+  SuggestionGenerationError,
+  SuggestionNotFoundException,
+} from './types/errors';
 
 @Injectable()
 export class ThreadsService {
   constructor(
     @Inject('DbRepository')
     private readonly db: HydraDatabase,
+    private readonly logger: CorrelationLoggerService,
   ) {}
 
   async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
@@ -119,8 +128,8 @@ export class ThreadsService {
 
       // TODO: promote suggestionActions to the message level in the db, this is just
       // relying on the internal ComponentDecision type
-      suggestions: (message.componentDecision as ComponentDecision)
-        ?.suggestedActions,
+      // suggestions: (message.componentDecision as ComponentDecision)
+      //   ?.suggestedActions,
     };
   }
 
@@ -146,6 +155,103 @@ export class ThreadsService {
 
   async ensureThreadByProjectId(threadId: string, projectId: string) {
     await operations.ensureThreadByProjectId(this.db, threadId, projectId);
+  }
+
+  private async getMessage(messageId: string) {
+    try {
+      const message = await operations.getMessageWithAccess(this.db, messageId);
+      if (!message) {
+        this.logger.warn(`Message not found: ${messageId}`);
+        throw new InvalidSuggestionRequestError('Message not found');
+      }
+      return message;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error getting message: ${errorMessage}`, errorStack);
+      throw new InvalidSuggestionRequestError('Failed to retrieve message');
+    }
+  }
+
+  async getSuggestions(messageId: string): Promise<SuggestionDto[]> {
+    this.logger.log(`Getting suggestions for message: ${messageId}`);
+
+    await this.getMessage(messageId);
+
+    try {
+      const suggestions = await operations.getSuggestions(this.db, messageId);
+      if (!suggestions || suggestions.length === 0) {
+        throw new SuggestionNotFoundException(messageId);
+      }
+
+      this.logger.log(
+        `Found ${suggestions.length} suggestions for message: ${messageId}`,
+      );
+      return suggestions.map(this.mapSuggestionToDto);
+    } catch (error: unknown) {
+      if (error instanceof SuggestionNotFoundException) {
+        throw error;
+      }
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Error getting suggestions: ${errorMessage}`,
+        errorStack,
+      );
+      throw new SuggestionGenerationError(messageId);
+    }
+  }
+
+  async generateSuggestions(
+    messageId: string,
+    generateSuggestionsDto: SuggestionsGenerateDto,
+  ): Promise<SuggestionDto[]> {
+    this.logger.log(`Generating suggestions for message: ${messageId}`);
+
+    const message = await this.getMessage(messageId);
+    this.logger.log(`Found message for suggestions: ${message.id}`);
+    const count = generateSuggestionsDto.maxSuggestions ?? 3;
+
+    try {
+      // Generate mock suggestions
+      const mockSuggestions = Array.from({ length: count }, (_, index) => ({
+        messageId,
+        title: `Suggestion ${index + 1}`,
+        detailedSuggestion: `This is detailed suggestion number ${index + 1}`,
+      }));
+
+      const savedSuggestions = await operations.createSuggestions(
+        this.db,
+        mockSuggestions,
+      );
+
+      this.logger.log(
+        `Generated ${savedSuggestions.length} suggestions for message: ${messageId}`,
+      );
+      return savedSuggestions.map(this.mapSuggestionToDto);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Error generating suggestions: ${errorMessage}`,
+        errorStack,
+      );
+      throw new SuggestionGenerationError(messageId, {
+        maxSuggestions: generateSuggestionsDto.maxSuggestions,
+      });
+    }
+  }
+
+  private mapSuggestionToDto(suggestion: DBSuggestion): SuggestionDto {
+    return {
+      id: suggestion.id,
+      messageId: suggestion.messageId,
+      title: suggestion.title,
+      detailedSuggestion: suggestion.detailedSuggestion,
+    };
   }
 }
 

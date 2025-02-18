@@ -16,6 +16,10 @@ import { ReactElement, useMemo, useState } from "react";
 interface Message {
   role: "user" | "assistant";
   content: (string | ReactElement)[];
+  suggestedActions?: Array<{
+    label: string;
+    actionText: string;
+  }>;
 }
 
 export default function SmokePage() {
@@ -84,6 +88,7 @@ export default function SmokePage() {
     const assistantMessage: Message = {
       role: "assistant",
       content: [response.message],
+      suggestedActions: response.suggestedActions,
     };
     if (response?.component) {
       assistantMessage.content.push(response.component);
@@ -128,6 +133,40 @@ export default function SmokePage() {
             )}
           </Button>
         </form>
+
+        {messages.length > 0 && (
+          <div className="mt-4">
+            {messages[messages.length - 1]?.suggestedActions?.length ? (
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-gray-500">
+                  Suggested actions:
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {messages[messages.length - 1].suggestedActions?.map(
+                    (action, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (action.actionText) {
+                            setInput(action.actionText);
+                          }
+                        }}
+                      >
+                        {action.label}
+                      </Button>
+                    ),
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500">
+                No suggested actions available
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       {errors.length > 0 && (

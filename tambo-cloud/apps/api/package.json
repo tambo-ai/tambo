@@ -31,6 +31,7 @@
     "@use-hydra-ai/core": "*",
     "@use-hydra-ai/db": "*",
     "@use-hydra-ai/hydra-ai-server": "^0.0.6",
+    "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "drizzle-orm": "^0.39.3",
     "nest-supabase-guard": "^1.0.2",

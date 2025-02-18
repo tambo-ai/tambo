@@ -1,0 +1,18 @@
+{
+  "name": "@use-hydra-ai/scripts",
+  "private": true,
+  "scripts": {
+    "test:suggestions": "tsx test-suggestions.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3",
+    "dotenv": "^16.4.2",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/node-fetch": "^2.6.11",
+    "tsx": "^4.7.1",
+    "typescript": "^5.7.3"
+  }
+}

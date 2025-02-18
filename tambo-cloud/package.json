@@ -10,7 +10,8 @@
     "prettier-check": "prettier --check .",
     "check-types": "turbo check-types",
     "hydra-api:start": "turbo run start --filter=hydra-api",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:suggestions": "cd scripts && tsx test-suggestions.ts"
   },
   "devDependencies": {
     "husky": "^9.1.7",

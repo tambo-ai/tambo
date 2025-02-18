@@ -11,19 +11,29 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiSecurity } from '@nestjs/swagger';
-import { SupabaseAuthGuard } from 'nest-supabase-guard/dist/supabase-auth.guard';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ApiKeyGuard } from '../components/guards/apikey.guard';
 import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
 } from '../projects/guards/project-access-own.guard';
+import { ErrorDto } from './dto/error.dto';
 import { MessageRequest, ThreadMessage } from './dto/message.dto';
+import { SuggestionDto } from './dto/suggestion.dto';
+import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
 import { Thread, ThreadRequest } from './dto/thread.dto';
 import { ThreadsService } from './threads.service';
 
-@ApiBearerAuth()
+@ApiTags('threads')
 @ApiSecurity('apiKey')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiKeyGuard)
 @Controller('threads')
 export class ThreadsController {
   constructor(private readonly threadsService: ThreadsService) {}
@@ -46,18 +56,16 @@ export class ThreadsController {
     return this.threadsService.findAllForProject(projectId, { contextKey });
   }
 
-  //   @UseGuards(ProjectAccessOwnGuard)
+  @UseGuards(ProjectAccessOwnGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request): Promise<Thread> {
     if (!request.projectId) {
-      // TODO: this is probably because the endpoint is using bearer auth
-      // and not apiKey auth
       throw new BadRequestException('Project ID is required');
     }
     return this.threadsService.findOne(id, request.projectId);
   }
 
-  //   @UseGuards(ProjectAccessOwnGuard)
+  @UseGuards(ProjectAccessOwnGuard)
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -71,13 +79,14 @@ export class ThreadsController {
     };
   }
 
-  //   @UseGuards(ProjectAccessOwnGuard)
+  @UseGuards(ProjectAccessOwnGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.threadsService.remove(id);
   }
 
-  //   @UseGuards(ProjectAccessOwnGuard)
+  // @UseGuards(ProjectAccessOwnGuard)
+  // TODO: Not protected by project access guard
   @Post(':id/messages')
   addMessage(
     @Param('id') threadId: string,
@@ -86,18 +95,90 @@ export class ThreadsController {
     return this.threadsService.addMessage(threadId, messageDto);
   }
 
-  //   @UseGuards(ProjectAccessOwnGuard)
+  // @UseGuards(ProjectAccessOwnGuard)
+  // TODO: Not protected by project access guard
   @Get(':id/messages')
   getMessages(@Param('id') threadId: string): Promise<ThreadMessage[]> {
     return this.threadsService.getMessages(threadId);
   }
 
-  //   @UseGuards(ProjectAccessOwnGuard)
+  // @UseGuards(ProjectAccessOwnGuard)
+  // TODO: Not protected by project access guard
   @Delete(':id/messages/:messageId')
   deleteMessage(
     @Param('id') threadId: string,
     @Param('messageId') messageId: string,
   ) {
     return this.threadsService.deleteMessage(messageId);
+  }
+
+  // @UseGuards(ProjectAccessOwnGuard)
+  // TODO: Not protected by project access guard
+  @Get(':id/messages/:messageId/suggestions')
+  @ApiOperation({
+    summary: 'Get suggestions for a message',
+    description: 'Retrieves all suggestions generated for a specific message',
+  })
+  @ApiParam({
+    name: 'messageId',
+    description: 'ID of the message to get suggestions for',
+    example: 'msg_123456789',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of suggestions for the message',
+    type: [SuggestionDto],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Message not found or has no suggestions',
+    type: ErrorDto,
+  })
+  getSuggestions(
+    @Param('messageId') messageId: string,
+  ): Promise<SuggestionDto[]> {
+    return this.threadsService.getSuggestions(messageId);
+  }
+
+  // @UseGuards(ProjectAccessOwnGuard)
+  // TODO: Not protected by project access guard
+  @Post(':id/messages/:messageId/suggestions')
+  @ApiOperation({
+    summary: 'Generate new suggestions',
+    description: 'Generates and stores new suggestions for a specific message',
+  })
+  @ApiParam({
+    name: 'messageId',
+    description: 'ID of the message to generate suggestions for',
+    example: 'msg_123456789',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'New suggestions generated successfully',
+    type: [SuggestionDto],
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request parameters',
+    type: ErrorDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Message not found',
+    type: ErrorDto,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Failed to generate suggestions',
+    type: ErrorDto,
+  })
+  generateSuggestions(
+    @Param('messageId') messageId: string,
+    @Body() generateSuggestionsDto: SuggestionsGenerateDto,
+  ): Promise<SuggestionDto[]> {
+    return this.threadsService.generateSuggestions(
+      messageId,
+      generateSuggestionsDto,
+    );
   }
 }

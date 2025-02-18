@@ -32,6 +32,7 @@ export class ToolCallRequest implements Partial<ToolCallRequestInterface> {
   toolName!: string;
 }
 
+/** @deprecated - Used only for v1 compatibility */
 export class SuggestedAction implements Partial<SuggestedActionInterface> {
   label!: string;
   actionText!: string;

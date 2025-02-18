@@ -10,16 +10,32 @@ import { ComponentPropsMetadata } from "./model/component-props-metadata";
 import { InputContext } from "./model/input-context";
 import { Provider } from "./model/providers";
 
+interface HydraBackendOptions {
+  version?: "v1" | "v2";
+  model?: string;
+  provider?: Provider;
+}
+
 export default class HydraBackend {
   private aiService: AIService;
 
   constructor(
     openAIKey: string,
     chainId: string,
-    openAIModel = "gpt-4o",
-    provider: Provider = "openai",
+    options: HydraBackendOptions = {},
   ) {
-    this.aiService = new AIService(openAIKey, openAIModel, provider, chainId);
+    const {
+      version = "v1",
+      model = "gpt-4o-mini",
+      provider = "openai",
+    } = options;
+    this.aiService = new AIService(
+      openAIKey,
+      model,
+      provider,
+      chainId,
+      version,
+    );
   }
 
   public async registerComponent(

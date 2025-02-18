@@ -3,7 +3,6 @@ import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
 import { type OpenAI } from 'openai';
 import {
   ComponentDecisionV2,
-  SuggestedAction,
   ToolCallRequest,
 } from '../../components/dto/component-decision.dto';
 
@@ -49,10 +48,9 @@ interface InternalThreadMessage {
   component?: ComponentDecisionV2;
   actionType?: ActionType;
   toolCallRequest?: ToolCallRequest;
-  suggestedActions?: SuggestedAction[];
-
   tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
 }
+
 export class ThreadMessage implements InternalThreadMessage {
   id!: string;
   threadId!: string;
@@ -62,7 +60,6 @@ export class ThreadMessage implements InternalThreadMessage {
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
   toolCallRequest?: ToolCallRequest;
-  suggestions?: SuggestedAction[];
   @IsEnum(ActionType)
   actionType?: ActionType;
 
@@ -83,9 +80,6 @@ export class MessageRequest implements InternalThreadMessage {
 
   @IsOptional()
   component?: ComponentDecisionV2;
-
-  @IsOptional()
-  suggestedActions?: SuggestedAction[];
 
   @IsOptional()
   toolCallRequest?: ToolCallRequest;

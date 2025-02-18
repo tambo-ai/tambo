@@ -33,7 +33,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       type: 'request',
       method,
       url: originalUrl,
-      bodyLength: JSON.stringify(body).length,
+      bodyLength: body ? JSON.stringify(body).length : undefined,
       userAgent,
       timestamp: new Date().toISOString(),
     };
