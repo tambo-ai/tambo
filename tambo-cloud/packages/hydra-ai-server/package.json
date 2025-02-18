@@ -23,7 +23,7 @@
     "@use-hydra-ai/core": "*",
     "openai": "^4.83.0",
     "token.js": "^0.5.3",
-    "zod": "^3.23.8",
+    "zod": "^3.24.2",
     "zod-to-json-schema": "^3.23.3"
   },
   "devDependencies": {
