@@ -23,8 +23,9 @@ export default class AIService {
   async chooseComponent(
     context: InputContext,
     threadId: string,
-  ): Promise<ComponentDecision> {
-    return decideComponent(this.llmClient, context, threadId, this.version);
+    stream?: boolean,
+  ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
+    return decideComponent(this.llmClient, context, threadId, stream);
   }
 
   async hydrateComponent(
@@ -32,7 +33,8 @@ export default class AIService {
     component: any,
     toolResponse: any,
     threadId: string,
-  ): Promise<ComponentDecision> {
+    stream?: boolean,
+  ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
     return hydrateComponent(
       this.llmClient,
       messageHistory,
@@ -40,6 +42,7 @@ export default class AIService {
       toolResponse,
       undefined,
       threadId,
+      stream,
       this.version,
     );
   }

@@ -2,6 +2,7 @@ import { objectTemplate } from "@libretto/openai";
 import { type ChatCompletionMessageParam } from "@libretto/token.js";
 import { ComponentDecision } from "@use-hydra-ai/core";
 import { InputContext } from "../../model/input-context";
+import { OpenAIResponse } from "../../model/openai-response";
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
 import {
@@ -16,15 +17,15 @@ export async function decideComponent(
   llmClient: LLMClient,
   context: InputContext,
   threadId: string,
-  version: "v1" | "v2" = "v1",
-): Promise<ComponentDecision> {
+  stream?: boolean,
+): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
   const {
     template: availableComponentsTemplate,
     args: availableComponentsArgs,
   } = getAvailableComponentsPromptTemplate(context.availableComponents);
   const chatHistory = chatHistoryToParams(context.messageHistory);
-  const decisionResponse = await llmClient.complete(
-    objectTemplate<ChatCompletionMessageParam[]>([
+  const decisionResponse = await llmClient.complete({
+    messages: objectTemplate<ChatCompletionMessageParam[]>([
       { role: "system", content: generateDecisionPrompt() },
       {
         role: "user",
@@ -33,9 +34,12 @@ export async function decideComponent(
       },
       { role: "chat_history" as "user", content: "{chat_history}" },
     ]),
-    "component-decision",
-    { chat_history: chatHistory, ...availableComponentsArgs },
-  );
+    promptTemplateName: "component-decision",
+    promptTemplateParams: {
+      chat_history: chatHistory,
+      ...availableComponentsArgs,
+    },
+  });
 
   const shouldGenerate = decisionResponse.message.match(
     /<decision>(.*?)<\/decision>/,
@@ -51,6 +55,7 @@ export async function decideComponent(
       decisionResponse,
       context,
       threadId,
+      stream,
     );
   } else if (shouldGenerate === "true" && componentName) {
     const component = context.availableComponents[componentName];
@@ -64,6 +69,7 @@ export async function decideComponent(
       undefined,
       context.availableComponents,
       threadId,
+      stream,
     );
   }
 
@@ -76,8 +82,9 @@ async function handleNoComponentCase(
   decisionResponse: any,
   context: InputContext,
   threadId: string,
+  stream?: boolean,
   version: "v1" | "v2" = "v1",
-): Promise<ComponentDecision> {
+): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
   const reasoning = decisionResponse.message.match(
     /<reasoning>(.*?)<\/reasoning>/,
   )?.[1];
@@ -87,14 +94,26 @@ async function handleNoComponentCase(
     reasoning,
     context.availableComponents,
   );
-  const noComponentResponse = await llmClient.complete(
-    objectTemplate<ChatCompletionMessageParam[]>([
+
+  const completeOptions = {
+    messages: objectTemplate<ChatCompletionMessageParam[]>([
       { role: "system", content: template },
       { role: "chat_history" as "user", content: "{chat_history}" },
     ]),
-    "no-component-decision",
-    { chat_history: chatHistory, ...args },
-  );
+    promptTemplateName: "no-component-decision",
+    promptTemplateParams: { chat_history: chatHistory, ...args },
+  };
+
+  if (stream) {
+    const responseStream = await llmClient.complete({
+      ...completeOptions,
+      stream: true,
+    });
+
+    return handleNoComponentStream(responseStream, threadId, version);
+  }
+
+  const noComponentResponse = await llmClient.complete(completeOptions);
 
   return {
     componentName: null,
@@ -103,4 +122,23 @@ async function handleNoComponentCase(
     ...(version === "v1" ? { suggestedActions: [] } : {}),
     threadId,
   };
+}
+
+async function* handleNoComponentStream(
+  responseStream: AsyncIterableIterator<OpenAIResponse>,
+  threadId: string,
+  version: "v1" | "v2" = "v1",
+): AsyncIterableIterator<ComponentDecision> {
+  const accumulatedDecision: ComponentDecision = {
+    componentName: null,
+    props: null,
+    message: "",
+    ...(version === "v1" ? { suggestedActions: [] } : {}),
+    threadId,
+  };
+
+  for await (const chunk of responseStream) {
+    accumulatedDecision.message = chunk.message;
+    yield accumulatedDecision;
+  }
 }

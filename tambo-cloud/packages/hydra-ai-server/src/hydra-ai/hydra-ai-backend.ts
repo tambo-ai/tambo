@@ -53,14 +53,27 @@ export default class HydraBackend {
     messageHistory: ChatMessage[],
     availableComponents: AvailableComponents,
     threadId: string,
-  ): Promise<ComponentDecision> {
+    stream: true,
+  ): Promise<AsyncIterableIterator<ComponentDecision>>;
+  public async generateComponent(
+    messageHistory: ChatMessage[],
+    availableComponents: AvailableComponents,
+    threadId: string,
+    stream?: false | undefined,
+  ): Promise<ComponentDecision>;
+  public async generateComponent(
+    messageHistory: ChatMessage[],
+    availableComponents: AvailableComponents,
+    threadId: string,
+    stream?: boolean,
+  ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
     const context: InputContext = {
       messageHistory,
       availableComponents,
       threadId: threadId,
     };
 
-    return this.aiService.chooseComponent(context, threadId);
+    return this.aiService.chooseComponent(context, threadId, stream);
   }
 
   public async hydrateComponentWithData(
@@ -68,12 +81,28 @@ export default class HydraBackend {
     component: AvailableComponent,
     toolResponse: any,
     threadId: string,
-  ): Promise<ComponentDecision> {
+    stream: true,
+  ): Promise<AsyncIterableIterator<ComponentDecision>>;
+  public async hydrateComponentWithData(
+    messageHistory: ChatMessage[],
+    component: AvailableComponent,
+    toolResponse: any,
+    threadId: string,
+    stream?: false | undefined,
+  ): Promise<ComponentDecision>;
+  public async hydrateComponentWithData(
+    messageHistory: ChatMessage[],
+    component: AvailableComponent,
+    toolResponse: any,
+    threadId: string,
+    stream?: boolean,
+  ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
     return this.aiService.hydrateComponent(
       messageHistory,
       component,
       toolResponse,
       threadId,
+      stream,
     );
   }
 }

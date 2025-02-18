@@ -1,12 +1,14 @@
 import { objectTemplate } from "@libretto/openai";
 import { ChatCompletionMessageParam } from "@libretto/token.js";
 import { ComponentDecision } from "@use-hydra-ai/core";
+import { parse } from "partial-json";
 import { z } from "zod";
 import { ChatMessage } from "../../model/chat-message";
 import {
   AvailableComponent,
   AvailableComponents,
 } from "../../model/component-metadata";
+import { OpenAIResponse } from "../../model/openai-response";
 import { LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
 import { parseAndValidate } from "../parser/response-parser-service";
@@ -25,8 +27,9 @@ export async function hydrateComponent(
   toolResponse: any | undefined,
   availableComponents: AvailableComponents | undefined,
   threadId: string,
+  stream?: boolean,
   version: "v1" | "v2" = "v1",
-): Promise<ComponentDecision> {
+): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
   //only define tools if we don't have a tool response
   const tools = toolResponse
     ? undefined
@@ -49,8 +52,9 @@ export async function hydrateComponent(
   } = getAvailableComponentsPromptTemplate(
     availableComponents || { [chosenComponent.name]: chosenComponent },
   );
-  const generateComponentResponse = await llmClient.complete(
-    objectTemplate([
+
+  const completeOptions = {
+    messages: objectTemplate([
       { role: "system", content: template },
       { role: "chat_history", content: "{chatHistory}" },
       {
@@ -61,10 +65,10 @@ export async function hydrateComponent(
         ${toolResponseString ? `<toolResponse>{toolResponseString}</toolResponse>` : ""}`,
       },
     ] as ChatCompletionMessageParam[]),
-    toolResponseString
+    promptTemplateName: toolResponseString
       ? "component-hydration-with-tool-response"
       : "component-hydration",
-    {
+    promptTemplateParams: {
       chatHistory,
       chosenComponentName: chosenComponent.name,
       chosenComponentDescription,
@@ -74,8 +78,19 @@ export async function hydrateComponent(
       ...availableComponentsArgs,
     },
     tools,
-    true,
-  );
+    jsonMode: true,
+  };
+
+  if (stream) {
+    const responseStream = await llmClient.complete({
+      ...completeOptions,
+      stream: true,
+    });
+
+    return handleComponentHydrationStream(responseStream, threadId, version);
+  }
+
+  const generateComponentResponse = await llmClient.complete(completeOptions);
 
   const componentDecision: ComponentDecision = {
     message: "Fetching additional data",
@@ -101,4 +116,40 @@ export async function hydrateComponent(
   }
 
   return componentDecision;
+}
+
+async function* handleComponentHydrationStream(
+  responseStream: AsyncIterableIterator<OpenAIResponse>,
+  threadId: string,
+  version: "v1" | "v2" = "v1",
+): AsyncIterableIterator<ComponentDecision> {
+  const initialDecision: ComponentDecision = {
+    componentName: null,
+    props: null,
+    message: "",
+    ...(version === "v1" ? { suggestedActions: [] } : {}),
+    toolCallRequest: undefined,
+    threadId,
+  };
+
+  let accumulatedDecision = initialDecision;
+
+  for await (const chunk of responseStream) {
+    try {
+      const message = chunk.message.length > 0 ? chunk.message : "{}";
+      const parsedChunk = {
+        ...parse(message),
+        toolCallRequest: chunk.toolCallRequest,
+      };
+
+      accumulatedDecision = {
+        ...accumulatedDecision,
+        ...parsedChunk,
+      };
+
+      yield accumulatedDecision;
+    } catch (e) {
+      console.error("Error parsing stream chunk:", e);
+    }
+  }
 }

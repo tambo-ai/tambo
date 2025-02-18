@@ -22,6 +22,7 @@
     "@libretto/token.js": "^0.2.0",
     "@use-hydra-ai/core": "*",
     "openai": "^4.83.0",
+    "partial-json": "^0.1.7",
     "token.js": "^0.5.3",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.23.3"
