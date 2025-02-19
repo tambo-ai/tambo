@@ -79,7 +79,7 @@ export async function decideComponent(
 // Private function
 async function handleNoComponentCase(
   llmClient: LLMClient,
-  decisionResponse: any,
+  decisionResponse: OpenAIResponse,
   context: InputContext,
   threadId: string,
   stream?: boolean,
@@ -91,7 +91,7 @@ async function handleNoComponentCase(
 
   const chatHistory = chatHistoryToParams(context.messageHistory);
   const { template, args } = getNoComponentPromptTemplate(
-    reasoning,
+    reasoning ?? "No reasoning provided",
     context.availableComponents,
   );
 

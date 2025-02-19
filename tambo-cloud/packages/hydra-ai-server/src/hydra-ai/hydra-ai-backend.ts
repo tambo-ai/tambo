@@ -4,9 +4,8 @@ import { ChatMessage } from "./model/chat-message";
 import {
   AvailableComponent,
   AvailableComponents,
-  ComponentContextToolMetadata,
+  ToolResponseBody,
 } from "./model/component-metadata";
-import { ComponentPropsMetadata } from "./model/component-props-metadata";
 import { InputContext } from "./model/input-context";
 import { Provider } from "./model/providers";
 
@@ -36,17 +35,6 @@ export default class HydraBackend {
       chainId,
       version,
     );
-  }
-
-  public async registerComponent(
-    name: string,
-    description: string,
-    propsDefinition?: ComponentPropsMetadata,
-    contextToolDefinitions?: ComponentContextToolMetadata[],
-  ): Promise<boolean> {
-    // Component registration logic would go here
-    // For now, always return true as if registration was successful
-    return true;
   }
 
   public async generateComponent(
@@ -79,21 +67,21 @@ export default class HydraBackend {
   public async hydrateComponentWithData(
     messageHistory: ChatMessage[],
     component: AvailableComponent,
-    toolResponse: any,
+    toolResponse: ToolResponseBody,
     threadId: string,
     stream: true,
   ): Promise<AsyncIterableIterator<ComponentDecision>>;
   public async hydrateComponentWithData(
     messageHistory: ChatMessage[],
     component: AvailableComponent,
-    toolResponse: any,
+    toolResponse: ToolResponseBody,
     threadId: string,
     stream?: false | undefined,
   ): Promise<ComponentDecision>;
   public async hydrateComponentWithData(
     messageHistory: ChatMessage[],
     component: AvailableComponent,
-    toolResponse: any,
+    toolResponse: ToolResponseBody,
     threadId: string,
     stream?: boolean,
   ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {

@@ -21,8 +21,12 @@ export interface ComponentContextToolMetadata {
   }[];
 }
 
-export interface ComponentContextTool {
-  getComponentContext: (...args: any[]) => Promise<any>;
+export interface ComponentContextTool<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Args extends unknown[] = any[],
+  Response extends ToolResponseBody = ToolResponseBody,
+> {
+  getComponentContext: (...args: Args) => Promise<Response>;
   definition: ComponentContextToolMetadata;
 }
 
@@ -31,9 +35,16 @@ export interface AvailableComponent extends ComponentMetadata {
 }
 
 export interface ComponentWithContext extends ComponentMetadata {
-  context: any;
+  context: ToolResponseBody;
 }
 
 export interface AvailableComponents {
   [key: string]: AvailableComponent;
 }
+
+/**
+ * The body of a tool response.
+ * This is the data returned by the tool.
+ * This is not the tool response, which is the entire message from the tool.
+ */
+export type ToolResponseBody = unknown;

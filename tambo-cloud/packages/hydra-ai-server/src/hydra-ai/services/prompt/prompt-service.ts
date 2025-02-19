@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { AvailableComponents } from "../../model/component-metadata";
+import {
+  AvailableComponents,
+  ToolResponseBody,
+} from "../../model/component-metadata";
 import { schemaV1, schemaV2 } from "./schemas";
 
 export interface PromptTemplate {
@@ -108,7 +111,7 @@ function getComponentHydrationPromptWithoutToolResponseTemplate(
 }
 
 export function getComponentHydrationPromptTemplate(
-  toolResponse: any | undefined,
+  toolResponse: ToolResponseBody | undefined,
   availableComponents: AvailableComponents,
   version: "v1" | "v2" = "v1",
 ): PromptTemplate {

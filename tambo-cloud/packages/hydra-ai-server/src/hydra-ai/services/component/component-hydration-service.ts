@@ -7,6 +7,7 @@ import { ChatMessage } from "../../model/chat-message";
 import {
   AvailableComponent,
   AvailableComponents,
+  ToolResponseBody,
 } from "../../model/component-metadata";
 import { OpenAIResponse } from "../../model/openai-response";
 import { LLMClient } from "../llm/llm-client";
@@ -24,7 +25,7 @@ export async function hydrateComponent(
   llmClient: LLMClient,
   messageHistory: ChatMessage[],
   chosenComponent: AvailableComponent,
-  toolResponse: any | undefined,
+  toolResponse: ToolResponseBody | undefined,
   availableComponents: AvailableComponents | undefined,
   threadId: string,
   stream?: boolean,

@@ -9,8 +9,6 @@ import { useHydra } from "@hydra-ai/react";
 import { HydraTool } from "@hydra-ai/react/dist/model/component-metadata";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
-import { ComponentContextTool } from "@use-hydra-ai/hydra-ai-server";
-import { HydraClient } from "hydra-ai";
 import { X } from "lucide-react";
 import {
   ReactNode,
@@ -347,6 +345,7 @@ const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
             {new Date(data.date).toLocaleDateString()}
           </p>
           <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={data.day.condition.icon}
               alt={data.day.condition.text}
@@ -549,28 +548,4 @@ function makeWeatherTools(
       ),
     },
   };
-}
-
-function registerComponents(
-  client: HydraClient,
-  tools: Record<string, ComponentContextTool>,
-) {
-  client.registerComponent({
-    component: WeatherDay,
-    name: "WeatherDay",
-    description: "A weather day",
-    propsDefinition: {
-      data: "{ date: string; day: { maxtemp_c: number; mintemp_c: number; avgtemp_c: number; maxwind_kph: number; totalprecip_mm: number; avghumidity: number; condition: { text: string; icon: string } } }",
-    },
-    contextTools: [tools.forecast, tools.history],
-  });
-  client.registerComponent({
-    component: AirQuality,
-    name: "AirQuality",
-    description: "Air quality",
-    propsDefinition: {
-      data: "{ aqi: number; pm2_5: number; pm10: number; o3: number; no2: number }",
-    },
-    contextTools: [tools.aqi],
-  });
 }
