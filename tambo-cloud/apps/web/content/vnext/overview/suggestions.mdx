@@ -3,48 +3,39 @@ title: Suggestions
 description: Implementing intelligent suggestions and recommendations.
 ---
 
-Hydra AI automatically analyzes user interactions and generates contextual suggestions. As users interact with your application, Hydra:
+# Suggestions
 
-### When Suggestions Appear
+Hydra AI automatically analyzes user interactions and generates contextual suggestions after each assistant message.
 
-Hydra generates suggestions appear after a component has been rendered.
+## Using Suggestions
 
-### Types of Suggestions
+### The useHydraSuggestions Hook
 
-- "Analyze this data in a chart"
-- "Export results to PDF"
-- "Filter these results"
+The main way to interact with suggestions is through the `useHydraSuggestions` hook:
 
-## How Suggestions Work
-
-When Hydra generates a suggestion, it provides:
-
-```tsx title="AI-Generated Suggestion Structure"
-interface HydraSuggestion {
-  title: string; // A short title for the suggested action
-  detailedSuggestion: string; // Detailed action to send to hydra
-}
-```
-
-## Displaying Suggestions
-
-Hydra automatically adds suggestions to your message thread. Here's how to display them:
-
-```tsx title="Displaying AI Suggestions"
+```tsx
 function ThreadWithSuggestions() {
   const {
-    suggestions: { items, accept },
-  } = useHydraThread(threadId);
+    suggestions, // Array of current suggestions
+    isLoading, // Whether suggestions are being generated or loading
+    isAccepting, // Whether a suggestion is being applied
+    error, // Current error message, if any
+    accept, // Function to apply a suggestion
+  } = useHydraSuggestions({
+    maxSuggestions: 3, // Optional: Number of suggestions to generate (1-10)
+  });
 
-  if (!items.length) return null;
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
   return (
     <div>
-      {items.map((suggestion) => (
+      {suggestions.map((suggestion) => (
         <button
-          key={suggestion.title}
+          key={suggestion.id}
           onClick={() => accept(suggestion)}
-          title={suggestion.detailedSuggestion} // Show full description on hover
+          disabled={isAccepting}
+          title={suggestion.title}
         >
           {suggestion.title}
         </button>
@@ -54,26 +45,128 @@ function ThreadWithSuggestions() {
 }
 ```
 
-## Message Integration
+### Hook Configuration
 
-We recommend showing suggestions as a button in the message thread, after the component has been rendered.
+The `useHydraSuggestions` hook accepts an optional configuration object:
 
-```tsx title="Messages with AI Suggestions"
-function MessageThread() {
-  const { messages } = useHydraThread(threadId);
-  const {
-    suggestions: { accept },
-  } = useHydraThread(threadId);
-
-  return messages.map((message) => (
-    <div key={message.id}>
-      <div>{message.content}</div>
-
-      {/* Display suggestions as options */}
-      {message.suggestions?.length > 0 && (
-        <SuggestionOptions items={message.suggestions} onAccept={accept} />
-      )}
-    </div>
-  ));
+```tsx
+interface UseHydraSuggestionsOptions {
+  /** Maximum number of suggestions to generate (1-10, default 3) */
+  maxSuggestions?: number;
 }
 ```
+
+### When Suggestions Appear
+
+Suggestions are automatically generated after each assistant (Hydra) message in the thread. The hook manages:
+
+- Loading states while generating suggestions
+- Error handling for failed generations
+- Automatic cleanup when messages change
+
+### Accepting Suggestions
+
+The `accept` function provides two modes:
+
+```tsx
+// Just set the suggestion text in the input
+accept(suggestion);
+
+// Set text and automatically submit
+accept(suggestion, true);
+```
+
+## Suggestion Types
+
+### Basic Suggestion Structure
+
+```tsx
+interface Suggestion {
+  /** Unique identifier for the suggestion */
+  id: string;
+  /** Short title or summary of the suggestion */
+  title: string;
+  /** Detailed explanation of the suggestion */
+  detailedSuggestion: string;
+  /** ID of the message this suggestion is for */
+  messageId: string;
+  /** Additional metadata for the suggestion */
+  metadata?: Record<string, string>;
+}
+```
+
+### State Management Types
+
+The hook uses additional types for state management:
+
+```tsx
+type SuggestionState = {
+  /** List of current suggestions */
+  items: Suggestion[];
+  /** Whether suggestions are currently being loaded */
+  loading: boolean;
+  /** Current error message, if any */
+  error: string | null;
+};
+```
+
+## Error Handling
+
+The hook provides built-in error handling for common scenarios:
+
+```tsx
+const ERROR_MESSAGES = {
+  GENERATION: "Unable to generate suggestions right now",
+  EMPTY: "No suggestions available for this message",
+  ACCEPT: "Unable to apply suggestion, please try again",
+  API_ERROR: "Failed to communicate with Hydra AI",
+};
+```
+
+## Integration Example
+
+Here's a complete example showing how to integrate suggestions with a message thread:
+
+```tsx
+function MessageThread() {
+  const { thread } = useHydraThread();
+  const { suggestions, isLoading, isAccepting, error, accept } =
+    useHydraSuggestions();
+
+  // Get the latest message
+  const latestMessage = thread.messages[thread.messages.length - 1];
+  const isLatestFromHydra = latestMessage?.role === "assistant";
+
+  return (
+    <div>
+      {/* Messages */}
+      {thread.messages.map((message) => (
+        <div key={message.id}>{message.content}</div>
+      ))}
+
+      {/* Suggestions (only shown after Hydra messages) */}
+      {isLatestFromHydra && (
+        <div className="suggestions">
+          {isLoading && <LoadingSpinner />}
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion.id}
+              onClick={() => accept(suggestion)}
+              disabled={isAccepting}
+            >
+              {suggestion.title}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+<Callout type="info">
+  Suggestions are automatically generated for each Hydra message when the
+  `useHydraSuggestions` hook is used. You don't need to manually trigger
+  suggestion generation.
+</Callout>

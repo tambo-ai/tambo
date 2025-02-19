@@ -1,13 +1,11 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { useHydra } from "@hydra-ai/react";
 import { HydraTool } from "@hydra-ai/react/dist/model/component-metadata";
-import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { X } from "lucide-react";
 import {
@@ -23,16 +21,15 @@ import {
   ApiActivityMonitor,
   type ApiState,
 } from "./components/ApiActivityMonitor";
+import { MessageSuggestions } from "./components/MessageSuggestions";
+import { ThreadMessageInput } from "./components/ThreadMessageInput";
 import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {
-  const [input, setInput] = useState("");
-
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
     [],
   );
-  const { sendThreadMessage, registerComponent, generationStage, thread } =
-    useHydra();
+  const { registerComponent, generationStage, thread } = useHydra();
   const messages = thread?.messages ?? [];
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
@@ -94,6 +91,7 @@ export default function SmokePage() {
       history: wrappedApis.history.getState(),
     });
   }, [wrappedApis]);
+
   useEffect(() => {
     if (isAnyApiRunning && !pollInterval) {
       const interval = setInterval(() => {
@@ -149,35 +147,7 @@ export default function SmokePage() {
     });
   }, [registerComponent, tools]);
 
-  useEffect(() => {
-    console.log("thread updated", thread);
-  }, [thread]);
-
-  const { mutateAsync: generateComponent, isPending: isGenerating } =
-    useMutation({
-      mutationFn: async () => {
-        try {
-          console.log("generating component with input", input);
-          const response = await sendThreadMessage(input, thread.id);
-          return response;
-        } catch (error) {
-          setErrors((prev) => [...prev, error as Error]);
-          throw error;
-        }
-      },
-    });
-
-  const isLoading =
-    isAqiPending || isForecastPending || isHistoryPending || isGenerating;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    await generateComponent();
-
-    setInput("");
-  };
+  const isLoading = isAqiPending || isForecastPending || isHistoryPending;
 
   return (
     <div className="container max-w-2xl py-8 space-y-4">
@@ -205,28 +175,13 @@ export default function SmokePage() {
             </div>
           ))}
         </div>
+        <MessageSuggestions maxSuggestions={3} />
         <div>
           <p className="text-sm text-muted-foreground p-2">
             Generation stage: {generationStage}
           </p>
         </div>
-
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1"
-            disabled={isLoading}
-          />
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <span className="inline-block animate-spin">⟳</span>
-            ) : (
-              "Send"
-            )}
-          </Button>
-        </form>
+        <ThreadMessageInput />
       </Card>
 
       {errors.length > 0 && (
@@ -345,7 +300,6 @@ const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
             {new Date(data.date).toLocaleDateString()}
           </p>
           <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={data.day.condition.icon}
               alt={data.day.condition.text}
@@ -450,47 +404,63 @@ function useWrappedApis(
   getForecast: (...args: any[]) => Promise<any>,
   getHistoricalWeather: (...args: any[]) => Promise<any>,
 ) {
-  return useMemo(() => {
-    console.warn("Regenerating wrapped apis");
-    return {
-      aqi: wrapApiCall(
-        getAirQuality,
-        (isRunning, startTime, duration, tokens) =>
-          setApiStates((prev) => ({
-            ...prev,
-            aqi: { ...prev.aqi, isRunning, startTime, duration, tokens },
-          })),
-      ),
-      forecast: wrapApiCall(
-        getForecast,
-        (isRunning, startTime, duration, tokens) =>
-          setApiStates((prev) => ({
-            ...prev,
-            forecast: {
-              ...prev.forecast,
-              isRunning,
-              startTime,
-              duration,
-              tokens,
-            },
-          })),
-      ),
-      history: wrapApiCall(
-        getHistoricalWeather,
-        (isRunning, startTime, duration, tokens) =>
-          setApiStates((prev) => ({
-            ...prev,
-            history: {
-              ...prev.history,
-              isRunning,
-              startTime,
-              duration,
-              tokens,
-            },
-          })),
-      ),
-    };
-  }, [getAirQuality, getForecast, getHistoricalWeather, setApiStates]);
+  const updateAqiState = useCallback(
+    (
+      isRunning: boolean,
+      startTime: number | null,
+      duration: number | null,
+      tokens: number | null,
+    ) =>
+      setApiStates((prev) => ({
+        ...prev,
+        aqi: { ...prev.aqi, isRunning, startTime, duration, tokens },
+      })),
+    [setApiStates],
+  );
+
+  const updateForecastState = useCallback(
+    (
+      isRunning: boolean,
+      startTime: number | null,
+      duration: number | null,
+      tokens: number | null,
+    ) =>
+      setApiStates((prev) => ({
+        ...prev,
+        forecast: { ...prev.forecast, isRunning, startTime, duration, tokens },
+      })),
+    [setApiStates],
+  );
+
+  const updateHistoryState = useCallback(
+    (
+      isRunning: boolean,
+      startTime: number | null,
+      duration: number | null,
+      tokens: number | null,
+    ) =>
+      setApiStates((prev) => ({
+        ...prev,
+        history: { ...prev.history, isRunning, startTime, duration, tokens },
+      })),
+    [setApiStates],
+  );
+
+  return useMemo(
+    () => ({
+      aqi: wrapApiCall(getAirQuality, updateAqiState),
+      forecast: wrapApiCall(getForecast, updateForecastState),
+      history: wrapApiCall(getHistoricalWeather, updateHistoryState),
+    }),
+    [
+      getAirQuality,
+      getForecast,
+      getHistoricalWeather,
+      updateAqiState,
+      updateForecastState,
+      updateHistoryState,
+    ],
+  );
 }
 
 function makeWeatherTools(
@@ -498,54 +468,49 @@ function makeWeatherTools(
   getHistoricalWeather: (...args: any[]) => Promise<any>,
   getAirQuality: (...args: any[]) => Promise<any>,
 ): Record<string, HydraTool> {
+  const forecastSchema = z
+    .object({
+      location: z
+        .string()
+        .describe("The location to get the weather forecast for"),
+    })
+    .describe("The parameters to get the weather forecast for");
+
+  const historySchema = z
+    .object({
+      location: z
+        .string()
+        .describe("The location to get the historical weather for"),
+      datetime: z
+        .string()
+        .describe("The datetime to get the historical weather for"),
+    })
+    .describe("The parameters to get the historical weather for");
+
+  const aqiSchema = z
+    .object({
+      location: z.string().describe("The location to get the air quality for"),
+    })
+    .describe("The parameters to get the air quality for");
+
   return {
     forecast: {
       name: "getWeatherForecast",
       description: "Get the weather forecast",
       tool: getForecast,
-      toolSchema: z.function().args(
-        z
-          .object({
-            location: z
-              .string()
-              .describe("The location to get the weather forecast for"),
-          })
-          .describe("The parameters to get the weather forecast for"),
-      ),
+      toolSchema: z.function().args(forecastSchema).returns(z.any()),
     },
     history: {
       name: "getHistoricalWeather",
       description: "Get the historical weather",
       tool: getHistoricalWeather,
-      toolSchema: z
-        .function()
-        .args(
-          z
-            .object({
-              location: z
-                .string()
-                .describe("The location to get the historical weather for"),
-              datetime: z
-                .string()
-                .describe("The datetime to get the historical weather for"),
-            })
-            .describe("The parameters to get the historical weather for"),
-        )
-        .returns(z.any()),
+      toolSchema: z.function().args(historySchema).returns(z.any()),
     },
     aqi: {
       name: "getAirQuality",
       description: "Get the air quality",
       tool: getAirQuality,
-      toolSchema: z.function().args(
-        z
-          .object({
-            location: z
-              .string()
-              .describe("The location to get the air quality for"),
-          })
-          .describe("The parameters to get the air quality for"),
-      ),
+      toolSchema: z.function().args(aqiSchema).returns(z.any()),
     },
   };
 }
