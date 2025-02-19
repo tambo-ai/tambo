@@ -120,6 +120,11 @@ export class ThreadsController {
     description: 'Retrieves all suggestions generated for a specific message',
   })
   @ApiParam({
+    name: 'id',
+    description: 'ID of the thread to get suggestions for',
+    example: 'thread_123456789',
+  })
+  @ApiParam({
     name: 'messageId',
     description: 'ID of the message to get suggestions for',
     example: 'msg_123456789',
@@ -146,6 +151,11 @@ export class ThreadsController {
   @ApiOperation({
     summary: 'Generate new suggestions',
     description: 'Generates and stores new suggestions for a specific message',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the thread to generate suggestions for',
+    example: 'thread_123456789',
   })
   @ApiParam({
     name: 'messageId',
