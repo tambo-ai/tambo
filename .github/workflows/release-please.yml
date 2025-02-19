@@ -39,18 +39,18 @@ jobs:
           cache: "npm"
           cache-dependency-path: "./hydra-client/package-lock.json"
           registry-url: "https://registry.npmjs.org"
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs.hydra-client--release_created }}
 
       - name: Install dependencies
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs.hydra-client--release_created }}
         run: npm ci
 
       - name: Build
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs.hydra-client--release_created }}
         run: npm run build
 
       - name: Publish to npm
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs.hydra-client--release_created }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
