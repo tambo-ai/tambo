@@ -36,17 +36,16 @@
     "typescript": ">=5.0.0"
   },
   "peerDependencies": {
+    "@types/json-schema": "^7.0.15",
     "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "@types/json-schema": "^7.0.15"
+    "@types/react-dom": "^18.0.0"
   },
   "dependencies": {
-    "autoprefixer": "^10.4.19",
-    "encoding": "^0.1.13",
+    "autoprefixer": "^10.4.20",
     "luxon": "^3.5.0",
-    "postcss": "^8.4.39",
+    "postcss": "^8.5.3",
     "postcss-cli": "^11.0.0",
-    "tailwindcss": "^3.4.6",
+    "tailwindcss": "^3.4.17",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.1"
   }
