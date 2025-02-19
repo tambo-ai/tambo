@@ -98,8 +98,17 @@ export class ThreadsController {
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
   @Get(':id/messages')
-  getMessages(@Param('id') threadId: string): Promise<ThreadMessage[]> {
-    return this.threadsService.getMessages(threadId);
+  @ApiParam({
+    name: 'includeInternal',
+    description: 'Whether to include internal messages',
+    required: false,
+    type: Boolean,
+  })
+  getMessages(
+    @Param('id') threadId: string,
+    @Query('includeInternal') includeInternal?: boolean,
+  ): Promise<ThreadMessage[]> {
+    return this.threadsService.getMessages(threadId, includeInternal);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)

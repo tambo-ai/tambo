@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
@@ -33,6 +33,7 @@ export async function getThreadForProjectId(
   db: HydraDb,
   threadId: string,
   projectId: string,
+  includeInternal: boolean = false,
 ) {
   return db.query.threads.findFirst({
     where: and(
@@ -41,6 +42,7 @@ export async function getThreadForProjectId(
     ),
     with: {
       messages: {
+        where: includeInternal ? undefined : isNull(schema.messages.actionType),
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
         with: {
           suggestions: true,
@@ -156,9 +158,15 @@ export async function addMessage(
 export async function getMessages(
   db: HydraDb,
   threadId: string,
+  includeInternal: boolean = false,
 ): Promise<(typeof schema.messages.$inferSelect)[]> {
   return db.query.messages.findMany({
-    where: eq(schema.messages.threadId, threadId),
+    where: includeInternal
+      ? eq(schema.messages.threadId, threadId)
+      : and(
+          eq(schema.messages.threadId, threadId),
+          isNull(schema.messages.actionType),
+        ),
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });
 }

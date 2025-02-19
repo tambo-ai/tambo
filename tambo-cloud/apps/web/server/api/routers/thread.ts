@@ -34,6 +34,7 @@ export const threadRouter = createTRPCRouter({
       z.object({
         threadId: z.string(),
         projectId: z.string(),
+        includeInternal: z.boolean().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -48,6 +49,7 @@ export const threadRouter = createTRPCRouter({
         ctx.db,
         input.threadId,
         input.projectId,
+        input.includeInternal,
       );
       if (thread?.projectId !== input.projectId) {
         throw new Error("Thread not found");

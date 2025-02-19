@@ -5,11 +5,13 @@ import { ThreadList } from "@/components/thread/thread-list";
 import { ThreadMessages } from "@/components/thread/thread-messages";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { RefreshCw } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useId, useState } from "react";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -21,7 +23,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const { projectId } = use(params);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const { toast } = useToast();
-
+  const [showInternalMessages, setShowInternalMessages] = useState(false);
+  const checkboxId = useId();
   // Fetch project details
   const { data: project, isLoading: isLoadingProject } =
     api.project.getUserProjects.useQuery(undefined, {
@@ -39,7 +42,11 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   // Fetch selected thread details
   const { data: selectedThread, error: threadError } =
     api.thread.getThread.useQuery(
-      { threadId: selectedThreadId!, projectId },
+      {
+        threadId: selectedThreadId!,
+        projectId,
+        includeInternal: showInternalMessages,
+      },
       {
         enabled: !!selectedThreadId,
       },
@@ -132,7 +139,19 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
         {/* Thread Messages */}
         <div className="border rounded-lg p-4">
-          <h2 className="text-lg font-semibold mb-4">Messages</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold mb-4">Messages</h2>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={showInternalMessages}
+                onCheckedChange={(checked) =>
+                  setShowInternalMessages(!!checked)
+                }
+                id={checkboxId}
+              />
+              <Label htmlFor={checkboxId}>Show internal messages</Label>
+            </div>
+          </div>
           {selectedThread ? (
             <ThreadMessages thread={selectedThread} />
           ) : (

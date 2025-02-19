@@ -133,8 +133,15 @@ export class ThreadsService {
     };
   }
 
-  async getMessages(threadId: string): Promise<ThreadMessage[]> {
-    const messages = await operations.getMessages(this.db, threadId);
+  async getMessages(
+    threadId: string,
+    includeInternal: boolean = false,
+  ): Promise<ThreadMessage[]> {
+    const messages = await operations.getMessages(
+      this.db,
+      threadId,
+      includeInternal,
+    );
     return messages.map(
       (message): ThreadMessage => ({
         id: message.id,
