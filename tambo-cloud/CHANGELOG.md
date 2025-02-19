@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.4.0...v0.5.0) (2025-02-19)
+
+
+### Features
+
+* Add streaming API endpoints ([#307](https://github.com/use-hydra-ai/hydra-ai-site/issues/307)) ([83983a4](https://github.com/use-hydra-ai/hydra-ai-site/commit/83983a4f2f81f34525ef689e32f702e2f766ab99))
+
 ## [0.4.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.3.0...v0.4.0) (2025-02-19)
 
 
