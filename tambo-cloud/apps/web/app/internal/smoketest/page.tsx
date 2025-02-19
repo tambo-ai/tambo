@@ -25,7 +25,6 @@ import {
   ApiActivityMonitor,
   type ApiState,
 } from "./components/ApiActivityMonitor";
-import { SuggestedActions } from "./components/SuggestedActions";
 import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {
@@ -182,9 +181,6 @@ export default function SmokePage() {
     setInput("");
   };
 
-  const lastMessage = messages[messages.length - 1];
-  const suggestedActions = lastMessage?.suggestions ?? [];
-
   return (
     <div className="container max-w-2xl py-8 space-y-4">
       <Card className="p-4 min-h-[500px] flex flex-col">
@@ -211,12 +207,6 @@ export default function SmokePage() {
             </div>
           ))}
         </div>
-        {suggestedActions.length > 0 && (
-          <SuggestedActions
-            actions={suggestedActions}
-            onActionClick={(actionText) => setInput(actionText)}
-          />
-        )}
         <div>
           <p className="text-sm text-muted-foreground p-2">
             Generation stage: {generationStage}
