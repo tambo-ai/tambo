@@ -22,7 +22,6 @@ jobs:
         id: release
         uses: googleapis/release-please-action@v4
         with:
-          release-type: node
           # need an explicit token here, otherwise the pull request created will not
           # get other actions run on its behalf
           # https://github.com/googleapis/release-please/issues/922#issuecomment-861154425
