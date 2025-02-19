@@ -1,0 +1,7 @@
+{
+  "packages": {
+    "hydra-client": {
+      "release-type": "node"
+    }
+  }
+}
