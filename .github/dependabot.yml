@@ -10,3 +10,7 @@ updates:
     open-pull-requests-limit: 10
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
