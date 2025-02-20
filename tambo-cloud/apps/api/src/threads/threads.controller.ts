@@ -98,7 +98,7 @@ export class ThreadsController {
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
   @Get(':id/messages')
-  @ApiParam({
+  @ApiQuery({
     name: 'includeInternal',
     description: 'Whether to include internal messages',
     required: false,
