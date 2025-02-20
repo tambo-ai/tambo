@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.5.0...v0.6.0) (2025-02-20)
+
+
+### Features
+
+* formally remove bearer auth ([#315](https://github.com/use-hydra-ai/hydra-ai-site/issues/315)) ([27c4008](https://github.com/use-hydra-ai/hydra-ai-site/commit/27c4008498c051cf71772ce402978a9858ecfbfc))
+* updated smoketest with suggestions and thread input ([#312](https://github.com/use-hydra-ai/hydra-ai-site/issues/312)) ([e049565](https://github.com/use-hydra-ai/hydra-ai-site/commit/e0495655dc91d90eca8166f8f91f302977275249))
+
+
+### Bug Fixes
+
+* add param to let nestjs/swagger infer the right type ([#314](https://github.com/use-hydra-ai/hydra-ai-site/issues/314)) ([fdbab3d](https://github.com/use-hydra-ai/hydra-ai-site/commit/fdbab3d3dcc7db08ea1636a4fae6a472a32a1567))
+* add return-await eslint rule, and clean up existing config ([#313](https://github.com/use-hydra-ai/hydra-ai-site/issues/313)) ([f9e0d18](https://github.com/use-hydra-ai/hydra-ai-site/commit/f9e0d182491d3f99ba9ac54a5f88e8c29b866c7b))
+* update to new hydra-ai for security/etc fixes ([#310](https://github.com/use-hydra-ai/hydra-ai-site/issues/310)) ([72327f4](https://github.com/use-hydra-ai/hydra-ai-site/commit/72327f4119b5f584fac89c9416271a36d51e017a))
+* use ApiQuery to indicate a query param, not a path param ([#316](https://github.com/use-hydra-ai/hydra-ai-site/issues/316)) ([f802e6b](https://github.com/use-hydra-ai/hydra-ai-site/commit/f802e6bba1574f006b80660c5f6c27e8e46065ff))
+
 ## [0.5.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.4.0...v0.5.0) (2025-02-19)
 
 
