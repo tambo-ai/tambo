@@ -48,7 +48,7 @@ export async function hydrateComponent(
     );
   const chatHistory = chatHistoryToParams(messageHistory);
   const {
-    template: availableComponentsTemplate,
+    template: _availableComponentsTemplate,
     args: availableComponentsArgs,
   } = getAvailableComponentsPromptTemplate(
     availableComponents || { [chosenComponent.name]: chosenComponent },

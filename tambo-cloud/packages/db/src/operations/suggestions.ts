@@ -3,7 +3,7 @@ import type { HydraDatabase } from "..";
 import { suggestions } from "../schema";
 
 export async function getSuggestions(db: HydraDatabase, messageId: string) {
-  return db.query.suggestions.findMany({
+  return await db.query.suggestions.findMany({
     where: eq(suggestions.messageId, messageId),
   });
 }
@@ -38,7 +38,7 @@ export async function createSuggestions(
   if (data.length === 0) {
     return [];
   }
-  return db
+  return await db
     .insert(suggestions)
     .values(
       data.map((item) => ({

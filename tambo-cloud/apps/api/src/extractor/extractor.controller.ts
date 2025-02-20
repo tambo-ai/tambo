@@ -14,7 +14,7 @@ export class ExtractorController {
   async extractComponent(
     @Body() extractComponentDto: ExtractComponentDto,
   ): Promise<ExtractComponentResponseDto[]> {
-    return this.aiService.extractComponentDefinitions(
+    return await this.aiService.extractComponentDefinitions(
       extractComponentDto.content ?? '',
     );
   }

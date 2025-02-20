@@ -86,7 +86,7 @@ export async function getPost(slug: string) {
 
 async function getAllPosts(dir: string) {
   const mdxFiles = getMDXFiles(dir);
-  return Promise.all(
+  return await Promise.all(
     mdxFiles.map(async (file) => {
       const slug = path.basename(file, path.extname(file));
       const { metadata, source } = await getPost(slug);
@@ -100,5 +100,5 @@ async function getAllPosts(dir: string) {
 }
 
 export async function getBlogPosts() {
-  return getAllPosts(path.join(process.cwd(), "content/blog"));
+  return await getAllPosts(path.join(process.cwd(), "content/blog"));
 }

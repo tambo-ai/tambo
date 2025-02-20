@@ -1,7 +1,7 @@
 import { encodingForModel } from "js-tiktoken";
 
-interface WrappedApi<T> {
-  call: (...args: any[]) => Promise<T>;
+interface WrappedApi<T, A extends unknown[]> {
+  call: (...args: A) => Promise<T>;
   pause: () => void;
   unpause: () => void;
   setNextError: (shouldError: boolean) => void;
@@ -23,7 +23,7 @@ export function wrapApiCall<A extends unknown[], T>(
     duration: number | null,
     tokens: number | null,
   ) => void,
-): WrappedApi<T> {
+): WrappedApi<T, A> {
   let isPaused = false;
   let shouldError = false;
   let isRunning = false;

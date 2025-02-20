@@ -15,7 +15,7 @@ import type { HydraDb } from "../types";
  * const message = await getMessageWithAccess(db, messageId)
  */
 export async function getMessageWithAccess(db: HydraDb, messageId: string) {
-  return db.query.messages.findFirst({
+  return await db.query.messages.findFirst({
     where: eq(messages.id, messageId),
     with: {
       thread: {

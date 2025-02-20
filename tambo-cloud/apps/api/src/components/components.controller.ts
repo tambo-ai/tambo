@@ -250,7 +250,6 @@ export class ComponentsController {
     } finally {
       response.write('data: DONE\n\n');
       response.end();
-      return;
     }
   }
 
@@ -258,7 +257,7 @@ export class ComponentsController {
     threadId: string,
     component: ComponentDecision,
   ) {
-    return this.threadsService.addMessage(threadId, {
+    return await this.threadsService.addMessage(threadId, {
       role: MessageRole.Hydra,
       content: [{ type: ContentPartType.Text, text: component.message }],
       // HACK: for now just jam the full component decision into the content,
@@ -449,7 +448,6 @@ export class ComponentsController {
     } finally {
       response.write('data: DONE\n\n');
       response.end();
-      return;
     }
   }
 

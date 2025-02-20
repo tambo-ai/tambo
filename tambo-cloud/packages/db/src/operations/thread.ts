@@ -35,7 +35,7 @@ export async function getThreadForProjectId(
   projectId: string,
   includeInternal: boolean = false,
 ) {
-  return db.query.threads.findFirst({
+  return await db.query.threads.findFirst({
     where: and(
       eq(schema.threads.id, threadId),
       eq(schema.threads.projectId, projectId),
@@ -57,7 +57,7 @@ export async function getThreadForUserId(
   threadId: string,
   userId: string,
 ) {
-  return db.query.threads.findFirst({
+  return await db.query.threads.findFirst({
     where: (threads, { eq, inArray }) =>
       and(
         eq(threads.id, threadId),
@@ -82,7 +82,7 @@ export async function getThreadsByProject(
   projectId: string,
   { contextKey }: { contextKey?: string } = {},
 ) {
-  return db.query.threads.findMany({
+  return await db.query.threads.findMany({
     where: contextKey
       ? and(
           eq(schema.threads.projectId, projectId),
@@ -160,7 +160,7 @@ export async function getMessages(
   threadId: string,
   includeInternal: boolean = false,
 ): Promise<(typeof schema.messages.$inferSelect)[]> {
-  return db.query.messages.findMany({
+  return await db.query.messages.findMany({
     where: includeInternal
       ? eq(schema.messages.threadId, threadId)
       : and(

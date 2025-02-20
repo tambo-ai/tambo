@@ -9,5 +9,5 @@
       "@use-hydra-ai/core": ["../core/src"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src", "drizzle.config.ts"]
 }

@@ -118,8 +118,8 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 });
 
 const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
-  return ctx.db.transaction(async (tx) => {
-    return next({ ctx: { ...ctx, db: tx } });
+  return await ctx.db.transaction(async (tx) => {
+    return await next({ ctx: { ...ctx, db: tx } });
   });
 });
 

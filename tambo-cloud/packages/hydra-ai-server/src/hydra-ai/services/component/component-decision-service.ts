@@ -20,7 +20,7 @@ export async function decideComponent(
   stream?: boolean,
 ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
   const {
-    template: availableComponentsTemplate,
+    template: _availableComponentsTemplate,
     args: availableComponentsArgs,
   } = getAvailableComponentsPromptTemplate(context.availableComponents);
   const chatHistory = chatHistoryToParams(context.messageHistory);
@@ -50,7 +50,7 @@ export async function decideComponent(
   )?.[1];
 
   if (shouldGenerate === "false") {
-    return handleNoComponentCase(
+    return await handleNoComponentCase(
       llmClient,
       decisionResponse,
       context,
@@ -62,7 +62,7 @@ export async function decideComponent(
     if (!component) {
       throw new Error(`Component ${componentName} not found`);
     }
-    return hydrateComponent(
+    return await hydrateComponent(
       llmClient,
       context.messageHistory,
       component,

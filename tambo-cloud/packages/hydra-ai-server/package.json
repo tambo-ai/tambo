@@ -13,6 +13,7 @@
     "build": "tsc",
     "test": "jest",
     "check-types": "tsc --noEmit",
+    "lint": "eslint",
     "clean": "rm -rf dist"
   },
   "author": "",

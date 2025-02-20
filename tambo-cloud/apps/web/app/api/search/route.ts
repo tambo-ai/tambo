@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
   const isVnext = referer.includes("/vnext");
 
   if (isVnext) {
-    return vnextSearch.GET(request);
+    return await vnextSearch.GET(request);
   }
 
-  return docsSearch.GET(request);
+  return await docsSearch.GET(request);
 }

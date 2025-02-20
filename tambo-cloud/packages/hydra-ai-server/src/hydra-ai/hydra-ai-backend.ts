@@ -61,7 +61,7 @@ export default class HydraBackend {
       threadId: threadId,
     };
 
-    return this.aiService.chooseComponent(context, threadId, stream);
+    return await this.aiService.chooseComponent(context, threadId, stream);
   }
 
   public async hydrateComponentWithData(
@@ -85,7 +85,7 @@ export default class HydraBackend {
     threadId: string,
     stream?: boolean,
   ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
-    return this.aiService.hydrateComponent(
+    return await this.aiService.hydrateComponent(
       messageHistory,
       component,
       toolResponse,

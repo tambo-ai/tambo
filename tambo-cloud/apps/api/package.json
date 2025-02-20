@@ -19,7 +19,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "clean": "rm -rf dist",
     "check-types": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",

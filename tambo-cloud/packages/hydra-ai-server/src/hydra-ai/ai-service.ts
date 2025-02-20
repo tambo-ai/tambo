@@ -26,7 +26,7 @@ export default class AIService {
     threadId: string,
     stream?: boolean,
   ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
-    return decideComponent(this.llmClient, context, threadId, stream);
+    return await decideComponent(this.llmClient, context, threadId, stream);
   }
 
   async hydrateComponent(
@@ -36,7 +36,7 @@ export default class AIService {
     threadId: string,
     stream?: boolean,
   ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
-    return hydrateComponent(
+    return await hydrateComponent(
       this.llmClient,
       messageHistory,
       component,

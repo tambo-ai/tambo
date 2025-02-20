@@ -92,14 +92,14 @@ export class ThreadsService {
   }
 
   async update(id: string, updateThreadDto: ThreadRequest) {
-    return operations.updateThread(this.db, id, {
+    return await operations.updateThread(this.db, id, {
       contextKey: updateThreadDto.contextKey,
       metadata: updateThreadDto.metadata,
     });
   }
 
   async remove(id: string) {
-    return operations.deleteThread(this.db, id);
+    return await operations.deleteThread(this.db, id);
   }
 
   async addMessage(

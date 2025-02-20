@@ -50,7 +50,7 @@ export class TokenJSClient implements LLMClient {
     const componentTools = params.tools?.length ? params.tools : undefined;
 
     const nonStringParams = Object.entries(params.promptTemplateParams).filter(
-      ([key, value]) =>
+      ([, value]) =>
         typeof value !== "string" &&
         !Array.isArray(value) &&
         typeof value !== "undefined",
@@ -161,7 +161,7 @@ export class TokenJSClient implements LLMClient {
               parameterValue: value,
             })),
           };
-        } catch (e) {
+        } catch (_e) {
           // Skip if JSON parsing fails (incomplete JSON)
         }
       }
@@ -194,7 +194,7 @@ function tryFormatTemplate(
 ) {
   try {
     return formatTemplate(messages as any, promptTemplateParams);
-  } catch (e) {
+  } catch (_e) {
     return messages;
   }
 }

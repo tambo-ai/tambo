@@ -40,7 +40,7 @@ export async function createProject(
 }
 
 export async function getProjectsForUser(db: HydraDb, userId: string) {
-  return db.query.projects.findMany({
+  return await db.query.projects.findMany({
     where: (projects, { inArray }) =>
       inArray(
         projects.id,
@@ -53,7 +53,7 @@ export async function getProjectsForUser(db: HydraDb, userId: string) {
 }
 
 export async function getProject(db: HydraDb, id: string) {
-  return db.query.projects.findFirst({
+  return await db.query.projects.findFirst({
     where: (projects, { eq, or, and, isNotNull }) =>
       or(
         eq(projects.id, id),
@@ -66,7 +66,7 @@ export async function getProject(db: HydraDb, id: string) {
 }
 
 export async function getProjectWithKeys(db: HydraDb, id: string) {
-  return db.query.projects.findFirst({
+  return await db.query.projects.findFirst({
     where: (projects, { eq, or, and, isNotNull }) =>
       or(
         eq(projects.id, id),
@@ -167,7 +167,7 @@ export async function createApiKey(
 }
 
 export async function getApiKeys(db: HydraDb, projectId: string) {
-  return db.query.apiKeys.findMany({
+  return await db.query.apiKeys.findMany({
     where: eq(schema.apiKeys.projectId, projectId),
   });
 }
@@ -266,12 +266,12 @@ export async function addProviderKey(
       partiallyHiddenKey: hideApiKey(providerKey),
     });
 
-    return getProjectWithKeys(tx, projectId);
+    return await getProjectWithKeys(tx, projectId);
   });
 }
 
 export async function getProviderKeys(db: HydraDb, projectId: string) {
-  return db.query.providerKeys.findMany({
+  return await db.query.providerKeys.findMany({
     where: eq(schema.providerKeys.projectId, projectId),
   });
 }
@@ -291,6 +291,6 @@ export async function deleteProviderKey(
         ),
       );
 
-    return getProjectWithKeys(tx, projectId);
+    return await getProjectWithKeys(tx, projectId);
   });
 }
