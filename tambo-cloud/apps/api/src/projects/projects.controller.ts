@@ -11,7 +11,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
+import { ApiSecurity } from '@nestjs/swagger';
 import { SupabaseAuthGuard } from 'nest-supabase-guard/dist/supabase-auth.guard';
 import { AddProviderKeyRequest } from './dto/add-provider-key.dto';
 import {
@@ -22,7 +22,6 @@ import { ProjectAccessOwnGuard } from './guards/project-access-own.guard';
 import { ValidUserGuard } from './guards/valid-user.guard';
 import { ProjectsService } from './projects.service';
 
-@ApiBearerAuth()
 @ApiSecurity('apiKey')
 // @UseGuards(AdminKeyGuard)
 @UseGuards(SupabaseAuthGuard)

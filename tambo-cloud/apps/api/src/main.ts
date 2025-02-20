@@ -14,17 +14,8 @@ function configureSwagger(app: INestApplication) {
     .setTitle('Hydra API')
     .setDescription('Hosted Hydra Backend')
     .setVersion('0.0.1')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      },
-      'bearer',
-    )
     .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'apiKey')
     .addSecurityRequirements('apiKey')
-    .addSecurityRequirements('bearer')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

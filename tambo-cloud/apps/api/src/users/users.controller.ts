@@ -1,10 +1,8 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
 import { SupabaseAuthGuard } from 'nest-supabase-guard/dist/supabase-auth.guard';
 import { UserAccessOwnGuard } from './guards/user-access-own.guard';
 import { UsersService } from './users.service';
 
-@ApiBearerAuth()
 @UseGuards(SupabaseAuthGuard)
 @Controller('users')
 export class UsersController {
