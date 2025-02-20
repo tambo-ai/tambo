@@ -6,5 +6,14 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "plugins": ["@nestjs/swagger"]
+  },
+  "projects": {
+    "generate-config": {
+      "generateOptions": {},
+      "type": "application",
+      "root": "apps/api",
+      "entryFile": "apps/api/src/generate-config",
+      "sourceRoot": "src"
+    }
   }
 }

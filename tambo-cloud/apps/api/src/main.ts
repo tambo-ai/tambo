@@ -1,7 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { generateOpenAPIConfig } from './common/openapi';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -10,14 +11,7 @@ async function bootstrap() {
 }
 
 function configureSwagger(app: INestApplication) {
-  const config = new DocumentBuilder()
-    .setTitle('Hydra API')
-    .setDescription('Hosted Hydra Backend')
-    .setVersion('0.0.1')
-    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'apiKey')
-    .addSecurityRequirements('apiKey')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = generateOpenAPIConfig(app);
   SwaggerModule.setup('api', app, document);
 }
 bootstrap();

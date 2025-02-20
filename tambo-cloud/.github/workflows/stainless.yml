@@ -1,0 +1,29 @@
+name: Upload OpenAPI spec to Stainless
+
+on:
+  push:
+    branches: [deploy]
+  workflow_dispatch:
+
+jobs:
+  stainless:
+    concurrency: upload-openapi-spec-action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # setup node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # install dependencies
+      - run: npm ci
+      # Run the generate-config script from the apps/api directory
+      - run: OPENAPI_SPEC_FILE=$RUNNER_TEMP/openapi.json npm run generate-config
+        working-directory: apps/api
+
+      # Run the upload-openapi-spec-action
+      - uses: stainless-api/upload-openapi-spec-action@main
+        with:
+          stainless_api_key: ${{ secrets.STAINLESS_API_KEY }}
+          input_path: $RUNNER_TEMP/openapi.json
+          project_name: "hydra-ai"
