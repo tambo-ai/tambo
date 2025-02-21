@@ -152,6 +152,8 @@ async function* handleComponentHydrationStream(
       accumulatedDecision = {
         ...accumulatedDecision,
         ...parsedChunk,
+        componentName,
+        threadId,
       };
 
       yield accumulatedDecision;
