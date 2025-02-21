@@ -16,10 +16,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/michaelmagan/hydraai"
+    "url": "https://github.com/hydra-ai/hydra-ai"
   },
   "bugs": {
-    "url": "https://github.com/michaelmagan/hydraai/issues"
+    "url": "https://github.com/hydra-ai/hydra-ai/issues"
   },
   "keywords": [
     "hydra",
