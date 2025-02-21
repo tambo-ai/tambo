@@ -1,8 +1,18 @@
+import { ThreadMessage } from "@use-hydra-ai/core";
 import { ChatMessage } from "./chat-message";
-import { AvailableComponents } from "./component-metadata";
+import { AvailableComponent, AvailableComponents } from "./component-metadata";
 
-export type InputContext = {
+export type InputContextCore = {
   messageHistory: ChatMessage[];
+  threadId: string;
+};
+
+export type InputContext = InputContextCore & {
   availableComponents: AvailableComponents;
+};
+
+export type InputContextAsArray = {
+  messageHistory: ThreadMessage[];
+  availableComponents: AvailableComponent[];
   threadId: string;
 };

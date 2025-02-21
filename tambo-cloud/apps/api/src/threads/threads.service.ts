@@ -2,10 +2,17 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   ChatCompletionContentPart as ChatCompletionContentPartInterface,
   ContentPartType,
+  ThreadMessage as CoreThreadMessage,
 } from '@use-hydra-ai/core';
 import type { HydraDatabase } from '@use-hydra-ai/db';
 import { operations } from '@use-hydra-ai/db';
 import type { DBSuggestion } from '@use-hydra-ai/db/src/schema';
+import {
+  ChatMessage,
+  HydraBackend,
+  generateChainId,
+} from '@use-hydra-ai/hydra-ai-server';
+import type { OpenAI } from 'openai';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import {
   AudioFormat,
@@ -29,7 +36,22 @@ export class ThreadsService {
     @Inject('DbRepository')
     private readonly db: HydraDatabase,
     private readonly logger: CorrelationLoggerService,
+    @Inject('OPENAI_API_KEY') private readonly openAiKey: string,
   ) {}
+
+  private async getHydraBackend(threadId: string): Promise<HydraBackend> {
+    const chainId = await generateChainId(threadId);
+    return new HydraBackend(this.openAiKey, chainId);
+  }
+
+  private async convertThreadMessagesToLegacyThreadMessages(
+    currentThreadMessages: ThreadMessage[],
+  ): Promise<ChatMessage[]> {
+    return currentThreadMessages.map((message) => ({
+      sender: message.role === 'user' ? 'user' : 'hydra',
+      message: message.content.map((part) => part.text ?? '').join(''),
+    }));
+  }
 
   async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
     const thread = await operations.createThread(this.db, {
@@ -211,36 +233,71 @@ export class ThreadsService {
     }
   }
 
+  private convertToCoreSuggestionMessage(
+    message: ThreadMessage,
+  ): CoreThreadMessage {
+    return {
+      id: message.id,
+      threadId: message.threadId,
+      role: message.role,
+      content: message.content.map(
+        (part): OpenAI.Chat.Completions.ChatCompletionContentPart => {
+          if (part.type === ContentPartType.Text) {
+            return { type: 'text', text: part.text || '' };
+          }
+          if (part.type === ContentPartType.ImageUrl) {
+            return {
+              type: 'image_url',
+              image_url: part.image_url || { url: '' },
+            };
+          }
+          if (part.type === ContentPartType.InputAudio) {
+            return {
+              type: 'input_audio',
+              input_audio: part.input_audio || { data: '', format: 'wav' },
+            };
+          }
+          throw new Error(`Unsupported content part type: ${part.type}`);
+        },
+      ),
+      actionType: message.actionType,
+      metadata: message.metadata,
+      createdAt: message.createdAt,
+    };
+  }
+
   async generateSuggestions(
     messageId: string,
     generateSuggestionsDto: SuggestionsGenerateDto,
   ): Promise<SuggestionDto[]> {
-    // TODO: remove this
-    this.logger.log(`Generating suggestions for message: ${messageId}`);
-    // TODO: remove this
-    this.logger.log(
-      `Available components: ${JSON.stringify(
-        generateSuggestionsDto.availableComponents,
-      )}`,
-    );
-    // FYI: availableComponents could be empty.
-
     const message = await this.getMessage(messageId);
-    this.logger.log(`Found message for suggestions: ${message.id}`);
-
-    const count = generateSuggestionsDto.maxSuggestions ?? 3;
 
     try {
-      // Generate mock suggestions
-      const mockSuggestions = Array.from({ length: count }, (_, index) => ({
-        messageId,
-        title: `Suggestion ${index + 1}`,
-        detailedSuggestion: `This is detailed suggestion number ${index + 1}`,
-      }));
+      const threadMessages = await this.getMessages(message.threadId);
+      const coreMessages = threadMessages.map(
+        this.convertToCoreSuggestionMessage,
+      );
+
+      const hydraBackend = await this.getHydraBackend(message.threadId);
+      const suggestions = await hydraBackend.generateSuggestions(
+        coreMessages,
+        generateSuggestionsDto.maxSuggestions ?? 3,
+        generateSuggestionsDto.availableComponents ?? [],
+        message.threadId,
+        false,
+      );
+
+      if (!suggestions.suggestions || suggestions.suggestions.length === 0) {
+        throw new SuggestionGenerationError(messageId);
+      }
 
       const savedSuggestions = await operations.createSuggestions(
         this.db,
-        mockSuggestions,
+        suggestions.suggestions.map((suggestion) => ({
+          messageId,
+          title: suggestion.title,
+          detailedSuggestion: suggestion.detailedSuggestion,
+        })),
       );
 
       this.logger.log(
@@ -257,6 +314,7 @@ export class ThreadsService {
       );
       throw new SuggestionGenerationError(messageId, {
         maxSuggestions: generateSuggestionsDto.maxSuggestions,
+        availableComponents: generateSuggestionsDto.availableComponents,
       });
     }
   }

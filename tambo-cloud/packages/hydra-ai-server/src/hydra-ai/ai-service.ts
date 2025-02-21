@@ -1,10 +1,17 @@
 import { ComponentDecision } from "@use-hydra-ai/core";
-import { AvailableComponent, ChatMessage, ToolResponseBody } from "./model";
-import { InputContext } from "./model/input-context";
+import {
+  AvailableComponent,
+  ChatMessage,
+  InputContext,
+  InputContextAsArray,
+  ToolResponseBody,
+} from "./model";
 import { Provider } from "./model/providers";
 import { decideComponent } from "./services/component/component-decision-service";
 import { hydrateComponent } from "./services/component/component-hydration-service";
 import { TokenJSClient } from "./services/llm/token-js-client";
+import { generateSuggestions } from "./services/suggestion/suggestion.service";
+import { SuggestionDecision } from "./services/suggestion/suggestion.types";
 
 export default class AIService {
   private llmClient: TokenJSClient;
@@ -19,6 +26,21 @@ export default class AIService {
   ) {
     this.llmClient = new TokenJSClient(openAiKey, model, provider, chainId);
     this.version = version;
+  }
+
+  async generateSuggestions(
+    context: InputContextAsArray,
+    count: number,
+    threadId: string,
+    stream?: boolean,
+  ): Promise<SuggestionDecision | AsyncIterableIterator<SuggestionDecision>> {
+    return await generateSuggestions(
+      this.llmClient,
+      context,
+      count,
+      threadId,
+      stream,
+    );
   }
 
   async chooseComponent(

@@ -1,15 +1,20 @@
+import { ThreadMessage } from "@use-hydra-ai/core";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
+  AvailableComponent,
   AvailableComponents,
   ToolResponseBody,
 } from "../../model/component-metadata";
 import { schemaV1, schemaV2 } from "./schemas";
-
 export interface PromptTemplate {
   template: string;
   args: Record<string, string>;
   version?: "v1" | "v2";
+}
+
+export function getBasePrompt(version: "v1" | "v2" = "v1"): string {
+  return version === "v1" ? basePromptV1 : basePromptV2;
 }
 
 // Public functions
@@ -160,6 +165,7 @@ function generateAvailableComponentsPrompt(
   return replaceTemplateVariables(template.template, template.args);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function generateZodTypePrompt(schema: z.ZodSchema<any>): string {
   return `
       Return a JSON object that matches the given Zod schema.
@@ -169,7 +175,8 @@ function generateZodTypePrompt(schema: z.ZodSchema<any>): string {
     `;
 }
 
-function generateFormatInstructions(schema: z.ZodSchema<any>): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function generateFormatInstructions(schema: z.ZodSchema<any>): string {
   return `You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
 
     "JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
@@ -184,4 +191,79 @@ function generateFormatInstructions(schema: z.ZodSchema<any>): string {
     ${JSON.stringify(zodToJsonSchema(schema))}
     \`\`\`
     `;
+}
+
+/**
+ * @param components List of available components
+ * @param messageHistory Array of thread messages to provide context
+ * @param suggestionCount Number of suggestions to generate
+ * @param schema JSON schema for validation
+ * @returns Array of system and user messages
+ */
+export function buildSuggestionPrompt(
+  components: AvailableComponent[],
+  messageHistory: ThreadMessage[] = [],
+  suggestionCount: number,
+  schema: string,
+): Array<{ role: "system" | "user"; content: string }> {
+  const hasComponents = components.length > 0;
+  const systemMessage = [
+    "You analyze conversations and suggest contextually relevant actions.",
+    hasComponents
+      ? [
+          "Available components:",
+          components.map((c) => `- ${c.name}: ${c.description}`).join("\n"),
+        ].join("\n")
+      : "No components are available. Generate suggestions for tasks that can be handled without specialized tools.",
+
+    "Guidelines for generating suggestions:",
+    "1. Each suggestion should directly build upon the user's current task or goal",
+    "2. If a component is already rendered, suggest specific ways to update or modify its current props",
+    "3. Also suggest related components that would complement the current component",
+    "4. Focus on practical, actionable steps that demonstrate component capabilities",
+    "5. Make suggestions that help users discover natural next steps without having to think",
+    "6. Avoid generic suggestions - make them specific to the conversation context",
+    "Your response must include a brief reflection of the user's intent and actionable suggestions.",
+  ].join("\n\n");
+
+  const userMessage = [
+    messageHistory.length > 0
+      ? [
+          "Recent conversation context:",
+          messageHistory
+            .slice(-3) // Only include last 3 messages for focused context
+            .map(
+              (msg) =>
+                `${msg.role}: ${msg.content.map((c) => ("text" in c ? c.text : "")).join("")}${
+                  msg.componentDecision
+                    ? `\nComponent: ${msg.componentDecision.componentName}\nProps: ${JSON.stringify(msg.componentDecision.props)}`
+                    : ""
+                }`,
+            )
+            .join("\n"),
+          "",
+          `Based on this conversation and components sent, generate ${suggestionCount} specific actions. Include suggestions for modifying the previous component's props and exploring related components that would enhance the user's workflow.`,
+        ].join("\n")
+      : `Generate ${suggestionCount} specific actions that would help explore and use the available features.`,
+    "",
+    "Format each suggestion as:",
+    "title: A clear, concise action title",
+    "detailedSuggestion: A specific action using an available component",
+    "",
+    [
+      "Example format (adapt to actual context):",
+      'title: "Show Data Quarterly"',
+      'detailedSuggestion: "Update the timeRange prop from 1-month to 3-months to show quarterly trends."',
+      "",
+      'title: "Trend Analysis"',
+      'detailedSuggestion: "Show the TrendAnalyzer component to automatically identify key patterns in your data."',
+    ].join("\n"),
+    "Schema for validation:",
+    schema,
+  ].join("\n");
+
+  return [
+    { role: "system", content: systemMessage },
+    { role: "user", content: userMessage },
+  ];
 }

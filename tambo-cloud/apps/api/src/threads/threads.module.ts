@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getDb } from '@use-hydra-ai/db';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsModule } from '../projects/projects.module';
@@ -15,6 +15,12 @@ import { ThreadsService } from './threads.service';
     {
       provide: 'DbRepository',
       useFactory: () => getDb(process.env.DATABASE_URL!),
+    },
+    {
+      provide: 'OPENAI_API_KEY', //todo: weird api keys don't match?
+      useFactory: (configService: ConfigService) =>
+        configService.get('OPEN_AI_API_KEY'),
+      inject: [ConfigService],
     },
   ],
   exports: [ThreadsService],
