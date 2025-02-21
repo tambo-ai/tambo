@@ -215,10 +215,19 @@ export class ThreadsService {
     messageId: string,
     generateSuggestionsDto: SuggestionsGenerateDto,
   ): Promise<SuggestionDto[]> {
+    // TODO: remove this
     this.logger.log(`Generating suggestions for message: ${messageId}`);
+    // TODO: remove this
+    this.logger.log(
+      `Available components: ${JSON.stringify(
+        generateSuggestionsDto.availableComponents,
+      )}`,
+    );
+    // FYI: availableComponents could be empty.
 
     const message = await this.getMessage(messageId);
     this.logger.log(`Found message for suggestions: ${message.id}`);
+
     const count = generateSuggestionsDto.maxSuggestions ?? 3;
 
     try {
