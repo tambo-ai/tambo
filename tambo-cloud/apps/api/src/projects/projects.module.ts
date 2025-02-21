@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { getDb } from '@use-hydra-ai/db';
-import { UsersModule } from '../users/users.module';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 
 @Module({
-  imports: [ConfigModule, UsersModule],
+  imports: [ConfigModule],
   controllers: [ProjectsController],
   providers: [
     ProjectsService,

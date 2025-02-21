@@ -1,6 +1,5 @@
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerModule } from './common/logger.module';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
@@ -21,7 +20,7 @@ import { ThreadsModule } from './threads/threads.module';
     ExtractorModule,
     ThreadsModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [AppService],
 })
 export class AppModule implements OnModuleInit {

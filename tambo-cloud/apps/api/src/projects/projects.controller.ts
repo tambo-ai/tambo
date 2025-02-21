@@ -12,24 +12,20 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
-import { SupabaseAuthGuard } from 'nest-supabase-guard/dist/supabase-auth.guard';
 import { AddProviderKeyRequest } from './dto/add-provider-key.dto';
 import {
   ProjectCreateRequest,
   ProjectUpdateRequest,
 } from './dto/project-response.dto';
 import { ProjectAccessOwnGuard } from './guards/project-access-own.guard';
-import { ValidUserGuard } from './guards/valid-user.guard';
 import { ProjectsService } from './projects.service';
 
 @ApiSecurity('apiKey')
 // @UseGuards(AdminKeyGuard)
-@UseGuards(SupabaseAuthGuard)
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseGuards(ValidUserGuard)
   @Post()
   create(@Body() { projectName }: ProjectCreateRequest, @Req() request) {
     const createProjectDto = {
@@ -39,7 +35,6 @@ export class ProjectsController {
     return this.projectsService.create(createProjectDto);
   }
 
-  @UseGuards(ValidUserGuard)
   @Get('user/')
   findAllForUser(@Req() request) {
     return this.projectsService.findAllForUser(request.userId);
