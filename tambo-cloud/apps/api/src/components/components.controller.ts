@@ -238,9 +238,19 @@ export class ComponentsController {
         true,
       );
 
-      //TODO: add 'in-progress' message to thread and update on each chunk
       for await (const chunk of stream) {
-        response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
+        const threadMessage: ThreadMessage = {
+          role: MessageRole.Hydra,
+          content: [{ type: ContentPartType.Text, text: chunk.message }],
+          id: new Date().toISOString(),
+          threadId: resolvedThreadId,
+          component: chunk,
+          createdAt: new Date(),
+          actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
+          toolCallRequest: chunk.toolCallRequest,
+        };
+        response.write(`data: ${JSON.stringify(threadMessage)}\n\n`);
       }
     } catch (error: any) {
       this.logger.error('Error in generateComponentStream:', error);
@@ -436,9 +446,19 @@ export class ComponentsController {
     );
 
     try {
-      //TODO: add 'in-progress' message to thread and update on each chunk
       for await (const chunk of stream) {
-        response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
+        const threadMessage: ThreadMessage = {
+          role: MessageRole.Hydra,
+          content: [{ type: ContentPartType.Text, text: chunk.message }],
+          id: new Date().toISOString(),
+          threadId: resolvedThreadId,
+          component: chunk,
+          createdAt: new Date(),
+          actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
+          toolCallRequest: chunk.toolCallRequest,
+        };
+        response.write(`data: ${JSON.stringify(threadMessage)}\n\n`);
       }
     } catch (error: any) {
       this.logger.error('Error in hydrateComponentStream:', error);
