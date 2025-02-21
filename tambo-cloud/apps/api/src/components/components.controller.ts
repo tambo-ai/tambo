@@ -238,12 +238,14 @@ export class ComponentsController {
         true,
       );
 
+      const tempId = new Date().toISOString();
+
       for await (const chunk of stream) {
         //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
         const threadMessage: ThreadMessage = {
           role: MessageRole.Hydra,
           content: [{ type: ContentPartType.Text, text: chunk.message }],
-          id: new Date().toISOString(),
+          id: tempId,
           threadId: resolvedThreadId,
           component: chunk,
           createdAt: new Date(),
@@ -446,12 +448,13 @@ export class ComponentsController {
     );
 
     try {
+      const tempId = new Date().toISOString();
       for await (const chunk of stream) {
         //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
         const threadMessage: ThreadMessage = {
           role: MessageRole.Hydra,
           content: [{ type: ContentPartType.Text, text: chunk.message }],
-          id: new Date().toISOString(),
+          id: tempId,
           threadId: resolvedThreadId,
           component: chunk,
           createdAt: new Date(),
