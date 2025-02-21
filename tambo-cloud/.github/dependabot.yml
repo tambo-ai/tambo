@@ -7,8 +7,8 @@ updates:
       day: "monday"
     open-pull-requests-limit: 10
     commit-message:
-      prefix: "deps"
-      prefix-development: "deps"
+      prefix: "chore"
+      prefix-development: "chore"
       include: "scope"
     groups:
       trpc:
