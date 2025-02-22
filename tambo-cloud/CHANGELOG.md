@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.7.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.6.0...v0.7.0) (2025-02-22)
+
+
+### Features
+
+* adds AI functionality ([#345](https://github.com/use-hydra-ai/hydra-ai-site/issues/345)) ([637d702](https://github.com/use-hydra-ai/hydra-ai-site/commit/637d70259c84f7a02047835e62ef265fd1f544eb))
+* adds passing available componets to suggestions endpoint. ([#331](https://github.com/use-hydra-ai/hydra-ai-site/issues/331)) ([4a1afdf](https://github.com/use-hydra-ai/hydra-ai-site/commit/4a1afdfed5c03947113a884902eaf23182bd99e0))
+* remove all user-related APIs ([#332](https://github.com/use-hydra-ai/hydra-ai-site/issues/332)) ([7998cd4](https://github.com/use-hydra-ai/hydra-ai-site/commit/7998cd4f03ec4a71ae39655013c880583f13c402))
+
+
+### Bug Fixes
+
+* add Dto suffix, but rename with ApiSchema, do casting where appropriate, etc ([#347](https://github.com/use-hydra-ai/hydra-ai-site/issues/347)) ([54e02ca](https://github.com/use-hydra-ai/hydra-ai-site/commit/54e02caa21abb8ffe9475833f928401272fabfc3))
+* Avoid hydration stream flicker ([#344](https://github.com/use-hydra-ai/hydra-ai-site/issues/344)) ([9ae6378](https://github.com/use-hydra-ai/hydra-ai-site/commit/9ae637845c2a4405715a2e7adb08c1a14ef35d4d))
+* avoid resetting ID every chunk of streamed ThreadMessage ([#343](https://github.com/use-hydra-ai/hydra-ai-site/issues/343)) ([53b764a](https://github.com/use-hydra-ai/hydra-ai-site/commit/53b764ac2ce62b7e1012f1f274feca7b742fd153))
+* make sure DbRepository is available to components ([#342](https://github.com/use-hydra-ai/hydra-ai-site/issues/342)) ([45f7d37](https://github.com/use-hydra-ai/hydra-ai-site/commit/45f7d3778bdfbf95deb4956815ed53d64825116c))
+* Return component name with streamed toolcallrequest ([#329](https://github.com/use-hydra-ai/hydra-ai-site/issues/329)) ([f11ee78](https://github.com/use-hydra-ai/hydra-ai-site/commit/f11ee78af22bc566680d98158d29cef1079e2f8d))
+
 ## [0.6.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.5.0...v0.6.0) (2025-02-20)
 
 

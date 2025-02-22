@@ -37,5 +37,5 @@
     "posthog-js": "^1.222.0",
     "resend": "^4.1.2"
   },
-  "version": "0.6.0"
+  "version": "0.7.0"
 }
