@@ -1,3 +1,4 @@
+import { ApiSchema } from '@nestjs/swagger';
 import { ActionType, ContentPartType, MessageRole } from '@use-hydra-ai/core';
 import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
 import { type OpenAI } from 'openai';
@@ -29,7 +30,9 @@ export class ImageUrl {
   detail?: ImageDetail;
 }
 
-export class ChatCompletionContentPart {
+/** DTO for the content part of a message. This may be safely cast to or from the ChatCompletionContentPart interface. */
+@ApiSchema({ name: 'ChatCompletionContentPart' })
+export class ChatCompletionContentPartDto {
   @IsEnum(ContentPartType)
   type!: ContentPartType;
   @ValidateIf((o) => o.type === ContentPartType.Text)
@@ -43,7 +46,7 @@ export class ChatCompletionContentPart {
 /** Internal type to make sure that subclasses are aligned on types */
 interface InternalThreadMessage {
   role: MessageRole;
-  content: ChatCompletionContentPart[];
+  content: ChatCompletionContentPartDto[];
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
   actionType?: ActionType;
@@ -51,12 +54,13 @@ interface InternalThreadMessage {
   tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
 }
 
-export class ThreadMessage implements InternalThreadMessage {
+@ApiSchema({ name: 'ThreadMessage' })
+export class ThreadMessageDto implements InternalThreadMessage {
   id!: string;
   threadId!: string;
   @IsEnum(MessageRole)
   role!: MessageRole;
-  content!: ChatCompletionContentPart[];
+  content!: ChatCompletionContentPartDto[];
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
   toolCallRequest?: ToolCallRequest;
@@ -73,7 +77,7 @@ export class MessageRequest implements InternalThreadMessage {
   role!: MessageRole;
 
   @IsNotEmpty()
-  content!: ChatCompletionContentPart[];
+  content!: ChatCompletionContentPartDto[];
 
   @IsOptional()
   metadata?: Record<string, unknown>;

@@ -1,6 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
+@ApiSchema({ name: 'Error' })
 export class ErrorDto {
   @ApiProperty({
     description: 'Error message describing what went wrong',

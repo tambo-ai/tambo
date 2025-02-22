@@ -6,8 +6,8 @@ import {
 } from '@use-hydra-ai/hydra-ai-server';
 import { MinLength } from 'class-validator';
 import { JSONSchema7 } from 'json-schema';
-import { ChatCompletionContentPart } from '../../threads/dto/message.dto';
-import { LegacyChatMessage } from './legacy-chat-history.dto';
+import { ChatCompletionContentPartDto } from '../../threads/dto/message.dto';
+import { LegacyChatMessageDto } from './legacy-chat-history.dto';
 
 export class ComponentPropsMetadata
   implements ComponentPropsMetadataInterface {}
@@ -40,7 +40,7 @@ export class ComponentContextToolMetadata
 }
 
 export class GenerateComponentRequest {
-  messageHistory!: LegacyChatMessage[];
+  messageHistory!: LegacyChatMessageDto[];
   availableComponents!: AvailableComponents;
   /** Optional threadId to generate a component for */
   threadId?: string;
@@ -54,7 +54,7 @@ export class GenerateComponentRequest2 {
    *
    * This is the same as ThreadMessage.content */
   @MinLength(1)
-  content!: ChatCompletionContentPart[];
+  content!: ChatCompletionContentPartDto[];
   availableComponents!: AvailableComponent[];
   /** Optional threadId to generate a component for */
   threadId?: string;

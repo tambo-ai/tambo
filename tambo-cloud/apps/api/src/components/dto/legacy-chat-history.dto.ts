@@ -1,4 +1,5 @@
-import { ChatMessage as ChatMessageInterface } from '@use-hydra-ai/hydra-ai-server';
+import { ApiSchema } from '@nestjs/swagger';
+import { ChatMessage } from '@use-hydra-ai/hydra-ai-server';
 import { IsEnum } from 'class-validator';
 
 export enum ChatMessageSender {
@@ -7,7 +8,8 @@ export enum ChatMessageSender {
   Tool = 'tool',
 }
 
-export class LegacyChatMessage implements ChatMessageInterface {
+@ApiSchema({ name: 'LegacyChatMessage' })
+export class LegacyChatMessageDto implements ChatMessage {
   @IsEnum(ChatMessageSender)
   sender!: ChatMessageSender;
   message!: string;

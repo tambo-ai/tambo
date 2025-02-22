@@ -1,6 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
+@ApiSchema({ name: 'Suggestion' })
 export class SuggestionDto {
   @ApiProperty({
     description: 'Unique identifier for the suggestion',

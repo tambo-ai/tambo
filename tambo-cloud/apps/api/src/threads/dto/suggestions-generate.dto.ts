@@ -1,8 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { AvailableComponent } from '@use-hydra-ai/hydra-ai-server';
 import { Type } from 'class-transformer';
 import { IsArray, IsNumber, IsOptional, Max, Min } from 'class-validator';
 
+@ApiSchema({ name: 'SuggestionsGenerate' })
 export class SuggestionsGenerateDto {
   @ApiProperty({
     description: 'Maximum number of suggestions to generate',

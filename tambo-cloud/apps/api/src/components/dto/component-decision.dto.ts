@@ -2,7 +2,7 @@ import {
   SuggestedAction as SuggestedActionInterface,
   ToolCallRequest as ToolCallRequestInterface,
 } from '@use-hydra-ai/core';
-import { ThreadMessage } from '../../threads/dto/message.dto';
+import { ThreadMessageDto } from '../../threads/dto/message.dto';
 
 /** Legacy - for v1 of generate/hydrate */
 export class ComponentDecision {
@@ -39,5 +39,5 @@ export class SuggestedAction implements Partial<SuggestedActionInterface> {
 }
 
 export class GenerateComponentResponse {
-  message!: ThreadMessage;
+  message!: ThreadMessageDto;
 }

@@ -25,7 +25,7 @@ import {
   ProjectIdParameterKey,
 } from '../projects/guards/project-access-own.guard';
 import { ErrorDto } from './dto/error.dto';
-import { MessageRequest, ThreadMessage } from './dto/message.dto';
+import { MessageRequest, ThreadMessageDto } from './dto/message.dto';
 import { SuggestionDto } from './dto/suggestion.dto';
 import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
 import { Thread, ThreadRequest } from './dto/thread.dto';
@@ -41,28 +41,30 @@ export class ThreadsController {
   @ProjectIdParameterKey('projectId')
   @UseGuards(ProjectAccessOwnGuard)
   @Post()
-  create(@Body() createThreadDto: ThreadRequest): Promise<Thread> {
-    return this.threadsService.createThread(createThreadDto);
+  async create(@Body() createThreadDto: ThreadRequest): Promise<Thread> {
+    return await this.threadsService.createThread(createThreadDto);
   }
 
   @ProjectIdParameterKey('projectId')
   @UseGuards(ProjectAccessOwnGuard)
   @Get('project/:projectId')
   @ApiQuery({ name: 'contextKey', required: false })
-  findAllForProject(
+  async findAllForProject(
     @Param('projectId') projectId: string,
     @Query('contextKey') contextKey?: string,
   ): Promise<Thread[]> {
-    return this.threadsService.findAllForProject(projectId, { contextKey });
+    return await this.threadsService.findAllForProject(projectId, {
+      contextKey,
+    });
   }
 
   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() request): Promise<Thread> {
+  async findOne(@Param('id') id: string, @Req() request): Promise<Thread> {
     if (!request.projectId) {
       throw new BadRequestException('Project ID is required');
     }
-    return this.threadsService.findOne(id, request.projectId);
+    return await this.threadsService.findOne(id, request.projectId);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
@@ -81,18 +83,18 @@ export class ThreadsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.threadsService.remove(id);
+  async remove(@Param('id') id: string) {
+    return await this.threadsService.remove(id);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
   @Post(':id/messages')
-  addMessage(
+  async addMessage(
     @Param('id') threadId: string,
     @Body() messageDto: MessageRequest,
   ) {
-    return this.threadsService.addMessage(threadId, messageDto);
+    return await this.threadsService.addMessage(threadId, messageDto);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
@@ -104,21 +106,24 @@ export class ThreadsController {
     required: false,
     type: Boolean,
   })
-  getMessages(
+  async getMessages(
     @Param('id') threadId: string,
     @Query('includeInternal') includeInternal?: boolean,
-  ): Promise<ThreadMessage[]> {
-    return this.threadsService.getMessages(threadId, includeInternal);
+  ): Promise<ThreadMessageDto[]> {
+    return (await this.threadsService.getMessages(
+      threadId,
+      includeInternal,
+    )) as ThreadMessageDto[];
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
   @Delete(':id/messages/:messageId')
-  deleteMessage(
-    @Param('id') threadId: string,
+  async deleteMessage(
+    @Param('id') _threadId: string,
     @Param('messageId') messageId: string,
   ) {
-    return this.threadsService.deleteMessage(messageId);
+    return await this.threadsService.deleteMessage(messageId);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
@@ -148,11 +153,11 @@ export class ThreadsController {
     description: 'Message not found or has no suggestions',
     type: ErrorDto,
   })
-  getSuggestions(
+  async getSuggestions(
     @Param('id') threadId: string,
     @Param('messageId') messageId: string,
   ): Promise<SuggestionDto[]> {
-    return this.threadsService.getSuggestions(messageId);
+    return await this.threadsService.getSuggestions(messageId);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
@@ -192,12 +197,12 @@ export class ThreadsController {
     description: 'Failed to generate suggestions',
     type: ErrorDto,
   })
-  generateSuggestions(
+  async generateSuggestions(
     @Param('id') threadId: string,
     @Param('messageId') messageId: string,
     @Body() generateSuggestionsDto: SuggestionsGenerateDto,
   ): Promise<SuggestionDto[]> {
-    return this.threadsService.generateSuggestions(
+    return await this.threadsService.generateSuggestions(
       messageId,
       generateSuggestionsDto,
     );

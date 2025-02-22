@@ -1,8 +1,8 @@
 import { AvailableComponent } from '@use-hydra-ai/hydra-ai-server';
-import { LegacyChatMessage } from './legacy-chat-history.dto';
+import { LegacyChatMessageDto } from './legacy-chat-history.dto';
 
 export class HydrateComponentRequest {
-  messageHistory!: LegacyChatMessage[];
+  messageHistory!: LegacyChatMessageDto[];
   component!: AvailableComponent;
   toolResponse?: any;
   threadId?: string;

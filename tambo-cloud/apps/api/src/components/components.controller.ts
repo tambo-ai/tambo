@@ -14,6 +14,7 @@ import {
   ComponentDecision,
   ContentPartType,
   MessageRole,
+  ThreadMessage,
 } from '@use-hydra-ai/core';
 import {
   ChatMessage,
@@ -23,7 +24,7 @@ import {
 import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
-import { ThreadMessage } from '../threads/dto/message.dto';
+import { ThreadMessageDto } from '../threads/dto/message.dto';
 import { ThreadsService } from '../threads/threads.service';
 import {
   ComponentDecision as ComponentDecisionDto,
@@ -242,7 +243,7 @@ export class ComponentsController {
 
       for await (const chunk of stream) {
         //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
-        const threadMessage: ThreadMessage = {
+        const threadMessage: ThreadMessageDto = {
           role: MessageRole.Hydra,
           content: [{ type: ContentPartType.Text, text: chunk.message }],
           id: tempId,
@@ -451,7 +452,7 @@ export class ComponentsController {
       const tempId = new Date().toISOString();
       for await (const chunk of stream) {
         //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
-        const threadMessage: ThreadMessage = {
+        const threadMessage: ThreadMessageDto = {
           role: MessageRole.Hydra,
           content: [{ type: ContentPartType.Text, text: chunk.message }],
           id: tempId,
@@ -502,14 +503,23 @@ export class ComponentsController {
 }
 
 function convertThreadMessagesToLegacyThreadMessages(
-  currentThreadMessages: ThreadMessage[],
+  currentThreadMessages: ThreadMessage[] | ThreadMessageDto[],
 ) {
   return currentThreadMessages.map(
     (message): ChatMessage => ({
       sender: [MessageRole.User, MessageRole.Tool].includes(message.role)
         ? (message.role as 'user' | 'tool')
         : 'hydra',
-      message: message.content.map((part) => part.text ?? '').join(''),
+      message: message.content
+        .map((part) => {
+          switch (part.type) {
+            case ContentPartType.Text:
+              return part.text ?? '';
+            default:
+              return '';
+          }
+        })
+        .join(''),
     }),
   );
 }

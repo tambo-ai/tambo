@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
-  ChatCompletionContentPart as ChatCompletionContentPartInterface,
+  ChatCompletionContentPart,
   ContentPartType,
-  ThreadMessage as CoreThreadMessage,
+  ThreadMessage,
 } from '@use-hydra-ai/core';
 import type { HydraDatabase } from '@use-hydra-ai/db';
 import { operations } from '@use-hydra-ai/db';
@@ -12,14 +12,11 @@ import {
   HydraBackend,
   generateChainId,
 } from '@use-hydra-ai/hydra-ai-server';
-import type { OpenAI } from 'openai';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import {
-  AudioFormat,
-  ChatCompletionContentPart,
-  ImageDetail,
+  ChatCompletionContentPartDto,
   MessageRequest,
-  ThreadMessage,
+  ThreadMessageDto,
 } from './dto/message.dto';
 import { SuggestionDto } from './dto/suggestion.dto';
 import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
@@ -45,7 +42,7 @@ export class ThreadsService {
   }
 
   private async convertThreadMessagesToLegacyThreadMessages(
-    currentThreadMessages: ThreadMessage[],
+    currentThreadMessages: ThreadMessageDto[],
   ): Promise<ChatMessage[]> {
     return currentThreadMessages.map((message) => ({
       sender: message.role === 'user' ? 'user' : 'hydra',
@@ -127,7 +124,7 @@ export class ThreadsService {
   async addMessage(
     threadId: string,
     messageDto: MessageRequest,
-  ): Promise<ThreadMessage> {
+  ): Promise<ThreadMessageDto> {
     const message = await operations.addMessage(this.db, {
       threadId,
       role: messageDto.role,
@@ -158,24 +155,19 @@ export class ThreadsService {
   async getMessages(
     threadId: string,
     includeInternal: boolean = false,
-  ): Promise<ThreadMessage[]> {
+  ): Promise<ThreadMessageDto[]> {
     const messages = await operations.getMessages(
       this.db,
       threadId,
       includeInternal,
     );
-    return messages.map(
-      (message): ThreadMessage => ({
-        id: message.id,
-        threadId,
-        role: message.role,
-        content: convertContentPartToDto(message.content),
-        metadata: message.metadata ?? undefined,
-        component: message.componentDecision ?? undefined,
-        actionType: message.actionType ?? undefined,
-        createdAt: message.createdAt,
-      }),
-    );
+    return messages.map((message) => ({
+      ...message,
+      content: convertContentPartToDto(message.content),
+      metadata: message.metadata ?? undefined,
+      toolCallRequest: message.toolCallRequest ?? undefined,
+      actionType: message.actionType ?? undefined,
+    }));
   }
 
   async deleteMessage(messageId: string) {
@@ -233,39 +225,6 @@ export class ThreadsService {
     }
   }
 
-  private convertToCoreSuggestionMessage(
-    message: ThreadMessage,
-  ): CoreThreadMessage {
-    return {
-      id: message.id,
-      threadId: message.threadId,
-      role: message.role,
-      content: message.content.map(
-        (part): OpenAI.Chat.Completions.ChatCompletionContentPart => {
-          if (part.type === ContentPartType.Text) {
-            return { type: 'text', text: part.text || '' };
-          }
-          if (part.type === ContentPartType.ImageUrl) {
-            return {
-              type: 'image_url',
-              image_url: part.image_url || { url: '' },
-            };
-          }
-          if (part.type === ContentPartType.InputAudio) {
-            return {
-              type: 'input_audio',
-              input_audio: part.input_audio || { data: '', format: 'wav' },
-            };
-          }
-          throw new Error(`Unsupported content part type: ${part.type}`);
-        },
-      ),
-      actionType: message.actionType,
-      metadata: message.metadata,
-      createdAt: message.createdAt,
-    };
-  }
-
   async generateSuggestions(
     messageId: string,
     generateSuggestionsDto: SuggestionsGenerateDto,
@@ -274,13 +233,10 @@ export class ThreadsService {
 
     try {
       const threadMessages = await this.getMessages(message.threadId);
-      const coreMessages = threadMessages.map(
-        this.convertToCoreSuggestionMessage,
-      );
 
       const hydraBackend = await this.getHydraBackend(message.threadId);
       const suggestions = await hydraBackend.generateSuggestions(
-        coreMessages,
+        threadMessages as ThreadMessage[],
         generateSuggestionsDto.maxSuggestions ?? 3,
         generateSuggestionsDto.availableComponents ?? [],
         message.threadId,
@@ -330,12 +286,12 @@ export class ThreadsService {
 }
 
 function convertContentDtoToContentPart(
-  content: string | ChatCompletionContentPart[],
-): ChatCompletionContentPartInterface[] {
+  content: string | ChatCompletionContentPartDto[],
+): ChatCompletionContentPart[] {
   if (!Array.isArray(content)) {
     return [{ type: ContentPartType.Text, text: content }];
   }
-  return content.map((part): ChatCompletionContentPartInterface => {
+  return content.map((part): ChatCompletionContentPart => {
     switch (part.type) {
       case ContentPartType.Text:
         if (!part.text) {
@@ -368,37 +324,10 @@ function convertContentDtoToContentPart(
 }
 
 function convertContentPartToDto(
-  part: ChatCompletionContentPartInterface[] | string,
-): ChatCompletionContentPart[] {
+  part: ChatCompletionContentPart[] | string,
+): ChatCompletionContentPartDto[] {
   if (typeof part === 'string') {
     return [{ type: ContentPartType.Text, text: part }];
   }
-  return part.map((part): ChatCompletionContentPart => {
-    switch (part.type) {
-      case ContentPartType.Text:
-        return { type: ContentPartType.Text, text: part.text ?? '' };
-      case ContentPartType.ImageUrl:
-        return {
-          type: ContentPartType.ImageUrl,
-          image_url: part.image_url
-            ? {
-                url: part.image_url.url,
-                detail: part.image_url.detail as ImageDetail,
-              }
-            : undefined,
-        };
-      case ContentPartType.InputAudio:
-        return {
-          type: ContentPartType.InputAudio,
-          input_audio: part.input_audio
-            ? {
-                data: part.input_audio.data,
-                format: part.input_audio.format as AudioFormat,
-              }
-            : undefined,
-        };
-      default:
-        throw new Error(`Unknown content part type: ${part.type}`);
-    }
-  });
+  return part as ChatCompletionContentPartDto[];
 }
