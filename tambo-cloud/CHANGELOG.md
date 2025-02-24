@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.7.0...v0.7.1) (2025-02-24)
+
+
+### Bug Fixes
+
+* flush out more Dtos, including component registry ([#362](https://github.com/use-hydra-ai/hydra-ai-site/issues/362)) ([001b7ef](https://github.com/use-hydra-ai/hydra-ai-site/commit/001b7efbfc64d56f8f4f6fada690692c8a534e2b))
+* Update thread with final message on stream routes ([#360](https://github.com/use-hydra-ai/hydra-ai-site/issues/360)) ([c9bee20](https://github.com/use-hydra-ai/hydra-ai-site/commit/c9bee20acfb2ce5e390b5b40d18d1f3b3d1f9857))
+
 ## [0.7.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.6.0...v0.7.0) (2025-02-22)
 
 
