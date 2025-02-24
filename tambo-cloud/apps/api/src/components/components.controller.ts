@@ -240,9 +240,10 @@ export class ComponentsController {
       );
 
       const tempId = new Date().toISOString();
-
+      let finalComponent: ComponentDecision | undefined;
       for await (const chunk of stream) {
         //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
+        finalComponent = chunk;
         const threadMessage: ThreadMessageDto = {
           role: MessageRole.Hydra,
           content: [{ type: ContentPartType.Text, text: chunk.message }],
@@ -254,6 +255,9 @@ export class ComponentsController {
           toolCallRequest: chunk.toolCallRequest,
         };
         response.write(`data: ${JSON.stringify(threadMessage)}\n\n`);
+      }
+      if (finalComponent) {
+        await this.addDecisionToThread(resolvedThreadId, finalComponent);
       }
     } catch (error: any) {
       this.logger.error('Error in generateComponentStream:', error);
@@ -450,8 +454,11 @@ export class ComponentsController {
 
     try {
       const tempId = new Date().toISOString();
+      let finalComponent: ComponentDecision | undefined;
+
       for await (const chunk of stream) {
         //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
+        finalComponent = chunk;
         const threadMessage: ThreadMessageDto = {
           role: MessageRole.Hydra,
           content: [{ type: ContentPartType.Text, text: chunk.message }],
@@ -463,6 +470,9 @@ export class ComponentsController {
           toolCallRequest: chunk.toolCallRequest,
         };
         response.write(`data: ${JSON.stringify(threadMessage)}\n\n`);
+      }
+      if (finalComponent) {
+        await this.addDecisionToThread(resolvedThreadId, finalComponent);
       }
     } catch (error: any) {
       this.logger.error('Error in hydrateComponentStream:', error);
