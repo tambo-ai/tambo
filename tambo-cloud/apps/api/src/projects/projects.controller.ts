@@ -15,6 +15,7 @@ import { ApiSecurity } from '@nestjs/swagger';
 import { AddProviderKeyRequest } from './dto/add-provider-key.dto';
 import {
   ProjectCreateRequest,
+  ProjectResponse,
   ProjectUpdateRequest,
 } from './dto/project-response.dto';
 import { ProjectAccessOwnGuard } from './guards/project-access-own.guard';
@@ -27,12 +28,15 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Body() { projectName }: ProjectCreateRequest, @Req() request) {
+  async create(
+    @Body() { projectName }: ProjectCreateRequest,
+    @Req() request,
+  ): Promise<ProjectResponse> {
     const createProjectDto = {
       name: projectName,
       userId: request.userId,
     };
-    return this.projectsService.create(createProjectDto);
+    return await this.projectsService.create(createProjectDto);
   }
 
   @Get('user/')
@@ -42,18 +46,18 @@ export class ProjectsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<ProjectResponse | undefined> {
+    return await this.projectsService.findOne(id);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateProjectDto: ProjectUpdateRequest,
     @Req() request,
-  ) {
-    return this.projectsService.update(id, {
+  ): Promise<ProjectResponse | undefined> {
+    return await this.projectsService.update(id, {
       name: updateProjectDto.name,
       userId: request.userId,
     });
@@ -61,8 +65,8 @@ export class ProjectsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(id);
+  async remove(@Param('id') id: string): Promise<boolean> {
+    return await this.projectsService.remove(id);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
@@ -83,22 +87,25 @@ export class ProjectsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Delete(':id/api-key/:apiKeyId')
-  removeApiKey(@Param('id') id: string, @Param('apiKeyId') apiKeyId: string) {
-    return this.projectsService.removeApiKey(id, apiKeyId);
+  async removeApiKey(
+    @Param('id') id: string,
+    @Param('apiKeyId') apiKeyId: string,
+  ) {
+    return await this.projectsService.removeApiKey(id, apiKeyId);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
   @Put(':id/provider-key')
-  addProviderKey(
+  async addProviderKey(
     @Param('id') id: string,
     @Body() addProviderKeyDto: AddProviderKeyRequest,
     @Req() request,
-  ) {
+  ): Promise<ProjectResponse> {
     const { providerName, providerKey } = addProviderKeyDto;
     if (!providerName || !providerKey) {
       throw new BadRequestException('Provider name and key are required');
     }
-    return this.projectsService.addProviderKey(
+    return await this.projectsService.addProviderKey(
       id,
       providerName,
       providerKey,
@@ -108,16 +115,16 @@ export class ProjectsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id/provider-keys')
-  findAllProviderKeys(@Param('id') id: string) {
-    return this.projectsService.findAllProviderKeys(id);
+  async findAllProviderKeys(@Param('id') id: string) {
+    return await this.projectsService.findAllProviderKeys(id);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
   @Delete(':id/provider-key/:providerKeyId')
-  removeProviderKey(
+  async removeProviderKey(
     @Param('id') id: string,
     @Param('providerKeyId') providerKeyId: string,
-  ) {
-    return this.projectsService.removeProviderKey(id, providerKeyId);
+  ): Promise<ProjectResponse> {
+    return await this.projectsService.removeProviderKey(id, providerKeyId);
   }
 }

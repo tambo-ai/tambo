@@ -1,15 +1,15 @@
-import { AvailableComponent } from '@use-hydra-ai/hydra-ai-server';
+import { AvailableComponentDto } from './generate-component.dto';
 import { LegacyChatMessageDto } from './legacy-chat-history.dto';
 
 export class HydrateComponentRequest {
   messageHistory!: LegacyChatMessageDto[];
-  component!: AvailableComponent;
+  component!: AvailableComponentDto;
   toolResponse?: any;
   threadId?: string;
   contextKey?: string;
 }
 export class HydrateComponentRequest2 {
-  component!: AvailableComponent;
+  component!: AvailableComponentDto;
   toolResponse?: any;
   threadId!: string;
   contextKey?: string;

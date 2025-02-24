@@ -1,25 +1,29 @@
+import { ApiProperty, ApiSchema, getSchemaPath } from '@nestjs/swagger';
 import {
-  AvailableComponent as AvailableComponentInterface,
-  AvailableComponents as AvailableComponentsInterface,
-  ComponentContextToolMetadata as ComponentContextToolMetadataInterface,
-  ComponentPropsMetadata as ComponentPropsMetadataInterface,
+  AvailableComponent,
+  AvailableComponents,
+  ComponentContextToolMetadata,
+  ComponentPropsMetadata,
 } from '@use-hydra-ai/hydra-ai-server';
 import { MinLength } from 'class-validator';
 import { JSONSchema7 } from 'json-schema';
 import { ChatCompletionContentPartDto } from '../../threads/dto/message.dto';
 import { LegacyChatMessageDto } from './legacy-chat-history.dto';
 
-export class ComponentPropsMetadata
-  implements ComponentPropsMetadataInterface {}
-export class AvailableComponent implements AvailableComponentInterface {
+@ApiSchema({ name: 'ComponentPropsMetadata' })
+export class ComponentPropsMetadataDto implements ComponentPropsMetadata {}
+
+@ApiSchema({ name: 'AvailableComponent' })
+export class AvailableComponentDto implements AvailableComponent {
   name!: string;
   description!: string;
-  contextTools!: ComponentContextToolMetadata[];
-  props!: ComponentPropsMetadata;
+  contextTools!: ComponentContextToolMetadataDto[];
+  props!: ComponentPropsMetadataDto;
 }
 
-export class AvailableComponents implements AvailableComponentsInterface {
-  [key: string]: AvailableComponent;
+@ApiSchema({ name: 'AvailableComponents' })
+export class AvailableComponentsDto implements AvailableComponents {
+  [key: string]: AvailableComponentDto;
 }
 
 export class ToolParameters {
@@ -31,8 +35,10 @@ export class ToolParameters {
   enumValues?: string[];
   schema?: JSONSchema7;
 }
-export class ComponentContextToolMetadata
-  implements ComponentContextToolMetadataInterface
+
+@ApiSchema({ name: 'ComponentContextToolMetadata' })
+export class ComponentContextToolMetadataDto
+  implements ComponentContextToolMetadata
 {
   name!: string;
   description!: string;
@@ -41,7 +47,11 @@ export class ComponentContextToolMetadata
 
 export class GenerateComponentRequest {
   messageHistory!: LegacyChatMessageDto[];
-  availableComponents!: AvailableComponents;
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { $ref: getSchemaPath(AvailableComponentDto) },
+  })
+  availableComponents!: any;
   /** Optional threadId to generate a component for */
   threadId?: string;
   /** Optional contextKey to generate a component for */
@@ -55,7 +65,7 @@ export class GenerateComponentRequest2 {
    * This is the same as ThreadMessage.content */
   @MinLength(1)
   content!: ChatCompletionContentPartDto[];
-  availableComponents!: AvailableComponent[];
+  availableComponents!: AvailableComponentDto[];
   /** Optional threadId to generate a component for */
   threadId?: string;
   /** Optional contextKey to generate a component for */

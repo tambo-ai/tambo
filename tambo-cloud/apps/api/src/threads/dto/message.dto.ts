@@ -4,7 +4,7 @@ import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
 import { type OpenAI } from 'openai';
 import {
   ComponentDecisionV2,
-  ToolCallRequest,
+  ToolCallRequestDto,
 } from '../../components/dto/component-decision.dto';
 
 export enum AudioFormat {
@@ -50,7 +50,7 @@ interface InternalThreadMessage {
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
   actionType?: ActionType;
-  toolCallRequest?: ToolCallRequest;
+  toolCallRequest?: ToolCallRequestDto;
   tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
 }
 
@@ -63,7 +63,7 @@ export class ThreadMessageDto implements InternalThreadMessage {
   content!: ChatCompletionContentPartDto[];
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
-  toolCallRequest?: ToolCallRequest;
+  toolCallRequest?: ToolCallRequestDto;
   @IsEnum(ActionType)
   actionType?: ActionType;
 
@@ -86,7 +86,7 @@ export class MessageRequest implements InternalThreadMessage {
   component?: ComponentDecisionV2;
 
   @IsOptional()
-  toolCallRequest?: ToolCallRequest;
+  toolCallRequest?: ToolCallRequestDto;
 
   @IsOptional()
   @IsEnum(ActionType)

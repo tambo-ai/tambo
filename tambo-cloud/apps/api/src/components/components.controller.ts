@@ -31,7 +31,7 @@ import {
   GenerateComponentResponse,
 } from './dto/component-decision.dto';
 import {
-  AvailableComponent,
+  AvailableComponentDto,
   GenerateComponentRequest,
   GenerateComponentRequest2,
 } from './dto/generate-component.dto';
@@ -162,7 +162,7 @@ export class ComponentsController {
     const messageHistory = convertThreadMessagesToLegacyThreadMessages(
       currentThreadMessages,
     );
-    const availableComponentMap: Record<string, AvailableComponent> =
+    const availableComponentMap: Record<string, AvailableComponentDto> =
       availableComponents.reduce((acc, component) => {
         acc[component.name] = component;
         return acc;
@@ -225,7 +225,7 @@ export class ComponentsController {
     const messageHistory = convertThreadMessagesToLegacyThreadMessages(
       currentThreadMessages,
     );
-    const availableComponentMap: Record<string, AvailableComponent> =
+    const availableComponentMap: Record<string, AvailableComponentDto> =
       availableComponents.reduce((acc, component) => {
         acc[component.name] = component;
         return acc;
