@@ -1,4 +1,4 @@
-import { ApiSchema } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { ActionType, ContentPartType, MessageRole } from '@use-hydra-ai/core';
 import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
 import { type OpenAI } from 'openai';
@@ -63,6 +63,11 @@ export class ThreadMessageDto implements InternalThreadMessage {
   content!: ChatCompletionContentPartDto[];
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+  })
+  componentState?: Record<string, unknown>;
   toolCallRequest?: ToolCallRequestDto;
   @IsEnum(ActionType)
   actionType?: ActionType;

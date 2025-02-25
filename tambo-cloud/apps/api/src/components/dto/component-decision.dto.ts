@@ -1,10 +1,14 @@
-import { ApiSchema } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { SuggestedAction, ToolCallRequest } from '@use-hydra-ai/core';
 import { ThreadMessageDto } from '../../threads/dto/message.dto';
 
 /** Legacy - for v1 of generate/hydrate */
 export class ComponentDecision {
   componentName!: string | null;
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+  })
   props!: Record<string, any>;
   message!: string;
   suggestedActions?: SuggestedActionDto[];
@@ -14,6 +18,10 @@ export class ComponentDecision {
 
 export class ComponentDecisionV2 {
   componentName!: string | null;
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+  })
   props!: Record<string, any>;
   message!: string;
 }

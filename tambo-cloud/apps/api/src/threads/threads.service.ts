@@ -167,6 +167,7 @@ export class ThreadsService {
       metadata: message.metadata ?? undefined,
       toolCallRequest: message.toolCallRequest ?? undefined,
       actionType: message.actionType ?? undefined,
+      componentState: message.componentState ?? undefined,
     }));
   }
 
@@ -187,6 +188,7 @@ export class ThreadsService {
       metadata: message.metadata ?? undefined,
       toolCallRequest: message.toolCallRequest ?? undefined,
       actionType: message.actionType ?? undefined,
+      componentState: message.componentState ?? undefined,
     };
   }
 
@@ -302,6 +304,16 @@ export class ThreadsService {
       title: suggestion.title,
       detailedSuggestion: suggestion.detailedSuggestion,
     };
+  }
+  async updateComponentState(
+    threadId: string,
+    messageId: string,
+    newState: Record<string, unknown>,
+  ) {
+    const message = await operations.updateMessage(this.db, messageId, {
+      componentState: newState,
+    });
+    return message;
   }
 }
 

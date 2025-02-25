@@ -18,6 +18,10 @@ export class AvailableComponentDto implements AvailableComponent {
   name!: string;
   description!: string;
   contextTools!: ComponentContextToolMetadataDto[];
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+  })
   props!: ComponentPropsMetadataDto;
 }
 
