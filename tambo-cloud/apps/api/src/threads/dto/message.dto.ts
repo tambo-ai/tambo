@@ -61,6 +61,10 @@ export class ThreadMessageDto implements InternalThreadMessage {
   @IsEnum(MessageRole)
   role!: MessageRole;
   content!: ChatCompletionContentPartDto[];
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+  })
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
   @ApiProperty({
@@ -85,6 +89,10 @@ export class MessageRequest implements InternalThreadMessage {
   content!: ChatCompletionContentPartDto[];
 
   @IsOptional()
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+  })
   metadata?: Record<string, unknown>;
 
   @IsOptional()

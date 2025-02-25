@@ -10,6 +10,10 @@ export class ThreadRequest {
   contextKey?: string;
 
   @IsOptional()
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+  })
   metadata?: Record<string, unknown>;
 }
 
