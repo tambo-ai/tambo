@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.7.1...v0.8.0) (2025-02-25)
+
+
+### Features
+
+* add componentState column to message ([#367](https://github.com/use-hydra-ai/hydra-ai-site/issues/367)) ([ac1d239](https://github.com/use-hydra-ai/hydra-ai-site/commit/ac1d2398c85668dc4d5d8331676f73a62bdd01b8))
+* expose state updates via messages ([#368](https://github.com/use-hydra-ai/hydra-ai-site/issues/368)) ([95d8d60](https://github.com/use-hydra-ai/hydra-ai-site/commit/95d8d6098f0b52aadad0d7050a1257a49c54d2f9))
+
+
+### Bug Fixes
+
+* Update message in db on interval during streaming ([#366](https://github.com/use-hydra-ai/hydra-ai-site/issues/366)) ([f3bade1](https://github.com/use-hydra-ai/hydra-ai-site/commit/f3bade168b0398c844c20baa45c6c786e9abb292))
+* Update to new hydra packages ([#364](https://github.com/use-hydra-ai/hydra-ai-site/issues/364)) ([cba56b7](https://github.com/use-hydra-ai/hydra-ai-site/commit/cba56b7ec0aae4845f29d74584ff47b6d41cd751))
+
 ## [0.7.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.7.0...v0.7.1) (2025-02-24)
 
 
