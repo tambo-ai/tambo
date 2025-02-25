@@ -239,25 +239,57 @@ export class ComponentsController {
         true,
       );
 
-      const tempId = new Date().toISOString();
       let finalComponent: ComponentDecision | undefined;
-      for await (const chunk of stream) {
-        //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
-        finalComponent = chunk;
-        const threadMessage: ThreadMessageDto = {
-          role: MessageRole.Hydra,
-          content: [{ type: ContentPartType.Text, text: chunk.message }],
-          id: tempId,
+      let lastUpdateTime = 0;
+      const updateIntervalMs = 500;
+
+      const inProgressMessage = await this.addDecisionToThread(
+        resolvedThreadId,
+        {
+          message: 'streaming in progress...',
+          toolCallRequest: undefined,
+          componentName: '',
+          props: {},
           threadId: resolvedThreadId,
-          component: chunk,
-          createdAt: new Date(),
-          actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
-          toolCallRequest: chunk.toolCallRequest,
-        };
-        response.write(`data: ${JSON.stringify(threadMessage)}\n\n`);
+        },
+      );
+
+      for await (const chunk of stream) {
+        finalComponent = chunk;
+        const currentTime = Date.now();
+
+        // Update db message on interval
+        if (currentTime - lastUpdateTime >= updateIntervalMs) {
+          await this.updateMessage(inProgressMessage.id, {
+            ...chunk,
+            message:
+              chunk.message.length > 0
+                ? chunk.message
+                : 'streaming in progress...',
+          });
+          lastUpdateTime = currentTime;
+        }
+
+        response.write(
+          `data: ${JSON.stringify({
+            ...inProgressMessage,
+            content: [{ type: ContentPartType.Text, text: chunk.message }],
+            component: chunk,
+            actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
+            toolCallRequest: chunk.toolCallRequest,
+          })}\n\n`,
+        );
       }
+
+      // Ensure final state is saved
       if (finalComponent) {
-        await this.addDecisionToThread(resolvedThreadId, finalComponent);
+        await this.updateMessage(inProgressMessage.id, {
+          ...finalComponent,
+          message:
+            finalComponent.message.length > 0
+              ? finalComponent.message
+              : 'streaming in progress...',
+        });
       }
     } catch (error: any) {
       this.logger.error('Error in generateComponentStream:', error);
@@ -283,6 +315,16 @@ export class ComponentsController {
       actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
       toolCallRequest: component.toolCallRequest,
       // suggestedActions: component.suggestedActions,
+    });
+  }
+
+  private async updateMessage(messageId: string, component: ComponentDecision) {
+    return await this.threadsService.updateMessage(messageId, {
+      role: MessageRole.Hydra,
+      content: [{ type: ContentPartType.Text, text: component.message }],
+      component: component,
+      actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
+      toolCallRequest: component.toolCallRequest,
     });
   }
 
@@ -453,26 +495,58 @@ export class ComponentsController {
     );
 
     try {
-      const tempId = new Date().toISOString();
       let finalComponent: ComponentDecision | undefined;
+      let lastUpdateTime = 0;
+      const updateIntervalMs = 500;
+
+      const inProgressMessage = await this.addDecisionToThread(
+        resolvedThreadId,
+        {
+          message: 'streaming in progress...',
+          toolCallRequest: undefined,
+          componentName: '',
+          props: {},
+          threadId: resolvedThreadId,
+        },
+      );
 
       for await (const chunk of stream) {
-        //TODO: don't create threadmessage here, add 'in-progress' message to thread and update on each chunk
         finalComponent = chunk;
-        const threadMessage: ThreadMessageDto = {
-          role: MessageRole.Hydra,
-          content: [{ type: ContentPartType.Text, text: chunk.message }],
-          id: tempId,
-          threadId: resolvedThreadId,
-          component: chunk,
-          createdAt: new Date(),
-          actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
-          toolCallRequest: chunk.toolCallRequest,
-        };
-        response.write(`data: ${JSON.stringify(threadMessage)}\n\n`);
+        const currentTime = Date.now();
+
+        // Update db message on interval
+        if (currentTime - lastUpdateTime >= updateIntervalMs) {
+          await this.updateMessage(inProgressMessage.id, {
+            ...chunk,
+            message:
+              chunk.message.length > 0
+                ? chunk.message
+                : 'streaming in progress...',
+          });
+
+          lastUpdateTime = currentTime;
+        }
+
+        response.write(
+          `data: ${JSON.stringify({
+            ...inProgressMessage,
+            content: [{ type: ContentPartType.Text, text: chunk.message }],
+            component: chunk,
+            actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
+            toolCallRequest: chunk.toolCallRequest,
+          })}\n\n`,
+        );
       }
+
+      // Ensure final state is saved
       if (finalComponent) {
-        await this.addDecisionToThread(resolvedThreadId, finalComponent);
+        await this.updateMessage(inProgressMessage.id, {
+          ...finalComponent,
+          message:
+            finalComponent.message.length > 0
+              ? finalComponent.message
+              : 'streaming in progress...',
+        });
       }
     } catch (error: any) {
       this.logger.error('Error in hydrateComponentStream:', error);

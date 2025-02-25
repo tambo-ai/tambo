@@ -171,6 +171,28 @@ export async function getMessages(
   });
 }
 
+export async function updateMessage(
+  db: HydraDb,
+  messageId: string,
+  messageInput: Partial<
+    Omit<typeof schema.messages.$inferInsert, "id" | "createdAt" | "threadId">
+  >,
+): Promise<typeof schema.messages.$inferSelect> {
+  const [updatedMessage] = await db
+    .update(schema.messages)
+    .set(messageInput)
+    .where(eq(schema.messages.id, messageId))
+    .returning();
+
+  // Update the thread's updatedAt timestamp
+  await db
+    .update(schema.threads)
+    .set({ updatedAt: new Date() })
+    .where(eq(schema.threads.id, updatedMessage.threadId));
+
+  return updatedMessage;
+}
+
 export async function deleteMessage(
   db: HydraDb,
   messageId: string,

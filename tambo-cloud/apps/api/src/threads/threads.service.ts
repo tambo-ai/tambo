@@ -170,6 +170,26 @@ export class ThreadsService {
     }));
   }
 
+  async updateMessage(
+    messageId: string,
+    messageDto: MessageRequest,
+  ): Promise<ThreadMessageDto> {
+    const message = await operations.updateMessage(this.db, messageId, {
+      content: convertContentDtoToContentPart(messageDto.content),
+      componentDecision: messageDto.component ?? undefined,
+      metadata: messageDto.metadata,
+      actionType: messageDto.actionType ?? undefined,
+      toolCallRequest: messageDto.toolCallRequest ?? undefined,
+    });
+    return {
+      ...message,
+      content: convertContentPartToDto(message.content),
+      metadata: message.metadata ?? undefined,
+      toolCallRequest: message.toolCallRequest ?? undefined,
+      actionType: message.actionType ?? undefined,
+    };
+  }
+
   async deleteMessage(messageId: string) {
     await operations.deleteMessage(this.db, messageId);
   }
