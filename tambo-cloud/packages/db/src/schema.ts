@@ -153,6 +153,7 @@ export const messages = pgTable("messages", ({ text, timestamp }) => ({
     "content",
   ).notNull(),
   componentDecision: customJsonb<ComponentDecisionV2>("component_decision"),
+  componentState: customJsonb<Record<string, unknown>>("component_state"),
   toolCallRequest: customJsonb<ToolCallRequest>("tool_call_request"),
   actionType: text("action_type", {
     enum: Object.values<string>(ActionType) as [ActionType],
