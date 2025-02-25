@@ -1,141 +1,84 @@
 ---
 title: Streaming
-description: Implementing real-time updates and streaming responses in Hydra AI.
 ---
 
-Streaming in Hydra AI enables real-time updates and progressive rendering of AI responses, creating more responsive and engaging user experiences.
+Use streaming to show response messages and components from Hydra in real-time as they are being generated, to create more responsive and engaging user experiences.
 
-## Core Concepts
-
-- **Message Streaming**: Real-time updates of AI responses using `useHydraMessageContext`
-- **Component Streaming**: Progressive updates of component props using `useComponentStreaming`
-- **Validation States**: Type-safe streaming with built-in validation
-- **Abort Control**: Cancellation of ongoing operations
-
-## Message Streaming
-
-### Basic Setup
-
-```tsx title="Basic Message Streaming"
-function MessageThread({ threadId }: { threadId: string }) {
-  const { messages, operations } = useHydraThread(threadId);
-  const { messageId, streaming } = useHydraMessageContext();
-
-  const sendMessage = async (content: string) => {
-    await operations.messages.generate(threadId, content, {
-      stream: true,
-    });
-  };
-
-  return (
-    <div>
-      {streaming.status.isStreaming && <div>Streaming response...</div>}
-      {messages.map((message) => (
-        <div key={message.id}>{message.content}</div>
-      ))}
-    </div>
-  );
-}
+```tsx
+const { sendThreadMessage } = useHydra();
+await sendThreadMessage(inputValue, { streamResponse: true });
 ```
 
-**Additional Features:**
+Hydra will handle updating the thread's final message as data streams in, rather than waiting for the entire response to complete.
 
-- Abort control: `streaming.status.abort()` to cancel streaming
-- Message metadata: `message.status.state` for processing state
-- Partial content: `streaming.status.partialData` for incomplete responses
-- Error handling: Try/catch with error states
+Render your thread messages like normal:
 
-## Component Streaming
+```tsx
+const { thread } = useHydra();
 
-### Progressive Updates
+...
 
-```tsx title="Progressive Component Updates"
-interface DataViewProps {
-  data: Readonly<{
-    title: string;
-    content: string;
-  }>;
-}
-
-function ProgressiveDataView(props: DataViewProps) {
-  const { isStreaming } = useComponentStreaming<DataViewProps>();
-
-  return (
-    <div>
-      <h2>{props.data.title}</h2>
-      <div>{props.data.content}</div>
-      {isStreaming && <div>Loading updates...</div>}
+<div>
+  {thread.messages.map((message, index) => (
+    <div
+      key={index}
+    >
+      <div>{message.message}</div>
+      <div>{message.renderedComponent}</div>
     </div>
-  );
-}
+  ))}
+</div>;
 ```
 
-**Validation Features:**
+## Preparing Components for Streaming
 
-- Path completion: `validation?.completedPaths.includes(path)`
-- Error tracking: `validation?.errors` for validation failures
-- Valid paths: `validation?.validPaths` for safe-to-use data
-- Loading states: `isStreaming` for overall status
+When a request is made with `streamResponse: true`, currently Hydra will update the response message's `renderedComponent` field as soon as the component is chosen, even before all the props have been generated.
 
-**State Management:**
+For example, if your component expects a props object that looks like `{name: string, age: number}`, Hydra will render the component with `{name: 'generatedname'}` before the age props value is generated.
 
-- Hydra state: `useHydraState<T>()` for persisted component state
-- Partial data: `partialData` for incomplete updates
-- Component registration with `HydraComponentRegistry`
+This means that your registered components will need to have all props marked as 'optional', and be prepared to receive `undefined` values while streaming is in progress.
 
-## Type Safety
+One way to handle this is to set default values to show until the values are generated:
 
-```tsx title="Type-Safe Component"
-interface StreamingComponentProps {
-  data: Readonly<{
-    items: string[];
-    metadata: {
-      timestamp: number;
-      author: string;
-    };
-  }>;
-}
-
-function StreamingComponent(props: StreamingComponentProps) {
-  const { isStreaming, validation } =
-    useComponentStreaming<StreamingComponentProps>();
-  const isDataComplete = validation?.completedPaths.includes("data");
-
-  return (
-    <div>
-      {!isDataComplete && <div>Loading...</div>}
-      <div>
-        {props.data.items.map((item, index) => (
-          <div key={index}>{item}</div>
-        ))}
-      </div>
-    </div>
-  );
-}
+```tsx
+const MyComponent = ({ name = "Loading..." }: { name?: string }) => {
+  return <div>{name}</div>;
+};
 ```
 
-**Type System Features:**
+For props where defaults don't make sense, you can allow them to be optional and render a loading state within the component:
 
-- Message types: `HydraThreadMessage` for message structure
-- Streaming status: `MessageStreamingStatus<T>` for type-safe streaming
-- Component props: `Readonly<T>` for immutable props
-- Validation types: `ValidationState` for tracking completion
+```tsx
+const MyComponent = ({ age }: { age?: number }) => {
+  return <div>{age ?? "Loading..."}</div>;
+};
+```
 
-## Error Handling
+## Show "Loading" while streaming
 
-```tsx title="Stream Error Handling"
-function StreamErrorBoundary() {
-  const { streaming } = useHydraMessageContext();
-  const [error, setError] = useState<Error | null>(null);
+Without streaming, you might show a 'loading' indicator while the response is being generated like this:
 
-  useEffect(() => {
-    if (streaming.status.error) setError(streaming.status.error);
-  }, [streaming.status.error]);
+```tsx
 
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
+const handleSendMessage = async (inputValue: string) => {
+  setIsLoading(true);
+  await sendThreadMessage(inputValue, { streamResponse: true });
+  setIsLoading(false);
+};
 
-  return null;
-}
+...
+
+<div>
+  {isLoading && <div>Loading AI response...</div>}
+</div>
+```
+
+With streaming, the `sendThreadMessage` promise resolves right away, even while streaming is still in progress. If you want to show a 'loading' indicator while streaming is in progress, you can do so by using Hydra's `isIdle` state value:
+
+```tsx
+const { isIdle } = useHydra();
+
+...
+
+<div>{!isIdle && "Loading AI response..."}</div>
 ```
