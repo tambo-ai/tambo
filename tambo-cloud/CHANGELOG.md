@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.8.0...v0.9.0) (2025-02-26)
+
+
+### Features
+
+* make updateComponentState work correctly, use it in the smoketest ([#374](https://github.com/use-hydra-ai/hydra-ai-site/issues/374)) ([25940be](https://github.com/use-hydra-ai/hydra-ai-site/commit/25940be9dce49daa2a79e61f77557e7d5e8c39bd))
+
+
+### Bug Fixes
+
+* add `additionalProperties` to metadata props ([#372](https://github.com/use-hydra-ai/hydra-ai-site/issues/372)) ([fa1faa6](https://github.com/use-hydra-ai/hydra-ai-site/commit/fa1faa62f4b35dfc1a63a757effec139ebc93672))
+* Update @hydra-ai/react to get new Tambo names ([#375](https://github.com/use-hydra-ai/hydra-ai-site/issues/375)) ([24a2725](https://github.com/use-hydra-ai/hydra-ai-site/commit/24a2725769657fb4ade96366d27f43ffedad92c5))
+* update streaming vnext docs ([#370](https://github.com/use-hydra-ai/hydra-ai-site/issues/370)) ([26471ef](https://github.com/use-hydra-ai/hydra-ai-site/commit/26471ef3f82bcd0f611b3c3a1c524e6ff0af1aec))
+
 ## [0.8.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.7.1...v0.8.0) (2025-02-25)
 
 
