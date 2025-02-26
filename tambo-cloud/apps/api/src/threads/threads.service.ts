@@ -310,9 +310,11 @@ export class ThreadsService {
     messageId: string,
     newState: Record<string, unknown>,
   ) {
-    const message = await operations.updateMessage(this.db, messageId, {
-      componentState: newState,
-    });
+    const message = await operations.updateMessageComponentState(
+      this.db,
+      messageId,
+      newState,
+    );
     return message;
   }
 }

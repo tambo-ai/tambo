@@ -1,10 +1,11 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/trpc/react";
-import { useHydra } from "@hydra-ai/react";
+import { useComponentState, useHydra } from "@hydra-ai/react";
 import { HydraTool } from "@hydra-ai/react/dist/model/component-metadata";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { X } from "lucide-react";
@@ -361,8 +362,26 @@ const AirQuality = ({ data }: AirQualityProps): ReactNode => {
     return "Hazardous";
   };
 
+  const [checked1, setChecked1] = useComponentState("checked1", false);
+  const [checked2, setChecked2] = useComponentState("checked2", false);
+
   return (
     <Card className="p-4">
+      <div className="flex items-center gap-2">
+        <div>State Demo: </div>
+        <Checkbox
+          id="checked1"
+          checked={checked1}
+          onCheckedChange={(c: boolean) => setChecked1(c)}
+        />
+        <label htmlFor="checked1">One</label>
+        <Checkbox
+          id="checked2"
+          checked={checked2}
+          onCheckedChange={(c: boolean) => setChecked2(c)}
+        />
+        <label htmlFor="checked2">Two</label>
+      </div>
       <div className="flex items-center justify-between">
         <div>
           <p className="font-medium">Air Quality</p>

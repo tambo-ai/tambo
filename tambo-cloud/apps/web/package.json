@@ -14,8 +14,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.2",
-    "@hydra-ai/client": "^0.19.0",
-    "@hydra-ai/react": "^0.3.1",
+    "@hydra-ai/react": "^0.4.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-avatar": "^1.1.3",
