@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useThreadInput } from "@hydra-ai/react";
+import { useTamboThreadInput } from "@hydra-ai/react";
 
 export function ThreadMessageInput() {
-  const { value, setValue, submit, isSubmitting, error } = useThreadInput();
+  const { value, setValue, submit, isSubmitting, error } =
+    useTamboThreadInput();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

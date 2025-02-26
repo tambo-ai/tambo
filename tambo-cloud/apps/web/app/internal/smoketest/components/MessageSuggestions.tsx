@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useHydraSuggestions } from "@hydra-ai/react";
 import { cn } from "@/lib/utils";
-import { useCallback } from "react";
 import type { Suggestion } from "@hydra-ai/react";
+import { useTamboSuggestions } from "@hydra-ai/react";
+import { useCallback } from "react";
 
 interface MessageSuggestionsProps {
   maxSuggestions?: number;
@@ -18,7 +18,7 @@ export function MessageSuggestions({
     error,
     accept,
     selectedSuggestionId,
-  } = useHydraSuggestions({ maxSuggestions });
+  } = useTamboSuggestions({ maxSuggestions });
 
   const handleAccept = useCallback(
     async (suggestion: Suggestion) => {
