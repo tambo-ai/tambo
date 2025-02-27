@@ -146,7 +146,7 @@ if confirm "Do you want to set up environment files?"; then
     echo "3. packages/db/.env"
     echo -e "\nRequired values to update:"
     echo "- EXTRACTION_OPENAI_API_KEY (get from magan)"
-    echo "- OPEN_AI_API_KEY (get from magan)"
+    echo "- OPENAI_API_KEY (get from magan)"
     echo "\n Not required, but recommended:"
     echo "- SLACK_* configurations (get from magan)"
     echo "- RESEND_API_KEY (get from magan)"
