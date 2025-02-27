@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.9.0...v0.9.1) (2025-02-27)
+
+
+### Bug Fixes
+
+* add LIBRETTO_API_KEY so it works under the hood ([#388](https://github.com/use-hydra-ai/hydra-ai-site/issues/388)) ([d743032](https://github.com/use-hydra-ai/hydra-ai-site/commit/d743032fee60cf8cc0e6f29e637979009db99593))
+* expose both forms of OPENAI_API_KEY ([#391](https://github.com/use-hydra-ai/hydra-ai-site/issues/391)) ([f744dee](https://github.com/use-hydra-ai/hydra-ai-site/commit/f744deeb58937eed8a9381b93ba26d4d6683b7bb))
+* typo in configmodule ([#392](https://github.com/use-hydra-ai/hydra-ai-site/issues/392)) ([62eccc5](https://github.com/use-hydra-ai/hydra-ai-site/commit/62eccc5e463a180c7119e6ab6baa6d37b56cae7d))
+
 ## [0.9.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.8.0...v0.9.0) (2025-02-26)
 
 
