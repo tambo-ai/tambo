@@ -22,7 +22,8 @@
     "NEXT_PUBLIC_HYDRA_API_KEY",
     "NEXT_PUBLIC_HYDRA_API_URL",
     "WEATHER_API_KEY",
-    "OPENAPI_SPEC_FILE"
+    "OPENAPI_SPEC_FILE",
+    "LIBRETTO_API_KEY"
   ],
   "tasks": {
     "build": {
