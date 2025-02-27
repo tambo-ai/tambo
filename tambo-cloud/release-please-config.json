@@ -31,7 +31,8 @@
     },
     {
       "type": "chore",
-      "section": "Miscellaneous Chores"
+      "section": "Miscellaneous Chores",
+      "hidden": false
     },
     {
       "type": "refactor",
