@@ -82,6 +82,8 @@ export class ThreadsController {
       ...thread,
       contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
+      generationStage: thread.generationStage ?? undefined,
+      statusMessage: thread.statusMessage ?? undefined,
     };
   }
 

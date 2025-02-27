@@ -1,3 +1,4 @@
+import { GenerationStage } from "@use-hydra-ai/core";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -102,9 +103,13 @@ export async function updateThread(
   {
     contextKey,
     metadata,
+    generationStage,
+    statusMessage,
   }: {
     contextKey?: string | null;
     metadata?: ThreadMetadata;
+    generationStage?: GenerationStage;
+    statusMessage?: string;
   },
 ) {
   const [updated] = await db
@@ -113,6 +118,8 @@ export async function updateThread(
       contextKey,
       metadata,
       updatedAt: new Date(),
+      generationStage,
+      statusMessage,
     })
     .where(eq(schema.threads.id, threadId))
     .returning();
@@ -232,4 +239,23 @@ export async function ensureThreadByProjectId(
   if (!thread) {
     throw new Error("Thread not found");
   }
+}
+
+export async function updateThreadGenerationStatus(
+  db: HydraDb,
+  threadId: string,
+  generationStage: GenerationStage,
+  statusMessage?: string,
+) {
+  const [updated] = await db
+    .update(schema.threads)
+    .set({
+      generationStage,
+      statusMessage,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.threads.id, threadId))
+    .returning();
+
+  return updated;
 }

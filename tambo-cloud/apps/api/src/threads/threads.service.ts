@@ -62,6 +62,8 @@ export class ThreadsService {
       updatedAt: thread.updatedAt,
       contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
+      generationStage: thread.generationStage ?? undefined,
+      statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
     };
   }
@@ -79,6 +81,8 @@ export class ThreadsService {
       updatedAt: thread.updatedAt,
       contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
+      generationStage: thread.generationStage ?? undefined,
+      statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
     }));
   }
@@ -98,6 +102,8 @@ export class ThreadsService {
       updatedAt: thread.updatedAt,
       contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
+      generationStage: thread.generationStage ?? undefined,
+      statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
     };
   }
@@ -114,6 +120,8 @@ export class ThreadsService {
     return await operations.updateThread(this.db, id, {
       contextKey: updateThreadDto.contextKey,
       metadata: updateThreadDto.metadata,
+      generationStage: updateThreadDto.generationStage,
+      statusMessage: updateThreadDto.statusMessage,
     });
   }
 

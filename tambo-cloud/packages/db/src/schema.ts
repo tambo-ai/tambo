@@ -2,6 +2,7 @@ import type { ComponentDecisionV2, ToolCallRequest } from "@use-hydra-ai/core";
 import {
   ActionType,
   ChatCompletionContentPart,
+  GenerationStage,
   MessageRole,
 } from "@use-hydra-ai/core";
 import { relations, sql } from "drizzle-orm";
@@ -127,6 +128,12 @@ export const threads = pgTable(
       .notNull(),
     contextKey: text("context_key"),
     metadata: customJsonb<Record<string, unknown>>("metadata"),
+    generationStage: text("generation_stage", {
+      enum: Object.values<string>(GenerationStage) as [GenerationStage],
+    })
+      .default(GenerationStage.IDLE)
+      .notNull(),
+    statusMessage: text("status_message"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   }),

@@ -73,6 +73,16 @@ export interface ThreadMessage {
  * Represents a conversation thread between a user and the assistant
  * Contains metadata and an array of messages
  */
+export enum GenerationStage {
+  IDLE = "IDLE",
+  CHOOSING_COMPONENT = "CHOOSING_COMPONENT",
+  FETCHING_CONTEXT = "FETCHING_CONTEXT",
+  HYDRATING_COMPONENT = "HYDRATING_COMPONENT",
+  STREAMING_RESPONSE = "STREAMING_RESPONSE",
+  COMPLETE = "COMPLETE",
+  ERROR = "ERROR",
+}
+
 export interface Thread {
   /** Unique identifier for the thread */
   id: string;
@@ -82,6 +92,10 @@ export interface Thread {
   contextKey?: string;
   /** Additional metadata for the thread */
   metadata?: Record<string, unknown>;
+  /** Current stage of the generation process */
+  generationStage: GenerationStage;
+  /** Message to display describing the current stage of the generation process */
+  statusMessage?: string;
   /** Timestamp when thread was created */
   createdAt: Date;
   /** Timestamp when thread was last updated */
