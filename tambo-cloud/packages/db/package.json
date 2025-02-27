@@ -19,14 +19,14 @@
     "@use-hydra-ai/eslint-config": "*",
     "@use-hydra-ai/hydra-ai-server": "*",
     "@use-hydra-ai/typescript-config": "*",
-    "drizzle-kit": "^0.30.4"
+    "drizzle-kit": "^0.30.5"
   },
   "volta": {
     "extends": "../../package.json"
   },
   "dependencies": {
     "@use-hydra-ai/core": "*",
-    "drizzle-orm": "^0.39.3",
+    "drizzle-orm": "^0.40.0",
     "postgres": "^3.4.5",
     "superjson": "^2.2.2"
   }
