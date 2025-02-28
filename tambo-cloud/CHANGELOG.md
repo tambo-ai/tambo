@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.10.0...v0.10.1) (2025-02-28)
+
+
+### Bug Fixes
+
+* use generic "items", not "threads" so pagination is generic ([#399](https://github.com/use-hydra-ai/hydra-ai-site/issues/399)) ([c674600](https://github.com/use-hydra-ai/hydra-ai-site/commit/c674600c250f0b2661d6e1cf3ca7277dfdc79e0d))
+
 ## [0.10.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.9.1...v0.10.0) (2025-02-28)
 
 
