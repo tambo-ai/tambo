@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.10.1...v0.10.2) (2025-02-28)
+
+
+### Bug Fixes
+
+* log legacy key use ([#401](https://github.com/use-hydra-ai/hydra-ai-site/issues/401)) ([cd86d9c](https://github.com/use-hydra-ai/hydra-ai-site/commit/cd86d9ce96279f26ddf23fa6aec48c5b73bfc1dd))
+
 ## [0.10.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.10.0...v0.10.1) (2025-02-28)
 
 
