@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.9.1...v0.10.0) (2025-02-28)
+
+
+### Features
+
+* add generationStage and statusMessage to Thread ([#396](https://github.com/use-hydra-ai/hydra-ai-site/issues/396)) ([4b1b6aa](https://github.com/use-hydra-ai/hydra-ai-site/commit/4b1b6aa2263c59fb63705fc55122493c84431a1a))
+* add pagination to threads ([#398](https://github.com/use-hydra-ai/hydra-ai-site/issues/398)) ([0f6edb3](https://github.com/use-hydra-ai/hydra-ai-site/commit/0f6edb3eeddbea7434c7babccb478ea31f1e5336))
+
 ## [0.9.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.9.0...v0.9.1) (2025-02-27)
 
 
