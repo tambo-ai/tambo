@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   ChatCompletionContentPart,
   ContentPartType,
+  GenerationStage,
   ThreadMessage,
 } from '@use-hydra-ai/core';
 import type { HydraDatabase } from '@use-hydra-ai/db';
@@ -131,6 +132,17 @@ export class ThreadsService {
       metadata: updateThreadDto.metadata,
       generationStage: updateThreadDto.generationStage,
       statusMessage: updateThreadDto.statusMessage,
+    });
+  }
+
+  async updateGenerationStage(
+    id: string,
+    generationStage: GenerationStage,
+    statusMessage?: string,
+  ) {
+    return await operations.updateThread(this.db, id, {
+      generationStage,
+      statusMessage,
     });
   }
 

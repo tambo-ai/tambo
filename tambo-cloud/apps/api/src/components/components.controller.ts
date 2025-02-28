@@ -13,6 +13,7 @@ import {
   ActionType,
   ComponentDecision,
   ContentPartType,
+  GenerationStage,
   MessageRole,
   ThreadMessage,
 } from '@use-hydra-ai/core';
@@ -167,14 +168,38 @@ export class ComponentsController {
         acc[component.name] = component;
         return acc;
       }, {});
-    const component = await hydraBackend.generateComponent(
-      messageHistory,
-      availableComponentMap,
-      resolvedThreadId,
-    );
-    const message = await this.addDecisionToThread(resolvedThreadId, component);
+    try {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.CHOOSING_COMPONENT,
+      );
+      const component = await hydraBackend.generateComponent(
+        messageHistory,
+        availableComponentMap,
+        resolvedThreadId,
+      );
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        component.toolCallRequest
+          ? GenerationStage.FETCHING_CONTEXT
+          : GenerationStage.COMPLETE,
+        component.toolCallRequest &&
+          `Fetching extra data to hydrate ${component.componentName}...`,
+      );
+      const message = await this.addDecisionToThread(
+        resolvedThreadId,
+        component,
+      );
 
-    return { message };
+      return { message };
+    } catch (error: any) {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.ERROR,
+        'Error generating component',
+      );
+      throw error;
+    }
   }
 
   @Post('generatestream')
@@ -232,11 +257,22 @@ export class ComponentsController {
       }, {});
 
     try {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.CHOOSING_COMPONENT,
+      );
+
       const stream = await hydraBackend.generateComponent(
         messageHistory,
         availableComponentMap,
         resolvedThreadId,
         true,
+      );
+
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.STREAMING_RESPONSE,
+        'Streaming response...',
       );
 
       let finalComponent: ComponentDecision | undefined;
@@ -283,6 +319,14 @@ export class ComponentsController {
 
       // Ensure final state is saved
       if (finalComponent) {
+        await this.threadsService.updateGenerationStage(
+          resolvedThreadId,
+          finalComponent.toolCallRequest
+            ? GenerationStage.FETCHING_CONTEXT
+            : GenerationStage.COMPLETE,
+          finalComponent.toolCallRequest &&
+            `Fetching extra data to hydrate ${finalComponent.componentName}...`,
+        );
         await this.updateMessage(inProgressMessage.id, {
           ...finalComponent,
           message:
@@ -293,6 +337,11 @@ export class ComponentsController {
       }
     } catch (error: any) {
       this.logger.error('Error in generateComponentStream:', error);
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.ERROR,
+        'Error generating component',
+      );
       response.write(
         `event: error\ndata: ${JSON.stringify({ error: error.message })}\n\n`,
       );
@@ -362,23 +411,46 @@ export class ComponentsController {
       typeof toolResponse === 'string'
         ? toolResponse
         : JSON.stringify(toolResponse);
-    await this.threadsService.addMessage(resolvedThreadId, {
-      role: MessageRole.Tool,
-      content: [{ type: ContentPartType.Text, text: toolResponseString }],
-      actionType: ActionType.ToolResponse,
-    });
+    try {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.HYDRATING_COMPONENT,
+        `Hydrating ${component.name}...`,
+      );
 
-    const hydratedComponent = await hydraBackend.hydrateComponentWithData(
-      messageHistory,
-      component,
-      toolResponse,
-      resolvedThreadId,
-    );
+      await this.threadsService.addMessage(resolvedThreadId, {
+        role: MessageRole.Tool,
+        content: [{ type: ContentPartType.Text, text: toolResponseString }],
+        actionType: ActionType.ToolResponse,
+      });
 
-    await this.addDecisionToThread(resolvedThreadId, hydratedComponent);
+      const hydratedComponent = await hydraBackend.hydrateComponentWithData(
+        messageHistory,
+        component,
+        toolResponse,
+        resolvedThreadId,
+      );
 
-    this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
-    return { ...hydratedComponent, threadId: resolvedThreadId };
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.COMPLETE,
+        `Hydrated ${component.name} successfully`,
+      );
+
+      await this.addDecisionToThread(resolvedThreadId, hydratedComponent);
+
+      this.logger.log(
+        `hydrated component: ${JSON.stringify(hydratedComponent)}`,
+      );
+      return { ...hydratedComponent, threadId: resolvedThreadId };
+    } catch (error: any) {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.ERROR,
+        'Error hydrating component',
+      );
+      throw error;
+    }
   }
 
   @Post('hydrate2')
@@ -423,20 +495,42 @@ export class ComponentsController {
     const messageHistory = convertThreadMessagesToLegacyThreadMessages(
       currentThreadMessages,
     );
-    const hydratedComponent = await hydraBackend.hydrateComponentWithData(
-      messageHistory,
-      component,
-      toolResponse,
-      resolvedThreadId,
-    );
+    try {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.HYDRATING_COMPONENT,
+        `Hydrating ${component.name}...`,
+      );
+      const hydratedComponent = await hydraBackend.hydrateComponentWithData(
+        messageHistory,
+        component,
+        toolResponse,
+        resolvedThreadId,
+      );
 
-    const message = await this.addDecisionToThread(
-      resolvedThreadId,
-      hydratedComponent,
-    );
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.COMPLETE,
+        `Hydrated ${component.name} successfully`,
+      );
 
-    this.logger.log(`hydrated component: ${JSON.stringify(hydratedComponent)}`);
-    return { message };
+      const message = await this.addDecisionToThread(
+        resolvedThreadId,
+        hydratedComponent,
+      );
+
+      this.logger.log(
+        `hydrated component: ${JSON.stringify(hydratedComponent)}`,
+      );
+      return { message };
+    } catch (error: any) {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.ERROR,
+        'Error hydrating component',
+      );
+      throw error;
+    }
   }
 
   @Post('hydratestream')
@@ -486,6 +580,11 @@ export class ComponentsController {
     const messageHistory = convertThreadMessagesToLegacyThreadMessages(
       currentThreadMessages,
     );
+    await this.threadsService.updateGenerationStage(
+      resolvedThreadId,
+      GenerationStage.HYDRATING_COMPONENT,
+      `Hydrating ${component.name}...`,
+    );
     const stream = await hydraBackend.hydrateComponentWithData(
       messageHistory,
       component,
@@ -495,6 +594,10 @@ export class ComponentsController {
     );
 
     try {
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.STREAMING_RESPONSE,
+      );
       let finalComponent: ComponentDecision | undefined;
       let lastUpdateTime = 0;
       const updateIntervalMs = 500;
@@ -540,6 +643,12 @@ export class ComponentsController {
 
       // Ensure final state is saved
       if (finalComponent) {
+        await this.threadsService.updateGenerationStage(
+          resolvedThreadId,
+          GenerationStage.COMPLETE,
+          `Hydrated ${component.name} successfully`,
+        );
+
         await this.updateMessage(inProgressMessage.id, {
           ...finalComponent,
           message:
@@ -550,6 +659,11 @@ export class ComponentsController {
       }
     } catch (error: any) {
       this.logger.error('Error in hydrateComponentStream:', error);
+      await this.threadsService.updateGenerationStage(
+        resolvedThreadId,
+        GenerationStage.ERROR,
+        'Error hydrating component',
+      );
       response.write(
         `event: error\ndata: ${JSON.stringify({ error: error.message })}\n\n`,
       );
