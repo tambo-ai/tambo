@@ -30,6 +30,7 @@ import { SuggestionDto } from './dto/suggestion.dto';
 import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
 import {
   Thread,
+  ThreadListDto,
   ThreadRequest,
   UpdateComponentStateDto,
 } from './dto/thread.dto';
@@ -53,13 +54,31 @@ export class ThreadsController {
   @UseGuards(ProjectAccessOwnGuard)
   @Get('project/:projectId')
   @ApiQuery({ name: 'contextKey', required: false })
+  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10 })
   async findAllForProject(
+    @Req() request: Request,
     @Param('projectId') projectId: string,
     @Query('contextKey') contextKey?: string,
-  ): Promise<Thread[]> {
-    return await this.threadsService.findAllForProject(projectId, {
+    @Query('offset') offset: number = 0,
+    @Query('limit') limit: number = 10,
+  ): Promise<ThreadListDto> {
+    const threadsPromise = this.threadsService.findAllForProject(projectId, {
+      contextKey,
+      offset,
+      limit,
+    });
+    const totalPromise = this.threadsService.countThreadsByProject(projectId, {
       contextKey,
     });
+    const threads = await threadsPromise;
+    const total = await totalPromise;
+    return {
+      threads,
+      total,
+      offset,
+      limit,
+    };
   }
 
   @UseGuards(ProjectAccessOwnGuard)

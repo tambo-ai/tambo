@@ -81,7 +81,11 @@ export async function getThreadForUserId(
 export async function getThreadsByProject(
   db: HydraDb,
   projectId: string,
-  { contextKey }: { contextKey?: string } = {},
+  {
+    contextKey,
+    offset = 0,
+    limit = 10,
+  }: { contextKey?: string; offset?: number; limit?: number } = {},
 ) {
   return await db.query.threads.findMany({
     where: contextKey
@@ -94,7 +98,21 @@ export async function getThreadsByProject(
       messages: true,
     },
     orderBy: (threads, { desc }) => [desc(threads.createdAt)],
+    offset,
+    limit,
   });
+}
+export async function countThreadsByProject(
+  db: HydraDb,
+  projectId: string,
+  { contextKey }: { contextKey?: string } = {},
+) {
+  return await db.$count(
+    schema.threads,
+    contextKey
+      ? eq(schema.threads.contextKey, contextKey)
+      : eq(schema.threads.projectId, projectId),
+  );
 }
 
 export async function updateThread(

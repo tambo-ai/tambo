@@ -70,11 +70,13 @@ export class ThreadsService {
 
   async findAllForProject(
     projectId: string,
-    { contextKey }: { contextKey?: string } = {},
+    params: { contextKey?: string; offset?: number; limit?: number } = {},
   ): Promise<Thread[]> {
-    const threads = await operations.getThreadsByProject(this.db, projectId, {
-      contextKey,
-    });
+    const threads = await operations.getThreadsByProject(
+      this.db,
+      projectId,
+      params,
+    );
     return threads.map((thread) => ({
       id: thread.id,
       createdAt: thread.createdAt,
@@ -85,6 +87,13 @@ export class ThreadsService {
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
     }));
+  }
+
+  async countThreadsByProject(
+    projectId: string,
+    params: { contextKey?: string } = {},
+  ): Promise<number> {
+    return await operations.countThreadsByProject(this.db, projectId, params);
   }
 
   async findOne(id: string, projectId: string): Promise<Thread> {

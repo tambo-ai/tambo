@@ -43,3 +43,13 @@ export class UpdateComponentStateDto {
   /** The new state of the component */
   state!: Record<string, unknown>;
 }
+
+@ApiSchema({
+  name: 'ThreadList',
+})
+export class ThreadListDto {
+  threads!: Thread[];
+  total!: number;
+  offset!: number;
+  limit!: number;
+}
