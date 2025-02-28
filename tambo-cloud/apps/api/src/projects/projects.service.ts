@@ -61,6 +61,11 @@ export class ProjectsService {
     if (!project || !project.members?.[0]) {
       return null;
     }
+    if (project.id !== id) {
+      console.warn(
+        `[ProjectsService] Use of legacy project ID ${id} for project ${project.id}`,
+      );
+    }
 
     const projectEntity = new Project();
     projectEntity.id = project.id;
