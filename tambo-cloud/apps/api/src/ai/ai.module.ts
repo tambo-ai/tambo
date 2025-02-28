@@ -10,7 +10,7 @@ import { OpenAIService } from './services/openai.service';
       useFactory: (configService: ConfigService) => {
         const apiKey = configService.get<string>('EXTRACTION_OPENAI_API_KEY');
         if (!apiKey) {
-          throw new Error('OPENAI_API_KEY is not set');
+          throw new Error('EXTRACTION_OPENAI_API_KEY is not set');
         }
         return new OpenAIService(apiKey);
       },
