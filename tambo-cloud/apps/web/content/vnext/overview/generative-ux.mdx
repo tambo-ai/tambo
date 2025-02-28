@@ -1,9 +1,9 @@
 ---
 title: Generative UX
-description: Building dynamic interfaces with Hydra AI components.
+description: Building dynamic interfaces with Tambo AI components.
 ---
 
-Hydra AI enables you to create dynamic interfaces by orchestrating your React components. This guide will show you how to build components that work seamlessly with Hydra.
+Tambo AI enables you to create dynamic interfaces by orchestrating your React components. This guide will show you how to build components that work seamlessly with Tambo.
 
 We'll cover two main approaches:
 
@@ -12,7 +12,7 @@ We'll cover two main approaches:
 
 ## Why make components interactive?
 
-Let's say the user updates a component text value, and then ask your AI assistant can you edit the text. Hydra will use the same state of the component in the follow up message as context!
+Let's say the user updates a component text value, and then ask your AI assistant can you edit the text. Tambo will use the same state of the component in the follow up message as context!
 
 Our react hooks give yous out of the box:
 
@@ -63,16 +63,19 @@ This is a little more complex. It takes in props and displays data. It also has 
 
 But we provide you with hooks to manage the state and validation that make it easy to create interactive components, with persistence, validation, and inclusion in subsequent messages.
 
+The `useTamboComponentState` hook is used to manage the state of the component. It functions similarly to the `useState` hook, but it also includes persistence, validation, and inclusion in subsequent messages. Unlike `useState`, you must name the state key, so that it is consistent across future renders in the same component.
+
+The state will be persisted for in specific component instance, even when the page reloads.
+
 ```tsx title="Interactive Data Table"
 const InteractiveTable = ({ data }) => {
-  const { value, setValue } = useHydraState();
-  const filters = value?.filters ?? {};
+  const [filterState, setFilterState] =
+    useTamboComponentState<TableFilters>("table-filters");
 
-  const handleFilter = (column, value) => {
-    setValue({
-      ...value,
-      filters: { ...filters, [column]: value },
-    });
+  const filters = filterState?.filters ?? {};
+
+  const handleFilter = (column, columnFilterValue) => {
+    updateFilterState({ ...filters, [column]: columnFilterValue });
   };
 
   const columns = Object.keys(data[0]);
@@ -126,17 +129,17 @@ Here is a form component that has a state that can be updated.
 
 **What's happening here?**
 
-- We're using the `useHydraState` hook to manage the state of the form.
-- We're using the `HydraMessageContext` to keep track of the form data in the chat history.
+- We're using the `useTamboComponentState` hook to manage the state of the form.
 
 ```tsx title="Simple Form"
-const Form = ({ fields }) => {
-  const { value, setValue } = useHydraState();
-  const formData = value?.data ?? {};
+const Form = ({ fields }: { fields: { name: string; type: string }[] }) => {
+  const [formValue, setFormValue] =
+    useTamboComponentState<SimpleFormState>("form-value");
+  const formData = formValue?.data ?? {};
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setValue({ ...value, submitted: true });
+    setFormValue({ ...formValue, submitted: true });
   };
 
   return (
@@ -148,8 +151,8 @@ const Form = ({ fields }) => {
             type={type}
             value={formData[name] || ""}
             onChange={(e) =>
-              setValue({
-                ...value,
+              setFormValue({
+                ...formValue,
                 data: { ...formData, [name]: e.target.value },
               })
             }
