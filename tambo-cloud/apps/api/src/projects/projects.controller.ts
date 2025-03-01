@@ -39,9 +39,14 @@ export class ProjectsController {
     return await this.projectsService.create(createProjectDto);
   }
 
+  @Get()
+  async getCurrentProject(@Req() request) {
+    return await this.projectsService.findOne(request.projectId);
+  }
+
   @Get('user/')
-  findAllForUser(@Req() request) {
-    return this.projectsService.findAllForUser(request.userId);
+  async findAllForUser(@Req() request) {
+    return await this.projectsService.findAllForUser(request.userId);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
@@ -71,18 +76,18 @@ export class ProjectsController {
 
   @UseGuards(ProjectAccessOwnGuard)
   @Put(':id/api-key/:name')
-  generateApiKey(
+  async generateApiKey(
     @Param('id') id: string,
     @Param('name') name: string,
     @Req() request,
   ) {
-    return this.projectsService.generateApiKey(id, request.userId, name);
+    return await this.projectsService.generateApiKey(id, request.userId, name);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
   @Get(':id/api-keys')
-  findAllApiKeys(@Param('id') id: string) {
-    return this.projectsService.findAllApiKeys(id);
+  async findAllApiKeys(@Param('id') id: string) {
+    return await this.projectsService.findAllApiKeys(id);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
