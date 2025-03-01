@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.10.2...v0.11.0) (2025-03-01)
+
+
+### Features
+
+* Add API entrypoint for current project ([#408](https://github.com/use-hydra-ai/hydra-ai-site/issues/408)) ([5907858](https://github.com/use-hydra-ai/hydra-ai-site/commit/590785862f4be4da5cf1a719a6a1f9d036061e4e))
+* update thread generation stage during generation/hydration ([#404](https://github.com/use-hydra-ai/hydra-ai-site/issues/404)) ([5a27179](https://github.com/use-hydra-ai/hydra-ai-site/commit/5a2717959bacc62e34d280d9e51a753806788b09))
+
+
+### Bug Fixes
+
+* require async, and thus await, on all Promise-based functions ([#409](https://github.com/use-hydra-ai/hydra-ai-site/issues/409)) ([abf6dbe](https://github.com/use-hydra-ai/hydra-ai-site/commit/abf6dbe6c5d7945823dc01e824f884afa5e3461c))
+* update openapi.json generation so stainless can actually be called ([#406](https://github.com/use-hydra-ai/hydra-ai-site/issues/406)) ([979658f](https://github.com/use-hydra-ai/hydra-ai-site/commit/979658fddecc1b0feac79455b8ebabcf743b4357))
+* update status doc ([#407](https://github.com/use-hydra-ai/hydra-ai-site/issues/407)) ([fe7f71d](https://github.com/use-hydra-ai/hydra-ai-site/commit/fe7f71d1b8f9b414024b75dc89ddc142fc3248b7))
+
 ## [0.10.2](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.10.1...v0.10.2) (2025-02-28)
 
 
