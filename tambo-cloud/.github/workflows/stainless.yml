@@ -18,12 +18,12 @@ jobs:
       # install dependencies
       - run: npm ci
       # Run the generate-config script from the apps/api directory
-      - run: OPENAPI_SPEC_FILE=$RUNNER_TEMP/openapi.json npm run generate-config
+      - run: OPENAPI_SPEC_FILE=${{ runner.temp }}/openapi.json npm run generate-config
         working-directory: apps/api
 
       # Run the upload-openapi-spec-action
       - uses: stainless-api/upload-openapi-spec-action@main
         with:
           stainless_api_key: ${{ secrets.STAINLESS_API_KEY }}
-          input_path: $RUNNER_TEMP/openapi.json
+          input_path: ${{ runner.temp}}/openapi.json
           project_name: "hydra-ai"
