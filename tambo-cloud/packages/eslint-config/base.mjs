@@ -31,7 +31,12 @@ export default tseslint.config(
           varsIgnorePattern: "^_",
         },
       ],
+
+      // We want to enforce that all async functions return a promise before the
+      // function ends, this prevents errors from slipping through async
+      // try/catch blocks
       "@typescript-eslint/return-await": ["error", "always"],
+      "@typescript-eslint/promise-function-async": "error",
     },
   },
   {

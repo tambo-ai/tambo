@@ -48,7 +48,7 @@ export function MessageSuggestions({
                 key={suggestion.id}
                 variant={isSelected ? "default" : "secondary"}
                 size="sm"
-                onClick={() => handleAccept(suggestion)}
+                onClick={async () => await handleAccept(suggestion)}
                 disabled={isAccepting}
                 className={cn(
                   isSelected && "ring-2 ring-primary ring-offset-2",

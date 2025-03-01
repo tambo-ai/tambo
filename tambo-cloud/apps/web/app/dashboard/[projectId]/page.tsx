@@ -114,7 +114,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => refetchThreads()}
+              onClick={async () => await refetchThreads()}
               disabled={isLoadingThreads}
             >
               <RefreshCw

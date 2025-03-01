@@ -116,7 +116,7 @@ function HeroCTA() {
     </div>
   );
 }
-const LazySpline = lazy(() => import("@splinetool/react-spline"));
+const LazySpline = lazy(async () => await import("@splinetool/react-spline"));
 
 function SplineAnimation() {
   return (
