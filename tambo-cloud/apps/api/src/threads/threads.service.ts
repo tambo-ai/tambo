@@ -21,7 +21,7 @@ import {
 } from './dto/message.dto';
 import { SuggestionDto } from './dto/suggestion.dto';
 import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
-import { Thread, ThreadRequest } from './dto/thread.dto';
+import { Thread, ThreadRequest, ThreadWithMessagesDto } from './dto/thread.dto';
 import {
   InvalidSuggestionRequestError,
   SuggestionGenerationError,
@@ -97,7 +97,7 @@ export class ThreadsService {
     return await operations.countThreadsByProject(this.db, projectId, params);
   }
 
-  async findOne(id: string, projectId: string): Promise<Thread> {
+  async findOne(id: string, projectId: string): Promise<ThreadWithMessagesDto> {
     const thread = await operations.getThreadForProjectId(
       this.db,
       id,
@@ -115,6 +115,14 @@ export class ThreadsService {
       generationStage: thread.generationStage ?? undefined,
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
+      messages: thread.messages.map((message) => ({
+        ...message,
+        content: convertContentPartToDto(message.content),
+        metadata: message.metadata ?? undefined,
+        componentState: message.componentState ?? undefined,
+        toolCallRequest: message.toolCallRequest ?? undefined,
+        actionType: message.actionType ?? undefined,
+      })),
     };
   }
 
@@ -127,12 +135,13 @@ export class ThreadsService {
   }
 
   async update(id: string, updateThreadDto: ThreadRequest) {
-    return await operations.updateThread(this.db, id, {
+    const thread = await operations.updateThread(this.db, id, {
       contextKey: updateThreadDto.contextKey,
       metadata: updateThreadDto.metadata,
       generationStage: updateThreadDto.generationStage,
       statusMessage: updateThreadDto.statusMessage,
     });
+    return thread;
   }
 
   async updateGenerationStage(

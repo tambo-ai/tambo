@@ -1,6 +1,7 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { GenerationStage } from '@use-hydra-ai/core';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { ThreadMessageDto } from './message.dto';
 
 export class ThreadRequest {
   @IsString()
@@ -31,6 +32,11 @@ export class Thread extends ThreadRequest {
   id!: string;
   createdAt!: Date;
   updatedAt!: Date;
+}
+
+@ApiSchema({ name: 'ThreadWithMessages' })
+export class ThreadWithMessagesDto extends Thread {
+  messages!: ThreadMessageDto[];
 }
 
 @ApiSchema({
