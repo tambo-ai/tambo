@@ -37,7 +37,7 @@
     "drizzle-orm": "^0.40.0",
     "nest-supabase-guard": "^1.0.2",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1",
+    "rxjs": "^7.8.2",
     "superjson": "^2.2.2",
     "uuid": "^11.1.0"
   },
