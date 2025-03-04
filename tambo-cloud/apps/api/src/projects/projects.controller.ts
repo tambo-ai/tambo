@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
+import { ApiKeyGuard } from 'src/components/guards/apikey.guard';
 import { AddProviderKeyRequest } from './dto/add-provider-key.dto';
 import {
   ProjectCreateRequest,
@@ -24,6 +25,7 @@ import { ProjectsService } from './projects.service';
 @ApiSecurity('apiKey')
 // @UseGuards(AdminKeyGuard)
 @Controller('projects')
+@UseGuards(ApiKeyGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 

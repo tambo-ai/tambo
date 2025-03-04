@@ -3,6 +3,7 @@ import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ProjectResponseDto } from "../../app/dashboard/types/types";
+import { CopyButton } from "../copy-button";
 import { ProjectDetailsDialog } from "./project-details/project-details-dialog";
 
 interface ProjectCardProps {
@@ -35,6 +36,7 @@ export function ProjectCard({ project, onProjectDeleted }: ProjectCardProps) {
           <p className="text-xs text-muted-foreground">
             Project ID: {project.id}
           </p>
+          <CopyButton clipboardValue={project.id} />
         </CardContent>
       </Card>
 

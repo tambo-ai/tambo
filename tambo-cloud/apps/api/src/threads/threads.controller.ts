@@ -83,7 +83,6 @@ export class ThreadsController {
     };
   }
 
-  @UseGuards(ProjectAccessOwnGuard)
   @Get(':id')
   async findOne(
     @Param('id') id: string,

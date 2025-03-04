@@ -116,7 +116,11 @@ export class ThreadsService {
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
       messages: thread.messages.map((message) => ({
-        ...message,
+        id: message.id,
+        threadId: message.threadId,
+        role: message.role,
+        createdAt: message.createdAt,
+        component: message.componentDecision ?? undefined,
         content: convertContentPartToDto(message.content),
         metadata: message.metadata ?? undefined,
         componentState: message.componentState ?? undefined,

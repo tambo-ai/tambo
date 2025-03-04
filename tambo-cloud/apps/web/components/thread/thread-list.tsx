@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { RouterOutputs } from "@/trpc/react";
+import { TamboThread } from "@hydra-ai/react/dist/model/tambo-thread";
 
-type ThreadType = RouterOutputs["thread"]["getThreads"][number];
-
+type Thread = Omit<TamboThread, "messages">;
 interface ThreadListProps {
-  threads: ThreadType[];
+  threads: Thread[];
   selectedThreadId: string | null;
   onThreadSelect: (threadId: string) => void;
 }
@@ -36,7 +35,7 @@ export function ThreadList({
           <div>
             <p className="font-medium">{thread.id}</p>
             <p className="text-xs text-muted-foreground">
-              {new Date(thread.createdAt).toLocaleDateString()}
+              {new Date(thread.createdAt).toLocaleString()}
             </p>
           </div>
         </Button>

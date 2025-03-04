@@ -39,6 +39,13 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     refetch: refetchThreads,
   } = api.thread.getThreads.useQuery({ projectId });
 
+  const simpleThreads = threads?.map((thread) => ({
+    id: thread.id,
+    projectId,
+    createdAt: thread.createdAt.toLocaleString(),
+    updatedAt: thread.updatedAt.toLocaleString(),
+  }));
+
   // Fetch selected thread details
   const { data: selectedThread, error: threadError } =
     api.thread.getThread.useQuery(
@@ -130,7 +137,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             </div>
           ) : (
             <ThreadList
-              threads={threads || []}
+              threads={simpleThreads || []}
               selectedThreadId={selectedThreadId}
               onThreadSelect={setSelectedThreadId}
             />

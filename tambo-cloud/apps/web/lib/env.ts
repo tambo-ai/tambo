@@ -38,6 +38,7 @@ export const env = createEnv({
     // for dogfooding our own API
     NEXT_PUBLIC_HYDRA_API_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_HYDRA_API_URL: z.string().min(1).optional(),
+    NEXT_PUBLIC_SMOKETEST_PROJECT_ID: z.string().min(1).optional(),
   },
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
@@ -63,5 +64,7 @@ export const env = createEnv({
     WEATHER_API_KEY: process.env.WEATHER_API_KEY,
     NEXT_PUBLIC_HYDRA_API_KEY: process.env.NEXT_PUBLIC_HYDRA_API_KEY,
     NEXT_PUBLIC_HYDRA_API_URL: process.env.NEXT_PUBLIC_HYDRA_API_URL,
+    NEXT_PUBLIC_SMOKETEST_PROJECT_ID:
+      process.env.NEXT_PUBLIC_SMOKETEST_PROJECT_ID,
   },
 });

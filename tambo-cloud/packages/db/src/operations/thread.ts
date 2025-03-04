@@ -142,7 +142,13 @@ export async function updateThread(
     .where(eq(schema.threads.id, threadId))
     .returning();
 
-  return updated;
+  const messages = await db.query.messages.findMany({
+    where: eq(schema.messages.threadId, threadId),
+  });
+  return {
+    ...updated,
+    messages,
+  };
 }
 
 export async function deleteThread(db: HydraDb, threadId: string) {
