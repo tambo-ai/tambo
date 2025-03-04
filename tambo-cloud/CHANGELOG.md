@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.14.1...v0.15.0) (2025-03-04)
+
+
+### Features
+
+* Add row-level security to projects, project_members ([#395](https://github.com/use-hydra-ai/hydra-ai-site/issues/395)) ([d5c6e87](https://github.com/use-hydra-ai/hydra-ai-site/commit/d5c6e87b44d4525b49b3858a63b6cdee231c1f53))
+
+
+### Bug Fixes
+
+* add apischema decorator to advance return type ([#442](https://github.com/use-hydra-ai/hydra-ai-site/issues/442)) ([94b0aed](https://github.com/use-hydra-ai/hydra-ai-site/commit/94b0aede93609e3281c15e1d9ea37c84ae2db476))
+* add back lost migrations to set up role permissions ([#445](https://github.com/use-hydra-ai/hydra-ai-site/issues/445)) ([25e91a5](https://github.com/use-hydra-ai/hydra-ai-site/commit/25e91a50cadb7d022d983ceb66933fb6321862ca))
+
 ## [0.14.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.14.0...v0.14.1) (2025-03-04)
 
 
