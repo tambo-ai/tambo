@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.13.0...v0.14.0) (2025-03-04)
+
+
+### Features
+
+* Add 'advance' thread routes ([#428](https://github.com/use-hydra-ai/hydra-ai-site/issues/428)) ([aac8464](https://github.com/use-hydra-ai/hydra-ai-site/commit/aac8464a81641544151d2a6a1581be24a331dfcd))
+
 ## [0.13.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.12.0...v0.13.0) (2025-03-04)
 
 
