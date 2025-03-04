@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.12.0...v0.13.0) (2025-03-04)
+
+
+### Features
+
+* add thread rehydrating to smoketest ([#427](https://github.com/use-hydra-ai/hydra-ai-site/issues/427)) ([dfd7a2f](https://github.com/use-hydra-ai/hydra-ai-site/commit/dfd7a2f71a25ed4093f419167fa6727e208a7191))
+
+
+### Bug Fixes
+
+* proper path for release-please-manifest ([#425](https://github.com/use-hydra-ai/hydra-ai-site/issues/425)) ([d0c178f](https://github.com/use-hydra-ai/hydra-ai-site/commit/d0c178f55f1cde35a048b96d139b7f546a5274d2))
+
 ## [0.12.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.11.1...v0.12.0) (2025-03-03)
 
 
