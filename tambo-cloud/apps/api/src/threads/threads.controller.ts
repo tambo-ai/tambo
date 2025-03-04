@@ -26,7 +26,10 @@ import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
 } from '../projects/guards/project-access-own.guard';
-import { AdvanceThreadDto } from './dto/advance-thread.dto';
+import {
+  AdvanceThreadDto,
+  AdvanceThreadResponseDto,
+} from './dto/advance-thread.dto';
 import { ErrorDto } from './dto/error.dto';
 import { MessageRequest, ThreadMessageDto } from './dto/message.dto';
 import { SuggestionDto } from './dto/suggestion.dto';
@@ -262,21 +265,15 @@ export class ThreadsController {
     @Param('id') threadId: string,
     @Req() request,
     @Body() advanceRequestDto?: AdvanceThreadDto,
-  ): Promise<{
-    responseMessageDto: ThreadMessageDto;
-    generationStage: GenerationStage;
-  }> {
+  ): Promise<AdvanceThreadResponseDto> {
     if (!request.projectId) {
       throw new BadRequestException('Project ID is required');
     }
-    return (await this.threadsService.advanceThread(
+    return await (this.threadsService.advanceThread(
       request.projectId,
       threadId,
       advanceRequestDto,
-    )) as {
-      responseMessageDto: ThreadMessageDto;
-      generationStage: GenerationStage;
-    };
+    ) as Promise<AdvanceThreadResponseDto>);
   }
 
   @Post(':id/advancestream')
@@ -312,21 +309,15 @@ export class ThreadsController {
   async createAndAdvanceThread(
     @Req() request,
     @Body() advanceRequestDto: AdvanceThreadDto,
-  ): Promise<{
-    responseMessageDto: ThreadMessageDto;
-    generationStage: GenerationStage;
-  }> {
+  ): Promise<AdvanceThreadResponseDto> {
     if (!request.projectId) {
       throw new BadRequestException('Project ID is required');
     }
-    return (await this.threadsService.advanceThread(
+    return await (this.threadsService.advanceThread(
       request.projectId,
       undefined,
       advanceRequestDto,
-    )) as {
-      responseMessageDto: ThreadMessageDto;
-      generationStage: GenerationStage;
-    };
+    ) as Promise<AdvanceThreadResponseDto>);
   }
 
   @Post('advancestream')
