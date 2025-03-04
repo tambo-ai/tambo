@@ -1,8 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  ActionType,
   ChatCompletionContentPart,
+  ComponentDecision,
+  ComponentDecisionV2,
   ContentPartType,
   GenerationStage,
+  MessageRole,
   ThreadMessage,
 } from '@use-hydra-ai/core';
 import type { HydraDatabase } from '@use-hydra-ai/db';
@@ -10,10 +14,17 @@ import { operations } from '@use-hydra-ai/db';
 import type { DBSuggestion } from '@use-hydra-ai/db/src/schema';
 import {
   ChatMessage,
-  HydraBackend,
   generateChainId,
+  HydraBackend,
 } from '@use-hydra-ai/hydra-ai-server';
+import { decryptProviderKey } from 'src/common/key.utils';
+import { AvailableComponentDto } from 'src/components/dto/generate-component.dto';
+import { ProjectsService } from 'src/projects/projects.service';
 import { CorrelationLoggerService } from '../common/services/logger.service';
+import {
+  AdvanceThreadDto,
+  AdvanceThreadResponseDto,
+} from './dto/advance-thread.dto';
 import {
   ChatCompletionContentPartDto,
   MessageRequest,
@@ -33,6 +44,7 @@ export class ThreadsService {
   constructor(
     @Inject('DbRepository')
     private readonly db: HydraDatabase,
+    private projectsService: ProjectsService,
     private readonly logger: CorrelationLoggerService,
     @Inject('OPENAI_API_KEY') private readonly openAiKey: string,
   ) {}
@@ -210,6 +222,7 @@ export class ThreadsService {
       toolCallRequest: message.toolCallRequest ?? undefined,
       actionType: message.actionType ?? undefined,
       componentState: message.componentState ?? undefined,
+      component: message.componentDecision as ComponentDecisionV2 | undefined,
     }));
   }
 
@@ -359,6 +372,275 @@ export class ThreadsService {
     );
     return message;
   }
+
+  /**
+   * Advance the thread by one step.
+   * @param projectId - The project ID.
+   * @param threadId - The thread ID.
+   * @param advanceRequestDto - The advance request DTO, including optional message to append, context key, and available components.
+   * @param stream - Whether to stream the response.
+   * @returns The the generated response thread message, generation stage, and status message.
+   */
+  async advanceThread(
+    projectId: string,
+    threadId?: string,
+    advanceRequestDto?: AdvanceThreadDto,
+    stream?: boolean,
+  ): Promise<
+    AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
+  > {
+    const thread = await this.ensureThread(projectId, threadId, undefined);
+    if (advanceRequestDto?.messageToAppend) {
+      await this.addMessage(thread.id, advanceRequestDto.messageToAppend);
+    }
+
+    const decryptedProviderKey =
+      await this.validateProjectAndProviderKeys(projectId);
+    const hydraBackend = new HydraBackend(
+      decryptedProviderKey.providerKey,
+      await generateChainId(thread.id),
+      { version: 'v2' },
+    );
+
+    const availableComponentMap: Record<string, AvailableComponentDto> =
+      advanceRequestDto?.availableComponents?.reduce((acc, component) => {
+        acc[component.name] = component;
+        return acc;
+      }, {}) ?? {};
+
+    // TODO: Let tambobackend package handle different message types internally
+    const messages = await this.getMessages(thread.id, true);
+    if (messages.length === 0) {
+      throw new Error('No messages found');
+    }
+    const latestMessage = messages[messages.length - 1];
+
+    let responseMessage:
+      | ComponentDecision
+      | AsyncIterableIterator<ComponentDecision>;
+    if (latestMessage.role === MessageRole.Tool) {
+      await this.updateGenerationStage(
+        thread.id,
+        GenerationStage.HYDRATING_COMPONENT,
+        `Hydrating ${latestMessage.component?.componentName}...`,
+      );
+      // Since we don't a store tool responses in the db, assumes that the tool response is the messageToAppend
+      const toolResponse = advanceRequestDto?.messageToAppend?.toolResponse;
+      if (!toolResponse) {
+        throw new Error('No tool response found');
+      }
+
+      const componentDef = advanceRequestDto?.availableComponents?.find(
+        (c) => c.name === latestMessage.component?.componentName,
+      );
+      if (!componentDef) {
+        throw new Error('Component definition not found');
+      }
+
+      if (stream) {
+        responseMessage = await hydraBackend.hydrateComponentWithData(
+          convertThreadMessagesToLegacyThreadMessages(messages),
+          componentDef,
+          toolResponse,
+          thread.id,
+          true,
+        );
+        return this.handleAdvanceThreadStream(
+          thread.id,
+          responseMessage as AsyncIterableIterator<ComponentDecision>,
+        );
+      } else {
+        responseMessage = await hydraBackend.hydrateComponentWithData(
+          convertThreadMessagesToLegacyThreadMessages(messages),
+          componentDef,
+          toolResponse,
+          thread.id,
+        );
+      }
+    } else {
+      await this.updateGenerationStage(
+        thread.id,
+        GenerationStage.CHOOSING_COMPONENT,
+        `Choosing component...`,
+      );
+      if (stream) {
+        responseMessage = await hydraBackend.generateComponent(
+          convertThreadMessagesToLegacyThreadMessages(messages),
+          availableComponentMap,
+          thread.id,
+          true,
+        );
+        return this.handleAdvanceThreadStream(
+          thread.id,
+          responseMessage as AsyncIterableIterator<ComponentDecision>,
+        );
+      } else {
+        responseMessage = await hydraBackend.generateComponent(
+          convertThreadMessagesToLegacyThreadMessages(messages),
+          availableComponentMap,
+          thread.id,
+        );
+      }
+    }
+
+    const responseMessageDto = await this.addResponseToThread(
+      thread.id,
+      responseMessage as ComponentDecision,
+    );
+    const resultingGenerationStage = responseMessageDto.toolCallRequest
+      ? GenerationStage.FETCHING_CONTEXT
+      : GenerationStage.COMPLETE;
+    const resultingStatusMessage = responseMessageDto.toolCallRequest
+      ? `Fetching context...`
+      : `Generation complete`;
+    await this.updateGenerationStage(
+      thread.id,
+      resultingGenerationStage,
+      resultingStatusMessage,
+    );
+
+    return {
+      responseMessageDto,
+      generationStage: resultingGenerationStage,
+      statusMessage: resultingStatusMessage,
+    };
+  }
+
+  private async *handleAdvanceThreadStream(
+    threadId: string,
+    stream: AsyncIterableIterator<ComponentDecision>,
+  ): AsyncIterableIterator<AdvanceThreadResponseDto> {
+    let finalResponse:
+      | {
+          responseMessageDto: ThreadMessageDto;
+          generationStage: GenerationStage;
+          statusMessage: string;
+        }
+      | undefined;
+    let lastUpdateTime = 0;
+    const updateIntervalMs = 500;
+
+    const inProgressMessage = await this.addMessage(threadId, {
+      role: MessageRole.Hydra,
+      content: [
+        { type: ContentPartType.Text, text: 'streaming in progress...' },
+      ],
+      component: undefined,
+      actionType: undefined,
+      toolCallRequest: undefined,
+      metadata: {},
+    });
+
+    for await (const chunk of stream) {
+      finalResponse = {
+        responseMessageDto: {
+          ...inProgressMessage,
+          content: [
+            {
+              type: ContentPartType.Text,
+              text:
+                chunk.message.length > 0
+                  ? chunk.message
+                  : 'streaming in progress...',
+            },
+          ],
+          component: chunk,
+          actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
+          toolCallRequest: chunk.toolCallRequest,
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        statusMessage: `Streaming response...`,
+      };
+      const currentTime = Date.now();
+
+      // Update db message on interval
+      if (currentTime - lastUpdateTime >= updateIntervalMs) {
+        await this.updateMessage(
+          inProgressMessage.id,
+          finalResponse.responseMessageDto,
+        );
+        lastUpdateTime = currentTime;
+      }
+
+      yield {
+        responseMessageDto: finalResponse.responseMessageDto,
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        statusMessage: `Streaming response...`,
+      };
+    }
+
+    if (finalResponse) {
+      await this.updateMessage(
+        inProgressMessage.id,
+        finalResponse.responseMessageDto,
+      );
+      yield {
+        responseMessageDto: finalResponse.responseMessageDto,
+        generationStage: finalResponse.responseMessageDto.toolCallRequest
+          ? GenerationStage.FETCHING_CONTEXT
+          : GenerationStage.COMPLETE,
+        statusMessage: finalResponse.responseMessageDto.toolCallRequest
+          ? `Fetching context...`
+          : `Complete`,
+      };
+    }
+  }
+
+  private async ensureThread(
+    projectId: string,
+    threadId: string | undefined,
+    contextKey: string | undefined,
+    preventCreate: boolean = false,
+  ): Promise<Thread> {
+    // If the threadId is provided, ensure that the thread belongs to the project
+    if (threadId) {
+      await this.ensureThreadByProjectId(threadId, projectId);
+      // TODO: should we update contextKey?
+      const thread = await this.findOne(threadId, projectId);
+      return thread;
+    }
+
+    if (preventCreate) {
+      throw new Error('Thread ID is required, and cannot be created');
+    }
+
+    // If the threadId is not provided, create a new thread
+    const newThread = await this.createThread({
+      projectId,
+      contextKey,
+    });
+    return newThread;
+  }
+
+  private async validateProjectAndProviderKeys(projectId: string) {
+    const project = await this.projectsService.findOneWithKeys(projectId);
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+    const providerKeys = project.getProviderKeys();
+    if (!providerKeys?.length) {
+      throw new NotFoundException('No provider keys found for project');
+    }
+    const providerKey =
+      providerKeys[providerKeys.length - 1].providerKeyEncrypted; // Use the last provider key
+    if (!providerKey) {
+      throw new NotFoundException('No provider key found for project');
+    }
+    return decryptProviderKey(providerKey);
+  }
+
+  private async addResponseToThread(
+    threadId: string,
+    component: ComponentDecision,
+  ) {
+    return await this.addMessage(threadId, {
+      role: MessageRole.Hydra,
+      content: [{ type: ContentPartType.Text, text: component.message }],
+      component: component,
+      actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
+      toolCallRequest: component.toolCallRequest,
+    });
+  }
 }
 
 function convertContentDtoToContentPart(
@@ -406,4 +688,26 @@ function convertContentPartToDto(
     return [{ type: ContentPartType.Text, text: part }];
   }
   return part as ChatCompletionContentPartDto[];
+}
+
+function convertThreadMessagesToLegacyThreadMessages(
+  currentThreadMessages: ThreadMessage[] | ThreadMessageDto[],
+) {
+  return currentThreadMessages.map(
+    (message): ChatMessage => ({
+      sender: [MessageRole.User, MessageRole.Tool].includes(message.role)
+        ? (message.role as 'user' | 'tool')
+        : 'hydra',
+      message: message.content
+        .map((part) => {
+          switch (part.type) {
+            case ContentPartType.Text:
+              return part.text ?? '';
+            default:
+              return '';
+          }
+        })
+        .join(''),
+    }),
+  );
 }

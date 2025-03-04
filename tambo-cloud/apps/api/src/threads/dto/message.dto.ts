@@ -107,4 +107,7 @@ export class MessageRequest implements InternalThreadMessage {
 
   @IsOptional()
   tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
+
+  @IsOptional()
+  toolResponse?: any;
 }
