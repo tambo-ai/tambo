@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.14.0...v0.14.1) (2025-03-04)
+
+
+### Bug Fixes
+
+* Add return types for advance routes ([#439](https://github.com/use-hydra-ai/hydra-ai-site/issues/439)) ([a277ce9](https://github.com/use-hydra-ai/hydra-ai-site/commit/a277ce9f72d6ca32d55aa24752ba57d3d671b901))
+
 ## [0.14.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.13.0...v0.14.0) (2025-03-04)
 
 
