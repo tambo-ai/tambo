@@ -24,7 +24,7 @@
     "@use-hydra-ai/core": "*",
     "openai": "^4.86.1",
     "partial-json": "^0.1.7",
-    "token.js": "^0.5.3",
+    "token.js": "^0.5.4",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.3"
   },
