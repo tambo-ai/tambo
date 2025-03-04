@@ -14,13 +14,25 @@ import { ZodError } from "zod";
 import { env } from "@/lib/env";
 import { Session, SupabaseClient } from "@supabase/supabase-js";
 import { getDb, HydraDb } from "@use-hydra-ai/db";
+import { sql } from "drizzle-orm";
+import jwt from "jsonwebtoken";
 import { getServerSupabaseclient } from "../supabase";
-
 export type Context = {
   db: HydraDb;
   session: Session | null;
   supabase: SupabaseClient;
   headers: Headers;
+};
+
+type SupabaseToken = {
+  iss?: string;
+  sub?: string;
+  aud?: string[] | string;
+  exp?: number;
+  nbf?: number;
+  iat?: number;
+  jti?: string;
+  role?: string;
 };
 
 /**
@@ -43,7 +55,8 @@ export const createTRPCContext = async (opts: {
     data: { session },
   } = await supabase.auth.getSession();
   const db = getDb(env.DATABASE_URL);
-
+  const decoded: SupabaseToken = jwt.decode(session?.access_token);
+  console.log("session access token: ", decoded);
   return {
     db,
     session,
@@ -119,7 +132,32 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 
 const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
   return await ctx.db.transaction(async (tx) => {
-    return await next({ ctx: { ...ctx, db: tx } });
+    const token: SupabaseToken = jwt.decode(ctx.session?.access_token);
+    try {
+      await tx.execute(sql`
+        -- auth.jwt()
+        select set_config('request.jwt.claims', '${sql.raw(
+          JSON.stringify(token),
+        )}', TRUE);
+        -- auth.uid()
+        select set_config('request.jwt.claim.sub', '${sql.raw(
+          token.sub ?? "",
+        )}', TRUE);												
+        -- set local role
+        set local role ${sql.raw(token.role ?? "anon")};
+        `);
+      return await next({ ctx: { ...ctx, db: tx } });
+    } catch (error) {
+      console.error("error setting config: ", error);
+      throw error;
+    } finally {
+      await tx.execute(sql`
+        -- reset
+        select set_config('request.jwt.claims', NULL, TRUE);
+        select set_config('request.jwt.claim.sub', NULL, TRUE);
+        reset role;
+        `);
+    }
   });
 });
 

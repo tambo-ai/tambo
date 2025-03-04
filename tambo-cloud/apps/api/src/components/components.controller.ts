@@ -7,6 +7,7 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
 import {
@@ -23,6 +24,7 @@ import {
   generateChainId,
 } from '@use-hydra-ai/hydra-ai-server';
 import { decryptProviderKey } from '../common/key.utils';
+import { TransactionInterceptor } from '../common/middleware/db-transaction-middleware';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
 import { ThreadMessageDto } from '../threads/dto/message.dto';
@@ -44,6 +46,7 @@ import { ApiKeyGuard } from './guards/apikey.guard';
 
 @ApiSecurity('apiKey')
 @UseGuards(ApiKeyGuard)
+@UseInterceptors(TransactionInterceptor)
 @Controller('components')
 export class ComponentsController {
   constructor(

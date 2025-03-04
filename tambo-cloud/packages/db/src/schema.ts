@@ -6,22 +6,44 @@ import {
   MessageRole,
 } from "@use-hydra-ai/core";
 import { relations, sql } from "drizzle-orm";
-import { index, pgTable } from "drizzle-orm/pg-core";
-import { authUsers } from "drizzle-orm/supabase";
+import { index, pgPolicy, pgRole, pgTable } from "drizzle-orm/pg-core";
+import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 import { customJsonb } from "./drizzleUtil";
-export { authUsers } from "drizzle-orm/supabase";
+export { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 
-export const projects = pgTable("projects", ({ text, timestamp }) => ({
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .unique()
-    .default(sql`generate_custom_id('p_')`),
-  legacyId: text("legacy_id").unique(),
-  name: text("name").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}));
+/** Use this to get the project id from the api key */
+export const projectApiKeyVariable = sql`current_setting('request.apikey.project_id')`;
+export const projectApiKeyRole = pgRole("project_api_key", {
+  inherit: true,
+});
+
+export const projects = pgTable(
+  "projects",
+  ({ text, timestamp }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('p_')`),
+    legacyId: text("legacy_id").unique(),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  }),
+  (table) => {
+    return [
+      pgPolicy("project_user_policy", {
+        to: authenticatedRole,
+        using: sql`exists (select 1 from project_members where project_members.project_id = ${table.id} and project_members.user_id = ${authUid})`,
+      }),
+      pgPolicy("project_api_key_policy", {
+        to: projectApiKeyRole,
+        using: sql`${table.id} = ${projectApiKeyVariable}`,
+      }),
+    ];
+  },
+);
+
 export type DBProject = typeof projects.$inferSelect;
 export const projectMembers = pgTable(
   "project_members",
@@ -37,6 +59,18 @@ export const projectMembers = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   }),
+  (table) => {
+    return [
+      pgPolicy("project_members_user_policy", {
+        to: authenticatedRole,
+        using: sql`${table.userId} = ${authUid}`,
+      }),
+      pgPolicy("project_members_api_key_policy", {
+        to: projectApiKeyRole,
+        using: sql`${table.projectId} = ${projectApiKeyVariable}`,
+      }),
+    ];
+  },
 );
 export type DBProjectMember = typeof projectMembers.$inferSelect;
 export const projectMembersRelations = relations(projectMembers, ({ one }) => ({

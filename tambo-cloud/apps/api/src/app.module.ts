@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { getDb } from '@use-hydra-ai/db';
 import { AppService } from './app.service';
 import { LoggerModule } from './common/logger.module';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
@@ -21,7 +22,14 @@ import { ThreadsModule } from './threads/threads.module';
     ThreadsModule,
   ],
   controllers: [],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: 'DbRepository',
+      useFactory: () => getDb(process.env.DATABASE_URL!),
+    },
+  ],
+  exports: ['DbRepository'],
 })
 export class AppModule implements OnModuleInit {
   constructor(private configService: ConfigService) {}
