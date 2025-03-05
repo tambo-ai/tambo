@@ -13,8 +13,8 @@ export function MessageSuggestions({
 }: MessageSuggestionsProps) {
   const {
     suggestions,
-    isLoading,
-    isAccepting,
+    acceptResult: { isPending: isAccepting },
+    generateResult: { isPending: isGenerating },
     error,
     accept,
     selectedSuggestionId,
@@ -23,7 +23,7 @@ export function MessageSuggestions({
   const handleAccept = useCallback(
     async (suggestion: Suggestion) => {
       try {
-        await accept(suggestion, false); // True is auto-submit
+        await accept({ suggestion, shouldSubmit: false }); // True is auto-submit
       } catch (error) {
         console.error("Error accepting suggestion:", error);
       }
@@ -31,12 +31,12 @@ export function MessageSuggestions({
     [accept],
   );
 
-  if (suggestions.length === 0 && !isLoading) return null;
+  if (suggestions.length === 0 && !isGenerating) return null;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {isLoading ? (
+        {isGenerating ? (
           <p className="text-sm text-muted-foreground">
             Loading suggestions...
           </p>
@@ -61,7 +61,7 @@ export function MessageSuggestions({
             );
           })
         )}
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error.message}</p>}
       </div>
     </div>
   );

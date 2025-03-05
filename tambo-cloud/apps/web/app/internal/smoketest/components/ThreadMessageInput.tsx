@@ -8,13 +8,13 @@ interface ThreadMessageInputProps {
 }
 
 const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ contextKey }) => {
-  const { value, setValue, submit, isSubmitting, error } =
+  const { value, setValue, submit, isPending, error } =
     useTamboThreadInput(contextKey);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) return;
-    await submit();
+    submit();
   };
   if (!contextKey) {
     return (
@@ -30,13 +30,13 @@ const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ contextKey }) => {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Type your message..."
-        disabled={isSubmitting}
+        disabled={isPending}
         className="flex-1"
       />
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isPending}>
         Send
       </Button>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error.message}</p>}
     </form>
   );
 };

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TamboThread } from "@hydra-ai/react/dist/model/tambo-thread";
+import { TamboThread } from "@hydra-ai/react";
 
 type Thread = Omit<TamboThread, "messages">;
 interface ThreadListProps {
