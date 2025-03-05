@@ -10,13 +10,14 @@ import {
   ThreadMessage,
 } from '@use-hydra-ai/core';
 import type { HydraDatabase } from '@use-hydra-ai/db';
-import { operations } from '@use-hydra-ai/db';
+import { operations, schema } from '@use-hydra-ai/db';
 import type { DBSuggestion } from '@use-hydra-ai/db/src/schema';
 import {
   ChatMessage,
   generateChainId,
   HydraBackend,
 } from '@use-hydra-ai/hydra-ai-server';
+import { eq } from 'drizzle-orm';
 import { decryptProviderKey } from 'src/common/key.utils';
 import { AvailableComponentDto } from 'src/components/dto/generate-component.dto';
 import { ProjectsService } from 'src/projects/projects.service';
@@ -46,12 +47,34 @@ export class ThreadsService {
     private readonly db: HydraDatabase,
     private projectsService: ProjectsService,
     private readonly logger: CorrelationLoggerService,
-    @Inject('OPENAI_API_KEY') private readonly openAiKey: string,
   ) {}
 
   private async getHydraBackend(threadId: string): Promise<HydraBackend> {
+    return await this.createHydraBackendForThread(threadId);
+  }
+
+  private async createHydraBackendForThread(
+    threadId: string,
+    options: { version?: 'v1' | 'v2' } = {},
+  ): Promise<HydraBackend> {
     const chainId = await generateChainId(threadId);
-    return new HydraBackend(this.openAiKey, chainId);
+
+    // Get the thread's project ID from the database
+    const threadData = await this.db.query.threads.findFirst({
+      where: eq(schema.threads.id, threadId),
+    });
+
+    if (!threadData) {
+      throw new NotFoundException(`Thread with ID ${threadId} not found`);
+    }
+
+    // Get the provider key from the database
+    const { providerKey } = await this.validateProjectAndProviderKeys(
+      threadData.projectId,
+    );
+
+    // Use the provider key from the database instead of the environment variable
+    return new HydraBackend(providerKey, chainId, options);
   }
 
   private async convertThreadMessagesToLegacyThreadMessages(
@@ -394,13 +417,10 @@ export class ThreadsService {
       await this.addMessage(thread.id, advanceRequestDto.messageToAppend);
     }
 
-    const decryptedProviderKey =
-      await this.validateProjectAndProviderKeys(projectId);
-    const hydraBackend = new HydraBackend(
-      decryptedProviderKey.providerKey,
-      await generateChainId(thread.id),
-      { version: 'v2' },
-    );
+    // Use the shared method to create the HydraBackend instance
+    const hydraBackend = await this.createHydraBackendForThread(thread.id, {
+      version: 'v2',
+    });
 
     const availableComponentMap: Record<string, AvailableComponentDto> =
       advanceRequestDto?.availableComponents?.reduce((acc, component) => {
