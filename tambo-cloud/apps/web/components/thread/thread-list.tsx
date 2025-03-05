@@ -7,14 +7,16 @@ interface ThreadListProps {
   threads: Thread[];
   selectedThreadId: string | null;
   onThreadSelect: (threadId: string) => void;
+  isLoading: boolean;
 }
 
 export function ThreadList({
   threads,
   selectedThreadId,
   onThreadSelect,
+  isLoading,
 }: Readonly<ThreadListProps>) {
-  if (threads.length === 0) {
+  if (threads.length === 0 && !isLoading) {
     return (
       <p className="text-center text-muted-foreground py-8">No threads found</p>
     );
@@ -22,6 +24,9 @@ export function ThreadList({
 
   return (
     <div className="space-y-2">
+      {isLoading && (
+        <p className="text-center text-muted-foreground py-8">Loading...</p>
+      )}
       {threads.map((thread) => (
         <Button
           key={thread.id}

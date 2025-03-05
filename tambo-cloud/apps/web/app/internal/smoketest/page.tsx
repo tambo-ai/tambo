@@ -157,8 +157,18 @@ export default function SmokePage() {
     });
   }, [registerComponent, tools]);
 
-  const isLoading = isAqiPending || isForecastPending || isHistoryPending;
-  const threadInfo = useTamboThreads({ contextKey: userId });
+  console.log("useTamboThreads is ", useTamboThreads, `${useTamboThreads}`);
+  const TTT = useTamboThreads({
+    contextKey: userId,
+  });
+  console.log("TTT is ", TTT);
+  const { data: threadInfo, isLoading: isThreadInfoLoading } = TTT;
+
+  const isLoading =
+    isAqiPending ||
+    isForecastPending ||
+    isHistoryPending ||
+    isThreadInfoLoading;
 
   return (
     <div className="container max-w-4xl py-8 space-y-4">
@@ -168,11 +178,12 @@ export default function SmokePage() {
             <h2 className="text-lg font-semibold">Threads</h2>
           </div>
           <ThreadList
-            threads={threadInfo?.items || []}
+            threads={threadInfo?.items ?? []}
             selectedThreadId={thread?.id}
             onThreadSelect={(threadId) => {
               switchCurrentThread(threadId);
             }}
+            isLoading={isLoading}
           />
         </Card>
         <div className="flex-1">

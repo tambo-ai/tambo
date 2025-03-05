@@ -140,6 +140,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               threads={simpleThreads || []}
               selectedThreadId={selectedThreadId}
               onThreadSelect={setSelectedThreadId}
+              isLoading={isLoadingThreads}
             />
           )}
         </div>

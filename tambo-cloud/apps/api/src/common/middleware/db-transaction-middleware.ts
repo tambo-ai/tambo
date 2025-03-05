@@ -14,7 +14,7 @@ import { from } from 'rxjs';
 import { decryptApiKey } from '../key.utils';
 
 interface HydraRequest extends Request {
-  tx: HydraTransaction;
+  tx?: HydraTransaction;
 }
 
 @Injectable()
@@ -54,16 +54,19 @@ export class TransactionInterceptor implements NestInterceptor<HydraRequest> {
           return result;
           // Commit transaction automatically
         } catch (error) {
+          console.log('TransactionInterceptor error', error);
           // automatically rollback on unrecognized errors
           if (!(error instanceof HttpException) || error.getStatus() >= 500) {
             tx.rollback(); // Rollback transaction manually on error
           }
           throw error;
         } finally {
+          console.log('TransactionInterceptor finally');
           await tx.execute(sql`
             select set_config('request.apikey.project_id', NULL, TRUE);
             reset role;
             `);
+          delete request.tx;
         }
       }),
     );
