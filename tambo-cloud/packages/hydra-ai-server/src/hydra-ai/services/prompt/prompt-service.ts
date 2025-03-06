@@ -149,11 +149,53 @@ export function getAvailableComponentsPromptTemplate(
   availableComponents: AvailableComponents,
 ): PromptTemplate {
   const availableComponentsStr = Object.values(availableComponents)
-    .map((component) => `- ${component.name}: ${component.description}`)
+    .map((component) => {
+      let propsStr = "";
+      if (component.props && Object.keys(component.props).length > 0) {
+        const propsWithDetails = Object.entries(component.props)
+          .map(([propName, propInfo]) => {
+            let typeStr = "";
+            let description = "";
+            let required = false;
+
+            if (typeof propInfo === "string") {
+              typeStr = propInfo;
+            } else if (typeof propInfo === "object" && propInfo !== null) {
+              if ("type" in propInfo) {
+                typeStr = String(propInfo.type);
+              }
+
+              if ("description" in propInfo) {
+                description = String(propInfo.description);
+              }
+
+              if ("required" in propInfo) {
+                required = Boolean(propInfo.required);
+              }
+            }
+            let propStr = `${propName}: ${typeStr}`;
+
+            if (required) {
+              propStr += " (required)";
+            }
+
+            if (description) {
+              propStr += ` - ${description}`;
+            }
+
+            return propStr;
+          })
+          .join(", ");
+
+        propsStr = ` (Props: ${propsWithDetails})`;
+      }
+
+      return `- ${component.name}: ${component.description}${propsStr}`;
+    })
     .join("\n");
   return {
     template: `Available components and their descriptions:
-    {availableComponents}`,
+{availableComponents}`,
     args: { availableComponents: availableComponentsStr },
   };
 }
@@ -206,61 +248,72 @@ export function buildSuggestionPrompt(
   suggestionCount: number,
   schema: string,
 ): Array<{ role: "system" | "user"; content: string }> {
-  const hasComponents = components.length > 0;
-  const systemMessage = [
-    "You analyze conversations and suggest contextually relevant actions.",
-    hasComponents
-      ? [
-          "Available components:",
-          components.map((c) => `- ${c.name}: ${c.description}`).join("\n"),
-        ].join("\n")
-      : "No components are available. Generate suggestions for tasks that can be handled without specialized tools.",
+  // Get current component if available
+  let currentComponent: string | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let currentProps: any | null = null;
 
-    "Guidelines for generating suggestions:",
-    "1. Each suggestion should directly build upon the user's current task or goal",
-    "2. If a component is already rendered, suggest specific ways to update or modify its current props",
-    "3. Also suggest related components that would complement the current component",
-    "4. Focus on practical, actionable steps that demonstrate component capabilities",
-    "5. Make suggestions that help users discover natural next steps without having to think",
-    "6. Avoid generic suggestions - make them specific to the conversation context",
-    "Your response must include a brief reflection of the user's intent and actionable suggestions.",
-  ].join("\n\n");
+  if (messageHistory.length > 0) {
+    for (let i = messageHistory.length - 1; i >= 0; i--) {
+      const msg = messageHistory[i];
+      if (msg.componentDecision && msg.componentDecision.componentName) {
+        currentComponent = msg.componentDecision.componentName;
+        currentProps = msg.componentDecision.props || null;
+        break;
+      }
+    }
+  }
 
-  const userMessage = [
+  // Convert components array to AvailableComponents object format
+  const availableComponentsObj: AvailableComponents = {};
+  components.forEach((component) => {
+    availableComponentsObj[component.name] = component;
+  });
+
+  // Use getAvailableComponentsPromptTemplate to generate the component list
+  const availableComponentsTemplate = getAvailableComponentsPromptTemplate(
+    availableComponentsObj,
+  );
+  const componentList = replaceTemplateVariables(
+    availableComponentsTemplate.template,
+    availableComponentsTemplate.args,
+  ).trim();
+
+  const systemMessage = `Review the available components and conversation history to generate natural follow-up messages that a user might send.
+
+${componentList}
+
+Your task is to suggest ${suggestionCount} messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
+
+Rules:
+1. Write each suggestion as a complete message that could be sent by the user
+2. Focus on practical requests that use the available components
+3. Make suggestions contextually relevant to the conversation and previous actions
+4. If a component is currently in use, suggest natural variations or new ways to use it
+5. Write in a natural, conversational tone as if the user is typing
+6. Avoid technical language or system-focused phrasing`;
+
+  const userMessage = `${
     messageHistory.length > 0
-      ? [
-          "Recent conversation context:",
-          messageHistory
-            .slice(-3) // Only include last 3 messages for focused context
-            .map(
-              (msg) =>
-                `${msg.role}: ${msg.content.map((c) => ("text" in c ? c.text : "")).join("")}${
-                  msg.componentDecision
-                    ? `\nComponent: ${msg.componentDecision.componentName}\nProps: ${JSON.stringify(msg.componentDecision.props)}`
-                    : ""
-                }`,
-            )
-            .join("\n"),
-          "",
-          `Based on this conversation and components sent, generate ${suggestionCount} specific actions. Include suggestions for modifying the previous component's props and exploring related components that would enhance the user's workflow.`,
-        ].join("\n")
-      : `Generate ${suggestionCount} specific actions that would help explore and use the available features.`,
-    "",
-    "Format each suggestion as:",
-    "title: A clear, concise action title",
-    "detailedSuggestion: A specific action using an available component",
-    "",
-    [
-      "Example format (adapt to actual context):",
-      'title: "Show Data Quarterly"',
-      'detailedSuggestion: "Update the timeRange prop from 1-month to 3-months to show quarterly trends."',
-      "",
-      'title: "Trend Analysis"',
-      'detailedSuggestion: "Show the TrendAnalyzer component to automatically identify key patterns in your data."',
-    ].join("\n"),
-    "Schema for validation:",
-    schema,
-  ].join("\n");
+      ? `Recent conversation context:
+${messageHistory
+  .slice(-2)
+  .map(
+    (m) =>
+      `${m.role}: ${m.content.map((c) => ("text" in c ? c.text : "")).join("")}`,
+  )
+  .join("\n")}
+
+${currentComponent ? `Current component: ${currentComponent}\nCurrent props: ${JSON.stringify(currentProps, null, 2)}` : "No component currently in use."}`
+      : "No conversation history yet."
+  }
+
+Generate ${suggestionCount} natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+
+The suggestions should be written exactly as a user would type them, not as descriptions or commands.
+
+Schema for validation:
+${schema}`;
 
   return [
     { role: "system", content: systemMessage },

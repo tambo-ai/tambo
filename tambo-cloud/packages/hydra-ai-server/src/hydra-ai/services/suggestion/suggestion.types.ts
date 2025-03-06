@@ -23,7 +23,7 @@ export const SuggestionsResponseSchema = z.object({
       detailedSuggestion: z
         .string()
         .describe(
-          "A clear explanation of what the action will do. Should reference specific components or features available.",
+          "A natural, conversational message that could be sent by the user, focused on practical requests using available components",
         ),
     }),
   ),
