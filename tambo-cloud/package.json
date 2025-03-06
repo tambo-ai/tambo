@@ -11,6 +11,10 @@
     "check-types": "turbo check-types",
     "hydra-api:start": "turbo run start --filter=hydra-api",
     "prepare": "husky",
+    "db:generate": "cd packages/db && npm run db:generate",
+    "db:migrate": "cd packages/db && npm run db:migrate",
+    "db:check": "cd packages/db && npm run db:check",
+    "db:studio": "cd packages/db && npm run db:studio",
     "test:suggestions": "cd scripts && tsx test-suggestions.ts"
   },
   "devDependencies": {
