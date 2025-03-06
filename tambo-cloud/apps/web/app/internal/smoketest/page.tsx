@@ -157,12 +157,9 @@ export default function SmokePage() {
     });
   }, [registerComponent, tools]);
 
-  console.log("useTamboThreads is ", useTamboThreads, `${useTamboThreads}`);
-  const TTT = useTamboThreads({
+  const { data: threadInfo, isLoading: isThreadInfoLoading } = useTamboThreads({
     contextKey: userId,
   });
-  console.log("TTT is ", TTT);
-  const { data: threadInfo, isLoading: isThreadInfoLoading } = TTT;
 
   const isLoading =
     isAqiPending ||
