@@ -1,18 +1,17 @@
 import { ExtractTablesWithRelations } from "drizzle-orm";
-import { PgTransaction } from "drizzle-orm/pg-core";
 import {
-  PostgresJsDatabase,
-  PostgresJsQueryResultHKT,
-} from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+  NodePgDatabase,
+  NodePgQueryResultHKT,
+} from "drizzle-orm/node-postgres";
+import { PgTransaction } from "drizzle-orm/pg-core";
 import * as schema from "./schema";
 
-export type HydraDatabase = PostgresJsDatabase<typeof schema> & {
-  $client: postgres.Sql;
+export type HydraDatabase = NodePgDatabase<typeof schema> & {
+  $client: string;
 };
 
 export type HydraTransaction = PgTransaction<
-  PostgresJsQueryResultHKT,
+  NodePgQueryResultHKT,
   typeof schema,
   ExtractTablesWithRelations<typeof schema>
 >;
