@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { getDb } from '@use-hydra-ai/db';
 import { AIModule } from '../ai/ai.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { ThreadsModule } from '../threads/threads.module';
@@ -9,12 +8,6 @@ import { ComponentsService } from './components.service';
 @Module({
   imports: [ConfigModule, ProjectsModule, AIModule, ThreadsModule],
   controllers: [ComponentsController],
-  providers: [
-    ComponentsService,
-    {
-      provide: 'DbRepository',
-      useFactory: () => getDb(process.env.DATABASE_URL!),
-    },
-  ],
+  providers: [ComponentsService],
 })
 export class ComponentsModule {}

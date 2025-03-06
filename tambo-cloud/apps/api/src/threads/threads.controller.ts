@@ -11,7 +11,6 @@ import {
   Req,
   Res,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -22,7 +21,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { GenerationStage } from '@use-hydra-ai/core';
-import { TransactionInterceptor } from '../common/middleware/db-transaction-middleware';
 import { ApiKeyGuard } from '../components/guards/apikey.guard';
 import {
   ProjectAccessOwnGuard,
@@ -48,7 +46,6 @@ import { ThreadsService } from './threads.service';
 @ApiTags('threads')
 @ApiSecurity('apiKey')
 @UseGuards(ApiKeyGuard)
-@UseInterceptors(TransactionInterceptor)
 @Controller('threads')
 export class ThreadsController {
   constructor(private readonly threadsService: ThreadsService) {}

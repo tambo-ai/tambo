@@ -19,6 +19,7 @@ import {
 } from '@use-hydra-ai/hydra-ai-server';
 import { eq } from 'drizzle-orm';
 import { decryptProviderKey } from 'src/common/key.utils';
+import { TRANSACTION } from 'src/common/middleware/db-transaction-middleware';
 import { AvailableComponentDto } from 'src/components/dto/generate-component.dto';
 import { ProjectsService } from 'src/projects/projects.service';
 import { CorrelationLoggerService } from '../common/services/logger.service';
@@ -43,8 +44,8 @@ import {
 @Injectable()
 export class ThreadsService {
   constructor(
-    @Inject('DbRepository')
-    private readonly db: HydraDatabase,
+    @Inject(TRANSACTION)
+    private readonly tx: HydraDatabase,
     private projectsService: ProjectsService,
     private readonly logger: CorrelationLoggerService,
   ) {}
@@ -60,7 +61,7 @@ export class ThreadsService {
     const chainId = await generateChainId(threadId);
 
     // Get the thread's project ID from the database
-    const threadData = await this.db.query.threads.findFirst({
+    const threadData = await this.tx.query.threads.findFirst({
       where: eq(schema.threads.id, threadId),
     });
 
@@ -87,7 +88,7 @@ export class ThreadsService {
   }
 
   async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
-    const thread = await operations.createThread(this.db, {
+    const thread = await operations.createThread(this.tx, {
       projectId: createThreadDto.projectId,
       contextKey: createThreadDto.contextKey,
       metadata: createThreadDto.metadata,
@@ -109,7 +110,7 @@ export class ThreadsService {
     params: { contextKey?: string; offset?: number; limit?: number } = {},
   ): Promise<Thread[]> {
     const threads = await operations.getThreadsByProject(
-      this.db,
+      this.tx,
       projectId,
       params,
     );
@@ -129,12 +130,12 @@ export class ThreadsService {
     projectId: string,
     params: { contextKey?: string } = {},
   ): Promise<number> {
-    return await operations.countThreadsByProject(this.db, projectId, params);
+    return await operations.countThreadsByProject(this.tx, projectId, params);
   }
 
   async findOne(id: string, projectId: string): Promise<ThreadWithMessagesDto> {
     const thread = await operations.getThreadForProjectId(
-      this.db,
+      this.tx,
       id,
       projectId,
     );
@@ -166,7 +167,7 @@ export class ThreadsService {
   }
 
   async findOneByUserId(id: string, userId: string) {
-    const thread = await operations.getThreadForUserId(this.db, id, userId);
+    const thread = await operations.getThreadForUserId(this.tx, id, userId);
     if (!thread) {
       throw new NotFoundException('Thread not found');
     }
@@ -174,7 +175,7 @@ export class ThreadsService {
   }
 
   async update(id: string, updateThreadDto: ThreadRequest) {
-    const thread = await operations.updateThread(this.db, id, {
+    const thread = await operations.updateThread(this.tx, id, {
       contextKey: updateThreadDto.contextKey,
       metadata: updateThreadDto.metadata,
       generationStage: updateThreadDto.generationStage,
@@ -188,21 +189,21 @@ export class ThreadsService {
     generationStage: GenerationStage,
     statusMessage?: string,
   ) {
-    return await operations.updateThread(this.db, id, {
+    return await operations.updateThread(this.tx, id, {
       generationStage,
       statusMessage,
     });
   }
 
   async remove(id: string) {
-    return await operations.deleteThread(this.db, id);
+    return await operations.deleteThread(this.tx, id);
   }
 
   async addMessage(
     threadId: string,
     messageDto: MessageRequest,
   ): Promise<ThreadMessageDto> {
-    const message = await operations.addMessage(this.db, {
+    const message = await operations.addMessage(this.tx, {
       threadId,
       role: messageDto.role,
       content: convertContentDtoToContentPart(messageDto.content),
@@ -234,7 +235,7 @@ export class ThreadsService {
     includeInternal: boolean = false,
   ): Promise<ThreadMessageDto[]> {
     const messages = await operations.getMessages(
-      this.db,
+      this.tx,
       threadId,
       includeInternal,
     );
@@ -253,7 +254,7 @@ export class ThreadsService {
     messageId: string,
     messageDto: MessageRequest,
   ): Promise<ThreadMessageDto> {
-    const message = await operations.updateMessage(this.db, messageId, {
+    const message = await operations.updateMessage(this.tx, messageId, {
       content: convertContentDtoToContentPart(messageDto.content),
       componentDecision: messageDto.component ?? undefined,
       metadata: messageDto.metadata,
@@ -271,16 +272,16 @@ export class ThreadsService {
   }
 
   async deleteMessage(messageId: string) {
-    await operations.deleteMessage(this.db, messageId);
+    await operations.deleteMessage(this.tx, messageId);
   }
 
   async ensureThreadByProjectId(threadId: string, projectId: string) {
-    await operations.ensureThreadByProjectId(this.db, threadId, projectId);
+    await operations.ensureThreadByProjectId(this.tx, threadId, projectId);
   }
 
   private async getMessage(messageId: string) {
     try {
-      const message = await operations.getMessageWithAccess(this.db, messageId);
+      const message = await operations.getMessageWithAccess(this.tx, messageId);
       if (!message) {
         this.logger.warn(`Message not found: ${messageId}`);
         throw new InvalidSuggestionRequestError('Message not found');
@@ -301,7 +302,7 @@ export class ThreadsService {
     await this.getMessage(messageId);
 
     try {
-      const suggestions = await operations.getSuggestions(this.db, messageId);
+      const suggestions = await operations.getSuggestions(this.tx, messageId);
       if (!suggestions || suggestions.length === 0) {
         throw new SuggestionNotFoundException(messageId);
       }
@@ -348,7 +349,7 @@ export class ThreadsService {
       }
 
       const savedSuggestions = await operations.createSuggestions(
-        this.db,
+        this.tx,
         suggestions.suggestions.map((suggestion) => ({
           messageId,
           title: suggestion.title,
@@ -389,7 +390,7 @@ export class ThreadsService {
     newState: Record<string, unknown>,
   ) {
     const message = await operations.updateMessageComponentState(
-      this.db,
+      this.tx,
       messageId,
       newState,
     );
