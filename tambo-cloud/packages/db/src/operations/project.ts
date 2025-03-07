@@ -5,7 +5,7 @@ import {
   hideApiKey,
 } from "@use-hydra-ai/core";
 import { createHash, randomBytes } from "crypto";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
@@ -21,17 +21,26 @@ export async function createProject(
     throw new Error("User ID is required");
   }
 
-  const {
-    rows: [project],
-  } = await db.execute(
-    sql`select * from create_project(${name}, ${userId}, ${role})`,
-  );
+  return await db.transaction(async (tx) => {
+    const [project] = await tx
+      .insert(schema.projects)
+      .values({
+        name: name ?? "New Project",
+      })
+      .returning();
 
-  return {
-    id: project.id,
-    name: project.name,
-    userId,
-  };
+    await tx.insert(schema.projectMembers).values({
+      projectId: project.id,
+      userId: userId,
+      role,
+    });
+
+    return {
+      id: project.id,
+      name: project.name,
+      userId,
+    };
+  });
 }
 
 export async function getProjectsForUser(db: HydraDb, userId: string) {
