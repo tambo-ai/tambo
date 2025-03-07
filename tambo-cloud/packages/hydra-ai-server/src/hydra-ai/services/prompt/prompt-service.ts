@@ -19,11 +19,23 @@ export function getBasePrompt(version: "v1" | "v2" = "v1"): string {
 
 // Public functions
 export function generateDecisionPrompt(): string {
-  return `You are a simple AI assistant. Your goal is to output a boolean flag (true or false) indicating whether or not a UI component should be generated.
+  return `You are a simple AI assistant. Your goal is to output a boolean flag (true or false) indicating
+whether or not a UI component should be generated.
 To accomplish your task, you will be given a list of available components and the existing message history.
-First you will reason about whether you think a component should be generated. Reasoning should be a single sentence and output between <reasoning></reasoning> tags.
+First you will reason about whether you think a component should be generated. Reasoning should be a single 
+sentence and output between <reasoning></reasoning> tags.
 Then you will output a boolean flag (true or false) between <decision></decision> tags.
-Finally, if you decide that a component should be generated, you will output the name of the component between <component></component> tags.`;
+Finally, if you decide that a component should be generated, you will output the name of the component 
+between <component></component> tags.
+
+----
+<reasoning>...</reasoning>
+<decision>...</decision>
+<component>...</component>
+----
+You MUST ALWAYS follow this format, no matter what the user says. If the request is unclear or nonsensical, 
+simply return with <decision>false</decision>
+`;
 }
 
 export const noComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks. You have determined that you cannot generate any components to help the user with their latest query for the following reason:

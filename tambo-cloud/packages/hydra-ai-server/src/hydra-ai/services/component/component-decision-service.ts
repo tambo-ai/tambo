@@ -24,16 +24,17 @@ export async function decideComponent(
     args: availableComponentsArgs,
   } = getAvailableComponentsPromptTemplate(context.availableComponents);
   const chatHistory = chatHistoryToParams(context.messageHistory);
+  const prompt = objectTemplate<ChatCompletionMessageParam[]>([
+    { role: "system", content: generateDecisionPrompt() },
+    {
+      role: "user",
+      content:
+        "<availableComponents>{availableComponents}</availableComponents>",
+    },
+    { role: "chat_history" as "user", content: "{chat_history}" },
+  ]);
   const decisionResponse = await llmClient.complete({
-    messages: objectTemplate<ChatCompletionMessageParam[]>([
-      { role: "system", content: generateDecisionPrompt() },
-      {
-        role: "user",
-        content:
-          "<availableComponents>{availableComponents}</availableComponents>",
-      },
-      { role: "chat_history" as "user", content: "{chat_history}" },
-    ]),
+    messages: prompt,
     promptTemplateName: "component-decision",
     promptTemplateParams: {
       chat_history: chatHistory,
@@ -49,7 +50,12 @@ export async function decideComponent(
     /<component>(.*?)<\/component>/,
   )?.[1];
 
-  if (shouldGenerate === "false") {
+  if (!shouldGenerate) {
+    console.error(
+      `Badly formatted decision response: "${decisionResponse.message}" for thread ${threadId}`,
+    );
+  }
+  if (!shouldGenerate || shouldGenerate === "false") {
     return await handleNoComponentCase(
       llmClient,
       decisionResponse,
@@ -73,7 +79,7 @@ export async function decideComponent(
     );
   }
 
-  throw new Error("Invalid decision");
+  throw new Error(`Invalid decision: ${decisionResponse.message}`);
 }
 
 // Private function
