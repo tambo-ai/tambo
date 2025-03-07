@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "check-types": "tsc --noEmit",
     "postinstall": "fumadocs-mdx",
     "clean": "rm -rf dist .next"

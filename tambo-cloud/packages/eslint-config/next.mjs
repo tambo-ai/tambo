@@ -12,6 +12,10 @@ import baseConfig from "./base.mjs";
  * */
 export default tseslint.config(
   ...baseConfig,
+  {
+    ignores: [".next/**"],
+  },
+
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,

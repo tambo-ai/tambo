@@ -1,6 +1,6 @@
 import { createPreset } from "fumadocs-ui/tailwind-plugin";
 import path from "path";
-const animate = require("tailwindcss-animate");
+import * as animate from "tailwindcss-animate";
 
 // This is a hack to get the fumadocs-ui dist path in the monorepo, where the
 // package may be installed in a different location

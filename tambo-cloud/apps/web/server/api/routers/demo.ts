@@ -12,7 +12,7 @@ export const demoRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       // Implement the logic to fetch AQI data for the given location
-      return getAirQuality(input.location);
+      return await getAirQuality(input.location);
     }),
 
   forecast: protectedProcedure
@@ -23,7 +23,7 @@ export const demoRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       // Implement the logic to fetch weather forecast for the given location
-      return getForecast(input.location);
+      return await getForecast(input.location);
     }),
 
   history: protectedProcedure
@@ -37,7 +37,7 @@ export const demoRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       // Implement the logic to fetch historical weather data for the given location and datetime
-      return getHistoricalWeather(input.location, input.datetime);
+      return await getHistoricalWeather(input.location, input.datetime);
     }),
 });
 
@@ -65,7 +65,7 @@ async function callWeatherApi(
     throw new Error(`Weather API error: ${response.statusText}`);
   }
 
-  return response.json();
+  return await response.json();
 }
 // Response types based on WeatherAPI.com OpenAPI spec
 export interface AirQualityResponse {
@@ -183,7 +183,7 @@ export interface HistoryResponse {
 
 // Get air quality data for a location
 async function getAirQuality(location: string): Promise<AirQualityResponse> {
-  return callWeatherApi("/current.json", {
+  return await callWeatherApi("/current.json", {
     q: location,
     aqi: "yes",
   });
@@ -191,7 +191,7 @@ async function getAirQuality(location: string): Promise<AirQualityResponse> {
 
 // Get weather forecast for a location
 async function getForecast(location: string): Promise<ForecastResponse> {
-  return callWeatherApi("/forecast.json", {
+  return await callWeatherApi("/forecast.json", {
     q: location,
     days: "3", // Default to 3 day forecast
   });
@@ -202,7 +202,7 @@ async function getHistoricalWeather(
   location: string,
   date: string,
 ): Promise<HistoryResponse> {
-  return callWeatherApi("/history.json", {
+  return await callWeatherApi("/history.json", {
     q: location,
     dt: date,
   });

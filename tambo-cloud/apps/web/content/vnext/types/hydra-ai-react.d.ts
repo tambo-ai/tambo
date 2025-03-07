@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 declare module "hydra-ai-react" {
   import { type ComponentType, type ReactNode } from "react";
   import { z } from "zod";

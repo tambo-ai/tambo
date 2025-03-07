@@ -25,7 +25,7 @@ export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      return operations.createProject(ctx.db, {
+      return await operations.createProject(ctx.db, {
         name: input,
         userId: ctx.session.user.id,
       });
@@ -58,7 +58,7 @@ export const projectRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
-      return operations.addProviderKey(ctx.db, env.PROVIDER_KEY_SECRET, {
+      return await operations.addProviderKey(ctx.db, env.PROVIDER_KEY_SECRET, {
         projectId,
         providerName,
         providerKey,
@@ -74,7 +74,7 @@ export const projectRouter = createTRPCRouter({
         projectId,
         ctx.session.user.id,
       );
-      return operations.getProviderKeys(ctx.db, projectId);
+      return await operations.getProviderKeys(ctx.db, projectId);
     }),
 
   generateApiKey: protectedProcedure
@@ -123,7 +123,7 @@ export const projectRouter = createTRPCRouter({
         projectId,
         ctx.session.user.id,
       );
-      return operations.getApiKeys(ctx.db, projectId);
+      return await operations.getApiKeys(ctx.db, projectId);
     }),
 
   removeApiKey: protectedProcedure

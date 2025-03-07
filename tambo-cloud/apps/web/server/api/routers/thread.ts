@@ -88,6 +88,6 @@ export const threadRouter = createTRPCRouter({
       if (thread?.projectId !== input.projectId) {
         throw new Error("Thread not found");
       }
-      return operations.deleteThread(ctx.db, input.threadId);
+      return await operations.deleteThread(ctx.db, input.threadId);
     }),
 });
