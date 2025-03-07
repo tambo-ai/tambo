@@ -32,9 +32,25 @@ export const projects = pgTable(
   }),
   (table) => {
     return [
-      pgPolicy("project_user_policy", {
+      pgPolicy("project_user_select_policy", {
         to: authenticatedRole,
+        for: "select",
         using: sql`exists (select 1 from project_members where project_members.project_id = ${table.id} and project_members.user_id = ${authUid})`,
+      }),
+      pgPolicy("project_user_update_policy", {
+        to: authenticatedRole,
+        for: "update",
+        using: sql`exists (select 1 from project_members where project_members.project_id = ${table.id} and project_members.user_id = ${authUid})`,
+      }),
+      pgPolicy("project_user_delete_policy", {
+        to: authenticatedRole,
+        for: "delete",
+        using: sql`exists (select 1 from project_members where project_members.project_id = ${table.id} and project_members.user_id = ${authUid})`,
+      }),
+      pgPolicy("project_user_insert_policy", {
+        to: authenticatedRole,
+        for: "insert",
+        withCheck: sql`true`,
       }),
       pgPolicy("project_api_key_policy", {
         to: projectApiKeyRole,
