@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.16.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.15.0...v0.16.0) (2025-03-07)
+
+
+### Features
+
+* cleanup/normalize db and transaction access in nest ([#452](https://github.com/use-hydra-ai/hydra-ai-site/issues/452)) ([d0c4c7d](https://github.com/use-hydra-ai/hydra-ai-site/commit/d0c4c7d15d766aab52a4682f1d2952b2449995f8))
+
+
+### Bug Fixes
+
+* bump to new @hydra-ai/react with better thread state ([#448](https://github.com/use-hydra-ai/hydra-ai-site/issues/448)) ([3930956](https://github.com/use-hydra-ai/hydra-ai-site/commit/39309562136a494028b8a51e7fffa689cd248b00))
+* Improve thread backend creation with dynamic provider key retrieval ([#444](https://github.com/use-hydra-ai/hydra-ai-site/issues/444)) ([0ad7687](https://github.com/use-hydra-ai/hydra-ai-site/commit/0ad7687f324f408ef0f2a484fb6dfb596576782a))
+* remove some console.log'ing ([#450](https://github.com/use-hydra-ai/hydra-ai-site/issues/450)) ([9925564](https://github.com/use-hydra-ai/hydra-ai-site/commit/9925564923793c515d86da7a03c1196fe9b656ff))
+* switch driver from postgresjs to pg-native, as per drizzle instructions ([#451](https://github.com/use-hydra-ai/hydra-ai-site/issues/451)) ([9c75f82](https://github.com/use-hydra-ai/hydra-ai-site/commit/9c75f822eb178c34a818c6f9a9861bce18ee08ce))
+* use creator to allow project creation w/out members ([#454](https://github.com/use-hydra-ai/hydra-ai-site/issues/454)) ([b4777d1](https://github.com/use-hydra-ai/hydra-ai-site/commit/b4777d1dfeea35f4d2345a5e4f2b497868c9665c))
+* use custom SQL function to allow project creation while bypassing RLS ([#453](https://github.com/use-hydra-ai/hydra-ai-site/issues/453)) ([77defb0](https://github.com/use-hydra-ai/hydra-ai-site/commit/77defb0702e2f20ae3534f07ea5b8b3b0d01ad80))
+* use updated react package with new react-query like api ([#447](https://github.com/use-hydra-ai/hydra-ai-site/issues/447)) ([52ee00b](https://github.com/use-hydra-ai/hydra-ai-site/commit/52ee00b7d3faf7ae1de4f9c64cdb3b9ce0ee2501))
+
 ## [0.15.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.14.1...v0.15.0) (2025-03-04)
 
 
