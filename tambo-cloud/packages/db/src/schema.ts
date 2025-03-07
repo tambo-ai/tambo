@@ -27,12 +27,14 @@ export const projects = pgTable(
       .default(sql`generate_custom_id('p_')`),
     legacyId: text("legacy_id").unique(),
     name: text("name").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
     creatorId: uuid("creator_id")
       .references(() => authUsers.id)
       // Need to write raw `auth.uid()` becuse ${authUid} includes a select statement
       .default(sql`auth.uid()`),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   }),
   (table) => {
     return [
@@ -87,8 +89,12 @@ export const projectMembers = pgTable(
       .references(() => authUsers.id)
       .notNull(),
     role: text("role").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   }),
   (table) => {
     return [
@@ -134,9 +140,13 @@ export const apiKeys = pgTable("api_keys", ({ text, timestamp, uuid }) => ({
   createdByUserId: uuid("created_by_user_id")
     .references(() => authUsers.id)
     .notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
 }));
 export type DBApiKey = typeof apiKeys.$inferSelect;
 export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
@@ -162,9 +172,13 @@ export const providerKeys = pgTable("provider_keys", ({ text, timestamp }) => ({
   providerName: text("provider_name").notNull(),
   providerKeyEncrypted: text("provider_key_encrypted").notNull(),
   partiallyHiddenKey: text("partially_hidden_key"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
 }));
 
 export const providerKeyRelations = relations(providerKeys, ({ one }) => ({
@@ -203,8 +217,12 @@ export const threads = pgTable(
       .default(GenerationStage.IDLE)
       .notNull(),
     statusMessage: text("status_message"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   }),
   (table) => {
     return {
@@ -235,7 +253,9 @@ export const messages = pgTable("messages", ({ text, timestamp }) => ({
     enum: Object.values<string>(ActionType) as [ActionType],
   }),
   metadata: customJsonb<Record<string, unknown>>("metadata"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`clock_timestamp()`)
+    .notNull(),
 }));
 
 export type DBMessage = typeof messages.$inferSelect;
@@ -267,8 +287,12 @@ export const suggestions = pgTable("suggestions", ({ text, timestamp }) => ({
     .notNull(),
   title: text("title").notNull(),
   detailedSuggestion: text("detailed_suggestion").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 }));
 
 export type DBSuggestion = typeof suggestions.$inferSelect;
