@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.16.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.16.0...v0.16.1) (2025-03-07)
+
+
+### Bug Fixes
+
+* add missing timezone, switch to clock_timestamp() ([#460](https://github.com/use-hydra-ai/hydra-ai-site/issues/460)) ([8921448](https://github.com/use-hydra-ai/hydra-ai-site/commit/892144880ff17057faa69b2de703b82b53636319))
+* bump @hydra-ai/react to get 0 retry API calls ([#456](https://github.com/use-hydra-ai/hydra-ai-site/issues/456)) ([861cb9a](https://github.com/use-hydra-ai/hydra-ai-site/commit/861cb9ad69bec855e5b3774bb533af140efa9a47))
+* make the prompt more explicit, and handle errors better ([#458](https://github.com/use-hydra-ai/hydra-ai-site/issues/458)) ([b15e826](https://github.com/use-hydra-ai/hydra-ai-site/commit/b15e826683cec9b495400dc6e499d2f9a108061d))
+* oops, this was local debugging ([#461](https://github.com/use-hydra-ai/hydra-ai-site/issues/461)) ([33c6fd2](https://github.com/use-hydra-ai/hydra-ai-site/commit/33c6fd21d01b2d9be6e8bcfa2c027c67b9dfbc04))
+* simplify transaction middleware ([#459](https://github.com/use-hydra-ai/hydra-ai-site/issues/459)) ([b9e6a55](https://github.com/use-hydra-ai/hydra-ai-site/commit/b9e6a55e733bc09de78bb8ff2fdcc048519876b0))
+
 ## [0.16.0](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.15.0...v0.16.0) (2025-03-07)
 
 
