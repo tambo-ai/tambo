@@ -60,22 +60,27 @@ export class TransactionMiddleware implements NestMiddleware {
             set local role ${sql.raw(schema.projectApiKeyRole.name)};
             `);
 
-      return await new Promise((resolve, reject) => {
-        res.on('finish', async () => {
-          try {
-            await tx.execute(sql`
+      const [finishPromise, resolveFinish, rejectFinish] =
+        makeResolvablePromise<boolean>();
+
+      // wire up the finish event to resolve the promise
+      res.on('finish', async () => {
+        try {
+          await tx.execute(sql`
                 select set_config('request.apikey.project_id', NULL, TRUE);
                 reset role;
                 `);
-            delete (req as HydraRequest).tx;
-            resolve(true);
-          } catch (error) {
-            reject(error);
-          }
-        });
-
-        next();
+          delete (req as HydraRequest).tx;
+          resolveFinish(true);
+        } catch (error) {
+          rejectFinish(error);
+        }
       });
+
+      // it is now safe to call next(), because the finish event will resolve the promise
+      next();
+
+      await finishPromise;
     });
 
     try {
@@ -89,4 +94,17 @@ export class TransactionMiddleware implements NestMiddleware {
       throw error;
     }
   }
+}
+function makeResolvablePromise<T>(): [
+  Promise<T>,
+  (value: T) => void,
+  (reason?: any) => void,
+] {
+  let resolve: (value: T) => void;
+  let reject: (reason?: any) => void;
+  const promise = new Promise<T>((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = _reject;
+  });
+  return [promise, resolve!, reject!];
 }
