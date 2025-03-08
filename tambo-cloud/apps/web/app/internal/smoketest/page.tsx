@@ -395,6 +395,7 @@ const AirQuality = ({ data }: AirQualityProps): ReactNode => {
 
   const [checked1, setChecked1] = useTamboComponentState("checked1", false);
   const [checked2, setChecked2] = useTamboComponentState("checked2", false);
+  const [checked3, setChecked3] = useState(false);
 
   return (
     <Card className="p-4">
@@ -412,6 +413,12 @@ const AirQuality = ({ data }: AirQualityProps): ReactNode => {
           onCheckedChange={(c: boolean) => setChecked2(c)}
         />
         <label htmlFor="checked2">Two</label>
+        <Checkbox
+          id="checked3"
+          checked={checked3}
+          onCheckedChange={(c: boolean) => setChecked3(c)}
+        />
+        <label htmlFor="checked3">Three (not in Tambo)</label>
       </div>
       <div className="flex items-center justify-between">
         <div>
