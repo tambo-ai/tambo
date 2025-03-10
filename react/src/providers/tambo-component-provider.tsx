@@ -3,12 +3,12 @@ import React, {
   createContext,
   PropsWithChildren,
   useContext,
-  useState
+  useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
 import {
   GenerationStage,
-  isIdleStage
+  isIdleStage,
 } from "../model/generate-component-response";
 import { useTamboClient } from "./tambo-client-provider";
 import {
@@ -28,10 +28,10 @@ export interface TamboComponentContextProps {
 const TamboComponentContext = createContext<TamboComponentContextProps>({
   generationStage: GenerationStage.IDLE,
   isIdle: true,
-  registerComponent: () => { },
-  registerTool: () => { },
-  registerTools: () => { },
-  addToolAssociation: () => { },
+  registerComponent: () => {},
+  registerTool: () => {},
+  registerTools: () => {},
+  addToolAssociation: () => {},
 });
 
 export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
@@ -39,15 +39,9 @@ export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
 }) => {
   const client = useTamboClient();
 
-  const {
-    registerComponent,
-    addToolAssociation,
-    registerTool,
-    registerTools,
-  } = useTamboRegistry();
-  const [generationStage] = useState<GenerationStage>(
-    GenerationStage.IDLE,
-  );
+  const { registerComponent, addToolAssociation, registerTool, registerTools } =
+    useTamboRegistry();
+  const [generationStage] = useState<GenerationStage>(GenerationStage.IDLE);
   const isIdle = isIdleStage(generationStage);
 
   const value = {

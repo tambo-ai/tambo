@@ -3,15 +3,9 @@ import { parse } from "partial-json";
 import React from "react";
 import { z } from "zod";
 import { wrapWithTamboMessageProvider } from "../hooks/use-current-message";
-import {
-  ComponentRegistry,
-} from "../model/component-metadata";
-import {
-  TamboThreadMessage,
-} from "../model/generate-component-response";
-import {
-  getComponentFromRegistry,
-} from "../util/registry";
+import { ComponentRegistry } from "../model/component-metadata";
+import { TamboThreadMessage } from "../model/generate-component-response";
+import { getComponentFromRegistry } from "../util/registry";
 
 /**
  * Generate a message that has a component rendered into it, if the message came with one
