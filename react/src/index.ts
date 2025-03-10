@@ -1,0 +1,38 @@
+/** Exports for the library. Only publically available exports are re-exported here. Anything not exported here is not supported and may change or break at any time. */
+export { useTamboComponentState } from "./hooks/use-component-state";
+export {
+  TamboMessageProvider,
+  useTamboCurrentMessage,
+  useTamboMessageContext,
+} from "./hooks/use-current-message";
+export * from "./hooks/use-suggestions";
+export { useTamboThreadInput } from "./hooks/use-thread-input";
+
+// Re-export provider components
+export * from "./providers";
+
+// Re-export types from Tambo Node SDK
+export type {
+  APIError,
+  RateLimitError,
+  TamboAIError,
+} from "@tambo-ai/typescript-sdk";
+export type {
+  Suggestion,
+  SuggestionGenerateParams,
+  SuggestionGenerateResponse,
+  SuggestionListResponse,
+} from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
+export { useTamboThreads } from "./hooks/use-tambo-threads";
+export {
+  ComponentContextToolMetadata,
+  ComponentRegistry,
+  ParameterSpec,
+  RegisteredComponent,
+  TamboTool,
+} from "./model/component-metadata";
+export {
+  GenerationStage,
+  TamboThreadMessage,
+} from "./model/generate-component-response";
+export { TamboThread } from "./model/tambo-thread";

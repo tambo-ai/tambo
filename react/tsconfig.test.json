@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "@testing-library/jest-dom", "node"],
+    "jsx": "react-jsx",
+    "module": "commonjs",
+    "target": "es2019",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "jest.config.ts"],
+  "exclude": ["node_modules"]
+}
