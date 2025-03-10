@@ -3,13 +3,8 @@ import React, {
   createContext,
   PropsWithChildren,
   useContext,
-  useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
-import {
-  GenerationStage,
-  isIdleStage,
-} from "../model/generate-component-response";
 import { useTamboClient } from "./tambo-client-provider";
 import {
   RegisterComponentOptions,
@@ -18,37 +13,32 @@ import {
 
 export interface TamboComponentContextProps {
   registerComponent: (options: RegisterComponentOptions) => void;
-  generationStage: GenerationStage;
-  isIdle: boolean;
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
 }
 
 const TamboComponentContext = createContext<TamboComponentContextProps>({
-  generationStage: GenerationStage.IDLE,
-  isIdle: true,
-  registerComponent: () => {},
-  registerTool: () => {},
-  registerTools: () => {},
-  addToolAssociation: () => {},
+  registerComponent: () => { },
+  registerTool: () => { },
+  registerTools: () => { },
+  addToolAssociation: () => { },
 });
 
 export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const client = useTamboClient();
-
-  const { registerComponent, addToolAssociation, registerTool, registerTools } =
-    useTamboRegistry();
-  const [generationStage] = useState<GenerationStage>(GenerationStage.IDLE);
-  const isIdle = isIdleStage(generationStage);
+  const {
+    registerComponent,
+    addToolAssociation,
+    registerTool,
+    registerTools,
+  } = useTamboRegistry();
 
   const value = {
     client,
     registerComponent,
-    generationStage,
-    isIdle,
     registerTool,
     registerTools,
     addToolAssociation,
