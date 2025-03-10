@@ -1,9 +1,5 @@
 "use client";
-import React, {
-  createContext,
-  PropsWithChildren,
-  useContext,
-} from "react";
+import React, { createContext, PropsWithChildren, useContext } from "react";
 import { TamboTool } from "../model/component-metadata";
 import { useTamboClient } from "./tambo-client-provider";
 import {
@@ -19,22 +15,18 @@ export interface TamboComponentContextProps {
 }
 
 const TamboComponentContext = createContext<TamboComponentContextProps>({
-  registerComponent: () => { },
-  registerTool: () => { },
-  registerTools: () => { },
-  addToolAssociation: () => { },
+  registerComponent: () => {},
+  registerTool: () => {},
+  registerTools: () => {},
+  addToolAssociation: () => {},
 });
 
 export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const client = useTamboClient();
-  const {
-    registerComponent,
-    addToolAssociation,
-    registerTool,
-    registerTools,
-  } = useTamboRegistry();
+  const { registerComponent, addToolAssociation, registerTool, registerTools } =
+    useTamboRegistry();
 
   const value = {
     client,
