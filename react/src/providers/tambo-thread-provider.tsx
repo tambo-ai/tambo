@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import {
   GenerationStage,
+  isIdleStage,
   TamboThreadMessage,
 } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
@@ -43,6 +44,9 @@ export interface TamboThreadContextProps {
       contextKey?: string;
     },
   ) => Promise<TamboThreadMessage>;
+  generationStage: GenerationStage;
+  generationStatusMessage: string;
+  isIdle: boolean;
 }
 
 /** This is a stub entry for when the thread is not yet created, the first time
@@ -81,6 +85,9 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   sendThreadMessage: () => {
     throw new Error("advance not implemented");
   },
+  generationStage: GenerationStage.IDLE,
+  generationStatusMessage: "",
+  isIdle: true,
 });
 
 export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
@@ -101,6 +108,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     string | undefined
   >(PLACEHOLDER_THREAD.id);
   const currentThread: TamboThread | undefined = threadMap[currentThreadId];
+
   // Use existing messages from the current thread to avoid re-generating any components
   const currentMessageCache = useMemo(() => {
     const messageCache = new Map<string, TamboThreadMessage>();
@@ -293,7 +301,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       const headMessages = prevMap[currentThreadId].messages.slice(0, -1);
       const lastMessage =
         prevMap[currentThreadId].messages[
-          prevMap[currentThreadId].messages.length - 1
+        prevMap[currentThreadId].messages.length - 1
         ];
       const updatedLastMessage = {
         ...lastMessage,
@@ -310,13 +318,14 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   };
 
   const updateThreadStatus = useCallback(
-    (stage: GenerationStage) => {
+    (stage: GenerationStage, statusMessage?: string) => {
       setThreadMap((prevMap) => {
         return {
           ...prevMap,
           [currentThreadId]: {
             ...prevMap[currentThreadId],
             generationStage: stage,
+            statusMessage: statusMessage,
           },
         };
       });
@@ -340,16 +349,16 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             toolRegistry,
           );
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
-            {
-              ...params,
-              messageToAppend: {
-                content: [{ type: "text", text: "tool response" }],
-                role: "tool",
-                actionType: "tool_response",
-                toolResponse: toolCallResponse,
-                component: chunk.responseMessageDto.component,
-              },
-            };
+          {
+            ...params,
+            messageToAppend: {
+              content: [{ type: "text", text: "tool response" }],
+              role: "tool",
+              actionType: "tool_response",
+              toolResponse: toolCallResponse,
+              component: chunk.responseMessageDto.component,
+            },
+          };
           updateThreadStatus(GenerationStage.STREAMING_RESPONSE);
           const toolCallResponseStream = await advanceStream(
             client,
@@ -373,18 +382,18 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           if (!finalMessage) {
             finalMessage = chunk.responseMessageDto.component?.componentName
               ? renderComponentIntoMessage(
-                  chunk.responseMessageDto,
-                  componentList,
-                )
+                chunk.responseMessageDto,
+                componentList,
+              )
               : chunk.responseMessageDto;
             addThreadMessage(finalMessage, false);
           } else {
             const previousId = finalMessage.id;
             finalMessage = chunk.responseMessageDto.component?.componentName
               ? renderComponentIntoMessage(
-                  chunk.responseMessageDto,
-                  componentList,
-                )
+                chunk.responseMessageDto,
+                componentList,
+              )
               : chunk.responseMessageDto;
             updateThreadMessage(previousId, finalMessage, false);
           }
@@ -480,17 +489,17 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           toolRegistry,
         );
         const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
-          {
-            ...params,
-            messageToAppend: {
-              ...params.messageToAppend,
-              content: [{ type: "text", text: "tool response" }],
-              role: "tool",
-              actionType: "tool_response",
-              toolResponse: toolCallResponse,
-              component: advanceResponse.responseMessageDto.component,
-            },
-          };
+        {
+          ...params,
+          messageToAppend: {
+            ...params.messageToAppend,
+            content: [{ type: "text", text: "tool response" }],
+            role: "tool",
+            actionType: "tool_response",
+            toolResponse: toolCallResponse,
+            component: advanceResponse.responseMessageDto.component,
+          },
+        };
         updateThreadStatus(GenerationStage.HYDRATING_COMPONENT);
         advanceResponse = await client.beta.threads.advanceById(
           advanceResponse.responseMessageDto.threadId,
@@ -501,9 +510,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       const finalMessage = advanceResponse.responseMessageDto.component
         ?.componentName
         ? renderComponentIntoMessage(
-            advanceResponse.responseMessageDto,
-            componentList,
-          )
+          advanceResponse.responseMessageDto,
+          componentList,
+        )
         : advanceResponse.responseMessageDto;
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
       updateThreadStatus(GenerationStage.COMPLETE);
@@ -533,6 +542,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         inputValue,
         setInputValue,
         sendThreadMessage,
+        generationStage: (currentThread?.generationStage || GenerationStage.IDLE) as GenerationStage,
+        generationStatusMessage: currentThread?.statusMessage || "",
+        isIdle: isIdleStage((currentThread?.generationStage || GenerationStage.IDLE) as GenerationStage),
       }}
     >
       {children}
