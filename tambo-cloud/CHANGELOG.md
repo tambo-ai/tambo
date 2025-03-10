@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/tambo-ai/tambo-cloud/compare/v0.16.1...v0.17.0) (2025-03-10)
+
+
+### Features
+
+* bump to @hydra-ai/react to get cached rendered components ([#464](https://github.com/tambo-ai/tambo-cloud/issues/464)) ([964be52](https://github.com/tambo-ai/tambo-cloud/commit/964be52139b1f65a3e923ba2745eacd0f9e8285d))
+
+
+### Bug Fixes
+
+* add some local state to the AQI component to demonstrate proper rerendering ([#462](https://github.com/tambo-ai/tambo-cloud/issues/462)) ([8449de9](https://github.com/tambo-ai/tambo-cloud/commit/8449de9f5a9ef0f9f2fc75d61a50fa4bfb607b82))
+
 ## [0.16.1](https://github.com/use-hydra-ai/hydra-ai-site/compare/v0.16.0...v0.16.1) (2025-03-07)
 
 
