@@ -15,7 +15,6 @@ import {
   RegisterComponentOptions,
   useTamboRegistry,
 } from "./tambo-registry-provider";
-import { useTamboThread } from "./tambo-thread-provider";
 
 export interface TamboComponentContextProps {
   registerComponent: (options: RegisterComponentOptions) => void;
@@ -39,28 +38,17 @@ export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const client = useTamboClient();
+
   const {
-    addThreadMessage,
-    updateThreadMessage,
-    switchCurrentThread,
-    thread: currentThread,
-  } = useTamboThread();
-  const {
-    componentList,
     registerComponent,
     addToolAssociation,
     registerTool,
-    componentToolAssociations,
     registerTools,
-    toolRegistry,
   } = useTamboRegistry();
-  const [generationStage, setGenerationStage] = useState<GenerationStage>(
+  const [generationStage] = useState<GenerationStage>(
     GenerationStage.IDLE,
   );
-
   const isIdle = isIdleStage(generationStage);
-
-
 
   const value = {
     client,
