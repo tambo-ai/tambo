@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.17.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.17.0...repo-v0.17.1) (2025-03-10)
+
+
+### Bug Fixes
+
+* bump body size limit ([#480](https://github.com/tambo-ai/tambo-cloud/issues/480)) ([ee7b697](https://github.com/tambo-ai/tambo-cloud/commit/ee7b6976fcf2b58ba4b9b0ec6741321b5f209778))
+* make config match manifest ([#476](https://github.com/tambo-ai/tambo-cloud/issues/476)) ([4cc4365](https://github.com/tambo-ai/tambo-cloud/commit/4cc43654841cf0ac691a94a3fe50410a7b0a5e5a))
+* nest in "packages" ([#477](https://github.com/tambo-ai/tambo-cloud/issues/477)) ([bbc1285](https://github.com/tambo-ai/tambo-cloud/commit/bbc1285e612a910bf23aead665bf00e019c6d875))
+* use new @tambo-ai/* libraries in smoketest/etc ([#481](https://github.com/tambo-ai/tambo-cloud/issues/481)) ([eead918](https://github.com/tambo-ai/tambo-cloud/commit/eead918da30e25114dce51ca559befaaeaf8c327))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 20.17.19 to 20.17.24 ([#470](https://github.com/tambo-ai/tambo-cloud/issues/470)) ([5f2af05](https://github.com/tambo-ai/tambo-cloud/commit/5f2af0529c66dda7dbec1072ee9153982375f109))
+* **deps-dev:** bump eslint-config-prettier from 10.0.1 to 10.1.1 ([#471](https://github.com/tambo-ai/tambo-cloud/issues/471)) ([6b02523](https://github.com/tambo-ai/tambo-cloud/commit/6b02523fe5131f324f6c254cf3bda6aaf2dc7088))
+* **deps-dev:** bump the eslint group across 1 directory with 3 updates ([#479](https://github.com/tambo-ai/tambo-cloud/issues/479)) ([efb9532](https://github.com/tambo-ai/tambo-cloud/commit/efb95321733b55abd63b3cac91077591cb4550f0))
+* **deps:** bump next-themes from 0.4.4 to 0.4.5 ([#469](https://github.com/tambo-ai/tambo-cloud/issues/469)) ([5e64c94](https://github.com/tambo-ai/tambo-cloud/commit/5e64c942bda3426251f86483f3345bdce67654c0))
+* **deps:** bump posthog-js from 1.225.0 to 1.230.1 ([#475](https://github.com/tambo-ai/tambo-cloud/issues/475)) ([ae32896](https://github.com/tambo-ai/tambo-cloud/commit/ae3289671c0000c2bbe9d0f9cc1689a0ec130b42))
+* **deps:** bump the trpc group with 3 updates ([#465](https://github.com/tambo-ai/tambo-cloud/issues/465)) ([3d33c56](https://github.com/tambo-ai/tambo-cloud/commit/3d33c560b19225a65af2dac763f718a355a6673f))
+
 ## [0.17.0](https://github.com/tambo-ai/tambo-cloud/compare/v0.16.1...v0.17.0) (2025-03-10)
 
 
