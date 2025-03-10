@@ -12,7 +12,7 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^20.17.19",
+    "@types/node": "^20.17.24",
     "@use-hydra-ai/eslint-config": "*",
     "@use-hydra-ai/typescript-config": "*"
   },
