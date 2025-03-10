@@ -16,12 +16,12 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          release-type: node
           # need an explicit token here, otherwise the pull request created will not
           # get other actions run on its behalf
           # https://github.com/googleapis/release-please/issues/922#issuecomment-861154425
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 
       # The following steps run only if a release was created
       - uses: actions/checkout@v4
