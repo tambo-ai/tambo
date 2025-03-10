@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Suggestion } from "@hydra-ai/react";
-import { useTamboSuggestions } from "@hydra-ai/react";
+import type { Suggestion } from "@tambo-ai/react";
+import { useTamboSuggestions } from "@tambo-ai/react";
 import { useCallback } from "react";
 
 interface MessageSuggestionsProps {

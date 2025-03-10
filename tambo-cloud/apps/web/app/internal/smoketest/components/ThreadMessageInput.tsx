@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useTamboThreadInput } from "@hydra-ai/react";
+import { useTamboThreadInput } from "@tambo-ai/react";
 import { FC } from "react";
 
 interface ThreadMessageInputProps {

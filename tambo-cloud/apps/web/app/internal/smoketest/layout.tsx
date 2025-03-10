@@ -1,7 +1,7 @@
 "use client";
 
 import { env } from "@/lib/env";
-import { TamboProvider } from "@hydra-ai/react";
+import { TamboProvider } from "@tambo-ai/react";
 import { FC, PropsWithChildren } from "react";
 
 const Layout: FC<PropsWithChildren> = ({ children }) => {

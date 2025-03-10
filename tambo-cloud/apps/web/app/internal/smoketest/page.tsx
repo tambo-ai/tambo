@@ -11,7 +11,7 @@ import {
   useTambo,
   useTamboComponentState,
   useTamboThreads,
-} from "@hydra-ai/react";
+} from "@tambo-ai/react";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { X } from "lucide-react";
 import {

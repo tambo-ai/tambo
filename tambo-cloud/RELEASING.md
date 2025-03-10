@@ -2,38 +2,38 @@ This document describes the process for releasing a new version of the various H
 
 ## Release Instructions
 
-### Hydra API Client (`@hydra-ai/client`)
+### Hydra API Client (`@tambo-ai/typescript-sdk`)
 
 The Hydra API is built in the `apps/api` directory of the main site. When the APIs are updated, a new version of the OpenAPI JSON specification will be served up at `/api-json` (e.g. https://api.hydra.sh/api-json). This means that you must do a release of the Main Site (see below) in order to update the Hydra API client. Once this is done:
 
 1. When a new version of the Hydra API is deployed to Railway, Stainless will automatically detect the changes and create a release PR in the [hydra-ai-node repository](https://github.com/use-hydra-ai/hydra-ai-node/pulls).
 2. You can wait for Stainless to notice the new API (it polls once every hour) or you can force a refresh by clicking the "Release Flow" button in Stainless Studio.
 3. A developer must review and approve the release PR.
-4. Once approved and merged, Stainless will automatically publish the new version to https://www.npmjs.com/package/@hydra-ai/client. You can watch progress at https://github.com/use-hydra-ai/hydra-ai-node/actions/workflows/publish-npm.yml
+4. Once approved and merged, Stainless will automatically publish the new version to https://www.npmjs.com/package/@tambo-ai/typescript-sdk. You can watch progress at https://github.com/use-hydra-ai/hydra-ai-node/actions/workflows/publish-npm.yml
 
-### React SDK (`@hydra-ai/react`)
+### React SDK (`@tambo-ai/react`)
 
 Once the Hydra API client is updated, the React SDK can be updated.
 
-1. After `@hydra-ai/client` is published to NPM, update the dependency in the [hydra-ai-react repository](https://github.com/use-hydra-ai/hydra-ai-react). There are two ways to do this:
+1. After `@tambo-ai/typescript-sdk` is published to NPM, update the dependency in the [hydra-ai-react repository](https://github.com/use-hydra-ai/hydra-ai-react). There are two ways to do this:
    - Kick off a full Dependabot update at https://github.com/use-hydra-ai/hydra-ai-react/settings/dependency_updates
    - Manually update the dependency by running:
      ```bash
-     npx npm-check-updates -u @hydra-ai/client
+     npx npm-check-updates -u @tambo-ai/typescript-sdk
      ```
 2. Create and merge a PR with the dependency update. You may have to fix types and tests to reflect changes in the Hydra API.
 3. The release-please action will create a release PR to bump the version.
-4. Once approved and merged, release-please will publish the new version to https://www.npmjs.com/package/@hydra-ai/react. You can watch progress at https://github.com/use-hydra-ai/hydra-ai-react/actions/workflows/release-please.yml
+4. Once approved and merged, release-please will publish the new version to https://www.npmjs.com/package/@tambo-ai/react. You can watch progress at https://github.com/use-hydra-ai/hydra-ai-react/actions/workflows/release-please.yml
 
 ### Main Site (`hydra-ai-site`)
 
 When you update either or both of the Hydra client SDKs, you must also update the dependencies in the [hydra-ai-site repository](https://github.com/use-hydra-ai/hydra-ai-site) to ensure that the smoketests are using the latest versions of the Hydra client SDKs.
 
-1. **OPTIONAL:** After both `@hydra-ai/client` and `@hydra-ai/react` are published, update the dependencies in the [hydra-ai-site repository](https://github.com/use-hydra-ai/hydra-ai-site) either:
+1. **OPTIONAL:** After both `@tambo-ai/typescript-sdk` and `@tambo-ai/react` are published, update the dependencies in the [hydra-ai-site repository](https://github.com/use-hydra-ai/hydra-ai-site) either:
    - Through Dependabot at https://github.com/use-hydra-ai/hydra-ai-site/network/updates
    - Or manually by running:
      ```bash
-     npx npm-check-updates -u @hydra-ai/client @hydra-ai/react
+     npx npm-check-updates -u @tambo-ai/typescript-sdk @tambo-ai/react
      ```
 2. Create and merge a PR with the dependency updates.
 3. The release-please action will create a release PR to bump the version.
