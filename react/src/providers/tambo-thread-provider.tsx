@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import {
   GenerationStage,
+  isIdleStage,
   TamboThreadMessage,
 } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
@@ -43,6 +44,9 @@ export interface TamboThreadContextProps {
       contextKey?: string;
     },
   ) => Promise<TamboThreadMessage>;
+  generationStage: GenerationStage;
+  generationStatusMessage: string;
+  isIdle: boolean;
 }
 
 /** This is a stub entry for when the thread is not yet created, the first time
@@ -81,6 +85,9 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   sendThreadMessage: () => {
     throw new Error("advance not implemented");
   },
+  generationStage: GenerationStage.IDLE,
+  generationStatusMessage: "",
+  isIdle: true,
 });
 
 export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
@@ -101,6 +108,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     string | undefined
   >(PLACEHOLDER_THREAD.id);
   const currentThread: TamboThread | undefined = threadMap[currentThreadId];
+
   // Use existing messages from the current thread to avoid re-generating any components
   const currentMessageCache = useMemo(() => {
     const messageCache = new Map<string, TamboThreadMessage>();
@@ -310,13 +318,14 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   };
 
   const updateThreadStatus = useCallback(
-    (stage: GenerationStage) => {
+    (stage: GenerationStage, statusMessage?: string) => {
       setThreadMap((prevMap) => {
         return {
           ...prevMap,
           [currentThreadId]: {
             ...prevMap[currentThreadId],
             generationStage: stage,
+            statusMessage: statusMessage,
           },
         };
       });
@@ -533,6 +542,13 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         inputValue,
         setInputValue,
         sendThreadMessage,
+        generationStage: (currentThread?.generationStage ??
+          GenerationStage.IDLE) as GenerationStage,
+        generationStatusMessage: currentThread?.statusMessage ?? "",
+        isIdle: isIdleStage(
+          (currentThread?.generationStage ??
+            GenerationStage.IDLE) as GenerationStage,
+        ),
       }}
     >
       {children}
