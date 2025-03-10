@@ -10,13 +10,13 @@ The main apps are in the [apps](./apps) directory:
 There are shared libraries in the [packages](./packages) directory:
 
 - [hydra-ai-server](./packages/hydra-ai-server) - A library for interacting with the LLM
-- [@use-hydra-ai/core](./packages/core) - A library for basic shared utilities/etc.
-- [@use-hydra-ai/db](./packages/db) - A library for interacting with the database. This is mostly the drizzle schema and migrations.
+- [@tambo-ai-cloud/core](./packages/core) - A library for basic shared utilities/etc.
+- [@tambo-ai-cloud/db](./packages/db) - A library for interacting with the database. This is mostly the drizzle schema and migrations.
 
 There also are some basic supporting packages only used during development:
 
-- [@use-hydra-ai/eslint-config](./packages/eslint-config) - All the eslint config files for the project, with specific configs for NextJS apps and libraries
-- [@use-hydra-ai/typescript-config](./packages/typescript-config) - All the typescript config files for the project, with specific configs for NextJS apps and libraries
+- [@tambo-ai-cloud/eslint-config](./packages/eslint-config) - All the eslint config files for the project, with specific configs for NextJS apps and libraries
+- [@tambo-ai-cloud/typescript-config](./packages/typescript-config) - All the typescript config files for the project, with specific configs for NextJS apps and libraries
 
 ## Quick Start
 

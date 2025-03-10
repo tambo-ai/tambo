@@ -1,5 +1,5 @@
 {
-  "name": "@use-hydra-ai/core",
+  "name": "@tambo-ai-cloud/core",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,8 +13,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.24",
-    "@use-hydra-ai/eslint-config": "*",
-    "@use-hydra-ai/typescript-config": "*"
+    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai-cloud/typescript-config": "*"
   },
   "volta": {
     "extends": "../../package.json"

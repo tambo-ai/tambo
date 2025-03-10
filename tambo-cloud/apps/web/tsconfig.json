@@ -1,5 +1,5 @@
 {
-  "extends": "@use-hydra-ai/typescript-config/nextjs.json",
+  "extends": "@tambo-ai-cloud/typescript-config/nextjs.json",
   "compilerOptions": {
     "plugins": [
       {
@@ -8,7 +8,7 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@use-hydra-ai/hydra-ai-server": ["../../packages/hydra-ai-server/src"]
+      "@tambo-ai-cloud/hydra-ai-server": ["../../packages/hydra-ai-server/src"]
     }
   },
   "include": [

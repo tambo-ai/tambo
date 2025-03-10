@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { HydraTransaction } from '@use-hydra-ai/db';
-import { operations } from '@use-hydra-ai/db';
+import type { HydraTransaction } from '@tambo-ai-cloud/db';
+import { operations } from '@tambo-ai-cloud/db';
 import { TRANSACTION } from 'src/common/middleware/db-transaction-middleware';
 import { APIKeyResponse } from './dto/api-key-response.dto';
 import { ProjectResponse } from './dto/project-response.dto';

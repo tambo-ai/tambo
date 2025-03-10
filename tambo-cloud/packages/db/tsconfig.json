@@ -1,12 +1,12 @@
 {
-  "extends": "@use-hydra-ai/typescript-config/base.json",
+  "extends": "@tambo-ai-cloud/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
-      "@use-hydra-ai/hydra-ai-server": ["../hydra-ai-server/src"],
-      "@use-hydra-ai/core": ["../core/src"]
+      "@tambo-ai-cloud/hydra-ai-server": ["../hydra-ai-server/src"],
+      "@tambo-ai-cloud/core": ["../core/src"]
     }
   },
   "include": ["src", "drizzle.config.ts"]

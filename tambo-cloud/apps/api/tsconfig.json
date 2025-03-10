@@ -1,5 +1,5 @@
 {
-  "extends": "@use-hydra-ai/typescript-config/base",
+  "extends": "@tambo-ai-cloud/typescript-config/base",
   "compilerOptions": {
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -11,9 +11,9 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {
-      "@use-hydra-ai/hydra-ai-server": ["../../packages/hydra-ai-server/src"],
-      "@use-hydra-ai/core": ["../../packages/core/src"],
-      "@use-hydra-ai/db": ["../../packages/db/src"]
+      "@tambo-ai-cloud/hydra-ai-server": ["../../packages/hydra-ai-server/src"],
+      "@tambo-ai-cloud/core": ["../../packages/core/src"],
+      "@tambo-ai-cloud/db": ["../../packages/db/src"]
     }
   }
 }

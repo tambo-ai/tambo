@@ -1,4 +1,4 @@
-import { ThreadMessage } from "@use-hydra-ai/core";
+import { ThreadMessage } from "@tambo-ai-cloud/core";
 import { ChatMessage } from "./chat-message";
 import { AvailableComponent, AvailableComponents } from "./component-metadata";
 

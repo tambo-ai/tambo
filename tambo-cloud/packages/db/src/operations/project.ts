@@ -3,7 +3,7 @@ import {
   encryptProviderKey,
   hashKey,
   hideApiKey,
-} from "@use-hydra-ai/core";
+} from "@tambo-ai-cloud/core";
 import { createHash, randomBytes } from "crypto";
 import { and, eq } from "drizzle-orm";
 import * as schema from "../schema";

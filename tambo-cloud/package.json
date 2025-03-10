@@ -1,5 +1,5 @@
 {
-  "name": "@use-hydra-ai/repo",
+  "name": "@tambo-ai-cloud/repo",
   "private": true,
   "scripts": {
     "build": "turbo build",

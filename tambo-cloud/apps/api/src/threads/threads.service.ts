@@ -8,15 +8,15 @@ import {
   GenerationStage,
   MessageRole,
   ThreadMessage,
-} from '@use-hydra-ai/core';
-import type { HydraDatabase } from '@use-hydra-ai/db';
-import { operations, schema } from '@use-hydra-ai/db';
-import type { DBSuggestion } from '@use-hydra-ai/db/src/schema';
+} from '@tambo-ai-cloud/core';
+import type { HydraDatabase } from '@tambo-ai-cloud/db';
+import { operations, schema } from '@tambo-ai-cloud/db';
+import type { DBSuggestion } from '@tambo-ai-cloud/db/src/schema';
 import {
   ChatMessage,
   generateChainId,
   HydraBackend,
-} from '@use-hydra-ai/hydra-ai-server';
+} from '@tambo-ai-cloud/hydra-ai-server';
 import { eq } from 'drizzle-orm';
 import { decryptProviderKey } from 'src/common/key.utils';
 import { TRANSACTION } from 'src/common/middleware/db-transaction-middleware';

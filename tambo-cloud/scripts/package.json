@@ -1,5 +1,5 @@
 {
-  "name": "@use-hydra-ai/scripts",
+  "name": "@tambo-ai-cloud/scripts",
   "private": true,
   "scripts": {
     "test:suggestions": "tsx test-suggestions.ts"

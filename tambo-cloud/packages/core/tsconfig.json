@@ -1,5 +1,5 @@
 {
-  "extends": "@use-hydra-ai/typescript-config/base.json",
+  "extends": "@tambo-ai-cloud/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "module": "ESNext",

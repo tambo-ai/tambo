@@ -1,5 +1,5 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { SuggestedAction, ToolCallRequest } from '@use-hydra-ai/core';
+import { SuggestedAction, ToolCallRequest } from '@tambo-ai-cloud/core';
 import { ThreadMessageDto } from '../../threads/dto/message.dto';
 
 /** Legacy - for v1 of generate/hydrate */

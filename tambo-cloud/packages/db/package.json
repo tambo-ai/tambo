@@ -1,5 +1,5 @@
 {
-  "name": "@use-hydra-ai/db",
+  "name": "@tambo-ai-cloud/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,16 +16,16 @@
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
-    "@use-hydra-ai/eslint-config": "*",
-    "@use-hydra-ai/hydra-ai-server": "*",
-    "@use-hydra-ai/typescript-config": "*",
+    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai-cloud/hydra-ai-server": "*",
+    "@tambo-ai-cloud/typescript-config": "*",
     "drizzle-kit": "^0.30.5"
   },
   "volta": {
     "extends": "../../package.json"
   },
   "dependencies": {
-    "@use-hydra-ai/core": "*",
+    "@tambo-ai-cloud/core": "*",
     "drizzle-orm": "^0.40.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.3",

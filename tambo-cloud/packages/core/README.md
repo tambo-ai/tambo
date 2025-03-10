@@ -1,1 +1,1 @@
-# `@use-hydra-ai/core`
+# `@tambo-ai-cloud/core`

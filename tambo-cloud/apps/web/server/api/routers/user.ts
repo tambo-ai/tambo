@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { schema } from "@use-hydra-ai/db";
+import { schema } from "@tambo-ai-cloud/db";
 export const userRouter = createTRPCRouter({
   getUser: protectedProcedure.query(async ({ ctx }) => {
     const user = ctx.session.user;

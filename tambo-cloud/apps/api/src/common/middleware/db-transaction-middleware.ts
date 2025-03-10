@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { getDb, HydraDb, HydraTransaction, schema } from '@use-hydra-ai/db';
+import { getDb, HydraDb, HydraTransaction, schema } from '@tambo-ai-cloud/db';
 import { sql } from 'drizzle-orm';
 import { NextFunction, Response } from 'express';
 import { IncomingMessage } from 'http';

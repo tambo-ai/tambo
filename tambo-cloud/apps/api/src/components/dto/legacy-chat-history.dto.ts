@@ -1,5 +1,5 @@
 import { ApiSchema } from '@nestjs/swagger';
-import { ChatMessage } from '@use-hydra-ai/hydra-ai-server';
+import { ChatMessage } from '@tambo-ai-cloud/hydra-ai-server';
 import { IsEnum } from 'class-validator';
 
 export enum ChatMessageSender {

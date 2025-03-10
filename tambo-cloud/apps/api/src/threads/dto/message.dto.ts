@@ -1,5 +1,5 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { ActionType, ContentPartType, MessageRole } from '@use-hydra-ai/core';
+import { ActionType, ContentPartType, MessageRole } from '@tambo-ai-cloud/core';
 import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
 import { type OpenAI } from 'openai';
 import {

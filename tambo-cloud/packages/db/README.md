@@ -1,4 +1,4 @@
-# `@use-hydra-ai/db`
+# `@tambo-ai-cloud/db`
 
 ## Migrations
 

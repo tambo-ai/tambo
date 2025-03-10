@@ -1,5 +1,5 @@
 import { ApiSchema } from '@nestjs/swagger';
-import { GenerationStage } from '@use-hydra-ai/core';
+import { GenerationStage } from '@tambo-ai-cloud/core';
 import { AvailableComponentDto } from '../../components/dto/generate-component.dto';
 import { MessageRequest, ThreadMessageDto } from './message.dto';
 

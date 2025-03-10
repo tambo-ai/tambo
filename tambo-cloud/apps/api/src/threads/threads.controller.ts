@@ -20,7 +20,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
-import { GenerationStage } from '@use-hydra-ai/core';
+import { GenerationStage } from '@tambo-ai-cloud/core';
 import { ApiKeyGuard } from '../components/guards/apikey.guard';
 import {
   ProjectAccessOwnGuard,

@@ -1,10 +1,13 @@
-import type { ComponentDecisionV2, ToolCallRequest } from "@use-hydra-ai/core";
+import type {
+  ComponentDecisionV2,
+  ToolCallRequest,
+} from "@tambo-ai-cloud/core";
 import {
   ActionType,
   ChatCompletionContentPart,
   GenerationStage,
   MessageRole,
-} from "@use-hydra-ai/core";
+} from "@tambo-ai-cloud/core";
 import { relations, sql } from "drizzle-orm";
 import { index, pgPolicy, pgRole, pgTable } from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";

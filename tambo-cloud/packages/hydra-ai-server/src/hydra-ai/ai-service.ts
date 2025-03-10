@@ -1,4 +1,4 @@
-import { ComponentDecision } from "@use-hydra-ai/core";
+import { ComponentDecision } from "@tambo-ai-cloud/core";
 import {
   AvailableComponent,
   ChatMessage,

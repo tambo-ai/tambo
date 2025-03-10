@@ -1,4 +1,4 @@
-import { ToolCallRequest } from "@use-hydra-ai/core";
+import { ToolCallRequest } from "@tambo-ai-cloud/core";
 
 export interface OpenAIResponse {
   message: string;

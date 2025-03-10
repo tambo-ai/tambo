@@ -1,6 +1,6 @@
 import { objectTemplate } from "@libretto/openai";
 import { type ChatCompletionMessageParam } from "@libretto/token.js";
-import { ComponentDecision } from "@use-hydra-ai/core";
+import { ComponentDecision } from "@tambo-ai-cloud/core";
 import { InputContext } from "../../model/input-context";
 import { OpenAIResponse } from "../../model/openai-response";
 import { LLMClient } from "../llm/llm-client";

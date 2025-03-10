@@ -1,4 +1,4 @@
-import { GenerationStage } from "@use-hydra-ai/core";
+import { GenerationStage } from "@tambo-ai-cloud/core";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";

@@ -1,5 +1,5 @@
 {
-  "extends": "@use-hydra-ai/typescript-config/base",
+  "extends": "@tambo-ai-cloud/typescript-config/base",
   "compilerOptions": {
     "rootDir": "./src",
     "declaration": true,

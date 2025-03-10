@@ -4,7 +4,7 @@ import {
   AvailableComponents,
   ComponentContextToolMetadata,
   ComponentPropsMetadata,
-} from '@use-hydra-ai/hydra-ai-server';
+} from '@tambo-ai-cloud/hydra-ai-server';
 import { ArrayMinSize } from 'class-validator';
 import { JSONSchema7 } from 'json-schema';
 import { ChatCompletionContentPartDto } from '../../threads/dto/message.dto';

@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { operations } from "@use-hydra-ai/db";
+import { operations } from "@tambo-ai-cloud/db";
 import { z } from "zod";
 
 export const threadRouter = createTRPCRouter({

@@ -5,7 +5,7 @@ import {
   StreamCompletionResponse,
   TokenJS,
 } from "@libretto/token.js";
-import { ToolCallRequest } from "@use-hydra-ai/core";
+import { ToolCallRequest } from "@tambo-ai-cloud/core";
 import { ChatCompletion } from "openai/resources/chat/completions";
 import { OpenAIResponse } from "../../model/openai-response";
 import { Provider } from "../../model/providers";

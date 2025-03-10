@@ -91,9 +91,9 @@ const config: Config = {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
-    // '^@use-hydra-ai/hydra-ai-server$':
+    // '^@tambo-ai-cloud/hydra-ai-server$':
     //   '<rootDir>/../../packages/hydra-ai-server/src',
-    '^@use-hydra-ai/(.*)$': '<rootDir>/../../../packages/$1/src',
+    '^@tambo-ai-cloud/(.*)$': '<rootDir>/../../../packages/$1/src',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

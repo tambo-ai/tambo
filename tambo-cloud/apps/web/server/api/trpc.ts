@@ -13,7 +13,7 @@ import { ZodError } from "zod";
 
 import { env } from "@/lib/env";
 import { Session, SupabaseClient } from "@supabase/supabase-js";
-import { getDb, HydraDb } from "@use-hydra-ai/db";
+import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import { getServerSupabaseclient } from "../supabase";

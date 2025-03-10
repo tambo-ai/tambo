@@ -1,7 +1,7 @@
 import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { hashKey } from "@use-hydra-ai/core";
-import { operations } from "@use-hydra-ai/db";
+import { hashKey } from "@tambo-ai-cloud/core";
+import { operations } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 

@@ -1,4 +1,4 @@
-import { ThreadMessage } from "@use-hydra-ai/core";
+import { ThreadMessage } from "@tambo-ai-cloud/core";
 import { InputContextAsArray } from "../../model/input-context";
 import { LLMClient } from "../llm/llm-client";
 import {

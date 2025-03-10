@@ -16,12 +16,12 @@ import {
   GenerationStage,
   MessageRole,
   ThreadMessage,
-} from '@use-hydra-ai/core';
+} from '@tambo-ai-cloud/core';
 import {
   ChatMessage,
   HydraBackend,
   generateChainId,
-} from '@use-hydra-ai/hydra-ai-server';
+} from '@tambo-ai-cloud/hydra-ai-server';
 import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';

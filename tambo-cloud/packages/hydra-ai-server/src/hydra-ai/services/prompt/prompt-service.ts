@@ -1,4 +1,4 @@
-import { ThreadMessage } from "@use-hydra-ai/core";
+import { ThreadMessage } from "@tambo-ai-cloud/core";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {

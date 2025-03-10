@@ -1,4 +1,4 @@
-import config from "@use-hydra-ai/eslint-config/base";
+import config from "@tambo-ai-cloud/eslint-config/base";
 
 export default [
   ...config,
