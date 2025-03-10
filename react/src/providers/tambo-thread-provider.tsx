@@ -410,6 +410,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       componentList,
       addThreadMessage,
       updateThreadMessage,
+      updateThreadStatus,
     ],
   );
 
@@ -516,6 +517,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       switchCurrentThread,
       addThreadMessage,
       client,
+      updateThreadStatus,
       handleAdvanceStream,
     ],
   );
