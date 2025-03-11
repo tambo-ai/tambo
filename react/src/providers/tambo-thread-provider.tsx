@@ -104,9 +104,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   const [currentThreadId, setCurrentThreadId] = useState<string>(
     PLACEHOLDER_THREAD.id,
   );
-  const [unresolvedThreadId, setUnresolvedThreadId] = useState<
-    string | undefined
-  >(PLACEHOLDER_THREAD.id);
   const currentThread: TamboThread | undefined = threadMap[currentThreadId];
 
   // Use existing messages from the current thread to avoid re-generating any components
@@ -270,40 +267,24 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     [currentThread],
   );
 
-  useEffect(() => {
-    if (unresolvedThreadId && currentThreadId !== unresolvedThreadId) {
-      setThreadMap((prevMap) => {
-        const unresolvedThread = prevMap[unresolvedThreadId];
-        const currentThread = prevMap[currentThreadId];
-        return {
-          ...prevMap,
-          [unresolvedThreadId]: PLACEHOLDER_THREAD,
-          [currentThreadId]: {
-            ...currentThread,
-            id: currentThreadId,
-            messages: [...unresolvedThread.messages, ...currentThread.messages],
-          },
-        };
-      });
-      setUnresolvedThreadId(undefined);
-    }
-  }, [currentThreadId, unresolvedThreadId]);
-
   const switchCurrentThread = useCallback(
     async (threadId: string) => {
       if (threadId === PLACEHOLDER_THREAD.id) {
         console.warn("Switching to placeholder thread, may be a bug");
         return;
       }
+
       setCurrentThreadId(threadId);
       if (!threadMap[threadId]) {
-        setThreadMap((prevMap) => ({
-          ...prevMap,
-          [threadId]: {
-            ...PLACEHOLDER_THREAD,
-            id: threadId,
-          },
-        }));
+        setThreadMap((prevMap) => {
+          return {
+            ...prevMap,
+            [threadId]: {
+              ...prevMap[PLACEHOLDER_THREAD.id],
+              id: threadId,
+            },
+          };
+        });
       }
       await fetchThread(threadId);
     },
