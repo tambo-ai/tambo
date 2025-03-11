@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.2...showcase-v0.1.3) (2025-03-11)
+
+
+### Bug Fixes
+
+* add individual release-please manifests as a test ([#106](https://github.com/tambo-ai/tambo/issues/106)) ([60edfde](https://github.com/tambo-ai/tambo/commit/60edfde4e039fba60003ea8fc6185cd4cb44141c))
+* get rid of individual manifests, they do not work ([#108](https://github.com/tambo-ai/tambo/issues/108)) ([83bce6e](https://github.com/tambo-ai/tambo/commit/83bce6e4b66267375c018ee7ac82e40d6784141f))
+* remove excess eslint stuff from showcase ([#104](https://github.com/tambo-ai/tambo/issues/104)) ([c86ea37](https://github.com/tambo-ai/tambo/commit/c86ea37ef9d76fdc06f0be3b9aa755d38cce186e))
+
 ## [0.1.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.1...showcase-v0.1.2) (2025-03-11)
 
 
