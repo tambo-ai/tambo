@@ -38,10 +38,10 @@ const HydraLineGraph: React.FC<HydraLineGraphProps> = ({ xValues, series }) => {
 
   const convertSeriesToLineChartData = (
     xValues: string[],
-    series: { name: string; yValues: number[] }[]
+    series: { name: string; yValues: number[] }[],
   ) => {
     return xValues.map((xValue, index) => {
-      const entry: any = { xValue };
+      const entry: Record<string, unknown> = { xValue };
       series.forEach((s) => {
         entry[s.name] = s.yValues[index];
       });

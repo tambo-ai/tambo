@@ -40,5 +40,5 @@ const runToolChoice = async (
   const parameterValues =
     toolCallRequest.parameters?.map((param) => param.parameterValue) ?? [];
 
-  return tool.getComponentContext(...parameterValues);
+  return await tool.getComponentContext(...parameterValues);
 };

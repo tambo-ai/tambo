@@ -64,7 +64,7 @@ If you don't want to self-host hydra on your backend, use the hosted Hydra API.
 
    export const getComponentChoice = async (
      messageHistory: ChatMessage[],
-     availableComponents: AvailableComponents
+     availableComponents: AvailableComponents,
    ): Promise<ComponentDecision> => {
      try {
        const response = await fetch(`${BASE_URL}/generate`, {
@@ -93,7 +93,7 @@ If you don't want to self-host hydra on your backend, use the hosted Hydra API.
    export const hydrateComponent = async (
      messageHistory: ChatMessage[],
      component: AvailableComponent,
-     toolResponse: any
+     toolResponse: any,
    ): Promise<ComponentChoice> => {
      try {
        const response = await fetch(`${BASE_URL}/hydrate`, {

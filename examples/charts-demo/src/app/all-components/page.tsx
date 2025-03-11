@@ -24,10 +24,10 @@ export default function AllComponentsPage() {
   };
 
   const pieChartData = transactionsToPieChartData(
-    sampleTransactions.slice(3, 8)
+    sampleTransactions.slice(3, 8),
   );
   const lineGraphData = transactionsToLineGraphData(
-    sampleTransactions.filter((t) => t.type === "expense")
+    sampleTransactions.filter((t) => t.type === "expense"),
   );
 
   return (

@@ -9,6 +9,6 @@ export const getDefaultContextAdditions = (): string[] => {
 export const updateMessageWithContextAdditions = (message: string): string => {
   const contextAdditions = getDefaultContextAdditions();
   return `${message}\n\n<System>This is additional information you can use to make a decision. This data is not provided by the user, but by the internal system: \n${contextAdditions.join(
-    "\n"
+    "\n",
   )}</System>`;
 };

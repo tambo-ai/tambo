@@ -8,7 +8,9 @@
   --background-end-rgb: 255, 255, 255;
 }
 
-html, body, main {
+html,
+body,
+main {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -17,7 +19,7 @@ html, body, main {
 body {
   /* color: rgb(var(--foreground-rgb)); */
   background: #121212;
-  color: #FFF7B2;
+  color: #fff7b2;
 }
 
 a {
@@ -29,12 +31,12 @@ a:hover {
 }
 
 .submit-button {
-    width: 90%;
-    height: 40px;
-    border-radius: 5px;
-    border: none;
-    background-color: #A4C1AE;
-    color: white;
+  width: 90%;
+  height: 40px;
+  border-radius: 5px;
+  border: none;
+  background-color: #a4c1ae;
+  color: white;
 }
 
 .button {
@@ -45,30 +47,30 @@ a:hover {
 }
 
 .floating-element {
-  box-shadow: 0 2px 5px 0 rgba(0,0,0,0.15);
-  transition: box-shadow .2s ease-in-out;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.2s ease-in-out;
 }
 
-.floating-element:focus{
-   box-shadow: 0 5px 9px 0 rgba(0,0,0,0.1);
-  transition: box-shadow .2s ease-in-out; 
+.floating-element:focus {
+  box-shadow: 0 5px 9px 0 rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease-in-out;
 }
 
 .general-input {
-    margin: 10px;
-    height: 40px;
-    width: 90%;
-    border-radius: 5px;
-    border: none;
-    background: #ffffff;
-    padding:20px;
-    color: rgb(31, 31, 31);
-    box-sizing: border-box;
+  margin: 10px;
+  height: 40px;
+  width: 90%;
+  border-radius: 5px;
+  border: none;
+  background: #ffffff;
+  padding: 20px;
+  color: rgb(31, 31, 31);
+  box-sizing: border-box;
 }
 
 .general-input:focus {
-    border: 1px solid black;
-    outline: none;
+  border: 1px solid black;
+  outline: none;
 }
 
 .elipses-overflow {
@@ -78,7 +80,7 @@ a:hover {
 }
 
 .floating-solid {
-  box-shadow: 2px 2px 0px 0px rgb(20, 20, 20); 
+  box-shadow: 2px 2px 0px 0px rgb(20, 20, 20);
 }
 
 .context-menu-item {
@@ -100,6 +102,6 @@ a:hover {
 .error-message {
   color: #c34a4a;
 }
- .no-scroll {
+.no-scroll {
   overflow: hidden;
 }

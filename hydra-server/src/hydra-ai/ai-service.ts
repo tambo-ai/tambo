@@ -21,12 +21,12 @@ const schema = z.object({
     .object({})
     .passthrough()
     .describe(
-      "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)"
+      "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)",
     ),
   message: z
     .string()
     .describe(
-      "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does."
+      "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does.",
     ),
   reasoning: z.string().describe("The reasoning behind the decision"),
 });
@@ -52,7 +52,7 @@ export default class AIService {
     tokenJSKey: string,
     model: string = "gpt-4o",
     provider: SupportedProvider = "openai",
-    systemInstructions: string = defaultSystemInstructions
+    systemInstructions: string = defaultSystemInstructions,
   ) {
     this.client = new TokenJS({
       apiKey: tokenJSKey,
@@ -63,7 +63,7 @@ export default class AIService {
   }
 
   chooseComponent = async (
-    context: InputContext
+    context: InputContext,
   ): Promise<ComponentDecision> => {
     const componentNames = Object.keys(context.availableComponents);
 
@@ -89,12 +89,12 @@ Finally, if you decide that a component should be generated, you will output the
     ]);
 
     const shouldGenerate = decisionResponse.message.match(
-      /<decision>(.*?)<\/decision>/
+      /<decision>(.*?)<\/decision>/,
     )?.[1];
 
     if (shouldGenerate === "false") {
       const reasoning = decisionResponse.message.match(
-        /<reasoning>(.*?)<\/reasoning>/
+        /<reasoning>(.*?)<\/reasoning>/,
       )?.[1];
 
       const messagePrompt = `You are an AI assistant that interacts with users and helps them perform tasks. You have determined that you cannot generate any components to help the user with their latest query for the following reason:
@@ -120,7 +120,7 @@ This response should be short and concise.`;
       };
     } else if (shouldGenerate === "true") {
       const componentName = decisionResponse.message.match(
-        /<component>(.*?)<\/component>/
+        /<component>(.*?)<\/component>/,
       )?.[1];
 
       if (!componentName) {
@@ -133,7 +133,7 @@ This response should be short and concise.`;
         throw new Error(`Component ${componentName} not found`);
       }
 
-      return this.hydrateComponent(context.messageHistory, component);
+      return await this.hydrateComponent(context.messageHistory, component);
     } else {
       // TODO: Handle this case. Maybe repeat the decision prompt.
       throw new Error("Invalid decision");
@@ -141,7 +141,7 @@ This response should be short and concise.`;
   };
 
   chatHistoryToChatCompletionParam(
-    messageHistory: ChatMessage[]
+    messageHistory: ChatMessage[],
   ): ChatCompletionMessageParam[] {
     return messageHistory.map((message) => ({
       role: message.sender == "user" ? "user" : "system",
@@ -152,7 +152,7 @@ This response should be short and concise.`;
   async hydrateComponent(
     messageHistory: ChatMessage[],
     component: AvailableComponent,
-    toolResponse?: any
+    toolResponse?: unknown,
   ): Promise<ComponentDecision> {
     const generateComponentPrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
 To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
@@ -161,7 +161,7 @@ Use the conversation history and other provided context to determine what props 
 ${
   toolResponse
     ? `You have received a response from a tool. Use this data to help determine what props to pass in: ${JSON.stringify(
-        toolResponse
+        toolResponse,
       )}`
     : `You can also use any of the provided tools to fetch data needed to pass into the component.`
 }
@@ -183,7 +183,7 @@ ${this.generateZodTypePrompt(schema)}`;
           role: "user",
           content: `<componentName>${component.name}</componentName>
           <componentDescription>${JSON.stringify(
-            component.description
+            component.description,
           )}</componentDescription>
           <expectedProps>${JSON.stringify(component.props)}</expectedProps>
           ${
@@ -193,7 +193,7 @@ ${this.generateZodTypePrompt(schema)}`;
         },
       ],
       tools,
-      true
+      true,
     );
 
     const componentDecision: ComponentDecision = {
@@ -206,7 +206,7 @@ ${this.generateZodTypePrompt(schema)}`;
     if (!componentDecision.toolCallRequest) {
       const parsedData = await this.parseAndReturnData(
         schema,
-        generateComponentResponse.message
+        generateComponentResponse.message,
       );
 
       componentDecision.componentName = parsedData.componentName;
@@ -220,7 +220,7 @@ ${this.generateZodTypePrompt(schema)}`;
   async callTokenJS(
     messages: ChatCompletionMessageParam[],
     tools?: ChatCompletionTool[],
-    jsonMode: boolean = false
+    jsonMode: boolean = false,
   ): Promise<OpenAIResponse> {
     let componentTools = tools;
     if (tools?.length === 0) {
@@ -245,7 +245,7 @@ ${this.generateZodTypePrompt(schema)}`;
       response.choices[0].finish_reason === "tool_calls"
     ) {
       openAIResponse.toolCallRequest = this.toolCallRequestFromTokenJSResponse(
-        response as ChatCompletion
+        response as ChatCompletion,
       );
     }
 
@@ -254,7 +254,7 @@ ${this.generateZodTypePrompt(schema)}`;
 
   async parseAndReturnData<T extends z.ZodTypeAny>(
     schema: T,
-    text: string | object
+    text: string | object,
   ): Promise<z.infer<T>> {
     try {
       let json;
@@ -270,18 +270,18 @@ ${this.generateZodTypePrompt(schema)}`;
       console.error(
         `Failed to parse. Text: "${
           typeof text === "string" ? text : JSON.stringify(text)
-        }". Error: ${e}`
+        }". Error: ${e}`,
       );
       throw new Error(
         `Failed to parse. Text: "${
           typeof text === "string" ? text : JSON.stringify(text)
-        }". Error: ${e}`
+        }". Error: ${e}`,
       );
     }
   }
 
   openAIToolFromMetadata(
-    toolsMetadata: ComponentContextToolMetadata[]
+    toolsMetadata: ComponentContextToolMetadata[],
   ): ChatCompletionTool[] {
     const tools: ChatCompletionTool[] = toolsMetadata.map((tool) => ({
       type: "function",
@@ -312,7 +312,7 @@ ${this.generateZodTypePrompt(schema)}`;
                 } else {
                   return [parameter.name, { type: parameter.type }];
                 }
-              })
+              }),
             ),
           },
           required: tool.parameters
@@ -327,13 +327,13 @@ ${this.generateZodTypePrompt(schema)}`;
   }
 
   toolCallRequestFromTokenJSResponse = (
-    response: ChatCompletion
+    response: ChatCompletion,
   ): ToolCallRequest | undefined => {
     if (!response.choices[0].message.tool_calls) {
       throw new Error("No tool calls found in response");
     }
     const toolArgs = JSON.parse(
-      response.choices[0].message.tool_calls[0].function.arguments
+      response.choices[0].message.tool_calls[0].function.arguments,
     );
 
     return {
@@ -347,7 +347,7 @@ ${this.generateZodTypePrompt(schema)}`;
     };
   };
 
-  generateZodTypePrompt(schema: z.ZodSchema<any>): string {
+  generateZodTypePrompt(schema: z.ZodSchema<unknown>): string {
     return `
       Return a JSON object that matches the given Zod schema.
       If a field is Optional and there is no input don't include in the JSON response.
@@ -356,7 +356,7 @@ ${this.generateZodTypePrompt(schema)}`;
     `;
   }
 
-  generateFormatInstructions(schema: any): string {
+  generateFormatInstructions(schema: z.ZodSchema<unknown>): string {
     return `You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
 
     "JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.

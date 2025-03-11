@@ -5,10 +5,10 @@ export {
 } from "./tambo-component-provider";
 export { TamboContext, TamboProvider, useTambo } from "./tambo-provider";
 export {
-  RegisterComponentOptions,
-  TamboRegistryContext,
   TamboRegistryProvider,
   useTamboRegistry,
+  type RegisterComponentOptions,
+  type TamboRegistryContext,
 } from "./tambo-registry-provider";
 export {
   TamboThreadContext,

@@ -44,7 +44,7 @@ hydra.registerComponent(
   {
     profiles: "{id: string, name: string, imageUrl: string, about: string}[]",
   },
-  getProfiles
+  getProfiles,
 );
 
 hydra.registerComponent("SendMessageList", SendMessageList, {
@@ -58,7 +58,7 @@ hydra.registerComponent(
     discussions:
       "{id: string, title: string, description: string, createdDateIso: string, messages: {id: string, discussionId: string, from: string, message: string, createdDateIso: string}[]}[]",
   },
-  getDiscussions
+  getDiscussions,
 );
 
 export default hydra;

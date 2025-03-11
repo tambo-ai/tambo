@@ -1,6 +1,6 @@
-import * as React from "react"
-import { cva, VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cva, VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 const inputFieldsVariants = cva(
   "w-full rounded-lg transition-all duration-200",
@@ -20,29 +20,30 @@ const inputFieldsVariants = cva(
       size: {
         default: "[&_input]:p-2",
         sm: "[&_input]:p-1 [&_input]:text-sm",
-        lg: "[&_input]:p-3 [&_input]:text-lg"
-      }
+        lg: "[&_input]:p-3 [&_input]:text-lg",
+      },
     },
     defaultVariants: {
       variant: "default",
-      size: "default"
-    }
-  }
-)
+      size: "default",
+    },
+  },
+);
 
 export interface Field {
-  id: string
-  type: 'text' | 'number' | 'email' | 'password'
-  label: string
-  placeholder?: string
-  value: string
-  onChange: (value: string) => void
-  required?: boolean
+  id: string;
+  type: "text" | "number" | "email" | "password";
+  label: string;
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  required?: boolean;
 }
 
-export interface InputFieldsProps extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof inputFieldsVariants> {
-  fields: Field[]
+export interface InputFieldsProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof inputFieldsVariants> {
+  fields: Field[];
 }
 
 const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
@@ -55,7 +56,10 @@ const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
       >
         {fields.map((field) => (
           <div key={field.id} className="mb-4">
-            <label className="block text-sm font-medium mb-1" htmlFor={field.id}>
+            <label
+              className="block text-sm font-medium mb-1"
+              htmlFor={field.id}
+            >
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
@@ -72,9 +76,9 @@ const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
           </div>
         ))}
       </div>
-    )
-  }
-)
-InputFields.displayName = "InputFields"
+    );
+  },
+);
+InputFields.displayName = "InputFields";
 
-export { InputFields, inputFieldsVariants } 
+export { InputFields, inputFieldsVariants };

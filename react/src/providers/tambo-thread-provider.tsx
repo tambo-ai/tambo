@@ -365,7 +365,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             toolCallResponseParams,
             chunk.responseMessageDto.threadId,
           );
-          return handleAdvanceStream(
+          return await handleAdvanceStream(
             toolCallResponseStream,
             toolCallResponseParams,
           );
@@ -475,7 +475,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             ? undefined
             : currentThreadId,
         );
-        return handleAdvanceStream(advanceStreamResponse, params);
+        return await handleAdvanceStream(advanceStreamResponse, params);
       }
       let advanceResponse = await (currentThreadId === PLACEHOLDER_THREAD.id
         ? client.beta.threads.advance(params)

@@ -11,8 +11,8 @@ export function Navbar() {
               <Link href="/" className="text-3xl font-bold">
                 tambo
               </Link>
-              <Link 
-                href="/docs" 
+              <Link
+                href="/docs"
                 className="text-md text-muted-foreground hover:text-foreground transition-colors mt-1"
               >
                 Docs
@@ -26,5 +26,5 @@ export function Navbar() {
         </div>
       </div>
     </nav>
-  )
-} 
+  );
+}

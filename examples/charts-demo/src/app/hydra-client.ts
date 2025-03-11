@@ -11,7 +11,7 @@ hydra.registerComponent(
   {
     data: '{ name: "string", value: "number" }[]',
   },
-  getTransactions
+  getTransactions,
 );
 
 hydra.registerComponent(
@@ -21,7 +21,7 @@ hydra.registerComponent(
     xValues: "string[]",
     series: "{ name: string; yValues: number[] }[]",
   },
-  getTransactions
+  getTransactions,
 );
 
 export default hydra;

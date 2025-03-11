@@ -1,81 +1,96 @@
-import * as React from "react"
-import { cva, VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cva, VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
-const formVariants = cva(
-  "w-full rounded-lg transition-all duration-200",
-  {
-    variants: {
-      variant: {
-        default: "bg-white dark:bg-zinc-900",
-        solid: [
-          "shadow-lg shadow-zinc-900/10 dark:shadow-zinc-900/20",
-          "bg-zinc-50 dark:bg-zinc-900",
-        ].join(" "),
-        bordered: [
-          "border-2",
-          "border-zinc-200/40 dark:border-zinc-700/40",
-        ].join(" "),
-      },
-      layout: {
-        default: "space-y-4",
-        compact: "space-y-2",
-        relaxed: "space-y-6"
-      }
+const formVariants = cva("w-full rounded-lg transition-all duration-200", {
+  variants: {
+    variant: {
+      default: "bg-white dark:bg-zinc-900",
+      solid: [
+        "shadow-lg shadow-zinc-900/10 dark:shadow-zinc-900/20",
+        "bg-zinc-50 dark:bg-zinc-900",
+      ].join(" "),
+      bordered: ["border-2", "border-zinc-200/40 dark:border-zinc-700/40"].join(
+        " ",
+      ),
     },
-    defaultVariants: {
-      variant: "default",
-      layout: "default"
-    }
-  }
-)
+    layout: {
+      default: "space-y-4",
+      compact: "space-y-2",
+      relaxed: "space-y-6",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+    layout: "default",
+  },
+});
 
 export interface FormField {
-  id: string
-  type: 'text' | 'number' | 'select' | 'textarea'
-  label: string
-  placeholder?: string
-  options?: string[]
-  required?: boolean
-  description?: string
+  id: string;
+  type: "text" | "number" | "select" | "textarea";
+  label: string;
+  placeholder?: string;
+  options?: string[];
+  required?: boolean;
+  description?: string;
 }
 
-export interface FormProps extends Omit<React.HTMLAttributes<HTMLFormElement>, 'onSubmit'>,
-  VariantProps<typeof formVariants> {
-  fields: FormField[]
-  onSubmit: (data: Record<string, string>) => void
-  submitText?: string
+export interface FormProps
+  extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit">,
+    VariantProps<typeof formVariants> {
+  fields: FormField[];
+  onSubmit: (data: Record<string, string>) => void;
+  submitText?: string;
 }
 
 const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
-  ({ className, variant, layout, fields, onSubmit, submitText = "Submit", ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      layout,
+      fields,
+      onSubmit,
+      submitText = "Submit",
+      ...props
+    },
+    ref,
+  ) => {
     const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault()
-      const formData = new FormData(e.target as HTMLFormElement)
+      e.preventDefault();
+      const formData = new FormData(e.target as HTMLFormElement);
       const data = Object.fromEntries(
-        Array.from(formData.entries()).map(([k, v]) => [k, v.toString()])
-      )
-      onSubmit(data)
-    }
+        Array.from(formData.entries()).map(([k, v]) => [k, v.toString()]),
+      );
+      onSubmit(data);
+    };
 
-    const [openDropdowns, setOpenDropdowns] = React.useState<Record<string, boolean>>({});
-    const [selectedValues, setSelectedValues] = React.useState<Record<string, string>>({});
-    const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+    const [openDropdowns, setOpenDropdowns] = React.useState<
+      Record<string, boolean>
+    >({});
+    const [selectedValues, setSelectedValues] = React.useState<
+      Record<string, string>
+    >({});
+    const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>(
+      {},
+    );
 
     React.useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         Object.entries(dropdownRefs.current).forEach(([fieldId, ref]) => {
           if (ref && !ref.contains(event.target as Node)) {
-            setOpenDropdowns(prev => ({
+            setOpenDropdowns((prev) => ({
               ...prev,
-              [fieldId]: false
+              [fieldId]: false,
             }));
           }
         });
       };
 
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     return (
@@ -88,21 +103,21 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
         <div className="p-6 space-y-6">
           {fields.map((field) => (
             <div key={field.id} className="space-y-2">
-              <label 
-                className="block text-sm font-medium text-zinc-900 dark:text-zinc-100" 
+              <label
+                className="block text-sm font-medium text-zinc-900 dark:text-zinc-100"
                 htmlFor={field.id}
               >
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </label>
-              
+
               {field.description && (
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   {field.description}
                 </p>
               )}
 
-              {field.type === 'text' && (
+              {field.type === "text" && (
                 <input
                   type="text"
                   id={field.id}
@@ -117,7 +132,7 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 />
               )}
 
-              {field.type === 'number' && (
+              {field.type === "number" && (
                 <input
                   type="number"
                   id={field.id}
@@ -132,7 +147,7 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 />
               )}
 
-              {field.type === 'textarea' && (
+              {field.type === "textarea" && (
                 <textarea
                   id={field.id}
                   name={field.id}
@@ -147,17 +162,21 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 />
               )}
 
-              {field.type === 'select' && field.options && (
-                <div 
+              {field.type === "select" && field.options && (
+                <div
                   className="relative"
-                  ref={(el) => { dropdownRefs.current[field.id] = el }}
+                  ref={(el) => {
+                    dropdownRefs.current[field.id] = el;
+                  }}
                 >
                   <button
                     type="button"
-                    onClick={() => setOpenDropdowns(prev => ({
-                      ...prev,
-                      [field.id]: !prev[field.id]
-                    }))}
+                    onClick={() =>
+                      setOpenDropdowns((prev) => ({
+                        ...prev,
+                        [field.id]: !prev[field.id],
+                      }))
+                    }
                     className="w-full px-3 py-2 rounded-lg border border-input
                               bg-background text-foreground
                               focus:ring-2 focus:ring-ring focus:border-ring
@@ -165,45 +184,54 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                               transition-colors duration-200
                               text-left flex items-center justify-between"
                   >
-                    <span className={selectedValues[field.id] ? "text-foreground" : "text-muted-foreground"}>
+                    <span
+                      className={
+                        selectedValues[field.id]
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                      }
+                    >
                       {selectedValues[field.id] || field.placeholder}
                     </span>
-                    <svg 
+                    <svg
                       className={cn(
                         "h-4 w-4 text-muted-foreground transition-transform duration-200",
-                        openDropdowns[field.id] && "transform rotate-180"
+                        openDropdowns[field.id] && "transform rotate-180",
                       )}
-                      xmlns="http://www.w3.org/2000/svg" 
+                      xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
                       <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                     </svg>
                   </button>
-                  
+
                   {openDropdowns[field.id] && (
-                    <div className="absolute z-10 w-full mt-1 py-1 rounded-lg border border-input
+                    <div
+                      className="absolute z-10 w-full mt-1 py-1 rounded-lg border border-input
                                   bg-background shadow-lg
-                                  max-h-60 overflow-auto">
+                                  max-h-60 overflow-auto"
+                    >
                       {field.options.map((option) => (
                         <button
                           key={option}
                           type="button"
                           onClick={() => {
-                            setSelectedValues(prev => ({
+                            setSelectedValues((prev) => ({
                               ...prev,
-                              [field.id]: option
+                              [field.id]: option,
                             }));
-                            setOpenDropdowns(prev => ({
+                            setOpenDropdowns((prev) => ({
                               ...prev,
-                              [field.id]: false
+                              [field.id]: false,
                             }));
                           }}
                           className={cn(
                             "w-full px-3 py-2 text-left text-foreground",
                             "hover:bg-muted focus:bg-muted outline-none",
                             "transition-colors duration-200",
-                            selectedValues[field.id] === option && "bg-muted/50 font-medium"
+                            selectedValues[field.id] === option &&
+                              "bg-muted/50 font-medium",
                           )}
                         >
                           {option}
@@ -234,9 +262,9 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
           </button>
         </div>
       </form>
-    )
-  }
-)
-FormComponent.displayName = "FormComponent"
+    );
+  },
+);
+FormComponent.displayName = "FormComponent";
 
-export { FormComponent, formVariants } 
+export { FormComponent, formVariants };

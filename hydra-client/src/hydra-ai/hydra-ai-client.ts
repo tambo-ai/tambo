@@ -11,7 +11,10 @@ import {
   RegisteredComponent,
 } from "./model/component-metadata";
 import { ComponentPropsMetadata } from "./model/component-props-metadata";
-import { GenerateComponentResponse, GenerationStage } from "./model/generate-component-response";
+import {
+  GenerateComponentResponse,
+  GenerationStage,
+} from "./model/generate-component-response";
 
 interface ComponentRegistry {
   [key: string]: RegisteredComponent;
@@ -20,10 +23,10 @@ interface ComponentRegistry {
 export interface RegisterComponentOptions {
   name: string;
   description: string;
-  component: ComponentType<any>;
+  component: ComponentType<unknown>;
   propsDefinition?: ComponentPropsMetadata;
   contextTools?: ComponentContextTool[];
-  loadingComponent?: ComponentType<any>;
+  loadingComponent?: ComponentType<unknown>;
 }
 
 export interface HydraClientOptions {
@@ -39,7 +42,7 @@ export interface HydraClientOptions {
   hydrateComponentWithToolResponse?: (
     messageHistory: ChatMessage[],
     component: AvailableComponent,
-    toolResponse: any,
+    toolResponse: unknown,
     apiKey?: string,
     url?: string,
     threadId?: string,
@@ -62,7 +65,7 @@ export default class HydraClient {
   private hydrateComponentWithToolResponse: (
     messageHistory: ChatMessage[],
     component: AvailableComponent,
-    toolResponse: any,
+    toolResponse: unknown,
     apiKey?: string,
     url?: string,
     threadId?: string,
@@ -80,7 +83,9 @@ export default class HydraClient {
     this.hydrateComponentWithToolResponse = hydrateComponentWithToolResponse;
   }
 
-  public async registerComponent(options: RegisterComponentOptions): Promise<void> {
+  public async registerComponent(
+    options: RegisterComponentOptions,
+  ): Promise<void> {
     const {
       name,
       description,
@@ -122,12 +127,12 @@ export default class HydraClient {
     }
 
     const availableComponents = await this.getAvailableComponents(
-      this.componentList
+      this.componentList,
     );
     const componentDecision = await this.getComponent(
       message,
       availableComponents,
-      this.getComponentChoice
+      this.getComponentChoice,
     );
 
     if (componentDecision.threadId) {
@@ -147,13 +152,15 @@ export default class HydraClient {
       return response;
     }
 
-    const componentToHydrate = componentDecision.componentName && this.componentList[componentDecision.componentName].loadingComponent
-      ? this.createComponentElement(
-        componentDecision.componentName,
-        componentDecision.props,
-        true
-      )
-      : null;
+    const componentToHydrate =
+      componentDecision.componentName &&
+      this.componentList[componentDecision.componentName].loadingComponent
+        ? this.createComponentElement(
+            componentDecision.componentName,
+            componentDecision.props,
+            true,
+          )
+        : null;
 
     if (componentDecision.toolCallRequest) {
       onProgressUpdate({
@@ -167,7 +174,7 @@ export default class HydraClient {
       const response = await this.handleToolCallRequest(
         componentDecision,
         availableComponents,
-        this.hydrateComponentWithToolResponse
+        this.hydrateComponentWithToolResponse,
       );
 
       onProgressUpdate(response);
@@ -186,9 +193,9 @@ export default class HydraClient {
         component: React.createElement(
           this.getComponentFromRegistry(
             componentDecision.componentName,
-            this.componentList
+            this.componentList,
           ).component,
-          componentDecision.props
+          componentDecision.props,
         ),
         message: componentDecision.message,
         stage: GenerationStage.COMPLETE,
@@ -246,7 +253,7 @@ export default class HydraClient {
     hydrateComponentWithToolResponse: (
       messageHistory: ChatMessage[],
       component: AvailableComponent,
-      toolResponse: any,
+      toolResponse: unknown,
       apiKey?: string,
       url?: string,
       threadId?: string,
@@ -278,34 +285,35 @@ export default class HydraClient {
 
     this.chatHistory.push({
       sender: "hydra",
-      message: `componentName: ${hydratedComponentChoice.componentName
-        } \n props: ${JSON.stringify(hydratedComponentChoice.props)}`,
+      message: `componentName: ${
+        hydratedComponentChoice.componentName
+      } \n props: ${JSON.stringify(hydratedComponentChoice.props)}`,
     });
 
     return {
       component: React.createElement(
         this.getComponentFromRegistry(
           hydratedComponentChoice.componentName,
-          this.componentList
+          this.componentList,
         ).component,
-        hydratedComponentChoice.props
+        hydratedComponentChoice.props,
       ),
       message: hydratedComponentChoice.message,
       stage: GenerationStage.COMPLETE,
       loading: false,
-      suggestedActions: hydratedComponentChoice.suggestedActions
+      suggestedActions: hydratedComponentChoice.suggestedActions,
     };
   }
 
   private getComponentFromRegistry(
     componentName: string,
-    componentRegistry: ComponentRegistry
+    componentRegistry: ComponentRegistry,
   ): RegisteredComponent {
     const componentEntry = componentRegistry[componentName];
 
     if (!componentEntry) {
       throw new Error(
-        `Hydra tried to use Component ${componentName}, but it was not found.`
+        `Hydra tried to use Component ${componentName}, but it was not found.`,
       );
     }
 
@@ -313,20 +321,20 @@ export default class HydraClient {
   }
 
   private getAvailableComponents = async (
-    componentRegistry: ComponentRegistry
+    componentRegistry: ComponentRegistry,
   ): Promise<AvailableComponents> => {
     // TODO: filter list to only include components that are relevant to user query
 
     const availableComponents: AvailableComponents = {};
 
-    for (let name of Object.keys(componentRegistry)) {
+    for (const name of Object.keys(componentRegistry)) {
       const componentEntry: RegisteredComponent = componentRegistry[name];
       availableComponents[name] = {
         name: componentEntry.name,
         description: componentEntry.description,
         props: componentEntry.props,
         contextTools: componentEntry.contextTools.map(
-          (tool) => tool.definition
+          (tool) => tool.definition,
         ),
       };
     }
@@ -335,8 +343,8 @@ export default class HydraClient {
   };
 
   private runToolChoice = async (
-    componentChoice: ComponentChoice
-  ): Promise<any> => {
+    componentChoice: ComponentChoice,
+  ): Promise<unknown> => {
     const { componentName, toolCallRequest } = componentChoice;
 
     if (!componentName) {
@@ -348,36 +356,37 @@ export default class HydraClient {
     }
 
     const tool = this.componentList[componentName].contextTools.find(
-      (tool) => tool.definition.name === toolCallRequest.toolName
+      (tool) => tool.definition.name === toolCallRequest.toolName,
     );
 
     if (!tool) {
       throw new Error(
-        `Hydra tried to use Tool ${toolCallRequest.toolName}, but it was not found.`
+        `Hydra tried to use Tool ${toolCallRequest.toolName}, but it was not found.`,
       );
     }
 
     // Assumes parameters are in the order they are defined in the tool
     const parameterValues = toolCallRequest.parameters.map(
-      (param) => param.parameterValue
+      (param) => param.parameterValue,
     );
 
-    return tool.getComponentContext(...parameterValues);
+    return await tool.getComponentContext(...parameterValues);
   };
 
   private createComponentElement(
     componentName: string,
-    props: any,
-    loading: boolean = false
+    props: unknown,
+    loading: boolean = false,
   ): React.ReactElement | null {
     const registeredComponent = this.getComponentFromRegistry(
       componentName,
-      this.componentList
+      this.componentList,
     );
 
-    const ComponentToUse = loading && registeredComponent.loadingComponent
-      ? registeredComponent.loadingComponent
-      : registeredComponent.component;
+    const ComponentToUse =
+      loading && registeredComponent.loadingComponent
+        ? registeredComponent.loadingComponent
+        : registeredComponent.component;
 
     return React.createElement(ComponentToUse, props);
   }

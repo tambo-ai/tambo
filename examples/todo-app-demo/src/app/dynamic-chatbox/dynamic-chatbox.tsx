@@ -38,8 +38,8 @@ export default function DynamicChatbox() {
     const response = await hydra.generateComponent(
       `my list of todo items is ${JSON.stringify(getTodoItems())}, 
        and previous messages are ${JSON.stringify(
-         messageHistory
-       )} latest message: ${message}`
+         messageHistory,
+       )} latest message: ${message}`,
     );
     const hydraMessage: DynamicMessage = {
       component: response.component,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import AIService from "./ai-service";
 import { ChatMessage } from "./model/chat-message";
 import { ComponentDecision } from "./model/component-choice";
@@ -16,7 +17,7 @@ export default class HydraBackend {
   constructor(
     openAIKey: string,
     openAIModel = "gpt-4o",
-    provider: Provider = "openai"
+    provider: Provider = "openai",
   ) {
     this.aiService = new AIService(openAIKey, openAIModel, provider);
   }
@@ -25,7 +26,7 @@ export default class HydraBackend {
     name: string,
     description: string,
     propsDefinition?: ComponentPropsMetadata,
-    contextToolDefinitions?: ComponentContextToolMetadata[]
+    contextToolDefinitions?: ComponentContextToolMetadata[],
   ): Promise<boolean> {
     // Component registration logic would go here
     // For now, always return true as if registration was successful
@@ -34,25 +35,25 @@ export default class HydraBackend {
 
   public async generateComponent(
     messageHistory: ChatMessage[],
-    availableComponents: AvailableComponents
+    availableComponents: AvailableComponents,
   ): Promise<ComponentDecision> {
     const context: InputContext = {
       messageHistory,
       availableComponents,
     };
 
-    return this.aiService.chooseComponent(context);
+    return await this.aiService.chooseComponent(context);
   }
 
   public async hydrateComponentWithData(
     messageHistory: ChatMessage[],
     component: AvailableComponent,
-    toolResponse: any
+    toolResponse: unknown,
   ): Promise<ComponentDecision> {
-    return this.aiService.hydrateComponent(
+    return await this.aiService.hydrateComponent(
       messageHistory,
       component,
-      toolResponse
+      toolResponse,
     );
   }
 }

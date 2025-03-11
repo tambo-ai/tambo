@@ -84,7 +84,7 @@ A framework for creating context-aware UI in React apps. Register your component
      propsDefinition: {
        item: "{id: string; title: string; isDone: boolean}",
      },
-     loadingComponent: TodoItemSkeleton
+     loadingComponent: TodoItemSkeleton,
    });
 
    hydra.registerComponent({
@@ -94,13 +94,13 @@ A framework for creating context-aware UI in React apps. Register your component
      propsDefinition: {
        todoItems: "{id: string; title: string; isDone: boolean}[]",
      },
-     loadingComponent: TodoListSkeleton
+     loadingComponent: TodoListSkeleton,
    });
 
    hydra.registerComponent({
      name: "AddTodoItemForm",
      description: "A form to add a new todo item",
-     component: AddTodoItemForm
+     component: AddTodoItemForm,
    });
 
    export default hydra;

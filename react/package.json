@@ -33,8 +33,7 @@
     "format": "prettier --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "format:lint": "npm run format && npm run lint:fix",
-    "prepare": "husky"
+    "format:lint": "npm run format && npm run lint:fix"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -60,6 +59,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/typescript-config": "*",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^16.2.0",
     "@types/jest": "^29.5.12",
@@ -71,11 +72,12 @@
     "eslint": "^9.19.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.1.0",
-    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^15.4.3",
     "prettier": "^3.4.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",

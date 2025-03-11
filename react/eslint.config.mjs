@@ -1,12 +1,14 @@
 /** @type {import("@typescript-eslint/utils").TSESLint.FlatConfig.ConfigArray} */
 
 import eslint from "@eslint/js";
+import config from "@tambo-ai/eslint-config/base";
 import eslintPluginReact from "eslint-plugin-react";
 import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   { ignores: ["dist/**/*", "esm/**/*", "jest.config.ts", "eslint.config.mjs"] },
+  config,
   eslint.configs.recommended,
   tseslint.configs.stylisticTypeChecked,
   eslintPluginReact.configs.flat?.recommended ?? {},

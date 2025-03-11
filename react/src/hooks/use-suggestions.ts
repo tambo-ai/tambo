@@ -107,7 +107,7 @@ export function useTamboSuggestions(
         componentToolAssociations,
       );
 
-      return tamboClient.beta.threads.suggestions.generate(
+      return await tamboClient.beta.threads.suggestions.generate(
         thread.id,
         latestMessageId,
         {
@@ -170,7 +170,7 @@ export function useTamboSuggestions(
         componentToolAssociations,
       );
 
-      return tamboClient.beta.threads.suggestions.generate(
+      return await tamboClient.beta.threads.suggestions.generate(
         thread.id,
         latestMessageId,
         {

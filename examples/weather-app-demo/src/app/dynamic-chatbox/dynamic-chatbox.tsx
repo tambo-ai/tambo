@@ -42,8 +42,8 @@ export default function DynamicChatbox() {
     setIsLoading(true);
     const response = await hydra.generateComponent(
       `previous messages ${JSON.stringify(
-        messageHistory
-      )} latest message: ${message}`
+        messageHistory,
+      )} latest message: ${message}`,
     );
     const hydraMessage: DynamicMessage = {
       component: response,

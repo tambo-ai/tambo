@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Navbar } from "@/components/navbar";
-import { GeistSans } from 'geist/font/sans';
+import { GeistSans } from "geist/font/sans";
 import { Footer } from "@/components/footer";
 export const metadata: Metadata = {
   title: "tambo - Ready-to-use AI Features",
-  description: "A collection of ready-to-use AI components that help you build intelligent features without the complexity.",
+  description:
+    "A collection of ready-to-use AI components that help you build intelligent features without the complexity.",
 };
 
 export default function RootLayout({
@@ -24,9 +25,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <div className="pt-16">
-            {children}
-          </div>
+          <div className="pt-16">{children}</div>
           <Footer />
         </ThemeProvider>
       </body>

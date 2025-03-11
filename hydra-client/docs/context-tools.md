@@ -64,7 +64,7 @@ hydra.registerComponent(
   {
     todoItems: "{ id: string; title: string; isDone: boolean }[]",
   },
-  [fetchTodosTool] // Register the context tool for this component
+  [fetchTodosTool], // Register the context tool for this component
 );
 ```
 

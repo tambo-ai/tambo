@@ -1,9 +1,11 @@
 {
+  "extends": "@tambo-ai/typescript-config/base.json",
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "jsx": "react",
+    "module": "ES6",
     "moduleResolution": "node",
     "rootDir": "./src",
     "declaration": true,

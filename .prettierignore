@@ -1,0 +1,7 @@
+CHANGELOG.md
+.release-please-manifest.json
+**/CHANGELOG.md
+**/.next
+react/esm/
+react/dist/
+hydra-client/dist/

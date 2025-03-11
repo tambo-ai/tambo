@@ -25,14 +25,14 @@ export type {
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 export { useTamboThreads } from "./hooks/use-tambo-threads";
 export {
-  ComponentContextToolMetadata,
-  ComponentRegistry,
-  ParameterSpec,
-  RegisteredComponent,
-  TamboTool,
+  type ComponentContextToolMetadata,
+  type ComponentRegistry,
+  type ParameterSpec,
+  type RegisteredComponent,
+  type TamboTool,
 } from "./model/component-metadata";
 export {
   GenerationStage,
-  TamboThreadMessage,
+  type TamboThreadMessage,
 } from "./model/generate-component-response";
-export { TamboThread } from "./model/tambo-thread";
+export { type TamboThread } from "./model/tambo-thread";
