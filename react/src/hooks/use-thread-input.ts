@@ -39,10 +39,10 @@ interface UseThreadInputInternal {
    * @throws {ThreadInputError} If submission fails
    * @returns Promise that resolves when submission is complete
    */
-  submit: (options?: { contextKey?: string }) => Promise<void>;
+  submit: (options?: { contextKey?: string, streamResponse?: boolean }) => Promise<void>;
 }
 export type UseThreadInput = UseThreadInputInternal &
-  UseMutationResult<void, Error, { contextKey?: string }>;
+  UseMutationResult<void, Error, { contextKey?: string, streamResponse?: boolean }>;
 
 /**
  * Hook for managing thread message input state and submission
@@ -54,7 +54,7 @@ export function useTamboThreadInput(contextKey?: string): UseThreadInput {
     useTamboThread();
 
   const submit = useCallback(
-    async ({ contextKey: submitContextKey }: { contextKey?: string } = {}) => {
+    async ({ contextKey: submitContextKey, streamResponse }: { contextKey?: string; streamResponse?: boolean } = {}) => {
       const validation = validateInput(inputValue);
       if (!validation.isValid) {
         throw new ThreadInputError(
@@ -66,6 +66,7 @@ export function useTamboThreadInput(contextKey?: string): UseThreadInput {
       await sendThreadMessage(validation.sanitizedInput, {
         threadId: thread.id,
         contextKey: submitContextKey ?? contextKey ?? undefined,
+        streamResponse: streamResponse,
       });
       setInputValue("");
     },
