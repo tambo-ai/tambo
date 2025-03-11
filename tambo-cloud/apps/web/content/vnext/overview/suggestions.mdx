@@ -5,13 +5,13 @@ description: Implementing intelligent suggestions and recommendations.
 
 # Suggestions
 
-Hydra AI automatically analyzes user interactions and generates contextual suggestions after each assistant message.
+tambo automatically analyzes user interactions and generates contextual suggestions after each assistant message.
 
 ## Using Suggestions
 
-### The useHydraSuggestions Hook
+### The useTamboSuggestions Hook
 
-The main way to interact with suggestions is through the `useHydraSuggestions` hook:
+The main way to interact with suggestions is through the `useTamboSuggestions` hook:
 
 ```tsx
 function ThreadWithSuggestions() {
@@ -21,7 +21,7 @@ function ThreadWithSuggestions() {
     isAccepting, // Whether a suggestion is being applied
     error, // Current error message, if any
     accept, // Function to apply a suggestion
-  } = useHydraSuggestions({
+  } = useTamboSuggestions({
     maxSuggestions: 3, // Optional: Number of suggestions to generate (1-10)
   });
 
@@ -47,10 +47,10 @@ function ThreadWithSuggestions() {
 
 ### Hook Configuration
 
-The `useHydraSuggestions` hook accepts an optional configuration object:
+The `useTamboSuggestions` hook accepts an optional configuration object:
 
 ```tsx
-interface UseHydraSuggestionsOptions {
+interface UseTamboSuggestionsOptions {
   /** Maximum number of suggestions to generate (1-10, default 3) */
   maxSuggestions?: number;
 }
@@ -58,7 +58,7 @@ interface UseHydraSuggestionsOptions {
 
 ### When Suggestions Appear
 
-Suggestions are automatically generated after each assistant (Hydra) message in the thread. The hook manages:
+Suggestions are automatically generated after each assistant (tambo) message in the thread. The hook manages:
 
 - Loading states while generating suggestions
 - Error handling for failed generations
@@ -119,7 +119,7 @@ const ERROR_MESSAGES = {
   GENERATION: "Unable to generate suggestions right now",
   EMPTY: "No suggestions available for this message",
   ACCEPT: "Unable to apply suggestion, please try again",
-  API_ERROR: "Failed to communicate with Hydra AI",
+  API_ERROR: "Failed to communicate with tambo",
 };
 ```
 
@@ -129,9 +129,9 @@ Here's a complete example showing how to integrate suggestions with a message th
 
 ```tsx
 function MessageThread() {
-  const { thread } = useHydraThread();
+  const { thread } = useTamboThread();
   const { suggestions, isLoading, isAccepting, error, accept } =
-    useHydraSuggestions();
+    useTamboSuggestions();
 
   // Get the latest message
   const latestMessage = thread.messages[thread.messages.length - 1];
@@ -144,7 +144,7 @@ function MessageThread() {
         <div key={message.id}>{message.content}</div>
       ))}
 
-      {/* Suggestions (only shown after Hydra messages) */}
+      {/* Suggestions (only shown after tambo messages) */}
       {isLatestFromHydra && (
         <div className="suggestions">
           {isLoading && <LoadingSpinner />}
@@ -166,7 +166,7 @@ function MessageThread() {
 ```
 
 <Callout type="info">
-  Suggestions are automatically generated for each Hydra message when the
-  `useHydraSuggestions` hook is used. You don't need to manually trigger
+  Suggestions are automatically generated for each tambo message when the
+  `useTamboSuggestions` hook is used. You don't need to manually trigger
   suggestion generation.
 </Callout>

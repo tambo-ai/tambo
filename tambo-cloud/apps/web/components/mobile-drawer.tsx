@@ -71,7 +71,7 @@ export function MobileDrawer({
               "text-white rounded-full group",
             )}
           >
-            {siteConfig.cta}
+            Get Started
           </Link>
         </DrawerFooter>
       </DrawerContent>

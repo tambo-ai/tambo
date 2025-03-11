@@ -1,0 +1,83 @@
+/* Custom styles for vnext documentation */
+
+/* Define custom theme variables that respect Fumadocs theming system */
+:root {
+  /* Customize sidebar width if needed */
+  --fd-sidebar-width: 280px;
+
+  /* Ensure proper layout width */
+  --fd-layout-width: 1400px;
+
+  /* Brighter accent color for better contrast */
+  --accent: 320 100% 80%; /* Brighter pink for better contrast */
+}
+
+/* Apply heading font to all headings and navigation elements */
+.font-heading,
+.docs-title,
+.docs-content h1,
+.docs-content h2,
+.docs-content h3,
+.docs-content h4,
+.docs-content h5,
+.docs-content h6,
+.docs-nav-title,
+.docs-sidebar-title,
+.docs-sidebar-section-title,
+.docs-sidebar-group-title,
+.docs-sidebar-separator,
+.docs-sidebar-items .docs-sidebar-item-title,
+.docs-callout-title,
+.docs-toc-title,
+.docs-toc-items .docs-toc-item {
+  font-family: var(--font-sentient-light), serif;
+}
+
+/* Make sidebar section titles more prominent */
+.docs-sidebar-section-title {
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-fd-foreground);
+  font-weight: 500;
+}
+
+/* Style sidebar separators */
+.docs-sidebar-separator {
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-top: 1.25rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* Style sidebar items */
+.docs-sidebar-item {
+  margin-bottom: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.docs-sidebar-item .docs-sidebar-item-title {
+  font-size: 0.95rem;
+  padding: 0.35rem 0;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* Style active sidebar item */
+.docs-sidebar-item[data-active="true"] .docs-sidebar-item-title {
+  font-weight: 500;
+}
+
+/* Style the main navigation title */
+.docs-nav-title {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+/* Style the description text */
+.docs-description-wrapper {
+  font-style: italic;
+  margin-top: 0.5rem;
+  color: var(--muted-foreground);
+}

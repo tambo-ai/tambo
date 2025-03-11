@@ -2,19 +2,19 @@
 title: Streaming
 ---
 
-Use streaming to show response messages and components from Hydra in real-time as they are being generated, to create more responsive and engaging user experiences.
+Use streaming to show response messages and components from tambo in real-time as they are being generated, to create more responsive and engaging user experiences.
 
 ```tsx
-const { sendThreadMessage } = useHydra();
+const { sendThreadMessage } = useTambo();
 await sendThreadMessage(inputValue, { streamResponse: true });
 ```
 
-Hydra will handle updating the thread's final message as data streams in, rather than waiting for the entire response to complete.
+tambo will handle updating the thread's final message as data streams in, rather than waiting for the entire response to complete.
 
 Render your thread messages like normal:
 
 ```tsx
-const { thread } = useHydra();
+const { thread } = useTambo();
 
 ...
 
@@ -32,9 +32,9 @@ const { thread } = useHydra();
 
 ## Preparing Components for Streaming
 
-When a request is made with `streamResponse: true`, currently Hydra will update the response message's `renderedComponent` field as soon as the component is chosen, even before all the props have been generated.
+When a request is made with `streamResponse: true`, currently tambo will update the response message's `renderedComponent` field as soon as the component is chosen, even before all the props have been generated.
 
-For example, if your component expects a props object that looks like `{name: string, age: number}`, Hydra will render the component with `{name: 'generatedname'}` before the age props value is generated.
+For example, if your component expects a props object that looks like `{name: string, age: number}`, tambo will render the component with `{name: 'generatedname'}` before the age props value is generated.
 
 This means that your registered components will need to have all props marked as 'optional', and be prepared to receive `undefined` values while streaming is in progress.
 
@@ -73,10 +73,10 @@ const handleSendMessage = async (inputValue: string) => {
 </div>
 ```
 
-With streaming, the `sendThreadMessage` promise resolves right away, even while streaming is still in progress. If you want to show a 'loading' indicator while streaming is in progress, you can do so by using Hydra's `isIdle` state value:
+With streaming, the `sendThreadMessage` promise resolves right away, even while streaming is still in progress. If you want to show a 'loading' indicator while streaming is in progress, you can do so by using tambo's `isIdle` state value:
 
 ```tsx
-const { isIdle } = useHydra();
+const { isIdle } = useTambo();
 
 ...
 

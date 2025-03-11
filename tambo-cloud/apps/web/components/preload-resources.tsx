@@ -1,0 +1,39 @@
+import { siteConfig } from "@/lib/config";
+import { env } from "@/lib/env";
+
+/**
+ * Component to preload critical resources for better Core Web Vitals
+ * Improves LCP (Largest Contentful Paint) by preloading critical images
+ * Improves FID (First Input Delay) by preloading critical scripts
+ */
+export function PreloadResources() {
+  const baseUrl = env.NEXT_PUBLIC_APP_URL || siteConfig.url;
+
+  return (
+    <>
+      {/* Preload logo image for faster LCP */}
+      <link rel="preload" href="/favicon.ico" as="image" type="image/x-icon" />
+
+      {/* Preload critical fonts */}
+      <link
+        rel="preload"
+        href="/assets/fonts/sentient-light/Sentient-Light.woff2"
+        as="font"
+        type="font/woff2"
+        crossOrigin="anonymous"
+      />
+
+      {/* Preload hero image if on homepage */}
+      <link
+        rel="preload"
+        href="/hero-image-light.jpeg"
+        as="image"
+        type="image/jpeg"
+      />
+
+      {/* DNS prefetch for third-party domains */}
+      <link rel="dns-prefetch" href="https://app.posthog.com" />
+      <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+    </>
+  );
+}

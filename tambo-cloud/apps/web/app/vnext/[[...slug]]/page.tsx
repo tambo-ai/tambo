@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { vnextSource } from "@/lib/vnext-source";
 import { Callout } from "fumadocs-ui/components/callout";
 import defaultMdxComponents from "fumadocs-ui/mdx";
@@ -10,6 +11,21 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+// Custom MDX components with heading font
+const customMdxComponents = {
+  ...defaultMdxComponents,
+  // Use a single function to handle all heading levels
+  h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h1 {...props} className={cn("font-heading", className)} />
+  ),
+  h2: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h2 {...props} className={cn("font-heading", className)} />
+  ),
+  h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h3 {...props} className={cn("font-heading", className)} />
+  ),
+};
+
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
 }) {
@@ -21,24 +37,28 @@ export default async function Page(props: {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <Callout type="info" title="V 0.1.0 Coming Soon">
+      <Callout type="info" title="V 1.0.0 Coming Soon">
         These are draft docs for the upcoming 0.1.0 release. Read more about the
         upcoming release{" "}
         <Link href="/blog/0-1-0-announcement" className="underline bold">
           here
         </Link>
         . Have a question about anything in the docs? Send us a{" "}
-        <a href="mailto:magan@usehydra.ai" className="underline bold">
+        <a href="mailto:magan@tambo.co" className="underline bold">
           message
         </a>
         .
       </Callout>
-      <DocsTitle>{page.data.title}</DocsTitle>
+      <div className="font-heading">
+        <DocsTitle>{page.data.title}</DocsTitle>
+      </div>
       {page.data.description && (
-        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsDescription className="docs-description-wrapper">
+          {page.data.description}
+        </DocsDescription>
       )}
       <DocsBody>
-        <MDX components={{ ...defaultMdxComponents }} />
+        <MDX components={customMdxComponents} />
       </DocsBody>
     </DocsPage>
   );

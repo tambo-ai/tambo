@@ -2,6 +2,6 @@ import { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
-    title: "Hydra AI",
+    title: "tambo-ai",
   },
 };

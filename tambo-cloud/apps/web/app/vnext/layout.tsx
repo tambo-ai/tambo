@@ -2,6 +2,7 @@ import { baseOptions } from "@/app/layout.config";
 import { vnextSource } from "@/lib/vnext-source";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
+import "./vnext.css"; // Import custom CSS for styling the documentation with custom fonts and layout
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (

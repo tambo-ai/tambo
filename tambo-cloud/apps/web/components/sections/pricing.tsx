@@ -4,7 +4,6 @@ import { Section } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
@@ -80,11 +79,66 @@ const TabsTrigger = ({ onClick, children, isActive }: TabsTriggerProps) => {
   );
 };
 
+// Define pricing data directly in the component
+const pricingData = [
+  {
+    name: "Free",
+    description: "For small projects and personal use",
+    price: {
+      monthly: "$0",
+      yearly: "$0",
+    },
+    features: [
+      "1,000 API calls per month",
+      "Basic UI components",
+      "Community support",
+      "1 project",
+    ],
+    cta: "Get Started",
+    popular: false,
+  },
+  {
+    name: "Pro",
+    description: "For teams and professional projects",
+    price: {
+      monthly: "$29",
+      yearly: "$249",
+    },
+    features: [
+      "50,000 API calls per month",
+      "Advanced UI components",
+      "Priority support",
+      "10 projects",
+      "Custom branding",
+    ],
+    cta: "Start Free Trial",
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    description: "For large organizations and high-volume needs",
+    price: {
+      monthly: "Custom",
+      yearly: "Custom",
+    },
+    features: [
+      "Unlimited API calls",
+      "All UI components",
+      "Dedicated support",
+      "Unlimited projects",
+      "Custom integrations",
+      "SLA guarantees",
+    ],
+    cta: "Contact Sales",
+    popular: false,
+  },
+];
+
 function PricingTier({
   tier,
   billingCycle,
 }: {
-  tier: (typeof siteConfig.pricing)[0];
+  tier: (typeof pricingData)[0];
   billingCycle: "monthly" | "yearly";
 }) {
   return (
@@ -123,9 +177,11 @@ function PricingTier({
                 ease: [0.4, 0, 0.2, 1],
               }}
             >
-              {tier.price[billingCycle]}
+              <span className="text-3xl font-bold">
+                {tier.price[billingCycle]}
+              </span>
               <span className="text-sm font-medium text-muted-foreground">
-                / {tier.frequency[billingCycle]}
+                / {billingCycle === "monthly" ? "month" : "year"}
               </span>
             </motion.div>
           </div>
@@ -136,7 +192,7 @@ function PricingTier({
 
         <CardContent className="flex-grow p-4 pt-5">
           <ul className="space-y-2">
-            {tier.features.map((feature, featureIndex) => (
+            {tier.features.map((feature: string, featureIndex: number) => (
               <li key={featureIndex} className="flex items-center">
                 <Check className="mr-2 size-4 text-green-500" />
                 <span className="font-medium">{feature}</span>
@@ -213,7 +269,7 @@ export function Pricing() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3">
-          {siteConfig.pricing.map((tier, index) => (
+          {pricingData.map((tier, index) => (
             <PricingTier key={index} tier={tier} billingCycle={billingCycle} />
           ))}
         </div>

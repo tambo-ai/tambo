@@ -16,17 +16,17 @@ We'll use the same note components from the previous section, but make them inte
 
 ## Creating Interactive Components
 
-### 1. Update the Note Component to Use Hydra State
+### 1. Update the Note Component to Use tambo State
 
-Use `useHydraState` is a hook provided by Hydra to manage the state of the component. It works just like React's `useState` hook, but it's synced with the AI backend.
+Use `useTamboState` is a hook provided by tambo to manage the state of the component. It works just like React's `useState` hook, but it's synced with the AI backend.
 
 **What's happening here:**
 
-- Use the `useHydraState` hook to manage the state of the component
-- State is automatically synced with the AI backend through Hydra's context
+- Use the `useTamboState` hook to manage the state of the component
+- State is automatically synced with the AI backend through tambo's context
 
 ```tsx title="src/components/InteractiveNote.tsx"
-import { useHydraState } from "hydra-ai-react";
+import { useTamboState } from "tambo-react";
 import type { CustomerNoteProps } from "../schemas/crm-components"; // [!code highlight]
 
 export const InteractiveNote: React.FC<Readonly<CustomerNoteProps>> = ({
@@ -34,7 +34,7 @@ export const InteractiveNote: React.FC<Readonly<CustomerNoteProps>> = ({
   content: initialContent,
   associatedLeadId,
 }) => {
-  const { value, setValue } = useHydraState({
+  const { value, setValue } = useTamboState({
     content: initialContent,
     isSaved: false,
   });

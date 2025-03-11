@@ -17,16 +17,16 @@ Let's set up the chat with a customer context.
 
 What's happening here:
 
-- We use `useHydraThread` to manage our conversation state
+- We use `useTamboThread` to manage our conversation state
 - The hook provides messages and operations for the thread
 - We maintain a simple input state for the message field
 
 ```tsx title="src/components/CrmChatThread.tsx"
-import { useHydraThread } from "hydra-ai-react";
+import { useTamboThread } from "tambo-react";
 import { useState } from "react";
 
 export const CrmChatThread = ({ threadId }: { threadId: string }) => {
-  const { messages, operations } = useHydraThread(threadId);
+  const { messages, operations } = useTamboThread(threadId);
   const [input, setInput] = useState("");
 
   const handleSend = async (e: React.FormEvent) => {
@@ -54,7 +54,7 @@ Now let's show the conversation.
 
 ```tsx
 <div>
-  {messages.map((message: HydraThreadMessage, index) => (
+  {messages.map((message: TamboThreadMessage, index) => (
     <div key={`${message.type}-${index}`}>
       <div>{message.content}</div>
       {message.component && (

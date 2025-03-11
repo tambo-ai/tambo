@@ -1,45 +1,45 @@
 ---
-title: Initial Hydra Setup
-description: Learn how to set up and configure Hydra AI for building a CRM chat assistant.
+title: Initial tambo Setup
+description: Learn how to set up and configure tambo for building a CRM chat assistant.
 ---
 
-In this quickstart, we'll build an AI-powered CRM assistant that helps users manage customer notes and emails. We'll start by setting up the core Hydra configuration.
+In this quickstart, we'll build an AI-powered CRM assistant that helps users manage customer notes and emails. We'll start by setting up the core tambo configuration.
 
 ## 1. Adding the Context Provider
 
 <Callout>
-  Make sure to set your `NEXT_PUBLIC_HYDRA_API_KEY` in your environment
+  Make sure to set your `NEXT_PUBLIC_TAMBO_API_KEY` in your environment
   variables before initializing the application.
 </Callout>
 
-Next, wrap your application with the `HydraProvider` to make Hydra's functionality available throughout your app.
+Next, wrap your application with the `TamboProvider` to make tambo's functionality available throughout your app.
 
 **What's happening here:**
 
-- Wrap your application with the `HydraProvider` to make Hydra's functionality available throughout your app.
+- Wrap your application with the `TamboProvider` to make tambo's functionality available throughout your app.
 
 ### Implementing the App Wrapper
 
 ```tsx title="src/App.tsx"
-import { HydraProvider } from "hydra-ai-react";
-import { initializeHydra } from "./config/hydraConfig";
+import { TamboProvider } from "tambo-react";
+import { initializeTambo } from "./config/tamboConfig";
 
 export const App = (): ReactElement => {
-  const hydraConfig = initializeHydra();
+  const tamboConfig = initializeTambo();
 
   return (
-    <HydraProvider config={hydraConfig}>
+    <TamboProvider config={tamboConfig}>
       {/* Your app components */}
-    </HydraProvider>
+    </TamboProvider>
   );
 };
 ```
 
-### 2. Configure Hydra
+### 2. Configure tambo
 
 **Definitions:**
 
-- **Hydra Config:** The configuration for the Hydra AI SDK
+- **tambo Config:** The configuration for the tambo SDK
 - **Personality:** The personality of the AI assistant
 - **Tool Registry:** A registry of tools (sometimes called function calls) that the AI can use to interact with the world
 - **Component Registry:** A registry of UI components that the AI can use to interact with the user
@@ -51,15 +51,15 @@ The personality configuration defines how our CRM assistant will interact with u
 - Define personality configuration
 - Define tool registry
 - Define component registry
-- Initialize Hydra with all the necessary configuration
+- Initialize tambo with all the necessary configuration
 
 <Callout>We will add tools, and components latter in this quickstart.</Callout>
 
-```tsx title="src/config/hydraConfig.ts"
+```tsx title="src/config/tamboConfig.ts"
 import {
-  createHydraComponentRegistry,
-  createHydraToolRegistry,
-} from "hydra-ai-react";
+  createTamboComponentRegistry,
+  createTamboToolRegistry,
+} from "tambo-react";
 
 const personality = {
   role: `You are a helpful CRM assistant focused on helping users manage customer interactions. You specialize in helping users create notes, edit them, and convert them into follow-up emails.`,
@@ -75,21 +75,21 @@ const personality = {
 };
 
 // Create registries for tools and components
-export const toolRegistry = createHydraToolRegistry({
+export const toolRegistry = createTamboToolRegistry({
   // Tool definitions will be added here
 });
 
-export const componentRegistry = createHydraComponentRegistry({
+export const componentRegistry = createTamboComponentRegistry({
   // Component definitions will be added here
 });
 
-export const initializeHydra = (): HydraConfig => {
-  if (!process.env.NEXT_PUBLIC_HYDRA_API_KEY) {
-    throw new Error("NEXT_PUBLIC_HYDRA_API_KEY is not set");
+export const initializeTambo = (): TamboConfig => {
+  if (!process.env.NEXT_PUBLIC_TAMBO_API_KEY) {
+    throw new Error("NEXT_PUBLIC_TAMBO_API_KEY is not set");
   }
 
   return {
-    apiKey: process.env.NEXT_PUBLIC_HYDRA_API_KEY,
+    apiKey: process.env.NEXT_PUBLIC_TAMBO_API_KEY,
     toolRegistry,
     componentRegistry,
     personality,
@@ -102,7 +102,7 @@ export const initializeHydra = (): HydraConfig => {
 
 - Defined the function and personality of your AI assistant
 - Created empty registries for tools and components
-- Initialized Hydra with the necessary configuration
+- Initialized tambo with the necessary configuration
 - You know have access to the powerful context hooks to create a chat interface
 
 <Callout>

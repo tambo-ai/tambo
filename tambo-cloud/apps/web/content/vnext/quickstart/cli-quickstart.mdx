@@ -1,0 +1,56 @@
+---
+title: Start in minutes
+---
+
+Just run this command to get started:
+
+```bash
+npx tambo --full-send
+```
+
+This command:
+
+- Choose to start with a template or install in your React App
+- choose between nextjs, remix, or vite
+- Creates a new Tambo project
+- Sets up all dependencies
+- Configures a basic app structure
+- Installs necessary packages
+
+## Running Your Project
+
+Start your Tambo project locally:
+
+```bash
+npm run dev
+```
+
+This will start a development server at `http://localhost:3000`.
+
+## Adding MessageThread to Your App
+
+The `<MessageThread>` component provides a complete chat interface for your AI assistant. Here's how to add it:
+
+### 1. Open your main page file
+
+```bash
+open src/app/page.tsx
+```
+
+### 2. Import the MessageThread component
+
+```typescript
+import { MessageThread } from "../source/components/MessageThread";
+```
+
+### 3. Add the component to your page
+
+```typescript title="src/app/page.tsx"
+export default function Home() {
+  return (
+    <main>
+      <MessageThread />
+    </main>
+  );
+}
+```

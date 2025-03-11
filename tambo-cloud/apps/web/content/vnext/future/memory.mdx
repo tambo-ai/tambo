@@ -3,24 +3,24 @@ title: Memory
 description: Improve interactions through memory.
 ---
 
-Hydra AI can build and maintain persistent memory about users through conversations and interactions, enabled with a single configuration flag.
+tambo can build and maintain persistent memory about users through conversations and interactions, enabled with a single configuration flag.
 
 ## Quick Setup
 
-Enable memory in your Hydra configuration:
+Enable memory in your tambo configuration:
 
 ```typescript
-const config: HydraInitConfig = {
+const config: TamboInitConfig = {
   apiKey: "your-api-key",
   memory: {
-    enabled: true, // That's it! Hydra will now maintain memory
+    enabled: true, // That's it! tambo will now maintain memory
   },
 };
 ```
 
 ## What Gets Remembered
 
-When memory is enabled, Hydra automatically:
+When memory is enabled, tambo automatically:
 
 - Tracks conversation patterns and user preferences
 - Maintains context across multiple sessions

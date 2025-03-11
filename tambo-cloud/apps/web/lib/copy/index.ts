@@ -1,13 +1,12 @@
 export const copy = {
   hero: {
     pill: {
-      label: "⚡️ Beta",
-      text: "Canvas UI",
-      link: "https://canvas.usehydra.ai/",
+      label: "⚡️ Launching Soon",
+      text: "v1.0.0",
+      link: "http://localhost:3000/blog/0-1-0-announcement",
     },
-    title: "Ship AI Features in Hours, Not Months",
-    subtitle:
-      "Powerful AI capabilities that integrate seamlessly into your existing apps. Add intelligence without managing infrastructure.",
+    title: "An AI powered Interface in one line of code.",
+    subtitle: "A React package for adding intelligence into your app.",
     cta: {
       buttonText: "Request Early Access",
     },
@@ -16,7 +15,7 @@ export const copy = {
     title: "Features",
     heading: "AI Tools for Every Use Case",
     description:
-      "Hydra AI provides tools to add AI-powered capabilities to your existing applications. Enhance your app with smarter, more intuitive experiences faster than ever before.",
+      "A batteries included React package for adding intelligence into your app.",
     list: [
       {
         icon: "Brain",
@@ -28,13 +27,13 @@ export const copy = {
         icon: "Zap",
         title: "Fast Integration",
         description:
-          "Add to your existing app in hours, not weeks. Hydra AI tools plug directly into your current stack without requiring AI expertise or infrastructure changes.",
+          "Add to your existing app in hours, not weeks. Tambo AI tools plug directly into your current stack without requiring AI expertise or infrastructure changes.",
       },
       {
         icon: "Puzzle",
         title: "Fits Into Your Workflow",
         description:
-          "Connect seamlessly with your existing stack. Hydra AI works with your data sources, APIs, and infrastructure with no migrations required.",
+          "Connect seamlessly with your existing stack. Tambo AI works with your data sources, APIs, and infrastructure with no migrations required.",
       },
       {
         icon: "Palette",
@@ -52,14 +51,14 @@ export const copy = {
         icon: "Sparkles",
         title: "Continuously Adapting",
         description:
-          "Hydra AI evolves with your users, learning from behavior to improve interactions over time automatically.",
+          "tambo AI evolves with your users, learning from behavior to improve interactions over time automatically.",
       },
     ],
   },
   analytics: {
     title: "Integrate Conversational Analytics in to your app",
     description:
-      "Hydra AI provides a simple, powerful way to integrate conversational analytics into your app.",
+      "tambo AI provides a simple, powerful way to integrate conversational analytics into your app.",
     features: [
       {
         title: "Seamless Data Integration",
@@ -82,7 +81,7 @@ export const copy = {
     ],
     cta: {
       buttonText: "Try Demo",
-      link: "https://canvas.usehydra.ai",
+      link: "https://canvas.tambo.co",
     },
     demo: {
       videoSrc: "/videos/canvas-demo.mp4",
@@ -91,7 +90,7 @@ export const copy = {
   controlBar: {
     title: "Simplify User Journeys with AI",
     description:
-      "Enhance your existing app's navigation. Hydra AI's control bar drops in seamlessly to surface the right features at the right time.",
+      "Enhance your existing app's navigation. tambo AI's control bar drops in seamlessly to surface the right features at the right time.",
     features: [
       {
         title: "Context-Aware Guidance",
@@ -114,40 +113,45 @@ export const copy = {
     ],
     cta: {
       buttonText: "Try Control Bar",
-      link: "https://control-bar.usehydra.ai",
+      link: "https://control-bar.tambo.co",
     },
     demo: {
       videoSrc: "/videos/control-bar-demo.mp4",
     },
   },
   community: {
-    title: "Built With Your Stack in Mind",
+    title: "Join Our Community",
     description:
-      "Add AI features to your existing app without rebuilding your infrastructure.",
+      "Connect with our team and other developers to get support, share ideas, and stay updated on the latest features.",
     features: [
       {
-        title: "Keep Your Auth and Data",
+        title: "Join Our Discord Community",
         description:
-          "Works with your existing JWT tokens and database connections. No parallel systems or data duplication needed.",
-        icon: "BookOpen",
+          "Connect with other developers, get help, and stay updated on the latest features and announcements.",
+        icon: "MessageSquare",
       },
       {
-        title: "Test Before Production",
+        title: "Enterprise Support",
         description:
-          "Debug AI interactions locally, see exactly how responses will work with your data, and tune behavior through configuration.",
-        icon: "Smartphone",
+          "Book a consultation with our team to discuss your enterprise needs, custom integrations, and dedicated support options.",
+        icon: "Calendar",
       },
       {
-        title: "Start Fast, Customize Later",
+        title: "Developer Resources",
         description:
-          "Begin with our React components for chat and analytics, then customize the UI and behavior as your needs grow.",
+          "Access documentation, tutorials, and examples to help you get the most out of our platform.",
         icon: "Package",
       },
     ],
     cta: {
-      text: "See Integration Guide",
-      icon: "Book",
-      link: "/docs",
+      text: "Join Discord",
+      icon: "MessageSquare",
+      link: "https://discord.gg/your-discord-link",
+    },
+    enterpriseCta: {
+      text: "Book a Meeting",
+      icon: "Calendar",
+      link: "/contact",
     },
   },
 } as const;

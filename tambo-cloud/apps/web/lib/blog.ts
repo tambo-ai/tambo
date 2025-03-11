@@ -9,7 +9,32 @@ import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
+import { createHighlighter, type Highlighter } from "shiki";
 import { unified } from "unified";
+
+// Create a singleton highlighter instance
+let highlighterInstance: Highlighter | null = null;
+let highlighterPromise: Promise<Highlighter> | null = null;
+
+// Function to get the singleton highlighter
+async function getSingletonHighlighter(options: any): Promise<Highlighter> {
+  if (highlighterInstance) {
+    return highlighterInstance;
+  }
+
+  if (!highlighterPromise) {
+    highlighterPromise = createHighlighter({
+      ...options,
+      langs: options.langs || [],
+      themes: options.themes || [],
+    }).then((highlighter) => {
+      highlighterInstance = highlighter;
+      return highlighter;
+    });
+  }
+
+  return await highlighterPromise;
+}
 
 export type Post = {
   title: string;
@@ -52,6 +77,7 @@ export async function markdownToHTML(markdown: string) {
     .use(rehypePrettyCode, {
       theme: "one-dark-pro",
       keepBackground: true,
+      getHighlighter: getSingletonHighlighter,
       transformers: [
         transformerCopyButton({
           visibility: "always",
@@ -101,4 +127,14 @@ async function getAllPosts(dir: string) {
 
 export async function getBlogPosts() {
   return await getAllPosts(path.join(process.cwd(), "content/blog"));
+}
+
+// Clean up function to dispose of the highlighter when it's no longer needed
+// This can be called when the app is shutting down or when the highlighter is no longer needed
+export function disposeHighlighter() {
+  if (highlighterInstance) {
+    highlighterInstance.dispose();
+    highlighterInstance = null;
+    highlighterPromise = null;
+  }
 }

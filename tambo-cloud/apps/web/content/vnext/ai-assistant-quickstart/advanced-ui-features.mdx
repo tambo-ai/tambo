@@ -29,17 +29,17 @@ In this section, we'll add suggestions, status updates, and streaming to our AI 
 
 **What's happening here:**
 
-- Get suggestions using the `useHydraThread` hook
+- Get suggestions using the `useTamboThread` hook
 - Display them as clickable buttons with detailed descriptions
 - Accept or dismiss suggestions
 - Suggestions update based on context
 
 ```tsx title="Adding Suggestions to Message Thread"
-import { useHydraThread } from "hydra-ai-react";
+import { useTamboThread } from "tambo-react";
 
 export const MessageThread = () => {
-  const { messages, operations } = useHydraThread("my-thread");
-  const { suggestions } = useHydraThread("my-thread"); // [!code highlight]
+  const { messages, operations } = useTamboThread("my-thread");
+  const { suggestions } = useTamboThread("my-thread"); // [!code highlight]
   const { items, accept, dismiss } = suggestions; // [!code highlight]
 
   return (
@@ -92,15 +92,15 @@ Show users what the AI is doing with status updates:
 
 **What's happening here:**
 
-- Get the status from the `useHydraThread` hook
+- Get the status from the `useTamboThread` hook
 - Render different icons and messages based on the status state
 - Show loading indicators when appropriate
 
 ```tsx title="Rendering Status Updates"
-import { useHydraThread } from "hydra-ai-react";
+import { useTamboThread } from "tambo-react";
 
 export const MessageThread = () => {
-  const { messages } = useHydraThread("my-thread");
+  const { messages } = useTamboThread("my-thread");
 
   const renderStatus = (status) => {
     // Status icons for each state
@@ -119,7 +119,7 @@ export const MessageThread = () => {
 
   return (
     <div>
-      {messages.map((message: HydraThreadMessage) => (
+      {messages.map((message: TamboThreadMessage) => (
         <div key={message.content}>
           <div>{message.content}</div>
           {/* Render AI Status Updates */}
@@ -149,7 +149,7 @@ Latency is a big issue when it comes to AI. Streaming responses help reduce the 
 - Messages automatically update as they arrive
 
 ```tsx title="Enabling Streaming Responses"
-import { useHydraThread } from "hydra-ai-react";
+import { useTamboThread } from "tambo-react";
 
 export const MessageThread = () => {
   {

@@ -6,6 +6,7 @@ import { MobileDrawer } from "@/components/mobile-drawer";
 import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import Link from "next/link";
 
 export function Header({
@@ -21,17 +22,34 @@ export function Header({
         <Link
           href="/"
           title="brand-logo"
-          className="relative mr-6 flex items-center space-x-2"
+          className="relative mr-6 flex items-center"
         >
-          <Icons.logo className="w-auto" />
-          <span className="font-semibold text-lg">{siteConfig.name}</span>
+          <div className="flex items-center justify-center w-8 h-8">
+            <Icons.logo className="w-8 h-8" />
+          </div>
+          <Image
+            src="/assets/landing/wordmark-placeholder.png"
+            alt={siteConfig.name}
+            width={160}
+            height={50}
+            className="h-10 w-auto"
+          />
         </Link>
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-6">
+          <Link
+            href="/blog"
+            className={cn(
+              buttonVariants({ variant: "link" }),
+              "h-9 rounded-md group tracking-tight font-medium",
+            )}
+          >
+            Blog
+          </Link>
           <Link
             href="/docs"
             className={cn(
-              buttonVariants({ variant: "outline" }),
-              "h-8 rounded-lg group tracking-tight font-medium",
+              buttonVariants({ variant: "link" }),
+              "h-9 rounded-md group tracking-tight font-medium",
             )}
           >
             Documentation
@@ -41,7 +59,7 @@ export function Header({
               href="/dashboard"
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "h-8 text-primary-foreground rounded-lg group tracking-tight font-medium",
+                "h-9 rounded-md group tracking-tight font-medium",
               )}
             >
               Dashboard
@@ -56,7 +74,7 @@ export function Header({
           />
         </div>
       </div>
-      <hr className="absolute w-full bottom-0" />
+      <hr className="absolute w-full bottom-0 border-border/20" />
     </header>
   );
 }

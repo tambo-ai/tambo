@@ -63,7 +63,7 @@ Now let's register our tools using these schemas.
 - Return types are properly typed to match the expected response schemas
 
 ```tsx title="src/config/tool-registry.ts"
-import { createHydraToolRegistry } from "hydra-ai-react";
+import { createTamboToolRegistry } from "tambo-react";
 import {
   leadSearchSchema,
   leadDetailsSchema,
@@ -85,7 +85,7 @@ export const toolDefinitions = {
 };
 
 // Create the registry with the definitions
-export const toolRegistry = createHydraToolRegistry(toolDefinitions);
+export const toolRegistry = createTamboToolRegistry(toolDefinitions);
 
 // Register the implementations
 toolRegistry.registerTool(
@@ -116,7 +116,7 @@ Now connect these tools to your note and email components.
 - Associated tools are type-checked against available tool names
 
 ```tsx title="src/config/component-registry.ts"
-import { createHydraComponentRegistry } from "hydra-ai-react";
+import { createTamboComponentRegistry } from "tambo-react";
 import { CustomerNote } from "../components/CustomerNote";
 import { EmailPreview } from "../components/EmailPreview";
 import {
@@ -124,7 +124,7 @@ import {
   emailPreviewSchema,
 } from "../schemas/crm-components";
 
-export const componentRegistry = createHydraComponentRegistry({
+export const componentRegistry = createTamboComponentRegistry({
   CustomerNote: {
     component: CustomerNote,
     description: "Display a note about a customer lead",

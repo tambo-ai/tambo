@@ -2,7 +2,9 @@
   "title": "Documentation",
   "pages": [
     "index",
-    "---AI Assistant Quickstart---",
+    "---Quickstart---",
+    "...quickstart",
+    "---Build From Scratch---",
     "...ai-assistant-quickstart",
     "---Overview---",
     "...overview",

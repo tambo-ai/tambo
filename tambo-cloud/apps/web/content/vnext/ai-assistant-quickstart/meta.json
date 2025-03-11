@@ -2,7 +2,8 @@
   "title": "AI Assistant Quickstart",
   "description": "Get started quickly with building an AI assistant",
   "pages": [
-    "initial-hydra-setup",
+    "introduction",
+    "initial-tambo-setup",
     "creating-a-chat-interface",
     "adding-components",
     "adding-tools",

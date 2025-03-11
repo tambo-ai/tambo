@@ -1,5 +1,6 @@
 import { Icons } from "@/components/icons";
 import { siteConfig } from "@/lib/config";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -7,11 +8,17 @@ export function Footer() {
       <div className="relative">
         <div className="flex flex-col space-y-6 p-6 lg:p-12">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-x-2">
-              <Icons.logo className="h-5 w-5" />
-              <h2 className="text-lg font-bold text-foreground">
-                {siteConfig.name}
-              </h2>
+            <div className="flex items-center">
+              <div className="flex items-center justify-center w-6 h-6">
+                <Icons.logo className="w-6 h-6" />
+              </div>
+              <Image
+                src="/assets/landing/wordmark-placeholder.png"
+                alt={siteConfig.name}
+                width={160}
+                height={50}
+                className="h-10 w-auto"
+              />
             </div>
 
             <div className="flex gap-x-4">

@@ -1,46 +1,47 @@
+import { PreloadResources } from "@/components/preload-resources";
+import { Schema } from "@/components/schema";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { WebVitalsReporter } from "@/components/web-vitals";
 import { siteConfig } from "@/lib/config";
-import { cn, constructMetadata } from "@/lib/utils";
+import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
+import {
+  generateOrganizationSchema,
+  generateWebsiteSchema,
+} from "@/lib/schema";
+import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/react";
 import { RootProvider } from "fumadocs-ui/provider";
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { PHProvider, PostHogPageview } from "./providers";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = constructMetadata({
-  title: `${siteConfig.name} | ${siteConfig.description}`,
+export const metadata: Metadata = {
+  title: {
+    template: "%s | " + siteConfig.name,
+    default: `${siteConfig.name} | ${siteConfig.description}`,
+  },
   description: siteConfig.metadata.description,
   keywords: siteConfig.keywords,
-  openGraph: {
-    title: siteConfig.metadata.openGraph.title,
-    description: siteConfig.metadata.openGraph.description,
-    images: siteConfig.metadata.openGraph.images,
-  },
-  twitter: {
-    card: siteConfig.metadata.twitter.card,
-    title: siteConfig.metadata.twitter.title,
-    description: siteConfig.metadata.twitter.description,
-    images: siteConfig.metadata.twitter.images,
+  metadataBase: new URL(siteConfig.url),
+  authors: [
+    {
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+  ],
+  alternates: {
+    canonical: "/",
   },
   icons: siteConfig.metadata.icons,
-});
+};
 
 export const viewport: Viewport = {
-  colorScheme: "dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
+  colorScheme: "light",
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "white" }],
 };
 
 export default function RootLayout({
@@ -48,17 +49,26 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Generate schema for the website and organization
+  const websiteSchema = generateWebsiteSchema();
+  const organizationSchema = generateOrganizationSchema();
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
       className={cn(
-        `${GeistSans.variable} ${GeistMono.variable}`,
-        inter.className,
+        `${GeistSans.variable} ${GeistMono.variable} ${sentientLight.variable}`,
       )}
     >
+      <head>
+        <PreloadResources />
+      </head>
       <Suspense>
         <PostHogPageview />
+      </Suspense>
+      <Suspense>
+        <WebVitalsReporter />
       </Suspense>
       <TRPCReactProvider>
         <PHProvider>
@@ -69,15 +79,16 @@ export default function RootLayout({
           >
             <ThemeProvider
               attribute="class"
-              defaultTheme="dark"
+              defaultTheme="light"
               enableSystem={false}
+              forcedTheme="light"
             >
               <RootProvider>{children}</RootProvider>
-              <ThemeToggle />
               <TailwindIndicator />
             </ThemeProvider>
             <Toaster />
             <Analytics />
+            <Schema jsonLd={[websiteSchema, organizationSchema]} />
           </body>
         </PHProvider>
       </TRPCReactProvider>

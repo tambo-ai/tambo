@@ -78,68 +78,61 @@ html {
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 210 20% 98%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 210 20% 98%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 261 75.8% 75.7%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 215 20% 95%;
-    --secondary-foreground: 215 25% 10%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 215 20% 95%;
-    --accent-foreground: 215 25% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-    --chart-1: 210 76% 61%;
-    --chart-2: 215 58% 39%;
-    --chart-3: 220 37% 24%;
-    --chart-4: 225 74% 66%;
-    --chart-5: 230 87% 67%;
+    /* Main background and text colors */
+    --background: 150 30% 96%; /* #F2F8F6 */
+    --foreground: 162 30% 8%; /* #0E1A17 */
 
-    --color-1: 0 100% 63%;
-    --color-2: 270 100% 63%;
-    --color-3: 210 100% 63%;
-    --color-4: 195 100% 63%;
-    --color-5: 90 100% 63%;
+    /* Card and popover styling */
+    --card: 150 25% 92%; /* #E5F0ED */
+    --card-foreground: 162 30% 8%; /* #0E1A17 */
+    --popover: 150 30% 96%; /* #F2F8F6 */
+    --popover-foreground: 162 30% 8%; /* #0E1A17 */
+
+    /* Primary colors (from your logo) */
+    --primary: 157 100% 75%; /* #7FFFC4 */
+    --primary-foreground: 186 94% 13%; /* #023A41 */
+
+    /* Secondary colors */
+    --secondary: 217 91% 67%; /* #5C94F7 */
+    --secondary-foreground: 0 0% 100%; /* #FFF */
+
+    /* Muted colors */
+    --muted: 157 25% 88%; /* #D8E9E4 */
+    --muted-foreground: 186 94% 13%; /* #023A41 */
+
+    /* Accent colors */
+    --accent: 320 100% 80%; /* Brighter pink for better contrast (orginal: #FFC4EB) */
+    --accent-foreground: 162 30% 8%; /* #0E1A17 */
+
+    /* Destructive colors (keeping your existing one) */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%; /* #FFF */
+
+    /* Border and input styling */
+    --border: 157 25% 88%; /* #D8E9E4 */
+    --input: 157 25% 88%; /* #D8E9E4 */
+    --ring: 157 100% 75%; /* #7FFFC4 */
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Chart colors */
+    --chart-1: 157 100% 75%; /* #7FFFC4 */
+    --chart-2: 320 100% 88%; /* #FFC4EB */
+    --chart-3: 217 91% 67%; /* #5C94F7 */
+    --chart-4: 49 97% 51%; /* #FED807 */
+    --chart-5: 186 94% 13%; /* #023A41 */
+
+    /* Color palette */
+    --color-1: 157 100% 75%; /* #7FFFC4 */
+    --color-2: 320 100% 88%; /* #FFC4EB */
+    --color-3: 217 91% 67%; /* #5C94F7 */
+    --color-4: 49 97% 51%; /* #FED807 */
+    --color-5: 186 94% 13%; /* #023A41 */
 
     --header-height: 3.5rem;
     font-family: Inter, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
-  }
-
-  .dark {
-    --background: 225 15% 6%;
-    --foreground: 210 40% 98%;
-    --card: 225 15% 6%;
-    --card-foreground: 210 40% 98%;
-    --popover: 225 15% 6%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 261 75.8% 75.7%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 225 10% 18%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 225 10% 12%;
-    --muted-foreground: 225 10% 70%;
-    --accent: 225 10% 18%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 85.7% 97.3%;
-    --border: 225 10% 18%;
-    --input: 225 10% 18%;
-    --ring: 225 15% 80%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
   }
 }
 
@@ -167,6 +160,15 @@ html {
     @apply bg-background text-foreground;
   }
 
+  /* Font utility classes */
+  .font-sentient {
+    font-family: var(--font-sentient-light), serif;
+  }
+
+  .font-heading {
+    font-family: var(--font-sentient-light), serif;
+  }
+
   /* width */
   ::-webkit-scrollbar {
     width: 5px;
@@ -188,4 +190,48 @@ html {
   ::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
   }
+}
+
+/* Icon animations */
+@keyframes icon-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0.4);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(127, 255, 196, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0);
+  }
+}
+
+@keyframes icon-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.icon-container {
+  transition: all 0.3s ease;
+}
+
+.icon-container:hover {
+  transform: scale(1.1);
+}
+
+.pulse-animation {
+  animation: icon-pulse 2s infinite;
+}
+
+.float-animation {
+  animation: icon-float 3s ease-in-out infinite;
 }

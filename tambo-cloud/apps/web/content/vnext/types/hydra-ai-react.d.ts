@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
-declare module "hydra-ai-react" {
+declare module "tambo-react" {
   import { type ComponentType, type ReactNode } from "react";
   import { z } from "zod";
 
@@ -8,14 +8,14 @@ declare module "hydra-ai-react" {
   // ===============================
 
   /**
-   * Hook for state that Hydra should know about.
-   * This hook automatically connects to the current message and thread context when used within a Hydra component.
+   * Hook for state that tambo should know about.
+   * This hook automatically connects to the current message and thread context when used within a tambo component.
    * State is automatically persisted and synchronized across the thread.
    *
    * @example
    * ```tsx
-   * // Within a Hydra component (automatically receives messageId)
-   * const { value, setValue } = useHydraState<{
+   * // Within a tambo component (automatically receives messageId)
+   * const { value, setValue } = useTamboState<{
    *   content: string;
    *   isEditing: boolean;
    * }>();
@@ -32,7 +32,7 @@ declare module "hydra-ai-react" {
    * @property {T} value - The current state value
    * @property {(value: T) => void} setValue - Function to update the state
    */
-  export function useHydraState<T>(): {
+  export function useTamboState<T>(): {
     value: T;
     setValue: (value: T) => void;
   };
@@ -114,11 +114,11 @@ declare module "hydra-ai-react" {
 
   /**
    * Hook for accessing message streaming state
-   * Uses the current message context from HydraContext automatically
+   * Uses the current message context from TamboContext automatically
    *
    * @example
    * ```tsx
-   * // Within any component under HydraProvider
+   * // Within any component under TamboProvider
    * const { isStreaming, partial, abort } = useMessageStreaming();
    *
    * // No need to pass messageId - it's handled by context
@@ -132,16 +132,16 @@ declare module "hydra-ai-react" {
    * ```
    */
   export function useMessageStreaming(): MessageStreamingStatus<
-    HydraThreadMessage & ValidationState
+    TamboThreadMessage & ValidationState
   >;
 
   /**
    * Hook for accessing component streaming state
-   * Uses the current message and component context from HydraContext automatically
+   * Uses the current message and component context from TamboContext automatically
    *
    * @example
    * ```tsx
-   * // Within a Hydra component
+   * // Within a tambo component
    * const { isStreaming, partial } = useComponentStreaming<MyProps>();
    *
    * return (
@@ -174,14 +174,14 @@ declare module "hydra-ai-react" {
   /**
    * Component definition with schema.
    * Components defined in the registry automatically receive thread and message context,
-   * enabling hooks like useHydraState to work without explicit configuration.
+   * enabling hooks like useTamboState to work without explicit configuration.
    *
    * @property {ComponentType<any>} component - The React component to render
    * @property {z.ZodSchema} propsSchema - Schema for validating props and state
    * @property {string} [description] - Optional description for AI context
    * @property {string[]} [associatedTools] - Optional tools this component can use
    */
-  export interface HydraComponentDefinition {
+  export interface TamboComponentDefinition {
     component: ComponentType<any>;
     propsSchema: z.ZodSchema;
     description?: string;
@@ -195,7 +195,7 @@ declare module "hydra-ai-react" {
   /**
    * Component definition with schema
    */
-  export interface HydraComponentDefinition {
+  export interface TamboComponentDefinition {
     component: ComponentType<any>;
     propsSchema: z.ZodSchema; // Schema for props and state
     description?: string;
@@ -219,7 +219,7 @@ declare module "hydra-ai-react" {
    * @property Component - The React component to render
    * @property props - Current validated props that automatically update as JSON streams in
    */
-  export interface HydraComponent {
+  export interface TamboComponent {
     type: string;
     Component: ComponentType<any>;
     props: Record<string, unknown>;
@@ -228,21 +228,21 @@ declare module "hydra-ai-react" {
   /**
    * Represents a message in a thread with streaming support and validation
    * @property id - Unique message identifier
-   * @property type - Message sender type (user or hydra)
+   * @property type - Message sender type (user or tambo)
    * @property content - The message content
    * @property component - Optional interactive component attached to the message
    * @property status - Current processing status of the message
    * @property suggestions - AI-generated suggestions for next actions
    * @property selectedSuggestion - User's selected suggestion from the list
    */
-  export interface HydraThreadMessage {
+  export interface TamboThreadMessage {
     id: string;
-    type: "user" | "hydra";
+    type: "user" | "tambo";
     content: string;
-    component?: HydraComponent;
+    component?: TamboComponent;
     status?: ProcessStatus;
-    suggestions?: HydraSuggestion[];
-    selectedSuggestion?: HydraSuggestion;
+    suggestions?: TamboSuggestion[];
+    selectedSuggestion?: TamboSuggestion;
   }
 
   // ===============================
@@ -278,7 +278,7 @@ declare module "hydra-ai-react" {
    * @property isAutoTitle - If true, title is auto-generated
    * @property userProfile - References a stored user profile
    */
-  export interface HydraThread {
+  export interface TamboThread {
     id: string;
     title?: string;
     contextId?: string;
@@ -290,8 +290,8 @@ declare module "hydra-ai-react" {
    * State management for a thread
    * @property messages - Array of messages in the thread
    */
-  export interface HydraThreadState {
-    messages: HydraThreadMessage[];
+  export interface TamboThreadState {
+    messages: TamboThreadMessage[];
   }
 
   /**
@@ -299,7 +299,7 @@ declare module "hydra-ai-react" {
    * @property title - Short action description
    * @property detailedSuggestion - Detailed  AI instruction
    */
-  export interface HydraSuggestion {
+  export interface TamboSuggestion {
     title: string;
     detailedSuggestion: string;
   }
@@ -311,7 +311,7 @@ declare module "hydra-ai-react" {
    * @property style - Communication style (e.g., "professional")
    * @property rules - Behavior guidelines
    */
-  export interface HydraPersonality {
+  export interface TamboPersonality {
     role: string;
     style: string;
     rules: string[];
@@ -324,7 +324,7 @@ declare module "hydra-ai-react" {
    * @property profile - Text about the user to help the AI
    * @property updatedAt - ISO timestamp
    */
-  export interface HydraStoredProfile {
+  export interface TamboStoredProfile {
     userId: string;
     profile: string;
     updatedAt: string;
@@ -341,7 +341,7 @@ declare module "hydra-ai-react" {
    * @property description - Tool description for AI
    * @property inputSchema - Validates tool inputs
    */
-  export interface HydraToolDefinition<T extends z.ZodSchema> {
+  export interface TamboToolDefinition<T extends z.ZodSchema> {
     description: string;
     inputSchema: T;
   }
@@ -352,7 +352,7 @@ declare module "hydra-ai-react" {
    * @param input - Tool inputs
    * @returns Promise of tool execution results
    */
-  export type HydraToolImplementation<T extends z.ZodSchema> = (
+  export type TamboToolImplementation<T extends z.ZodSchema> = (
     input: z.infer<T>,
   ) => Promise<unknown>;
 
@@ -362,13 +362,13 @@ declare module "hydra-ai-react" {
    * @property tools - Map of tool definitions
    * @method registerTool - Adds a new tool to the registry
    */
-  export interface HydraToolRegistry<
-    T extends Record<string, HydraToolDefinition<z.ZodSchema>>,
+  export interface TamboToolRegistry<
+    T extends Record<string, TamboToolDefinition<z.ZodSchema>>,
   > {
     tools: T;
     registerTool<K extends keyof T>(
       name: K,
-      implementation: HydraToolImplementation<T[K]["inputSchema"]>,
+      implementation: TamboToolImplementation<T[K]["inputSchema"]>,
     ): void;
   }
 
@@ -378,9 +378,9 @@ declare module "hydra-ai-react" {
    * @param config - Initial tool definitions
    * @returns New tool registry instance
    */
-  export function createHydraToolRegistry<
-    T extends Record<string, HydraToolDefinition<z.ZodSchema>>,
-  >(config: T): HydraToolRegistry<T>;
+  export function createTamboToolRegistry<
+    T extends Record<string, TamboToolDefinition<z.ZodSchema>>,
+  >(config: T): TamboToolRegistry<T>;
 
   // ===============================
   // Component Registry System
@@ -392,10 +392,10 @@ declare module "hydra-ai-react" {
    * @template TComponents - Type of component definitions
    * @property components - Map of component definitions
    */
-  export interface HydraComponentRegistry<
-    TComponents extends Record<string, HydraComponentDefinition> = Record<
+  export interface TamboComponentRegistry<
+    TComponents extends Record<string, TamboComponentDefinition> = Record<
       string,
-      HydraComponentDefinition
+      TamboComponentDefinition
     >,
   > {
     components: TComponents;
@@ -408,7 +408,7 @@ declare module "hydra-ai-react" {
 
   /**
    * Main configuration interface
-   * @property apiKey - API key for Hydra
+   * @property apiKey - API key for tambo
    * @property debug - Enable debug mode
    * @property toolRegistry - Tool registry instance
    * @property componentRegistry - Component registry instance
@@ -416,43 +416,43 @@ declare module "hydra-ai-react" {
    * @template TTools - Type of tool definitions
    * @template TComponents - Type of component definitions
    */
-  export interface HydraConfig<
-    TTools extends Record<string, HydraToolDefinition<z.ZodSchema>> = Record<
+  export interface TamboConfig<
+    TTools extends Record<string, TamboToolDefinition<z.ZodSchema>> = Record<
       string,
-      HydraToolDefinition<z.ZodSchema>
+      TamboToolDefinition<z.ZodSchema>
     >,
-    TComponents extends Record<string, HydraComponentDefinition> = Record<
+    TComponents extends Record<string, TamboComponentDefinition> = Record<
       string,
-      HydraComponentDefinition
+      TamboComponentDefinition
     >,
   > {
     apiKey: string;
     debug?: boolean;
-    toolRegistry: HydraToolRegistry<TTools>;
-    componentRegistry: HydraComponentRegistry<TComponents>;
-    personality?: HydraPersonality;
+    toolRegistry: TamboToolRegistry<TTools>;
+    componentRegistry: TamboComponentRegistry<TComponents>;
+    personality?: TamboPersonality;
   }
 
   /**
    * Provider component props
-   * @property config - Hydra configuration
+   * @property config - tambo configuration
    * @property children - React nodes to render
    * @template TTools - Type of tool definitions
    * @template TComponents - Type of component definitions
    */
-  export interface HydraProviderProps<
-    TTools extends Record<string, HydraToolDefinition<z.ZodSchema>>,
-    TComponents extends Record<string, HydraComponentDefinition>,
+  export interface TamboProviderProps<
+    TTools extends Record<string, TamboToolDefinition<z.ZodSchema>>,
+    TComponents extends Record<string, TamboComponentDefinition>,
   > extends Readonly<{
-      config: HydraConfig<TTools, TComponents>;
+      config: TamboConfig<TTools, TComponents>;
       children: ReactNode;
     }> {}
 
-  export const HydraProvider: <
-    TTools extends Record<string, HydraToolDefinition<z.ZodSchema>>,
-    TComponents extends Record<string, HydraComponentDefinition>,
+  export const TamboProvider: <
+    TTools extends Record<string, TamboToolDefinition<z.ZodSchema>>,
+    TComponents extends Record<string, TamboComponentDefinition>,
   >(
-    props: HydraProviderProps<TTools, TComponents>,
+    props: TamboProviderProps<TTools, TComponents>,
   ) => React.ReactElement;
 
   // ===============================
@@ -463,7 +463,7 @@ declare module "hydra-ai-react" {
   /**
    * Main context interface
    *  Provides access to all functionality
-   * @property config - Hydra configuration
+   * @property config - tambo configuration
    * @property personality - AI personality configuration
    * @property updateConfig - Function to update configuration
    * @property threads - Thread management
@@ -473,23 +473,23 @@ declare module "hydra-ai-react" {
    * @template TTools - Type of tool definitions
    * @template TComponents - Type of component definitions
    */
-  export interface HydraContext<
-    TTools extends Record<string, HydraToolDefinition<z.ZodSchema>>,
-    TComponents extends Record<string, HydraComponentDefinition>,
+  export interface TamboContext<
+    TTools extends Record<string, TamboToolDefinition<z.ZodSchema>>,
+    TComponents extends Record<string, TamboComponentDefinition>,
   > {
-    config: HydraConfig<TTools, TComponents>;
-    personality?: HydraPersonality;
+    config: TamboConfig<TTools, TComponents>;
+    personality?: TamboPersonality;
 
     // Core Operations
     updateConfig: {
-      personality: (personality: Partial<HydraPersonality>) => Promise<void>;
+      personality: (personality: Partial<TamboPersonality>) => Promise<void>;
     };
 
     // Thread Management
     threads: {
-      all: HydraThread[];
-      state: Record<string, HydraThreadState>;
-      getByContext: (contextId: string) => HydraThread[];
+      all: TamboThread[];
+      state: Record<string, TamboThreadState>;
+      getByContext: (contextId: string) => TamboThread[];
       operations: ThreadOperations;
     };
 
@@ -500,9 +500,9 @@ declare module "hydra-ai-react" {
         message: string,
         options?: StreamOptions,
       ) => Promise<void>;
-      state: Record<string, HydraThreadMessage[]>;
+      state: Record<string, TamboThreadMessage[]>;
       status: ProcessStatus;
-      context: HydraMessageContext; // Current message context
+      context: TamboMessageContext; // Current message context
     };
 
     // Component Management
@@ -514,14 +514,14 @@ declare module "hydra-ai-react" {
 
     // Suggestion Management
     suggestions: {
-      items: HydraSuggestion[];
-      accept: (suggestion: HydraSuggestion) => Promise<void>;
-      dismiss: (suggestion: HydraSuggestion) => Promise<void>;
+      items: TamboSuggestion[];
+      accept: (suggestion: TamboSuggestion) => Promise<void>;
+      dismiss: (suggestion: TamboSuggestion) => Promise<void>;
     };
 
     // Profile Management
     profiles: {
-      items: HydraStoredProfile[];
+      items: TamboStoredProfile[];
       status: {
         isLoading: boolean;
         error: Error | null;
@@ -540,7 +540,7 @@ declare module "hydra-ai-react" {
   export interface ThreadOperations {
     create: (options?: ThreadCreateOptions) => Promise<string>;
     delete: (threadId: string) => Promise<void>;
-    update: (threadId: string, updates: Partial<HydraThread>) => Promise<void>;
+    update: (threadId: string, updates: Partial<TamboThread>) => Promise<void>;
     updateMessageState: (
       threadId: string,
       messageId: string,
@@ -557,32 +557,32 @@ declare module "hydra-ai-react" {
    * @property refresh - Refresh user profiles
    */
   export interface ProfileOperations {
-    get: (userId: string) => Promise<HydraStoredProfile | null>;
+    get: (userId: string) => Promise<TamboStoredProfile | null>;
     update: (userId: string, profile: string) => Promise<void>;
     delete: (userId: string) => Promise<void>;
-    list: () => Promise<HydraStoredProfile[]>;
+    list: () => Promise<TamboStoredProfile[]>;
     refresh: () => Promise<void>;
   }
 
-  // Primary hook for accessing all Hydra functionality
+  // Primary hook for accessing all tambo functionality
   // Main entry point for  functionality
 
   /**
-   * Main hook for accessing all Hydra functionality
-   * @returns Hydra context with all functionality
+   * Main hook for accessing all tambo functionality
+   * @returns tambo context with all functionality
    * @template TTools - Type of tool definitions
    * @template TComponents - Type of component definitions
    */
-  export function useHydraContext<
-    TTools extends Record<string, HydraToolDefinition<z.ZodSchema>> = Record<
+  export function useTamboContext<
+    TTools extends Record<string, TamboToolDefinition<z.ZodSchema>> = Record<
       string,
-      HydraToolDefinition<z.ZodSchema>
+      TamboToolDefinition<z.ZodSchema>
     >,
-    TComponents extends Record<string, HydraComponentDefinition> = Record<
+    TComponents extends Record<string, TamboComponentDefinition> = Record<
       string,
-      HydraComponentDefinition
+      TamboComponentDefinition
     >,
-  >(): HydraContext<TTools, TComponents>;
+  >(): TamboContext<TTools, TComponents>;
 
   // Convenience hooks for common operations
   // Simplified access to specific features
@@ -594,13 +594,13 @@ declare module "hydra-ai-react" {
    * @property suggestions - Suggestion management
    * @property components - Component management
    */
-  export function useHydraThread(threadId: string): {
-    messages: HydraThreadMessage[];
+  export function useTamboThread(threadId: string): {
+    messages: TamboThreadMessage[];
     operations: ThreadOperations;
     suggestions: {
-      items: HydraSuggestion[];
-      accept: (suggestion: HydraSuggestion) => Promise<void>;
-      dismiss: (suggestion: HydraSuggestion) => Promise<void>;
+      items: TamboSuggestion[];
+      accept: (suggestion: TamboSuggestion) => Promise<void>;
+      dismiss: (suggestion: TamboSuggestion) => Promise<void>;
     };
     components: {
       current: ComponentType<any> | null;
@@ -615,8 +615,8 @@ declare module "hydra-ai-react" {
    * @property operations - Profile operations
    * @property status - Profile status
    */
-  export function useHydraProfile(userId: string): {
-    profile: HydraStoredProfile | null;
+  export function useTamboProfile(userId: string): {
+    profile: TamboStoredProfile | null;
     operations: ProfileOperations;
     status: {
       isLoading: boolean;
@@ -629,9 +629,9 @@ declare module "hydra-ai-react" {
    * @property personality - AI personality
    * @property update - Update personality
    */
-  export function useHydraPersonality(): {
-    personality: HydraPersonality | undefined;
-    update: (personality: Partial<HydraPersonality>) => Promise<void>;
+  export function useTamboPersonality(): {
+    personality: TamboPersonality | undefined;
+    update: (personality: Partial<TamboPersonality>) => Promise<void>;
   };
 
   // ===============================
@@ -655,13 +655,13 @@ declare module "hydra-ai-react" {
 
   /**
    * Context for message and streaming state
-   * Automatically provided by HydraProvider to all child components
+   * Automatically provided by TamboProvider to all child components
    *
    * @property messageId - Current message ID from context
    * @property threadId - Current thread ID from context
    * @property streaming - Streaming state and controls
    */
-  export interface HydraMessageContext {
+  export interface TamboMessageContext {
     messageId: string;
     threadId: string;
     streaming: {
@@ -676,10 +676,10 @@ declare module "hydra-ai-react" {
    *
    * @example
    * ```tsx
-   * const { messageId, streaming } = useHydraMessageContext();
+   * const { messageId, streaming } = useTamboMessageContext();
    * ```
    */
-  export function useHydraMessageContext(): HydraMessageContext;
+  export function useTamboMessageContext(): TamboMessageContext;
 
   /**
    * Creates a new component registry
@@ -687,7 +687,7 @@ declare module "hydra-ai-react" {
    * @param config - Initial component definitions
    * @returns New component registry instance
    */
-  export function createHydraComponentRegistry<
-    TComponents extends Record<string, HydraComponentDefinition>,
-  >(config: TComponents): HydraComponentRegistry<TComponents>;
+  export function createTamboComponentRegistry<
+    TComponents extends Record<string, TamboComponentDefinition>,
+  >(config: TComponents): TamboComponentRegistry<TComponents>;
 }

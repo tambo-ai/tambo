@@ -5,7 +5,7 @@ description: Special components that can be modified through natural language co
 
 Interactables are special components that can be attached to a thread and modified through natural language conversation. They enable real-time updates to component state based on user messages in a thread.
 
-When a user says something like "add a row to the table" or "update the chart title", Hydra will automatically identify which interactable they're referring to and update its state accordingly.
+When a user says something like "add a row to the table" or "update the chart title", tambo will automatically identify which interactable they're referring to and update its state accordingly.
 
 ## Core Concepts
 
@@ -17,7 +17,7 @@ When a user says something like "add a row to the table" or "update the chart ti
 
 ## Registration
 
-Register an interactable component by adding the `isInteractable` flag. This tells Hydra that this component can be updated through conversation:
+Register an interactable component by adding the `isInteractable` flag. This tells tambo that this component can be updated through conversation:
 
 ```ts
 const componentRegistry = createComponentRegistry({
@@ -57,7 +57,7 @@ Access and update interactable state. The state updates automatically when users
 
 ```ts
 function TodoTable() {
-  const { state, setState, mode } = useHydraMessage<TodoTableState>();
+  const { state, setState, mode } = useTamboMessage<TodoTableState>();
 
   // Component can adapt based on mode
   const isInteractive = mode.type === 'interactable';
@@ -102,7 +102,7 @@ Start a component in interactable mode using the provider:
 ```ts
 function ThreadMessage({ messageId }) {
   return (
-    <HydraMessageProvider
+    <TamboMessageProvider
       messageId={messageId}
       interactableOptions={{
         id: 'todo-1',  // If provided, starts in interactable mode
@@ -110,7 +110,7 @@ function ThreadMessage({ messageId }) {
       }}
     >
       <TodoTable />
-    </HydraMessageProvider>
+    </TamboMessageProvider>
   );
 }
 ```
@@ -121,7 +121,7 @@ Or transition to interactable mode from within the component:
 
 ```ts
 function TodoTable() {
-  const { state, setState, mode } = useHydraMessage<TodoTableState>();
+  const { state, setState, mode } = useTamboMessage<TodoTableState>();
 
   const makeInteractive = () => {
     mode.makeInteractable({
@@ -145,10 +145,10 @@ function TodoTable() {
 
 ## State Management
 
-The `useHydraMessage` hook provides unified state management:
+The `useTamboMessage` hook provides unified state management:
 
 ```ts
-const { state, setState, mode } = useHydraMessage<TodoTableState>();
+const { state, setState, mode } = useTamboMessage<TodoTableState>();
 
 // State updates work the same in both modes
 setState({
@@ -202,7 +202,7 @@ You can create a thread in interactive-only mode:
 
 ```ts
 function CreateInteractiveThread() {
-  const createThread = useHydraCreateThread();
+  const createThread = useTamboCreateThread();
   const handleCreate = async () => {
     // Create a thread that only handles component interactions
     const threadId = await createThread("Interactive Thread", undefined, {
@@ -217,7 +217,7 @@ You can also toggle interactive-only mode for existing threads:
 
 ```ts
 function ThreadControls({ threadId }: { threadId: string }) {
-  const { isInteractiveOnly, setInteractiveOnly } = useHydraInteractiveMode(threadId);
+  const { isInteractiveOnly, setInteractiveOnly } = useTamboInteractiveMode(threadId);
   return (
     <div>
       <Switch
@@ -234,8 +234,8 @@ For individual messages, you can restrict them to only update interactables:
 
 ```ts
 function ThreadMessage({ messageId, threadId }: { messageId: string; threadId: string }) {
-  const { setMessageInteractiveOnly } = useHydraInteractiveMode(threadId);
-  const { component } = useHydraThreadComponent(messageId);
+  const { setMessageInteractiveOnly } = useTamboInteractiveMode(threadId);
+  const { component } = useTamboThreadComponent(messageId);
 
   const makeInteractiveOnly = async () => {
     // This message will only update interactables, not generate new content
@@ -256,7 +256,7 @@ function ThreadMessage({ messageId, threadId }: { messageId: string; threadId: s
 
 ## Custom Presentation (Canvas Example)
 
-Interactables can be used within your own presentation layer. Here's an example of implementing a Canvas UI that manages layout while letting Hydra handle component state:
+Interactables can be used within your own presentation layer. Here's an example of implementing a Canvas UI that manages layout while letting tambo handle component state:
 
 ```ts
 function Canvas() {

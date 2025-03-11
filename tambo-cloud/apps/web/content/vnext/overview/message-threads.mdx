@@ -1,6 +1,6 @@
 ---
 title: Message Threads
-description: Understanding message threads as the foundation of Hydra AI applications.
+description: Understanding message threads as the foundation of tambo applications.
 ---
 
 Message threads are the core building block for creating interactive AI experiences with Hydra. They provide a structured way to manage conversations between users and AI, complete with status tracking, streaming responses, and interactive components.
@@ -22,10 +22,10 @@ A message thread consists of:
 
 ```tsx title="Thread Core Hooks"
 // Access thread state and operations
-const { messages, operations, suggestions, components } = useHydraThread(threadId);
+const { messages, operations, suggestions, components } = useTamboThread(threadId);
 
 // Access global thread state and operations
-const { threads, messages, components, suggestions } = useHydraContext();
+const { threads, messages, components, suggestions } = useTamboContext();
 
 // Thread lifecycle operations
 const {
@@ -33,14 +33,14 @@ const {
   delete,    // Remove thread
   update,    // Update thread properties
   updateMessageComponent    // Update component state
-} = useHydraContext().threads.operations;
+} = useTamboContext().threads.operations;
 ```
 
 ### Message Management
 
 ```tsx title="Message Management Hooks"
 // Main hook for message generation
-const { generate } = useHydraContext().messages;
+const { generate } = useTamboContext().messages;
 
 // Access message status
 const {
@@ -50,7 +50,7 @@ const {
   isStreaming,
   error,
   validationState,
-} = useHydraContext().messages.status;
+} = useTamboContext().messages.status;
 
 // Message streaming status
 const { isStreaming, activePaths, validation, partialData, abort } =
@@ -70,9 +70,9 @@ const { isStreaming, activePaths, validation, partialData, abort } =
 
 ```tsx title="Specialized Thread Operations"
 // Thread filtering and access
-const threadsByContext = useHydraContext().threads.getByContext(contextId);
-const allThreads = useHydraContext().threads.all;
-const threadStates = useHydraContext().threads.state;
+const threadsByContext = useTamboContext().threads.getByContext(contextId);
+const allThreads = useTamboContext().threads.all;
+const threadStates = useTamboContext().threads.state;
 
 // Create thread with options
 const newThreadId = await threads.operations.create({
@@ -87,13 +87,13 @@ const newThreadId = await threads.operations.create({
 ### Basic Message Thread
 
 ```tsx title="Basic Message Thread Component"
-import { useHydraThread, useHydraContext } from "hydra-ai-react";
+import { useTamboThread, useTamboContext } from "tambo-react";
 import { type FormEvent, useState } from "react";
 
 function BasicMessageThread({ threadId }) {
-  const { messages, suggestions } = useHydraThread(threadId);
-  const { generate } = useHydraContext().messages;
-  const { isThinking, isLoading, error } = useHydraContext().messages.status;
+  const { messages, suggestions } = useTamboThread(threadId);
+  const { generate } = useTamboContext().messages;
+  const { isThinking, isLoading, error } = useTamboContext().messages.status;
   const [inputValue, setInputValue] = useState("");
 
   const handleSubmit = async (e) => {

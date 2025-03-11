@@ -16,13 +16,17 @@ export function constructMetadata({
   title = siteConfig.name,
   description = siteConfig.description,
   image = absoluteUrl("/og"),
+  path = "",
   ...props
 }: {
   title?: string;
   description?: string;
   image?: string;
+  path?: string;
   [key: string]: Metadata[keyof Metadata];
 }): Metadata {
+  const url = absoluteUrl(path);
+
   return {
     title: {
       template: "%s | " + siteConfig.name,
@@ -33,7 +37,7 @@ export function constructMetadata({
     openGraph: {
       title,
       description,
-      url: siteConfig.url,
+      url,
       siteName: siteConfig.name,
       images: [
         {
@@ -54,6 +58,9 @@ export function constructMetadata({
         url: siteConfig.url,
       },
     ],
+    alternates: {
+      canonical: url,
+    },
     ...props,
   };
 }

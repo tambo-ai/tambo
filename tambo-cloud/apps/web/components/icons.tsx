@@ -1,23 +1,20 @@
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
+import Image from "next/image";
+import { ComponentProps } from "react";
 
 type IconProps = React.HTMLAttributes<SVGElement>;
+type ImageIconProps = Omit<ComponentProps<typeof Image>, "src" | "alt">;
 
 export const Icons = {
-  logo: (props: IconProps) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+  logo: (props: ImageIconProps) => (
+    <Image
+      src="/assets/landing/octo-standing-placeholder.png"
+      alt="Tambo Logo"
+      width={40}
+      height={40}
+      className="object-contain"
       {...props}
-    >
-      <path d="M4 10l16-6 -6 16 -2 -8 -8 -2z"></path>
-    </svg>
+    />
   ),
   discord: DiscordLogoIcon,
   twitter: (props: IconProps) => (

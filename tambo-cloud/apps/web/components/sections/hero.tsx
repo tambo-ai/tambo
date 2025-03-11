@@ -1,32 +1,38 @@
 "use client";
 
-import { AuroraText } from "@/components/aurora-text";
-import { EmailDialog } from "@/components/email-dialog";
-import { Icons } from "@/components/icons";
+import { CLI } from "@/components/cli";
 import { Section } from "@/components/section";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { copy } from "@/lib/copy";
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { lazy, Suspense, useEffect, useState } from "react";
 
 const ease = [0.16, 1, 0.3, 1];
 
-const heroContent = copy.hero;
+// Hero content moved directly into this file
+const heroContent = {
+  pill: {
+    label: "⚡️ Launching Soon",
+    text: "v1.0.0",
+    link: "http://localhost:3000/blog/0-1-0-announcement",
+  },
+  title: "An AI powered Interface in one line of code.",
+  subtitle: "A React package for interfaces that think.",
+  cta: {
+    buttonText: "Request Early Access",
+  },
+};
 
 function HeroPill() {
   return (
     <motion.a
       href={heroContent.pill.link}
-      className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre"
+      className="flex w-auto items-center space-x-2 rounded-full bg-[#5C94F7]/10 px-2 py-1 ring-1 ring-[#5C94F7] whitespace-pre"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease }}
     >
-      <div className="w-fit rounded-full bg-accent px-2 py-0.5 text-left text-xs font-medium text-primary sm:text-sm">
+      <div className="w-fit rounded-full bg-[#5C94F7] px-2 py-0.5 text-left text-xs font-medium text-white sm:text-sm">
         {heroContent.pill.label}
       </div>
-      <p className="text-xs font-medium text-primary sm:text-sm">
+      <p className="text-xs font-medium text-[#5C94F7] sm:text-sm">
         {heroContent.pill.text}
       </p>
       <svg
@@ -39,7 +45,7 @@ function HeroPill() {
       >
         <path
           d="M8.78141 5.33312L5.20541 1.75712L6.14808 0.814453L11.3334 5.99979L6.14808 11.1851L5.20541 10.2425L8.78141 6.66645H0.666748V5.33312H8.78141Z"
-          fill="hsl(var(--primary))"
+          fill="#5C94F7"
         />
       </svg>
     </motion.a>
@@ -48,9 +54,9 @@ function HeroPill() {
 
 function HeroTitles() {
   return (
-    <div className="flex flex-col items-center lg:items-start overflow-hidden pt-4 sm:pt-8 lg:pt-12">
+    <div className="flex flex-col items-center lg:items-start overflow-hidden pt-2 sm:pt-4 md:pt-6 lg:pt-8">
       <motion.h1
-        className="text-center lg:text-left text-3xl sm:text-4xl font-semibold leading-tight sm:leading-tighter text-foreground md:text-5xl lg:text-6xl tracking-tighter"
+        className="text-center lg:text-left text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-heading leading-tight tracking-tighter text-foreground"
         initial={{ filter: "blur(10px)", opacity: 0, y: 50 }}
         animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
         transition={{
@@ -59,23 +65,10 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        <motion.span
-          className="inline-block text-balance"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.8,
-            delay: 0.5,
-            ease,
-          }}
-        >
-          <AuroraText className="leading-tight sm:leading-normal">
-            {heroContent.title}
-          </AuroraText>
-        </motion.span>
+        {heroContent.title}
       </motion.h1>
       <motion.p
-        className="text-center lg:text-left max-w-xl leading-normal text-muted-foreground text-base sm:text-lg sm:leading-normal text-balance mt-6"
+        className="text-center lg:text-left max-w-xl leading-normal text-muted-foreground text-base sm:text-lg md:text-xl sm:leading-normal mt-2 sm:mt-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
@@ -91,89 +84,75 @@ function HeroTitles() {
 }
 
 function HeroCTA() {
-  const [showDialog, setShowDialog] = useState(false);
-
   return (
-    <div className="flex flex-col items-center lg:items-start w-full mt-8 lg:mt-12">
+    <motion.div
+      className="w-full"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.8, duration: 0.8, ease }}
+    >
       <motion.div
-        className="flex flex-col items-center lg:items-start w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.8, ease }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="w-full"
       >
-        <Button
-          onClick={() => setShowDialog(true)}
-          className={cn(
-            buttonVariants({ variant: "default" }),
-            "w-full sm:w-auto text-background flex gap-2 rounded-lg py-6 sm:py-4",
-          )}
-        >
-          <Icons.logo className="h-5 w-5 sm:h-6 sm:w-6" />
-          {heroContent.cta.buttonText}
-        </Button>
+        <CLI
+          title="Bash"
+          command="npx tambo --full-send"
+          className="w-full max-w-full overflow-x-auto"
+        />
       </motion.div>
-      <EmailDialog open={showDialog} onOpenChange={setShowDialog} />
-    </div>
+    </motion.div>
   );
 }
-const LazySpline = lazy(async () => await import("@splinetool/react-spline"));
 
-function SplineAnimation() {
+// Placeholder for illustration
+function HeroIllustration() {
   return (
-    <div className="w-full h-full">
-      <LazySpline
-        scene="https://prod.spline.design/mZBrYNcnoESGlTUG/scene.splinecode"
-        className="w-full h-full"
-      />
+    <div className="w-full h-full flex items-center justify-center overflow-hidden">
+      <div className="w-full h-full relative">
+        <motion.img
+          src="/assets/landing/octo-juggling-placeholder.png"
+          alt="Octopus juggling illustration"
+          className="w-full h-full object-contain max-w-full"
+          initial={{ opacity: 0, scale: 1.3 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease }}
+        />
+      </div>
     </div>
   );
 }
 
 export function Hero() {
-  const [_isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    // Use a more reliable way to detect mobile devices
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
-
-    const updateIsMobile = (e: MediaQueryListEvent | MediaQueryList) => {
-      setIsMobile(e.matches);
-    };
-
-    // Initial check
-    updateIsMobile(mediaQuery);
-
-    // Add listener for changes
-    mediaQuery.addEventListener("change", updateIsMobile);
-
-    return () => mediaQuery.removeEventListener("change", updateIsMobile);
-  }, []);
-
   return (
-    <Section id="hero" className="py-8 sm:py-12 lg:py-24">
-      <div className="flex flex-col lg:flex-row items-center w-full lg:gap-16">
-        <div className="flex flex-col items-center lg:items-start text-center lg:text-left lg:max-w-[640px]">
+    <Section id="hero" className="py-4 sm:py-8 md:py-12 lg:py-20">
+      {/* Main content area with titles and illustration */}
+      <div className="flex flex-col lg:flex-row items-center w-full lg:gap-8 xl:gap-16 mb-4 lg:mb-8">
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:max-w-[50%]">
           <HeroPill />
           <HeroTitles />
-          <HeroCTA />
         </div>
 
-        {/* Hero animation */}
-        <div className="hidden lg:block w-full lg:w-1/2 aspect-square mt-8 lg:mt-0">
-          <Suspense
-            fallback={
-              <div className="w-full h-full bg-muted/10 animate-pulse rounded-lg" />
-            }
+        {/* Hero illustration */}
+        <div className="w-full lg:w-1/2 aspect-square mt-4 lg:mt-0">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="w-full h-full"
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
-              className="w-full h-full"
-            >
-              <SplineAnimation />
-            </motion.div>
-          </Suspense>
+            <HeroIllustration />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* CTA section centered below */}
+      <div className="w-full flex justify-center mt-2 sm:mt-4 lg:mt-6">
+        <div className="w-full max-w-full sm:max-w-3xl">
+          <HeroCTA />
         </div>
       </div>
     </Section>

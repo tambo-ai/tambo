@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
 import { track } from "@vercel/analytics";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -97,6 +97,7 @@ export default function HeroVideoDialog({
     if (videoRef.current) {
       videoRef.current.play().catch((error) => {
         console.error("Failed to autoplay video:", error);
+        // Don't set video error here, just log it
       });
     }
   }, [currentVideoSrc]);
@@ -136,7 +137,7 @@ export default function HeroVideoDialog({
     return (
       <div
         className={cn(
-          "relative bg-muted rounded-3xl p-8 text-center",
+          "relative bg-muted rounded-2xl p-8 text-center",
           className,
         )}
       >
@@ -146,19 +147,19 @@ export default function HeroVideoDialog({
   }
 
   return (
-    <div className={cn("relative group", className)}>
+    <div className={cn("relative group w-full", className)}>
       <motion.div
         {...selectedAnimation}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="rounded-3xl overflow-hidden relative shadow-[0_0_30px_rgba(210,71,191,0.3)] transition-shadow duration-300 group-hover:shadow-[0_0_40px_rgba(210,71,191,0.5)]"
+        className="overflow-hidden relative rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 w-full aspect-[1.44/1] bg-background"
       >
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-black/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-transparent pointer-events-none z-10" />
         <video
           ref={videoRef}
           onClick={handleVideoClick}
           className={cn(
-            "w-full h-full object-cover transition-opacity duration-300",
-            isPlaying ? "opacity-100" : "opacity-50",
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
+            isPlaying ? "opacity-100" : "opacity-90",
           )}
           muted
           loop
@@ -173,19 +174,23 @@ export default function HeroVideoDialog({
         {!isPlaying && (
           <button
             onClick={handlePlayClick}
-            className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/30 hover:bg-black/20 transition-colors duration-300"
+            className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/20 hover:bg-black/10 transition-colors duration-300 z-20"
+            aria-label="Play video"
           >
-            <svg
-              className="w-20 h-20 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <div className="flex items-center justify-center animate-pulse">
+              <svg
+                className="w-16 h-16 text-primary"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </button>
         )}
       </motion.div>

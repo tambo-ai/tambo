@@ -1,6 +1,6 @@
 ---
 title: Adding Components
-description: Learn how to create and register static display components with Hydra AI.
+description: Learn how to create and register static display components with tambo.
 ---
 
 Let's create the basic components that our CRM assistant will use to display customer notes and emails.
@@ -76,8 +76,8 @@ Now let's register our components with Hydra.
 - They are alos used to understand when and how to use the component
 - Description are added to help the AI understand when and how to use the component
 
-```tsx title="src/config/hydraConfig.ts"
-import { createHydraComponentRegistry } from "hydra-ai-react";
+```tsx title="src/config/tamboConfig.ts"
+import { createTamboComponentRegistry } from "tambo-react";
 import { CustomerNote } from "../components/CustomerNote"; // [!code highlight]
 import { EmailPreview } from "../components/EmailPreview"; // [!code highlight]
 import {
@@ -85,7 +85,7 @@ import {
   emailPreviewSchema,
 } from "../schemas/crm-components"; // [!code highlight]
 
-export const componentRegistry = createHydraComponentRegistry({
+export const componentRegistry = createTamboComponentRegistry({
   CustomerNote: {
     component: CustomerNote,
     description: "Displays a customer interaction note in a formatted card",
@@ -113,14 +113,14 @@ Components will appear in the message thread when the AI decides to use them.
 
 **What's happening here:**
 
-- Messages can contain an optional `component` of type `HydraComponent`
-- `HydraComponent` now includes the actual Component directly
+- Messages can contain an optional `component` of type `TamboComponent`
+- `TamboComponent` now includes the actual Component directly
 - Props are passed directly to the component
 - No need to look up components in the registry at render time
 
 ```tsx title="src/components/CrmChatThread.tsx"
 <div>
-  {messages.map((message: HydraThreadMessage, index) => (
+  {messages.map((message: TamboThreadMessage, index) => (
     <div key={`${message.type}-${index}`}>
       {/* Show message content */}
       <div>{message.content}</div>
