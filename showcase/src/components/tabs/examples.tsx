@@ -1,9 +1,7 @@
-"use client";
-
-import { Graph } from "@/components/ui/graph";
+import { ChatInput } from "@/components/ui/chat-input";
 import { ChatThread } from "@/components/ui/chat-thread";
 import { FormComponent, FormField } from "@/components/ui/form";
-import { ChatInput } from "@/components/ui/chat-input";
+import { Graph } from "@/components/ui/graph";
 
 export function ExamplesComponent() {
   const revenueData = {

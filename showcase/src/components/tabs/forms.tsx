@@ -1,5 +1,3 @@
-"use client";
-
 import { FormComponent, FormField } from "@/components/ui/form";
 
 export function FormsComponent() {

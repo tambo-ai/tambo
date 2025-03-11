@@ -1,5 +1,3 @@
-"use client";
-
 import { Graph } from "@/components/ui/graph";
 
 export function GraphsComponent() {

@@ -1,10 +1,8 @@
-"use client";
-
 import { ExamplesComponent } from "./tabs/examples";
-import { MessagesComponent } from "./tabs/messages";
-import { ThreadsComponent } from "./tabs/threads";
 import { FormsComponent } from "./tabs/forms";
 import { GraphsComponent } from "./tabs/graphs";
+import { MessagesComponent } from "./tabs/messages";
+import { ThreadsComponent } from "./tabs/threads";
 
 interface TabContentProps {
   activeTab: string;

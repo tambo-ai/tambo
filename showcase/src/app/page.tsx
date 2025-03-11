@@ -1,14 +1,14 @@
-"use client";
-
-import { useState } from "react";
-import { SecondNavbar } from "@/components/second-navbar";
-import { TabContent } from "@/components/tab-content";
-import Link from "next/link";
+import { TabbedSection } from "@/components/tabbed-section";
 import { ArrowRight } from "lucide-react";
+import { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Tambo AI - UI Components",
+  description: "Tambo AI",
+};
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("Examples");
-
   return (
     <div className="flex flex-col items-center gap-8 p-4 -mt-10">
       <div className="w-full flex flex-col items-center">
@@ -47,11 +47,7 @@ export default function Home() {
           </div>
         </div>
 
-        <SecondNavbar activeTab={activeTab} onTabChange={setActiveTab} />
-
-        <div className="w-full mt-10">
-          <TabContent activeTab={activeTab} />
-        </div>
+        <TabbedSection />
       </div>
     </div>
   );
