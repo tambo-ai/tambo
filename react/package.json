@@ -4,7 +4,7 @@
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tambo-ai/hydra-ai-react.git"
+    "url": "git+https://github.com/tambo-ai/hydra-ai-react.git"
   },
   "main": "./dist/index.js",
   "module": "./esm/index.js",
