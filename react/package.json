@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@tambo-ai/typescript-sdk": "^0.31.0",
-    "@tanstack/react-query": "^5.67.1",
+    "@tanstack/react-query": "^5.67.3",
     "partial-json": "^0.1.7",
     "zod": "^3.24.1",
     "zod-to-json-schema": "^3.24.1"
