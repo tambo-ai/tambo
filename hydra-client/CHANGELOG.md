@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.54](https://github.com/tambo-ai/tambo/compare/hydra-ai-v0.0.53...hydra-ai-v0.0.54) (2025-03-11)
+
+
+### Bug Fixes
+
+* add individual release-please manifests as a test ([#106](https://github.com/tambo-ai/tambo/issues/106)) ([60edfde](https://github.com/tambo-ai/tambo/commit/60edfde4e039fba60003ea8fc6185cd4cb44141c))
+* get rid of individual manifests, they do not work ([#108](https://github.com/tambo-ai/tambo/issues/108)) ([83bce6e](https://github.com/tambo-ai/tambo/commit/83bce6e4b66267375c018ee7ac82e40d6784141f))
+
 ## [0.0.53](https://github.com/tambo-ai/tambo/compare/hydra-ai-v0.0.52...hydra-ai-v0.0.53) (2025-03-11)
 
 
