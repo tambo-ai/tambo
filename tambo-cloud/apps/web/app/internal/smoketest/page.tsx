@@ -304,53 +304,71 @@ export default function SmokePage() {
 }
 
 interface WeatherDay {
-  date: string;
-  day: {
-    maxtemp_c: number;
-    mintemp_c: number;
-    avgtemp_c: number;
-    maxwind_kph: number;
-    totalprecip_mm: number;
-    avghumidity: number;
-    condition: {
-      text: string;
-      icon: string;
+  date?: string;
+  day?: {
+    maxtemp_c?: number;
+    mintemp_c?: number;
+    avgtemp_c?: number;
+    maxwind_kph?: number;
+    totalprecip_mm?: number;
+    avghumidity?: number;
+    condition?: {
+      text?: string;
+      icon?: string;
     };
   };
 }
 
 interface WeatherDayProps {
-  readonly data: WeatherDay;
+  readonly data?: WeatherDay;
 }
 
 const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
+  if (!data) {
+    return (
+      <Card className="p-4">
+        <p className="text-muted-foreground">Loading weather data...</p>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between">
         <div>
           <p className="font-medium">
-            {new Date(data.date).toLocaleDateString()}
+            {data.date ? new Date(data.date).toLocaleDateString() : ""}
           </p>
           <div className="flex items-center gap-2">
-            <img
-              src={data.day.condition.icon}
-              alt={data.day.condition.text}
-              width={64}
-              height={64}
-            />
+            {data.day?.condition?.icon && (
+              <img
+                src={data.day.condition.icon}
+                alt={data.day.condition?.text ?? "Weather condition"}
+                width={64}
+                height={64}
+              />
+            )}
             <p className="text-sm text-muted-foreground">
-              {data.day.condition.text}
+              {data.day?.condition?.text ?? ""}
             </p>
           </div>
         </div>
 
         <div className="text-right">
           <div className="text-2xl font-bold">
-            {Math.round(data.day.avgtemp_c)}°C
+            {data.day?.avgtemp_c !== undefined
+              ? `${Math.round(data.day.avgtemp_c)}°C`
+              : "--°C"}
           </div>
           <div className="text-sm text-muted-foreground">
-            H: {Math.round(data.day.maxtemp_c)}° L:{" "}
-            {Math.round(data.day.mintemp_c)}°
+            H:{" "}
+            {data.day?.maxtemp_c !== undefined
+              ? `${Math.round(data.day.maxtemp_c)}°`
+              : "--°"}{" "}
+            L:{" "}
+            {data.day?.mintemp_c !== undefined
+              ? `${Math.round(data.day.mintemp_c)}°`
+              : "--°"}
           </div>
         </div>
       </div>
@@ -358,15 +376,27 @@ const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
       <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
         <div>
           <p className="text-muted-foreground">Wind</p>
-          <p>{Math.round(data.day.maxwind_kph)} km/h</p>
+          <p>
+            {data.day?.maxwind_kph !== undefined
+              ? `${Math.round(data.day.maxwind_kph)} km/h`
+              : "--"}
+          </p>
         </div>
         <div>
           <p className="text-muted-foreground">Precipitation</p>
-          <p>{data.day.totalprecip_mm} mm</p>
+          <p>
+            {data.day?.totalprecip_mm !== undefined
+              ? `${data.day.totalprecip_mm} mm`
+              : "--"}
+          </p>
         </div>
         <div>
           <p className="text-muted-foreground">Humidity</p>
-          <p>{Math.round(data.day.avghumidity)}%</p>
+          <p>
+            {data.day?.avghumidity !== undefined
+              ? `${Math.round(data.day.avghumidity)}%`
+              : "--"}
+          </p>
         </div>
       </div>
     </Card>
@@ -374,12 +404,12 @@ const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
 };
 
 interface AirQualityProps {
-  readonly data: {
-    aqi: number;
-    pm2_5: number;
-    pm10: number;
-    o3: number;
-    no2: number;
+  readonly data?: {
+    aqi?: number;
+    pm2_5?: number;
+    pm10?: number;
+    o3?: number;
+    no2?: number;
   };
 }
 
@@ -396,6 +426,14 @@ const AirQuality = ({ data }: AirQualityProps): ReactNode => {
   const [checked1, setChecked1] = useTamboComponentState("checked1", false);
   const [checked2, setChecked2] = useTamboComponentState("checked2", false);
   const [checked3, setChecked3] = useState(false);
+
+  if (!data) {
+    return (
+      <Card className="p-4">
+        <p className="text-muted-foreground">Loading air quality data...</p>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-4">
@@ -424,11 +462,11 @@ const AirQuality = ({ data }: AirQualityProps): ReactNode => {
         <div>
           <p className="font-medium">Air Quality</p>
           <p className="text-sm text-muted-foreground">
-            {getAqiLevel(data.aqi)}
+            {data.aqi !== undefined ? getAqiLevel(data.aqi) : "--"}
           </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold">{data.aqi}</div>
+          <div className="text-2xl font-bold">{data.aqi ?? "--"}</div>
           <div className="text-sm text-muted-foreground">AQI</div>
         </div>
       </div>
@@ -436,19 +474,19 @@ const AirQuality = ({ data }: AirQualityProps): ReactNode => {
       <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
         <div>
           <p className="text-muted-foreground">PM2.5</p>
-          <p>{data.pm2_5} µg/m³</p>
+          <p>{data.pm2_5 !== undefined ? `${data.pm2_5} µg/m³` : "--"}</p>
         </div>
         <div>
           <p className="text-muted-foreground">PM10</p>
-          <p>{data.pm10} µg/m³</p>
+          <p>{data.pm10 !== undefined ? `${data.pm10} µg/m³` : "--"}</p>
         </div>
         <div>
           <p className="text-muted-foreground">Ozone</p>
-          <p>{data.o3} ppb</p>
+          <p>{data.o3 !== undefined ? `${data.o3} ppb` : "--"}</p>
         </div>
         <div>
           <p className="text-muted-foreground">Nitrogen Dioxide</p>
-          <p>{data.no2} ppb</p>
+          <p>{data.no2 !== undefined ? `${data.no2} ppb` : "--"}</p>
         </div>
       </div>
     </Card>

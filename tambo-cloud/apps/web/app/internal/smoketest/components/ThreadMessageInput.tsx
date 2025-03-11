@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTamboThreadInput } from "@tambo-ai/react";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 interface ThreadMessageInputProps {
   contextKey: string | undefined;
@@ -10,11 +10,12 @@ interface ThreadMessageInputProps {
 const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ contextKey }) => {
   const { value, setValue, submit, isPending, error } =
     useTamboThreadInput(contextKey);
+  const [streamEnabled, setStreamEnabled] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) return;
-    submit();
+    submit({ streamResponse: streamEnabled });
   };
   if (!contextKey) {
     return (
@@ -26,17 +27,35 @@ const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ contextKey }) => {
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
-      <Input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Type your message..."
-        disabled={isPending}
-        className="flex-1"
-      />
-      <Button type="submit" disabled={isPending}>
-        Send
-      </Button>
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
+      <div className="flex flex-col gap-2 w-full">
+        <div className="flex gap-2">
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Type your message..."
+            disabled={isPending}
+            className="flex-1"
+          />
+          <Button type="submit" disabled={isPending}>
+            Send
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="streamToggle"
+            checked={streamEnabled}
+            onChange={(e) => setStreamEnabled(e.target.checked)}
+          />
+          <label
+            htmlFor="streamToggle"
+            className="text-sm text-muted-foreground"
+          >
+            Stream response
+          </label>
+        </div>
+        {error && <p className="text-sm text-destructive">{error.message}</p>}
+      </div>
     </form>
   );
 };
