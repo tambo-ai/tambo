@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.1...showcase-v0.1.2) (2025-03-11)
+
+
+### Bug Fixes
+
+* move a bunch of showcase stuff over to use SSR ([#95](https://github.com/tambo-ai/tambo/issues/95)) ([197d933](https://github.com/tambo-ai/tambo/commit/197d933a1a40545ba3b6e91d49962a01eeec3e37))
+
 ## [0.1.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.0...showcase-v0.1.1) (2025-03-11)
 
 
