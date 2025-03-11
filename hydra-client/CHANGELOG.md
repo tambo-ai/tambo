@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.53](https://github.com/tambo-ai/tambo/compare/hydra-ai-v0.0.52...hydra-ai-v0.0.53) (2025-03-11)
+
+
+### Miscellaneous
+
+* setup turbo ([#75](https://github.com/tambo-ai/tambo/issues/75)) ([11c0833](https://github.com/tambo-ai/tambo/commit/11c0833bf54f8bd0368da97855f18ca2832f7b47))
+
 ## [0.0.52](https://github.com/use-hydra-ai/hydra-ai/compare/hydra-ai-v0.0.51...hydra-ai-v0.0.52) (2025-03-03)
 
 

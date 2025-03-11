@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.12.1](https://github.com/tambo-ai/tambo/compare/react-v0.12.0...react-v0.12.1) (2025-03-11)
+
+
+### Bug Fixes
+
+* remove toolcall message from localthread during streaming ([#88](https://github.com/tambo-ai/tambo/issues/88)) ([47c147b](https://github.com/tambo-ai/tambo/commit/47c147b86b5690238a72be55f0a560b274371d0d))
+
+
+### Miscellaneous
+
+* add param for streamResponse to input hook's submit ([#76](https://github.com/tambo-ai/tambo/issues/76)) ([c107a1b](https://github.com/tambo-ai/tambo/commit/c107a1b3d40bd9caa9290e630ebd74f64dd90203))
+* **deps:** bump @tanstack/react-query from 5.67.2 to 5.67.3 ([#82](https://github.com/tambo-ai/tambo/issues/82)) ([48113b3](https://github.com/tambo-ai/tambo/commit/48113b3c85d7940d92442bd6964c8898a9984521))
+* Expose thread generation stage/status values from threadsprovider ([#74](https://github.com/tambo-ai/tambo/issues/74)) ([9f60793](https://github.com/tambo-ai/tambo/commit/9f60793ecc9fc84ec2e82b446e1e1d1c82455fbc))
+* Remove unused functions in react package ([#73](https://github.com/tambo-ai/tambo/issues/73)) ([1a6931f](https://github.com/tambo-ai/tambo/commit/1a6931fb0b5e9a21fc3cb225df05708c97b43ac1))
+* setup turbo ([#75](https://github.com/tambo-ai/tambo/issues/75)) ([11c0833](https://github.com/tambo-ai/tambo/commit/11c0833bf54f8bd0368da97855f18ca2832f7b47))
+
 ## [0.12.0](https://github.com/tambo-ai/hydra-ai-react/compare/react-v0.11.1...react-v0.12.0) (2025-03-10)
 
 
