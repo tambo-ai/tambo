@@ -1,10 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/refs/heads/main/schemas/config.json",
   "packages": {
-    "hydra-client": {
-      "release-type": "node"
+    "hydra-client": {},
+    "react": {
+      "package-name": "@tambo-ai/react"
     },
-    "react": {}
+    "showcase": {
+      "package-name": "@tambo-ai/showcase"
+    }
   },
   "changelog-sections": [
     {

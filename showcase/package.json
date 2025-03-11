@@ -1,5 +1,5 @@
 {
-  "name": "tambo-demo-site",
+  "name": "@tambo-ai/showcase",
   "version": "0.1.0",
   "private": true,
   "scripts": {
