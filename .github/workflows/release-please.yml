@@ -28,17 +28,17 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs.releases_created }}
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - uses: actions/setup-node@v4
+        if: ${{ steps.release.outputs.releases_created }}
         with:
           node-version: "20"
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
-        if: ${{ steps.release.outputs.releases_created }}
 
       - name: Install dependencies
         if: ${{ steps.release.outputs.releases_created }}
