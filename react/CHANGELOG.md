@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0](https://github.com/tambo-ai/tambo/compare/react-v0.12.1...react-v0.13.0) (2025-03-11)
+
+
+### Features
+
+* support default prod/staging urls in react client ([#99](https://github.com/tambo-ai/tambo/issues/99)) ([8f61815](https://github.com/tambo-ai/tambo/commit/8f61815893a569742ed34c58a539b704f7d8d2e1))
+
+
+### Bug Fixes
+
+* avoid first message flicker ([#93](https://github.com/tambo-ai/tambo/issues/93)) ([87c78d3](https://github.com/tambo-ai/tambo/commit/87c78d3b7569d3b8f385aecdf0aef3487b70697c))
+
 ## [0.12.1](https://github.com/tambo-ai/tambo/compare/react-v0.12.0...react-v0.12.1) (2025-03-11)
 
 
