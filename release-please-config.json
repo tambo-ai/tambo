@@ -3,28 +3,11 @@
   "plugins": ["node-workspace"],
   "always-link-local": true,
   "separate-pull-requests": true,
+  "always-update": true,
   "packages": {
     "hydra-client": {},
-    "react": {
-      "package-name": "@tambo-ai/react",
-      "extra-files": [
-        {
-          "type": "json",
-          "path": ".release-please-manifest.json",
-          "jsonpath": "react"
-        }
-      ]
-    },
-    "showcase": {
-      "package-name": "@tambo-ai/showcase",
-      "extra-files": [
-        {
-          "type": "json",
-          "path": ".release-please-manifest.json",
-          "jsonpath": "showcase"
-        }
-      ]
-    }
+    "react": {},
+    "showcase": {}
   },
   "changelog-sections": [
     {
