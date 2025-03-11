@@ -13,10 +13,6 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./hydra-client
-
     steps:
       - name: Release Please
         id: release
