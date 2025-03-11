@@ -1,9 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
 
 const graphVariants = cva(
   "w-full rounded-lg overflow-hidden transition-all duration-200",
@@ -64,12 +64,8 @@ const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
     // Transform data for Recharts
     const chartData = data.labels.map((label, index) => ({
       name: label,
-      ...data.datasets.reduce(
-        (acc, dataset) => ({
-          ...acc,
-          [dataset.label]: dataset.data[index],
-        }),
-        {},
+      ...Object.fromEntries(
+        data.datasets.map((dataset) => [dataset.label, dataset.data[index]]),
       ),
     }));
 

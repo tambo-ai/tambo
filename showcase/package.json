@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.2",
@@ -27,6 +27,8 @@
     "@types/node": "^20",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/eslint-config": "*",
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
     "eslint": "^9",

@@ -1,2 +1,10 @@
 node_modules
 .turbo
+showcase/.next/
+.env
+.env.*
+dist
+build
+coverage
+*.log
+.DS_Store
