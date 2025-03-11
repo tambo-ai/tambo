@@ -6,10 +6,24 @@
   "packages": {
     "hydra-client": {},
     "react": {
-      "package-name": "@tambo-ai/react"
+      "package-name": "@tambo-ai/react",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": ".release-please-manifest.json",
+          "jsonpath": "react"
+        }
+      ]
     },
     "showcase": {
-      "package-name": "@tambo-ai/showcase"
+      "package-name": "@tambo-ai/showcase",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": ".release-please-manifest.json",
+          "jsonpath": "showcase"
+        }
+      ]
     }
   },
   "changelog-sections": [
