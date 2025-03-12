@@ -268,7 +268,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   );
 
   const switchCurrentThread = useCallback(
-    async (threadId: string) => {
+    async (threadId: string, fetch = true) => {
       if (threadId === PLACEHOLDER_THREAD.id) {
         console.warn("Switching to placeholder thread, may be a bug");
         return;
@@ -286,7 +286,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           };
         });
       }
-      await fetchThread(threadId);
+      if (fetch) {
+        await fetchThread(threadId);
+      }
     },
     [fetchThread, threadMap],
   );
@@ -385,7 +387,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             chunk.responseMessageDto.threadId !== currentThread?.id
           ) {
             hasSetThreadId = true;
-            switchCurrentThread(chunk.responseMessageDto.threadId);
+            switchCurrentThread(chunk.responseMessageDto.threadId, false);
           }
 
           if (!finalMessage) {
@@ -410,6 +412,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       }
 
       updateThreadStatus(GenerationStage.COMPLETE);
+      if (finalMessage) {
+        await fetchThread(finalMessage.threadId);
+      }
       return (
         finalMessage ?? {
           threadId: "",
@@ -424,6 +429,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       toolRegistry,
       client,
       currentThread?.id,
+      currentThreadId,
       switchCurrentThread,
       componentList,
       addThreadMessage,
