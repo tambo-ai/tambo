@@ -57,7 +57,7 @@ export async function hydrateComponent(
   const completeOptions = {
     messages: objectTemplate([
       { role: "system", content: template },
-      { role: "chat_history", content: "{chatHistory}" },
+      { role: "chat_history", content: "{chat_history}" },
       {
         role: "user",
         content: `<componentName>{chosenComponentName}</componentName>
@@ -70,7 +70,7 @@ export async function hydrateComponent(
       ? "component-hydration-with-tool-response"
       : "component-hydration",
     promptTemplateParams: {
-      chatHistory,
+      chat_history: chatHistory,
       chosenComponentName: chosenComponent.name,
       chosenComponentDescription,
       chosenComponentProps,

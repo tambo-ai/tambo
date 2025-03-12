@@ -78,15 +78,6 @@ export class ThreadsService {
     return new HydraBackend(providerKey, chainId, options);
   }
 
-  private async convertThreadMessagesToLegacyThreadMessages(
-    currentThreadMessages: ThreadMessageDto[],
-  ): Promise<ChatMessage[]> {
-    return currentThreadMessages.map((message) => ({
-      sender: message.role === 'user' ? 'user' : 'hydra',
-      message: message.content.map((part) => part.text ?? '').join(''),
-    }));
-  }
-
   async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
     const thread = await operations.createThread(this.tx, {
       projectId: createThreadDto.projectId,
@@ -164,14 +155,6 @@ export class ThreadsService {
         actionType: message.actionType ?? undefined,
       })),
     };
-  }
-
-  async findOneByUserId(id: string, userId: string) {
-    const thread = await operations.getThreadForUserId(this.tx, id, userId);
-    if (!thread) {
-      throw new NotFoundException('Thread not found');
-    }
-    return thread;
   }
 
   async update(id: string, updateThreadDto: ThreadRequest) {
