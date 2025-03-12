@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.18.0...repo-v0.18.1) (2025-03-12)
+
+
+### Bug Fixes
+
+* bump next-themes to avoid console error + flashing ([#489](https://github.com/tambo-ai/tambo-cloud/issues/489)) ([7c51bea](https://github.com/tambo-ai/tambo-cloud/commit/7c51beab2174b2595d4882ca136f55aa15b03992))
+* remove unused entrypoints ([#491](https://github.com/tambo-ai/tambo-cloud/issues/491)) ([7636660](https://github.com/tambo-ai/tambo-cloud/commit/76366606fe29992f702793c3c506f8cc1d9e9c75))
+
 ## [0.18.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.17.1...repo-v0.18.0) (2025-03-11)
 
 
