@@ -22,6 +22,7 @@ jobs:
           # get other actions run on its behalf
           # https://github.com/googleapis/release-please/issues/922#issuecomment-861154425
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          manifest-file: .release-please-manifest.json
 
       - uses: actions/checkout@v4
         if: ${{ steps.release.outputs.releases_created }}

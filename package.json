@@ -23,7 +23,7 @@
   },
   "packageManager": "npm@10.9.2",
   "workspaces": [
-    "react",
+    "react-sdk",
     "showcase",
     "hydra-client",
     "packages/*"

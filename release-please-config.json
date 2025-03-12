@@ -6,7 +6,7 @@
   "always-update": true,
   "packages": {
     "hydra-client": {},
-    "react": {},
+    "react-sdk": {},
     "showcase": {}
   },
   "changelog-sections": [
