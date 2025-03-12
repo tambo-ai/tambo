@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.1](https://github.com/tambo-ai/tambo/compare/react-v0.13.0...react-v0.13.1) (2025-03-11)
+
+
+### Bug Fixes
+
+* add individual release-please manifests as a test ([#106](https://github.com/tambo-ai/tambo/issues/106)) ([60edfde](https://github.com/tambo-ai/tambo/commit/60edfde4e039fba60003ea8fc6185cd4cb44141c))
+* explicitly update manifest to account for separate-pull-requests: true setting ([#102](https://github.com/tambo-ai/tambo/issues/102)) ([c441488](https://github.com/tambo-ai/tambo/commit/c441488bf8bd9623c2565089e823733fd9d28495))
+* get rid of individual manifests, they do not work ([#108](https://github.com/tambo-ai/tambo/issues/108)) ([83bce6e](https://github.com/tambo-ai/tambo/commit/83bce6e4b66267375c018ee7ac82e40d6784141f))
+* repo url with "npm pkg fix" ([#101](https://github.com/tambo-ai/tambo/issues/101)) ([7cbe27d](https://github.com/tambo-ai/tambo/commit/7cbe27da403aa95e6c571db01a568736adfce685))
+
 ## [0.13.0](https://github.com/tambo-ai/tambo/compare/react-v0.12.1...react-v0.13.0) (2025-03-11)
 
 
