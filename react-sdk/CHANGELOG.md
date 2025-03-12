@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.2](https://github.com/tambo-ai/tambo/compare/react-v0.13.1...react-v0.13.2) (2025-03-12)
+
+
+### Bug Fixes
+
+* bump typescript-sdk to eliminate old apis ([#121](https://github.com/tambo-ai/tambo/issues/121)) ([9173a7d](https://github.com/tambo-ai/tambo/commit/9173a7d85863c2009205020c47ce1141b32d554e))
+* during streaming fetch at complete ([#120](https://github.com/tambo-ai/tambo/issues/120)) ([246971a](https://github.com/tambo-ai/tambo/commit/246971afe74b6f06d1deb473d7e466f4c8ed3e03))
+* rename `react` directory to `react-sdk` for name collision avoidance ([#113](https://github.com/tambo-ai/tambo/issues/113)) ([f6ac4c9](https://github.com/tambo-ai/tambo/commit/f6ac4c99892172650b58aad68585eb7aa35da9b2))
+* renaming react suffix on package (as a test) ([#114](https://github.com/tambo-ai/tambo/issues/114)) ([dfe581d](https://github.com/tambo-ai/tambo/commit/dfe581dbb94e82284ac05b15e9e88d440fe87d87))
+
+
+### Miscellaneous
+
+* removes old files and update readmes ([#117](https://github.com/tambo-ai/tambo/issues/117)) ([94e6dde](https://github.com/tambo-ai/tambo/commit/94e6dded0d8abd15b7f2b19c0837cf9baf2f279d))
+
 ## [0.13.1](https://github.com/tambo-ai/tambo/compare/react-v0.13.0...react-v0.13.1) (2025-03-11)
 
 ### Bug Fixes
