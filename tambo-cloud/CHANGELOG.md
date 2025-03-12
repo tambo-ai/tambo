@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.18.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.17.1...repo-v0.18.0) (2025-03-11)
+
+
+### Features
+
+* add streaming to smoketest ([#486](https://github.com/tambo-ai/tambo-cloud/issues/486)) ([402691c](https://github.com/tambo-ai/tambo-cloud/commit/402691c6539617ebf0bdd1965f2dc04dd624895a))
+* tambo rename v0 ([#485](https://github.com/tambo-ai/tambo-cloud/issues/485)) ([689aee8](https://github.com/tambo-ai/tambo-cloud/commit/689aee81b04dfe9de984a9a4ce062ae6d59ef353))
+
+
+### Bug Fixes
+
+* repair package-lock by reinstalling ([#487](https://github.com/tambo-ai/tambo-cloud/issues/487)) ([becaab8](https://github.com/tambo-ai/tambo-cloud/commit/becaab8ccc9aff7d9ac1f548141ef8f2f41dbe2c))
+* update example env supabase url ([#484](https://github.com/tambo-ai/tambo-cloud/issues/484)) ([885cc90](https://github.com/tambo-ai/tambo-cloud/commit/885cc9080d006b502b152c480e6efaf578bf903b))
+
+
+### Miscellaneous Chores
+
+* rename [@use-hydra-ai](https://github.com/use-hydra-ai) to [@tambo-ai-cloud](https://github.com/tambo-ai-cloud) ([#482](https://github.com/tambo-ai/tambo-cloud/issues/482)) ([7fa6092](https://github.com/tambo-ai/tambo-cloud/commit/7fa60920f14b657fe79ce9151be290b482fd0c2c))
+
 ## [0.17.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.17.0...repo-v0.17.1) (2025-03-10)
 
 
