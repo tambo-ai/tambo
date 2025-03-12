@@ -1,5 +1,5 @@
 {
-  "name": "@tambo-ai/react-sdk",
+  "name": "@tambo-ai/react",
   "version": "0.13.1",
   "description": "React client package for Tambo AI",
   "repository": {
