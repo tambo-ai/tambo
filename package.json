@@ -25,7 +25,6 @@
   "workspaces": [
     "react-sdk",
     "showcase",
-    "hydra-client",
     "packages/*"
   ],
   "engines": {

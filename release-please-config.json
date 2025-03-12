@@ -4,7 +4,6 @@
   "separate-pull-requests": true,
   "always-update": true,
   "packages": {
-    "hydra-client": {},
     "react-sdk": {},
     "showcase": {}
   },
