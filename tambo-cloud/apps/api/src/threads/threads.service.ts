@@ -524,6 +524,12 @@ export class ThreadsService {
     let lastUpdateTime = 0;
     const updateIntervalMs = 500;
 
+    await this.updateGenerationStage(
+      threadId,
+      GenerationStage.STREAMING_RESPONSE,
+      `Streaming response...`,
+    );
+
     const inProgressMessage = await this.addMessage(threadId, {
       role: MessageRole.Hydra,
       content: [
@@ -578,14 +584,23 @@ export class ThreadsService {
         inProgressMessage.id,
         finalResponse.responseMessageDto,
       );
+      const resultingGenerationStage = finalResponse.responseMessageDto
+        .toolCallRequest
+        ? GenerationStage.FETCHING_CONTEXT
+        : GenerationStage.COMPLETE;
+      const resultingStatusMessage = finalResponse.responseMessageDto
+        .toolCallRequest
+        ? `Fetching context...`
+        : `Complete`;
+      await this.updateGenerationStage(
+        threadId,
+        resultingGenerationStage,
+        resultingStatusMessage,
+      );
       yield {
         responseMessageDto: finalResponse.responseMessageDto,
-        generationStage: finalResponse.responseMessageDto.toolCallRequest
-          ? GenerationStage.FETCHING_CONTEXT
-          : GenerationStage.COMPLETE,
-        statusMessage: finalResponse.responseMessageDto.toolCallRequest
-          ? `Fetching context...`
-          : `Complete`,
+        generationStage: resultingGenerationStage,
+        statusMessage: resultingStatusMessage,
       };
     }
   }
