@@ -1,6 +1,5 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/refs/heads/main/schemas/config.json",
-  "plugins": ["node-workspace"],
   "always-link-local": true,
   "separate-pull-requests": true,
   "always-update": true,
