@@ -1,0 +1,12 @@
+{
+  "name": "message",
+  "dependencies": ["class-variance-authority"],
+  "devDependencies": ["@types/sanitize-html"],
+  "requires": [],
+  "files": [
+    {
+      "name": "message.tsx",
+      "content": "src/registry/message/message.tsx"
+    }
+  ]
+}

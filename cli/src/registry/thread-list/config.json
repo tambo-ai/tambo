@@ -1,0 +1,12 @@
+{
+  "name": "thread-list",
+  "dependencies": ["class-variance-authority"],
+  "devDependencies": ["@tambo-ai/react"],
+  "requires": [],
+  "files": [
+    {
+      "name": "thread-list.tsx",
+      "content": "src/registry/thread-list/thread-list.tsx"
+    }
+  ]
+}
