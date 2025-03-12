@@ -717,16 +717,23 @@ function convertThreadMessagesToLegacyThreadMessages(
       sender: [MessageRole.User, MessageRole.Tool].includes(message.role)
         ? (message.role as 'user' | 'tool')
         : 'hydra',
-      message: message.content
-        .map((part) => {
-          switch (part.type) {
-            case ContentPartType.Text:
-              return part.text ?? '';
-            default:
-              return '';
-          }
-        })
-        .join(''),
+      message:
+        message.content
+          .map((part) => {
+            switch (part.type) {
+              case ContentPartType.Text:
+                return part.text ?? '';
+              default:
+                return '';
+            }
+          })
+          .join('') +
+        ' ' +
+        JSON.stringify({
+          component:
+            message.componentDecision ?? message.component ?? undefined,
+          componentState: message.componentState ?? undefined,
+        }),
     }),
   );
 }

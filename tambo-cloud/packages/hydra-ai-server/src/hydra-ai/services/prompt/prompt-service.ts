@@ -44,6 +44,7 @@ export const noComponentPrompt = `You are an AI assistant that interacts with us
 {availableComponents}
 </availableComponents>
 Respond to the user's latest query to the best of your ability. If they have requested a task that you cannot help with, tell them so and recommend something you can help with.
+Each message in the conversation history might contain a component decision, which is a component that has been shown to the user, and a component state, which is the state of the component which the user may have updated. Use this information to help you determine what to do.
 This response should be short and concise.`;
 
 export function getNoComponentPromptTemplate(
@@ -71,7 +72,10 @@ function replaceTemplateVariables(
 const basePrompt = `You are an AI assistant that interacts with users and helps them perform tasks.
 To help the user perform these tasks, you are able to generate UI components. You are able to display components and decide what props to pass in. However, you can not interact with, or control 'state' data.
 When prompted, you will be given the existing conversation history, followed by the component to display, its description provided by the user, the shape of any props to pass in, and any other related context.
-Use the conversation history and other provided context to determine what props to pass in.`;
+Use the conversation history and other provided context to determine what props to pass in.
+Each message in the conversation history might contain a component decision, which is a component that has been shown to the user, and a component state, which is the state of the component which the user may have updated. Use this information to help you determine what to do.
+This response should be short and concise.
+`;
 
 const suggestedActionsGuidelines = `When generating suggestedActions, consider the following:
 1. Each suggestion should be a natural follow-up action that would make use of an available components
