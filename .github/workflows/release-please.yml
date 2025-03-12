@@ -52,9 +52,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
-      - name: Publish @tambo-ai/react to npm
-        if: ${{ steps.release.outputs.react--release_created }}
-        working-directory: ./react
+      - name: Publish @tambo-ai/react-sdk to npm
+        if: ${{ steps.release.outputs.react-sdk--release_created }}
+        working-directory: ./react-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public

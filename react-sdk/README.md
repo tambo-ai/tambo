@@ -3,7 +3,7 @@
 ## Development
 
 ```bash
-npm install @tambo-ai/react
+npm install @tambo-ai/react-sdk
 ```
 
 PRs should use Conventional Commits.
