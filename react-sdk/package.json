@@ -4,7 +4,8 @@
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tambo-ai/tambo.git"
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "react"
   },
   "homepage": "https://tambo.co",
   "main": "./dist/index.js",
@@ -34,7 +35,9 @@
     "format": "prettier --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "format:lint": "npm run format && npm run lint:fix"
+    "format:lint": "npm run format && npm run lint:fix",
+    "prepare": "husky",
+    "clean": "rimraf dist esm coverage"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

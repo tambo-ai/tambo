@@ -1,67 +1,144 @@
+# tambo ai
+
+Build AI assistants and agents in React with a few lines of code.
+
 <p align="center">
-  <img src="github-hydra-ai.png" alt="Hydra AI Logo">
+  <img src="assets/tambo-animation.gif" alt="tambo ai Logo">
 </p>
+
 <p align="center">
-  <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/v/hydra-ai.svg" alt="npm version"></a>
-  <a href="https://www.npmjs.com/package/hydra-ai"><img src="https://img.shields.io/npm/dm/hydra-ai.svg" alt="npm downloads"></a>
-  <a href="https://github.com/michaelmagan/hydraai/blob/main/LICENSE"><img src="https://img.shields.io/github/license/michaelmagan/hydraai.svg" alt="license"></a>
-  <a href="https://github.com/michaelmagan/hydraai/commits/main"><img src="https://img.shields.io/github/last-commit/michaelmagan/hydraai.svg" alt="GitHub last commit"></a>
+  <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/@tambo-ai/react.svg" alt="npm version"></a>
+  <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo.svg" alt="license"></a>
+  <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo.svg" alt="GitHub last commit"></a>
   <a href="https://discord.gg/dJNvPEHth6"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a>
-    <a href="https://github.com/michaelmagan/hydraai/stargazers"><img src="https://img.shields.io/github/stars/michaelmagan/hydraai.svg?style=social" alt="GitHub stars"></a>
-
+  <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
 </p>
 
-https://github.com/user-attachments/assets/2501fd99-f768-43f5-96cc-d113c4f95903
+## The Future is Generative
 
-Generate React components on-the-fly at runtime using AI. Register your components, and let Hydra choose when to show them in your App.
+The future of UX is generative and hyper-personalized. But today its really hard to build AI powered generative UI experiences. We are building tools that make this possible without complexity.
 
-```typescript
-const dynamicComponent = await hydra.generateComponent(context);
+tambo ai eliminates React boilerplate for AI features. We handle the hard parts so you can focus on creating exceptional user experiences.
+
+**Build AI assistants and agents in React without the headache.**
+
+## What is tambo ai?
+
+tambo ai is a React library that deals with the boring parts. Get started with an AI assistant in minutes.
+
+- Thread management
+- State persistence
+- Streaming responses
+- AI Orchestration
+- A Compatabile React UI Library
+
+You get clean React hooks that integrate seamlessly with your codebase.
+
+## How It Works
+
+Add tambo ai to your React app with a simple provider pattern:
+
+```jsx
+// Wrap your app with the provider
+<TamboProvider apiKey="your-api-key">
+  <App />
+</TamboProvider>
 ```
 
-## Star History
+### Core Features
 
-[![Star History Chart](https://api.star-history.com/svg?repos=michaelmagan/hydraai&type=Timeline)](https://star-history.com/#michaelmagan/hydraai&Timeline)
+- **Specialized hooks for specific needs:**
 
-## Table of Contents
+  - `useTamboThreadInput` - Input state and submission
+  - `useTamboSuggestions` - AI-powered message suggestions
+  - `useTamboThreads` - Conversation management
+  - `useTamboComponentState` - AI-generated component state
 
-- [Getting Started](#getting-started)
-- [Notes](#notes)
-- [Report a Bug](#report-a-bug-or-request-a-feature)
-- [How is this different from Vercel V0?](#how-is-this-different-from-vercel-v0)
-- [Report a bug or Request a feature](#report-a-bug-or-request-a-feature)
-- [This Repo](#this-repo)
-- [License](#license)
+- **Component registration for AI-generated UI**
+- **Tool integration for your data sources**
+- **Streaming responses for real-time interactions**
 
 ## Getting Started
 
-Follow the instructions [here](/hydra-client/README.md) or use our [template](https://github.com/MichaelMilstead/hydra-template) project.
+### Quick Start
 
-## Community
+```bash
+# Install the package
+npm install @tambo-ai/react
 
-Chat with other users and the developers here:
+# Or with the CLI for guided setup
+npx tambo --full-send
+```
 
-<p>  <a href="https://discord.gg/8RMRUPZ9RS"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a></p>
+### Basic Usage
 
-## How is this different from Vercel V0?
+```jsx
+import { TamboProvider, useTambo } from '@tambo-ai/react';
 
-We've been asked this a few times. For clarification, Vercel V0 lets you generate a component that you can copy/paste into your app's code. Hydra is for injecting components into your running app's UI on-the-fly based on context.
+function MyAIComponent() {
+  const { thread, sendThreadMessage } = useTambo();
 
-## Report a bug or Request a feature
+  return (
+    <div>
+      <button onClick={() => sendThreadMessage('What's the weather today?')}>
+        Ask about weather
+      </button>
+      {thread.messages.map((message, index) => (
+        <div key={index}>
+          <div>{message.content}</div>
+          {message.component && message.component.renderedComponent}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
 
-Make a GitHub issue [here.](https://github.com/michaelmagan/hydraai/issues/new)
+[Read our full documentation](https://tambo.co/docs)
 
-## This Repo
+## Development
 
-- `hydra-ai` client-side package is here: [/hydra-client](/hydra-client)
-- `hydra-ai-backend` package for self-hosting is here: [/hydra-server](/hydra-server/)
+### Prerequisites
 
-- Example apps that use `hydra-ai`:
-  - Charts app here [/examples/charts-demo](/examples/charts-demo/)
-  - Social app (Mage) here: [/examples/mage-demo](/examples/mage-demo)
-  - ToDo app demo here: [/examples/todo-app-demo](/examples/todo-app-demo/)
-  - Weather app demo here: [/examples/weather-app-demo](/examples/weather-app-demo/)
+- Node.js 18.x+
+- npm 10.x+
+
+### Quick Commands
+
+```bash
+# Install
+git clone https://github.com/tambo-ai/tambo.git && cd tambo && npm install
+
+# Develop
+npm run dev
+
+# Build
+npm run build
+
+# Test
+npm run test
+```
+
+## Resources
+
+- [React Package Documentation](./react/README.md)
+- [Showcase Documentation](./showcase/README.md)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Join the Community
+
+We're building tools for the future of user interfaces. Your contributions matter.
+
+**[Star this repo](https://github.com/tambo-ai/tambo)** to support our work.
+
+**[Join our Discord](https://discord.gg/dJNvPEHth6)** to connect with other developers.
+
+---
+
+<p align="center">
+  <i>Built by developers, for developers.</i><br>
+  <i>Because we believe the future of UI is generative and hyper-personalized.</i>
+</p>
