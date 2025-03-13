@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.3](https://github.com/tambo-ai/tambo/compare/react-v0.13.2...react-v0.13.3) (2025-03-13)
+
+
+### Bug Fixes
+
+* Send initial component state on render ([#124](https://github.com/tambo-ai/tambo/issues/124)) ([2cfa4b2](https://github.com/tambo-ai/tambo/commit/2cfa4b21274e71edb25a39ca5919ad4bf7c56954))
+
+
+### Miscellaneous
+
+* bump typescript-sdk to pick up required type ([#127](https://github.com/tambo-ai/tambo/issues/127)) ([0f4d4f4](https://github.com/tambo-ai/tambo/commit/0f4d4f485de97479371efb9880b52dad5a8bcec4))
+
 ## [0.13.2](https://github.com/tambo-ai/tambo/compare/react-v0.13.1...react-v0.13.2) (2025-03-12)
 
 
