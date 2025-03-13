@@ -261,9 +261,9 @@ export function buildSuggestionPrompt(
   if (messageHistory.length > 0) {
     for (let i = messageHistory.length - 1; i >= 0; i--) {
       const msg = messageHistory[i];
-      if (msg.componentDecision && msg.componentDecision.componentName) {
-        currentComponent = msg.componentDecision.componentName;
-        currentProps = msg.componentDecision.props || null;
+      if (msg.component?.componentName) {
+        currentComponent = msg.component.componentName;
+        currentProps = msg.component.props || null;
         break;
       }
     }

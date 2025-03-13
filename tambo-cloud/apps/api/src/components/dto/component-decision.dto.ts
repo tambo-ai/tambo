@@ -1,9 +1,14 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { SuggestedAction, ToolCallRequest } from '@tambo-ai-cloud/core';
+import {
+  ComponentDecisionV2,
+  SuggestedAction,
+  ToolCallRequest,
+} from '@tambo-ai-cloud/core';
 import { ThreadMessageDto } from '../../threads/dto/message.dto';
 
 /** Legacy - for v1 of generate/hydrate */
-export class ComponentDecision {
+@ApiSchema({ name: 'ComponentDecision' })
+export class ComponentDecisionDto {
   componentName!: string | null;
   @ApiProperty({
     type: 'object',
@@ -16,7 +21,8 @@ export class ComponentDecision {
   threadId!: string;
 }
 
-export class ComponentDecisionV2 {
+@ApiSchema({ name: 'ComponentDecisionV2' })
+export class ComponentDecisionV2Dto implements ComponentDecisionV2 {
   componentName!: string | null;
   @ApiProperty({
     type: 'object',

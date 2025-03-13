@@ -8,8 +8,8 @@ export function chatHistoryToParams(
   return messageHistory.map((message) => {
     let content = message.message;
 
-    if (message.componentDecision && !message.actionType) {
-      content += `\n<Component>${JSON.stringify(message.componentDecision)}</Component>`;
+    if (message.component && !message.actionType) {
+      content += `\n<Component>${JSON.stringify(message.component)}</Component>`;
     }
     if (message.componentState && !message.actionType) {
       content += `\n<ComponentState>${JSON.stringify(message.componentState)}</ComponentState>`;

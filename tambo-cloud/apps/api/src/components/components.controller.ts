@@ -20,7 +20,7 @@ import { decryptProviderKey } from '../common/key.utils';
 import { CorrelationLoggerService } from '../common/services/logger.service';
 import { ProjectsService } from '../projects/projects.service';
 import { ThreadsService } from '../threads/threads.service';
-import { ComponentDecision as ComponentDecisionDto } from './dto/component-decision.dto';
+import { ComponentDecisionDto } from './dto/component-decision.dto';
 import { GenerateComponentRequest } from './dto/generate-component.dto';
 import { HydrateComponentRequest } from './dto/hydrate-component.dto';
 import { ApiKeyGuard } from './guards/apikey.guard';

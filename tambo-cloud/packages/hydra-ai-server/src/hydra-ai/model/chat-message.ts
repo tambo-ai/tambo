@@ -4,7 +4,7 @@ export interface ChatMessage {
   sender: "hydra" | "user" | "tool";
   message: string;
   additionalContext?: string;
-  componentDecision?: ComponentDecisionV2;
+  component?: ComponentDecisionV2;
   componentState?: Record<string, unknown>;
   actionType?: ActionType;
 }

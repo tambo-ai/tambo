@@ -727,8 +727,9 @@ function convertThreadMessagesToLegacyThreadMessages(
           }
         })
         .join(''),
-      componentDecision:
-        message.componentDecision?.componentName && message.componentDecision,
+      component: message.componentDecision?.componentName
+        ? message.componentDecision
+        : undefined,
       componentState: message.componentState,
       actionType: message.actionType,
     }),

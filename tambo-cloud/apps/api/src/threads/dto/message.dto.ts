@@ -1,9 +1,15 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { ActionType, ContentPartType, MessageRole } from '@tambo-ai-cloud/core';
+import {
+  ActionType,
+  ChatCompletionContentPartUnion,
+  ContentPartType,
+  InternalThreadMessage,
+  MessageRole,
+} from '@tambo-ai-cloud/core';
 import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
 import { type OpenAI } from 'openai';
 import {
-  ComponentDecisionV2,
+  ComponentDecisionV2Dto,
   ToolCallRequestDto,
 } from '../../components/dto/component-decision.dto';
 
@@ -32,7 +38,9 @@ export class ImageUrl {
 
 /** DTO for the content part of a message. This may be safely cast to or from the ChatCompletionContentPart interface. */
 @ApiSchema({ name: 'ChatCompletionContentPart' })
-export class ChatCompletionContentPartDto {
+export class ChatCompletionContentPartDto
+  implements ChatCompletionContentPartUnion
+{
   @IsEnum(ContentPartType)
   type!: ContentPartType;
   @ValidateIf((o) => o.type === ContentPartType.Text)
@@ -41,17 +49,6 @@ export class ChatCompletionContentPartDto {
   image_url?: ImageUrl;
   @ValidateIf((o) => o.type === ContentPartType.InputAudio)
   input_audio?: InputAudio;
-}
-
-/** Internal type to make sure that subclasses are aligned on types */
-interface InternalThreadMessage {
-  role: MessageRole;
-  content: ChatCompletionContentPartDto[];
-  metadata?: Record<string, unknown>;
-  component?: ComponentDecisionV2;
-  actionType?: ActionType;
-  toolCallRequest?: ToolCallRequestDto;
-  tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
 }
 
 @ApiSchema({ name: 'ThreadMessage' })
@@ -66,7 +63,7 @@ export class ThreadMessageDto implements InternalThreadMessage {
     additionalProperties: true,
   })
   metadata?: Record<string, unknown>;
-  component?: ComponentDecisionV2;
+  component?: ComponentDecisionV2Dto;
   @ApiProperty({
     type: 'object',
     additionalProperties: true,
@@ -96,7 +93,7 @@ export class MessageRequest implements InternalThreadMessage {
   metadata?: Record<string, unknown>;
 
   @IsOptional()
-  component?: ComponentDecisionV2;
+  component?: ComponentDecisionV2Dto;
 
   @IsOptional()
   toolCallRequest?: ToolCallRequestDto;

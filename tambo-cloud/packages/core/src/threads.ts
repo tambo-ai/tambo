@@ -1,5 +1,10 @@
 import type { OpenAI } from "openai";
-import type { ComponentDecision } from "./ComponentDecision";
+import type {
+  ComponentDecision,
+  ComponentDecisionV2,
+  ToolCallRequest,
+} from "./ComponentDecision";
+import { CombineUnion } from "./typeutils";
 
 /**
  * Defines the possible roles for messages in a thread
@@ -47,6 +52,14 @@ export type ChatCompletionContentPart =
   OpenAI.Chat.Completions.ChatCompletionContentPart;
 
 /**
+ * A "static" type that combines all the content part types without any
+ * discriminators, useful for expressing a serialized content part in a
+ * type-safe way
+ */
+export type ChatCompletionContentPartUnion =
+  CombineUnion<ChatCompletionContentPart>;
+
+/**
  * Represents a single message within a thread
  * Can be from a user, assistant, or system
  */
@@ -60,13 +73,24 @@ export interface ThreadMessage {
   /** Array of content parts making up the message */
   content: ChatCompletionContentPart[];
   /** Component decision for this message */
-  componentDecision?: ComponentDecision;
+  component?: ComponentDecision;
   /** Type of action performed */
   actionType?: ActionType;
   /** Additional metadata for the message */
   metadata?: Record<string, unknown>;
   /** Timestamp when the message was created */
   createdAt: Date;
+}
+
+/** Temporary internal type to make sure that subclasses are aligned on types */
+export interface InternalThreadMessage {
+  role: MessageRole;
+  content: ChatCompletionContentPartUnion[];
+  metadata?: Record<string, unknown>;
+  component?: ComponentDecisionV2;
+  actionType?: ActionType;
+  toolCallRequest?: Partial<ToolCallRequest>;
+  tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
 }
 
 /**
