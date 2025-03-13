@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.19.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.18.1...repo-v0.19.0) (2025-03-13)
+
+
+### Features
+
+* clean up and formalize prompt templates, including support for zod schema on responses ([#494](https://github.com/tambo-ai/tambo-cloud/issues/494)) ([3d361ad](https://github.com/tambo-ai/tambo-cloud/commit/3d361ad64e8e954df4d7c622a4dcf7d50d6cc85c))
+* make messageToAppend required, reflect across the APIs ([#498](https://github.com/tambo-ai/tambo-cloud/issues/498)) ([e88421c](https://github.com/tambo-ai/tambo-cloud/commit/e88421c83340358b8d531919bcd2df5be05705dd))
+
+
+### Bug Fixes
+
+* add component info and state to llm message history only when needed ([#496](https://github.com/tambo-ai/tambo-cloud/issues/496)) ([55bd70c](https://github.com/tambo-ai/tambo-cloud/commit/55bd70ca96ea05a97da95d030bedc44d8410541a))
+* Add component state to context ([#495](https://github.com/tambo-ai/tambo-cloud/issues/495)) ([03b5c44](https://github.com/tambo-ai/tambo-cloud/commit/03b5c4485fe2cad312d7df371891af1a7e0538e7))
+* thread stage during streaming ([#492](https://github.com/tambo-ai/tambo-cloud/issues/492)) ([c70d5be](https://github.com/tambo-ai/tambo-cloud/commit/c70d5be3dacd5ec6d056d9467d569d84f9e89220))
+
+
+### Code Refactoring
+
+* some internal type alignment ([#497](https://github.com/tambo-ai/tambo-cloud/issues/497)) ([551d07d](https://github.com/tambo-ai/tambo-cloud/commit/551d07d7b52945239ff9e2054bcf254dd8be822c))
+
 ## [0.18.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.18.0...repo-v0.18.1) (2025-03-12)
 
 
