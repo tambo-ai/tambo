@@ -5,7 +5,7 @@ import { MessageRequest, ThreadMessageDto } from './message.dto';
 
 @ApiSchema({ name: 'AdvanceThread' })
 export class AdvanceThreadDto {
-  messageToAppend?: MessageRequest;
+  messageToAppend!: MessageRequest;
   contextKey?: string;
   availableComponents?: AvailableComponentDto[];
 }

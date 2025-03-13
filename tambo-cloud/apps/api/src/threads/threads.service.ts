@@ -390,16 +390,14 @@ export class ThreadsService {
    */
   async advanceThread(
     projectId: string,
+    advanceRequestDto: AdvanceThreadDto,
     threadId?: string,
-    advanceRequestDto?: AdvanceThreadDto,
     stream?: boolean,
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   > {
     const thread = await this.ensureThread(projectId, threadId, undefined);
-    if (advanceRequestDto?.messageToAppend) {
-      await this.addMessage(thread.id, advanceRequestDto.messageToAppend);
-    }
+    await this.addMessage(thread.id, advanceRequestDto.messageToAppend);
 
     // Use the shared method to create the HydraBackend instance
     const hydraBackend = await this.createHydraBackendForThread(thread.id, {
@@ -429,7 +427,7 @@ export class ThreadsService {
         `Hydrating ${latestMessage.component?.componentName}...`,
       );
       // Since we don't a store tool responses in the db, assumes that the tool response is the messageToAppend
-      const toolResponse = advanceRequestDto?.messageToAppend?.toolResponse;
+      const toolResponse = advanceRequestDto.messageToAppend.toolResponse;
       if (!toolResponse) {
         throw new Error('No tool response found');
       }

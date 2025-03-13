@@ -264,15 +264,15 @@ export class ThreadsController {
   async advanceThread(
     @Param('id') threadId: string,
     @Req() request,
-    @Body() advanceRequestDto?: AdvanceThreadDto,
+    @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
     if (!request.projectId) {
       throw new BadRequestException('Project ID is required');
     }
     return await (this.threadsService.advanceThread(
       request.projectId,
-      threadId,
       advanceRequestDto,
+      threadId,
     ) as Promise<AdvanceThreadResponseDto>);
   }
 
@@ -291,8 +291,8 @@ export class ThreadsController {
     }
     const stream = (await this.threadsService.advanceThread(
       request.projectId,
-      threadId,
       advanceRequestDto,
+      threadId,
       true,
     )) as AsyncIterableIterator<{
       responseMessageDto: ThreadMessageDto;
@@ -315,7 +315,6 @@ export class ThreadsController {
     }
     return await (this.threadsService.advanceThread(
       request.projectId,
-      undefined,
       advanceRequestDto,
     ) as Promise<AdvanceThreadResponseDto>);
   }
@@ -334,8 +333,8 @@ export class ThreadsController {
     }
     const stream = (await this.threadsService.advanceThread(
       request.projectId,
-      undefined,
       advanceRequestDto,
+      undefined,
       true,
     )) as AsyncIterableIterator<{
       responseMessageDto: ThreadMessageDto;
