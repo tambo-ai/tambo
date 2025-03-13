@@ -1,4 +1,4 @@
-import { ThreadMessage } from "@tambo-ai-cloud/core";
+import { createPromptTemplate, ThreadMessage } from "@tambo-ai-cloud/core";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
@@ -7,12 +7,6 @@ import {
   ToolResponseBody,
 } from "../../model/component-metadata";
 import { schemaV1, schemaV2 } from "./schemas";
-export interface PromptTemplate {
-  template: string;
-  args: Record<string, string>;
-  version?: "v1" | "v2";
-}
-
 export function getBasePrompt(version: "v1" | "v2" = "v1"): string {
   return version === "v1" ? basePromptV1 : basePromptV2;
 }
@@ -50,13 +44,13 @@ This response should be short and concise.`;
 export function getNoComponentPromptTemplate(
   reasoning: string,
   availableComponents: AvailableComponents,
-): PromptTemplate {
+) {
   const availableComponentsStr =
     generateAvailableComponentsPrompt(availableComponents);
-  return {
-    template: noComponentPrompt,
-    args: { reasoning, availableComponents: availableComponentsStr },
-  };
+  return createPromptTemplate(noComponentPrompt, {
+    reasoning,
+    availableComponents: availableComponentsStr,
+  });
 }
 
 function replaceTemplateVariables(
@@ -88,54 +82,50 @@ const suggestedActionsGuidelines = `When generating suggestedActions, consider t
 const basePromptV1 = `${basePrompt}\n${suggestedActionsGuidelines}`;
 const basePromptV2 = basePrompt;
 
-const componentHydrationPromptWithToolResponse = (
-  version: "v1" | "v2",
-) => `${version === "v1" ? basePromptV1 : basePromptV2}
+const componentHydrationPromptWithToolResponse = (version: "v1" | "v2") =>
+  `${version === "v1" ? basePromptV1 : basePromptV2}
 You have received a response from a tool. Use this data to help determine what props to pass in: {toolResponseString}
 
 {availableComponentsPrompt}
 
-{zodTypePrompt}`;
+{zodTypePrompt}` as const;
 
-const componentHydrationPromptWithoutToolResponse = (
-  version: "v1" | "v2",
-) => `${version === "v1" ? basePromptV1 : basePromptV2}
+const componentHydrationPromptWithoutToolResponse = (version: "v1" | "v2") =>
+  `${version === "v1" ? basePromptV1 : basePromptV2}
 You can also use any of the provided tools to fetch data needed to pass into the component.
 
 {availableComponentsPrompt}
 
-{zodTypePrompt}`;
+{zodTypePrompt}` as const;
 
 function getComponentHydrationPromptWithToolResponseTemplate(
   toolResponseString: string,
   availableComponentsPrompt: string,
   zodTypePrompt: string,
   version: "v1" | "v2" = "v1",
-): PromptTemplate {
-  return {
-    template: componentHydrationPromptWithToolResponse(version),
-    args: { toolResponseString, availableComponentsPrompt, zodTypePrompt },
-    version,
-  };
+) {
+  return createPromptTemplate(
+    componentHydrationPromptWithToolResponse(version),
+    { toolResponseString, availableComponentsPrompt, zodTypePrompt },
+  );
 }
 
 function getComponentHydrationPromptWithoutToolResponseTemplate(
   availableComponentsPrompt: string,
   zodTypePrompt: string,
   version: "v1" | "v2" = "v1",
-): PromptTemplate {
-  return {
-    template: componentHydrationPromptWithoutToolResponse(version),
-    args: { availableComponentsPrompt, zodTypePrompt },
-    version,
-  };
+) {
+  return createPromptTemplate(
+    componentHydrationPromptWithoutToolResponse(version),
+    { availableComponentsPrompt, zodTypePrompt },
+  );
 }
 
 export function getComponentHydrationPromptTemplate(
   toolResponse: ToolResponseBody | undefined,
   availableComponents: AvailableComponents,
   version: "v1" | "v2" = "v1",
-): PromptTemplate {
+) {
   const toolResponseString = toolResponse
     ? JSON.stringify(toolResponse)
     : undefined;
@@ -163,7 +153,7 @@ export function getComponentHydrationPromptTemplate(
 
 export function getAvailableComponentsPromptTemplate(
   availableComponents: AvailableComponents,
-): PromptTemplate {
+) {
   const availableComponentsStr = Object.values(availableComponents)
     .map((component) => {
       let propsStr = "";
@@ -209,11 +199,11 @@ export function getAvailableComponentsPromptTemplate(
       return `- ${component.name}: ${component.description}${propsStr}`;
     })
     .join("\n");
-  return {
-    template: `Available components and their descriptions:
+  return createPromptTemplate(
+    `Available components and their descriptions:
 {availableComponents}`,
-    args: { availableComponents: availableComponentsStr },
-  };
+    { availableComponents: availableComponentsStr },
+  );
 }
 
 function generateAvailableComponentsPrompt(
@@ -262,7 +252,6 @@ export function buildSuggestionPrompt(
   components: AvailableComponent[],
   messageHistory: ThreadMessage[] = [],
   suggestionCount: number,
-  schema: string,
 ): Array<{ role: "system" | "user"; content: string }> {
   // Get current component if available
   let currentComponent: string | null = null;
@@ -326,10 +315,8 @@ ${currentComponent ? `Current component: ${currentComponent}\nCurrent props: ${J
 
 Generate ${suggestionCount} natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
 
-The suggestions should be written exactly as a user would type them, not as descriptions or commands.
-
-Schema for validation:
-${schema}`;
+The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
+`;
 
   return [
     { role: "system", content: systemMessage },

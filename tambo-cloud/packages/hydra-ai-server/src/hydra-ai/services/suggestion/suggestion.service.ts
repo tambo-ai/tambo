@@ -1,10 +1,7 @@
 import { ThreadMessage } from "@tambo-ai-cloud/core";
 import { InputContextAsArray } from "../../model/input-context";
 import { LLMClient } from "../llm/llm-client";
-import {
-  buildSuggestionPrompt,
-  generateFormatInstructions,
-} from "../prompt/prompt-service";
+import { buildSuggestionPrompt } from "../prompt/prompt-service";
 import {
   SuggestionDecision,
   SuggestionsResponseSchema,
@@ -25,12 +22,10 @@ export async function generateSuggestions(
   stream?: boolean,
 ): Promise<SuggestionDecision | AsyncIterableIterator<SuggestionDecision>> {
   const components = context.availableComponents ?? [];
-  const schema = generateFormatInstructions(SuggestionsResponseSchema);
   const messages = buildSuggestionPrompt(
     components,
     context.messageHistory,
     count,
-    schema,
   );
 
   if (stream) {
@@ -40,9 +35,9 @@ export async function generateSuggestions(
   try {
     const response = await llmClient.complete({
       messages,
-      jsonMode: true,
       promptTemplateName: "suggestion-generation",
       promptTemplateParams: {},
+      zodResponseFormat: SuggestionsResponseSchema,
     });
 
     // Add validation for response message
@@ -56,7 +51,6 @@ export async function generateSuggestions(
     }
 
     // Use safeParse for better error handling
-    console.warn(`response.message ${response.message}`);
     const parsed = SuggestionsResponseSchema.safeParse(
       JSON.parse(response.message),
     );

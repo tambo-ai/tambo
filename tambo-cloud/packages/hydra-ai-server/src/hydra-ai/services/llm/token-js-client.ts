@@ -1,15 +1,19 @@
 import { formatTemplate } from "@libretto/openai/lib/src/template";
 import {
   ChatCompletionMessageParam,
-  ChatCompletionTool,
   StreamCompletionResponse,
   TokenJS,
 } from "@libretto/token.js";
 import { ToolCallRequest } from "@tambo-ai-cloud/core";
+import { zodResponseFormat } from "openai/helpers/zod";
 import { ChatCompletion } from "openai/resources/chat/completions";
 import { OpenAIResponse } from "../../model/openai-response";
 import { Provider } from "../../model/providers";
-import { LLMClient } from "./llm-client";
+import {
+  CompleteParams,
+  LLMClient,
+  StreamingCompleteParams,
+} from "./llm-client";
 
 export class TokenJSClient implements LLMClient {
   private client: TokenJS;
@@ -23,30 +27,13 @@ export class TokenJSClient implements LLMClient {
     this.client = new TokenJS({ apiKey });
   }
 
-  async complete(params: {
-    messages: ChatCompletionMessageParam[];
-    stream: true;
-    tools?: ChatCompletionTool[];
-    jsonMode?: boolean;
-    promptTemplateName: string;
-    promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
-  }): Promise<AsyncIterableIterator<OpenAIResponse>>;
-  async complete(params: {
-    messages: ChatCompletionMessageParam[];
-    stream?: false | undefined;
-    tools?: ChatCompletionTool[];
-    jsonMode?: boolean;
-    promptTemplateName: string;
-    promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
-  }): Promise<OpenAIResponse>;
-  async complete(params: {
-    messages: ChatCompletionMessageParam[];
-    stream?: boolean;
-    tools?: ChatCompletionTool[];
-    jsonMode?: boolean;
-    promptTemplateName: string;
-    promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
-  }): Promise<OpenAIResponse | AsyncIterableIterator<OpenAIResponse>> {
+  async complete(
+    params: StreamingCompleteParams,
+  ): Promise<AsyncIterableIterator<OpenAIResponse>>;
+  async complete(params: CompleteParams): Promise<OpenAIResponse>;
+  async complete(
+    params: StreamingCompleteParams | CompleteParams,
+  ): Promise<OpenAIResponse | AsyncIterableIterator<OpenAIResponse>> {
     const componentTools = params.tools?.length ? params.tools : undefined;
 
     const nonStringParams = Object.entries(params.promptTemplateParams).filter(
@@ -72,7 +59,7 @@ export class TokenJSClient implements LLMClient {
         model: this.model,
         messages: messagesFormatted,
         temperature: 0,
-        response_format: params.jsonMode ? { type: "json_object" } : undefined,
+        response_format: extractResponseFormat(params),
         tools: componentTools,
         libretto: {
           promptTemplateName: params.promptTemplateName,
@@ -91,7 +78,7 @@ export class TokenJSClient implements LLMClient {
       model: this.model,
       messages: messagesFormatted,
       temperature: 0,
-      response_format: params.jsonMode ? { type: "json_object" } : undefined,
+      response_format: extractResponseFormat(params),
       tools: componentTools,
       libretto: {
         promptTemplateName: params.promptTemplateName,
@@ -185,6 +172,34 @@ export class TokenJSClient implements LLMClient {
       })),
     };
   }
+}
+
+function extractResponseFormat(
+  params: StreamingCompleteParams | CompleteParams,
+) {
+  if (params.jsonMode) {
+    return { type: "json_object" };
+  }
+
+  if (params.zodResponseFormat) {
+    const zodResponse = zodResponseFormat(
+      params.zodResponseFormat,
+      "response",
+    ) as any;
+    return zodResponse;
+  }
+
+  if (params.schemaResponseFormat) {
+    return {
+      type: "json_schema",
+      json_schema: {
+        name: "response",
+        schema: params.schemaResponseFormat,
+      },
+    };
+  }
+
+  return undefined;
 }
 
 /** We have to manually format this because objectTemplate doesn't seem to support chat_history */

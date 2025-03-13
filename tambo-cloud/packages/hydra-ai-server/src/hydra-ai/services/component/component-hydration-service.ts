@@ -10,7 +10,7 @@ import {
   ToolResponseBody,
 } from "../../model/component-metadata";
 import { OpenAIResponse } from "../../model/openai-response";
-import { LLMClient } from "../llm/llm-client";
+import { CompleteParams, LLMClient } from "../llm/llm-client";
 import { chatHistoryToParams } from "../llm/utils";
 import { parseAndValidate } from "../parser/response-parser-service";
 import {
@@ -54,7 +54,7 @@ export async function hydrateComponent(
     availableComponents || { [chosenComponent.name]: chosenComponent },
   );
 
-  const completeOptions = {
+  const completeOptions: CompleteParams = {
     messages: objectTemplate([
       { role: "system", content: template },
       { role: "chat_history", content: "{chat_history}" },
