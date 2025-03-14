@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.20.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.19.0...repo-v0.20.0) (2025-03-14)
+
+
+### Features
+
+* normalize thread history, Dtos, Interfaces, etc ([#502](https://github.com/tambo-ai/tambo-cloud/issues/502)) ([0bb078c](https://github.com/tambo-ai/tambo-cloud/commit/0bb078c7c09db59886648a959a82563fc9c59eb6))
+
+
+### Miscellaneous Chores
+
+* stream message first ([#499](https://github.com/tambo-ai/tambo-cloud/issues/499)) ([e137209](https://github.com/tambo-ai/tambo-cloud/commit/e13720943c2949656e8bbac9dcbc6baaea72bbd6))
+
 ## [0.19.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.18.1...repo-v0.19.0) (2025-03-13)
 
 
