@@ -365,6 +365,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
                 actionType: "tool_response",
                 toolResponse: toolCallResponse,
                 component: chunk.responseMessageDto.component,
+                tool_call_id: chunk.responseMessageDto.tool_call_id,
               },
             };
           updateThreadStatus(GenerationStage.STREAMING_RESPONSE);
@@ -516,6 +517,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
               actionType: "tool_response",
               toolResponse: toolCallResponse,
               component: advanceResponse.responseMessageDto.component,
+              tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
             },
           };
         updateThreadStatus(GenerationStage.HYDRATING_COMPONENT);
