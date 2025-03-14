@@ -249,6 +249,7 @@ export const messages = pgTable("messages", ({ text, timestamp }) => ({
   content: customJsonb<string | ChatCompletionContentPart[]>(
     "content",
   ).notNull(),
+  toolCallId: text("tool_call_id"),
   componentDecision: customJsonb<ComponentDecisionV2>("component_decision"),
   componentState: customJsonb<Record<string, unknown>>("component_state"),
   toolCallRequest: customJsonb<ToolCallRequest>("tool_call_request"),

@@ -1,0 +1,1 @@
+ALTER TABLE "messages" ADD COLUMN "tool_call_id" text;

@@ -162,6 +162,13 @@
       "when": 1741381761339,
       "tag": "0022_unusual_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1741994269431,
+      "tag": "0023_worthless_hemingway",
+      "breakpoints": true
     }
   ]
 }
