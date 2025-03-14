@@ -32,7 +32,7 @@ import { ThreadMessageInput } from "./components/ThreadMessageInput";
 import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {
-  const { session } = useSession();
+  const { data: session } = useSession();
   const userId = session?.user.id;
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
     [],

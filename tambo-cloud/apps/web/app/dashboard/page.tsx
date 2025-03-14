@@ -4,19 +4,20 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Header } from "@/components/sections/header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useSession } from "@/hooks/auth";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { CreateProjectDialog } from "../../components/dashboard-components/create-project-dialog";
 import { ProjectCard } from "../../components/dashboard-components/project-card";
-import { getSupabaseClient } from "../utils/supabase";
 import { ProjectResponseDto } from "./types/types";
 
 export default function DashboardPage() {
   //  const [projects, setProjects] = useState([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
 
   const {
     data: projects,
@@ -36,24 +37,6 @@ export default function DashboardPage() {
       });
     }
   }, [projectLoadingError, toast]);
-
-  const checkAuth = useCallback(async () => {
-    console.log("Checking auth status");
-    try {
-      const supabase = getSupabaseClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-    } catch (error) {
-      console.error("Error checking auth status:", error);
-      setIsAuthenticated(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
 
   const { mutateAsync: createProject } =
     api.project.createProject.useMutation();
