@@ -1,10 +1,10 @@
-import { ChatCompletionTool } from "@libretto/token.js";
+import OpenAI from "openai";
 import { ComponentContextToolMetadata } from "../../model/component-metadata";
 
 // Public functions
 export function convertMetadataToTools(
   toolsMetadata: ComponentContextToolMetadata[],
-): ChatCompletionTool[] {
+): OpenAI.Chat.Completions.ChatCompletionTool[] {
   return toolsMetadata.map((tool) => ({
     type: "function",
     function: {

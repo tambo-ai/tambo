@@ -1,10 +1,9 @@
-export interface ComponentDecision {
+export interface LegacyComponentDecision {
   componentName: string | null;
   props: any | null;
   message: string;
   suggestedActions?: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
-  threadId: string;
 }
 
 export interface ComponentDecisionV2 {
@@ -15,6 +14,7 @@ export interface ComponentDecisionV2 {
 
 export interface ToolCallRequest {
   toolName: string;
+  tool_call_id: string;
   parameters: {
     parameterName: string;
     parameterValue: any;

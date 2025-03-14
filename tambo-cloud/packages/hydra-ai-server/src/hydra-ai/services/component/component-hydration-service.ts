@@ -1,9 +1,11 @@
 import { objectTemplate } from "@libretto/openai";
-import { ChatCompletionMessageParam } from "@libretto/token.js";
-import { ComponentDecision } from "@tambo-ai-cloud/core";
+import {
+  ChatCompletionMessageParam,
+  LegacyComponentDecision,
+  ThreadMessage,
+} from "@tambo-ai-cloud/core";
 import { parse } from "partial-json";
 import { z } from "zod";
-import { ChatMessage } from "../../model/chat-message";
 import {
   AvailableComponent,
   AvailableComponents,
@@ -21,16 +23,29 @@ import { schemaV1, schemaV2 } from "../prompt/schemas";
 import { convertMetadataToTools } from "../tool/tool-service";
 
 // Public function
-export async function hydrateComponent(
-  llmClient: LLMClient,
-  messageHistory: ChatMessage[],
-  chosenComponent: AvailableComponent,
-  toolResponse: ToolResponseBody | undefined,
-  availableComponents: AvailableComponents | undefined,
-  threadId: string,
-  stream?: boolean,
-  version: "v1" | "v2" = "v1",
-): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
+export async function hydrateComponent({
+  llmClient,
+  messageHistory,
+  chosenComponent,
+  toolResponse,
+  toolCallId: _toolCallId, // We may not have a tool call id if the tool call is not from the user
+  availableComponents,
+  threadId,
+  stream,
+  version = "v1",
+}: {
+  llmClient: LLMClient;
+  messageHistory: ThreadMessage[];
+  chosenComponent: AvailableComponent;
+  toolResponse: ToolResponseBody | undefined;
+  toolCallId?: string;
+  availableComponents: AvailableComponents | undefined;
+  threadId: string;
+  stream?: boolean;
+  version?: "v1" | "v2";
+}): Promise<
+  LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
+> {
   //only define tools if we don't have a tool response
   const tools = toolResponse
     ? undefined
@@ -55,7 +70,7 @@ export async function hydrateComponent(
   );
 
   const completeOptions: CompleteParams = {
-    messages: objectTemplate([
+    messages: objectTemplate<ChatCompletionMessageParam[]>([
       { role: "system", content: template },
       { role: "chat_history", content: "{chat_history}" },
       {
@@ -98,13 +113,12 @@ export async function hydrateComponent(
 
   const generateComponentResponse = await llmClient.complete(completeOptions);
 
-  const componentDecision: ComponentDecision = {
+  const componentDecision: LegacyComponentDecision = {
     message: "Fetching additional data",
     componentName: chosenComponent.name,
     props: null,
     ...(version === "v1" ? { suggestedActions: [] } : {}),
     toolCallRequest: generateComponentResponse.toolCallRequest,
-    threadId,
   };
 
   if (!componentDecision.toolCallRequest) {
@@ -129,14 +143,13 @@ async function* handleComponentHydrationStream(
   componentName: string,
   threadId: string,
   version: "v1" | "v2" = "v1",
-): AsyncIterableIterator<ComponentDecision> {
-  const initialDecision: ComponentDecision = {
+): AsyncIterableIterator<LegacyComponentDecision> {
+  const initialDecision: LegacyComponentDecision = {
     componentName,
     props: null,
     message: "",
     ...(version === "v1" ? { suggestedActions: [] } : {}),
     toolCallRequest: undefined,
-    threadId,
   };
 
   let accumulatedDecision = initialDecision;

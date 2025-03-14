@@ -52,7 +52,7 @@ export class ChatCompletionContentPartDto
 }
 
 @ApiSchema({ name: 'ThreadMessage' })
-export class ThreadMessageDto implements InternalThreadMessage {
+export class ThreadMessageDto {
   id!: string;
   threadId!: string;
   @IsEnum(MessageRole)
@@ -68,8 +68,9 @@ export class ThreadMessageDto implements InternalThreadMessage {
     type: 'object',
     additionalProperties: true,
   })
-  componentState?: Record<string, unknown>;
+  componentState!: Record<string, unknown>;
   toolCallRequest?: ToolCallRequestDto;
+  tool_call_id?: string;
   @IsEnum(ActionType)
   actionType?: ActionType;
 
@@ -99,11 +100,10 @@ export class MessageRequest implements InternalThreadMessage {
   toolCallRequest?: ToolCallRequestDto;
 
   @IsOptional()
+  tool_call_id?: string;
+  @IsOptional()
   @IsEnum(ActionType)
   actionType?: ActionType;
-
-  @IsOptional()
-  tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
 
   @IsOptional()
   toolResponse?: any;

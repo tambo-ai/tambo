@@ -1,7 +1,5 @@
-import {
-  type ChatCompletionMessageParam,
-  type ChatCompletionTool,
-} from "@libretto/token.js";
+import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
+import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
 import { ZodObject } from "zod";
 import { OpenAIResponse } from "../../model/openai-response";
@@ -34,7 +32,7 @@ type ResponseFormat =
 interface StreamingCompleteBaseParams {
   messages: ChatCompletionMessageParam[];
   stream: true;
-  tools?: ChatCompletionTool[];
+  tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
 }
@@ -45,7 +43,7 @@ export type StreamingCompleteParams = StreamingCompleteBaseParams &
 interface CompleteBaseParams {
   messages: ChatCompletionMessageParam[];
   stream?: false | undefined;
-  tools?: ChatCompletionTool[];
+  tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
 }

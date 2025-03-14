@@ -1,9 +1,8 @@
 import { ThreadMessage } from "@tambo-ai-cloud/core";
-import { ChatMessage } from "./chat-message";
 import { AvailableComponent, AvailableComponents } from "./component-metadata";
 
 export type InputContextCore = {
-  messageHistory: ChatMessage[];
+  messageHistory: ThreadMessage[];
   threadId: string;
 };
 

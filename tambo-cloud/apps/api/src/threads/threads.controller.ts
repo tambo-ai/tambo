@@ -250,7 +250,6 @@ export class ThreadsController {
     @Body() newState: UpdateComponentStateDto,
   ): Promise<ThreadMessageDto> {
     const message = (await this.threadsService.updateComponentState(
-      threadId,
       messageId,
       newState.state,
     )) as ThreadMessageDto;

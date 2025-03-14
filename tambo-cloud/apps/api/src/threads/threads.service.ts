@@ -2,21 +2,17 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   ActionType,
   ChatCompletionContentPart,
-  ComponentDecision,
   ComponentDecisionV2,
   ContentPartType,
   GenerationStage,
+  LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
 } from '@tambo-ai-cloud/core';
 import type { HydraDatabase } from '@tambo-ai-cloud/db';
 import { operations, schema } from '@tambo-ai-cloud/db';
 import type { DBSuggestion } from '@tambo-ai-cloud/db/src/schema';
-import {
-  ChatMessage,
-  generateChainId,
-  HydraBackend,
-} from '@tambo-ai-cloud/hydra-ai-server';
+import { generateChainId, HydraBackend } from '@tambo-ai-cloud/hydra-ai-server';
 import { eq } from 'drizzle-orm';
 import { decryptProviderKey } from 'src/common/key.utils';
 import { TRANSACTION } from 'src/common/middleware/db-transaction-middleware';
@@ -150,7 +146,7 @@ export class ThreadsService {
         component: message.componentDecision ?? undefined,
         content: convertContentPartToDto(message.content),
         metadata: message.metadata ?? undefined,
-        componentState: message.componentState ?? undefined,
+        componentState: message.componentState ?? {},
         toolCallRequest: message.toolCallRequest ?? undefined,
         actionType: message.actionType ?? undefined,
       })),
@@ -205,7 +201,7 @@ export class ThreadsService {
       actionType: message.actionType ?? undefined,
       createdAt: message.createdAt,
       toolCallRequest: message.toolCallRequest ?? undefined,
-
+      componentState: message.componentState ?? {},
       // TODO: promote suggestionActions to the message level in the db, this is just
       // relying on the internal ComponentDecision type
       // suggestions: (message.componentDecision as ComponentDecision)
@@ -228,7 +224,7 @@ export class ThreadsService {
       metadata: message.metadata ?? undefined,
       toolCallRequest: message.toolCallRequest ?? undefined,
       actionType: message.actionType ?? undefined,
-      componentState: message.componentState ?? undefined,
+      componentState: message.componentState ?? {},
       component: message.componentDecision as ComponentDecisionV2 | undefined,
     }));
   }
@@ -250,7 +246,7 @@ export class ThreadsService {
       metadata: message.metadata ?? undefined,
       toolCallRequest: message.toolCallRequest ?? undefined,
       actionType: message.actionType ?? undefined,
-      componentState: message.componentState ?? undefined,
+      componentState: message.componentState ?? {},
     };
   }
 
@@ -368,16 +364,22 @@ export class ThreadsService {
     };
   }
   async updateComponentState(
-    threadId: string,
     messageId: string,
     newState: Record<string, unknown>,
-  ) {
+  ): Promise<ThreadMessageDto> {
     const message = await operations.updateMessageComponentState(
       this.tx,
       messageId,
       newState,
     );
-    return message;
+    return {
+      ...message,
+      content: convertContentPartToDto(message.content),
+      metadata: message.metadata ?? undefined,
+      componentState: message.componentState ?? {},
+      toolCallRequest: message.toolCallRequest ?? undefined,
+      actionType: message.actionType ?? undefined,
+    };
   }
 
   /**
@@ -405,7 +407,7 @@ export class ThreadsService {
     });
 
     const availableComponentMap: Record<string, AvailableComponentDto> =
-      advanceRequestDto?.availableComponents?.reduce((acc, component) => {
+      advanceRequestDto.availableComponents?.reduce((acc, component) => {
         acc[component.name] = component;
         return acc;
       }, {}) ?? {};
@@ -418,8 +420,8 @@ export class ThreadsService {
     const latestMessage = messages[messages.length - 1];
 
     let responseMessage:
-      | ComponentDecision
-      | AsyncIterableIterator<ComponentDecision>;
+      | LegacyComponentDecision
+      | AsyncIterableIterator<LegacyComponentDecision>;
     if (latestMessage.role === MessageRole.Tool) {
       await this.updateGenerationStage(
         thread.id,
@@ -432,7 +434,7 @@ export class ThreadsService {
         throw new Error('No tool response found');
       }
 
-      const componentDef = advanceRequestDto?.availableComponents?.find(
+      const componentDef = advanceRequestDto.availableComponents?.find(
         (c) => c.name === latestMessage.component?.componentName,
       );
       if (!componentDef) {
@@ -441,21 +443,23 @@ export class ThreadsService {
 
       if (stream) {
         responseMessage = await hydraBackend.hydrateComponentWithData(
-          convertThreadMessagesToLegacyThreadMessages(messages),
+          threadMessageDtoToThreadMessage(messages),
           componentDef,
           toolResponse,
+          latestMessage.tool_call_id,
           thread.id,
           true,
         );
         return this.handleAdvanceThreadStream(
           thread.id,
-          responseMessage as AsyncIterableIterator<ComponentDecision>,
+          responseMessage as AsyncIterableIterator<LegacyComponentDecision>,
         );
       } else {
         responseMessage = await hydraBackend.hydrateComponentWithData(
-          convertThreadMessagesToLegacyThreadMessages(messages),
+          threadMessageDtoToThreadMessage(messages),
           componentDef,
           toolResponse,
+          latestMessage.tool_call_id,
           thread.id,
         );
       }
@@ -467,18 +471,18 @@ export class ThreadsService {
       );
       if (stream) {
         responseMessage = await hydraBackend.generateComponent(
-          convertThreadMessagesToLegacyThreadMessages(messages),
+          threadMessageDtoToThreadMessage(messages),
           availableComponentMap,
           thread.id,
           true,
         );
         return this.handleAdvanceThreadStream(
           thread.id,
-          responseMessage as AsyncIterableIterator<ComponentDecision>,
+          responseMessage as AsyncIterableIterator<LegacyComponentDecision>,
         );
       } else {
         responseMessage = await hydraBackend.generateComponent(
-          convertThreadMessagesToLegacyThreadMessages(messages),
+          threadMessageDtoToThreadMessage(messages),
           availableComponentMap,
           thread.id,
         );
@@ -487,7 +491,7 @@ export class ThreadsService {
 
     const responseMessageDto = await this.addResponseToThread(
       thread.id,
-      responseMessage as ComponentDecision,
+      responseMessage as LegacyComponentDecision,
     );
     const resultingGenerationStage = responseMessageDto.toolCallRequest
       ? GenerationStage.FETCHING_CONTEXT
@@ -510,7 +514,7 @@ export class ThreadsService {
 
   private async *handleAdvanceThreadStream(
     threadId: string,
-    stream: AsyncIterableIterator<ComponentDecision>,
+    stream: AsyncIterableIterator<LegacyComponentDecision>,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     let finalResponse:
       | {
@@ -648,7 +652,7 @@ export class ThreadsService {
 
   private async addResponseToThread(
     threadId: string,
-    component: ComponentDecision,
+    component: LegacyComponentDecision,
   ) {
     return await this.addMessage(threadId, {
       role: MessageRole.Hydra,
@@ -698,6 +702,15 @@ function convertContentDtoToContentPart(
   });
 }
 
+function threadMessageDtoToThreadMessage(
+  messages: ThreadMessageDto[],
+): ThreadMessage[] {
+  return messages.map((message) => ({
+    ...message,
+    content: convertContentDtoToContentPart(message.content),
+  }));
+}
+
 function convertContentPartToDto(
   part: ChatCompletionContentPart[] | string,
 ): ChatCompletionContentPartDto[] {
@@ -705,31 +718,4 @@ function convertContentPartToDto(
     return [{ type: ContentPartType.Text, text: part }];
   }
   return part as ChatCompletionContentPartDto[];
-}
-
-function convertThreadMessagesToLegacyThreadMessages(
-  currentThreadMessages: ThreadMessage[] | ThreadMessageDto[],
-) {
-  return currentThreadMessages.map(
-    (message): ChatMessage => ({
-      sender: [MessageRole.User, MessageRole.Tool].includes(message.role)
-        ? (message.role as 'user' | 'tool')
-        : 'hydra',
-      message: message.content
-        .map((part) => {
-          switch (part.type) {
-            case ContentPartType.Text:
-              return part.text ?? '';
-            default:
-              return '';
-          }
-        })
-        .join(''),
-      component: message.componentDecision?.componentName
-        ? message.componentDecision
-        : undefined,
-      componentState: message.componentState,
-      actionType: message.actionType,
-    }),
-  );
 }

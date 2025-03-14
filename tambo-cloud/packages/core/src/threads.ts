@@ -1,7 +1,7 @@
 import type { OpenAI } from "openai";
 import type {
-  ComponentDecision,
   ComponentDecisionV2,
+  LegacyComponentDecision,
   ToolCallRequest,
 } from "./ComponentDecision";
 import { CombineUnion } from "./typeutils";
@@ -16,6 +16,12 @@ export enum MessageRole {
   Tool = "tool",
   Hydra = "hydra",
 }
+
+export type OpenAIRole =
+  | MessageRole.User
+  | MessageRole.Assistant
+  | MessageRole.System
+  | MessageRole.Tool;
 
 /**
  * Defines the types of actions that can occur in a thread
@@ -51,6 +57,8 @@ export type ChatCompletionContentPartInputAudio =
 export type ChatCompletionContentPart =
   OpenAI.Chat.Completions.ChatCompletionContentPart;
 
+export type ChatCompletionMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionMessageParam;
 /**
  * A "static" type that combines all the content part types without any
  * discriminators, useful for expressing a serialized content part in a
@@ -73,13 +81,24 @@ export interface ThreadMessage {
   /** Array of content parts making up the message */
   content: ChatCompletionContentPart[];
   /** Component decision for this message */
-  component?: ComponentDecision;
+  component?: LegacyComponentDecision;
+  componentState: Record<string, unknown>;
+  /**
+   * Additional context for the message - TODO: do we need this here?
+   * Marking deprecated until we figure out who sets it
+   * @deprecated
+   * */
+  additionalContext?: string;
+
   /** Type of action performed */
   actionType?: ActionType;
   /** Additional metadata for the message */
   metadata?: Record<string, unknown>;
   /** Timestamp when the message was created */
   createdAt: Date;
+
+  /** Used only when role === "tool" */
+  tool_call_id?: string;
 }
 
 /** Temporary internal type to make sure that subclasses are aligned on types */
@@ -90,7 +109,7 @@ export interface InternalThreadMessage {
   component?: ComponentDecisionV2;
   actionType?: ActionType;
   toolCallRequest?: Partial<ToolCallRequest>;
-  tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
+  tool_call_id?: string;
 }
 
 /**

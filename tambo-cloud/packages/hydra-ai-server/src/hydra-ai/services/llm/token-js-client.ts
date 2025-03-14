@@ -1,12 +1,11 @@
 import { formatTemplate } from "@libretto/openai/lib/src/template";
+import { StreamCompletionResponse, TokenJS } from "@libretto/token.js";
 import {
   ChatCompletionMessageParam,
-  StreamCompletionResponse,
-  TokenJS,
-} from "@libretto/token.js";
-import { ToolCallRequest } from "@tambo-ai-cloud/core";
+  ToolCallRequest,
+} from "@tambo-ai-cloud/core";
+import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
-import { ChatCompletion } from "openai/resources/chat/completions";
 import { OpenAIResponse } from "../../model/openai-response";
 import { Provider } from "../../model/providers";
 import {
@@ -99,7 +98,7 @@ export class TokenJSClient implements LLMClient {
       response.choices[0].message.tool_calls?.length
     ) {
       openAIResponse.toolCallRequest = this.toolCallRequestFromResponse(
-        response as ChatCompletion,
+        response as OpenAI.Chat.Completions.ChatCompletion,
       );
     }
     if (!openAIResponse.message && !openAIResponse.toolCallRequest) {
@@ -116,23 +115,31 @@ export class TokenJSClient implements LLMClient {
     stream: StreamCompletionResponse,
   ): AsyncIterableIterator<OpenAIResponse> {
     let accumulatedMessage = "";
-    const accumulatedToolCall: { name?: string; arguments?: string } = {};
+    const accumulatedToolCall: {
+      name?: string;
+      arguments?: string;
+      id?: string;
+    } = {};
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
-      const toolCall = chunk.choices[0]?.delta?.tool_calls?.[0]?.function;
+      const toolCall = chunk.choices[0]?.delta?.tool_calls?.[0];
+      const toolCallFunction = toolCall?.function;
 
       if (content) {
         accumulatedMessage += content;
       }
 
       if (toolCall) {
-        if (toolCall.name) {
-          accumulatedToolCall.name = toolCall.name;
+        if (toolCallFunction?.name) {
+          accumulatedToolCall.name = toolCallFunction.name;
         }
-        if (toolCall.arguments) {
+        if (toolCall.id) {
+          accumulatedToolCall.id = toolCall.id;
+        }
+        if (toolCallFunction?.arguments) {
           accumulatedToolCall.arguments =
-            (accumulatedToolCall.arguments || "") + toolCall.arguments;
+            (accumulatedToolCall.arguments || "") + toolCallFunction.arguments;
         }
       }
 
@@ -143,6 +150,7 @@ export class TokenJSClient implements LLMClient {
           const toolArgs = JSON.parse(accumulatedToolCall.arguments);
           toolCallRequest = {
             toolName: accumulatedToolCall.name,
+            tool_call_id: accumulatedToolCall.id ?? "",
             parameters: Object.entries(toolArgs).map(([key, value]) => ({
               parameterName: key,
               parameterValue: value,
@@ -157,7 +165,9 @@ export class TokenJSClient implements LLMClient {
     }
   }
 
-  private toolCallRequestFromResponse(response: ChatCompletion) {
+  private toolCallRequestFromResponse(
+    response: OpenAI.Chat.Completions.ChatCompletion,
+  ) {
     const toolCall = response.choices[0].message.tool_calls?.[0];
     if (!toolCall) {
       throw new Error("No tool calls found in response");
@@ -166,6 +176,7 @@ export class TokenJSClient implements LLMClient {
 
     return {
       toolName: toolCall.function.name,
+      tool_call_id: toolCall.id,
       parameters: Object.entries(toolArgs).map(([key, value]) => ({
         parameterName: key,
         parameterValue: value,

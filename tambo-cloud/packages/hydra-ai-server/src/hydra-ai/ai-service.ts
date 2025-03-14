@@ -1,7 +1,6 @@
-import { ComponentDecision } from "@tambo-ai-cloud/core";
+import { LegacyComponentDecision, ThreadMessage } from "@tambo-ai-cloud/core";
 import {
   AvailableComponent,
-  ChatMessage,
   InputContext,
   InputContextAsArray,
   ToolResponseBody,
@@ -47,26 +46,32 @@ export default class AIService {
     context: InputContext,
     threadId: string,
     stream?: boolean,
-  ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
+  ): Promise<
+    LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
+  > {
     return await decideComponent(this.llmClient, context, threadId, stream);
   }
 
   async hydrateComponent(
-    messageHistory: ChatMessage[],
+    messageHistory: ThreadMessage[],
     component: AvailableComponent,
     toolResponse: ToolResponseBody,
+    toolCallId: string | undefined,
     threadId: string,
     stream?: boolean,
-  ): Promise<ComponentDecision | AsyncIterableIterator<ComponentDecision>> {
-    return await hydrateComponent(
-      this.llmClient,
+  ): Promise<
+    LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
+  > {
+    return await hydrateComponent({
+      llmClient: this.llmClient,
       messageHistory,
-      component,
+      chosenComponent: component,
       toolResponse,
-      undefined,
+      toolCallId,
+      availableComponents: undefined,
       threadId,
       stream,
-      this.version,
-    );
+      version: this.version,
+    });
   }
 }
