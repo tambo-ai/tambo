@@ -1,0 +1,61 @@
+{
+	"name": "tambo-cli",
+	"version": "0.1.0",
+	"description": "Tambo command-line tool",
+	"license": "MIT",
+	"repository": "tambo-ai/tambo/cli",
+	"funding": "https://github.com/sponsors/tambo-ai",
+	"author": {
+		"name": "tambo",
+		"email": "support@tambo.co",
+		"url": "https://tambo.co"
+	},
+	"type": "module",
+	"bin": {
+		"tambo": "./dist/cli.js"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"build": "tsc",
+		"test": "tsc && xo && ava"
+	},
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"cli",
+		"cli-app",
+		"tambo",
+		"ai"
+	],
+	"dependencies": {
+		"@tambo-ai/react": "^0.13.1",
+		"axios": "^1.7.7",
+		"chalk": "^5.3.0",
+		"clipboardy": "^4.0.0",
+		"deepmerge": "^4.3.1",
+		"dotenv": "^16.4.5",
+		"inquirer": "^9.1.4",
+		"meow": "^13.2.0",
+		"open": "^10.1.0",
+		"ora": "^8.1.0",
+		"sanitize-html": "^2.14.0",
+		"ts-json-schema-generator": "^2.3.0",
+		"ts-morph": "^25.0.1",
+		"uuid": "^10.0.0"
+	},
+	"devDependencies": {
+		"@types/chalk": "^0.4.31",
+		"@types/inquirer": "^9.0.7",
+		"@types/node": "^22.7.4",
+		"@types/ora": "^3.1.0",
+		"@types/uuid": "^10.0.0",
+		"ava": "^6.1.2",
+		"execa": "^8.0.1",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.6.2",
+		"xo": "^0.58.0"
+	}
+}
