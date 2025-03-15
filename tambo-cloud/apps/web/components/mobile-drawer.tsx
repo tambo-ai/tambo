@@ -30,14 +30,18 @@ export function MobileDrawer({
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="px-6">
-          <Link
-            href="/"
-            title="brand-logo"
-            className="relative mr-6 flex items-center space-x-2"
-          >
-            <Icons.logo className="w-auto h-[40px]" />
-            <DrawerTitle>{siteConfig.name}</DrawerTitle>
-          </Link>
+          <DrawerTitle>
+            <Link
+              href="/"
+              title="brand-logo"
+              className="relative mr-6 flex items-center space-x-2"
+            >
+              <Icons.logo
+                className="pl-4 h-6 w-auto"
+                aria-label={siteConfig.name}
+              />
+            </Link>
+          </DrawerTitle>
           <DrawerDescription>{siteConfig.description}</DrawerDescription>
         </DrawerHeader>
         <div className="px-6 flex flex-col gap-2">
@@ -65,13 +69,13 @@ export function MobileDrawer({
         </div>
         <DrawerFooter>
           <Link
-            href="#"
+            href="/docs"
             className={cn(
               buttonVariants({ variant: "default" }),
               "text-white rounded-full group",
             )}
           >
-            Get Started
+            Docs
           </Link>
         </DrawerFooter>
       </DrawerContent>

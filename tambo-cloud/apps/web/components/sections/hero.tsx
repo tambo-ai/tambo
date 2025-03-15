@@ -3,6 +3,8 @@
 import { CLI } from "@/components/cli";
 import { Section } from "@/components/section";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "../ui/button";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -13,7 +15,7 @@ const heroContent = {
     text: "v1.0.0",
     link: "http://localhost:3000/blog/0-1-0-announcement",
   },
-  title: "An AI powered Interface in one line of code.",
+  title: "An AI powered Interface in a few lines of code.",
   subtitle: "A React package for interfaces that think.",
   cta: {
     buttonText: "Request Early Access",
@@ -108,32 +110,47 @@ function HeroCTA() {
   );
 }
 
-// Placeholder for illustration
+// Replace with SVG if GIF is annoying
 function HeroIllustration() {
   return (
-    <div className="w-full h-full flex items-center justify-center overflow-hidden">
-      <div className="w-full h-full relative">
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full relative scale-90 md:scale-100 lg:scale-125">
         <motion.img
-          src="/assets/landing/octo-juggling-placeholder.png"
-          alt="Octopus juggling illustration"
-          className="w-full h-full object-contain max-w-full"
-          initial={{ opacity: 0, scale: 1.3 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease }}
+          src="/assets/landing/hero/Octo-5-transparent.gif"
+          alt="Tambo Octopus Animation"
+          className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease }}
         />
       </div>
     </div>
   );
 }
 
+function HeroCTAButton() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
+    >
+      <Button asChild className="mt-4 hover:scale-105 transition-transform">
+        <Link href="#interactive-demo">Take Tambo for a Spin</Link>
+      </Button>
+    </motion.div>
+  );
+}
+
 export function Hero() {
   return (
-    <Section id="hero" className="py-4 sm:py-8 md:py-12 lg:py-20">
+    <Section id="hero">
       {/* Main content area with titles and illustration */}
       <div className="flex flex-col lg:flex-row items-center w-full lg:gap-8 xl:gap-16 mb-4 lg:mb-8">
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:max-w-[50%]">
           <HeroPill />
           <HeroTitles />
+          <HeroCTAButton />
         </div>
 
         {/* Hero illustration */}
@@ -149,12 +166,14 @@ export function Hero() {
         </div>
       </div>
 
-      {/* CTA section centered below */}
+      {/* CTA section centered below 
+      // Todo: Add back later?
       <div className="w-full flex justify-center mt-2 sm:mt-4 lg:mt-6">
         <div className="w-full max-w-full sm:max-w-3xl">
           <HeroCTA />
         </div>
       </div>
+      */}
     </Section>
   );
 }

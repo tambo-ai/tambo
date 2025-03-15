@@ -6,7 +6,6 @@ import { MobileDrawer } from "@/components/mobile-drawer";
 import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import Link from "next/link";
 
 export function Header({
@@ -24,16 +23,7 @@ export function Header({
           title="brand-logo"
           className="relative mr-6 flex items-center"
         >
-          <div className="flex items-center justify-center w-8 h-8">
-            <Icons.logo className="w-8 h-8" />
-          </div>
-          <Image
-            src="/assets/landing/wordmark-placeholder.png"
-            alt={siteConfig.name}
-            width={160}
-            height={50}
-            className="h-10 w-auto"
-          />
+          <Icons.logo className="h-6 w-auto" aria-label={siteConfig.name} />
         </Link>
         <div className="hidden lg:flex items-center gap-6">
           <Link

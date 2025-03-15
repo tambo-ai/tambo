@@ -412,6 +412,26 @@ export class ThreadsService {
         return acc;
       }, {}) ?? {};
 
+    // Log available components
+    this.logger.log(
+      `Available components for thread ${thread.id}: ${JSON.stringify(
+        Object.keys(availableComponentMap),
+      )}`,
+    );
+
+    // Log detailed component information
+    if (advanceRequestDto?.availableComponents?.length) {
+      this.logger.log(
+        `Component details for thread ${thread.id}: ${JSON.stringify(
+          advanceRequestDto.availableComponents.map((comp) => ({
+            name: comp.name,
+            description: comp.description,
+            contextTools: comp.contextTools?.length || 0,
+          })),
+        )}`,
+      );
+    }
+
     // TODO: Let tambobackend package handle different message types internally
     const messages = await this.getMessages(thread.id, true);
     if (messages.length === 0) {

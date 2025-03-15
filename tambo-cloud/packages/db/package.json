@@ -19,6 +19,7 @@
     "@tambo-ai-cloud/eslint-config": "*",
     "@tambo-ai-cloud/hydra-ai-server": "*",
     "@tambo-ai-cloud/typescript-config": "*",
+    "@types/jsonwebtoken": "^9.0.9",
     "drizzle-kit": "^0.30.5"
   },
   "volta": {

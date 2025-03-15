@@ -54,7 +54,7 @@ export function EmailDialog({ open, onOpenChange }: EmailDialogProps) {
           {error && <p className="text-sm text-red-500">{error.message}</p>}
           {isSuccess ? (
             <div className="flex items-center gap-2 text-green-500">
-              <Icons.logo className="h-4 w-4" />
+              <Icons.logo className="h-6 w-auto" aria-label="Success" />
               <span>Thanks for reaching out!</span>
             </div>
           ) : (

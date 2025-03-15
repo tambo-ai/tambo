@@ -3,7 +3,7 @@
 import Image, { ImageProps } from "next/image";
 import { useState } from "react";
 
-type OptimizedImageProps = Omit<ImageProps, "onLoadingComplete"> & {
+type OptimizedImageProps = Omit<ImageProps, "onLoad"> & {
   lowQualitySrc?: string;
 };
 
@@ -48,7 +48,7 @@ export function OptimizedImage({
         className={`transition-opacity duration-500 ${
           isLoaded ? "opacity-100" : "opacity-0"
         } ${className || ""}`}
-        onLoadingComplete={() => setIsLoaded(true)}
+        onLoad={() => setIsLoaded(true)}
         {...props}
       />
     </div>

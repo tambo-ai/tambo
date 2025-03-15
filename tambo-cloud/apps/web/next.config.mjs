@@ -38,6 +38,16 @@ const config = {
       },
     ],
   },
+  // Configure webpack to use SVGR for SVG imports
+  webpack(config) {
+    // Modify the rules for SVG files
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ["@svgr/webpack"],
+    });
+
+    return config;
+  },
 };
 
 export default withMDX(config);

@@ -26,9 +26,9 @@ export function PreloadResources() {
       {/* Preload hero image if on homepage */}
       <link
         rel="preload"
-        href="/hero-image-light.jpeg"
+        href="/assets/landing/hero/OCTO-GRAY-6.svg"
         as="image"
-        type="image/jpeg"
+        type="image/svg+xml"
       />
 
       {/* DNS prefetch for third-party domains */}

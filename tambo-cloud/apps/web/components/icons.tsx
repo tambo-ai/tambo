@@ -1,18 +1,19 @@
+import TamboLogo from "@/public/logo/lockup/Tambo-Lockup.svg";
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
-import Image from "next/image";
-import { ComponentProps } from "react";
 
-type IconProps = React.HTMLAttributes<SVGElement>;
-type ImageIconProps = Omit<ComponentProps<typeof Image>, "src" | "alt">;
+type IconProps = React.HTMLAttributes<SVGElement> & {
+  width?: number | string;
+  height?: number | string;
+};
 
 export const Icons = {
-  logo: (props: ImageIconProps) => (
-    <Image
-      src="/assets/landing/octo-standing-placeholder.png"
-      alt="Tambo Logo"
-      width={40}
-      height={40}
-      className="object-contain"
+  logo: (props: IconProps) => (
+    <TamboLogo
+      width="auto"
+      height={10}
+      viewBox="0 0 2072 450"
+      preserveAspectRatio="xMinYMid meet"
+      style={{ maxWidth: "100%" }}
       {...props}
     />
   ),
