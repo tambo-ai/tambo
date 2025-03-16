@@ -4,7 +4,7 @@ import fs from "fs";
 import inquirer from "inquirer";
 import open from "open";
 import ora from "ora";
-import { handleAddComponent } from "./add.js";
+import { handleAddComponent } from "./add";
 
 class AuthenticationError extends Error {
 	constructor(message: string) {

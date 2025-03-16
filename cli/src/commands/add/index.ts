@@ -2,10 +2,10 @@ import chalk from "chalk";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
-import { installSingleComponent } from "./component.js";
-import { resolveComponentDependencies } from "./dependencies.js";
-import { setupTailwindandGlobals } from "./tailwind.js";
-import { InstallComponentOptions } from "./types.js";
+import { installSingleComponent } from "./component";
+import { resolveComponentDependencies } from "./dependencies";
+import { setupTailwindandGlobals } from "./tailwind";
+import { InstallComponentOptions } from "./types";
 
 /**
  * Main function to handle component installation

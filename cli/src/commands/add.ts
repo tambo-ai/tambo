@@ -1,1 +1,1 @@
-export { handleAddComponent } from "./add/index.js";
+export { handleAddComponent } from "./add/index";

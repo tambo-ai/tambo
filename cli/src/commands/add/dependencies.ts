@@ -1,6 +1,6 @@
 import fs from "fs";
-import { ComponentConfig } from "./types.js";
-import { componentExists, getConfigPath } from "./utils.js";
+import { ComponentConfig } from "./types";
+import { componentExists, getConfigPath } from "./utils";
 
 /**
  * Resolves all dependencies for a component
