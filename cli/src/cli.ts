@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import chalk from "chalk";
 import "dotenv/config";
-import meow, { Flag, Result } from "meow";
+import meow, { Flag, Result } from "meow/build";
 import { handleAddComponent } from "./commands/add";
 import { handleInit } from "./commands/init";
 
