@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
-import type { VariantProps } from "class-variance-authority";
-import { cva } from "class-variance-authority";
+import { Message } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
-import { Message } from "@/components/ui/message";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+import * as React from "react";
 
 const chatThreadVariants = cva("flex flex-col gap-4", {
   variants: {
@@ -47,8 +47,8 @@ const ChatThread = React.forwardRef<HTMLDivElement, ChatThreadProps>(
         {messages.map((message) => (
           <div
             key={
-              message.id ||
-              `${message.role}-${message.createdAt || Date.now()}-${message.content?.toString().substring(0, 10)}`
+              message.id ??
+              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
             }
             className={cn(
               "animate-in fade-in-0 slide-in-from-bottom-2",
