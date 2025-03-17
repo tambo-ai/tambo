@@ -427,16 +427,16 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       );
     },
     [
-      toolRegistry,
-      client,
-      currentThread?.id,
-      currentThreadId,
-      switchCurrentThread,
-      componentList,
       addThreadMessage,
+      client,
+      componentList,
+      currentThread?.id,
+      deleteThreadMessage,
+      fetchThread,
+      switchCurrentThread,
+      toolRegistry,
       updateThreadMessage,
       updateThreadStatus,
-      deleteThreadMessage,
     ],
   );
 
