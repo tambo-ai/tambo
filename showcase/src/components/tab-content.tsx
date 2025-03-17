@@ -1,26 +1,24 @@
-import { ExamplesComponent } from "./tabs/examples";
+import { TabType } from "@/types/tabs";
+import { ThreadsShowcase } from "./showcase-sections/threads-showcase";
 import { FormsComponent } from "./tabs/forms";
 import { GraphsComponent } from "./tabs/graphs";
 import { MessagesComponent } from "./tabs/messages";
-import { ThreadsComponent } from "./tabs/threads";
 
 interface TabContentProps {
-  activeTab: string;
+  activeTab: TabType;
 }
 
 export function TabContent({ activeTab }: TabContentProps) {
-  switch (activeTab.toLowerCase()) {
-    case "examples":
-      return <ExamplesComponent />;
-    case "messages":
+  switch (activeTab) {
+    case TabType.Messages:
       return <MessagesComponent />;
-    case "threads":
-      return <ThreadsComponent />;
-    case "forms":
+    case TabType.Threads:
+      return <ThreadsShowcase />;
+    case TabType.Forms:
       return <FormsComponent />;
-    case "graphs":
+    case TabType.Graphs:
       return <GraphsComponent />;
     default:
-      return <ExamplesComponent />;
+      return <ThreadsShowcase />;
   }
 }
