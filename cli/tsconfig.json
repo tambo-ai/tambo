@@ -6,7 +6,7 @@
     "emitDecoratorMetadata": true,
     "jsx": "react",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "rootDir": "./src",
     "declaration": true,
     "sourceMap": true,

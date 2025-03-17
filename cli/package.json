@@ -9,6 +9,11 @@
   },
   "homepage": "https://tambo.co",
   "module": "./dist/cli.js",
+  "main": "./dist/cli.js",
+  "bin": {
+    "tambo": "./dist/cli.js"
+  },
+  "type": "module",
   "exports": {
     ".": {
       "import": "./dist/cli.js",
