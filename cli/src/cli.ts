@@ -5,7 +5,7 @@ import meow, { Flag, Result } from "meow";
 import { handleAddComponent } from "./commands/add/index";
 import { handleInit } from "./commands/init";
 
-interface CLIFlags {
+interface CLIFlags extends Record<string, any> {
   init?: Flag<"boolean", boolean>;
   fullSend?: Flag<"boolean", boolean>;
   legacyPeerDeps?: Flag<"boolean", boolean>;
