@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils";
+import { TabType } from "@/types/tabs";
 
 interface SecondNavbarProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
 }
 
 export function SecondNavbar({ activeTab, onTabChange }: SecondNavbarProps) {
-  const items = ["Examples", "Messages", "Threads", "Forms", "Graphs"];
+  const items = Object.values(TabType);
 
   return (
     <nav className="bg-background/50 backdrop-blur-sm border border-border/40 rounded-full px-2 py-1.5">

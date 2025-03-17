@@ -16,7 +16,7 @@ export default function Home() {
               Components to quickstart your AI app development
             </h1>
             <p className="text-xl text-muted-foreground max-w-[600px]">
-              A collection of ready-to-use AI components hooked up to Tambo AI.
+              A collection of ready-to-use AI components hooked up to Tambo.
             </p>
           </div>
         </div>
