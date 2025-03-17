@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.21.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.20.0...repo-v0.21.0) (2025-03-17)
+
+
+### Features
+
+* **cli:** add browser auth flow for cli ([#501](https://github.com/tambo-ai/tambo-cloud/issues/501)) ([e7a95ab](https://github.com/tambo-ai/tambo-cloud/commit/e7a95ab1d087dab374f5d6cd67012fbeec733cd1))
+
+
+### Bug Fixes
+
+* add new tool_call_id column for later ([#507](https://github.com/tambo-ai/tambo-cloud/issues/507)) ([f5d0d1b](https://github.com/tambo-ai/tambo-cloud/commit/f5d0d1b881a3768130c8d426c2383996c2b9d86e))
+
+
+### Miscellaneous Chores
+
+* add watch path to make npm link easier ([#505](https://github.com/tambo-ai/tambo-cloud/issues/505)) ([cba8311](https://github.com/tambo-ai/tambo-cloud/commit/cba8311e3a85026ed26e7016d600e9095c000d50))
+* bump to @types/react@18.3.18 to be in sync with tambo repo ([#506](https://github.com/tambo-ai/tambo-cloud/issues/506)) ([0f11fd8](https://github.com/tambo-ai/tambo-cloud/commit/0f11fd8d0a9b37357677e0e5bd9b80b00d57cf55))
+* **deps:** bump @supabase/ssr from 0.5.2 to 0.6.1 ([#516](https://github.com/tambo-ai/tambo-cloud/issues/516)) ([a794fe9](https://github.com/tambo-ai/tambo-cloud/commit/a794fe95e8bd1b42518f0cc138d877eae6f913d8))
+* **deps:** bump @tambo-ai/react from 0.13.0 to 0.13.1 ([#514](https://github.com/tambo-ai/tambo-cloud/issues/514)) ([d25a4f5](https://github.com/tambo-ai/tambo-cloud/commit/d25a4f566916df1135eb6e4f43525dd86a1c202c))
+* **deps:** bump pg from 8.13.3 to 8.14.0 ([#511](https://github.com/tambo-ai/tambo-cloud/issues/511)) ([ccf56b7](https://github.com/tambo-ai/tambo-cloud/commit/ccf56b7fa582f09a10ccb3890902dede269f1606))
+* **deps:** bump posthog-js from 1.230.1 to 1.231.0 ([#513](https://github.com/tambo-ai/tambo-cloud/issues/513)) ([d60fdbd](https://github.com/tambo-ai/tambo-cloud/commit/d60fdbdffb642d865bffac0c918775646b2350bd))
+* **deps:** bump rehype-pretty-code from 0.14.0 to 0.14.1 ([#512](https://github.com/tambo-ai/tambo-cloud/issues/512)) ([2a53841](https://github.com/tambo-ai/tambo-cloud/commit/2a53841302b7756ce5dbf24dc47e7840ab908f33))
+* **deps:** bump shiki from 2.4.1 to 2.5.0 ([#517](https://github.com/tambo-ai/tambo-cloud/issues/517)) ([13d51cb](https://github.com/tambo-ai/tambo-cloud/commit/13d51cbe7337b0572b15ee9e8322e4ba66adbcde))
+* **deps:** bump the trpc group with 3 updates ([#509](https://github.com/tambo-ai/tambo-cloud/issues/509)) ([aaa346e](https://github.com/tambo-ai/tambo-cloud/commit/aaa346efdf5a661b982011c9162d711d50caed1d))
+* Update Landing with Assets and Interactive Demo ([#508](https://github.com/tambo-ai/tambo-cloud/issues/508)) ([33f8ce5](https://github.com/tambo-ai/tambo-cloud/commit/33f8ce501eebfb4bfa333528c102b45084908e7b))
+
+
+### Code Refactoring
+
+* make useSession generally available, behaves like useQuery ([#503](https://github.com/tambo-ai/tambo-cloud/issues/503)) ([44ed019](https://github.com/tambo-ai/tambo-cloud/commit/44ed01914f44588bcea81b3df085eaa034bb0d3f))
+
 ## [0.20.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.19.0...repo-v0.20.0) (2025-03-14)
 
 
