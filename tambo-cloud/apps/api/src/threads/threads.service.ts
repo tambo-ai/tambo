@@ -149,6 +149,7 @@ export class ThreadsService {
         componentState: message.componentState ?? {},
         toolCallRequest: message.toolCallRequest ?? undefined,
         actionType: message.actionType ?? undefined,
+        tool_call_id: message.toolCallId ?? undefined,
       })),
     };
   }
@@ -190,6 +191,7 @@ export class ThreadsService {
       metadata: messageDto.metadata,
       actionType: messageDto.actionType ?? undefined,
       toolCallRequest: messageDto.toolCallRequest ?? undefined,
+      toolCallId: messageDto?.tool_call_id,
     });
     return {
       id: message.id,
@@ -201,6 +203,7 @@ export class ThreadsService {
       actionType: message.actionType ?? undefined,
       createdAt: message.createdAt,
       toolCallRequest: message.toolCallRequest ?? undefined,
+      tool_call_id: message.toolCallId ?? undefined,
       componentState: message.componentState ?? {},
       // TODO: promote suggestionActions to the message level in the db, this is just
       // relying on the internal ComponentDecision type
@@ -223,6 +226,7 @@ export class ThreadsService {
       content: convertContentPartToDto(message.content),
       metadata: message.metadata ?? undefined,
       toolCallRequest: message.toolCallRequest ?? undefined,
+      tool_call_id: message.toolCallId ?? undefined,
       actionType: message.actionType ?? undefined,
       componentState: message.componentState ?? {},
       component: message.componentDecision as ComponentDecisionV2 | undefined,
@@ -238,13 +242,15 @@ export class ThreadsService {
       componentDecision: messageDto.component ?? undefined,
       metadata: messageDto.metadata,
       actionType: messageDto.actionType ?? undefined,
-      toolCallRequest: messageDto.toolCallRequest ?? undefined,
+      toolCallRequest: messageDto.toolCallRequest,
+      toolCallId: messageDto.tool_call_id ?? undefined,
     });
     return {
       ...message,
       content: convertContentPartToDto(message.content),
       metadata: message.metadata ?? undefined,
       toolCallRequest: message.toolCallRequest ?? undefined,
+      tool_call_id: message.toolCallId ?? undefined,
       actionType: message.actionType ?? undefined,
       componentState: message.componentState ?? {},
     };
@@ -378,6 +384,7 @@ export class ThreadsService {
       metadata: message.metadata ?? undefined,
       componentState: message.componentState ?? {},
       toolCallRequest: message.toolCallRequest ?? undefined,
+      tool_call_id: message.toolCallId ?? undefined,
       actionType: message.actionType ?? undefined,
     };
   }
@@ -439,9 +446,8 @@ export class ThreadsService {
     }
     const latestMessage = messages[messages.length - 1];
 
-    let responseMessage:
-      | LegacyComponentDecision
-      | AsyncIterableIterator<LegacyComponentDecision>;
+    let responseMessage: LegacyComponentDecision;
+
     if (latestMessage.role === MessageRole.Tool) {
       await this.updateGenerationStage(
         thread.id,
@@ -460,19 +466,20 @@ export class ThreadsService {
       if (!componentDef) {
         throw new Error('Component definition not found');
       }
-
       if (stream) {
-        responseMessage = await hydraBackend.hydrateComponentWithData(
-          threadMessageDtoToThreadMessage(messages),
-          componentDef,
-          toolResponse,
-          latestMessage.tool_call_id,
-          thread.id,
-          true,
-        );
+        const streamedResponseMessage =
+          await hydraBackend.hydrateComponentWithData(
+            threadMessageDtoToThreadMessage(messages),
+            componentDef,
+            toolResponse,
+            latestMessage.tool_call_id,
+            thread.id,
+            true,
+          );
         return this.handleAdvanceThreadStream(
           thread.id,
-          responseMessage as AsyncIterableIterator<LegacyComponentDecision>,
+          streamedResponseMessage,
+          latestMessage.tool_call_id,
         );
       } else {
         responseMessage = await hydraBackend.hydrateComponentWithData(
@@ -490,7 +497,7 @@ export class ThreadsService {
         `Choosing component...`,
       );
       if (stream) {
-        responseMessage = await hydraBackend.generateComponent(
+        const streamedResponseMessage = await hydraBackend.generateComponent(
           threadMessageDtoToThreadMessage(messages),
           availableComponentMap,
           thread.id,
@@ -498,7 +505,7 @@ export class ThreadsService {
         );
         return this.handleAdvanceThreadStream(
           thread.id,
-          responseMessage as AsyncIterableIterator<LegacyComponentDecision>,
+          streamedResponseMessage,
         );
       } else {
         responseMessage = await hydraBackend.generateComponent(
@@ -535,6 +542,7 @@ export class ThreadsService {
   private async *handleAdvanceThreadStream(
     threadId: string,
     stream: AsyncIterableIterator<LegacyComponentDecision>,
+    toolCallId?: string,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     let finalResponse:
       | {
@@ -560,6 +568,7 @@ export class ThreadsService {
       component: undefined,
       actionType: undefined,
       toolCallRequest: undefined,
+      tool_call_id: toolCallId,
       metadata: {},
     });
 
@@ -579,6 +588,9 @@ export class ThreadsService {
           component: chunk,
           actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
           toolCallRequest: chunk.toolCallRequest,
+          // toolCallId is set when streaming the response to a tool response
+          // chunk.toolCallId is set when streaming the response to a component
+          tool_call_id: toolCallId ?? chunk.toolCallId,
         },
         generationStage: GenerationStage.STREAMING_RESPONSE,
         statusMessage: `Streaming response...`,
@@ -680,6 +692,7 @@ export class ThreadsService {
       component: component,
       actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
       toolCallRequest: component.toolCallRequest,
+      tool_call_id: component.toolCallRequest?.tool_call_id,
     });
   }
 }

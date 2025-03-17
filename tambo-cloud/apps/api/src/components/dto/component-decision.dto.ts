@@ -39,7 +39,8 @@ export class ToolParameter {
 
 @ApiSchema({ name: 'ToolCallRequest' })
 export class ToolCallRequestDto implements Partial<ToolCallRequest> {
-  tool_call_id!: string;
+  /** @deprecated - The enclosing message's tool_call_id is used instead */
+  tool_call_id?: string;
   tool?: string;
   parameters!: ToolParameter[];
   toolName!: string;

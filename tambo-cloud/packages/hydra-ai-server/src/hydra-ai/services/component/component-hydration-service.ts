@@ -150,6 +150,7 @@ async function* handleComponentHydrationStream(
     message: "",
     ...(version === "v1" ? { suggestedActions: [] } : {}),
     toolCallRequest: undefined,
+    toolCallId: undefined,
   };
 
   let accumulatedDecision = initialDecision;
@@ -160,6 +161,7 @@ async function* handleComponentHydrationStream(
       const parsedChunk = {
         ...parse(message),
         toolCallRequest: chunk.toolCallRequest,
+        toolCallId: chunk.toolCallId,
       };
 
       accumulatedDecision = {

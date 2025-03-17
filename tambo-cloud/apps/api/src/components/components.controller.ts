@@ -248,6 +248,7 @@ function legacyChatMessagesToThreadMessages(
       ],
       componentState: {},
       createdAt: new Date(),
+      tool_call_id: undefined,
     }),
   );
 }

@@ -20,6 +20,7 @@ import {
  */
 function formatFunctionCall(
   toolCallRequest: ToolCallRequest | undefined,
+  toolCallId: string | undefined,
 ): OpenAI.Chat.Completions.ChatCompletionMessageToolCall[] | undefined {
   if (!toolCallRequest) {
     return undefined;
@@ -27,7 +28,7 @@ function formatFunctionCall(
 
   return [
     {
-      id: toolCallRequest.tool_call_id,
+      id: toolCallId ?? "",
       type: "function",
       function: {
         name: toolCallRequest.toolName,
@@ -89,13 +90,11 @@ export function chatHistoryToParams(
       ) {
         // if we got a tool call request, but not the id, then we have to fake the response
         if (
-          message.component?.toolCallRequest?.tool_call_id &&
-          !respondedToolIds.includes(
-            message.component.toolCallRequest.tool_call_id,
-          )
+          message.tool_call_id &&
+          !respondedToolIds.includes(message.tool_call_id)
         ) {
           console.warn(
-            `tool message ${message.id} not responded to, responding with tool call`,
+            `tool message ${message.id} not responded to, responding with tool call (${message.tool_call_id})`,
           );
           return {
             role: "assistant",
@@ -103,7 +102,10 @@ export function chatHistoryToParams(
               {
                 type: "text",
                 text: JSON.stringify(
-                  formatFunctionCall(message.component?.toolCallRequest),
+                  formatFunctionCall(
+                    message.component?.toolCallRequest,
+                    message.tool_call_id,
+                  ),
                 ),
               },
             ],
@@ -112,7 +114,10 @@ export function chatHistoryToParams(
         const assistantMessage: ChatCompletionAssistantMessageParam = {
           role: "assistant",
           content: message.content as ChatCompletionContentPartText[],
-          tool_calls: formatFunctionCall(message.component?.toolCallRequest),
+          tool_calls: formatFunctionCall(
+            message.component?.toolCallRequest,
+            message.tool_call_id,
+          ),
         };
         return assistantMessage;
       }

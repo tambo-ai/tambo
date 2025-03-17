@@ -89,6 +89,7 @@ export class TokenJSClient implements LLMClient {
 
     const openAIResponse: OpenAIResponse = {
       message: response.choices[0].message.content || "",
+      toolCallId: response.choices[0].message.tool_calls?.[0]?.id,
     };
 
     if (
@@ -125,7 +126,7 @@ export class TokenJSClient implements LLMClient {
       const content = chunk.choices[0]?.delta?.content;
       const toolCall = chunk.choices[0]?.delta?.tool_calls?.[0];
       const toolCallFunction = toolCall?.function;
-
+      const toolCallId = chunk.choices[0]?.delta?.tool_calls?.[0]?.id;
       if (content) {
         accumulatedMessage += content;
       }
@@ -161,7 +162,7 @@ export class TokenJSClient implements LLMClient {
         }
       }
 
-      yield { message: accumulatedMessage, toolCallRequest };
+      yield { message: accumulatedMessage, toolCallRequest, toolCallId };
     }
   }
 
