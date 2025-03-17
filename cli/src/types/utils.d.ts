@@ -14,12 +14,12 @@
  */
 
 declare module "@/lib/utils" {
-  import { ClassValue } from "clsx";
+  import type { ClassValue } from "clsx";
   export function cn(...inputs: ClassValue[]): string;
 }
 
 declare module "@radix-ui/react-dialog" {
-  import * as React from "react";
+  import type * as React from "react";
   const Root: React.FC<{
     children: React.ReactNode;
     open?: boolean;
@@ -37,7 +37,7 @@ declare module "@radix-ui/react-dialog" {
 }
 
 declare module "@radix-ui/react-collapsible" {
-  import * as React from "react";
+  import type * as React from "react";
   const Root: React.FC<{
     children: React.ReactNode;
     className?: string;
@@ -56,7 +56,7 @@ declare module "@radix-ui/react-collapsible" {
 }
 
 declare module "cmdk" {
-  import * as React from "react";
+  import type * as React from "react";
   export const Command: React.FC<{
     children: React.ReactNode;
     className?: string;

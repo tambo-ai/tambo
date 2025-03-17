@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import chalk from "chalk";
 import "dotenv/config";
-import meow, { Flag, Result } from "meow";
-import { handleAddComponent } from "./commands/add/index";
-import { handleInit } from "./commands/init";
+import meow, { type Flag, type Result } from "meow";
+import { handleAddComponent } from "./commands/add/index.js";
+import { handleInit } from "./commands/init.js";
 
 interface CLIFlags extends Record<string, any> {
   init?: Flag<"boolean", boolean>;

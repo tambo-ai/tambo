@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { cva, VariantProps } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { TamboThread } from "@tambo-ai/react";
+import type { TamboThread } from "@tambo-ai/react";
 
 const threadListVariants = cva("flex flex-col w-full", {
   variants: {

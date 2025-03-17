@@ -2,8 +2,8 @@ import chalk from "chalk";
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import { ComponentConfig, InstallComponentOptions } from "./types";
-import { componentExists, getConfigPath, getRegistryPath } from "./utils";
+import type { ComponentConfig, InstallComponentOptions } from "./types.js";
+import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
 
 /**
  * Installs a single component and its dependencies
