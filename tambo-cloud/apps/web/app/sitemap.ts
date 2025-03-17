@@ -1,61 +1,85 @@
 import { getBlogPosts } from "@/lib/blog";
 import { source } from "@/lib/source";
 import { MetadataRoute } from "next";
-import { headers } from "next/headers";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const headersList = await headers();
-  const domain = headersList.get("host") as string;
-  const protocol = "https";
-  const baseUrl = `${protocol}://${domain}`;
+  try {
+    // Use hardcoded domain for production instead of dynamic headers
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://localhost:3000";
 
-  // Get all blog posts
-  const blogPosts = await getBlogPosts();
+    // Static routes
+    const staticRoutes = [
+      {
+        url: baseUrl,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 1.0,
+      },
+      {
+        url: `${baseUrl}/blog`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      },
+      {
+        url: `${baseUrl}/docs`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      },
+    ];
 
-  // Get all docs pages
-  const docsPages = source.getPages();
+    let blogRoutes: MetadataRoute.Sitemap = [];
+    let docsRoutes: MetadataRoute.Sitemap = [];
 
-  // Static routes
-  const staticRoutes = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/docs`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    },
-  ];
+    // Try to get blog posts, but don't fail if it errors
+    try {
+      // Get all blog posts
+      const blogPosts = await getBlogPosts();
 
-  // Blog post routes
-  const blogRoutes = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.publishedAt),
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }));
+      // Blog post routes
+      blogRoutes = blogPosts.map((post) => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post.publishedAt),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      }));
+    } catch (error) {
+      console.error("Error getting blog posts for sitemap:", error);
+    }
 
-  // Docs routes
-  const docsRoutes = docsPages.map((page) => {
-    // Fumadocs pages use 'slugs' property instead of 'slug'
-    const slugPath = page.slugs ? page.slugs.join("/") : "";
-    return {
-      url: `${baseUrl}/docs${slugPath ? `/${slugPath}` : ""}`,
-      lastModified: new Date(), // Use page.data.lastModified if available
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    };
-  });
+    // Try to get docs pages, but don't fail if it errors
+    try {
+      // Get all docs pages
+      const docsPages = source.getPages();
 
-  return [...staticRoutes, ...blogRoutes, ...docsRoutes];
+      // Docs routes
+      docsRoutes = docsPages.map((page) => {
+        // Fumadocs pages use 'slugs' property instead of 'slug'
+        const slugPath = page.slugs ? page.slugs.join("/") : "";
+        return {
+          url: `${baseUrl}/docs${slugPath ? `/${slugPath}` : ""}`,
+          lastModified: new Date(), // Use page.data.lastModified if available
+          changeFrequency: "monthly" as const,
+          priority: 0.7,
+        };
+      });
+    } catch (error) {
+      console.error("Error getting docs pages for sitemap:", error);
+    }
+
+    return [...staticRoutes, ...blogRoutes, ...docsRoutes];
+  } catch (error) {
+    console.error("Error generating sitemap:", error);
+
+    // Return at least the homepage as fallback
+    return [
+      {
+        url: "https://tambo.co",
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 1.0,
+      },
+    ];
+  }
 }
