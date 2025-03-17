@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.4](https://github.com/tambo-ai/tambo/compare/react-v0.13.3...react-v0.13.4) (2025-03-17)
+
+
+### Bug Fixes
+
+* correct repo url for dependabot references/etc ([#139](https://github.com/tambo-ai/tambo/issues/139)) ([514ca3a](https://github.com/tambo-ai/tambo/commit/514ca3ae8c19cd2e777e0683d6adc6e346492a57))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump lint-staged from 15.4.3 to 15.5.0 ([#137](https://github.com/tambo-ai/tambo/issues/137)) ([46f5837](https://github.com/tambo-ai/tambo/commit/46f5837fe6cb446ac87df58e072cd4ade0527265))
+* **deps:** bump @tanstack/react-query from 5.67.3 to 5.68.0 ([#132](https://github.com/tambo-ai/tambo/issues/132)) ([3e15aa2](https://github.com/tambo-ai/tambo/commit/3e15aa255fd36bcd629a74b4f98ec18e573d269d))
+* **deps:** bump zod-to-json-schema from 3.24.3 to 3.24.4 ([#133](https://github.com/tambo-ai/tambo/issues/133)) ([755762d](https://github.com/tambo-ai/tambo/commit/755762dfd8cf75b977103a189e0f1301c865f03d))
+
 ## [0.13.3](https://github.com/tambo-ai/tambo/compare/react-v0.13.2...react-v0.13.3) (2025-03-13)
 
 
