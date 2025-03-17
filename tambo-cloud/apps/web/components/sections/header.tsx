@@ -1,12 +1,10 @@
-"use client";
-
-import { LogoutButton } from "@/components/auth/logout-button";
 import { Icons } from "@/components/icons";
-import { MobileDrawer } from "@/components/mobile-drawer";
-import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/lib/config";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
+
+// Client components
+import { HeaderActions } from "@/components/sections/header-actions";
+import { MobileNavigation } from "@/components/sections/mobile-navigation";
 
 export function Header({
   showDashboardButton = true,
@@ -25,40 +23,16 @@ export function Header({
         >
           <Icons.logo className="h-6 w-auto" aria-label={siteConfig.name} />
         </Link>
-        <div className="hidden lg:flex items-center gap-6">
-          <Link
-            href="/blog"
-            className={cn(
-              buttonVariants({ variant: "link" }),
-              "h-9 rounded-md group tracking-tight font-medium",
-            )}
-          >
-            Blog
-          </Link>
-          <Link
-            href="/docs"
-            className={cn(
-              buttonVariants({ variant: "link" }),
-              "h-9 rounded-md group tracking-tight font-medium",
-            )}
-          >
-            Documentation
-          </Link>
-          {showDashboardButton && (
-            <Link
-              href="/dashboard"
-              className={cn(
-                buttonVariants({ variant: "default" }),
-                "h-9 rounded-md group tracking-tight font-medium",
-              )}
-            >
-              Dashboard
-            </Link>
-          )}
-          {showLogoutButton && <LogoutButton />}
-        </div>
+
+        {/* Desktop navigation - client component */}
+        <HeaderActions
+          showDashboardButton={showDashboardButton}
+          showLogoutButton={showLogoutButton}
+        />
+
+        {/* Mobile navigation - client component */}
         <div className="mt-2 cursor-pointer block lg:hidden">
-          <MobileDrawer
+          <MobileNavigation
             showDashboardButton={showDashboardButton}
             showLogoutButton={showLogoutButton}
           />
