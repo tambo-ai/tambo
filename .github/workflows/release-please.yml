@@ -46,7 +46,7 @@ jobs:
         run: npm run build
 
       - name: Publish @tambo-ai/react to npm
-        if: ${{ steps.release.outputs.react-sdk-release_created }}
+        if: ${{ steps.release.outputs.react-sdk--release_created }}
         working-directory: ./react-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
