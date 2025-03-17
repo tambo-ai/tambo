@@ -1,11 +1,11 @@
-import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
 
 export function Navbar() {
   return (
     <nav className="fixed top-0 w-full z-50">
       <div className="mx-[10%] my-4">
-        <div className="bg-background/80 backdrop-blur-sm border border-border/40 rounded-full">
+        <div className="bg-background/80 backdrop-blur-sm ">
           <div className="flex items-center h-16 px-6">
             <div className="flex items-center gap-6">
               <Link href="/" className="text-3xl font-bold">
