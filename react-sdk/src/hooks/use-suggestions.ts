@@ -12,6 +12,7 @@ import {
 import { getAvailableComponents } from "../util/registry";
 import {
   UseTamboMutationResult,
+  UseTamboQueryResult,
   useTamboMutationResult,
   useTamboQuery,
 } from "./react-query-hooks";
@@ -56,6 +57,12 @@ export interface useTamboSuggestionsResultInternal {
     Error,
     AbortController
   >;
+
+  /** The full suggestions query object from React Query */
+  suggestionsResult: UseTamboQueryResult<
+    TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse | undefined,
+    Error
+  >;
 }
 
 type useTamboSuggestionsResult = CombinedMutationResult<any, Error> &
@@ -92,7 +99,7 @@ export function useTamboSuggestions(
   }, [latestMessageId]);
 
   // Use React Query to fetch suggestions when a new hydra message is received
-  const suggestionsQuery = useTamboQuery({
+  const suggestionsResult = useTamboQuery({
     // Only include latestMessageId in the queryKey if the message is from hydra
     queryKey: ["suggestions", isLatestFromTambo ? latestMessageId : null],
     queryFn: async () => {
@@ -188,7 +195,7 @@ export function useTamboSuggestions(
   // Use the query data if available, otherwise use the mutation data
   // Only return suggestions if the latest message is from hydra
   const suggestions = isLatestFromTambo
-    ? (suggestionsQuery.data ?? generateMutationState.data ?? [])
+    ? (suggestionsResult.data ?? generateMutationState.data ?? [])
     : [];
 
   return {
@@ -197,6 +204,7 @@ export function useTamboSuggestions(
     selectedSuggestionId,
     acceptResult: acceptMutationState,
     generateResult: generateMutationState,
+    suggestionsResult,
     ...combineMutationResults(acceptMutationState, generateMutationState),
   };
 }
