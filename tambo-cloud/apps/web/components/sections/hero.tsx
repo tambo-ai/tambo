@@ -4,6 +4,7 @@ import { CLI } from "@/components/cli";
 import { Section } from "@/components/section";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import React from "react";
 import { Button } from "../ui/button";
 
 const ease = [0.16, 1, 0.3, 1];
@@ -112,17 +113,50 @@ function HeroCTA() {
 
 // Replace with SVG if GIF is annoying
 function HeroIllustration() {
+  // Add a component to detect Safari and render appropriate content
+  const [isSafari, setIsSafari] = React.useState(false);
+
+  React.useEffect(() => {
+    // Simple Safari detection
+    const isSafariBrowser =
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
+      /iPad|iPhone|iPod/.test(navigator.userAgent);
+    setIsSafari(isSafariBrowser);
+  }, []);
+
   return (
     <div className="w-full h-full flex items-center justify-center">
       <div className="w-full h-full relative scale-90 md:scale-100 lg:scale-125">
-        <motion.img
-          src="/assets/landing/hero/Octo-5-transparent.gif"
-          alt="Tambo Octopus Animation"
-          className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, ease }}
-        />
+          className="w-full h-full"
+        >
+          {isSafari ? (
+            // Safari fallback - use optimized GIF
+            <img
+              src="/assets/landing/hero/Octo-5-transparent-lossy.gif"
+              alt="Tambo Octopus Animation"
+              className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
+            />
+          ) : (
+            // Chrome, Firefox, Edge - use WebM
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
+              aria-label="Tambo Octopus Animation"
+            >
+              <source
+                src="/assets/landing/hero/webp/Octo-5-animated-vp9-small.webm"
+                type="video/webm"
+              />
+            </video>
+          )}
+        </motion.div>
       </div>
     </div>
   );
