@@ -1,7 +1,7 @@
 export enum TabType {
+  Threads = "Threads",
   Examples = "Examples",
   Messages = "Messages",
-  Threads = "Threads",
   Forms = "Forms",
   Graphs = "Graphs",
 }
