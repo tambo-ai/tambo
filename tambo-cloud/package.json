@@ -43,7 +43,7 @@
     "npm": "10.9.2"
   },
   "dependencies": {
-    "posthog-js": "^1.230.1",
+    "posthog-js": "^1.231.0",
     "resend": "^4.1.2"
   },
   "version": "0.20.0"
