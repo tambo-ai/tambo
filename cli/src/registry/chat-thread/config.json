@@ -1,0 +1,12 @@
+{
+  "name": "chat-thread",
+  "dependencies": ["class-variance-authority"],
+  "devDependencies": ["@tambo-ai/react"],
+  "requires": ["message"],
+  "files": [
+    {
+      "name": "chat-thread.tsx",
+      "content": "src/registry/chat-thread/chat-thread.tsx"
+    }
+  ]
+}
