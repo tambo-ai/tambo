@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.22.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.21.0...repo-v0.22.0) (2025-03-17)
+
+
+### Features
+
+* start propagating tool_call_id through messages ([#519](https://github.com/tambo-ai/tambo-cloud/issues/519)) ([84d26e1](https://github.com/tambo-ai/tambo-cloud/commit/84d26e1717ae948e05b3dc2105abd857ed3b6082))
+
+
+### Miscellaneous Chores
+
+* bump react-sdk to 0.14 for local smoketest ([#521](https://github.com/tambo-ai/tambo-cloud/issues/521)) ([d1dd058](https://github.com/tambo-ai/tambo-cloud/commit/d1dd0588f1c75d607f810d3c10067010104f8188))
+
 ## [0.21.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.20.0...repo-v0.21.0) (2025-03-17)
 
 
