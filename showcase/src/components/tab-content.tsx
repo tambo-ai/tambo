@@ -4,7 +4,6 @@ import { ExamplesComponent } from "./tabs/examples";
 import { FormsComponent } from "./tabs/forms";
 import { GraphsComponent } from "./tabs/graphs";
 import { MessagesComponent } from "./tabs/messages";
-import { ThreadsComponent } from "./tabs/threads";
 
 interface TabContentProps {
   activeTab: TabType;
@@ -23,11 +22,25 @@ export function TabContent({ activeTab }: TabContentProps) {
             title: "Threads",
             items: [
               {
-                title: "ChatThreadFull",
+                title: "MessageThreadFull",
                 description:
-                  "A full chat thread component with message history and input field.",
-                installCommand: "npx tambo add chat-thread-full",
-                component: <ThreadsComponent />,
+                  "A full message thread component with chat history and input field.",
+                installCommand: "npx tambo add message-thread-full",
+                component: <div>coming soon!</div>,
+              },
+              {
+                title: "MessageThreadCollapsible",
+                description:
+                  "A collapsible message thread component with chat history and input field.",
+                installCommand: "npx tambo add message-thread-collapsible",
+                component: <div>coming soon!</div>,
+              },
+              {
+                title: "MessageThreadPanel",
+                description:
+                  "A sidebar-style message thread component with chat history and input field.",
+                installCommand: "npx tambo add message-thread-panel",
+                component: <div>coming soon!</div>,
               },
             ],
           }}
