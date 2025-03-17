@@ -422,20 +422,21 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           role: "hydra",
           createdAt: new Date().toISOString(),
           id: crypto.randomUUID(),
+          componentState: {},
         }
       );
     },
     [
-      toolRegistry,
-      client,
-      currentThread?.id,
-      currentThreadId,
-      switchCurrentThread,
-      componentList,
       addThreadMessage,
+      client,
+      componentList,
+      currentThread?.id,
+      deleteThreadMessage,
+      fetchThread,
+      switchCurrentThread,
+      toolRegistry,
       updateThreadMessage,
       updateThreadStatus,
-      deleteThreadMessage,
     ],
   );
 
@@ -465,6 +466,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           threadId: currentThread.id,
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
+          componentState: {},
         },
         false,
       );

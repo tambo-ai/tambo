@@ -35,7 +35,7 @@ export function useTamboComponentState<S>(
       : initialValue;
   }, [message?.componentState, keyName, initialValue]);
 
-  const initializeState = async () => {
+  const initializeState = useCallback(async () => {
     if (!message) {
       console.warn(`Cannot initialize state for missing message ${messageId}`);
       return;
@@ -60,7 +60,15 @@ export function useTamboComponentState<S>(
     } catch (err) {
       console.warn("Failed to initialize component state:", err);
     }
-  };
+  }, [
+    client.beta.threads.messages,
+    initialValue,
+    keyName,
+    message,
+    messageId,
+    threadId,
+    updateThreadMessage,
+  ]);
 
   // send initial state
   useEffect(() => {
@@ -72,7 +80,7 @@ export function useTamboComponentState<S>(
     if (shouldInitialize) {
       initializeState();
     }
-  }, [messageId]);
+  }, [messageId, initializeState, message, initialValue, keyName]);
 
   const setValue = useCallback(
     async (newValue: S) => {
