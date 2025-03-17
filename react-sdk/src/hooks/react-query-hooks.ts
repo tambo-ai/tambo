@@ -3,9 +3,10 @@ import {
   QueryKey,
   useMutation,
   UseMutationOptions,
+  UseMutationResult,
   useQuery,
   UseQueryOptions,
-  UseMutationResult,
+  UseQueryResult,
 } from "@tanstack/react-query";
 import { useTamboQueryClient } from "../providers/tambo-client-provider";
 
@@ -60,3 +61,11 @@ export function useTamboMutationResult<
 >(options: UseMutationOptions<TData, TError, TVariables, TContext>) {
   return useTamboMutation<TData, TError, TVariables, TContext>(options);
 }
+
+/**
+ * Type alias for the result of a query.
+ */
+export type UseTamboQueryResult<
+  TData = unknown,
+  TError = Error,
+> = UseQueryResult<TData, TError>;
