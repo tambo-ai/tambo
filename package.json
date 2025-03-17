@@ -25,6 +25,7 @@
   "workspaces": [
     "react-sdk",
     "showcase",
+    "cli",
     "packages/*"
   ],
   "engines": {
