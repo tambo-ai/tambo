@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/tambo-ai/tambo/compare/react-v0.14.0...react-v0.14.1) (2025-03-17)
+
+
+### Bug Fixes
+
+* include tool_call_id in response, for full round-trip ([#143](https://github.com/tambo-ai/tambo/issues/143)) ([deb96ab](https://github.com/tambo-ai/tambo/commit/deb96abdbf606e51c573b3350005884993c2fee3))
+
 ## [0.14.0](https://github.com/tambo-ai/tambo/compare/react-v0.13.4...react-v0.14.0) (2025-03-17)
 
 
