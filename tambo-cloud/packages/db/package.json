@@ -29,7 +29,7 @@
     "@tambo-ai-cloud/core": "*",
     "drizzle-orm": "^0.40.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.13.3",
+    "pg": "^8.14.0",
     "superjson": "^2.2.2"
   }
 }
