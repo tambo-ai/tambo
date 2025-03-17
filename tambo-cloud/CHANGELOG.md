@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.23.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.22.0...repo-v0.23.0) (2025-03-17)
+
+
+### Features
+
+* optimize hero animation for cross-browser compatibility ([#522](https://github.com/tambo-ai/tambo-cloud/issues/522)) ([fb7d871](https://github.com/tambo-ai/tambo-cloud/commit/fb7d87115897cf5f1a0ac5966d64a0a52bedb31a))
+
+
+### Bug Fixes
+
+* generation of robots/sitemap ([#526](https://github.com/tambo-ai/tambo-cloud/issues/526)) ([98a8da8](https://github.com/tambo-ai/tambo-cloud/commit/98a8da84ba5842b5c3d5e6c18beea3498e32c719))
+
+
+### Miscellaneous Chores
+
+* bump to 0.14.1 to get tool_call_id ([#525](https://github.com/tambo-ai/tambo-cloud/issues/525)) ([48efa7d](https://github.com/tambo-ai/tambo-cloud/commit/48efa7df86275e1eb8a74d7bea515308ea7ebdc5))
+
+
+### Code Refactoring
+
+* replace static navigation links with HeaderActions and MobileNavigation components ([#523](https://github.com/tambo-ai/tambo-cloud/issues/523)) ([8a25769](https://github.com/tambo-ai/tambo-cloud/commit/8a257698be9514d74c6e2bcc2ab035eacc8375c5))
+
 ## [0.22.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.21.0...repo-v0.22.0) (2025-03-17)
 
 
