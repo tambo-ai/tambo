@@ -34,7 +34,6 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format:lint": "npm run format && npm run lint:fix",
-    "prepare": "husky",
     "clean": "rimraf dist esm coverage"
   },
   "lint-staged": {
