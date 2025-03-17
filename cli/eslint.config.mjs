@@ -16,6 +16,7 @@ export default tseslint.config(
       // disable console.log but allow console.error and console.warn
       "no-console": ["error", { allow: ["error", "warn", "log"] }],
       "no-unused-vars": "off",
+      "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-empty-function": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
