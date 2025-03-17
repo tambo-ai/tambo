@@ -1,0 +1,12 @@
+{
+  "name": "graph",
+  "dependencies": ["class-variance-authority", "recharts"],
+  "devDependencies": ["@types/recharts"],
+  "requires": [],
+  "files": [
+    {
+      "name": "graph.tsx",
+      "content": "src/registry/graph/graph.tsx"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "form",
+  "dependencies": ["class-variance-authority"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "form.tsx",
+      "content": "src/registry/form/form.tsx"
+    }
+  ]
+}

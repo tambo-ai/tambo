@@ -1,0 +1,12 @@
+{
+  "name": "input-fields",
+  "dependencies": ["class-variance-authority"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "input-fields.tsx",
+      "content": "src/registry/input-fields/input-fields.tsx"
+    }
+  ]
+}
