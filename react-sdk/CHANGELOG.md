@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0](https://github.com/tambo-ai/tambo/compare/react-v0.13.4...react-v0.14.0) (2025-03-17)
+
+
+### Features
+
+* add suggestionResult to useTamboSuggestions interface ([#125](https://github.com/tambo-ai/tambo/issues/125)) ([172c7d2](https://github.com/tambo-ai/tambo/commit/172c7d268527faf57668daf2dcd8c681cda14f57))
+* bump typescript-sdk and fix react hooks lint ([#140](https://github.com/tambo-ai/tambo/issues/140)) ([0039327](https://github.com/tambo-ai/tambo/commit/0039327f1f7ade38c3da90fbdad17b686d600b03))
+
 ## [0.13.4](https://github.com/tambo-ai/tambo/compare/react-v0.13.3...react-v0.13.4) (2025-03-17)
 
 
