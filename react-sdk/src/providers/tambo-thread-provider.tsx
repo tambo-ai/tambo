@@ -356,14 +356,17 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             chunk.responseMessageDto,
             toolRegistry,
           );
+          const toolCallResponseString =
+            typeof toolCallResponse === "string"
+              ? toolCallResponse
+              : JSON.stringify(toolCallResponse);
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
               messageToAppend: {
-                content: [{ type: "text", text: "tool response" }],
+                content: [{ type: "text", text: toolCallResponseString }],
                 role: "tool",
                 actionType: "tool_response",
-                toolResponse: toolCallResponse,
                 component: chunk.responseMessageDto.component,
                 tool_call_id: chunk.responseMessageDto.tool_call_id,
               },
@@ -507,15 +510,18 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           advanceResponse.responseMessageDto,
           toolRegistry,
         );
+        const toolResponseString =
+          typeof toolCallResponse === "string"
+            ? toolCallResponse
+            : JSON.stringify(toolCallResponse);
         const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
           {
             ...params,
             messageToAppend: {
               ...params.messageToAppend,
-              content: [{ type: "text", text: "tool response" }],
+              content: [{ type: "text", text: toolResponseString }],
               role: "tool",
               actionType: "tool_response",
-              toolResponse: toolCallResponse,
               component: advanceResponse.responseMessageDto.component,
               tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
             },
