@@ -10,8 +10,14 @@ const TamboMessageContext = createContext<{
 export const TamboMessageProvider: React.FC<
   PropsWithChildren<{ threadId: string; messageId: string }>
 > = ({ children, threadId, messageId }) => {
+  // Use a unique key={...} to force a re-render when the messageId changes - this
+  // make sure that if the rendered component is swapped into a tree (like if
+  // you always show the last rendered component) then the state/etc is correct
   return (
-    <TamboMessageContext.Provider value={{ threadId, messageId }}>
+    <TamboMessageContext.Provider
+      value={{ threadId, messageId }}
+      key={`${threadId}-${messageId}`}
+    >
       {children}
     </TamboMessageContext.Provider>
   );
