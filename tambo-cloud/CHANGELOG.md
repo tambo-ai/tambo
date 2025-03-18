@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.24.0...repo-v0.24.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* bump react lib to get tool ids ([#529](https://github.com/tambo-ai/tambo-cloud/issues/529)) ([8188941](https://github.com/tambo-ai/tambo-cloud/commit/8188941f87af77208a1a076f4867c4607aa9d3bb))
+
 ## [0.24.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.23.0...repo-v0.24.0) (2025-03-18)
 
 
