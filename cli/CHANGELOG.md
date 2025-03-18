@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.0...tambo-v0.1.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* **cli:** remove full-send flag and add it as a command instead ([#155](https://github.com/tambo-ai/tambo/issues/155)) ([2b0797a](https://github.com/tambo-ai/tambo/commit/2b0797a2fad8e8c2d47d943f5ad35e6b09ad885f))
+
 ## [0.1.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.0.3...tambo-v0.1.0) (2025-03-18)
 
 
