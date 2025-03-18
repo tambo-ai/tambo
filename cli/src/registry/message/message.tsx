@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import sanitizeHtml from "sanitize-html";
@@ -51,12 +52,13 @@ const bubbleVariants = cva(
 export interface MessageProps {
   role: "user" | "assistant";
   content: string | { type: string; text?: string }[];
+  message: TamboThreadMessage;
   variant?: VariantProps<typeof messageVariants>["variant"];
   className?: string;
 }
 
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
-  ({ className, role, content, variant, ...props }, ref) => {
+  ({ className, role, content, variant, message, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -79,6 +81,9 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
               ))
             )}
           </p>
+          {message.renderedComponent && (
+            <div className="mt-2">{message.renderedComponent}</div>
+          )}
         </div>
       </div>
     );
