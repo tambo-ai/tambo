@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.25.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.24.1...repo-v0.25.0) (2025-03-18)
+
+
+### Features
+
+* implement subscription feature with speech recognition and contact management ([#531](https://github.com/tambo-ai/tambo-cloud/issues/531)) ([8809b54](https://github.com/tambo-ai/tambo-cloud/commit/8809b54c21359710324abad78fcdb214e444a45b))
+* update wemb location ([#534](https://github.com/tambo-ai/tambo-cloud/issues/534)) ([142326d](https://github.com/tambo-ai/tambo-cloud/commit/142326d0699e8c1436fb216890c90ca1591dc92a))
+* use tools to force component decisions ([#535](https://github.com/tambo-ai/tambo-cloud/issues/535)) ([4499177](https://github.com/tambo-ai/tambo-cloud/commit/4499177e7666967924829a3209b2fa946d58467b))
+
+
+### Miscellaneous Chores
+
+* pin down to node 20+ ([#533](https://github.com/tambo-ai/tambo-cloud/issues/533)) ([33f07bf](https://github.com/tambo-ai/tambo-cloud/commit/33f07bf6bd471d2e7ea9ea62cccae570384a4cca))
+
 ## [0.24.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.24.0...repo-v0.24.1) (2025-03-18)
 
 
