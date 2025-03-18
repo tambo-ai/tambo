@@ -32,6 +32,10 @@
     "@types/json-schema": "^7.0.15",
     "typescript": "^5.8.2"
   },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
   "volta": {
     "extends": "../../package.json"
   }

@@ -22,14 +22,18 @@
     "@types/jsonwebtoken": "^9.0.9",
     "drizzle-kit": "^0.30.5"
   },
-  "volta": {
-    "extends": "../../package.json"
-  },
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
     "drizzle-orm": "^0.40.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.14.0",
     "superjson": "^2.2.2"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
+  "volta": {
+    "extends": "../../package.json"
   }
 }

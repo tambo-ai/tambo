@@ -16,6 +16,10 @@
     "@tambo-ai-cloud/eslint-config": "*",
     "@tambo-ai-cloud/typescript-config": "*"
   },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
   "volta": {
     "extends": "../../package.json"
   }
