@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/tambo-ai/tambo/compare/react-v0.15.0...react-v0.15.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* add explicit key= to work around subtle react caching behavior ([#157](https://github.com/tambo-ai/tambo/issues/157)) ([aaa1ce0](https://github.com/tambo-ai/tambo/commit/aaa1ce0f826afc00f45a2ed27d7b82524c8262a0))
+
 ## [0.15.0](https://github.com/tambo-ai/tambo/compare/react-v0.14.1...react-v0.15.0) (2025-03-18)
 
 
