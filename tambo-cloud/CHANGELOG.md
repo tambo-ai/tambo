@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.23.0...repo-v0.24.0) (2025-03-18)
+
+
+### Features
+
+* start accepting tool responses in the content, deprecated toolResponse ([#527](https://github.com/tambo-ai/tambo-cloud/issues/527)) ([9fbeacb](https://github.com/tambo-ai/tambo-cloud/commit/9fbeacbd0eab304dc8f505006e9bfd98618d5d8b))
+
 ## [0.23.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.22.0...repo-v0.23.0) (2025-03-17)
 
 
