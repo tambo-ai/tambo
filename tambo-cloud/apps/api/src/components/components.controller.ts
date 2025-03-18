@@ -7,7 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiSecurity } from '@nestjs/swagger';
+import { ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import {
   ActionType,
   ContentPartType,
@@ -57,6 +57,7 @@ export class ComponentsController {
     return decryptProviderKey(providerKey);
   }
 
+  @ApiOperation({ deprecated: true })
   @Post('generate')
   async generateComponent(
     @Body() generateComponentDto: GenerateComponentRequest,
@@ -123,6 +124,7 @@ export class ComponentsController {
     });
   }
 
+  @ApiOperation({ deprecated: true })
   @Post('hydrate')
   async hydrateComponent(
     @Body() hydrateComponentDto: HydrateComponentRequest,

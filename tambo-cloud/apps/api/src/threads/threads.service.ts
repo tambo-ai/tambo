@@ -455,7 +455,9 @@ export class ThreadsService {
         `Hydrating ${latestMessage.component?.componentName}...`,
       );
       // Since we don't a store tool responses in the db, assumes that the tool response is the messageToAppend
-      const toolResponse = advanceRequestDto.messageToAppend.toolResponse;
+      const toolResponse = extractToolResponse(
+        advanceRequestDto.messageToAppend,
+      );
       if (!toolResponse) {
         throw new Error('No tool response found');
       }
@@ -751,4 +753,28 @@ function convertContentPartToDto(
     return [{ type: ContentPartType.Text, text: part }];
   }
   return part as ChatCompletionContentPartDto[];
+}
+
+function extractToolResponse(message: MessageRequest): any {
+  // need to prioritize toolResponse over content, because that is where the API started.
+  if (message.toolResponse) {
+    return message.toolResponse;
+  }
+  if (message.content.every((part) => part.type === ContentPartType.Text)) {
+    return tryParseJson(message.content.map((part) => part.text).join(''));
+  }
+  return null;
+}
+
+function tryParseJson(text: string): any {
+  // we are assuming that JSON is only ever an object or an array,
+  // so we don't need to check for other types of JSON structures
+  if (!text.startsWith('{') && !text.startsWith('[')) {
+    return text;
+  }
+  try {
+    return JSON.parse(text);
+  } catch (_error) {
+    return text;
+  }
 }
