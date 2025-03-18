@@ -57,9 +57,7 @@
     "open": "^10.1.0",
     "ora": "^8.1.0",
     "sanitize-html": "^2.14.0",
-    "ts-json-schema-generator": "^2.3.0",
-    "ts-morph": "^25.0.1",
-    "uuid": "^10.0.0"
+    "ts-morph": "^25.0.1"
   },
   "devDependencies": {
     "@types/chalk": "^0.4.31",
@@ -68,9 +66,6 @@
     "@types/node": "^20",
     "@types/ora": "^3.1.0",
     "@types/recharts": "^1.8.29",
-    "@types/uuid": "^10.0.0",
-    "execa": "^8.0.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
   }
 }
