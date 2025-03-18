@@ -3,6 +3,7 @@
 import { CLI } from "@/components/cli";
 import { Section } from "@/components/section";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { Button } from "../ui/button";
@@ -115,6 +116,7 @@ function HeroCTA() {
 function HeroIllustration() {
   // Add a component to detect Safari and render appropriate content
   const [isSafari, setIsSafari] = React.useState(false);
+  const [videoError, setVideoError] = React.useState(false);
 
   React.useEffect(() => {
     // Simple Safari detection
@@ -123,6 +125,13 @@ function HeroIllustration() {
       /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsSafari(isSafariBrowser);
   }, []);
+
+  const handleVideoError = () => {
+    setVideoError(true);
+  };
+
+  // Use the GIF fallback in case of Safari or video error
+  const shouldUseGif = isSafari || videoError;
 
   return (
     <div className="w-full h-full flex items-center justify-center">
@@ -133,12 +142,14 @@ function HeroIllustration() {
           transition={{ duration: 0.6, ease }}
           className="w-full h-full"
         >
-          {isSafari ? (
-            // Safari fallback - use optimized GIF
-            <img
+          {shouldUseGif ? (
+            <Image
               src="/assets/landing/hero/Octo-5-transparent-lossy.gif"
               alt="Tambo Octopus Animation"
+              unoptimized={true}
               className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
+              width={1000}
+              height={1000}
             />
           ) : (
             // Chrome, Firefox, Edge - use WebM
@@ -147,11 +158,12 @@ function HeroIllustration() {
               loop
               muted
               playsInline
+              onError={handleVideoError}
               className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
               aria-label="Tambo Octopus Animation"
             >
               <source
-                src="/assets/landing/hero/webp/Octo-5-animated-vp9-small.webm"
+                src="/assets/landing/hero/Octo-5-animated-vp9-small.webm"
                 type="video/webm"
               />
             </video>
