@@ -33,6 +33,7 @@ interface StreamingCompleteBaseParams {
   messages: ChatCompletionMessageParam[];
   stream: true;
   tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
+  tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
 }
@@ -44,6 +45,7 @@ interface CompleteBaseParams {
   messages: ChatCompletionMessageParam[];
   stream?: false | undefined;
   tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
+  tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
 }

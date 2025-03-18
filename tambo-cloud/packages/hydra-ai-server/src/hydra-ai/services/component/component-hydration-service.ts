@@ -13,7 +13,7 @@ import {
 } from "../../model/component-metadata";
 import { OpenAIResponse } from "../../model/openai-response";
 import { CompleteParams, LLMClient } from "../llm/llm-client";
-import { chatHistoryToParams } from "../llm/utils";
+import { threadMessagesToChatHistory } from "../llm/threadMessagesToChatHistory";
 import { parseAndValidate } from "../parser/response-parser-service";
 import {
   getAvailableComponentsPromptTemplate,
@@ -61,7 +61,7 @@ export async function hydrateComponent({
       toolResponse,
       availableComponents || { [chosenComponent.name]: chosenComponent },
     );
-  const chatHistory = chatHistoryToParams(messageHistory);
+  const chatHistory = threadMessagesToChatHistory(messageHistory);
   const {
     template: _availableComponentsTemplate,
     args: availableComponentsArgs,
@@ -69,18 +69,19 @@ export async function hydrateComponent({
     availableComponents || { [chosenComponent.name]: chosenComponent },
   );
 
-  const completeOptions: CompleteParams = {
-    messages: objectTemplate<ChatCompletionMessageParam[]>([
-      { role: "system", content: template },
-      { role: "chat_history", content: "{chat_history}" },
-      {
-        role: "user",
-        content: `<componentName>{chosenComponentName}</componentName>
+  const messages = objectTemplate<ChatCompletionMessageParam[]>([
+    { role: "system", content: template },
+    { role: "chat_history", content: "{chat_history}" },
+    {
+      role: "user",
+      content: `<componentName>{chosenComponentName}</componentName>
         <componentDescription>{chosenComponentDescription}</componentDescription>
         <expectedProps>{chosenComponentProps}</expectedProps>
         ${toolResponseString ? `<toolResponse>{toolResponseString}</toolResponse>` : ""}`,
-      },
-    ] as ChatCompletionMessageParam[]),
+    },
+  ] as ChatCompletionMessageParam[]);
+  const completeOptions: CompleteParams = {
+    messages: messages,
     promptTemplateName: toolResponseString
       ? "component-hydration-with-tool-response"
       : "component-hydration",
