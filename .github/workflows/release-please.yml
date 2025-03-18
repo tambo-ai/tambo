@@ -51,3 +51,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
+
+      - name: Publish tambo to npm
+        if: ${{ steps.release.outputs.cli--release_created }}
+        working-directory: ./cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
