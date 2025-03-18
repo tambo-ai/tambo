@@ -21,6 +21,7 @@ export const env = createEnv({
     API_KEY_SECRET: z.string().min(1),
     PROVIDER_KEY_SECRET: z.string().min(1),
     RESEND_API_KEY: z.string().min(1).optional(),
+    RESEND_AUDIENCE_ID: z.string().min(1).optional(),
     // for smoketesting
     WEATHER_API_KEY: z.string().min(1).optional(),
   },
@@ -61,6 +62,7 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_AUDIENCE_ID: process.env.RESEND_AUDIENCE_ID,
     WEATHER_API_KEY: process.env.WEATHER_API_KEY,
     NEXT_PUBLIC_HYDRA_API_KEY: process.env.NEXT_PUBLIC_HYDRA_API_KEY,
     NEXT_PUBLIC_HYDRA_API_URL: process.env.NEXT_PUBLIC_HYDRA_API_URL,

@@ -307,3 +307,20 @@ export const suggestionRelations = relations(suggestions, ({ one }) => ({
     references: [messages.id],
   }),
 }));
+
+// Contacts table for email collection
+export const contacts = pgTable("contacts", ({ text, timestamp, uuid }) => ({
+  id: uuid("id").primaryKey().defaultRandom(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name"),
+  email: text("email").notNull().unique(),
+  metadata: customJsonb<Record<string, unknown>>("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+}));
+
+export type DBContact = typeof contacts.$inferSelect;

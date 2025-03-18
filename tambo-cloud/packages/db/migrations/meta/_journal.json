@@ -169,6 +169,13 @@
       "when": 1741994269431,
       "tag": "0023_worthless_hemingway",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1742318884794,
+      "tag": "0024_loving_the_initiative",
+      "breakpoints": true
     }
   ]
 }
