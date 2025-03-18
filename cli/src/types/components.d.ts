@@ -19,6 +19,7 @@ declare module "@/components/ui/message" {
     role: "user" | "assistant";
     content: string | { type: string; text?: string }[];
     variant?: ComponentVariant;
+    message: TamboThreadMessage;
   }
   export const Message: React.ForwardRefExoticComponent<
     MessageProps & React.RefAttributes<HTMLDivElement>
