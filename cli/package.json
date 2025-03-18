@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
@@ -35,6 +35,9 @@
     "lint:fix": "eslint --fix",
     "format:lint": "npm run format && npm run lint:fix",
     "clean": "rimraf dist esm coverage"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
