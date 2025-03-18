@@ -7,7 +7,6 @@ import { handleInit } from "./commands/init.js";
 
 interface CLIFlags extends Record<string, any> {
   init?: Flag<"boolean", boolean>;
-  fullSend?: Flag<"boolean", boolean>;
   legacyPeerDeps?: Flag<"boolean", boolean>;
 }
 
@@ -18,15 +17,16 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("<command>")} [options]
 
   ${chalk.bold("Commands")}
-    ${chalk.yellow("init")}                Initialize tambo in a project by creating a \`hydra-config.ts\` file
+    ${chalk.yellow("init")}                Initialize tambo in a project and set up configuration
     ${chalk.yellow("add")}                 Add a new component
+    ${chalk.yellow("full-send")}           Full initialization with auth flow and component installation
 
   ${chalk.bold("Options")}
-    ${chalk.yellow("--full-send")}         Full initialization with auth flow and component installation
     ${chalk.yellow("--legacy-peer-deps")}  Install dependencies with --legacy-peer-deps flag
 
   ${chalk.bold("Examples")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("init --full-send")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName> --legacy-peer-deps")}
   `,
@@ -35,11 +35,6 @@ const cli = meow(
       init: {
         type: "boolean",
         description: "Initialize tambo in a project",
-      },
-      fullSend: {
-        type: "boolean",
-        description:
-          "Full initialization with auth flow and component installation",
       },
       legacyPeerDeps: {
         type: "boolean",
@@ -57,9 +52,9 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     return;
   }
 
-  if (cmd === "init") {
+  if (cmd === "init" || cmd === "full-send") {
     await handleInit({
-      fullSend: Boolean(flags.fullSend),
+      fullSend: cmd === "full-send",
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
     });
     return;
