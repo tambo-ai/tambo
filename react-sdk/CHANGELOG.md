@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.0](https://github.com/tambo-ai/tambo/compare/react-v0.14.1...react-v0.15.0) (2025-03-18)
+
+
+### Features
+
+* send tool response in message content ([#149](https://github.com/tambo-ai/tambo/issues/149)) ([1e90186](https://github.com/tambo-ai/tambo/commit/1e90186ac12c35765441a0c136ca8f6ceb2b165e))
+
+
+### Miscellaneous
+
+* bump to new typescript-sdk ([#147](https://github.com/tambo-ai/tambo/issues/147)) ([2c4f0bc](https://github.com/tambo-ai/tambo/commit/2c4f0bc38ca62dcac6fb4b3de1f13eff199fe2ac))
+* remove some unused dependencies ([#152](https://github.com/tambo-ai/tambo/issues/152)) ([02f3e0d](https://github.com/tambo-ai/tambo/commit/02f3e0d0d7708ddcf72216a90167938ed1aab78a))
+
 ## [0.14.1](https://github.com/tambo-ai/tambo/compare/react-v0.14.0...react-v0.14.1) (2025-03-17)
 
 
