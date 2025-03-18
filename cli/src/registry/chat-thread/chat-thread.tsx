@@ -77,6 +77,7 @@ const ChatThread = React.forwardRef<HTMLDivElement, ChatThreadProps>(
                       : "Empty message"
                 }
                 variant={variant}
+                message={message}
               />
             </div>
           </div>
