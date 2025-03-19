@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/tambo-ai/tambo/compare/react-v0.16.0...react-v0.16.1) (2025-03-19)
+
+
+### Bug Fixes
+
+* only initialize component state value once ([#165](https://github.com/tambo-ai/tambo/issues/165)) ([316afcf](https://github.com/tambo-ai/tambo/commit/316afcf881435e694017ea06e00afd8f6dad5733))
+
 ## [0.16.0](https://github.com/tambo-ai/tambo/compare/react-v0.15.1...react-v0.16.0) (2025-03-19)
 
 
