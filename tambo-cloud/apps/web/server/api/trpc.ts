@@ -68,7 +68,6 @@ export const createTRPCContext = async (opts: {
     console.log("No valid access token found");
   }
 
-  console.log("session access token: ", decoded ?? {});
   return {
     db,
     session,

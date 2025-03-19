@@ -7,7 +7,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { getDb, HydraDb, HydraTransaction, schema } from '@tambo-ai-cloud/db';
+import {
+  getDb,
+  HydraDatabase,
+  HydraTransaction,
+  schema,
+} from '@tambo-ai-cloud/db';
 import { sql } from 'drizzle-orm';
 import { NextFunction, Response } from 'express';
 import { IncomingMessage } from 'http';
@@ -32,12 +37,14 @@ export const DatabaseProvider: Provider = {
   useFactory: () => getDb(process.env.DATABASE_URL!),
 };
 
+let requestSerialNumber = 0;
 export class TransactionMiddleware implements NestMiddleware {
   constructor(
     @Inject(DATABASE)
-    private readonly db: HydraDb,
+    private readonly db: HydraDatabase,
   ) {}
   async use(req: HydraRequest, res: Response, next: NextFunction) {
+    requestSerialNumber++;
     const apiKeyHeader = req.headers['x-api-key'];
     const apiKeyHeaderString = Array.isArray(apiKeyHeader)
       ? apiKeyHeader[0]
@@ -49,7 +56,14 @@ export class TransactionMiddleware implements NestMiddleware {
     if (!projectId) {
       throw new UnauthorizedException('Invalid API key');
     }
+
+    console.log(
+      `[${requestSerialNumber}] starting transaction ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
+    );
     const p = this.db.transaction(async (tx) => {
+      console.log(
+        `[${requestSerialNumber}] got transaction ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
+      );
       req.tx = tx; // Attach transaction to request
       await tx.execute(sql`
             -- auth.jwt()
@@ -65,6 +79,9 @@ export class TransactionMiddleware implements NestMiddleware {
 
       // wire up the finish event to resolve the promise
       res.on('finish', async () => {
+        console.log(
+          `[${requestSerialNumber}] finishing ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
+        );
         try {
           await tx.execute(sql`
                 select set_config('request.apikey.project_id', NULL, TRUE);
@@ -72,10 +89,16 @@ export class TransactionMiddleware implements NestMiddleware {
                 `);
           delete (req as HydraRequest).tx;
           resolveFinish(true);
+          console.log(
+            `[${requestSerialNumber}] finished ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
+          );
         } catch (error) {
           rejectFinish(error);
         }
       });
+      console.log(
+        `[${requestSerialNumber}] calling next ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
+      );
 
       // it is now safe to call next(), because the finish event will resolve the promise
       next();
