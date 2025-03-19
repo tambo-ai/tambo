@@ -1,3 +1,4 @@
+export type { TamboComponent, TamboTool } from "../model/component-metadata";
 export { TamboClientProvider, useTamboClient } from "./tambo-client-provider";
 export {
   TamboComponentProvider,
@@ -7,7 +8,6 @@ export { TamboContext, TamboProvider, useTambo } from "./tambo-provider";
 export {
   TamboRegistryProvider,
   useTamboRegistry,
-  type TamboComponent as RegisterComponentOptions,
   type TamboRegistryContext,
 } from "./tambo-registry-provider";
 export {
