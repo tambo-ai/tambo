@@ -353,18 +353,16 @@ export default config`;
       (node): node is postcss.AtRule =>
         node.type === "atrule" &&
         node.name === "layer" &&
-        node.params === "base" &&
-        node.toString().includes("hsl(var(--"),
+        node.params === "base",
     );
 
-    // If we don't find our specific base layer, create a new one
+    // If no base layer exists, create a new one
     if (!baseLayer) {
       baseLayer = postcss.atRule({
         name: "layer",
         params: "base",
         raws: { before: "\n\n", after: "\n" },
       });
-      // Add it at the end to ensure it takes precedence
       existingRoot.append(baseLayer);
     }
 
@@ -436,76 +434,118 @@ export default config`;
         utilitiesLayer?.append(rule);
       };
 
+      const utilityClasses = [
+        {
+          selector: ".bg-background",
+          prop: "background-color",
+          value: "hsl(var(--background))",
+        },
+        {
+          selector: ".text-foreground",
+          prop: "color",
+          value: "hsl(var(--foreground))",
+        },
+        {
+          selector: ".bg-card",
+          prop: "background-color",
+          value: "hsl(var(--card))",
+        },
+        {
+          selector: ".text-card-foreground",
+          prop: "color",
+          value: "hsl(var(--card-foreground))",
+        },
+        {
+          selector: ".bg-popover",
+          prop: "background-color",
+          value: "hsl(var(--popover))",
+        },
+        {
+          selector: ".text-popover-foreground",
+          prop: "color",
+          value: "hsl(var(--popover-foreground))",
+        },
+        {
+          selector: ".bg-primary",
+          prop: "background-color",
+          value: "hsl(var(--primary))",
+        },
+        {
+          selector: ".text-primary-foreground",
+          prop: "color",
+          value: "hsl(var(--primary-foreground))",
+        },
+        {
+          selector: ".bg-secondary",
+          prop: "background-color",
+          value: "hsl(var(--secondary))",
+        },
+        {
+          selector: ".text-secondary-foreground",
+          prop: "color",
+          value: "hsl(var(--secondary-foreground))",
+        },
+        {
+          selector: ".bg-muted",
+          prop: "background-color",
+          value: "hsl(var(--muted))",
+        },
+        {
+          selector: ".text-muted-foreground",
+          prop: "color",
+          value: "hsl(var(--muted-foreground))",
+        },
+        {
+          selector: ".bg-accent",
+          prop: "background-color",
+          value: "hsl(var(--accent))",
+        },
+        {
+          selector: ".text-accent-foreground",
+          prop: "color",
+          value: "hsl(var(--accent-foreground))",
+        },
+        {
+          selector: ".bg-destructive",
+          prop: "background-color",
+          value: "hsl(var(--destructive))",
+        },
+        {
+          selector: ".text-destructive-foreground",
+          prop: "color",
+          value: "hsl(var(--destructive-foreground))",
+        },
+        {
+          selector: ".border-border",
+          prop: "border-color",
+          value: "hsl(var(--border))",
+        },
+        {
+          selector: ".bg-input",
+          prop: "background-color",
+          value: "hsl(var(--input))",
+        },
+        {
+          selector: ".ring-ring",
+          prop: "--tw-ring-color",
+          value: "hsl(var(--ring))",
+        },
+        {
+          selector: ".hover\\:bg-primary\\/90:hover",
+          prop: "background-color",
+          value: "hsl(var(--primary) / 0.9)",
+        },
+        {
+          selector: ".hover\\:bg-muted\\/90:hover",
+          prop: "background-color",
+          value: "hsl(var(--muted) / 0.9)",
+        },
+      ];
+
       // Add all utility classes
-      addUtilityClass(
-        ".bg-background",
-        "background-color",
-        "hsl(var(--background))",
-      );
-      addUtilityClass(".text-foreground", "color", "hsl(var(--foreground))");
-      addUtilityClass(".bg-card", "background-color", "hsl(var(--card))");
-      addUtilityClass(
-        ".text-card-foreground",
-        "color",
-        "hsl(var(--card-foreground))",
-      );
-      addUtilityClass(".bg-popover", "background-color", "hsl(var(--popover))");
-      addUtilityClass(
-        ".text-popover-foreground",
-        "color",
-        "hsl(var(--popover-foreground))",
-      );
-      addUtilityClass(".bg-primary", "background-color", "hsl(var(--primary))");
-      addUtilityClass(
-        ".text-primary-foreground",
-        "color",
-        "hsl(var(--primary-foreground))",
-      );
-      addUtilityClass(
-        ".bg-secondary",
-        "background-color",
-        "hsl(var(--secondary))",
-      );
-      addUtilityClass(
-        ".text-secondary-foreground",
-        "color",
-        "hsl(var(--secondary-foreground))",
-      );
-      addUtilityClass(".bg-muted", "background-color", "hsl(var(--muted))");
-      addUtilityClass(
-        ".text-muted-foreground",
-        "color",
-        "hsl(var(--muted-foreground))",
-      );
-      addUtilityClass(".bg-accent", "background-color", "hsl(var(--accent))");
-      addUtilityClass(
-        ".text-accent-foreground",
-        "color",
-        "hsl(var(--accent-foreground))",
-      );
-      addUtilityClass(
-        ".bg-destructive",
-        "background-color",
-        "hsl(var(--destructive))",
-      );
-      addUtilityClass(
-        ".text-destructive-foreground",
-        "color",
-        "hsl(var(--destructive-foreground))",
-      );
-      addUtilityClass(".border-border", "border-color", "hsl(var(--border))");
-      addUtilityClass(".bg-input", "background-color", "hsl(var(--input))");
-      addUtilityClass(".ring-ring", "--tw-ring-color", "hsl(var(--ring))");
-      addUtilityClass(
-        "hover\\:bg-primary\\/90:hover",
-        "background-color",
-        "hsl(var(--primary) / 0.9)",
-      );
-      addUtilityClass(
-        "hover\\:bg-muted\\/90:hover",
-        "background-color",
-        "hsl(var(--muted) / 0.9)",
-      );
+      utilityClasses.forEach(({ selector, prop, value }) => {
+        addUtilityClass(selector, prop, value);
+      });
     }
 
     // Write updated CSS
