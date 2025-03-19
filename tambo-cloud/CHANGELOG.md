@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.2...repo-v0.25.3) (2025-03-19)
+
+
+### Bug Fixes
+
+* make sure db is retrieved per request ([#546](https://github.com/tambo-ai/tambo-cloud/issues/546)) ([344500e](https://github.com/tambo-ai/tambo-cloud/commit/344500ead10d321252e486117c4ec518f2fdd35b))
+* switch to postgres driver for individual connections, store current request serial # for logging ([#543](https://github.com/tambo-ai/tambo-cloud/issues/543)) ([abccc2c](https://github.com/tambo-ai/tambo-cloud/commit/abccc2ce437678455006b5a5823718171024bc57))
+
 ## [0.25.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.1...repo-v0.25.2) (2025-03-19)
 
 
