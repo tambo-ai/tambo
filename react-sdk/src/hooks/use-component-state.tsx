@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTamboClient, useTamboThread } from "../providers";
 import {
   useTamboCurrentMessage,
@@ -27,13 +27,14 @@ export function useTamboComponentState<S>(
   const client = useTamboClient();
 
   const message = useTamboCurrentMessage();
+  const [cachedInitialValue] = useState(() => initialValue);
 
   const value = useMemo(() => {
-    if (!message?.componentState) return initialValue;
+    if (!message?.componentState) return cachedInitialValue;
     return keyName in message.componentState
       ? (message.componentState[keyName] as S)
-      : initialValue;
-  }, [message?.componentState, keyName, initialValue]);
+      : cachedInitialValue;
+  }, [cachedInitialValue, keyName, message?.componentState]);
 
   const initializeState = useCallback(async () => {
     if (!message) {
@@ -48,39 +49,41 @@ export function useTamboComponentState<S>(
             ...message,
             componentState: {
               ...message.componentState,
-              [keyName]: initialValue,
+              [keyName]: cachedInitialValue,
             },
           },
           false,
         ),
         client.beta.threads.messages.updateComponentState(threadId, messageId, {
-          state: { [keyName]: initialValue },
+          state: { [keyName]: cachedInitialValue },
         }),
       ]);
     } catch (err) {
       console.warn("Failed to initialize component state:", err);
     }
   }, [
+    cachedInitialValue,
     client.beta.threads.messages,
-    initialValue,
     keyName,
     message,
     messageId,
     threadId,
     updateThreadMessage,
   ]);
+  const [haveInitialized, setHaveInitialized] = useState(false);
+  const shouldInitialize =
+    !haveInitialized &&
+    message &&
+    cachedInitialValue !== undefined &&
+    (!message.componentState || !(keyName in message.componentState));
 
   // send initial state
   useEffect(() => {
-    const shouldInitialize =
-      message &&
-      initialValue !== undefined &&
-      (!message.componentState || !(keyName in message.componentState));
-
     if (shouldInitialize) {
       initializeState();
+      setHaveInitialized(true);
     }
-  }, [messageId, initializeState, message, initialValue, keyName]);
+  }, [initializeState, shouldInitialize]);
 
   const setValue = useCallback(
     async (newValue: S) => {
