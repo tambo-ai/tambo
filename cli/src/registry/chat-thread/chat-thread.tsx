@@ -44,44 +44,46 @@ const ChatThread = React.forwardRef<HTMLDivElement, ChatThreadProps>(
         className={cn(chatThreadVariants({ variant }), className)}
         {...props}
       >
-        {messages.map((message) => (
-          <div
-            key={
-              message.id ??
-              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
-            }
-            className={cn(
-              "animate-in fade-in-0 slide-in-from-bottom-2",
-              "duration-200 ease-in-out",
-            )}
-            style={{ animationDelay: `${messages.indexOf(message) * 40}ms` }}
-          >
+        {messages.map((message) => {
+          return (
             <div
+              key={
+                message.id ??
+                `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
+              }
               className={cn(
-                "flex flex-col gap-1.5",
-                message.role === "user" ? "ml-12" : "mr-12",
-                "max-w-[85%]",
+                "animate-in fade-in-0 slide-in-from-bottom-2",
+                "duration-200 ease-in-out",
               )}
+              style={{ animationDelay: `${messages.indexOf(message) * 40}ms` }}
             >
-              <Message
-                role={
-                  message.role === "user" || message.role === "assistant"
-                    ? message.role
-                    : "user"
-                }
-                content={
-                  Array.isArray(message.content)
-                    ? (message.content[0]?.text ?? "Empty message")
-                    : typeof message.content === "string"
-                      ? message.content
-                      : "Empty message"
-                }
-                variant={variant}
-                message={message}
-              />
+              <div
+                className={cn(
+                  "flex flex-col gap-1.5",
+                  message.role === "user" ? "ml-auto mr-0" : "ml-0 mr-auto",
+                  "max-w-[85%]",
+                )}
+              >
+                <Message
+                  role={
+                    message.role === "hydra" || message.role === "assistant"
+                      ? "assistant"
+                      : "user"
+                  }
+                  content={
+                    Array.isArray(message.content)
+                      ? (message.content[0]?.text ?? "Empty message")
+                      : typeof message.content === "string"
+                        ? message.content
+                        : "Empty message"
+                  }
+                  variant={variant}
+                  message={message}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   },

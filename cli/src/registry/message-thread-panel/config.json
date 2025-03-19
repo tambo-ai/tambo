@@ -1,6 +1,6 @@
 {
   "name": "message-thread-panel",
-  "dependencies": ["class-variance-authority", "@tambo-ai/react"],
+  "dependencies": ["@tambo-ai/react"],
   "devDependencies": [],
   "requires": ["chat-thread", "chat-input"],
   "files": [

@@ -33,7 +33,11 @@ declare module "@radix-ui/react-dialog" {
     ref?: React.Ref<HTMLDivElement>;
     [key: string]: unknown;
   }>;
-  export { Content, Overlay, Portal, Root };
+  const Title: React.FC<{
+    children: React.ReactNode;
+    className?: string;
+  }>;
+  export { Content, Overlay, Portal, Root, Title };
 }
 
 declare module "@radix-ui/react-collapsible" {

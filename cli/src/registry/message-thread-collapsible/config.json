@@ -1,10 +1,6 @@
 {
   "name": "message-thread-collapsible",
-  "dependencies": [
-    "class-variance-authority",
-    "@tambo-ai/react",
-    "@radix-ui/react-collapsible"
-  ],
+  "dependencies": ["@tambo-ai/react", "@radix-ui/react-collapsible"],
   "devDependencies": [],
   "requires": ["chat-thread", "chat-input"],
   "files": [
