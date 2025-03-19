@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.3...repo-v0.25.4) (2025-03-19)
+
+
+### Miscellaneous Chores
+
+* bump to 0.16.1 to get better component-state behavior ([#547](https://github.com/tambo-ai/tambo-cloud/issues/547)) ([9e0b088](https://github.com/tambo-ai/tambo-cloud/commit/9e0b088e6a7954999d02ebef89333c2aac3ebc60))
+
 ## [0.25.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.2...repo-v0.25.3) (2025-03-19)
 
 
