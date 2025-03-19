@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.1...tambo-v0.1.2) (2025-03-19)
+
+
+### Bug Fixes
+
+* **cli:** improve overall component ui ([#163](https://github.com/tambo-ai/tambo/issues/163)) ([bad4d07](https://github.com/tambo-ai/tambo/commit/bad4d07bb25458dd0e81382f6476afb307e57928))
+
+
+### Miscellaneous
+
+* pin stuff down to node &gt;=20 ([#159](https://github.com/tambo-ai/tambo/issues/159)) ([169797b](https://github.com/tambo-ai/tambo/commit/169797bc2800b1e42903d358f8023f391898b33f))
+* show renderedComponent in Message component ([#160](https://github.com/tambo-ai/tambo/issues/160)) ([7a6a44a](https://github.com/tambo-ai/tambo/commit/7a6a44a7368d898e9fc1f4540f0ae11e7110b672))
+
 ## [0.1.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.0...tambo-v0.1.1) (2025-03-18)
 
 
