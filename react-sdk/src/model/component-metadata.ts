@@ -41,3 +41,38 @@ export interface TamboTool<
 }
 
 export type TamboToolAssociations = Record<string, string[]>;
+/**
+ * A component that can be registered with the TamboRegistryProvider.
+ */
+
+export interface TamboComponent {
+  /** The name of the component */
+  name: string;
+  /** The description of the component */
+  description: string;
+  /** The React component to render.
+   *
+   * Make sure to pass the Component itself, not an instance of the component. For example,
+   * if you have a component like this:
+   *
+   * ```tsx
+   * const MyComponent = () => {
+   *   return <div>My Component</div>;
+   * };
+   * ```
+   *
+   * You should pass the `Component`:
+   *
+   * ```tsx
+   * const components = [MyComponent];
+   * <TamboRegistryProvider components={components} />
+   * ```
+   */
+  component: ComponentType<any>;
+  /** The props definition of the component */
+  propsDefinition?: any;
+  /** The loading component to render while the component is loading */
+  loadingComponent?: ComponentType<any>;
+  /** The tools that are associated with the component */
+  associatedTools?: TamboTool[];
+}

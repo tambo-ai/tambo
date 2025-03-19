@@ -1,28 +1,23 @@
 "use client";
 import React, {
-  ComponentType,
   createContext,
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
-import { ComponentRegistry, TamboTool } from "../model/component-metadata";
-
-export interface RegisterComponentOptions {
-  name: string;
-  description: string;
-  component: ComponentType<any>;
-  propsDefinition?: any;
-  loadingComponent?: ComponentType<any>;
-  associatedTools?: TamboTool[];
-}
+import {
+  ComponentRegistry,
+  TamboComponent,
+  TamboTool,
+} from "../model/component-metadata";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
   toolRegistry: Record<string, TamboTool>;
   componentToolAssociations: Record<string, string[]>;
-  registerComponent: (options: RegisterComponentOptions) => void;
+  registerComponent: (options: TamboComponent) => void;
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
@@ -38,9 +33,14 @@ const TamboRegistryContext = createContext<TamboRegistryContext>({
   addToolAssociation: () => {},
 });
 
-export const TamboRegistryProvider: React.FC<PropsWithChildren> = ({
-  children,
-}) => {
+export interface TamboRegistryProviderProps {
+  /** The default components to register */
+  components?: TamboComponent[];
+}
+
+export const TamboRegistryProvider: React.FC<
+  PropsWithChildren<TamboRegistryProviderProps>
+> = ({ children, components: userComponents }) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
   const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
     {},
@@ -49,21 +49,24 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren> = ({
     Record<string, string[]>
   >({});
 
-  const registerTool = useCallback((tool: TamboTool) => {
-    setToolRegistry((prev) => {
-      if (prev[tool.name]) {
-        console.warn(`Overwriting tool ${tool.name}`);
-      }
-      return {
-        ...prev,
-        [tool.name]: tool,
-      };
-    });
-  }, []);
+  const registerTool = useCallback(
+    (tool: TamboTool, warnOnOverwrite = true) => {
+      setToolRegistry((prev) => {
+        if (prev[tool.name] && warnOnOverwrite) {
+          console.warn(`Overwriting tool ${tool.name}`);
+        }
+        return {
+          ...prev,
+          [tool.name]: tool,
+        };
+      });
+    },
+    [],
+  );
 
   const registerTools = useCallback(
-    (tools: TamboTool[]) => {
-      tools.forEach((tool) => registerTool(tool));
+    (tools: TamboTool[], warnOnOverwrite = true) => {
+      tools.forEach((tool) => registerTool(tool, warnOnOverwrite));
     },
     [registerTool],
   );
@@ -82,7 +85,7 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren> = ({
   );
 
   const registerComponent = useCallback(
-    (options: RegisterComponentOptions) => {
+    (options: TamboComponent, warnOnOverwrite = true) => {
       const {
         name,
         description,
@@ -93,7 +96,7 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren> = ({
       } = options;
 
       setComponentList((prev) => {
-        if (prev[name]) {
+        if (prev[name] && warnOnOverwrite) {
           console.warn(`overwriting component ${name}`);
         }
         return {
@@ -118,6 +121,13 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren> = ({
     },
     [registerTools],
   );
+  useEffect(() => {
+    if (userComponents) {
+      userComponents.forEach((component) => {
+        registerComponent(component, false);
+      });
+    }
+  }, [registerComponent, userComponents]);
 
   const value = {
     componentList,
