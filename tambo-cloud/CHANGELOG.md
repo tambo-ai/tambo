@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.1...repo-v0.25.2) (2025-03-19)
+
+
+### Bug Fixes
+
+* bump pooling to 30, verbose logging during transactions ([#540](https://github.com/tambo-ai/tambo-cloud/issues/540)) ([0ac2824](https://github.com/tambo-ai/tambo-cloud/commit/0ac282437c89cee58acc65b96a5d173e8ea93538))
+* use global pool, local drizzle instance ([#542](https://github.com/tambo-ai/tambo-cloud/issues/542)) ([079de91](https://github.com/tambo-ai/tambo-cloud/commit/079de915a1e38d3e52207a2b090f412a2cc7ae8f))
+
 ## [0.25.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.0...repo-v0.25.1) (2025-03-19)
 
 
