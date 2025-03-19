@@ -37,7 +37,10 @@ These are the available components:
 </availableComponents>
 `,
     {
-      availableComponents,
+      availableComponents:
+        availableComponents.length > 0
+          ? availableComponents
+          : "No components available, do not try and generate a component.",
     },
   );
 }
@@ -165,7 +168,9 @@ export function getAvailableComponentsPromptTemplate(
   availableComponents: AvailableComponents,
 ) {
   const availableComponentsStr =
-    generateAvailableComponentsList(availableComponents);
+    Object.keys(availableComponents).length > 0
+      ? generateAvailableComponentsList(availableComponents)
+      : "No components available, do not try and generate a component.";
   return createPromptTemplate(
     `Available components and their descriptions:
 {availableComponents}`,
@@ -366,6 +371,7 @@ export const decideComponentTool: OpenAI.Chat.Completions.ChatCompletionTool = {
         },
       },
     } satisfies JSONSchema7,
-    description: "Decide which component to use",
+    description:
+      "Decide which component to use, if any, based on the conversation history and available components",
   },
 };
