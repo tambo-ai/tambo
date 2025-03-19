@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0](https://github.com/tambo-ai/tambo/compare/react-v0.15.1...react-v0.16.0) (2025-03-19)
+
+
+### Features
+
+* add components= prop to pass static component list ([#164](https://github.com/tambo-ai/tambo/issues/164)) ([a78f6da](https://github.com/tambo-ai/tambo/commit/a78f6dae3ac6ca51ca5768c6ea0abe511ba999c0))
+
+
+### Miscellaneous
+
+* pin stuff down to node &gt;=20 ([#159](https://github.com/tambo-ai/tambo/issues/159)) ([169797b](https://github.com/tambo-ai/tambo/commit/169797bc2800b1e42903d358f8023f391898b33f))
+
 ## [0.15.1](https://github.com/tambo-ai/tambo/compare/react-v0.15.0...react-v0.15.1) (2025-03-18)
 
 
