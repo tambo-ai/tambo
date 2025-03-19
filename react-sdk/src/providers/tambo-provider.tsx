@@ -12,7 +12,10 @@ import {
   TamboComponentProvider,
   useTamboComponent,
 } from "./tambo-component-provider";
-import { TamboRegistryProvider } from "./tambo-registry-provider";
+import {
+  TamboRegistryProvider,
+  TamboRegistryProviderProps,
+} from "./tambo-registry-provider";
 import {
   TamboThreadContextProps,
   TamboThreadProvider,
@@ -22,11 +25,15 @@ import {
 /** TamboProvider gives full access to the TamboAI client and component registry */
 
 export const TamboProvider: React.FC<
-  PropsWithChildren<TamboClientProviderProps>
-> = ({ children, tamboUrl, apiKey }) => {
+  PropsWithChildren<TamboClientProviderProps & TamboRegistryProviderProps>
+> = ({ children, tamboUrl, apiKey, components, environment }) => {
   return (
-    <TamboClientProvider tamboUrl={tamboUrl} apiKey={apiKey}>
-      <TamboRegistryProvider>
+    <TamboClientProvider
+      tamboUrl={tamboUrl}
+      apiKey={apiKey}
+      environment={environment}
+    >
+      <TamboRegistryProvider components={components}>
         <TamboThreadProvider>
           <TamboComponentProvider>
             <TamboCompositeProvider>{children}</TamboCompositeProvider>

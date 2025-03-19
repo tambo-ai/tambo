@@ -7,7 +7,7 @@ export { TamboContext, TamboProvider, useTambo } from "./tambo-provider";
 export {
   TamboRegistryProvider,
   useTamboRegistry,
-  type RegisterComponentOptions,
+  type TamboComponent as RegisterComponentOptions,
   type TamboRegistryContext,
 } from "./tambo-registry-provider";
 export {
