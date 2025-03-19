@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.25.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.0...repo-v0.25.1) (2025-03-19)
+
+
+### Bug Fixes
+
+* show a 'no components' prompt if none are available ([#538](https://github.com/tambo-ai/tambo-cloud/issues/538)) ([284a9ea](https://github.com/tambo-ai/tambo-cloud/commit/284a9ea351cb24319b22e876eac5eb8163b26862))
+* use node-postgres connection pool ([#539](https://github.com/tambo-ai/tambo-cloud/issues/539)) ([bb5243d](https://github.com/tambo-ai/tambo-cloud/commit/bb5243df7f41f59b891b4fb2ea469e2a48749122))
+
+
+### Miscellaneous Chores
+
+* Update docs with info from VNext ([#536](https://github.com/tambo-ai/tambo-cloud/issues/536)) ([8e35aee](https://github.com/tambo-ai/tambo-cloud/commit/8e35aeedb2aca4a7f50e9c33134514283c97c9ca))
+
 ## [0.25.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.24.1...repo-v0.25.0) (2025-03-18)
 
 
