@@ -4,10 +4,11 @@ import {
   NodePgQueryResultHKT,
 } from "drizzle-orm/node-postgres";
 import { PgTransaction } from "drizzle-orm/pg-core";
+import { type Pool } from "pg";
 import * as schema from "./schema";
 
 export type HydraDatabase = NodePgDatabase<typeof schema> & {
-  $client: string;
+  $client: Pool;
 };
 
 export type HydraTransaction = PgTransaction<

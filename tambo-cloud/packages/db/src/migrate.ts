@@ -17,11 +17,9 @@
  *
  * add DRY_RUN=1 to the environment to not actually commit the transaction
  */
-import { and, eq, ExtractTablesWithRelations, inArray } from "drizzle-orm";
-import { PgTransaction } from "drizzle-orm/pg-core";
-import { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
+import { and, eq, inArray } from "drizzle-orm";
 import fs from "fs";
-import { closeDb, getDb, schema } from "./index";
+import { closeDb, getDb, HydraTransaction, schema } from "./index";
 type FirebaseTimestamp = {
   __datatype__: "timestamp";
   value: {
@@ -212,14 +210,7 @@ async function run() {
 
 await run();
 
-async function findUser(
-  tx: PgTransaction<
-    PostgresJsQueryResultHKT,
-    typeof schema,
-    ExtractTablesWithRelations<typeof schema>
-  >,
-  projectOwner: FirebaseUser,
-) {
+async function findUser(tx: HydraTransaction, projectOwner: FirebaseUser) {
   const [user] = await tx
     .select()
     .from(schema.authUsers)

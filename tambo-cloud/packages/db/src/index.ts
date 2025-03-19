@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as operations from "./operations";
 import * as schema from "./schema";
 import type { HydraDatabase } from "./types";
@@ -11,7 +12,8 @@ function getDb(databaseUrl: string): HydraDatabase {
   }
   // quick hack to get the db connection
 
-  const db = drizzle(databaseUrl, { schema });
+  const pool = new Pool({ connectionString: databaseUrl });
+  const db = drizzle(pool, { schema });
 
   globalDb = db;
   return db;
@@ -19,7 +21,7 @@ function getDb(databaseUrl: string): HydraDatabase {
 
 async function closeDb() {
   if (globalDb) {
-    // await globalDb.$client.end();
+    await globalDb.$client.end();
     globalDb = null;
   }
 }
