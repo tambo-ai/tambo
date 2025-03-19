@@ -1,0 +1,89 @@
+---
+title: Streaming
+---
+
+Use streaming to show response messages and components from tambo in real-time as they are being generated, to create more responsive and engaging user experiences.
+
+```tsx
+const { sendThreadMessage } = useTambo();
+await sendThreadMessage(inputValue, { streamResponse: true });
+
+//or
+
+const { submit } = useTamboThreadInput();
+await submit({ streamResponse: true });
+```
+
+Tambo will handle updating the thread's final message as data streams in, rather than waiting for the entire response to complete.
+
+Render your thread messages like normal:
+
+```tsx
+const { thread } = useTambo();
+
+...
+
+<div>
+  {thread.messages.map((message, index) => (
+    <div
+      key={index}
+    >
+      <div>{message.message}</div>
+      <div>{message.renderedComponent}</div>
+    </div>
+  ))}
+</div>;
+```
+
+## Preparing Components for Streaming
+
+When a request is made with `streamResponse: true`, tambo will update the response message's `renderedComponent` field as soon as the component is chosen, even before all the props have been generated.
+
+For example, if your component expects a props object that looks like `{name: string, age: number}`, tambo will render the component with `{name: 'generatedname'}` before the age props value is generated.
+
+This means that your registered components will need to have all props marked as 'optional', and be prepared to receive `undefined` values while streaming is in progress.
+
+One way to handle this is to set default values to show until the values are generated:
+
+```tsx
+const MyComponent = ({ name = "Loading..." }: { name?: string }) => {
+  return <div>{name}</div>;
+};
+```
+
+For props where defaults don't make sense, you can allow them to be optional and render a loading state within the component:
+
+```tsx
+const MyComponent = ({ age }: { age?: number }) => {
+  return <div>{age ?? "Loading..."}</div>;
+};
+```
+
+## Show "Loading" while streaming
+
+Without streaming, you might show a 'loading' indicator while the response is being generated like this:
+
+```tsx
+
+const handleSendMessage = async (inputValue: string) => {
+  setIsLoading(true);
+  await sendThreadMessage(inputValue, { streamResponse: true });
+  setIsLoading(false);
+};
+
+...
+
+<div>
+  {isLoading && <div>Loading AI response...</div>}
+</div>
+```
+
+With streaming, the `sendThreadMessage` promise resolves right away, even while streaming is still in progress. If you want to show a 'loading' indicator while streaming is in progress, you can do so by using tambo's `isIdle` state value:
+
+```tsx
+const { isIdle } = useTambo();
+
+...
+
+<div>{!isIdle && "Loading AI response..."}</div>
+```

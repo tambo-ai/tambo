@@ -1,12 +1,17 @@
 {
+  "title": "Documentation",
   "pages": [
+    "---Introduction---",
     "index",
-    "getting-started",
-    "concepts",
-    "api-reference",
-    "slack",
-    "react",
-    "troubleshooting",
-    "future"
+    "---Getting Started---",
+    "...getting-started",
+    "---Core Concepts---",
+    "...concepts",
+    "---Best Practices---",
+    "...best-practices",
+    "---API Reference---",
+    "...api-reference",
+    "---Examples and Templates---",
+    "...examples-and-templates"
   ]
 }

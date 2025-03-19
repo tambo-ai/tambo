@@ -1,4 +1,4 @@
 {
   "title": "API Reference",
-  "pages": ["register-component", "generate-component"]
+  "pages": ["react-hooks", "cli"]
 }

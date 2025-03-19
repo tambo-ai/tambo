@@ -1,4 +1,12 @@
 {
-  "title": "Concepts",
-  "pages": ["component-data-props"]
+  "title": "Core Concepts",
+  "pages": [
+    "message-threads",
+    "tools",
+    "streaming",
+    "suggestions",
+    "component-state",
+    "generation-stage",
+    "component-data-props"
+  ]
 }

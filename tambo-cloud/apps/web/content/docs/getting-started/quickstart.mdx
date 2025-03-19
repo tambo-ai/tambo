@@ -1,0 +1,47 @@
+---
+title: Quickstart
+---
+
+If you don't need any extra information and just want to get a tambo app started, from the root of a NextJS app run:
+
+```bash
+npx tambo full-send
+```
+
+This command will:
+
+- Setup a tambo project and get you an API key
+- Install MessageThread components that are hooked up to tambo
+- Show you how to wrap your app with the `<TamboProvider>`
+
+Once it completes, you can update your `src/app/layout.tsx` file to enable tambo:
+
+```tsx
+<TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
+  {children}
+</TamboProvider>
+```
+
+Now you can run your Tambo app locally:
+
+```bash
+npm run dev
+```
+
+This will start a development server at `http://localhost:3000`.
+
+## Adding MessageThreadFull to your app
+
+The `<MessageThreadFull>` component that the `full-send` command installed provides a complete chat interface for your AI assistant. Here's how to add it to your `src/app/page.tsx` file:
+
+```tsx title="src/app/page.tsx"
+import { MessageThread } from "../source/components/MessageThread";
+
+export default function Home() {
+  return (
+    <main>
+      <MessageThread />
+    </main>
+  );
+}
+```

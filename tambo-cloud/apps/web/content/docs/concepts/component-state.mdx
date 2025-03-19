@@ -1,0 +1,35 @@
+---
+title: Component State
+---
+
+Let tambo track the internal state of generated components using `useTamboComponentState` so it can use the state as context when responding to following user messages.
+
+Components you register with tambo may have internal state values that let you update what is rendered as the user interacts with the component. For example, in an "email sending" component you might have:
+
+```tsx
+// file email-sender.tsx
+
+export const EmailSender = () => {
+  ...
+  const [emailBody, setEmailBody] = useState("") // tracks the message being typed
+  const [isSent, setIsSent] = useState(false) // tracks whether the 'send' button has been clicked so we can show a checkmark
+  ...
+}
+```
+
+We likely want tambo to know about those state values, so if the next user message is something like "finish this email for me" or "did I send that email earlier?" tambo can understand and respond to these requests with knowledge of the current `emailBody` and `isSend` state.
+
+To tell tambo about state values, all we need to do is replace `useState` with `useTamboComponentState`!
+
+Here's how the email component changes:
+
+```tsx
+// file email-sender.tsx
+
+export const EmailSender = () => {
+  ...
+  const [emailBody, setEmailBody] = useTamboComponentState("");
+  const [isSent, setIsSent] = useTamboComponentState(false);
+  ...
+}
+```

@@ -1,4 +1,4 @@
 {
   "title": "Getting Started",
-  "pages": ["installation", "adding-components", "templates", "using-zod"]
+  "pages": ["quickstart"]
 }
