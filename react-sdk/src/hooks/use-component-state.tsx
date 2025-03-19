@@ -27,13 +27,14 @@ export function useTamboComponentState<S>(
   const client = useTamboClient();
 
   const message = useTamboCurrentMessage();
+  const [cachedInitialValue] = useState(() => initialValue);
 
   const value = useMemo(() => {
-    if (!message?.componentState) return initialValue;
+    if (!message?.componentState) return cachedInitialValue;
     return keyName in message.componentState
       ? (message.componentState[keyName] as S)
-      : initialValue;
-  }, [message?.componentState, keyName, initialValue]);
+      : cachedInitialValue;
+  }, [cachedInitialValue, keyName, message?.componentState]);
 
   const initializeState = useCallback(async () => {
     if (!message) {
@@ -48,21 +49,21 @@ export function useTamboComponentState<S>(
             ...message,
             componentState: {
               ...message.componentState,
-              [keyName]: initialValue,
+              [keyName]: cachedInitialValue,
             },
           },
           false,
         ),
         client.beta.threads.messages.updateComponentState(threadId, messageId, {
-          state: { [keyName]: initialValue },
+          state: { [keyName]: cachedInitialValue },
         }),
       ]);
     } catch (err) {
       console.warn("Failed to initialize component state:", err);
     }
   }, [
+    cachedInitialValue,
     client.beta.threads.messages,
-    initialValue,
     keyName,
     message,
     messageId,
@@ -73,7 +74,7 @@ export function useTamboComponentState<S>(
   const shouldInitialize =
     !haveInitialized &&
     message &&
-    initialValue !== undefined &&
+    cachedInitialValue !== undefined &&
     (!message.componentState || !(keyName in message.componentState));
 
   // send initial state
