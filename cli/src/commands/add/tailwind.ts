@@ -348,31 +348,50 @@ export default config`;
     const existingRoot = postcss.parse(existingCSS);
     const defaultRoot = postcss.parse(defaultCSS);
 
-    // Find or create the @layer base rule
+    // Find or create the @layer base rule for our HSL variables
     let baseLayer = existingRoot.nodes.find(
       (node): node is postcss.AtRule =>
         node.type === "atrule" &&
         node.name === "layer" &&
-        node.params === "base",
+        node.params === "base" &&
+        node.toString().includes("hsl(var(--"),
     );
 
+    // If we don't find our specific base layer, create a new one
     if (!baseLayer) {
       baseLayer = postcss.atRule({
         name: "layer",
         params: "base",
         raws: { before: "\n\n", after: "\n" },
       });
+      // Add it at the end to ensure it takes precedence
       existingRoot.append(baseLayer);
     }
 
-    // Extract default variables
+    // Modify the root level variables to use HSL
+    existingRoot.walkRules(":root", (rule) => {
+      rule.walkDecls((decl) => {
+        if (decl.prop === "--background" || decl.prop === "--foreground") {
+          rule.removeChild(decl);
+        }
+      });
+    });
+
+    // Remove the media query for dark mode as we'll handle it through .dark class
+    existingRoot.walkAtRules("media", (rule) => {
+      if (rule.params.includes("prefers-color-scheme")) {
+        existingRoot.removeChild(rule);
+      }
+    });
+
+    // Extract and add HSL variables
     const extractVariables = (root: Root, selector: string) => {
       const vars = new Map<string, string>();
       root.walkAtRules("layer", (layer) => {
         if (layer.params === "base") {
           layer.walkRules(selector, (rule) => {
             rule.walkDecls((decl) => {
-              if (decl.prop.startsWith("--")) {
+              if (decl.prop.startsWith("--") && decl.value.includes(" ")) {
                 vars.set(decl.prop, decl.value);
               }
             });
@@ -385,9 +404,109 @@ export default config`;
     const defaultRootVars = extractVariables(defaultRoot, ":root");
     const defaultDarkVars = extractVariables(defaultRoot, ".dark");
 
-    // Ensure both sections exist and have all required variables
+    // Ensure both sections exist and have all required HSL variables
     ensureSection(baseLayer, ":root", defaultRootVars);
     ensureSection(baseLayer, ".dark", defaultDarkVars);
+
+    // Add utilities layer if it doesn't exist
+    let utilitiesLayer = existingRoot.nodes.find(
+      (node): node is postcss.AtRule =>
+        node.type === "atrule" &&
+        node.name === "layer" &&
+        node.params === "utilities" &&
+        node.toString().includes("hsl(var(--"),
+    );
+
+    if (!utilitiesLayer) {
+      utilitiesLayer = postcss.atRule({
+        name: "layer",
+        params: "utilities",
+        raws: { before: "\n\n", after: "\n" },
+      });
+      existingRoot.append(utilitiesLayer);
+
+      // Add utility classes using PostCSS API
+      const addUtilityClass = (
+        selector: string,
+        prop: string,
+        value: string,
+      ) => {
+        const rule = postcss.rule({ selector });
+        rule.append(postcss.decl({ prop, value }));
+        utilitiesLayer?.append(rule);
+      };
+
+      // Add all utility classes
+      addUtilityClass(
+        ".bg-background",
+        "background-color",
+        "hsl(var(--background))",
+      );
+      addUtilityClass(".text-foreground", "color", "hsl(var(--foreground))");
+      addUtilityClass(".bg-card", "background-color", "hsl(var(--card))");
+      addUtilityClass(
+        ".text-card-foreground",
+        "color",
+        "hsl(var(--card-foreground))",
+      );
+      addUtilityClass(".bg-popover", "background-color", "hsl(var(--popover))");
+      addUtilityClass(
+        ".text-popover-foreground",
+        "color",
+        "hsl(var(--popover-foreground))",
+      );
+      addUtilityClass(".bg-primary", "background-color", "hsl(var(--primary))");
+      addUtilityClass(
+        ".text-primary-foreground",
+        "color",
+        "hsl(var(--primary-foreground))",
+      );
+      addUtilityClass(
+        ".bg-secondary",
+        "background-color",
+        "hsl(var(--secondary))",
+      );
+      addUtilityClass(
+        ".text-secondary-foreground",
+        "color",
+        "hsl(var(--secondary-foreground))",
+      );
+      addUtilityClass(".bg-muted", "background-color", "hsl(var(--muted))");
+      addUtilityClass(
+        ".text-muted-foreground",
+        "color",
+        "hsl(var(--muted-foreground))",
+      );
+      addUtilityClass(".bg-accent", "background-color", "hsl(var(--accent))");
+      addUtilityClass(
+        ".text-accent-foreground",
+        "color",
+        "hsl(var(--accent-foreground))",
+      );
+      addUtilityClass(
+        ".bg-destructive",
+        "background-color",
+        "hsl(var(--destructive))",
+      );
+      addUtilityClass(
+        ".text-destructive-foreground",
+        "color",
+        "hsl(var(--destructive-foreground))",
+      );
+      addUtilityClass(".border-border", "border-color", "hsl(var(--border))");
+      addUtilityClass(".bg-input", "background-color", "hsl(var(--input))");
+      addUtilityClass(".ring-ring", "--tw-ring-color", "hsl(var(--ring))");
+      addUtilityClass(
+        "hover\\:bg-primary\\/90:hover",
+        "background-color",
+        "hsl(var(--primary) / 0.9)",
+      );
+      addUtilityClass(
+        "hover\\:bg-muted\\/90:hover",
+        "background-color",
+        "hsl(var(--muted) / 0.9)",
+      );
+    }
 
     // Write updated CSS
     const updatedCSS = existingRoot.toString();
