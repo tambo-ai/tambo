@@ -57,13 +57,10 @@ export class TransactionMiddleware implements NestMiddleware {
       throw new UnauthorizedException('Invalid API key');
     }
 
-    console.log(
-      `[${requestSerialNumber}] starting transaction ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle) with ${req.method} ${req.url}`,
-    );
+    const currentRequestSerialNumber = requestSerialNumber;
+    console.log(`[${currentRequestSerialNumber}] starting transaction`);
     const p = this.db.transaction(async (tx) => {
-      console.log(
-        `[${requestSerialNumber}] got transaction ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
-      );
+      console.log(`[${currentRequestSerialNumber}] got transaction`);
       req.tx = tx; // Attach transaction to request
       await tx.execute(sql`
             -- auth.jwt()
@@ -79,9 +76,7 @@ export class TransactionMiddleware implements NestMiddleware {
 
       // wire up the finish event to resolve the promise
       res.on('finish', async () => {
-        console.log(
-          `[${requestSerialNumber}] finishing ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
-        );
+        console.log(`[${currentRequestSerialNumber}] finishing`);
         try {
           await tx.execute(sql`
                 select set_config('request.apikey.project_id', NULL, TRUE);
@@ -89,16 +84,12 @@ export class TransactionMiddleware implements NestMiddleware {
                 `);
           delete (req as HydraRequest).tx;
           resolveFinish(true);
-          console.log(
-            `[${requestSerialNumber}] finished ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
-          );
+          console.log(`[${currentRequestSerialNumber}] finished`);
         } catch (error) {
           rejectFinish(error);
         }
       });
-      console.log(
-        `[${requestSerialNumber}] calling next ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
-      );
+      console.log(`[${currentRequestSerialNumber}] calling next`);
 
       // it is now safe to call next(), because the finish event will resolve the promise
       next();
@@ -108,6 +99,7 @@ export class TransactionMiddleware implements NestMiddleware {
 
     try {
       await p;
+      // this.db.$client.client.release();
     } catch (error) {
       // automatically rollback on unrecognized errors
       if (!(error instanceof HttpException) || error.getStatus() >= 500) {

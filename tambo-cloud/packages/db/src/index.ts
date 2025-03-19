@@ -1,36 +1,17 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as operations from "./operations";
 import * as schema from "./schema";
 import type { HydraDatabase } from "./types";
 
-let globalPool: Pool | null = null;
-
-const MAX_POOL_SIZE = 30;
-
 function getDb(databaseUrl: string): HydraDatabase {
-  // quick hack to get the db connection
-  if (!globalPool) {
-    const pool = new Pool({
-      connectionString: databaseUrl,
-      max: MAX_POOL_SIZE,
-    });
-    globalPool = pool;
-  }
-  console.log(
-    `[${globalPool.totalCount} connections (${globalPool.idleCount} idle)]`,
-  );
-  const db = drizzle(globalPool, { schema });
+  const client = postgres(databaseUrl, { prepare: false });
+  const db = drizzle(client, { schema });
 
   return db;
 }
 
-async function closeDb() {
-  if (globalPool) {
-    await globalPool.end();
-    globalPool = null;
-  }
-}
+async function closeDb() {}
 
 export * from "./types";
 export { closeDb, getDb, operations, schema };
