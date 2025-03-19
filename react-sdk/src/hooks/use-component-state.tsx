@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTamboClient, useTamboThread } from "../providers";
 import {
   useTamboCurrentMessage,
@@ -69,18 +69,20 @@ export function useTamboComponentState<S>(
     threadId,
     updateThreadMessage,
   ]);
+  const [haveInitialized, setHaveInitialized] = useState(false);
+  const shouldInitialize =
+    !haveInitialized &&
+    message &&
+    initialValue !== undefined &&
+    (!message.componentState || !(keyName in message.componentState));
 
   // send initial state
   useEffect(() => {
-    const shouldInitialize =
-      message &&
-      initialValue !== undefined &&
-      (!message.componentState || !(keyName in message.componentState));
-
     if (shouldInitialize) {
       initializeState();
+      setHaveInitialized(true);
     }
-  }, [messageId, initializeState, message, initialValue, keyName]);
+  }, [initializeState, shouldInitialize]);
 
   const setValue = useCallback(
     async (newValue: S) => {
