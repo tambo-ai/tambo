@@ -58,7 +58,7 @@ export class TransactionMiddleware implements NestMiddleware {
     }
 
     console.log(
-      `[${requestSerialNumber}] starting transaction ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
+      `[${requestSerialNumber}] starting transaction ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle) with ${req.method} ${req.url}`,
     );
     const p = this.db.transaction(async (tx) => {
       console.log(

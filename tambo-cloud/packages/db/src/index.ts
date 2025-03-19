@@ -4,27 +4,31 @@ import * as operations from "./operations";
 import * as schema from "./schema";
 import type { HydraDatabase } from "./types";
 
-let globalDb: HydraDatabase | null = null;
+let globalPool: Pool | null = null;
 
 const MAX_POOL_SIZE = 30;
 
 function getDb(databaseUrl: string): HydraDatabase {
-  if (globalDb) {
-    return globalDb;
-  }
   // quick hack to get the db connection
+  if (!globalPool) {
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      max: MAX_POOL_SIZE,
+    });
+    globalPool = pool;
+  }
+  console.log(
+    `[${globalPool.totalCount} connections (${globalPool.idleCount} idle)]`,
+  );
+  const db = drizzle(globalPool, { schema });
 
-  const pool = new Pool({ connectionString: databaseUrl, max: MAX_POOL_SIZE });
-  const db = drizzle(pool, { schema });
-
-  globalDb = db;
   return db;
 }
 
 async function closeDb() {
-  if (globalDb) {
-    await globalDb.$client.end();
-    globalDb = null;
+  if (globalPool) {
+    await globalPool.end();
+    globalPool = null;
   }
 }
 
