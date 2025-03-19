@@ -1,4 +1,1 @@
-export {
-  MessageThreadPanel,
-  messageThreadPanelVariants,
-} from "./message-thread-panel";
+export { MessageThreadPanel } from "./message-thread-panel";

@@ -1,4 +1,1 @@
-export {
-  MessageThreadFull,
-  messageThreadFullVariants,
-} from "./message-thread-full";
+export { MessageThreadFull } from "./message-thread-full";

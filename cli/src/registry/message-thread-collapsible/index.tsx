@@ -1,4 +1,1 @@
-export {
-  MessageThreadCollapsible,
-  messageThreadCollapsibleVariants,
-} from "./message-thread-collapsible";
+export { MessageThreadCollapsible } from "./message-thread-collapsible";

@@ -1,6 +1,6 @@
 {
   "name": "message",
-  "dependencies": ["class-variance-authority"],
+  "dependencies": ["class-variance-authority", "sanitize-html"],
   "devDependencies": ["@types/sanitize-html"],
   "requires": [],
   "files": [
