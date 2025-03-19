@@ -55,6 +55,7 @@ export interface MessageProps {
   message: TamboThreadMessage;
   variant?: VariantProps<typeof messageVariants>["variant"];
   className?: string;
+  message: TamboThreadMessage;
 }
 
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(

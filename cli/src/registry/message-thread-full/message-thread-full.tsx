@@ -1,56 +1,73 @@
 "use client";
 
 import * as React from "react";
-import type { VariantProps } from "class-variance-authority";
-import { cva } from "class-variance-authority";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ChatThread } from "@/components/ui/chat-thread";
 import { ChatInput } from "@/components/ui/chat-input";
-
-const messageThreadFullVariants = cva("flex flex-col w-full h-full", {
-  variants: {
-    variant: {
-      default: "bg-background",
-      solid: "bg-muted/50",
-      bordered: "border rounded-lg p-4",
-    },
-  },
-  defaultVariants: {
-    variant: "default",
-  },
-});
+import { useTambo } from "@tambo-ai/react";
 
 /**
  * Represents a full message thread component
  * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof messageThreadFullVariants>["variant"]} variant - Optional variant for custom styling
  */
 
 export interface MessageThreadFullProps
   extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: VariantProps<typeof messageThreadFullVariants>["variant"];
   contextKey?: string;
 }
 
 const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
->(({ className, variant, contextKey, ...props }, ref) => {
+>(({ className, contextKey, ...props }, ref) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { thread } = useTambo();
+
+  useEffect(() => {
+    if (scrollContainerRef.current && thread?.messages?.length) {
+      const timeoutId = setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [thread?.messages]);
+
   return (
     <div
       ref={ref}
-      className={cn(messageThreadFullVariants({ variant }), className)}
+      className={cn(
+        "flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background h-[600px] w-full min-w-2xl max-w-2xl border border-gray-200",
+        className,
+      )}
       {...props}
     >
-      <div className="flex-1 overflow-y-auto p-4">
-        <ChatThread variant={variant} />
+      <div className="p-4 border-b border-gray-200">
+        <h2 className="font-semibold text-lg">Chat with tambo</h2>
       </div>
-      <div className="p-4 border-t">
-        <ChatInput variant={variant} contextKey={contextKey} />
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [scroll-behavior:smooth]"
+      >
+        <ChatThread className="py-4" />
+      </div>
+      <div className="p-4 border-t border-gray-200">
+        <div className="relative">
+          <ChatInput
+            contextKey={contextKey}
+            className="[&_form]:w-full [&_div]:w-full"
+          />
+        </div>
       </div>
     </div>
   );
 });
 MessageThreadFull.displayName = "MessageThreadFull";
 
-export { MessageThreadFull, messageThreadFullVariants };
+export { MessageThreadFull };

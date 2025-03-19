@@ -1,1 +1,1 @@
-export { ControlBar, controlBarVariants } from "./control-bar";
+export { ControlBar } from "./control-bar";

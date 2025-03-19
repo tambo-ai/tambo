@@ -23,67 +23,74 @@ const chatInputVariants = cva("w-full", {
 });
 
 /**
- * Represents a chat input component
+ * A form component for submitting messages to a Tambo thread
  * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof chatInputVariants>["variant"]} variant - Optional variant for custom styling
+ * @property {VariantProps<typeof chatInputVariants>["variant"]} variant - Optional styling variant
+ * @property {string | undefined} contextKey - Tambo thread context key for message routing
  */
 
 export interface ChatInputProps extends React.HTMLAttributes<HTMLFormElement> {
   variant?: VariantProps<typeof chatInputVariants>["variant"];
-}
-
-interface ThreadMessageInputProps {
   contextKey: string | undefined;
 }
 
-const ChatInput = React.forwardRef<
-  HTMLInputElement,
-  ChatInputProps & ThreadMessageInputProps
->(({ className, variant, contextKey, ...props }, ref) => {
-  const { value, setValue, submit, isPending, error } =
-    useTamboThreadInput(contextKey);
+const ChatInput = React.forwardRef<HTMLInputElement, ChatInputProps>(
+  ({ className, variant, contextKey, ...props }, ref) => {
+    const { value, setValue, submit, isPending, error } =
+      useTamboThreadInput(contextKey);
+    const [submitError, setSubmitError] = React.useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!value.trim()) return;
-    try {
-      await submit();
-    } catch (error) {
-      console.error("Failed to submit message:", error); // TODO: Add UI feedback
-    }
-  };
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!value.trim()) return;
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className={cn(chatInputVariants({ variant }), className)}
-      {...props}
-    >
-      <div className="flex gap-2">
-        <input
-          ref={ref}
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="flex-1 p-2 rounded-lg border bg-background text-foreground border-border"
-          disabled={isPending}
-          placeholder="Type your message..."
-          aria-label="Chat Message Input"
-        />
-        <button
-          type="submit"
-          disabled={isPending}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
-        >
-          {isPending ? "..." : "Send"}
-        </button>
-      </div>
-      {error && (
-        <p className="text-sm text-destructive mt-1">{error.message}</p>
-      )}
-    </form>
-  );
-});
+      setSubmitError(null);
+      try {
+        await submit();
+      } catch (error) {
+        console.error("Failed to submit message:", error);
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Failed to send message. Please try again.",
+        );
+      }
+    };
+
+    return (
+      <form
+        onSubmit={handleSubmit}
+        className={cn(chatInputVariants({ variant }), className)}
+        {...props}
+      >
+        <div className="flex gap-2">
+          <input
+            ref={ref}
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="flex-1 p-2 rounded-lg border bg-background text-foreground border-border"
+            disabled={isPending}
+            placeholder="Type your message..."
+            aria-label="Chat Message Input"
+          />
+          <button
+            type="submit"
+            disabled={isPending}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+          >
+            {isPending ? "..." : "Send"}
+          </button>
+        </div>
+        {(error ?? submitError) && (
+          <p className="text-sm text-[hsl(var(--destructive))] mt-1">
+            {error?.message ?? submitError}
+          </p>
+        )}
+      </form>
+    );
+  },
+);
 ChatInput.displayName = "ChatInput";
 
 export { ChatInput, chatInputVariants };
