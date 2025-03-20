@@ -2,7 +2,7 @@
   "name": "message-thread-panel",
   "dependencies": ["@tambo-ai/react"],
   "devDependencies": [],
-  "requires": ["chat-thread", "chat-input"],
+  "requires": ["thread-content", "message-input"],
   "files": [
     {
       "name": "message-thread-panel.tsx",

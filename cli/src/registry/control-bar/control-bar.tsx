@@ -3,8 +3,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
-import { ChatThread } from "@/components/ui/chat-thread";
-import { ChatInput } from "@/components/ui/chat-input";
+import { ThreadContent } from "@/components/ui/thread-content";
+import { MessageInput } from "@/components/ui/message-input";
 import { useTambo } from "@tambo-ai/react";
 
 /**
@@ -54,7 +54,7 @@ const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
             <div className="flex flex-col gap-3">
               <div className="bg-background border rounded-lg p-3 flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <ChatInput
+                  <MessageInput
                     contextKey={contextKey}
                     className="[&_button]:hidden"
                   />
@@ -65,7 +65,7 @@ const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
               </div>
               {thread?.messages?.length > 0 && (
                 <div className="bg-background border rounded-lg p-4">
-                  <ChatThread />
+                  <ThreadContent />
                 </div>
               )}
             </div>

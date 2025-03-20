@@ -6,8 +6,8 @@
  *
  * This file provides type definitions for:
  * - Message component
- * - ChatThread component
- * - ChatInput component
+ * - ThreadContent component
+ * - MessageInput component
  *
  * These components are meant to be installed and used in end-user projects
  * through the CLI installation process.
@@ -26,23 +26,23 @@ declare module "@/components/ui/message" {
   >;
 }
 
-declare module "@/components/ui/chat-thread" {
-  export interface ChatThreadProps
+declare module "@/components/ui/thread-content" {
+  export interface ThreadContentProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
   }
-  export const ChatThread: React.ForwardRefExoticComponent<
-    ChatThreadProps & React.RefAttributes<HTMLDivElement>
+  export const ThreadContent: React.ForwardRefExoticComponent<
+    ThreadContentProps & React.RefAttributes<HTMLDivElement>
   >;
 }
 
-declare module "@/components/ui/chat-input" {
-  export interface ChatInputProps
+declare module "@/components/ui/message-input" {
+  export interface MessageInputProps
     extends React.HTMLAttributes<HTMLFormElement> {
     variant?: ComponentVariant;
     contextKey?: string | null | undefined;
   }
-  export const ChatInput: React.ForwardRefExoticComponent<
-    ChatInputProps & React.RefAttributes<HTMLFormElement>
+  export const MessageInput: React.ForwardRefExoticComponent<
+    MessageInputProps & React.RefAttributes<HTMLFormElement>
   >;
 }

@@ -59,12 +59,31 @@ async function handleAuthentication(): Promise<boolean> {
     if (!fs.existsSync(".env.local")) {
       fs.writeFileSync(".env.local", "# Environment Variables");
       console.log(chalk.green("✔ Created new .env.local file"));
+      fs.appendFileSync(".env.local", envContent);
+      console.log(chalk.green("✔ API key saved to .env.local"));
     } else {
       // Check if API key already exists in the file
       const existingContent = fs.readFileSync(".env.local", "utf8");
-      const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/g;
+      const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
 
       if (keyRegex.test(existingContent)) {
+        // Prompt for confirmation before replacing
+        const { confirmReplace } = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "confirmReplace",
+            message: chalk.yellow(
+              "⚠️  An existing API key was found. Do you want to replace it?",
+            ),
+            default: false,
+          },
+        ]);
+
+        if (!confirmReplace) {
+          console.log(chalk.gray("Keeping existing API key."));
+          return true;
+        }
+
         // Replace existing key
         const updatedContent = existingContent.replace(
           keyRegex,
@@ -73,11 +92,13 @@ async function handleAuthentication(): Promise<boolean> {
         fs.writeFileSync(".env.local", updatedContent);
         console.log(chalk.green("✔ Updated existing API key in .env.local"));
         return true;
+      } else {
+        // Only append if no existing key was found
+        fs.appendFileSync(".env.local", envContent);
+        console.log(chalk.green("✔ API key saved to .env.local"));
       }
     }
 
-    fs.appendFileSync(".env.local", envContent);
-    console.log(chalk.green("✔ API key saved to .env.local"));
     return true;
   } catch (error) {
     if (error instanceof AuthenticationError) {
@@ -106,17 +127,45 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   if (!authSuccess) return;
 
   // Install required components
-  console.log(chalk.cyan("\nStep 2: Installing required components"));
+  console.log(chalk.cyan("\nStep 2: Choose starter components to install"));
 
-  const components = [
-    "message-thread-full",
-    "message-thread-panel",
-    "message-thread-collapsible",
-    "control-bar",
+  const availableComponents = [
+    {
+      name: "message-thread-full",
+      description:
+        "Full-screen chat interface with history and typing indicators",
+    },
+    {
+      name: "message-thread-panel",
+      description: "Split-view chat with integrated workspace",
+    },
+    {
+      name: "message-thread-collapsible",
+      description: "Collapsible chat for sidebars",
+    },
+    {
+      name: "control-bar",
+      description: "Spotlight-style command palette",
+    },
   ];
 
+  const { selectedComponents } = await inquirer.prompt([
+    {
+      type: "checkbox",
+      name: "selectedComponents",
+      message: "Select the components you want to install:",
+      choices: availableComponents.map((comp) => ({
+        name: `${comp.name} - ${comp.description}`,
+        value: comp.name,
+        checked: false,
+      })),
+      validate: (answer: string[]) =>
+        answer.length > 0 ? true : "Please select at least one component",
+    },
+  ]);
+
   let installationSuccess = true;
-  for (const component of components) {
+  for (const component of selectedComponents) {
     const spinner = ora(`Installing ${component}...`).start();
     try {
       await handleAddComponent(component, {

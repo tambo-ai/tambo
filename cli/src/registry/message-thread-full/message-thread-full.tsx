@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { ChatThread } from "@/components/ui/chat-thread";
-import { ChatInput } from "@/components/ui/chat-input";
+import { ThreadContent } from "@/components/ui/thread-content";
+import { MessageInput } from "@/components/ui/message-input";
 import { useTambo } from "@tambo-ai/react";
 
 /**
@@ -55,11 +55,11 @@ const MessageThreadFull = React.forwardRef<
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [scroll-behavior:smooth]"
       >
-        <ChatThread className="py-4" />
+        <ThreadContent className="py-4" />
       </div>
       <div className="p-4 border-t border-gray-200">
         <div className="relative">
-          <ChatInput
+          <MessageInput
             contextKey={contextKey}
             className="[&_form]:w-full [&_div]:w-full"
           />

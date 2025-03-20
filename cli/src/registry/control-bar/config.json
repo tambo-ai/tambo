@@ -2,7 +2,7 @@
   "name": "control-bar",
   "dependencies": ["@tambo-ai/react", "@radix-ui/react-dialog"],
   "devDependencies": [],
-  "requires": ["chat-thread", "chat-input"],
+  "requires": ["thread-content", "message-input"],
   "files": [
     {
       "name": "control-bar.tsx",

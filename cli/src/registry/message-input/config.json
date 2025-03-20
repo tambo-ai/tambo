@@ -1,12 +1,12 @@
 {
-  "name": "chat-input",
+  "name": "message-input",
   "dependencies": ["class-variance-authority"],
   "devDependencies": ["@tambo-ai/react"],
   "requires": [],
   "files": [
     {
-      "name": "chat-input.tsx",
-      "content": "src/registry/chat-input/chat-input.tsx"
+      "name": "message-input.tsx",
+      "content": "src/registry/message-input/message-input.tsx"
     }
   ]
 }

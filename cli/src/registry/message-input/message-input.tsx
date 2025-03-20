@@ -6,7 +6,7 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
 
-const chatInputVariants = cva("w-full", {
+const messageInputVariants = cva("w-full", {
   variants: {
     variant: {
       default: "",
@@ -25,16 +25,17 @@ const chatInputVariants = cva("w-full", {
 /**
  * A form component for submitting messages to a Tambo thread
  * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof chatInputVariants>["variant"]} variant - Optional styling variant
+ * @property {VariantProps<typeof messageInputVariants>["variant"]} variant - Optional styling variant
  * @property {string | undefined} contextKey - Tambo thread context key for message routing
  */
 
-export interface ChatInputProps extends React.HTMLAttributes<HTMLFormElement> {
-  variant?: VariantProps<typeof chatInputVariants>["variant"];
+export interface MessageInputProps
+  extends React.HTMLAttributes<HTMLFormElement> {
+  variant?: VariantProps<typeof messageInputVariants>["variant"];
   contextKey: string | undefined;
 }
 
-const ChatInput = React.forwardRef<HTMLInputElement, ChatInputProps>(
+const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
   ({ className, variant, contextKey, ...props }, ref) => {
     const { value, setValue, submit, isPending, error } =
       useTamboThreadInput(contextKey);
@@ -46,7 +47,10 @@ const ChatInput = React.forwardRef<HTMLInputElement, ChatInputProps>(
 
       setSubmitError(null);
       try {
-        await submit();
+        await submit({
+          contextKey,
+          streamResponse: true,
+        });
       } catch (error) {
         console.error("Failed to submit message:", error);
         setSubmitError(
@@ -60,7 +64,7 @@ const ChatInput = React.forwardRef<HTMLInputElement, ChatInputProps>(
     return (
       <form
         onSubmit={handleSubmit}
-        className={cn(chatInputVariants({ variant }), className)}
+        className={cn(messageInputVariants({ variant }), className)}
         {...props}
       >
         <div className="flex gap-2">
@@ -91,6 +95,6 @@ const ChatInput = React.forwardRef<HTMLInputElement, ChatInputProps>(
     );
   },
 );
-ChatInput.displayName = "ChatInput";
+MessageInput.displayName = "MessageInput";
 
-export { ChatInput, chatInputVariants };
+export { MessageInput, messageInputVariants };

@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { ChatThread } from "@/components/ui/chat-thread";
-import { ChatInput } from "@/components/ui/chat-input";
+import { ThreadContent } from "@/components/ui/thread-content";
+import { MessageInput } from "@/components/ui/message-input";
 
 /**
  * Represents a message thread panel component
@@ -36,8 +36,8 @@ const MessageThreadPanel = React.forwardRef<
           <h2 className="font-semibold text-lg">Chat with tambo</h2>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          <ChatThread
-            ref={(el) => {
+          <ThreadContent
+            ref={(el: HTMLDivElement) => {
               if (el) {
                 const isNearBottom =
                   el.scrollHeight - el.clientHeight - el.scrollTop < 100;
@@ -49,7 +49,7 @@ const MessageThreadPanel = React.forwardRef<
           />
         </div>
         <div className="p-4 border-t border-gray-200">
-          <ChatInput contextKey={contextKey} />
+          <MessageInput contextKey={contextKey} />
         </div>
       </div>
     </div>

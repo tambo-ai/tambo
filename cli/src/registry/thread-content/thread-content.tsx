@@ -7,7 +7,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import * as React from "react";
 
-const chatThreadVariants = cva("flex flex-col gap-4", {
+const threadContentVariants = cva("flex flex-col gap-4", {
   variants: {
     variant: {
       default: "",
@@ -26,14 +26,15 @@ const chatThreadVariants = cva("flex flex-col gap-4", {
 /**
  * Represents a chat thread component
  * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof chatThreadVariants>["variant"]} variant - Optional variant for custom styling
+ * @property {VariantProps<typeof threadContentVariants>["variant"]} variant - Optional variant for custom styling
  */
 
-export interface ChatThreadProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: VariantProps<typeof chatThreadVariants>["variant"];
+export interface ThreadContentProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: VariantProps<typeof threadContentVariants>["variant"];
 }
 
-const ChatThread = React.forwardRef<HTMLDivElement, ChatThreadProps>(
+const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ className, variant, ...props }, ref) => {
     const { thread } = useTambo();
     const messages = thread?.messages ?? [];
@@ -41,7 +42,7 @@ const ChatThread = React.forwardRef<HTMLDivElement, ChatThreadProps>(
     return (
       <div
         ref={ref}
-        className={cn(chatThreadVariants({ variant }), className)}
+        className={cn(threadContentVariants({ variant }), className)}
         {...props}
       >
         {messages.map((message) => {
@@ -88,6 +89,6 @@ const ChatThread = React.forwardRef<HTMLDivElement, ChatThreadProps>(
     );
   },
 );
-ChatThread.displayName = "ChatThread";
+ThreadContent.displayName = "ThreadContent";
 
-export { ChatThread, chatThreadVariants };
+export { ThreadContent, threadContentVariants };
