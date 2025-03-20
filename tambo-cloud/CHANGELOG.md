@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.4...repo-v0.25.5) (2025-03-20)
+
+
+### Bug Fixes
+
+* bump connection limit to 50 ([#549](https://github.com/tambo-ai/tambo-cloud/issues/549)) ([43ad9d4](https://github.com/tambo-ai/tambo-cloud/commit/43ad9d4da7d8856cd06f8aaada505832d97a9329))
+
 ## [0.25.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.3...repo-v0.25.4) (2025-03-19)
 
 
