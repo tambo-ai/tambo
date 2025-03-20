@@ -1,0 +1,27 @@
+---
+title: Registering Components
+---
+
+One of the core features of Tambo is its ability to intelligently respond to user messages with UI components filled with relevant data instead of just text. With this ability, Tambo allows your users to conversationally control your app with AI assistance rather than simply have questions answered.
+
+Tambo does not, however, generate components from scratch on-the-fly. Instead, you "tell" Tambo which components are available and what props they expect using a `registerComponent` call.
+
+The `@tambo-ai/react` package provides hooks to help with this. Here's an example that uses the `registerComponent` function from the `useTamboRegistry()` hook to tell Tambo about a WeatherDisplay component:
+
+```tsx title="page.tsx"
+const { registerComponent } = useTamboRegistry();
+
+useEffect(() => {
+  registerComponent({
+    name: "WeatherDisplay", // The name of the component
+    description: "A display of the weather in a city", // A description of what the component is for and when it should be used by Tambo.
+    component: WeatherDisplay, // The actual component
+    propsDefinition: {
+      data: "{ date: string; day: { maxtemp_c: number; mintemp_c: number; avgtemp_c: number; maxwind_kph: number; totalprecip_mm: number; avghumidity: number; condition: { text: string; icon: string } } }",
+    }, // The shape of the props this component expects
+    associatedTools: [tools.forecast, tools.history], // Any context tools that Tambo should focus on when getting extra information to fill in the props of this component
+  });
+}, []);
+```
+
+Now when a user sends a message asking about the weather in a city, Tambo can respond with this WeatherDisplay component!

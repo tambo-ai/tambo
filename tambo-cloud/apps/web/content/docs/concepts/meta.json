@@ -1,6 +1,7 @@
 {
   "title": "Core Concepts",
   "pages": [
+    "registering-components",
     "message-threads",
     "tools",
     "streaming",
