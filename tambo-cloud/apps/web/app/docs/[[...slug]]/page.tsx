@@ -1,6 +1,5 @@
 import { source } from "@/lib/source";
 import { cn } from "@/lib/utils";
-import { Callout } from "fumadocs-ui/components/callout";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import {
   DocsBody,
@@ -8,7 +7,6 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 // Todo: Add back image support...
 // Todo: Search https://fumadocs.vercel.app/docs/headless/search
@@ -41,21 +39,11 @@ export default async function Page(props: {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <Callout type="info" title="V 0.1.0 Coming Soon">
-        These are the current stable docs for Hydra AI. Read about our upcoming
-        release{" "}
-        <Link href="/blog/0-1-0-announcement" className="underline bold">
-          here
-        </Link>
-        .
-      </Callout>
       <div className="font-heading">
         <DocsTitle>{page.data.title}</DocsTitle>
       </div>
       {page.data.description && (
-        <DocsDescription className="docs-description-wrapper">
-          {page.data.description}
-        </DocsDescription>
+        <DocsDescription>{page.data.description}</DocsDescription>
       )}
       <DocsBody>
         <MDX components={customMdxComponents} />
