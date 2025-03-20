@@ -40,7 +40,7 @@ declare module "@/components/ui/message-input" {
   export interface MessageInputProps
     extends React.HTMLAttributes<HTMLFormElement> {
     variant?: ComponentVariant;
-    contextKey?: string | null | undefined;
+    contextKey: string | undefined;
   }
   export const MessageInput: React.ForwardRefExoticComponent<
     MessageInputProps & React.RefAttributes<HTMLFormElement>
