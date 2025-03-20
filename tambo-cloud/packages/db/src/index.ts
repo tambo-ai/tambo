@@ -6,7 +6,7 @@ import type { HydraDatabase } from "./types";
 
 let globalPool: Pool | null = null;
 
-const MAX_POOL_SIZE = 30;
+const MAX_POOL_SIZE = 50;
 
 function getDb(databaseUrl: string): HydraDatabase {
   // quick hack to get the db connection
