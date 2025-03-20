@@ -4,4 +4,6 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     title: "tambo-ai",
   },
+  disableThemeSwitch: true,
+  githubUrl: "https://github.com/tambo-ai/tambo",
 };

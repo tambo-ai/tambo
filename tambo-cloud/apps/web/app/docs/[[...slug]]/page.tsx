@@ -1,4 +1,5 @@
 import { source } from "@/lib/source";
+import { cn } from "@/lib/utils";
 import { Callout } from "fumadocs-ui/components/callout";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import {
@@ -13,6 +14,21 @@ import { notFound } from "next/navigation";
 // Todo: Search https://fumadocs.vercel.app/docs/headless/search
 // Routing: https://fumadocs.vercel.app/docs/headless/search
 // import { metadataImage } from "@/lib/metadata";
+
+// Custom MDX components with heading font
+const customMdxComponents = {
+  ...defaultMdxComponents,
+  // Use a single function to handle all heading levels
+  h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h1 {...props} className={cn("font-heading", className)} />
+  ),
+  h2: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h2 {...props} className={cn("font-heading", className)} />
+  ),
+  h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h3 {...props} className={cn("font-heading", className)} />
+  ),
+};
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -33,12 +49,16 @@ export default async function Page(props: {
         </Link>
         .
       </Callout>
-      <DocsTitle>{page.data.title}</DocsTitle>
+      <div className="font-heading">
+        <DocsTitle>{page.data.title}</DocsTitle>
+      </div>
       {page.data.description && (
-        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsDescription className="docs-description-wrapper">
+          {page.data.description}
+        </DocsDescription>
       )}
       <DocsBody>
-        <MDX components={{ ...defaultMdxComponents }} />
+        <MDX components={customMdxComponents} />
       </DocsBody>
     </DocsPage>
   );
