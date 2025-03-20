@@ -2,7 +2,9 @@
 title: Quickstart
 ---
 
-If you don't need any extra information and just want to get a tambo app started, from the root of a NextJS app run:
+Let's get you started with tambo-ai in 3 steps.
+
+## Step 1: Install tambo-ai
 
 ```bash
 npx tambo full-send
@@ -11,37 +13,51 @@ npx tambo full-send
 This command will:
 
 - Setup a tambo project and get you an API key
-- Install MessageThread components that are hooked up to tambo
+- Install components that are hooked up to tambo-ai
 - Show you how to wrap your app with the `<TamboProvider>`
 
 Once it completes, you can update your `src/app/layout.tsx` file to enable tambo:
 
-```tsx
+### Step 2. Add the TamboProvider
+
+```tsx title="src/app/layout.tsx"
 <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
   {children}
 </TamboProvider>
 ```
 
-Now you can run your Tambo app locally:
+## Step 3. Add the MessageThreadFull component
+
+The `<MessageThreadFull>` component that the `full-send` command installed provides a complete chat interface for your AI assistant. Here's how to add it to your `src/app/page.tsx` file:
+
+```tsx title="src/app/page.tsx"
+import { MessageThreadCollapsible } from "../source/components/message-thread-collapsible";
+
+export default function Home() {
+  return (
+    <main>
+      <MessageThreadCollapsible />
+    </main>
+  );
+}
+```
+
+## Don't forget to run your app
 
 ```bash
 npm run dev
 ```
 
-This will start a development server at `http://localhost:3000`.
+When you are done, you should see a chat interface like this:
 
-## Adding MessageThreadFull to your app
-
-The `<MessageThreadFull>` component that the `full-send` command installed provides a complete chat interface for your AI assistant. Here's how to add it to your `src/app/page.tsx` file:
-
-```tsx title="src/app/page.tsx"
-import { MessageThread } from "../source/components/MessageThread";
-
-export default function Home() {
-  return (
-    <main>
-      <MessageThread />
-    </main>
-  );
-}
-```
+<div className="flex justify-center my-6">
+  <video
+    controls
+    className="rounded-lg border shadow-sm"
+    width="600"
+    height="400"
+  >
+    <source src="/assets/docs/quickstart-demo.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+</div>

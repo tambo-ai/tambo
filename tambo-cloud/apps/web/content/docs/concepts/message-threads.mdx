@@ -14,25 +14,59 @@ This thread state value is updated automatically by tambo as user messages are s
 
 ### Sending thread messages
 
-To send a user's message to tambo, you can use the `sendThreadMessage` hook:
+We recommend using the `useTamboThreadInput` hook to send messages to the thread.
 
 ```tsx
-const { sendThreadMessage } = useTamboThread();
-
-await sendThreadMessage("What is the weather like today?");
+const { value, setValue, submit } = useTamboThreadInput(contextKey);
 ```
 
-Tambo will update the thread state with the user message, and will update it again when a response is generated.
+The `contextKey` is developer generated and is used to identify the thread group.
 
-If you want the response message to be streamed, use the `streamResponse` option:
+The `value` is the value of the message that you want to send.
+
+The `setValue` is the function that you can use to update the value of the message.
+
+To send a user's message to tambo, you can use the `submit` function:
+
+You can also pass in an optional `options` object to the `submit` function.
+
+```tsx
+setValue("What is the weather like today?");
+
+await submit({
+  streamResponse: true, // We recommend streaming the response to the user
+});
+```
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+<Cards>
+  <Card title="Streaming" href="/docs/concepts/streaming">
+    Learn more about streaming.
+  </Card>
+</Cards>
+
+You can use `isPending` and `error` to show a loading state or an error state:
+
+```tsx
+if (isPending) {
+  return <div>Loading...</div>;
+}
+```
+
+```tsx
+if (error) {
+  return <div>Error: {error.message}</div>;
+}
+```
+
+You can also use the `sendThreadMessage` function to send messages to the thread:
 
 ```tsx
 await sendThreadMessage("What is the weather like today?", {
   streamResponse: true,
 });
 ```
-
-Tambo will automatically update the thread state as chunks are recieved. Find more information about using streaming [here.](streaming)
 
 ### Showing thread messages
 
