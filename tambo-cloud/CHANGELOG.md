@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.25.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.6...repo-v0.25.7) (2025-03-21)
+
+
+### Bug Fixes
+
+* format error stream message ([#560](https://github.com/tambo-ai/tambo-cloud/issues/560)) ([1be1d08](https://github.com/tambo-ai/tambo-cloud/commit/1be1d085022d2f285eac0baddc518c8f21a36c85))
+* pass along contextKey when creating thread ([#557](https://github.com/tambo-ai/tambo-cloud/issues/557)) ([a627449](https://github.com/tambo-ai/tambo-cloud/commit/a627449fe9c5fbfa2a22dbe8e539b2aa67ac47ff))
+* relax isolation level ([#561](https://github.com/tambo-ai/tambo-cloud/issues/561)) ([996c123](https://github.com/tambo-ai/tambo-cloud/commit/996c123bd9258992563b60b056383f38eaf975ae))
+
+
+### Documentation
+
+* explain static component registration ([#559](https://github.com/tambo-ai/tambo-cloud/issues/559)) ([b2b8817](https://github.com/tambo-ai/tambo-cloud/commit/b2b8817b445e96337c4d92c9ee113ea5243b141b))
+
 ## [0.25.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.5...repo-v0.25.6) (2025-03-21)
 
 
