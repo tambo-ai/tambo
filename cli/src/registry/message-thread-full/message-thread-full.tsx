@@ -5,6 +5,8 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ThreadContent } from "@/components/ui/thread-content";
 import { MessageInput } from "@/components/ui/message-input";
+import { MessageSuggestions } from "@/components/ui/message-suggestions";
+import { ThreadHistory } from "@/components/ui/thread-history";
 import { useTambo } from "@tambo-ai/react";
 
 /**
@@ -48,22 +50,19 @@ const MessageThreadFull = React.forwardRef<
       )}
       {...props}
     >
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="font-semibold text-lg">Chat with tambo</h2>
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 className="font-semibold text-lg">Use AI</h2>
+        <ThreadHistory contextKey={contextKey} />
       </div>
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [scroll-behavior:smooth]"
+        className="flex-1 overflow-y-auto px-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
       >
         <ThreadContent className="py-4" />
       </div>
+      <MessageSuggestions />
       <div className="p-4 border-t border-gray-200">
-        <div className="relative">
-          <MessageInput
-            contextKey={contextKey}
-            className="[&_form]:w-full [&_div]:w-full"
-          />
-        </div>
+        <MessageInput contextKey={contextKey} />
       </div>
     </div>
   );

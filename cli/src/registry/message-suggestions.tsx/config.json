@@ -1,0 +1,12 @@
+{
+  "name": "message-suggestions",
+  "dependencies": ["lucide-react", "@tambo-ai/react"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "message-suggestions.tsx",
+      "content": "src/registry/message-suggestions.tsx/message-suggestions.tsx"
+    }
+  ]
+}

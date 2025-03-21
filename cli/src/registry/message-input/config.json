@@ -1,7 +1,7 @@
 {
   "name": "message-input",
-  "dependencies": ["class-variance-authority"],
-  "devDependencies": ["@tambo-ai/react"],
+  "dependencies": ["class-variance-authority", "@tambo-ai/react"],
+  "devDependencies": [],
   "requires": [],
   "files": [
     {

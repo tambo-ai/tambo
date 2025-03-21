@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import type { VariantProps } from "class-variance-authority";
-import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
+import { cva, type VariantProps } from "class-variance-authority";
 
 const messageInputVariants = cva("w-full", {
   variants: {
@@ -39,20 +38,41 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
   ({ className, variant, contextKey, ...props }, ref) => {
     const { value, setValue, submit, isPending, error } =
       useTamboThreadInput(contextKey);
+    const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
+    const [isMac, setIsMac] = React.useState(false);
+
+    React.useEffect(() => {
+      const isMacOS =
+        typeof navigator !== "undefined" &&
+        navigator.platform.toUpperCase().includes("MAC");
+      setIsMac(isMacOS);
+    }, []);
+
+    React.useEffect(() => {
+      setDisplayValue(value);
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setValue(e.target.value);
+      setDisplayValue(e.target.value);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!value.trim()) return;
 
       setSubmitError(null);
+      setDisplayValue("");
       try {
         await submit({
           contextKey,
           streamResponse: true,
         });
+        setValue("");
       } catch (error) {
         console.error("Failed to submit message:", error);
+        setDisplayValue(value);
         setSubmitError(
           error instanceof Error
             ? error.message
@@ -60,6 +80,21 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
         );
       }
     };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (value.trim()) {
+          handleSubmit(e as unknown as React.FormEvent);
+        }
+      }
+    };
+
+    const modKey = isMac ? "⌘" : "Ctrl";
+
+    const Spinner = () => (
+      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+    );
 
     return (
       <form
@@ -71,8 +106,9 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
           <input
             ref={ref}
             type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
+            value={displayValue}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
             className="flex-1 p-2 rounded-lg border bg-background text-foreground border-border"
             disabled={isPending}
             placeholder="Type your message..."
@@ -81,16 +117,29 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
           <button
             type="submit"
             disabled={isPending}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center min-w-[70px]"
           >
-            {isPending ? "..." : "Send"}
+            {isPending ? <Spinner /> : "Send"}
           </button>
         </div>
-        {(error ?? submitError) && (
-          <p className="text-sm text-[hsl(var(--destructive))] mt-1">
-            {error?.message ?? submitError}
-          </p>
-        )}
+        <div className="flex flex-col items-center mt-2 text-xs">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <span>Press</span>
+            <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-xs">
+              {modKey}
+            </kbd>
+            <span>+</span>
+            <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-xs">
+              Enter
+            </kbd>
+            <span>to send</span>
+          </div>
+          {(error ?? submitError) && (
+            <p className="text-sm text-[hsl(var(--destructive))] mt-1">
+              {error?.message ?? submitError}
+            </p>
+          )}
+        </div>
       </form>
     );
   },

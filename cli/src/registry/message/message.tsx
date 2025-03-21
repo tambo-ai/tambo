@@ -1,10 +1,11 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import * as React from "react";
+import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import * as React from "react";
-import sanitizeHtml from "sanitize-html";
+import ReactMarkdown from "react-markdown";
 
 const messageVariants = cva("flex", {
   variants: {
@@ -35,7 +36,7 @@ const messageVariants = cva("flex", {
  * @property {VariantProps<typeof bubbleVariants>["role"]} role - Role of the bubble (user or assistant)
  */
 const bubbleVariants = cva(
-  "relative inline-block rounded-lg px-3 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full",
+  "relative inline-block rounded-lg px-3 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
   {
     variants: {
       role: {
@@ -55,10 +56,48 @@ export interface MessageProps {
   message: TamboThreadMessage;
   variant?: VariantProps<typeof messageVariants>["variant"];
   className?: string;
+  isLoading?: boolean;
 }
 
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
-  ({ className, role, content, variant, message, ...props }, ref) => {
+  (
+    { className, role, content, variant, message, isLoading, ...props },
+    ref,
+  ) => {
+    const safeContent = React.useMemo(() => {
+      if (!content) return "";
+      if (typeof content === "string") return content;
+      return content.map((item) => item.text ?? "").join("");
+    }, [content]);
+
+    const renderLoadingMessage = () => {
+      if (isLoading && role === "assistant") {
+        return (
+          <div
+            ref={ref}
+            className={cn(messageVariants({ variant, align: role }), className)}
+            {...props}
+          >
+            <div className={cn(bubbleVariants({ role }))}>
+              <div className="break-words whitespace-pre-wrap">
+                <div className="text-sm mb-1 opacity-50">Tambo AI</div>
+                <div className="flex items-center gap-1 h-4 p-1">
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      return null;
+    };
+
+    if (isLoading && role === "assistant") {
+      return renderLoadingMessage();
+    }
+
     return (
       <div
         ref={ref}
@@ -66,21 +105,32 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
         {...props}
       >
         <div className={cn(bubbleVariants({ role }))}>
-          <p className="break-words whitespace-pre-wrap">
+          <div className="break-words whitespace-pre-wrap">
+            <div className="text-sm mb-1 opacity-50">
+              {role === "user" ? "You" : "Tambo AI"}
+            </div>
             {!content ? (
               <span className="text-muted-foreground italic">
                 Empty message
               </span>
             ) : typeof content === "string" ? (
-              sanitizeHtml(content)
+              <ReactMarkdown components={createMarkdownComponents()}>
+                {safeContent}
+              </ReactMarkdown>
             ) : (
               content.map((item, index) => (
                 <span key={index}>
-                  {item.text ? sanitizeHtml(item.text) : ""}
+                  {item.text ? (
+                    <ReactMarkdown components={createMarkdownComponents()}>
+                      {item.text}
+                    </ReactMarkdown>
+                  ) : (
+                    ""
+                  )}
                 </span>
               ))
             )}
-          </p>
+          </div>
           {message.renderedComponent && (
             <div className="mt-2">{message.renderedComponent}</div>
           )}

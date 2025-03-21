@@ -2,7 +2,12 @@
   "name": "message-thread-full",
   "dependencies": ["@tambo-ai/react"],
   "devDependencies": [],
-  "requires": ["thread-content", "message-input"],
+  "requires": [
+    "thread-content",
+    "message-input",
+    "message-suggestions",
+    "thread-history"
+  ],
   "files": [
     {
       "name": "message-thread-full.tsx",

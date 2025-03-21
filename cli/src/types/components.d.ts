@@ -20,6 +20,7 @@ declare module "@/components/ui/message" {
     content: string | { type: string; text?: string }[];
     variant?: ComponentVariant;
     message: TamboThreadMessage;
+    isLoading?: boolean;
   }
   export const Message: React.ForwardRefExoticComponent<
     MessageProps & React.RefAttributes<HTMLDivElement>
@@ -44,5 +45,43 @@ declare module "@/components/ui/message-input" {
   }
   export const MessageInput: React.ForwardRefExoticComponent<
     MessageInputProps & React.RefAttributes<HTMLFormElement>
+  >;
+}
+
+declare module "@/components/ui/message-suggestions" {
+  export interface MessageSuggestionsProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    variant?: ComponentVariant;
+  }
+  export const MessageSuggestions: React.ForwardRefExoticComponent<
+    MessageSuggestionsProps & React.RefAttributes<HTMLDivElement>
+  >;
+}
+
+declare module "@/components/ui/markdownComponents" {
+  export const createMarkdownComponents: (
+    theme?: string,
+  ) => Record<string, React.ComponentType<any>>;
+}
+
+declare module "@/components/ui/thread-history" {
+  export interface ThreadHistoryProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    variant?: ComponentVariant;
+    contextKey: string | undefined;
+    onThreadChange?: (threadId: string) => void;
+  }
+  export const ThreadHistory: React.ForwardRefExoticComponent<
+    ThreadHistoryProps & React.RefAttributes<HTMLDivElement>
+  >;
+}
+
+declare module "@/components/ui/thread-list" {
+  export interface ThreadListProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    variant?: ComponentVariant;
+  }
+  export const ThreadList: React.ForwardRefExoticComponent<
+    ThreadListProps & React.RefAttributes<HTMLDivElement>
   >;
 }

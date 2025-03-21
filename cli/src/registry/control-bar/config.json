@@ -1,6 +1,6 @@
 {
   "name": "control-bar",
-  "dependencies": ["@tambo-ai/react", "@radix-ui/react-dialog"],
+  "dependencies": ["@tambo-ai/react", "radix-ui"],
   "devDependencies": [],
   "requires": ["thread-content", "message-input"],
   "files": [
