@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/tambo-ai/tambo/compare/react-v0.16.2...react-v0.17.0) (2025-03-21)
+
+
+### Features
+
+* add debounce, optimistic updates, and helper functions for prop updates ([#169](https://github.com/tambo-ai/tambo/issues/169)) ([b1f5870](https://github.com/tambo-ai/tambo/commit/b1f587033596857ea0df00499a53caf85af89dc6))
+
 ## [0.16.2](https://github.com/tambo-ai/tambo/compare/react-v0.16.1...react-v0.16.2) (2025-03-21)
 
 
