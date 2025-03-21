@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.25.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.5...repo-v0.25.6) (2025-03-21)
+
+
+### Bug Fixes
+
+* optimistic concurrency in advanceThread to allow letting go of db connection ([#556](https://github.com/tambo-ai/tambo-cloud/issues/556)) ([499412c](https://github.com/tambo-ai/tambo-cloud/commit/499412ca8261fff685fd8a0b5e641c8fb99c8052))
+
+
+### Miscellaneous Chores
+
+* enhance layout configuration and documentation styling ([#553](https://github.com/tambo-ai/tambo-cloud/issues/553)) ([7cdbb4e](https://github.com/tambo-ai/tambo-cloud/commit/7cdbb4e5394e621a2574a84e277650439448f32f))
+* update docs api ref ([#551](https://github.com/tambo-ai/tambo-cloud/issues/551)) ([ddf476a](https://github.com/tambo-ai/tambo-cloud/commit/ddf476a735a8b4bcb6a96a16a9f46e00fd015ab3))
+* update some docs ([#555](https://github.com/tambo-ai/tambo-cloud/issues/555)) ([ac1664a](https://github.com/tambo-ai/tambo-cloud/commit/ac1664a3fde5e7e6e5fef4b4e425bb410479879b))
+
+
+### Code Refactoring
+
+* remove deprecated Callout component from docs page ([#554](https://github.com/tambo-ai/tambo-cloud/issues/554)) ([40a1baf](https://github.com/tambo-ai/tambo-cloud/commit/40a1baf6e4aec1b3abc0cbdae2e986d4ad1063e9))
+
 ## [0.25.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.4...repo-v0.25.5) (2025-03-20)
 
 
