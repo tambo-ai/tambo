@@ -257,18 +257,6 @@ export function useTamboComponentState<S>(
 
       // Only trigger server updates if we have a message
       if (message) {
-        updateThreadMessage(
-          messageId,
-          {
-            ...message,
-            componentState: {
-              ...message.componentState,
-              [keyName]: newValue,
-            },
-          },
-          false,
-        );
-
         debouncedSave(newValue);
       } else {
         console.warn(
@@ -277,7 +265,7 @@ export function useTamboComponentState<S>(
         setLastUserValue(null);
       }
     },
-    [debouncedSave, message, messageId, keyName, updateThreadMessage],
+    [debouncedSave, message, messageId, keyName],
   );
 
   // Ensure pending changes are flushed on unmount
