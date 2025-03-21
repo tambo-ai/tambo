@@ -5,6 +5,7 @@ export {
   useTamboCurrentMessage,
   useTamboMessageContext,
 } from "./hooks/use-current-message";
+export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";
 export { useTamboThreadInput } from "./hooks/use-thread-input";
 
