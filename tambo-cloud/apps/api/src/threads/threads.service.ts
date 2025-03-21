@@ -432,7 +432,11 @@ export class ThreadsService {
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   > {
-    const thread = await this.ensureThread(projectId, threadId, undefined);
+    const thread = await this.ensureThread(
+      projectId,
+      threadId,
+      advanceRequestDto.contextKey,
+    );
 
     // Ensure only one request per thread adds its user message and continues
     const addedUserMessage = await this.getDb().transaction(
