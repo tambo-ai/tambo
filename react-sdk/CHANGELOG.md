@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.2](https://github.com/tambo-ai/tambo/compare/react-v0.16.1...react-v0.16.2) (2025-03-21)
+
+
+### Bug Fixes
+
+* expose fetch param from switchthread ([#170](https://github.com/tambo-ai/tambo/issues/170)) ([83f41fe](https://github.com/tambo-ai/tambo/commit/83f41fe41672f4950346dedc7798c64d3849727e))
+
 ## [0.16.1](https://github.com/tambo-ai/tambo/compare/react-v0.16.0...react-v0.16.1) (2025-03-19)
 
 
