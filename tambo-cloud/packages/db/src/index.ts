@@ -15,6 +15,15 @@ function getDb(databaseUrl: string): HydraDatabase {
       connectionString: databaseUrl,
       max: MAX_POOL_SIZE,
     });
+
+    pool.on("acquire", () => {
+      console.log(`Connection acquired (${pool.totalCount}/${pool.idleCount})`);
+    });
+
+    pool.on("release", () => {
+      console.log(`Connection released (${pool.totalCount}/${pool.idleCount})`);
+    });
+
     globalPool = pool;
   }
   console.log(

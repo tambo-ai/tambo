@@ -9,13 +9,16 @@ import {
   MessageRole,
   ThreadMessage,
 } from '@tambo-ai-cloud/core';
-import type { HydraDatabase } from '@tambo-ai-cloud/db';
+import type { HydraDatabase, HydraTransaction } from '@tambo-ai-cloud/db';
 import { operations, schema } from '@tambo-ai-cloud/db';
 import type { DBSuggestion } from '@tambo-ai-cloud/db/src/schema';
 import { generateChainId, HydraBackend } from '@tambo-ai-cloud/hydra-ai-server';
 import { eq } from 'drizzle-orm';
 import { decryptProviderKey } from 'src/common/key.utils';
-import { TRANSACTION } from 'src/common/middleware/db-transaction-middleware';
+import {
+  DATABASE,
+  TRANSACTION,
+} from 'src/common/middleware/db-transaction-middleware';
 import { AvailableComponentDto } from 'src/components/dto/generate-component.dto';
 import { ProjectsService } from 'src/projects/projects.service';
 import { CorrelationLoggerService } from '../common/services/logger.service';
@@ -42,9 +45,15 @@ export class ThreadsService {
   constructor(
     @Inject(TRANSACTION)
     private readonly tx: HydraDatabase,
+    @Inject(DATABASE)
+    private readonly db: HydraDatabase,
     private projectsService: ProjectsService,
     private readonly logger: CorrelationLoggerService,
   ) {}
+
+  getDb() {
+    return this.tx ?? this.db;
+  }
 
   private async getHydraBackend(threadId: string): Promise<HydraBackend> {
     return await this.createHydraBackendForThread(threadId);
@@ -57,7 +66,7 @@ export class ThreadsService {
     const chainId = await generateChainId(threadId);
 
     // Get the thread's project ID from the database
-    const threadData = await this.tx.query.threads.findFirst({
+    const threadData = await this.getDb().query.threads.findFirst({
       where: eq(schema.threads.id, threadId),
     });
 
@@ -75,7 +84,7 @@ export class ThreadsService {
   }
 
   async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
-    const thread = await operations.createThread(this.tx, {
+    const thread = await operations.createThread(this.getDb(), {
       projectId: createThreadDto.projectId,
       contextKey: createThreadDto.contextKey,
       metadata: createThreadDto.metadata,
@@ -97,7 +106,7 @@ export class ThreadsService {
     params: { contextKey?: string; offset?: number; limit?: number } = {},
   ): Promise<Thread[]> {
     const threads = await operations.getThreadsByProject(
-      this.tx,
+      this.getDb(),
       projectId,
       params,
     );
@@ -117,12 +126,16 @@ export class ThreadsService {
     projectId: string,
     params: { contextKey?: string } = {},
   ): Promise<number> {
-    return await operations.countThreadsByProject(this.tx, projectId, params);
+    return await operations.countThreadsByProject(
+      this.getDb(),
+      projectId,
+      params,
+    );
   }
 
   async findOne(id: string, projectId: string): Promise<ThreadWithMessagesDto> {
     const thread = await operations.getThreadForProjectId(
-      this.tx,
+      this.getDb(),
       id,
       projectId,
     );
@@ -155,7 +168,7 @@ export class ThreadsService {
   }
 
   async update(id: string, updateThreadDto: ThreadRequest) {
-    const thread = await operations.updateThread(this.tx, id, {
+    const thread = await operations.updateThread(this.getDb(), id, {
       contextKey: updateThreadDto.contextKey,
       metadata: updateThreadDto.metadata,
       generationStage: updateThreadDto.generationStage,
@@ -168,22 +181,24 @@ export class ThreadsService {
     id: string,
     generationStage: GenerationStage,
     statusMessage?: string,
+    tx?: HydraTransaction,
   ) {
-    return await operations.updateThread(this.tx, id, {
+    return await operations.updateThread(tx ?? this.getDb(), id, {
       generationStage,
       statusMessage,
     });
   }
 
   async remove(id: string) {
-    return await operations.deleteThread(this.tx, id);
+    return await operations.deleteThread(this.getDb(), id);
   }
 
   async addMessage(
     threadId: string,
     messageDto: MessageRequest,
+    tx?: HydraTransaction,
   ): Promise<ThreadMessageDto> {
-    const message = await operations.addMessage(this.tx, {
+    const message = await operations.addMessage(tx ?? this.getDb(), {
       threadId,
       role: messageDto.role,
       content: convertContentDtoToContentPart(messageDto.content),
@@ -217,7 +232,7 @@ export class ThreadsService {
     includeInternal: boolean = false,
   ): Promise<ThreadMessageDto[]> {
     const messages = await operations.getMessages(
-      this.tx,
+      this.getDb(),
       threadId,
       includeInternal,
     );
@@ -236,15 +251,20 @@ export class ThreadsService {
   async updateMessage(
     messageId: string,
     messageDto: MessageRequest,
+    tx?: HydraTransaction,
   ): Promise<ThreadMessageDto> {
-    const message = await operations.updateMessage(this.tx, messageId, {
-      content: convertContentDtoToContentPart(messageDto.content),
-      componentDecision: messageDto.component ?? undefined,
-      metadata: messageDto.metadata,
-      actionType: messageDto.actionType ?? undefined,
-      toolCallRequest: messageDto.toolCallRequest,
-      toolCallId: messageDto.tool_call_id ?? undefined,
-    });
+    const message = await operations.updateMessage(
+      tx ?? this.getDb(),
+      messageId,
+      {
+        content: convertContentDtoToContentPart(messageDto.content),
+        componentDecision: messageDto.component ?? undefined,
+        metadata: messageDto.metadata,
+        actionType: messageDto.actionType ?? undefined,
+        toolCallRequest: messageDto.toolCallRequest,
+        toolCallId: messageDto.tool_call_id ?? undefined,
+      },
+    );
     return {
       ...message,
       content: convertContentPartToDto(message.content),
@@ -257,16 +277,19 @@ export class ThreadsService {
   }
 
   async deleteMessage(messageId: string) {
-    await operations.deleteMessage(this.tx, messageId);
+    await operations.deleteMessage(this.getDb(), messageId);
   }
 
   async ensureThreadByProjectId(threadId: string, projectId: string) {
-    await operations.ensureThreadByProjectId(this.tx, threadId, projectId);
+    await operations.ensureThreadByProjectId(this.getDb(), threadId, projectId);
   }
 
   private async getMessage(messageId: string) {
     try {
-      const message = await operations.getMessageWithAccess(this.tx, messageId);
+      const message = await operations.getMessageWithAccess(
+        this.getDb(),
+        messageId,
+      );
       if (!message) {
         this.logger.warn(`Message not found: ${messageId}`);
         throw new InvalidSuggestionRequestError('Message not found');
@@ -287,7 +310,10 @@ export class ThreadsService {
     await this.getMessage(messageId);
 
     try {
-      const suggestions = await operations.getSuggestions(this.tx, messageId);
+      const suggestions = await operations.getSuggestions(
+        this.getDb(),
+        messageId,
+      );
       if (!suggestions || suggestions.length === 0) {
         throw new SuggestionNotFoundException(messageId);
       }
@@ -334,7 +360,7 @@ export class ThreadsService {
       }
 
       const savedSuggestions = await operations.createSuggestions(
-        this.tx,
+        this.getDb(),
         suggestions.suggestions.map((suggestion) => ({
           messageId,
           title: suggestion.title,
@@ -369,12 +395,13 @@ export class ThreadsService {
       detailedSuggestion: suggestion.detailedSuggestion,
     };
   }
+
   async updateComponentState(
     messageId: string,
     newState: Record<string, unknown>,
   ): Promise<ThreadMessageDto> {
     const message = await operations.updateMessageComponentState(
-      this.tx,
+      this.getDb(),
       messageId,
       newState,
     );
@@ -406,7 +433,43 @@ export class ThreadsService {
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   > {
     const thread = await this.ensureThread(projectId, threadId, undefined);
-    await this.addMessage(thread.id, advanceRequestDto.messageToAppend);
+
+    // Ensure only one request per thread adds its user message and continues
+    const addedUserMessage = await this.getDb().transaction(
+      async (tx) => {
+        const [currentThread] = await tx
+          .select()
+          .from(schema.threads)
+          .where(eq(schema.threads.id, thread.id))
+          .for('update');
+
+        if (
+          currentThread.generationStage ===
+            GenerationStage.STREAMING_RESPONSE ||
+          currentThread.generationStage ===
+            GenerationStage.HYDRATING_COMPONENT ||
+          currentThread.generationStage === GenerationStage.CHOOSING_COMPONENT
+        ) {
+          throw new Error(
+            'Thread is already in processing, only one response can be generated at a time',
+          );
+        }
+
+        await operations.updateThread(tx, thread.id, {
+          generationStage: GenerationStage.CHOOSING_COMPONENT,
+          statusMessage: 'Starting processing...',
+        });
+
+        return await this.addMessage(
+          thread.id,
+          advanceRequestDto.messageToAppend,
+          tx,
+        );
+      },
+      {
+        isolationLevel: 'serializable',
+      },
+    );
 
     // Use the shared method to create the HydraBackend instance
     const hydraBackend = await this.createHydraBackendForThread(thread.id, {
@@ -481,6 +544,7 @@ export class ThreadsService {
         return this.handleAdvanceThreadStream(
           thread.id,
           streamedResponseMessage,
+          addedUserMessage,
           latestMessage.tool_call_id,
         );
       } else {
@@ -508,6 +572,7 @@ export class ThreadsService {
         return this.handleAdvanceThreadStream(
           thread.id,
           streamedResponseMessage,
+          addedUserMessage,
         );
       } else {
         responseMessage = await hydraBackend.generateComponent(
@@ -518,20 +583,47 @@ export class ThreadsService {
       }
     }
 
-    const responseMessageDto = await this.addResponseToThread(
-      thread.id,
-      responseMessage as LegacyComponentDecision,
-    );
-    const resultingGenerationStage = responseMessageDto.toolCallRequest
-      ? GenerationStage.FETCHING_CONTEXT
-      : GenerationStage.COMPLETE;
-    const resultingStatusMessage = responseMessageDto.toolCallRequest
-      ? `Fetching context...`
-      : `Generation complete`;
-    await this.updateGenerationStage(
-      thread.id,
+    const {
+      responseMessageDto,
       resultingGenerationStage,
       resultingStatusMessage,
+    } = await this.getDb().transaction(
+      async (tx) => {
+        await this.verifyLatestMessageConsistency(
+          tx,
+          thread.id,
+          addedUserMessage,
+        );
+
+        const responseMessageDto = await this.addResponseToThread(
+          thread.id,
+          responseMessage,
+          tx,
+        );
+
+        const resultingGenerationStage = responseMessage.toolCallRequest
+          ? GenerationStage.FETCHING_CONTEXT
+          : GenerationStage.COMPLETE;
+        const resultingStatusMessage = responseMessage.toolCallRequest
+          ? `Fetching context...`
+          : `Generation complete`;
+
+        await this.updateGenerationStage(
+          thread.id,
+          resultingGenerationStage,
+          resultingStatusMessage,
+          tx,
+        );
+
+        return {
+          responseMessageDto,
+          resultingGenerationStage,
+          resultingStatusMessage,
+        };
+      },
+      {
+        isolationLevel: 'serializable',
+      },
     );
 
     return {
@@ -541,9 +633,40 @@ export class ThreadsService {
     };
   }
 
+  private async verifyLatestMessageConsistency(
+    tx: HydraTransaction,
+    threadId: string,
+    addedUserMessage: ThreadMessageDto,
+    inProgressMessageId?: string,
+  ) {
+    const latestMessages = await tx.query.messages.findMany({
+      where: eq(schema.messages.threadId, threadId),
+      orderBy: (messages, { desc }) => [desc(messages.createdAt)],
+    });
+
+    // If we have an in-progress message (streaming), we need to check the message before it
+    // Otherwise, we check the latest message
+    const messageToCheck = inProgressMessageId
+      ? latestMessages[1] // Check message before our in-progress message
+      : latestMessages[0]; // Check latest message directly
+
+    if (
+      !(
+        messageToCheck.id === addedUserMessage.id &&
+        messageToCheck.createdAt.toISOString() ===
+          addedUserMessage.createdAt.toISOString()
+      )
+    ) {
+      throw new Error(
+        'Latest message before write is not the same as the added user message',
+      );
+    }
+  }
+
   private async *handleAdvanceThreadStream(
     threadId: string,
     stream: AsyncIterableIterator<LegacyComponentDecision>,
+    addedUserMessage: ThreadMessageDto,
     toolCallId?: string,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     let finalResponse:
@@ -562,17 +685,33 @@ export class ThreadsService {
       `Streaming response...`,
     );
 
-    const inProgressMessage = await this.addMessage(threadId, {
-      role: MessageRole.Hydra,
-      content: [
-        { type: ContentPartType.Text, text: 'streaming in progress...' },
-      ],
-      component: undefined,
-      actionType: undefined,
-      toolCallRequest: undefined,
-      tool_call_id: toolCallId,
-      metadata: {},
-    });
+    const inProgressMessage = await this.getDb().transaction(
+      async (tx) => {
+        await this.verifyLatestMessageConsistency(
+          tx,
+          threadId,
+          addedUserMessage,
+        );
+
+        return await this.addMessage(
+          threadId,
+          {
+            role: MessageRole.Hydra,
+            content: [
+              { type: ContentPartType.Text, text: 'streaming in progress...' },
+            ],
+            actionType: undefined,
+            toolCallRequest: undefined,
+            tool_call_id: toolCallId,
+            metadata: {},
+          },
+          tx,
+        );
+      },
+      {
+        isolationLevel: 'serializable',
+      },
+    );
 
     for await (const chunk of stream) {
       finalResponse = {
@@ -601,11 +740,25 @@ export class ThreadsService {
 
       // Update db message on interval
       if (currentTime - lastUpdateTime >= updateIntervalMs) {
-        await this.updateMessage(
-          inProgressMessage.id,
-          finalResponse.responseMessageDto,
+        await this.getDb().transaction(
+          async (tx) => {
+            await this.verifyLatestMessageConsistency(
+              tx,
+              threadId,
+              addedUserMessage,
+              inProgressMessage.id,
+            );
+            await this.updateMessage(
+              inProgressMessage.id,
+              finalResponse!.responseMessageDto,
+              tx,
+            );
+            lastUpdateTime = currentTime;
+          },
+          {
+            isolationLevel: 'serializable',
+          },
         );
-        lastUpdateTime = currentTime;
       }
 
       yield {
@@ -616,23 +769,43 @@ export class ThreadsService {
     }
 
     if (finalResponse) {
-      await this.updateMessage(
-        inProgressMessage.id,
-        finalResponse.responseMessageDto,
-      );
-      const resultingGenerationStage = finalResponse.responseMessageDto
-        .toolCallRequest
-        ? GenerationStage.FETCHING_CONTEXT
-        : GenerationStage.COMPLETE;
-      const resultingStatusMessage = finalResponse.responseMessageDto
-        .toolCallRequest
-        ? `Fetching context...`
-        : `Complete`;
-      await this.updateGenerationStage(
-        threadId,
-        resultingGenerationStage,
-        resultingStatusMessage,
-      );
+      const { resultingGenerationStage, resultingStatusMessage } =
+        await this.getDb().transaction(
+          async (tx) => {
+            await this.verifyLatestMessageConsistency(
+              tx,
+              threadId,
+              addedUserMessage,
+              inProgressMessage.id,
+            );
+            await this.updateMessage(
+              inProgressMessage.id,
+              finalResponse.responseMessageDto,
+              tx,
+            );
+
+            const resultingGenerationStage = finalResponse.responseMessageDto
+              .toolCallRequest
+              ? GenerationStage.FETCHING_CONTEXT
+              : GenerationStage.COMPLETE;
+            const resultingStatusMessage = finalResponse.responseMessageDto
+              .toolCallRequest
+              ? `Fetching context...`
+              : `Complete`;
+
+            await this.updateGenerationStage(
+              threadId,
+              resultingGenerationStage,
+              resultingStatusMessage,
+              tx,
+            );
+            return { resultingGenerationStage, resultingStatusMessage };
+          },
+          {
+            isolationLevel: 'serializable',
+          },
+        );
+
       yield {
         responseMessageDto: finalResponse.responseMessageDto,
         generationStage: resultingGenerationStage,
@@ -687,15 +860,20 @@ export class ThreadsService {
   private async addResponseToThread(
     threadId: string,
     component: LegacyComponentDecision,
+    tx?: HydraTransaction,
   ) {
-    return await this.addMessage(threadId, {
-      role: MessageRole.Hydra,
-      content: [{ type: ContentPartType.Text, text: component.message }],
-      component: component,
-      actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
-      toolCallRequest: component.toolCallRequest,
-      tool_call_id: component.toolCallRequest?.tool_call_id,
-    });
+    return await this.addMessage(
+      threadId,
+      {
+        role: MessageRole.Hydra,
+        content: [{ type: ContentPartType.Text, text: component.message }],
+        component: component,
+        actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
+        toolCallRequest: component.toolCallRequest,
+        tool_call_id: component.toolCallRequest?.tool_call_id,
+      },
+      tx,
+    );
   }
 }
 

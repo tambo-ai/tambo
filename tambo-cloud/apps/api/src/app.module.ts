@@ -3,6 +3,7 @@ import {
   MiddlewareConsumer,
   Module,
   OnModuleInit,
+  RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppService } from './app.service';
@@ -51,6 +52,14 @@ export class AppModule implements OnModuleInit {
 
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(RequestLoggerMiddleware).forRoutes('*');
-    consumer.apply(TransactionMiddleware).forRoutes('*');
+    consumer
+      .apply(TransactionMiddleware)
+      .exclude(
+        { path: '/threads/:id/advancestream', method: RequestMethod.POST },
+        { path: '/threads/:id/advance', method: RequestMethod.POST },
+        { path: '/threads/advancestream', method: RequestMethod.POST },
+        { path: '/threads/advance', method: RequestMethod.POST },
+      )
+      .forRoutes('*');
   }
 }

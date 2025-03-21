@@ -1,8 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { HydraTransaction } from '@tambo-ai-cloud/db';
+import type { HydraDatabase, HydraTransaction } from '@tambo-ai-cloud/db';
 import { operations } from '@tambo-ai-cloud/db';
-import { TRANSACTION } from 'src/common/middleware/db-transaction-middleware';
+import {
+  DATABASE,
+  TRANSACTION,
+} from 'src/common/middleware/db-transaction-middleware';
 import { APIKeyResponse } from './dto/api-key-response.dto';
 import { ProjectResponse } from './dto/project-response.dto';
 import { ProviderKeyResponse } from './dto/provider-key-response.dto';
@@ -13,8 +16,14 @@ export class ProjectsService {
   constructor(
     @Inject(TRANSACTION)
     private readonly tx: HydraTransaction,
+    @Inject(DATABASE)
+    private readonly db: HydraDatabase,
     private readonly config: ConfigService,
   ) {}
+
+  getDb() {
+    return this.tx ?? this.db;
+  }
 
   async create(createProjectDto: {
     name: string;
@@ -24,7 +33,7 @@ export class ProjectsService {
       throw new Error('User ID is required');
     }
 
-    const project = await operations.createProject(this.tx, {
+    const project = await operations.createProject(this.getDb(), {
       name: createProjectDto.name ?? 'New Project',
       userId: createProjectDto.userId,
     });
@@ -37,7 +46,7 @@ export class ProjectsService {
   }
 
   async findAllForUser(userId: string): Promise<ProjectResponse[]> {
-    const projects = await operations.getProjectsForUser(this.tx, userId);
+    const projects = await operations.getProjectsForUser(this.getDb(), userId);
     return projects.map((project) => ({
       id: project.id,
       name: project.name,
@@ -46,7 +55,7 @@ export class ProjectsService {
   }
 
   async findOne(id: string): Promise<ProjectResponse | undefined> {
-    const project = await operations.getProject(this.tx, id);
+    const project = await operations.getProject(this.getDb(), id);
     if (!project || !project.members?.[0]) {
       return undefined;
     }
@@ -58,7 +67,7 @@ export class ProjectsService {
   }
 
   async findOneWithKeys(id: string): Promise<Project | null> {
-    const project = await operations.getProjectWithKeys(this.tx, id);
+    const project = await operations.getProjectWithKeys(this.getDb(), id);
     if (!project || !project.members?.[0]) {
       return null;
     }
@@ -103,7 +112,7 @@ export class ProjectsService {
       throw new Error('Project name is required');
     }
 
-    const updated = await operations.updateProject(this.tx, id, {
+    const updated = await operations.updateProject(this.getDb(), id, {
       name: updateProjectDto.name,
     });
     if (!updated) {
@@ -117,7 +126,7 @@ export class ProjectsService {
   }
 
   async remove(id: string): Promise<boolean> {
-    return await operations.deleteProject(this.tx, id);
+    return await operations.deleteProject(this.getDb(), id);
   }
 
   async generateApiKey(
@@ -126,7 +135,7 @@ export class ProjectsService {
     name: string,
   ): Promise<string> {
     const apiKeySecret = this.config.getOrThrow('API_KEY_SECRET');
-    return await operations.createApiKey(this.tx, apiKeySecret, {
+    return await operations.createApiKey(this.getDb(), apiKeySecret, {
       projectId,
       userId,
       name,
@@ -134,7 +143,7 @@ export class ProjectsService {
   }
 
   async findAllApiKeys(projectId: string): Promise<APIKeyResponse[]> {
-    const apiKeys = await operations.getApiKeys(this.tx, projectId);
+    const apiKeys = await operations.getApiKeys(this.getDb(), projectId);
     return apiKeys.map((apiKey) => ({
       id: apiKey.id,
       name: apiKey.name,
@@ -151,7 +160,7 @@ export class ProjectsService {
     hashedKey: string,
     lastUsed: Date,
   ): Promise<void> {
-    await operations.updateApiKeyLastUsed(this.tx, {
+    await operations.updateApiKeyLastUsed(this.getDb(), {
       projectId,
       hashedKey,
       lastUsed,
@@ -159,14 +168,18 @@ export class ProjectsService {
   }
 
   async removeApiKey(projectId: string, apiKeyId: string): Promise<boolean> {
-    return await operations.deleteApiKey(this.tx, projectId, apiKeyId);
+    return await operations.deleteApiKey(this.getDb(), projectId, apiKeyId);
   }
 
   async validateApiKey(
     projectId: string,
     providedApiKey: string,
   ): Promise<boolean> {
-    return await operations.validateApiKey(this.tx, projectId, providedApiKey);
+    return await operations.validateApiKey(
+      this.getDb(),
+      projectId,
+      providedApiKey,
+    );
   }
 
   async addProviderKey(
@@ -176,12 +189,16 @@ export class ProjectsService {
     userId: string,
   ): Promise<ProjectResponse> {
     const providerKeySecret = this.config.getOrThrow('PROVIDER_KEY_SECRET');
-    const result = await operations.addProviderKey(this.tx, providerKeySecret, {
-      projectId,
-      providerName,
-      providerKey,
-      userId,
-    });
+    const result = await operations.addProviderKey(
+      this.getDb(),
+      providerKeySecret,
+      {
+        projectId,
+        providerName,
+        providerKey,
+        userId,
+      },
+    );
     if (!result) {
       throw new Error('Failed to add provider key');
     }
@@ -193,7 +210,10 @@ export class ProjectsService {
   }
 
   async findAllProviderKeys(projectId: string): Promise<ProviderKeyResponse[]> {
-    const providerKeys = await operations.getProviderKeys(this.tx, projectId);
+    const providerKeys = await operations.getProviderKeys(
+      this.getDb(),
+      projectId,
+    );
     return providerKeys.map((providerKey) => ({
       id: providerKey.id,
       providerName: providerKey.providerName,
@@ -206,7 +226,7 @@ export class ProjectsService {
     projectId: string,
     providerKeyId: string,
   ): Promise<ProjectResponse> {
-    await operations.deleteProviderKey(this.tx, projectId, providerKeyId);
+    await operations.deleteProviderKey(this.getDb(), projectId, providerKeyId);
     const project = await this.findOneWithKeys(projectId);
     if (!project) {
       throw new Error('Project not found');
