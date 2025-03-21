@@ -6,7 +6,40 @@ One of the core features of Tambo is its ability to intelligently respond to use
 
 Tambo does not, however, generate components from scratch on-the-fly. Instead, you "tell" Tambo which components are available and what props they expect using a `registerComponent` call.
 
-The `@tambo-ai/react` package provides hooks to help with this. Here's an example that uses the `registerComponent` function from the `useTamboRegistry()` hook to tell Tambo about a WeatherDisplay component:
+The `@tambo-ai/react` package provides hooks to help with this.
+
+## Component Registration
+
+You can pass a list of components directly to the `TamboProvider` component. All of the components will be visible to the various Tambo hooks and components that are rendered inside `<TamboProvider>`.
+
+```tsx title="layout.tsx"
+const components: TamboComponent[] = [
+  {
+    name: "WeatherDisplay",
+    description: "A display of the weather in a city",
+    component: WeatherDisplay,
+    propsDefinition: {
+      data: "{ date: string; day: { maxtemp_c: number; mintemp_c: number; avgtemp_c: number; maxwind_kph: number; totalprecip_mm: number; avghumidity: number; condition: { text: string; icon: string } } }",
+    }, // The shape of the props this component expects
+    associatedTools: [tools.forecast, tools.history], // Any context tools that Tambo should focus on when getting extra information to fill in the props of this component
+  },
+];
+
+<TamboProvider components={components}>
+  <App />
+</TamboProvider>;
+```
+
+When creating the list of components, you may not yet have access to the tools callbacks that you need, because they may need additional context or authentication.
+
+You can still register the component without the tools using this approach, and then register the tools later with `addToolAssociation`. See the [Tools](/docs/concepts/tools) documentation for more information.
+
+## Dynamic Component Registration
+
+An alternative approach to the above is to register the components dynamically. This is useful if you need to register components at runtime, or if you need to register components with tools that are not yet available.
+
+Note that when you register a component dynamically, it makes these tools available to all components within the the `<TamboProvider>` component.
+Here's an example that uses the `registerComponent` function from the `useTamboRegistry()` hook to tell Tambo about a WeatherDisplay component:
 
 ```tsx title="page.tsx"
 const { registerComponent } = useTamboRegistry();
@@ -21,7 +54,7 @@ useEffect(() => {
     }, // The shape of the props this component expects
     associatedTools: [tools.forecast, tools.history], // Any context tools that Tambo should focus on when getting extra information to fill in the props of this component
   });
-}, []);
+}, [registerComponent]);
 ```
 
 Now when a user sends a message asking about the weather in a city, Tambo can respond with this WeatherDisplay component!
