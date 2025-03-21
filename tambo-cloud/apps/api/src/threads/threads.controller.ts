@@ -288,17 +288,22 @@ export class ThreadsController {
     if (!request.projectId) {
       throw new BadRequestException('Project ID is required');
     }
-    const stream = (await this.threadsService.advanceThread(
-      request.projectId,
-      advanceRequestDto,
-      threadId,
-      true,
-    )) as AsyncIterableIterator<{
-      responseMessageDto: ThreadMessageDto;
-      generationStage: GenerationStage;
-    }>;
+    try {
+      const stream = (await this.threadsService.advanceThread(
+        request.projectId,
+        advanceRequestDto,
+        threadId,
+        true,
+      )) as AsyncIterableIterator<{
+        responseMessageDto: ThreadMessageDto;
+        generationStage: GenerationStage;
+      }>;
 
-    await this.handleAdvanceStream(response, stream);
+      await this.handleAdvanceStream(response, stream);
+    } catch (error: any) {
+      response.write(`error: ${error.message}\n\n`);
+      throw error;
+    }
   }
 
   /**
@@ -330,16 +335,21 @@ export class ThreadsController {
     if (!request.projectId) {
       throw new BadRequestException('Project ID is required');
     }
-    const stream = (await this.threadsService.advanceThread(
-      request.projectId,
-      advanceRequestDto,
-      undefined,
-      true,
-    )) as AsyncIterableIterator<{
-      responseMessageDto: ThreadMessageDto;
-      generationStage: GenerationStage;
-    }>;
-    await this.handleAdvanceStream(response, stream);
+    try {
+      const stream = (await this.threadsService.advanceThread(
+        request.projectId,
+        advanceRequestDto,
+        undefined,
+        true,
+      )) as AsyncIterableIterator<{
+        responseMessageDto: ThreadMessageDto;
+        generationStage: GenerationStage;
+      }>;
+      await this.handleAdvanceStream(response, stream);
+    } catch (error: any) {
+      response.write(`error: ${error.message}\n\n`);
+      throw error;
+    }
   }
 
   private async handleAdvanceStream(

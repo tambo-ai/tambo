@@ -439,41 +439,49 @@ export class ThreadsService {
     );
 
     // Ensure only one request per thread adds its user message and continues
-    const addedUserMessage = await this.getDb().transaction(
-      async (tx) => {
-        const [currentThread] = await tx
-          .select()
-          .from(schema.threads)
-          .where(eq(schema.threads.id, thread.id))
-          .for('update');
+    const addedUserMessage = await this.getDb()
+      .transaction(
+        async (tx) => {
+          const [currentThread] = await tx
+            .select()
+            .from(schema.threads)
+            .where(eq(schema.threads.id, thread.id))
+            .for('update');
 
-        if (
-          currentThread.generationStage ===
-            GenerationStage.STREAMING_RESPONSE ||
-          currentThread.generationStage ===
-            GenerationStage.HYDRATING_COMPONENT ||
-          currentThread.generationStage === GenerationStage.CHOOSING_COMPONENT
-        ) {
-          throw new Error(
-            'Thread is already in processing, only one response can be generated at a time',
+          if (
+            currentThread.generationStage ===
+              GenerationStage.STREAMING_RESPONSE ||
+            currentThread.generationStage ===
+              GenerationStage.HYDRATING_COMPONENT ||
+            currentThread.generationStage === GenerationStage.CHOOSING_COMPONENT
+          ) {
+            throw new Error(
+              'Thread is already in processing, only one response can be generated at a time',
+            );
+          }
+
+          await operations.updateThread(tx, thread.id, {
+            generationStage: GenerationStage.CHOOSING_COMPONENT,
+            statusMessage: 'Starting processing...',
+          });
+
+          return await this.addMessage(
+            thread.id,
+            advanceRequestDto.messageToAppend,
+            tx,
           );
-        }
-
-        await operations.updateThread(tx, thread.id, {
-          generationStage: GenerationStage.CHOOSING_COMPONENT,
-          statusMessage: 'Starting processing...',
-        });
-
-        return await this.addMessage(
-          thread.id,
-          advanceRequestDto.messageToAppend,
-          tx,
+        },
+        {
+          isolationLevel: 'repeatable read',
+        },
+      )
+      .catch((error) => {
+        this.logger.error(
+          'Transaction failed: Adding user message',
+          error.stack,
         );
-      },
-      {
-        isolationLevel: 'serializable',
-      },
-    );
+        throw error;
+      });
 
     // Use the shared method to create the HydraBackend instance
     const hydraBackend = await this.createHydraBackendForThread(thread.id, {
@@ -591,44 +599,52 @@ export class ThreadsService {
       responseMessageDto,
       resultingGenerationStage,
       resultingStatusMessage,
-    } = await this.getDb().transaction(
-      async (tx) => {
-        await this.verifyLatestMessageConsistency(
-          tx,
-          thread.id,
-          addedUserMessage,
+    } = await this.getDb()
+      .transaction(
+        async (tx) => {
+          await this.verifyLatestMessageConsistency(
+            tx,
+            thread.id,
+            addedUserMessage,
+          );
+
+          const responseMessageDto = await this.addResponseToThread(
+            thread.id,
+            responseMessage,
+            tx,
+          );
+
+          const resultingGenerationStage = responseMessage.toolCallRequest
+            ? GenerationStage.FETCHING_CONTEXT
+            : GenerationStage.COMPLETE;
+          const resultingStatusMessage = responseMessage.toolCallRequest
+            ? `Fetching context...`
+            : `Generation complete`;
+
+          await this.updateGenerationStage(
+            thread.id,
+            resultingGenerationStage,
+            resultingStatusMessage,
+            tx,
+          );
+
+          return {
+            responseMessageDto,
+            resultingGenerationStage,
+            resultingStatusMessage,
+          };
+        },
+        {
+          isolationLevel: 'repeatable read',
+        },
+      )
+      .catch((error) => {
+        this.logger.error(
+          'Transaction failed: Adding response to thread',
+          error.stack,
         );
-
-        const responseMessageDto = await this.addResponseToThread(
-          thread.id,
-          responseMessage,
-          tx,
-        );
-
-        const resultingGenerationStage = responseMessage.toolCallRequest
-          ? GenerationStage.FETCHING_CONTEXT
-          : GenerationStage.COMPLETE;
-        const resultingStatusMessage = responseMessage.toolCallRequest
-          ? `Fetching context...`
-          : `Generation complete`;
-
-        await this.updateGenerationStage(
-          thread.id,
-          resultingGenerationStage,
-          resultingStatusMessage,
-          tx,
-        );
-
-        return {
-          responseMessageDto,
-          resultingGenerationStage,
-          resultingStatusMessage,
-        };
-      },
-      {
-        isolationLevel: 'serializable',
-      },
-    );
+        throw error;
+      });
 
     return {
       responseMessageDto,
@@ -689,33 +705,44 @@ export class ThreadsService {
       `Streaming response...`,
     );
 
-    const inProgressMessage = await this.getDb().transaction(
-      async (tx) => {
-        await this.verifyLatestMessageConsistency(
-          tx,
-          threadId,
-          addedUserMessage,
-        );
+    const inProgressMessage = await this.getDb()
+      .transaction(
+        async (tx) => {
+          await this.verifyLatestMessageConsistency(
+            tx,
+            threadId,
+            addedUserMessage,
+          );
 
-        return await this.addMessage(
-          threadId,
-          {
-            role: MessageRole.Hydra,
-            content: [
-              { type: ContentPartType.Text, text: 'streaming in progress...' },
-            ],
-            actionType: undefined,
-            toolCallRequest: undefined,
-            tool_call_id: toolCallId,
-            metadata: {},
-          },
-          tx,
+          return await this.addMessage(
+            threadId,
+            {
+              role: MessageRole.Hydra,
+              content: [
+                {
+                  type: ContentPartType.Text,
+                  text: 'streaming in progress...',
+                },
+              ],
+              actionType: undefined,
+              toolCallRequest: undefined,
+              tool_call_id: toolCallId,
+              metadata: {},
+            },
+            tx,
+          );
+        },
+        {
+          isolationLevel: 'repeatable read',
+        },
+      )
+      .catch((error) => {
+        this.logger.error(
+          'Transaction failed: Creating in-progress message',
+          error.stack,
         );
-      },
-      {
-        isolationLevel: 'serializable',
-      },
-    );
+        throw error;
+      });
 
     for await (const chunk of stream) {
       finalResponse = {
@@ -744,25 +771,33 @@ export class ThreadsService {
 
       // Update db message on interval
       if (currentTime - lastUpdateTime >= updateIntervalMs) {
-        await this.getDb().transaction(
-          async (tx) => {
-            await this.verifyLatestMessageConsistency(
-              tx,
-              threadId,
-              addedUserMessage,
-              inProgressMessage.id,
+        await this.getDb()
+          .transaction(
+            async (tx) => {
+              await this.verifyLatestMessageConsistency(
+                tx,
+                threadId,
+                addedUserMessage,
+                inProgressMessage.id,
+              );
+              await this.updateMessage(
+                inProgressMessage.id,
+                finalResponse!.responseMessageDto,
+                tx,
+              );
+              lastUpdateTime = currentTime;
+            },
+            {
+              isolationLevel: 'repeatable read',
+            },
+          )
+          .catch((error) => {
+            this.logger.error(
+              'Transaction failed: Updating streamed message',
+              error.stack,
             );
-            await this.updateMessage(
-              inProgressMessage.id,
-              finalResponse!.responseMessageDto,
-              tx,
-            );
-            lastUpdateTime = currentTime;
-          },
-          {
-            isolationLevel: 'serializable',
-          },
-        );
+            throw error;
+          });
       }
 
       yield {
@@ -774,41 +809,50 @@ export class ThreadsService {
 
     if (finalResponse) {
       const { resultingGenerationStage, resultingStatusMessage } =
-        await this.getDb().transaction(
-          async (tx) => {
-            await this.verifyLatestMessageConsistency(
-              tx,
-              threadId,
-              addedUserMessage,
-              inProgressMessage.id,
-            );
-            await this.updateMessage(
-              inProgressMessage.id,
-              finalResponse.responseMessageDto,
-              tx,
-            );
+        await this.getDb()
+          .transaction(
+            async (tx) => {
+              await this.verifyLatestMessageConsistency(
+                tx,
+                threadId,
+                addedUserMessage,
+                inProgressMessage.id,
+              );
 
-            const resultingGenerationStage = finalResponse.responseMessageDto
-              .toolCallRequest
-              ? GenerationStage.FETCHING_CONTEXT
-              : GenerationStage.COMPLETE;
-            const resultingStatusMessage = finalResponse.responseMessageDto
-              .toolCallRequest
-              ? `Fetching context...`
-              : `Complete`;
+              await this.updateMessage(
+                inProgressMessage.id,
+                finalResponse.responseMessageDto,
+                tx,
+              );
 
-            await this.updateGenerationStage(
-              threadId,
-              resultingGenerationStage,
-              resultingStatusMessage,
-              tx,
+              const resultingGenerationStage = finalResponse.responseMessageDto
+                .toolCallRequest
+                ? GenerationStage.FETCHING_CONTEXT
+                : GenerationStage.COMPLETE;
+              const resultingStatusMessage = finalResponse.responseMessageDto
+                .toolCallRequest
+                ? `Fetching context...`
+                : `Complete`;
+
+              await this.updateGenerationStage(
+                threadId,
+                resultingGenerationStage,
+                resultingStatusMessage,
+                tx,
+              );
+              return { resultingGenerationStage, resultingStatusMessage };
+            },
+            {
+              isolationLevel: 'repeatable read',
+            },
+          )
+          .catch((error) => {
+            this.logger.error(
+              'Transaction failed: Finalizing streamed message',
+              error.stack,
             );
-            return { resultingGenerationStage, resultingStatusMessage };
-          },
-          {
-            isolationLevel: 'serializable',
-          },
-        );
+            throw error;
+          });
 
       yield {
         responseMessageDto: finalResponse.responseMessageDto,
