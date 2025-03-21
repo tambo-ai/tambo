@@ -355,9 +355,7 @@ export class ThreadsController {
       }
     } catch (error: any) {
       console.error(error);
-      response.write(
-        `event: error\ndata: ${JSON.stringify({ error: error.message })}\n\n`,
-      );
+      response.write(`error: ${error.message}\n\n`);
     } finally {
       response.write('data: DONE\n\n');
       response.end();
