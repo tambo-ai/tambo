@@ -3,63 +3,98 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import {
+  useTamboComponentState,
+  useTamboStreamingProps,
+} from "@tambo-ai/react";
 import { z } from "zod";
 
 // Schema with descriptions to help Tambo understand the component
-export const formSchemaTambo = z.object({
-  firstName: z.string().optional().describe("First name of the subscriber"),
-  lastName: z.string().optional().describe("Last name of the subscriber"),
-  title: z.string().optional().describe("Job title of the subscriber"),
-  email: z.string().optional().describe("Email address of the subscriber"),
+export const SubscribeFormProps = z.object({
+  firstName: z
+    .string()
+    .optional()
+    .default("")
+    .describe("First name of the subscriber"),
+  lastName: z
+    .string()
+    .optional()
+    .default("")
+    .describe("Last name of the subscriber"),
+  title: z
+    .string()
+    .optional()
+    .default("")
+    .describe("Job title of the subscriber"),
+  email: z
+    .string()
+    .optional()
+    .default("")
+    .describe("Email address of the subscriber"),
 });
 
-export type FormDataTambo = z.infer<typeof formSchemaTambo>;
+export type FormDataTambo = z.infer<typeof SubscribeFormProps>;
 
-export function SubscribeForm(props: Partial<FormDataTambo>) {
-  // Initialize form state
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    title: "",
-    email: "",
+interface SubscribeFormState {
+  firstName: string;
+  lastName: string;
+  title: string;
+  email: string;
+  isSubmitting: boolean;
+  success: boolean;
+  message: string | null;
+  error: string | null;
+}
+
+export function SubscribeForm({
+  firstName = "",
+  lastName = "",
+  title = "",
+  email = "",
+}: FormDataTambo) {
+  // Use Tambo's state management hook with a unique key
+  const [formState, setFormState] = useTamboComponentState<SubscribeFormState>(
+    "subscribe-form-state",
+    {
+      firstName: "",
+      lastName: "",
+      title: "",
+      email: "",
+      isSubmitting: false,
+      success: false,
+      message: null,
+      error: null,
+    },
+  );
+
+  // Use Tambo's streaming props hook to handle prop updates
+  useTamboStreamingProps(formState, setFormState, {
+    firstName,
+    lastName,
+    title,
+    email,
   });
-
-  const [status, setStatus] = useState({
-    isSubmitting: false,
-    success: false,
-    message: null as string | null,
-    error: null as string | null,
-  });
-
-  // Update form data when props change
-  useEffect(() => {
-    if (Object.values(props).some((value) => value !== undefined)) {
-      setFormData((prev) => ({
-        ...prev,
-        ...props,
-      }));
-
-      // Reset form status when props change
-      setStatus((prev) => ({
-        ...prev,
-        success: false,
-        error: null,
-      }));
-    }
-  }, [props]);
 
   // Handle form field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (formState) {
+      setFormState({
+        ...formState,
+        [name]: value,
+      });
+    }
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setStatus({
+    if (!formState) return;
+
+    setFormState({
+      ...formState,
       isSubmitting: true,
       success: false,
       message: null,
@@ -70,7 +105,12 @@ export function SubscribeForm(props: Partial<FormDataTambo>) {
       const response = await fetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+          title: formState.title,
+          email: formState.email,
+        }),
       });
 
       const data = await response.json();
@@ -79,36 +119,41 @@ export function SubscribeForm(props: Partial<FormDataTambo>) {
         throw new Error(data.error || "Failed to subscribe");
       }
 
-      setStatus({
+      setFormState({
+        ...formState,
         isSubmitting: false,
         success: true,
         message:
           data.message || "Thank you for subscribing! We'll be in touch soon.",
-        error: null,
       });
     } catch (err) {
-      setStatus({
+      setFormState({
+        ...formState,
         isSubmitting: false,
         success: false,
-        message: null,
         error:
           err instanceof Error ? err.message : "An unexpected error occurred",
       });
     }
   };
 
+  // If the state hasn't loaded yet, show a loading state
+  if (!formState) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="firstName">First Name</Label>
+        <Label htmlFor="firstName">First Name *</Label>
         <Input
           id="firstName"
           name="firstName"
           type="text"
-          value={formData.firstName}
+          value={formState.firstName}
           onChange={handleChange}
           required
-          disabled={status.isSubmitting || status.success}
+          disabled={formState.isSubmitting || formState.success}
           className="mt-1"
         />
       </div>
@@ -119,9 +164,9 @@ export function SubscribeForm(props: Partial<FormDataTambo>) {
           id="lastName"
           name="lastName"
           type="text"
-          value={formData.lastName}
+          value={formState.lastName}
           onChange={handleChange}
-          disabled={status.isSubmitting || status.success}
+          disabled={formState.isSubmitting || formState.success}
           className="mt-1"
         />
       </div>
@@ -132,40 +177,44 @@ export function SubscribeForm(props: Partial<FormDataTambo>) {
           id="title"
           name="title"
           type="text"
-          value={formData.title}
+          value={formState.title}
           onChange={handleChange}
-          disabled={status.isSubmitting || status.success}
+          disabled={formState.isSubmitting || formState.success}
           className="mt-1"
         />
       </div>
 
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Email *</Label>
         <Input
           id="email"
           name="email"
           type="email"
-          value={formData.email}
+          value={formState.email}
           onChange={handleChange}
           required
-          disabled={status.isSubmitting || status.success}
+          disabled={formState.isSubmitting || formState.success}
           className="mt-1"
         />
       </div>
 
-      {status.error && (
+      {formState.error && (
         <div className="rounded bg-red-50 p-3 text-sm text-red-500">
-          {status.error}
+          {formState.error}
         </div>
       )}
 
-      {status.success ? (
+      {formState.success ? (
         <div className="rounded bg-green-50 p-3 text-sm text-green-600">
-          {status.message}
+          {formState.message}
         </div>
       ) : (
-        <Button type="submit" disabled={status.isSubmitting} className="w-full">
-          {status.isSubmitting ? "Subscribing..." : "Subscribe"}
+        <Button
+          type="submit"
+          disabled={formState.isSubmitting}
+          className="w-full"
+        >
+          {formState.isSubmitting ? "Subscribing..." : "Subscribe"}
         </Button>
       )}
     </form>

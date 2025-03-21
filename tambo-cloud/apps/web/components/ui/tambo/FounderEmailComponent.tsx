@@ -1,6 +1,9 @@
 "use client";
 
-import { useTamboComponentState } from "@tambo-ai/react";
+import {
+  useTamboComponentState,
+  useTamboStreamingProps,
+} from "@tambo-ai/react";
 import { z } from "zod";
 import { Button } from "../button";
 import { Input } from "../input";
@@ -60,14 +63,21 @@ export const FounderEmailComponent = ({
   const [emailState, setEmailState] = useTamboComponentState<EmailState>(
     "founder-email-state",
     {
-      subject: aiGeneratedSubject || "",
-      body: aiGeneratedBody || "",
-      usersEmail: usersEmail || "",
+      subject: "",
+      body: "",
+      usersEmail: "",
       isSent: false,
       isLoading: false,
       error: null,
     },
   );
+
+  // Use Tambo's streaming props hook to handle prop updates
+  useTamboStreamingProps(emailState, setEmailState, {
+    subject: aiGeneratedSubject,
+    body: aiGeneratedBody,
+    usersEmail: usersEmail,
+  });
 
   // Update the Tambo state when input changes
   const handleSubjectChange = (e: React.ChangeEvent<HTMLInputElement>) => {

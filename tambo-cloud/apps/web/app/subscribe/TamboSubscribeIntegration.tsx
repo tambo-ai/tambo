@@ -5,7 +5,7 @@ import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { SpeechTranscription } from "./SpeechTranscription";
-import { SubscribeForm, formSchemaTambo } from "./SubscribeForm";
+import { SubscribeForm, SubscribeFormProps } from "./SubscribeForm";
 
 export function TamboSubscribeIntegration() {
   const { registerComponent, thread, isIdle, generationStage } = useTambo();
@@ -24,7 +24,7 @@ export function TamboSubscribeIntegration() {
       description:
         "A form component for subscription information with firstName, lastName, title, and email fields.",
       component: SubscribeForm,
-      propsDefinition: zodToJsonSchema(formSchemaTambo),
+      propsDefinition: zodToJsonSchema(SubscribeFormProps),
     });
 
     isRegistered.current = true;

@@ -43,7 +43,7 @@
   },
   "packageManager": "npm@10.9.2",
   "dependencies": {
-    "@tambo-ai/react": "^0.15.1",
+    "@tambo-ai/react": "^0.17.0",
     "@types/react-speech-recognition": "^3.9.6",
     "posthog-js": "^1.231.0",
     "react-speech-recognition": "^4.0.0",
