@@ -35,5 +35,8 @@
   "volta": {
     "node": "20.19.0",
     "npm": "10.9.2"
+  },
+  "dependencies": {
+    "use-debounce": "^10.0.4"
   }
 }
