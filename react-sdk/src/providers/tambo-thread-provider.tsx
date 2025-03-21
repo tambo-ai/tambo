@@ -23,7 +23,7 @@ import { useTamboRegistry } from "./tambo-registry-provider";
 
 export interface TamboThreadContextProps {
   thread: TamboThread;
-  switchCurrentThread: (threadId: string) => void;
+  switchCurrentThread: (threadId: string, fetch?: boolean) => void;
   addThreadMessage: (
     message: TamboThreadMessage,
     sendToServer: boolean,
