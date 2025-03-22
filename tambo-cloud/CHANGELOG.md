@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.9](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.8...repo-v0.25.9) (2025-03-22)
+
+
+### Bug Fixes
+
+* relax tx on stream update further ([#565](https://github.com/tambo-ai/tambo-cloud/issues/565)) ([ac1746c](https://github.com/tambo-ai/tambo-cloud/commit/ac1746c487e0d134e1b2fdef290c6a920677c28a))
+
 ## [0.25.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.7...repo-v0.25.8) (2025-03-22)
 
 
