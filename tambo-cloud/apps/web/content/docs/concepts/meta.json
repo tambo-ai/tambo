@@ -5,8 +5,9 @@
     "message-threads",
     "tools",
     "streaming",
-    "suggestions",
     "component-state",
+    "streaming-props",
+    "suggestions",
     "generation-stage",
     "component-data-props"
   ]

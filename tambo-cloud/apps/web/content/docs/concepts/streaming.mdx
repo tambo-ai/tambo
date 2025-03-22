@@ -1,10 +1,11 @@
 ---
 title: Streaming
+description: Stream response messages and components from tambo in real-time as they are being generated with a few lines of code.
 ---
 
 Use streaming to show response messages and components from tambo in real-time as they are being generated, to create more responsive and engaging user experiences.
 
-```tsx
+```tsx title="streaming.tsx"
 const { sendThreadMessage } = useTambo();
 await sendThreadMessage(inputValue, { streamResponse: true });
 
@@ -18,7 +19,7 @@ Tambo will handle updating the thread's final message as data streams in, rather
 
 Render your thread messages like normal:
 
-```tsx
+```tsx title="streaming.tsx"
 const { thread } = useTambo();
 
 ...
@@ -45,7 +46,7 @@ This means that your registered components will need to have all props marked as
 
 One way to handle this is to set default values to show until the values are generated:
 
-```tsx
+```tsx title="streaming.tsx"
 const MyComponent = ({ name = "Loading..." }: { name?: string }) => {
   return <div>{name}</div>;
 };
@@ -53,11 +54,16 @@ const MyComponent = ({ name = "Loading..." }: { name?: string }) => {
 
 For props where defaults don't make sense, you can allow them to be optional and render a loading state within the component:
 
-```tsx
+```tsx title="streaming.tsx"
 const MyComponent = ({ age }: { age?: number }) => {
   return <div>{age ?? "Loading..."}</div>;
 };
 ```
+
+<Callout type="info">
+  For handling streaming updates in components we recommend using [Streaming
+  Props](/docs/concepts/streaming-props).
+</Callout>
 
 ## Show "Loading" while streaming
 

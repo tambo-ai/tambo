@@ -1,5 +1,6 @@
 ---
 title: Suggestions
+description: Get suggestions for your users after each assistant message.
 ---
 
 Tambo automatically analyzes user interactions and generates contextual suggestions after each assistant message.
@@ -10,7 +11,7 @@ Tambo automatically analyzes user interactions and generates contextual suggesti
 
 The main way to interact with suggestions is through the `useTamboSuggestions` hook:
 
-```tsx
+```tsx title="thread-with-suggestions.tsx"
 function ThreadWithSuggestions() {
   const {
     suggestions, // Array of current suggestions
@@ -46,7 +47,7 @@ function ThreadWithSuggestions() {
 
 The `useTamboSuggestions` hook accepts an optional configuration object:
 
-```tsx
+```tsx title="thread-with-suggestions.tsx"
 interface UseTamboSuggestionsOptions {
   /** Maximum number of suggestions to generate (1-10, default 3) */
   maxSuggestions?: number;
@@ -65,7 +66,7 @@ Suggestions are automatically generated after each assistant (tambo) message in 
 
 The `accept` function provides two modes:
 
-```tsx
+```tsx title="thread-with-suggestions.tsx"
 // Just set the suggestion text in the input
 accept(suggestion);
 
@@ -77,7 +78,7 @@ accept(suggestion, true);
 
 ### Basic Suggestion Structure
 
-```tsx
+```tsx title="thread-with-suggestions.tsx"
 interface Suggestion {
   /** Unique identifier for the suggestion */
   id: string;
@@ -96,7 +97,7 @@ interface Suggestion {
 
 The hook uses additional types for state management:
 
-```tsx
+```tsx title="thread-with-suggestions.tsx"
 type SuggestionState = {
   /** List of current suggestions */
   items: Suggestion[];
@@ -111,7 +112,7 @@ type SuggestionState = {
 
 The hook provides built-in error handling for common scenarios:
 
-```tsx
+```tsx title="thread-with-suggestions.tsx"
 const ERROR_MESSAGES = {
   GENERATION: "Unable to generate suggestions right now",
   EMPTY: "No suggestions available for this message",
@@ -124,7 +125,7 @@ const ERROR_MESSAGES = {
 
 Here's a complete example showing how to integrate suggestions with a message thread:
 
-```tsx
+```tsx title="thread-with-suggestions.tsx"
 function MessageThread() {
   const { thread } = useTamboThread();
   const { suggestions, isLoading, isAccepting, error, accept } =

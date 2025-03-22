@@ -1,0 +1,102 @@
+---
+title: Streaming Props into State
+description: Stream component props into components with a few lines of code and no need for useEffect dependency hell.
+---
+
+When working with AI-generated content in Tambo, you often need to update your component state when new content streams in. The `useTamboStreamingProps` hook simplifies this common pattern.
+
+## Building on Previous Concepts
+
+This guide combines two key Tambo concepts:
+
+1. **[Streaming](/docs/concepts/streaming)** - The ability to receive AI-generated content in real-time as it's being created
+2. **[Component State](/docs/concepts/component-state)** - Tambo's state management for tracking component state as context for AI
+
+We recommend you read those first.
+
+When using streaming, props arrive incrementally, and you need an efficient way to update your component state without complex useEffect dependencies. `useTamboStreamingProps` solves this exact problem.
+
+## Using `useTamboStreamingProps`
+
+```tsx
+import {
+  useTamboComponentState,
+  useTamboStreamingProps,
+} from "@tambo-ai/react-sdk";
+
+function MyComponent({ streamedTitle, streamedBody }) {
+  // 1. Set up your Tambo component state
+  const [state, setState] = useTamboComponentState("myState", {
+    title: "",
+    body: "",
+  });
+
+  // 2. Connect streaming props to your state
+  useTamboStreamingProps(state, setState, {
+    title: streamedTitle,
+    body: streamedBody,
+  });
+
+  // That's it! Your state will automatically update when props change
+  return (
+    <div>
+      <h1>{state?.title}</h1>
+      <p>{state?.body}</p>
+    </div>
+  );
+}
+```
+
+## Benefits
+
+- Eliminates repetitive useEffect code
+- Automatically detects and applies changes
+- Only updates when values actually change
+- Works with any state shape
+- Type-safe with TypeScript
+
+## Without vs With
+
+**Before (repetitive pattern):**
+
+```tsx
+useEffect(() => {
+  if (state) {
+    const shouldUpdateTitle = streamedTitle && streamedTitle !== state.title;
+    const shouldUpdateBody = streamedBody && streamedBody !== state.body;
+
+    if (shouldUpdateTitle || shouldUpdateBody) {
+      setState({
+        ...state,
+        title: shouldUpdateTitle ? streamedTitle : state.title,
+        body: shouldUpdateBody ? streamedBody : state.body,
+      });
+    }
+  }
+}, [streamedTitle, streamedBody]);
+```
+
+**After (clean and simple):**
+
+```tsx
+useTamboStreamingProps(state, setState, {
+  title: streamedTitle,
+  body: streamedBody,
+});
+```
+
+Don't want to use Tambo's state management? You can use your own!
+
+```tsx
+const [state, setState] = useState({
+  title: "",
+  body: "",
+});
+
+useTamboStreamingProps(state, setState, {
+  title: streamedTitle,
+  body: streamedBody,
+});
+```
+
+Works the same, but you don't get the benefits of Tambo's state management.

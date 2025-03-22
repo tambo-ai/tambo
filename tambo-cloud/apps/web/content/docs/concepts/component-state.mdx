@@ -1,30 +1,32 @@
 ---
 title: Component State
+description: Pass component state to tambo so it can use the state as context for following user messages.
 ---
 
-Let tambo track the internal state of generated components using `useTamboComponentState` so it can use the state as context when responding to following user messages.
+Tambo can track the internal state of generated components using `useTamboComponentState`, providing valuable context for responding to subsequent user messages.
 
-Components you register with tambo may have internal state values that let you update what is rendered as the user interacts with the component. For example, in an "email sending" component you might have:
+## Benefits
 
-```tsx
-// file email-sender.tsx
+- Tambo uses component state as context for responding to user messages
+- State persists when historical messages are recalled
+
+## How It Works
+
+Components registered with tambo often have internal state values that update what's rendered as users interact. For example, an "email sending" component might include:
+
+```tsx title="Simple email component"
 
 export const EmailSender = () => {
   ...
   const [emailBody, setEmailBody] = useState("") // tracks the message being typed
-  const [isSent, setIsSent] = useState(false) // tracks whether the 'send' button has been clicked so we can show a checkmark
+  const [isSent, setIsSent] = useState(false) // tracks whether the 'send' button has been clicked
   ...
 }
 ```
 
-We likely want tambo to know about those state values, so if the next user message is something like "finish this email for me" or "did I send that email earlier?" tambo can understand and respond to these requests with knowledge of the current `emailBody` and `isSend` state.
+For tambo to understand these state values when users say things like "finish this email for me" or "did I send that email earlier?", simply replace `useState` with `useTamboComponentState`:
 
-To tell tambo about state values, all we need to do is replace `useState` with `useTamboComponentState`!
-
-Here's how the email component changes:
-
-```tsx
-// file email-sender.tsx
+```tsx title="Email component with tambo state"
 
 export const EmailSender = () => {
   ...
@@ -33,3 +35,7 @@ export const EmailSender = () => {
   ...
 }
 ```
+
+Keep in mind that the component state will only be updated when the component is re-rendered, so if you are streaming props into the component, you will need to manually update the state when the props change.
+
+Good news for you is that we have a solution for that in the next section.

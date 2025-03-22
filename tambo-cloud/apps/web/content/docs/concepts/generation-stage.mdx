@@ -1,5 +1,6 @@
 ---
 title: Generation Stage
+description: Track the progress of tambo's response generation process and expose it to your users.
 ---
 
 You may want to show your users something unique during each stage of tambo's response generation process, rather than a static 'loading' message for the entire duration.
@@ -8,7 +9,7 @@ To enable this, each thread has a `generationStage` property that can be used to
 
 You can expose the generation stage ( or a value you derive from it ) to your users so they know what their AI assistant is doing.
 
-```typescript
+```typescript title="generation-stage.tsx"
 const { generationStage } = useTamboThread();
 
 ...
@@ -28,7 +29,7 @@ if (generationStage === GenerationStage.FETCHING_CONTEXT) {
 
 A thread's generation stage is an enum with the following possible values:
 
-```typescript
+```typescript title="generation stages"
 enum GenerationStage {
   IDLE = "IDLE", // The thread is idle ( initial stage )
   CHOOSING_COMPONENT = "CHOOSING_COMPONENT", // Tambo is choosing the best component to use based on the user's message
@@ -48,7 +49,7 @@ For example, if the generation was triggered by a user message asking about the 
 
 Use this along with the `isProcessing` helper property which returns `true` if the `generationStage` is `CHOOSING_COMPONENT`, `FETCHING_CONTEXT`, `HYDRATING_COMPONENT`, or `STREAMING_RESPONSE`.
 
-```typescript
+```typescript title="generation-stage.tsx"
 const { statusMessage, isProcessing } = useTamboThread();
 
 if (isProcessing) {
