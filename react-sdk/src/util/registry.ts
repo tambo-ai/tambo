@@ -40,6 +40,23 @@ export const getAvailableComponents = (
   return availableComponents;
 };
 
+// Helper function to convert component props from Zod schema to JSON Schema
+export const convertPropsToJsonSchema = (
+  component: RegisteredComponent,
+): any => {
+  if (!component.props) {
+    return component.props;
+  }
+
+  // Check if props is a Zod schema (we can't directly check the type, so we check for _def)
+  if (component.props._def && typeof component.props.parse === "function") {
+    // Use two-step type assertion for safety
+    return zodToJsonSchema(component.props as unknown as z.ZodTypeAny);
+  }
+
+  return component.props;
+};
+
 export const getComponentFromRegistry = (
   componentName: string,
   componentRegistry: ComponentRegistry,

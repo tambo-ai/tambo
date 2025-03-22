@@ -69,7 +69,14 @@ export interface TamboComponent {
    * ```
    */
   component: ComponentType<any>;
-  /** The props definition of the component */
+
+  /** A zod schema for the component props. (Recommended)
+   * Either this or propsDefinition must be provided, but not both.
+   */
+  propsSchema?: z.ZodTypeAny;
+  /** The props definition of the component as a JSON object.
+   * Either this or propsSchema must be provided, but not both.
+   */
   propsDefinition?: any;
   /** The loading component to render while the component is loading */
   loadingComponent?: ComponentType<any>;
