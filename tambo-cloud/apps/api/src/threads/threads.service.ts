@@ -771,33 +771,11 @@ export class ThreadsService {
 
       // Update db message on interval
       if (currentTime - lastUpdateTime >= updateIntervalMs) {
-        await this.getDb()
-          .transaction(
-            async (tx) => {
-              await this.verifyLatestMessageConsistency(
-                tx,
-                threadId,
-                addedUserMessage,
-                inProgressMessage.id,
-              );
-              await this.updateMessage(
-                inProgressMessage.id,
-                finalResponse!.responseMessageDto,
-                tx,
-              );
-              lastUpdateTime = currentTime;
-            },
-            {
-              isolationLevel: 'read committed',
-            },
-          )
-          .catch((error) => {
-            this.logger.error(
-              'Transaction failed: Updating streamed message',
-              error.stack,
-            );
-            throw error;
-          });
+        await this.updateMessage(
+          inProgressMessage.id,
+          finalResponse!.responseMessageDto,
+        );
+        lastUpdateTime = currentTime;
       }
 
       yield {
