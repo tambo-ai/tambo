@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.25.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.7...repo-v0.25.8) (2025-03-22)
+
+
+### Documentation
+
+* add streaming-props doc, and add descriptions. ([#563](https://github.com/tambo-ai/tambo-cloud/issues/563)) ([b335fe1](https://github.com/tambo-ai/tambo-cloud/commit/b335fe1cb756797c2fdb0b72129d0b816603b123))
+
+
+### Miscellaneous Chores
+
+* update @tambo-ai/react to version 0.17.0 and refactor Subscribe & Demo ([#562](https://github.com/tambo-ai/tambo-cloud/issues/562)) ([ac67f55](https://github.com/tambo-ai/tambo-cloud/commit/ac67f5540ea3ffcb1fc25170f70843e5e25ae8a8))
+
 ## [0.25.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.6...repo-v0.25.7) (2025-03-21)
 
 
