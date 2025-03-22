@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, {
   createContext,
   PropsWithChildren,
@@ -6,9 +6,13 @@ import React, {
   useContext,
   useEffect,
   useState,
-} from 'react';
-import zodToJsonSchema from 'zod-to-json-schema';
-import { ComponentRegistry, TamboComponent, TamboTool } from '../model/component-metadata';
+} from "react";
+import zodToJsonSchema from "zod-to-json-schema";
+import {
+  ComponentRegistry,
+  TamboComponent,
+  TamboTool,
+} from "../model/component-metadata";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
@@ -35,33 +39,37 @@ export interface TamboRegistryProviderProps {
   components?: TamboComponent[];
 }
 
-export const TamboRegistryProvider: React.FC<PropsWithChildren<TamboRegistryProviderProps>> = ({
-  children,
-  components: userComponents,
-}) => {
+export const TamboRegistryProvider: React.FC<
+  PropsWithChildren<TamboRegistryProviderProps>
+> = ({ children, components: userComponents }) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
-  const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>({});
+  const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
+    {},
+  );
   const [componentToolAssociations, setComponentToolAssociations] = useState<
     Record<string, string[]>
   >({});
 
-  const registerTool = useCallback((tool: TamboTool, warnOnOverwrite = true) => {
-    setToolRegistry(prev => {
-      if (prev[tool.name] && warnOnOverwrite) {
-        console.warn(`Overwriting tool ${tool.name}`);
-      }
-      return {
-        ...prev,
-        [tool.name]: tool,
-      };
-    });
-  }, []);
+  const registerTool = useCallback(
+    (tool: TamboTool, warnOnOverwrite = true) => {
+      setToolRegistry((prev) => {
+        if (prev[tool.name] && warnOnOverwrite) {
+          console.warn(`Overwriting tool ${tool.name}`);
+        }
+        return {
+          ...prev,
+          [tool.name]: tool,
+        };
+      });
+    },
+    [],
+  );
 
   const registerTools = useCallback(
     (tools: TamboTool[], warnOnOverwrite = true) => {
-      tools.forEach(tool => registerTool(tool, warnOnOverwrite));
+      tools.forEach((tool) => registerTool(tool, warnOnOverwrite));
     },
-    [registerTool]
+    [registerTool],
   );
 
   const addToolAssociation = useCallback(
@@ -69,12 +77,12 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren<TamboRegistryProv
       if (!componentList[componentName]) {
         throw new Error(`Component ${componentName} not found in registry`);
       }
-      setComponentToolAssociations(prev => ({
+      setComponentToolAssociations((prev) => ({
         ...prev,
         [componentName]: [...(prev[componentName] || []), tool.name],
       }));
     },
-    [componentList]
+    [componentList],
   );
 
   const registerComponent = useCallback(
@@ -92,14 +100,14 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren<TamboRegistryProv
       // Validate that at least one props definition is provided
       if (!propsSchema && !propsDefinition) {
         throw new Error(
-          `Component ${name} must have either propsSchema (recommended) or propsDefinition defined`
+          `Component ${name} must have either propsSchema (recommended) or propsDefinition defined`,
         );
       }
 
       // Validate that only one props definition is provided
       if (propsSchema && propsDefinition) {
         throw new Error(
-          `Component ${name} cannot have both propsSchema and propsDefinition defined. Use only one. We recommend using propsSchema.`
+          `Component ${name} cannot have both propsSchema and propsDefinition defined. Use only one. We recommend using propsSchema.`,
         );
       }
 
@@ -109,11 +117,14 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren<TamboRegistryProv
         try {
           props = zodToJsonSchema(propsSchema);
         } catch (error) {
-          console.error(`Error converting ${name} props schema to JSON Schema:`, error);
+          console.error(
+            `Error converting ${name} props schema to JSON Schema:`,
+            error,
+          );
         }
       }
 
-      setComponentList(prev => {
+      setComponentList((prev) => {
         if (prev[name] && warnOnOverwrite) {
           console.warn(`overwriting component ${name}`);
         }
@@ -131,17 +142,17 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren<TamboRegistryProv
       });
       if (associatedTools) {
         registerTools(associatedTools);
-        setComponentToolAssociations(prev => ({
+        setComponentToolAssociations((prev) => ({
           ...prev,
-          [name]: associatedTools.map(tool => tool.name),
+          [name]: associatedTools.map((tool) => tool.name),
         }));
       }
     },
-    [registerTools]
+    [registerTools],
   );
   useEffect(() => {
     if (userComponents) {
-      userComponents.forEach(component => {
+      userComponents.forEach((component) => {
         registerComponent(component, false);
       });
     }
@@ -157,7 +168,11 @@ export const TamboRegistryProvider: React.FC<PropsWithChildren<TamboRegistryProv
     addToolAssociation,
   };
 
-  return <TamboRegistryContext.Provider value={value}>{children}</TamboRegistryContext.Provider>;
+  return (
+    <TamboRegistryContext.Provider value={value}>
+      {children}
+    </TamboRegistryContext.Provider>
+  );
 };
 
 export const useTamboRegistry = () => {

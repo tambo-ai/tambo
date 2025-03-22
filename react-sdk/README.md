@@ -36,7 +36,7 @@ npx tambo --full-send
 Then wrap your app with the provider:
 
 ```tsx
-import { TamboProvider } from '@tambo-ai/react';
+import { TamboProvider } from "@tambo-ai/react";
 
 <TamboProvider apiKey="your-api-key" model="claude-3-5-sonnet-20240620">
   <App />
@@ -46,7 +46,7 @@ import { TamboProvider } from '@tambo-ai/react';
 Add the message thread component to your app:
 
 ```tsx
-import MessageThread from 'ui/components/MessageThread';
+import MessageThread from "ui/components/MessageThread";
 
 function App() {
   return (
@@ -75,19 +75,19 @@ npm install @tambo-ai/react
 Define which components your AI assistant can use to respond to users:
 
 ```tsx
-import { z } from 'zod';
+import { z } from "zod";
 
 // Recommended: Using Zod for type-safe props definition
 registerComponent({
   component: DataChart,
-  name: 'DataChart',
-  description: 'Displays data as a chart',
+  name: "DataChart",
+  description: "Displays data as a chart",
   propsSchema: z.object({
     data: z.object({
       labels: z.array(z.string()),
       values: z.array(z.number()),
     }),
-    type: z.enum(['bar', 'line', 'pie']),
+    type: z.enum(["bar", "line", "pie"]),
   }),
 });
 ```
@@ -95,17 +95,17 @@ registerComponent({
 You can also use `z.describe()` for extra prompting to the ai:
 
 ```tsx
-import { z } from 'zod';
+import { z } from "zod";
 
 schema = z.object({
   data: z.object({
-    labels: z.array(z.string()).describe('Use single words or short phrases.'),
-    values: z.array(z.number()).describe('Use whole numbers.'),
+    labels: z.array(z.string()).describe("Use single words or short phrases."),
+    values: z.array(z.number()).describe("Use whole numbers."),
   }),
   type: z
-    .enum(['bar', 'line', 'pie'])
+    .enum(["bar", "line", "pie"])
     .describe(
-      'Use a chart type that is appropriate for the data. Only use pie charts when less than 5 values.'
+      "Use a chart type that is appropriate for the data. Only use pie charts when less than 5 values.",
     ),
 });
 ```
@@ -116,10 +116,10 @@ Note: Use either propsSchema OR propsDefinition, not both
 ```tsx
 registerComponent({
   component: DataChart,
-  name: 'DataChart',
-  description: 'Displays data as a chart',
+  name: "DataChart",
+  description: "Displays data as a chart",
   propsDefinition: {
-    data: '{ labels: string[]; values: number[] }',
+    data: "{ labels: string[]; values: number[] }",
     type: "'bar' | 'line' | 'pie'",
   },
 });
@@ -132,8 +132,8 @@ Connect your data sources without writing complex integration code:
 ```tsx
 // Define a tool with Zod schema
 const dataTool = {
-  name: 'fetchData',
-  description: 'Fetch data for visualization',
+  name: "fetchData",
+  description: "Fetch data for visualization",
   tool: async ({ dataType }) => {
     /* fetch data */
   },
