@@ -1,8 +1,13 @@
 {
   "name": "message-thread-collapsible",
-  "dependencies": ["@tambo-ai/react", "@radix-ui/react-collapsible"],
+  "dependencies": ["@tambo-ai/react", "radix-ui", "lucide-react"],
   "devDependencies": [],
-  "requires": ["chat-thread", "chat-input"],
+  "requires": [
+    "thread-content",
+    "message-input",
+    "message-suggestions",
+    "thread-history"
+  ],
   "files": [
     {
       "name": "message-thread-collapsible.tsx",

@@ -7,7 +7,7 @@ The Official CLI for tambo ui.
 ## Quick Start
 
 ```bash
-npx tambo init --full-send
+npx tambo full-send
 ```
 
 This command will:
@@ -33,7 +33,7 @@ Initialize Tambo in your Next.js project. Two modes available:
 
 ```bash
 # Full setup - recommended for new projects
-npx tambo init --full-send
+npx tambo full-send
 
 # Basic setup - just API key configuration
 npx tambo init
@@ -44,7 +44,15 @@ npx tambo init
 Add a Tambo component to your project:
 
 ```bash
-npx tambo add message-thread
+npx tambo add message
+```
+
+### `update <component-name>`
+
+Update an existing Tambo component in your project:
+
+```bash
+npx tambo update message
 ```
 
 Available components:
@@ -54,8 +62,8 @@ Available components:
 - `message-thread-full` - Full-screen chat interface with history and typing indicators
 - `message-thread-panel` - Split-view chat with integrated workspace
 - `message-thread-collapsible` - Collapsible chat for sidebars
-- `chat-thread` - Message thread with grouping and timestamps
-- `chat-input` - Rich text input
+- `thread-content` - Message thread with grouping and timestamps
+- `message-input` - Rich text input
 - `message` - Individual message display with content formatting
 
 #### Navigation & Control
@@ -101,14 +109,11 @@ NEXT_PUBLIC_TAMBO_API_KEY=your-api-key
 After initialization, add the TamboProvider to your `app/layout.tsx`:
 
 ```tsx
-import { TamboProvider } from "tambo-ai/react";
+import { TamboProvider } from "@tambo-ai/react";
 
 export default function RootLayout({ children }) {
   return (
-    <TamboProvider
-      tamboUrl="https://api.tambo.co"
-      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-    >
+    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
       {children}
     </TamboProvider>
   );

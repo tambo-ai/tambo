@@ -1,0 +1,12 @@
+{
+  "name": "message-input",
+  "dependencies": ["class-variance-authority", "@tambo-ai/react"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "message-input.tsx",
+      "content": "src/registry/message-input/message-input.tsx"
+    }
+  ]
+}

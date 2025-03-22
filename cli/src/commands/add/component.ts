@@ -102,7 +102,7 @@ export function cn(...inputs: ClassValue[]) {
     const sourcePath = path.join(getRegistryPath(componentName), file.name);
     const targetPath = path.join(componentDir, file.name);
 
-    if (!fs.existsSync(targetPath)) {
+    if (!fs.existsSync(targetPath) || options.forceUpdate) {
       if (fs.existsSync(sourcePath)) {
         fs.copyFileSync(sourcePath, targetPath);
       } else {
@@ -113,6 +113,8 @@ export function cn(...inputs: ClassValue[]) {
   }
 
   if (!options.silent && filesAdded > 0) {
-    console.log(`${chalk.green("✔")} Installed ${componentName}`);
+    console.log(
+      `${chalk.green("✔")} ${options.forceUpdate ? "Updated" : "Installed"} ${componentName}`,
+    );
   }
 }
