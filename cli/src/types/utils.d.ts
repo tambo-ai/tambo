@@ -6,8 +6,6 @@
  * This file provides type definitions for:
  * - Internal utility functions (@/lib/utils)
  * - Radix UI components (Dialog, Collapsible)
- * - Command palette (cmdk)
- * - HTML sanitization (sanitize-html)
  *
  * These type declarations are essential for maintaining type safety and preventing
  * build errors when the package is installed in end-user projects through the CLI.
@@ -59,26 +57,71 @@ declare module "@radix-ui/react-collapsible" {
   export { Content, Root, Trigger };
 }
 
-declare module "cmdk" {
+declare module "@radix-ui/react-dropdown-menu" {
   import type * as React from "react";
-  export const Command: React.FC<{
+  const Root: React.FC<{
+    children: React.ReactNode;
+  }>;
+
+  const Trigger: React.FC<{
+    children: React.ReactNode;
+    asChild?: boolean;
+  }>;
+
+  const Portal: React.FC<{
+    children: React.ReactNode;
+  }>;
+
+  const Content: React.FC<{
     children: React.ReactNode;
     className?: string;
-  }> & {
-    Input: React.FC<{
-      placeholder?: string;
-      className?: string;
-    }>;
-  };
+    side?: "top" | "right" | "bottom" | "left";
+    align?: "start" | "center" | "end";
+    sideOffset?: number;
+  }>;
+
+  const Item: React.FC<{
+    children: React.ReactNode;
+    className?: string;
+    disabled?: boolean;
+    onSelect?: (event: React.MouseEvent) => void;
+  }>;
+
+  const Separator: React.FC<{
+    className?: string;
+  }>;
+
+  export { Content, Item, Portal, Root, Separator, Trigger };
 }
 
-declare module "sanitize-html" {
-  interface SanitizeOptions {
-    allowedTags?: string[];
-    allowedAttributes?: Record<string, string[]>;
+declare module "react-markdown" {
+  import type * as React from "react";
+  interface ReactMarkdownProps {
+    children: string;
+    className?: string;
+    components?: Record<string, React.ComponentType<any>>;
   }
-  export default function sanitizeHtml(
-    dirty: string,
-    options?: SanitizeOptions,
-  ): string;
+  const ReactMarkdown: React.ComponentType<ReactMarkdownProps>;
+  export type Components = Record<string, React.ComponentType<any>>;
+  export default ReactMarkdown;
+}
+
+declare module "react-syntax-highlighter" {
+  import type * as React from "react";
+  interface SyntaxHighlighterProps {
+    children: string;
+    language?: string;
+    style?: any;
+    PreTag?: string | React.ComponentType<any>;
+    customStyle?: React.CSSProperties;
+    className?: string;
+    [key: string]: unknown;
+  }
+  export const Prism: React.ComponentType<SyntaxHighlighterProps>;
+  export const SyntaxHighlighter: React.ComponentType<SyntaxHighlighterProps>;
+}
+
+declare module "react-syntax-highlighter/dist/esm/styles/prism" {
+  export const oneLight: any;
+  export const vscDarkPlus: any;
 }

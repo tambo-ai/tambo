@@ -1,12 +1,22 @@
 {
   "name": "message",
-  "dependencies": ["class-variance-authority", "sanitize-html"],
-  "devDependencies": ["@types/sanitize-html"],
+  "dependencies": [
+    "class-variance-authority",
+    "react-markdown",
+    "react-syntax-highlighter",
+    "lucide-react",
+    "@tambo-ai/react"
+  ],
+  "devDependencies": ["@types/react-syntax-highlighter"],
   "requires": [],
   "files": [
     {
       "name": "message.tsx",
       "content": "src/registry/message/message.tsx"
+    },
+    {
+      "name": "markdownComponents.tsx",
+      "content": "src/registry/message/markdownComponents.tsx"
     }
   ]
 }

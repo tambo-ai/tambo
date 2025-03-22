@@ -4,6 +4,7 @@ import "dotenv/config";
 import meow, { type Flag, type Result } from "meow";
 import { handleAddComponent } from "./commands/add/index.js";
 import { handleInit } from "./commands/init.js";
+import { handleUpdateComponent } from "./commands/update.js";
 
 interface CLIFlags extends Record<string, any> {
   init?: Flag<"boolean", boolean>;
@@ -19,6 +20,7 @@ const cli = meow(
   ${chalk.bold("Commands")}
     ${chalk.yellow("init")}                Initialize tambo in a project and set up configuration
     ${chalk.yellow("add")}                 Add a new component
+    ${chalk.yellow("update")}              Update an existing component from the registry
     ${chalk.yellow("full-send")}           Full initialization with auth flow and component installation
 
   ${chalk.bold("Options")}
@@ -28,7 +30,9 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName> --legacy-peer-deps")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName> --legacy-peer-deps")}
   `,
   {
     flags: {
@@ -70,6 +74,21 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       return;
     }
     await handleAddComponent(componentName, {
+      legacyPeerDeps: Boolean(flags.legacyPeerDeps),
+    });
+    return;
+  }
+
+  if (cmd === "update") {
+    const componentName = cli.input[1];
+    if (!componentName) {
+      console.error(chalk.red("Component name is required"));
+      console.log(
+        `Run ${chalk.cyan("tambo update <componentName>")} to update a component`,
+      );
+      return;
+    }
+    await handleUpdateComponent(componentName, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
     });
     return;

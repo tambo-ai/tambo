@@ -1,0 +1,12 @@
+{
+  "name": "thread-history",
+  "dependencies": ["lucide-react", "@tambo-ai/react", "radix-ui"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "thread-history.tsx",
+      "content": "src/registry/thread-history/thread-history.tsx"
+    }
+  ]
+}
