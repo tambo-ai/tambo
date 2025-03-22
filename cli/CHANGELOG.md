@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.2...tambo-v0.1.3) (2025-03-22)
+
+
+### Miscellaneous
+
+* **cli:** update components UI and add update command ([#167](https://github.com/tambo-ai/tambo/issues/167)) ([a675c7d](https://github.com/tambo-ai/tambo/commit/a675c7d12bce6fde19752eebdeb148dbc65630eb))
+
 ## [0.1.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.1...tambo-v0.1.2) (2025-03-19)
 
 
