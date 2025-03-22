@@ -27,6 +27,7 @@ export const EmailSender = () => {
 For tambo to understand these state values when users say things like "finish this email for me" or "did I send that email earlier?", simply replace `useState` with `useTamboComponentState`:
 
 ```tsx title="Email component with tambo state"
+import { useTamboComponentState } from "@tambo-ai/react";
 
 export const EmailSender = () => {
   ...

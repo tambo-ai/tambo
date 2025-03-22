@@ -97,6 +97,8 @@ tamboClient.registerComponent({
 If you define your tool functionality sometime after registering your components, you can use the `addToolAssociation` hook to associate the tool with the component.
 
 ```tsx
+import { useTambo } from "@tambo-ai/react";
+
 const { addToolAssociation } = useTambo();
 
 const weatherTool: TamboTool = {

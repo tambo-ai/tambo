@@ -6,6 +6,8 @@ description: Stream response messages and components from tambo in real-time as 
 Use streaming to show response messages and components from tambo in real-time as they are being generated, to create more responsive and engaging user experiences.
 
 ```tsx title="streaming.tsx"
+import { useTambo } from "@tambo-ai/react";
+
 const { sendThreadMessage } = useTambo();
 await sendThreadMessage(inputValue, { streamResponse: true });
 
@@ -20,6 +22,8 @@ Tambo will handle updating the thread's final message as data streams in, rather
 Render your thread messages like normal:
 
 ```tsx title="streaming.tsx"
+import { useTambo } from "@tambo-ai/react";
+
 const { thread } = useTambo();
 
 ...

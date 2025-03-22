@@ -12,6 +12,8 @@ Tambo automatically analyzes user interactions and generates contextual suggesti
 The main way to interact with suggestions is through the `useTamboSuggestions` hook:
 
 ```tsx title="thread-with-suggestions.tsx"
+import { useTamboSuggestions } from "@tambo-ai/react";
+
 function ThreadWithSuggestions() {
   const {
     suggestions, // Array of current suggestions
@@ -126,6 +128,8 @@ const ERROR_MESSAGES = {
 Here's a complete example showing how to integrate suggestions with a message thread:
 
 ```tsx title="thread-with-suggestions.tsx"
+import { useTamboThread, useTamboSuggestions } from "@tambo-ai/react";
+
 function MessageThread() {
   const { thread } = useTamboThread();
   const { suggestions, isLoading, isAccepting, error, accept } =

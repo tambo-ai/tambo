@@ -8,6 +8,8 @@ Message threads are the core building block for creating interactive AI experien
 Tambo provides hooks to easily interact with the current thread state and its messages, generation stage, and other values.
 
 ```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
 const { thread } = useTamboThread();
 ```
 
@@ -18,6 +20,8 @@ This thread state value is updated automatically by tambo as user messages are s
 We recommend using the `useTamboThreadInput` hook to send messages to the thread.
 
 ```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
+
 const { value, setValue, submit } = useTamboThreadInput(contextKey);
 ```
 
@@ -64,6 +68,8 @@ if (error) {
 You can also use the `sendThreadMessage` function to send messages to the thread:
 
 ```tsx
+const { sendThreadMessage } = useTamboThread();
+
 await sendThreadMessage("What is the weather like today?", {
   streamResponse: true,
 });
@@ -94,7 +100,6 @@ By default, tambo will create a new thread for you and use that thread for the `
 If you want to switch to another thread you can use the `switchCurrentThread` function:
 
 ```tsx
-
 const { switchCurrentThread } = useTamboThread()
 
 ...
