@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentRegistry,
   TamboComponent,
@@ -90,10 +91,38 @@ export const TamboRegistryProvider: React.FC<
         name,
         description,
         component,
-        propsDefinition = {},
+        propsSchema,
+        propsDefinition,
         loadingComponent,
         associatedTools,
       } = options;
+
+      // Validate that at least one props definition is provided
+      if (!propsSchema && !propsDefinition) {
+        throw new Error(
+          `Component ${name} must have either propsSchema (recommended) or propsDefinition defined`,
+        );
+      }
+
+      // Validate that only one props definition is provided
+      if (propsSchema && propsDefinition) {
+        throw new Error(
+          `Component ${name} cannot have both propsSchema and propsDefinition defined. Use only one. We recommend using propsSchema.`,
+        );
+      }
+
+      // Convert propsSchema to JSON Schema if it exists
+      let props = propsDefinition;
+      if (propsSchema) {
+        try {
+          props = zodToJsonSchema(propsSchema);
+        } catch (error) {
+          console.error(
+            `Error converting ${name} props schema to JSON Schema:`,
+            error,
+          );
+        }
+      }
 
       setComponentList((prev) => {
         if (prev[name] && warnOnOverwrite) {
@@ -106,7 +135,7 @@ export const TamboRegistryProvider: React.FC<
             loadingComponent,
             name,
             description,
-            props: propsDefinition,
+            props,
             contextTools: [],
           },
         };

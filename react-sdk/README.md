@@ -75,6 +75,45 @@ npm install @tambo-ai/react
 Define which components your AI assistant can use to respond to users:
 
 ```tsx
+import { z } from "zod";
+
+// Recommended: Using Zod for type-safe props definition
+registerComponent({
+  component: DataChart,
+  name: "DataChart",
+  description: "Displays data as a chart",
+  propsSchema: z.object({
+    data: z.object({
+      labels: z.array(z.string()),
+      values: z.array(z.number()),
+    }),
+    type: z.enum(["bar", "line", "pie"]),
+  }),
+});
+```
+
+You can also use `z.describe()` for extra prompting to the ai:
+
+```tsx
+import { z } from "zod";
+
+schema = z.object({
+  data: z.object({
+    labels: z.array(z.string()).describe("Use single words or short phrases."),
+    values: z.array(z.number()).describe("Use whole numbers."),
+  }),
+  type: z
+    .enum(["bar", "line", "pie"])
+    .describe(
+      "Use a chart type that is appropriate for the data. Only use pie charts when less than 5 values.",
+    ),
+});
+```
+
+Alternative: Using JSON object (like JSON Schema)
+Note: Use either propsSchema OR propsDefinition, not both
+
+```tsx
 registerComponent({
   component: DataChart,
   name: "DataChart",
@@ -110,50 +149,3 @@ registerComponent({
   associatedTools: [dataTool],
 });
 ```
-
-### 3. Thread Management
-
-Let your AI agent maintain conversation context automatically:
-
-```tsx
-// Send a message in a specific thread
-sendThreadMessage("Show me sales data", {
-  contextKey: userId,
-  streamResponse: true,
-});
-
-// Switch between threads
-switchCurrentThread(threadId);
-```
-
-## API Reference
-
-### Main Hooks
-
-- `useTambo`: All-in-one hook for most functionality
-- `useTamboRegistry`: Component registration
-- `useTamboThread`: Thread management
-- `useTamboSuggestions`: AI-powered message suggestions
-
-## Docs
-
-For complete documentation, check out the [docs](https://tambo.co/docs).
-
-## License
-
-MIT License - see the [LICENSE](https://github.com/tambo-ai/tambo/blob/main/LICENSE) file for details.
-
-## Join the Community
-
-We're building tools for the future of user interfaces. Your contributions matter.
-
-**[Star this repo](https://github.com/tambo-ai/tambo)** to support our work.
-
-**[Join our Discord](https://discord.gg/dJNvPEHth6)** to connect with other developers.
-
----
-
-<p align="center">
-  <i>Built by developers, for developers.</i><br>
-  <i>Because we believe the future of UI is generative and hyper-personalized.</i>
-</p>
