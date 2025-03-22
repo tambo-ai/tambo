@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.10](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.9...repo-v0.25.10) (2025-03-22)
+
+
+### Bug Fixes
+
+* remove tx from streaming message update interval ([#567](https://github.com/tambo-ai/tambo-cloud/issues/567)) ([f562b33](https://github.com/tambo-ai/tambo-cloud/commit/f562b3314be16d823b9f3361570a1702880c8cc5))
+
 ## [0.25.9](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.8...repo-v0.25.9) (2025-03-22)
 
 
