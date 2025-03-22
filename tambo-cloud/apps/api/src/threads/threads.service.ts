@@ -788,7 +788,7 @@ export class ThreadsService {
               lastUpdateTime = currentTime;
             },
             {
-              isolationLevel: 'repeatable read',
+              isolationLevel: 'read committed',
             },
           )
           .catch((error) => {
@@ -843,7 +843,7 @@ export class ThreadsService {
               return { resultingGenerationStage, resultingStatusMessage };
             },
             {
-              isolationLevel: 'repeatable read',
+              isolationLevel: 'read committed',
             },
           )
           .catch((error) => {
