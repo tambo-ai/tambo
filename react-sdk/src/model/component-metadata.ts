@@ -1,7 +1,7 @@
-import TamboAI from "@tambo-ai/typescript-sdk";
-import { ComponentType } from "react";
-import z from "zod";
-import type zodToJsonSchema from "zod-to-json-schema";
+import TamboAI from '@tambo-ai/typescript-sdk';
+import { ComponentType } from 'react';
+import z from 'zod';
+import type zodToJsonSchema from 'zod-to-json-schema';
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {
   schema?: ReturnType<typeof zodToJsonSchema>;
@@ -11,8 +11,7 @@ export type ParameterSpec = TamboAI.ToolParameters & {
  * Extends the base ContextTool interface from Tambo AI to include schema information
  * for parameter validation using zod-to-json-schema.
  */
-export interface ComponentContextToolMetadata
-  extends TamboAI.ComponentContextToolMetadata {
+export interface ComponentContextToolMetadata extends TamboAI.ComponentContextToolMetadata {
   parameters: ParameterSpec[];
 }
 
@@ -69,7 +68,14 @@ export interface TamboComponent {
    * ```
    */
   component: ComponentType<any>;
-  /** The props definition of the component */
+
+  /** A zod schema for the component props. (Recommended)
+   * Either this or propsDefinition must be provided, but not both.
+   */
+  propsSchema?: z.ZodTypeAny;
+  /** The props definition of the component as a JSON object.
+   * Either this or propsSchema must be provided, but not both.
+   */
   propsDefinition?: any;
   /** The loading component to render while the component is loading */
   loadingComponent?: ComponentType<any>;
