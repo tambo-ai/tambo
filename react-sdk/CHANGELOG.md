@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/tambo-ai/tambo/compare/react-v0.17.0...react-v0.18.0) (2025-03-22)
+
+
+### Features
+
+* add support for propsSchema ([#174](https://github.com/tambo-ai/tambo/issues/174)) ([da0e049](https://github.com/tambo-ai/tambo/commit/da0e049295a1bba5c7aa13d137df2602f2ffd09f))
+
 ## [0.17.0](https://github.com/tambo-ai/tambo/compare/react-v0.16.2...react-v0.17.0) (2025-03-21)
 
 
