@@ -44,7 +44,11 @@ npx tambo init
 Add a Tambo component to your project:
 
 ```bash
+# Basic usage
 npx tambo add message
+
+# With legacy peer dependencies flag
+npx tambo add message --legacy-peer-deps
 ```
 
 ### `update <component-name>`
@@ -52,7 +56,11 @@ npx tambo add message
 Update an existing Tambo component in your project:
 
 ```bash
+# Basic usage
 npx tambo update message
+
+# With legacy peer dependencies flag
+npx tambo update message --legacy-peer-deps
 ```
 
 Available components:
@@ -63,8 +71,10 @@ Available components:
 - `message-thread-panel` - Split-view chat with integrated workspace
 - `message-thread-collapsible` - Collapsible chat for sidebars
 - `thread-content` - Message thread with grouping and timestamps
+- `thread-history` - Chat history management
 - `message-input` - Rich text input
 - `message` - Individual message display with content formatting
+- `message-suggestions` - AI-powered message suggestions
 
 #### Navigation & Control
 
@@ -109,6 +119,8 @@ NEXT_PUBLIC_TAMBO_API_KEY=your-api-key
 After initialization, add the TamboProvider to your `app/layout.tsx`:
 
 ```tsx
+"use client";
+
 import { TamboProvider } from "@tambo-ai/react";
 
 export default function RootLayout({ children }) {
@@ -119,6 +131,8 @@ export default function RootLayout({ children }) {
   );
 }
 ```
+
+> **Note:** The `"use client"` directive is required because TamboProvider manages client-side state for features like thread management, message history, and component state.
 
 ## Documentation
 
