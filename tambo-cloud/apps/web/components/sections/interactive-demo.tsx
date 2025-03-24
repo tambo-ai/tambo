@@ -1,6 +1,7 @@
 "use client";
 
 import { Section } from "@/components/section";
+import { demoComponents } from "@/components/ui/tambo/DemoConfig";
 import { TamboDemo } from "@/components/ui/tambo/TamboDemo";
 import { env } from "@/lib/env";
 import { TamboProvider } from "@tambo-ai/react";
@@ -12,6 +13,7 @@ export function InteractiveDemo() {
         <TamboProvider
           apiKey={env.NEXT_PUBLIC_HYDRA_API_KEY!}
           tamboUrl={env.NEXT_PUBLIC_HYDRA_API_URL!}
+          components={demoComponents}
         >
           <TamboDemo />
         </TamboProvider>

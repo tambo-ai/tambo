@@ -8,17 +8,12 @@ import {
   useTamboThreadInput,
 } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import {
-  FounderEmailComponent,
-  FounderEmailProps,
-} from "./FounderEmailComponent";
 import { TamboSuggestions } from "./TamboSuggestions";
 import { TamboThreadInput } from "./TamboThreadInput";
 
 // Inner component that uses Tambo hooks
-const TamboDemoInner = () => {
-  const { registerComponent, thread } = useTambo();
+export const TamboDemo = () => {
+  const { thread } = useTambo();
   // Use a simple string for the context key
   const contextKey = "founder-email-demo";
   const messages = thread?.messages ?? [];
@@ -42,22 +37,6 @@ const TamboDemoInner = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [hasPressedButton, messages.length, setValue]);
-
-  // Register the FounderEmailComponent with Tambo
-  useEffect(() => {
-    console.log("Registering FounderEmailComponent");
-    try {
-      registerComponent({
-        name: "FounderEmail",
-        description: "A component for sending emails to the founders",
-        component: FounderEmailComponent,
-        propsDefinition: zodToJsonSchema(FounderEmailProps),
-      });
-      console.log("FounderEmailComponent registered successfully");
-    } catch (error) {
-      console.error("Error registering component:", error);
-    }
-  }, [registerComponent]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -160,9 +139,4 @@ const TamboDemoInner = () => {
       </div>
     </Card>
   );
-};
-
-// Wrapper component that provides the TamboProvider
-export const TamboDemo = () => {
-  return <TamboDemoInner />;
 };

@@ -9,19 +9,45 @@ Tambo does not, however, generate components from scratch on-the-fly. Instead, y
 
 The `@tambo-ai/react` package provides hooks to help with this.
 
-## Component Registration
+## Core Concepts
 
-You can pass a list of components directly to the `TamboProvider` component. All of the components will be visible to the various Tambo hooks and components that are rendered inside `<TamboProvider>`.
+### Component Registration
+
+There are two main approaches to registering components with Tambo:
+
+#### 1. Using the TamboProvider
+
+You can pass a list of components directly to the `TamboProvider` component. All components will be visible to Tambo hooks and components rendered inside the provider.
 
 ```tsx title="layout.tsx"
-const components: TamboComponent[] = [
+import { TamboProvider } from "@tambo-ai/react";
+import { z } from "zod";
+
+// Define a Zod schema for the weather data
+export const WeatherDisplayProps = z.object({
+  data: z.object({
+    date: z.string(),
+    day: z.object({
+      maxtemp_c: z.number(),
+      mintemp_c: z.number(),
+      avgtemp_c: z.number(),
+      maxwind_kph: z.number(),
+      totalprecip_mm: z.number(),
+      avghumidity: z.number(),
+      condition: z.object({
+        text: z.string(),
+        icon: z.string(),
+      }),
+    }),
+  }),
+});
+
+const components = [
   {
     name: "WeatherDisplay",
     description: "A display of the weather in a city",
     component: WeatherDisplay,
-    propsDefinition: {
-      data: "{ date: string; day: { maxtemp_c: number; mintemp_c: number; avgtemp_c: number; maxwind_kph: number; totalprecip_mm: number; avghumidity: number; condition: { text: string; icon: string } } }",
-    }, // The shape of the props this component expects
+    propsSchema: WeatherDisplayProps, // Using Zod schema
     associatedTools: [tools.forecast, tools.history], // Any context tools that Tambo should focus on when getting extra information to fill in the props of this component
   },
 ];
@@ -35,27 +61,136 @@ When creating the list of components, you may not yet have access to the tools c
 
 You can still register the component without the tools using this approach, and then register the tools later with `addToolAssociation`. See the [Tools](/docs/concepts/tools) documentation for more information.
 
-## Dynamic Component Registration
+#### 2. Dynamic Registration
 
-An alternative approach to the above is to register the components dynamically. This is useful if you need to register components at runtime, or if you need to register components with tools that are not yet available.
-
-Note that when you register a component dynamically, it makes these tools available to all components within the the `<TamboProvider>` component.
-Here's an example that uses the `registerComponent` function from the `useTamboRegistry()` hook to tell Tambo about a WeatherDisplay component:
+For runtime registration, use the `registerComponent` function from the `useTamboRegistry()` hook:
 
 ```tsx title="page.tsx"
-const { registerComponent } = useTamboRegistry();
+import { useEffect } from "react";
+import { useTamboRegistry } from "@tambo-ai/react";
+import { z } from "zod";
+import { WeatherDisplay } from "@/components/WeatherDisplay";
 
-useEffect(() => {
-  registerComponent({
-    name: "WeatherDisplay", // The name of the component
-    description: "A display of the weather in a city", // A description of what the component is for and when it should be used by Tambo.
-    component: WeatherDisplay, // The actual component
-    propsDefinition: {
-      data: "{ date: string; day: { maxtemp_c: number; mintemp_c: number; avgtemp_c: number; maxwind_kph: number; totalprecip_mm: number; avghumidity: number; condition: { text: string; icon: string } } }",
-    }, // The shape of the props this component expects
-    associatedTools: [tools.forecast, tools.history], // Any context tools that Tambo should focus on when getting extra information to fill in the props of this component
-  });
-}, [registerComponent]);
+// Define a Zod schema for the weather data
+export const WeatherDisplayProps = z.object({
+  data: z.object({
+    date: z.string(),
+    day: z.object({
+      maxtemp_c: z.number(),
+      mintemp_c: z.number(),
+      avgtemp_c: z.number(),
+      maxwind_kph: z.number(),
+      totalprecip_mm: z.number(),
+      avghumidity: z.number(),
+      condition: z.object({
+        text: z.string(),
+        icon: z.string(),
+      }),
+    }),
+  }),
+});
+
+export default function Page() {
+  const { registerComponent } = useTamboRegistry();
+
+  useEffect(() => {
+    registerComponent({
+      name: "WeatherDisplay",
+      description: "A display of the weather in a city",
+      component: WeatherDisplay,
+      propsSchema: WeatherDisplayProps, // Using Zod schema
+      associatedTools: [tools.forecast, tools.history],
+    });
+  }, [registerComponent]);
+
+  return (
+    // Your page content
+  );
+}
 ```
 
-Now when a user sends a message asking about the weather in a city, Tambo can respond with this WeatherDisplay component!
+Note that dynamic registration makes tools available to all components within the `<TamboProvider>` component.
+
+### Props Definition Options
+
+You have two options for defining the props your components expect:
+
+#### Using Zod (Recommended)
+
+```tsx
+import { z } from "zod";
+import { DataChart } from "@/components/DataChart";
+import { registerComponent } from "@tambo-ai/react";
+
+// Define the schema with Zod
+export const DataChartProps = z.object({
+  data: z.object({
+    labels: z.array(z.string()),
+    values: z.array(z.number()),
+  }),
+  type: z.enum(["bar", "line", "pie"]),
+});
+
+// Register with the Zod schema
+registerComponent({
+  component: DataChart,
+  name: "DataChart",
+  description: "Displays data as a chart",
+  propsSchema: DataChartProps,
+});
+```
+
+You can also use `z.describe()` to provide extra guidance to the AI:
+
+```tsx
+import { z } from "zod";
+import { DataChart } from "@/components/DataChart";
+import { registerComponent } from "@tambo-ai/react";
+
+// Define schema with descriptions for AI
+export const DataChartProps = z
+  .object({
+    data: z.object({
+      labels: z
+        .array(z.string())
+        .describe("Use single words or short phrases."),
+      values: z.array(z.number()).describe("Use whole numbers."),
+    }),
+    type: z
+      .enum(["bar", "line", "pie"])
+      .describe(
+        "Use a chart type that is appropriate for the data. Only use pie charts when less than 5 values.",
+      ),
+  })
+  .describe("A component for displaying data in various chart formats");
+
+// Register with the enhanced Zod schema
+registerComponent({
+  component: DataChart,
+  name: "DataChart",
+  description: "Displays data as a chart",
+  propsSchema: DataChartProps,
+});
+```
+
+#### Using a JSON-like Object (Alternative)
+
+```tsx
+import { DataChart } from "@/components/DataChart";
+import { registerComponent } from "@tambo-ai/react";
+
+// Using string type definitions instead of Zod
+registerComponent({
+  component: DataChart,
+  name: "DataChart",
+  description: "Displays data as a chart",
+  propsDefinition: {
+    data: "{ labels: string[]; values: number[] }",
+    type: "'bar' | 'line' | 'pie'",
+  },
+});
+```
+
+**Note:** Use either `propsSchema` OR `propsDefinition`, not both.
+
+Now when a user sends a message asking about something related to your components, Tambo can respond with the appropriate component filled with relevant data!
