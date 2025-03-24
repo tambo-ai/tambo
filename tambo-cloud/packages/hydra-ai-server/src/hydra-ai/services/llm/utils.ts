@@ -11,6 +11,14 @@ import OpenAI from "openai";
  * @returns The formatted function call object or undefined if no request
  */
 export function formatFunctionCall(
+  toolCallRequest: ToolCallRequest,
+  toolCallId: string,
+): OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
+export function formatFunctionCall(
+  toolCallRequest: ToolCallRequest | undefined,
+  toolCallId: string | undefined,
+): OpenAI.Chat.Completions.ChatCompletionMessageToolCall[] | undefined;
+export function formatFunctionCall(
   toolCallRequest: ToolCallRequest | undefined,
   toolCallId: string | undefined,
 ): OpenAI.Chat.Completions.ChatCompletionMessageToolCall[] | undefined {
