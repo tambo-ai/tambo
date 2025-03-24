@@ -113,7 +113,7 @@ export class ComponentsController {
     component: LegacyComponentDecision,
   ) {
     return await this.threadsService.addMessage(threadId, {
-      role: MessageRole.Hydra,
+      role: MessageRole.Assistant,
       content: [{ type: ContentPartType.Text, text: component.message }],
       // HACK: for now just jam the full component decision into the content,
       // but we should filter out the old toolCallRequest / suggestedActions

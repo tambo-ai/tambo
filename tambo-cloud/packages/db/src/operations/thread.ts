@@ -2,6 +2,7 @@ import { GenerationStage } from "@tambo-ai-cloud/core";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
+import { fixLegacyRole } from "../util/legacyMessages";
 
 export type ThreadMetadata = Record<string, unknown>;
 export type MessageContent = string | Record<string, unknown>;
@@ -145,9 +146,10 @@ export async function updateThread(
   const messages = await db.query.messages.findMany({
     where: eq(schema.messages.threadId, threadId),
   });
+  const messagesWithCorrectedRole = fixLegacyRole(messages);
   return {
     ...updated,
-    messages,
+    messages: messagesWithCorrectedRole,
   };
 }
 
@@ -191,7 +193,7 @@ export async function getMessages(
   threadId: string,
   includeInternal: boolean = false,
 ): Promise<(typeof schema.messages.$inferSelect)[]> {
-  return await db.query.messages.findMany({
+  const messages = await db.query.messages.findMany({
     where: includeInternal
       ? eq(schema.messages.threadId, threadId)
       : and(
@@ -200,6 +202,7 @@ export async function getMessages(
         ),
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });
+  return fixLegacyRole(messages);
 }
 
 export async function updateMessage(

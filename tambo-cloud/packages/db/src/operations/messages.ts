@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import { messages, projectMembers } from "../schema";
 import type { HydraDb } from "../types";
+import { fixLegacyRole } from "../util/legacyMessages";
 
 /**
  * Retrieves a message with its associated thread and project information.
  *
- * @param db - The Hydra database instance
+ * @param db - The Tambo database instance
  * @param messageId - The message ID to retrieve (format: msg_[8 random chars].[6 char signature])
  * @returns The message with its thread and project, or null if not found
  *
@@ -15,7 +16,7 @@ import type { HydraDb } from "../types";
  * const message = await getMessageWithAccess(db, messageId)
  */
 export async function getMessageWithAccess(db: HydraDb, messageId: string) {
-  return await db.query.messages.findFirst({
+  const message = await db.query.messages.findFirst({
     where: eq(messages.id, messageId),
     with: {
       thread: {
@@ -25,6 +26,11 @@ export async function getMessageWithAccess(db: HydraDb, messageId: string) {
       },
     },
   });
+  if (!message) {
+    // TODO: throw error?
+    return message;
+  }
+  return fixLegacyRole([message])[0];
 }
 
 /**
@@ -32,7 +38,7 @@ export async function getMessageWithAccess(db: HydraDb, messageId: string) {
  * This is an optimized query that combines message retrieval and project access check
  * into a single database operation.
  *
- * @param db - The Hydra database instance
+ * @param db - The Tambo database instance
  * @param messageId - The message ID to check (format: msg_[8 random chars].[6 char signature])
  * @param userId - The user ID to check access for (UUID format)
  * @returns Object containing access status and project ID if access is granted

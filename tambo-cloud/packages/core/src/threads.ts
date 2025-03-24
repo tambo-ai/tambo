@@ -14,6 +14,11 @@ export enum MessageRole {
   Assistant = "assistant",
   System = "system",
   Tool = "tool",
+  /**
+   * Hydra is a new role that is used to represent a message from the Hydra assistant.
+   * It is used to represent a message from the Hydra assistant.
+   * @deprecated
+   */
   Hydra = "hydra",
 }
 

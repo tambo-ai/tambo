@@ -717,7 +717,7 @@ export class ThreadsService {
           return await this.addMessage(
             threadId,
             {
-              role: MessageRole.Hydra,
+              role: MessageRole.Assistant,
               content: [
                 {
                   type: ContentPartType.Text,
@@ -891,7 +891,7 @@ export class ThreadsService {
     return await this.addMessage(
       threadId,
       {
-        role: MessageRole.Hydra,
+        role: MessageRole.Assistant,
         content: [{ type: ContentPartType.Text, text: component.message }],
         component: component,
         actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
