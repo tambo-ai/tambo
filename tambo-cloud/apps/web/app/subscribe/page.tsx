@@ -18,8 +18,8 @@ const TamboSubscribeIntegration = dynamic(
 export default function SubscribePage() {
   return (
     <TamboProvider
-      apiKey={env.NEXT_PUBLIC_HYDRA_API_KEY!}
-      tamboUrl={env.NEXT_PUBLIC_HYDRA_API_URL!}
+      apiKey={env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL!}
     >
       <div className="container mx-auto py-2">
         <Card className="max-w-2xl mx-auto p-4 mt-2">

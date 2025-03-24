@@ -11,8 +11,8 @@ export function InteractiveDemo() {
     <Section id="interactive-demo" className="py-16 sm:py-24">
       <div className="w-full">
         <TamboProvider
-          apiKey={env.NEXT_PUBLIC_HYDRA_API_KEY!}
-          tamboUrl={env.NEXT_PUBLIC_HYDRA_API_URL!}
+          apiKey={env.NEXT_PUBLIC_TAMBO_API_KEY!}
+          tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL!}
           components={demoComponents}
         >
           <TamboDemo />

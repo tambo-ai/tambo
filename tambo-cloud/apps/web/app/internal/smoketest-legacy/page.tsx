@@ -332,8 +332,8 @@ function useWeatherHydra({
 }) {
   return useMemo(() => {
     const client = new HydraClient({
-      hydraApiKey: env.NEXT_PUBLIC_HYDRA_API_KEY,
-      hydraApiUrl: env.NEXT_PUBLIC_HYDRA_API_URL,
+      hydraApiKey: env.NEXT_PUBLIC_TAMBO_API_KEY,
+      hydraApiUrl: env.NEXT_PUBLIC_TAMBO_API_URL,
     });
     const tools: Record<string, ComponentContextTool> = {
       forecast: {

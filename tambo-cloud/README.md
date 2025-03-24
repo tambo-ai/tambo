@@ -129,7 +129,7 @@ npm run dev
    - Add the key to `apps/web/.env.local`:
 
    ```bash
-   NEXT_PUBLIC_HYDRA_API_KEY=your_generated_key_here
+   NEXT_PUBLIC_TAMBO_API_KEY=your_generated_key_here
    ```
 
 4. Verify your setup:
