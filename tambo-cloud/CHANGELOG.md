@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.25.11](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.10...repo-v0.25.11) (2025-03-24)
+
+
+### Documentation
+
+* add imports ([#569](https://github.com/tambo-ai/tambo-cloud/issues/569)) ([10c0f51](https://github.com/tambo-ai/tambo-cloud/commit/10c0f51ee488ae41edf521881b20c92a1d27822c))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @next/eslint-plugin-next from 15.1.7 to 15.2.3 ([#581](https://github.com/tambo-ai/tambo-cloud/issues/581)) ([9e43720](https://github.com/tambo-ai/tambo-cloud/commit/9e437203307080c8040eb9ca9f2c296581dbe2a0))
+* **deps-dev:** bump @types/node from 20.17.24 to 20.17.25 ([#578](https://github.com/tambo-ai/tambo-cloud/issues/578)) ([1fdb3d7](https://github.com/tambo-ai/tambo-cloud/commit/1fdb3d7f9fcc1d91da3cc128ef04e444559dd628))
+* **deps-dev:** bump lint-staged from 15.4.3 to 15.5.0 ([#584](https://github.com/tambo-ai/tambo-cloud/issues/584)) ([1eeebd6](https://github.com/tambo-ai/tambo-cloud/commit/1eeebd6da7406b764a5e912bbe02d8d7de4785ba))
+* **deps-dev:** bump supertest from 7.0.0 to 7.1.0 ([#585](https://github.com/tambo-ai/tambo-cloud/issues/585)) ([61524ae](https://github.com/tambo-ai/tambo-cloud/commit/61524aeb9fdbeb63132bda638dda280da60d300d))
+* **deps-dev:** bump the eslint group with 3 updates ([#575](https://github.com/tambo-ai/tambo-cloud/issues/575)) ([efb138a](https://github.com/tambo-ai/tambo-cloud/commit/efb138a8b1941acf149ae80caaa0cc45d4253d2f))
+* **deps:** bump @splinetool/runtime from 1.9.72 to 1.9.80 ([#583](https://github.com/tambo-ai/tambo-cloud/issues/583)) ([1fd9bd1](https://github.com/tambo-ai/tambo-cloud/commit/1fd9bd19ffc037006f096d57f9aa2842881909a4))
+* **deps:** bump @supabase/supabase-js from 2.49.1 to 2.49.2 ([#587](https://github.com/tambo-ai/tambo-cloud/issues/587)) ([4a03e1d](https://github.com/tambo-ai/tambo-cloud/commit/4a03e1d994ff2e887be8907161434d9afb4d4714))
+* **deps:** bump @tanstack/react-query from 5.68.0 to 5.69.0 ([#589](https://github.com/tambo-ai/tambo-cloud/issues/589)) ([5689fe7](https://github.com/tambo-ai/tambo-cloud/commit/5689fe799e55008f7d430d55449c6d64e5318ce3))
+* **deps:** bump @theguild/remark-mermaid from 0.2.0 to 0.3.0 ([#588](https://github.com/tambo-ai/tambo-cloud/issues/588)) ([b62da05](https://github.com/tambo-ai/tambo-cloud/commit/b62da053ddb9fa26e1be11786865155684a48e0d))
+* **deps:** bump drizzle-orm from 0.40.0 to 0.41.0 in the drizzle group ([#574](https://github.com/tambo-ai/tambo-cloud/issues/574)) ([d2603d4](https://github.com/tambo-ai/tambo-cloud/commit/d2603d4c6ef25726b7553821becbaa026d78e5ff))
+* **deps:** bump lucide-react from 0.477.0 to 0.483.0 ([#579](https://github.com/tambo-ai/tambo-cloud/issues/579)) ([7c48700](https://github.com/tambo-ai/tambo-cloud/commit/7c48700cfe5b8daae1280dbf6e9408d2752cc1f9))
+* **deps:** bump next from 15.2.1 to 15.2.3 ([#582](https://github.com/tambo-ai/tambo-cloud/issues/582)) ([e99a03d](https://github.com/tambo-ai/tambo-cloud/commit/e99a03d122c02d6463023fcfc5d8e2100627961c))
+* **deps:** bump openai from 4.86.2 to 4.89.0 ([#577](https://github.com/tambo-ai/tambo-cloud/issues/577)) ([39bd3f9](https://github.com/tambo-ai/tambo-cloud/commit/39bd3f9e3c4699f27360c1062420a299369e62f3))
+* **deps:** bump pg from 8.14.0 to 8.14.1 ([#586](https://github.com/tambo-ai/tambo-cloud/issues/586)) ([bd1eb84](https://github.com/tambo-ai/tambo-cloud/commit/bd1eb8437c8b1b5d74e6198afcac43be73ad8039))
+* **deps:** bump the nestjs group with 5 updates ([#573](https://github.com/tambo-ai/tambo-cloud/issues/573)) ([970531a](https://github.com/tambo-ai/tambo-cloud/commit/970531aa7b292277ad054a3f9ae54553b6473fcb))
+* **deps:** bump the trpc group with 3 updates ([#572](https://github.com/tambo-ai/tambo-cloud/issues/572)) ([3099500](https://github.com/tambo-ai/tambo-cloud/commit/309950021d23fa33014d8d29a4954bc72daaa50f))
+* remove per-project prettier config ([#590](https://github.com/tambo-ai/tambo-cloud/issues/590)) ([b8ea968](https://github.com/tambo-ai/tambo-cloud/commit/b8ea96859664caf1449aec8f66f00fa5645f2304))
+
 ## [0.25.10](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.9...repo-v0.25.10) (2025-03-22)
 
 
