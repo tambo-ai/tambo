@@ -90,7 +90,7 @@ export function useTamboSuggestions(
   const { setValue: setInputValue } = useTamboThreadInput();
 
   const latestMessage = thread.messages[thread.messages.length - 1];
-  const isLatestFromTambo = latestMessage?.role === "assistant"; // TODO: change to tambo
+  const isLatestFromTambo = latestMessage?.role === "assistant";
   const latestMessageId = latestMessage?.id;
 
   // Reset selected suggestion when the message changes
