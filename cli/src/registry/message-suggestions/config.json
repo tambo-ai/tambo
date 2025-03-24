@@ -6,7 +6,7 @@
   "files": [
     {
       "name": "message-suggestions.tsx",
-      "content": "src/registry/message-suggestions.tsx/message-suggestions.tsx"
+      "content": "src/registry/message-suggestions/message-suggestions.tsx"
     }
   ]
 }
