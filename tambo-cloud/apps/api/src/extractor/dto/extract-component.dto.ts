@@ -1,7 +1,7 @@
-import { ApiSchema } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
+import { ApiSchema } from "@nestjs/swagger";
+import { IsNotEmpty, IsString, IsUUID, MaxLength } from "class-validator";
 
-@ApiSchema({ name: 'ExtractComponent' })
+@ApiSchema({ name: "ExtractComponent" })
 export class ExtractComponentDto {
   @IsNotEmpty()
   @IsString()

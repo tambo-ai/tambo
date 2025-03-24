@@ -5,24 +5,24 @@ import {
   Provider,
   Scope,
   UnauthorizedException,
-} from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
+} from "@nestjs/common";
+import { REQUEST } from "@nestjs/core";
 import {
   getDb,
   HydraDatabase,
   HydraTransaction,
   schema,
-} from '@tambo-ai-cloud/db';
-import { sql } from 'drizzle-orm';
-import { NextFunction, Response } from 'express';
-import { IncomingMessage } from 'http';
-import { decryptApiKey } from '../key.utils';
+} from "@tambo-ai-cloud/db";
+import { sql } from "drizzle-orm";
+import { NextFunction, Response } from "express";
+import { IncomingMessage } from "http";
+import { decryptApiKey } from "../key.utils";
 
 interface HydraRequest extends IncomingMessage {
   tx?: HydraTransaction;
 }
 
-export const TRANSACTION = Symbol('TRANSACTION');
+export const TRANSACTION = Symbol("TRANSACTION");
 /** Gets the active transaction that was created by the TransactionMiddleware */
 export const TransactionProvider: Provider = {
   provide: TRANSACTION,
@@ -31,7 +31,7 @@ export const TransactionProvider: Provider = {
   useFactory: (req: HydraRequest) => req.tx,
 };
 
-export const DATABASE = Symbol('DATABASE');
+export const DATABASE = Symbol("DATABASE");
 export const DatabaseProvider: Provider = {
   provide: DATABASE,
   scope: Scope.REQUEST,
@@ -46,7 +46,7 @@ export class TransactionMiddleware implements NestMiddleware {
   ) {}
   async use(req: HydraRequest, res: Response, next: NextFunction) {
     const currentRequestSerialNumber = requestSerialNumber++;
-    const apiKeyHeader = req.headers['x-api-key'];
+    const apiKeyHeader = req.headers["x-api-key"];
     const apiKeyHeaderString = Array.isArray(apiKeyHeader)
       ? apiKeyHeader[0]
       : apiKeyHeader;
@@ -55,7 +55,7 @@ export class TransactionMiddleware implements NestMiddleware {
       : null;
 
     if (!projectId) {
-      throw new UnauthorizedException('Invalid API key');
+      throw new UnauthorizedException("Invalid API key");
     }
 
     console.log(
@@ -79,7 +79,7 @@ export class TransactionMiddleware implements NestMiddleware {
         makeResolvablePromise<boolean>();
 
       // wire up the finish event to resolve the promise
-      res.on('finish', async () => {
+      res.on("finish", async () => {
         console.log(
           `[${currentRequestSerialNumber}] finishing ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
         );

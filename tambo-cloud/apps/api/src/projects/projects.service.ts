@@ -1,15 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import type { HydraDatabase, HydraTransaction } from '@tambo-ai-cloud/db';
-import { operations } from '@tambo-ai-cloud/db';
+import { Inject, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import type { HydraDatabase, HydraTransaction } from "@tambo-ai-cloud/db";
+import { operations } from "@tambo-ai-cloud/db";
 import {
   DATABASE,
   TRANSACTION,
-} from 'src/common/middleware/db-transaction-middleware';
-import { APIKeyResponse } from './dto/api-key-response.dto';
-import { ProjectResponse } from './dto/project-response.dto';
-import { ProviderKeyResponse } from './dto/provider-key-response.dto';
-import { Project } from './entities/project.entity';
+} from "src/common/middleware/db-transaction-middleware";
+import { APIKeyResponse } from "./dto/api-key-response.dto";
+import { ProjectResponse } from "./dto/project-response.dto";
+import { ProviderKeyResponse } from "./dto/provider-key-response.dto";
+import { Project } from "./entities/project.entity";
 
 @Injectable()
 export class ProjectsService {
@@ -30,11 +30,11 @@ export class ProjectsService {
     userId: string;
   }): Promise<ProjectResponse> {
     if (!createProjectDto.userId) {
-      throw new Error('User ID is required');
+      throw new Error("User ID is required");
     }
 
     const project = await operations.createProject(this.getDb(), {
-      name: createProjectDto.name ?? 'New Project',
+      name: createProjectDto.name ?? "New Project",
       userId: createProjectDto.userId,
     });
 
@@ -109,7 +109,7 @@ export class ProjectsService {
     },
   ): Promise<ProjectResponse | undefined> {
     if (!updateProjectDto.name) {
-      throw new Error('Project name is required');
+      throw new Error("Project name is required");
     }
 
     const updated = await operations.updateProject(this.getDb(), id, {
@@ -134,7 +134,7 @@ export class ProjectsService {
     userId: string,
     name: string,
   ): Promise<string> {
-    const apiKeySecret = this.config.getOrThrow('API_KEY_SECRET');
+    const apiKeySecret = this.config.getOrThrow("API_KEY_SECRET");
     return await operations.createApiKey(this.getDb(), apiKeySecret, {
       projectId,
       userId,
@@ -188,7 +188,7 @@ export class ProjectsService {
     providerKey: string,
     userId: string,
   ): Promise<ProjectResponse> {
-    const providerKeySecret = this.config.getOrThrow('PROVIDER_KEY_SECRET');
+    const providerKeySecret = this.config.getOrThrow("PROVIDER_KEY_SECRET");
     const result = await operations.addProviderKey(
       this.getDb(),
       providerKeySecret,
@@ -200,7 +200,7 @@ export class ProjectsService {
       },
     );
     if (!result) {
-      throw new Error('Failed to add provider key');
+      throw new Error("Failed to add provider key");
     }
     return {
       id: result.id,
@@ -229,7 +229,7 @@ export class ProjectsService {
     await operations.deleteProviderKey(this.getDb(), projectId, providerKeyId);
     const project = await this.findOneWithKeys(projectId);
     if (!project) {
-      throw new Error('Project not found');
+      throw new Error("Project not found");
     }
     return {
       id: project.id,

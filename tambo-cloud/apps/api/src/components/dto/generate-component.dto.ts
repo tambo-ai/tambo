@@ -1,31 +1,31 @@
-import { ApiProperty, ApiSchema, getSchemaPath } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema, getSchemaPath } from "@nestjs/swagger";
 import {
   AvailableComponent,
   AvailableComponents,
   ComponentContextToolMetadata,
   ComponentPropsMetadata,
-} from '@tambo-ai-cloud/hydra-ai-server';
-import { ArrayMinSize } from 'class-validator';
-import { JSONSchema7 } from 'json-schema';
-import { ChatCompletionContentPartDto } from '../../threads/dto/message.dto';
-import { LegacyChatMessageDto } from './legacy-chat-history.dto';
+} from "@tambo-ai-cloud/hydra-ai-server";
+import { ArrayMinSize } from "class-validator";
+import { JSONSchema7 } from "json-schema";
+import { ChatCompletionContentPartDto } from "../../threads/dto/message.dto";
+import { LegacyChatMessageDto } from "./legacy-chat-history.dto";
 
-@ApiSchema({ name: 'ComponentPropsMetadata' })
+@ApiSchema({ name: "ComponentPropsMetadata" })
 export class ComponentPropsMetadataDto implements ComponentPropsMetadata {}
 
-@ApiSchema({ name: 'AvailableComponent' })
+@ApiSchema({ name: "AvailableComponent" })
 export class AvailableComponentDto implements AvailableComponent {
   name!: string;
   description!: string;
   contextTools!: ComponentContextToolMetadataDto[];
   @ApiProperty({
-    type: 'object',
+    type: "object",
     additionalProperties: true,
   })
   props!: ComponentPropsMetadataDto;
 }
 
-@ApiSchema({ name: 'AvailableComponents' })
+@ApiSchema({ name: "AvailableComponents" })
 export class AvailableComponentsDto implements AvailableComponents {
   [key: string]: AvailableComponentDto;
 }
@@ -40,7 +40,7 @@ export class ToolParameters {
   schema?: JSONSchema7;
 }
 
-@ApiSchema({ name: 'ComponentContextToolMetadata' })
+@ApiSchema({ name: "ComponentContextToolMetadata" })
 export class ComponentContextToolMetadataDto
   implements ComponentContextToolMetadata
 {
@@ -52,7 +52,7 @@ export class ComponentContextToolMetadataDto
 export class GenerateComponentRequest {
   messageHistory!: LegacyChatMessageDto[];
   @ApiProperty({
-    type: 'object',
+    type: "object",
     additionalProperties: { $ref: getSchemaPath(AvailableComponentDto) },
   })
   availableComponents!: any;

@@ -1,12 +1,12 @@
-import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsArray, IsNumber, IsOptional, Max, Min } from 'class-validator';
-import { AvailableComponentDto } from '../../components/dto/generate-component.dto';
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsArray, IsNumber, IsOptional, Max, Min } from "class-validator";
+import { AvailableComponentDto } from "../../components/dto/generate-component.dto";
 
-@ApiSchema({ name: 'SuggestionsGenerate' })
+@ApiSchema({ name: "SuggestionsGenerate" })
 export class SuggestionsGenerateDto {
   @ApiProperty({
-    description: 'Maximum number of suggestions to generate',
+    description: "Maximum number of suggestions to generate",
     minimum: 1,
     maximum: 10,
     default: 3,
@@ -15,28 +15,28 @@ export class SuggestionsGenerateDto {
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
-  @Min(1, { message: 'Must generate at least 1 suggestion' })
-  @Max(10, { message: 'Cannot generate more than 10 suggestions' })
+  @Min(1, { message: "Must generate at least 1 suggestion" })
+  @Max(10, { message: "Cannot generate more than 10 suggestions" })
   maxSuggestions?: number = 3;
 
   @ApiProperty({
-    description: 'Available components that can be used with this suggestion',
+    description: "Available components that can be used with this suggestion",
     required: false,
     isArray: true,
     example: [
       {
-        name: 'Button',
-        description: 'A clickable button component',
+        name: "Button",
+        description: "A clickable button component",
         contextTools: [
           {
-            name: 'fetchData',
-            description: 'Fetches data for the button',
+            name: "fetchData",
+            description: "Fetches data for the button",
             parameters: [],
           },
         ],
         props: {
-          variant: 'primary',
-          size: 'medium',
+          variant: "primary",
+          size: "medium",
         },
       },
     ],

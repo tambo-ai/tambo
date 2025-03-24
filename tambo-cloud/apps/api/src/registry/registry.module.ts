@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { RegistryController } from './registry.controller';
-import { RegistryService } from './registry.service';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { RegistryController } from "./registry.controller";
+import { RegistryService } from "./registry.service";
 
 @Module({
   imports: [ConfigModule],

@@ -1,4 +1,4 @@
-import { ExtractComponentResponseDto } from '../../extractor/dto/extract-component-response.dto';
+import { ExtractComponentResponseDto } from "../../extractor/dto/extract-component-response.dto";
 
 export interface AIServiceInterface {
   extractComponentDefinitions(

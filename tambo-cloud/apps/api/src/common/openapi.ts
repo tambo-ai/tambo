@@ -1,15 +1,15 @@
-import { INestApplication, INestApplicationContext } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { INestApplication, INestApplicationContext } from "@nestjs/common";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 export function generateOpenAPIConfig(
   app: INestApplication<any> | INestApplicationContext,
 ) {
   const config = new DocumentBuilder()
-    .setTitle('Hydra API')
-    .setDescription('Hosted Hydra Backend')
-    .setVersion('0.0.1')
-    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'apiKey')
-    .addSecurityRequirements('apiKey')
+    .setTitle("Hydra API")
+    .setDescription("Hosted Hydra Backend")
+    .setVersion("0.0.1")
+    .addApiKey({ type: "apiKey", name: "x-api-key", in: "header" }, "apiKey")
+    .addSecurityRequirements("apiKey")
     .build();
   const document = SwaggerModule.createDocument(
     app as INestApplication<any>,

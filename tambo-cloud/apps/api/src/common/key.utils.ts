@@ -3,8 +3,8 @@ import {
   createDecipheriv,
   createHash,
   randomBytes,
-} from 'crypto';
-import { ConfigServiceSingleton } from '../config.service';
+} from "crypto";
+import { ConfigServiceSingleton } from "../config.service";
 
 function splitFromEnd(str, delimiter) {
   const parts = str.split(delimiter);
@@ -13,27 +13,27 @@ function splitFromEnd(str, delimiter) {
   return [parts.join(delimiter), lastPart];
 }
 
-const algorithm = 'aes-256-cbc';
+const algorithm = "aes-256-cbc";
 const IV_LENGTH = 16; // 16 bytes for AES
 
 // Hashing to ensure 32-byte key length for AES-256
 function getHashedKey(key: string): Buffer {
-  return createHash('sha256').update(key).digest();
+  return createHash("sha256").update(key).digest();
 }
 
 export function encryptApiKey(storedString: string, apiKey: string): string {
   const apiKeySecret =
-    ConfigServiceSingleton.getInstance().get<string>('API_KEY_SECRET');
+    ConfigServiceSingleton.getInstance().get<string>("API_KEY_SECRET");
   if (!apiKeySecret) {
-    throw new Error('API_KEY_SECRET is not configured');
+    throw new Error("API_KEY_SECRET is not configured");
   }
   const secretKey = getHashedKey(apiKeySecret);
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(algorithm, secretKey, iv);
   const data = `${storedString}.${apiKey}`;
-  let encrypted = cipher.update(data, 'utf-8', 'hex');
-  encrypted += cipher.final('hex');
-  return `${iv.toString('hex')}.${encrypted}`;
+  let encrypted = cipher.update(data, "utf-8", "hex");
+  encrypted += cipher.final("hex");
+  return `${iv.toString("hex")}.${encrypted}`;
 }
 
 export function decryptApiKey(encryptedData: string): {
@@ -41,39 +41,39 @@ export function decryptApiKey(encryptedData: string): {
   apiKey: string;
 } {
   const apiKeySecret =
-    ConfigServiceSingleton.getInstance().get<string>('API_KEY_SECRET');
+    ConfigServiceSingleton.getInstance().get<string>("API_KEY_SECRET");
   if (!apiKeySecret) {
-    throw new Error('API_KEY_SECRET is not configured');
+    throw new Error("API_KEY_SECRET is not configured");
   }
   const secretKey = getHashedKey(apiKeySecret);
 
-  const [ivHex, encrypted] = splitFromEnd(encryptedData, '.');
+  const [ivHex, encrypted] = splitFromEnd(encryptedData, ".");
 
   if (!ivHex || !encrypted) {
-    console.error('Invalid encrypted data format in apikey');
-    throw new Error('Invalid apikey format');
+    console.error("Invalid encrypted data format in apikey");
+    throw new Error("Invalid apikey format");
   }
 
-  const iv = Buffer.from(ivHex, 'hex');
+  const iv = Buffer.from(ivHex, "hex");
   const decipher = createDecipheriv(algorithm, secretKey, iv);
 
   let decrypted: string;
   try {
-    decrypted = decipher.update(encrypted, 'hex', 'utf-8');
-    decrypted += decipher.final('utf-8');
+    decrypted = decipher.update(encrypted, "hex", "utf-8");
+    decrypted += decipher.final("utf-8");
   } catch (error) {
     console.error(error);
-    throw new Error('Failed to decrypt API key', {
+    throw new Error("Failed to decrypt API key", {
       cause: error,
     });
   }
 
-  const [storedString, apiKey] = splitFromEnd(decrypted, '.');
+  const [storedString, apiKey] = splitFromEnd(decrypted, ".");
   return { storedString, apiKey };
 }
 
 export function hashKey(apiKey: string) {
-  const hashedKey = createHash('sha256').update(apiKey).digest('hex');
+  const hashedKey = createHash("sha256").update(apiKey).digest("hex");
   return hashedKey;
 }
 
@@ -82,18 +82,18 @@ export function encryptProviderKey(
   providerKey: string,
 ): string {
   const providerKeySecret = ConfigServiceSingleton.getInstance().get<string>(
-    'PROVIDER_KEY_SECRET',
+    "PROVIDER_KEY_SECRET",
   );
   if (!providerKeySecret) {
-    throw new Error('PROVIDER_KEY_SECRET is not configured');
+    throw new Error("PROVIDER_KEY_SECRET is not configured");
   }
   const secretKey = getHashedKey(providerKeySecret);
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(algorithm, secretKey, iv);
   const data = `${providerName}.${providerKey}`;
-  let encrypted = cipher.update(data, 'utf-8', 'hex');
-  encrypted += cipher.final('hex');
-  return `${iv.toString('hex')}.${encrypted}`;
+  let encrypted = cipher.update(data, "utf-8", "hex");
+  encrypted += cipher.final("hex");
+  return `${iv.toString("hex")}.${encrypted}`;
 }
 
 export function decryptProviderKey(encryptedData: string): {
@@ -101,33 +101,33 @@ export function decryptProviderKey(encryptedData: string): {
   providerKey: string;
 } {
   const providerKeySecret = ConfigServiceSingleton.getInstance().get<string>(
-    'PROVIDER_KEY_SECRET',
+    "PROVIDER_KEY_SECRET",
   );
   if (!providerKeySecret) {
-    throw new Error('PROVIDER_KEY_SECRET is not configured');
+    throw new Error("PROVIDER_KEY_SECRET is not configured");
   }
   const secretKey = getHashedKey(providerKeySecret);
 
-  const [ivHex, encrypted] = splitFromEnd(encryptedData, '.');
+  const [ivHex, encrypted] = splitFromEnd(encryptedData, ".");
 
   if (!ivHex || !encrypted) {
-    throw new Error('Invalid encrypted data format');
+    throw new Error("Invalid encrypted data format");
   }
 
-  const iv = Buffer.from(ivHex, 'hex');
+  const iv = Buffer.from(ivHex, "hex");
   const decipher = createDecipheriv(algorithm, secretKey, iv);
 
   let decrypted: string;
   try {
-    decrypted = decipher.update(encrypted, 'hex', 'utf-8');
-    decrypted += decipher.final('utf-8');
+    decrypted = decipher.update(encrypted, "hex", "utf-8");
+    decrypted += decipher.final("utf-8");
   } catch (error) {
     console.error(error);
-    throw new Error('Failed to decrypt provider key', {
+    throw new Error("Failed to decrypt provider key", {
       cause: error,
     });
   }
 
-  const [providerName, providerKey] = splitFromEnd(decrypted, '.');
+  const [providerName, providerKey] = splitFromEnd(decrypted, ".");
   return { providerName, providerKey };
 }

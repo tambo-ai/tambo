@@ -6,8 +6,8 @@ import {
   Post,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { ApiOperation, ApiSecurity } from '@nestjs/swagger';
+} from "@nestjs/common";
+import { ApiOperation, ApiSecurity } from "@nestjs/swagger";
 import {
   ActionType,
   ContentPartType,
@@ -15,24 +15,24 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
-} from '@tambo-ai-cloud/core';
+} from "@tambo-ai-cloud/core";
 import {
   ChatMessage,
   HydraBackend,
   generateChainId,
-} from '@tambo-ai-cloud/hydra-ai-server';
-import { decryptProviderKey } from '../common/key.utils';
-import { CorrelationLoggerService } from '../common/services/logger.service';
-import { ProjectsService } from '../projects/projects.service';
-import { ThreadsService } from '../threads/threads.service';
-import { ComponentDecisionDto } from './dto/component-decision.dto';
-import { GenerateComponentRequest } from './dto/generate-component.dto';
-import { HydrateComponentRequest } from './dto/hydrate-component.dto';
-import { ApiKeyGuard } from './guards/apikey.guard';
+} from "@tambo-ai-cloud/hydra-ai-server";
+import { decryptProviderKey } from "../common/key.utils";
+import { CorrelationLoggerService } from "../common/services/logger.service";
+import { ProjectsService } from "../projects/projects.service";
+import { ThreadsService } from "../threads/threads.service";
+import { ComponentDecisionDto } from "./dto/component-decision.dto";
+import { GenerateComponentRequest } from "./dto/generate-component.dto";
+import { HydrateComponentRequest } from "./dto/hydrate-component.dto";
+import { ApiKeyGuard } from "./guards/apikey.guard";
 
-@ApiSecurity('apiKey')
+@ApiSecurity("apiKey")
 @UseGuards(ApiKeyGuard)
-@Controller('components')
+@Controller("components")
 export class ComponentsController {
   constructor(
     private projectsService: ProjectsService,
@@ -43,22 +43,22 @@ export class ComponentsController {
   private async validateProjectAndProviderKeys(projectId: string) {
     const project = await this.projectsService.findOneWithKeys(projectId);
     if (!project) {
-      throw new NotFoundException('Project not found');
+      throw new NotFoundException("Project not found");
     }
     const providerKeys = project.getProviderKeys();
     if (!providerKeys?.length) {
-      throw new NotFoundException('No provider keys found for project');
+      throw new NotFoundException("No provider keys found for project");
     }
     const providerKey =
       providerKeys[providerKeys.length - 1].providerKeyEncrypted; // Use the last provider key
     if (!providerKey) {
-      throw new NotFoundException('No provider key found for project');
+      throw new NotFoundException("No provider key found for project");
     }
     return decryptProviderKey(providerKey);
   }
 
   @ApiOperation({ deprecated: true })
-  @Post('generate')
+  @Post("generate")
   async generateComponent(
     @Body() generateComponentDto: GenerateComponentRequest,
     @Req() request, // Assumes the request object has the projectId
@@ -67,7 +67,7 @@ export class ComponentsController {
       generateComponentDto;
     if (!messageHistory?.length) {
       throw new BadRequestException(
-        'Message history is required and cannot be empty',
+        "Message history is required and cannot be empty",
       );
     }
     // TODO: this assumes that only the last message is new - if the payload has
@@ -125,7 +125,7 @@ export class ComponentsController {
   }
 
   @ApiOperation({ deprecated: true })
-  @Post('hydrate')
+  @Post("hydrate")
   async hydrateComponent(
     @Body() hydrateComponentDto: HydrateComponentRequest,
     @Req() request, // Assumes the request object has the projectId
@@ -142,7 +142,7 @@ export class ComponentsController {
       await this.validateProjectAndProviderKeys(projectId);
 
     if (!component) {
-      throw new BadRequestException('Component is required');
+      throw new BadRequestException("Component is required");
     }
     const resolvedThreadId = await this.ensureThread(
       projectId,
@@ -156,7 +156,7 @@ export class ComponentsController {
     );
 
     const toolResponseString =
-      typeof toolResponse === 'string'
+      typeof toolResponse === "string"
         ? toolResponse
         : JSON.stringify(toolResponse);
     try {
@@ -196,7 +196,7 @@ export class ComponentsController {
       await this.threadsService.updateGenerationStage(
         resolvedThreadId,
         GenerationStage.ERROR,
-        'Error hydrating component',
+        "Error hydrating component",
       );
       throw error;
     }
@@ -217,7 +217,7 @@ export class ComponentsController {
 
     if (preventCreate) {
       throw new BadRequestException(
-        'Thread ID is required, and cannot be created',
+        "Thread ID is required, and cannot be created",
       );
     }
     // If the threadId is not provided, create a new thread
@@ -236,7 +236,7 @@ function legacyChatMessagesToThreadMessages(
   return messageHistory.map(
     (message, index): ThreadMessage => ({
       role:
-        message.sender === 'hydra'
+        message.sender === "hydra"
           ? MessageRole.User
           : (message.sender as MessageRole),
       id: `message-${index}`,
@@ -244,7 +244,7 @@ function legacyChatMessagesToThreadMessages(
       ...message,
       content: [
         {
-          type: 'text',
+          type: "text",
           text: message.message,
         },
       ],

@@ -1,21 +1,21 @@
-import { ApiProperty, ApiSchema } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import {
   ActionType,
   ChatCompletionContentPartUnion,
   ContentPartType,
   InternalThreadMessage,
   MessageRole,
-} from '@tambo-ai-cloud/core';
-import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
-import { type OpenAI } from 'openai';
+} from "@tambo-ai-cloud/core";
+import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from "class-validator";
+import { type OpenAI } from "openai";
 import {
   ComponentDecisionV2Dto,
   ToolCallRequestDto,
-} from '../../components/dto/component-decision.dto';
+} from "../../components/dto/component-decision.dto";
 
 export enum AudioFormat {
-  WAV = 'wav',
-  MP3 = 'mp3',
+  WAV = "wav",
+  MP3 = "mp3",
 }
 
 export class InputAudio {
@@ -25,9 +25,9 @@ export class InputAudio {
 }
 
 export enum ImageDetail {
-  Auto = 'auto',
-  High = 'high',
-  Low = 'low',
+  Auto = "auto",
+  High = "high",
+  Low = "low",
 }
 
 export class ImageUrl {
@@ -37,7 +37,7 @@ export class ImageUrl {
 }
 
 /** DTO for the content part of a message. This may be safely cast to or from the ChatCompletionContentPart interface. */
-@ApiSchema({ name: 'ChatCompletionContentPart' })
+@ApiSchema({ name: "ChatCompletionContentPart" })
 export class ChatCompletionContentPartDto
   implements ChatCompletionContentPartUnion
 {
@@ -51,7 +51,7 @@ export class ChatCompletionContentPartDto
   input_audio?: InputAudio;
 }
 
-@ApiSchema({ name: 'ThreadMessage' })
+@ApiSchema({ name: "ThreadMessage" })
 export class ThreadMessageDto {
   id!: string;
   threadId!: string;
@@ -59,13 +59,13 @@ export class ThreadMessageDto {
   role!: MessageRole;
   content!: ChatCompletionContentPartDto[];
   @ApiProperty({
-    type: 'object',
+    type: "object",
     additionalProperties: true,
   })
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2Dto;
   @ApiProperty({
-    type: 'object',
+    type: "object",
     additionalProperties: true,
   })
   componentState!: Record<string, unknown>;
@@ -88,7 +88,7 @@ export class MessageRequest implements InternalThreadMessage {
 
   @IsOptional()
   @ApiProperty({
-    type: 'object',
+    type: "object",
     additionalProperties: true,
   })
   metadata?: Record<string, unknown>;
@@ -110,7 +110,7 @@ export class MessageRequest implements InternalThreadMessage {
    */
   @IsOptional()
   @ApiProperty({
-    description: '@deprecated Put the response in the content instead',
+    description: "@deprecated Put the response in the content instead",
   })
   toolResponse?: any;
 }

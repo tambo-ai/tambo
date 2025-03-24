@@ -1,4 +1,4 @@
-import { ConfigService } from '@nestjs/config';
+import { ConfigService } from "@nestjs/config";
 
 class ConfigServiceSingleton {
   private static instance: ConfigService;
@@ -9,7 +9,7 @@ class ConfigServiceSingleton {
 
   static getInstance(): ConfigService {
     if (!ConfigServiceSingleton.instance) {
-      throw new Error('ConfigService has not been initialized.');
+      throw new Error("ConfigService has not been initialized.");
     }
     return ConfigServiceSingleton.instance;
   }

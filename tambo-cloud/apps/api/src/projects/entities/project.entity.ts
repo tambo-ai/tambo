@@ -1,6 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
-import { APIKey } from './api-key.entity';
-import { ProviderKey } from './provider-key.entity';
+import { v4 as uuidv4 } from "uuid";
+import { APIKey } from "./api-key.entity";
+import { ProviderKey } from "./provider-key.entity";
 
 export class Project {
   id!: string;
@@ -35,7 +35,7 @@ export class Project {
   }
 
   hideApiKey(apiKey: string, visibleCharacters = 4): string {
-    const hiddenPart = apiKey.substring(visibleCharacters).replace(/./g, '*');
+    const hiddenPart = apiKey.substring(visibleCharacters).replace(/./g, "*");
     return apiKey.substring(0, visibleCharacters) + hiddenPart;
   }
 

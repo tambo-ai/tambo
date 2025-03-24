@@ -1,5 +1,5 @@
-import { Injectable, Logger, Scope } from '@nestjs/common';
-import { RequestLog } from '../middleware/request-logger.middleware';
+import { Injectable, Logger, Scope } from "@nestjs/common";
+import { RequestLog } from "../middleware/request-logger.middleware";
 
 @Injectable({ scope: Scope.REQUEST })
 export class CorrelationLoggerService extends Logger {

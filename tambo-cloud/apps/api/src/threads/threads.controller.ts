@@ -11,7 +11,7 @@ import {
   Req,
   Res,
   UseGuards,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiOperation,
   ApiParam,
@@ -19,56 +19,56 @@ import {
   ApiResponse,
   ApiSecurity,
   ApiTags,
-} from '@nestjs/swagger';
-import { GenerationStage } from '@tambo-ai-cloud/core';
-import { ApiKeyGuard } from '../components/guards/apikey.guard';
+} from "@nestjs/swagger";
+import { GenerationStage } from "@tambo-ai-cloud/core";
+import { ApiKeyGuard } from "../components/guards/apikey.guard";
 import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
-} from '../projects/guards/project-access-own.guard';
+} from "../projects/guards/project-access-own.guard";
 import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
-} from './dto/advance-thread.dto';
-import { ErrorDto } from './dto/error.dto';
-import { MessageRequest, ThreadMessageDto } from './dto/message.dto';
-import { SuggestionDto } from './dto/suggestion.dto';
-import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
+} from "./dto/advance-thread.dto";
+import { ErrorDto } from "./dto/error.dto";
+import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
+import { SuggestionDto } from "./dto/suggestion.dto";
+import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
 import {
   Thread,
   ThreadListDto,
   ThreadRequest,
   ThreadWithMessagesDto,
   UpdateComponentStateDto,
-} from './dto/thread.dto';
-import { ThreadsService } from './threads.service';
+} from "./dto/thread.dto";
+import { ThreadsService } from "./threads.service";
 
-@ApiTags('threads')
-@ApiSecurity('apiKey')
+@ApiTags("threads")
+@ApiSecurity("apiKey")
 @UseGuards(ApiKeyGuard)
-@Controller('threads')
+@Controller("threads")
 export class ThreadsController {
   constructor(private readonly threadsService: ThreadsService) {}
 
-  @ProjectIdParameterKey('projectId')
+  @ProjectIdParameterKey("projectId")
   @UseGuards(ProjectAccessOwnGuard)
   @Post()
   async create(@Body() createThreadDto: ThreadRequest): Promise<Thread> {
     return await this.threadsService.createThread(createThreadDto);
   }
 
-  @ProjectIdParameterKey('projectId')
+  @ProjectIdParameterKey("projectId")
   @UseGuards(ProjectAccessOwnGuard)
-  @Get('project/:projectId')
-  @ApiQuery({ name: 'contextKey', required: false })
-  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0 })
-  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10 })
+  @Get("project/:projectId")
+  @ApiQuery({ name: "contextKey", required: false })
+  @ApiQuery({ name: "offset", required: false, type: Number, default: 0 })
+  @ApiQuery({ name: "limit", required: false, type: Number, default: 10 })
   async findAllForProject(
     @Req() request: Request,
-    @Param('projectId') projectId: string,
-    @Query('contextKey') contextKey?: string,
-    @Query('offset') offset: number = 0,
-    @Query('limit') limit: number = 10,
+    @Param("projectId") projectId: string,
+    @Query("contextKey") contextKey?: string,
+    @Query("offset") offset: number = 0,
+    @Query("limit") limit: number = 10,
   ): Promise<ThreadListDto> {
     const threadsPromise = this.threadsService.findAllForProject(projectId, {
       contextKey,
@@ -89,21 +89,21 @@ export class ThreadsController {
     };
   }
 
-  @Get(':id')
+  @Get(":id")
   async findOne(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Req() request,
   ): Promise<ThreadWithMessagesDto> {
     if (!request.projectId) {
-      throw new BadRequestException('Project ID is required');
+      throw new BadRequestException("Project ID is required");
     }
     return await this.threadsService.findOne(id, request.projectId);
   }
 
   @UseGuards(ProjectAccessOwnGuard)
-  @Put(':id')
+  @Put(":id")
   async update(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() updateThreadDto: ThreadRequest,
   ): Promise<Thread> {
     const thread = await this.threadsService.update(id, updateThreadDto);
@@ -117,16 +117,16 @@ export class ThreadsController {
   }
 
   @UseGuards(ProjectAccessOwnGuard)
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
+  @Delete(":id")
+  async remove(@Param("id") id: string) {
     return await this.threadsService.remove(id);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
-  @Post(':id/messages')
+  @Post(":id/messages")
   async addMessage(
-    @Param('id') threadId: string,
+    @Param("id") threadId: string,
     @Body() messageDto: MessageRequest,
   ) {
     return await this.threadsService.addMessage(threadId, messageDto);
@@ -134,16 +134,16 @@ export class ThreadsController {
 
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
-  @Get(':id/messages')
+  @Get(":id/messages")
   @ApiQuery({
-    name: 'includeInternal',
-    description: 'Whether to include internal messages',
+    name: "includeInternal",
+    description: "Whether to include internal messages",
     required: false,
     type: Boolean,
   })
   async getMessages(
-    @Param('id') threadId: string,
-    @Query('includeInternal') includeInternal?: boolean,
+    @Param("id") threadId: string,
+    @Query("includeInternal") includeInternal?: boolean,
   ): Promise<ThreadMessageDto[]> {
     return (await this.threadsService.getMessages(
       threadId,
@@ -153,88 +153,88 @@ export class ThreadsController {
 
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
-  @Delete(':id/messages/:messageId')
+  @Delete(":id/messages/:messageId")
   async deleteMessage(
-    @Param('id') _threadId: string,
-    @Param('messageId') messageId: string,
+    @Param("id") _threadId: string,
+    @Param("messageId") messageId: string,
   ) {
     return await this.threadsService.deleteMessage(messageId);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
-  @Get(':id/messages/:messageId/suggestions')
+  @Get(":id/messages/:messageId/suggestions")
   @ApiOperation({
-    summary: 'Get suggestions for a message',
-    description: 'Retrieves all suggestions generated for a specific message',
+    summary: "Get suggestions for a message",
+    description: "Retrieves all suggestions generated for a specific message",
   })
   @ApiParam({
-    name: 'id',
-    description: 'ID of the thread to get suggestions for',
-    example: 'thread_123456789',
+    name: "id",
+    description: "ID of the thread to get suggestions for",
+    example: "thread_123456789",
   })
   @ApiParam({
-    name: 'messageId',
-    description: 'ID of the message to get suggestions for',
-    example: 'msg_123456789',
+    name: "messageId",
+    description: "ID of the message to get suggestions for",
+    example: "msg_123456789",
   })
   @ApiResponse({
     status: 200,
-    description: 'List of suggestions for the message',
+    description: "List of suggestions for the message",
     type: [SuggestionDto],
   })
   @ApiResponse({
     status: 404,
-    description: 'Message not found or has no suggestions',
+    description: "Message not found or has no suggestions",
     type: ErrorDto,
   })
   async getSuggestions(
-    @Param('id') threadId: string,
-    @Param('messageId') messageId: string,
+    @Param("id") threadId: string,
+    @Param("messageId") messageId: string,
   ): Promise<SuggestionDto[]> {
     return await this.threadsService.getSuggestions(messageId);
   }
 
   // @UseGuards(ProjectAccessOwnGuard)
   // TODO: Not protected by project access guard
-  @Post(':id/messages/:messageId/suggestions')
+  @Post(":id/messages/:messageId/suggestions")
   @ApiOperation({
-    summary: 'Generate new suggestions',
-    description: 'Generates and stores new suggestions for a specific message',
+    summary: "Generate new suggestions",
+    description: "Generates and stores new suggestions for a specific message",
   })
   @ApiParam({
-    name: 'id',
-    description: 'ID of the thread to generate suggestions for',
-    example: 'thread_123456789',
+    name: "id",
+    description: "ID of the thread to generate suggestions for",
+    example: "thread_123456789",
   })
   @ApiParam({
-    name: 'messageId',
-    description: 'ID of the message to generate suggestions for',
-    example: 'msg_123456789',
+    name: "messageId",
+    description: "ID of the message to generate suggestions for",
+    example: "msg_123456789",
   })
   @ApiResponse({
     status: 201,
-    description: 'New suggestions generated successfully',
+    description: "New suggestions generated successfully",
     type: [SuggestionDto],
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid request parameters',
+    description: "Invalid request parameters",
     type: ErrorDto,
   })
   @ApiResponse({
     status: 404,
-    description: 'Message not found',
+    description: "Message not found",
     type: ErrorDto,
   })
   @ApiResponse({
     status: 500,
-    description: 'Failed to generate suggestions',
+    description: "Failed to generate suggestions",
     type: ErrorDto,
   })
   async generateSuggestions(
-    @Param('id') threadId: string,
-    @Param('messageId') messageId: string,
+    @Param("id") threadId: string,
+    @Param("messageId") messageId: string,
     @Body() generateSuggestionsDto: SuggestionsGenerateDto,
   ): Promise<SuggestionDto[]> {
     return await this.threadsService.generateSuggestions(
@@ -243,10 +243,10 @@ export class ThreadsController {
     );
   }
 
-  @Put(':id/messages/:messageId/component-state')
+  @Put(":id/messages/:messageId/component-state")
   async updateComponentState(
-    @Param('id') threadId: string,
-    @Param('messageId') messageId: string,
+    @Param("id") threadId: string,
+    @Param("messageId") messageId: string,
     @Body() newState: UpdateComponentStateDto,
   ): Promise<ThreadMessageDto> {
     const message = (await this.threadsService.updateComponentState(
@@ -259,14 +259,14 @@ export class ThreadsController {
   /**
    * Given a thread, generate the response message, optionally appending a message before generation.
    */
-  @Post(':id/advance')
+  @Post(":id/advance")
   async advanceThread(
-    @Param('id') threadId: string,
+    @Param("id") threadId: string,
     @Req() request,
     @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
     if (!request.projectId) {
-      throw new BadRequestException('Project ID is required');
+      throw new BadRequestException("Project ID is required");
     }
     return await (this.threadsService.advanceThread(
       request.projectId,
@@ -275,18 +275,18 @@ export class ThreadsController {
     ) as Promise<AdvanceThreadResponseDto>);
   }
 
-  @Post(':id/advancestream')
+  @Post(":id/advancestream")
   async advanceThreadStream(
-    @Param('id') threadId: string,
+    @Param("id") threadId: string,
     @Req() request,
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
-    response.setHeader('Content-Type', 'text/event-stream');
-    response.setHeader('Cache-Control', 'no-cache');
-    response.setHeader('Connection', 'keep-alive');
+    response.setHeader("Content-Type", "text/event-stream");
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Connection", "keep-alive");
     if (!request.projectId) {
-      throw new BadRequestException('Project ID is required');
+      throw new BadRequestException("Project ID is required");
     }
     try {
       const stream = (await this.threadsService.advanceThread(
@@ -309,13 +309,13 @@ export class ThreadsController {
   /**
    * Create a new thread and advance it, optionally appending a message before generation.
    */
-  @Post('advance')
+  @Post("advance")
   async createAndAdvanceThread(
     @Req() request,
     @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
     if (!request.projectId) {
-      throw new BadRequestException('Project ID is required');
+      throw new BadRequestException("Project ID is required");
     }
     return await (this.threadsService.advanceThread(
       request.projectId,
@@ -323,17 +323,17 @@ export class ThreadsController {
     ) as Promise<AdvanceThreadResponseDto>);
   }
 
-  @Post('advancestream')
+  @Post("advancestream")
   async createAndAdvanceThreadStream(
     @Req() request,
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
-    response.setHeader('Content-Type', 'text/event-stream');
-    response.setHeader('Cache-Control', 'no-cache');
-    response.setHeader('Connection', 'keep-alive');
+    response.setHeader("Content-Type", "text/event-stream");
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Connection", "keep-alive");
     if (!request.projectId) {
-      throw new BadRequestException('Project ID is required');
+      throw new BadRequestException("Project ID is required");
     }
     try {
       const stream = (await this.threadsService.advanceThread(
@@ -367,7 +367,7 @@ export class ThreadsController {
       console.error(error);
       response.write(`error: ${error.message}\n\n`);
     } finally {
-      response.write('data: DONE\n\n');
+      response.write("data: DONE\n\n");
       response.end();
     }
   }

@@ -1,7 +1,7 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { CorrelationLoggerService } from '../../common/services/logger.service';
-import { ProjectsService } from '../projects.service';
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { CorrelationLoggerService } from "../../common/services/logger.service";
+import { ProjectsService } from "../projects.service";
 
 export const ProjectIdParameterKey = Reflector.createDecorator<string>({});
 
@@ -21,8 +21,8 @@ export class ProjectAccessOwnGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const correlationId = request['correlationId'];
-    const apiKey = request.headers['x-api-key'];
+    const correlationId = request["correlationId"];
+    const apiKey = request.headers["x-api-key"];
 
     if (!apiKey) {
       this.logger.warn(

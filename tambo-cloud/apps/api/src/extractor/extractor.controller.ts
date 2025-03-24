@@ -1,12 +1,12 @@
-import { Body, Controller, Inject, Post } from '@nestjs/common';
-import * as aiServiceInterface from '../ai/interfaces/ai.service.interface';
-import { ExtractComponentResponseDto } from './dto/extract-component-response.dto';
-import { ExtractComponentDto } from './dto/extract-component.dto';
+import { Body, Controller, Inject, Post } from "@nestjs/common";
+import * as aiServiceInterface from "../ai/interfaces/ai.service.interface";
+import { ExtractComponentResponseDto } from "./dto/extract-component-response.dto";
+import { ExtractComponentDto } from "./dto/extract-component.dto";
 
-@Controller('extract')
+@Controller("extract")
 export class ExtractorController {
   constructor(
-    @Inject('AIService')
+    @Inject("AIService")
     private aiService: aiServiceInterface.AIServiceInterface,
   ) {}
 
@@ -15,7 +15,7 @@ export class ExtractorController {
     @Body() extractComponentDto: ExtractComponentDto,
   ): Promise<ExtractComponentResponseDto[]> {
     return await this.aiService.extractComponentDefinitions(
-      extractComponentDto.content ?? '',
+      extractComponentDto.content ?? "",
     );
   }
 }

@@ -1,7 +1,7 @@
-import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { GenerationStage } from '@tambo-ai-cloud/core';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { ThreadMessageDto } from './message.dto';
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
+import { GenerationStage } from "@tambo-ai-cloud/core";
+import { IsEnum, IsOptional, IsString } from "class-validator";
+import { ThreadMessageDto } from "./message.dto";
 
 export class ThreadRequest {
   @IsString()
@@ -13,7 +13,7 @@ export class ThreadRequest {
 
   @IsOptional()
   @ApiProperty({
-    type: 'object',
+    type: "object",
     additionalProperties: true,
   })
   metadata?: Record<string, unknown>;
@@ -27,20 +27,20 @@ export class ThreadRequest {
   statusMessage?: string;
 }
 
-@ApiSchema({ name: 'Thread' })
+@ApiSchema({ name: "Thread" })
 export class Thread extends ThreadRequest {
   id!: string;
   createdAt!: Date;
   updatedAt!: Date;
 }
 
-@ApiSchema({ name: 'ThreadWithMessages' })
+@ApiSchema({ name: "ThreadWithMessages" })
 export class ThreadWithMessagesDto extends Thread {
   messages!: ThreadMessageDto[];
 }
 
 @ApiSchema({
-  name: 'UpdateComponentStateRequest',
+  name: "UpdateComponentStateRequest",
 })
 export class UpdateComponentStateDto {
   @ApiProperty({
@@ -51,7 +51,7 @@ export class UpdateComponentStateDto {
 }
 
 @ApiSchema({
-  name: 'ThreadList',
+  name: "ThreadList",
 })
 export class ThreadListDto {
   items!: Thread[];

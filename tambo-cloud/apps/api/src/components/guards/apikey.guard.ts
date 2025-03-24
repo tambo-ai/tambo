@@ -4,10 +4,10 @@ import {
   ForbiddenException,
   Injectable,
   UnauthorizedException,
-} from '@nestjs/common';
-import { decryptApiKey, hashKey } from '../../common/key.utils';
-import { CorrelationLoggerService } from '../../common/services/logger.service';
-import { ProjectsService } from '../../projects/projects.service';
+} from "@nestjs/common";
+import { decryptApiKey, hashKey } from "../../common/key.utils";
+import { CorrelationLoggerService } from "../../common/services/logger.service";
+import { ProjectsService } from "../../projects/projects.service";
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -18,11 +18,11 @@ export class ApiKeyGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const apiKey = request.headers['x-api-key'];
+    const apiKey = request.headers["x-api-key"];
 
     if (!apiKey) {
-      this.logger.error('Missing API key in request');
-      throw new ForbiddenException('API key is required in x-api-key header');
+      this.logger.error("Missing API key in request");
+      throw new ForbiddenException("API key is required in x-api-key header");
     }
 
     try {
@@ -34,7 +34,7 @@ export class ApiKeyGuard implements CanActivate {
       );
       if (!projectId) {
         this.logger.error(`Invalid API key for project ${projectIdOrLegacyId}`);
-        throw new UnauthorizedException('Invalid API key');
+        throw new UnauthorizedException("Invalid API key");
       }
       request.projectId = projectId;
 
@@ -59,7 +59,7 @@ export class ApiKeyGuard implements CanActivate {
       const project =
         await this.projectsService.findOneWithKeys(projectIdOrLegacyId);
       if (!project?.id) {
-        throw new Error('Project not found');
+        throw new Error("Project not found");
       }
 
       const hashedKey = hashKey(apiKey);

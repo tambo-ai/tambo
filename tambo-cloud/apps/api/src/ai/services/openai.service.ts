@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import OpenAI from 'openai';
-import { ExtractComponentResponseDto } from '../../extractor/dto/extract-component-response.dto';
-import { AIServiceInterface } from '../interfaces/ai.service.interface';
+import { Injectable } from "@nestjs/common";
+import OpenAI from "openai";
+import { ExtractComponentResponseDto } from "../../extractor/dto/extract-component-response.dto";
+import { AIServiceInterface } from "../interfaces/ai.service.interface";
 
 @Injectable()
 export class OpenAIService implements AIServiceInterface {
@@ -29,24 +29,24 @@ export class OpenAIService implements AIServiceInterface {
     `;
 
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-4o",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content: systemPrompt,
         },
         {
-          role: 'user',
+          role: "user",
           content: fileContents,
         },
       ],
       response_format: {
-        type: 'json_object',
+        type: "json_object",
       },
     });
 
     const components = JSON.parse(
-      response.choices[0].message.content ?? '[]',
+      response.choices[0].message.content ?? "[]",
     ) as { entries: ExtractComponentResponseDto[] };
     return components.entries;
   }

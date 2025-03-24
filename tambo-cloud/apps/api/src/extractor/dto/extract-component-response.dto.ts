@@ -1,10 +1,10 @@
-import { ApiSchema } from '@nestjs/swagger';
+import { ApiSchema } from "@nestjs/swagger";
 
 interface ComponentPropsMetadata {
   type: string;
 }
 
-@ApiSchema({ name: 'ExtractComponentResponse' })
+@ApiSchema({ name: "ExtractComponentResponse" })
 export class ExtractComponentResponseDto {
   name?: string;
   description?: string;

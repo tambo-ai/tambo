@@ -1,10 +1,10 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { NextFunction, Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import { CorrelationLoggerService } from '../services/logger.service';
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { NextFunction, Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
+import { CorrelationLoggerService } from "../services/logger.service";
 
 export interface RequestLog {
-  type: 'request' | 'response';
+  type: "request" | "response";
   method: string;
   url: string;
   bodyLength?: number;
@@ -22,15 +22,15 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 
   use(request: Request, response: Response, next: NextFunction): void {
     const correlationId = uuidv4();
-    request['correlationId'] = correlationId;
+    request["correlationId"] = correlationId;
     this.logger.setCorrelationId(correlationId);
 
     const { method, originalUrl, body } = request;
-    const userAgent = request.get('user-agent') || '';
+    const userAgent = request.get("user-agent") || "";
     const startTime = Date.now();
 
     const requestLog: RequestLog = {
-      type: 'request',
+      type: "request",
       method,
       url: originalUrl,
       bodyLength: body ? JSON.stringify(body).length : undefined,
@@ -40,14 +40,14 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 
     this.logger.logRequest(requestLog);
 
-    response.on('finish', () => {
+    response.on("finish", () => {
       const { statusCode } = response;
-      const contentLength = response.get('content-length');
+      const contentLength = response.get("content-length");
       const duration = Date.now() - startTime;
-      const userId = request['userId'] || 'unknown';
+      const userId = request["userId"] || "unknown";
 
       const responseLog: RequestLog = {
-        type: 'response',
+        type: "response",
         method,
         url: originalUrl,
         statusCode,

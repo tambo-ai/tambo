@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   ActionType,
   ChatCompletionContentPart,
@@ -8,37 +8,37 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
-} from '@tambo-ai-cloud/core';
-import type { HydraDatabase, HydraTransaction } from '@tambo-ai-cloud/db';
-import { operations, schema } from '@tambo-ai-cloud/db';
-import type { DBSuggestion } from '@tambo-ai-cloud/db/src/schema';
-import { generateChainId, HydraBackend } from '@tambo-ai-cloud/hydra-ai-server';
-import { eq } from 'drizzle-orm';
-import { decryptProviderKey } from 'src/common/key.utils';
+} from "@tambo-ai-cloud/core";
+import type { HydraDatabase, HydraTransaction } from "@tambo-ai-cloud/db";
+import { operations, schema } from "@tambo-ai-cloud/db";
+import type { DBSuggestion } from "@tambo-ai-cloud/db/src/schema";
+import { generateChainId, HydraBackend } from "@tambo-ai-cloud/hydra-ai-server";
+import { eq } from "drizzle-orm";
+import { decryptProviderKey } from "src/common/key.utils";
 import {
   DATABASE,
   TRANSACTION,
-} from 'src/common/middleware/db-transaction-middleware';
-import { AvailableComponentDto } from 'src/components/dto/generate-component.dto';
-import { ProjectsService } from 'src/projects/projects.service';
-import { CorrelationLoggerService } from '../common/services/logger.service';
+} from "src/common/middleware/db-transaction-middleware";
+import { AvailableComponentDto } from "src/components/dto/generate-component.dto";
+import { ProjectsService } from "src/projects/projects.service";
+import { CorrelationLoggerService } from "../common/services/logger.service";
 import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
-} from './dto/advance-thread.dto';
+} from "./dto/advance-thread.dto";
 import {
   ChatCompletionContentPartDto,
   MessageRequest,
   ThreadMessageDto,
-} from './dto/message.dto';
-import { SuggestionDto } from './dto/suggestion.dto';
-import { SuggestionsGenerateDto } from './dto/suggestions-generate.dto';
-import { Thread, ThreadRequest, ThreadWithMessagesDto } from './dto/thread.dto';
+} from "./dto/message.dto";
+import { SuggestionDto } from "./dto/suggestion.dto";
+import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
+import { Thread, ThreadRequest, ThreadWithMessagesDto } from "./dto/thread.dto";
 import {
   InvalidSuggestionRequestError,
   SuggestionGenerationError,
   SuggestionNotFoundException,
-} from './types/errors';
+} from "./types/errors";
 
 @Injectable()
 export class ThreadsService {
@@ -61,7 +61,7 @@ export class ThreadsService {
 
   private async createHydraBackendForThread(
     threadId: string,
-    options: { version?: 'v1' | 'v2' } = {},
+    options: { version?: "v1" | "v2" } = {},
   ): Promise<HydraBackend> {
     const chainId = await generateChainId(threadId);
 
@@ -140,7 +140,7 @@ export class ThreadsService {
       projectId,
     );
     if (!thread) {
-      throw new NotFoundException('Thread not found');
+      throw new NotFoundException("Thread not found");
     }
     return {
       id: thread.id,
@@ -292,15 +292,15 @@ export class ThreadsService {
       );
       if (!message) {
         this.logger.warn(`Message not found: ${messageId}`);
-        throw new InvalidSuggestionRequestError('Message not found');
+        throw new InvalidSuggestionRequestError("Message not found");
       }
       return message;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+        error instanceof Error ? error.message : "Unknown error";
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(`Error getting message: ${errorMessage}`, errorStack);
-      throw new InvalidSuggestionRequestError('Failed to retrieve message');
+      throw new InvalidSuggestionRequestError("Failed to retrieve message");
     }
   }
 
@@ -327,7 +327,7 @@ export class ThreadsService {
         throw error;
       }
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+        error instanceof Error ? error.message : "Unknown error";
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Error getting suggestions: ${errorMessage}`,
@@ -374,7 +374,7 @@ export class ThreadsService {
       return savedSuggestions.map(this.mapSuggestionToDto);
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+        error instanceof Error ? error.message : "Unknown error";
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Error generating suggestions: ${errorMessage}`,
@@ -446,7 +446,7 @@ export class ThreadsService {
             .select()
             .from(schema.threads)
             .where(eq(schema.threads.id, thread.id))
-            .for('update');
+            .for("update");
 
           if (
             currentThread.generationStage ===
@@ -456,13 +456,13 @@ export class ThreadsService {
             currentThread.generationStage === GenerationStage.CHOOSING_COMPONENT
           ) {
             throw new Error(
-              'Thread is already in processing, only one response can be generated at a time',
+              "Thread is already in processing, only one response can be generated at a time",
             );
           }
 
           await operations.updateThread(tx, thread.id, {
             generationStage: GenerationStage.CHOOSING_COMPONENT,
-            statusMessage: 'Starting processing...',
+            statusMessage: "Starting processing...",
           });
 
           return await this.addMessage(
@@ -472,12 +472,12 @@ export class ThreadsService {
           );
         },
         {
-          isolationLevel: 'repeatable read',
+          isolationLevel: "repeatable read",
         },
       )
       .catch((error) => {
         this.logger.error(
-          'Transaction failed: Adding user message',
+          "Transaction failed: Adding user message",
           error.stack,
         );
         throw error;
@@ -485,7 +485,7 @@ export class ThreadsService {
 
     // Use the shared method to create the HydraBackend instance
     const hydraBackend = await this.createHydraBackendForThread(thread.id, {
-      version: 'v2',
+      version: "v2",
     });
 
     const availableComponentMap: Record<string, AvailableComponentDto> =
@@ -517,7 +517,7 @@ export class ThreadsService {
     // TODO: Let tambobackend package handle different message types internally
     const messages = await this.getMessages(thread.id, true);
     if (messages.length === 0) {
-      throw new Error('No messages found');
+      throw new Error("No messages found");
     }
     const latestMessage = messages[messages.length - 1];
 
@@ -534,14 +534,14 @@ export class ThreadsService {
         advanceRequestDto.messageToAppend,
       );
       if (!toolResponse) {
-        throw new Error('No tool response found');
+        throw new Error("No tool response found");
       }
 
       const componentDef = advanceRequestDto.availableComponents?.find(
         (c) => c.name === latestMessage.component?.componentName,
       );
       if (!componentDef) {
-        throw new Error('Component definition not found');
+        throw new Error("Component definition not found");
       }
       if (stream) {
         const streamedResponseMessage =
@@ -635,12 +635,12 @@ export class ThreadsService {
           };
         },
         {
-          isolationLevel: 'repeatable read',
+          isolationLevel: "repeatable read",
         },
       )
       .catch((error) => {
         this.logger.error(
-          'Transaction failed: Adding response to thread',
+          "Transaction failed: Adding response to thread",
           error.stack,
         );
         throw error;
@@ -678,7 +678,7 @@ export class ThreadsService {
       )
     ) {
       throw new Error(
-        'Latest message before write is not the same as the added user message',
+        "Latest message before write is not the same as the added user message",
       );
     }
   }
@@ -721,7 +721,7 @@ export class ThreadsService {
               content: [
                 {
                   type: ContentPartType.Text,
-                  text: 'streaming in progress...',
+                  text: "streaming in progress...",
                 },
               ],
               actionType: undefined,
@@ -733,12 +733,12 @@ export class ThreadsService {
           );
         },
         {
-          isolationLevel: 'repeatable read',
+          isolationLevel: "repeatable read",
         },
       )
       .catch((error) => {
         this.logger.error(
-          'Transaction failed: Creating in-progress message',
+          "Transaction failed: Creating in-progress message",
           error.stack,
         );
         throw error;
@@ -754,7 +754,7 @@ export class ThreadsService {
               text:
                 chunk.message.length > 0
                   ? chunk.message
-                  : 'streaming in progress...',
+                  : "streaming in progress...",
             },
           ],
           component: chunk,
@@ -821,12 +821,12 @@ export class ThreadsService {
               return { resultingGenerationStage, resultingStatusMessage };
             },
             {
-              isolationLevel: 'read committed',
+              isolationLevel: "read committed",
             },
           )
           .catch((error) => {
             this.logger.error(
-              'Transaction failed: Finalizing streamed message',
+              "Transaction failed: Finalizing streamed message",
               error.stack,
             );
             throw error;
@@ -855,7 +855,7 @@ export class ThreadsService {
     }
 
     if (preventCreate) {
-      throw new Error('Thread ID is required, and cannot be created');
+      throw new Error("Thread ID is required, and cannot be created");
     }
 
     // If the threadId is not provided, create a new thread
@@ -869,16 +869,16 @@ export class ThreadsService {
   private async validateProjectAndProviderKeys(projectId: string) {
     const project = await this.projectsService.findOneWithKeys(projectId);
     if (!project) {
-      throw new NotFoundException('Project not found');
+      throw new NotFoundException("Project not found");
     }
     const providerKeys = project.getProviderKeys();
     if (!providerKeys?.length) {
-      throw new NotFoundException('No provider keys found for project');
+      throw new NotFoundException("No provider keys found for project");
     }
     const providerKey =
       providerKeys[providerKeys.length - 1].providerKeyEncrypted; // Use the last provider key
     if (!providerKey) {
-      throw new NotFoundException('No provider key found for project');
+      throw new NotFoundException("No provider key found for project");
     }
     return decryptProviderKey(providerKey);
   }
@@ -913,7 +913,7 @@ function convertContentDtoToContentPart(
     switch (part.type) {
       case ContentPartType.Text:
         if (!part.text) {
-          throw new Error('Text content is required for text type');
+          throw new Error("Text content is required for text type");
         }
         return {
           type: ContentPartType.Text,
@@ -923,16 +923,16 @@ function convertContentDtoToContentPart(
         return {
           type: ContentPartType.ImageUrl,
           image_url: part.image_url ?? {
-            url: '',
-            detail: 'auto',
+            url: "",
+            detail: "auto",
           },
         };
       case ContentPartType.InputAudio:
         return {
           type: ContentPartType.InputAudio,
           input_audio: part.input_audio ?? {
-            data: '',
-            format: 'wav',
+            data: "",
+            format: "wav",
           },
         };
       default:
@@ -953,7 +953,7 @@ function threadMessageDtoToThreadMessage(
 function convertContentPartToDto(
   part: ChatCompletionContentPart[] | string,
 ): ChatCompletionContentPartDto[] {
-  if (typeof part === 'string') {
+  if (typeof part === "string") {
     return [{ type: ContentPartType.Text, text: part }];
   }
   return part as ChatCompletionContentPartDto[];
@@ -965,7 +965,7 @@ function extractToolResponse(message: MessageRequest): any {
     return message.toolResponse;
   }
   if (message.content.every((part) => part.type === ContentPartType.Text)) {
-    return tryParseJson(message.content.map((part) => part.text).join(''));
+    return tryParseJson(message.content.map((part) => part.text).join(""));
   }
   return null;
 }
@@ -973,7 +973,7 @@ function extractToolResponse(message: MessageRequest): any {
 function tryParseJson(text: string): any {
   // we are assuming that JSON is only ever an object or an array,
   // so we don't need to check for other types of JSON structures
-  if (!text.startsWith('{') && !text.startsWith('[')) {
+  if (!text.startsWith("{") && !text.startsWith("[")) {
     return text;
   }
   try {
