@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.3...tambo-v0.1.4) (2025-03-24)
+
+
+### Bug Fixes
+
+* **cli:** component path fix for message-suggestions ([#176](https://github.com/tambo-ai/tambo/issues/176)) ([d11d856](https://github.com/tambo-ai/tambo/commit/d11d85618338e348967fa54334c6e35f9349c8fb))
+
 ## [0.1.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.2...tambo-v0.1.3) (2025-03-22)
 
 
