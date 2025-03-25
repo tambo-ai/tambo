@@ -10,7 +10,8 @@
     "lint": "turbo lint",
     "prepare": "husky",
     "prettier-check": "prettier --check .",
-    "test": "turbo test"
+    "test": "turbo test",
+    "dev": "turbo dev --filter=@tambo-ai/showcase"
   },
   "author": "",
   "license": "MIT",
