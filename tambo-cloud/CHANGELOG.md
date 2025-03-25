@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.26.2...repo-v0.27.0) (2025-03-25)
+
+
+### Features
+
+* protect thread endpoints with thread-in-project guard ([#601](https://github.com/tambo-ai/tambo-cloud/issues/601)) ([b344d3e](https://github.com/tambo-ai/tambo-cloud/commit/b344d3eceeac373696d052e0375714ac91033b7e))
+* start plumbing state through message history/etc ([#606](https://github.com/tambo-ai/tambo-cloud/issues/606)) ([0c7a5cb](https://github.com/tambo-ai/tambo-cloud/commit/0c7a5cbf6b5caa3ad585c2421a00457574480b70))
+
 ## [0.26.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.26.1...repo-v0.26.2) (2025-03-25)
 
 
