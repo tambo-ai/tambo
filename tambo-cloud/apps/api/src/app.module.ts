@@ -59,6 +59,10 @@ export class AppModule implements OnModuleInit {
         { path: "/threads/:id/advance", method: RequestMethod.POST },
         { path: "/threads/advancestream", method: RequestMethod.POST },
         { path: "/threads/advance", method: RequestMethod.POST },
+        {
+          path: "/threads/:id/messages/:messageId/suggestions",
+          method: RequestMethod.POST,
+        },
       )
       .forRoutes("*");
   }
