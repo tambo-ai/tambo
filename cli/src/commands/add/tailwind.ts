@@ -280,7 +280,7 @@ export async function setupTailwindandGlobals(projectRoot: string) {
 
         // Update the theme colors specifically
         if (defaults.theme?.colors) {
-          if (!merged.theme) merged.theme = {};
+          merged.theme ??= {};
           merged.theme.colors = {
             ...merged.theme.colors,
             ...defaults.theme.colors,
