@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.26.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.26.1...repo-v0.26.2) (2025-03-25)
+
+
+### Bug Fixes
+
+* store basic message in the db, but reconstitute the message history based on component history/etc ([#604](https://github.com/tambo-ai/tambo-cloud/issues/604)) ([494e2a2](https://github.com/tambo-ai/tambo-cloud/commit/494e2a232fb9ff2f66a93c5f20f2875cb21a3ef4))
+
+
+### Miscellaneous Chores
+
+* clean up landing page ([#603](https://github.com/tambo-ai/tambo-cloud/issues/603)) ([2f8db63](https://github.com/tambo-ai/tambo-cloud/commit/2f8db63d1789d9a42620dd7241a78de28f9a88bb))
+
 ## [0.26.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.26.0...repo-v0.26.1) (2025-03-25)
 
 
