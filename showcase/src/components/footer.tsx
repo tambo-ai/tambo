@@ -1,19 +1,17 @@
-import Link from "next/link";
+import { Icons } from "@/components/icons";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/40">
-      <div className="px-[12%] py-6 flex items-center justify-between text-sm text-muted-foreground">
-        <div>
-          Built by{" "}
-          <Link
-            href="https://github.com/use-hydra-ai"
-            target="_blank"
-            className="font-medium text-foreground hover:text-foreground/80 transition-colors"
-          >
-            tambo
-          </Link>
-          .
+    <footer className="container mx-auto">
+      <div className="flex justify-center w-full">
+        <div className="flex flex-row justify-between items-center p-6 lg:py-8 max-w-screen-xl w-full">
+          <div className="flex items-center">
+            <Icons.logo className="h-6 w-auto" aria-label="Tambo" />
+          </div>
+
+          <div className="font-sentient text-sm text-muted-foreground">
+            <p>Fractal Dynamics Inc © 2025</p>
+          </div>
         </div>
       </div>
     </footer>
