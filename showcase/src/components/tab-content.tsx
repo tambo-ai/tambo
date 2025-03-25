@@ -1,8 +1,7 @@
 import { TabType } from "@/types/tabs";
 import { ThreadsShowcase } from "./showcase-sections/threads-showcase";
-import { FormsComponent } from "./tabs/forms";
-import { GraphsComponent } from "./tabs/graphs";
-import { MessagesComponent } from "./tabs/messages";
+import { FormsShowcase } from "./showcase-sections/forms-showcase";
+import { GraphsShowcase } from "./showcase-sections/graphs-showcase";
 
 interface TabContentProps {
   activeTab: TabType;
@@ -10,14 +9,12 @@ interface TabContentProps {
 
 export function TabContent({ activeTab }: TabContentProps) {
   switch (activeTab) {
-    case TabType.Messages:
-      return <MessagesComponent />;
     case TabType.Threads:
       return <ThreadsShowcase />;
     case TabType.Forms:
-      return <FormsComponent />;
+      return <FormsShowcase />;
     case TabType.Graphs:
-      return <GraphsComponent />;
+      return <GraphsShowcase />;
     default:
       return <ThreadsShowcase />;
   }
