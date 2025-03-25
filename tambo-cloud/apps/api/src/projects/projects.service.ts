@@ -5,7 +5,7 @@ import { operations } from "@tambo-ai-cloud/db";
 import {
   DATABASE,
   TRANSACTION,
-} from "../common/middleware/db-transaction-middleware";
+} from "src/common/middleware/db-transaction-middleware";
 import { APIKeyResponse } from "./dto/api-key-response.dto";
 import { ProjectResponse } from "./dto/project-response.dto";
 import { ProviderKeyResponse } from "./dto/provider-key-response.dto";

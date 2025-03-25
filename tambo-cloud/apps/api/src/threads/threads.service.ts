@@ -14,14 +14,14 @@ import { operations, schema } from "@tambo-ai-cloud/db";
 import type { DBSuggestion } from "@tambo-ai-cloud/db/src/schema";
 import { generateChainId, HydraBackend } from "@tambo-ai-cloud/hydra-ai-server";
 import { eq } from "drizzle-orm";
-import { decryptProviderKey } from "../common/key.utils";
+import { decryptProviderKey } from "src/common/key.utils";
 import {
   DATABASE,
   TRANSACTION,
-} from "../common/middleware/db-transaction-middleware";
+} from "src/common/middleware/db-transaction-middleware";
+import { AvailableComponentDto } from "src/components/dto/generate-component.dto";
+import { ProjectsService } from "src/projects/projects.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
-import { AvailableComponentDto } from "../components/dto/generate-component.dto";
-import { ProjectsService } from "../projects/projects.service";
 import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,

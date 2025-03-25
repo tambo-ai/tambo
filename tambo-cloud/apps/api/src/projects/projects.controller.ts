@@ -15,8 +15,8 @@ import {
 } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
 import { HydraTransaction } from "@tambo-ai-cloud/db";
-import { TRANSACTION } from "../common/middleware/db-transaction-middleware";
-import { ApiKeyGuard } from "../components/guards/apikey.guard";
+import { TRANSACTION } from "src/common/middleware/db-transaction-middleware";
+import { ApiKeyGuard } from "src/components/guards/apikey.guard";
 import { AddProviderKeyRequest } from "./dto/add-provider-key.dto";
 import {
   ProjectCreateRequest,
