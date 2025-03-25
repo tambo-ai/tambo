@@ -34,13 +34,16 @@ export function threadMessagesToChatHistory(
   const newMessages = messageHistory.flatMap(
     (message): ChatCompletionMessageParam[] => {
       switch (message.role) {
-        case MessageRole.Tool:
+        case MessageRole.Tool: {
           return makeToolMessages(message);
+        }
         case MessageRole.Hydra:
-        case MessageRole.Assistant:
+        case MessageRole.Assistant: {
           return makeAssistantMessages(message, respondedToolIds);
-        default:
+        }
+        default: {
           return makeUserMessages(message);
+        }
       }
     },
   );
@@ -73,12 +76,15 @@ function makeAssistantMessages(
   message: ThreadMessage,
   respondedToolIds: string[],
 ): (ChatCompletionAssistantMessageParam | ChatCompletionToolMessageParam)[] {
+  // Old entries in the db had toolcallrequest in the component decision, but this has since been elevated to its own column/prop
+  const toolCallRequest =
+    message.toolCallRequest ?? message.component?.toolCallRequest;
   // if we got a tool call request, but never recorded the original tool call,
   // so we have to fake the response. This is almost certainly some old data in
   // the database (before 3/15/2025)
   if (
     message.tool_call_id &&
-    message.component?.toolCallRequest &&
+    toolCallRequest &&
     !respondedToolIds.includes(message.tool_call_id)
   ) {
     console.warn(
@@ -91,10 +97,7 @@ function makeAssistantMessages(
           {
             type: "text",
             text: JSON.stringify(
-              formatFunctionCall(
-                message.component?.toolCallRequest,
-                message.tool_call_id,
-              ),
+              formatFunctionCall(toolCallRequest, message.tool_call_id),
             ),
           },
         ],
@@ -115,7 +118,7 @@ function makeAssistantMessages(
   if (
     message.tool_call_id &&
     message.component?.componentName &&
-    message.component?.toolCallRequest
+    toolCallRequest
   ) {
     // Note that we have to keep the tool call id short, OpenAI complains if it
     // is more than 46 characters
@@ -128,7 +131,12 @@ function makeAssistantMessages(
     return [
       {
         role: "assistant",
-        content: message.content as ChatCompletionContentPartText[],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(message.component),
+          },
+        ],
         tool_calls: formatFunctionCall(
           makeFakeDecisionCall(message.component),
           fakeToolCallId,
@@ -149,16 +157,13 @@ function makeAssistantMessages(
       {
         role: "assistant",
         content: "Now fetch some data",
-        tool_calls: formatFunctionCall(
-          message.component?.toolCallRequest,
-          message.tool_call_id,
-        ),
+        tool_calls: formatFunctionCall(toolCallRequest, message.tool_call_id),
       },
     ];
   }
 
   // Finally, if there's no tool call id, just return the assistant message
-  if (message.tool_call_id) {
+  if (!message.tool_call_id) {
     console.warn(
       `no tool call id in assistant message ${message.id}, returning assistant message`,
     );
@@ -166,10 +171,7 @@ function makeAssistantMessages(
   const assistantMessage: ChatCompletionAssistantMessageParam = {
     role: "assistant",
     content: message.content as ChatCompletionContentPartText[],
-    tool_calls: formatFunctionCall(
-      message.component?.toolCallRequest,
-      message.tool_call_id,
-    ),
+    tool_calls: formatFunctionCall(toolCallRequest, message.tool_call_id),
   };
   return [assistantMessage];
 }

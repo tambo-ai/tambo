@@ -104,6 +104,10 @@ export interface ThreadMessage {
 
   /** Used only when role === "tool" */
   tool_call_id?: string;
+  /**
+   * The tool call request for the message
+   */
+  toolCallRequest?: ToolCallRequest;
 }
 
 /** Temporary internal type to make sure that subclasses are aligned on types */

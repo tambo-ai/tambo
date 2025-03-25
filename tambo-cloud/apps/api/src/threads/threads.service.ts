@@ -901,10 +901,10 @@ export class ThreadsService {
         content: [
           {
             type: ContentPartType.Text,
-            text: JSON.stringify(serializedMessage),
+            text: component.message,
           },
         ],
-        component: component,
+        component: serializedMessage,
         actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
         toolCallRequest: component.toolCallRequest,
         tool_call_id: component.toolCallRequest?.tool_call_id,
@@ -955,10 +955,12 @@ function convertContentDtoToContentPart(
 function threadMessageDtoToThreadMessage(
   messages: ThreadMessageDto[],
 ): ThreadMessage[] {
-  return messages.map((message) => ({
-    ...message,
-    content: convertContentDtoToContentPart(message.content),
-  }));
+  return messages.map(
+    (message): ThreadMessage => ({
+      ...message,
+      content: convertContentDtoToContentPart(message.content),
+    }),
+  );
 }
 
 function convertContentPartToDto(
