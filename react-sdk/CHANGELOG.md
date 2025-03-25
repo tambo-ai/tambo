@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.18.1](https://github.com/tambo-ai/tambo/compare/react-v0.18.0...react-v0.18.1) (2025-03-25)
+
+
+### Bug Fixes
+
+* suggestions to filter for assistant ([#188](https://github.com/tambo-ai/tambo/issues/188)) ([03b597d](https://github.com/tambo-ai/tambo/commit/03b597d3f1ec19e0c33be1b850c9284db3546d75))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node from 20.17.25 to 20.17.27 ([#180](https://github.com/tambo-ai/tambo/issues/180)) ([9caede8](https://github.com/tambo-ai/tambo/commit/9caede80a7999afaf0d8e05521c290c204fb099d))
+* **deps-dev:** bump the eslint group with 4 updates ([#178](https://github.com/tambo-ai/tambo/issues/178)) ([52bcaca](https://github.com/tambo-ai/tambo/commit/52bcaca7c06141955d2185a84f1647cf40847a38))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.37.0 to 0.38.0 ([#182](https://github.com/tambo-ai/tambo/issues/182)) ([e4222b1](https://github.com/tambo-ai/tambo/commit/e4222b132bc647d8216fec3e18df705c9afe8659))
+* **deps:** bump @tanstack/react-query from 5.68.0 to 5.69.0 ([#183](https://github.com/tambo-ai/tambo/issues/183)) ([ba18fba](https://github.com/tambo-ai/tambo/commit/ba18fbab3680c89c62f4f05b5fa342d3798bbcc9))
+* **deps:** bump zod-to-json-schema from 3.24.4 to 3.24.5 ([#187](https://github.com/tambo-ai/tambo/issues/187)) ([45e150f](https://github.com/tambo-ai/tambo/commit/45e150f5ec0224301e8eea160834920754eec6f8))
+
 ## [0.18.0](https://github.com/tambo-ai/tambo/compare/react-v0.17.0...react-v0.18.0) (2025-03-22)
 
 
