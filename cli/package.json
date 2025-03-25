@@ -63,7 +63,7 @@
     "meow": "^13.2.0",
     "open": "^10.1.0",
     "ora": "^8.1.0",
-    "sanitize-html": "^2.14.0",
+    "sanitize-html": "^2.15.0",
     "ts-morph": "^25.0.1"
   },
   "devDependencies": {
