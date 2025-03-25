@@ -129,6 +129,9 @@ export class ThreadsController {
     @Param("id") threadId: string,
     @Body() messageDto: MessageRequest,
   ) {
+    if (!["user", "tool"].includes(messageDto.role)) {
+      console.warn(`Received message with role ${messageDto.role}`, messageDto);
+    }
     return await this.threadsService.addMessage(threadId, messageDto);
   }
 

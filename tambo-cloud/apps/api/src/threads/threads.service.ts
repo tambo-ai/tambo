@@ -888,11 +888,22 @@ export class ThreadsService {
     component: LegacyComponentDecision,
     tx?: HydraTransaction,
   ) {
+    // Make sure to only include the fields that are needed for message history
+    const serializedMessage: ComponentDecisionV2 = {
+      message: component.message,
+      componentName: component.componentName,
+      props: component.props,
+    };
     return await this.addMessage(
       threadId,
       {
         role: MessageRole.Assistant,
-        content: [{ type: ContentPartType.Text, text: component.message }],
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: JSON.stringify(serializedMessage),
+          },
+        ],
         component: component,
         actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
         toolCallRequest: component.toolCallRequest,
