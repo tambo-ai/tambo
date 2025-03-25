@@ -41,6 +41,7 @@ import {
   ThreadWithMessagesDto,
   UpdateComponentStateDto,
 } from "./dto/thread.dto";
+import { ThreadInProjectGuard } from "./guards/thread-in-project-guard";
 import { ThreadsService } from "./threads.service";
 
 @ApiTags("threads")
@@ -90,6 +91,7 @@ export class ThreadsController {
   }
 
   @Get(":id")
+  @UseGuards(ThreadInProjectGuard)
   async findOne(
     @Param("id") id: string,
     @Req() request,
@@ -100,7 +102,7 @@ export class ThreadsController {
     return await this.threadsService.findOne(id, request.projectId);
   }
 
-  @UseGuards(ProjectAccessOwnGuard)
+  @UseGuards(ThreadInProjectGuard)
   @Put(":id")
   async update(
     @Param("id") id: string,
@@ -116,14 +118,13 @@ export class ThreadsController {
     };
   }
 
-  @UseGuards(ProjectAccessOwnGuard)
+  @UseGuards(ThreadInProjectGuard)
   @Delete(":id")
   async remove(@Param("id") id: string) {
     return await this.threadsService.remove(id);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/messages")
   async addMessage(
     @Param("id") threadId: string,
@@ -135,8 +136,7 @@ export class ThreadsController {
     return await this.threadsService.addMessage(threadId, messageDto);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Get(":id/messages")
   @ApiQuery({
     name: "includeInternal",
@@ -154,8 +154,7 @@ export class ThreadsController {
     )) as ThreadMessageDto[];
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Delete(":id/messages/:messageId")
   async deleteMessage(
     @Param("id") _threadId: string,
@@ -164,8 +163,7 @@ export class ThreadsController {
     return await this.threadsService.deleteMessage(messageId);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Get(":id/messages/:messageId/suggestions")
   @ApiOperation({
     summary: "Get suggestions for a message",
@@ -198,8 +196,7 @@ export class ThreadsController {
     return await this.threadsService.getSuggestions(messageId);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/messages/:messageId/suggestions")
   @ApiOperation({
     summary: "Generate new suggestions",
@@ -246,6 +243,7 @@ export class ThreadsController {
     );
   }
 
+  @UseGuards(ThreadInProjectGuard)
   @Put(":id/messages/:messageId/component-state")
   async updateComponentState(
     @Param("id") threadId: string,
@@ -262,6 +260,7 @@ export class ThreadsController {
   /**
    * Given a thread, generate the response message, optionally appending a message before generation.
    */
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/advance")
   async advanceThread(
     @Param("id") threadId: string,
@@ -278,6 +277,7 @@ export class ThreadsController {
     ) as Promise<AdvanceThreadResponseDto>);
   }
 
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/advancestream")
   async advanceThreadStream(
     @Param("id") threadId: string,
