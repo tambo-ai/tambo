@@ -45,7 +45,7 @@ export async function decideComponent(
     },
   });
 
-  const shouldGenerate = decisionResponse.toolCallRequest?.parameters.find(
+  const decision = decisionResponse.toolCallRequest?.parameters.find(
     ({ parameterName }) => parameterName === "decision",
   )?.parameterValue;
 
@@ -53,21 +53,11 @@ export async function decideComponent(
     ({ parameterName }) => parameterName === "component",
   )?.parameterValue;
 
-  if (!shouldGenerate) {
-    return await handleNoComponentCase(
-      llmClient,
-      decisionResponse.toolCallRequest?.parameters.find(
-        ({ parameterName }) => parameterName === "reasoning",
-      )?.parameterValue ?? decisionResponse.message,
-      context,
-      threadId,
-      stream,
-    );
-  } else if (shouldGenerate && componentName) {
+  // BUG: sometimes the component name is null, which is not a valid component name
+  const shouldGenerate =
+    decision && componentName && componentName in context.availableComponents;
+  if (shouldGenerate) {
     const component = context.availableComponents[componentName];
-    if (!component) {
-      throw new Error(`Component ${componentName} not found`);
-    }
     return await hydrateComponent({
       llmClient,
       messageHistory: context.messageHistory,
@@ -78,6 +68,21 @@ export async function decideComponent(
       threadId,
       stream,
     });
+  } else {
+    if (componentName) {
+      console.warn(
+        `Component "${componentName}" not found, possibly hallucinated.`,
+      );
+    }
+    return await handleNoComponentCase(
+      llmClient,
+      decisionResponse.toolCallRequest?.parameters.find(
+        ({ parameterName }) => parameterName === "reasoning",
+      )?.parameterValue ?? decisionResponse.message,
+      context,
+      threadId,
+      stream,
+    );
   }
 
   throw new Error(`Invalid decision: ${decisionResponse.message}`);

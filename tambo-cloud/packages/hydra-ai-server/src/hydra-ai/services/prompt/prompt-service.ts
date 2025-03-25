@@ -172,7 +172,7 @@ export function getAvailableComponentsPromptTemplate(
       ? generateAvailableComponentsList(availableComponents)
       : "No components available, do not try and generate a component.";
   return createPromptTemplate(
-    `Available components and their descriptions:
+    `You may use only the following components:
 {availableComponents}`,
     { availableComponents: availableComponentsStr },
   );

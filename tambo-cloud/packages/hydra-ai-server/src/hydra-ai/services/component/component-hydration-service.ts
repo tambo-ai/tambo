@@ -46,6 +46,17 @@ export async function hydrateComponent({
 }): Promise<
   LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
 > {
+  const leadingMessages = messageHistory.slice(0, -1);
+  const userMessage = messageHistory[messageHistory.length - 1];
+
+  if (!["user", "tool"].includes(userMessage.role)) {
+    throw new Error(
+      `Last message in message history must be a user/tool message, instead I got ${userMessage.role}: ${JSON.stringify(
+        userMessage,
+      )}`,
+    );
+  }
+
   //only define tools if we don't have a tool response
   const tools = toolResponse
     ? undefined
@@ -61,7 +72,7 @@ export async function hydrateComponent({
       toolResponse,
       availableComponents || { [chosenComponent.name]: chosenComponent },
     );
-  const chatHistory = threadMessagesToChatHistory(messageHistory);
+  const chatHistory = threadMessagesToChatHistory(leadingMessages);
   const {
     template: _availableComponentsTemplate,
     args: availableComponentsArgs,
@@ -69,17 +80,35 @@ export async function hydrateComponent({
     availableComponents || { [chosenComponent.name]: chosenComponent },
   );
 
+  const userMessageWithInstructions: ChatCompletionMessageParam[] = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: `
+Use the following component and tool results to hydrate the component:
+<componentName>${chosenComponent.name}</componentName>
+<componentDescription>${chosenComponentDescription}</componentDescription>
+<expectedProps>${chosenComponentProps}</expectedProps>
+
+      ${toolResponseString ? `<toolResponse>${toolResponseString}</toolResponse>` : ""}
+
+To respond to the user's message:
+----
+`,
+        },
+        ...userMessage.content,
+      ],
+    },
+  ];
+
   const messages = objectTemplate<ChatCompletionMessageParam[]>([
     { role: "system", content: template },
     { role: "chat_history", content: "{chat_history}" },
-    {
-      role: "user",
-      content: `<componentName>{chosenComponentName}</componentName>
-        <componentDescription>{chosenComponentDescription}</componentDescription>
-        <expectedProps>{chosenComponentProps}</expectedProps>
-        ${toolResponseString ? `<toolResponse>{toolResponseString}</toolResponse>` : ""}`,
-    },
+    { role: "chat_history", content: "{userMessageWithInstructions}" },
   ] as ChatCompletionMessageParam[]);
+
   const completeOptions: CompleteParams = {
     messages: messages,
     promptTemplateName: toolResponseString
@@ -91,6 +120,7 @@ export async function hydrateComponent({
       chosenComponentDescription,
       chosenComponentProps,
       toolResponseString,
+      userMessageWithInstructions,
       ...componentHydrationArgs,
       ...availableComponentsArgs,
     },
@@ -112,6 +142,10 @@ export async function hydrateComponent({
     );
   }
 
+  console.log(
+    "hydration with: ",
+    JSON.stringify(completeOptions.messages, null, 2),
+  );
   const generateComponentResponse = await llmClient.complete(completeOptions);
 
   const componentDecision: LegacyComponentDecision = {
