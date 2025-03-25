@@ -126,9 +126,11 @@ async function handleNoComponentCase(
   const noComponentResponse = await llmClient.complete(completeOptions);
 
   return {
+    reasoning: "",
     componentName: null,
     props: null,
     message: noComponentResponse.message,
+    state: null, // TOOD: remove when optional
     ...(version === "v1" ? { suggestedActions: [] } : {}),
   };
 }
@@ -139,9 +141,11 @@ async function* handleNoComponentStream(
   version: "v1" | "v2" = "v1",
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const accumulatedDecision: LegacyComponentDecision = {
+    reasoning: "",
     componentName: null,
     props: null,
     message: "",
+    state: null, // TOOD: remove when optional
     ...(version === "v1" ? { suggestedActions: [] } : {}),
   };
 

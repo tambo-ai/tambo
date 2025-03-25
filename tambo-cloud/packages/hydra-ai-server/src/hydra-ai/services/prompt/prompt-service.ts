@@ -258,7 +258,7 @@ export function generateFormatInstructions(schema: z.ZodSchema<any>): string {
 
     Here is the JSON Schema instance your output must adhere to. Only return valid JSON Schema.
     \`\`\`json
-    ${JSON.stringify(zodToJsonSchema(schema))}
+    ${JSON.stringify(zodToJsonSchema(schema), null, 2)}
     \`\`\`
     `;
 }

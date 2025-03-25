@@ -1,6 +1,7 @@
 import {
   ChatCompletionContentPartText,
   ChatCompletionMessageParam,
+  ComponentDecisionV2,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -90,6 +91,7 @@ function makeAssistantMessages(
     console.warn(
       `tool message ${message.id} not responded to, responding with tool call (${message.tool_call_id})`,
     );
+    console.log("Case 1: ", message.content);
     return [
       {
         role: "assistant",
@@ -123,22 +125,29 @@ function makeAssistantMessages(
     // Note that we have to keep the tool call id short, OpenAI complains if it
     // is more than 46 characters
     const fakeToolCallId = `${message.tool_call_id}-cc`;
+    // Combine original component decision with the current component state
+    const combinedComponentDecision = combineComponentWithState(
+      message.component,
+      message.componentState,
+    );
+
     // Messages:
     // 1. simulate the tool call request, which is the component decision
     // 2. the tool call response, which is the system acknowledgement that the
     //    tool call was handled.
     // 3. the next message, which is the actual user tool call response.
+    console.log("Case 2: ", message.content);
     return [
       {
         role: "assistant",
         content: [
           {
             type: "text",
-            text: JSON.stringify(message.component),
+            text: JSON.stringify(combinedComponentDecision),
           },
         ],
         tool_calls: formatFunctionCall(
-          makeFakeDecisionCall(message.component),
+          makeFakeDecisionCall(combinedComponentDecision),
           fakeToolCallId,
         ),
       },
@@ -168,12 +177,43 @@ function makeAssistantMessages(
       `no tool call id in assistant message ${message.id}, returning assistant message`,
     );
   }
+  if (message.component?.componentName) {
+    console.warn(
+      `assistant message ${message.id} has component name ${message.component.componentName}, returning assistant message`,
+    );
+  }
   const assistantMessage: ChatCompletionAssistantMessageParam = {
     role: "assistant",
-    content: message.content as ChatCompletionContentPartText[],
-    tool_calls: formatFunctionCall(toolCallRequest, message.tool_call_id),
+    content: message.component
+      ? [
+          {
+            type: "text",
+            text: JSON.stringify(
+              combineComponentWithState(
+                message.component,
+                message.componentState,
+              ),
+            ),
+          },
+        ]
+      : (message.content as ChatCompletionContentPartText[]),
   };
+  console.log("Case 3: ", assistantMessage);
   return [assistantMessage];
+}
+
+function combineComponentWithState(
+  component: LegacyComponentDecision,
+  componentState: Record<string, unknown>,
+): ComponentDecisionV2 {
+  return {
+    ...component,
+    reasoning: component.reasoning ?? "",
+    state: {
+      ...component.state,
+      ...componentState,
+    },
+  };
 }
 
 /** This simulates the tool call that the LLM would make to decide which

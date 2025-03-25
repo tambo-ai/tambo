@@ -113,4 +113,11 @@ export class MessageRequest implements InternalThreadMessage {
     description: "@deprecated Put the response in the content instead",
   })
   toolResponse?: any;
+
+  @ApiProperty({
+    type: "object",
+    additionalProperties: true,
+    description: "The initial state of the component",
+  })
+  componentState?: Record<string, unknown>;
 }

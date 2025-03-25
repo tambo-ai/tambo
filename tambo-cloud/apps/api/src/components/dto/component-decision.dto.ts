@@ -30,6 +30,12 @@ export class ComponentDecisionV2Dto implements ComponentDecisionV2 {
   })
   props!: Record<string, any>;
   message!: string;
+  @ApiProperty({
+    type: "object",
+    additionalProperties: true,
+  })
+  state!: Record<string, unknown> | null;
+  reasoning!: string;
 }
 
 export class ToolParameter {

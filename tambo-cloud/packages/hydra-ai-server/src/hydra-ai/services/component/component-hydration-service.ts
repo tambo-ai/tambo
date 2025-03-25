@@ -149,9 +149,11 @@ To respond to the user's message:
   const generateComponentResponse = await llmClient.complete(completeOptions);
 
   const componentDecision: LegacyComponentDecision = {
+    reasoning: "",
     message: "Fetching additional data",
     componentName: chosenComponent.name,
     props: null,
+    state: null, // TOOD: remove when optional
     ...(version === "v1" ? { suggestedActions: [] } : {}),
     toolCallRequest: generateComponentResponse.toolCallRequest,
   };
@@ -165,6 +167,7 @@ To respond to the user's message:
     componentDecision.componentName = parsedData.componentName;
     componentDecision.props = parsedData.props;
     componentDecision.message = parsedData.message;
+    componentDecision.state = parsedData.state;
     if (version === "v1" && "suggestedActions" in parsedData) {
       componentDecision.suggestedActions = parsedData.suggestedActions || [];
     }
@@ -180,9 +183,11 @@ async function* handleComponentHydrationStream(
   version: "v1" | "v2" = "v1",
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const initialDecision: LegacyComponentDecision = {
+    reasoning: "",
     componentName,
     props: null,
     message: "",
+    state: null, // TOOD: remove when optional
     ...(version === "v1" ? { suggestedActions: [] } : {}),
     toolCallRequest: undefined,
     toolCallId: undefined,
