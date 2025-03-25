@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.5](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.4...tambo-v0.1.5) (2025-03-25)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/chalk from 0.4.31 to 2.2.4 ([#181](https://github.com/tambo-ai/tambo/issues/181)) ([855e618](https://github.com/tambo-ai/tambo/commit/855e6180966a6cef88b9142924350938479c501f))
+* **deps-dev:** bump @types/ora from 3.1.0 to 3.2.0 ([#192](https://github.com/tambo-ai/tambo/issues/192)) ([911e4ed](https://github.com/tambo-ai/tambo/commit/911e4ed4cd30f960e5de9351ed6aa4605b7ec2a8))
+* **deps-dev:** bump the eslint group with 4 updates ([#178](https://github.com/tambo-ai/tambo/issues/178)) ([52bcaca](https://github.com/tambo-ai/tambo/commit/52bcaca7c06141955d2185a84f1647cf40847a38))
+* **deps:** bump sanitize-html from 2.14.0 to 2.15.0 ([#191](https://github.com/tambo-ai/tambo/issues/191)) ([88e2019](https://github.com/tambo-ai/tambo/commit/88e201920be820f08d9cdcc850f8ed9ae8ea8596))
+
 ## [0.1.4](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.3...tambo-v0.1.4) (2025-03-24)
 
 
