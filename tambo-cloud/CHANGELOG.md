@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.26.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.11...repo-v0.26.0) (2025-03-25)
+
+
+### Features
+
+* update the landing page to use components ([#597](https://github.com/tambo-ai/tambo-cloud/issues/597)) ([be8bbf6](https://github.com/tambo-ai/tambo-cloud/commit/be8bbf68242e96b8a0173443e33186aa0a33a211))
+
+
+### Bug Fixes
+
+* "hydra" -&gt; "assistant" in operations ([#591](https://github.com/tambo-ai/tambo-cloud/issues/591)) ([68fff0c](https://github.com/tambo-ai/tambo-cloud/commit/68fff0caf3822c001ce09b950aa043d34289f0f0))
+* enforce specific components, treat hallucinated components as not choosing a component ([#595](https://github.com/tambo-ai/tambo-cloud/issues/595)) ([835e320](https://github.com/tambo-ai/tambo-cloud/commit/835e320b56a033aff09b864985a52a3381a05183))
+* fake component decision as a tool call ([#594](https://github.com/tambo-ai/tambo-cloud/issues/594)) ([87e871d](https://github.com/tambo-ai/tambo-cloud/commit/87e871df78b4801ad32f27142c6ff43544ef8c24))
+* include full component decision in chat history when sending to llm ([#596](https://github.com/tambo-ai/tambo-cloud/issues/596)) ([e16b31d](https://github.com/tambo-ai/tambo-cloud/commit/e16b31d12d5d768940debb2d19e530037e750bb8))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/react and a few other packages ([#598](https://github.com/tambo-ai/tambo-cloud/issues/598)) ([0d75363](https://github.com/tambo-ai/tambo-cloud/commit/0d7536363f712f58fe192c3556269a8c35a420f2))
+* update demo & docs to 0.18.0 ([#571](https://github.com/tambo-ai/tambo-cloud/issues/571)) ([8515cb5](https://github.com/tambo-ai/tambo-cloud/commit/8515cb5774499f43864319c50d5ebe8d1eec367f))
+
+
+### Code Refactoring
+
+* rename Hydra API keys to Tambo API keys in configuration and code references ([#592](https://github.com/tambo-ai/tambo-cloud/issues/592)) ([72d03b1](https://github.com/tambo-ai/tambo-cloud/commit/72d03b12000d25076193913765ce38c3fc5e6452))
+
 ## [0.25.11](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.10...repo-v0.25.11) (2025-03-24)
 
 
