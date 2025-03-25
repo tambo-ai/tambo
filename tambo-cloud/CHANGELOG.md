@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.26.0...repo-v0.26.1) (2025-03-25)
+
+
+### Bug Fixes
+
+* exclude suggestions from long transactions ([#599](https://github.com/tambo-ai/tambo-cloud/issues/599)) ([3383fca](https://github.com/tambo-ai/tambo-cloud/commit/3383fca52051484f65d2c2a7c8f58732f6c41fe3))
+
 ## [0.26.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.25.11...repo-v0.26.0) (2025-03-25)
 
 
