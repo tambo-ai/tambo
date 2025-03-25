@@ -203,7 +203,7 @@ export const FounderEmailComponent = ({
               id="body"
               value={emailState.body}
               onChange={handleBodyChange}
-              rows={6}
+              rows={2}
               disabled={emailState.isLoading}
               className="w-full"
             />
