@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.4](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.3...showcase-v0.1.4) (2025-03-25)
+
+
+### Bug Fixes
+
+* update showcase to be more clear ([#145](https://github.com/tambo-ai/tambo/issues/145)) ([eeb30bd](https://github.com/tambo-ai/tambo/commit/eeb30bd6c0b482f6a3cc6579206e96d840679b62))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump eslint-config-next from 15.2.2 to 15.2.3 ([#186](https://github.com/tambo-ai/tambo/issues/186)) ([bf08b48](https://github.com/tambo-ai/tambo/commit/bf08b48f4c2d30b7c1d6430205f552389a885979))
+* **deps-dev:** bump rimraf from 5.0.10 to 6.0.1 ([#135](https://github.com/tambo-ai/tambo/issues/135)) ([e86c774](https://github.com/tambo-ai/tambo/commit/e86c7742ddf854028b291754bac4e4eb95761b85))
+* **deps:** bump groq-sdk from 0.15.0 to 0.16.0 ([#134](https://github.com/tambo-ai/tambo/issues/134)) ([054d538](https://github.com/tambo-ai/tambo/commit/054d538fff31849ad21f667778f62132f28e3d8d))
+* **deps:** bump lucide-react from 0.479.0 to 0.482.0 ([#131](https://github.com/tambo-ai/tambo/issues/131)) ([9ba7e68](https://github.com/tambo-ai/tambo/commit/9ba7e681fdeb5c5c526bdd3e135945963225ba98))
+* **deps:** bump lucide-react from 0.482.0 to 0.483.0 ([#179](https://github.com/tambo-ai/tambo/issues/179)) ([9f0f03a](https://github.com/tambo-ai/tambo/commit/9f0f03aa2183f63f65c260a6c9f9396ab8735e2e))
+* **deps:** bump next from 15.2.2 to 15.2.3 in the npm_and_yarn group ([#168](https://github.com/tambo-ai/tambo/issues/168)) ([267fde4](https://github.com/tambo-ai/tambo/commit/267fde43315f6a07ecaece238d45557099b73dbd))
+* **deps:** bump next-themes from 0.4.5 to 0.4.6 ([#136](https://github.com/tambo-ai/tambo/issues/136)) ([81ecfa0](https://github.com/tambo-ai/tambo/commit/81ecfa0e823a6fef1ef260e88bec2d078ea95542))
+* pin stuff down to node &gt;=20 ([#159](https://github.com/tambo-ai/tambo/issues/159)) ([169797b](https://github.com/tambo-ai/tambo/commit/169797bc2800b1e42903d358f8023f391898b33f))
+* remove some unused dependencies ([#152](https://github.com/tambo-ai/tambo/issues/152)) ([02f3e0d](https://github.com/tambo-ai/tambo/commit/02f3e0d0d7708ddcf72216a90167938ed1aab78a))
+* removes old files and update readmes ([#117](https://github.com/tambo-ai/tambo/issues/117)) ([94e6dde](https://github.com/tambo-ai/tambo/commit/94e6dded0d8abd15b7f2b19c0837cf9baf2f279d))
+
 ## [0.1.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.2...showcase-v0.1.3) (2025-03-11)
 
 
