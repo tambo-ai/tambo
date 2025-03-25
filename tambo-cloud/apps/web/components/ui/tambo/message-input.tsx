@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const messageInputVariants = cva("w-full", {
   variants: {
@@ -41,6 +41,10 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
     const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
     const [isMac, setIsMac] = React.useState(false);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    // Handle the forwarded ref
+    React.useImperativeHandle(ref, () => inputRef.current!, []);
 
     React.useEffect(() => {
       const isMacOS =
@@ -51,6 +55,10 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
 
     React.useEffect(() => {
       setDisplayValue(value);
+      // Focus the input when value changes and is not empty
+      if (value && inputRef.current) {
+        inputRef.current.focus();
+      }
     }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,7 +112,7 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
       >
         <div className="flex gap-2">
           <input
-            ref={ref}
+            ref={inputRef}
             type="text"
             value={displayValue}
             onChange={handleChange}
