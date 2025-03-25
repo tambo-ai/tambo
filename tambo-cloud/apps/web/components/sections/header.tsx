@@ -31,7 +31,7 @@ export function Header({
         />
 
         {/* Mobile navigation - client component */}
-        <div className="mt-2 cursor-pointer block lg:hidden">
+        <div className="cursor-pointer block lg:hidden">
           <MobileNavigation
             showDashboardButton={showDashboardButton}
             showLogoutButton={showLogoutButton}

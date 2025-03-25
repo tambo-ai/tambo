@@ -13,14 +13,14 @@ const ease = [0.16, 1, 0.3, 1];
 // Hero content moved directly into this file
 const heroContent = {
   pill: {
-    label: "⚡️ Launching Soon",
-    text: "v1.0.0",
-    link: "http://localhost:3000/blog/0-1-0-announcement",
+    label: "⭐ Star us on",
+    text: "Github",
+    link: "https://github.com/tambo-ai/tambo",
   },
   title: "An AI powered Interface in a few lines of code.",
-  subtitle: "A React package for interfaces that think.",
+  subtitle: "Bring AI intelligence to your React stack.",
   cta: {
-    buttonText: "Request Early Access",
+    buttonText: "Take tambo for a spin",
   },
 };
 
@@ -58,9 +58,9 @@ function HeroPill() {
 
 function HeroTitles() {
   return (
-    <div className="flex flex-col items-center lg:items-start overflow-hidden pt-2 sm:pt-4 md:pt-6 lg:pt-8">
+    <div className="flex flex-col items-center lg:items-start">
       <motion.h1
-        className="text-center lg:text-left text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-heading leading-tight tracking-tighter text-foreground"
+        className="text-center lg:text-left text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-heading leading-tight tracking-tighter text-foreground"
         initial={{ filter: "blur(10px)", opacity: 0, y: 50 }}
         animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
         transition={{
@@ -72,7 +72,7 @@ function HeroTitles() {
         {heroContent.title}
       </motion.h1>
       <motion.p
-        className="text-center lg:text-left max-w-xl leading-normal text-muted-foreground text-base sm:text-lg md:text-xl sm:leading-normal mt-2 sm:mt-4"
+        className="text-center lg:text-left max-w-xl leading-normal text-muted-foreground text-sm sm:text-base md:text-lg lg:text-xl sm:leading-normal mt-2 sm:mt-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
@@ -134,20 +134,20 @@ function HeroIllustration() {
   const shouldUseGif = isSafari || videoError;
 
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="w-full h-full relative scale-90 md:scale-100 lg:scale-125">
+    <div className="w-full h-full flex items-center justify-center overflow-hidden">
+      <div className="w-full h-full relative">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, ease }}
-          className="w-full h-full"
+          className="w-full h-full scale-75 sm:scale-90 md:scale-100 lg:scale-110"
         >
           {shouldUseGif ? (
             <Image
               src="/assets/landing/hero/Octo-5-transparent-lossy.gif"
               alt="Tambo Octopus Animation"
               unoptimized={true}
-              className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
+              className="w-full h-full object-contain"
               width={1000}
               height={1000}
             />
@@ -159,7 +159,7 @@ function HeroIllustration() {
               muted
               playsInline
               onError={handleVideoError}
-              className="w-full h-full object-contain max-w-full scale-90 md:scale-100 lg:scale-125"
+              className="w-full h-full object-contain"
               aria-label="Tambo Octopus Animation"
             >
               <source
@@ -182,7 +182,7 @@ function HeroCTAButton() {
       transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
     >
       <Button asChild className="mt-4 hover:scale-105 transition-transform">
-        <Link href="#interactive-demo">Take Tambo for a Spin</Link>
+        <Link href="#interactive-demo">{heroContent.cta.buttonText}</Link>
       </Button>
     </motion.div>
   );
@@ -190,25 +190,18 @@ function HeroCTAButton() {
 
 export function Hero() {
   return (
-    <Section id="hero">
+    <Section id="hero" className="pb-8 sm:pb-4 mt-[var(--header-height)]">
       {/* Main content area with titles and illustration */}
-      <div className="flex flex-col lg:flex-row items-center w-full lg:gap-8 xl:gap-16 mb-4 lg:mb-8">
-        <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:max-w-[50%]">
+      <div className="flex flex-col lg:flex-row items-center w-full lg:gap-6 xl:gap-12 mb-2 lg:mb-4">
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:max-w-[50%] space-y-4 sm:space-y-6">
           <HeroPill />
           <HeroTitles />
           <HeroCTAButton />
         </div>
 
         {/* Hero illustration */}
-        <div className="w-full lg:w-1/2 aspect-square mt-4 lg:mt-0">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="w-full h-full"
-          >
-            <HeroIllustration />
-          </motion.div>
+        <div className="w-full lg:w-1/2 aspect-square mt-2 lg:mt-0 overflow-hidden">
+          <HeroIllustration />
         </div>
       </div>
 

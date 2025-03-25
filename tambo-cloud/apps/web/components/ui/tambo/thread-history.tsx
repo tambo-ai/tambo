@@ -15,12 +15,17 @@ export interface ThreadHistoryProps
   extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
   onThreadChange?: () => void;
+  position?: {
+    side?: "top" | "right" | "bottom" | "left";
+    align?: "start" | "center" | "end";
+  };
 }
 
 export function ThreadHistory({
   className,
   contextKey,
   onThreadChange,
+  position = { side: "right", align: "start" },
   ...props
 }: ThreadHistoryProps) {
   const { data: threads, isLoading, error } = useTamboThreads({ contextKey });
@@ -92,7 +97,7 @@ export function ThreadHistory({
           <div
             role="button"
             tabIndex={0}
-            className="rounded-md px-1 flex items-center gap-2 text-sm border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
+            className="rounded-md px-1 flex items-center gap-2 text-sm border border-border bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
             aria-label="Thread History"
           >
             <PlusIcon className="h-4 w-4" />
@@ -100,9 +105,9 @@ export function ThreadHistory({
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="z-50 min-w-[200px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
-            side="right"
-            align="start"
+            className="tambo-theme z-50 min-w-[200px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+            side={position.side}
+            align={position.align}
             sideOffset={5}
           >
             <DropdownMenu.Item
@@ -121,7 +126,7 @@ export function ThreadHistory({
               </span>
             </DropdownMenu.Item>
 
-            <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
+            <DropdownMenu.Separator className="my-1 h-px bg-border" />
 
             {isLoading ? (
               <DropdownMenu.Item

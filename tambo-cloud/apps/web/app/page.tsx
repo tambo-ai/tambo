@@ -10,7 +10,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col">
       <Header />
       <div className="flex-1">
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
           <Hero />
           <InteractiveDemo />
           {/* <Statistics /> */}
