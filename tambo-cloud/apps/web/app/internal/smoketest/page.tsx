@@ -10,7 +10,7 @@ import {
   TamboTool,
   useTambo,
   useTamboComponentState,
-  useTamboThreads,
+  useTamboThreadList,
 } from "@tambo-ai/react";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { X } from "lucide-react";
@@ -156,9 +156,10 @@ export default function SmokePage() {
     });
   }, [registerComponent, tools]);
 
-  const { data: threadInfo, isLoading: isThreadInfoLoading } = useTamboThreads({
-    contextKey: userId,
-  });
+  const { data: threadInfo, isLoading: isThreadInfoLoading } =
+    useTamboThreadList({
+      contextKey: userId,
+    });
 
   const isLoading =
     isAqiPending ||

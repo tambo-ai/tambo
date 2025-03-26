@@ -132,37 +132,37 @@ Function to update the status of the most recent thread message.
 
 Function to update the input field value.
 
-### useTamboThreads
+### useTamboThreadList
 
 This hook provides access to the list of all threads for a project and their loading states.
 
 #### data
 
-`const { data } = useTamboThreads()`
+`const { data } = useTamboThreadList()`
 
 Array of threads or null if not yet loaded.
 
 #### isPending
 
-`const { isPending } = useTamboThreads()`
+`const { isPending } = useTamboThreadList()`
 
 Boolean indicating if threads are currently being fetched.
 
 #### isSuccess
 
-`const { isSuccess } = useTamboThreads()`
+`const { isSuccess } = useTamboThreadList()`
 
 Boolean indicating if threads were successfully fetched.
 
 #### isError
 
-`const { isError } = useTamboThreads()`
+`const { isError } = useTamboThreadList()`
 
 Boolean indicating if an error occurred while fetching threads.
 
 #### error
 
-`const { error } = useTamboThreads()`
+`const { error } = useTamboThreadList()`
 
 Error object containing details if the fetch failed.
 
