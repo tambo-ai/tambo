@@ -14,6 +14,7 @@ function getDb(databaseUrl: string): HydraDatabase {
     const pool = new Pool({
       connectionString: databaseUrl,
       max: MAX_POOL_SIZE,
+      connectionTimeoutMillis: 10000,
     });
 
     pool.on("acquire", () => {
