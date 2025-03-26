@@ -16,14 +16,19 @@ export const MessagingInterfacesShowcase = () => {
               description:
                 "A full message thread component with chat history and input field.",
               installCommand: "npx tambo add message-thread-full",
-              component: <MessageThreadFull />,
+              component: <MessageThreadFull contextKey="message-thread-full" />,
             },
             {
               title: "MessageThreadCollapsible",
               description:
                 "A collapsible message thread component with chat history and input field.",
               installCommand: "npx tambo add message-thread-collapsible",
-              component: <MessageThreadCollapsible defaultOpen={true} />,
+              component: (
+                <MessageThreadCollapsible
+                  defaultOpen={true}
+                  contextKey="message-thread-collapsible"
+                />
+              ),
             },
             {
               title: "MessageThreadPanel",
@@ -41,7 +46,10 @@ export const MessagingInterfacesShowcase = () => {
                       <div className="h-32 bg-muted/80 rounded-lg" />
                     </div>
                   </div>
-                  <MessageThreadPanel className="w-[400px] relative" />
+                  <MessageThreadPanel
+                    className="w-[400px] relative"
+                    contextKey="message-thread-panel"
+                  />
                 </div>
               ),
             },

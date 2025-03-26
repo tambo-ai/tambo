@@ -53,7 +53,7 @@ const MessageThreadFull = React.forwardRef<
       {...props}
     >
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-semibold text-lg">Try tambo-ai</h2>
+        <h2 className="font-semibold text-lg">Use AI</h2>
         <ThreadHistory contextKey={contextKey} />
       </div>
       <div
