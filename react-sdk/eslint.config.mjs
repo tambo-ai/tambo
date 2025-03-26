@@ -2,6 +2,7 @@
 
 import eslint from "@eslint/js";
 import config from "@tambo-ai/eslint-config/base";
+import jsdoc from "eslint-plugin-jsdoc";
 import eslintPluginReact from "eslint-plugin-react";
 import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
@@ -10,6 +11,7 @@ export default tseslint.config(
   { ignores: ["dist/**/*", "esm/**/*", "jest.config.ts", "eslint.config.mjs"] },
   config,
   eslint.configs.recommended,
+  jsdoc.configs["flat/recommended"],
   tseslint.configs.stylisticTypeChecked,
   eslintPluginReact.configs.flat?.recommended ?? {},
   eslintPluginReact.configs.flat?.["jsx-runtime"] ?? {},
@@ -39,6 +41,8 @@ export default tseslint.config(
         },
       ],
       "react/prop-types": "off",
+      "jsdoc/require-param-type": "off",
+      "jsdoc/require-returns-type": "off",
     },
 
     languageOptions: {
