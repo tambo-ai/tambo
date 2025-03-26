@@ -12,12 +12,28 @@ export interface TamboComponentContextProps {
 }
 
 const TamboComponentContext = createContext<TamboComponentContextProps>({
+  /**
+   *
+   */
   registerComponent: () => {},
+  /**
+   *
+   */
   registerTool: () => {},
+  /**
+   *
+   */
   registerTools: () => {},
+  /**
+   *
+   */
   addToolAssociation: () => {},
 });
 
+/**
+ * The TamboComponentProvider is a React provider that provides component
+ * registration services to the descendants of the provider.
+ */
 export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
@@ -40,6 +56,10 @@ export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
   );
 };
 
+/**
+ * The useTamboComponent hook provides access to the component registration
+ * services to the descendants of the TamboComponentProvider.
+ */
 export const useTamboComponent = () => {
   return useContext(TamboComponentContext);
 };

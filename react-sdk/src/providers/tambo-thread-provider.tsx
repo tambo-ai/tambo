@@ -68,25 +68,46 @@ export const PLACEHOLDER_THREAD: TamboThread = {
 
 export const TamboThreadContext = createContext<TamboThreadContextProps>({
   thread: PLACEHOLDER_THREAD,
+  /**
+   *
+   */
   switchCurrentThread: () => {
     throw new Error("switchCurrentThread not implemented");
   },
+  /**
+   *
+   */
   startNewThread: () => {
     throw new Error("startNewThread not implemented");
   },
+  /**
+   *
+   */
   addThreadMessage: () => {
     throw new Error("updateThreadMessageHistory not implemented");
   },
+  /**
+   *
+   */
   setLastThreadStatus: () => {
     throw new Error("setLastThreadStatus not implemented");
   },
   inputValue: "",
+  /**
+   *
+   */
   setInputValue: () => {
     throw new Error("setInputValue not implemented");
   },
+  /**
+   *
+   */
   updateThreadMessage: () => {
     throw new Error("updateThreadMessage not implemented");
   },
+  /**
+   *
+   */
   sendThreadMessage: () => {
     throw new Error("advance not implemented");
   },
@@ -95,6 +116,9 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   isIdle: true,
 });
 
+/**
+ *
+ */
 export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
@@ -308,6 +332,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     [fetchThread, threadMap],
   );
 
+  /**
+   *
+   */
   const setLastThreadStatus = (status: GenerationStage) => {
     setThreadMap((prevMap) => {
       if (!currentThreadId) {
@@ -598,6 +625,10 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   );
 };
 
+/**
+ * The useTamboThread hook provides access to the current thread context
+ * to the descendants of the TamboThreadProvider.
+ */
 export const useTamboThread = () => {
   const context = useContext(TamboThreadContext);
   if (context === undefined) {

@@ -22,8 +22,10 @@ import {
   useTamboThread,
 } from "./tambo-thread-provider";
 
-/** TamboProvider gives full access to the TamboAI client and component registry */
-
+/**
+ * The TamboProvider gives full access to the whole Tambo API. This includes the
+ * TamboAI client, the component registry, and the current thread context.
+ */
 export const TamboProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps & TamboRegistryProviderProps>
 > = ({ children, tamboUrl, apiKey, components, environment }) => {
@@ -78,6 +80,12 @@ const TamboCompositeProvider: React.FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
+/**
+ * The useTambo hook provides access to the Tambo API. This is the primary entrypoint
+ * for the Tambo React SDK.
+ *
+ * This includes the TamboAI client, the component registry, and the current thread context.
+ */
 export const useTambo = () => {
   return useContext(TamboContext);
 };

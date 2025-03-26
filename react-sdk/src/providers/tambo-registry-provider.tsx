@@ -28,9 +28,21 @@ const TamboRegistryContext = createContext<TamboRegistryContext>({
   componentList: {},
   toolRegistry: {},
   componentToolAssociations: {},
+  /**
+   *
+   */
   registerComponent: () => {},
+  /**
+   *
+   */
   registerTool: () => {},
+  /**
+   *
+   */
   registerTools: () => {},
+  /**
+   *
+   */
   addToolAssociation: () => {},
 });
 
@@ -39,6 +51,10 @@ export interface TamboRegistryProviderProps {
   components?: TamboComponent[];
 }
 
+/**
+ * The TamboRegistryProvider is a React provider that provides a component
+ * registry to the descendants of the provider.
+ */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>
 > = ({ children, components: userComponents }) => {
@@ -175,6 +191,9 @@ export const TamboRegistryProvider: React.FC<
   );
 };
 
+/**
+ *
+ */
 export const useTamboRegistry = () => {
   return useContext(TamboRegistryContext);
 };
