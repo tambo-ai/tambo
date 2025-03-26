@@ -1,16 +1,11 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import { PlusIcon } from "lucide-react";
 import * as React from "react";
 import { useCallback } from "react";
-import { cn } from "@/lib/utils";
-import { useTamboThreads, useTamboThread } from "@tambo-ai/react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import {
-  useTamboThread,
-  useTamboThreadList,
-  type TamboThread,
-} from "@tambo-ai/react";
-import { PlusIcon } from "lucide-react";
 
 /**
  * Represents the history of threads
@@ -34,8 +29,9 @@ export function ThreadHistory({
     data: threads,
     isLoading,
     error,
+    refetch,
   } = useTamboThreadList({ contextKey });
-  const { switchCurrentThread } = useTamboThread();
+  const { switchCurrentThread, startNewThread } = useTamboThread();
   const [isMac, setIsMac] = React.useState(false);
 
   React.useEffect(() => {
@@ -54,13 +50,14 @@ export function ThreadHistory({
       }
 
       try {
-        switchCurrentThread("placeholder", false); // TODO: This will be updated when createThread is implemented
+        await startNewThread();
+        await refetch();
         onThreadChange?.();
       } catch (error) {
         console.error("Failed to create new thread:", error);
       }
     },
-    [switchCurrentThread, onThreadChange],
+    [onThreadChange, startNewThread, refetch],
   );
 
   React.useEffect(() => {
