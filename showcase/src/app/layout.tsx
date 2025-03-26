@@ -1,13 +1,28 @@
+import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/providers/theme-provider";
-import { Navbar } from "@/components/navbar";
-import { GeistSans } from "geist/font/sans";
-import { Footer } from "@/components/footer";
+
 export const metadata: Metadata = {
-  title: "tambo - Ready-to-use AI Features",
-  description:
-    "A collection of ready-to-use AI components that help you build intelligent features without the complexity.",
+  title: {
+    template: "%s | tambo",
+    default: "tambo | Build AI-powered apps with just one line of code",
+  },
+  description: "Build AI-powered apps with just one line of code",
+  keywords: ["Tambo", "Showcase", "Components", "AI", "App Development"],
+  metadataBase: new URL("https://tambo.co"),
+  authors: [
+    {
+      name: "tambo",
+      url: "https://tambo.co",
+    },
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -16,18 +31,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(
+        `${GeistSans.variable} ${GeistMono.variable} ${sentientLight.variable}`,
+      )}
+    >
       <body className={`${GeistSans.className} font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <Navbar />
-          <div className="pt-16">{children}</div>
-          <Footer />
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

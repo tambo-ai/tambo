@@ -9,11 +9,17 @@ interface ShowcaseSectionProps {
 
 export function ShowcaseSection({ section, className }: ShowcaseSectionProps) {
   return (
-    <div className={cn("w-full max-w-screen-lg space-y-8", className)}>
+    <div className={cn("w-full container mx-auto px-4 mt-8", className)}>
       <h2 className="text-2xl font-semibold tracking-tight">{section.title}</h2>
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {section.items.map((item, index) => (
-          <div key={index} className="rounded-lg bg-card p-6 space-y-6">
+          <div
+            key={index}
+            className={cn(
+              "rounded-lg bg-card p-6 space-y-6",
+              index === 2 && "md:col-span-2",
+            )}
+          >
             <div className="space-y-2">
               <h3 className="text-xl font-medium">{item.title}</h3>
               <p className="text-muted-foreground">{item.description}</p>

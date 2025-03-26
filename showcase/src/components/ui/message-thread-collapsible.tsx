@@ -1,0 +1,152 @@
+"use client";
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import * as Collapsible from "@radix-ui/react-collapsible";
+import { ThreadContent } from "@/components/ui/thread-content";
+import { MessageInput } from "@/components/ui/message-input";
+import { useRef, useEffect } from "react";
+import { useTambo } from "@tambo-ai/react";
+import { XIcon } from "lucide-react";
+import { ThreadHistory } from "@/components/ui/thread-history";
+import { MessageSuggestions } from "@/components/ui/message-suggestions";
+
+/**
+ * Represents a collapsible message thread component
+ * @property {string} className - Optional className for custom styling
+ */
+
+export interface MessageThreadCollapsibleProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  contextKey?: string;
+  defaultOpen?: boolean;
+}
+
+const MessageThreadCollapsible = React.forwardRef<
+  HTMLDivElement,
+  MessageThreadCollapsibleProps
+>(({ className, contextKey, defaultOpen = false, ...props }, ref) => {
+  const [isOpen, setIsOpen] = React.useState(defaultOpen);
+  const [isMac, setIsMac] = React.useState(false);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { thread } = useTambo();
+
+  // Detect if user is on Mac or Windows
+  React.useEffect(() => {
+    const isMacOS =
+      typeof navigator !== "undefined" &&
+      navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    setIsMac(isMacOS);
+  }, []);
+
+  // Add keyboard shortcut (Command+K) to toggle the collapsible
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        setIsOpen((prev) => !prev);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  const shortcutText = isMac ? "⌘K" : "Ctrl+K";
+
+  // Handle thread change
+  const handleThreadChange = React.useCallback(() => {
+    // Make sure the collapsible stays open when thread changes
+    setIsOpen(true);
+  }, []);
+
+  // Scroll to bottom of thread when new messages are added
+  useEffect(() => {
+    if (scrollContainerRef.current && thread?.messages?.length) {
+      const timeoutId = setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [thread?.messages]);
+
+  return (
+    <Collapsible.Root
+      ref={ref}
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className={cn(
+        "w-full max-w-xs sm:max-w-sm md:max-w-md rounded-lg shadow-lg transition-all duration-200 bg-background border border-gray-200",
+        className,
+      )}
+      {...props}
+    >
+      <Collapsible.Trigger asChild>
+        <button
+          className={cn(
+            "flex items-center justify-between w-full p-4",
+            "hover:bg-muted/50 transition-colors",
+            isOpen && "border-b border-gray-200",
+          )}
+          aria-expanded={isOpen}
+          aria-controls="message-thread-content"
+        >
+          <div className="flex items-center gap-2">
+            <span>{isOpen ? "Conversations" : "Use AI"}</span>
+            {isOpen && (
+              <ThreadHistory
+                contextKey={contextKey}
+                onThreadChange={handleThreadChange}
+              />
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground pl-8">
+              {isOpen ? "" : `(${shortcutText})`}
+            </span>
+            {isOpen && (
+              <div
+                role="button"
+                className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                }}
+                aria-label="Close"
+              >
+                <XIcon className="h-4 w-4" />
+              </div>
+            )}
+          </div>
+        </button>
+      </Collapsible.Trigger>
+      <Collapsible.Content>
+        <div className="h-[500px] flex flex-col">
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
+          >
+            <ThreadContent />
+          </div>
+          <MessageSuggestions />
+          <div className="p-4 border-t border-gray-200">
+            <MessageInput contextKey={contextKey} />
+          </div>
+        </div>
+      </Collapsible.Content>
+    </Collapsible.Root>
+  );
+});
+MessageThreadCollapsible.displayName = "MessageThreadCollapsible";
+
+export { MessageThreadCollapsible };

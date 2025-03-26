@@ -10,7 +10,7 @@ export function SecondNavbar({ activeTab, onTabChange }: SecondNavbarProps) {
   const items = Object.values(TabType);
 
   return (
-    <nav className="bg-background/50 backdrop-blur-sm border border-border/40 rounded-full px-2 py-1.5">
+    <nav className="bg-background/50 backdrop-blur-sm border border-border/40 rounded-full px-2 py-1.5 w-fit">
       {items.map((item) => {
         const isActive = activeTab === item;
         return (
