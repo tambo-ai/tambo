@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.28.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.3...repo-v0.28.0) (2025-03-26)
+
+
+### Features
+
+* protect thread endpoints with thread-in-project guard (take 2) ([#616](https://github.com/tambo-ai/tambo-cloud/issues/616)) ([4d25335](https://github.com/tambo-ai/tambo-cloud/commit/4d25335f4d27ab35428435c0ead169ea2cfe90a5))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/react from 0.18.2 to 0.19.0 ([#618](https://github.com/tambo-ai/tambo-cloud/issues/618)) ([6fe5c19](https://github.com/tambo-ai/tambo-cloud/commit/6fe5c19266588024b58b9cafd871da624cd45dc1))
+
 ## [0.27.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.2...repo-v0.27.3) (2025-03-26)
 
 
