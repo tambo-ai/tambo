@@ -46,7 +46,6 @@ type StateUpdateResult<T> = [
  *   });
  * };
  */
-
 export function useTamboComponentState<S = undefined>(
   keyName: string,
   initialValue?: S,
@@ -57,9 +56,7 @@ export function useTamboComponentState<S>(
   initialValue: S,
   debounceTime?: number,
 ): StateUpdateResult<S>;
-/**
- *
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,

@@ -19,7 +19,9 @@ export enum GenerationStage {
   ERROR = "ERROR",
 }
 /**
- *
+ * Checks if the generation stage is in a state where it can accept user input.
+ * @param generationStage - The generation stage to check
+ * @returns True if the generation stage is idle, false otherwise
  */
 export function isIdleStage(generationStage: GenerationStage) {
   return [
