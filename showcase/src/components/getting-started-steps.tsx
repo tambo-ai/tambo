@@ -1,10 +1,10 @@
 "use client";
 
 import { CLI } from "@/components/cli";
+import { steps } from "@/constants/steps";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRef } from "react";
-import { steps } from "@/constants/steps";
 
 export function GettingStartedSteps() {
   const stepsRef = useRef<HTMLDivElement>(null);
@@ -23,7 +23,7 @@ export function GettingStartedSteps() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <h1 className="font-sentient text-3xl md:text-5xl font-bold max-w-[900px] mx-auto mt-24 leading-[1.2] md:leading-[1.3]">
+          <h1 className="font-sentient text-3xl md:text-5xl font-bold max-w-[900px] mx-auto mt-24 leading-[1.5] md:leading-[1.5]">
             Tambo components to jumpstart your AI interface development
           </h1>
           <p className="font-sentient text-lg md:text-xl text-muted-foreground/90 max-w-[800px] mx-auto leading-relaxed mt-4">
