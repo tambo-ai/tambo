@@ -30,11 +30,25 @@ export async function handleUpdateComponent(
       return;
     }
 
-    // Check if component exists in local project
-    const componentDir = path.join(process.cwd(), "src", "components", "ui");
-    const componentPath = path.join(componentDir, `${componentName}.tsx`);
+    // Check possible component locations
+    const possiblePaths = [
+      path.join(process.cwd(), "src", "components", "ui"),
+      path.join(process.cwd(), "components", "ui"),
+    ];
 
-    if (!fs.existsSync(componentPath)) {
+    let componentPath;
+    let foundPath;
+
+    for (const dir of possiblePaths) {
+      const testPath = path.join(dir, `${componentName}.tsx`);
+      if (fs.existsSync(testPath)) {
+        componentPath = testPath;
+        foundPath = dir.includes("src") ? "src/components" : "components";
+        break;
+      }
+    }
+
+    if (!componentPath) {
       console.error(
         chalk.red(
           `Component ${componentName} not found in your project. Use 'tambo add ${componentName}' to add it.`,
@@ -64,6 +78,7 @@ export async function handleUpdateComponent(
     await installSingleComponent(componentName, {
       ...options,
       forceUpdate: true,
+      installPath: foundPath,
     });
 
     if (!options.silent) {

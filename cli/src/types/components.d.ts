@@ -85,3 +85,22 @@ declare module "@/components/ui/thread-list" {
     ThreadListProps & React.RefAttributes<HTMLDivElement>
   >;
 }
+
+declare module "@/components/ui/message-generation-stage" {
+  export interface MessageGenerationStageProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    showLabel?: boolean;
+  }
+  export const MessageGenerationStage: React.ForwardRefExoticComponent<
+    MessageGenerationStageProps & React.RefAttributes<HTMLDivElement>
+  >;
+}
+
+declare module "@/components/ui/tooltip" {
+  export const Tooltip: React.ForwardRefExoticComponent<
+    TooltipProps & React.RefAttributes<HTMLDivElement>
+  >;
+  export const TooltipProvider: React.ForwardRefExoticComponent<
+    TooltipProviderProps & React.RefAttributes<HTMLDivElement>
+  >;
+}

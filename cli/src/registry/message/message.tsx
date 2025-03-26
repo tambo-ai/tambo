@@ -1,11 +1,17 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import * as React from "react";
-import { createMarkdownComponents } from "@/components/ui/markdownComponents";
+import ReactMarkdown from "react-markdown";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import ReactMarkdown from "react-markdown";
+import { cn } from "@/lib/utils";
+import { createMarkdownComponents } from "@/components/ui/markdownComponents";
+
+/**
+ * Represents a message component
+ * @property {string} className - Optional className for custom styling
+ * @property {VariantProps<typeof messageVariants>["variant"]} variant - Optional variant for custom styling
+ */
 
 const messageVariants = cva("flex", {
   variants: {
@@ -70,69 +76,52 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
       return content.map((item) => item.text ?? "").join("");
     }, [content]);
 
-    const renderLoadingMessage = () => {
-      if (isLoading && role === "assistant") {
-        return (
-          <div
-            ref={ref}
-            className={cn(messageVariants({ variant, align: role }), className)}
-            {...props}
-          >
-            <div className={cn(bubbleVariants({ role }))}>
-              <div className="break-words whitespace-pre-wrap">
-                <div className="text-sm mb-1 opacity-50">Tambo AI</div>
-                <div className="flex items-center gap-1 h-4 p-1">
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-      return null;
-    };
-
-    if (isLoading && role === "assistant") {
-      return renderLoadingMessage();
-    }
-
     return (
       <div
         ref={ref}
         className={cn(messageVariants({ variant, align: role }), className)}
         {...props}
       >
-        <div className={cn(bubbleVariants({ role }))}>
-          <div className="break-words whitespace-pre-wrap">
-            <div className="text-sm mb-1 opacity-50">
-              {role === "user" ? "You" : "Tambo AI"}
-            </div>
-            {!content ? (
-              <span className="text-muted-foreground italic">
-                Empty message
-              </span>
-            ) : typeof content === "string" ? (
-              <ReactMarkdown components={createMarkdownComponents()}>
-                {safeContent}
-              </ReactMarkdown>
-            ) : (
-              content.map((item, index) => (
-                <span key={index}>
-                  {item.text ? (
-                    <ReactMarkdown components={createMarkdownComponents()}>
-                      {item.text}
-                    </ReactMarkdown>
-                  ) : (
-                    ""
-                  )}
+        <div className="flex flex-col">
+          <div className={cn(bubbleVariants({ role }))}>
+            <div className="break-words whitespace-pre-wrap">
+              <div className="text-sm mb-1 opacity-50">
+                {role === "user" ? "You" : "Tambo AI"}
+              </div>
+              {!content ? (
+                <span className="text-muted-foreground italic">
+                  Empty message
                 </span>
-              ))
-            )}
+              ) : typeof content === "string" ? (
+                <ReactMarkdown components={createMarkdownComponents()}>
+                  {safeContent}
+                </ReactMarkdown>
+              ) : (
+                content.map((item, index) => (
+                  <span key={index}>
+                    {item.text ? (
+                      <ReactMarkdown components={createMarkdownComponents()}>
+                        {item.text}
+                      </ReactMarkdown>
+                    ) : (
+                      ""
+                    )}
+                  </span>
+                ))
+              )}
+              {isLoading && role === "assistant" && !content && (
+                <div className="flex items-center gap-1 h-4 p-1 mt-1">
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+                </div>
+              )}
+            </div>
           </div>
-          {message.renderedComponent && (
-            <div className="mt-2">{message.renderedComponent}</div>
+          {message.renderedComponent && role === "assistant" && (
+            <div className="mt-4 w-full max-w-md">
+              {message.renderedComponent}
+            </div>
           )}
         </div>
       </div>

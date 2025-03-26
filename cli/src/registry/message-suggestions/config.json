@@ -1,12 +1,20 @@
 {
   "name": "message-suggestions",
-  "dependencies": ["lucide-react", "@tambo-ai/react"],
+  "dependencies": ["lucide-react", "@tambo-ai/react", "radix-ui"],
   "devDependencies": [],
   "requires": [],
   "files": [
     {
       "name": "message-suggestions.tsx",
       "content": "src/registry/message-suggestions/message-suggestions.tsx"
+    },
+    {
+      "name": "message-generation-stage.tsx",
+      "content": "src/registry/message-suggestions/message-generation-stage.tsx"
+    },
+    {
+      "name": "tooltip.tsx",
+      "content": "src/registry/message-suggestions/tooltip.tsx"
     }
   ]
 }
