@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.19.1](https://github.com/tambo-ai/tambo/compare/react-v0.19.0...react-v0.19.1) (2025-03-26)
+
+
+### Miscellaneous
+
+* **deps:** bump @tambo-ai/typescript-sdk to 0.41 ([#217](https://github.com/tambo-ai/tambo/issues/217)) ([e55e76c](https://github.com/tambo-ai/tambo/commit/e55e76c58b4e5b16591bb4988e42691b1926128b))
+
+
+### Documentation
+
+* add even more jsdocs for public methods/hooks/etc ([#216](https://github.com/tambo-ai/tambo/issues/216)) ([4dcbdd1](https://github.com/tambo-ai/tambo/commit/4dcbdd1f29d407d7f3deeb1b4b220f4361b20787))
+* add JSDocs to exported functions ([#215](https://github.com/tambo-ai/tambo/issues/215)) ([cc8714d](https://github.com/tambo-ai/tambo/commit/cc8714d63f30c5311b2e9cd306490c41abc25a1f))
+
+
+### Code Refactoring
+
+* use faster/pre-built isEqual, will be useful elsewhere ([#202](https://github.com/tambo-ai/tambo/issues/202)) ([a8bd035](https://github.com/tambo-ai/tambo/commit/a8bd03512a0988b087c38df012212e9b03b8d052))
+
 ## [0.19.0](https://github.com/tambo-ai/tambo/compare/react-v0.18.2...react-v0.19.0) (2025-03-26)
 
 
