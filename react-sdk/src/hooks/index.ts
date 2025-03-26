@@ -7,5 +7,5 @@ export {
 } from "./use-current-message";
 export { useTamboStreamingProps } from "./use-streaming-props";
 export * from "./use-suggestions";
-export { useTamboThreads } from "./use-tambo-threads";
+export { useTamboThreadList } from "./use-tambo-threads";
 export { useTamboThreadInput } from "./use-thread-input";
