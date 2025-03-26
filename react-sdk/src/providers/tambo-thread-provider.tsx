@@ -24,6 +24,7 @@ import { useTamboRegistry } from "./tambo-registry-provider";
 export interface TamboThreadContextProps {
   thread: TamboThread;
   switchCurrentThread: (threadId: string, fetch?: boolean) => void;
+  startNewThread: () => void;
   addThreadMessage: (
     message: TamboThreadMessage,
     sendToServer: boolean,
@@ -68,6 +69,9 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   thread: PLACEHOLDER_THREAD,
   switchCurrentThread: () => {
     throw new Error("switchCurrentThread not implemented");
+  },
+  startNewThread: () => {
+    throw new Error("startNewThread not implemented");
   },
   addThreadMessage: () => {
     throw new Error("updateThreadMessageHistory not implemented");
@@ -267,8 +271,23 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     [currentThread],
   );
 
+  const startNewThread = useCallback(() => {
+    setCurrentThreadId(PLACEHOLDER_THREAD.id);
+    setThreadMap((prevMap) => {
+      return {
+        ...prevMap,
+        [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
+      };
+    });
+  }, []);
+
   const switchCurrentThread = useCallback(
     async (threadId: string, fetch = true) => {
+      if (threadId === PLACEHOLDER_THREAD.id) {
+        console.warn("Switching to placeholder thread, may be a bug");
+        return;
+      }
+
       setCurrentThreadId(threadId);
       if (!threadMap[threadId]) {
         setThreadMap((prevMap) => {
@@ -545,6 +564,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       componentToolAssociations,
       currentThread,
       switchCurrentThread,
+      startNewThread,
       addThreadMessage,
       client,
       updateThreadStatus,
@@ -557,6 +577,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       value={{
         thread: currentThread,
         switchCurrentThread,
+        startNewThread,
         addThreadMessage,
         updateThreadMessage,
         setLastThreadStatus,
