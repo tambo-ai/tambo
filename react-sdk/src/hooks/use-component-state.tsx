@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import isEqual from "react-fast-compare";
 import { useDebouncedCallback } from "use-debounce";
 import { useTamboClient, useTamboThread } from "../providers";
 import {
   useTamboCurrentMessage,
   useTamboMessageContext,
 } from "./use-current-message";
-
 // Define metadata interface for better extensibility
 interface ComponentStateMeta {
   isPending: boolean;
@@ -88,34 +88,6 @@ export function useTamboComponentState<S>(
     message &&
     cachedInitialValue !== undefined &&
     (!message.componentState || !(keyName in message.componentState));
-
-  // Helper function to check if two values are deeply equal
-  const isEqual = (a: any, b: any): boolean => {
-    if (a === b) return true;
-
-    // Handle primitive types
-    if (
-      typeof a !== "object" ||
-      typeof b !== "object" ||
-      a === null ||
-      b === null
-    )
-      return false;
-
-    // For objects and arrays, do a shallow comparison for simplicity
-    // This could be enhanced with a proper deep equality check if needed
-    if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
-      return a.every((val, idx) => val === b[idx]);
-    }
-
-    const keysA = Object.keys(a);
-    const keysB = Object.keys(b);
-
-    if (keysA.length !== keysB.length) return false;
-
-    return keysA.every((key) => a[key] === b[key]);
-  };
 
   // Sync local state with message state on initial load and when message changes
   useEffect(() => {
