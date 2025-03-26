@@ -4,7 +4,7 @@ import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { ShowcaseSection } from "../showcase-section";
 
-export const ThreadsShowcase = () => {
+export const MessagingInterfacesShowcase = () => {
   return (
     <ShowcaseThemeProvider defaultTheme="light">
       <ShowcaseSection

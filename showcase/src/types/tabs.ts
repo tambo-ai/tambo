@@ -1,5 +1,4 @@
 export enum TabType {
-  Threads = "Threads",
-  Forms = "Forms",
-  Graphs = "Graphs",
+  MessageInterfaces = "Messaging Interfaces",
+  AIGeneratedElements = "AI Generated Elements",
 }
