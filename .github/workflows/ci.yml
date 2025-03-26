@@ -19,7 +19,11 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm ci
+        # This (`npm install) is a workaround for the fact that release-please
+        # is not properly updating the lockfile for interdependencies. `npm ci`
+        # will fail if more than one package has a version change. This is a bug
+        # in release-please, which should be updating the version numbers in release PR.
+        run: npm install
 
       - name: Run Prettier
         run: npm run prettier-check
