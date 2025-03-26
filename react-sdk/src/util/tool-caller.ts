@@ -4,6 +4,13 @@ import {
   TamboToolRegistry,
 } from "../model/component-metadata";
 import { mapTamboToolToContextTool } from "./registry";
+
+/**
+ * Process a message from the thread, invoking the appropriate tool and returning the result.
+ * @param message - The message to handle
+ * @param toolRegistry - The tool registry
+ * @returns The result of the tool call
+ */
 export const handleToolCall = async (
   message: TamboAI.Beta.ThreadMessage,
   toolRegistry: TamboToolRegistry,

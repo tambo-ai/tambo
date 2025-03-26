@@ -10,7 +10,17 @@ export * from "./hooks/use-suggestions";
 export { useTamboThreadInput } from "./hooks/use-thread-input";
 
 // Re-export provider components
-export * from "./providers";
+export {
+  TamboClientProvider,
+  TamboComponentProvider,
+  TamboProvider,
+  TamboThreadProvider,
+  useTambo,
+  useTamboClient,
+  useTamboThread,
+  type TamboComponent,
+  type TamboRegistryContext,
+} from "./providers";
 
 // Re-export types from Tambo Node SDK
 export type {

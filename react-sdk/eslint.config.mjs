@@ -44,6 +44,20 @@ export default tseslint.config(
       "jsdoc/require-param-type": "off",
       "jsdoc/require-returns-type": "off",
       "jsdoc/require-param": "off",
+      "jsdoc/require-jsdoc": [
+        "warn",
+        {
+          require: {
+            ArrowFunctionExpression: true,
+            FunctionDeclaration: true,
+            FunctionExpression: true,
+          },
+          publicOnly: {
+            esm: true,
+            cjs: true,
+          },
+        },
+      ],
     },
 
     languageOptions: {

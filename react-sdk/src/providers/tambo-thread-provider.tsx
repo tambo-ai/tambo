@@ -22,21 +22,28 @@ import { useTamboClient } from "./tambo-client-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 export interface TamboThreadContextProps {
+  /** The current thread */
   thread: TamboThread;
+  /** Switch to a different thread */
   switchCurrentThread: (threadId: string, fetch?: boolean) => void;
+  /** Start a new thread */
   startNewThread: () => void;
+  /** Add a message to the current thread */
   addThreadMessage: (
     message: TamboThreadMessage,
     sendToServer: boolean,
   ) => Promise<TamboAI.Beta.Threads.ThreadMessage[]>;
+  /** Update a message in the current thread */
   updateThreadMessage: (
     id: string,
     message: TamboThreadMessage,
     sendToServer: boolean,
   ) => Promise<void>;
-  setLastThreadStatus: (status: GenerationStage) => void;
+  /** The input value of the current thread */
   inputValue: string;
+  /** Set the input value of the current thread */
   setInputValue: (value: string) => void;
+  /** Send a message to the current thread */
   sendThreadMessage: (
     message: string,
     options?: {
@@ -45,8 +52,11 @@ export interface TamboThreadContextProps {
       contextKey?: string;
     },
   ) => Promise<TamboThreadMessage>;
+  /** The generation stage of the current thread - updated as the thread progresses */
   generationStage: GenerationStage;
+  /** The generation status message of the current thread - updated as the thread progresses */
   generationStatusMessage: string;
+  /** Whether the thread is idle */
   isIdle: boolean;
 }
 
@@ -68,25 +78,40 @@ export const PLACEHOLDER_THREAD: TamboThread = {
 
 export const TamboThreadContext = createContext<TamboThreadContextProps>({
   thread: PLACEHOLDER_THREAD,
+  /**
+   *
+   */
   switchCurrentThread: () => {
     throw new Error("switchCurrentThread not implemented");
   },
+  /**
+   *
+   */
   startNewThread: () => {
     throw new Error("startNewThread not implemented");
   },
+  /**
+   *
+   */
   addThreadMessage: () => {
     throw new Error("updateThreadMessageHistory not implemented");
   },
-  setLastThreadStatus: () => {
-    throw new Error("setLastThreadStatus not implemented");
-  },
   inputValue: "",
+  /**
+   *
+   */
   setInputValue: () => {
     throw new Error("setInputValue not implemented");
   },
+  /**
+   *
+   */
   updateThreadMessage: () => {
     throw new Error("updateThreadMessage not implemented");
   },
+  /**
+   *
+   */
   sendThreadMessage: () => {
     throw new Error("advance not implemented");
   },
@@ -95,6 +120,13 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   isIdle: true,
 });
 
+/**
+ * The TamboThreadProvider is a React provider that provides a thread context
+ * to the descendants of the provider.
+ * @param props - The props for the TamboThreadProvider
+ * @param props.children - The children to wrap
+ * @returns The TamboThreadProvider component
+ */
 export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
@@ -307,30 +339,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     },
     [fetchThread, threadMap],
   );
-
-  const setLastThreadStatus = (status: GenerationStage) => {
-    setThreadMap((prevMap) => {
-      if (!currentThreadId) {
-        return prevMap;
-      }
-      const headMessages = prevMap[currentThreadId].messages.slice(0, -1);
-      const lastMessage =
-        prevMap[currentThreadId].messages[
-          prevMap[currentThreadId].messages.length - 1
-        ];
-      const updatedLastMessage = {
-        ...lastMessage,
-        status,
-      };
-      return {
-        ...prevMap,
-        [currentThreadId]: {
-          ...prevMap[currentThreadId],
-          messages: [...headMessages, updatedLastMessage],
-        },
-      };
-    });
-  };
 
   const updateThreadStatus = useCallback(
     (stage: GenerationStage, statusMessage?: string) => {
@@ -580,7 +588,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         startNewThread,
         addThreadMessage,
         updateThreadMessage,
-        setLastThreadStatus,
         inputValue,
         setInputValue,
         sendThreadMessage,
@@ -598,6 +605,11 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   );
 };
 
+/**
+ * The useTamboThread hook provides access to the current thread context
+ * to the descendants of the TamboThreadProvider.
+ * @returns All state and actions for the current thread
+ */
 export const useTamboThread = () => {
   const context = useContext(TamboThreadContext);
   if (context === undefined) {
