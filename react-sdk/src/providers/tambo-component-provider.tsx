@@ -33,6 +33,9 @@ const TamboComponentContext = createContext<TamboComponentContextProps>({
 /**
  * The TamboComponentProvider is a React provider that provides component
  * registration services to the descendants of the provider.
+ * @param props - The props for the TamboComponentProvider
+ * @param props.children - The children to wrap
+ * @returns The TamboComponentProvider component
  */
 export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
   children,
@@ -59,6 +62,7 @@ export const TamboComponentProvider: React.FC<PropsWithChildren> = ({
 /**
  * The useTamboComponent hook provides access to the component registration
  * services to the descendants of the TamboComponentProvider.
+ * @returns The component registration services
  */
 export const useTamboComponent = () => {
   return useContext(TamboComponentContext);

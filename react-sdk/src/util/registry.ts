@@ -11,6 +11,13 @@ import {
   TamboToolRegistry,
 } from "../model/component-metadata";
 
+/**
+ * Get all the available components from the component registry
+ * @param componentRegistry - The component registry
+ * @param toolRegistry - The tool registry
+ * @param toolAssociations - The tool associations
+ * @returns The available components
+ */
 export const getAvailableComponents = (
   componentRegistry: ComponentRegistry,
   toolRegistry: TamboToolRegistry,
@@ -40,7 +47,11 @@ export const getAvailableComponents = (
   return availableComponents;
 };
 
-// Helper function to convert component props from Zod schema to JSON Schema
+/**
+ * Helper function to convert component props from Zod schema to JSON Schema
+ * @param component - The component to convert
+ * @returns The converted props
+ */
 export const convertPropsToJsonSchema = (
   component: RegisteredComponent,
 ): any => {
@@ -57,6 +68,12 @@ export const convertPropsToJsonSchema = (
   return component.props;
 };
 
+/**
+ * Get a component by name from the component registry
+ * @param componentName - The name of the component to get
+ * @param componentRegistry - The component registry
+ * @returns The component registration information
+ */
 export const getComponentFromRegistry = (
   componentName: string,
   componentRegistry: ComponentRegistry,
@@ -72,7 +89,7 @@ export const getComponentFromRegistry = (
   return componentEntry;
 };
 
-export const getDefaultContextAdditions = (): string[] => {
+const getDefaultContextAdditions = (): string[] => {
   const utcOffsetHours = new Date().getTimezoneOffset() / 60;
   const utcOffset = `(UTC${utcOffsetHours > 0 ? "+" : ""}${utcOffsetHours})`;
   return [
@@ -80,11 +97,20 @@ export const getDefaultContextAdditions = (): string[] => {
   ];
 };
 
+/**
+ * Get the client context for the current thread, such as the current time in the user's timezone
+ * @returns a string of context additions that will be added to the prompt when the thread is advanced.
+ */
 export const getClientContext = (): string => {
   const contextAdditions = getDefaultContextAdditions();
   return contextAdditions.join("\n");
 };
 
+/**
+ * Map a Tambo tool to a context tool
+ * @param tool - The tool to map
+ * @returns The context tool
+ */
 export const mapTamboToolToContextTool = (
   tool: TamboTool,
 ): ComponentContextToolMetadata => {

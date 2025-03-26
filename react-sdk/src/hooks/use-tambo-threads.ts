@@ -45,9 +45,6 @@ export function useTamboThreadList({
   const client = useTamboClient();
   const { data: queriedProjectId, ...projectIdState } = useTamboQuery({
     queryKey: ["projectId"],
-    /**
-     *
-     */
     queryFn: async () => {
       return (await client.beta.projects.getCurrent()).id;
     },
@@ -57,9 +54,6 @@ export function useTamboThreadList({
   const threadState = useTamboQuery({
     enabled: !!currentProjectId,
     queryKey: ["threads", currentProjectId, contextKey],
-    /**
-     *
-     */
     queryFn: async () => {
       if (!currentProjectId) {
         return null;
