@@ -4,7 +4,7 @@ import { useTamboQuery } from "./react-query-hooks";
 /**
  * Get the threads for the specified project and optional context key.
  */
-export function useTamboThreads({
+export function useTamboThreadList({
   projectId,
   contextKey,
 }: {

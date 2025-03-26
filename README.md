@@ -51,7 +51,7 @@ Add tambo ai to your React app with a simple provider pattern:
 
   - `useTamboThreadInput` - Input state and submission
   - `useTamboSuggestions` - AI-powered message suggestions
-  - `useTamboThreads` - Conversation management
+  - `useTamboThreadList` - Conversation management
   - `useTamboComponentState` - AI-generated component state
 
 - **Component registration for AI-generated UI**
