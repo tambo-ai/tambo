@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
-import { ApiKeyGuard } from "src/components/guards/apikey.guard";
+import { ApiKeyGuard, ProjectId } from "../components/guards/apikey.guard";
 import { AddProviderKeyRequest } from "./dto/add-provider-key.dto";
 import {
   ProjectCreateRequest,
@@ -27,7 +27,6 @@ import { ProjectsService } from "./projects.service";
 @UseGuards(ApiKeyGuard)
 // @UseInterceptors(TransactionInterceptor)
 @Controller("projects")
-@UseGuards(ApiKeyGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
@@ -45,7 +44,7 @@ export class ProjectsController {
 
   @Get()
   async getCurrentProject(@Req() request) {
-    const result = await this.projectsService.findOne(request.projectId);
+    const result = await this.projectsService.findOne(request[ProjectId]);
     return result;
   }
 
@@ -54,6 +53,7 @@ export class ProjectsController {
     return await this.projectsService.findAllForUser(request.userId);
   }
 
+  @UseGuards(ProjectAccessOwnGuard)
   @Get(":id")
   async findOne(@Param("id") id: string): Promise<ProjectResponse | undefined> {
     const project = await await this.projectsService.findOne(id);

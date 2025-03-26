@@ -21,6 +21,7 @@ import {
   HydraBackend,
   generateChainId,
 } from "@tambo-ai-cloud/hydra-ai-server";
+import { Request } from "express";
 import { decryptProviderKey } from "../common/key.utils";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { ProjectsService } from "../projects/projects.service";
@@ -28,7 +29,7 @@ import { ThreadsService } from "../threads/threads.service";
 import { ComponentDecisionDto } from "./dto/component-decision.dto";
 import { GenerateComponentRequest } from "./dto/generate-component.dto";
 import { HydrateComponentRequest } from "./dto/hydrate-component.dto";
-import { ApiKeyGuard } from "./guards/apikey.guard";
+import { ApiKeyGuard, ProjectId } from "./guards/apikey.guard";
 
 @ApiSecurity("apiKey")
 @UseGuards(ApiKeyGuard)
@@ -61,7 +62,7 @@ export class ComponentsController {
   @Post("generate")
   async generateComponent(
     @Body() generateComponentDto: GenerateComponentRequest,
-    @Req() request, // Assumes the request object has the projectId
+    @Req() request: Request, // Assumes the request object has the projectId
   ): Promise<ComponentDecisionDto> {
     const { messageHistory, availableComponents, threadId, contextKey } =
       generateComponentDto;
@@ -76,9 +77,12 @@ export class ComponentsController {
     // the rest of the thread from the db.
     const lastMessageEntry = messageHistory[messageHistory.length - 1];
     this.logger.log(
-      `generating component for project ${request.projectId}, with message: ${lastMessageEntry.message}`,
+      `generating component for project ${request[ProjectId]}, with message: ${lastMessageEntry.message}`,
     );
-    const projectId = request.projectId;
+    const projectId = request[ProjectId];
+    if (!projectId) {
+      throw new BadRequestException("Project ID is required");
+    }
     const decryptedProviderKey =
       await this.validateProjectAndProviderKeys(projectId);
 
@@ -128,7 +132,7 @@ export class ComponentsController {
   @Post("hydrate")
   async hydrateComponent(
     @Body() hydrateComponentDto: HydrateComponentRequest,
-    @Req() request, // Assumes the request object has the projectId
+    @Req() request: Request, // Assumes the request object has the projectId
   ): Promise<ComponentDecisionDto> {
     const {
       messageHistory = [],
@@ -137,7 +141,10 @@ export class ComponentsController {
       threadId,
       contextKey,
     } = hydrateComponentDto;
-    const projectId = request.projectId;
+    const projectId = request[ProjectId];
+    if (!projectId) {
+      throw new BadRequestException("Project ID is required");
+    }
     const decryptedProviderKey =
       await this.validateProjectAndProviderKeys(projectId);
 

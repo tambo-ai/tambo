@@ -21,7 +21,8 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { GenerationStage } from "@tambo-ai-cloud/core";
-import { ApiKeyGuard } from "../components/guards/apikey.guard";
+import { Request } from "express";
+import { ApiKeyGuard, ProjectId } from "../components/guards/apikey.guard";
 import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
@@ -41,6 +42,7 @@ import {
   ThreadWithMessagesDto,
   UpdateComponentStateDto,
 } from "./dto/thread.dto";
+import { ThreadInProjectGuard } from "./guards/thread-in-project-guard";
 import { ThreadsService } from "./threads.service";
 
 @ApiTags("threads")
@@ -90,23 +92,24 @@ export class ThreadsController {
   }
 
   @Get(":id")
+  @UseGuards(ThreadInProjectGuard)
   async findOne(
-    @Param("id") id: string,
-    @Req() request,
+    @Param("id") threadId: string,
+    @Req() request: Request,
   ): Promise<ThreadWithMessagesDto> {
-    if (!request.projectId) {
+    if (!request[ProjectId]) {
       throw new BadRequestException("Project ID is required");
     }
-    return await this.threadsService.findOne(id, request.projectId);
+    return await this.threadsService.findOne(threadId, request[ProjectId]);
   }
 
-  @UseGuards(ProjectAccessOwnGuard)
+  @UseGuards(ThreadInProjectGuard)
   @Put(":id")
   async update(
-    @Param("id") id: string,
+    @Param("id") threadId: string,
     @Body() updateThreadDto: ThreadRequest,
   ): Promise<Thread> {
-    const thread = await this.threadsService.update(id, updateThreadDto);
+    const thread = await this.threadsService.update(threadId, updateThreadDto);
     return {
       ...thread,
       contextKey: thread.contextKey ?? undefined,
@@ -116,14 +119,13 @@ export class ThreadsController {
     };
   }
 
-  @UseGuards(ProjectAccessOwnGuard)
+  @UseGuards(ThreadInProjectGuard)
   @Delete(":id")
-  async remove(@Param("id") id: string) {
-    return await this.threadsService.remove(id);
+  async remove(@Param("id") threadId: string) {
+    return await this.threadsService.remove(threadId);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/messages")
   async addMessage(
     @Param("id") threadId: string,
@@ -135,8 +137,7 @@ export class ThreadsController {
     return await this.threadsService.addMessage(threadId, messageDto);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Get(":id/messages")
   @ApiQuery({
     name: "includeInternal",
@@ -154,8 +155,7 @@ export class ThreadsController {
     )) as ThreadMessageDto[];
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Delete(":id/messages/:messageId")
   async deleteMessage(
     @Param("id") _threadId: string,
@@ -164,8 +164,7 @@ export class ThreadsController {
     return await this.threadsService.deleteMessage(messageId);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Get(":id/messages/:messageId/suggestions")
   @ApiOperation({
     summary: "Get suggestions for a message",
@@ -198,8 +197,7 @@ export class ThreadsController {
     return await this.threadsService.getSuggestions(messageId);
   }
 
-  // @UseGuards(ProjectAccessOwnGuard)
-  // TODO: Not protected by project access guard
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/messages/:messageId/suggestions")
   @ApiOperation({
     summary: "Generate new suggestions",
@@ -246,6 +244,7 @@ export class ThreadsController {
     );
   }
 
+  @UseGuards(ThreadInProjectGuard)
   @Put(":id/messages/:messageId/component-state")
   async updateComponentState(
     @Param("id") threadId: string,
@@ -262,38 +261,40 @@ export class ThreadsController {
   /**
    * Given a thread, generate the response message, optionally appending a message before generation.
    */
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/advance")
   async advanceThread(
     @Param("id") threadId: string,
-    @Req() request,
+    @Req() request: Request,
     @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
-    if (!request.projectId) {
+    if (!request[ProjectId]) {
       throw new BadRequestException("Project ID is required");
     }
     return await (this.threadsService.advanceThread(
-      request.projectId,
+      request[ProjectId],
       advanceRequestDto,
       threadId,
     ) as Promise<AdvanceThreadResponseDto>);
   }
 
+  @UseGuards(ThreadInProjectGuard)
   @Post(":id/advancestream")
   async advanceThreadStream(
     @Param("id") threadId: string,
-    @Req() request,
+    @Req() request: Request,
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
     response.setHeader("Content-Type", "text/event-stream");
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
-    if (!request.projectId) {
+    if (!request[ProjectId]) {
       throw new BadRequestException("Project ID is required");
     }
     try {
       const stream = (await this.threadsService.advanceThread(
-        request.projectId,
+        request[ProjectId],
         advanceRequestDto,
         threadId,
         true,
@@ -314,33 +315,33 @@ export class ThreadsController {
    */
   @Post("advance")
   async createAndAdvanceThread(
-    @Req() request,
+    @Req() request: Request,
     @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
-    if (!request.projectId) {
+    if (!request[ProjectId]) {
       throw new BadRequestException("Project ID is required");
     }
     return await (this.threadsService.advanceThread(
-      request.projectId,
+      request[ProjectId],
       advanceRequestDto,
     ) as Promise<AdvanceThreadResponseDto>);
   }
 
   @Post("advancestream")
   async createAndAdvanceThreadStream(
-    @Req() request,
+    @Req() request: Request,
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
     response.setHeader("Content-Type", "text/event-stream");
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
-    if (!request.projectId) {
+    if (!request[ProjectId]) {
       throw new BadRequestException("Project ID is required");
     }
     try {
       const stream = (await this.threadsService.advanceThread(
-        request.projectId,
+        request[ProjectId],
         advanceRequestDto,
         undefined,
         true,
