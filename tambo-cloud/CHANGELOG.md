@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.27.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.2...repo-v0.27.3) (2025-03-26)
+
+
+### Bug Fixes
+
+* stop injecting the transaction middleware altogether for now ([#613](https://github.com/tambo-ai/tambo-cloud/issues/613)) ([65c90ca](https://github.com/tambo-ai/tambo-cloud/commit/65c90caf799a2c2fe278e582c10e0a8f0b56b175))
+
+
+### Miscellaneous Chores
+
+* bump tambo/react ([#615](https://github.com/tambo-ai/tambo-cloud/issues/615)) ([987badc](https://github.com/tambo-ai/tambo-cloud/commit/987badcd4ebde9384004d51ad7fd6f4a3825eb30))
+
 ## [0.27.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.1...repo-v0.27.2) (2025-03-26)
 
 
