@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.19.0](https://github.com/tambo-ai/tambo/compare/react-v0.18.2...react-v0.19.0) (2025-03-26)
+
+
+### Features
+
+* add 'startNewThread' method ([#205](https://github.com/tambo-ai/tambo/issues/205)) ([d62e867](https://github.com/tambo-ai/tambo/commit/d62e8676c0d140faf648597341449be9328e589f))
+* useTamboThreads -&gt; useTamboThreadList ([#200](https://github.com/tambo-ai/tambo/issues/200)) ([4a32eda](https://github.com/tambo-ai/tambo/commit/4a32eda20b6564465b69bccda8ed94f65ea56b01))
+
+
+### Bug Fixes
+
+* add period to update release please ([#207](https://github.com/tambo-ai/tambo/issues/207)) ([d4585fd](https://github.com/tambo-ai/tambo/commit/d4585fd775bbb8469051bb666a1ef6a02b41f415))
+
+
+### Miscellaneous
+
+* allow switch to placeholder as 'new thread' ([#201](https://github.com/tambo-ai/tambo/issues/201)) ([9061863](https://github.com/tambo-ai/tambo/commit/9061863dc2dd563b2e204b7ad10ad33237388d21))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.39.0 to 0.40.0 ([#209](https://github.com/tambo-ai/tambo/issues/209)) ([07406d8](https://github.com/tambo-ai/tambo/commit/07406d897a70064d2d34a25d691472531c1d9fb6))
+
 ## [0.18.2](https://github.com/tambo-ai/tambo/compare/react-v0.18.1...react-v0.18.2) (2025-03-26)
 
 
