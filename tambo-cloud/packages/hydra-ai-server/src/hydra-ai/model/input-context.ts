@@ -8,6 +8,7 @@ export type InputContextCore = {
 
 export type InputContext = InputContextCore & {
   availableComponents: AvailableComponents;
+  additionalContext?: string;
 };
 
 export type InputContextAsArray = {

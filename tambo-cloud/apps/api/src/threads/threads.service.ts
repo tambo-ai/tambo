@@ -579,6 +579,7 @@ export class ThreadsService {
           availableComponentMap,
           thread.id,
           true,
+          advanceRequestDto.additionalContext,
         );
         return this.handleAdvanceThreadStream(
           thread.id,
@@ -590,6 +591,8 @@ export class ThreadsService {
           threadMessageDtoToThreadMessage(messages),
           availableComponentMap,
           thread.id,
+          false,
+          advanceRequestDto.additionalContext,
         );
       }
     }

@@ -8,6 +8,7 @@ export class AdvanceThreadDto {
   messageToAppend!: MessageRequest;
   contextKey?: string;
   availableComponents?: AvailableComponentDto[];
+  additionalContext?: string;
 }
 
 @ApiSchema({ name: "AdvanceThreadResponse" })

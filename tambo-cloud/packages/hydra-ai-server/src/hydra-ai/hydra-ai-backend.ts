@@ -77,18 +77,21 @@ export default class HydraBackend {
     availableComponents: AvailableComponents,
     threadId: string,
     stream: true,
+    additionalContext?: string,
   ): Promise<AsyncIterableIterator<LegacyComponentDecision>>;
   public async generateComponent(
     messageHistory: ThreadMessage[],
     availableComponents: AvailableComponents,
     threadId: string,
     stream?: false | undefined,
+    additionalContext?: string,
   ): Promise<LegacyComponentDecision>;
   public async generateComponent(
     messageHistory: ThreadMessage[],
     availableComponents: AvailableComponents,
     threadId: string,
     stream?: boolean,
+    additionalContext?: string,
   ): Promise<
     LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
   > {
@@ -96,6 +99,7 @@ export default class HydraBackend {
       messageHistory,
       availableComponents,
       threadId,
+      additionalContext,
     };
 
     return await this.aiService.chooseComponent(context, threadId, stream);
