@@ -1,15 +1,15 @@
 "use client";
 
-import * as React from "react";
-import { useCallback } from "react";
 import { cn } from "@/lib/utils";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
-  useTamboThreads,
   useTamboThread,
+  useTamboThreadList,
   type TamboThread,
 } from "@tambo-ai/react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { PlusIcon } from "lucide-react";
+import * as React from "react";
+import { useCallback } from "react";
 
 /**
  * Represents the history of threads
@@ -29,7 +29,11 @@ export function ThreadHistory({
   onThreadChange,
   ...props
 }: ThreadHistoryProps) {
-  const { data: threads, isLoading, error } = useTamboThreads({ contextKey });
+  const {
+    data: threads,
+    isLoading,
+    error,
+  } = useTamboThreadList({ contextKey });
   const { switchCurrentThread } = useTamboThread();
   const [isMac, setIsMac] = React.useState(false);
 

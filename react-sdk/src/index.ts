@@ -24,7 +24,7 @@ export type {
   SuggestionGenerateResponse,
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
-export { useTamboThreads } from "./hooks/use-tambo-threads";
+export { useTamboThreadList } from "./hooks/use-tambo-threads";
 export {
   type ComponentContextToolMetadata,
   type ComponentRegistry,

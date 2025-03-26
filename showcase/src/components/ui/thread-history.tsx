@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useTamboThread,
-  useTamboThreads,
+  useTamboThreadList,
   type TamboThread,
 } from "@tambo-ai/react";
 import { PlusIcon } from "lucide-react";
@@ -23,7 +23,11 @@ export function ThreadHistory({
   onThreadChange,
   ...props
 }: ThreadHistoryProps) {
-  const { data: threads, isLoading, error } = useTamboThreads({ contextKey });
+  const {
+    data: threads,
+    isLoading,
+    error,
+  } = useTamboThreadList({ contextKey });
   const { switchCurrentThread } = useTamboThread();
   const [isMac, setIsMac] = React.useState(false);
 
