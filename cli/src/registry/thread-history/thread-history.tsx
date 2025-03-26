@@ -11,6 +11,12 @@ import {
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { PlusIcon } from "lucide-react";
 
+/**
+ * Represents the history of threads
+ * @property {string} className - Optional className for custom styling
+ * @property {string} contextKey - The context key for the thread
+ * @property {function} onThreadChange - The function to call when the thread changes
+ */
 export interface ThreadHistoryProps
   extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
@@ -43,7 +49,7 @@ export function ThreadHistory({
       }
 
       try {
-        switchCurrentThread(contextKey ?? "", false); // TODO: This will be updated when createThread is implemented
+        switchCurrentThread(contextKey ?? ""); // TODO: This will be updated when createThread is implemented
         onThreadChange?.();
       } catch (error) {
         console.error("Failed to create new thread:", error);

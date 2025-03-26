@@ -1,13 +1,13 @@
 "use client";
 
-import * as React from "react";
-import { useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
-import { ThreadContent } from "@/components/ui/thread-content";
 import { MessageInput } from "@/components/ui/message-input";
 import { MessageSuggestions } from "@/components/ui/message-suggestions";
+import { ThreadContent } from "@/components/ui/thread-content";
 import { ThreadHistory } from "@/components/ui/thread-history";
+import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
+import * as React from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Represents a full message thread component
@@ -45,7 +45,9 @@ const MessageThreadFull = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background h-[600px] w-full min-w-2xl max-w-2xl border border-gray-200",
+        "flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background border border-gray-200",
+        "h-[90vh] sm:h-[85vh] md:h-[80vh]",
+        "w-full max-w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto",
         className,
       )}
       {...props}
