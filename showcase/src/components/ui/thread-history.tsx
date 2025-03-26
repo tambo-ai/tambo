@@ -1,6 +1,9 @@
 "use client";
 
+import * as React from "react";
+import { useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useTamboThreads, useTamboThread } from "@tambo-ai/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useTamboThread,
@@ -8,9 +11,13 @@ import {
   type TamboThread,
 } from "@tambo-ai/react";
 import { PlusIcon } from "lucide-react";
-import * as React from "react";
-import { useCallback } from "react";
 
+/**
+ * Represents the history of threads
+ * @property {string} className - Optional className for custom styling
+ * @property {string} contextKey - The context key for the thread
+ * @property {function} onThreadChange - The function to call when the thread changes
+ */
 export interface ThreadHistoryProps
   extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
@@ -47,13 +54,13 @@ export function ThreadHistory({
       }
 
       try {
-        switchCurrentThread(contextKey ?? ""); // TODO: This will be updated when createThread is implemented
+        switchCurrentThread("placeholder", false); // TODO: This will be updated when createThread is implemented
         onThreadChange?.();
       } catch (error) {
         console.error("Failed to create new thread:", error);
       }
     },
-    [switchCurrentThread, onThreadChange, contextKey],
+    [switchCurrentThread, onThreadChange],
   );
 
   React.useEffect(() => {
@@ -83,11 +90,6 @@ export function ThreadHistory({
       console.error("Failed to switch thread:", error);
     }
   };
-
-  const threadItems = React.useMemo<TamboThread[]>(() => {
-    if (!threads) return [];
-    return Array.isArray(threads) ? threads : [];
-  }, [threads]);
 
   return (
     <div className={cn("relative", className)} {...props}>
@@ -141,7 +143,7 @@ export function ThreadHistory({
               >
                 Error loading threads
               </DropdownMenu.Item>
-            ) : threadItems.length === 0 ? (
+            ) : threads?.items.length === 0 ? (
               <DropdownMenu.Item
                 className="px-2 py-1.5 text-sm text-muted-foreground"
                 disabled
@@ -149,7 +151,7 @@ export function ThreadHistory({
                 No previous threads
               </DropdownMenu.Item>
             ) : (
-              threadItems.map((thread: TamboThread) => (
+              threads?.items.map((thread) => (
                 <DropdownMenu.Item
                   key={thread.id}
                   className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
