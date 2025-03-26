@@ -109,7 +109,7 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
                   </span>
                 ))
               )}
-              {isLoading && role === "assistant" && (
+              {isLoading && role === "assistant" && !content && (
                 <div className="flex items-center gap-1 h-4 p-1 mt-1">
                   <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                   <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
