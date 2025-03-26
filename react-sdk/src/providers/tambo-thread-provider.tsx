@@ -565,7 +565,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       componentToolAssociations,
       currentThread,
       switchCurrentThread,
-      startNewThread,
       addThreadMessage,
       client,
       updateThreadStatus,
