@@ -2,7 +2,11 @@
 
 import { cn } from "@/lib/utils";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useTamboThread, type TamboThread } from "@tambo-ai/react";
+import {
+  useTamboThread,
+  useTamboThreadList,
+  type TamboThread,
+} from "@tambo-ai/react";
 import { PlusIcon } from "lucide-react";
 import * as React from "react";
 import { useCallback } from "react";
