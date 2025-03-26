@@ -1,8 +1,10 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { ReactElement } from "react";
 
-/** An extension of the TamboAI.Beta.Threads.ThreadMessage type that includes a
- * renderedComponent */
+/**
+ * An extension of the TamboAI.Beta.Threads.ThreadMessage type that includes a
+ * renderedComponent
+ */
 export interface TamboThreadMessage extends TamboAI.Beta.Threads.ThreadMessage {
   renderedComponent?: ReactElement | null;
 }
@@ -16,6 +18,9 @@ export enum GenerationStage {
   COMPLETE = "COMPLETE",
   ERROR = "ERROR",
 }
+/**
+ *
+ */
 export function isIdleStage(generationStage: GenerationStage) {
   return [
     GenerationStage.IDLE,

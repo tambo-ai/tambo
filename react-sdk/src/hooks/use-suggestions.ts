@@ -70,7 +70,6 @@ type useTamboSuggestionsResult = CombinedMutationResult<any, Error> &
 
 /**
  * Hook for managing Tambo AI suggestions in a thread
- *
  * @param options - Configuration options for suggestion generation
  * @returns Object containing suggestions state and control functions
  */

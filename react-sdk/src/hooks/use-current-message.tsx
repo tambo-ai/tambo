@@ -23,8 +23,10 @@ export const TamboMessageProvider: React.FC<
   );
 };
 
-/** Wraps a component with a ComponentMessageProvider - this allows the provider
- * to be used outside of a TSX file */
+/**
+ * Wraps a component with a ComponentMessageProvider - this allows the provider
+ * to be used outside of a TSX file
+ */
 export function wrapWithTamboMessageProvider(
   children: React.ReactNode,
   threadId: string,
@@ -36,8 +38,10 @@ export function wrapWithTamboMessageProvider(
     </TamboMessageProvider>
   );
 }
-/** Hook used inside a component wrapped with ComponentMessageProvider, to get
- * the threadId and messageId */
+/**
+ * Hook used inside a component wrapped with ComponentMessageProvider, to get
+ * the threadId and messageId
+ */
 
 export const useTamboMessageContext = () => {
   const context = useContext(TamboMessageContext);
@@ -49,8 +53,10 @@ export const useTamboMessageContext = () => {
   return context;
 };
 
-/** Hook used inside a component wrapped with ComponentMessageProvider, to get
- * the current message */
+/**
+ * Hook used inside a component wrapped with ComponentMessageProvider, to get
+ * the current message
+ */
 export const useTamboCurrentMessage = () => {
   const { messageId, threadId } = useTamboMessageContext();
   const { thread } = useTamboThread();

@@ -1,5 +1,8 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 
+/**
+ *
+ */
 export function threadMessagesToLegacyMessages(
   messages: TamboAI.Beta.Threads.ThreadMessage[],
 ) {

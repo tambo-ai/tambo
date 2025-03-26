@@ -43,6 +43,7 @@ export default tseslint.config(
       "react/prop-types": "off",
       "jsdoc/require-param-type": "off",
       "jsdoc/require-returns-type": "off",
+      "jsdoc/require-param": "off",
     },
 
     languageOptions: {

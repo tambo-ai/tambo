@@ -5,11 +5,9 @@ import { useEffect } from "react";
  *
  * This hook streamlines the common pattern of updating component state when receiving new
  * streamed values from Tambo, eliminating the need to write repetitive useEffect code.
- *
  * @param currentState - The current state object from useTamboComponentState
  * @param setState - The setState function from useTamboComponentState
  * @param streamingProps - An object mapping state keys to prop values that should update the state
- *
  * @example
  * ```tsx
  * // Instead of writing a complex useEffect:

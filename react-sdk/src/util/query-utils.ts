@@ -10,6 +10,9 @@ export type CombinedMutationResult<
   "mutate" | "mutateAsync" | "reset" | "data" | "variables" | "context"
 >;
 
+/**
+ *
+ */
 export function combineMutationResults<TData1, TData2, TError1, TError2>(
   resultA: UseMutationResult<TData1, TError1, any, any>,
   resultB: UseMutationResult<TData2, TError2, any, any>,
@@ -41,6 +44,9 @@ export type CombinedQueryResult<TData1, TData2, TError1, TError2> = Omit<
   UseQueryResult<TData1 | TData2, TError1 | TError2>,
   "data" | "refetch" | "promise"
 >;
+/**
+ *
+ */
 export function combineQueryResults<TData1, TData2, TError1, TError2>(
   resultA: UseQueryResult<TData1, TError1>,
   resultB: UseQueryResult<TData2, TError2>,

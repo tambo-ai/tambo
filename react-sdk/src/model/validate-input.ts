@@ -4,7 +4,11 @@ export interface ValidationResult {
   sanitizedInput: string;
 }
 
-// TODO(future): Consider adding more validation rules if needed
+/**
+ * Validates the input of a message. Makes sure the message is not empty and is not too long.
+ * @param input - The input to validate
+ * @returns The validation result
+ */
 export function validateInput(input: string): ValidationResult {
   const trimmed = input.trim();
 
