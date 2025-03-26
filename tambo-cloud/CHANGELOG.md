@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.29.0...repo-v0.30.0) (2025-03-26)
+
+
+### Features
+
+* add additionalContext to input types ([#621](https://github.com/tambo-ai/tambo-cloud/issues/621)) ([d706b4f](https://github.com/tambo-ai/tambo-cloud/commit/d706b4f6629a8463e68b682f0123ea4fc78c0fe5))
+
 ## [0.29.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.28.0...repo-v0.29.0) (2025-03-26)
 
 
