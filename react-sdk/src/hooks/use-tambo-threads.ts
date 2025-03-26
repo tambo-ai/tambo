@@ -3,6 +3,10 @@ import { useTamboQuery } from "./react-query-hooks";
 
 /**
  * Get the threads for the specified project and optional context key.
+ * @param config - The config for the useTamboThreadList hook
+ * @param config.projectId - The projectId to get the threads for
+ * @param config.contextKey - The context key to get the threads for
+ * @returns The threads for the specified project and optional context key
  */
 export function useTamboThreadList({
   projectId,

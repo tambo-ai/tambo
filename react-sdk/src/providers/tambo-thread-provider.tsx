@@ -50,7 +50,8 @@ export interface TamboThreadContextProps {
   isIdle: boolean;
 }
 
-/** This is a stub entry for when the thread is not yet created, the first time
+/**
+ * This is a stub entry for when the thread is not yet created, the first time
  * the user sends a message
  *
  * Note that the consumer needs to be careful never to send `PLACEHOLDER_THREAD.id` to the server,
@@ -564,7 +565,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       componentToolAssociations,
       currentThread,
       switchCurrentThread,
-      startNewThread,
       addThreadMessage,
       client,
       updateThreadStatus,

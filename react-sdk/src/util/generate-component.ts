@@ -8,7 +8,11 @@ import { TamboThreadMessage } from "../model/generate-component-response";
 import { getComponentFromRegistry } from "../util/registry";
 
 /**
- * Generate a message that has a component rendered into it, if the message came with one
+ * Generate a message that has a component rendered into it, if the message
+ * came with one.
+ * @param message - The message that may contain a component
+ * @param componentList - the list of available components
+ * @returns The updated message with the component rendered into it
  */
 export function renderComponentIntoMessage(
   message: TamboAI.Beta.Threads.ThreadMessage,

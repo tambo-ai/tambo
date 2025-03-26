@@ -6,7 +6,14 @@ const TamboMessageContext = createContext<{
   messageId: string;
 }>({} as { threadId: string; messageId: string });
 
-/** Wraps all components, so that they can find what thread and message they are in */
+/**
+ * Wraps all components, so that they can find what thread and message they are in
+ * @param props - props for the TamboMessageProvider
+ * @param props.children - The children to wrap
+ * @param props.threadId - The threadId of the thread
+ * @param props.messageId - The messageId of the message
+ * @returns The wrapped component
+ */
 export const TamboMessageProvider: React.FC<
   PropsWithChildren<{ threadId: string; messageId: string }>
 > = ({ children, threadId, messageId }) => {
@@ -23,8 +30,14 @@ export const TamboMessageProvider: React.FC<
   );
 };
 
-/** Wraps a component with a ComponentMessageProvider - this allows the provider
- * to be used outside of a TSX file */
+/**
+ * Wraps a component with a ComponentMessageProvider - this allows the provider
+ * to be used outside of a TSX file
+ * @param children - The children to wrap
+ * @param threadId - The threadId of the thread
+ * @param messageId - The messageId of the message
+ * @returns The wrapped component
+ */
 export function wrapWithTamboMessageProvider(
   children: React.ReactNode,
   threadId: string,
@@ -36,9 +49,11 @@ export function wrapWithTamboMessageProvider(
     </TamboMessageProvider>
   );
 }
-/** Hook used inside a component wrapped with ComponentMessageProvider, to get
- * the threadId and messageId */
-
+/**
+ * Hook used inside a component wrapped with ComponentMessageProvider, to get
+ * the threadId and messageId
+ * @returns The threadId and messageId
+ */
 export const useTamboMessageContext = () => {
   const context = useContext(TamboMessageContext);
   if (!context) {
@@ -49,8 +64,12 @@ export const useTamboMessageContext = () => {
   return context;
 };
 
-/** Hook used inside a component wrapped with ComponentMessageProvider, to get
- * the current message */
+/**
+ * Hook used inside a component wrapped with ComponentMessageProvider, to get
+ * the current message. The current thread will be fetched from the server, if
+ * it is not already in the cache.
+ * @returns The current message that is used to render the component
+ */
 export const useTamboCurrentMessage = () => {
   const { messageId, threadId } = useTamboMessageContext();
   const { thread } = useTamboThread();

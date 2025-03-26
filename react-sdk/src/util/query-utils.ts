@@ -10,6 +10,14 @@ export type CombinedMutationResult<
   "mutate" | "mutateAsync" | "reset" | "data" | "variables" | "context"
 >;
 
+/**
+ * Combines two mutation results, showing the "loading state" of the two
+ * mutations. For instance, if either mutation is pending, the combined
+ * mutation result will be pending.
+ * @param resultA - The first mutation result
+ * @param resultB - The second mutation result
+ * @returns The combined mutation result
+ */
 export function combineMutationResults<TData1, TData2, TError1, TError2>(
   resultA: UseMutationResult<TData1, TError1, any, any>,
   resultB: UseMutationResult<TData2, TError2, any, any>,
@@ -41,6 +49,14 @@ export type CombinedQueryResult<TData1, TData2, TError1, TError2> = Omit<
   UseQueryResult<TData1 | TData2, TError1 | TError2>,
   "data" | "refetch" | "promise"
 >;
+/**
+ * Combines two query results, showing the "loading state" of the two queries.
+ * For instance, if either query is loading, the combined query result will be
+ * loading.
+ * @param resultA - The first query result
+ * @param resultB - The second query result
+ * @returns The combined query result
+ */
 export function combineQueryResults<TData1, TData2, TError1, TError2>(
   resultA: UseQueryResult<TData1, TError1>,
   resultB: UseQueryResult<TData2, TError2>,

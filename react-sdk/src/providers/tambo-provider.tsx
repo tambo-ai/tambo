@@ -51,7 +51,13 @@ export const TamboContext = createContext<TamboContextProps>(
   {} as TamboContextProps,
 );
 
-/** TamboCompositeProvider is a provider that combines the TamboClient, TamboThread, and TamboComponent providers */
+/**
+ * TamboCompositeProvider is a provider that combines the TamboClient,
+ * TamboThread, and TamboComponent providers
+ * @param props - The props for the TamboCompositeProvider
+ * @param props.children - The children to wrap
+ * @returns The wrapped component
+ */
 const TamboCompositeProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const threads = useTamboThread();
   const client = useTamboClient();

@@ -50,7 +50,8 @@ export interface TamboComponent {
   name: string;
   /** The description of the component */
   description: string;
-  /** The React component to render.
+  /**
+   * The React component to render.
    *
    * Make sure to pass the Component itself, not an instance of the component. For example,
    * if you have a component like this:
@@ -70,11 +71,13 @@ export interface TamboComponent {
    */
   component: ComponentType<any>;
 
-  /** A zod schema for the component props. (Recommended)
+  /**
+   * A zod schema for the component props. (Recommended)
    * Either this or propsDefinition must be provided, but not both.
    */
   propsSchema?: z.ZodTypeAny;
-  /** The props definition of the component as a JSON object.
+  /**
+   * The props definition of the component as a JSON object.
    * Either this or propsSchema must be provided, but not both.
    */
   propsDefinition?: any;

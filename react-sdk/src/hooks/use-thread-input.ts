@@ -53,7 +53,6 @@ export type UseThreadInput = UseThreadInputInternal &
 
 /**
  * Hook for managing thread message input state and submission
- *
  * @returns Interface for managing thread input state and submission
  */
 export function useTamboThreadInput(contextKey?: string): UseThreadInput {
