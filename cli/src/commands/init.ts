@@ -19,6 +19,55 @@ interface InitOptions {
 }
 
 /**
+ * Checks for existing API key in .env files
+ * @returns string | null Returns existing API key if found, null otherwise
+ */
+async function checkExistingApiKey(): Promise<string | null> {
+  const envFiles = [".env.local", ".env"];
+
+  for (const file of envFiles) {
+    if (fs.existsSync(file)) {
+      const content = fs.readFileSync(file, "utf8");
+      const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
+      if (match?.[1]) {
+        const { useExisting } = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "useExisting",
+            message: chalk.yellow(
+              `Found existing API key in ${file}. Would you like to use it?`,
+            ),
+            default: true,
+          },
+        ]);
+
+        if (useExisting) {
+          return match[1].trim();
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Gets user preference for component installation directory
+ * @returns string The chosen installation path
+ */
+export async function getInstallationPath(): Promise<string> {
+  const { useSrcDir } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "useSrcDir",
+      message: "Would you like to install components in a src directory?",
+      default: false,
+    },
+  ]);
+
+  return useSrcDir ? "src/components" : "components";
+}
+
+/**
  * Handles the authentication flow with Tambo
  * @returns Promise<boolean> Returns true if authentication was successful
  * @throws AuthenticationError
@@ -27,6 +76,15 @@ async function handleAuthentication(): Promise<boolean> {
   try {
     // 1. Browser-based auth flow
     console.log(chalk.cyan("Step 1: Authentication"));
+
+    // Check for existing API key first
+    const existingKey = await checkExistingApiKey();
+    if (existingKey) {
+      console.log(chalk.green("✔ Using existing API key"));
+      return true;
+    }
+
+    // Continue with browser-based auth flow
     const authUrl = "https://tambo.co/cli-auth";
     console.log(chalk.gray("\nOpening browser for authentication..."));
 
@@ -123,6 +181,9 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     ),
   );
 
+  // Get installation path preference first
+  const installPath = await getInstallationPath();
+
   const authSuccess = await handleAuthentication();
   if (!authSuccess) return;
 
@@ -171,6 +232,7 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
       await handleAddComponent(component, {
         silent: true,
         legacyPeerDeps: options.legacyPeerDeps,
+        installPath,
       });
       spinner.succeed(`Installed ${component}`);
     } catch (error) {

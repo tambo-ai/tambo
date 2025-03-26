@@ -47,13 +47,11 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
       >
         {messages.map((message, index) => {
           const showLoading = isGenerating && index === messages.length - 1;
-          const messageContent = showLoading
-            ? ""
-            : Array.isArray(message.content)
-              ? (message.content[0]?.text ?? "Empty message")
-              : typeof message.content === "string"
-                ? message.content
-                : "Empty message";
+          const messageContent = Array.isArray(message.content)
+            ? (message.content[0]?.text ?? "Empty message")
+            : typeof message.content === "string"
+              ? message.content
+              : "Empty message";
 
           return (
             <div

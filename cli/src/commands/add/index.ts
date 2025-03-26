@@ -2,6 +2,7 @@ import chalk from "chalk";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
+import { getInstallationPath } from "../init.js";
 import { installSingleComponent } from "./component.js";
 import { resolveComponentDependencies } from "./dependencies.js";
 import { setupTailwindandGlobals } from "./tailwind.js";
@@ -29,18 +30,19 @@ export async function handleAddComponent(
       );
     }
 
-    // 2. Resolve all dependencies first
+    // 2. Get installation path if not provided
+    const installPath = options.installPath ?? (await getInstallationPath());
+
+    // 3. Resolve all dependencies first
     if (!options.silent) {
       console.log(`${chalk.blue("ℹ")} Resolving dependencies...`);
     }
 
     const components = await resolveComponentDependencies(componentName);
 
-    // 3. Check which components need to be installed
+    // 4. Check which components need to be installed
     const existingComponents = components.filter((comp) =>
-      fs.existsSync(
-        path.join(process.cwd(), "src", "components", "ui", `${comp}.tsx`),
-      ),
+      fs.existsSync(path.join(process.cwd(), installPath, "ui", `${comp}.tsx`)),
     );
     const newComponents = components.filter(
       (comp) => !existingComponents.includes(comp),
@@ -56,7 +58,7 @@ export async function handleAddComponent(
       return;
     }
 
-    // 4. Show installation plan
+    // 5. Show installation plan
     if (!options.silent) {
       console.log(`${chalk.blue("ℹ")} Components to be installed:`);
       newComponents.forEach((comp) => console.log(`  - ${comp}`));
@@ -81,12 +83,12 @@ export async function handleAddComponent(
       }
     }
 
-    // 5. Install components in order (dependencies first)
+    // 6. Install components in order (dependencies first)
     for (const component of newComponents) {
-      await installSingleComponent(component, options);
+      await installSingleComponent(component, { ...options, installPath });
     }
 
-    // 6. Setup Tailwind and globals.css after all components are installed
+    // 7. Setup Tailwind and globals.css after all components are installed
     await setupTailwindandGlobals(process.cwd());
 
     if (!options.silent) {
