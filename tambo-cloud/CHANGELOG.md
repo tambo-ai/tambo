@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.1...repo-v0.27.2) (2025-03-26)
+
+
+### Bug Fixes
+
+* add a generous 10s connection timeout to try to diagnose railway issues ([#611](https://github.com/tambo-ai/tambo-cloud/issues/611)) ([c67024d](https://github.com/tambo-ai/tambo-cloud/commit/c67024db17ef79e79dba849b7c1675f79595be1c))
+
 ## [0.27.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.0...repo-v0.27.1) (2025-03-26)
 
 
