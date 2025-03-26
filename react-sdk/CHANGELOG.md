@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.2](https://github.com/tambo-ai/tambo/compare/react-v0.18.1...react-v0.18.2) (2025-03-26)
+
+
+### Miscellaneous
+
+* bump tambo/ts version ([#196](https://github.com/tambo-ai/tambo/issues/196)) ([d24918b](https://github.com/tambo-ai/tambo/commit/d24918b61acc78ae5f1d09a4f70f65c09ebd989d))
+
 ## [0.18.1](https://github.com/tambo-ai/tambo/compare/react-v0.18.0...react-v0.18.1) (2025-03-25)
 
 
