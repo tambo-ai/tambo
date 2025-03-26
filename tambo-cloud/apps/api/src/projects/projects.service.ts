@@ -1,11 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { HydraDatabase, HydraTransaction } from "@tambo-ai-cloud/db";
+import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations } from "@tambo-ai-cloud/db";
-import {
-  DATABASE,
-  TRANSACTION,
-} from "src/common/middleware/db-transaction-middleware";
+import { DATABASE } from "src/common/middleware/db-transaction-middleware";
 import { APIKeyResponse } from "./dto/api-key-response.dto";
 import { ProjectResponse } from "./dto/project-response.dto";
 import { ProviderKeyResponse } from "./dto/provider-key-response.dto";
@@ -14,15 +11,16 @@ import { Project } from "./entities/project.entity";
 @Injectable()
 export class ProjectsService {
   constructor(
-    @Inject(TRANSACTION)
-    private readonly tx: HydraTransaction,
+    // @Inject(TRANSACTION)
+    // private readonly tx: HydraTransaction,
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
     private readonly config: ConfigService,
   ) {}
 
   getDb() {
-    return this.tx ?? this.db;
+    // return this.tx ?? this.db;
+    return this.db;
   }
 
   async create(createProjectDto: {

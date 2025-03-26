@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -14,8 +13,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
-import { HydraTransaction } from "@tambo-ai-cloud/db";
-import { TRANSACTION } from "src/common/middleware/db-transaction-middleware";
 import { ApiKeyGuard } from "src/components/guards/apikey.guard";
 import { AddProviderKeyRequest } from "./dto/add-provider-key.dto";
 import {
@@ -32,11 +29,7 @@ import { ProjectsService } from "./projects.service";
 @Controller("projects")
 @UseGuards(ApiKeyGuard)
 export class ProjectsController {
-  constructor(
-    private readonly projectsService: ProjectsService,
-    @Inject(TRANSACTION)
-    private readonly tx: HydraTransaction,
-  ) {}
+  constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
   async create(

@@ -15,10 +15,7 @@ import type { DBSuggestion } from "@tambo-ai-cloud/db/src/schema";
 import { generateChainId, HydraBackend } from "@tambo-ai-cloud/hydra-ai-server";
 import { eq } from "drizzle-orm";
 import { decryptProviderKey } from "src/common/key.utils";
-import {
-  DATABASE,
-  TRANSACTION,
-} from "src/common/middleware/db-transaction-middleware";
+import { DATABASE } from "src/common/middleware/db-transaction-middleware";
 import { AvailableComponentDto } from "src/components/dto/generate-component.dto";
 import { ProjectsService } from "src/projects/projects.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
@@ -43,8 +40,8 @@ import {
 @Injectable()
 export class ThreadsService {
   constructor(
-    @Inject(TRANSACTION)
-    private readonly tx: HydraDatabase,
+    // @Inject(TRANSACTION)
+    // private readonly tx: HydraDatabase,
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
     private projectsService: ProjectsService,
@@ -52,7 +49,8 @@ export class ThreadsService {
   ) {}
 
   getDb() {
-    return this.tx ?? this.db;
+    // return this.tx ?? this.db;
+    return this.db;
   }
 
   private async getHydraBackend(threadId: string): Promise<HydraBackend> {
