@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.28.0...repo-v0.29.0) (2025-03-26)
+
+
+### Features
+
+* remove non-functional endpoints requiring request.userId ([#619](https://github.com/tambo-ai/tambo-cloud/issues/619)) ([69e7881](https://github.com/tambo-ai/tambo-cloud/commit/69e788105823f5db988b46c1e48375439887554b))
+
 ## [0.28.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.3...repo-v0.28.0) (2025-03-26)
 
 
