@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.4...showcase-v0.2.0) (2025-03-26)
+
+
+### Features
+
+* **showcase:** update the showcase site to show updated components ([#193](https://github.com/tambo-ai/tambo/issues/193)) ([2680fba](https://github.com/tambo-ai/tambo/commit/2680fbaf51f833e8742d44388b69c451226e529d))
+
 ## [0.1.4](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.3...showcase-v0.1.4) (2025-03-25)
 
 
