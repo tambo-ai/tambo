@@ -1,28 +1,11 @@
-import { TabbedSection } from "@/components/tabbed-section";
-import { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Tambo AI - UI Components",
-  description: "Tambo AI",
-};
+import { GettingStartedSteps } from "@/components/getting-started-steps";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center gap-8 p-4 -mt-10">
-      <div className="w-full flex flex-col items-center">
-        <div className="flex flex-col items-center text-center gap-8 py-24 -mb-10">
-          <div className="flex flex-col items-center gap-2 relative">
-            <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
-              Components to quickstart your AI app development
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-[600px]">
-              A collection of ready-to-use AI components hooked up to Tambo.
-            </p>
-          </div>
-        </div>
-
-        <TabbedSection />
-      </div>
+    <div className="flex flex-col items-center min-h-screen bg-gradient-to-b from-background to-background/95">
+      <GettingStartedSteps />
     </div>
   );
 }
