@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.27.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.27.0...repo-v0.27.1) (2025-03-26)
+
+
+### Bug Fixes
+
+* update ref handling in MessageInput component to improve focus behavior ([#608](https://github.com/tambo-ai/tambo-cloud/issues/608)) ([cf1b226](https://github.com/tambo-ai/tambo-cloud/commit/cf1b226359c08365d3f54c7b57f210135cbaeaa1))
+
+
+### Reverts
+
+* "feat: protect thread endpoints with thread-in-project guard" ([#610](https://github.com/tambo-ai/tambo-cloud/issues/610)) ([abc26dd](https://github.com/tambo-ai/tambo-cloud/commit/abc26dd9d5a36208fb29bbd13afaf83f0552efe4))
+
 ## [0.27.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.26.2...repo-v0.27.0) (2025-03-25)
 
 
