@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import isEqual from "react-fast-compare";
 import { useDebouncedCallback } from "use-debounce";
 import { useTamboClient, useTamboThread } from "../providers";
 import {
@@ -60,7 +59,7 @@ export function useTamboComponentState<S>(
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,
-  debounceTime = 300,
+  debounceTime = 500,
 ): StateUpdateResult<S> {
   const { threadId, messageId } = useTamboMessageContext();
   const { updateThreadMessage } = useTamboThread();
@@ -91,20 +90,17 @@ export function useTamboComponentState<S>(
     if (message?.componentState && keyName in message.componentState) {
       const messageState = message.componentState[keyName] as S;
 
-      // If this is a user-initiated state that matches what we're getting from server,
-      // we can clear the lastUserValue flag since it's been synchronized
-      if (lastUserValue !== null && isEqual(messageState, lastUserValue)) {
-        setLastUserValue(null);
-      }
-
-      // Update local state with server state unless user has specifically changed this value
-      // This allows streaming updates to continue while protecting user edits
-      if (lastUserValue === null || !isEqual(localState, lastUserValue)) {
+      // Only update local state if we haven't had any user changes yet
+      if (lastUserValue === null) {
         setLocalState(messageState);
       }
     }
-    // Otherwise fall back to initial value if we have one
-    else if (cachedInitialValue !== undefined && !localState) {
+    // Otherwise fall back to initial value if we have one and no user changes
+    else if (
+      cachedInitialValue !== undefined &&
+      !localState &&
+      lastUserValue === null
+    ) {
       setLocalState(cachedInitialValue);
     }
   }, [
@@ -116,12 +112,11 @@ export function useTamboComponentState<S>(
   ]);
 
   // Create debounced save function for efficient server synchronization
-  const debouncedSave = useDebouncedCallback(async (newValue: S) => {
+  const debouncedServerWrite = useDebouncedCallback(async (newValue: S) => {
     if (!message) {
       console.warn(
         `Cannot update missing message ${messageId} for state key "${keyName}"`,
       );
-      setLastUserValue(null);
       return;
     }
 
@@ -147,11 +142,6 @@ export function useTamboComponentState<S>(
           componentStateUpdate,
         ),
       ]);
-
-      // Only clear the lastUserValue when we've successfully synced this exact value
-      if (isEqual(newValue, lastUserValue)) {
-        setLastUserValue(null);
-      }
     } catch (err) {
       console.error(
         `Failed to save component state for key "${keyName}":`,
@@ -226,24 +216,22 @@ export function useTamboComponentState<S>(
 
       // Only trigger server updates if we have a message
       if (message) {
-        debouncedSave(newValue);
+        debouncedServerWrite(newValue);
       } else {
         console.warn(
           `Cannot update server for missing message ${messageId} with key "${keyName}"`,
         );
-        setLastUserValue(null);
       }
     },
-    [debouncedSave, message, messageId, keyName],
+    [debouncedServerWrite, message, messageId, keyName],
   );
 
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
     return () => {
-      debouncedSave.flush();
-      setLastUserValue(null);
+      debouncedServerWrite.flush();
     };
-  }, [debouncedSave]);
+  }, [debouncedServerWrite]);
 
   // Return the local state for immediate UI rendering
   return [localState as S, setValue, { isPending }];
