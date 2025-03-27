@@ -11,6 +11,17 @@ export function ShowcaseThemeProvider({
   children,
   defaultTheme = "light",
 }: ShowcaseThemeProviderProps) {
+  const [mounted, setMounted] = React.useState(false);
+
+  // Prevent hydration mismatch
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <ThemeProvider
       attribute="class"
