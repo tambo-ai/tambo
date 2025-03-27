@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.31.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.30.1...repo-v0.31.0) (2025-03-27)
+
+
+### Features
+
+* check if emails are valid :) ([#626](https://github.com/tambo-ai/tambo-cloud/issues/626)) ([beaeb4c](https://github.com/tambo-ai/tambo-cloud/commit/beaeb4c709771ac62bf9c8665a53cc22118ab4b6))
+* rename state -&gt; componentState in the API for consistency across the stack ([#632](https://github.com/tambo-ai/tambo-cloud/issues/632)) ([45cebe1](https://github.com/tambo-ai/tambo-cloud/commit/45cebe11b30b93d3c96048d485abdfe5c45e0516))
+
+
+### Bug Fixes
+
+* change state name + location in response hoping not to confuse the json response from the llm ([#631](https://github.com/tambo-ai/tambo-cloud/issues/631)) ([0eb2e47](https://github.com/tambo-ai/tambo-cloud/commit/0eb2e477d145207329ef9524c00ff8da0670ce69))
+* Properly "merge" serialized state in component state updates ([#628](https://github.com/tambo-ai/tambo-cloud/issues/628)) ([9be10d8](https://github.com/tambo-ai/tambo-cloud/commit/9be10d8f57b50f27194270e8a96a2f3619d438c9))
+* smoketest cleanup to persist "imperial" state ([#625](https://github.com/tambo-ai/tambo-cloud/issues/625)) ([98081ec](https://github.com/tambo-ai/tambo-cloud/commit/98081ec2a94ee2031f1b42679b399cbf0bfd5ae6))
+* **smoketest:** split forecast and current weather to save tokens ([#630](https://github.com/tambo-ai/tambo-cloud/issues/630)) ([e28b55c](https://github.com/tambo-ai/tambo-cloud/commit/e28b55c0c655bff53677bd26ee6213aabde6fbef))
+
+
+### Code Refactoring
+
+* replace with message arch so it's simpler ([#629](https://github.com/tambo-ai/tambo-cloud/issues/629)) ([9525380](https://github.com/tambo-ai/tambo-cloud/commit/9525380e1d2cbdcaaea4c6534f1a047a3f65351e))
+
 ## [0.30.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.30.0...repo-v0.30.1) (2025-03-27)
 
 
