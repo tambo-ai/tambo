@@ -130,7 +130,7 @@ async function handleNoComponentCase(
     componentName: null,
     props: null,
     message: noComponentResponse.message,
-    state: null, // TOOD: remove when optional
+    componentState: null, // TOOD: remove when optional
     ...(version === "v1" ? { suggestedActions: [] } : {}),
   };
 }
@@ -145,7 +145,7 @@ async function* handleNoComponentStream(
     componentName: null,
     props: null,
     message: "",
-    state: null, // TOOD: remove when optional
+    componentState: null, // TOOD: remove when optional
     ...(version === "v1" ? { suggestedActions: [] } : {}),
   };
 

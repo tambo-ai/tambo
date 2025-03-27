@@ -895,7 +895,7 @@ export class ThreadsService {
       message: component.message,
       componentName: component.componentName,
       props: component.props,
-      state: component.state,
+      componentState: component.componentState,
       reasoning: component.reasoning,
     };
     return await this.addMessage(
@@ -912,7 +912,7 @@ export class ThreadsService {
         actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
         toolCallRequest: component.toolCallRequest,
         tool_call_id: component.toolCallRequest?.tool_call_id,
-        componentState: component.state ?? {},
+        componentState: component.componentState ?? {},
       },
       tx,
     );

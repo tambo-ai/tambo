@@ -5,7 +5,7 @@ export interface LegacyComponentDecision {
   suggestedActions?: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
   toolCallId?: string;
-  state: Record<string, unknown> | null;
+  componentState: Record<string, unknown> | null;
   reasoning: string;
 }
 
@@ -13,7 +13,7 @@ export interface ComponentDecisionV2 {
   componentName: string | null;
   props: Record<string, unknown>;
   message: string;
-  state: Record<string, unknown> | null;
+  componentState: Record<string, unknown> | null;
   reasoning: string;
 }
 

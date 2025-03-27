@@ -206,8 +206,8 @@ function combineComponentWithState(
   return {
     ...component,
     reasoning: component.reasoning ?? "",
-    state: {
-      ...component.state,
+    componentState: {
+      ...component.componentState,
       ...componentState,
     },
   };

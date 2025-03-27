@@ -34,7 +34,7 @@ export class ComponentDecisionV2Dto implements ComponentDecisionV2 {
     type: "object",
     additionalProperties: true,
   })
-  state!: Record<string, unknown> | null;
+  componentState!: Record<string, unknown> | null;
   reasoning!: string;
 }
 
