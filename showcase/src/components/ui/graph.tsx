@@ -47,11 +47,10 @@ export interface GraphProps
 }
 
 const defaultColors = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "hsl(220, 100%, 62%)", // Blue
+  "hsl(160, 82%, 47%)", // Green
+  "hsl(32, 100%, 62%)", // Orange
+  "hsl(340, 82%, 66%)", // Pink
 ];
 
 const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
@@ -59,6 +58,32 @@ const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
     { className, variant, size, data, title, showLegend = true, ...props },
     ref,
   ) => {
+    // validation to ensure data structure is complete and valid
+    if (
+      !data?.labels ||
+      !data?.datasets ||
+      !Array.isArray(data.labels) ||
+      !Array.isArray(data.datasets) ||
+      data.datasets.some(
+        (dataset) =>
+          !Array.isArray(dataset.data) ||
+          dataset.data.length !== data.labels.length,
+      )
+    ) {
+      console.error("Invalid graph data structure:", data);
+      return (
+        <div
+          className={cn(graphVariants({ variant, size }), className)}
+          {...props}
+        >
+          <div className="p-4 text-destructive">
+            Error: Invalid data structure. Ensure all datasets have the same
+            length as labels.
+          </div>
+        </div>
+      );
+    }
+
     // Transform data for Recharts
     const chartData = data.labels.map((label, index) => ({
       name: label,
