@@ -112,12 +112,11 @@ export function useTamboComponentState<S>(
   ]);
 
   // Create debounced save function for efficient server synchronization
-  const debouncedSave = useDebouncedCallback(async (newValue: S) => {
+  const debouncedServerWrite = useDebouncedCallback(async (newValue: S) => {
     if (!message) {
       console.warn(
         `Cannot update missing message ${messageId} for state key "${keyName}"`,
       );
-      setLastUserValue(null);
       return;
     }
 
@@ -217,24 +216,22 @@ export function useTamboComponentState<S>(
 
       // Only trigger server updates if we have a message
       if (message) {
-        debouncedSave(newValue);
+        debouncedServerWrite(newValue);
       } else {
         console.warn(
           `Cannot update server for missing message ${messageId} with key "${keyName}"`,
         );
-        setLastUserValue(null);
       }
     },
-    [debouncedSave, message, messageId, keyName],
+    [debouncedServerWrite, message, messageId, keyName],
   );
 
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
     return () => {
-      debouncedSave.flush();
-      setLastUserValue(null);
+      debouncedServerWrite.flush();
     };
-  }, [debouncedSave]);
+  }, [debouncedServerWrite]);
 
   // Return the local state for immediate UI rendering
   return [localState as S, setValue, { isPending }];
