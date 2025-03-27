@@ -53,6 +53,10 @@ export default function SmokePage() {
     api.demo.history.useMutation({
       onError: (error) => setErrors((prev) => [...prev, error]),
     });
+  const { mutateAsync: getCurrentWeather, isPending: isCurrentWeatherPending } =
+    api.demo.currentWeather.useMutation({
+      onError: (error) => setErrors((prev) => [...prev, error]),
+    });
 
   const [apiStates, setApiStates] = useState<Record<string, ApiState>>({
     aqi: {
@@ -79,6 +83,14 @@ export default function SmokePage() {
       shouldError: false,
       tokens: null,
     },
+    currentWeather: {
+      isRunning: false,
+      startTime: null,
+      duration: null,
+      isPaused: false,
+      shouldError: false,
+      tokens: null,
+    },
   });
 
   const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
@@ -88,6 +100,7 @@ export default function SmokePage() {
     getAirQuality,
     getForecast,
     getHistoricalWeather,
+    getCurrentWeather,
   );
   const isAnyApiRunning = Object.values(apiStates).some(
     (state) => state.isRunning,
@@ -98,6 +111,7 @@ export default function SmokePage() {
       aqi: wrappedApis.aqi.getState(),
       forecast: wrappedApis.forecast.getState(),
       history: wrappedApis.history.getState(),
+      currentWeather: wrappedApis.currentWeather.getState(),
     });
   }, [wrappedApis]);
 
@@ -109,6 +123,7 @@ export default function SmokePage() {
           aqi: wrappedApis.aqi.getState(),
           forecast: wrappedApis.forecast.getState(),
           history: wrappedApis.history.getState(),
+          currentWeather: wrappedApis.currentWeather.getState(),
         });
       }, 1000);
       setPollInterval(interval);
@@ -130,6 +145,7 @@ export default function SmokePage() {
         wrappedApis.forecast.call,
         wrappedApis.history.call,
         wrappedApis.aqi.call,
+        wrappedApis.currentWeather.call,
       ),
     [wrappedApis],
   );
@@ -143,7 +159,7 @@ export default function SmokePage() {
       propsDefinition: {
         data: "{ date: string; day: { maxtemp_c: number; mintemp_c: number; avgtemp_c: number; maxwind_kph: number; totalprecip_mm: number; avghumidity: number; condition: { text: string; icon: string } } }",
       },
-      associatedTools: [tools.forecast, tools.history],
+      associatedTools: [tools.forecast, tools.history, tools.currentWeather],
     });
     registerComponent({
       component: AirQuality,
@@ -168,6 +184,7 @@ export default function SmokePage() {
     isAqiPending ||
     isForecastPending ||
     isHistoryPending ||
+    isCurrentWeatherPending ||
     isThreadInfoLoading;
 
   return (
@@ -245,7 +262,7 @@ export default function SmokePage() {
             </div>
             <ThreadMessageInput
               contextKey={userId}
-              onSubmit={async (value) => {
+              onSubmit={async () => {
                 await refetchThreadInfo();
               }}
             />
@@ -327,6 +344,23 @@ export default function SmokePage() {
                   updateApiStates();
                 }}
               />
+              <ApiActivityMonitor
+                name="Current Weather"
+                state={apiStates.currentWeather}
+                tokens={apiStates.currentWeather.tokens ?? undefined}
+                onPauseToggle={(isPaused) => {
+                  if (isPaused) {
+                    wrappedApis.currentWeather.unpause();
+                  } else {
+                    wrappedApis.currentWeather.pause();
+                  }
+                  updateApiStates();
+                }}
+                onErrorToggle={(isErroring) => {
+                  wrappedApis.currentWeather.setNextError(!isErroring);
+                  updateApiStates();
+                }}
+              />
             </div>
           </Card>
           <div>
@@ -343,6 +377,7 @@ function useWrappedApis(
   getAirQuality: (...args: any[]) => Promise<any>,
   getForecast: (...args: any[]) => Promise<any>,
   getHistoricalWeather: (...args: any[]) => Promise<any>,
+  getCurrentWeather: (...args: any[]) => Promise<any>,
 ) {
   const updateAqiState = useCallback(
     (
@@ -386,17 +421,40 @@ function useWrappedApis(
     [setApiStates],
   );
 
+  const updateCurrentWeatherState = useCallback(
+    (
+      isRunning: boolean,
+      startTime: number | null,
+      duration: number | null,
+      tokens: number | null,
+    ) =>
+      setApiStates((prev) => ({
+        ...prev,
+        currentWeather: {
+          ...prev.currentWeather,
+          isRunning,
+          startTime,
+          duration,
+          tokens,
+        },
+      })),
+    [setApiStates],
+  );
+
   return useMemo(
     () => ({
       aqi: wrapApiCall(getAirQuality, updateAqiState),
       forecast: wrapApiCall(getForecast, updateForecastState),
       history: wrapApiCall(getHistoricalWeather, updateHistoryState),
+      currentWeather: wrapApiCall(getCurrentWeather, updateCurrentWeatherState),
     }),
     [
       getAirQuality,
+      getCurrentWeather,
       getForecast,
       getHistoricalWeather,
       updateAqiState,
+      updateCurrentWeatherState,
       updateForecastState,
       updateHistoryState,
     ],
@@ -407,8 +465,9 @@ function makeWeatherTools(
   getForecast: (...args: any[]) => Promise<any>,
   getHistoricalWeather: (...args: any[]) => Promise<any>,
   getAirQuality: (...args: any[]) => Promise<any>,
+  getCurrentWeather: (...args: any[]) => Promise<any>,
 ): Record<string, TamboTool> {
-  const forecastSchema = z
+  const weatherLocationSchema = z
     .object({
       location: z
         .string()
@@ -438,7 +497,7 @@ function makeWeatherTools(
       name: "getWeatherForecast",
       description: "Get the weather forecast",
       tool: getForecast,
-      toolSchema: z.function().args(forecastSchema).returns(z.any()),
+      toolSchema: z.function().args(weatherLocationSchema).returns(z.any()),
     },
     history: {
       name: "getHistoricalWeather",
@@ -451,6 +510,12 @@ function makeWeatherTools(
       description: "Get the air quality",
       tool: getAirQuality,
       toolSchema: z.function().args(aqiSchema).returns(z.any()),
+    },
+    currentWeather: {
+      name: "getCurrentWeather",
+      description: "Get the current weather",
+      tool: getCurrentWeather,
+      toolSchema: z.function().args(weatherLocationSchema).returns(z.any()),
     },
   };
 }

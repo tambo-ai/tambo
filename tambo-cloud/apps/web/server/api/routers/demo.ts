@@ -14,6 +14,19 @@ export const demoRouter = createTRPCRouter({
       // Implement the logic to fetch AQI data for the given location
       return await getAirQuality(input.location);
     }),
+  currentWeather: protectedProcedure
+    .input(
+      z.object({
+        location: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const forecast = await getForecast(input.location);
+      return {
+        location: forecast.location,
+        current: forecast.current,
+      };
+    }),
 
   forecast: protectedProcedure
     .input(
@@ -23,7 +36,11 @@ export const demoRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       // Implement the logic to fetch weather forecast for the given location
-      return await getForecast(input.location);
+      const forecast = await getForecast(input.location);
+      return {
+        location: forecast.location,
+        forecast: forecast.forecast,
+      };
     }),
 
   history: protectedProcedure

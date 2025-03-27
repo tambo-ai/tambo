@@ -42,8 +42,13 @@ export default function SmokePage() {
     api.demo.history.useMutation({
       onError: (error) => setErrors((prev) => [...prev, error]),
     });
+  const { mutateAsync: getCurrentWeather, isPending: isCurrentWeatherPending } =
+    api.demo.currentWeather.useMutation({
+      onError: (error) => setErrors((prev) => [...prev, error]),
+    });
   const hydraClient = useWeatherHydra({
     getForecast,
+    getCurrentWeather,
     getHistoricalWeather,
     getAirQuality,
   });
@@ -69,7 +74,11 @@ export default function SmokePage() {
     });
 
   const isLoading =
-    isAqiPending || isForecastPending || isHistoryPending || isGenerating;
+    isAqiPending ||
+    isForecastPending ||
+    isHistoryPending ||
+    isCurrentWeatherPending ||
+    isGenerating;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,10 +332,12 @@ const AirQuality = ({ data }: AirQualityProps): React.ReactNode => {
 
 function useWeatherHydra({
   getForecast,
+  getCurrentWeather,
   getHistoricalWeather,
   getAirQuality,
 }: {
   getForecast: (...args: any[]) => Promise<any>;
+  getCurrentWeather: (...args: any[]) => Promise<any>;
   getHistoricalWeather: (...args: any[]) => Promise<any>;
   getAirQuality: (...args: any[]) => Promise<any>;
 }) {
@@ -357,6 +368,28 @@ function useWeatherHydra({
           ],
         },
         getComponentContext: getForecast,
+      },
+      currentWeather: {
+        definition: {
+          name: "getCurrentWeather",
+          description: "Get the current weather",
+          parameters: [
+            {
+              name: "params",
+              type: "object",
+              description:
+                "The parameters to get the weather forecast for, as an object with just one key, 'location', e.g. '{location: \"New York\"}'",
+              isRequired: true,
+              schema: {
+                type: "object",
+                properties: {
+                  location: { type: "string" },
+                },
+              },
+            },
+          ],
+        },
+        getComponentContext: getCurrentWeather,
       },
       history: {
         definition: {
@@ -405,7 +438,7 @@ function useWeatherHydra({
     };
     registerComponents(client, tools);
     return client;
-  }, [getAirQuality, getForecast, getHistoricalWeather]);
+  }, [getAirQuality, getCurrentWeather, getForecast, getHistoricalWeather]);
 }
 
 function registerComponents(
