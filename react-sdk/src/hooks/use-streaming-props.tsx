@@ -45,6 +45,7 @@ export function useTamboStreamingProps<T extends Record<string, any>>(
         });
       }
     }
+    // Only run when streamingProps change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setState, ...Object.values(streamingProps)]);
+  }, [...Object.values(streamingProps)]);
 }
