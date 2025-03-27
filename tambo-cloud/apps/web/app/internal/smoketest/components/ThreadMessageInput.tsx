@@ -5,17 +5,22 @@ import { FC, useState } from "react";
 
 interface ThreadMessageInputProps {
   contextKey: string | undefined;
+  onSubmit: (value: string) => void;
 }
 
-const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ contextKey }) => {
+const ThreadMessageInput: FC<ThreadMessageInputProps> = ({
+  contextKey,
+  onSubmit,
+}) => {
   const { value, setValue, submit, isPending, error } =
     useTamboThreadInput(contextKey);
   const [streamEnabled, setStreamEnabled] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) return;
-    submit({ streamResponse: streamEnabled });
+    await submit({ streamResponse: streamEnabled });
+    onSubmit(value);
   };
   if (!contextKey) {
     return (

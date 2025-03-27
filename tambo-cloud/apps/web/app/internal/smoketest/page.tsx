@@ -3,19 +3,12 @@
 import { ThreadList } from "@/components/thread/thread-list";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useSession } from "@/hooks/auth";
 import { api } from "@/trpc/react";
-import {
-  TamboTool,
-  useTambo,
-  useTamboComponentState,
-  useTamboThreadList,
-} from "@tambo-ai/react";
+import { TamboTool, useTambo, useTamboThreadList } from "@tambo-ai/react";
 import { TRPCClientErrorLike } from "@trpc/client";
-import { X } from "lucide-react";
+import { PlusCircle, RefreshCcw, X } from "lucide-react";
 import {
-  ReactNode,
   SetStateAction,
   useCallback,
   useEffect,
@@ -23,12 +16,14 @@ import {
   useState,
 } from "react";
 import { z } from "zod";
+import { AirQuality } from "./components/AirQuality";
 import {
   ApiActivityMonitor,
   type ApiState,
 } from "./components/ApiActivityMonitor";
 import { MessageSuggestions } from "./components/MessageSuggestions";
 import { ThreadMessageInput } from "./components/ThreadMessageInput";
+import { WeatherDay } from "./components/WeatherDay";
 import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {
@@ -37,8 +32,13 @@ export default function SmokePage() {
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
     [],
   );
-  const { registerComponent, generationStage, thread, switchCurrentThread } =
-    useTambo();
+  const {
+    registerComponent,
+    generationStage,
+    thread,
+    switchCurrentThread,
+    startNewThread,
+  } = useTambo();
   const messages = thread?.messages ?? [];
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
@@ -156,10 +156,13 @@ export default function SmokePage() {
     });
   }, [registerComponent, tools]);
 
-  const { data: threadInfo, isLoading: isThreadInfoLoading } =
-    useTamboThreadList({
-      contextKey: userId,
-    });
+  const {
+    data: threadInfo,
+    isLoading: isThreadInfoLoading,
+    refetch: refetchThreadInfo,
+  } = useTamboThreadList({
+    contextKey: userId,
+  });
 
   const isLoading =
     isAqiPending ||
@@ -171,8 +174,34 @@ export default function SmokePage() {
     <div className="container max-w-4xl py-8 space-y-4">
       <div className="flex  gap-4">
         <Card className="p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Threads</h2>
+          <div className="flex justify-between items-center mb-4 gap-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">Threads</h2>
+              {isLoading && (
+                <div className="animate-spin">
+                  <RefreshCcw className="h-4 w-4" />
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => startNewThread()}
+                className="mr-2"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                New Thread
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => await refetchThreadInfo()}
+              >
+                <RefreshCcw className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <ThreadList
             threads={threadInfo?.items ?? []}
@@ -214,7 +243,12 @@ export default function SmokePage() {
                 Generation stage: {generationStage}
               </p>
             </div>
-            <ThreadMessageInput contextKey={userId} />
+            <ThreadMessageInput
+              contextKey={userId}
+              onSubmit={async (value) => {
+                await refetchThreadInfo();
+              }}
+            />
           </Card>
 
           {errors.length > 0 && (
@@ -303,196 +337,6 @@ export default function SmokePage() {
     </div>
   );
 }
-
-interface WeatherDay {
-  date?: string;
-  day?: {
-    maxtemp_c?: number;
-    mintemp_c?: number;
-    avgtemp_c?: number;
-    maxwind_kph?: number;
-    totalprecip_mm?: number;
-    avghumidity?: number;
-    condition?: {
-      text?: string;
-      icon?: string;
-    };
-  };
-}
-
-interface WeatherDayProps {
-  readonly data?: WeatherDay;
-}
-
-const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
-  if (!data) {
-    return (
-      <Card className="p-4">
-        <p className="text-muted-foreground">Loading weather data...</p>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-medium">
-            {data.date ? new Date(data.date).toLocaleDateString() : ""}
-          </p>
-          <div className="flex items-center gap-2">
-            {data.day?.condition?.icon && (
-              <img
-                src={data.day.condition.icon}
-                alt={data.day.condition?.text ?? "Weather condition"}
-                width={64}
-                height={64}
-              />
-            )}
-            <p className="text-sm text-muted-foreground">
-              {data.day?.condition?.text ?? ""}
-            </p>
-          </div>
-        </div>
-
-        <div className="text-right">
-          <div className="text-2xl font-bold">
-            {data.day?.avgtemp_c !== undefined
-              ? `${Math.round(data.day.avgtemp_c)}°C`
-              : "--°C"}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            H:{" "}
-            {data.day?.maxtemp_c !== undefined
-              ? `${Math.round(data.day.maxtemp_c)}°`
-              : "--°"}{" "}
-            L:{" "}
-            {data.day?.mintemp_c !== undefined
-              ? `${Math.round(data.day.mintemp_c)}°`
-              : "--°"}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <p className="text-muted-foreground">Wind</p>
-          <p>
-            {data.day?.maxwind_kph !== undefined
-              ? `${Math.round(data.day.maxwind_kph)} km/h`
-              : "--"}
-          </p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">Precipitation</p>
-          <p>
-            {data.day?.totalprecip_mm !== undefined
-              ? `${data.day.totalprecip_mm} mm`
-              : "--"}
-          </p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">Humidity</p>
-          <p>
-            {data.day?.avghumidity !== undefined
-              ? `${Math.round(data.day.avghumidity)}%`
-              : "--"}
-          </p>
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-interface AirQualityProps {
-  readonly data?: {
-    aqi?: number;
-    pm2_5?: number;
-    pm10?: number;
-    o3?: number;
-    no2?: number;
-  };
-}
-
-const AirQuality = ({ data }: AirQualityProps): ReactNode => {
-  const getAqiLevel = (aqi: number) => {
-    if (aqi <= 50) return "Good";
-    if (aqi <= 100) return "Moderate";
-    if (aqi <= 150) return "Unhealthy for Sensitive Groups";
-    if (aqi <= 200) return "Unhealthy";
-    if (aqi <= 300) return "Very Unhealthy";
-    return "Hazardous";
-  };
-
-  const [checked1, setChecked1] = useTamboComponentState("checked1", false);
-  const [checked2, setChecked2] = useTamboComponentState("checked2", false);
-  const [checked3, setChecked3] = useState(false);
-
-  if (!data) {
-    return (
-      <Card className="p-4">
-        <p className="text-muted-foreground">Loading air quality data...</p>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4">
-      <div className="flex items-center gap-2">
-        <div>State Demo: </div>
-        <Checkbox
-          id="checked1"
-          checked={checked1}
-          onCheckedChange={(c: boolean) => setChecked1(c)}
-        />
-        <label htmlFor="checked1">One</label>
-        <Checkbox
-          id="checked2"
-          checked={checked2}
-          onCheckedChange={(c: boolean) => setChecked2(c)}
-        />
-        <label htmlFor="checked2">Two</label>
-        <Checkbox
-          id="checked3"
-          checked={checked3}
-          onCheckedChange={(c: boolean) => setChecked3(c)}
-        />
-        <label htmlFor="checked3">Three (not in Tambo)</label>
-      </div>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-medium">Air Quality</p>
-          <p className="text-sm text-muted-foreground">
-            {data.aqi !== undefined ? getAqiLevel(data.aqi) : "--"}
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold">{data.aqi ?? "--"}</div>
-          <div className="text-sm text-muted-foreground">AQI</div>
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <p className="text-muted-foreground">PM2.5</p>
-          <p>{data.pm2_5 !== undefined ? `${data.pm2_5} µg/m³` : "--"}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">PM10</p>
-          <p>{data.pm10 !== undefined ? `${data.pm10} µg/m³` : "--"}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">Ozone</p>
-          <p>{data.o3 !== undefined ? `${data.o3} ppb` : "--"}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">Nitrogen Dioxide</p>
-          <p>{data.no2 !== undefined ? `${data.no2} ppb` : "--"}</p>
-        </div>
-      </div>
-    </Card>
-  );
-};
 
 function useWrappedApis(
   setApiStates: (value: SetStateAction<Record<string, ApiState>>) => void,

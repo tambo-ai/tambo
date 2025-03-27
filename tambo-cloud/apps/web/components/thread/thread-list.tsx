@@ -24,9 +24,6 @@ export function ThreadList({
 
   return (
     <div className="space-y-2">
-      {isLoading && (
-        <p className="text-center text-muted-foreground py-8">Loading...</p>
-      )}
       {threads.map((thread) => (
         <Button
           key={thread.id}
