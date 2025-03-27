@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.30.0...repo-v0.30.1) (2025-03-27)
+
+
+### Miscellaneous Chores
+
+* **deps:** update @tambo-ai/react to version 0.19.2 to fix useStreamingProps in demo ([#623](https://github.com/tambo-ai/tambo-cloud/issues/623)) ([11be11e](https://github.com/tambo-ai/tambo-cloud/commit/11be11e47ee783f3f438c60fb236bf134047d4b1))
+
 ## [0.30.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.29.0...repo-v0.30.0) (2025-03-26)
 
 
