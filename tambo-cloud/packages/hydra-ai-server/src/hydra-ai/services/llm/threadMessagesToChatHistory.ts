@@ -91,7 +91,6 @@ function makeAssistantMessages(
     console.warn(
       `tool message ${message.id} not responded to, responding with tool call (${message.tool_call_id})`,
     );
-    console.log("Case 1: ", message.content);
     return [
       {
         role: "assistant",
@@ -136,7 +135,6 @@ function makeAssistantMessages(
     // 2. the tool call response, which is the system acknowledgement that the
     //    tool call was handled.
     // 3. the next message, which is the actual user tool call response.
-    console.log("Case 2: ", message.content);
     return [
       {
         role: "assistant",
@@ -198,7 +196,6 @@ function makeAssistantMessages(
         ]
       : (message.content as ChatCompletionContentPartText[]),
   };
-  console.log("Case 3: ", assistantMessage);
   return [assistantMessage];
 }
 

@@ -7,17 +7,19 @@ const baseSchema = {
       "The message to be displayed to the user alongside the chosen component. Depending on the component type, and the user message, this message might include a description of why a given component was chosen, and what can be seen within it, or what it does.",
     ),
   componentName: z.string().describe("The name of the chosen component"),
+  reasoning: z.string().describe("The reasoning behind the decision"),
+  componentState: z
+    .record(z.any())
+    .optional()
+    .describe(
+      `Any additional state properties that should be injected into the component, 
+used to carry state forward from previous component decisions.`,
+    ),
   props: z
-    .object({})
-    .passthrough()
+    .record(z.any())
     .describe(
       "The props that should be used in the chosen component. These will be injected by using React.createElement(component, props)",
     ),
-  reasoning: z.string().describe("The reasoning behind the decision"),
-  state: z.record(z.any()).describe(
-    `Any additional state properties that should be injected into the component, 
-used to carry state forward from previous component decisions.`,
-  ),
 };
 
 const suggestedActionsSchema = z

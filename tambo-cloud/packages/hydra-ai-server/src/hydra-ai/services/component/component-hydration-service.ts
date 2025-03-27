@@ -167,7 +167,7 @@ To respond to the user's message:
     componentDecision.componentName = parsedData.componentName;
     componentDecision.props = parsedData.props;
     componentDecision.message = parsedData.message;
-    componentDecision.state = parsedData.state;
+    componentDecision.state = parsedData.componentState ?? null;
     if (version === "v1" && "suggestedActions" in parsedData) {
       componentDecision.suggestedActions = parsedData.suggestedActions || [];
     }
