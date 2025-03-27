@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.2](https://github.com/tambo-ai/tambo/compare/react-v0.19.1...react-v0.19.2) (2025-03-27)
+
+
+### Bug Fixes
+
+* remove setState & currentState from dependency array in useTamboStreamingProps hook ([#218](https://github.com/tambo-ai/tambo/issues/218)) ([b1d5be2](https://github.com/tambo-ai/tambo/commit/b1d5be28302fe3706685ff9fe5a493a622b4da51))
+* update dependency array in useTamboStreamingProps to only include streamingProps ([#220](https://github.com/tambo-ai/tambo/issues/220)) ([da153ac](https://github.com/tambo-ai/tambo/commit/da153ace1063ba0f622b02d83dd36b5e8b706eba))
+
 ## [0.19.1](https://github.com/tambo-ai/tambo/compare/react-v0.19.0...react-v0.19.1) (2025-03-26)
 
 
