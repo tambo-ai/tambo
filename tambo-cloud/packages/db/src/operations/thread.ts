@@ -1,5 +1,6 @@
 import { GenerationStage } from "@tambo-ai-cloud/core";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
+import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 import { fixLegacyRole } from "../util/legacyMessages";
@@ -240,13 +241,13 @@ export async function deleteMessage(
 export async function updateMessageComponentState(
   db: HydraDb,
   messageId: string,
-  componentState: Record<string, unknown>,
+  newPartialState: Record<string, unknown>,
 ): Promise<typeof schema.messages.$inferSelect> {
+  const componentStateColumn = schema.messages.componentState;
   const [updatedMessage] = await db
     .update(schema.messages)
     .set({
-      // need COALESCE because NULL || jsonb results in null
-      componentState: sql`COALESCE(${schema.messages.componentState}, '{}'::jsonb) || ${`${JSON.stringify(componentState)}`}`,
+      componentState: mergeSuperJson(componentStateColumn, newPartialState),
     })
     .where(eq(schema.messages.id, messageId))
     .returning();
