@@ -2,6 +2,7 @@ import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import "./globals.css";
+import "../styles/showcase-theme.css";
 
 export const metadata: Metadata = {
   title: {
