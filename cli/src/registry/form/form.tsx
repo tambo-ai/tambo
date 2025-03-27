@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { VariantProps } from "class-variance-authority";
-import { cva } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 const formVariants = cva("w-full rounded-lg transition-all duration-200", {
@@ -55,8 +54,8 @@ export interface FormProps
     VariantProps<typeof formVariants> {
   fields: FormField[];
   onSubmit: (data: Record<string, string>) => void;
+  onError?: string;
   submitText?: string;
-  onError?: (error: Error) => void;
 }
 
 const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
@@ -65,7 +64,7 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       className,
       variant,
       layout,
-      fields,
+      fields = [],
       onSubmit,
       onError,
       submitText = "Submit",
@@ -73,30 +72,27 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     },
     ref,
   ) => {
-    const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
+    const validFields = React.useMemo(() => {
+      return fields.filter((field): field is FormField => {
+        if (!field || typeof field !== "object") {
+          console.warn("Invalid field object detected");
+          return false;
+        }
+        if (!field.id || typeof field.id !== "string") {
+          console.warn("Field missing required id property");
+          return false;
+        }
+        return true;
+      });
+    }, [fields]);
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      setIsSubmitting(true);
-      setError(null);
-      try {
-        const formData = new FormData(e.target as HTMLFormElement);
-        const data = Object.fromEntries(
-          Array.from(formData.entries()).map(([k, v]) => [k, v.toString()]),
-        );
-        onSubmit(data);
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred";
-        console.error("Error submitting form:", error);
-        setError(errorMessage);
-        onError?.(error instanceof Error ? error : new Error(errorMessage));
-      } finally {
-        setIsSubmitting(false);
-      }
+      const formData = new FormData(e.target as HTMLFormElement);
+      const data = Object.fromEntries(
+        Array.from(formData.entries()).map(([k, v]) => [k, v.toString()]),
+      );
+      onSubmit(data);
     };
 
     const [openDropdowns, setOpenDropdowns] = React.useState<
@@ -105,13 +101,13 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     const [selectedValues, setSelectedValues] = React.useState<
       Record<string, string>
     >({});
-    const dropdownRefsMap = React.useRef(
-      new Map<string, HTMLDivElement | null>(),
+    const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>(
+      {},
     );
 
     React.useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
-        dropdownRefsMap.current.forEach((ref, fieldId) => {
+        Object.entries(dropdownRefs.current).forEach(([fieldId, ref]) => {
           if (ref && !ref.contains(event.target as Node)) {
             setOpenDropdowns((prev) => ({
               ...prev,
@@ -134,13 +130,15 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
         {...props}
       >
         <div className="p-6 space-y-6">
-          {error && (
+          {onError && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {onError}
+              </p>
             </div>
           )}
 
-          {fields.map((field) => (
+          {validFields.map((field) => (
             <div key={field.id} className="space-y-2">
               <label
                 className="block text-sm font-medium text-zinc-900 dark:text-zinc-100"
@@ -205,14 +203,11 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 <div
                   className="relative"
                   ref={(el) => {
-                    dropdownRefsMap.current.set(field.id, el);
+                    dropdownRefs.current[field.id] = el;
                   }}
                 >
                   <button
                     type="button"
-                    aria-haspopup="listbox"
-                    aria-expanded={openDropdowns[field.id]}
-                    aria-labelledby={`${field.id}-label`}
                     onClick={() =>
                       setOpenDropdowns((prev) => ({
                         ...prev,
@@ -253,16 +248,11 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                       className="absolute z-10 w-full mt-1 py-1 rounded-lg border border-input
                                   bg-background shadow-lg
                                   max-h-60 overflow-auto"
-                      role="listbox"
-                      tabIndex={-1}
-                      aria-labelledby={`${field.id}-label`}
                     >
                       {field.options.map((option) => (
                         <button
                           key={option}
                           type="button"
-                          role="option"
-                          aria-selected={selectedValues[field.id] === option}
                           onClick={() => {
                             setSelectedValues((prev) => ({
                               ...prev,
@@ -304,9 +294,8 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                      dark:bg-zinc-100 dark:text-zinc-900 
                      dark:hover:bg-zinc-200 dark:active:bg-zinc-300
                      font-medium transition-colors duration-200"
-            disabled={isSubmitting}
           >
-            {isSubmitting ? "Submitting..." : submitText}
+            {submitText}
           </button>
         </div>
       </form>

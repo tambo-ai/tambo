@@ -4,13 +4,23 @@ import { TabType } from "@/types/tabs";
 interface SecondNavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  className?: string;
 }
 
-export function SecondNavbar({ activeTab, onTabChange }: SecondNavbarProps) {
+export function SecondNavbar({
+  activeTab,
+  onTabChange,
+  className,
+}: SecondNavbarProps) {
   const items = Object.values(TabType);
 
   return (
-    <nav className="bg-background/50 backdrop-blur-sm border border-border/40 rounded-full px-2 py-1.5 w-fit">
+    <nav
+      className={cn(
+        "bg-background/50 backdrop-blur-sm border border-border/40 rounded-full px-2 py-1.5 w-fit",
+        className,
+      )}
+    >
       {items.map((item) => {
         const isActive = activeTab === item;
         return (
