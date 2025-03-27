@@ -61,9 +61,9 @@ export function TamboSubscribeIntegration() {
     lastMessage?.renderedComponent || lastValidRenderedComponent;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-">
       {/* Show current form component or cached version or loading */}
-      <div className="border p-4 rounded-lg shadow-sm">
+      <div className="border p-4 rounded-lg shadow-sm bg-white">
         {displayComponent ? (
           displayComponent
         ) : (

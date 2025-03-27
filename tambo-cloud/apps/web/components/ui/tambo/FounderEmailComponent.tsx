@@ -45,13 +45,22 @@ const sendEmailSchema = z.object({
   body: z.string().min(1, "Body is required"),
   usersEmail: z.string().email("Please enter a valid email address"),
 });
+
+interface ValidationError {
+  message: string;
+  details?: {
+    reason?: string;
+    technical_details?: Record<string, any>;
+  };
+}
+
 interface EmailState {
   subject: string;
   body: string;
   usersEmail: string;
   isSent: boolean;
   isLoading: boolean;
-  error: string | null;
+  error: ValidationError | null;
 }
 
 export const FounderEmailComponent = ({
@@ -141,9 +150,14 @@ export const FounderEmailComponent = ({
         body: JSON.stringify(validatedData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send email");
+        const validationError: ValidationError = {
+          message: data.message || data.error || "Failed to send email",
+          details: data.details || {},
+        };
+        throw validationError;
       }
 
       // Update state to show success
@@ -154,11 +168,17 @@ export const FounderEmailComponent = ({
       });
     } catch (error) {
       // Update state to show error
+      const validationError: ValidationError = {
+        message:
+          (error as ValidationError)?.message ||
+          (error instanceof Error ? error.message : "Failed to send email"),
+        details: (error as ValidationError)?.details || {},
+      };
+
       setEmailState({
         ...emailState,
         isLoading: false,
-        error:
-          error instanceof Error ? error.message : "An unknown error occurred",
+        error: validationError,
       });
     }
   };
@@ -225,8 +245,44 @@ export const FounderEmailComponent = ({
           </div>
 
           {emailState.error && (
-            <div className="bg-red-50 p-3 rounded-md text-red-700 text-sm">
-              <p>Please enter a valid email address.</p>
+            <div className="bg-red-50 p-4 rounded-md text-red-700">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Email Invalid
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    {emailState.error.details?.reason ? (
+                      <p>
+                        {emailState.error.details.reason === "smtp"
+                          ? "We couldn't verify if this email can receive messages. Please double-check the address."
+                          : emailState.error.details.reason === "disposable"
+                            ? "Please use your regular email address instead of a temporary one."
+                            : emailState.error.details.reason === "typo"
+                              ? "There might be a typo in your email address. Please check the spelling."
+                              : emailState.error.details.reason === "mx"
+                                ? "The email domain appears to be invalid or cannot receive emails."
+                                : emailState.error.message}
+                      </p>
+                    ) : (
+                      <p>{emailState.error.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
