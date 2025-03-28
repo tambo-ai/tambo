@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.1...repo-v0.32.2) (2025-03-28)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/react to get better debouncing ([#637](https://github.com/tambo-ai/tambo-cloud/issues/637)) ([f26eb82](https://github.com/tambo-ai/tambo-cloud/commit/f26eb821b0f8b724fdadcead0f6a2e3d16c3880c))
+
 ## [0.32.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.0...repo-v0.32.1) (2025-03-28)
 
 
