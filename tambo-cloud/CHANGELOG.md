@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.0...repo-v0.32.1) (2025-03-28)
+
+
+### Code Refactoring
+
+* remove email validation logic from POST request in contacts API ([#635](https://github.com/tambo-ai/tambo-cloud/issues/635)) ([1e7c804](https://github.com/tambo-ai/tambo-cloud/commit/1e7c804cdc8ae1a12de13478114eced85bae6c48))
+
 ## [0.32.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.31.0...repo-v0.32.0) (2025-03-28)
 
 
