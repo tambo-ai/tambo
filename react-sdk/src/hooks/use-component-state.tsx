@@ -113,35 +113,17 @@ export function useTamboComponentState<S>(
 
   // Create debounced save function for efficient server synchronization
   const debouncedServerWrite = useDebouncedCallback(async (newValue: S) => {
-    if (!message) {
-      console.warn(
-        `Cannot update missing message ${messageId} for state key "${keyName}"`,
-      );
-      return;
-    }
-
     setIsPending(true);
     try {
-      const messageUpdate = {
-        ...message,
-        componentState: {
-          ...message.componentState,
-          [keyName]: newValue,
-        },
-      };
-
       const componentStateUpdate = {
         state: { [keyName]: newValue },
       };
 
-      await Promise.all([
-        updateThreadMessage(messageId, messageUpdate, false),
-        client.beta.threads.messages.updateComponentState(
-          threadId,
-          messageId,
-          componentStateUpdate,
-        ),
-      ]);
+      await client.beta.threads.messages.updateComponentState(
+        threadId,
+        messageId,
+        componentStateUpdate,
+      );
     } catch (err) {
       console.error(
         `Failed to save component state for key "${keyName}":`,
@@ -217,13 +199,22 @@ export function useTamboComponentState<S>(
       // Only trigger server updates if we have a message
       if (message) {
         debouncedServerWrite(newValue);
+        const messageUpdate = {
+          ...message,
+          componentState: {
+            ...message.componentState,
+            [keyName]: newValue,
+          },
+        };
+
+        updateThreadMessage(messageId, messageUpdate, false);
       } else {
         console.warn(
           `Cannot update server for missing message ${messageId} with key "${keyName}"`,
         );
       }
     },
-    [debouncedServerWrite, message, messageId, keyName],
+    [message, debouncedServerWrite, keyName, updateThreadMessage, messageId],
   );
 
   // Ensure pending changes are flushed on unmount
