@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.4](https://github.com/tambo-ai/tambo/compare/react-v0.19.3...react-v0.19.4) (2025-03-28)
+
+
+### Bug Fixes
+
+* do not debounce local updates ([#224](https://github.com/tambo-ai/tambo/issues/224)) ([1ce2227](https://github.com/tambo-ai/tambo/commit/1ce22271b365f6ed07791a80e3337ea46d9e0982))
+
 ## [0.19.3](https://github.com/tambo-ai/tambo/compare/react-v0.19.2...react-v0.19.3) (2025-03-28)
 
 
