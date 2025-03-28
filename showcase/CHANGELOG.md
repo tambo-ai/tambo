@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.2.0...showcase-v0.3.0) (2025-03-28)
+
+
+### Features
+
+* useTamboThreads -&gt; useTamboThreadList ([#200](https://github.com/tambo-ai/tambo/issues/200)) ([4a32eda](https://github.com/tambo-ai/tambo/commit/4a32eda20b6564465b69bccda8ed94f65ea56b01))
+
+
+### Bug Fixes
+
+* allow for workspace version ([#213](https://github.com/tambo-ai/tambo/issues/213)) ([915d018](https://github.com/tambo-ai/tambo/commit/915d0182a54587e2a1293f3a4317968c3b799b73))
+
 ## [0.2.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.4...showcase-v0.2.0) (2025-03-26)
 
 
