@@ -32,14 +32,13 @@ export interface MessageInputProps
   extends React.HTMLAttributes<HTMLFormElement> {
   variant?: VariantProps<typeof messageInputVariants>["variant"];
   contextKey: string | undefined;
-  value?: string;
+  placeholder?: string;
 }
 
 const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
-  ({ className, variant, contextKey, value, ...props }, ref) => {
-    const { setValue, submit, isPending, error } =
+  ({ className, variant, contextKey, placeholder, ...props }, ref) => {
+    const { value, setValue, submit, isPending, error } =
       useTamboThreadInput(contextKey);
-    const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
     const [isMac, setIsMac] = React.useState(false);
     const [isMobile, setIsMobile] = React.useState(false);
@@ -62,26 +61,16 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
       return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    React.useEffect(() => {
-      setDisplayValue(value ?? "");
-      // Focus the input when value changes and is not empty
-      if (value && inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, [value]);
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
       setValue(newValue);
-      setDisplayValue(newValue);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!displayValue.trim()) return;
+      if (!value?.trim()) return;
 
       setSubmitError(null);
-      setDisplayValue("");
       try {
         await submit({
           contextKey,
@@ -90,7 +79,6 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
         setValue("");
       } catch (error) {
         console.error("Failed to submit message:", error);
-        setDisplayValue(displayValue);
         setSubmitError(
           error instanceof Error
             ? error.message
@@ -102,7 +90,7 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        if (displayValue.trim()) {
+        if (value?.trim()) {
           handleSubmit(e as unknown as React.FormEvent);
         }
       }
@@ -124,12 +112,12 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
           <input
             ref={inputRef}
             type="text"
-            value={displayValue}
-            onChange={handleChange}
+            value={value ?? ""}
+            onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
             className="flex-1 p-2 rounded-lg border bg-background text-foreground border-border"
             disabled={isPending}
-            placeholder="Type your message..."
+            placeholder={placeholder}
             aria-label="Chat Message Input"
           />
           <button

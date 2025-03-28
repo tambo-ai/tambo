@@ -5,12 +5,21 @@ import { demoComponents } from "@/components/ui/tambo/DemoConfig";
 import { env } from "@/lib/env";
 import { TamboProvider } from "@tambo-ai/react";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { MessageThreadFull } from "../ui/tambo/message-thread-full";
 import { TamboEmailButton } from "../ui/tambo/TamboEmailButton";
 
 const ease = [0.16, 1, 0.3, 1];
 
 export function InteractiveDemo() {
+  useEffect(() => {
+    const isContextKeySet = localStorage.getItem("tambo-context-key");
+    if (!isContextKeySet) {
+      const contextKey = new Date().toISOString();
+      localStorage.setItem("tambo-context-key", contextKey);
+    }
+  }, []);
+
   return (
     <Section id="interactive-demo" className="py-8 sm:py-12 md:py-16 lg:py-20">
       <motion.div

@@ -1,10 +1,17 @@
 "use client";
-import "regenerator-runtime/runtime";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MessageInput } from "@/components/ui/tambo/message-input";
 import { ThreadContent } from "@/components/ui/tambo/thread-content";
-import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
-import { useEffect, useRef } from "react";
+import { useTambo, useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useEffect, useRef, useState } from "react";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { SubscribeForm, SubscribeFormProps } from "./SubscribeForm";
 
@@ -12,10 +19,13 @@ export function TamboSubscribeIntegration() {
   const { registerComponent, thread } = useTambo();
   const contextKey = "subscribe-form";
   const { setValue, submit } = useTamboThreadInput(contextKey);
+  const { sendThreadMessage } = useTamboThread();
   const isRegistered = useRef(false);
+  const hasMessageBeenSent = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(true);
 
-  // Register the component once and send initial message
+  // Register the component once
   useEffect(() => {
     if (isRegistered.current) return;
 
@@ -28,14 +38,17 @@ export function TamboSubscribeIntegration() {
       propsDefinition: zodToJsonSchema(SubscribeFormProps),
     });
 
-    // Send initial message immediately
-    setValue(
-      "Use the SubscribeForm component to display a subscription form with empty values for firstName, lastName, title, and email fields.",
-    );
-    submit({ streamResponse: true });
-
     isRegistered.current = true;
-  }, [registerComponent, setValue, submit]);
+  }, [registerComponent]);
+
+  // Send initial message when dialog is closed
+  const handleWelcomeDialogClose = () => {
+    setShowWelcomeDialog(false);
+    if (!hasMessageBeenSent.current) {
+      sendThreadMessage("subscribe me pls.", { streamResponse: true });
+      hasMessageBeenSent.current = true;
+    }
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -54,19 +67,40 @@ export function TamboSubscribeIntegration() {
   }, [thread?.messages]);
 
   return (
-    <div className="flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background border border-gray-200 h-[calc(100vh-var(--header-height)-4rem)] sm:h-[85vh] md:h-[80vh]">
-      <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-semibold text-base sm:text-lg">Subscribe Form</h2>
+    <>
+      <Dialog open={showWelcomeDialog} onOpenChange={handleWelcomeDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Welcome to Tambo Subscribe!</DialogTitle>
+            <DialogDescription>
+              Let us help you get signed up for updates. We&apos;ll guide you
+              through the process of filling out your subscription information.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-6 flex justify-end">
+            <Button onClick={handleWelcomeDialogClose}>Get Started</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background border border-gray-200 h-[calc(100vh-var(--header-height)-4rem)] sm:h-[85vh] md:h-[80vh]">
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="font-semibold text-base sm:text-lg">Subscribe Form</h2>
+        </div>
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto px-3 sm:px-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
+        >
+          <ThreadContent className="py-3 sm:py-4" />
+        </div>
+        <div className="p-3 sm:p-4 border-t border-gray-200">
+          <MessageInput
+            contextKey={contextKey}
+            className="bg-white"
+            placeholder="Send us your contact information..."
+          />
+        </div>
       </div>
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-3 sm:px-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
-      >
-        <ThreadContent className="py-3 sm:py-4" />
-      </div>
-      <div className="p-3 sm:p-4 border-t border-gray-200">
-        <MessageInput contextKey={contextKey} className="bg-white" />
-      </div>
-    </div>
+    </>
   );
 }
