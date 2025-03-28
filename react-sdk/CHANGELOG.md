@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.19.3](https://github.com/tambo-ai/tambo/compare/react-v0.19.2...react-v0.19.3) (2025-03-28)
+
+
+### Bug Fixes
+
+* now the debounce just stores the current user value and doesn't sync back also made it 500ms default ([#221](https://github.com/tambo-ai/tambo/issues/221)) ([1eabf10](https://github.com/tambo-ai/tambo/commit/1eabf1038348eeb4026906ebafbb8c0b1b72af12))
+
+
+### Miscellaneous
+
+* bump typescript-sdk version to get componentState changes ([#223](https://github.com/tambo-ai/tambo/issues/223)) ([2cff5e9](https://github.com/tambo-ai/tambo/commit/2cff5e99d440ee6c80ae716830de989b448abdfe))
+
 ## [0.19.2](https://github.com/tambo-ai/tambo/compare/react-v0.19.1...react-v0.19.2) (2025-03-27)
 
 
