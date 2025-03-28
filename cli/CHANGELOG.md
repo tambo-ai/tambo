@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.5...tambo-v0.2.0) (2025-03-28)
+
+
+### Features
+
+* useTamboThreads -&gt; useTamboThreadList ([#200](https://github.com/tambo-ai/tambo/issues/200)) ([4a32eda](https://github.com/tambo-ai/tambo/commit/4a32eda20b6564465b69bccda8ed94f65ea56b01))
+
+
+### Bug Fixes
+
+* **cli:** add API key check; update component installation logic, update component UI ([#198](https://github.com/tambo-ai/tambo/issues/198)) ([bdfbe7e](https://github.com/tambo-ai/tambo/commit/bdfbe7ecefd0231fa9801b5b5b77059206d6aabd))
+
 ## [0.1.5](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.4...tambo-v0.1.5) (2025-03-25)
 
 
