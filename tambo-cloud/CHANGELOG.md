@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.31.0...repo-v0.32.0) (2025-03-28)
+
+
+### Features
+
+* add welcome dialog and initial message handling ([#633](https://github.com/tambo-ai/tambo-cloud/issues/633)) ([7127296](https://github.com/tambo-ai/tambo-cloud/commit/712729642765f38a4edd963f181bec95d8053ac4))
+
 ## [0.31.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.30.1...repo-v0.31.0) (2025-03-27)
 
 
