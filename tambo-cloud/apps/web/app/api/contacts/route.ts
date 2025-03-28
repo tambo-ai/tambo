@@ -1,6 +1,5 @@
 import { env } from "@/lib/env";
 import { getDb, schema } from "@tambo-ai-cloud/db";
-import { validate } from "deep-email-validator";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
@@ -32,44 +31,6 @@ export async function POST(req: Request) {
     }
 
     const { firstName, lastName, email, title } = result.data;
-
-    // Validate email with custom validation options
-    console.log("Validating email:", email);
-    const emailValidation = await validate({
-      email,
-      validateTypo: false, // Disable typo checking
-      validateSMTP: true,
-      validateMx: true,
-      validateDisposable: true,
-    });
-
-    if (!emailValidation.valid) {
-      console.error("Email validation failed:", {
-        email,
-        reason: emailValidation.reason,
-        validators: emailValidation.validators,
-      });
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid email address",
-          message:
-            emailValidation.reason === "smtp"
-              ? "We couldn't verify if this email can receive messages. Please double-check the address."
-              : emailValidation.reason === "disposable"
-                ? "Please use your regular email address instead of a temporary one."
-                : emailValidation.reason === "mx"
-                  ? "The email domain appears to be invalid or cannot receive emails."
-                  : "Please check your email address and try again.",
-          details: {
-            reason: emailValidation.reason,
-            technical_details: emailValidation.validators,
-          },
-        },
-        { status: 400 },
-      );
-    }
 
     // Get database connection
     const db = getDb(env.DATABASE_URL);
