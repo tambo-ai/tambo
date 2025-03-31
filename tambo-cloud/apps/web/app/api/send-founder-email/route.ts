@@ -71,24 +71,30 @@ export async function POST(req: Request) {
         validators: userEmailValidation.validators,
       });
 
-      return NextResponse.json(
-        {
-          error: "Invalid email address",
-          message:
-            userEmailValidation.reason === "smtp"
-              ? "We couldn't verify if this email can receive messages. Please double-check the address."
-              : userEmailValidation.reason === "disposable"
+      // Skip validation failure if it's just an SMTP timeout
+      if (
+        !(
+          userEmailValidation.reason === "smtp" &&
+          userEmailValidation.validators.smtp?.reason === "Timeout"
+        )
+      ) {
+        return NextResponse.json(
+          {
+            error: "Invalid email address",
+            message:
+              userEmailValidation.reason === "disposable"
                 ? "Please use your regular email address instead of a temporary one."
                 : userEmailValidation.reason === "mx"
                   ? "The email domain appears to be invalid or cannot receive emails."
                   : "Please check your email address and try again.",
-          details: {
-            reason: userEmailValidation.reason,
-            technical_details: userEmailValidation.validators,
+            details: {
+              reason: userEmailValidation.reason,
+              technical_details: userEmailValidation.validators,
+            },
           },
-        },
-        { status: 400 },
-      );
+          { status: 400 },
+        );
+      }
     }
 
     // Send the email to founders
