@@ -176,7 +176,7 @@ export const GraphChatInterface = () => {
       <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
         <h3 className="text-sm font-medium mb-2">Example Prompt</h3>
         <div className="relative">
-          <pre className="text-sm bg-white dark:bg-gray-900 p-3 rounded-md overflow-x-auto">
+          <pre className="text-sm bg-white p-3 rounded-md overflow-x-auto">
             {`Create a bar chart for quarterly sales:
 - Title: "Quarterly Sales"
 - Labels: Q1, Q2, Q3, Q4
