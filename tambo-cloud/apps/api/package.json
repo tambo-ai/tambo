@@ -25,10 +25,10 @@
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",
     "@nestjs/common": "^11.0.12",
-    "@nestjs/config": "^4.0.1",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.12",
     "@nestjs/platform-express": "^11.0.12",
-    "@nestjs/swagger": "^11.0.7",
+    "@nestjs/swagger": "^11.1.0",
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
     "@tambo-ai-cloud/hydra-ai-server": "^0.0.6",
