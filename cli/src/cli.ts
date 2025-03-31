@@ -4,6 +4,7 @@ import "dotenv/config";
 import { readFileSync } from "fs";
 import meow, { type Flag, type Result } from "meow";
 import { dirname, join } from "path";
+import semver from "semver";
 import { fileURLToPath } from "url";
 import { handleAddComponent } from "./commands/add/index.js";
 import { handleInit } from "./commands/init.js";
@@ -74,7 +75,7 @@ async function checkLatestVersion() {
     const data = await response.json();
     const latestVersion = data.version;
 
-    if (latestVersion !== currentVersion) {
+    if (!semver.gte(currentVersion, latestVersion)) {
       console.log(
         chalk.yellow(
           `\nA new version of tambo is available! (${latestVersion} > ${currentVersion})`,
