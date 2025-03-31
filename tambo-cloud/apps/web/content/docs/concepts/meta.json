@@ -8,7 +8,6 @@
     "component-state",
     "streaming-props",
     "suggestions",
-    "generation-stage",
-    "component-data-props"
+    "generation-stage"
   ]
 }
