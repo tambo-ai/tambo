@@ -1,14 +1,27 @@
 #!/usr/bin/env node
 import chalk from "chalk";
 import "dotenv/config";
+import { readFileSync } from "fs";
 import meow, { type Flag, type Result } from "meow";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import { handleAddComponent } from "./commands/add/index.js";
 import { handleInit } from "./commands/init.js";
 import { handleUpdateComponent } from "./commands/update.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Get current version from package.json
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+);
+const currentVersion = packageJson.version;
+
 interface CLIFlags extends Record<string, any> {
   init?: Flag<"boolean", boolean>;
   legacyPeerDeps?: Flag<"boolean", boolean>;
+  version?: Flag<"boolean", boolean>;
 }
 
 // CLI setup
@@ -25,6 +38,7 @@ const cli = meow(
 
   ${chalk.bold("Options")}
     ${chalk.yellow("--legacy-peer-deps")}  Install dependencies with --legacy-peer-deps flag
+    ${chalk.yellow("--version")}           Show version number
 
   ${chalk.bold("Examples")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}
@@ -44,13 +58,44 @@ const cli = meow(
         type: "boolean",
         description: "Install dependencies with --legacy-peer-deps flag",
       },
+      version: {
+        type: "boolean",
+        description: "Show version number",
+      },
     },
     importMeta: import.meta,
   },
 );
 
+// Check for latest version
+async function checkLatestVersion() {
+  try {
+    const response = await fetch("https://registry.npmjs.org/tambo/latest");
+    const data = await response.json();
+    const latestVersion = data.version;
+
+    if (latestVersion !== currentVersion) {
+      console.log(
+        chalk.yellow(
+          `\nA new version of tambo is available! (${latestVersion} > ${currentVersion})`,
+        ),
+      );
+      console.log(
+        chalk.blue(`To upgrade, run: ${chalk.cyan("npx tambo@latest")}\n`),
+      );
+    }
+  } catch (_error) {
+    // Silently fail version check
+  }
+}
+
 // Command handlers
 async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
+  if (flags.version) {
+    console.log(currentVersion);
+    return;
+  }
+
   if (cmd === "help" || !cmd) {
     console.log(cli.help);
     return;
@@ -100,6 +145,10 @@ async function main() {
   try {
     const command = cli.input[0];
     const flags = cli.flags;
+
+    // Check for latest version before executing command
+    await checkLatestVersion();
+
     await handleCommand(command, flags);
   } catch (error) {
     console.error(
