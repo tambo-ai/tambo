@@ -20,7 +20,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tambo-ai/react": ["./react-sdk/src"]
     }
   },
   "include": [
