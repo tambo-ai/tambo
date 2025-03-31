@@ -95,7 +95,7 @@ export default function DashboardPage() {
       <div className="flex justify-between items-center my-8"></div>
       {!isAuthenticated ? (
         <div className="container max-w-md py-8">
-          <AuthForm isSignUpInitialValue={false} routeOnSuccess="/dashboard" />
+          <AuthForm routeOnSuccess="/dashboard" />
         </div>
       ) : isLoading ? (
         <LoadingCards />

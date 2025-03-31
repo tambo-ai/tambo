@@ -1,6 +1,7 @@
 "use client";
 
 import { getSupabaseClient } from "@/app/utils/supabase";
+import { Header } from "@/components/sections/header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -337,6 +338,7 @@ export default function CLIAuthPage() {
 
   return (
     <>
+      <Header showDashboardButton={false} />
       <CreateProjectDialog
         state={createDialog}
         isCreating={isCreatingProject}
@@ -351,11 +353,11 @@ export default function CLIAuthPage() {
         onConfirm={handleDeleteApiKey}
       />
 
-      <div className="container max-w-lg mx-auto py-8">
-        <Card className="border-2">
+      <div className="flex flex-col items-center justify-center min-h-[calc(70vh-var(--header-height))] w-full px-4">
+        <Card className="w-full max-w-lg mx-auto shadow-lg border-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div className="space-y-1.5">
-              <CardTitle className="text-2xl font-bold">
+              <CardTitle className="text-2xl font-bold tracking-tight">
                 tambo CLI Setup
               </CardTitle>
               <CardDescription className="text-base">

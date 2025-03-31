@@ -63,7 +63,7 @@ export function LogoutButton({
     <Button
       onClick={handleLogout}
       variant={variant}
-      className={`${mobile ? "justify-start text-base w-full" : "text-xs px-2"} ${className}`}
+      className={`${mobile ? "justify-start text-base w-full" : "px-2"} ${className}`}
     >
       logout
     </Button>
