@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.32.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.2...repo-v0.32.3) (2025-03-31)
+
+
+### Bug Fixes
+
+* improve error handling and validation response in send-founder-email API ([#650](https://github.com/tambo-ai/tambo-cloud/issues/650)) ([2d2213b](https://github.com/tambo-ai/tambo-cloud/commit/2d2213b7fb6f4e0a3879f2b12f09f3a1c6174cfc))
+
+
+### Miscellaneous Chores
+
+* implement same login options for both cli and web ([#648](https://github.com/tambo-ai/tambo-cloud/issues/648)) ([be05961](https://github.com/tambo-ai/tambo-cloud/commit/be05961dc3c27e30c659f9e675dbe32980c82367))
+
 ## [0.32.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.1...repo-v0.32.2) (2025-03-28)
 
 
