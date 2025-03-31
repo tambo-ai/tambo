@@ -61,7 +61,7 @@ export function GettingStartedSteps() {
               className="mt-24 flex flex-col items-center gap-8 group cursor-pointer"
             >
               <span className="text-lg font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                Get Started
+                Get started
               </span>
               <div className="flex flex-col gap-1">
                 <motion.div
@@ -100,7 +100,7 @@ export function GettingStartedSteps() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: index * 0.2 }}
               key={step.number}
-              className="p-10 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+              className="p-10 rounded-xl bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
             >
               <div className="flex items-start gap-6">
                 <div className="text-lg font-mono font-bold bg-primary/10 text-primary px-4 py-2 rounded-lg border-2 border-primary/30">

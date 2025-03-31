@@ -52,6 +52,9 @@ const config: Config = {
       },
     },
   },
+  layers: {
+    showcase: true,
+  },
 };
 
 export default config;
