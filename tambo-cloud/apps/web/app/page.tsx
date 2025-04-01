@@ -3,6 +3,7 @@ import { FinalCTA } from "@/components/sections/final-cta";
 import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
 import { Hero } from "@/components/sections/hero";
+import { InstallationSteps } from "@/components/sections/installation-steps";
 import { InteractiveDemo } from "@/components/sections/interactive-demo";
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
           <Hero />
           <InteractiveDemo />
+          <InstallationSteps />
           {/* <Statistics /> */}
           {/* <Testimonials /> */}
           <Features />

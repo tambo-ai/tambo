@@ -14,8 +14,8 @@ const iconMap = {
 
 // Final CTA content
 const finalCtaContent = {
-  title: "Ready to get started?",
-  description: "Check out of docs. If you get stuck, schedule time with us.",
+  title: "Want to learn more?",
+  description: "Check out our docs or schedule time with us.",
   buttons: [
     {
       text: "Docs",

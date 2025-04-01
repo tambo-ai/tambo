@@ -1,10 +1,66 @@
 ---
 title: Quickstart
+description: Get started with Tambo - either with our template or by adding to your existing app
 ---
 
-Let's get you started with tambo-ai in 3 steps.
+# Quickstart
 
-## Step 1: Install tambo-ai
+There are two ways to get started with Tambo:
+
+1. [Using our template project](#template) (recommended for new projects)
+2. [Adding Tambo to an existing Next.js/React application](#existing-app)
+
+## Using the Template [#template]
+
+The Tambo template provides a pre-configured project setup to help you get started quickly. You can install it using either a step-by-step approach or a single command.
+
+### Step by Step Installation
+
+Follow these commands one at a time:
+
+```bash title="Clone the template repository"
+git clone https://github.com/tambo-ai/tambo-template.git
+```
+
+```bash title="Navigate to the project directory"
+cd tambo-template
+```
+
+```bash title="Install dependencies"
+npm install
+```
+
+```bash title="Initialize Tambo"
+npx tambo init
+```
+
+```bash title="Run the app"
+npm run dev
+```
+
+or install everything at once, you can run this single command:
+
+```bash title="Quick installation"
+git clone https://github.com/tambo-ai/tambo-template.git && cd tambo-template && npm install && npx tambo init && npx tambo install && npm run dev
+```
+
+<div className="flex justify-center my-6">
+  <video
+    controls
+    className="rounded-lg border shadow-sm"
+    width="600"
+    height="400"
+  >
+    <source src="/assets/docs/template-demo.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+## Adding to Existing App [#existing-app]
+
+If you have an existing Next.js application and want to add Tambo functionality, follow these steps:
+
+### Step 1: Install tambo-ai
 
 ```bash
 npx tambo full-send
@@ -12,13 +68,13 @@ npx tambo full-send
 
 This command will:
 
-- Setup a tambo project and get you an API key
+- Setup Tambo in your existing project and get you an API key
 - Install components that are hooked up to tambo-ai
 - Show you how to wrap your app with the `<TamboProvider>`
 
-Once it completes, you can update your `src/app/layout.tsx` file to enable tambo:
+### Step 2: Add the TamboProvider
 
-### Step 2. Add the TamboProvider
+Once the installation completes, update your `src/app/layout.tsx` file to enable Tambo:
 
 ```tsx title="src/app/layout.tsx"
 <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
@@ -26,7 +82,7 @@ Once it completes, you can update your `src/app/layout.tsx` file to enable tambo
 </TamboProvider>
 ```
 
-## Step 3. Add the MessageThreadFull component
+### Step 3: Add the MessageThreadFull component
 
 The `<MessageThreadFull>` component that the `full-send` command installed provides a complete chat interface for your AI assistant. Here's how to add it to your `src/app/page.tsx` file:
 
@@ -42,7 +98,7 @@ export default function Home() {
 }
 ```
 
-## Don't forget to run your app
+### Run your app
 
 ```bash
 npm run dev
