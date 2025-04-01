@@ -289,20 +289,20 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   );
 
   const deleteThreadMessage = useCallback(
-    (messageId: string) => {
-      if (!currentThread) return;
+    (messageId: string, threadId: string) => {
+      if (!threadMap[threadId]) return;
 
       setThreadMap((prevMap) => ({
         ...prevMap,
-        [currentThread.id]: {
-          ...prevMap[currentThread.id],
-          messages: prevMap[currentThread.id].messages.filter(
+        [threadId]: {
+          ...prevMap[threadId],
+          messages: prevMap[threadId].messages.filter(
             (msg) => msg.id !== messageId,
           ),
         },
       }));
     },
-    [currentThread],
+    [threadMap],
   );
 
   const startNewThread = useCallback(() => {
@@ -371,7 +371,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
 
       for await (const chunk of stream) {
         if (isFirstChunk && messageIdToRemove) {
-          deleteThreadMessage(messageIdToRemove);
+          deleteThreadMessage(messageIdToRemove, threadId);
         }
         isFirstChunk = false;
 
