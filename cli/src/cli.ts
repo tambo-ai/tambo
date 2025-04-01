@@ -149,6 +149,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
 
 function showComponentList() {
   const components = getComponentList();
+  components.sort((a, b) => a.name.localeCompare(b.name));
   console.log(chalk.bold("Available components:"));
 
   const table = new Table({
