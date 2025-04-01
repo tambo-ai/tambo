@@ -487,7 +487,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           content: [{ type: "text", text: message }],
           renderedComponent: null,
           role: "user",
-          threadId: currentThread.id,
+          threadId: threadId,
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
           componentState: {},
