@@ -4,10 +4,40 @@ import inquirer from "inquirer";
 import path from "path";
 import { installSingleComponent } from "./add/component.js";
 import { componentExists } from "./add/utils.js";
+import { getInstallationPath } from "./init.js";
 
 interface UpdateComponentOptions {
   legacyPeerDeps?: boolean;
   silent?: boolean;
+}
+
+/**
+ * Finds the component location in the project
+ * @param componentName Name of the component to find
+ * @param projectRoot Project root directory
+ * @returns Object containing component path and installation path
+ */
+async function findComponentLocation(
+  componentName: string,
+  projectRoot: string,
+) {
+  try {
+    // Get the correct installation path based on project structure
+    const installPath = await getInstallationPath();
+    const componentDir = path.join(projectRoot, installPath, "ui");
+    const componentPath = path.join(componentDir, `${componentName}.tsx`);
+
+    if (!fs.existsSync(componentPath)) {
+      return null;
+    }
+
+    return {
+      componentPath,
+      installPath,
+    };
+  } catch (error) {
+    throw new Error(`Failed to locate component: ${error}`);
+  }
 }
 
 /**
@@ -22,39 +52,18 @@ export async function handleUpdateComponent(
   try {
     // Check if component exists in registry
     if (!componentExists(componentName)) {
-      console.error(
-        chalk.red(
-          `Component ${componentName} not found in registry. Use 'tambo add ${componentName}' to add it.`,
-        ),
+      throw new Error(
+        `Component ${componentName} not found in registry. Use 'tambo add ${componentName}' to add it.`,
       );
-      return;
     }
 
-    // Check possible component locations
-    const possiblePaths = [
-      path.join(process.cwd(), "src", "components", "ui"),
-      path.join(process.cwd(), "components", "ui"),
-    ];
+    const projectRoot = process.cwd();
+    const location = await findComponentLocation(componentName, projectRoot);
 
-    let componentPath;
-    let foundPath;
-
-    for (const dir of possiblePaths) {
-      const testPath = path.join(dir, `${componentName}.tsx`);
-      if (fs.existsSync(testPath)) {
-        componentPath = testPath;
-        foundPath = dir.includes("src") ? "src/components" : "components";
-        break;
-      }
-    }
-
-    if (!componentPath) {
-      console.error(
-        chalk.red(
-          `Component ${componentName} not found in your project. Use 'tambo add ${componentName}' to add it.`,
-        ),
+    if (!location) {
+      throw new Error(
+        `Component ${componentName} not found in your project. Use 'tambo add ${componentName}' to add it.`,
       );
-      return;
     }
 
     // Prompt for confirmation
@@ -70,7 +79,9 @@ export async function handleUpdateComponent(
     ]);
 
     if (!confirm) {
-      console.log(chalk.gray("Update cancelled."));
+      if (!options.silent) {
+        console.log(chalk.gray("Update cancelled."));
+      }
       return;
     }
 
@@ -78,7 +89,7 @@ export async function handleUpdateComponent(
     await installSingleComponent(componentName, {
       ...options,
       forceUpdate: true,
-      installPath: foundPath,
+      installPath: location.installPath,
     });
 
     if (!options.silent) {
@@ -87,9 +98,10 @@ export async function handleUpdateComponent(
       );
     }
   } catch (error) {
-    console.error(
-      chalk.red(`Failed to update component ${componentName}: ${error}`),
-    );
-    process.exit(1);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!options.silent) {
+      console.error(chalk.red(`Failed to update component: ${errorMessage}`));
+    }
+    throw error;
   }
 }

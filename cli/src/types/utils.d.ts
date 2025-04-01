@@ -35,7 +35,11 @@ declare module "@radix-ui/react-dialog" {
     children: React.ReactNode;
     className?: string;
   }>;
-  export { Content, Overlay, Portal, Root, Title };
+  const Trigger: React.FC<{
+    children?: React.ReactNode;
+    asChild?: boolean;
+  }>;
+  export { Content, Overlay, Portal, Root, Title, Trigger };
 }
 
 declare module "@radix-ui/react-collapsible" {
