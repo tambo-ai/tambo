@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.2.0...tambo-v0.2.1) (2025-04-01)
+
+
+### Bug Fixes
+
+* show list of component if component is missing ([#241](https://github.com/tambo-ai/tambo/issues/241)) ([e971b10](https://github.com/tambo-ai/tambo/commit/e971b1021dbfd622dda304af2b33186e8608e235))
+* warn about latest version, better src/ messaging ([#240](https://github.com/tambo-ai/tambo/issues/240)) ([60bb430](https://github.com/tambo-ai/tambo/commit/60bb43086accefcc5af67510b3a60cf602041492))
+* warn users if they are using old tambo cli ([#238](https://github.com/tambo-ai/tambo/issues/238)) ([6070464](https://github.com/tambo-ai/tambo/commit/6070464ff2aeb4a84aef4643784bcefb041044fc))
+
+
+### Miscellaneous
+
+* fix thread-history and updated showcase site ([#204](https://github.com/tambo-ai/tambo/issues/204)) ([26c70cd](https://github.com/tambo-ai/tambo/commit/26c70cd841ef5bdeba7f755225ba57fe100c4429))
+
 ## [0.2.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.1.5...tambo-v0.2.0) (2025-03-28)
 
 
