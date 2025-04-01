@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.19.5](https://github.com/tambo-ai/tambo/compare/react-v0.19.4...react-v0.19.5) (2025-04-01)
+
+
+### Bug Fixes
+
+* minor component cleanups: stop using useEffect/etc ([#242](https://github.com/tambo-ai/tambo/issues/242)) ([7c6d334](https://github.com/tambo-ai/tambo/commit/7c6d334d500d909038469132123c9d163f2f7c5b))
+* workaround turbopack bugs w/Stainless shims ([#243](https://github.com/tambo-ai/tambo/issues/243)) ([c3ef647](https://github.com/tambo-ai/tambo/commit/c3ef6478a47d0acb7f690fdb54d8298f3f7d63ca))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node from 20.17.27 to 20.17.28 ([#231](https://github.com/tambo-ai/tambo/issues/231)) ([edee5d1](https://github.com/tambo-ai/tambo/commit/edee5d17860df15f4eb32eaa74afc309f97cbdcb))
+* **deps-dev:** bump ts-jest from 29.2.6 to 29.3.1 ([#235](https://github.com/tambo-ai/tambo/issues/235)) ([bf683cf](https://github.com/tambo-ai/tambo/commit/bf683cf9c79429752b74db3d6adb1239989dcfdd))
+* **deps-dev:** bump typescript-eslint from 8.28.0 to 8.29.0 in the eslint group ([#227](https://github.com/tambo-ai/tambo/issues/227)) ([58134f1](https://github.com/tambo-ai/tambo/commit/58134f16f5bbee49df3390cf7bd3b09ab0e00313))
+* **deps:** bump @tanstack/react-query from 5.69.0 to 5.71.1 ([#232](https://github.com/tambo-ai/tambo/issues/232)) ([4a30da3](https://github.com/tambo-ai/tambo/commit/4a30da3afc057066fcb84da9b60805055572fc77))
+
 ## [0.19.4](https://github.com/tambo-ai/tambo/compare/react-v0.19.3...react-v0.19.4) (2025-03-28)
 
 
