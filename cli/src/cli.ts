@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import chalk from "chalk";
+import Table from "cli-table3";
 import "dotenv/config";
 import { readFileSync } from "fs";
 import meow, { type Flag, type Result } from "meow";
@@ -7,6 +8,7 @@ import { dirname, join } from "path";
 import semver from "semver";
 import { fileURLToPath } from "url";
 import { handleAddComponent } from "./commands/add/index.js";
+import { getComponentList } from "./commands/add/utils.js";
 import { handleInit } from "./commands/init.js";
 import { handleUpdateComponent } from "./commands/update.js";
 
@@ -110,6 +112,8 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     const componentName = cli.input[1];
     if (!componentName) {
       console.error(chalk.red("Component name is required"));
+
+      showComponentList();
       console.log(
         `Run ${chalk.cyan("tambo add <componentName>")} to add a new component`,
       );
@@ -125,6 +129,8 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     const componentName = cli.input[1];
     if (!componentName) {
       console.error(chalk.red("Component name is required"));
+
+      showComponentList();
       console.log(
         `Run ${chalk.cyan("tambo update <componentName>")} to update a component`,
       );
@@ -139,6 +145,50 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
   // If no command is provided, show help
   console.log(`Unrecognized command: ${chalk.red(cmd)}`);
   console.log(cli.help);
+}
+
+function showComponentList() {
+  const components = getComponentList();
+  components.sort((a, b) => a.name.localeCompare(b.name));
+  console.log(chalk.bold("Available components:"));
+
+  const table = new Table({
+    head: ["Component", "Description"],
+    colWidths: [
+      Math.max(...getComponentList().map((c) => c.name.length)) + 2,
+      process.stdout.columns -
+        (Math.max(...getComponentList().map((c) => c.name.length)) + 5),
+    ],
+    wordWrap: true,
+    chars: {
+      top: "",
+      "top-mid": "",
+      "top-left": "",
+      "top-right": "",
+      bottom: "",
+      "bottom-mid": "",
+      "bottom-left": "",
+      "bottom-right": "",
+      left: "",
+      "left-mid": "",
+      mid: "",
+      "mid-mid": "",
+      right: "",
+      "right-mid": "",
+      middle: "│",
+    },
+    style: {
+      head: ["cyan"],
+      border: ["gray"],
+    },
+  });
+
+  components.forEach((component) => {
+    table.push([component.name, component.description]);
+  });
+
+  console.log(table.toString());
+  console.log("\n");
 }
 
 // Main execution

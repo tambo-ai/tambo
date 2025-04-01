@@ -1,5 +1,7 @@
 {
   "name": "control-bar",
+  "description": "Provides controls and actions in the interface",
+  "componentName": "ControlBar",
   "dependencies": ["@tambo-ai/react", "radix-ui"],
   "devDependencies": [],
   "requires": ["thread-content", "message-input"],

@@ -1,5 +1,7 @@
 {
   "name": "message-thread-collapsible",
+  "description": "Displays message threads that can be expanded or collapsed",
+  "componentName": "MessageThreadCollapsible",
   "dependencies": ["@tambo-ai/react", "radix-ui", "lucide-react"],
   "devDependencies": [],
   "requires": [
