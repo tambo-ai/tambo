@@ -216,30 +216,31 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       };
       const threadId = message.threadId;
       // optimistically update the thread in the local state
+      const prevMessages = threadMap[threadId]?.messages || [];
+      const updatedMessages = [...prevMessages, chatMessage];
+
       setThreadMap((prevMap) => {
         if (!threadId) {
           return prevMap;
         }
-        const prevMessages = prevMap[threadId]?.messages || [];
         return {
           ...prevMap,
           [threadId]: {
             ...prevMap[threadId],
-            messages: [...prevMessages, chatMessage],
+            messages: updatedMessages,
           },
         };
       });
+
       if (sendToServer) {
         // TODO: if this fails, we need to revert the local state update
-        await client.beta.threads.messages.create(currentThreadId, {
+        await client.beta.threads.messages.create(message.threadId, {
           content: message.content,
           role: message.role,
           // additionalContext: chatMessage.additionalContext,
         });
       }
-      const updatedMessageHistory = [...currentThread.messages, chatMessage];
-
-      return updatedMessageHistory;
+      return updatedMessages;
     },
     [client.beta.threads.messages, currentThread, currentThreadId],
   );
@@ -512,9 +513,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         const advanceStreamResponse = await advanceStream(
           client,
           params,
-          currentThreadId === PLACEHOLDER_THREAD.id
-            ? undefined
-            : currentThreadId,
+          threadId === PLACEHOLDER_THREAD.id ? undefined : threadId,
         );
         return await handleAdvanceStream(
           advanceStreamResponse,
@@ -522,9 +521,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           threadId,
         );
       }
-      let advanceResponse = await (currentThreadId === PLACEHOLDER_THREAD.id
+      let advanceResponse = await (threadId === PLACEHOLDER_THREAD.id
         ? client.beta.threads.advance(params)
-        : client.beta.threads.advanceById(currentThreadId, params));
+        : client.beta.threads.advanceById(threadId, params));
 
       //handle tool calls
       while (advanceResponse.responseMessageDto.toolCallRequest) {
