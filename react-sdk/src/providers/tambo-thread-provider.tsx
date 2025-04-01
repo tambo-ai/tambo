@@ -562,7 +562,10 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           )
         : advanceResponse.responseMessageDto;
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
-      updateThreadStatus(threadId, GenerationStage.COMPLETE);
+      updateThreadStatus(
+        advanceResponse.responseMessageDto.threadId,
+        GenerationStage.COMPLETE,
+      );
       return finalMessage;
     },
     [
