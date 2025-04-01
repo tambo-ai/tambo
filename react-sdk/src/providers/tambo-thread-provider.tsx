@@ -477,7 +477,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         threadId: string;
         streamResponse?: boolean;
         contextKey?: string;
-      },
+      } = { threadId: PLACEHOLDER_THREAD.id },
     ): Promise<TamboThreadMessage> => {
       const { threadId, streamResponse } = options;
       updateThreadStatus(threadId, GenerationStage.CHOOSING_COMPONENT);
