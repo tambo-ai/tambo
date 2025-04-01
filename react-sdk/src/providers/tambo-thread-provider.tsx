@@ -242,7 +242,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       }
       return updatedMessages;
     },
-    [client.beta.threads.messages, currentThread, currentThreadId],
+    [client.beta.threads.messages, currentThread],
   );
 
   const updateThreadMessage = useCallback(
@@ -285,7 +285,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         });
       }
     },
-    [client.beta.threads.messages, currentThreadId],
+    [client.beta.threads.messages],
   );
 
   const deleteThreadMessage = useCallback(
