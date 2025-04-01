@@ -7,6 +7,7 @@ import { dirname, join } from "path";
 import semver from "semver";
 import { fileURLToPath } from "url";
 import { handleAddComponent } from "./commands/add/index.js";
+import { getComponentList } from "./commands/add/utils.js";
 import { handleInit } from "./commands/init.js";
 import { handleUpdateComponent } from "./commands/update.js";
 
@@ -110,6 +111,8 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     const componentName = cli.input[1];
     if (!componentName) {
       console.error(chalk.red("Component name is required"));
+
+      showComponentList();
       console.log(
         `Run ${chalk.cyan("tambo add <componentName>")} to add a new component`,
       );
@@ -125,6 +128,8 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     const componentName = cli.input[1];
     if (!componentName) {
       console.error(chalk.red("Component name is required"));
+
+      showComponentList();
       console.log(
         `Run ${chalk.cyan("tambo update <componentName>")} to update a component`,
       );
@@ -139,6 +144,19 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
   // If no command is provided, show help
   console.log(`Unrecognized command: ${chalk.red(cmd)}`);
   console.log(cli.help);
+}
+
+function showComponentList() {
+  const components = getComponentList();
+  console.log(chalk.bold("Available components:"));
+  // Find the longest name for padding
+  const maxNameLength = Math.max(...components.map((c) => c.name.length));
+
+  components.forEach((component) => {
+    const paddedName = component.name.padEnd(maxNameLength);
+    console.log(`${chalk.cyan(paddedName)}  |  ${component.description}`);
+  });
+  console.log("\n");
 }
 
 // Main execution
