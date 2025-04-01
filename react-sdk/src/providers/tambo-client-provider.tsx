@@ -4,11 +4,12 @@ import React, { createContext, PropsWithChildren, useState } from "react";
 
 export interface TamboClientProviderProps {
   /**
-   * The URL of the Tambo API (used for local development and debugging)
+   * The URL of the Tambo API (only used for local development and debugging)
    */
   tamboUrl?: string;
   /**
-   * The API key for the Tambo API
+   * The API key for the Tambo API. This typically comes from a variable like
+   * `process.env.NEXT_PUBLIC_TAMBO_API_KEY`
    */
   apiKey: string;
   /**
