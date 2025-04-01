@@ -66,7 +66,7 @@ export function CLI({
           </div>
           <button
             onClick={copyToClipboard}
-            className="text-gray-400 hover:text-primary transition-colors ml-2 flex-shrink-0"
+            className="text-gray-400 hover:text-white transition-colors ml-2 flex-shrink-0"
             aria-label="Copy to clipboard"
           >
             {copied ? (

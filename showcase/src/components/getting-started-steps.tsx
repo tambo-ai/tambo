@@ -34,7 +34,7 @@ export function GettingStartedSteps() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1 }}
+            transition={{ duration: 0.5 }}
             className="flex flex-col sm:flex-row gap-6 justify-center mt-16"
           >
             <Link
@@ -57,7 +57,7 @@ export function GettingStartedSteps() {
               onClick={scrollToSteps}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.5 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
               className="mt-24 flex flex-col items-center gap-8 group cursor-pointer"
             >
               <span className="text-lg font-medium text-muted-foreground group-hover:text-primary transition-colors">
@@ -90,7 +90,7 @@ export function GettingStartedSteps() {
           transition={{ duration: 0.5 }}
           className="font-sentient text-3xl md:text-4xl font-bold text-center mb-16"
         >
-          Steps to Get Started
+          Steps to Get started
         </motion.h2>
 
         <div className="grid grid-cols-1 gap-12">
