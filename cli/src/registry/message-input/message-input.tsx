@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const messageInputVariants = cva("w-full", {
   variants: {
@@ -40,18 +40,12 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
       useTamboThreadInput(contextKey);
     const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
-    const [isMac, setIsMac] = React.useState(false);
+    const isMac =
+      typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
     const inputRef = React.useRef<HTMLInputElement>(null);
 
     // Handle the forwarded ref
     React.useImperativeHandle(ref, () => inputRef.current!, []);
-
-    React.useEffect(() => {
-      const isMacOS =
-        typeof navigator !== "undefined" &&
-        navigator.platform.toUpperCase().includes("MAC");
-      setIsMac(isMacOS);
-    }, []);
 
     React.useEffect(() => {
       setDisplayValue(value);

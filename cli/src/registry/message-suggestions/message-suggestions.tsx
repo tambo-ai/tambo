@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { MessageGenerationStage } from "@/components/ui/message-generation-stage";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { useTambo, useTamboSuggestions } from "@tambo-ai/react";
 import { Loader2Icon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
-import { MessageGenerationStage } from "@/components/ui/message-generation-stage";
+import * as React from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Represents the suggestions for a message
@@ -33,7 +33,8 @@ export function MessageSuggestions({
   } = useTamboSuggestions({
     maxSuggestions,
   });
-  const [isMac, setIsMac] = useState(false);
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
 
   // Track the last AI message ID to detect new messages
   const lastAiMessageIdRef = useRef<string | null>(null);
@@ -63,13 +64,6 @@ export function MessageSuggestions({
       }
     };
   }, [lastAiMessage, suggestions.length]);
-
-  useEffect(() => {
-    const isMacOS =
-      typeof navigator !== "undefined" &&
-      navigator.platform.toUpperCase().includes("MAC");
-    setIsMac(isMacOS);
-  }, []);
 
   useEffect(() => {
     if (!suggestions || suggestions.length === 0) return;
