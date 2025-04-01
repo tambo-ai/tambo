@@ -47,7 +47,7 @@ export const MessagingInterfacesShowcase = () => {
                     </div>
                   </div>
                   <MessageThreadPanel
-                    className="w-[400px] relative border-none"
+                    className="w-[400px] relative"
                     contextKey="message-thread-panel"
                   />
                 </div>

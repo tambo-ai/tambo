@@ -103,7 +103,7 @@ export function GettingStartedSteps() {
               className="p-10 rounded-xl bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
             >
               <div className="flex items-start gap-6">
-                <div className="text-lg font-mono font-bold bg-primary/10 text-primary px-4 py-2 rounded-lg border-2 border-primary/30">
+                <div className="text-lg font-mono font-bold text-muted-foreground/80 bg-primary/10 px-4 py-2 rounded-lg border-2 border-primary/30">
                   {step.number}
                 </div>
                 <div className="flex-1">

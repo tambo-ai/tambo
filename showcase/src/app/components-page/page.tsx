@@ -13,7 +13,7 @@ export default function ComponentsPage() {
   return (
     <main className="min-h-screen">
       <div className="container mx-auto flex flex-col gap-8">
-        <h1 className="font-sentient text-4xl font-bold ml-4">
+        <h1 className="font-sentient text-4xl font-bold ml-6">
           Ready-to-use components
         </h1>
         <SecondNavbar
