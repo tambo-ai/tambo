@@ -46,8 +46,8 @@ export interface TamboThreadContextProps {
   /** Send a message to the current thread */
   sendThreadMessage: (
     message: string,
-    options?: {
-      threadId?: string;
+    options: {
+      threadId: string;
       streamResponse?: boolean;
       contextKey?: string;
     },
@@ -341,31 +341,32 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   );
 
   const updateThreadStatus = useCallback(
-    (stage: GenerationStage, statusMessage?: string) => {
+    (threadId: string, stage: GenerationStage, statusMessage?: string) => {
       setThreadMap((prevMap) => {
         return {
           ...prevMap,
-          [currentThreadId]: {
-            ...prevMap[currentThreadId],
+          [threadId]: {
+            ...prevMap[threadId],
             generationStage: stage,
             statusMessage: statusMessage,
           },
         };
       });
     },
-    [currentThreadId],
+    [],
   );
 
   const handleAdvanceStream = useCallback(
     async (
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
+      threadId: string,
       messageIdToRemove?: string,
     ): Promise<TamboThreadMessage> => {
       let finalMessage: TamboThreadMessage | undefined;
       let hasSetThreadId = false;
       let isFirstChunk = true;
-      updateThreadStatus(GenerationStage.STREAMING_RESPONSE);
+      updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
 
       for await (const chunk of stream) {
         if (isFirstChunk && messageIdToRemove) {
@@ -374,7 +375,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         isFirstChunk = false;
 
         if (chunk.responseMessageDto.toolCallRequest) {
-          updateThreadStatus(GenerationStage.FETCHING_CONTEXT);
+          updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
@@ -394,7 +395,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
                 tool_call_id: chunk.responseMessageDto.tool_call_id,
               },
             };
-          updateThreadStatus(GenerationStage.STREAMING_RESPONSE);
+          updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
           const toolCallResponseStream = await advanceStream(
             client,
             toolCallResponseParams,
@@ -405,6 +406,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           return await handleAdvanceStream(
             toolCallResponseStream,
             toolCallResponseParams,
+            threadId,
             finalMessage?.id,
           );
         } else {
@@ -438,7 +440,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         }
       }
 
-      updateThreadStatus(GenerationStage.COMPLETE);
+      updateThreadStatus(threadId, GenerationStage.COMPLETE);
       if (finalMessage) {
         await fetchThread(finalMessage.threadId);
       }
@@ -471,19 +473,13 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     async (
       message: string,
       options: {
-        threadId?: string;
+        threadId: string;
         streamResponse?: boolean;
         contextKey?: string;
-      } = {},
+      },
     ): Promise<TamboThreadMessage> => {
       const { threadId, streamResponse } = options;
-      const currentThreadId = threadId ?? currentThread?.id;
-
-      if (currentThreadId !== PLACEHOLDER_THREAD.id) {
-        await switchCurrentThread(currentThreadId);
-      }
-
-      updateThreadStatus(GenerationStage.CHOOSING_COMPONENT);
+      updateThreadStatus(threadId, GenerationStage.CHOOSING_COMPONENT);
 
       addThreadMessage(
         {
@@ -520,7 +516,11 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             ? undefined
             : currentThreadId,
         );
-        return await handleAdvanceStream(advanceStreamResponse, params);
+        return await handleAdvanceStream(
+          advanceStreamResponse,
+          params,
+          threadId,
+        );
       }
       let advanceResponse = await (currentThreadId === PLACEHOLDER_THREAD.id
         ? client.beta.threads.advance(params)
@@ -528,7 +528,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
 
       //handle tool calls
       while (advanceResponse.responseMessageDto.toolCallRequest) {
-        updateThreadStatus(GenerationStage.FETCHING_CONTEXT);
+        updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
         const toolCallResponse = await handleToolCall(
           advanceResponse.responseMessageDto,
           toolRegistry,
@@ -549,7 +549,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
               tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
             },
           };
-        updateThreadStatus(GenerationStage.HYDRATING_COMPONENT);
+        updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
         advanceResponse = await client.beta.threads.advanceById(
           advanceResponse.responseMessageDto.threadId,
           toolCallResponseParams,
@@ -564,7 +564,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           )
         : advanceResponse.responseMessageDto;
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
-      updateThreadStatus(GenerationStage.COMPLETE);
+      updateThreadStatus(threadId, GenerationStage.COMPLETE);
       return finalMessage;
     },
     [
