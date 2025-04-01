@@ -130,7 +130,12 @@ export function MessageSuggestions({
                   {suggestions.map((suggestion, index) => (
                     <Tooltip
                       key={suggestion.id}
-                      content={`${isMac ? "⌘" : "Ctrl"}+${isMac ? "⌥" : "Alt"}+${index + 1}`}
+                      content={
+                        <span suppressHydrationWarning>
+                          {isMac ? "⌘" : "Ctrl"}+{isMac ? "⌥" : "Alt"}+
+                          {index + 1}
+                        </span>
+                      }
                       side="top"
                     >
                       <button

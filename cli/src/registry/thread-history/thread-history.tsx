@@ -112,7 +112,10 @@ export function ThreadHistory({
                 <PlusIcon className="mr-2 h-4 w-4" />
                 <span>New Thread</span>
               </div>
-              <span className="ml-auto text-xs text-muted-foreground">
+              <span
+                className="ml-auto text-xs text-muted-foreground"
+                suppressHydrationWarning
+              >
                 {modKey}+⇧+N
               </span>
             </DropdownMenu.Item>

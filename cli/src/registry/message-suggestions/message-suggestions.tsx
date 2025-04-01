@@ -139,7 +139,11 @@ export function MessageSuggestions({
                   {suggestions.map((suggestion, index) => (
                     <Tooltip
                       key={suggestion.id}
-                      content={`${modKey}+${altKey}+${index + 1}`}
+                      content={
+                        <span suppressHydrationWarning>
+                          {modKey}+{altKey}+{index + 1}
+                        </span>
+                      }
                       side="top"
                     >
                       <button
