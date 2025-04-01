@@ -1,5 +1,7 @@
 {
   "name": "thread-content",
+  "description": "A component for displaying the main content and messages within a thread",
+  "componentName": "ThreadContent",
   "dependencies": ["class-variance-authority", "@tambo-ai/react"],
   "devDependencies": [],
   "requires": ["message"],

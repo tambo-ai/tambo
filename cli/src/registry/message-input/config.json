@@ -1,5 +1,7 @@
 {
   "name": "message-input",
+  "description": "An input component for composing and sending messages in a conversation",
+  "componentName": "MessageInput",
   "dependencies": ["class-variance-authority", "@tambo-ai/react"],
   "devDependencies": [],
   "requires": [],

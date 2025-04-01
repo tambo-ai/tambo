@@ -1,5 +1,7 @@
 {
   "name": "message",
+  "description": "A component for displaying individual messages in a conversation",
+  "componentName": "Message",
   "dependencies": [
     "class-variance-authority",
     "react-markdown",
