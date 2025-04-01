@@ -1,5 +1,7 @@
 {
   "name": "thread-list",
+  "description": "Displays and manages a list of conversation threads",
+  "componentName": "ThreadList",
   "dependencies": ["class-variance-authority"],
   "devDependencies": ["@tambo-ai/react"],
   "requires": [],
