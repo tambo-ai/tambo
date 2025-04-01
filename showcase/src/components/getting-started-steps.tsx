@@ -1,10 +1,10 @@
 "use client";
 
 import { CLI } from "@/components/cli";
+import { steps } from "@/constants/steps";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRef } from "react";
-import { steps } from "@/constants/steps";
 
 export function GettingStartedSteps() {
   const stepsRef = useRef<HTMLDivElement>(null);
@@ -23,7 +23,7 @@ export function GettingStartedSteps() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <h1 className="font-sentient text-3xl md:text-5xl font-bold max-w-[900px] mx-auto mt-24 leading-[1.2] md:leading-[1.3]">
+          <h1 className="font-sentient text-3xl md:text-5xl font-bold max-w-[900px] mx-auto mt-24 leading-[1.5] md:leading-[1.5]">
             Tambo components to jumpstart your AI interface development
           </h1>
           <p className="font-sentient text-lg md:text-xl text-muted-foreground/90 max-w-[800px] mx-auto leading-relaxed mt-4">
@@ -34,7 +34,7 @@ export function GettingStartedSteps() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1 }}
+            transition={{ duration: 0.5 }}
             className="flex flex-col sm:flex-row gap-6 justify-center mt-16"
           >
             <Link
@@ -57,11 +57,11 @@ export function GettingStartedSteps() {
               onClick={scrollToSteps}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.5 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
               className="mt-24 flex flex-col items-center gap-8 group cursor-pointer"
             >
               <span className="text-lg font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                Get Started
+                Get started
               </span>
               <div className="flex flex-col gap-1">
                 <motion.div
@@ -90,7 +90,7 @@ export function GettingStartedSteps() {
           transition={{ duration: 0.5 }}
           className="font-sentient text-3xl md:text-4xl font-bold text-center mb-16"
         >
-          Steps to Get Started
+          Steps to Get started
         </motion.h2>
 
         <div className="grid grid-cols-1 gap-12">
@@ -100,10 +100,10 @@ export function GettingStartedSteps() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: index * 0.2 }}
               key={step.number}
-              className="p-10 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+              className="p-10 rounded-xl bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
             >
               <div className="flex items-start gap-6">
-                <div className="text-lg font-mono font-bold bg-primary/10 text-primary px-4 py-2 rounded-lg border-2 border-primary/30">
+                <div className="text-lg font-mono font-bold text-muted-foreground/80 bg-primary/10 px-4 py-2 rounded-lg border-2 border-primary/30">
                   {step.number}
                 </div>
                 <div className="flex-1">
