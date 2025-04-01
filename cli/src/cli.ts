@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import chalk from "chalk";
+import Table from "cli-table3";
 import "dotenv/config";
 import { readFileSync } from "fs";
 import meow, { type Flag, type Result } from "meow";
@@ -149,13 +150,43 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
 function showComponentList() {
   const components = getComponentList();
   console.log(chalk.bold("Available components:"));
-  // Find the longest name for padding
-  const maxNameLength = Math.max(...components.map((c) => c.name.length));
+
+  const table = new Table({
+    head: ["Component", "Description"],
+    colWidths: [
+      Math.max(...getComponentList().map((c) => c.name.length)) + 2,
+      process.stdout.columns -
+        (Math.max(...getComponentList().map((c) => c.name.length)) + 5),
+    ],
+    wordWrap: true,
+    chars: {
+      top: "",
+      "top-mid": "",
+      "top-left": "",
+      "top-right": "",
+      bottom: "",
+      "bottom-mid": "",
+      "bottom-left": "",
+      "bottom-right": "",
+      left: "",
+      "left-mid": "",
+      mid: "",
+      "mid-mid": "",
+      right: "",
+      "right-mid": "",
+      middle: "│",
+    },
+    style: {
+      head: ["cyan"],
+      border: ["gray"],
+    },
+  });
 
   components.forEach((component) => {
-    const paddedName = component.name.padEnd(maxNameLength);
-    console.log(`${chalk.cyan(paddedName)}  |  ${component.description}`);
+    table.push([component.name, component.description]);
   });
+
+  console.log(table.toString());
   console.log("\n");
 }
 
