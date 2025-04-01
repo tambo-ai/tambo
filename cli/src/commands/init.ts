@@ -55,12 +55,22 @@ async function checkExistingApiKey(): Promise<string | null> {
  * @returns string The chosen installation path
  */
 export async function getInstallationPath(): Promise<string> {
+  const hasSrcDir = fs.existsSync("src");
+
+  if (hasSrcDir) {
+    console.log(chalk.gray(`Found existing ${chalk.cyan("src/")} directory`));
+  } else {
+    console.log(chalk.gray(`No ${chalk.cyan("src/")} directory found`));
+  }
+
   const { useSrcDir } = await inquirer.prompt([
     {
       type: "confirm",
       name: "useSrcDir",
-      message: "Would you like to install components in a src directory?",
-      default: false,
+      message: hasSrcDir
+        ? `Would you like to use the existing ${chalk.cyan("src/")} directory for components?`
+        : `Would you like to create and use a ${chalk.cyan("src/")} directory for components?`,
+      default: hasSrcDir,
     },
   ]);
 
@@ -111,7 +121,7 @@ async function handleAuthentication(): Promise<boolean> {
     ]);
 
     // 3. Save API key to .env file
-    const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}`;
+    const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
 
     // Check if .env.local exists, if not create it
     if (!fs.existsSync(".env.local")) {
