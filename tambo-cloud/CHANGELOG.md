@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.32.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.3...repo-v0.32.4) (2025-04-01)
+
+
+### Bug Fixes
+
+* broken link in docs ([#651](https://github.com/tambo-ai/tambo-cloud/issues/651)) ([4a60ac9](https://github.com/tambo-ai/tambo-cloud/commit/4a60ac99a0e66e0a901254fea932045fee9e6b1c))
+
+
+### Miscellaneous Chores
+
+* add better CTA on landing page and setup instructions to docs ([#655](https://github.com/tambo-ai/tambo-cloud/issues/655)) ([7f1a663](https://github.com/tambo-ai/tambo-cloud/commit/7f1a663e17e4dbecad8aabbf753d0271181f20fd))
+* **deps-dev:** bump @next/eslint-plugin-next from 15.2.3 to 15.2.4 ([#645](https://github.com/tambo-ai/tambo-cloud/issues/645)) ([3b29f0d](https://github.com/tambo-ai/tambo-cloud/commit/3b29f0d7eb70d2987044e94c09e72d63cca64948))
+* **deps-dev:** bump drizzle-kit from 0.30.5 to 0.30.6 in the drizzle group ([#642](https://github.com/tambo-ai/tambo-cloud/issues/642)) ([607b7f9](https://github.com/tambo-ai/tambo-cloud/commit/607b7f9ce897c18de036bb23e4ba1f6cebda0bd6))
+* **deps-dev:** bump ts-jest from 29.2.6 to 29.3.0 ([#647](https://github.com/tambo-ai/tambo-cloud/issues/647)) ([90c783f](https://github.com/tambo-ai/tambo-cloud/commit/90c783f129875a1c1b359204d2aad47e741b49ec))
+* **deps-dev:** bump typescript-eslint from 8.27.0 to 8.28.0 in the eslint group ([#643](https://github.com/tambo-ai/tambo-cloud/issues/643)) ([d196f1d](https://github.com/tambo-ai/tambo-cloud/commit/d196f1d36b51840af0cfce0b37fcdcd1842f6f43))
+* **deps:** bump react-hook-form from 7.54.2 to 7.55.0 ([#646](https://github.com/tambo-ai/tambo-cloud/issues/646)) ([9de388d](https://github.com/tambo-ai/tambo-cloud/commit/9de388d99a9eaf6f7473e2f0301842848824a5bd))
+* **deps:** bump the nestjs group with 2 updates ([#641](https://github.com/tambo-ai/tambo-cloud/issues/641)) ([37daa9c](https://github.com/tambo-ai/tambo-cloud/commit/37daa9c73b2ac5974c99a80d1674709385a523b9))
+* **deps:** bump the trpc group with 3 updates ([#640](https://github.com/tambo-ai/tambo-cloud/issues/640)) ([f043118](https://github.com/tambo-ai/tambo-cloud/commit/f043118cdcb5c2fc2104732329effefd1dc4903b))
+* implement same login options for both cli and web ([#653](https://github.com/tambo-ai/tambo-cloud/issues/653)) ([d16a7ad](https://github.com/tambo-ai/tambo-cloud/commit/d16a7adb9fffe3753aceeb98dd9a7528f7ca11c4))
+* remove email login from cli ([#654](https://github.com/tambo-ai/tambo-cloud/issues/654)) ([51cf208](https://github.com/tambo-ai/tambo-cloud/commit/51cf208d40cf76f6322c73e267ab5842d45181fe))
+
 ## [0.32.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.2...repo-v0.32.3) (2025-03-31)
 
 
