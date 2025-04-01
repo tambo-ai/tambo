@@ -77,16 +77,32 @@ This command will:
 Once the installation completes, update your `src/app/layout.tsx` file to enable Tambo:
 
 ```tsx title="src/app/layout.tsx"
-<TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
-  {children}
-</TamboProvider>
+"use client";
+
+import { TamboProvider } from "@tambo-ai/react";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
+      {children}
+    </TamboProvider>
+  );
 ```
+
+Note that the `TamboProvider` only works in the browser. On Next.js, specify
+`"use client"` at the top of your file to ensure that the `TamboProvider` is
+rendered in the browser.
 
 ### Step 3: Add the MessageThreadFull component
 
 The `<MessageThreadFull>` component that the `full-send` command installed provides a complete chat interface for your AI assistant. Here's how to add it to your `src/app/page.tsx` file:
 
 ```tsx title="src/app/page.tsx"
+"use client";
 import { MessageThreadCollapsible } from "../source/components/message-thread-collapsible";
 
 export default function Home() {
