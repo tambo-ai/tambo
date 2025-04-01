@@ -55,6 +55,7 @@
   "dependencies": {
     "@tambo-ai/react": "*",
     "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
     "clipboardy": "^4.0.0",
     "deep-equal": "^2.2.3",
     "deepmerge": "^4.3.1",
