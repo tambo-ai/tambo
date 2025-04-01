@@ -216,13 +216,12 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       };
       const threadId = message.threadId;
       // optimistically update the thread in the local state
-      const prevMessages = threadMap[threadId]?.messages || [];
-      const updatedMessages = [...prevMessages, chatMessage];
-
       setThreadMap((prevMap) => {
         if (!threadId) {
           return prevMap;
         }
+        const prevMessages = prevMap[threadId]?.messages || [];
+        const updatedMessages = [...prevMessages, chatMessage];
         return {
           ...prevMap,
           [threadId]: {
@@ -240,9 +239,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           // additionalContext: chatMessage.additionalContext,
         });
       }
-      return updatedMessages;
+      return threadMap[threadId]?.messages || [];
     },
-    [client.beta.threads.messages, currentThread],
+    [client.beta.threads.messages, currentThread, threadMap],
   );
 
   const updateThreadMessage = useCallback(
