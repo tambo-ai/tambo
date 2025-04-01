@@ -33,15 +33,8 @@ export function ThreadHistory({
     refetch,
   } = useTamboThreadList({ contextKey });
   const { switchCurrentThread, startNewThread } = useTamboThread();
-  const [isMac, setIsMac] = React.useState(false);
-
-  React.useEffect(() => {
-    const isMacOS =
-      typeof navigator !== "undefined" &&
-      navigator.platform.toUpperCase().includes("MAC");
-    setIsMac(isMacOS);
-  }, []);
-
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
   const modKey = isMac ? "⌥" : "Alt";
 
   const handleNewThread = useCallback(

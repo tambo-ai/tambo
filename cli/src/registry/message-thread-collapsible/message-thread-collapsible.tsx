@@ -1,15 +1,15 @@
 "use client";
 
-import * as React from "react";
-import { useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { ThreadContent } from "@/components/ui/thread-content";
 import { MessageInput } from "@/components/ui/message-input";
-import { ThreadHistory } from "@/components/ui/thread-history";
 import { MessageSuggestions } from "@/components/ui/message-suggestions";
+import { ThreadContent } from "@/components/ui/thread-content";
+import { ThreadHistory } from "@/components/ui/thread-history";
+import { cn } from "@/lib/utils";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useTambo } from "@tambo-ai/react";
 import { XIcon } from "lucide-react";
+import * as React from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Represents a collapsible message thread component
@@ -27,17 +27,11 @@ const MessageThreadCollapsible = React.forwardRef<
   MessageThreadCollapsibleProps
 >(({ className, contextKey, defaultOpen = false, ...props }, ref) => {
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  const [isMac, setIsMac] = React.useState(false);
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { thread } = useTambo();
-
-  React.useEffect(() => {
-    const isMacOS =
-      typeof navigator !== "undefined" &&
-      navigator.platform.toUpperCase().includes("MAC");
-    setIsMac(isMacOS);
-  }, []);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
