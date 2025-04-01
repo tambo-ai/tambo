@@ -1,6 +1,6 @@
-import * as React from "react";
-import { cva, VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { cva, VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const formVariants = cva("w-full rounded-lg transition-all duration-200", {
   variants: {
@@ -37,10 +37,11 @@ export interface FormField {
 }
 
 export interface FormProps
-  extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit">,
+  extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">,
     VariantProps<typeof formVariants> {
   fields: FormField[];
   onSubmit: (data: Record<string, string>) => void;
+  onError?: string;
   submitText?: string;
 }
 
@@ -50,13 +51,28 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       className,
       variant,
       layout,
-      fields,
+      fields = [],
       onSubmit,
+      onError,
       submitText = "Submit",
       ...props
     },
     ref,
   ) => {
+    const validFields = React.useMemo(() => {
+      return fields.filter((field): field is FormField => {
+        if (!field || typeof field !== "object") {
+          console.warn("Invalid field object detected");
+          return false;
+        }
+        if (!field.id || typeof field.id !== "string") {
+          console.warn("Field missing required id property");
+          return false;
+        }
+        return true;
+      });
+    }, [fields]);
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const formData = new FormData(e.target as HTMLFormElement);
@@ -101,7 +117,15 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
         {...props}
       >
         <div className="p-6 space-y-6">
-          {fields.map((field) => (
+          {onError && (
+            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {onError}
+              </p>
+            </div>
+          )}
+
+          {validFields.map((field) => (
             <div key={field.id} className="space-y-2">
               <label
                 className="block text-sm font-medium text-zinc-900 dark:text-zinc-100"

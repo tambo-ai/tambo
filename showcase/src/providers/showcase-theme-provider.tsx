@@ -16,6 +16,7 @@ export function ShowcaseThemeProvider({
       attribute="class"
       defaultTheme={defaultTheme}
       enableSystem={false}
+      forcedTheme={defaultTheme}
       value={{
         light: "showcase-theme",
         dark: "showcase-theme dark",

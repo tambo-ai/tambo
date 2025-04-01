@@ -84,7 +84,7 @@ declare module "@radix-ui/react-dropdown-menu" {
     children: React.ReactNode;
     className?: string;
     disabled?: boolean;
-    onSelect?: (event: React.MouseEvent) => void;
+    onSelect?: (event: Event) => void;
   }>;
 
   const Separator: React.FC<{
