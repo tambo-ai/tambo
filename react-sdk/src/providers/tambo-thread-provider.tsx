@@ -278,7 +278,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       });
       if (sendToServer) {
         // TODO: if this fails, we need to revert the local state update
-        await client.beta.threads.messages.create(currentThreadId, {
+        await client.beta.threads.messages.create(message.threadId, {
           content: message.content,
           role: message.role,
           // additionalContext: chatMessage.additionalContext,
