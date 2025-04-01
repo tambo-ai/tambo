@@ -1,4 +1,6 @@
 "use client";
+// Use to workaround some TurboPack issues. Normally this is auto-detected.
+import "@tambo-ai/typescript-sdk/shims/web";
 import React, { PropsWithChildren, createContext, useContext } from "react";
 import {
   TamboClientContextProps,
@@ -36,6 +38,11 @@ import {
 export const TamboProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps & TamboRegistryProviderProps>
 > = ({ children, tamboUrl, apiKey, components, environment }) => {
+  // explode if we're not in a browser
+  if (typeof window === "undefined") {
+    throw new Error("TamboProvider must be used within a browser");
+  }
+
   return (
     <TamboClientProvider
       tamboUrl={tamboUrl}
