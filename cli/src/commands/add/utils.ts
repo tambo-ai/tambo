@@ -32,3 +32,32 @@ export function getConfigPath(componentName: string): string {
 export function componentExists(componentName: string): boolean {
   return fs.existsSync(getConfigPath(componentName));
 }
+
+interface ComponentInfo {
+  name: string;
+  description: string;
+  componentName: string;
+}
+
+/**
+ * Gets a list of all available components with their descriptions and component names
+ * @returns An array of ComponentInfo objects
+ */
+export function getComponentList(): ComponentInfo[] {
+  const registryPath = path.join(__dirname, "../../../src/registry");
+  const components = fs
+    .readdirSync(registryPath)
+    .filter((file) => fs.statSync(path.join(registryPath, file)).isDirectory())
+    .filter((dir) => dir !== "config");
+
+  return components.map((componentName) => {
+    const configPath = getConfigPath(componentName);
+    const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+
+    return {
+      name: componentName,
+      description: config.description ?? "No description available",
+      componentName: config.componentName ?? componentName,
+    };
+  });
+}
