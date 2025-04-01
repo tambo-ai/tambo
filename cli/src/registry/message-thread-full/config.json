@@ -1,6 +1,6 @@
 {
   "name": "message-thread-full",
-  "description": "A comprehensive component for displaying a complete message thread with all its content and interactions",
+  "description": "Displays a complete message thread with all its content and interactions",
   "componentName": "MessageThreadFull",
   "dependencies": ["@tambo-ai/react"],
   "devDependencies": [],

@@ -1,6 +1,6 @@
 {
   "name": "input-fields",
-  "description": "A collection of reusable input field components with various styles and validation options",
+  "description": "Provides reusable input fields with various styles and validation options",
   "componentName": "InputFields",
   "dependencies": ["class-variance-authority"],
   "devDependencies": [],

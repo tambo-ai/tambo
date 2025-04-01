@@ -1,6 +1,6 @@
 {
   "name": "graph",
-  "description": "A component for visualizing and interacting with graph-based data structures",
+  "description": "Visualizes and interacts with graph-based data structures",
   "componentName": "Graph",
   "dependencies": ["class-variance-authority", "recharts"],
   "devDependencies": ["@types/recharts"],

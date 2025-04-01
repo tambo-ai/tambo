@@ -1,6 +1,6 @@
 {
   "name": "control-bar",
-  "description": "A toolbar component for providing controls and actions in the interface",
+  "description": "Provides controls and actions in the interface",
   "componentName": "ControlBar",
   "dependencies": ["@tambo-ai/react", "radix-ui"],
   "devDependencies": [],

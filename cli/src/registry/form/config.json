@@ -1,6 +1,6 @@
 {
   "name": "form",
-  "description": "A flexible form component for collecting user input with validation support",
+  "description": "Collects user input with validation support",
   "componentName": "Form",
   "dependencies": ["class-variance-authority"],
   "devDependencies": [],
