@@ -59,10 +59,6 @@ const cli = meow(
         type: "boolean",
         description: "Install dependencies with --legacy-peer-deps flag",
       },
-      version: {
-        type: "boolean",
-        description: "Show version number",
-      },
     },
     importMeta: import.meta,
   },
@@ -139,6 +135,10 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     });
     return;
   }
+
+  // If no command is provided, show help
+  console.log(`Unrecognized command: ${chalk.red(cmd)}`);
+  console.log(cli.help);
 }
 
 // Main execution
@@ -146,7 +146,6 @@ async function main() {
   try {
     const command = cli.input[0];
     const flags = cli.flags;
-
     // Check for latest version before executing command
     await checkLatestVersion();
 
