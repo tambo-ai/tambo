@@ -127,7 +127,10 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
         <div className="flex flex-col items-center mt-2 text-xs">
           <div className="flex items-center gap-1 text-muted-foreground">
             <span>Press</span>
-            <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-xs">
+            <kbd
+              className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-xs"
+              suppressHydrationWarning
+            >
               {modKey}
             </kbd>
             <span>+</span>

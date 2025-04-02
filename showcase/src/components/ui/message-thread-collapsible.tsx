@@ -1,15 +1,15 @@
 "use client";
 
-import * as React from "react";
+import { MessageInput } from "@/components/ui/message-input";
+import { MessageSuggestions } from "@/components/ui/message-suggestions";
+import { ThreadContent } from "@/components/ui/thread-content";
+import { ThreadHistory } from "@/components/ui/thread-history";
 import { cn } from "@/lib/utils";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { ThreadContent } from "@/components/ui/thread-content";
-import { MessageInput } from "@/components/ui/message-input";
-import { useRef, useEffect } from "react";
 import { useTambo } from "@tambo-ai/react";
 import { XIcon } from "lucide-react";
-import { ThreadHistory } from "@/components/ui/thread-history";
-import { MessageSuggestions } from "@/components/ui/message-suggestions";
+import * as React from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Represents a collapsible message thread component
@@ -27,18 +27,12 @@ const MessageThreadCollapsible = React.forwardRef<
   MessageThreadCollapsibleProps
 >(({ className, contextKey, defaultOpen = false, ...props }, ref) => {
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  const [isMac, setIsMac] = React.useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { thread } = useTambo();
 
-  // Detect if user is on Mac or Windows
-  React.useEffect(() => {
-    const isMacOS =
-      typeof navigator !== "undefined" &&
-      navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-    setIsMac(isMacOS);
-  }, []);
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
 
   // Add keyboard shortcut (Command+K) to toggle the collapsible
   React.useEffect(() => {
@@ -111,7 +105,10 @@ const MessageThreadCollapsible = React.forwardRef<
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground pl-8">
+            <span
+              className="text-xs text-muted-foreground pl-8"
+              suppressHydrationWarning
+            >
               {isOpen ? "" : `(${shortcutText})`}
             </span>
             {isOpen && (
