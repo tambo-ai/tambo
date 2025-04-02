@@ -6,25 +6,23 @@ import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
 
 /**
- * Installs a single component and its dependencies
- * @param componentName The name of the component to install
+ * Installs multiple components and their dependencies
+ * @param componentNames Array of component names to install
  * @param options Installation options
  */
-export async function installSingleComponent(
-  componentName: string,
+export async function installComponents(
+  componentNames: string[],
   options: InstallComponentOptions = {},
 ): Promise<void> {
-  const configPath = getConfigPath(componentName);
-
-  if (!componentExists(componentName)) {
-    throw new Error(
-      `Component ${componentName} not found in registry at ${configPath}`,
-    );
+  // Validate all components exist first
+  for (const componentName of componentNames) {
+    const configPath = getConfigPath(componentName);
+    if (!componentExists(componentName)) {
+      throw new Error(
+        `Component ${componentName} not found in registry at ${configPath}`,
+      );
+    }
   }
-
-  const config: ComponentConfig = JSON.parse(
-    fs.readFileSync(configPath, "utf-8"),
-  );
 
   // 1. Create component directory
   const componentDir = path.join(
@@ -53,76 +51,90 @@ export function cn(...inputs: ClassValue[]) {
     fs.writeFileSync(utilsPath, utilsContent.trim());
   }
 
-  // 3. Handle dependencies
-  if (config.dependencies.length > 0 || config.devDependencies?.length > 0) {
-    const packageJson = JSON.parse(
-      fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
+  // 3. Collect all dependencies across components
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
+  );
+  const installedDeps = {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies,
+  };
+
+  const allProdDeps = new Set<string>();
+  const allDevDeps = new Set<string>([
+    "tailwindcss",
+    "postcss",
+    "autoprefixer",
+    "tailwind-merge",
+    "clsx",
+  ]);
+
+  for (const componentName of componentNames) {
+    const config: ComponentConfig = JSON.parse(
+      fs.readFileSync(getConfigPath(componentName), "utf-8"),
     );
-    const installedDeps = {
-      ...packageJson.dependencies,
-      ...packageJson.devDependencies,
-    };
 
-    const prodDeps = config.dependencies.filter((dep) => !installedDeps[dep]);
-    const devDeps = [
-      ...(config.devDependencies || []),
-      "tailwindcss",
-      "postcss",
-      "autoprefixer",
-      "tailwind-merge",
-      "clsx",
-    ].filter((dep) => !installedDeps[dep]);
+    config.dependencies.forEach((dep) => allProdDeps.add(dep));
+    config.devDependencies?.forEach((dep) => allDevDeps.add(dep));
+  }
 
-    if (prodDeps.length > 0 || devDeps.length > 0) {
-      if (!options.silent) {
-        console.log(
-          `${chalk.green("✔")} Installing dependencies for ${componentName}...`,
-        );
+  // Filter out already installed dependencies
+  const prodDeps = Array.from(allProdDeps).filter((dep) => !installedDeps[dep]);
+  const devDeps = Array.from(allDevDeps).filter((dep) => !installedDeps[dep]);
+
+  // 4. Install all dependencies at once
+  if (prodDeps.length > 0 || devDeps.length > 0) {
+    if (!options.silent) {
+      console.log(
+        `${chalk.green("✔")} Installing dependencies for ${componentNames.join(", ")}...`,
+      );
+    }
+
+    try {
+      const legacyFlag = options.legacyPeerDeps ? " --legacy-peer-deps" : "";
+
+      if (prodDeps.length > 0) {
+        execSync(`npm install${legacyFlag} ${prodDeps.join(" ")}`, {
+          stdio: "inherit",
+          encoding: "utf-8",
+        });
       }
-
-      try {
-        // Add legacy-peer-deps flag if specified in options
-        const legacyFlag = options.legacyPeerDeps ? " --legacy-peer-deps" : "";
-
-        if (prodDeps.length > 0) {
-          execSync(`npm install${legacyFlag} ${prodDeps.join(" ")}`, {
-            stdio: "inherit",
-            encoding: "utf-8",
-          });
-        }
-        if (devDeps.length > 0) {
-          execSync(`npm install -D${legacyFlag} ${devDeps.join(" ")}`, {
-            stdio: "inherit",
-            encoding: "utf-8",
-          });
-        }
-      } catch (error) {
-        throw new Error(
-          `Failed to install dependencies for ${componentName}: ${error}`,
-        );
+      if (devDeps.length > 0) {
+        execSync(`npm install -D${legacyFlag} ${devDeps.join(" ")}`, {
+          stdio: "inherit",
+          encoding: "utf-8",
+        });
       }
+    } catch (error) {
+      throw new Error(`Failed to install dependencies: ${error}`);
     }
   }
 
-  // 4. Copy component files
+  // 5. Copy component files
   let filesAdded = 0;
-  for (const file of config.files) {
-    const sourcePath = path.join(getRegistryPath(componentName), file.name);
-    const targetPath = path.join(componentDir, file.name);
+  for (const componentName of componentNames) {
+    const config: ComponentConfig = JSON.parse(
+      fs.readFileSync(getConfigPath(componentName), "utf-8"),
+    );
 
-    if (!fs.existsSync(targetPath) || options.forceUpdate) {
-      if (fs.existsSync(sourcePath)) {
-        fs.copyFileSync(sourcePath, targetPath);
-      } else {
-        fs.writeFileSync(targetPath, file.content);
+    for (const file of config.files) {
+      const sourcePath = path.join(getRegistryPath(componentName), file.name);
+      const targetPath = path.join(componentDir, file.name);
+
+      if (!fs.existsSync(targetPath) || options.forceUpdate) {
+        if (fs.existsSync(sourcePath)) {
+          fs.copyFileSync(sourcePath, targetPath);
+        } else {
+          fs.writeFileSync(targetPath, file.content);
+        }
+        filesAdded++;
       }
-      filesAdded++;
     }
   }
 
   if (!options.silent && filesAdded > 0) {
     console.log(
-      `${chalk.green("✔")} ${options.forceUpdate ? "Updated" : "Installed"} ${componentName}`,
+      `${chalk.green("✔")} ${options.forceUpdate ? "Updated" : "Installed"} ${componentNames.join(", ")}`,
     );
   }
 }

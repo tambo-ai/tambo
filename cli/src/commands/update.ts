@@ -2,7 +2,7 @@ import chalk from "chalk";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
-import { installSingleComponent } from "./add/component.js";
+import { installComponents } from "./add/component.js";
 import { componentExists } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
 
@@ -86,7 +86,7 @@ export async function handleUpdateComponent(
     }
 
     // Perform the update by reinstalling the component
-    await installSingleComponent(componentName, {
+    await installComponents([componentName], {
       ...options,
       forceUpdate: true,
       installPath: location.installPath,
