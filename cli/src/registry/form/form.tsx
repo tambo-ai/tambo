@@ -38,26 +38,71 @@ const formVariants = cva("w-full rounded-lg transition-all duration-200", {
  * @property {boolean} [required] - Whether the field is required
  * @property {string} [description] - Additional description text for the field
  */
-
 export interface FormField {
+  /**
+   * The unique identifier for the field
+   */
   id: string;
+  /**
+   * The type of form field
+   */
   type: "text" | "number" | "select" | "textarea";
+  /**
+   * The display label for the field
+   */
   label: string;
+  /**
+   * The placeholder text for the field
+   */
   placeholder?: string;
+  /**
+   * The options for select fields
+   */
   options?: string[];
+  /**
+   * Whether the field is required
+   */
   required?: boolean;
+  /**
+   * The description text for the field
+   */
   description?: string;
 }
 
 export interface FormProps
   extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">,
     VariantProps<typeof formVariants> {
+  /**
+   * The fields for the form component
+   */
   fields: FormField[];
+  /**
+   * The function to call when the form is submitted
+   */
   onSubmit: (data: Record<string, string>) => void;
+  /**
+   * The error message to display if the form is submitted with errors
+   */
   onError?: string;
+  /**
+   * The text to display on the submit button
+   */
   submitText?: string;
 }
 
+/**
+ * Represents a simple form component that can be used to create and submit forms based on a list of fields.
+ *
+ * This allows for a generic form field that can be used to create a form field for any type of data.
+ *
+ * @param {FormProps} props - The props for the form component
+ * @param {string} props.className - The class name for the form component
+ * @param {string} props.variant - The variant for the form component
+ * @param {string} props.layout - The layout style for the form component, can be "default", "compact", or "relaxed"
+ * @param {FormField[]} props.fields - The fields for the form component
+ * @param {Function} props.onSubmit - The function to call when the form is submitted
+ * @param {string} props.onError - The error message to display if the form is submitted with errors
+ */
 const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
   (
     {
