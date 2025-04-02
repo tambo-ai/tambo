@@ -1,26 +1,38 @@
 "use client";
 
-import * as React from "react";
-import { useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { ThreadContent } from "@/components/ui/thread-content";
 import { MessageInput } from "@/components/ui/message-input";
-import { useTambo } from "@tambo-ai/react";
+import { ThreadContent } from "@/components/ui/thread-content";
+import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useTambo } from "@tambo-ai/react";
+import * as React from "react";
+import { useEffect, useRef } from "react";
 
 /**
- * A control bar component for managing Tambo threads
- * @property {string} className - Optional className for custom styling
- * @property {string} contextKey - Tambo thread context key for message routing
- * @property {string} hotkey - Keyboard shortcut for opening the control bar
+ * Props for the ControlBar component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
  */
-
 export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional context key for the thread */
   contextKey?: string;
+  /** Keyboard shortcut for toggling the control bar (default: "mod+k") */
   hotkey?: string;
 }
 
-const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
+/**
+ * A floating control bar component for quick access to chat functionality
+ * @component
+ * @example
+ * ```tsx
+ * <ControlBar
+ *   contextKey="my-thread"
+ *   hotkey="mod+k"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
   ({ className, contextKey, hotkey = "mod+k", ...props }, ref) => {
     const [open, setOpen] = React.useState(false);
     const isMac =
@@ -101,5 +113,3 @@ const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
   },
 );
 ControlBar.displayName = "ControlBar";
-
-export { ControlBar };

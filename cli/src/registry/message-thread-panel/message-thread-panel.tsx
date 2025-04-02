@@ -1,28 +1,43 @@
 "use client";
 
-import * as React from "react";
-import { useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
-import { ThreadContent } from "@/components/ui/thread-content";
 import { MessageInput } from "@/components/ui/message-input";
 import { MessageSuggestions } from "@/components/ui/message-suggestions";
+import { ThreadContent } from "@/components/ui/thread-content";
 import { ThreadHistory } from "@/components/ui/thread-history";
+import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
+import * as React from "react";
+import { useEffect, useRef } from "react";
 
 /**
- * Represents a message thread panel component
- * @property {string} className - Optional className for custom styling
- * @property {string} contextKey - Optional context key for the Tambo thread
- * @property {React.ReactNode} children - Optional content to render in the left panel of the grid
+ * Props for the MessageThreadPanel component
+ * @interface
  */
-
 export interface MessageThreadPanelProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * Optional key to identify the context of the thread
+   * Used to maintain separate thread histories for different contexts
+   */
   contextKey?: string;
+  /** Optional content to render in the left panel of the grid */
   children?: React.ReactNode;
 }
 
-const MessageThreadPanel = React.forwardRef<
+/**
+ * A resizable panel component that displays a chat thread with message history, input, and suggestions
+ * @component
+ * @example
+ * ```tsx
+ * <MessageThreadPanel
+ *   contextKey="my-thread"
+ *   className="custom-styles"
+ * >
+ *   <SidebarContent />
+ * </MessageThreadPanel>
+ * ```
+ */
+export const MessageThreadPanel = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
 >(({ className, contextKey, ...props }, ref) => {
@@ -103,5 +118,3 @@ const MessageThreadPanel = React.forwardRef<
   );
 });
 MessageThreadPanel.displayName = "MessageThreadPanel";
-
-export { MessageThreadPanel };

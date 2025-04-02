@@ -10,16 +10,28 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 
 /**
- * Represents a full message thread component
- * @property {string} className - Optional className for custom styling
+ * Props for the MessageThreadFull component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
  */
-
 export interface MessageThreadFullProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional context key for the thread */
   contextKey?: string;
 }
 
-const MessageThreadFull = React.forwardRef<
+/**
+ * A full-screen chat thread component with message history, input, and suggestions
+ * @component
+ * @example
+ * ```tsx
+ * <MessageThreadFull
+ *   contextKey="my-thread"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
 >(({ className, contextKey, ...props }, ref) => {
@@ -70,5 +82,3 @@ const MessageThreadFull = React.forwardRef<
   );
 });
 MessageThreadFull.displayName = "MessageThreadFull";
-
-export { MessageThreadFull };

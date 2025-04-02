@@ -12,17 +12,31 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 
 /**
- * Represents a collapsible message thread component
- * @property {string} className - Optional className for custom styling
+ * Props for the MessageThreadCollapsible component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
  */
-
 export interface MessageThreadCollapsibleProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional context key for the thread */
   contextKey?: string;
+  /** Whether the collapsible should be open by default (default: false) */
   defaultOpen?: boolean;
 }
 
-const MessageThreadCollapsible = React.forwardRef<
+/**
+ * A collapsible chat thread component with keyboard shortcuts and thread management
+ * @component
+ * @example
+ * ```tsx
+ * <MessageThreadCollapsible
+ *   contextKey="my-thread"
+ *   defaultOpen={false}
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const MessageThreadCollapsible = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleProps
 >(({ className, contextKey, defaultOpen = false, ...props }, ref) => {
@@ -140,5 +154,3 @@ const MessageThreadCollapsible = React.forwardRef<
   );
 });
 MessageThreadCollapsible.displayName = "MessageThreadCollapsible";
-
-export { MessageThreadCollapsible };
