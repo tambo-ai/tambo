@@ -141,7 +141,7 @@ async function handleAuthentication(): Promise<boolean> {
             type: "confirm",
             name: "confirmReplace",
             message: chalk.yellow(
-              `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`
+              `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`,
             ),
             default: false,
           },
