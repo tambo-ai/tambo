@@ -30,18 +30,18 @@ async function checkExistingApiKey(): Promise<string | null> {
       const content = fs.readFileSync(file, "utf8");
       const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
       if (match?.[1]) {
-        const { useExisting } = await inquirer.prompt([
+        const { overwriteExisting } = await inquirer.prompt([
           {
             type: "confirm",
-            name: "useExisting",
+            name: "overwriteExisting",
             message: chalk.yellow(
-              `Found existing API key in ${file}. Would you like to use it?`,
+              `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
             ),
             default: true,
           },
         ]);
 
-        if (useExisting) {
+        if (!overwriteExisting) {
           return match[1].trim();
         }
       }
@@ -141,7 +141,7 @@ async function handleAuthentication(): Promise<boolean> {
             type: "confirm",
             name: "confirmReplace",
             message: chalk.yellow(
-              "⚠️  An existing API key was found. Do you want to replace it?",
+              `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`,
             ),
             default: false,
           },

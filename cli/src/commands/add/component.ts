@@ -27,9 +27,16 @@ export async function installSingleComponent(
   );
 
   // 1. Create component directory
-  const basePath = options.installPath ?? "src/components";
-  const componentDir = path.join(process.cwd(), basePath, "ui");
-  const libDir = path.join(process.cwd(), basePath, "lib");
+  const componentDir = path.join(
+    process.cwd(),
+    options.installPath ?? "components",
+    "ui",
+  );
+  const libDir = path.join(
+    process.cwd(),
+    path.dirname(options.installPath ?? "components"),
+    "lib",
+  );
   fs.mkdirSync(componentDir, { recursive: true });
   fs.mkdirSync(libDir, { recursive: true });
 

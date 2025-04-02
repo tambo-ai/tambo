@@ -23,6 +23,8 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
 const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
   ({ className, contextKey, hotkey = "mod+k", ...props }, ref) => {
     const [open, setOpen] = React.useState(false);
+    const isMac =
+      typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
     const { thread } = useTambo();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +59,15 @@ const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
 
     return (
       <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Trigger asChild>
+          <button className="fixed bottom-4 right-4 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors">
+            Talk to AI (
+            <span suppressHydrationWarning>
+              {hotkey.replace("mod", isMac ? "⌘" : "Ctrl")}
+            </span>
+            )
+          </button>
+        </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/40" />
           <Dialog.Content
