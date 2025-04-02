@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.32.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.4...repo-v0.32.5) (2025-04-02)
+
+
+### Documentation
+
+* update docs to include info about "use client" ([#661](https://github.com/tambo-ai/tambo-cloud/issues/661)) ([9150bbe](https://github.com/tambo-ai/tambo-cloud/commit/9150bbed3c1fc79e9559c9a09bcecca3552c1189))
+
+
+### Miscellaneous Chores
+
+* update site configuration and image components for enhanced branding and messaging ([#663](https://github.com/tambo-ai/tambo-cloud/issues/663)) ([5e10ac4](https://github.com/tambo-ai/tambo-cloud/commit/5e10ac49ca7f33d44db8af298c099131b69adf31))
+
 ## [0.32.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.3...repo-v0.32.4) (2025-04-01)
 
 
