@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.5...repo-v0.32.6) (2025-04-02)
+
+
+### Bug Fixes
+
+* **cli:** enhance API key management and validation in project dialogs ([#664](https://github.com/tambo-ai/tambo-cloud/issues/664)) ([b403c2a](https://github.com/tambo-ai/tambo-cloud/commit/b403c2a2f52cdc1d83e60bc19f5770c95769c0b2))
+
 ## [0.32.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.4...repo-v0.32.5) (2025-04-02)
 
 
