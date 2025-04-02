@@ -220,7 +220,7 @@ npm run test
 
 ## Resources
 
-- [React Package Documentation](./react/README.md)
+- [React Package Documentation](./react-sdk/README.md)
 - [Showcase Documentation](./showcase/README.md)
 
 ## License
