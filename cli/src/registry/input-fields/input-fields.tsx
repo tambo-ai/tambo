@@ -98,7 +98,7 @@ export interface InputFieldsProps
  * />
  * ```
  */
-const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
+export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
   ({ className, variant, size, fields, ...props }, ref) => {
     return (
       <div
@@ -170,5 +170,3 @@ const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
   },
 );
 InputFields.displayName = "InputFields";
-
-export { InputFields, inputFieldsVariants };

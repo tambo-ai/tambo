@@ -8,20 +8,6 @@ import * as React from "react";
 import ReactMarkdown from "react-markdown";
 
 /**
- * A component that renders a chat message with support for markdown content and custom styling
- * @component
- * @example
- * ```tsx
- * <Message
- *   role="user"
- *   content="Hello, how are you?"
- *   message={threadMessage}
- *   variant="solid"
- * />
- * ```
- */
-
-/**
  * CSS variants for the message container
  * @typedef {Object} MessageVariants
  * @property {string} default - Default styling
@@ -101,7 +87,20 @@ export interface MessageProps {
   isLoading?: boolean;
 }
 
-const Message = React.forwardRef<HTMLDivElement, MessageProps>(
+/**
+ * A component that renders a chat message with support for markdown content and custom styling
+ * @component
+ * @example
+ * ```tsx
+ * <Message
+ *   role="user"
+ *   content="Hello, how are you?"
+ *   message={threadMessage}
+ *   variant="solid"
+ * />
+ * ```
+ */
+export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
   (
     { className, role, content, variant, message, isLoading, ...props },
     ref,
@@ -166,4 +165,4 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
 );
 Message.displayName = "Message";
 
-export { Message, messageVariants };
+export { messageVariants };

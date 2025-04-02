@@ -63,7 +63,7 @@ export interface ThreadListProps
  * />
  * ```
  */
-const ThreadList = React.forwardRef<HTMLDivElement, ThreadListProps>(
+export const ThreadList = React.forwardRef<HTMLDivElement, ThreadListProps>(
   (
     {
       className,
@@ -125,4 +125,4 @@ const ThreadList = React.forwardRef<HTMLDivElement, ThreadListProps>(
 );
 ThreadList.displayName = "ThreadList";
 
-export { ThreadList, threadListVariants };
+export { threadListVariants };

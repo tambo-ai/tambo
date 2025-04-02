@@ -10,20 +10,6 @@ import * as React from "react";
 import { useEffect, useRef } from "react";
 
 /**
- * A resizable panel component that displays a chat thread with message history, input, and suggestions
- * @component
- * @example
- * ```tsx
- * <MessageThreadPanel
- *   contextKey="my-thread"
- *   className="custom-styles"
- * >
- *   <SidebarContent />
- * </MessageThreadPanel>
- * ```
- */
-
-/**
  * Props for the MessageThreadPanel component
  * @interface
  * @extends React.HTMLAttributes<HTMLDivElement>
@@ -39,7 +25,20 @@ export interface MessageThreadPanelProps
   children?: React.ReactNode;
 }
 
-const MessageThreadPanel = React.forwardRef<
+/**
+ * A resizable panel component that displays a chat thread with message history, input, and suggestions
+ * @component
+ * @example
+ * ```tsx
+ * <MessageThreadPanel
+ *   contextKey="my-thread"
+ *   className="custom-styles"
+ * >
+ *   <SidebarContent />
+ * </MessageThreadPanel>
+ * ```
+ */
+export const MessageThreadPanel = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
 >(({ className, contextKey, ...props }, ref) => {
@@ -120,5 +119,3 @@ const MessageThreadPanel = React.forwardRef<
   );
 });
 MessageThreadPanel.displayName = "MessageThreadPanel";
-
-export { MessageThreadPanel };

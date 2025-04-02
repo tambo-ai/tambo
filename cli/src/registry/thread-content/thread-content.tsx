@@ -44,64 +44,63 @@ export interface ThreadContentProps
  * />
  * ```
  */
-const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
-  ({ className, variant, ...props }, ref) => {
-    const { thread, generationStage } = useTambo();
-    const messages = thread?.messages ?? [];
-    const isGenerating = generationStage === "STREAMING_RESPONSE";
+export const ThreadContent = React.forwardRef<
+  HTMLDivElement,
+  ThreadContentProps
+>(({ className, variant, ...props }, ref) => {
+  const { thread, generationStage } = useTambo();
+  const messages = thread?.messages ?? [];
+  const isGenerating = generationStage === "STREAMING_RESPONSE";
 
-    return (
-      <div
-        ref={ref}
-        className={cn(threadContentVariants({ variant }), className)}
-        {...props}
-      >
-        {messages.map((message, index) => {
-          const showLoading = isGenerating && index === messages.length - 1;
-          const messageContent = Array.isArray(message.content)
-            ? (message.content[0]?.text ?? "Empty message")
-            : typeof message.content === "string"
-              ? message.content
-              : "Empty message";
+  return (
+    <div
+      ref={ref}
+      className={cn(threadContentVariants({ variant }), className)}
+      {...props}
+    >
+      {messages.map((message, index) => {
+        const showLoading = isGenerating && index === messages.length - 1;
+        const messageContent = Array.isArray(message.content)
+          ? (message.content[0]?.text ?? "Empty message")
+          : typeof message.content === "string"
+            ? message.content
+            : "Empty message";
 
-          return (
+        return (
+          <div
+            key={
+              message.id ??
+              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
+            }
+            className={cn(
+              "animate-in fade-in-0 slide-in-from-bottom-2",
+              "duration-200 ease-in-out",
+            )}
+            style={{ animationDelay: `${index * 40}ms` }}
+          >
             <div
-              key={
-                message.id ??
-                `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
-              }
               className={cn(
-                "animate-in fade-in-0 slide-in-from-bottom-2",
-                "duration-200 ease-in-out",
+                "flex flex-col gap-1.5",
+                message.role === "user" ? "ml-auto mr-0" : "ml-0 mr-auto",
+                "max-w-[85%]",
               )}
-              style={{ animationDelay: `${index * 40}ms` }}
             >
-              <div
-                className={cn(
-                  "flex flex-col gap-1.5",
-                  message.role === "user" ? "ml-auto mr-0" : "ml-0 mr-auto",
-                  "max-w-[85%]",
-                )}
-              >
-                <Message
-                  role={
-                    message.role === "hydra" || message.role === "assistant"
-                      ? "assistant"
-                      : "user"
-                  }
-                  content={messageContent}
-                  variant={variant}
-                  message={message}
-                  isLoading={showLoading}
-                />
-              </div>
+              <Message
+                role={
+                  message.role === "hydra" || message.role === "assistant"
+                    ? "assistant"
+                    : "user"
+                }
+                content={messageContent}
+                variant={variant}
+                message={message}
+                isLoading={showLoading}
+              />
             </div>
-          );
-        })}
-      </div>
-    );
-  },
-);
+          </div>
+        );
+      })}
+    </div>
+  );
+});
 ThreadContent.displayName = "ThreadContent";
-
-export { ThreadContent, threadContentVariants };
