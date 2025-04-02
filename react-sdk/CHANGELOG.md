@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.7](https://github.com/tambo-ai/tambo/compare/react-v0.19.6...react-v0.19.7) (2025-04-02)
+
+
+### Documentation
+
+* update README files for React SDK and CLI, fix links and enhance installation instructions ([#251](https://github.com/tambo-ai/tambo/issues/251)) ([fa85f17](https://github.com/tambo-ai/tambo/commit/fa85f1701fe27fdd59b4d7f0f6741c392c08808d))
+
 ## [0.19.6](https://github.com/tambo-ai/tambo/compare/react-v0.19.5...react-v0.19.6) (2025-04-02)
 
 
