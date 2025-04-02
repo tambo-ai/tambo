@@ -32,6 +32,11 @@ interface CreateProjectDialogProps {
  * - Loading state during creation
  * - Keyboard support (Enter to submit)
  */
+
+const isValidOpenAIKey = (key: string): boolean => {
+  return key.startsWith("sk-") && key.length >= 51;
+};
+
 export const CreateProjectDialog = memo(function CreateProjectDialog({
   state,
   isCreating,
@@ -58,7 +63,17 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
 
   const handleProviderKeyChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      onStateChange({ ...state, providerKey: e.target.value });
+      const newKey = e.target.value;
+      onStateChange({ ...state, providerKey: newKey });
+
+      // Show warning if key format is invalid
+      if (newKey && !isValidOpenAIKey(newKey)) {
+        e.target.setCustomValidity(
+          "Please enter a valid OpenAI API key (starts with sk-)",
+        );
+      } else {
+        e.target.setCustomValidity("");
+      }
     },
     [state, onStateChange],
   );
@@ -78,6 +93,11 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
     [isCreating, state.name, state.providerKey, onConfirm],
   );
 
+  const isFormValid =
+    state.name.trim() &&
+    state.providerKey.trim() &&
+    isValidOpenAIKey(state.providerKey);
+
   return (
     <Dialog open={state.isOpen} onOpenChange={handleOpenChange}>
       <DialogContent>
@@ -87,7 +107,16 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
             Enter a name for your new project and your OpenAI API key.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <form
+          className="py-4 space-y-4"
+          autoComplete="off"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!isCreating && isFormValid) {
+              onConfirm();
+            }
+          }}
+        >
           <div>
             <label
               htmlFor="projectName"
@@ -104,6 +133,7 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
               placeholder="My Project"
               className="w-full px-3 py-2 border rounded-md text-sm"
               autoFocus
+              name="project-name"
             />
           </div>
           <div>
@@ -121,37 +151,38 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
               onKeyDown={handleKeyDown}
               placeholder="sk-..."
               className="w-full px-3 py-2 border rounded-md text-sm"
+              autoComplete="new-password"
+              name="openai-api-key"
+              pattern="sk-.*"
+              title="OpenAI API key must start with 'sk-'"
             />
             <p className="text-xs text-gray-500 mt-1">
-              tambo will use your API key to make AI calls on your behalf until
-              we implement our payment system.
+              Enter a valid OpenAI API key (starts with sk-). tambo will use
+              your API key to make AI calls on your behalf until we implement
+              our payment system.
             </p>
           </div>
-        </div>
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="ghost"
-            onClick={() => handleOpenChange(false)}
-            disabled={isCreating}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={
-              isCreating || !state.name.trim() || !state.providerKey.trim()
-            }
-          >
-            {isCreating ? (
-              <>
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              "Create Project"
-            )}
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => handleOpenChange(false)}
+              disabled={isCreating}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isCreating || !isFormValid}>
+              {isCreating ? (
+                <>
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Project"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

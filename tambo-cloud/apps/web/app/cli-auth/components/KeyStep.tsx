@@ -22,6 +22,7 @@ interface KeyStepProps {
   onDeleteClick: (keyId: string, keyName: string) => void;
   providerKey: string | null;
   onProviderKeyChange: (key: string) => Promise<void>;
+  projectName: string;
 }
 
 /**
@@ -45,6 +46,7 @@ export function KeyStep({
   onDeleteClick,
   providerKey,
   onProviderKeyChange,
+  projectName,
 }: KeyStepProps) {
   const { toast } = useToast();
   const [isEditingProviderKey, setIsEditingProviderKey] = useState(false);
@@ -113,6 +115,14 @@ export function KeyStep({
             Back to Projects
           </Button>
         </div>
+
+        <div className="space-y-1">
+          <h2 className="text-xl font-medium">{projectName}</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage API keys for this project
+          </p>
+        </div>
+
         <div className="p-4 bg-muted rounded-lg space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">Your New API Key</p>
@@ -202,6 +212,13 @@ export function KeyStep({
         </Button>
       </div>
 
+      <div className="space-y-1">
+        <h2 className="text-xl font-medium">{projectName}</h2>
+        <p className="text-sm text-muted-foreground">
+          Manage API keys for this project
+        </p>
+      </div>
+
       <div className="p-4 bg-muted rounded-lg space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium">OpenAI API Key</p>
@@ -248,16 +265,12 @@ export function KeyStep({
             autoFocus
           />
         ) : (
-          <p className="text-sm text-muted-foreground font-mono">
-            {providerKey ? "••••••" + providerKey.slice(-4) : "No API key set"}
+          <p className="text-sm text-muted-foreground font-mono break-all">
+            {providerKey
+              ? `${providerKey.slice(0, 4)}${"*".repeat(20)}`
+              : "No API key set"}
           </p>
         )}
-      </div>
-
-      <div className="text-center mb-4">
-        <p className="text-sm text-muted-foreground">
-          Manage API keys for your CLI application
-        </p>
       </div>
 
       {isLoading ? (
@@ -270,7 +283,7 @@ export function KeyStep({
         </div>
       ) : existingKeys && existingKeys.length > 0 ? (
         <div className="space-y-3">
-          <div className="text-sm font-medium">Existing API Keys</div>
+          <div className="text-sm font-medium">Existing tambo API Keys</div>
           <div className="space-y-2 max-h-[240px] overflow-y-auto pr-2">
             {existingKeys.map((key) => (
               <div
@@ -283,7 +296,12 @@ export function KeyStep({
                     {key.partiallyHiddenKey}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Created {key.createdAt.toLocaleDateString()}
+                    Created{" "}
+                    {new Date(key.createdAt).toLocaleDateString("en-US", {
+                      month: "numeric",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </p>
                 </div>
                 <Button
