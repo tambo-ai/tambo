@@ -4,14 +4,27 @@ import { env } from "@/lib/env";
 export const BLUR_FADE_DELAY = 0.15;
 
 export const siteConfig = {
-  name: "tambo",
-  description: "Build AI-powered apps in just one line of code.",
+  name: "tambo-ai",
+  description:
+    "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
   url: env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   keywords: [
-    "AI UI Generation",
-    "React Components",
-    "Adaptive Interfaces",
-    "UI Automation",
+    "AI-Powered React Components",
+    "Contextual UI Generation",
+    "Dynamic Interface Adaptation",
+    "Conversational UI Framework",
+    "React AI Integration",
+    "Intelligent Component Routing",
+    "Adaptive User Experiences",
+    "Context-Aware Interfaces",
+    "Natural Language UI",
+    "AI UX Development",
+    "React User Experience",
+    "AI-Driven Component Selection",
+    "AI Co-Pilot for React",
+    "UI Co-Agent Framework",
+    "Developer Co-Pilot",
+    "Automated UI Assistant",
   ],
   links: {
     email: "support@tambo.co",
@@ -20,22 +33,38 @@ export const siteConfig = {
     github: "https://github.com/tambo-ai/tambo",
   },
   metadata: {
-    title: "Build AI-powered apps in just one line of code | tambo",
+    title: "An AI-Powered Interface in a Few Lines of Code | tambo-ai",
     description:
-      "tambo is an AI-powered router that surfaces the right features to users based on context. Build adaptive UIs for your web app with ease.",
+      "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
     icons: {
       icon: "/favicon.ico",
     },
     openGraph: {
-      title: "Build AI-powered apps in just one line of code | tambo",
+      title: "tambo-ai - An AI-Powered Interface in a Few Lines of Code",
       description:
-        "tambo is an AI-powered router that surfaces the right features to users based on context",
+        "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
+      images: [
+        {
+          url: "/opengraph-image.png",
+          width: 1200,
+          height: 630,
+          alt: "Screenshot of tambo-ai's adaptive UI component selection interface",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Build AI-powered apps in just one line of code | tambo",
+      title: "An AI-Powered Interface in a Few Lines of Code | tambo-ai",
       description:
-        "tambo is an AI-powered router that surfaces the right features to users based on context",
+        "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
+      images: [
+        {
+          url: "/twitter-image.png",
+          width: 1200,
+          height: 630,
+          alt: "Screenshot of tambo-ai's adaptive UI component selection interface",
+        },
+      ],
     },
   },
   footer: {
@@ -55,7 +84,7 @@ export const siteConfig = {
       { text: "Twitter", url: "https://x.com/tambo_ai" },
     ],
     bottomText: "Fractal Dynamics Inc © 2024",
-    brandText: "tambo ai",
+    brandText: "tambo-ai",
   },
 };
 
