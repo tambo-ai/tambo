@@ -3,7 +3,7 @@ import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
 import { getInstallationPath } from "../init.js";
-import { installSingleComponent } from "./component.js";
+import { installComponents } from "./component.js";
 import { resolveComponentDependencies } from "./dependencies.js";
 import { setupTailwindandGlobals } from "./tailwind.js";
 import type { InstallComponentOptions } from "./types.js";
@@ -84,9 +84,7 @@ export async function handleAddComponent(
     }
 
     // 6. Install components in order (dependencies first)
-    for (const component of newComponents) {
-      await installSingleComponent(component, { ...options, installPath });
-    }
+    await installComponents(newComponents, { ...options, installPath });
 
     // 7. Setup Tailwind and globals.css after all components are installed
     await setupTailwindandGlobals(process.cwd());
