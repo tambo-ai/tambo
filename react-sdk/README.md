@@ -25,74 +25,135 @@ You get clean React hooks that integrate seamlessly with your codebase.
 [![GitHub last commit](https://img.shields.io/github/last-commit/tambo-ai/tambo.svg)](https://github.com/tambo-ai/tambo/commits/main)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-blue.svg)](https://discord.gg/dJNvPEHth6)
 
-### Get Started in Minutes
-
-One command to set up everything:
-
-```bash
-npx tambo --full-send
-```
-
-Then wrap your app with the provider:
-
-```tsx
-import { TamboProvider } from "@tambo-ai/react";
-
-<TamboProvider apiKey="your-api-key" model="claude-3-5-sonnet-20240620">
-  <App />
-</TamboProvider>;
-```
-
-Add the message thread component to your app:
-
-```tsx
-import MessageThread from "ui/components/MessageThread";
-
-function App() {
-  return (
-    <div>
-      {/* Your existing UI */}
-      <MessageThread />
-    </div>
-  );
-}
-```
-
-That's it! Your app now has an AI copilot that generates UI components on demand.
-
-Support our development by starring the repository: [Star on GitHub](https://github.com/tambo-ai/tambo)
-
 ## Installation
 
 ```bash
 npm install @tambo-ai/react
 ```
 
-## Core Concepts
+## Quick Start
 
-### 1. Component Registration
+Use our template:
 
-Define which components your AI assistant can use to respond to users:
+```bash
+git clone https://github.com/tambo-ai/tambo-template.git && cd tambo-template && npm install && npx tambo init
 
-```tsx
-import { z } from "zod";
-
-// Recommended: Using Zod for type-safe props definition
-registerComponent({
-  component: DataChart,
-  name: "DataChart",
-  description: "Displays data as a chart",
-  propsSchema: z.object({
-    data: z.object({
-      labels: z.array(z.string()),
-      values: z.array(z.number()),
-    }),
-    type: z.enum(["bar", "line", "pie"]),
-  }),
-});
+npm run dev
 ```
 
-You can also use `z.describe()` for extra prompting to the ai:
+or try adding it to your existing project:
+
+```bash
+npx tambo full-send
+```
+
+## Basic Usage
+
+1. Add tambo ai to your React app with a simple provider pattern:
+
+```jsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider apiKey="your-api-key">
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+2. Displaying a message thread:
+
+```jsx
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
+
+function ChatInterface() {
+  const { thread, sendThreadMessage } = useTambo();
+  const { value, setValue, submit } = useTamboThreadInput();
+
+  return (
+    <div>
+      {/* Display messages */}
+      <div>
+        {thread.messages.map((message, index) => (
+          <div key={index} className={`message ${message.role}`}>
+            <div>{message.content}</div>
+            {message.component && message.component.renderedComponent}
+          </div>
+        ))}
+      </div>
+
+      {/* Input form */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit();
+        }}
+        className="input-form"
+      >
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Type your message..."
+        />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  );
+}
+```
+
+## Core Features
+
+- **Specialized hooks for specific needs:**
+
+  - `useTambo` - Primary entrypoint for the Tambo React SDK
+  - `useTamboThreadInput` - Input state and submission
+  - `useTamboSuggestions` - AI-powered message suggestions
+  - `useTamboThreadList` - Conversation management
+  - `useTamboComponentState` - AI-generated component state
+  - `useTamboThread` - Access to current thread context
+
+- **Component registration for AI-generated UI**
+- **Tool integration for your data sources**
+- **Streaming responses for real-time interactions**
+
+## Component Registration
+
+Define which components your AI assistant can use to respond to users by passing them to the TamboProvider:
+
+```jsx
+import { TamboProvider } from "@tambo-ai/react";
+import { WeatherCard } from "./components/WeatherCard";
+import { z } from "zod";
+
+// Define your components
+const components = [
+  {
+    name: "WeatherCard",
+    description: "A component that displays weather information",
+    component: WeatherCard,
+    propsSchema: z.object({
+      temperature: z.number(),
+      condition: z.string(),
+      location: z.string(),
+    }),
+  },
+];
+
+// Pass them to the provider
+function App() {
+  return (
+    <TamboProvider apiKey="your-api-key" components={components}>
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+You can also use `z.describe()` for extra prompting to the AI:
 
 ```tsx
 import { z } from "zod";
@@ -110,26 +171,15 @@ schema = z.object({
 });
 ```
 
-Alternative: Using JSON object (like JSON Schema)
-Note: Use either propsSchema OR propsDefinition, not both
-
-```tsx
-registerComponent({
-  component: DataChart,
-  name: "DataChart",
-  description: "Displays data as a chart",
-  propsDefinition: {
-    data: "{ labels: string[]; values: number[] }",
-    type: "'bar' | 'line' | 'pie'",
-  },
-});
-```
-
-### 2. Tool Integration
+## Tool Integration
 
 Connect your data sources without writing complex integration code:
 
-```tsx
+```jsx
+import { TamboProvider } from "@tambo-ai/react";
+import { WeatherCard } from "./components/WeatherCard";
+import { z } from "zod";
+
 // Define a tool with Zod schema
 const dataTool = {
   name: "fetchData",
@@ -143,9 +193,44 @@ const dataTool = {
     .returns(z.any()),
 };
 
-// Associate tool with component
-registerComponent({
-  // ...component details
-  associatedTools: [dataTool],
-});
+// Define your components with associated tools
+const components = [
+  {
+    name: "WeatherCard",
+    description: "A component that displays weather information",
+    component: WeatherCard,
+    propsSchema: z.object({
+      temperature: z.number(),
+      condition: z.string(),
+      location: z.string(),
+    }),
+    associatedTools: [dataTool], // Associate the tool with the component
+  },
+];
+
+// Pass them to the provider
+function App() {
+  return (
+    <TamboProvider apiKey="your-api-key" components={components}>
+      <YourApp />
+    </TamboProvider>
+  );
+}
 ```
+
+## Resources
+
+- [Full Documentation](https://tambo.co/docs)
+- [Showcase Documentation](../showcase/README.md)
+
+## License
+
+MIT License - see the [LICENSE](../LICENSE) file for details.
+
+## Join the Community
+
+We're building tools for the future of user interfaces. Your contributions matter.
+
+**[Star this repo](https://github.com/tambo-ai/tambo)** to support our work.
+
+**[Join our Discord](https://discord.gg/dJNvPEHth6)** to connect with other developers.

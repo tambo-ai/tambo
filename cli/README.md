@@ -138,6 +138,8 @@ export default function RootLayout({ children }) {
 
 For detailed documentation and examples, visit [tambo.co/docs](https://tambo.co/docs)
 
+For more information about all available components and installation options, check out the [tambo ui showcase](https://github.com/tambo-ai/tambo/tree/main/showcase).
+
 ## Development Status
 
 This CLI is currently in active development. While core features are stable, you might encounter:
@@ -149,7 +151,7 @@ This CLI is currently in active development. While core features are stable, you
 
 See demos of the components in action:
 
---> [here](https://tambo-ui.vercel.app/) <--
+--> [here](https://ui.tambo.co/) <--
 
 ## License
 

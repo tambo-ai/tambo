@@ -8,29 +8,83 @@ A component library for tambo ai.
 
 A react component library for [tambo ai](https://tambo.co).
 
-This is the code for the demo site!
+## Components
 
-## Features
+### Core Components
 
-- Production-ready React components for AI-powered interfaces
-- Seamless integration with existing React applications
-- Comprehensive documentation with implementation examples
-- Optimized for performance and developer experience
+#### Message Components
 
-## Quick Start
+- **Full UI**
+
+  - `MessageThreadCollapsible`: A collapsible message thread component
+  - `MessageThreadFull`: Full version of the message thread
+  - `MessageThreadPanel`: Panel version of the message thread
+  - `ControlBar`: Control bar component
+
+- **Message Thread Components**
+
+  - `ThreadContent`: Content container for message threads
+  - `ThreadList`: List of message threads
+  - `ThreadHistory`: Historical view of message threads
+
+- **Message Elements**
+  - `Message`: Individual message component
+  - `MessageInput`: Input component for sending messages
+  - `MessageSuggestions`: Component for displaying message suggestions
+
+### AI Components
+
+#### Form Components
+
+- `Form`: Comprehensive form component with various input types
+- `InputFields`: Reusable input field components
+
+#### Data Visualization
+
+- `Graph`: Data visualization component
+
+More components `coming soon`!
+
+## Installation
+
+### Getting Started in an Existing App
 
 ```bash
-npx tambo --full-send
-
-// add components one by one
-npx tambo add MessageThread@latest
-...
-npx tambo add MessageInput@latest
+# Install the full package
+npx tambo full-send
 ```
+
+### Installing Main Components
+
+Install the core components one by one:
+
+```bash
+# Message Thread Components
+npx tambo add MessageThread@latest
+npx tambo add MessageThreadCollapsible@latest
+npx tambo add MessageThreadPanel@latest
+```
+
+### Installing Sub-Components
+
+For more granular control, install individual sub-components:
+
+```bash
+# Thread Components
+npx tambo add ThreadContent@latest
+npx tambo add ThreadList@latest
+npx tambo add ThreadHistory@latest
+
+# Form Components
+npx tambo add Form@latest
+npx tambo add InputFields@latest
+```
+
+For more detailed information about the CLI and its available commands, see the [tambo CLI documentation](https://github.com/tambo-ai/tambo/tree/main/cli).
 
 See demos of the components in action:
 
---> [here](https://tambo-ui.vercel.app/) <--
+--> [here](https://ui.tambo.co) <--
 
 ## License
 
