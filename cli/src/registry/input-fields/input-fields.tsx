@@ -66,8 +66,6 @@ export interface Field {
 /**
  * Props for the InputFields component
  * @interface
- * @extends React.HTMLAttributes<HTMLDivElement>
- * @extends VariantProps<typeof inputFieldsVariants>
  */
 export interface InputFieldsProps
   extends React.HTMLAttributes<HTMLDivElement>,

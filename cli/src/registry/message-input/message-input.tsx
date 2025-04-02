@@ -31,7 +31,6 @@ const messageInputVariants = cva("w-full", {
 /**
  * Props for the MessageInput component
  * @interface
- * @extends React.HTMLAttributes<HTMLFormElement>
  */
 export interface MessageInputProps
   extends React.HTMLAttributes<HTMLFormElement> {

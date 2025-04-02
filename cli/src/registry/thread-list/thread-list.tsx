@@ -32,8 +32,6 @@ type Thread = Omit<TamboThread, "messages">;
 /**
  * Props for the ThreadList component
  * @interface
- * @extends React.HTMLAttributes<HTMLDivElement>
- * @extends VariantProps<typeof threadListVariants>
  */
 export interface ThreadListProps
   extends React.HTMLAttributes<HTMLDivElement>,

@@ -72,8 +72,6 @@ export interface FormField {
 /**
  * Props for the Form component
  * @interface
- * @extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">
- * @extends VariantProps<typeof formVariants>
  */
 export interface FormProps
   extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">,

@@ -12,7 +12,6 @@ import { useEffect, useRef } from "react";
 /**
  * Props for the MessageThreadPanel component
  * @interface
- * @extends React.HTMLAttributes<HTMLDivElement>
  */
 export interface MessageThreadPanelProps
   extends React.HTMLAttributes<HTMLDivElement> {
