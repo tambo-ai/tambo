@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const inputFieldsVariants = cva(
   "w-full rounded-lg transition-all duration-200",
@@ -46,7 +46,6 @@ const inputFieldsVariants = cva(
  * @property {string} [autoComplete] - Autocomplete attribute value
  * @property {string} [error] - Error message for the field
  */
-
 export interface Field {
   id: string;
   type: "text" | "number" | "email" | "password";
@@ -64,13 +63,40 @@ export interface Field {
   error?: string;
 }
 
+/**
+ * Props for the InputFields component
+ * @interface
+ */
 export interface InputFieldsProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof inputFieldsVariants> {
+  /** Array of field configurations to render */
   fields: Field[];
 }
 
-const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
+/**
+ * A component that renders a collection of form input fields with validation and accessibility features
+ * @component
+ * @example
+ * ```tsx
+ * <InputFields
+ *   fields={[
+ *     {
+ *       id: "email",
+ *       type: "email",
+ *       label: "Email",
+ *       value: email,
+ *       onChange: setEmail,
+ *       required: true
+ *     }
+ *   ]}
+ *   variant="solid"
+ *   size="lg"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
   ({ className, variant, size, fields, ...props }, ref) => {
     return (
       <div
@@ -142,5 +168,3 @@ const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
   },
 );
 InputFields.displayName = "InputFields";
-
-export { InputFields, inputFieldsVariants };

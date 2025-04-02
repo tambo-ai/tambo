@@ -38,27 +38,81 @@ const formVariants = cva("w-full rounded-lg transition-all duration-200", {
  * @property {boolean} [required] - Whether the field is required
  * @property {string} [description] - Additional description text for the field
  */
-
 export interface FormField {
+  /**
+   * The unique identifier for the field
+   */
   id: string;
+  /**
+   * The type of form field
+   */
   type: "text" | "number" | "select" | "textarea";
+  /**
+   * The display label for the field
+   */
   label: string;
+  /**
+   * The placeholder text for the field
+   */
   placeholder?: string;
+  /**
+   * The options for select fields
+   */
   options?: string[];
+  /**
+   * Whether the field is required
+   */
   required?: boolean;
+  /**
+   * The description text for the field
+   */
   description?: string;
 }
 
+/**
+ * Props for the Form component
+ * @interface
+ */
 export interface FormProps
   extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">,
     VariantProps<typeof formVariants> {
+  /** Array of form fields to display */
   fields: FormField[];
+  /** Callback function called when the form is submitted */
   onSubmit: (data: Record<string, string>) => void;
+  /** Optional error message to display */
   onError?: string;
+  /** Text to display on the submit button (default: "Submit") */
   submitText?: string;
 }
 
-const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
+/**
+ * A flexible form component that supports various field types and layouts
+ * @component
+ * @example
+ * ```tsx
+ * <Form
+ *   fields={[
+ *     {
+ *       id: "name",
+ *       type: "text",
+ *       label: "Name",
+ *       required: true
+ *     },
+ *     {
+ *       id: "age",
+ *       type: "number",
+ *       label: "Age"
+ *     }
+ *   ]}
+ *   onSubmit={(data) => console.log(data)}
+ *   variant="solid"
+ *   layout="compact"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
   (
     {
       className,
@@ -302,6 +356,7 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     );
   },
 );
-FormComponent.displayName = "FormComponent";
 
-export { FormComponent, formVariants };
+FormComponent.displayName = "Form";
+
+export { formVariants };

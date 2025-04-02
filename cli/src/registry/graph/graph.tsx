@@ -46,11 +46,20 @@ export interface GraphData {
   }[];
 }
 
+/**
+ * Props for the Graph component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
+ * @extends VariantProps<typeof graphVariants>
+ */
 export interface GraphProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof graphVariants> {
+  /** Data object containing chart configuration and values */
   data: GraphData;
+  /** Optional title for the chart */
   title?: string;
+  /** Whether to show the legend (default: true) */
   showLegend?: boolean;
 }
 
@@ -61,7 +70,28 @@ const defaultColors = [
   "hsl(340, 82%, 66%)", // Pink
 ];
 
-const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
+/**
+ * A component that renders various types of charts using Recharts
+ * @component
+ * @example
+ * ```tsx
+ * <Graph
+ *   data={{
+ *     type: "bar",
+ *     labels: ["Jan", "Feb", "Mar"],
+ *     datasets: [{
+ *       label: "Sales",
+ *       data: [100, 200, 300]
+ *     }]
+ *   }}
+ *   title="Monthly Sales"
+ *   variant="solid"
+ *   size="lg"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
   (
     { className, variant, size, data, title, showLegend = true, ...props },
     ref,
@@ -272,5 +302,3 @@ const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
   },
 );
 Graph.displayName = "Graph";
-
-export { Graph, graphVariants };

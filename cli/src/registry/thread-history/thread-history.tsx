@@ -8,23 +8,34 @@ import * as React from "react";
 import { useCallback } from "react";
 
 /**
- * Represents the history of threads
- * @property {string} className - Optional className for custom styling
- * @property {string} contextKey - The context key for the thread
- * @property {function} onThreadChange - The function to call when the thread changes
+ * Props for the ThreadHistory component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
  */
 export interface ThreadHistoryProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional context key for filtering threads */
   contextKey?: string;
+  /** Optional callback function called when the current thread changes */
   onThreadChange?: () => void;
 }
 
-export function ThreadHistory({
-  className,
-  contextKey,
-  onThreadChange,
-  ...props
-}: ThreadHistoryProps) {
+/**
+ * A component that displays a dropdown menu for managing chat threads with keyboard shortcuts
+ * @component
+ * @example
+ * ```tsx
+ * <ThreadHistory
+ *   contextKey="my-thread"
+ *   onThreadChange={() => console.log('Thread changed')}
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const ThreadHistory = React.forwardRef<
+  HTMLDivElement,
+  ThreadHistoryProps
+>(({ className, contextKey, onThreadChange, ...props }, ref) => {
   const {
     data: threads,
     isLoading,
@@ -82,7 +93,7 @@ export function ThreadHistory({
   };
 
   return (
-    <div className={cn("relative", className)} {...props}>
+    <div className={cn("relative", className)} ref={ref} {...props}>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
           <div
@@ -164,4 +175,4 @@ export function ThreadHistory({
       </DropdownMenu.Root>
     </div>
   );
-}
+});

@@ -14,16 +14,32 @@ import { useEffect, useRef } from "react";
  * @property {number} maxSuggestions - Maximum number of suggestions to show
  */
 
+/**
+ * Props for the MessageSuggestions component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
+ */
 export interface MessageSuggestionsProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /** Maximum number of suggestions to display (default: 3) */
   maxSuggestions?: number;
 }
 
-export function MessageSuggestions({
-  className,
-  maxSuggestions = 3,
-  ...props
-}: MessageSuggestionsProps) {
+/**
+ * A component that displays AI-generated message suggestions with keyboard shortcuts
+ * @component
+ * @example
+ * ```tsx
+ * <MessageSuggestions
+ *   maxSuggestions={3}
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const MessageSuggestions = React.forwardRef<
+  HTMLDivElement,
+  MessageSuggestionsProps
+>(({ className, maxSuggestions = 3, ...props }, ref) => {
   const { thread } = useTambo();
   const {
     suggestions,
@@ -103,6 +119,7 @@ export function MessageSuggestions({
     <TooltipProvider>
       <div
         className={cn("px-4 py-2 border-t border-gray-200", className)}
+        ref={ref}
         {...props}
       >
         {/* Error state */}
@@ -173,4 +190,4 @@ export function MessageSuggestions({
       </div>
     </TooltipProvider>
   );
-}
+});

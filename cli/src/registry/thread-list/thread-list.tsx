@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import type { TamboThread } from "@tambo-ai/react";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const threadListVariants = cva("flex flex-col w-full", {
   variants: {
@@ -27,24 +27,41 @@ const threadListVariants = cva("flex flex-col w-full", {
   },
 });
 
-/**
- * Represents a thread list component
- * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof threadListVariants>["variant"]} variant - Optional variant for custom styling
- */
-
 type Thread = Omit<TamboThread, "messages">;
 
+/**
+ * Props for the ThreadList component
+ * @interface
+ */
 export interface ThreadListProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof threadListVariants> {
+  /** Array of thread objects to display */
   threads: Thread[];
+  /** ID of the currently selected thread */
   selectedThreadId?: string | null;
+  /** Callback function called when a thread is selected */
   onThreadSelect?: (threadId: string) => void;
+  /** Whether the list is in a loading state */
   isLoading?: boolean;
 }
 
-const ThreadList = React.forwardRef<HTMLDivElement, ThreadListProps>(
+/**
+ * A component that displays a list of chat threads with selection functionality
+ * @component
+ * @example
+ * ```tsx
+ * <ThreadList
+ *   threads={threads}
+ *   selectedThreadId="thread-123"
+ *   onThreadSelect={(id) => console.log('Selected thread:', id)}
+ *   variant="solid"
+ *   size="compact"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const ThreadList = React.forwardRef<HTMLDivElement, ThreadListProps>(
   (
     {
       className,
@@ -106,4 +123,4 @@ const ThreadList = React.forwardRef<HTMLDivElement, ThreadListProps>(
 );
 ThreadList.displayName = "ThreadList";
 
-export { ThreadList, threadListVariants };
+export { threadListVariants };
