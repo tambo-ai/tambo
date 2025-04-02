@@ -101,9 +101,11 @@ your-next-app/
 │   │   └── ui/
 │   │       ├── message-thread-full.tsx
 │   │       └── ...
+│   ├── lib/
+│   │   └── tambo.ts       # Tool registry
 │   └── app/
-│       └── layout.tsx  # Add TamboProvider here
-└── .env.local         # Your API key configuration
+│       └── layout.tsx     # you could add TamboProvider here (for entire app)
+└── .env.local            # Your API key configuration
 ```
 
 ## Environment Setup
@@ -114,25 +116,62 @@ The CLI will automatically create/update your `.env.local` file with:
 NEXT_PUBLIC_TAMBO_API_KEY=your-api-key
 ```
 
-## Provider Setup
+## TamboProvider Setup
 
-After initialization, add the TamboProvider to your `app/layout.tsx`:
+After initialization, you can add the TamboProvider in one of two ways:
 
-```tsx
-"use client";
+### Option 1: Page-specific (easiest)
+
+If you just want to add Tambo to specific pages or components, this is the quickest approach:
+
+```jsx
+// In a specific page file (e.g., app/ai-chat/page.tsx)
+"use client"; // Important! TamboProvider is a client component
 
 import { TamboProvider } from "@tambo-ai/react";
+import { components } from "../../lib/tambo"; // Import components
+import { MessageThreadFull } from "@/components/ui/message-thread-full";
 
-export default function RootLayout({ children }) {
+export default function AIChat() {
   return (
-    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
-      {children}
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+      components={components}
+    >
+      <MessageThreadFull />
     </TamboProvider>
   );
 }
 ```
 
-> **Note:** The `"use client"` directive is required because TamboProvider manages client-side state for features like thread management, message history, and component state.
+### Option 2: App-wide in layout file (best practice)
+
+This approach provides better context sharing between components and is recommended for production apps:
+
+```jsx
+// In your layout file (e.g., app/layout.tsx)
+"use client"; // Important! TamboProvider is a client component
+
+import { TamboProvider } from "@tambo-ai/react";
+import { components } from "../lib/tambo"; // Import components
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <TamboProvider
+          apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+          components={components}
+        >
+          {children}
+        </TamboProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+> **Note:** The TamboProvider manages client-side state for features like thread management, message history, and component state. The `"use client"` directive is required.
 
 ## Documentation
 
@@ -169,5 +208,5 @@ We're building tools for the future of user interfaces. Your contributions matte
 
 <p align="center">
   <i>Built by developers, for developers.</i><br>
-  <i>Because we believe the future of UI is generative and hyper-personalized.</i>
+  <i>Because we believe the future is generative.</i>
 </p>

@@ -4,7 +4,31 @@ import fs from "fs";
 import inquirer from "inquirer";
 import open from "open";
 import ora from "ora";
+import path from "path";
+import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
+
+/**
+ * Creates a tambo.ts file with empty registry of tools and components
+ * @param installPath The base installation path
+ */
+async function createTamboTsFile(installPath: string): Promise<void> {
+  const libDir = path.join(process.cwd(), installPath.split("/")[0], "lib");
+  fs.mkdirSync(libDir, { recursive: true });
+
+  const tamboTsPath = path.join(libDir, "tambo.ts");
+
+  if (!fs.existsSync(tamboTsPath)) {
+    fs.writeFileSync(tamboTsPath, tamboTsTemplate);
+    console.log(
+      chalk.green(
+        "✅ Created tambo.ts file with empty tool registry and components array",
+      ),
+    );
+  } else {
+    console.log(chalk.gray("📝 tambo.ts file already exists"));
+  }
+}
 
 class AuthenticationError extends Error {
   constructor(message: string) {
@@ -197,6 +221,9 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   const authSuccess = await handleAuthentication();
   if (!authSuccess) return;
 
+  // Create tambo.ts file
+  await createTamboTsFile(installPath);
+
   // Install required components
   console.log(chalk.cyan("\nStep 2: Choose starter components to install"));
 
@@ -264,13 +291,14 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     return; // Exit early without showing next steps
   }
 
-  displayFullSendInstructions();
+  displayFullSendInstructions(selectedComponents);
 }
 
 /**
  * Displays the full-send mode instructions
+ * @param selectedComponents Array of component names that were selected by the user
  */
-function displayFullSendInstructions(): void {
+function displayFullSendInstructions(selectedComponents: string[] = []): void {
   console.log(chalk.green("\n✨ Full-send initialization complete!"));
   console.log(chalk.blue("\nNext steps:"));
   console.log(chalk.bold("\n1. Add the TamboProvider to your layout file"));
@@ -288,44 +316,76 @@ function displayFullSendInstructions(): void {
   console.log(chalk.gray(`\n   📁 Layout file location: ${layoutPath}`));
   console.log(chalk.gray(`\n   Add the following code to your layout file:`));
 
-  // Full provider code for display
-  const fullProviderCode = `
+  // Map component names to their capitalized versions
+  const componentNameMap: Record<string, string> = {
+    "message-thread-full": "MessageThreadFull",
+    "message-thread-panel": "MessageThreadPanel",
+    "message-thread-collapsible": "MessageThreadCollapsible",
+    "control-bar": "ControlBar",
+  };
+
+  // If no components were selected, use a default
+  if (selectedComponents.length === 0) {
+    selectedComponents = ["message-thread-full"];
+  }
+
+  // Generate import statements for selected components
+  const importStatements = selectedComponents
+    .map(
+      (comp) =>
+        `import { ${componentNameMap[comp]} } from "@/components/ui/${comp}";`,
+    )
+    .join("\n");
+
+  // Generate component instances
+  const componentInstances = selectedComponents
+    .map((comp) => `      <${componentNameMap[comp]} />`)
+    .join("\n");
+
+  // Just the TamboProvider part for clipboard with all selected components
+  const providerSnippet = `"use client"; // Important!
 import { TamboProvider } from "@tambo-ai/react";
+import { components } from "../../lib/tambo";
+${importStatements}
+// other imports
 
-export default function RootLayout({ children }) {
-	return (
-		<TamboProvider
-			apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-		>
-			{children}
-		</TamboProvider>
-	);
+export default function Page() {
+  // other code
+  return (
+    <div>
+      {/* other components */}
+      <TamboProvider
+        apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+        components={components}
+      >
+        {/* Tambo components */}
+${componentInstances}
+        {/* other Tambo components */}
+      </TamboProvider>
+      {/* other components */}
+    </div>
+  );
 }`;
-
-  // Just the TamboProvider part for clipboard
-  const providerSnippet = `<TamboProvider
-	apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
->
-`;
 
   // Copy just the TamboProvider snippet to clipboard
   try {
     clipboard.writeSync(providerSnippet);
-    console.log(chalk.cyan(fullProviderCode));
+    console.log(chalk.cyan(providerSnippet));
     console.log(
       chalk.green("\n   ✓ TamboProvider component copied to clipboard!"),
     );
   } catch (error) {
-    console.log(chalk.cyan(fullProviderCode));
+    console.log(chalk.cyan(providerSnippet));
     console.log(chalk.yellow("\n   ⚠️ Failed to copy to clipboard: " + error));
   }
 
   console.log(chalk.bold("\n2. Use the installed components"));
   console.log(chalk.gray("   Import any of the following components:"));
-  console.log(chalk.gray("   • MessageThreadFull"));
-  console.log(chalk.gray("   • MessageThreadPanel"));
-  console.log(chalk.gray("   • MessageThreadCollapsible"));
-  console.log(chalk.gray("   • ControlBar"));
+
+  // Only show the components that were installed
+  selectedComponents.forEach((comp) => {
+    console.log(chalk.gray(`   • ${componentNameMap[comp]}`));
+  });
 
   console.log(chalk.bold("\n3. Documentation"));
   console.log(
@@ -357,11 +417,18 @@ export async function handleInit({
     const authSuccess = await handleAuthentication();
     if (!authSuccess) return;
 
+    // Get installation path for tambo.ts
+    const installPath = await getInstallationPath();
+
+    // Create tambo.ts file
+    await createTamboTsFile(installPath);
+
     console.log(chalk.green("\n✨ Basic initialization complete!"));
     console.log(chalk.blue("\nNext steps:"));
     console.log("1. Add components using 'npx tambo add <component-name>'");
     console.log("2. Check the documentation for available components");
-    console.log("3. Run your app to test the integration");
+    console.log("3. Add the TamboProvider to your layout file (see the docs)");
+    console.log("4. Run your app to test the integration");
   } catch (error) {
     console.error(chalk.red("Initialization failed: " + error));
     process.exit(1);
