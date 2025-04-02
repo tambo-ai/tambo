@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.2.1...tambo-v0.2.2) (2025-04-02)
+
+
+### Bug Fixes
+
+* improved CLI commands with user feedback and component location handling ([#247](https://github.com/tambo-ai/tambo/issues/247)) ([d90c1ba](https://github.com/tambo-ai/tambo/commit/d90c1bacf5b890e3b6941f6fa5345b8a737350ac))
+* minor component cleanups: stop using useEffect/etc ([#242](https://github.com/tambo-ai/tambo/issues/242)) ([7c6d334](https://github.com/tambo-ai/tambo/commit/7c6d334d500d909038469132123c9d163f2f7c5b))
+* more mac kbd cleanup: quiet down hydration warnings ([#248](https://github.com/tambo-ai/tambo/issues/248)) ([bcf13e7](https://github.com/tambo-ai/tambo/commit/bcf13e72890c0bf0cfdd4352a742a4adcb6f05dc))
+
+
+### Documentation
+
+* update README files for React SDK and CLI, fix links and enhance installation instructions ([#251](https://github.com/tambo-ai/tambo/issues/251)) ([fa85f17](https://github.com/tambo-ai/tambo/commit/fa85f1701fe27fdd59b4d7f0f6741c392c08808d))
+
 ## [0.2.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.2.0...tambo-v0.2.1) (2025-04-01)
 
 
