@@ -219,7 +219,17 @@ function ensureSection(
  */
 export async function setupTailwindandGlobals(projectRoot: string) {
   const tailwindConfigPath = path.join(projectRoot, "tailwind.config.ts");
-  const globalsPath = path.join(projectRoot, "src", "app", "globals.css");
+
+  // Detect if src directory exists
+  const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
+  const appPath = hasSrcDir ? "src/app" : "app";
+
+  // Create app directory if it doesn't exist
+  const fullAppPath = path.join(projectRoot, appPath);
+  fs.mkdirSync(fullAppPath, { recursive: true });
+
+  // Set globals.css path based on project structure
+  const globalsPath = path.join(projectRoot, appPath, "globals.css");
 
   const registryPath = path.join(__dirname, "../../../src/registry");
   const defaultTailwindConfig = path.join(
