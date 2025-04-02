@@ -9,6 +9,11 @@ interface CreateAppOptions {
 }
 
 function safeRemoveGitFolder(gitFolder: string): void {
+  // Validate that the folder ends with '.git' and does not contain shell metacharacters
+  if (!gitFolder.endsWith(".git") || /[;&|<>$\r\n\t\v\f]/.test(gitFolder)) {
+    console.error(chalk.red("Invalid git folder path"));
+    return;
+  }
   try {
     if (process.platform === "win32") {
       // Windows: First remove read-only attributes, then remove directory
@@ -104,7 +109,15 @@ export async function handleCreateApp(
     // Remove .git folder to start fresh
     const gitFolder = path.join(targetDir, ".git");
     if (fs.existsSync(gitFolder)) {
-      safeRemoveGitFolder(gitFolder);
+      // Ensure this is actually a .git folder and not some other path
+      const isGitFolder =
+        fs.statSync(gitFolder).isDirectory() &&
+        fs.existsSync(path.join(gitFolder, "HEAD"));
+      if (isGitFolder) {
+        safeRemoveGitFolder(gitFolder);
+      } else {
+        console.warn(chalk.yellow("Expected .git folder not found or invalid"));
+      }
     }
 
     // Change to target directory
