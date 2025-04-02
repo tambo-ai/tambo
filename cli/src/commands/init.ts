@@ -115,9 +115,6 @@ async function handleAuthentication(): Promise<boolean> {
         message: "Please paste your API key from the browser:",
         validate: (input: string) => {
           if (!input?.trim()) return "API key is required";
-          if (input.trim()) {
-            console.log(chalk.green("✔ API key pasted"));
-          }
           return true;
         },
       },
@@ -144,7 +141,7 @@ async function handleAuthentication(): Promise<boolean> {
             type: "confirm",
             name: "confirmReplace",
             message: chalk.yellow(
-              "⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?",
+              `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`
             ),
             default: false,
           },
