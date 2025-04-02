@@ -112,7 +112,7 @@ export interface FormProps
  * />
  * ```
  */
-export const Form = React.forwardRef<HTMLFormElement, FormProps>(
+export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
   (
     {
       className,
@@ -357,6 +357,6 @@ export const Form = React.forwardRef<HTMLFormElement, FormProps>(
   },
 );
 
-Form.displayName = "Form";
+FormComponent.displayName = "Form";
 
 export { formVariants };
