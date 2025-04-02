@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.6](https://github.com/tambo-ai/tambo/compare/react-v0.19.5...react-v0.19.6) (2025-04-02)
+
+
+### Bug Fixes
+
+* Remove many uses of currentThreadId ([#246](https://github.com/tambo-ai/tambo/issues/246)) ([9da43ee](https://github.com/tambo-ai/tambo/commit/9da43ee045e0950d4ea63cf9dfe108b17a175433))
+
 ## [0.19.5](https://github.com/tambo-ai/tambo/compare/react-v0.19.4...react-v0.19.5) (2025-04-01)
 
 
