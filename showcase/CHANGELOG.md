@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.3.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.2.0...showcase-v0.3.0) (2025-04-02)
+
+
+### Features
+
+* useTamboThreads -&gt; useTamboThreadList ([#200](https://github.com/tambo-ai/tambo/issues/200)) ([4a32eda](https://github.com/tambo-ai/tambo/commit/4a32eda20b6564465b69bccda8ed94f65ea56b01))
+
+
+### Bug Fixes
+
+* allow for workspace version ([#213](https://github.com/tambo-ai/tambo/issues/213)) ([915d018](https://github.com/tambo-ai/tambo/commit/915d0182a54587e2a1293f3a4317968c3b799b73))
+* minor component cleanups: stop using useEffect/etc ([#242](https://github.com/tambo-ai/tambo/issues/242)) ([7c6d334](https://github.com/tambo-ai/tambo/commit/7c6d334d500d909038469132123c9d163f2f7c5b))
+* more mac kbd cleanup: quiet down hydration warnings ([#248](https://github.com/tambo-ai/tambo/issues/248)) ([bcf13e7](https://github.com/tambo-ai/tambo/commit/bcf13e72890c0bf0cfdd4352a742a4adcb6f05dc))
+* try using tsconfig paths to link to react package ([#237](https://github.com/tambo-ai/tambo/issues/237)) ([d583844](https://github.com/tambo-ai/tambo/commit/d58384486c50fb26321835b92e41a241432584df))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump eslint-config-next from 15.2.3 to 15.2.4 ([#226](https://github.com/tambo-ai/tambo/issues/226)) ([50ae465](https://github.com/tambo-ai/tambo/commit/50ae46558d00835092bdcc3b7cfa8388bf4716f5))
+* **deps-dev:** bump tailwind-merge from 3.0.2 to 3.1.0 ([#228](https://github.com/tambo-ai/tambo/issues/228)) ([7cfe22f](https://github.com/tambo-ai/tambo/commit/7cfe22ff232c2e44d92ac2d4145e027e8ebcf546))
+* **deps:** bump framer-motion from 12.6.0 to 12.6.2 ([#230](https://github.com/tambo-ai/tambo/issues/230)) ([351bf43](https://github.com/tambo-ai/tambo/commit/351bf43c83571ac0d41389121e1bc9fdeb0a5de5))
+* **deps:** bump lucide-react from 0.483.0 to 0.486.0 ([#233](https://github.com/tambo-ai/tambo/issues/233)) ([1c25e6a](https://github.com/tambo-ai/tambo/commit/1c25e6a68bc23e85e2529ee33050fa35fde50341))
+* **deps:** bump next from 15.2.3 to 15.2.4 ([#234](https://github.com/tambo-ai/tambo/issues/234)) ([de676db](https://github.com/tambo-ai/tambo/commit/de676db247d5f64793b36280946e2c5cbf88e970))
+* fix thread-history and updated showcase site ([#204](https://github.com/tambo-ai/tambo/issues/204)) ([26c70cd](https://github.com/tambo-ai/tambo/commit/26c70cd841ef5bdeba7f755225ba57fe100c4429))
+
+
+### Documentation
+
+* update README files for React SDK and CLI, fix links and enhance installation instructions ([#251](https://github.com/tambo-ai/tambo/issues/251)) ([fa85f17](https://github.com/tambo-ai/tambo/commit/fa85f1701fe27fdd59b4d7f0f6741c392c08808d))
+
 ## [0.2.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.1.4...showcase-v0.2.0) (2025-03-26)
 
 
