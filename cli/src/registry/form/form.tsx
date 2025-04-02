@@ -69,39 +69,50 @@ export interface FormField {
   description?: string;
 }
 
+/**
+ * Props for the Form component
+ * @interface
+ * @extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">
+ * @extends VariantProps<typeof formVariants>
+ */
 export interface FormProps
   extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">,
     VariantProps<typeof formVariants> {
-  /**
-   * The fields for the form component
-   */
+  /** Array of form fields to display */
   fields: FormField[];
-  /**
-   * The function to call when the form is submitted
-   */
+  /** Callback function called when the form is submitted */
   onSubmit: (data: Record<string, string>) => void;
-  /**
-   * The error message to display if the form is submitted with errors
-   */
+  /** Optional error message to display */
   onError?: string;
-  /**
-   * The text to display on the submit button
-   */
+  /** Text to display on the submit button (default: "Submit") */
   submitText?: string;
 }
 
 /**
- * Represents a simple form component that can be used to create and submit forms based on a list of fields.
- *
- * This allows for a generic form field that can be used to create a form field for any type of data.
- *
- * @param {FormProps} props - The props for the form component
- * @param {string} props.className - The class name for the form component
- * @param {string} props.variant - The variant for the form component
- * @param {string} props.layout - The layout style for the form component, can be "default", "compact", or "relaxed"
- * @param {FormField[]} props.fields - The fields for the form component
- * @param {Function} props.onSubmit - The function to call when the form is submitted
- * @param {string} props.onError - The error message to display if the form is submitted with errors
+ * A flexible form component that supports various field types and layouts
+ * @component
+ * @example
+ * ```tsx
+ * <Form
+ *   fields={[
+ *     {
+ *       id: "name",
+ *       type: "text",
+ *       label: "Name",
+ *       required: true
+ *     },
+ *     {
+ *       id: "age",
+ *       type: "number",
+ *       label: "Age"
+ *     }
+ *   ]}
+ *   onSubmit={(data) => console.log(data)}
+ *   variant="solid"
+ *   layout="compact"
+ *   className="custom-styles"
+ * />
+ * ```
  */
 const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
   (

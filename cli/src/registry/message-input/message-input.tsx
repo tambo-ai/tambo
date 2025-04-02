@@ -5,6 +5,13 @@ import { useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+/**
+ * CSS variants for the message input container
+ * @typedef {Object} MessageInputVariants
+ * @property {string} default - Default styling
+ * @property {string} solid - Solid styling with shadow effects
+ * @property {string} bordered - Bordered styling with border emphasis
+ */
 const messageInputVariants = cva("w-full", {
   variants: {
     variant: {
@@ -22,15 +29,31 @@ const messageInputVariants = cva("w-full", {
 });
 
 /**
- * A form component for submitting messages to a Tambo thread
- * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof messageInputVariants>["variant"]} variant - Optional styling variant
- * @property {string | undefined} contextKey - Tambo thread context key for message routing
+ * A form component for submitting messages to a Tambo thread with keyboard shortcuts and loading states
+ * @component
+ * @example
+ * ```tsx
+ * <MessageInput
+ *   contextKey="my-thread"
+ *   variant="solid"
+ *   className="custom-styles"
+ * />
+ * ```
  */
 
+/**
+ * Props for the MessageInput component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLFormElement>
+ */
 export interface MessageInputProps
   extends React.HTMLAttributes<HTMLFormElement> {
+  /** Optional styling variant for the input container */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
+  /**
+   * Tambo thread context key for message routing
+   * Used to identify which thread the message should be sent to
+   */
   contextKey: string | undefined;
 }
 

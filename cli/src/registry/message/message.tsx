@@ -1,18 +1,33 @@
 "use client";
 
-import * as React from "react";
-import ReactMarkdown from "react-markdown";
+import { createMarkdownComponents } from "@/components/ui/markdownComponents";
+import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
-import { createMarkdownComponents } from "@/components/ui/markdownComponents";
+import * as React from "react";
+import ReactMarkdown from "react-markdown";
 
 /**
- * Represents a message component
- * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof messageVariants>["variant"]} variant - Optional variant for custom styling
+ * A component that renders a chat message with support for markdown content and custom styling
+ * @component
+ * @example
+ * ```tsx
+ * <Message
+ *   role="user"
+ *   content="Hello, how are you?"
+ *   message={threadMessage}
+ *   variant="solid"
+ * />
+ * ```
  */
 
+/**
+ * CSS variants for the message container
+ * @typedef {Object} MessageVariants
+ * @property {string} default - Default styling
+ * @property {string} solid - Solid styling with shadow effects
+ * @property {string} bordered - Bordered styling
+ */
 const messageVariants = cva("flex", {
   variants: {
     variant: {
@@ -36,10 +51,10 @@ const messageVariants = cva("flex", {
 });
 
 /**
- * Represents a bubble component
- * @property {string} role - Role of the bubble (user or assistant)
- * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof bubbleVariants>["role"]} role - Role of the bubble (user or assistant)
+ * CSS variants for the message bubble
+ * @typedef {Object} BubbleVariants
+ * @property {string} user - Styling for user messages
+ * @property {string} assistant - Styling for assistant messages
  */
 const bubbleVariants = cva(
   "relative inline-block rounded-lg px-3 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
@@ -56,12 +71,33 @@ const bubbleVariants = cva(
   },
 );
 
+/**
+ * Props for the Message component
+ * @interface
+ */
 export interface MessageProps {
+  /** The role of the message sender - either 'user' or 'assistant' */
   role: "user" | "assistant";
+  /**
+   * The content of the message. Can be either a string or an array of content objects
+   * @example
+   * // String content
+   * "Hello, how are you?"
+   *
+   * // Array of content objects
+   * [
+   *   { type: "text", text: "Hello" },
+   *   { type: "text", text: "How are you?" }
+   * ]
+   */
   content: string | { type: string; text?: string }[];
+  /** The Tambo thread message object containing additional message data */
   message: TamboThreadMessage;
+  /** Optional styling variant for the message container */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  /** Optional CSS class name for additional styling */
   className?: string;
+  /** Optional flag to indicate if the message is in a loading state */
   isLoading?: boolean;
 }
 

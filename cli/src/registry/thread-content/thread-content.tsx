@@ -1,10 +1,10 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import * as React from "react";
 import { Message } from "@/components/ui/message";
+import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const threadContentVariants = cva("flex flex-col gap-4", {
   variants: {
@@ -23,16 +23,27 @@ const threadContentVariants = cva("flex flex-col gap-4", {
 });
 
 /**
- * Represents a thread content component
- * @property {string} className - Optional className for custom styling
- * @property {VariantProps<typeof threadContentVariants>["variant"]} variant - Optional variant for custom styling
+ * Props for the ThreadContent component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
  */
-
 export interface ThreadContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional styling variant for the thread content container */
   variant?: VariantProps<typeof threadContentVariants>["variant"];
 }
 
+/**
+ * A component that displays a chat thread's messages with animations and loading states
+ * @component
+ * @example
+ * ```tsx
+ * <ThreadContent
+ *   variant="solid"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ className, variant, ...props }, ref) => {
     const { thread, generationStage } = useTambo();
