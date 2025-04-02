@@ -11,6 +11,7 @@ import { handleAddComponent } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleInit } from "./commands/init.js";
 import { handleUpdateComponent } from "./commands/update.js";
+import { handleCreateApp } from "./commands/create-app.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,6 +39,7 @@ const cli = meow(
     ${chalk.yellow("add")}                 Add a new component
     ${chalk.yellow("update")}              Update an existing component from the registry
     ${chalk.yellow("full-send")}           Full initialization with auth flow and component installation
+    ${chalk.yellow("create-tambo-app")}    Create a new tambo app from a template
 
   ${chalk.bold("Options")}
     ${chalk.yellow("--legacy-peer-deps")}  Install dependencies with --legacy-peer-deps flag
@@ -50,6 +52,8 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName> --legacy-peer-deps")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName> --legacy-peer-deps")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-tambo-app <app-name>")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-tambo-app .")}
   `,
   {
     flags: {
@@ -137,6 +141,21 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       return;
     }
     await handleUpdateComponent(componentName, {
+      legacyPeerDeps: Boolean(flags.legacyPeerDeps),
+    });
+    return;
+  }
+
+  if (cmd === "create-tambo-app") {
+    const appName = cli.input[1];
+    if (!appName) {
+      console.error(chalk.red("App name is required"));
+      console.log(
+        `Run ${chalk.cyan("tambo create-tambo-app <app-name>")} to create a new app`,
+      );
+      return;
+    }
+    await handleCreateApp(appName, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
     });
     return;
