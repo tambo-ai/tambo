@@ -364,8 +364,7 @@ ${componentInstances}
       </TamboProvider>
       {/* other components */}
     </div>
-  );
-}`;
+  );}`;
 
   // Copy just the TamboProvider snippet to clipboard
   try {
@@ -416,12 +415,6 @@ export async function handleInit({
 
     const authSuccess = await handleAuthentication();
     if (!authSuccess) return;
-
-    // Get installation path for tambo.ts
-    const installPath = await getInstallationPath();
-
-    // Create tambo.ts file
-    await createTamboTsFile(installPath);
 
     console.log(chalk.green("\n✨ Basic initialization complete!"));
     console.log(chalk.blue("\nNext steps:"));
