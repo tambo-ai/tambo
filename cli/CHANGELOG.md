@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.1...tambo-v0.3.2) (2025-04-03)
+
+
+### Miscellaneous
+
+* **cli:** change the appname in package.json while installing template ([#263](https://github.com/tambo-ai/tambo/issues/263)) ([a769bbf](https://github.com/tambo-ai/tambo/commit/a769bbf8baac23c0c38daafb64539162445c1355))
+
 ## [0.3.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.0...tambo-v0.3.1) (2025-04-03)
 
 
