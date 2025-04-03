@@ -191,3 +191,4 @@ export const MessageSuggestions = React.forwardRef<
     </TooltipProvider>
   );
 });
+MessageSuggestions.displayName = "MessageSuggestions";
