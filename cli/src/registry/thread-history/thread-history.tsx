@@ -176,3 +176,4 @@ export const ThreadHistory = React.forwardRef<
     </div>
   );
 });
+ThreadHistory.displayName = "ThreadHistory";
