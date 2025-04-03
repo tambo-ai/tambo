@@ -45,6 +45,24 @@ function safeRemoveGitFolder(gitFolder: string): void {
   }
 }
 
+function updatePackageJson(targetDir: string, appName: string): void {
+  const packageJsonPath = path.join(targetDir, "package.json");
+
+  if (fs.existsSync(packageJsonPath)) {
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+      packageJson.name = appName;
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+    } catch (_error) {
+      console.warn(
+        chalk.yellow(
+          "\nWarning: Could not update package.json name. You may want to update it manually.",
+        ),
+      );
+    }
+  }
+}
+
 export async function handleCreateApp(
   appName: string,
   options: CreateAppOptions = {},
@@ -118,6 +136,11 @@ export async function handleCreateApp(
       } else {
         console.warn(chalk.yellow("Expected .git folder not found or invalid"));
       }
+    }
+
+    // Update package.json name
+    if (appName !== ".") {
+      updatePackageJson(targetDir, appName);
     }
 
     // Change to target directory
