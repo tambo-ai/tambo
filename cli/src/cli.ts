@@ -151,7 +151,8 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     if (!appName) {
       console.error(chalk.red("App name is required"));
       console.log(
-        `Run ${chalk.cyan("tambo create-app <app-name>")} to create a new app`,
+        `Run ${chalk.cyan("npx tambo create-app <app-name>")} or ${chalk.cyan("npx create-tambo-app@latest <app-name>")} to create a new app\n` +
+          `Use ${chalk.cyan("npx tambo create-app .")} or ${chalk.cyan("npx create-tambo-app@latest .")} to create an app in the current directory`,
       );
       return;
     }
