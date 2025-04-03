@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.3.0...showcase-v0.3.1) (2025-04-03)
+
+
+### Bug Fixes
+
+* **showcase:** enable client-side rendering in AI elements section ([#265](https://github.com/tambo-ai/tambo/issues/265)) ([d360642](https://github.com/tambo-ai/tambo/commit/d360642531c8fecb5d7d3d9ea2d77d0410b47be4))
+* **showcase:** handle not found page rendering in template component ([#268](https://github.com/tambo-ai/tambo/issues/268)) ([7713730](https://github.com/tambo-ai/tambo/commit/77137309c41b9c19112a8cb195d6accccc01c35d))
+
 ## [0.3.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.2.0...showcase-v0.3.0) (2025-04-02)
 
 
