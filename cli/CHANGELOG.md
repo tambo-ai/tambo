@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.0...tambo-v0.3.1) (2025-04-03)
+
+
+### Bug Fixes
+
+* **cli:** add displayName to MessageSuggestions and ThreadHistory components ([#260](https://github.com/tambo-ai/tambo/issues/260)) ([0f07571](https://github.com/tambo-ai/tambo/commit/0f07571ae6df627d34dda621772b6bc704d408cf))
+
 ## [0.3.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.2.2...tambo-v0.3.0) (2025-04-02)
 
 
