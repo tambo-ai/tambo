@@ -1,3 +1,5 @@
+"use client";
+
 import { ShowcaseSection } from "@/components/showcase-section";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { ReactElement } from "react";
