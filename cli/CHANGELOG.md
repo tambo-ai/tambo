@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.2.2...tambo-v0.3.0) (2025-04-02)
+
+
+### Features
+
+* add tambo.ts for registering components & simplify code ([#257](https://github.com/tambo-ai/tambo/issues/257)) ([139d727](https://github.com/tambo-ai/tambo/commit/139d727daf53c652a9ee39ce68492a35e381dc12))
+* **cli:** add 'create-tambo-app' command to CLI for app creation from template ([#256](https://github.com/tambo-ai/tambo/issues/256)) ([4e116ce](https://github.com/tambo-ai/tambo/commit/4e116ce7e4f02a6dbf4e95e645035068b3a96594))
+
+
+### Bug Fixes
+
+* only run npm install twice ([#254](https://github.com/tambo-ai/tambo/issues/254)) ([ca2c8f4](https://github.com/tambo-ai/tambo/commit/ca2c8f4b73c53a710599d5fa9772a65e39c174c0))
+
+
+### Documentation
+
+* add a bunch of jsdocs for components ([#253](https://github.com/tambo-ai/tambo/issues/253)) ([f5fa2ec](https://github.com/tambo-ai/tambo/commit/f5fa2ec57378b2383c3b14fd6f9c79dbfdfc0b1e))
+
 ## [0.2.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.2.1...tambo-v0.2.2) (2025-04-02)
 
 
