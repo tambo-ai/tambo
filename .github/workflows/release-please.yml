@@ -63,3 +63,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
+
+      - name: Publish create-tambo-app to npm
+        if: ${{ steps.release.outputs.create-tambo-app--release_created }}
+        working-directory: ./create-tambo-app
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
