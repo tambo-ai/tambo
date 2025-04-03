@@ -2,15 +2,15 @@ import { formatTemplate } from "@libretto/openai/lib/src/template";
 import { StreamCompletionResponse, TokenJS } from "@libretto/token.js";
 import {
   ChatCompletionMessageParam,
-  ToolCallRequest,
+  tryParseJsonObject,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
-import { OpenAIResponse } from "../../model/openai-response";
 import { Provider } from "../../model/providers";
 import {
   CompleteParams,
   LLMClient,
+  LLMResponse,
   StreamingCompleteParams,
 } from "./llm-client";
 
@@ -28,11 +28,11 @@ export class TokenJSClient implements LLMClient {
 
   async complete(
     params: StreamingCompleteParams,
-  ): Promise<AsyncIterableIterator<OpenAIResponse>>;
-  async complete(params: CompleteParams): Promise<OpenAIResponse>;
+  ): Promise<AsyncIterableIterator<LLMResponse>>;
+  async complete(params: CompleteParams): Promise<LLMResponse>;
   async complete(
     params: StreamingCompleteParams | CompleteParams,
-  ): Promise<OpenAIResponse | AsyncIterableIterator<OpenAIResponse>> {
+  ): Promise<LLMResponse | AsyncIterableIterator<LLMResponse>> {
     const componentTools = params.tools?.length ? params.tools : undefined;
 
     const nonStringParams = Object.entries(params.promptTemplateParams).filter(
@@ -89,34 +89,15 @@ export class TokenJSClient implements LLMClient {
       },
     });
 
-    const openAIResponse: OpenAIResponse = {
-      message: response.choices[0].message.content || "",
-      toolCallId: response.choices[0].message.tool_calls?.[0]?.id,
-    };
-
-    if (
-      (response.choices[0].finish_reason === "function_call" ||
-        response.choices[0].finish_reason === "tool_calls" ||
-        response.choices[0].finish_reason === "stop") &&
-      response.choices[0].message.tool_calls?.length
-    ) {
-      openAIResponse.toolCallRequest = this.toolCallRequestFromResponse(
-        response as OpenAI.Chat.Completions.ChatCompletion,
-      );
+    if (!response.choices.length) {
+      throw new Error("No choices returned from TokenJS");
     }
-    if (!openAIResponse.message && !openAIResponse.toolCallRequest) {
-      console.error(
-        "No message or tool call request found in response: ",
-        response.choices[0],
-      );
-    }
-
-    return openAIResponse;
+    return response.choices[0];
   }
 
   private async *handleStreamingResponse(
     stream: StreamCompletionResponse,
-  ): AsyncIterableIterator<OpenAIResponse> {
+  ): AsyncIterableIterator<LLMResponse> {
     let accumulatedMessage = "";
     const accumulatedToolCall: {
       name?: string;
@@ -128,7 +109,6 @@ export class TokenJSClient implements LLMClient {
       const content = chunk.choices[0]?.delta?.content;
       const toolCall = chunk.choices[0]?.delta?.tool_calls?.[0];
       const toolCallFunction = toolCall?.function;
-      const toolCallId = chunk.choices[0]?.delta?.tool_calls?.[0]?.id;
       if (content) {
         accumulatedMessage += content;
       }
@@ -146,45 +126,37 @@ export class TokenJSClient implements LLMClient {
         }
       }
 
-      let toolCallRequest: ToolCallRequest | undefined;
+      let toolCallRequest:
+        | OpenAI.Chat.Completions.ChatCompletionMessageToolCall
+        | undefined;
       if (accumulatedToolCall.name && accumulatedToolCall.arguments) {
-        //don't return tool calls until they are complete
-        try {
-          const toolArgs = JSON.parse(accumulatedToolCall.arguments);
+        //don't return tool calls until they are complete and parseable
+        const toolArgs = tryParseJsonObject(
+          accumulatedToolCall.arguments,
+          false,
+        );
+        if (toolArgs) {
           toolCallRequest = {
-            toolName: accumulatedToolCall.name,
-            tool_call_id: accumulatedToolCall.id ?? "",
-            parameters: Object.entries(toolArgs).map(([key, value]) => ({
-              parameterName: key,
-              parameterValue: value,
-            })),
+            function: {
+              name: accumulatedToolCall.name,
+              arguments: accumulatedToolCall.arguments,
+            },
+            id: accumulatedToolCall.id ?? "",
+            type: "function",
           };
-        } catch (_e) {
-          // Skip if JSON parsing fails (incomplete JSON)
         }
       }
 
-      yield { message: accumulatedMessage, toolCallRequest, toolCallId };
+      yield {
+        message: {
+          content: accumulatedMessage,
+          role: "assistant",
+          tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
+        },
+        index: 0,
+        logprobs: null,
+      };
     }
-  }
-
-  private toolCallRequestFromResponse(
-    response: OpenAI.Chat.Completions.ChatCompletion,
-  ) {
-    const toolCall = response.choices[0].message.tool_calls?.[0];
-    if (!toolCall) {
-      throw new Error("No tool calls found in response");
-    }
-    const toolArgs = JSON.parse(toolCall.function.arguments);
-
-    return {
-      toolName: toolCall.function.name,
-      tool_call_id: toolCall.id,
-      parameters: Object.entries(toolArgs).map(([key, value]) => ({
-        parameterName: key,
-        parameterValue: value,
-      })),
-    };
   }
 }
 

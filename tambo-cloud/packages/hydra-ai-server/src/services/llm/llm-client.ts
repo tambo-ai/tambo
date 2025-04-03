@@ -1,8 +1,12 @@
-import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
+import { ChatCompletionChoice } from "@libretto/token.js";
+import {
+  ChatCompletionMessageParam,
+  ToolCallRequest,
+  tryParseJsonObject,
+} from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
 import { ZodObject } from "zod";
-import { OpenAIResponse } from "../../model/openai-response";
 
 interface BaseResponseFormat {
   jsonMode?: boolean;
@@ -55,7 +59,50 @@ export type CompleteParams = CompleteBaseParams & ResponseFormat;
 export interface LLMClient {
   complete(
     params: StreamingCompleteParams,
-  ): Promise<AsyncIterableIterator<OpenAIResponse>>;
+  ): Promise<AsyncIterableIterator<LLMResponse>>;
 
-  complete(params: CompleteParams): Promise<OpenAIResponse>;
+  complete(params: CompleteParams): Promise<LLMResponse>;
+}
+export type LLMResponse = Omit<ChatCompletionChoice, "finish_reason">;
+
+/** Get the string response from the LLM response */
+export function getLLMResponseMessage(response: LLMResponse) {
+  return response.message?.content ?? "";
+}
+
+/** Get the tool call id from the LLM response */
+export function getLLMResponseToolCallId(response: LLMResponse) {
+  return response.message.tool_calls?.[0]?.id;
+}
+
+/**
+ * Get the tool call request from the LLM response, as a ToolCallRequest
+ *
+ * This is for backwards compatibility with the homegrown tool call format.
+ */
+export function getLLMResponseToolCallRequest(
+  response: LLMResponse,
+): ToolCallRequest | undefined {
+  const llmToolCall = response.message.tool_calls?.[0];
+  if (!llmToolCall) {
+    return undefined;
+  }
+
+  // TODO: should we throw here?
+  const args = tryParseJsonObject(llmToolCall.function.arguments, false);
+  if (!args) {
+    console.error(
+      `Failed to parse tool call arguments, is this an incomplete stream? ${llmToolCall.function.arguments}`,
+    );
+    return undefined;
+  }
+  const parameters = Object.entries(args).map(([key, value]) => ({
+    parameterName: key,
+    parameterValue: value,
+  }));
+
+  return {
+    toolName: llmToolCall.function.name,
+    parameters,
+  };
 }
