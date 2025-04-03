@@ -4,13 +4,13 @@ import {
   InputContext,
   InputContextAsArray,
   ToolResponseBody,
-} from "./model";
-import { Provider } from "./model/providers";
-import { decideComponent } from "./services/component/component-decision-service";
-import { hydrateComponent } from "./services/component/component-hydration-service";
-import { TokenJSClient } from "./services/llm/token-js-client";
-import { generateSuggestions } from "./services/suggestion/suggestion.service";
-import { SuggestionDecision } from "./services/suggestion/suggestion.types";
+} from "../model";
+import { Provider } from "../model/providers";
+import { decideComponent } from "../services/component/component-decision-service";
+import { hydrateComponent } from "../services/component/component-hydration-service";
+import { TokenJSClient } from "../services/llm/token-js-client";
+import { generateSuggestions } from "../services/suggestion/suggestion.service";
+import { SuggestionDecision } from "../services/suggestion/suggestion.types";
 
 export default class AIService {
   private llmClient: TokenJSClient;

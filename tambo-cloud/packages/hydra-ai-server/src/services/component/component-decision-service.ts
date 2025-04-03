@@ -5,14 +5,14 @@ import {
 } from "@tambo-ai-cloud/core";
 import { InputContext } from "../../model/input-context";
 import { OpenAIResponse } from "../../model/openai-response";
-import { LLMClient } from "../llm/llm-client";
-import { threadMessagesToChatHistory } from "../llm/threadMessagesToChatHistory";
 import {
   decideComponentTool,
-  generateAvailableComponentsList,
   generateDecisionPrompt,
   getNoComponentPromptTemplate,
-} from "../prompt/prompt-service";
+} from "../../prompt/component-decision";
+import { generateAvailableComponentsList } from "../../prompt/component-formatting";
+import { LLMClient } from "../llm/llm-client";
+import { threadMessagesToChatHistory } from "../llm/threadMessagesToChatHistory";
 import { hydrateComponent } from "./component-hydration-service";
 
 // Public function
@@ -84,8 +84,6 @@ export async function decideComponent(
       stream,
     );
   }
-
-  throw new Error(`Invalid decision: ${decisionResponse.message}`);
 }
 
 // Private function

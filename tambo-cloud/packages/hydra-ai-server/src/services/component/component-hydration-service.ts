@@ -12,14 +12,12 @@ import {
   ToolResponseBody,
 } from "../../model/component-metadata";
 import { OpenAIResponse } from "../../model/openai-response";
+import { getAvailableComponentsPromptTemplate } from "../../prompt/component-formatting";
+import { getComponentHydrationPromptTemplate } from "../../prompt/component-hydration";
+import { schemaV1, schemaV2 } from "../../prompt/schemas";
 import { CompleteParams, LLMClient } from "../llm/llm-client";
 import { threadMessagesToChatHistory } from "../llm/threadMessagesToChatHistory";
 import { parseAndValidate } from "../parser/response-parser-service";
-import {
-  getAvailableComponentsPromptTemplate,
-  getComponentHydrationPromptTemplate,
-} from "../prompt/prompt-service";
-import { schemaV1, schemaV2 } from "../prompt/schemas";
 import { convertMetadataToTools } from "../tool/tool-service";
 
 // Public function

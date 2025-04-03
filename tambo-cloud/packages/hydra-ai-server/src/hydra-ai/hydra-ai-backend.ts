@@ -1,13 +1,13 @@
 import { LegacyComponentDecision, ThreadMessage } from "@tambo-ai-cloud/core";
-import AIService from "./ai-service";
 import {
   AvailableComponent,
   AvailableComponents,
   ToolResponseBody,
-} from "./model/component-metadata";
-import { InputContext, InputContextAsArray } from "./model/input-context";
-import { Provider } from "./model/providers";
-import { SuggestionDecision } from "./services/suggestion/suggestion.types";
+} from "../model/component-metadata";
+import { InputContext, InputContextAsArray } from "../model/input-context";
+import { Provider } from "../model/providers";
+import { SuggestionDecision } from "../services/suggestion/suggestion.types";
+import AIService from "./ai-service";
 
 interface HydraBackendOptions {
   version?: "v1" | "v2";

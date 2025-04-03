@@ -4,7 +4,7 @@ Do not introduce new dependencies unless it is explicitly requested.
 
 Do not remove existing dependencies unless it is explicitly requested.
 
-When creating PRs that fix GitHub issues, make sure to add "Fixes #<issue-number>" to the PR description.
+When creating PRs that fix GitHub issues, make sure to add "Fixes #123" to the PR description, replacing 123 with the actual issue number.
 
 When creating PRs, use conventional commits. Most common tags:
 

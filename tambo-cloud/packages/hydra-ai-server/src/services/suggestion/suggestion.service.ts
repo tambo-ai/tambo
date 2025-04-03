@@ -1,7 +1,7 @@
 import { ThreadMessage } from "@tambo-ai-cloud/core";
 import { InputContextAsArray } from "../../model/input-context";
+import { buildSuggestionPrompt } from "../../prompt/suggestion-generator";
 import { LLMClient } from "../llm/llm-client";
-import { buildSuggestionPrompt } from "../prompt/prompt-service";
 import {
   SuggestionDecision,
   SuggestionsResponseSchema,
