@@ -9,7 +9,7 @@ type TabType = "template" | "existing";
 
 const Commands = {
   template: {
-    cmd: "git clone https://github.com/tambo-ai/tambo-template.git && cd tambo-template && npm install && npx tambo init",
+    cmd: "npx tambo create-app .",
   },
   existing: {
     cmd: "npx tambo full-send",
