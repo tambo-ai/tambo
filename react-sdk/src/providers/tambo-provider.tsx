@@ -40,7 +40,7 @@ export const TamboProvider: React.FC<
 > = ({ children, tamboUrl, apiKey, components, environment }) => {
   // explode if we're not in a browser
   if (typeof window === "undefined") {
-    throw new Error("TamboProvider must be used within a browser");
+    console.error("TamboProvider must be used within a browser");
   }
 
   return (
