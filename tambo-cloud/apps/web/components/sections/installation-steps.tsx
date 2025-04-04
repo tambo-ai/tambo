@@ -9,7 +9,7 @@ type TabType = "template" | "existing";
 
 const Commands = {
   template: {
-    cmd: "npx tambo create-app .",
+    cmd: "npx create-tambo-app@latest .",
   },
   existing: {
     cmd: "npx tambo full-send",
@@ -113,7 +113,9 @@ export function InstallationSteps() {
         <div className="space-y-8">
           <CommandBlock activeTab={activeTab} setActiveTab={setActiveTab} />
           <Link
-            href={`/docs/getting-started/quickstart${activeTab === "template" ? "#template" : "#existing-app"}`}
+            href={`/docs/getting-started/quickstart${
+              activeTab === "template" ? "#template" : "#existing-app"
+            }`}
             className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/80 text-black rounded-lg font-sans text-sm font-medium transition-colors"
           >
             View full installation guide →

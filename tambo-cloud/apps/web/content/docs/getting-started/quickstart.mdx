@@ -41,7 +41,7 @@ npm run dev
 or install everything at once, you can run this single command:
 
 ```bash title="Quick installation"
-npx tambo create-app .
+npx create-tambo-app@latest .
 ```
 
 <div className="flex justify-center my-6">
@@ -91,6 +91,7 @@ export default function RootLayout({
       {children}
     </TamboProvider>
   );
+}
 ```
 
 Note that the `TamboProvider` only works in the browser. On Next.js, specify
