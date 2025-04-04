@@ -72,7 +72,7 @@ function App() {
 Use our template:
 
 ```bash
-git clone https://github.com/tambo-ai/tambo-template.git && cd tambo-template && npm install && npx tambo init
+npx create-tambo-app@latest .
 
 npm run dev
 ```
