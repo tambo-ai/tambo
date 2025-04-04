@@ -1,4 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
+import { JSONSchema7 } from "json-schema";
 import { ComponentType } from "react";
 import z from "zod";
 import type zodToJsonSchema from "zod-to-json-schema";
@@ -75,10 +76,11 @@ export interface TamboComponent {
    * A zod schema for the component props. (Recommended)
    * Either this or propsDefinition must be provided, but not both.
    */
-  propsSchema?: z.ZodTypeAny;
+  propsSchema?: z.ZodTypeAny | JSONSchema7;
   /**
    * The props definition of the component as a JSON object.
    * Either this or propsSchema must be provided, but not both.
+   * @deprecated Use propsSchema instead.
    */
   propsDefinition?: any;
   /** The loading component to render while the component is loading */
