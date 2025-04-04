@@ -1,7 +1,7 @@
 {
   "name": "@tambo-ai-cloud/backend",
   "version": "0.0.6",
-  "description": "Server package for running hydra-ai",
+  "description": "Supporting package for running the Tambo AI service",
   "type": "module",
   "exports": {
     "import": "./src/index.ts"
@@ -12,10 +12,11 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
+    "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist coverage"
   },
   "author": "",
   "license": "ISC",

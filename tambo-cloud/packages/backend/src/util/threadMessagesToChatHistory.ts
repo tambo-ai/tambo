@@ -64,7 +64,7 @@ function makeToolMessages(
     return [toolMessage];
   }
   console.warn(
-    `no tool id in tool message ${message.id} converting to user message`,
+    `no tool id in tool message ${message.id}, converting to user message`,
   );
   // If there's no tool id the we just call it a user message
   const userToolMessage: ChatCompletionUserMessageParam = {
@@ -245,7 +245,7 @@ function makeUserMessages(
     message.role === MessageRole.Assistant ||
     message.role === MessageRole.Tool
   ) {
-    throw new Error("Hydra messages should not be converted to user messages");
+    throw new Error("Tambo messages should not be converted to user messages");
   }
   const additionalContextMessage = generateAdditionalContext(message);
 
