@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.9](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.8...repo-v0.32.9) (2025-04-04)
+
+
+### Bug Fixes
+
+* explicitly bring in ajv for json ([#689](https://github.com/tambo-ai/tambo-cloud/issues/689)) ([a142b87](https://github.com/tambo-ai/tambo-cloud/commit/a142b8763aafaf28cca89637bba4661e32760b0a))
+
 ## [0.32.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.7...repo-v0.32.8) (2025-04-04)
 
 
