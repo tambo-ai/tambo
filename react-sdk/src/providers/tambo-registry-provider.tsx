@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import z, { ZodSchema } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentRegistry,
@@ -132,17 +133,7 @@ export const TamboRegistryProvider: React.FC<
       }
 
       // Convert propsSchema to JSON Schema if it exists
-      let props = propsDefinition;
-      if (propsSchema) {
-        try {
-          props = zodToJsonSchema(propsSchema);
-        } catch (error) {
-          console.error(
-            `Error converting ${name} props schema to JSON Schema:`,
-            error,
-          );
-        }
-      }
+      const props = getSerializedProps(propsDefinition, propsSchema, name);
 
       setComponentList((prev) => {
         if (prev[name] && warnOnOverwrite) {
@@ -203,3 +194,66 @@ export const TamboRegistryProvider: React.FC<
 export const useTamboRegistry = () => {
   return useContext(TamboRegistryContext);
 };
+function getSerializedProps(
+  propsDefinition: any,
+  propsSchema: any,
+  name: string,
+) {
+  if (propsDefinition) {
+    console.warn(`propsDefinition is deprecated. Use propsSchema instead.`);
+    return propsDefinition;
+  }
+  if (propsSchema instanceof ZodSchema || propsSchema instanceof z.ZodObject) {
+    return zodToJsonSchema(propsSchema);
+  }
+
+  if (isZodSchema(propsSchema)) {
+    try {
+      return zodToJsonSchema(propsSchema);
+    } catch (error) {
+      console.error(
+        `Error converting ${name} props schema to JSON Schema:`,
+        error,
+      );
+    }
+  }
+  // try to roughly detect JSONSchema, should always be an object with a properties key
+  if (isJSONSchema(propsSchema)) {
+    return propsSchema;
+  }
+
+  throw new Error(`Invalid props schema for ${name}`);
+}
+
+/**
+ * Checks if the propsSchema is a JSON Schema. This is a rough check, and the
+ * server will provide the definitive check.
+ * @param propsSchema - The props schema to check
+ * @returns True if the props schema is a JSON Schema, false otherwise
+ */
+function isJSONSchema(propsSchema: any) {
+  return (
+    propsSchema &&
+    typeof propsSchema === "object" &&
+    propsSchema.type === "object" &&
+    propsSchema.properties
+  );
+}
+
+/**
+ * Since we require a certain zod version, we need to check if the object is a ZodSchema
+ * @param obj - The object to check
+ * @returns True if the object is a ZodSchema, false otherwise
+ */
+function isZodSchema(obj: unknown): obj is ZodSchema {
+  if (obj instanceof ZodSchema) {
+    return true;
+  }
+  // try to detect if the object is a ZodSchema
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    typeof (obj as any).safeParse === "function" &&
+    typeof (obj as any)._def === "object"
+  );
+}
