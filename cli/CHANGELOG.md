@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.2...tambo-v0.3.3) (2025-04-04)
+
+
+### Bug Fixes
+
+* **cli:** add --init-git flag to create-app command and fix message-input auto-focus ([#273](https://github.com/tambo-ai/tambo/issues/273)) ([46ff832](https://github.com/tambo-ai/tambo/commit/46ff8328d4a3547bac3469389fdf018198ac077a))
+
+
+### Code Refactoring
+
+* **cli:** remove tambo.ts from init command (only full-send) ([#269](https://github.com/tambo-ai/tambo/issues/269)) ([96d65d2](https://github.com/tambo-ai/tambo/commit/96d65d27253de637a0b83e0050359ab71416a054))
+
 ## [0.3.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.1...tambo-v0.3.2) (2025-04-03)
 
 
