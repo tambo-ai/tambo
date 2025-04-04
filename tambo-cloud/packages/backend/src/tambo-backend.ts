@@ -6,7 +6,10 @@ import {
 } from "./model/component-metadata";
 import { InputContext, InputContextAsArray } from "./model/input-context";
 import { Provider } from "./model/providers";
-import AIService from "./services/ai-service";
+import { decideComponent } from "./services/component/component-decision-service";
+import { hydrateComponent } from "./services/component/component-hydration-service";
+import { TokenJSClient } from "./services/llm/token-js-client";
+import { generateSuggestions } from "./services/suggestion/suggestion.service";
 import { SuggestionDecision } from "./services/suggestion/suggestion.types";
 
 interface HydraBackendOptions {
@@ -16,11 +19,11 @@ interface HydraBackendOptions {
 }
 
 export default class TamboBackend {
-  private aiService: AIService;
-
+  private llmClient: TokenJSClient;
+  private version: "v1" | "v2";
   constructor(
     openAIKey: string,
-    chainId: string,
+    private chainId: string,
     options: HydraBackendOptions = {},
   ) {
     const {
@@ -28,13 +31,8 @@ export default class TamboBackend {
       model = "gpt-4o-mini",
       provider = "openai",
     } = options;
-    this.aiService = new AIService(
-      openAIKey,
-      model,
-      provider,
-      chainId,
-      version,
-    );
+    this.version = version;
+    this.llmClient = new TokenJSClient(openAIKey, model, provider, chainId);
   }
 
   public async generateSuggestions(
@@ -64,7 +62,8 @@ export default class TamboBackend {
       threadId,
     };
 
-    return await this.aiService.generateSuggestions(
+    return await generateSuggestions(
+      this.llmClient,
       context,
       count,
       threadId,
@@ -101,8 +100,7 @@ export default class TamboBackend {
       threadId,
       additionalContext,
     };
-
-    return await this.aiService.chooseComponent(context, threadId, stream);
+    return await decideComponent(this.llmClient, context, threadId, stream);
   }
 
   public async hydrateComponentWithData(
@@ -131,14 +129,17 @@ export default class TamboBackend {
   ): Promise<
     LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
   > {
-    return await this.aiService.hydrateComponent(
+    return await hydrateComponent({
+      llmClient: this.llmClient,
       messageHistory,
-      component,
+      chosenComponent: component,
       toolResponse,
       toolCallId,
+      availableComponents: undefined,
       threadId,
       stream,
-    );
+      version: this.version,
+    });
   }
 }
 
