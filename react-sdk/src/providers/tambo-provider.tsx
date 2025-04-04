@@ -38,7 +38,7 @@ import {
 export const TamboProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps & TamboRegistryProviderProps>
 > = ({ children, tamboUrl, apiKey, components, environment }) => {
-  // explode if we're not in a browser
+  // Should only be used in browser
   if (typeof window === "undefined") {
     console.error("TamboProvider must be used within a browser");
   }
