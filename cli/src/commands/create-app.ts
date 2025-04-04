@@ -6,6 +6,7 @@ import ora from "ora";
 
 interface CreateAppOptions {
   legacyPeerDeps?: boolean;
+  initGit?: boolean;
 }
 
 function safeRemoveGitFolder(gitFolder: string): void {
@@ -138,6 +139,30 @@ export async function handleCreateApp(
       }
     }
 
+    // Initialize new git repository if requested
+    if (options.initGit) {
+      const gitInitSpinner = ora({
+        text: "Initializing git repository...",
+        spinner: "dots",
+      }).start();
+
+      try {
+        execSync("git init", { stdio: "ignore" });
+        execSync("git add .", { stdio: "ignore" });
+        execSync('git commit -m "Initial commit from Tambo template"', {
+          stdio: "ignore",
+        });
+        gitInitSpinner.succeed("Git repository initialized successfully");
+      } catch (_error) {
+        gitInitSpinner.fail("Failed to initialize git repository");
+        console.warn(
+          chalk.yellow(
+            "\nWarning: Git initialization failed. You can initialize it manually later with 'git init'.",
+          ),
+        );
+      }
+    }
+
     // Update package.json name
     if (appName !== ".") {
       updatePackageJson(targetDir, appName);
@@ -168,13 +193,20 @@ export async function handleCreateApp(
     console.log(chalk.green("\nSuccessfully created a new Tambo app"));
     console.log("\nNext steps:");
     console.log(`  1. ${chalk.cyan(`cd ${appName === "." ? "." : appName}`)}`);
-    console.log(`  2. ${chalk.cyan("npm run dev")}`);
-    console.log(`  3. ${chalk.cyan("npx tambo init")} to complete setup`);
+    if (!options.initGit) {
+      console.log(`  2. ${chalk.cyan("git init")} (optional)`);
+    }
     console.log(
-      `  4. ${chalk.cyan("npx tambo add <component-name>")} to add components`,
+      `  ${!options.initGit ? "3" : "2"}. ${chalk.cyan("npx tambo init")} to complete setup`,
     );
     console.log(
-      `  5. ${chalk.cyan("npx tambo update <component-name>")} to update components`,
+      `  ${!options.initGit ? "4" : "3"}. ${chalk.cyan("npx tambo add <component-name>")} to add components`,
+    );
+    console.log(
+      `  ${!options.initGit ? "5" : "4"}. ${chalk.cyan("npx tambo update <component-name>")} to update components`,
+    );
+    console.log(
+      `  ${!options.initGit ? "6" : "5"}. ${chalk.cyan("npm run dev")}`,
     );
   } catch (error) {
     console.error(

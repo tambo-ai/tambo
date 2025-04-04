@@ -95,6 +95,9 @@ export const MessageInput = React.forwardRef<
         streamResponse: true,
       });
       setValue("");
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     } catch (error) {
       console.error("Failed to submit message:", error);
       setDisplayValue(value);
@@ -138,6 +141,7 @@ export const MessageInput = React.forwardRef<
           disabled={isPending}
           placeholder="Type your message..."
           aria-label="Chat Message Input"
+          autoFocus
         />
         <button
           type="submit"
