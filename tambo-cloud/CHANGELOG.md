@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.32.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.7...repo-v0.32.8) (2025-04-04)
+
+
+### Bug Fixes
+
+* remove componentstate PUT route from tx ([#688](https://github.com/tambo-ai/tambo-cloud/issues/688)) ([565b1ec](https://github.com/tambo-ai/tambo-cloud/commit/565b1ec36c0b070076a90e46857d515e0df441af))
+
+
+### Code Refactoring
+
+* clean up backend library ([#678](https://github.com/tambo-ai/tambo-cloud/issues/678)) ([6f0ac48](https://github.com/tambo-ai/tambo-cloud/commit/6f0ac48a2ae6f5c5d35cb3fe708323b832961d06))
+* remove intermediate aiservice, it was just a pass-through ([#682](https://github.com/tambo-ai/tambo-cloud/issues/682)) ([7110fbb](https://github.com/tambo-ai/tambo-cloud/commit/7110fbb609d162924fd4f6f61f27ba80e20ba00a))
+* rename hydra-ai-server -&gt; backend ([#677](https://github.com/tambo-ai/tambo-cloud/issues/677)) ([754dddd](https://github.com/tambo-ai/tambo-cloud/commit/754dddd90a0e8ebbda122e0cb793e80405c0915f))
+
+
+### Tests
+
+* **backend:** add backend tests for thread conversion ([#679](https://github.com/tambo-ai/tambo-cloud/issues/679)) ([a4d4390](https://github.com/tambo-ai/tambo-cloud/commit/a4d439083f64301c599bab5e0e657e6c05796411))
+* Fix tests, make them run in CI ([#675](https://github.com/tambo-ai/tambo-cloud/issues/675)) ([b90505e](https://github.com/tambo-ai/tambo-cloud/commit/b90505ee844321fda1026e98cb7788aeaf147fe3))
+
 ## [0.32.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.6...repo-v0.32.7) (2025-04-04)
 
 
