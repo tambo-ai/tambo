@@ -1,0 +1,50 @@
+{
+  "name": "create-tambo-app",
+  "version": "0.0.2",
+  "description": "Create a new Tambo application",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "create-tambo-app"
+  },
+  "homepage": "https://tambo.co",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "bin": {
+    "create-tambo-app": "./dist/index.js"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "clean": "rimraf dist"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
+  "volta": {
+    "extends": "../package.json"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "eslint": "^8.57.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^7.0.0"
+  }
+}

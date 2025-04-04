@@ -27,6 +27,7 @@
     "react-sdk",
     "showcase",
     "cli",
+    "create-tambo-app",
     "packages/*"
   ],
   "engines": {
