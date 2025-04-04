@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.8](https://github.com/tambo-ai/tambo/compare/react-v0.19.7...react-v0.19.8) (2025-04-04)
+
+
+### Bug Fixes
+
+* Don't throw error if TamboProvider used outside browser ([#271](https://github.com/tambo-ai/tambo/issues/271)) ([0390fb1](https://github.com/tambo-ai/tambo/commit/0390fb1e4b5bf1bba857125716633ac37667d73a))
+
 ## [0.19.7](https://github.com/tambo-ai/tambo/compare/react-v0.19.6...react-v0.19.7) (2025-04-02)
 
 
