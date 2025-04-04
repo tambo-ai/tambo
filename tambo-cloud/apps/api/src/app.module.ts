@@ -63,6 +63,10 @@ export class AppModule implements OnModuleInit {
           path: "/threads/:id/messages/:messageId/suggestions",
           method: RequestMethod.POST,
         },
+        {
+          path: "/threads/:id/messages/:messageId/component-state",
+          method: RequestMethod.PUT,
+        },
       )
       .forRoutes("*");
   }

@@ -18,17 +18,21 @@ function getDb(databaseUrl: string): HydraDatabase {
     });
 
     pool.on("acquire", () => {
-      console.log(`Connection acquired (${pool.totalCount}/${pool.idleCount})`);
+      console.log(
+        `Connection acquired: now → ${pool.totalCount}/${pool.idleCount} (total/idle)`,
+      );
     });
 
     pool.on("release", () => {
-      console.log(`Connection released (${pool.totalCount}/${pool.idleCount})`);
+      console.log(
+        `Connection released: now → ${pool.totalCount}/${pool.idleCount} (total/idle) (released connection takes a few ms to be marked as idle)`,
+      );
     });
 
     globalPool = pool;
   }
   console.log(
-    `[${globalPool.totalCount} connections (${globalPool.idleCount} idle)]`,
+    `Database status: ${globalPool.totalCount} connections (${globalPool.idleCount} idle)`,
   );
   const db = drizzle(globalPool, { schema });
 
