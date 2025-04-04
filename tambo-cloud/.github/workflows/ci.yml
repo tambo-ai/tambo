@@ -48,3 +48,6 @@ jobs:
 
       - name: Check Types
         run: npm run check-types
+
+      - name: Build
+        run: npm run build
