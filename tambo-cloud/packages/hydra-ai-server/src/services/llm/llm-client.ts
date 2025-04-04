@@ -6,18 +6,18 @@ import {
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
-import { ZodObject } from "zod";
+import { ZodObject, ZodRawShape } from "zod";
 
 interface BaseResponseFormat {
   jsonMode?: boolean;
-  zodResponseFormat?: ZodObject<any>;
+  zodResponseFormat?: ZodObject<ZodRawShape>;
   schemaResponseFormat?: JSONSchema;
 }
 interface JsonResponseFormat extends BaseResponseFormat {
   jsonMode: true;
 }
 interface ZodResponseFormat extends BaseResponseFormat {
-  zodResponseFormat: ZodObject<any>;
+  zodResponseFormat: ZodObject<ZodRawShape>;
 }
 interface SchemaResponseFormat extends BaseResponseFormat {
   schemaResponseFormat: JSONSchema;

@@ -156,18 +156,38 @@ export default function SmokePage() {
       component: WeatherDay,
       name: "WeatherDay",
       description: "A weather day",
-      propsDefinition: {
-        data: "{ date: string; day: { maxtemp_c: number; mintemp_c: number; avgtemp_c: number; maxwind_kph: number; totalprecip_mm: number; avghumidity: number; condition: { text: string; icon: string } } }",
-      },
+      propsSchema: z.object({
+        data: z.object({
+          date: z.string(),
+          day: z.object({
+            maxtemp_c: z.number(),
+            mintemp_c: z.number(),
+            avgtemp_c: z.number(),
+            maxwind_kph: z.number(),
+            totalprecip_mm: z.number(),
+            avghumidity: z.number(),
+            condition: z.object({
+              text: z.string(),
+              icon: z.string(),
+            }),
+          }),
+        }),
+      }),
       associatedTools: [tools.forecast, tools.history, tools.currentWeather],
     });
     registerComponent({
       component: AirQuality,
       name: "AirQuality",
       description: "Air quality",
-      propsDefinition: {
-        data: "{ aqi: number; pm2_5: number; pm10: number; o3: number; no2: number }",
-      },
+      propsSchema: z.object({
+        data: z.object({
+          aqi: z.number(),
+          pm2_5: z.number(),
+          pm10: z.number(),
+          o3: z.number(),
+          no2: z.number(),
+        }),
+      }),
       associatedTools: [tools.aqi],
     });
   }, [registerComponent, tools]);

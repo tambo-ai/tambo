@@ -6,6 +6,7 @@ import {
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
+import { ResponseFormatJSONObject } from "openai/resources";
 import { Provider } from "../../model/providers";
 import {
   CompleteParams,
@@ -18,7 +19,7 @@ export class TokenJSClient implements LLMClient {
   private client: TokenJS;
 
   constructor(
-    private apiKey: string,
+    apiKey: string,
     private model: string,
     private provider: Provider,
     private chainId: string,
@@ -48,7 +49,7 @@ export class TokenJSClient implements LLMClient {
       );
     }
     const messagesFormatted = tryFormatTemplate(
-      params.messages as any,
+      params.messages,
       params.promptTemplateParams,
     );
 
@@ -58,13 +59,16 @@ export class TokenJSClient implements LLMClient {
         model: this.model,
         messages: messagesFormatted,
         temperature: 0,
-        response_format: extractResponseFormat(params),
+        response_format: extractResponseFormat(
+          params,
+        ) as ResponseFormatJSONObject,
         tools: componentTools,
         tool_choice: params.tool_choice,
         libretto: {
           promptTemplateName: params.promptTemplateName,
           templateParams: params.promptTemplateParams,
-          templateChat: params.messages as any[],
+          templateChat:
+            params.messages as OpenAI.Chat.Completions.ChatCompletionMessage[],
           chainId: this.chainId,
         },
         stream: true,
@@ -78,13 +82,16 @@ export class TokenJSClient implements LLMClient {
       model: this.model,
       messages: messagesFormatted,
       temperature: 0,
-      response_format: extractResponseFormat(params),
+      response_format: extractResponseFormat(
+        params,
+      ) as ResponseFormatJSONObject,
       tool_choice: params.tool_choice,
       tools: componentTools,
       libretto: {
         promptTemplateName: params.promptTemplateName,
         templateParams: params.promptTemplateParams,
-        templateChat: params.messages as any[],
+        templateChat:
+          params.messages as OpenAI.Chat.Completions.ChatCompletionMessage[],
         chainId: this.chainId,
       },
     });
@@ -162,16 +169,13 @@ export class TokenJSClient implements LLMClient {
 
 function extractResponseFormat(
   params: StreamingCompleteParams | CompleteParams,
-) {
+): OpenAI.Chat.Completions.ChatCompletionCreateParams["response_format"] {
   if (params.jsonMode) {
     return { type: "json_object" };
   }
 
   if (params.zodResponseFormat) {
-    const zodResponse = zodResponseFormat(
-      params.zodResponseFormat,
-      "response",
-    ) as any;
+    const zodResponse = zodResponseFormat(params.zodResponseFormat, "response");
     return zodResponse;
   }
 
@@ -180,7 +184,7 @@ function extractResponseFormat(
       type: "json_schema",
       json_schema: {
         name: "response",
-        schema: params.schemaResponseFormat,
+        schema: params.schemaResponseFormat as Record<string, unknown>,
       },
     };
   }
@@ -191,7 +195,7 @@ function extractResponseFormat(
 /** We have to manually format this because objectTemplate doesn't seem to support chat_history */
 function tryFormatTemplate(
   messages: ChatCompletionMessageParam[],
-  promptTemplateParams: Record<string, any>,
+  promptTemplateParams: Record<string, unknown>,
 ) {
   try {
     return formatTemplate(messages as any, promptTemplateParams);
