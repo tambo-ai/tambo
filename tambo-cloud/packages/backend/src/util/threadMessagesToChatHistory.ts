@@ -13,7 +13,7 @@ import {
   ChatCompletionToolMessageParam,
   ChatCompletionUserMessageParam,
 } from "openai/resources";
-import { formatFunctionCall, generateAdditionalContext } from "./utils";
+import { formatFunctionCall, generateAdditionalContext } from "./tools";
 
 export function threadMessagesToChatHistory(
   messageHistory: ThreadMessage[],

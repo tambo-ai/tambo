@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { generateChainId, HydraBackend } from "@tambo-ai-cloud/backend";
+import { generateChainId, TamboBackend } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ChatCompletionContentPart,
@@ -53,14 +53,14 @@ export class ThreadsService {
     return this.db;
   }
 
-  private async getHydraBackend(threadId: string): Promise<HydraBackend> {
+  private async getHydraBackend(threadId: string): Promise<TamboBackend> {
     return await this.createHydraBackendForThread(threadId);
   }
 
   private async createHydraBackendForThread(
     threadId: string,
     options: { version?: "v1" | "v2" } = {},
-  ): Promise<HydraBackend> {
+  ): Promise<TamboBackend> {
     const chainId = await generateChainId(threadId);
 
     // Get the thread's project ID from the database
@@ -78,7 +78,7 @@ export class ThreadsService {
     );
 
     // Use the provider key from the database instead of the environment variable
-    return new HydraBackend(providerKey, chainId, options);
+    return new TamboBackend(providerKey, chainId, options);
   }
 
   async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
@@ -345,8 +345,8 @@ export class ThreadsService {
     try {
       const threadMessages = await this.getMessages(message.threadId);
 
-      const hydraBackend = await this.getHydraBackend(message.threadId);
-      const suggestions = await hydraBackend.generateSuggestions(
+      const tamboBackend = await this.getHydraBackend(message.threadId);
+      const suggestions = await tamboBackend.generateSuggestions(
         threadMessages as ThreadMessage[],
         generateSuggestionsDto.maxSuggestions ?? 3,
         generateSuggestionsDto.availableComponents ?? [],
@@ -482,8 +482,8 @@ export class ThreadsService {
         throw error;
       });
 
-    // Use the shared method to create the HydraBackend instance
-    const hydraBackend = await this.createHydraBackendForThread(thread.id, {
+    // Use the shared method to create the TamboBackend instance
+    const tamboBackend = await this.createHydraBackendForThread(thread.id, {
       version: "v2",
     });
 
@@ -544,7 +544,7 @@ export class ThreadsService {
       }
       if (stream) {
         const streamedResponseMessage =
-          await hydraBackend.hydrateComponentWithData(
+          await tamboBackend.hydrateComponentWithData(
             threadMessageDtoToThreadMessage(messages),
             componentDef,
             toolResponse,
@@ -559,7 +559,7 @@ export class ThreadsService {
           latestMessage.tool_call_id,
         );
       } else {
-        responseMessage = await hydraBackend.hydrateComponentWithData(
+        responseMessage = await tamboBackend.hydrateComponentWithData(
           threadMessageDtoToThreadMessage(messages),
           componentDef,
           toolResponse,
@@ -574,7 +574,7 @@ export class ThreadsService {
         `Choosing component...`,
       );
       if (stream) {
-        const streamedResponseMessage = await hydraBackend.generateComponent(
+        const streamedResponseMessage = await tamboBackend.generateComponent(
           threadMessageDtoToThreadMessage(messages),
           availableComponentMap,
           thread.id,
@@ -587,7 +587,7 @@ export class ThreadsService {
           addedUserMessage,
         );
       } else {
-        responseMessage = await hydraBackend.generateComponent(
+        responseMessage = await tamboBackend.generateComponent(
           threadMessageDtoToThreadMessage(messages),
           availableComponentMap,
           thread.id,

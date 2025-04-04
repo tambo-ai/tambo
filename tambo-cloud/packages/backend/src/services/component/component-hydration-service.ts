@@ -14,6 +14,8 @@ import {
 import { getAvailableComponentsPromptTemplate } from "../../prompt/component-formatting";
 import { getComponentHydrationPromptTemplate } from "../../prompt/component-hydration";
 import { schemaV1, schemaV2 } from "../../prompt/schemas";
+import { parseAndValidate } from "../../util/parseResponse";
+import { threadMessagesToChatHistory } from "../../util/threadMessagesToChatHistory";
 import {
   CompleteParams,
   getLLMResponseMessage,
@@ -22,8 +24,6 @@ import {
   LLMClient,
   LLMResponse,
 } from "../llm/llm-client";
-import { threadMessagesToChatHistory } from "../llm/threadMessagesToChatHistory";
-import { parseAndValidate } from "../parser/response-parser-service";
 import { convertMetadataToTools } from "../tool/tool-service";
 
 // Public function

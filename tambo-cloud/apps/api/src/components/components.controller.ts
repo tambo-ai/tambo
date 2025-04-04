@@ -10,8 +10,8 @@ import {
 import { ApiOperation, ApiSecurity } from "@nestjs/swagger";
 import {
   ChatMessage,
-  HydraBackend,
   generateChainId,
+  TamboBackend,
 } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
@@ -92,8 +92,8 @@ export class ComponentsController {
       contextKey,
     );
 
-    //TODO: Don't instantiate HydraBackend every request
-    const hydraBackend = new HydraBackend(
+    //TODO: Don't instantiate TamboBackend every request
+    const tamboBackend = new TamboBackend(
       decryptedProviderKey.providerKey,
       await generateChainId(resolvedThreadId),
     );
@@ -102,7 +102,7 @@ export class ComponentsController {
       content: [{ type: ContentPartType.Text, text: lastMessageEntry.message }],
     });
 
-    const component = await hydraBackend.generateComponent(
+    const component = await tamboBackend.generateComponent(
       legacyChatMessagesToThreadMessages(messageHistory, resolvedThreadId),
       availableComponents ?? {},
       resolvedThreadId,
@@ -157,7 +157,7 @@ export class ComponentsController {
       contextKey,
     );
 
-    const hydraBackend = new HydraBackend(
+    const tamboBackend = new TamboBackend(
       decryptedProviderKey.providerKey,
       await generateChainId(resolvedThreadId),
     );
@@ -179,7 +179,7 @@ export class ComponentsController {
         actionType: ActionType.ToolResponse,
       });
 
-      const hydratedComponent = await hydraBackend.hydrateComponentWithData(
+      const hydratedComponent = await tamboBackend.hydrateComponentWithData(
         legacyChatMessagesToThreadMessages(messageHistory, resolvedThreadId),
         component,
         toolResponse,

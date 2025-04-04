@@ -3,11 +3,11 @@ import {
   AvailableComponent,
   AvailableComponents,
   ToolResponseBody,
-} from "../model/component-metadata";
-import { InputContext, InputContextAsArray } from "../model/input-context";
-import { Provider } from "../model/providers";
-import { SuggestionDecision } from "../services/suggestion/suggestion.types";
-import AIService from "./ai-service";
+} from "./model/component-metadata";
+import { InputContext, InputContextAsArray } from "./model/input-context";
+import { Provider } from "./model/providers";
+import AIService from "./services/ai-service";
+import { SuggestionDecision } from "./services/suggestion/suggestion.types";
 
 interface HydraBackendOptions {
   version?: "v1" | "v2";
@@ -15,7 +15,7 @@ interface HydraBackendOptions {
   provider?: Provider;
 }
 
-export default class HydraBackend {
+export default class TamboBackend {
   private aiService: AIService;
 
   constructor(

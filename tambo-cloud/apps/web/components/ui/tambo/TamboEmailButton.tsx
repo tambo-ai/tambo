@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { useTamboThreadInput } from "@tambo-ai/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const TamboEmailButton = () => {
   const { setValue } = useTamboThreadInput();
   const [hasPressedButton, setHasPressedButton] = useState(false);
 
-  const handleInteraction = () => {
+  const handleInteraction = useCallback(() => {
     setValue("Help me send an email to the founders.");
     setHasPressedButton(true);
-  };
+  }, [setValue]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -22,7 +22,7 @@ export const TamboEmailButton = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [handleInteraction]);
 
   if (hasPressedButton) return null;
 

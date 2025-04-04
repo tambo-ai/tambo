@@ -10,13 +10,13 @@ import {
   getNoComponentPromptTemplate,
 } from "../../prompt/component-decision";
 import { generateAvailableComponentsList } from "../../prompt/component-formatting";
+import { threadMessagesToChatHistory } from "../../util/threadMessagesToChatHistory";
 import {
   getLLMResponseMessage,
   getLLMResponseToolCallRequest,
   LLMClient,
   LLMResponse,
 } from "../llm/llm-client";
-import { threadMessagesToChatHistory } from "../llm/threadMessagesToChatHistory";
 import { hydrateComponent } from "./component-hydration-service";
 
 // Public function
