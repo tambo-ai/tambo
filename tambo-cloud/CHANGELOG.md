@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.32.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.6...repo-v0.32.7) (2025-04-04)
+
+
+### Bug Fixes
+
+* **prompts:** Better formatting for components, props, etc ([#672](https://github.com/tambo-ai/tambo-cloud/issues/672)) ([464df14](https://github.com/tambo-ai/tambo-cloud/commit/464df14f9bb097ab003cb0322238ae18a714bf9f))
+
+
+### Documentation
+
+* a few more instructions ([#668](https://github.com/tambo-ai/tambo-cloud/issues/668)) ([210600e](https://github.com/tambo-ai/tambo-cloud/commit/210600ea252d03fb83d87e064fd538ca17114768))
+* add charlie instructions ([#666](https://github.com/tambo-ai/tambo-cloud/issues/666)) ([be869e4](https://github.com/tambo-ai/tambo-cloud/commit/be869e43b32084b7e4581321cebc9b4ceceedb14))
+
+
+### Miscellaneous Chores
+
+* Update Command References on Landing Page and Quickstart Guide ([#674](https://github.com/tambo-ai/tambo-cloud/issues/674)) ([33477d5](https://github.com/tambo-ai/tambo-cloud/commit/33477d5107f86d82166e05bae22ee1e2a12f687c))
+* update installation commands in quickstart guide and on landing page ([#669](https://github.com/tambo-ai/tambo-cloud/issues/669)) ([a2d3d0c](https://github.com/tambo-ai/tambo-cloud/commit/a2d3d0c294d0a84b42baae6f8aa97a573d167a56))
+
+
+### Code Refactoring
+
+* **prompts:** clean up and organize prompt generation code ([#670](https://github.com/tambo-ai/tambo-cloud/issues/670)) ([78a566c](https://github.com/tambo-ai/tambo-cloud/commit/78a566c5a1cc4d2a2a0b07d661487d9068519627))
+* remove intermediate OpenAIResponse type and use more native types ([#671](https://github.com/tambo-ai/tambo-cloud/issues/671)) ([41ed657](https://github.com/tambo-ai/tambo-cloud/commit/41ed657e807520caf6d40a06b400c1cf697b3605))
+
 ## [0.32.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.5...repo-v0.32.6) (2025-04-02)
 
 
