@@ -9,7 +9,7 @@ The main apps are in the [apps](./apps) directory:
 
 There are shared libraries in the [packages](./packages) directory:
 
-- [hydra-ai-server](./packages/hydra-ai-server) - A library for interacting with the LLM
+- [backend](./packages/backend) - A library for interacting with the LLM
 - [@tambo-ai-cloud/core](./packages/core) - A library for basic shared utilities/etc.
 - [@tambo-ai-cloud/db](./packages/db) - A library for interacting with the database. This is mostly the drizzle schema and migrations.
 

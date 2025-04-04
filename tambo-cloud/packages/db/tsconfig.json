@@ -5,7 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
-      "@tambo-ai-cloud/hydra-ai-server": ["../hydra-ai-server/src"],
+      "@tambo-ai-cloud/backend": ["../backend/src"],
       "@tambo-ai-cloud/core": ["../core/src"]
     }
   },

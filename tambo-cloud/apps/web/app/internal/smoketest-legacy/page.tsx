@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import { api } from "@/trpc/react";
-import { ComponentContextTool } from "@tambo-ai-cloud/hydra-ai-server";
+import { ComponentContextTool } from "@tambo-ai-cloud/backend";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { HydraClient } from "hydra-ai";

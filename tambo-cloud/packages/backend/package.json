@@ -1,5 +1,5 @@
 {
-  "name": "@tambo-ai-cloud/hydra-ai-server",
+  "name": "@tambo-ai-cloud/backend",
   "version": "0.0.6",
   "description": "Server package for running hydra-ai",
   "type": "module",

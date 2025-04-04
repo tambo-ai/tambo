@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {
-      "@tambo-ai-cloud/hydra-ai-server": ["../../packages/hydra-ai-server/src"],
+      "@tambo-ai-cloud/backend": ["../../packages/backend/src"],
       "@tambo-ai-cloud/core": ["../../packages/core/src"],
       "@tambo-ai-cloud/db": ["../../packages/db/src"]
     }

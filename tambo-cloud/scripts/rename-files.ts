@@ -11,7 +11,6 @@ type Replacement = {
 
 const replacements: Replacement[] = [
   // Specific package names first
-  { from: /hydra-ai-server/g, to: "tambo-server" },
   { from: /hydra-ai-landing/g, to: "tambo-landing" },
   { from: /hydra-ai-react/g, to: "tambo-react" },
   { from: /hydra-ai-core/g, to: "tambo-core" },

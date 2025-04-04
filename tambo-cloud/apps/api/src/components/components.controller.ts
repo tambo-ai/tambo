@@ -9,6 +9,11 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiSecurity } from "@nestjs/swagger";
 import {
+  ChatMessage,
+  HydraBackend,
+  generateChainId,
+} from "@tambo-ai-cloud/backend";
+import {
   ActionType,
   ContentPartType,
   GenerationStage,
@@ -16,11 +21,6 @@ import {
   MessageRole,
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
-import {
-  ChatMessage,
-  HydraBackend,
-  generateChainId,
-} from "@tambo-ai-cloud/hydra-ai-server";
 import { Request } from "express";
 import { decryptProviderKey } from "../common/key.utils";
 import { CorrelationLoggerService } from "../common/services/logger.service";

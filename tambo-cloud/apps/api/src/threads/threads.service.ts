@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { generateChainId, HydraBackend } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ChatCompletionContentPart,
@@ -12,7 +13,6 @@ import {
 import type { HydraDatabase, HydraTransaction } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import type { DBSuggestion } from "@tambo-ai-cloud/db/src/schema";
-import { generateChainId, HydraBackend } from "@tambo-ai-cloud/hydra-ai-server";
 import { eq } from "drizzle-orm";
 import { decryptProviderKey } from "../common/key.utils";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
