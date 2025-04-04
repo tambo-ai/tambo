@@ -25,6 +25,7 @@ const currentVersion = packageJson.version;
 interface CLIFlags extends Record<string, any> {
   init?: Flag<"boolean", boolean>;
   legacyPeerDeps?: Flag<"boolean", boolean>;
+  initGit?: Flag<"boolean", boolean>;
   version?: Flag<"boolean", boolean>;
 }
 
@@ -43,6 +44,7 @@ const cli = meow(
 
   ${chalk.bold("Options")}
     ${chalk.yellow("--legacy-peer-deps")}  Install dependencies with --legacy-peer-deps flag
+    ${chalk.yellow("--init-git")}          Initialize a new git repository after creating the app
     ${chalk.yellow("--version")}           Show version number
 
   ${chalk.bold("Examples")}
@@ -52,8 +54,8 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName> --legacy-peer-deps")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName> --legacy-peer-deps")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name>")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app .")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name> --init-git")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app . --init-git")}
   `,
   {
     flags: {
@@ -64,6 +66,10 @@ const cli = meow(
       legacyPeerDeps: {
         type: "boolean",
         description: "Install dependencies with --legacy-peer-deps flag",
+      },
+      initGit: {
+        type: "boolean",
+        description: "Initialize a new git repository after creating the app",
       },
     },
     importMeta: import.meta,
@@ -149,15 +155,17 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
   if (cmd === "create-app") {
     const appName = cli.input[1];
     if (!appName) {
-      console.error(chalk.red("App name is required"));
+      console.error(chalk.red("\nApp name is required\n"));
       console.log(
         `Run ${chalk.cyan("npx tambo create-app <app-name>")} or ${chalk.cyan("npx create-tambo-app@latest <app-name>")} to create a new app\n` +
-          `Use ${chalk.cyan("npx tambo create-app .")} or ${chalk.cyan("npx create-tambo-app@latest .")} to create an app in the current directory`,
+          `Use ${chalk.cyan("npx tambo create-app .")} or ${chalk.cyan("npx create-tambo-app@latest .")} to create an app in the current directory\n\n` +
+          `Add ${chalk.yellow("--init-git")} flag to initialize a git repository automatically\n`,
       );
       return;
     }
     await handleCreateApp(appName, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
+      initGit: Boolean(flags.initGit),
     });
     return;
   }
