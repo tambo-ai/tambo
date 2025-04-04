@@ -13,7 +13,7 @@
     "start:dev": "NODE_OPTIONS=--experimental-require-module nest start --watch",
     "start:debug": "NODE_OPTIONS=--experimental-require-module nest start --debug --watch ",
     "start:prod": "NODE_OPTIONS=--experimental-require-module node dist/apps/api/src/main",
-    "test": "jest",
+    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
