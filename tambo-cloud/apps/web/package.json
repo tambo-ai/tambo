@@ -49,7 +49,7 @@
     "clsx": "^2.1.1",
     "deep-email-validator": "^0.1.21",
     "drizzle-orm": "^0.41.0",
-    "embla-carousel-react": "^8.1.3",
+    "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.6.3",
     "fumadocs-core": "^14.2.1",
     "fumadocs-mdx": "^11.4.0",
