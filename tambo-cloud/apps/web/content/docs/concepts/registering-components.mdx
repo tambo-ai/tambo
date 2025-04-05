@@ -150,12 +150,14 @@ import { registerComponent } from "@tambo-ai/react";
 // Define schema with descriptions for AI
 export const DataChartProps = z
   .object({
-    data: z.object({
-      labels: z
-        .array(z.string())
-        .describe("Use single words or short phrases."),
-      values: z.array(z.number()).describe("Use whole numbers."),
-    }),
+    data: z
+      .object({
+        labels: z
+          .array(z.string())
+          .describe("Use single words or short phrases."),
+        values: z.array(z.number()).describe("Use whole numbers."),
+      })
+      .describe("A component for displaying data in various chart formats"),
     type: z
       .enum(["bar", "line", "pie"])
       .describe(
@@ -179,18 +181,41 @@ registerComponent({
 import { DataChart } from "@/components/DataChart";
 import { registerComponent } from "@tambo-ai/react";
 
-// Using string type definitions instead of Zod
+// Using JSONSchema format
 registerComponent({
   component: DataChart,
   name: "DataChart",
   description: "Displays data as a chart",
-  propsDefinition: {
-    data: "{ labels: string[]; values: number[] }",
-    type: "'bar' | 'line' | 'pie'",
+  propsSchema: {
+    type: "object",
+    properties: {
+      data: {
+        type: "object",
+        properties: {
+          labels: {
+            type: "array",
+            items: { type: "string" },
+            description: "Use single words or short phrases.",
+          },
+          values: {
+            type: "array",
+            items: { type: "number" },
+            description: "Use whole numbers.",
+          },
+        },
+        required: ["labels", "values"],
+      },
+      type: {
+        type: "string",
+        enum: ["bar", "line", "pie"],
+        description:
+          "Use a chart type that is appropriate for the data. Only use pie charts when less than 5 values.",
+      },
+    },
+    required: ["data", "type"],
+    description: "A component for displaying data in various chart formats",
   },
 });
 ```
-
-**Note:** Use either `propsSchema` OR `propsDefinition`, not both.
 
 Now when a user sends a message asking about something related to your components, Tambo can respond with the appropriate component filled with relevant data!
