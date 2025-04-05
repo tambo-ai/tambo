@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.3.1...showcase-v0.3.2) (2025-04-05)
+
+
+### Miscellaneous
+
+* **deps:** bump lucide-react from 0.486.0 to 0.487.0 ([#280](https://github.com/tambo-ai/tambo/issues/280)) ([4a36b58](https://github.com/tambo-ai/tambo/commit/4a36b5814b7590efa4fb13ac95c3f2e2d6dfaf90))
+* **deps:** bump recharts from 2.15.1 to 2.15.2 ([#287](https://github.com/tambo-ai/tambo/issues/287)) ([cd139ba](https://github.com/tambo-ai/tambo/commit/cd139bafdbb24fadb9e96eb0f7791c0add541cef))
+
 ## [0.3.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.3.0...showcase-v0.3.1) (2025-04-03)
 
 
