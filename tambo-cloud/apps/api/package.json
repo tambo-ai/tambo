@@ -24,11 +24,11 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",
-    "@nestjs/common": "^11.0.12",
+    "@nestjs/common": "^11.0.13",
     "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.0.12",
-    "@nestjs/platform-express": "^11.0.12",
-    "@nestjs/swagger": "^11.1.0",
+    "@nestjs/core": "^11.0.13",
+    "@nestjs/platform-express": "^11.0.13",
+    "@nestjs/swagger": "^11.1.1",
     "@tambo-ai-cloud/backend": "*",
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
@@ -43,9 +43,9 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.5",
-    "@nestjs/schematics": "^11.0.2",
-    "@nestjs/testing": "^11.0.12",
+    "@nestjs/cli": "^11.0.6",
+    "@nestjs/schematics": "^11.0.3",
+    "@nestjs/testing": "^11.0.13",
     "@tambo-ai-cloud/eslint-config": "*",
     "@tambo-ai-cloud/typescript-config": "*",
     "@types/express": "^5.0.0",
