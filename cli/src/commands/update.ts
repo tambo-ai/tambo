@@ -67,6 +67,7 @@ export async function handleUpdateComponent(
     }
 
     // Prompt for confirmation
+    // No changes needed for inquirer v10 compatibility as there are no filter functions
     const { confirm } = await inquirer.prompt([
       {
         type: "confirm",

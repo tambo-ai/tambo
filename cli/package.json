@@ -60,7 +60,7 @@
     "deep-equal": "^2.2.3",
     "deepmerge": "^4.3.1",
     "dotenv": "^16.4.5",
-    "inquirer": "^9.1.4",
+    "inquirer": "^10.2.2",
     "meow": "^13.2.0",
     "open": "^10.1.0",
     "ora": "^8.1.0",
