@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.3...tambo-v0.3.4) (2025-04-05)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump typescript from 5.8.2 to 5.8.3 ([#282](https://github.com/tambo-ai/tambo/issues/282)) ([0c1fc63](https://github.com/tambo-ai/tambo/commit/0c1fc631be3212e7c3b82c696306d7fac36d5f56))
+
 ## [0.3.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.2...tambo-v0.3.3) (2025-04-04)
 
 
