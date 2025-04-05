@@ -44,7 +44,7 @@
     "@trpc/server": "^11.0.0-rc.700",
     "@types/react-speech-recognition": "^3.9.6",
     "@vercel/analytics": "^1.5.0",
-    "@vercel/og": "^0.6.5",
+    "@vercel/og": "^0.6.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "deep-email-validator": "^0.1.21",
