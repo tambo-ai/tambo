@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.20.0](https://github.com/tambo-ai/tambo/compare/react-v0.19.8...react-v0.20.0) (2025-04-05)
+
+
+### Features
+
+* enforce zod/json-ness of propSchema prop ([#276](https://github.com/tambo-ai/tambo/issues/276)) ([a717c9f](https://github.com/tambo-ai/tambo/commit/a717c9f375cad438cf7850bda62d856b7db3fde9))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @testing-library/react from 16.2.0 to 16.3.0 ([#286](https://github.com/tambo-ai/tambo/issues/286)) ([91d0986](https://github.com/tambo-ai/tambo/commit/91d098670a3be669a172594b17a38500cd37f92a))
+* **deps-dev:** bump @types/node from 20.17.28 to 20.17.30 ([#279](https://github.com/tambo-ai/tambo/issues/279)) ([78f7ad2](https://github.com/tambo-ai/tambo/commit/78f7ad2ff4bf6dbdef9b26881c91893637a9d142))
+* **deps-dev:** bump the eslint group with 5 updates ([#278](https://github.com/tambo-ai/tambo/issues/278)) ([88fcd49](https://github.com/tambo-ai/tambo/commit/88fcd49d32dc7a2e23077d81386cf6858089e708))
+* **deps-dev:** bump typescript from 5.8.2 to 5.8.3 ([#282](https://github.com/tambo-ai/tambo/issues/282)) ([0c1fc63](https://github.com/tambo-ai/tambo/commit/0c1fc631be3212e7c3b82c696306d7fac36d5f56))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.42.0 to 0.42.1 ([#285](https://github.com/tambo-ai/tambo/issues/285)) ([e4820b4](https://github.com/tambo-ai/tambo/commit/e4820b436b7357c32b4f9d96640e6664e5affa02))
+* **deps:** bump @tanstack/react-query from 5.71.1 to 5.71.10 ([#281](https://github.com/tambo-ai/tambo/issues/281)) ([bc90e94](https://github.com/tambo-ai/tambo/commit/bc90e946ec27d900a2eccee880de79b8297b2128))
+
 ## [0.19.8](https://github.com/tambo-ai/tambo/compare/react-v0.19.7...react-v0.19.8) (2025-04-04)
 
 
