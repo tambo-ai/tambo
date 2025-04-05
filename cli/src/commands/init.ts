@@ -54,6 +54,7 @@ async function checkExistingApiKey(): Promise<string | null> {
       const content = fs.readFileSync(file, "utf8");
       const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
       if (match?.[1]) {
+        // No filter function used here, no changes needed
         const { overwriteExisting } = await inquirer.prompt([
           {
             type: "confirm",
@@ -87,6 +88,7 @@ export async function getInstallationPath(): Promise<string> {
     console.log(chalk.gray(`No ${chalk.cyan("src/")} directory found`));
   }
 
+  // No filter function used here, no changes needed
   const { useSrcDir } = await inquirer.prompt([
     {
       type: "confirm",
@@ -132,6 +134,7 @@ async function handleAuthentication(): Promise<boolean> {
     }
 
     // 2. Get API key from user
+    // No filter function used here, no changes needed
     const { apiKey } = await inquirer.prompt([
       {
         type: "password",
@@ -160,6 +163,7 @@ async function handleAuthentication(): Promise<boolean> {
 
       if (keyRegex.test(existingContent)) {
         // Prompt for confirmation before replacing
+        // No filter function used here, no changes needed
         const { confirmReplace } = await inquirer.prompt([
           {
             type: "confirm",
@@ -247,20 +251,23 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     },
   ];
 
-  const { selectedComponents } = await inquirer.prompt([
-    {
-      type: "checkbox",
-      name: "selectedComponents",
-      message: "Select the components you want to install:",
-      choices: availableComponents.map((comp) => ({
-        name: `${comp.name} - ${comp.description}`,
-        value: comp.name,
-        checked: false,
-      })),
-      validate: (answer: string[]) =>
-        answer.length > 0 ? true : "Please select at least one component",
+  // Fixed for inquirer v10 compatibility - updated validate function to use any[] type
+  const { selectedComponents } = await inquirer.prompt({
+    type: "checkbox",
+    name: "selectedComponents",
+    message: "Select the components you want to install:",
+    choices: availableComponents.map((comp) => ({
+      name: `${comp.name} - ${comp.description}`,
+      value: comp.name,
+      checked: false,
+    })),
+    validate: (answer: any) => {
+      if (Array.isArray(answer) && answer.length > 0) {
+        return true;
+      }
+      return "Please select at least one component";
     },
-  ]);
+  });
 
   let installationSuccess = true;
   for (const component of selectedComponents) {
@@ -285,7 +292,7 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   if (!installationSuccess) {
     console.log(
       chalk.yellow(
-        "\n⚠️ Component installation failed. Please try installing them individually using 'tambo add <component-name>' or with '--legacy-peer-deps' flag.",
+        "\n⚠️ Component installation failed. Please try installing them individually using 'npx tambo add <component-name>' or with '--legacy-peer-deps' flag.",
       ),
     );
     return; // Exit early without showing next steps

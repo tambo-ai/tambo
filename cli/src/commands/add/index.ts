@@ -68,6 +68,7 @@ export async function handleAddComponent(
         existingComponents.forEach((comp) => console.log(`  - ${comp}`));
       }
 
+      // No filter function used here, no changes needed for inquirer v10
       const { proceed } = await inquirer.prompt([
         {
           type: "confirm",
