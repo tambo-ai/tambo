@@ -1,8 +1,8 @@
 "use client";
 
 import { CLI } from "@/components/cli";
+import { GraphChatInterface } from "@/components/generative/GraphChatInterface";
 import { CopyablePrompt, Section } from "@/components/ui/doc-components";
-import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
 
@@ -36,7 +36,7 @@ export default function GraphPage() {
 
           <div className="rounded-lg bg-background border border-border/40">
             <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
-              <MessageThreadFull contextKey="graph-thread" />
+              <GraphChatInterface />
             </TamboProvider>
           </div>
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { CLI } from "@/components/cli";
+import { FormChatInterface } from "@/components/generative/FormChatInterface";
 import { CopyablePrompt, Section } from "@/components/ui/doc-components";
-import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
 
@@ -35,7 +35,7 @@ Make it use the bordered variant with a relaxed layout.`;
 
           <div className="rounded-lg bg-backgroud border border-border/40">
             <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
-              <MessageThreadFull contextKey="form-thread" />
+              <FormChatInterface />
             </TamboProvider>
           </div>
 
