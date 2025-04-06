@@ -14,9 +14,10 @@ export function Navbar() {
             href="https://github.com/tambo-ai/tambo"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-md p-2 hover:bg-accent"
+            className="rounded-md px-3 py-2 hover:bg-accent flex items-center gap-2 text-sm border border-border/40"
           >
-            <Icons.github className="h-5 w-5" />
+            <Icons.github className="h-4 w-4" />
+            <span>Source Code</span>
           </Link>
         </div>
       </div>
