@@ -34,17 +34,11 @@ export default function GraphPage() {
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
 
-          <Section title="Chat Interface">
-            <div className="rounded-lg bg-background border border-border/40">
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-              >
-                <div className="h-[500px]">
-                  <MessageThreadFull contextKey="graph-thread" />
-                </div>
-              </TamboProvider>
-            </div>
-          </Section>
+          <div className="rounded-lg bg-background border border-border/40">
+            <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
+              <MessageThreadFull contextKey="graph-thread" />
+            </TamboProvider>
+          </div>
 
           <Section title="Installation">
             <div className="rounded-md">
