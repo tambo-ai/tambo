@@ -1,6 +1,5 @@
 "use client";
 
-import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
@@ -23,16 +22,15 @@ export default function Template({
     >
       <div className="flex min-h-screen flex-col">
         <Navbar />
-        <main className="flex-1">
+        <main className="flex-1 flex flex-col">
           {isNotFoundPage ? (
-            <div className="pt-16">{children}</div>
+            <div className="flex-grow">{children}</div>
           ) : (
             <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
-              <div className="pt-16">{children}</div>
+              <div className="flex-grow">{children}</div>
             </TamboProvider>
           )}
         </main>
-        <Footer />
       </div>
     </ThemeProvider>
   );
