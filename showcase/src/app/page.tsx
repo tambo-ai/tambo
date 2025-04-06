@@ -13,8 +13,7 @@ export default function DocsPage() {
           Build your AI app faster
         </h1>
         <p className="text-2xl text-muted-foreground mt-4 mb-8">
-          Accelerate your AI-powered application development with these
-          components built on top of tambo-ai.
+          Components with AI superpowers built on top of tambo-ai.
         </p>
         <div className="flex gap-4">
           <Link
