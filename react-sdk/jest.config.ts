@@ -10,6 +10,7 @@ const config: Config = {
   transform: {
     "^.+\\.tsx?$": "ts-jest",
   },
+  prettierPath: require.resolve("prettier-2"),
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
 };
 

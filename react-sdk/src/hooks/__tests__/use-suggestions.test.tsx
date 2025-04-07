@@ -86,6 +86,14 @@ describe("useTamboSuggestions", () => {
     (useTamboClient as jest.Mock).mockReturnValue({
       beta: { threads: { suggestions: { generate: mockGenerate } } },
     });
+    (useTamboThread as jest.Mock).mockReturnValue({
+      thread: {
+        id: "test-thread-id",
+        messages: [
+          { id: "test-message-id", role: "assistant", content: "Test message" },
+        ],
+      },
+    });
 
     // Mock the query result to return the mock suggestions
     (useTamboQuery as jest.Mock).mockReturnValue({
