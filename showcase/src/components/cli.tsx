@@ -32,33 +32,38 @@ export function CLI({
 
   return (
     <div
-      className="p-4 font-mono text-sm overflow-x-auto inline-block rounded-lg w-full"
+      className="p-3 md:p-4 font-mono text-xs md:text-sm rounded-lg w-full overflow-hidden"
       style={{ background }}
     >
       {command && (
         <div className="flex items-start">
-          <div className="flex-1">
+          <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pr-2">
             {path && (
               <div className="flex items-center mb-2">
-                <span className="text-[#A0A0A0] text-xs">{path}</span>
+                <span className="text-[#A0A0A0] text-xs truncate">{path}</span>
               </div>
             )}
             {isCode ? (
-              <SyntaxHighlighter
-                language={language}
-                style={vscDarkPlus}
-                customStyle={{
-                  margin: 0,
-                  background: "transparent",
-                  padding: 0,
-                }}
-              >
-                {command.trim()}
-              </SyntaxHighlighter>
+              <div className="overflow-x-auto">
+                <SyntaxHighlighter
+                  language={language}
+                  style={vscDarkPlus}
+                  customStyle={{
+                    margin: 0,
+                    background: "transparent",
+                    padding: 0,
+                    fontSize: "inherit",
+                  }}
+                  wrapLines={true}
+                  wrapLongLines={false}
+                >
+                  {command.trim()}
+                </SyntaxHighlighter>
+              </div>
             ) : (
-              <div className="flex items-start">
+              <div className="flex items-start overflow-x-auto">
                 <span className="text-[#5C94F7] mr-2 flex-shrink-0">$</span>
-                <pre className="text-white whitespace-pre-wrap break-all">
+                <pre className="text-white whitespace-pre-wrap break-words">
                   {command}
                 </pre>
               </div>
@@ -66,13 +71,13 @@ export function CLI({
           </div>
           <button
             onClick={copyToClipboard}
-            className="text-gray-400 hover:text-white transition-colors ml-2 flex-shrink-0"
+            className="text-gray-400 hover:text-white transition-colors ml-2 flex-shrink-0 p-1 touch-manipulation rounded-md"
             aria-label="Copy to clipboard"
           >
             {copied ? (
-              <Check className="h-4 w-4 text-emerald-500" />
+              <Check className="h-4 w-4 md:h-5 md:w-5 text-emerald-500" />
             ) : (
-              <Copy className="h-4 w-4" />
+              <Copy className="h-4 w-4 md:h-5 md:w-5" />
             )}
           </button>
         </div>

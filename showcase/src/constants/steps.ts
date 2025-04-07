@@ -2,17 +2,17 @@ export const steps = [
   {
     number: "01",
     title: "Install tambo-ai",
-    description: "Run the full-send command to setup your project",
+    description:
+      "Run the full-send command to setup your project. This command will setup your project, get an API key, and install components.",
     code: "npx tambo full-send",
     path: "~/your-project",
     isCode: false,
-    details:
-      "This command will setup your project, get an API key, and install components",
   },
   {
     number: "02",
     title: "Add TamboProvider",
-    description: "Update your layout.tsx file",
+    description:
+      "Update your layout.tsx file. Wrap your app with TamboProvider to enable tambo features.",
     path: "~/your-project/src/app/layout.tsx",
     code: `"use client";
   
@@ -27,12 +27,12 @@ export const steps = [
   }`,
     isCode: true,
     language: "tsx",
-    details: "Wrap your app with TamboProvider to enable tambo features",
   },
   {
     number: "03",
     title: "Add MessageThreadFull",
-    description: "Import and use the chat component",
+    description:
+      "Import and use the chat component. Add a complete chat interface to your application.",
     path: "~/your-project/src/app/page.tsx",
     code: `import { MessageThreadFull } from "@/components/ui/message-thread-full";
   
@@ -45,12 +45,12 @@ export const steps = [
   }`,
     isCode: true,
     language: "tsx",
-    details: "Add a complete chat interface to your application",
   },
   {
     number: "04",
     title: "Register Components",
-    description: "Register your components with Tambo",
+    description:
+      "Register your components with Tambo. Register your components with Tambo to make them available for AI-driven rendering.",
     path: "~/your-project/src/app/layout.tsx",
     code: `"use client";
   
@@ -85,7 +85,5 @@ export const steps = [
   }`,
     isCode: true,
     language: "tsx",
-    details:
-      "Register your components with Tambo to make them available for AI-driven rendering",
   },
 ];
