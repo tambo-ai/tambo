@@ -1,12 +1,10 @@
 import { Graph } from "@/components/ui/graph";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
-import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export const GraphChatInterface = () => {
   const { registerComponent, thread } = useTambo();
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     registerComponent({
@@ -172,54 +170,10 @@ export const GraphChatInterface = () => {
 
   return (
     <div className="relative h-full w-full">
-      <MessageThreadFull contextKey="graph-thread" />
-      <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <h3 className="text-sm font-medium mb-2">Example Prompt</h3>
-        <div className="relative">
-          <pre className="text-sm bg-white p-3 rounded-md overflow-x-auto">
-            {`Create a bar chart for quarterly sales:
-- Title: "Quarterly Sales"
-- Labels: Q1, Q2, Q3, Q4
-- Datasets:
-  - Revenue: 120K, 150K, 180K, 200K
-  - Expenses: 80K, 95K, 110K, 125K
-- Bordered variant, large size
-- Show legend`}
-          </pre>
-          <button
-            onClick={() => {
-              navigator.clipboard
-                .writeText(
-                  `Create a bar chart for quarterly sales:
-- Title: "Quarterly Sales"
-- Labels: Q1, Q2, Q3, Q4
-- Datasets:
-  - Revenue: 120K, 150K, 180K, 200K
-  - Expenses: 80K, 95K, 110K, 125K
-- Bordered variant, large size
-- Show legend`,
-                )
-                .then(() => {
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                });
-            }}
-            className="absolute top-2 right-2 px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-1"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3 h-3" />
-                Copied
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3" />
-                Copy
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+      <MessageThreadFull
+        contextKey="graph-thread"
+        className="min-h-[600px] md:min-h-[700px]"
+      />
     </div>
   );
 };
