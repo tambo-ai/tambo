@@ -71,8 +71,11 @@ export const FormChatInterface = () => {
   }, [registerComponent, thread]);
 
   return (
-    <div className="relative h-full w-full">
-      <MessageThreadFull contextKey="form-thread" />
+    <div className="relative h-full w-full ">
+      <MessageThreadFull
+        contextKey="form-thread"
+        className="min-h-[600px] md:min-h-[700px]"
+      />
     </div>
   );
 };

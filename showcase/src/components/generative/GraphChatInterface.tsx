@@ -170,7 +170,10 @@ export const GraphChatInterface = () => {
 
   return (
     <div className="relative h-full w-full">
-      <MessageThreadFull contextKey="graph-thread" />
+      <MessageThreadFull
+        contextKey="graph-thread"
+        className="min-h-[600px] md:min-h-[700px]"
+      />
     </div>
   );
 };
