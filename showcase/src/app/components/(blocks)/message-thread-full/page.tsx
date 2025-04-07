@@ -12,7 +12,7 @@ export default function MessageThreadFullPage() {
       <ShowcaseThemeProvider defaultTheme="light">
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold mb-4">MessageThreadFull</h1>
+            <h1 className="text-3xl font-bold mb-4">Message Thread Full</h1>
             <p className="text-lg text-muted-foreground mb-6">
               A full message thread component with chat history and input field.
             </p>

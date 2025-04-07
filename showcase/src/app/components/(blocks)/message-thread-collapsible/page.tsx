@@ -13,7 +13,7 @@ export default function MessageThreadCollapsiblePage() {
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold mb-4">
-              MessageThreadCollapsible
+              Message ThreadCollapsible
             </h1>
             <p className="text-lg text-muted-foreground mb-6">
               A collapsible message thread component with chat history and input

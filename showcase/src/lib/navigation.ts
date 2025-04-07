@@ -22,15 +22,15 @@ export const navigation: NavigationItem[] = [
         href: "#",
         children: [
           {
-            title: "MessageThreadFull",
+            title: "Message Thread Full",
             href: "/components/message-thread-full",
           },
           {
-            title: "MessageThreadCollapsible",
+            title: "Message Thread Collapsible",
             href: "/components/message-thread-collapsible",
           },
           {
-            title: "MessageThreadPanel",
+            title: "Message Thread Panel",
             href: "/components/message-thread-panel",
           },
         ],
@@ -40,8 +40,8 @@ export const navigation: NavigationItem[] = [
         href: "#",
         children: [
           {
-            title: "FormComponent",
-            href: "/components/form-component",
+            title: "Form",
+            href: "/components/form",
           },
           {
             title: "Graph",

@@ -23,7 +23,7 @@ export default function GraphPage() {
       <ShowcaseThemeProvider defaultTheme="light">
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold mb-4">Graph Component</h1>
+            <h1 className="text-3xl font-bold mb-4">Graph</h1>
             <p className="text-lg text-muted-foreground mb-6">
               A versatile data visualization component that supports bar charts,
               line charts, and pie charts with customizable styles.
