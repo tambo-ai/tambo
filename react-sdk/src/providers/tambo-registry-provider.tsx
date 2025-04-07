@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import z, { ZodSchema } from "zod";
+import { ZodSchema } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentRegistry,
@@ -202,9 +202,6 @@ function getSerializedProps(
   if (propsDefinition) {
     console.warn(`propsDefinition is deprecated. Use propsSchema instead.`);
     return propsDefinition;
-  }
-  if (propsSchema instanceof ZodSchema || propsSchema instanceof z.ZodObject) {
-    return zodToJsonSchema(propsSchema);
   }
 
   if (isZodSchema(propsSchema)) {
