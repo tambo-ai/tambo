@@ -6,6 +6,7 @@ import {
   RequestMethod,
 } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { LoggerModule } from "./common/logger.module";
 import {
@@ -29,6 +30,7 @@ import { ThreadsModule } from "./threads/threads.module";
   exports: [TRANSACTION, DATABASE],
 })
 export class GlobalModule {}
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -40,7 +42,7 @@ export class GlobalModule {}
     ThreadsModule,
     GlobalModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements OnModuleInit {
@@ -67,6 +69,8 @@ export class AppModule implements OnModuleInit {
           path: "/threads/:id/messages/:messageId/component-state",
           method: RequestMethod.PUT,
         },
+        { path: "/health", method: RequestMethod.GET },
+        { path: "/", method: RequestMethod.GET },
       )
       .forRoutes("*");
   }
