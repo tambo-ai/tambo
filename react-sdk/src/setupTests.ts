@@ -1,3 +1,4 @@
+import "@tambo-ai/typescript-sdk/shims/node";
 import "@testing-library/jest-dom";
 
 // Mock Date.now() to return a fixed timestamp for consistent testing
