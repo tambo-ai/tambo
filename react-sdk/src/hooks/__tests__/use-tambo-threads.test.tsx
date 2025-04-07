@@ -1,10 +1,12 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
+import { DeepPartial } from "ts-essentials";
 import {
   useTamboClient,
   useTamboQueryClient,
 } from "../../providers/tambo-client-provider";
+import { PartialTamboAI } from "../../testing/types";
 import { useTamboThreadList } from "../use-tambo-threads";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
@@ -20,28 +22,21 @@ describe("useTamboThreadList", () => {
 
   const mockProjects = {
     getCurrent: jest.fn(),
-    apiKey: "",
-    providerKey: "",
     retrieve: jest.fn(),
     delete: jest.fn(),
-    _client: {},
-  } as unknown as TamboAI["beta"]["projects"];
+  } satisfies Partial<TamboAI["beta"]["projects"]>;
 
   const mockThreadsApi = {
     list: jest.fn(),
     messages: {
       list: jest.fn(),
       create: jest.fn(),
-      update: jest.fn(),
       delete: jest.fn(),
       updateComponentState: jest.fn(),
-      _client: {},
     },
     suggestions: {
       list: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      generate: jest.fn(),
     },
     create: jest.fn(),
     retrieve: jest.fn(),
@@ -49,31 +44,21 @@ describe("useTamboThreadList", () => {
     delete: jest.fn(),
     advance: jest.fn(),
     advanceById: jest.fn(),
-    _client: {},
-  } as unknown as TamboAI["beta"]["threads"];
+  } satisfies DeepPartial<TamboAI["beta"]["threads"]>;
 
   const mockBeta = {
     projects: mockProjects,
     threads: mockThreadsApi,
     registry: {
-      list: jest.fn(),
-      create: jest.fn(),
       retrieve: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      _client: {},
     },
-    _client: {},
-  } as unknown as TamboAI["beta"];
+  } satisfies PartialTamboAI["beta"];
 
   const mockTamboAI = {
     apiKey: "",
-    _options: {},
     components: {},
-    defaultQuery: jest.fn(),
     beta: mockBeta,
-    _client: {},
-  } as unknown as TamboAI;
+  } satisfies PartialTamboAI as unknown as TamboAI;
 
   beforeEach(() => {
     jest.mocked(useTamboQueryClient).mockReturnValue(new QueryClient());
@@ -94,7 +79,7 @@ describe("useTamboThreadList", () => {
           list: jest.fn().mockResolvedValue(mockThreads),
         },
       },
-    } as unknown as TamboAI);
+    } satisfies PartialTamboAI as any);
 
     const { result } = renderHook(() => useTamboThreadList());
 
@@ -115,7 +100,7 @@ describe("useTamboThreadList", () => {
           list: mockList,
         },
       },
-    } as unknown as TamboAI);
+    } satisfies PartialTamboAI as any);
 
     const { result } = renderHook(() =>
       useTamboThreadList({ projectId: "custom-project" }),
@@ -144,7 +129,7 @@ describe("useTamboThreadList", () => {
           list: mockList,
         },
       },
-    } as unknown as TamboAI);
+    } satisfies PartialTamboAI as any);
 
     const { result } = renderHook(() =>
       useTamboThreadList({ contextKey: "test-context" }),
@@ -179,7 +164,7 @@ describe("useTamboThreadList", () => {
           list: jest.fn().mockReturnValue(promise),
         },
       },
-    } as unknown as TamboAI);
+    } satisfies PartialTamboAI as any);
 
     const { result } = renderHook(() =>
       useTamboThreadList({}, { retry: false }),
@@ -248,7 +233,7 @@ describe("useTamboThreadList", () => {
           }),
         },
       },
-    } as unknown as TamboAI);
+    } satisfies PartialTamboAI as any);
 
     const { result } = renderHook(() =>
       useTamboThreadList({}, { retry: false }),
