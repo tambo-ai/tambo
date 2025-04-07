@@ -1,12 +1,10 @@
 import { FormComponent } from "@/components/ui/form";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
-import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export const FormChatInterface = () => {
   const { registerComponent, thread } = useTambo();
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     registerComponent({
@@ -73,55 +71,11 @@ export const FormChatInterface = () => {
   }, [registerComponent, thread]);
 
   return (
-    <div className="relative h-full w-full">
-      <MessageThreadFull contextKey="form-thread" />
-      <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <h3 className="text-sm font-medium mb-2">Example Prompt</h3>
-        <div className="relative">
-          <pre className="text-sm bg-white p-3 rounded-md overflow-x-auto">
-            {`Create a contact form with the following fields:
-- Name (required text input)
-- Email (required text input)
-- Phone (optional text input)
-- Message (required textarea)
-- Preferred Contact Method (select with options: Email, Phone, Either)
-Make it use the bordered variant with a relaxed layout.
-- Use the default variant with a compact layout.`}
-          </pre>
-          <button
-            onClick={() => {
-              navigator.clipboard
-                .writeText(
-                  `Create a contact form with the following fields:
-- Name (required text input)
-- Email (required text input)
-- Phone (optional text input)
-- Message (required textarea)
-- Preferred Contact Method (select with options: Email, Phone, Either)
-Make it use the bordered variant with a relaxed layout.
-- Use the default variant with a compact layout.`,
-                )
-                .then(() => {
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                });
-            }}
-            className="absolute top-2 right-2 px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-1"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3 h-3" />
-                Copied
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3" />
-                Copy
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+    <div className="relative h-full w-full ">
+      <MessageThreadFull
+        contextKey="form-thread"
+        className="min-h-[600px] md:min-h-[700px]"
+      />
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
-import "./globals.css";
 import "../styles/showcase-theme.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({
@@ -39,6 +44,18 @@ export default function RootLayout({
         `${GeistSans.variable} ${GeistMono.variable} ${sentientLight.variable}`,
       )}
     >
+      <head>
+        {/* Add base CSS variables */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+          :root {
+            --header-height: 57px;
+          }
+        `,
+          }}
+        />
+      </head>
       <body className={`${GeistSans.className} font-sans antialiased`}>
         {children}
       </body>
