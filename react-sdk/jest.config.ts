@@ -12,6 +12,9 @@ const config: Config = {
   },
   prettierPath: require.resolve("prettier-2"),
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
+  clearMocks: true,
+  resetMocks: true,
 };
 
 export default config;
