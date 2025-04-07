@@ -13,7 +13,7 @@ import { getAvailableComponents } from "../util/registry";
 import {
   UseTamboMutationResult,
   UseTamboQueryResult,
-  useTamboMutationResult,
+  useTamboMutation,
   useTamboQuery,
 } from "./react-query-hooks";
 import { INPUT_ERROR_MESSAGES, useTamboThreadInput } from "./use-thread-input";
@@ -133,7 +133,7 @@ export function useTamboSuggestions(
   });
 
   // Accept suggestion mutation
-  const acceptMutationState = useTamboMutationResult<
+  const acceptMutationState = useTamboMutation<
     void,
     Error,
     { suggestion: TamboAI.Beta.Threads.Suggestion; shouldSubmit?: boolean }
@@ -159,7 +159,7 @@ export function useTamboSuggestions(
   });
 
   // Generate suggestions mutation
-  const generateMutationState = useTamboMutationResult<
+  const generateMutationState = useTamboMutation<
     TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse | undefined,
     Error,
     AbortController
