@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.2](https://github.com/tambo-ai/tambo/compare/react-v0.20.1...react-v0.20.2) (2025-04-07)
+
+
+### Bug Fixes
+
+* force typescript-sdk to be the right version ([#295](https://github.com/tambo-ai/tambo/issues/295)) ([1660ebb](https://github.com/tambo-ai/tambo/commit/1660ebb54e79d8f4c299ca5c66879edb294aea02))
+
 ## [0.20.1](https://github.com/tambo-ai/tambo/compare/react-v0.20.0...react-v0.20.1) (2025-04-07)
 
 
