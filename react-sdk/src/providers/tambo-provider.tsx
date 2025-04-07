@@ -57,7 +57,7 @@ export const TamboProvider: React.FC<
     </TamboClientProvider>
   );
 };
-type TamboContextProps = TamboClientContextProps &
+export type TamboContextProps = TamboClientContextProps &
   TamboThreadContextProps &
   TamboComponentContextProps;
 

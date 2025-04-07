@@ -55,22 +55,6 @@ export type UseTamboMutationResult<
 > = UseMutationResult<TData, TError, TVariables, TContext>;
 
 /**
- * Hook for creating a mutation with the tambo query client.
- *
- * Use this instead of useMutation from @tanstack/react-query
- * @param options - The options for the mutation, same as useMutation from @tanstack/react-query
- * @returns The mutation result
- */
-export function useTamboMutationResult<
-  TData = unknown,
-  TError = Error,
-  TVariables = void,
-  TContext = unknown,
->(options: UseMutationOptions<TData, TError, TVariables, TContext>) {
-  return useTamboMutation<TData, TError, TVariables, TContext>(options);
-}
-
-/**
  * Type alias for the result of a query.
  */
 export type UseTamboQueryResult<

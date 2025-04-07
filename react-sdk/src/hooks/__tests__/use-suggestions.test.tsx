@@ -1,17 +1,25 @@
-import TamboAI from "@tambo-ai/typescript-sdk";
-import { QueryClient } from "@tanstack/react-query";
+import type TamboAI from "@tambo-ai/typescript-sdk";
+import { QueryClient, UseQueryResult } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
-import { useTamboClient } from "../../providers/tambo-client-provider";
-import { useTambo } from "../../providers/tambo-provider";
-import { useTamboThread } from "../../providers/tambo-thread-provider";
-import { useTamboQuery } from "../react-query-hooks";
+import { TamboThreadMessage } from "../../model/generate-component-response";
+import {
+  useTamboClient,
+  useTamboQueryClient,
+} from "../../providers/tambo-client-provider";
+import { TamboContextProps, useTambo } from "../../providers/tambo-provider";
+import {
+  TamboThreadContextProps,
+  useTamboThread,
+} from "../../providers/tambo-thread-provider";
+import { PartialTamboAI } from "../../testing/types";
+import { useTamboMutation, useTamboQuery } from "../react-query-hooks";
 import { useTamboSuggestions } from "../use-suggestions";
-import { useTamboThreadInput } from "../use-thread-input";
+import { useTamboThreadInput, UseThreadInput } from "../use-thread-input";
 
 // Mock the required providers
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
-  useTamboQueryClient: jest.fn().mockReturnValue(new QueryClient()),
+  useTamboQueryClient: jest.fn(),
 }));
 
 jest.mock("../../providers/tambo-provider", () => ({ useTambo: jest.fn() }));
@@ -25,12 +33,7 @@ jest.mock("../use-thread-input", () => ({ useTamboThreadInput: jest.fn() }));
 // Mock the react-query-hooks
 jest.mock("../react-query-hooks", () => ({
   useTamboQuery: jest.fn(),
-  useTamboMutationResult: jest.fn().mockImplementation(({ mutationFn }) => ({
-    mutateAsync: mutationFn,
-    isLoading: false,
-    isError: false,
-    error: null,
-  })),
+  useTamboMutation: jest.fn(),
 }));
 
 describe("useTamboSuggestions", () => {
@@ -50,28 +53,47 @@ describe("useTamboSuggestions", () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.mocked(useTamboQueryClient).mockReturnValue(new QueryClient());
+    jest.mocked(useTamboMutation).mockImplementation(
+      ({ mutationFn }) =>
+        ({
+          mutateAsync: mutationFn,
+          isLoading: false,
+          isError: false,
+          error: null,
+        }) as any,
+    );
     // Setup default mock implementations
-    (useTamboClient as jest.Mock).mockReturnValue({
+    jest.mocked(useTamboClient).mockReturnValue({
       beta: { threads: { suggestions: { generate: jest.fn() } } },
-    });
-    (useTambo as jest.Mock).mockReturnValue({ sendThreadMessage: jest.fn() });
-    (useTamboThread as jest.Mock).mockReturnValue({
+    } satisfies PartialTamboAI as any);
+    jest.mocked(useTambo).mockReturnValue({
+      sendThreadMessage: jest.fn(),
+    } satisfies Partial<TamboContextProps> as any);
+    jest.mocked(useTamboThread).mockReturnValue({
       thread: {
         id: "test-thread-id",
         messages: [
-          { id: "test-message-id", role: "hydra", content: "Test message" },
+          {
+            id: "test-message-id",
+            role: "hydra",
+            content: [{ type: "text", text: "Test message" }],
+          },
         ],
       },
-    });
-    (useTamboThreadInput as jest.Mock).mockReturnValue({ setValue: jest.fn() });
+    } as TamboThreadContextProps);
+    jest.mocked(useTamboThreadInput).mockReturnValue({
+      setValue: jest.fn(),
+      value: "",
+      submit: jest.fn(),
+    } satisfies Partial<UseThreadInput> as any);
     // Default query mock returns empty array
-    (useTamboQuery as jest.Mock).mockReturnValue({
+    jest.mocked(useTamboQuery).mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
       error: null,
-    });
+    } satisfies Partial<UseQueryResult<unknown, unknown>> as any);
   });
 
   it("should initialize with empty suggestions and no selected suggestion", () => {
@@ -83,25 +105,36 @@ describe("useTamboSuggestions", () => {
 
   it("should generate suggestions when latest message is from Tambo", async () => {
     const mockGenerate = jest.fn().mockResolvedValue(mockSuggestions);
-    (useTamboClient as jest.Mock).mockReturnValue({
-      beta: { threads: { suggestions: { generate: mockGenerate } } },
-    });
-    (useTamboThread as jest.Mock).mockReturnValue({
+    jest.mocked(useTamboClient).mockReturnValue({
+      beta: {
+        threads: {
+          suggestions: {
+            generate: mockGenerate,
+            list: jest.fn(),
+          },
+        },
+      },
+    } satisfies PartialTamboAI as any);
+    jest.mocked(useTamboThread).mockReturnValue({
       thread: {
         id: "test-thread-id",
         messages: [
-          { id: "test-message-id", role: "assistant", content: "Test message" },
+          {
+            id: "test-message-id",
+            role: "assistant",
+            content: [{ type: "text", text: "Test message" }],
+          } as TamboThreadMessage,
         ],
       },
-    });
+    } as TamboThreadContextProps);
 
     // Mock the query result to return the mock suggestions
-    (useTamboQuery as jest.Mock).mockReturnValue({
+    jest.mocked(useTamboQuery).mockReturnValue({
       data: mockSuggestions,
       isLoading: false,
       isError: false,
       error: null,
-    });
+    } as UseQueryResult<unknown, unknown>);
 
     const { result } = renderHook(() => useTamboSuggestions());
 
@@ -117,19 +150,29 @@ describe("useTamboSuggestions", () => {
 
   it("should not generate suggestions when latest message is not from Tambo", async () => {
     const mockGenerate = jest.fn();
-    (useTamboClient as jest.Mock).mockReturnValue({
-      beta: { threads: { suggestions: { generate: mockGenerate } } },
-    });
-
+    jest.mocked(useTamboClient).mockReturnValue({
+      beta: {
+        threads: {
+          suggestions: {
+            generate: mockGenerate,
+            list: jest.fn(),
+          },
+        },
+      },
+    } satisfies PartialTamboAI as any);
     // Mock the thread to have a non-Tambo message
-    (useTamboThread as jest.Mock).mockReturnValue({
+    jest.mocked(useTamboThread).mockReturnValue({
       thread: {
         id: "test-thread-id",
         messages: [
-          { id: "test-message-id", role: "user", content: "Test message" },
+          {
+            id: "test-message-id",
+            role: "user",
+            content: [{ type: "text", text: "Test message" }],
+          } as TamboThreadMessage,
         ],
       },
-    });
+    } as TamboThreadContextProps);
 
     const { result } = renderHook(() => useTamboSuggestions());
 
@@ -144,9 +187,11 @@ describe("useTamboSuggestions", () => {
 
   it("should accept a suggestion and update input value", async () => {
     const mockSetValue = jest.fn();
-    (useTamboThreadInput as jest.Mock).mockReturnValue({
+    jest.mocked(useTamboThreadInput).mockReturnValue({
       setValue: mockSetValue,
-    });
+      value: "",
+      submit: jest.fn(),
+    } satisfies Partial<UseThreadInput> as any);
 
     const { result } = renderHook(() => useTamboSuggestions());
 
@@ -163,9 +208,9 @@ describe("useTamboSuggestions", () => {
 
   it("should accept a suggestion and submit it", async () => {
     const mockSendThreadMessage = jest.fn();
-    (useTambo as jest.Mock).mockReturnValue({
+    jest.mocked(useTambo).mockReturnValue({
       sendThreadMessage: mockSendThreadMessage,
-    });
+    } satisfies Partial<TamboContextProps> as any);
 
     const { result } = renderHook(() => useTamboSuggestions());
 

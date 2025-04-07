@@ -1,3 +1,5 @@
+import type TamboAI from "@tambo-ai/typescript-sdk";
+import { UseQueryOptions } from "@tanstack/react-query";
 import { useTamboClient } from "../providers/tambo-client-provider";
 import { useTamboQuery } from "./react-query-hooks";
 
@@ -38,12 +40,15 @@ interface UseTamboThreadListConfig {
  * @param config.contextKey - The context key to get the threads for
  * @returns The threads for the specified project and optional context key
  */
-export function useTamboThreadList({
-  projectId,
-  contextKey,
-}: UseTamboThreadListConfig = {}) {
+export function useTamboThreadList(
+  { projectId, contextKey }: UseTamboThreadListConfig = {},
+  options: Partial<
+    UseQueryOptions<TamboAI.Beta.Threads.ThreadsOffsetAndLimit | null>
+  > = {},
+) {
   const client = useTamboClient();
   const { data: queriedProjectId, ...projectIdState } = useTamboQuery({
+    ...(options as unknown as UseQueryOptions<string>),
     queryKey: ["projectId"],
     queryFn: async () => {
       return (await client.beta.projects.getCurrent()).id;
@@ -52,6 +57,7 @@ export function useTamboThreadList({
   const currentProjectId = projectId ?? queriedProjectId;
 
   const threadState = useTamboQuery({
+    ...options,
     enabled: !!currentProjectId,
     queryKey: ["threads", currentProjectId, contextKey],
     queryFn: async () => {
