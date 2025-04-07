@@ -54,16 +54,14 @@ async function checkExistingApiKey(): Promise<string | null> {
       const content = fs.readFileSync(file, "utf8");
       const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
       if (match?.[1]) {
-        const { overwriteExisting } = await inquirer.prompt([
-          {
-            type: "confirm",
-            name: "overwriteExisting",
-            message: chalk.yellow(
-              `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
-            ),
-            default: true,
-          },
-        ]);
+        const { overwriteExisting } = await inquirer.prompt({
+          type: "confirm",
+          name: "overwriteExisting",
+          message: chalk.yellow(
+            `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
+          ),
+          default: true,
+        });
 
         if (!overwriteExisting) {
           return match[1].trim();
@@ -87,16 +85,18 @@ export async function getInstallationPath(): Promise<string> {
     console.log(chalk.gray(`No ${chalk.cyan("src/")} directory found`));
   }
 
-  const { useSrcDir } = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "useSrcDir",
-      message: hasSrcDir
-        ? `Would you like to use the existing ${chalk.cyan("src/")} directory for components?`
-        : `Would you like to create and use a ${chalk.cyan("src/")} directory for components?`,
-      default: hasSrcDir,
-    },
-  ]);
+  const { useSrcDir } = await inquirer.prompt({
+    type: "confirm",
+    name: "useSrcDir",
+    message: hasSrcDir
+      ? `Would you like to use the existing ${chalk.cyan(
+          "src/",
+        )} directory for components?`
+      : `Would you like to create and use a ${chalk.cyan(
+          "src/",
+        )} directory for components?`,
+    default: hasSrcDir,
+  });
 
   return useSrcDir ? "src/components" : "components";
 }
@@ -132,17 +132,15 @@ async function handleAuthentication(): Promise<boolean> {
     }
 
     // 2. Get API key from user
-    const { apiKey } = await inquirer.prompt([
-      {
-        type: "password",
-        name: "apiKey",
-        message: "Please paste your API key from the browser:",
-        validate: (input: string) => {
-          if (!input?.trim()) return "API key is required";
-          return true;
-        },
+    const { apiKey } = await inquirer.prompt({
+      type: "password",
+      name: "apiKey",
+      message: "Please paste your API key from the browser:",
+      validate: (input: any) => {
+        if (!input?.trim()) return "API key is required";
+        return true;
       },
-    ]);
+    });
 
     // 3. Save API key to .env file
     const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
@@ -160,16 +158,14 @@ async function handleAuthentication(): Promise<boolean> {
 
       if (keyRegex.test(existingContent)) {
         // Prompt for confirmation before replacing
-        const { confirmReplace } = await inquirer.prompt([
-          {
-            type: "confirm",
-            name: "confirmReplace",
-            message: chalk.yellow(
-              `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`,
-            ),
-            default: false,
-          },
-        ]);
+        const { confirmReplace } = await inquirer.prompt({
+          type: "confirm",
+          name: "confirmReplace",
+          message: chalk.yellow(
+            `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`,
+          ),
+          default: false,
+        });
 
         if (!confirmReplace) {
           console.log(chalk.gray("Keeping existing API key."));
@@ -247,20 +243,22 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     },
   ];
 
-  const { selectedComponents } = await inquirer.prompt([
-    {
-      type: "checkbox",
-      name: "selectedComponents",
-      message: "Select the components you want to install:",
-      choices: availableComponents.map((comp) => ({
-        name: `${comp.name} - ${comp.description}`,
-        value: comp.name,
-        checked: false,
-      })),
-      validate: (answer: string[]) =>
-        answer.length > 0 ? true : "Please select at least one component",
+  const { selectedComponents } = await inquirer.prompt({
+    type: "checkbox",
+    name: "selectedComponents",
+    message: "Select the components you want to install:",
+    choices: availableComponents.map((comp) => ({
+      name: `${comp.name} - ${comp.description}`,
+      value: comp.name,
+      checked: false,
+    })),
+    validate: (answer: any) => {
+      if (!Array.isArray(answer) || answer.length === 0) {
+        return "Please select at least one component";
+      }
+      return true;
     },
-  ]);
+  });
 
   let installationSuccess = true;
   for (const component of selectedComponents) {
@@ -285,7 +283,7 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   if (!installationSuccess) {
     console.log(
       chalk.yellow(
-        "\n⚠️ Component installation failed. Please try installing them individually using 'tambo add <component-name>' or with '--legacy-peer-deps' flag.",
+        "\n⚠️ Component installation failed. Please try installing them individually using 'npx tambo add <component-name>' or with '--legacy-peer-deps' flag.",
       ),
     );
     return; // Exit early without showing next steps
