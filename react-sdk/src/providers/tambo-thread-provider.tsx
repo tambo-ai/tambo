@@ -47,7 +47,7 @@ export interface TamboThreadContextProps {
   sendThreadMessage: (
     message: string,
     options: {
-      threadId: string;
+      threadId?: string;
       streamResponse?: boolean;
       contextKey?: string;
     },
@@ -473,12 +473,12 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     async (
       message: string,
       options: {
-        threadId: string;
+        threadId?: string;
         streamResponse?: boolean;
         contextKey?: string;
       } = { threadId: PLACEHOLDER_THREAD.id },
     ): Promise<TamboThreadMessage> => {
-      const { threadId, streamResponse } = options;
+      const { threadId = currentThread.id, streamResponse } = options;
       updateThreadStatus(threadId, GenerationStage.CHOOSING_COMPONENT);
 
       addThreadMessage(
@@ -572,7 +572,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       componentList,
       toolRegistry,
       componentToolAssociations,
-      currentThread,
+      currentThread.id,
       switchCurrentThread,
       addThreadMessage,
       client,
