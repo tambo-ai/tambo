@@ -1,4 +1,52 @@
-export const steps = [
+export const newProjectSteps = [
+  {
+    number: "01",
+    title: "Create a new project",
+    description: "Create a new project using our template.",
+    code: "npm create tambo-app my-app",
+    path: "~/",
+    isCode: false,
+    language: "bash",
+  },
+  {
+    number: "02",
+    title: "Navigate to project directory",
+    description: "Change into your project directory.",
+    code: "cd my-app",
+    path: "~/",
+    isCode: false,
+    language: "bash",
+  },
+  {
+    number: "03",
+    title: "Initialize tambo",
+    description: "Initialize tambo in your project.",
+    code: "npx tambo init",
+    path: "~/my-app",
+    isCode: false,
+    language: "bash",
+  },
+  {
+    number: "04",
+    title: "Start development server",
+    description: "Start your development server.",
+    code: "npm run dev",
+    path: "~/my-app",
+    isCode: false,
+    language: "bash",
+  },
+  {
+    number: "05",
+    title: "Add components (optional)",
+    description: "Add additional components as needed.",
+    code: "npx tambo add form",
+    path: "~/my-app",
+    isCode: false,
+    language: "bash",
+  },
+];
+
+export const existingProjectSteps = [
   {
     number: "01",
     title: "Install tambo-ai",
@@ -87,3 +135,6 @@ export const steps = [
     language: "tsx",
   },
 ];
+
+// For backward compatibility
+export const steps = existingProjectSteps;
