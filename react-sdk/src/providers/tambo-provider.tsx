@@ -1,6 +1,4 @@
 "use client";
-// Use to workaround some TurboPack issues. Normally this is auto-detected.
-import "@tambo-ai/typescript-sdk/shims/web";
 import React, { PropsWithChildren, createContext, useContext } from "react";
 import {
   TamboClientContextProps,
