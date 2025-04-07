@@ -42,7 +42,7 @@ const noComponentPrompt = `You are an AI assistant that interacts with users and
 </availableComponents>
 Respond to the user's latest query to the best of your ability. If they have requested a task that you cannot help with, tell them so and recommend something you can help with.
 Each message in the conversation history might contain a component decision, which is a component that has been shown to the user, and a component state, which is the state of the component which the user may have updated. Use this information to help you determine what to do.
-This response should be short and concise.`;
+This response should be short and concise. Respond in plain language, do not respond with a json object unless the user asks for it. Even though previous messages may have been in json format, this message should not be.`;
 
 export function getNoComponentPromptTemplate(
   reasoning: string,

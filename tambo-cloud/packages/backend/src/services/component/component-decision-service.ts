@@ -3,6 +3,7 @@ import {
   ChatCompletionMessageParam,
   LegacyComponentDecision,
 } from "@tambo-ai-cloud/core";
+import { parse } from "partial-json";
 import { InputContext } from "../../model/input-context";
 import {
   decideComponentTool,
@@ -48,7 +49,6 @@ export async function decideComponent(
       ...availableComponentsArgs,
     },
   });
-
   const decision = getLLMResponseToolCallRequest(
     decisionResponse,
   )?.parameters.find(
@@ -118,6 +118,7 @@ async function handleNoComponentCase(
     ]),
     promptTemplateName: "no-component-decision",
     promptTemplateParams: { chat_history: chatHistory, ...args },
+    response_format: { type: "text" },
   };
 
   if (stream) {
@@ -135,7 +136,7 @@ async function handleNoComponentCase(
     reasoning: "",
     componentName: null,
     props: null,
-    message: noComponentResponse.message.content ?? "",
+    message: extractMessageContent(noComponentResponse.message.content),
     componentState: null, // TOOD: remove when optional
     ...(version === "v1" ? { suggestedActions: [] } : {}),
   };
@@ -155,8 +156,52 @@ async function* handleNoComponentStream(
     ...(version === "v1" ? { suggestedActions: [] } : {}),
   };
 
+  let hasLogged = false;
   for await (const chunk of responseStream) {
-    accumulatedDecision.message = getLLMResponseMessage(chunk);
+    accumulatedDecision.message = extractMessageContent(
+      getLLMResponseMessage(chunk),
+      !hasLogged,
+    );
+    hasLogged = true;
     yield accumulatedDecision;
   }
+}
+
+function extractMessageContent(content: string | null, log: boolean = true) {
+  // BUG: Sometimes the llm returns a json object representing a LegacyComponentDecision with a message field, rather than a string. Here we check for that case and extract the message field.
+  if (!content) return "";
+
+  try {
+    const parsed = parse(content); // parse partial json
+    if (log) {
+      console.warn(
+        "noComponentResponse message is a json object, extracting message",
+      );
+    }
+    if (parsed && typeof parsed === "object") {
+      if ("message" in parsed) {
+        return parsed.message;
+      }
+      if (isPartialLegacyComponentDecision(parsed)) {
+        return "";
+      }
+    }
+  } catch {
+    // json parse failed, treat it as a regular string message
+    return content;
+  }
+  return content;
+}
+
+// Check if the object is a partial LegacyComponentDecision
+function isPartialLegacyComponentDecision(obj: unknown): boolean {
+  if (!obj || typeof obj !== "object") return false;
+
+  return [
+    "reasoning",
+    "componentName",
+    "props",
+    "componentState",
+    "suggestedActions",
+  ].some((prop) => prop in obj);
 }
