@@ -30,48 +30,62 @@ jest.mock("@tambo-ai/typescript-sdk", () => ({
   advanceStream: jest.fn(),
 }));
 
+// Test utilities
+const createMockMessage = (
+  overrides: Partial<TamboThreadMessage> = {},
+): TamboThreadMessage => ({
+  id: "test-message-1",
+  content: [{ type: "text", text: "Hello" }],
+  role: "user",
+  threadId: "test-thread-1",
+  createdAt: new Date().toISOString(),
+  componentState: {},
+  ...overrides,
+});
+
+const createMockThread = (
+  overrides: Partial<TamboAI.Beta.Threads.Thread> = {},
+) => ({
+  id: "test-thread-1",
+  messages: [],
+  createdAt: "2024-01-01T00:00:00Z",
+  projectId: "test-project",
+  updatedAt: "2024-01-01T00:00:00Z",
+  metadata: {},
+  ...overrides,
+});
+
+const createMockAdvanceResponse = (
+  overrides: Partial<TamboAI.Beta.Threads.ThreadAdvanceResponse> = {},
+): TamboAI.Beta.Threads.ThreadAdvanceResponse => ({
+  responseMessageDto: {
+    id: "test-uuid",
+    content: [{ type: "text" as const, text: "Default response" }],
+    role: "assistant",
+    threadId: "test-thread-1",
+    component: undefined,
+    componentState: {},
+    createdAt: new Date().toISOString(),
+  },
+  generationStage: GenerationStage.COMPLETE,
+  ...overrides,
+});
+
 describe("TamboThreadProvider", () => {
-  const mockThread = {
-    id: "test-thread-1",
-    messages: [],
-    createdAt: "2024-01-01T00:00:00Z",
-    projectId: "test-project",
-    updatedAt: "2024-01-01T00:00:00Z",
-    metadata: {},
-  };
+  const mockThread = createMockThread();
 
   const mockThreadsApi = {
-    list: jest.fn(),
     messages: {
-      list: jest.fn(),
       create: jest.fn(),
-      delete: jest.fn(),
-      updateComponentState: jest.fn(),
     },
-    suggestions: {
-      list: jest.fn(),
-      generate: jest.fn(),
-    },
-    create: jest.fn(),
     retrieve: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    advance: jest.fn(),
     advanceById: jest.fn(),
   } satisfies DeepPartial<
     TamboAI["beta"]["threads"]
   > as unknown as TamboAI.Beta.Threads;
 
   const mockBeta = {
-    projects: {
-      getCurrent: jest.fn(),
-      retrieve: jest.fn(),
-      delete: jest.fn(),
-    },
     threads: mockThreadsApi,
-    registry: {
-      retrieve: jest.fn(),
-    },
   } satisfies PartialTamboAI["beta"];
 
   const mockTamboAI = {
@@ -79,6 +93,7 @@ describe("TamboThreadProvider", () => {
     components: {},
     beta: mockBeta,
   } satisfies PartialTamboAI as unknown as TamboAI;
+
   const mockRegistry: TamboComponent[] = [
     {
       name: "TestOnly",
@@ -108,28 +123,13 @@ describe("TamboThreadProvider", () => {
   );
 
   beforeEach(() => {
-    // Mock the default return values
     jest.mocked(mockThreadsApi.retrieve).mockResolvedValue(mockThread);
-    jest.mocked(mockThreadsApi.messages.create).mockResolvedValue({
-      id: "test-uuid",
-      content: [{ type: "text", text: "Default message" }],
-      role: "user",
-      threadId: "test-thread-1",
-      componentState: {},
-      createdAt: new Date().toISOString(),
-    });
-    jest.mocked(mockThreadsApi.advance).mockResolvedValue({
-      responseMessageDto: {
-        id: "test-uuid",
-        content: [{ type: "text", text: "Default response" }],
-        role: "assistant",
-        threadId: "test-thread-1",
-        component: undefined,
-        componentState: {},
-        createdAt: new Date().toISOString(),
-      },
-      generationStage: GenerationStage.COMPLETE,
-    });
+    jest
+      .mocked(mockThreadsApi.messages.create)
+      .mockResolvedValue(createMockMessage());
+    jest
+      .mocked(mockThreadsApi.advanceById)
+      .mockResolvedValue(createMockAdvanceResponse());
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
   });
 
