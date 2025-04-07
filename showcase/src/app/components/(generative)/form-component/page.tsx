@@ -33,7 +33,7 @@ Make it use the bordered variant with a relaxed layout.`;
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
 
-          <div className="rounded-lg bg-backgroud border border-border/40">
+          <div className="rounded-lg bg-background border border-border/40">
             <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
               <FormChatInterface />
             </TamboProvider>
