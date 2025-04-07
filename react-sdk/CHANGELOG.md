@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/tambo-ai/tambo/compare/react-v0.20.0...react-v0.20.1) (2025-04-07)
+
+
+### Bug Fixes
+
+* make threadId optional in sendThreadMessage ([#292](https://github.com/tambo-ai/tambo/issues/292)) ([e043f35](https://github.com/tambo-ai/tambo/commit/e043f35310f125c0da4f2e90a523af2246c547a2))
+
 ## [0.20.0](https://github.com/tambo-ai/tambo/compare/react-v0.19.8...react-v0.20.0) (2025-04-05)
 
 
