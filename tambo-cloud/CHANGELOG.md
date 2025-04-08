@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.10...repo-v0.33.0) (2025-04-07)
+
+
+### Features
+
+* add basic health check ([#728](https://github.com/tambo-ai/tambo-cloud/issues/728)) ([5639550](https://github.com/tambo-ai/tambo-cloud/commit/5639550eb37f3165e53cd26d2430c8be01d7cf24))
+
 ## [0.32.10](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.9...repo-v0.32.10) (2025-04-07)
 
 
