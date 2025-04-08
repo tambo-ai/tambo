@@ -3,6 +3,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
 
+const defaultColors = [
+  "hsl(220, 100%, 62%)", // Blue
+  "hsl(160, 82%, 47%)", // Green
+  "hsl(32, 100%, 62%)", // Orange
+  "hsl(340, 82%, 66%)", // Pink
+];
+
 const graphVariants = cva(
   "w-full rounded-lg overflow-hidden transition-all duration-200",
   {
@@ -29,71 +36,87 @@ const graphVariants = cva(
 );
 
 export interface GraphData {
-  type: "bar" | "line" | "pie";
-  labels: string[];
-  datasets: {
+  type?: "bar" | "line" | "pie";
+  labels?: string[];
+  datasets?: {
     label: string;
     data: number[];
     color?: string;
   }[];
 }
 
+const defaultData: GraphData = {
+  type: "bar",
+  labels: ["Loading..."],
+  datasets: [
+    {
+      label: "Loading...",
+      data: [0],
+      color: defaultColors[0],
+    },
+  ],
+};
+
 export interface GraphProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof graphVariants> {
-  data: GraphData;
+  data?: GraphData;
   title?: string;
   showLegend?: boolean;
 }
 
-const defaultColors = [
-  "hsl(220, 100%, 62%)", // Blue
-  "hsl(160, 82%, 47%)", // Green
-  "hsl(32, 100%, 62%)", // Orange
-  "hsl(340, 82%, 66%)", // Pink
-];
-
 const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
   (
-    { className, variant, size, data, title, showLegend = true, ...props },
+    {
+      className,
+      variant,
+      size,
+      data = defaultData,
+      title,
+      showLegend = true,
+      ...props
+    },
     ref,
   ) => {
-    // validation to ensure data structure is complete and valid
-    if (
-      !data?.labels ||
-      !data?.datasets ||
-      !Array.isArray(data.labels) ||
-      !Array.isArray(data.datasets) ||
-      data.datasets.some(
-        (dataset) =>
-          !Array.isArray(dataset.data) ||
-          dataset.data.length !== data.labels.length,
-      )
-    ) {
-      console.error("Invalid graph data structure:", data);
-      return (
-        <div
-          className={cn(graphVariants({ variant, size }), className)}
-          {...props}
-        >
-          <div className="p-4 text-destructive">
-            Error: Invalid data structure. Ensure all datasets have the same
-            length as labels.
-          </div>
-        </div>
-      );
-    }
+    const safeData: Required<GraphData> = {
+      type: (data?.type ?? defaultData.type) as Required<GraphData>["type"],
+      labels: (data?.labels ??
+        defaultData.labels) as Required<GraphData>["labels"],
+      datasets: (data?.datasets ??
+        defaultData.datasets) as Required<GraphData>["datasets"],
+    };
+
+    // Normalize the data to ensure all datasets have values for all labels
+    const padData = (data: number[], desiredLength: number) => {
+      return data.concat(Array(desiredLength).fill(0)).slice(0, desiredLength);
+    };
+
+    const normalizedData: Required<GraphData> = {
+      ...safeData,
+      datasets: safeData.datasets.map((dataset) => ({
+        ...dataset,
+        // Ensure each dataset has a value (or 0) for each label
+        // data: Array.from(
+        //   { length: safeData.labels.length },
+        //   (_, i) => dataset.data[i] ?? 0,
+        // ),
+        data: padData(dataset.data ?? [], safeData.labels.length),
+      })),
+    };
 
     // Transform data for Recharts
-    const chartData = data.labels.map((label, index) => ({
+    const chartData = normalizedData.labels.map((label, index) => ({
       name: label,
       ...Object.fromEntries(
-        data.datasets.map((dataset) => [dataset.label, dataset.data[index]]),
+        normalizedData.datasets.map((dataset) => [
+          dataset.label,
+          dataset.data[index],
+        ]),
       ),
     }));
 
     const renderChart = () => {
-      switch (data.type) {
+      switch (normalizedData.type) {
         case "bar":
           return (
             <RechartsCore.BarChart data={chartData}>
@@ -132,7 +155,7 @@ const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                   }}
                 />
               )}
-              {data.datasets.map((dataset, index) => (
+              {normalizedData.datasets.map((dataset, index) => (
                 <RechartsCore.Bar
                   key={dataset.label}
                   dataKey={dataset.label}
@@ -184,7 +207,7 @@ const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                   }}
                 />
               )}
-              {data.datasets.map((dataset, index) => (
+              {normalizedData.datasets.map((dataset, index) => (
                 <RechartsCore.Line
                   key={dataset.label}
                   type="monotone"
@@ -199,11 +222,12 @@ const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
           );
 
         case "pie":
+        default:
           return (
             <RechartsCore.PieChart>
               <RechartsCore.Pie
-                data={data.datasets[0].data.map((value, index) => ({
-                  name: data.labels[index],
+                data={normalizedData.datasets[0].data.map((value, index) => ({
+                  name: normalizedData.labels[index],
                   value,
                   fill: defaultColors[index % defaultColors.length],
                 }))}
