@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.33.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.33.0...repo-v0.33.1) (2025-04-08)
+
+
+### Bug Fixes
+
+* catch errors in threads list for project route ([#731](https://github.com/tambo-ai/tambo-cloud/issues/731)) ([75fe286](https://github.com/tambo-ai/tambo-cloud/commit/75fe286f16d54f62486d83bea38da0645f43cf59))
+
+
+### Miscellaneous Chores
+
+* small change to rerun release-please checks ([#733](https://github.com/tambo-ai/tambo-cloud/issues/733)) ([375a057](https://github.com/tambo-ai/tambo-cloud/commit/375a0575104c8a4bce1c3c59b132b77ed83bae03))
+
 ## [0.33.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.32.10...repo-v0.33.0) (2025-04-07)
 
 
