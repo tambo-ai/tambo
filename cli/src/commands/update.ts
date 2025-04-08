@@ -53,7 +53,7 @@ export async function handleUpdateComponent(
     // Check if component exists in registry
     if (!componentExists(componentName)) {
       throw new Error(
-        `Component ${componentName} not found in registry. Use 'tambo add ${componentName}' to add it.`,
+        `Component ${componentName} not found in registry. Use 'npx tambo add ${componentName}' to add it.`,
       );
     }
 
@@ -62,21 +62,19 @@ export async function handleUpdateComponent(
 
     if (!location) {
       throw new Error(
-        `Component ${componentName} not found in your project. Use 'tambo add ${componentName}' to add it.`,
+        `Component ${componentName} not found in your project. Use 'npx tambo add ${componentName}' to add it.`,
       );
     }
 
     // Prompt for confirmation
-    const { confirm } = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "confirm",
-        message: chalk.yellow(
-          `⚠️  Warning: This will override your existing ${componentName} component with the version from the registry. Are you sure you want to continue?`,
-        ),
-        default: false,
-      },
-    ]);
+    const { confirm } = await inquirer.prompt({
+      type: "confirm",
+      name: "confirm",
+      message: chalk.yellow(
+        `⚠️  Warning: This will override your existing ${componentName} component with the version from the registry. Are you sure you want to continue?`,
+      ),
+      default: false,
+    });
 
     if (!confirm) {
       if (!options.silent) {
