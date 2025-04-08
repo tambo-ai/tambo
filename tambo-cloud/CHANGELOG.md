@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.33.1...repo-v0.33.2) (2025-04-08)
+
+
+### Bug Fixes
+
+* add env config for google + github auth ([#734](https://github.com/tambo-ai/tambo-cloud/issues/734)) ([2f713ee](https://github.com/tambo-ai/tambo-cloud/commit/2f713ee3fb21ff978990c0cabdd2b342e5a3b255))
+* remove tx middleware completely ([#736](https://github.com/tambo-ai/tambo-cloud/issues/736)) ([b4917ef](https://github.com/tambo-ai/tambo-cloud/commit/b4917ef435ce639866294e3e8fee6e74a5e1be1c))
+
 ## [0.33.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.33.0...repo-v0.33.1) (2025-04-08)
 
 
