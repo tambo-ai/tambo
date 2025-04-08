@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.4.0...showcase-v0.4.1) (2025-04-08)
+
+
+### Bug Fixes
+
+* add default value for showcase graph during streaming ([#304](https://github.com/tambo-ai/tambo/issues/304)) ([a1eb7bc](https://github.com/tambo-ai/tambo/commit/a1eb7bcf58312a18492b61dc2f5ff3ec5e22dacc))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump tailwind-merge from 3.1.0 to 3.2.0 ([#302](https://github.com/tambo-ai/tambo/issues/302)) ([fb63160](https://github.com/tambo-ai/tambo/commit/fb63160467e861a6634a6ae0013c83b8284b98d3))
+
 ## [0.4.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.3.1...showcase-v0.4.0) (2025-04-07)
 
 
