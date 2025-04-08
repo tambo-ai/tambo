@@ -3,7 +3,6 @@ import {
   MiddlewareConsumer,
   Module,
   OnModuleInit,
-  RequestMethod,
 } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AppController } from "./app.controller";
@@ -13,7 +12,6 @@ import {
   DATABASE,
   DatabaseProvider,
   TRANSACTION,
-  TransactionMiddleware,
   TransactionProvider,
 } from "./common/middleware/db-transaction-middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
@@ -54,24 +52,5 @@ export class AppModule implements OnModuleInit {
 
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(RequestLoggerMiddleware).forRoutes("*");
-    consumer
-      .apply(TransactionMiddleware)
-      .exclude(
-        { path: "/threads/:id/advancestream", method: RequestMethod.POST },
-        { path: "/threads/:id/advance", method: RequestMethod.POST },
-        { path: "/threads/advancestream", method: RequestMethod.POST },
-        { path: "/threads/advance", method: RequestMethod.POST },
-        {
-          path: "/threads/:id/messages/:messageId/suggestions",
-          method: RequestMethod.POST,
-        },
-        {
-          path: "/threads/:id/messages/:messageId/component-state",
-          method: RequestMethod.PUT,
-        },
-        { path: "/health", method: RequestMethod.GET },
-        { path: "/", method: RequestMethod.GET },
-      )
-      .forRoutes("*");
   }
 }
