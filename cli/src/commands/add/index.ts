@@ -68,14 +68,12 @@ export async function handleAddComponent(
         existingComponents.forEach((comp) => console.log(`  - ${comp}`));
       }
 
-      const { proceed } = await inquirer.prompt([
-        {
-          type: "confirm",
-          name: "proceed",
-          message: "Do you want to proceed with installation?",
-          default: true,
-        },
-      ]);
+      const { proceed } = await inquirer.prompt({
+        type: "confirm",
+        name: "proceed",
+        message: "Do you want to proceed with installation?",
+        default: true,
+      });
 
       if (!proceed) {
         console.log(chalk.yellow("Installation cancelled"));
