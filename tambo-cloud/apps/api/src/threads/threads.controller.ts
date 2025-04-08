@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   Put,
@@ -50,6 +51,8 @@ import { ThreadsService } from "./threads.service";
 @UseGuards(ApiKeyGuard)
 @Controller("threads")
 export class ThreadsController {
+  private readonly logger = new Logger(ThreadsController.name);
+
   constructor(private readonly threadsService: ThreadsService) {}
 
   @ProjectIdParameterKey("projectId")
@@ -72,23 +75,35 @@ export class ThreadsController {
     @Query("offset") offset: number = 0,
     @Query("limit") limit: number = 10,
   ): Promise<ThreadListDto> {
-    const threadsPromise = this.threadsService.findAllForProject(projectId, {
-      contextKey,
-      offset,
-      limit,
-    });
-    const totalPromise = this.threadsService.countThreadsByProject(projectId, {
-      contextKey,
-    });
-    const threads = await threadsPromise;
-    const total = await totalPromise;
-    return {
-      total,
-      offset,
-      limit,
-      count: threads.length,
-      items: threads,
-    };
+    if (!request[ProjectId]) {
+      throw new BadRequestException("Project ID is required");
+    }
+
+    try {
+      const [threads, total] = await Promise.all([
+        this.threadsService.findAllForProject(projectId, {
+          contextKey,
+          offset,
+          limit,
+        }),
+        this.threadsService.countThreadsByProject(projectId, {
+          contextKey,
+        }),
+      ]);
+
+      return {
+        total,
+        offset,
+        limit,
+        count: threads.length,
+        items: threads,
+      };
+    } catch (error: any) {
+      this.logger.error(
+        `Error fetching threads for project ${projectId}: ${error.message}`,
+      );
+      throw error;
+    }
   }
 
   @Get(":id")
