@@ -76,7 +76,7 @@ export class ThreadsController {
     @Query("limit") limit: number = 10,
   ): Promise<ThreadListDto> {
     if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
+      throw new BadRequestException("Project ID is required.");
     }
 
     try {
