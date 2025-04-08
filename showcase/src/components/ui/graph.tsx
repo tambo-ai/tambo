@@ -87,15 +87,20 @@ const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
     };
 
     // Normalize the data to ensure all datasets have values for all labels
+    const padData = (data: number[], desiredLength: number) => {
+      return data.concat(Array(desiredLength).fill(0)).slice(0, desiredLength);
+    };
+
     const normalizedData: Required<GraphData> = {
       ...safeData,
       datasets: safeData.datasets.map((dataset) => ({
         ...dataset,
         // Ensure each dataset has a value (or 0) for each label
-        data: Array.from(
-          { length: safeData.labels.length },
-          (_, i) => dataset.data[i] ?? 0,
-        ),
+        // data: Array.from(
+        //   { length: safeData.labels.length },
+        //   (_, i) => dataset.data[i] ?? 0,
+        // ),
+        data: padData(dataset.data ?? [], safeData.labels.length),
       })),
     };
 
