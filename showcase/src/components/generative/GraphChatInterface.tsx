@@ -166,7 +166,7 @@ export const GraphChatInterface = () => {
         },
       },
     });
-  }, [registerComponent, thread]);
+  }, [registerComponent, thread.id]);
 
   return (
     <div className="relative h-full w-full">
