@@ -176,6 +176,13 @@
       "when": 1742318884794,
       "tag": "0024_loving_the_initiative",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1744236903441,
+      "tag": "0025_remarkable_magdalene",
+      "breakpoints": true
     }
   ]
 }

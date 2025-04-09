@@ -9,7 +9,13 @@ import {
   MessageRole,
 } from "@tambo-ai-cloud/core";
 import { relations, sql } from "drizzle-orm";
-import { index, pgPolicy, pgRole, pgTable } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgPolicy,
+  pgRole,
+  pgTable,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 import { customJsonb } from "./drizzleUtil";
 export { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
@@ -199,6 +205,7 @@ export const projectRelations = relations(projects, ({ many, one }) => ({
     fields: [projects.creatorId],
     references: [authUsers.id],
   }),
+  toolProviders: many(toolProviders),
 }));
 
 export const threads = pgTable(
@@ -212,6 +219,7 @@ export const threads = pgTable(
     projectId: text("project_id")
       .references(() => projects.id)
       .notNull(),
+    // this is effectively the end-user id
     contextKey: text("context_key"),
     metadata: customJsonb<Record<string, unknown>>("metadata"),
     generationStage: text("generation_stage", {
@@ -228,9 +236,7 @@ export const threads = pgTable(
       .notNull(),
   }),
   (table) => {
-    return {
-      contextKeyIdx: index("threads_context_key_idx").on(table.contextKey),
-    };
+    return [index("threads_context_key_idx").on(table.contextKey)];
   },
 );
 export type DBThread = typeof threads.$inferSelect;
@@ -322,5 +328,91 @@ export const contacts = pgTable("contacts", ({ text, timestamp, uuid }) => ({
     .defaultNow()
     .notNull(),
 }));
+
+enum ToolProviderType {
+  COMPOSIO = "composio",
+  MCP = "mcp",
+}
+
+export const toolProviders = pgTable(
+  "tool_providers",
+  ({ text, timestamp }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('tp_')`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    projectId: text("project_id")
+      .references(() => projects.id)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    type: text("type", {
+      enum: Object.values<string>(ToolProviderType) as [ToolProviderType],
+    }).notNull(),
+    url: text("url").notNull(),
+    composio_app_name: text("composio_app_name"),
+  }),
+);
+
+export const toolProviderRelations = relations(
+  toolProviders,
+  ({ one, many }) => ({
+    project: one(projects, {
+      fields: [toolProviders.projectId],
+      references: [projects.id],
+    }),
+    contexts: many(toolProviderUserContexts),
+  }),
+);
+
+/**
+ * Pairs a context key with a tool provider. This lets a contextKey have
+ * specific auth context for a given toolProvider in a project
+ *
+ * For now this table doesn't really establish anything other than the existence
+ * of a contextKey<->toolProviderId relationship, and when it was established.
+ */
+export const toolProviderUserContexts = pgTable(
+  "tool_provider_user_contexts",
+  ({ text, timestamp }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('tpu_')`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    // this is effectively the end-user id
+    contextKey: text("context_key").notNull(),
+    toolProviderId: text("tool_provider_id")
+      .references(() => toolProviders.id)
+      .notNull(),
+  }),
+  (table) => {
+    return [
+      index("context_tool_providers_context_key_idx").on(table.contextKey),
+      uniqueIndex("context_tool_providers_context_key_tool_provider_idx").on(
+        table.contextKey,
+        table.toolProviderId,
+      ),
+    ];
+  },
+);
+
+export const toolProviderUserContextRelations = relations(
+  toolProviderUserContexts,
+  ({ one }) => ({
+    toolProvider: one(toolProviders, {
+      fields: [toolProviderUserContexts.toolProviderId],
+      references: [toolProviders.id],
+    }),
+  }),
+);
 
 export type DBContact = typeof contacts.$inferSelect;
