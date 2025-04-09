@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.3...tambo-v0.4.0) (2025-04-09)
+
+
+### Features
+
+* **cli:** update message-input component style ([#306](https://github.com/tambo-ai/tambo/issues/306)) ([0454392](https://github.com/tambo-ai/tambo/commit/0454392c7ed07e7404605ae399b9a864f52438a2))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump typescript from 5.8.2 to 5.8.3 ([#282](https://github.com/tambo-ai/tambo/issues/282)) ([0c1fc63](https://github.com/tambo-ai/tambo/commit/0c1fc631be3212e7c3b82c696306d7fac36d5f56))
+* **deps:** bump inquirer from 9.3.7 to 10.2.2 ([#284](https://github.com/tambo-ai/tambo/issues/284)) ([7a3f5f5](https://github.com/tambo-ai/tambo/commit/7a3f5f51e43e885406058f63c9ca40061fdf348a))
+
 ## [0.3.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.2...tambo-v0.3.3) (2025-04-04)
 
 
