@@ -93,7 +93,7 @@ const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
         className={cn(messageInputVariants({ variant }), className)}
         {...props}
       >
-        <div className="flex flex-col border rounded-xl bg-background shadow-md p-2 px-3">
+        <div className="flex flex-col border border-gray-200 rounded-xl bg-background shadow-md p-2 px-3">
           <textarea
             ref={ref}
             value={displayValue}
