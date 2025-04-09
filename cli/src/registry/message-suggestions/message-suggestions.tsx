@@ -117,11 +117,7 @@ export const MessageSuggestions = React.forwardRef<
   // Basic container layout
   return (
     <TooltipProvider>
-      <div
-        className={cn("px-4 py-2 border-t border-gray-200", className)}
-        ref={ref}
-        {...props}
-      >
+      <div className={cn("px-4 py-2", className)} ref={ref} {...props}>
         {/* Error state */}
         {error && (
           <div className="p-2 rounded-md text-sm bg-red-50 text-red-500">
@@ -170,8 +166,8 @@ export const MessageSuggestions = React.forwardRef<
                           isGenerating
                             ? "bg-muted/50 text-muted-foreground"
                             : selectedSuggestionId === suggestion.id
-                              ? "bg-accent text-accent-foreground"
-                              : "bg-background hover:bg-accent hover:text-accent-foreground",
+                            ? "bg-accent text-accent-foreground"
+                            : "bg-background hover:bg-accent hover:text-accent-foreground",
                         )}
                         onClick={async () =>
                           !isGenerating && (await accept({ suggestion }))
