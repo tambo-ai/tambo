@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { ArrowUp } from "lucide-react";
 import * as React from "react";
 
 const messageInputVariants = cva("w-full", {
@@ -92,25 +93,25 @@ const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
         className={cn(messageInputVariants({ variant }), className)}
         {...props}
       >
-        <div className="flex flex-col border rounded-xl bg-background shadow">
+        <div className="flex flex-col border rounded-xl bg-background shadow-md p-2 px-3">
           <textarea
             ref={ref}
             value={displayValue}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            className="flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[72px] max-h-[200px] focus:outline-none"
+            className="flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50"
             disabled={isPending}
-            placeholder="Type your message..."
+            placeholder="What do you want to do?"
             aria-label="Chat Message Input"
-            rows={3}
           />
-          <div className="flex items-center justify-between p-2">
+          <div className="flex justify-end mt-2 p-1">
             <button
               type="submit"
               disabled={isPending}
-              className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center min-w-[70px]"
+              className="w-10 h-10 bg-primary/85 text-primary-foreground rounded-lg hover:bg-primary/70 disabled:opacity-50 flex items-center justify-center"
+              aria-label="Send message"
             >
-              {isPending ? <Spinner /> : "Send"}
+              {isPending ? <Spinner /> : <ArrowUp className="w-5 h-5" />}
             </button>
           </div>
         </div>
