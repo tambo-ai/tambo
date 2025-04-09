@@ -166,8 +166,8 @@ export const MessageSuggestions = React.forwardRef<
                           isGenerating
                             ? "bg-muted/50 text-muted-foreground"
                             : selectedSuggestionId === suggestion.id
-                            ? "bg-accent text-accent-foreground"
-                            : "bg-background hover:bg-accent hover:text-accent-foreground",
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-background hover:bg-accent hover:text-accent-foreground",
                         )}
                         onClick={async () =>
                           !isGenerating && (await accept({ suggestion }))
