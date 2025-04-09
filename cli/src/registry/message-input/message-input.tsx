@@ -40,7 +40,9 @@ const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
     const { value, setValue, submit, isPending, error } =
       useTamboThreadInput(contextKey);
     const [displayValue, setDisplayValue] = React.useState("");
-    const [submitError, setSubmitError] = React.useState<string | null>(null);
+    const [submitError, setSubmitError] = React.useState<string | null>(
+      "here is some error",
+    );
 
     React.useEffect(() => {
       setDisplayValue(value);
@@ -105,14 +107,19 @@ const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
             aria-label="Chat Message Input"
           />
           <div className="flex justify-end mt-2 p-1">
-            <button
-              type="submit"
-              disabled={isPending}
-              className="w-10 h-10 bg-primary/85 text-primary-foreground rounded-lg hover:bg-primary/70 disabled:opacity-50 flex items-center justify-center"
-              aria-label="Send message"
-            >
-              {isPending ? <Spinner /> : <ArrowUp className="w-5 h-5" />}
-            </button>
+            <div className="relative group">
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-10 h-10 bg-primary/85 text-primary-foreground rounded-lg hover:bg-primary/70 disabled:opacity-50 flex items-center justify-center"
+                aria-label="Send message"
+              >
+                {isPending ? <Spinner /> : <ArrowUp className="w-5 h-5" />}
+              </button>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 text-xs bg-foreground/80 text-background rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                Send message
+              </div>
+            </div>
           </div>
         </div>
         {(error ?? submitError) && (
