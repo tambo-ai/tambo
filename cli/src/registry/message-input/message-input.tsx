@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { ArrowUp } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -56,29 +57,27 @@ export interface MessageInputProps
  * ```
  */
 export const MessageInput = React.forwardRef<
-  HTMLInputElement,
+  HTMLTextAreaElement,
   MessageInputProps
 >(({ className, variant, contextKey, ...props }, ref) => {
   const { value, setValue, submit, isPending, error } =
     useTamboThreadInput(contextKey);
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
-  const isMac =
-    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Handle the forwarded ref
-  React.useImperativeHandle(ref, () => inputRef.current!, []);
+  React.useImperativeHandle(ref, () => textareaRef.current!, []);
 
   React.useEffect(() => {
     setDisplayValue(value);
-    // Focus the input when value changes and is not empty
-    if (value && inputRef.current) {
-      inputRef.current.focus();
+    // Focus the textarea when value changes and is not empty
+    if (value && textareaRef.current) {
+      textareaRef.current.focus();
     }
   }, [value]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
     setDisplayValue(e.target.value);
   };
@@ -96,7 +95,7 @@ export const MessageInput = React.forwardRef<
       });
       setValue("");
       setTimeout(() => {
-        inputRef.current?.focus();
+        textareaRef.current?.focus();
       }, 0);
     } catch (error) {
       console.error("Failed to submit message:", error);
@@ -109,16 +108,14 @@ export const MessageInput = React.forwardRef<
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (value.trim()) {
         handleSubmit(e as unknown as React.FormEvent);
       }
     }
   };
-
-  const modKey = isMac ? "⌘" : "Ctrl";
 
   const Spinner = () => (
     <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
@@ -130,48 +127,38 @@ export const MessageInput = React.forwardRef<
       className={cn(messageInputVariants({ variant }), className)}
       {...props}
     >
-      <div className="flex gap-2">
-        <input
-          ref={inputRef}
-          type="text"
+      <div className="flex flex-col border border-gray-200 rounded-xl bg-background shadow-md p-2 px-3">
+        <textarea
+          ref={textareaRef}
           value={displayValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          className="flex-1 p-2 rounded-lg border bg-background text-foreground border-border"
+          className="flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50"
           disabled={isPending}
-          placeholder="Type your message..."
+          placeholder="What do you want to do?"
           aria-label="Chat Message Input"
-          autoFocus
         />
-        <button
-          type="submit"
-          disabled={isPending}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center min-w-[70px]"
-        >
-          {isPending ? <Spinner /> : "Send"}
-        </button>
-      </div>
-      <div className="flex flex-col items-center mt-2 text-xs">
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <span>Press</span>
-          <kbd
-            className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-xs"
-            suppressHydrationWarning
-          >
-            {modKey}
-          </kbd>
-          <span>+</span>
-          <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-xs">
-            Enter
-          </kbd>
-          <span>to send</span>
+        <div className="flex justify-end mt-2 p-1">
+          <div className="relative group">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer"
+              aria-label="Send message"
+            >
+              {isPending ? <Spinner /> : <ArrowUp className="w-5 h-5" />}
+            </button>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 text-xs bg-black/80 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+              Send message
+            </div>
+          </div>
         </div>
-        {(error ?? submitError) && (
-          <p className="text-sm text-[hsl(var(--destructive))] mt-1">
-            {error?.message ?? submitError}
-          </p>
-        )}
       </div>
+      {(error ?? submitError) && (
+        <p className="text-sm text-[hsl(var(--destructive))] mt-2">
+          {error?.message ?? submitError}
+        </p>
+      )}
     </form>
   );
 });
