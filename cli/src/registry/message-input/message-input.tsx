@@ -109,12 +109,12 @@ const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-10 h-10 bg-primary/85 text-primary-foreground rounded-lg hover:bg-primary/70 disabled:opacity-50 flex items-center justify-center"
+                className="w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center"
                 aria-label="Send message"
               >
                 {isPending ? <Spinner /> : <ArrowUp className="w-5 h-5" />}
               </button>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 text-xs bg-foreground/80 text-background rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 text-xs bg-black/80 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                 Send message
               </div>
             </div>
