@@ -40,9 +40,7 @@ const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
     const { value, setValue, submit, isPending, error } =
       useTamboThreadInput(contextKey);
     const [displayValue, setDisplayValue] = React.useState("");
-    const [submitError, setSubmitError] = React.useState<string | null>(
-      "here is some error",
-    );
+    const [submitError, setSubmitError] = React.useState<string | null>(null);
 
     React.useEffect(() => {
       setDisplayValue(value);
