@@ -161,7 +161,7 @@ export const MessageSuggestions = React.forwardRef<
                     >
                       <button
                         className={cn(
-                          "py-1 px-2.5 rounded-full text-xs transition-colors",
+                          "py-2 px-2.5 rounded-full text-xs transition-colors",
                           "border border-input",
                           isGenerating
                             ? "bg-muted/50 text-muted-foreground"
