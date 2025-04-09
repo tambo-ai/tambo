@@ -75,7 +75,7 @@ const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         if (value.trim()) {
           handleSubmit(e as unknown as React.FormEvent);
