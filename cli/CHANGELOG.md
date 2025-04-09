@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.4.0...tambo-v0.5.0) (2025-04-09)
+
+
+### Features
+
+* remove borders from thread-full and suggestions ([#308](https://github.com/tambo-ai/tambo/issues/308)) ([917f1ee](https://github.com/tambo-ai/tambo/commit/917f1ee5adbfdb36cb2ba6eb0c5e6614bf92f211))
+
 ## [0.4.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.3.3...tambo-v0.4.0) (2025-04-09)
 
 
