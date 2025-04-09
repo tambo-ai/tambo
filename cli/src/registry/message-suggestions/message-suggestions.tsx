@@ -117,11 +117,7 @@ export const MessageSuggestions = React.forwardRef<
   // Basic container layout
   return (
     <TooltipProvider>
-      <div
-        className={cn("px-4 py-2 border-t border-gray-200", className)}
-        ref={ref}
-        {...props}
-      >
+      <div className={cn("px-4 py-2", className)} ref={ref} {...props}>
         {/* Error state */}
         {error && (
           <div className="p-2 rounded-md text-sm bg-red-50 text-red-500">
@@ -165,7 +161,7 @@ export const MessageSuggestions = React.forwardRef<
                     >
                       <button
                         className={cn(
-                          "py-1 px-2.5 rounded-full text-xs transition-colors",
+                          "py-2 px-2.5 rounded-full text-xs transition-colors",
                           "border border-input",
                           isGenerating
                             ? "bg-muted/50 text-muted-foreground"
