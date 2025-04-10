@@ -94,6 +94,18 @@ export function CreateProjectDialog({
                     Hydra will use your API key to make AI calls on your behalf
                     until we implement our payment system.
                   </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You can find or create your API key in the{" "}
+                    <a
+                      href="https://platform.openai.com/settings/organization/api-keys"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-link"
+                    >
+                      OpenAI API keys page
+                    </a>
+                    .
+                  </p>
                 </FormItem>
               )}
             />

@@ -161,6 +161,18 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
               your API key to make AI calls on your behalf until we implement
               our payment system.
             </p>
+            <p className="text-xs text-gray-500 mt-1">
+              You can find or create your API key in the{" "}
+              <a
+                href="https://platform.openai.com/settings/organization/api-keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-link"
+              >
+                OpenAI API keys page
+              </a>
+              .
+            </p>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button

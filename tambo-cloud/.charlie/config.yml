@@ -2,5 +2,5 @@
 checkCommands:
   fix: npm run lint -- --fix
   lint: npm run lint
-  types: npm run check-types
+  types: npm run typecheck
   test: npm run test
