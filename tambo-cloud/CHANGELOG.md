@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.34.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.33.2...repo-v0.34.0) (2025-04-10)
+
+
+### Features
+
+* add db schema for tool providers ([#737](https://github.com/tambo-ai/tambo-cloud/issues/737)) ([dfce287](https://github.com/tambo-ai/tambo-cloud/commit/dfce287eba42d9472375cadf009028db05027b9d))
+* add OpenAI API Key Link in Project Creation Flow ([#685](https://github.com/tambo-ai/tambo-cloud/issues/685)) ([e561143](https://github.com/tambo-ai/tambo-cloud/commit/e561143c793fef6ba45bd84532af14fda21914bb))
+* **dashboard:** improved ui ([#741](https://github.com/tambo-ai/tambo-cloud/issues/741)) ([72e5b20](https://github.com/tambo-ai/tambo-cloud/commit/72e5b2000eb2b66106320782912644f86d2c78aa))
+
+
+### Bug Fixes
+
+* add mcp/composio flags for projects ([#746](https://github.com/tambo-ai/tambo-cloud/issues/746)) ([1612fac](https://github.com/tambo-ai/tambo-cloud/commit/1612facd38c3694df59fc10be792234c9487341f))
+* charlie calling the wrong check-types ([#745](https://github.com/tambo-ai/tambo-cloud/issues/745)) ([35a7ed0](https://github.com/tambo-ai/tambo-cloud/commit/35a7ed0d01789338efb014e694a826d0dbd74b42))
+
+
+### Documentation
+
+* update README with project renaming and comprehensive improvements ([#658](https://github.com/tambo-ai/tambo-cloud/issues/658)) ([fe80774](https://github.com/tambo-ai/tambo-cloud/commit/fe80774fda54a634aed6563a1b63a371b62c37ef))
+
+
+### Miscellaneous Chores
+
+* replace 'hydra' References with 'tambo' in apps/web Directory ([#686](https://github.com/tambo-ai/tambo-cloud/issues/686)) ([9a34f6e](https://github.com/tambo-ai/tambo-cloud/commit/9a34f6ec744e9b3301b2218370858299ae6bc2ca))
+* update API Documentation with Signup Link and Init Command ([#684](https://github.com/tambo-ai/tambo-cloud/issues/684)) ([6f90b78](https://github.com/tambo-ai/tambo-cloud/commit/6f90b789b90ea4d3f560ec5e32a76fd9575df957))
+
+
+### Code Refactoring
+
+* **auth:** fixed auth flash and imrpved styles ([#742](https://github.com/tambo-ai/tambo-cloud/issues/742)) ([874c56b](https://github.com/tambo-ai/tambo-cloud/commit/874c56be1fdf113848457af2333282617219a918))
+* **ci:** split GitHub Actions into Parallel Workflows for Build, Test, and Lint ([#748](https://github.com/tambo-ai/tambo-cloud/issues/748)) ([8d636ba](https://github.com/tambo-ai/tambo-cloud/commit/8d636baef042e88da93c6bf47798a1fd793cc6f0))
+
 ## [0.33.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.33.1...repo-v0.33.2) (2025-04-08)
 
 
