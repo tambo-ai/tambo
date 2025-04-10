@@ -1,6 +1,7 @@
 "use client";
 
 import { AuthForm } from "@/components/auth/auth-form";
+import { Icons } from "@/components/icons";
 import { Header } from "@/components/sections/header";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/auth";
@@ -18,12 +19,12 @@ export default function DashboardPage() {
   const [selectedProject, setSelectedProject] =
     useState<ProjectResponseDto | null>(null);
   const { toast } = useToast();
-  const { data: session } = useSession();
+  const { data: session, isLoading: isAuthLoading } = useSession();
   const isAuthenticated = !!session;
 
   const {
     data: projects,
-    isLoading,
+    isLoading: isProjectsLoading,
     error: projectLoadingError,
     refetch: refetchProjects,
   } = api.project.getUserProjects.useQuery(undefined, {
@@ -71,17 +72,19 @@ export default function DashboardPage() {
     }
   };
 
-  const LoadingTable = () => (
-    <div className="space-y-4">
-      <div className="h-8 w-32 bg-gray-100 animate-pulse rounded" />
-      <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+  const LoadingSpinner = () => (
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <Icons.spinner className="h-8 w-8 animate-spin text-muted-foreground" />
+      <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
     </div>
   );
 
-  if (isAuthenticated == null) {
+  // Show loading spinner while checking auth
+  if (isAuthLoading) {
     return (
       <div className="container">
-        <LoadingTable />
+        <Header showDashboardButton={false} showLogoutButton={false} />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -93,8 +96,6 @@ export default function DashboardPage() {
         <div className="container max-w-md py-8">
           <AuthForm routeOnSuccess="/dashboard" />
         </div>
-      ) : isLoading ? (
-        <LoadingTable />
       ) : (
         <>
           <div className="flex items-center justify-between py-4">

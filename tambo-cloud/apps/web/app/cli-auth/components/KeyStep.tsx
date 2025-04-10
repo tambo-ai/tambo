@@ -1,6 +1,9 @@
 import { Icons } from "@/components/icons";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 
 type ApiKey = Readonly<{
@@ -123,7 +126,7 @@ export function KeyStep({
           </p>
         </div>
 
-        <div className="p-4 bg-muted rounded-lg space-y-4">
+        <Card className="p-4 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">Your New API Key</p>
             <Button
@@ -150,37 +153,18 @@ export function KeyStep({
               Copy
             </Button>
           </div>
-          <p className="font-mono text-sm bg-background p-3 rounded border break-all">
+          <p className="font-mono text-sm bg-white p-3 rounded border break-all">
             {apiKey}
           </p>
-        </div>
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <div className="flex items-start gap-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-yellow-600 mt-0.5"
-            >
-              <path d="M12 9v4M12 17h.01" />
-              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-            </svg>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-yellow-800">Important</p>
-              <p className="text-xs text-yellow-700">
-                Make sure to copy your API key now. You won&apos;t be able to
-                see it again. This window will close automatically in{" "}
-                {countdown} seconds.
-              </p>
-            </div>
-          </div>
-        </div>
+        </Card>
+        <Alert variant="default">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Important</AlertTitle>
+          <AlertDescription>
+            Make sure to copy your API key now. You won&apos;t be able to see it
+            again. This window will close automatically in {countdown} seconds.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -219,7 +203,7 @@ export function KeyStep({
         </p>
       </div>
 
-      <div className="p-4 bg-muted rounded-lg space-y-4">
+      <Card className="p-4 bg-muted space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium">OpenAI API Key</p>
           {isEditingProviderKey ? (
@@ -271,24 +255,26 @@ export function KeyStep({
               : "No API key set"}
           </p>
         )}
-      </div>
+      </Card>
 
       {isLoading ? (
         <div className="py-4 flex justify-center">
           <Icons.spinner className="h-6 w-6 animate-spin" />
         </div>
       ) : error ? (
-        <div className="text-center text-sm text-red-500">
-          Failed to load existing API keys
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>Failed to load existing API keys</AlertDescription>
+        </Alert>
       ) : existingKeys && existingKeys.length > 0 ? (
         <div className="space-y-3">
           <div className="text-sm font-medium">Existing tambo API Keys</div>
           <div className="space-y-2 max-h-[240px] overflow-y-auto pr-2">
             {existingKeys.map((key) => (
-              <div
+              <Card
                 key={key.id}
-                className="p-3 bg-muted rounded-lg flex items-center justify-between gap-4"
+                className="p-3 bg-muted flex items-center justify-between gap-4"
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate">{key.name}</p>
@@ -329,7 +315,7 @@ export function KeyStep({
                   </svg>
                   <span className="sr-only">Delete API key</span>
                 </Button>
-              </div>
+              </Card>
             ))}
           </div>
           <div className="relative py-4">
@@ -344,7 +330,7 @@ export function KeyStep({
           </div>
         </div>
       ) : (
-        <div className="py-8 text-center space-y-4">
+        <Card className="py-8 text-center space-y-4">
           <div className="flex flex-col items-center gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -364,7 +350,7 @@ export function KeyStep({
               You don&apos;t have any API keys yet
             </p>
           </div>
-        </div>
+        </Card>
       )}
 
       <Button

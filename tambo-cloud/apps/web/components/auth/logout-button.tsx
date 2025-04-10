@@ -7,22 +7,11 @@ import { track } from "@vercel/analytics";
 import { useEffect, useState } from "react";
 
 interface LogoutButtonProps {
-  variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
   className?: string;
   mobile?: boolean;
 }
 
-export function LogoutButton({
-  variant = "ghost",
-  className,
-  mobile = false,
-}: LogoutButtonProps) {
+export function LogoutButton({ className, mobile = false }: LogoutButtonProps) {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -62,10 +51,10 @@ export function LogoutButton({
   return (
     <Button
       onClick={handleLogout}
-      variant={variant}
+      variant="outline"
       className={`${mobile ? "justify-start text-base w-full" : "px-2"} ${className}`}
     >
-      logout
+      Sign Out
     </Button>
   );
 }
