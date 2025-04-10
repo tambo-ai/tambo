@@ -16,13 +16,13 @@ export async function POST(req: Request) {
     const { email } = await req.json();
 
     const data = await resend.emails.send({
-      from: "Hydra AI <onboarding@hydra.ai>",
+      from: "Tambo AI <magan@tambo.co>",
       to: email,
-      subject: "Welcome to Hydra AI Early Access",
+      subject: "Welcome to Tambo AI Early Access",
       html: `
-        <h1>Welcome to Hydra AI!</h1>
+        <h1>Welcome to Tambo AI!</h1>
         <p>Thanks for joining our early access list. We'll keep you updated on our latest developments.</p>
-        <p>Best,<br>The Hydra AI Team</p>
+        <p>Best,<br>The Tambo AI Team</p>
       `,
     });
 

@@ -39,7 +39,7 @@ export function EmailDialog({ open, onOpenChange }: EmailDialogProps) {
         <DialogHeader>
           <DialogTitle>Ready to Build?</DialogTitle>
           <DialogDescription>
-            Want to learn what you can build with Hydra AI?
+            Want to learn what you can build with Tambo AI?
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

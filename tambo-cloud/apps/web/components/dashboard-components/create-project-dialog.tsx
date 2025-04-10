@@ -91,7 +91,7 @@ export function CreateProjectDialog({
                   </FormControl>
                   <FormMessage />
                   <p className="text-sm text-muted-foreground">
-                    Hydra will use your API key to make AI calls on your behalf
+                    Tambo will use your API key to make AI calls on your behalf
                     until we implement our payment system.
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">

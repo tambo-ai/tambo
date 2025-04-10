@@ -78,7 +78,7 @@ function AnalyticsDemoContent() {
       <section className="py-20 px-4 bg-muted/50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">
-            Why Choose Hydra Analytics?
+            Why Choose Tambo Analytics?
           </h2>
           <p className="text-xl text-muted-foreground text-center max-w-2xl mx-auto mb-12">
             Powerful features that make data analysis accessible to everyone in

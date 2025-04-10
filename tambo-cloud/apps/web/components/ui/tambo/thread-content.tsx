@@ -33,6 +33,11 @@ export interface ThreadContentProps
   variant?: VariantProps<typeof threadContentVariants>["variant"];
 }
 
+// Helper function to determine if a role should be treated as assistant
+function isAssistantRole(role: string): boolean {
+  return role === "assistant" || role === "hydra" || role === "tambo";
+}
+
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ className, variant, ...props }, ref) => {
     const { thread, generationStage } = useTambo();
@@ -52,6 +57,11 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
             : typeof message.content === "string"
               ? message.content
               : "Empty message";
+
+          // Determine the role for display
+          const displayRole = isAssistantRole(message.role)
+            ? "assistant"
+            : "user";
 
           return (
             <div
@@ -73,11 +83,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
                 )}
               >
                 <Message
-                  role={
-                    message.role === "hydra" || message.role === "assistant"
-                      ? "assistant"
-                      : "user"
-                  }
+                  role={displayRole}
                   content={messageContent}
                   variant={variant}
                   message={message}

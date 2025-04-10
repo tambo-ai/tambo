@@ -81,7 +81,7 @@ export async function createSlackChannel(
 }
 
 function formatChannelName(companyName: string): string {
-  const channelName = `hydra-${companyName
+  const channelName = `tambo-${companyName
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
