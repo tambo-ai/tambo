@@ -9,7 +9,7 @@ import { InteractiveDemo } from "@/components/sections/interactive-demo";
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
-      <Header />
+      <Header className="px-4 sm:px-6 lg:px-8" />
       <div className="flex-1">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
           <Hero />

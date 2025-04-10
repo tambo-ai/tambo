@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Check, Copy } from "lucide-react";
 import * as React from "react";
 import { ButtonHTMLAttributes, useCallback, useState } from "react";
 import { Button } from "./ui/button";
@@ -15,7 +16,6 @@ export function CopyButton({
   clipboardValue,
   successDuration = 2000,
   className,
-  children,
   onClick,
   ...props
 }: CopyButtonProps) {
@@ -41,15 +41,13 @@ export function CopyButton({
   return (
     <Button
       size="sm"
-      variant="outline"
+      variant="ghost"
       onClick={handleCopy}
-      className={cn(
-        "inline-flex items-center justify-center transition-colors",
-        className,
-      )}
+      className={cn("h-8 w-8 p-0", copied && "text-green-500", className)}
       {...props}
     >
-      {children ?? (copied ? "Copied!" : "Copy")}
+      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      <span className="sr-only">{copied ? "Copied!" : "Copy"}</span>
     </Button>
   );
 }
