@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { useState } from "react";
-import { ProjectResponseDto } from "../../../app/dashboard/types/types";
+import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
 
 interface ProviderKeySectionProps {
   project: ProjectResponseDto;

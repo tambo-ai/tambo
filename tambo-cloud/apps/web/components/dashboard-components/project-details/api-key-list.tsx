@@ -4,7 +4,7 @@ import { api } from "@/trpc/react";
 import { Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
-import { ProjectResponseDto } from "../../../app/dashboard/types/types";
+import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { AlertState } from "./project-details-dialog";
 

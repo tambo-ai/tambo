@@ -1,4 +1,4 @@
-import { ProjectResponseDto } from "../../../app/dashboard/types/types";
+import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
 
 interface ProjectInfoProps {
   project: ProjectResponseDto;

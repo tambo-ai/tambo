@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ProjectResponseDto } from "../../../app/dashboard/types/types";
+import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
 import { APIKeyList } from "./api-key-list";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { ProjectInfo } from "./project-info";

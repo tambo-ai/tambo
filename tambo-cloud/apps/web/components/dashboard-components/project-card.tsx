@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { ProjectResponseDto } from "../../app/dashboard/types/types";
+import { ProjectResponseDto } from "../../app/(authed)/dashboard/types/types";
 import { CopyButton } from "../copy-button";
 import { ProjectDetailsDialog } from "./project-details/project-details-dialog";
 
