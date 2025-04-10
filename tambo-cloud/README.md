@@ -1,13 +1,23 @@
-# HydraAI Monorepo
+# Tambo Cloud Monorepo
 
-## This repo is a monorepo for the HydraAI project.
+## Overview
 
-The main apps are in the [apps](./apps) directory:
+This repository is a monorepo for the Tambo Cloud platform.
 
-- [hydra-ai-client](./apps/web) - The main nextjs app, including the landing page and the project dashboard
-- [hydra-ai-api](./apps/api) - The nestjs api server, including the swagger ui and the api routes
+## Repository Structure
 
-There are shared libraries in the [packages](./packages) directory:
+The repository is organized into two main directories:
+
+### Applications
+
+The main applications are located in the [apps](./apps) directory:
+
+- [web](./apps/web) - The Next.js frontend application, including the landing page and project dashboard
+- [api](./apps/api) - The NestJS API server, including Swagger UI documentation and API routes
+
+### Shared Libraries
+
+Reusable libraries are located in the [packages](./packages) directory:
 
 - [backend](./packages/backend) - A library for interacting with the LLM
 - [@tambo-ai-cloud/core](./packages/core) - A library for basic shared utilities/etc.
@@ -15,12 +25,20 @@ There are shared libraries in the [packages](./packages) directory:
 
 There also are some basic supporting packages only used during development:
 
-- [@tambo-ai-cloud/eslint-config](./packages/eslint-config) - All the eslint config files for the project, with specific configs for NextJS apps and libraries
-- [@tambo-ai-cloud/typescript-config](./packages/typescript-config) - All the typescript config files for the project, with specific configs for NextJS apps and libraries
+- [eslint-config](./packages/eslint-config) - ESLint configurations for the project, with specific configs for Next.js apps and libraries
+- [typescript-config](./packages/typescript-config) - TypeScript configurations with specific settings for Next.js apps and libraries
 
-## Quick Start
+## Technology Stack
 
-We provide a setup script that will help you get started quickly:
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Shadcn UI
+- **Backend**: NestJS, TypeScript, Swagger
+- **Database**: PostgreSQL, Drizzle ORM
+- **Infrastructure**: Supabase for local development
+- **Tools**: Turborepo for monorepo management
+
+## Getting Started
+
+### Quick Start
 
 ```bash
 # Make the script executable
@@ -43,86 +61,92 @@ You can also preview what the script will do without making any changes:
 ./setup.sh --dry-run
 ```
 
-## Manual Development Setup
+### Prerequisites
+
+- **Node.js** (v20 or later)
+- **npm** (v10 or later)
+- **Supabase CLI**
+- **Docker** (for running Supabase locally)
+
+### Manual Development Setup
 
 If you prefer to set things up manually, follow these steps:
 
-### Prerequisites
+1. **Install Dependencies**:
 
-1. Install Node.js and npm
-2. Install Supabase CLI
-3. Install Turbo globally:
+   ```bash
+   npm install
+   ```
+
+2. **Environment Setup**:
+
+   Create `.env` files in the following locations using their respective `.env.example` templates:
+
+   - `apps/api/.env`
+   - `apps/web/.env.local`
+   - `packages/db/.env`
+
+3. **Database Setup**:
+
+   ```bash
+   # Start Supabase locally (requires Docker)
+   npx supabase start
+
+   # Run database migrations
+   npm run db:migrate
+   ```
+
+4. **Start Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+### Development Commands
+
+#### Core Commands
+
+- `npm run dev` - Runs the API and web apps in development mode
+- `npm run build` - Builds all applications
+- `npm run hydra-api:start` - Starts the API server in production mode
+- `npm run lint` - Runs linting across all applications
+- `npm run lint:fix` - Runs linting with automatic fixes
+- `npm run format` - Formats code using Prettier
+- `npm run prettier-check` - Checks formatting without making changes
+- `npm run check-types` - Checks TypeScript types across all applications
+
+#### Database Commands
+
+- `npm run db:generate` - Generates SQL migrations based on schema changes
+- `npm run db:migrate` - Applies pending migrations to the database
+- `npm run db:check` - Checks migration status
+- `npm run db:studio` - Opens Drizzle Studio for database visualization
+
+#### Turborepo Commands
+
+You can also use Turborepo directly:
 
 ```bash
-npm install -g turbo
+turbo dev      # Development mode
+turbo build    # Build all packages
+turbo lint     # Lint all packages
 ```
 
-### Environment Setup
+## API Key Setup
 
-Create `.env` files in the following locations using their respective `.env.example` templates:
-
-- `apps/api/.env`
-- `apps/web/.env.local`
-- `packages/db/.env`
-
-### Basic Commands
-
-- `turbo dev` - Runs the api and web apps in dev mode
-- `turbo build` - Builds the api and web apps
-- `turbo lint` - Lints the api and web apps
-- `turbo check-types` - Checks the types in the api and web apps
-
-These are also available as npm scripts:
-
-- `npm run dev` - Runs the api and web apps in dev mode
-- `npm run build` - Builds the api and web apps
-- `npm run lint` - Lints the api and web apps
-- `npm run check-types` - Checks the types in the api and web apps
-
-### Database Setup
-
-The database is setup with [Drizzle](https://orm.drizzle.team/docs/introduction/getting-started) and [Supabase](https://supabase.com/).
-
-#### Initialize Supabase:
-
-```bash
-npx supabase login
-npx supabase link
-# Ignore the diff that may show up
-npx supabase start
-```
-
-Configure the database in the `apps/api/.env` and `apps/web/.env` files:
-
-```bash
-SUPABASE_ANON_KEY=xxxxxx # get from `supabase start` output
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
-```
-
-#### Run Database Migrations:
-
-```bash
-cd packages/db
-npm run db:migrate
-```
-
-### Hydra API Key Setup
-
-After setting up your local environment, you'll need to configure your Hydra API key:
+After setting up your local environment, configure your Tambo API key:
 
 1. Start your local environment:
 
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
 
-2. Get your Hydra API key:
+2. Get your API key:
 
    - Visit: `http://localhost:3000/dashboard`
    - Login with your credentials
-   - Create a new Project The key
+   - Create a new project
    - Generate your API key
-   - [ ] replace this with the CLI :)
 
 3. Configure the API key:
 
@@ -135,6 +159,11 @@ npm run dev
 4. Verify your setup:
    - Visit: `http://localhost:3000/internal/smoketest`
 
-# Shadcn Landing Page Template
+## Frontend
 
-The landing page comes from a [Shadcn Landing Page Template](https://github.com/nobruf/shadcn-landing-page) and is built with [Shadcn](https://ui.shadcn.com/), [Next.js](https://nextjs.org/), [TypeScript](https://www.typescriptlang.org/), and [Tailwind](https://tailwindcss.com/).
+The landing page and dashboard are built with:
+
+- [Next.js](https://nextjs.org/) - React framework
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Shadcn UI](https://ui.shadcn.com/) - Beautiful UI components
