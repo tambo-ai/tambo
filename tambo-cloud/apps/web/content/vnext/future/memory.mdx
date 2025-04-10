@@ -7,11 +7,20 @@ tambo can build and maintain persistent memory about users through conversations
 
 ## Quick Setup
 
+<Callout type="info" title="API Key Required">
+  You'll need a Tambo API key to use the memory features. If you don't already
+  have an account,{" "}
+  <a href="/dashboard" className="text-primary hover:underline font-medium">
+    sign up for free
+  </a>{" "}
+  to get your API key.
+</Callout>
+
 Enable memory in your tambo configuration:
 
 ```typescript
 const config: TamboInitConfig = {
-  apiKey: "your-api-key",
+  apiKey: "your-api-key", // Replace with your actual API key
   memory: {
     enabled: true, // That's it! tambo will now maintain memory
   },

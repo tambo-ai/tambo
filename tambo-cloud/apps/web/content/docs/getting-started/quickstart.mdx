@@ -34,6 +34,8 @@ npm install
 npx tambo init
 ```
 
+This command will walk you through setting up your project and obtaining your API key. If you don't already have an account, <a href="/dashboard" className="text-primary hover:underline font-medium">sign up for free</a> to get your API key.
+
 ```bash title="Run the app"
 npm run dev
 ```
@@ -72,6 +74,8 @@ This command will:
 - Install components that are hooked up to tambo-ai
 - Show you how to wrap your app with the `<TamboProvider>`
 
+If you prefer manual setup, you can run `npx tambo init` which will just get you set up with an API key. If you don't have an account yet, <a href="/dashboard" className="text-primary hover:underline font-medium">sign up for free</a> first.
+
 ### Step 2: Add the TamboProvider
 
 Once the installation completes, update your `src/app/layout.tsx` file to enable Tambo:
@@ -93,6 +97,14 @@ export default function RootLayout({
   );
 }
 ```
+
+<Callout type="info" title="API Key Setup">
+  You need to create a `.env.local` file in the root of your project to store
+  your Tambo API key: ``` NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here ```
+  Replace `your_api_key_here` with the actual API key you received during setup.
+  This file should not be committed to version control as it contains sensitive
+  information.
+</Callout>
 
 Note that the `TamboProvider` only works in the browser. On Next.js, specify
 `"use client"` at the top of your file to ensure that the `TamboProvider` is

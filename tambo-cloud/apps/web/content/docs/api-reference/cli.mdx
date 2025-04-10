@@ -16,7 +16,17 @@ This command will install the component file directly into the `/components/ui` 
 
 `npx tambo init`
 
-Walks you through creating a Tambo project and getting your free API Key.
+Walks you through creating a Tambo project and getting your free API Key. If you don't already have an account, <a href="/dashboard" className="text-primary hover:underline font-medium">sign up for free</a> to get your API key.
+
+After obtaining your API key, you'll need to set it up in your project:
+
+<Callout type="info" title="API Key Setup">
+  Create a `.env.local` file in the root of your project to store your Tambo API
+  key: ``` NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here ``` Replace
+  `your_api_key_here` with the actual API key you received during setup. This
+  file should not be committed to version control as it contains sensitive
+  information.
+</Callout>
 
 ### full-send
 
