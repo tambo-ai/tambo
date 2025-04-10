@@ -28,7 +28,7 @@ export const projectApiKeyRole = pgRole("project_api_key", {
 
 export const projects = pgTable(
   "projects",
-  ({ text, timestamp, uuid }) => ({
+  ({ text, timestamp, uuid, boolean }) => ({
     id: text("id")
       .primaryKey()
       .notNull()
@@ -44,6 +44,8 @@ export const projects = pgTable(
       // Need to write raw `auth.uid()` becuse ${authUid} includes a select statement
       .default(sql`auth.uid()`),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    mcpEnabled: boolean("mcp_enabled").default(false).notNull(),
+    composioEnabled: boolean("composio_enabled").default(false).notNull(),
   }),
   (table) => {
     return [
