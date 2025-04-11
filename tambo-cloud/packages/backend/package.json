@@ -25,6 +25,7 @@
     "@libretto/token.js": "^0.3.0",
     "@tambo-ai-cloud/core": "*",
     "ajv": "^8.17.1",
+    "composio-core": "^0.5.31",
     "openai": "^4.91.1",
     "partial-json": "^0.1.7",
     "token.js": "^0.5.4",

@@ -3,9 +3,10 @@ import {
   encryptProviderKey,
   hashKey,
   hideApiKey,
+  ToolProviderType,
 } from "@tambo-ai-cloud/core";
 import { createHash, randomBytes } from "crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
@@ -53,6 +54,7 @@ export async function getProjectsForUser(db: HydraDb, userId: string) {
           .from(schema.projectMembers)
           .where(eq(schema.projectMembers.userId, userId)),
       ),
+    orderBy: (projects, { desc }) => [desc(projects.updatedAt)],
   });
 }
 
@@ -297,4 +299,120 @@ export async function deleteProviderKey(
 
     return await getProjectWithKeys(tx, projectId);
   });
+}
+
+export async function getProjectMcpServers(db: HydraDb, projectId: string) {
+  return await db.query.toolProviders.findMany({
+    where: and(
+      eq(schema.toolProviders.projectId, projectId),
+      eq(schema.toolProviders.type, ToolProviderType.MCP),
+      isNotNull(schema.toolProviders.url),
+    ),
+  });
+}
+
+export async function createMcpServer(
+  db: HydraDb,
+  projectId: string,
+  url: string,
+) {
+  const [server] = await db
+    .insert(schema.toolProviders)
+    .values({
+      projectId,
+      type: ToolProviderType.MCP,
+      url,
+    })
+    .returning({
+      id: schema.toolProviders.id,
+      projectId: schema.toolProviders.projectId,
+      type: schema.toolProviders.type,
+      url: schema.toolProviders.url,
+    });
+
+  return server;
+}
+
+export async function deleteMcpServer(
+  db: HydraDb,
+  projectId: string,
+  serverId: string,
+) {
+  return await db
+    .delete(schema.toolProviders)
+    .where(
+      and(
+        eq(schema.toolProviders.id, serverId),
+        eq(schema.toolProviders.projectId, projectId),
+      ),
+    );
+}
+
+export async function updateMcpServer(
+  db: HydraDb,
+  projectId: string,
+  serverId: string,
+  url: string,
+) {
+  const [server] = await db
+    .update(schema.toolProviders)
+    .set({ url })
+    .where(
+      and(
+        eq(schema.toolProviders.id, serverId),
+        eq(schema.toolProviders.projectId, projectId),
+      ),
+    )
+    .returning({
+      id: schema.toolProviders.id,
+      projectId: schema.toolProviders.projectId,
+      type: schema.toolProviders.type,
+      url: schema.toolProviders.url,
+    });
+
+  return server;
+}
+
+export async function getComposioApps(db: HydraDb, projectId: string) {
+  const toolProviders = await db.query.toolProviders.findMany({
+    where: and(
+      eq(schema.toolProviders.projectId, projectId),
+      eq(schema.toolProviders.type, ToolProviderType.COMPOSIO),
+    ),
+  });
+
+  return toolProviders;
+}
+
+export async function enableComposioApp(
+  db: HydraDb,
+  projectId: string,
+  appId: string,
+) {
+  try {
+    return await db.insert(schema.toolProviders).values({
+      projectId,
+      type: ToolProviderType.COMPOSIO,
+      composioAppId: appId,
+    });
+  } catch (error) {
+    console.log("Error enabling Composio app:", error);
+    throw error;
+  }
+}
+
+export async function disableComposioApp(
+  db: HydraDb,
+  projectId: string,
+  appId: string,
+) {
+  return await db
+    .delete(schema.toolProviders)
+    .where(
+      and(
+        eq(schema.toolProviders.projectId, projectId),
+        eq(schema.toolProviders.type, ToolProviderType.COMPOSIO),
+        eq(schema.toolProviders.composioAppId, appId),
+      ),
+    );
 }

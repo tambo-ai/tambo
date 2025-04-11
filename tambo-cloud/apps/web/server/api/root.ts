@@ -3,6 +3,7 @@ import { appRouter as applicationRouter } from "./routers/app";
 import { demoRouter } from "./routers/demo";
 import { projectRouter } from "./routers/project";
 import { threadRouter } from "./routers/thread";
+import { toolsRouter } from "./routers/tools";
 import { userRouter } from "./routers/user";
 
 /**
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   project: projectRouter,
   thread: threadRouter,
   app: applicationRouter,
+  tools: toolsRouter,
   demo: demoRouter,
 });
 

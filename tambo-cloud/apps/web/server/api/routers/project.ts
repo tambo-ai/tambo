@@ -2,23 +2,18 @@ import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { hashKey } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
-import { sql } from "drizzle-orm";
 import { z } from "zod";
 
 export const projectRouter = createTRPCRouter({
   getUserProjects: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const projects = await operations.getProjectsForUser(ctx.db, userId);
-    console.log(
-      "current role: ",
-      await ctx.db.execute(sql`select current_role;`),
-    );
-    const pm = await ctx.db.query.projectMembers.findMany();
-    console.log(`got ${pm?.length} pms`, pm);
     return projects.map((project) => ({
       id: project.id,
       name: project.name,
       userId: userId,
+      mcpEnabled: project.mcpEnabled,
+      composioEnabled: project.composioEnabled,
     }));
   }),
 

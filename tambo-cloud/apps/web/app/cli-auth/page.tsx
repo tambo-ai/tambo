@@ -297,7 +297,7 @@ export default function CLIAuthPage() {
       show: true,
       title: "Delete API Key",
       description: `Are you sure you want to delete the API key "${keyName}"? This action cannot be undone.`,
-      data: { id: keyId, name: keyName },
+      data: { id: keyId },
     });
   }, []);
 

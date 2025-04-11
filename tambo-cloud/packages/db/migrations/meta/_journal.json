@@ -190,6 +190,20 @@
       "when": 1744304147388,
       "tag": "0026_lush_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1744322851529,
+      "tag": "0027_tense_kat_farrell",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1744338532128,
+      "tag": "0028_red_grandmaster",
+      "breakpoints": true
     }
   ]
 }

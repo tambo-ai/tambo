@@ -22,7 +22,9 @@
     "SLACK_TEAM_ID",
     "SUPABASE_ANON_KEY",
     "SUPABASE_URL",
-    "WEATHER_API_KEY"
+    "WEATHER_API_KEY",
+    "COMPOSIO_API_KEY",
+    "RESEND_AUDIENCE_ID"
   ],
   "tasks": {
     "build": {
