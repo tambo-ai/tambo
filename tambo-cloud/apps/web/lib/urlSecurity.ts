@@ -2,7 +2,7 @@ import dns from "dns/promises";
 import { parse as parseTld } from "tldts";
 
 // Helper to validate URLs are not pointing to unsafe locations
-export const isUnsafeHostname = (hostname: string): boolean => {
+const isUnsafeHostname = (hostname: string): boolean => {
   const unsafePatterns = [
     // Local/Internal patterns
     /^localhost$/i,
@@ -34,11 +34,13 @@ export const isUnsafeHostname = (hostname: string): boolean => {
 };
 // Helper to perform additional safety checks on the URL
 export const validateSafeURL = async (
-  hostname: string,
+  urlOrFragment: string,
 ): Promise<{ safe: boolean; reason?: string }> => {
   // use tldts to check for host safety
-  const tld = parseTld(hostname);
-  if (!tld.isIcann) {
+  const tld = parseTld(urlOrFragment);
+  console.log("tld", tld);
+
+  if (!tld.isIcann || !tld.hostname) {
     return {
       safe: false,
       reason: "URL is not a valid domain",
@@ -47,7 +49,7 @@ export const validateSafeURL = async (
 
   try {
     // Resolve IP addresses for the hostname
-    const addresses = await dns.resolve(hostname);
+    const addresses = await dns.resolve(tld.hostname);
 
     // Check if any resolved IP is in private ranges
     for (const addr of addresses) {
@@ -60,10 +62,21 @@ export const validateSafeURL = async (
     }
 
     return { safe: true };
-  } catch (_error) {
+  } catch (error) {
     return {
       safe: false,
-      reason: "Unable to verify URL safety",
+      reason: `Unable to verify URL safety: ${error instanceof Error ? error.message : "Unknown error"}`,
     };
+  }
+};
+export const validateZodUrl = async (url: string): Promise<boolean> => {
+  try {
+    const valid = await validateSafeURL(url);
+    if (!valid.safe) {
+      console.error("URL is unsafe:", valid.reason);
+    }
+    return valid.safe;
+  } catch {
+    return false;
   }
 };

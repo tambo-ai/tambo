@@ -1,6 +1,8 @@
 "use client";
 
 import { APIKeyList } from "@/components/dashboard-components/project-details/api-key-list";
+import { AvailableMcpServers } from "@/components/dashboard-components/project-details/available-mcp-servers";
+import { AvailableTools } from "@/components/dashboard-components/project-details/available-tools";
 import { DeleteAlertDialog } from "@/components/dashboard-components/project-details/delete-alert-dialog";
 import { ProjectInfo } from "@/components/dashboard-components/project-details/project-info";
 import { ProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
@@ -133,7 +135,14 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             <APIKeyList project={project} />
           </motion.div>
         </div>
-
+        <div className="flex flex-col lg:flex-row gap-6">
+          <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
+            {project.mcpEnabled && <AvailableMcpServers project={project} />}
+          </motion.div>
+          <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
+            {project.composioEnabled && <AvailableTools project={project} />}
+          </motion.div>
+        </div>
         <motion.div className="pt-2" variants={itemVariants}>
           <Separator className="mb-4" />
           <div className="bg-destructive/5 p-4 rounded-md border border-destructive/20">

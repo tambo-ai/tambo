@@ -3,7 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { operations } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { validateSafeURL } from "../../../lib/urlSecurity";
+import { validateSafeURL, validateZodUrl } from "../../../lib/urlSecurity";
 
 export const toolsRouter = createTRPCRouter({
   listApps: protectedProcedure
@@ -78,13 +78,10 @@ export const toolsRouter = createTRPCRouter({
         url: z
           .string()
           .url()
-          .refine(async (url) => {
-            try {
-              return (await validateSafeURL(url)).safe;
-            } catch {
-              return false;
-            }
-          }, "URL appears to be unsafe: must not point to internal, local, or private networks"),
+          .refine(
+            validateZodUrl,
+            "URL appears to be unsafe: must not point to internal, local, or private networks",
+          ),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -127,7 +124,13 @@ export const toolsRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         serverId: z.string(),
-        url: z.string().url(),
+        url: z
+          .string()
+          .url()
+          .refine(
+            validateZodUrl,
+            "URL appears to be unsafe: must not point to internal, local, or private networks",
+          ),
       }),
     )
     .mutation(async ({ ctx, input }) => {

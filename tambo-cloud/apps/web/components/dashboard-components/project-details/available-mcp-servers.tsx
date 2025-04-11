@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { useCallback, useState } from "react";
 import { McpServerRow } from "./mcp-server-row";
@@ -23,39 +24,47 @@ export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
   }
 
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-medium">MCP Servers</h3>
-      <div className="space-y-2">
-        {mcpServers.map((server) => (
-          <McpServerRow
-            key={server.id}
-            server={server}
-            projectId={project.id}
-            onRefresh={handleRefresh}
-          />
-        ))}
+    <Card className="border rounded-md overflow-hidden">
+      <CardHeader>
+        <CardTitle className="text-sm font-heading font-semibold">
+          MCP Servers
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="space-y-2">
+            {mcpServers.map((server) => (
+              <McpServerRow
+                key={server.id}
+                server={server}
+                projectId={project.id}
+                onRefresh={handleRefresh}
+              />
+            ))}
 
-        {isAddingNew ? (
-          <McpServerRow
-            server={{
-              id: "new",
-              url: "",
-            }}
-            projectId={project.id}
-            onRefresh={handleRefresh}
-            isNew
-            onCancel={() => setIsAddingNew(false)}
-          />
-        ) : (
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => setIsAddingNew(true)}
-          >
-            Add MCP Server
-          </Button>
-        )}
-      </div>
-    </div>
+            {isAddingNew ? (
+              <McpServerRow
+                server={{
+                  id: "new",
+                  url: "",
+                }}
+                projectId={project.id}
+                onRefresh={handleRefresh}
+                isNew
+                onCancel={() => setIsAddingNew(false)}
+              />
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setIsAddingNew(true)}
+              >
+                Add MCP Server
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
