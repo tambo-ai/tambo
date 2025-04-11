@@ -11,23 +11,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MessageSquare, Settings } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface ProjectTableProps {
   projects: ProjectResponseDto[];
-  onShowDetails: (project: ProjectResponseDto) => void;
 }
 
-export function ProjectTable({ projects, onShowDetails }: ProjectTableProps) {
+export function ProjectTable({ projects }: ProjectTableProps) {
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-[200px]">Name</TableHead>
-            <TableHead>Project ID</TableHead>
-            <TableHead className="w-[100px] text-right">Actions</TableHead>
+            <TableHead className="w-[100px]">Project ID</TableHead>
+            <TableHead className="w-[100px]">Created</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -42,25 +41,21 @@ export function ProjectTable({ projects, onShowDetails }: ProjectTableProps) {
                   <CopyButton clipboardValue={project.id} />
                 </div>
               </TableCell>
+              <TableCell className="py-4 text-sm text-muted-foreground">
+                {new Date().toLocaleDateString()}
+              </TableCell>
               <TableCell className="py-4">
-                <div className="flex justify-end items-center gap-2">
+                <div className="flex justify-end items-center">
                   <Button
                     variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
+                    size="sm"
+                    className="flex items-center gap-1"
                     asChild
                   >
                     <Link href={`/dashboard/${project.id}`}>
-                      <MessageSquare className="h-4 w-4" />
+                      <span>Project Details</span>
+                      <ArrowRight className="h-4 w-4" />
                     </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => onShowDetails(project)}
-                  >
-                    <Settings className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>

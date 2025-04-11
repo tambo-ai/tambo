@@ -1,6 +1,8 @@
 "use client";
 
 import { getSupabaseClient } from "@/app/utils/supabase";
+import { DeleteAlertDialog } from "@/components/dashboard-components/project-details/delete-alert-dialog";
+import { AlertState } from "@/components/dashboard-components/project-details/project-details-dialog";
 import { Header } from "@/components/sections/header";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,10 +18,9 @@ import { api } from "@/trpc/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AuthStep } from "./components/AuthStep";
 import { CreateProjectDialog } from "./components/CreateProjectDialog";
-import { DeleteKeyDialog } from "./components/DeleteKeyDialog";
-import { KeyStep } from "./components/KeyStep";
 import { ProgressIndicator } from "./components/ProgressIndicator";
 import { ProjectStep } from "./components/ProjectStep";
+import { ApiKeyList } from "./components/shared/api-key-list";
 
 // Types
 type AuthProvider = "github" | "google";
@@ -30,12 +31,6 @@ type CreateProjectDialogState = Readonly<{
   isOpen: boolean;
   name: string;
   providerKey: string;
-}>;
-
-type DeleteDialogState = Readonly<{
-  isOpen: boolean;
-  keyId: string;
-  keyName: string;
 }>;
 
 /**
@@ -52,10 +47,11 @@ export default function CLIAuthPage() {
   const [selectedProject, setSelectedProject] = useState<string>("");
   const [apiKey, setApiKey] = useState<string>("");
   const [countdown, setCountdown] = useState<number>(30);
-  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
-    isOpen: false,
-    keyId: "",
-    keyName: "",
+  const [alertState, setAlertState] = useState<AlertState>({
+    show: false,
+    title: "",
+    description: "",
+    data: undefined,
   });
   const [createDialog, setCreateDialog] = useState<CreateProjectDialogState>({
     isOpen: false,
@@ -88,23 +84,22 @@ export default function CLIAuthPage() {
     enabled: step === "key" && !!selectedProject,
   });
 
-  const { mutateAsync: deleteApiKey, isPending: isDeletingKey } =
-    api.project.removeApiKey.useMutation({
-      onSuccess: () => {
-        refetchApiKeys();
-        toast({
-          title: "Success",
-          description: "API key deleted successfully",
-        });
-      },
-      onError: () => {
-        toast({
-          title: "Error",
-          description: "Failed to delete API key. Please try again.",
-          variant: "destructive",
-        });
-      },
-    });
+  const { mutateAsync: deleteApiKey } = api.project.removeApiKey.useMutation({
+    onSuccess: () => {
+      refetchApiKeys();
+      toast({
+        title: "Success",
+        description: "API key deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete API key. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { mutateAsync: generateApiKey, isPending: isGeneratingKey } =
     api.project.generateApiKey.useMutation({
@@ -179,11 +174,6 @@ export default function CLIAuthPage() {
   useEffect(() => {
     if (!apiKey) return;
 
-    toast({
-      title: "API Key Generated",
-      description: `This window will close automatically in 30 seconds.`,
-    });
-
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -196,7 +186,7 @@ export default function CLIAuthPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [apiKey, toast, closeWindow]);
+  }, [apiKey, closeWindow]);
 
   useEffect(() => {
     if (step === "project") {
@@ -280,43 +270,61 @@ export default function CLIAuthPage() {
     toast,
   ]);
 
-  const handleGenerateApiKey = useCallback(async () => {
-    try {
-      const result = await generateApiKey({
-        projectId: selectedProject,
-        name: nextKeyName,
-      });
-      setApiKey(result.apiKey);
-      setCountdown(30);
-    } catch (error) {
-      console.error("API key generation failed:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate API key. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, [generateApiKey, selectedProject, nextKeyName, toast]);
-
-  const handleDeleteApiKey = useCallback(
-    async (keyId: string) => {
+  const handleGenerateApiKey = useCallback(
+    async (keyName?: string) => {
       try {
-        await deleteApiKey({
+        const actualKeyName = keyName || nextKeyName;
+        const result = await generateApiKey({
           projectId: selectedProject,
-          apiKeyId: keyId,
+          name: actualKeyName,
         });
-        setDeleteDialog({ isOpen: false, keyId: "", keyName: "" });
+        setApiKey(result.apiKey);
+        setCountdown(30);
       } catch (error) {
-        console.error("API key deletion failed:", error);
+        console.error("API key generation failed:", error);
         toast({
           title: "Error",
-          description: "Failed to delete API key. Please try again.",
+          description: "Failed to generate API key. Please try again.",
           variant: "destructive",
         });
       }
     },
-    [deleteApiKey, selectedProject, toast],
+    [generateApiKey, selectedProject, nextKeyName, toast],
   );
+
+  const handleDeleteKeyClick = useCallback((keyId: string, keyName: string) => {
+    setAlertState({
+      show: true,
+      title: "Delete API Key",
+      description: `Are you sure you want to delete the API key "${keyName}"? This action cannot be undone.`,
+      data: { id: keyId, name: keyName },
+    });
+  }, []);
+
+  const handleDeleteApiKey = useCallback(async () => {
+    if (!alertState.data?.id) return;
+
+    try {
+      await deleteApiKey({
+        projectId: selectedProject,
+        apiKeyId: alertState.data.id,
+      });
+      // Clear delete dialog state
+      setAlertState({
+        show: false,
+        title: "",
+        description: "",
+        data: undefined,
+      });
+    } catch (error) {
+      console.error("API key deletion failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete API key. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [deleteApiKey, alertState.data?.id, selectedProject, toast]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -366,19 +374,17 @@ export default function CLIAuthPage() {
         onConfirm={handleCreateProject}
       />
 
-      <DeleteKeyDialog
-        state={deleteDialog}
-        isDeleting={isDeletingKey}
-        onStateChange={setDeleteDialog}
+      <DeleteAlertDialog
+        alertState={alertState}
+        setAlertState={setAlertState}
         onConfirm={handleDeleteApiKey}
       />
-
-      <div className="flex flex-col items-center justify-center min-h-[calc(70vh-var(--header-height))] w-full px-4">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-var(--header-height))] w-full px-4 py-8">
         <Card className="w-full max-w-lg mx-auto shadow-lg border-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div className="space-y-1.5">
               <CardTitle className="text-2xl font-bold tracking-tight">
-                tambo CLI Setup
+                tambo-ai setup
               </CardTitle>
               <CardDescription className="text-base">
                 {step === "auth" && "Sign in to get started with tambo"}
@@ -438,29 +444,27 @@ export default function CLIAuthPage() {
             )}
 
             {step === "key" && (
-              <KeyStep
-                apiKey={apiKey}
-                countdown={countdown}
+              <ApiKeyList
+                projectId={selectedProject}
+                projectName={
+                  projects?.find((p) => p.id === selectedProject)?.name ?? ""
+                }
                 existingKeys={existingApiKeys}
                 isLoading={apiKeysLoading}
-                error={apiKeysError}
                 isGenerating={isGeneratingKey}
+                error={apiKeysError}
+                apiKey={apiKey}
+                countdown={countdown}
                 onBack={() => {
                   setApiKey("");
                   setStep("project");
                 }}
-                onGenerate={handleGenerateApiKey}
-                onDeleteClick={(keyId, keyName) =>
-                  setDeleteDialog({ isOpen: true, keyId, keyName })
-                }
-                providerKey={
-                  providerKeys?.[providerKeys.length - 1]?.partiallyHiddenKey ??
-                  null
-                }
+                onGenerate={async (keyName: string) => {
+                  await handleGenerateApiKey(keyName);
+                }}
+                onDeleteKey={handleDeleteKeyClick}
+                providerKey={providerKeys?.[0]?.partiallyHiddenKey ?? null}
                 onProviderKeyChange={handleProviderKeyChange}
-                projectName={
-                  projects?.find((p) => p.id === selectedProject)?.name ?? ""
-                }
               />
             )}
           </CardContent>

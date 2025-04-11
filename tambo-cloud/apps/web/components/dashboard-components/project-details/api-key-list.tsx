@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import { Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
@@ -12,15 +15,33 @@ interface APIKeyListProps {
   project: ProjectResponseDto;
 }
 
+const listItemVariants = {
+  hidden: { opacity: 0, scale: 0.95, y: 10 },
+  visible: (index: number) => ({
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      delay: index * 0.05,
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  }),
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
+};
+
 export function APIKeyList({ project }: APIKeyListProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
-  const [showNameInput, setShowNameInput] = useState(false);
   const [newGeneratedKey, setNewGeneratedKey] = useState<string | null>(null);
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
     title: "",
     description: "",
+  });
+  const [copyState, setCopyState] = useState<{ id: string; copied: boolean }>({
+    id: "",
+    copied: false,
   });
   const { toast } = useToast();
 
@@ -30,6 +51,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
     refetch: refetchApiKeys,
     error: apiKeysError,
   } = api.project.getApiKeys.useQuery(project.id);
+
   useEffect(() => {
     if (apiKeysError) {
       toast({
@@ -39,6 +61,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
       });
     }
   }, [apiKeysError, toast]);
+
   const { mutateAsync: generateApiKey, isPending: isGeneratingKey } =
     api.project.generateApiKey.useMutation();
 
@@ -61,7 +84,6 @@ export function APIKeyList({ project }: APIKeyListProps) {
       setNewGeneratedKey(newKey.apiKey);
       await refetchApiKeys();
       setNewKeyName("");
-      setShowNameInput(false);
       toast({
         title: "Success",
         description: "New API key created successfully",
@@ -113,140 +135,285 @@ export function APIKeyList({ project }: APIKeyListProps) {
       handleCreateApiKey();
     }
   };
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopyState({ id, copied: true });
+    setTimeout(() => {
+      setCopyState({ id: "", copied: false });
+    }, 2000);
+  };
+
   const isLoading = apiKeysLoading || isRemovingKey || isGeneratingKey;
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-2">
-        <h4 className="text-sm font-semibold">API Keys</h4>
-        {showNameInput ? (
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newKeyName}
-              onChange={(e) => setNewKeyName(e.target.value)}
-              placeholder="Enter key name"
-              className="px-2 py-1 text-sm border rounded"
-              disabled={isCreating}
-              autoFocus
-              onKeyDown={handleKeyPress}
-            />
-            <Button
-              size="sm"
-              onClick={handleCreateApiKey}
-              disabled={isCreating}
-            >
-              {isCreating ? "Creating..." : "Create"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                setShowNameInput(false);
-                setNewKeyName("");
-              }}
-              disabled={isCreating}
-            >
-              Cancel
-            </Button>
+    <Card className="border rounded-md overflow-hidden">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-heading font-semibold">API Keys</h4>
           </div>
-        ) : (
-          <Button size="sm" onClick={() => setShowNameInput(true)}>
-            + Create API Key
-          </Button>
-        )}
-      </div>
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      ) : (
-        <>
+          <AnimatePresence mode="wait">
+            {!isCreating && !newGeneratedKey && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Button
+                  size="sm"
+                  className="font-sans"
+                  onClick={() => setIsCreating(true)}
+                  disabled={isCreating || !!newGeneratedKey}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Key
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {/* Create new key form */}
+          {isCreating && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.3 }}
+              className="p-3 border rounded-md space-y-3"
+            >
+              <motion.h5
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-sm font-heading font-medium"
+              >
+                Create New API Key
+              </motion.h5>
+              <motion.div
+                className="space-y-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Input
+                  type="text"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  placeholder="Enter key name"
+                  className="w-full font-sans"
+                  disabled={isGeneratingKey}
+                  autoFocus
+                  onKeyDown={handleKeyPress}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-sans"
+                    onClick={() => {
+                      setIsCreating(false);
+                      setNewKeyName("");
+                    }}
+                    disabled={isGeneratingKey}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="font-sans"
+                    onClick={handleCreateApiKey}
+                    disabled={isGeneratingKey || !newKeyName.trim()}
+                  >
+                    {isGeneratingKey ? (
+                      <span className="flex items-center gap-1">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Creating...
+                      </span>
+                    ) : (
+                      "Create"
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Newly generated key */}
           {newGeneratedKey && (
-            <div className="mb-4 p-4 border border-green-200 rounded-lg bg-green-50 space-y-2">
-              <p className="text-sm font-medium">New API Key Generated</p>
-              <div className="flex items-center gap-2">
-                <input
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="mb-4 p-4 border border-green-200 rounded-md bg-green-50 dark:bg-green-900/20 dark:border-green-900 space-y-2"
+            >
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-sm font-heading font-medium text-green-800 dark:text-green-300"
+              >
+                New API Key Generated
+              </motion.p>
+              <motion.div
+                className="flex flex-col gap-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Input
                   type="text"
                   readOnly
                   value={newGeneratedKey}
-                  className="flex-1 px-2 py-1 text-sm border rounded bg-white"
+                  className="font-mono text-sm bg-white dark:bg-gray-800"
                 />
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(newGeneratedKey);
-                    toast({
-                      title: "Copied!",
-                      description: "API key copied to clipboard",
-                    });
-                  }}
-                >
-                  Copy
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setNewGeneratedKey(null)}
-                >
-                  Dismiss
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    className="font-sans"
+                    onClick={() => {
+                      copyToClipboard(newGeneratedKey, "new");
+                    }}
+                  >
+                    {copyState.id === "new" && copyState.copied ? (
+                      <span className="flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        Copied
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-sans"
+                    onClick={() => setNewGeneratedKey(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </motion.div>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-xs font-sans text-green-700 dark:text-green-400"
+              >
                 Make sure to copy this key now. You won&apos;t be able to see it
                 again!
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
           )}
-          {apiKeys?.length ? (
+        </AnimatePresence>
+
+        {/* Display API keys */}
+        <div className="min-h-[50px]">
+          {isLoading ? (
             <div className="space-y-2">
-              {apiKeys.map((key) => (
-                <div
-                  key={key.id}
-                  className="p-3 rounded-lg bg-muted/60 space-y-1 max-w-full"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-medium">{key.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {key.lastUsedAt
-                          ? `Last used: ${DateTime.fromJSDate(key.lastUsedAt).toFormat("EEE MMM d 'at' h:mma")}`
-                          : "Never used"}
-                      </p>
-                      <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis">
-                        {key.partiallyHiddenKey?.slice(0, 15)}
-                      </p>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() =>
-                        setAlertState({
-                          show: true,
-                          title: "Delete API Key",
-                          description:
-                            "Are you sure you want to delete this API key? This action cannot be undone.",
-                          data: { id: key.id },
-                        })
-                      }
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+              {[1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="h-16 animate-pulse rounded-md"
+                  initial={{ opacity: 0.3, y: 5 }}
+                  animate={{
+                    opacity: [0.3, 0.6, 0.3],
+                    y: 0,
+                  }}
+                  transition={{
+                    opacity: { repeat: Infinity, duration: 1.5 },
+                    y: { duration: 0.3 },
+                  }}
+                />
               ))}
             </div>
+          ) : apiKeys?.length ? (
+            <div className="space-y-2">
+              <AnimatePresence>
+                {apiKeys.map((key, index) => (
+                  <motion.div
+                    key={key.id}
+                    className="p-3 rounded-md border space-y-1"
+                    custom={index}
+                    variants={listItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    layout
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-heading font-medium">
+                          {key.name}
+                        </p>
+                        <p className="text-xs font-sans text-muted-foreground">
+                          {key.lastUsedAt
+                            ? `Last used: ${DateTime.fromJSDate(key.lastUsedAt).toFormat("EEE MMM d 'at' h:mma")}`
+                            : "Never used"}
+                        </p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <code className="text-xs font-mono px-2 py-1 bg-muted rounded">
+                            {key.partiallyHiddenKey?.slice(0, 15)}
+                          </code>
+                        </div>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={() =>
+                          setAlertState({
+                            show: true,
+                            title: "Delete API Key",
+                            description:
+                              "Are you sure you want to delete this API key? This action cannot be undone.",
+                            data: { id: key.id },
+                          })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No API keys available
-            </p>
+            <motion.div
+              className="flex flex-col items-center justify-center py-6 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <p className="text-sm font-sans text-muted-foreground mb-2">
+                No API keys available
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-sans"
+                onClick={() => setIsCreating(true)}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add your first API key
+              </Button>
+            </motion.div>
           )}
-        </>
-      )}
-      <DeleteAlertDialog
-        alertState={alertState}
-        setAlertState={setAlertState}
-        onConfirm={handleDeleteApiKey}
-      />
-    </div>
+        </div>
+
+        <DeleteAlertDialog
+          alertState={alertState}
+          setAlertState={setAlertState}
+          onConfirm={handleDeleteApiKey}
+        />
+      </CardContent>
+    </Card>
   );
 }

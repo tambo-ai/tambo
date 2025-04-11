@@ -10,43 +10,51 @@ import { MobileNavigation } from "@/components/sections/mobile-navigation";
 export function Header({
   showDashboardButton = true,
   showLogoutButton = false,
+  transparent = true,
   className,
 }: {
   showDashboardButton?: boolean;
   showLogoutButton?: boolean;
+  transparent?: boolean;
   className?: string;
 }) {
+  // Set background opacity based on transparency setting
+  const bgOpacity = transparent ? "bg-background/60" : "bg-background";
+
   return (
     <header
       className={cn(
-        "sticky top-0 h-[var(--header-height)] z-50 p-0 bg-background/60 backdrop-blur",
+        "sticky top-0 z-50 h-[var(--header-height)] backdrop-blur",
+        bgOpacity,
         className,
       )}
     >
-      <div className="flex justify-between items-center mx-auto pt-2">
-        <Link
-          href="/"
-          title="brand-logo"
-          className="relative mr-6 flex items-center"
-        >
-          <Icons.logo className="h-6 w-auto" aria-label={siteConfig.name} />
-        </Link>
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex h-full items-center justify-between pt-2">
+          <Link
+            href="/"
+            title="brand-logo"
+            className="relative mr-6 flex items-center"
+          >
+            <Icons.logo className="h-6 w-auto" aria-label={siteConfig.name} />
+          </Link>
 
-        {/* Desktop navigation - client component */}
-        <HeaderActions
-          showDashboardButton={showDashboardButton}
-          showLogoutButton={showLogoutButton}
-        />
-
-        {/* Mobile navigation - client component */}
-        <div className="cursor-pointer block lg:hidden">
-          <MobileNavigation
+          {/* Desktop navigation - client component */}
+          <HeaderActions
             showDashboardButton={showDashboardButton}
             showLogoutButton={showLogoutButton}
           />
+
+          {/* Mobile navigation - client component */}
+          <div className="block cursor-pointer lg:hidden">
+            <MobileNavigation
+              showDashboardButton={showDashboardButton}
+              showLogoutButton={showLogoutButton}
+            />
+          </div>
         </div>
       </div>
-      <hr className="absolute w-full bottom-0 border-border/20" />
+      <hr className="absolute bottom-0 w-full border-border/20" />
     </header>
   );
 }
