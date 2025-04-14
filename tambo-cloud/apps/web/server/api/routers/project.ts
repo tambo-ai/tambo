@@ -42,7 +42,7 @@ export const projectRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         provider: z.string(),
-        providerKey: z.string(),
+        providerKey: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -53,12 +53,20 @@ export const projectRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
-      return await operations.addProviderKey(ctx.db, env.PROVIDER_KEY_SECRET, {
-        projectId,
-        providerName,
-        providerKey,
-        userId: ctx.session.user.id,
-      });
+      if (providerKey) {
+        return await operations.addProviderKey(
+          ctx.db,
+          env.PROVIDER_KEY_SECRET,
+          {
+            projectId,
+            providerName,
+            providerKey,
+            userId: ctx.session.user.id,
+          },
+        );
+      }
+
+      return await operations.getProjectWithKeys(ctx.db, projectId);
     }),
 
   getProviderKeys: protectedProcedure

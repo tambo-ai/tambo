@@ -1,6 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { ProjectsService } from "../projects/projects.service";
 import { ThreadsService } from "../threads/threads.service";
@@ -16,6 +17,10 @@ describe("ComponentsController", () => {
       transaction: jest.fn(),
     };
 
+    const mockEmailService = {
+      sendMessageLimitNotification: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ComponentsController],
       providers: [
@@ -28,6 +33,10 @@ describe("ComponentsController", () => {
         ProjectsService,
         ThreadsService,
         CorrelationLoggerService,
+        {
+          provide: EmailService,
+          useValue: mockEmailService,
+        },
       ],
     }).compile();
 

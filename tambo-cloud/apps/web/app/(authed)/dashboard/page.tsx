@@ -63,14 +63,14 @@ export default function DashboardPage() {
 
   const handleCreateProject = async (
     projectName: string,
-    providerKey: string,
+    providerKey?: string,
   ) => {
     try {
       const project = await createProject(projectName);
       await addProviderKey({
         projectId: project.id,
         provider: "openai",
-        providerKey: providerKey,
+        providerKey: providerKey ?? "",
       });
       await refetchProjects();
       setIsCreateDialogOpen(false);

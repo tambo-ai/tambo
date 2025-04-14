@@ -227,15 +227,19 @@ export default function CLIAuthPage() {
   );
 
   const handleCreateProject = useCallback(async () => {
-    if (!createDialog.name.trim() || !createDialog.providerKey.trim()) return;
+    if (!createDialog.name.trim()) return;
 
     try {
       const project = await createProject(createDialog.name);
-      await addProviderKey({
-        projectId: project.id,
-        provider: "openai",
-        providerKey: createDialog.providerKey,
-      });
+
+      // Only add provider key if one was provided
+      if (createDialog.providerKey.trim()) {
+        await addProviderKey({
+          projectId: project.id,
+          provider: "openai",
+          providerKey: createDialog.providerKey,
+        });
+      }
 
       // Refetch projects and wait for it to complete
       await refetchProjects();

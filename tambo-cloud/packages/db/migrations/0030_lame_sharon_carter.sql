@@ -1,0 +1,1 @@
+ALTER TABLE "project_message_usage" ADD COLUMN "notification_sent_at" timestamp;

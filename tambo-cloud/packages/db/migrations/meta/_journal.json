@@ -204,6 +204,20 @@
       "when": 1744338532128,
       "tag": "0028_red_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1744400933152,
+      "tag": "0029_greedy_master_chief",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1744413064141,
+      "tag": "0030_lame_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

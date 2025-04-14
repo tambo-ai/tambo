@@ -8,7 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { memo, useCallback } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { memo, useCallback, useState } from "react";
 
 type CreateProjectDialogState = Readonly<{
   isOpen: boolean;
@@ -34,7 +35,7 @@ interface CreateProjectDialogProps {
  */
 
 const isValidOpenAIKey = (key: string): boolean => {
-  return key.startsWith("sk-") && key.length >= 51;
+  return !key || (key.startsWith("sk-") && key.length >= 51);
 };
 
 export const CreateProjectDialog = memo(function CreateProjectDialog({
@@ -43,6 +44,8 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
   onStateChange,
   onConfirm,
 }: CreateProjectDialogProps) {
+  const [showApiKey, setShowApiKey] = useState(false);
+
   const handleOpenChange = useCallback(
     (isOpen: boolean) => {
       onStateChange(
@@ -80,32 +83,21 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (
-        e.key === "Enter" &&
-        !isCreating &&
-        state.name.trim() &&
-        state.providerKey.trim()
-      ) {
+      if (e.key === "Enter" && !isCreating && state.name.trim()) {
         e.preventDefault();
         onConfirm();
       }
     },
-    [isCreating, state.name, state.providerKey, onConfirm],
+    [isCreating, state.name, onConfirm],
   );
 
-  const isFormValid =
-    state.name.trim() &&
-    state.providerKey.trim() &&
-    isValidOpenAIKey(state.providerKey);
+  const isFormValid = state.name.trim() && isValidOpenAIKey(state.providerKey);
 
   return (
     <Dialog open={state.isOpen} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Project</DialogTitle>
-          <DialogDescription>
-            Enter a name for your new project and your OpenAI API key.
-          </DialogDescription>
+          <DialogTitle className="font-heading">Create New Project</DialogTitle>
         </DialogHeader>
         <form
           className="py-4 space-y-4"
@@ -130,50 +122,74 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
               value={state.name}
               onChange={handleNameChange}
               onKeyDown={handleKeyDown}
-              placeholder="My Project"
+              placeholder="Project Name"
               className="w-full px-3 py-2 border rounded-md text-sm"
               autoFocus
               name="project-name"
             />
+            <p className="p-2 text-xs text-muted-foreground">
+              Start with 500 free messages, or add your own LLM Provider Key.
+              You can add one at any time in the project settings.
+            </p>
           </div>
           <div>
             <label
               htmlFor="providerKey"
-              className="text-sm font-medium block mb-2"
+              className="flex justify-between items-center text-sm font-medium mb-2"
             >
-              OpenAI API Key
-            </label>
-            <input
-              id="providerKey"
-              type="password"
-              value={state.providerKey}
-              onChange={handleProviderKeyChange}
-              onKeyDown={handleKeyDown}
-              placeholder="sk-..."
-              className="w-full px-3 py-2 border rounded-md text-sm"
-              autoComplete="new-password"
-              name="openai-api-key"
-              pattern="sk-.*"
-              title="OpenAI API key must start with 'sk-'"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter a valid OpenAI API key (starts with sk-). tambo will use
-              your API key to make AI calls on your behalf until we implement
-              our payment system.
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              You can find or create your API key in the{" "}
-              <a
-                href="https://platform.openai.com/settings/organization/api-keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-link"
+              <span>LLM Provider (Optional)</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 -mr-2"
+                onClick={() => setShowApiKey(!showApiKey)}
               >
-                OpenAI API keys page
-              </a>
-              .
-            </p>
+                {showApiKey ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </label>
+
+            {showApiKey && (
+              <div>
+                <label
+                  htmlFor="providerKey"
+                  className="text-sm font-medium block mb-2"
+                >
+                  OpenAI API Key
+                </label>
+                <input
+                  id="providerKey"
+                  type="password"
+                  value={state.providerKey}
+                  onChange={handleProviderKeyChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="sk-..."
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  autoComplete="new-password"
+                  name="openai-api-key"
+                  pattern="sk-.*"
+                  title="OpenAI API key must start with 'sk-'"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Create or find your key in the{" "}
+                  <a
+                    href="https://platform.openai.com/settings/organization/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-link"
+                  >
+                    OpenAI API keys page
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
           </div>
+
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               type="button"
@@ -190,7 +206,7 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
                   Creating...
                 </>
               ) : (
-                "Create Project"
+                "Create"
               )}
             </Button>
           </DialogFooter>

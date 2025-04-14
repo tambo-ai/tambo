@@ -272,6 +272,7 @@ export async function addProviderKey(
       partiallyHiddenKey: hideApiKey(providerKey),
     });
 
+    await updateApiKeyStatus(tx, projectId, true);
     return await getProjectWithKeys(tx, projectId);
   });
 }
@@ -299,6 +300,31 @@ export async function deleteProviderKey(
 
     return await getProjectWithKeys(tx, projectId);
   });
+}
+
+export async function updateApiKeyStatus(
+  db: HydraDb,
+  projectId: string,
+  hasApiKey: boolean,
+): Promise<void> {
+  const usage = await db.query.projectMessageUsage.findFirst({
+    where: eq(schema.projectMessageUsage.projectId, projectId),
+  });
+
+  if (usage) {
+    await db
+      .update(schema.projectMessageUsage)
+      .set({
+        hasApiKey,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.projectMessageUsage.projectId, projectId));
+  } else {
+    await db.insert(schema.projectMessageUsage).values({
+      projectId,
+      hasApiKey,
+    });
+  }
 }
 
 export async function getProjectMcpServers(db: HydraDb, projectId: string) {
