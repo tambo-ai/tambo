@@ -59,7 +59,7 @@
     "clipboardy": "^4.0.0",
     "deep-equal": "^2.2.3",
     "deepmerge": "^4.3.1",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
     "inquirer": "^9.1.4",
     "meow": "^13.2.0",
     "open": "^10.1.0",
