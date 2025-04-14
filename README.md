@@ -1,42 +1,80 @@
 # tambo ai
 
-Build AI assistants and agents in React with a few lines of code.
+**Build assistants that do more than talk — they render real UI and get work done.**
 
-<p align="center">
-  <img src="assets/tambo-animation.gif" alt="tambo ai Logo">
-</p>
+tambo-ai is a React SDK for wiring natural language input to live components. Users describe what they want. tambo-ai matches that intent to a React component and passes the right props.
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/@tambo-ai/react.svg" alt="npm version"></a>
-  <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo.svg" alt="license"></a>
-  <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo.svg" alt="GitHub last commit"></a>
-  <a href="https://discord.gg/dJNvPEHth6"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a>
-  <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
-</p>
+---
 
-## The Future is Generative
+## Why tambo-ai
 
-The future of UX is generative and hyper-personalized. But today its really hard to build AI powered generative UI experiences. We are building tools that make this possible without complexity.
+Most apps expect users to navigate to what they need. That works — until the product gets big.
 
-tambo ai eliminates React boilerplate for AI features. We handle the hard parts so you can focus on creating exceptional user experiences.
+tambo-ai flips the model: users describe what they want to do, and your app shows the right UI — pre-filled, contextual, and ready to use.
 
-**Build AI assistants and agents in React without the headache.**
+[] Demo?
 
-## What is tambo ai?
+If you've built:
 
-tambo ai is a React library that deals with the boring parts. Get started with an AI assistant in minutes.
+- A chatbot that just responds with text
+- A command bar that routes to a new page
+- A complicated navigation system
 
-- Thread management
-- State persistence
-- Streaming responses
-- AI Orchestration
-- A Compatabile React UI Library
+tambo-ai gives you a cleaner, more powerful pattern.
 
-You get clean React hooks that integrate seamlessly with your codebase.
+---
+
+## What tambo-ai is (and where it's going)
+
+**Right now:** tambo-ai is a React SDK for building chat-based interfaces that render real UI components.
+
+**Next:** We're building toward a full framework for intent-driven apps — where input comes from chat, docs, transcripts, or other context, and UI is generated dynamically.
+
+tambo-ai is a foundation for apps that don't make users find features — they just use them.
+
+---
 
 ## How It Works
 
-Add tambo ai to your React app with a simple provider pattern:
+tambo-ai connects user input to React components through an LLM.
+
+```text
+User Input → LLM → Matched Intent → React Component + Props
+```
+
+You provide the components and describe what they do. tambo-ai handles the intent matching, prop generation, and rendering.
+
+Today we support these providers:
+
+- OpenAI
+- More cooming soon...
+
+---
+
+## What You Get
+
+- Message thread + state management react hooks
+- Intent to componenet matching
+- Streaming responses for text and component messages.
+- Safe prop generation from LLMs
+- React hooks for message history, suggestions, and component state, and more.
+
+## Install
+
+```bash
+npm install @tambo-ai/react
+```
+
+Or scaffold a full demo:
+
+```bash
+npx create-tambo-app@latest .
+npm run dev
+```
+
+---
+
+## Basic Setup
 
 ```jsx
 import { TamboProvider } from "@tambo-ai/react";
@@ -50,194 +88,165 @@ function App() {
 }
 ```
 
-### Core Features
+---
 
-- **Specialized hooks for specific needs:**
-
-  - `useTambo` - Primary entrypoint for the Tambo React SDK
-  - `useTamboThreadInput` - Input state and submission
-  - `useTamboSuggestions` - AI-powered message suggestions
-  - `useTamboThreadList` - Conversation management
-  - `useTamboComponentState` - AI-generated component state
-  - `useTamboThread` - Access to current thread context
-
-- **Component registration for AI-generated UI**
-- **Tool integration for your data sources**
-- **Streaming responses for real-time interactions**
-
-## Getting Started
-
-### Quick Start
-
-Use our template:
-
-```bash
-npx create-tambo-app@latest .
-
-npm run dev
-```
-
-or try adding it to your existing project:
-
-```bash
-npx tambo full-send
-```
-
-Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
-
-### Basic Usage
-
-1. Displaying a message thread.
+## Example: Chat UI
 
 ```jsx
 import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 
-function ChatInterface() {
-  const { thread, sendThreadMessage } = useTambo();
+function Chat() {
+  const { thread } = useTambo();
   const { value, setValue, submit } = useTamboThreadInput();
 
   return (
-    <div>
-      {/* Display messages */}
+    <>
       <div>
-        {thread.messages.map((message, index) => (
-          <div key={index} className={`message ${message.role}`}>
-            <div>{message.content}</div>
-            {message.component && message.component.renderedComponent}
-          </div>
+        {thread.messages.map((msg, i) => (
+          <div key={i}>{msg.content}</div>
         ))}
       </div>
-
-      {/* Input form */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           submit();
         }}
-        className="input-form"
       >
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Type your message..."
-        />
+        <input value={value} onChange={(e) => setValue(e.target.value)} />
         <button type="submit">Send</button>
       </form>
-    </div>
+    </>
   );
 }
 ```
 
-2. Adding AI-Generated Components
+---
 
-Create components that can be dynamically generated by the AI:
+## Example: AI-Generated Component
 
 ```jsx
-// components/WeatherCard.jsx
 import { useTamboComponentState } from "@tambo-ai/react";
 
-export function WeatherCard() {
-  const [weatherState, setWeatherState, { isPending }] = useTamboComponentState(
-    "weather",
-    {
-      temperature: 0,
-      condition: "",
-      location: "",
-    },
-  );
+export function EmailForm() {
+  const [state, setState] = useTamboComponentState("email", {
+    to: "",
+    subject: "",
+    body: "",
+    sent: false,
+  });
 
-  if (isPending) {
-    return <div>Loading weather data...</div>;
-  }
+  const sendEmail = () => {
+    // Implementation would connect to your email service
+    console.log("Sending email to:", state.to);
+    setState({ ...state, sent: true });
+  };
 
   return (
     <div>
-      <h3>{weatherState.location}</h3>
-      <div>{weatherState.temperature}°C</div>
-      <div>{weatherState.condition}</div>
+      {state.sent ? (
+        <p>Email sent to {state.to}!</p>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            sendEmail();
+          }}
+        >
+          <div>
+            <label htmlFor="to">To:</label>
+            <input
+              id="to"
+              value={state.to}
+              onChange={(e) => setState({ ...state, to: e.target.value })}
+            />
+          </div>
+          <div>
+            <label htmlFor="subject">Subject:</label>
+            <input
+              id="subject"
+              value={state.subject}
+              onChange={(e) => setState({ ...state, subject: e.target.value })}
+            />
+          </div>
+          <div>
+            <label htmlFor="body">Message:</label>
+            <textarea
+              id="body"
+              value={state.body}
+              onChange={(e) => setState({ ...state, body: e.target.value })}
+            />
+          </div>
+          <button type="submit">Send Email</button>
+        </form>
+      )}
     </div>
   );
 }
 ```
 
-Then register your components in your app's entry point:
+Register the component:
 
 ```jsx
-// App.jsx
-import { TamboProvider } from "@tambo-ai/react";
-import { WeatherCard } from "./components/WeatherCard";
 import { z } from "zod";
 
-// Define your components
 const components = [
   {
-    name: "WeatherCard",
-    description: "A component that displays weather information",
-    component: WeatherCard,
+    name: "EmailForm",
+    description: "A form for sending emails",
+    component: EmailForm,
     propsSchema: z.object({
-      temperature: z.number(),
-      condition: z.string(),
-      location: z.string(),
+      to: z.string(),
+      subject: z.string(),
+      body: z.string(),
+      sent: z.boolean().optional(),
     }),
   },
 ];
 
-// Pass them to the provider
-function App() {
-  return (
-    <TamboProvider apiKey="your-api-key" components={components}>
-      <YourApp />
-    </TamboProvider>
-  );
-}
+<TamboProvider apiKey="your-api-key" components={components}>
+  <YourApp />
+</TamboProvider>;
 ```
-
-[Read our full documentation](https://tambo.co/docs)
-
-## Development
-
-### Prerequisites
-
-- Node.js 18.x+
-- npm 10.x+
-
-### Quick Commands
-
-```bash
-# Install
-git clone https://github.com/tambo-ai/tambo.git && cd tambo && npm install
-
-# Develop
-npm run dev
-
-# Build
-npm run build
-
-# Test
-npm run test
-```
-
-## Resources
-
-- [React Package Documentation](./react-sdk/README.md)
-- [Showcase Documentation](./showcase/README.md)
-
-## License
-
-MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Join the Community
-
-We're building tools for the future of user interfaces. Your contributions matter.
-
-**[Star this repo](https://github.com/tambo-ai/tambo)** to support our work.
-
-**[Join our Discord](https://discord.gg/dJNvPEHth6)** to connect with other developers.
 
 ---
 
-<p align="center">
-  <i>Built by developers, for developers.</i><br>
-  <i>Because we believe the future of UI is generative and hyper-personalized.</i>
-</p>
+## Resources
+
+- [Docs](https://tambo.co/docs)
+- [UI Kit](https://ui.tambo.co)
+- [Showcase](./showcase/README.md)
+
+## Community
+
+- [Discord](https://discord.gg/dJNvPEHth6)
+- [GitHub Stars](https://github.com/tambo-ai/tambo)
+
+## Contributing
+
+Our React SDK is open source! And we're open to contributions!
+
+To get started, clone the repo:
+
+```bash
+git clone https://github.com/tambo-ai/tambo.git
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Build the package:
+
+```bash
+npm run build
+```
+
+Link the package to your local project:
+
+```bash
+npm link ../path/to/tambo
+```
+
+Open a PR and we'll review it!
