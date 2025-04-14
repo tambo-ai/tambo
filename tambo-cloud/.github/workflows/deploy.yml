@@ -2,10 +2,11 @@ name: Deploy Database Migrations
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["Build"]
     branches: [main]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   deploy-migrations:
