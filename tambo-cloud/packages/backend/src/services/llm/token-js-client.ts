@@ -159,6 +159,7 @@ export class TokenJSClient implements LLMClient {
           content: accumulatedMessage,
           role: "assistant",
           tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
+          refusal: null, // Added to comply with updated ChatCompletionMessage interface
         },
         index: 0,
         logprobs: null,
