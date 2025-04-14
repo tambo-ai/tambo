@@ -27,12 +27,13 @@ updates:
       radix-ui:
         patterns:
           - "@radix-ui/*"
+          - "radix-ui"
       eslint:
         patterns:
           - "@eslint/*"
           - "eslint"
           - "typescript-eslint"
-          - "eslint-plugin-*"
+          - "eslint-*"
       react:
         patterns:
           - "react"
