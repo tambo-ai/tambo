@@ -7,6 +7,7 @@ async function generateConfig() {
   // Add some dummy keys to the environment variables, so that the app can be started
   process.env.OPENAI_API_KEY = "DUMMY_KEY";
   process.env.EXTRACTION_OPENAI_API_KEY = "DUMMY_KEY";
+  process.env.RESEND_API_KEY = "DUMMY_KEY";
   const app = await NestFactory.create(AppModule, {
     cors: true,
     logger: false,
