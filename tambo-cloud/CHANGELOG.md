@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.0...repo-v0.36.1) (2025-04-15)
+
+
+### Bug Fixes
+
+* **api:** required isn't valid in this context ([#784](https://github.com/tambo-ai/tambo-cloud/issues/784)) ([95ab2b2](https://github.com/tambo-ai/tambo-cloud/commit/95ab2b2e0a192357f11bdbd6977dd375863be3cd))
+
 ## [0.36.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.35.0...repo-v0.36.0) (2025-04-15)
 
 
