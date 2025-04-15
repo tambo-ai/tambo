@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.36.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.35.0...repo-v0.36.0) (2025-04-15)
+
+
+### Features
+
+* hydrate tools server-side ([#757](https://github.com/tambo-ai/tambo-cloud/issues/757)) ([24156ea](https://github.com/tambo-ai/tambo-cloud/commit/24156ea5fc6206fed39f855a493ca8dc476cd751))
+
+
+### Miscellaneous Chores
+
+* **api:** Fix upload of stainless openjson api ([#782](https://github.com/tambo-ai/tambo-cloud/issues/782)) ([0dcc6b5](https://github.com/tambo-ai/tambo-cloud/commit/0dcc6b5d85d15eb0ab29321da3b505ebea7a825d))
+
 ## [0.35.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.34.0...repo-v0.35.0) (2025-04-14)
 
 
