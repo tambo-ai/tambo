@@ -21,7 +21,6 @@ export class SuggestionsGenerateDto {
 
   @ApiProperty({
     description: "Available components that can be used with this suggestion",
-    required: false,
     isArray: true,
     example: [
       {
