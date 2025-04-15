@@ -23,7 +23,6 @@ import {
   MessageRequest,
   ThreadMessageDto,
 } from "./dto/message.dto";
-import { Thread } from "./dto/thread.dto";
 
 /** TODO: align with ThreadMessage */
 interface AddedMessage {
@@ -211,7 +210,7 @@ export async function updateGenerationStage(
 }
 export async function addAssistantResponse(
   db: HydraDatabase,
-  thread: Thread,
+  threadId: string,
   addedUserMessage: AddedMessage,
   responseMessage: LegacyComponentDecision,
   logger?: Logger,
@@ -223,12 +222,12 @@ export async function addAssistantResponse(
   try {
     const result = await db.transaction(
       async (tx) => {
-        await verifyLatestMessageConsistency(tx, thread.id, addedUserMessage);
+        await verifyLatestMessageConsistency(tx, threadId, addedUserMessage);
 
         const responseMessageDto = await addResponseToThread(
           tx,
           responseMessage,
-          thread.id,
+          threadId,
         );
 
         const resultingGenerationStage = responseMessage.toolCallRequest
@@ -240,7 +239,7 @@ export async function addAssistantResponse(
 
         await updateGenerationStage(
           tx ?? db,
-          thread.id,
+          threadId,
           resultingGenerationStage,
           resultingStatusMessage,
         );
@@ -267,7 +266,7 @@ export async function addAssistantResponse(
 }
 export async function addUserMessage(
   db: HydraDb,
-  thread: Thread,
+  threadId: string,
   advanceRequestDto: AdvanceThreadDto,
   logger?: Logger,
 ) {
@@ -277,7 +276,7 @@ export async function addUserMessage(
         const [currentThread] = await tx
           .select()
           .from(schema.threads)
-          .where(eq(schema.threads.id, thread.id))
+          .where(eq(schema.threads.id, threadId))
           .for("update");
 
         if (
@@ -288,18 +287,18 @@ export async function addUserMessage(
           currentThread.generationStage === GenerationStage.CHOOSING_COMPONENT
         ) {
           throw new Error(
-            "Thread is already in processing, only one response can be generated at a time",
+            `Thread is already in processing (${currentThread.generationStage}), only one response can be generated at a time`,
           );
         }
 
-        await operations.updateThread(tx, thread.id, {
+        await operations.updateThread(tx, threadId, {
           generationStage: GenerationStage.CHOOSING_COMPONENT,
           statusMessage: "Starting processing...",
         });
 
         return await addMessage(
           tx,
-          thread.id,
+          threadId,
           advanceRequestDto.messageToAppend,
         );
       },

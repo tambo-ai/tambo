@@ -106,6 +106,7 @@ export class ComponentsController {
       legacyChatMessagesToThreadMessages(messageHistory, resolvedThreadId),
       availableComponents ?? {},
       resolvedThreadId,
+      undefined,
     );
     await this.addDecisionToThread(resolvedThreadId, component);
 
@@ -185,6 +186,7 @@ export class ComponentsController {
         toolResponse,
         undefined,
         resolvedThreadId,
+        undefined,
       );
 
       await this.threadsService.updateGenerationStage(

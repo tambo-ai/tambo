@@ -11,6 +11,7 @@ import {
   getNoComponentPromptTemplate,
 } from "../../prompt/component-decision";
 import { generateAvailableComponentsList } from "../../prompt/component-formatting";
+import { SystemTools } from "../../systemTools";
 import { threadMessagesToChatHistory } from "../../util/threadMessagesToChatHistory";
 import {
   getLLMResponseMessage,
@@ -19,12 +20,12 @@ import {
   LLMResponse,
 } from "../llm/llm-client";
 import { hydrateComponent } from "./component-hydration-service";
-
 // Public function
 export async function decideComponent(
   llmClient: LLMClient,
   context: InputContext,
   threadId: string,
+  systemTools: SystemTools | undefined,
   stream?: boolean,
 ): Promise<
   LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
@@ -75,6 +76,7 @@ export async function decideComponent(
       availableComponents: context.availableComponents,
       threadId,
       stream,
+      systemTools,
     });
   } else {
     if (componentName) {

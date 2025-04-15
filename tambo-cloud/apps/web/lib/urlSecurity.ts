@@ -1,5 +1,6 @@
 import dns from "dns/promises";
 import { parse as parseTld } from "tldts";
+import { env } from "./env";
 
 // Helper to validate URLs are not pointing to unsafe locations
 const isUnsafeHostname = (hostname: string): boolean => {
@@ -32,13 +33,18 @@ const isUnsafeHostname = (hostname: string): boolean => {
 
   return unsafePatterns.some((pattern) => pattern.test(hostname));
 };
+
 // Helper to perform additional safety checks on the URL
 export const validateSafeURL = async (
   urlOrFragment: string,
 ): Promise<{ safe: boolean; reason?: string }> => {
+  // Skip validation if local MCP servers are allowed
+  if (env.ALLOW_LOCAL_MCP_SERVERS) {
+    return { safe: true };
+  }
+
   // use tldts to check for host safety
   const tld = parseTld(urlOrFragment);
-  console.log("tld", tld);
 
   if (!tld.isIcann || !tld.hostname) {
     return {
@@ -69,6 +75,7 @@ export const validateSafeURL = async (
     };
   }
 };
+
 export const validateZodUrl = async (url: string): Promise<boolean> => {
   try {
     const valid = await validateSafeURL(url);

@@ -11,6 +11,7 @@ import { hydrateComponent } from "./services/component/component-hydration-servi
 import { TokenJSClient } from "./services/llm/token-js-client";
 import { generateSuggestions } from "./services/suggestion/suggestion.service";
 import { SuggestionDecision } from "./services/suggestion/suggestion.types";
+import { SystemTools } from "./systemTools";
 
 interface HydraBackendOptions {
   version?: "v1" | "v2";
@@ -75,6 +76,7 @@ export default class TamboBackend {
     messageHistory: ThreadMessage[],
     availableComponents: AvailableComponents,
     threadId: string,
+    systemTools: SystemTools | undefined,
     stream: true,
     additionalContext?: string,
   ): Promise<AsyncIterableIterator<LegacyComponentDecision>>;
@@ -82,6 +84,7 @@ export default class TamboBackend {
     messageHistory: ThreadMessage[],
     availableComponents: AvailableComponents,
     threadId: string,
+    systemTools: SystemTools | undefined,
     stream?: false | undefined,
     additionalContext?: string,
   ): Promise<LegacyComponentDecision>;
@@ -89,6 +92,7 @@ export default class TamboBackend {
     messageHistory: ThreadMessage[],
     availableComponents: AvailableComponents,
     threadId: string,
+    systemTools: SystemTools | undefined,
     stream?: boolean,
     additionalContext?: string,
   ): Promise<
@@ -100,7 +104,13 @@ export default class TamboBackend {
       threadId,
       additionalContext,
     };
-    return await decideComponent(this.llmClient, context, threadId, stream);
+    return await decideComponent(
+      this.llmClient,
+      context,
+      threadId,
+      systemTools,
+      stream,
+    );
   }
 
   public async hydrateComponentWithData(
@@ -109,6 +119,7 @@ export default class TamboBackend {
     toolResponse: ToolResponseBody,
     toolCallId: string | undefined,
     threadId: string,
+    systemTools: SystemTools | undefined,
     stream: true,
   ): Promise<AsyncIterableIterator<LegacyComponentDecision>>;
   public async hydrateComponentWithData(
@@ -117,6 +128,7 @@ export default class TamboBackend {
     toolResponse: ToolResponseBody,
     toolCallId: string | undefined,
     threadId: string,
+    systemTools: SystemTools | undefined,
     stream?: false | undefined,
   ): Promise<LegacyComponentDecision>;
   public async hydrateComponentWithData(
@@ -125,6 +137,7 @@ export default class TamboBackend {
     toolResponse: ToolResponseBody,
     toolCallId: string | undefined,
     threadId: string,
+    systemTools: SystemTools | undefined,
     stream?: boolean,
   ): Promise<
     LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
@@ -139,6 +152,7 @@ export default class TamboBackend {
       threadId,
       stream,
       version: this.version,
+      systemTools,
     });
   }
 }

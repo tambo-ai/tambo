@@ -62,22 +62,31 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
                     </ul>
                   </div>
                 )}
+              </div>
+            )}
 
-                {message.toolCallRequest && (
-                  <div className="mt-1">
-                    Tool Call: <pre>{message.toolCallRequest.toolName}</pre>
-                    {message.toolCallRequest.parameters.length > 0 && (
-                      <ul className="list-disc list-inside">
-                        {message.toolCallRequest.parameters.map((param, i) => (
-                          <li key={i}>
-                            {param.parameterName} ={" "}
-                            {JSON.stringify(param.parameterValue)}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+            {message.toolCallRequest && (
+              <div className="mt-1">
+                <div>Tool calls</div>
+                {message.toolCallId && <pre>id = {message.toolCallId}</pre>}
+                {message.toolCallRequest.tool_call_id && (
+                  <div className="text-xs text-muted-foreground">
+                    <pre>id = {message.toolCallRequest.tool_call_id}</pre>
+                    (deprecated)
                   </div>
                 )}
+                <div>{message.toolCallRequest.toolName}(</div>
+                {message.toolCallRequest.parameters.length > 0 && (
+                  <ul className="list-disc list-inside">
+                    {message.toolCallRequest.parameters.map((param, i) => (
+                      <li key={i}>
+                        {param.parameterName} ={" "}
+                        {JSON.stringify(param.parameterValue)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div>)</div>
               </div>
             )}
           </div>

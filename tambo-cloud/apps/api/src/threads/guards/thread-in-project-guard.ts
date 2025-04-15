@@ -6,9 +6,9 @@ import {
 } from "@nestjs/common";
 import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { Request } from "express";
-import { ProjectId } from "src/components/guards/apikey.guard";
 import { DATABASE } from "../../common/middleware/db-transaction-middleware";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
+import { ProjectId } from "../../components/guards/apikey.guard";
 
 @Injectable()
 export class ThreadInProjectGuard implements CanActivate {

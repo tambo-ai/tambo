@@ -21,6 +21,7 @@ import {
   ApiActivityMonitor,
   type ApiState,
 } from "./components/ApiActivityMonitor";
+import { LocalFileContents, LocalFileList } from "./components/LocalFileList";
 import { MessageSuggestions } from "./components/MessageSuggestions";
 import { ThreadMessageInput } from "./components/ThreadMessageInput";
 import { WeatherDay } from "./components/WeatherDay";
@@ -189,6 +190,29 @@ export default function SmokePage() {
         }),
       }),
       associatedTools: [tools.aqi],
+    });
+    registerComponent({
+      component: LocalFileList,
+      name: "LocalFileList",
+      description: "A list of local files",
+      propsSchema: z.object({
+        directoryName: z.string(),
+        files: z.array(
+          z.object({
+            name: z.string(),
+            content: z.string(),
+          }),
+        ),
+      }),
+    });
+    registerComponent({
+      component: LocalFileContents,
+      name: "LocalFileContents",
+      description: "The contents of a local file",
+      propsSchema: z.object({
+        fileName: z.string(),
+        fileContents: z.string(),
+      }),
     });
   }, [registerComponent, tools]);
 

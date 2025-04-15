@@ -14,6 +14,7 @@ import {
 import { getAvailableComponentsPromptTemplate } from "../../prompt/component-formatting";
 import { getComponentHydrationPromptTemplate } from "../../prompt/component-hydration";
 import { schemaV1, schemaV2 } from "../../prompt/schemas";
+import { SystemTools } from "../../systemTools";
 import { parseAndValidate } from "../../util/parseResponse";
 import { threadMessagesToChatHistory } from "../../util/threadMessagesToChatHistory";
 import {
@@ -37,6 +38,7 @@ export async function hydrateComponent({
   threadId,
   stream,
   version = "v1",
+  systemTools,
 }: {
   llmClient: LLMClient;
   messageHistory: ThreadMessage[];
@@ -47,6 +49,7 @@ export async function hydrateComponent({
   threadId: string;
   stream?: boolean;
   version?: "v1" | "v2";
+  systemTools?: SystemTools;
 }): Promise<
   LegacyComponentDecision | AsyncIterableIterator<LegacyComponentDecision>
 > {
@@ -62,8 +65,8 @@ export async function hydrateComponent({
   }
 
   //only define tools if we don't have a tool response
-  const tools = toolResponse
-    ? undefined
+  const userTools = toolResponse
+    ? []
     : convertMetadataToTools(chosenComponent.contextTools);
 
   const chosenComponentDescription = JSON.stringify(
@@ -128,7 +131,7 @@ To respond to the user's message:
       ...componentHydrationArgs,
       ...availableComponentsArgs,
     },
-    tools,
+    tools: [...userTools, ...(systemTools?.tools ?? [])],
     jsonMode: true,
   };
 

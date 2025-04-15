@@ -24,7 +24,8 @@
     "SUPABASE_URL",
     "WEATHER_API_KEY",
     "COMPOSIO_API_KEY",
-    "RESEND_AUDIENCE_ID"
+    "RESEND_AUDIENCE_ID",
+    "ALLOW_LOCAL_MCP_SERVERS"
   ],
   "tasks": {
     "build": {
