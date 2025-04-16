@@ -888,6 +888,7 @@ export class ThreadsService {
       );
       console.log("port: ", process.env.PORT);
       console.log("dburl: ", process.env.DATABASE_URL);
+      console.log("resend: ", process.env.RESEND_API_KEY);
       const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
       if (!fallbackKey) {
         throw new NotFoundException(
