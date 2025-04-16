@@ -712,6 +712,7 @@ export class ThreadsService {
     let lastUpdateTime = 0;
     const updateIntervalMs = 500;
     const db = this.getDb();
+    const logger = this.logger;
 
     await updateGenerationStage(
       db,
@@ -725,7 +726,7 @@ export class ThreadsService {
       threadId,
       addedUserMessage,
       toolCallId,
-      this.logger,
+      logger,
     );
     let finalResponse: {
       responseMessageDto: ThreadMessageDto;
@@ -793,6 +794,16 @@ export class ThreadsService {
       };
     }
 
+    // now that we're done streaming, add the tool call request and tool call id to the response
+    finalResponse = {
+      ...finalResponse,
+      responseMessageDto: {
+        ...finalResponse.responseMessageDto,
+        toolCallRequest: finalToolCallRequest,
+        tool_call_id: finalToolCallId,
+      },
+    };
+
     const { resultingGenerationStage, resultingStatusMessage } =
       await finishInProgressMessage(
         db,
@@ -800,7 +811,7 @@ export class ThreadsService {
         addedUserMessage,
         inProgressMessage,
         finalResponse,
-        this.logger,
+        logger,
       );
     const componentDecision = finalResponse.responseMessageDto.component;
     if (
@@ -828,6 +839,7 @@ export class ThreadsService {
       return;
     }
 
+    // now that we're done streaming, add the tool call request and tool call id to the response
     finalResponse = {
       ...finalResponse,
       responseMessageDto: {
