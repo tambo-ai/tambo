@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.2...repo-v0.36.3) (2025-04-16)
+
+
+### Bug Fixes
+
+* include final tool call in finalResponse after streaming ([#794](https://github.com/tambo-ai/tambo-cloud/issues/794)) ([e339970](https://github.com/tambo-ai/tambo-cloud/commit/e339970f81de1eed51e8e12563732ff4ce489e53))
+
 ## [0.36.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.1...repo-v0.36.2) (2025-04-16)
 
 
