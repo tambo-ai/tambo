@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.36.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.1...repo-v0.36.2) (2025-04-16)
+
+
+### Bug Fixes
+
+* add fallback key to turbo ([#793](https://github.com/tambo-ai/tambo-cloud/issues/793)) ([20e34c8](https://github.com/tambo-ai/tambo-cloud/commit/20e34c8ab8eca90825960fc064e212fa799a0951))
+* change fallback to backup ([#792](https://github.com/tambo-ai/tambo-cloud/issues/792)) ([552ab9d](https://github.com/tambo-ai/tambo-cloud/commit/552ab9dc7b420ff25985b70aa40b720617556b9e))
+* log resend ([#791](https://github.com/tambo-ai/tambo-cloud/issues/791)) ([94e3479](https://github.com/tambo-ai/tambo-cloud/commit/94e3479eb565cf82d41d8ac999d33a5a2637e251))
+* make streaming of mcp responses work ([#786](https://github.com/tambo-ai/tambo-cloud/issues/786)) ([9917b8e](https://github.com/tambo-ai/tambo-cloud/commit/9917b8eeb81f06a0ffd869c9c5fa015c355ead39))
+* mcp tool calling should not store nested JSON ([#788](https://github.com/tambo-ai/tambo-cloud/issues/788)) ([f44f732](https://github.com/tambo-ai/tambo-cloud/commit/f44f732537773ce7f551ba95f7d9e83e0b2aba85))
+* test env ([#790](https://github.com/tambo-ai/tambo-cloud/issues/790)) ([1c8db50](https://github.com/tambo-ai/tambo-cloud/commit/1c8db50e0fa3b9c51548a191cef51cb94856dcc3))
+* use process.env for fallback instead of config ([#789](https://github.com/tambo-ai/tambo-cloud/issues/789)) ([d653294](https://github.com/tambo-ai/tambo-cloud/commit/d653294347cd4e4c5181518c073113db13e4824b))
+
 ## [0.36.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.0...repo-v0.36.1) (2025-04-15)
 
 
