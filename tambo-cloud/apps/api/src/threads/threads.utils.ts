@@ -1,4 +1,5 @@
 import { Logger } from "@nestjs/common";
+import { SystemTools, TamboBackend } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ChatCompletionContentPart,
@@ -8,7 +9,6 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
-  ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import type {
   HydraDatabase,
@@ -17,6 +17,7 @@ import type {
 } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
+import { AvailableComponentDto } from "src/components/dto/generate-component.dto";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import {
   ChatCompletionContentPartDto,
@@ -24,26 +25,11 @@ import {
   ThreadMessageDto,
 } from "./dto/message.dto";
 
-/** TODO: align with ThreadMessage */
-interface AddedMessage {
-  id: string;
-  threadId: string;
-  role: MessageRole;
-  content: ChatCompletionContentPartDto[];
-  metadata?: Record<string, unknown>;
-  component?: ComponentDecisionV2;
-  actionType?: ActionType;
-  createdAt: Date;
-  toolCallRequest?: ToolCallRequest;
-  tool_call_id?: string;
-  componentState: Record<string, unknown>;
-}
-
 export async function finishInProgressMessage(
   db: HydraDb,
   threadId: string,
-  addedUserMessage: ThreadMessageDto,
-  inProgressMessage: AddedMessage,
+  addedUserMessage: ThreadMessage,
+  inProgressMessage: ThreadMessage,
   finalResponse: {
     responseMessageDto: ThreadMessageDto;
     generationStage: GenerationStage;
@@ -103,7 +89,7 @@ export async function finishInProgressMessage(
 export async function addInProgressMessage(
   db: HydraDb,
   threadId: string,
-  addedUserMessage: ThreadMessageDto,
+  addedUserMessage: ThreadMessage,
   toolCallId: string | undefined,
   logger: Logger,
 ) {
@@ -143,7 +129,7 @@ export async function addInProgressMessage(
 async function verifyLatestMessageConsistency(
   db: HydraTransaction,
   threadId: string,
-  addedUserMessage: ThreadMessageDto,
+  addedUserMessage: ThreadMessage,
   inProgressMessageId?: string | undefined,
 ) {
   const latestMessages = await db.query.messages.findMany({
@@ -211,11 +197,11 @@ export async function updateGenerationStage(
 export async function addAssistantResponse(
   db: HydraDatabase,
   threadId: string,
-  addedUserMessage: AddedMessage,
+  addedUserMessage: ThreadMessage,
   responseMessage: LegacyComponentDecision,
   logger?: Logger,
 ): Promise<{
-  responseMessageDto: ThreadMessageDto;
+  responseMessageDto: ThreadMessage;
   resultingGenerationStage: GenerationStage;
   resultingStatusMessage: string;
 }> {
@@ -343,7 +329,7 @@ export async function addMessage(
   db: HydraDb,
   threadId: string,
   messageDto: MessageRequest,
-): Promise<AddedMessage> {
+): Promise<ThreadMessage> {
   const message = await operations.addMessage(db, {
     threadId,
     role: messageDto.role,
@@ -367,7 +353,7 @@ export async function addMessage(
 
     component: message.componentDecision ?? undefined,
 
-    content: convertContentPartToDto(message.content),
+    content: message.content,
 
     tool_call_id: message.toolCallId ?? undefined,
   };
@@ -448,4 +434,64 @@ function tryParseJson(text: string): any {
   } catch (_error) {
     return text;
   }
+}
+
+/** Processes the "next" thread message, hydrating the component if necessary */
+export async function processThreadMessage(
+  db: HydraDatabase,
+  threadId: string,
+  messages: ThreadMessage[],
+  advanceRequestDto: AdvanceThreadDto,
+  tamboBackend: TamboBackend,
+  systemTools: SystemTools,
+  availableComponentMap: Record<string, AvailableComponentDto>,
+): Promise<LegacyComponentDecision> {
+  const latestMessage = messages[messages.length - 1];
+  // For tool responses, we can fully hydrate the component and return it
+  if (latestMessage.role === MessageRole.Tool) {
+    await updateGenerationStage(
+      db,
+      threadId,
+      GenerationStage.HYDRATING_COMPONENT,
+      `Hydrating ${latestMessage.component?.componentName}...`,
+    );
+    // Since we don't a store tool responses in the db, assumes that the tool response is the messageToAppend
+    const toolResponse = extractToolResponse(advanceRequestDto.messageToAppend);
+    if (!toolResponse) {
+      throw new Error("No tool response found");
+    }
+
+    const componentDef = advanceRequestDto.availableComponents?.find(
+      (c) => c.name === latestMessage.component?.componentName,
+    );
+    if (!componentDef) {
+      throw new Error("Component definition not found");
+    }
+
+    return await tamboBackend.hydrateComponentWithData(
+      messages,
+      componentDef,
+      toolResponse,
+      latestMessage.tool_call_id,
+      threadId,
+      systemTools,
+    );
+  }
+
+  // For non-tool responses, we need to generate a component
+  await updateGenerationStage(
+    db,
+    threadId,
+    GenerationStage.CHOOSING_COMPONENT,
+    `Choosing component...`,
+  );
+
+  return await tamboBackend.generateComponent(
+    messages,
+    availableComponentMap,
+    threadId,
+    systemTools,
+    false,
+    advanceRequestDto.additionalContext,
+  );
 }

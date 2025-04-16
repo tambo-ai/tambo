@@ -273,9 +273,7 @@ export const messages = pgTable("messages", ({ text, timestamp }) => ({
   role: text("role", {
     enum: Object.values<string>(MessageRole) as [MessageRole],
   }).notNull(),
-  content: customJsonb<string | ChatCompletionContentPart[]>(
-    "content",
-  ).notNull(),
+  content: customJsonb<ChatCompletionContentPart[]>("content").notNull(),
   toolCallId: text("tool_call_id"),
   componentDecision: customJsonb<ComponentDecisionV2>("component_decision"),
   componentState: customJsonb<Record<string, unknown>>("component_state"),
