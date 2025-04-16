@@ -40,6 +40,8 @@ export enum ContentPartType {
   Text = "text",
   ImageUrl = "image_url",
   InputAudio = "input_audio",
+  // TODO: we get back "resource" from MCP servers, but it is not supported yet
+  // Resource = "resource",
 }
 
 /**

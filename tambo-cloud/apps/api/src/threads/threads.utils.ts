@@ -364,36 +364,45 @@ function convertContentDtoToContentPart(
   if (!Array.isArray(content)) {
     return [{ type: ContentPartType.Text, text: content }];
   }
-  return content.map((part): ChatCompletionContentPart => {
-    switch (part.type) {
-      case ContentPartType.Text:
-        if (!part.text) {
-          throw new Error("Text content is required for text type");
-        }
-        return {
-          type: ContentPartType.Text,
-          text: part.text,
-        };
-      case ContentPartType.ImageUrl:
-        return {
-          type: ContentPartType.ImageUrl,
-          image_url: part.image_url ?? {
-            url: "",
-            detail: "auto",
-          },
-        };
-      case ContentPartType.InputAudio:
-        return {
-          type: ContentPartType.InputAudio,
-          input_audio: part.input_audio ?? {
-            data: "",
-            format: "wav",
-          },
-        };
-      default:
-        throw new Error(`Unknown content part type: ${part.type}`);
-    }
-  });
+  return content
+    .map((part): ChatCompletionContentPart | null => {
+      switch (part.type) {
+        case ContentPartType.Text:
+          if (!part.text) {
+            throw new Error("Text content is required for text type");
+          }
+          return {
+            type: ContentPartType.Text,
+            text: part.text,
+          };
+        case ContentPartType.ImageUrl:
+          return {
+            type: ContentPartType.ImageUrl,
+            image_url: part.image_url ?? {
+              url: "",
+              detail: "auto",
+            },
+          };
+        case ContentPartType.InputAudio:
+          return {
+            type: ContentPartType.InputAudio,
+            input_audio: part.input_audio ?? {
+              data: "",
+              format: "wav",
+            },
+          };
+        case "resource" as ContentPartType:
+          // TODO: we get back "resource" from MCP servers, but it is not supported yet
+          console.warn(
+            "Ignoring 'resource' content part: it is not supported yet",
+            part,
+          );
+          return null;
+        default:
+          throw new Error(`Unknown content part type: ${part.type}`);
+      }
+    })
+    .filter((part): part is ChatCompletionContentPart => !!part);
 }
 export function threadMessageDtoToThreadMessage(
   messages: ThreadMessageDto[],
@@ -418,8 +427,17 @@ export function extractToolResponse(message: MessageRequest): any {
   if (message.toolResponse) {
     return message.toolResponse;
   }
-  if (message.content.every((part) => part.type === ContentPartType.Text)) {
-    return tryParseJson(message.content.map((part) => part.text).join(""));
+  // TODO: we get back "resource" from MCP servers, but it is not supported yet
+  const nonResourceContent = message.content.filter(
+    (part) => (part.type as string) !== "resource",
+  );
+  if (nonResourceContent.every((part) => part.type === ContentPartType.Text)) {
+    const contentString = nonResourceContent.map((part) => part.text).join("");
+    const jsonResponse = tryParseJson(contentString);
+    if (jsonResponse) {
+      return jsonResponse;
+    }
+    return contentString;
   }
   return null;
 }
@@ -457,6 +475,7 @@ export async function processThreadMessage(
     );
     // Since we don't a store tool responses in the db, assumes that the tool response is the messageToAppend
     const toolResponse = extractToolResponse(advanceRequestDto.messageToAppend);
+
     if (!toolResponse) {
       throw new Error("No tool response found");
     }

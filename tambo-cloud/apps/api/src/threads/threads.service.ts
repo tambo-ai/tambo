@@ -29,7 +29,11 @@ import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
 } from "./dto/advance-thread.dto";
-import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
+import {
+  ChatCompletionContentPartDto,
+  MessageRequest,
+  ThreadMessageDto,
+} from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
 import { Thread, ThreadRequest, ThreadWithMessagesDto } from "./dto/thread.dto";
@@ -584,17 +588,23 @@ export class ThreadsService {
       ),
     );
 
+    const responseContent: ChatCompletionContentPartDto[] =
+      typeof result === "string"
+        ? [{ type: ContentPartType.Text, text: result }]
+        : Array.isArray(result.content)
+          ? result.content
+          : [];
+
+    // TODO: handle cases where MCP server returns *only* resource types
+    if (responseContent.length === 0) {
+      throw new Error("No response content found");
+    }
     const messageWithToolResponse: AdvanceThreadDto = {
       messageToAppend: {
         actionType: ActionType.ToolResponse,
         component: componentDecision,
         role: MessageRole.Tool,
-        content: [
-          {
-            type: ContentPartType.Text,
-            text: JSON.stringify(result),
-          },
-        ],
+        content: responseContent,
       },
       additionalContext: advanceRequestDto.additionalContext,
       availableComponents: advanceRequestDto.availableComponents,

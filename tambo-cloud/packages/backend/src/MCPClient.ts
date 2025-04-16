@@ -39,19 +39,9 @@ export class MCPClient {
    * @throws Will throw an error if connection fails
    */
   static async create(endpoint: string): Promise<MCPClient> {
-    const client = new MCPClient(endpoint);
-    await client.connect();
-    return client;
-  }
-
-  /**
-   * Private method to establish connection with the MCP server.
-   * This is called automatically by the create method.
-   *
-   * @throws Will throw an error if connection fails
-   */
-  private async connect() {
-    await this.client.connect(this.transport);
+    const mcpClient = new MCPClient(endpoint);
+    await mcpClient.client.connect(mcpClient.transport);
+    return mcpClient;
   }
 
   /**
