@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.20.3](https://github.com/tambo-ai/tambo/compare/react-v0.20.2...react-v0.20.3) (2025-04-16)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump lint-staged from 15.5.0 to 15.5.1 ([#319](https://github.com/tambo-ai/tambo/issues/319)) ([e00ba1e](https://github.com/tambo-ai/tambo/commit/e00ba1e32363d36141f46f37b1707a707d38c6ad))
+* **deps-dev:** bump ts-jest from 29.3.1 to 29.3.2 ([#316](https://github.com/tambo-ai/tambo/issues/316)) ([bea5531](https://github.com/tambo-ai/tambo/commit/bea5531da959d687042e636f6871eb680463c892))
+* **deps-dev:** bump typescript-eslint from 8.29.0 to 8.29.1 in the eslint group ([#301](https://github.com/tambo-ai/tambo/issues/301)) ([e7ccd2b](https://github.com/tambo-ai/tambo/commit/e7ccd2b3d948ce82d1e81bb192980ab826b6393d))
+* **deps-dev:** bump typescript-eslint from 8.29.1 to 8.30.1 in the eslint group ([#311](https://github.com/tambo-ai/tambo/issues/311)) ([d9b10e4](https://github.com/tambo-ai/tambo/commit/d9b10e408d8b87db1c88dcde5e72a66309c06580))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.42.1 to 0.43.0 ([#329](https://github.com/tambo-ai/tambo/issues/329)) ([e09bb2d](https://github.com/tambo-ai/tambo/commit/e09bb2df988f094443001455f88fe86f0d3d13a6))
+* **deps:** bump @tanstack/react-query from 5.71.10 to 5.72.0 ([#300](https://github.com/tambo-ai/tambo/issues/300)) ([faddcdf](https://github.com/tambo-ai/tambo/commit/faddcdf50dc0470fccdaf0e331ad30719cac65af))
+* **deps:** bump @tanstack/react-query from 5.72.0 to 5.74.3 ([#322](https://github.com/tambo-ai/tambo/issues/322)) ([f55642c](https://github.com/tambo-ai/tambo/commit/f55642c5fac7c13e17115d516ca7a0aac63234b7))
+
+
+### Tests
+
+* add some basic tests for the thread provider ([#299](https://github.com/tambo-ai/tambo/issues/299)) ([8f5186d](https://github.com/tambo-ai/tambo/commit/8f5186d4a57175d5daefe20c485f83babef0f562))
+* enable tests in builds, fix suggestions test ([#294](https://github.com/tambo-ai/tambo/issues/294)) ([de9f06d](https://github.com/tambo-ai/tambo/commit/de9f06d04590088e211faa43af2bad1c87ee5b47))
+* start wiring up hook tests ([#298](https://github.com/tambo-ai/tambo/issues/298)) ([8a3d0aa](https://github.com/tambo-ai/tambo/commit/8a3d0aa22dfc873472b40c3ca88ca42516c08ffc))
+
 ## [0.20.2](https://github.com/tambo-ai/tambo/compare/react-v0.20.1...react-v0.20.2) (2025-04-07)
 
 
