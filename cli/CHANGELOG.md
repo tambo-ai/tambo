@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.5.0...tambo-v0.5.1) (2025-04-16)
+
+
+### Miscellaneous
+
+* **deps:** bump dotenv from 16.4.7 to 16.5.0 ([#313](https://github.com/tambo-ai/tambo/issues/313)) ([cffc541](https://github.com/tambo-ai/tambo/commit/cffc5416718bd11e8346aa26e426f892a467bbb9))
+* **deps:** bump inquirer from 9.3.7 to 10.2.2 ([#327](https://github.com/tambo-ai/tambo/issues/327)) ([7e7f7e7](https://github.com/tambo-ai/tambo/commit/7e7f7e72beca07af4c6afed982782a32caeb1332))
+* **deps:** bump open from 10.1.0 to 10.1.1 ([#326](https://github.com/tambo-ai/tambo/issues/326)) ([fb7b9cd](https://github.com/tambo-ai/tambo/commit/fb7b9cd4012b2dc895663ef941777a851fe24f20))
+
 ## [0.5.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.4.0...tambo-v0.5.0) (2025-04-09)
 
 
