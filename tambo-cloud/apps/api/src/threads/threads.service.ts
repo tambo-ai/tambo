@@ -1,5 +1,4 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   generateChainId,
   SystemTools,
@@ -67,7 +66,6 @@ export class ThreadsService {
     private readonly db: HydraDatabase,
     private projectsService: ProjectsService,
     private readonly logger: CorrelationLoggerService,
-    private readonly configService: ConfigService,
     private readonly emailService: EmailService,
   ) {}
 
@@ -883,7 +881,7 @@ export class ThreadsService {
 
     // If no provider keys are set, use the fallback key
     if (!providerKeys?.length) {
-      const fallbackKey = this.configService.get("FALLBACK_OPENAI_API_KEY");
+      const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
       if (!fallbackKey) {
         throw new NotFoundException(
           "No provider keys found for project and no fallback key configured",
