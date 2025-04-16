@@ -18,15 +18,15 @@
     "db:check": "cd packages/db && npm run db:check",
     "db:studio": "cd packages/db && npm run db:studio",
     "test:suggestions": "cd scripts && tsx test-suggestions.ts",
-    "rename-to-tambo": "ts-node scripts/update-content.ts && ts-node scripts/rename-files.ts",
-    "rename-vnext": "ts-node scripts/rename-vnext.ts"
+    "rename-to-tambo": "tsx scripts/update-content.ts && tsx scripts/rename-files.ts",
+    "rename-vnext": "tsx scripts/rename-vnext.ts"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.0",
     "prettier": "^3.5.3",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "turbo": "^2.5.0",
     "typescript": "^5.8.3"
   },

@@ -16,7 +16,7 @@
     "test": "node --experimental-vm-modules ../../node_modules/.bin/jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:debug": "tsx --inspect-brk node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "clean": "rm -rf dist",
     "check-types": "tsc --noEmit",
@@ -62,8 +62,7 @@
     "supertest": "^7.1.0",
     "ts-jest": "^29.3.0",
     "ts-loader": "^9.4.3",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
   "engines": {
