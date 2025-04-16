@@ -881,6 +881,13 @@ export class ThreadsService {
 
     // If no provider keys are set, use the fallback key
     if (!providerKeys?.length) {
+      console.log("Checking fallback key");
+      console.log(
+        "FALLBACK_OPENAI_API_KEY ",
+        process.env.FALLBACK_OPENAI_API_KEY,
+      );
+      console.log("port: ", process.env.PORT);
+      console.log("dburl: ", process.env.DATABASE_URL);
       const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
       if (!fallbackKey) {
         throw new NotFoundException(
