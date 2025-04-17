@@ -139,7 +139,7 @@ export async function verifyLatestMessageConsistency(
     )
   ) {
     throw new Error(
-      "Latest message before write is not the same as the added user message",
+      `Latest message before write is not the same as the added user message: ${messageToCheck.id} !== ${addedUserMessage.id}`,
     );
   }
 }
