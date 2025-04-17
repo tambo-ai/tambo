@@ -341,6 +341,7 @@ export async function createMcpServer(
   db: HydraDb,
   projectId: string,
   url: string,
+  customHeaders?: Record<string, string>,
 ) {
   const [server] = await db
     .insert(schema.toolProviders)
@@ -348,12 +349,14 @@ export async function createMcpServer(
       projectId,
       type: ToolProviderType.MCP,
       url,
+      customHeaders: customHeaders || {},
     })
     .returning({
       id: schema.toolProviders.id,
       projectId: schema.toolProviders.projectId,
       type: schema.toolProviders.type,
       url: schema.toolProviders.url,
+      customHeaders: schema.toolProviders.customHeaders,
     });
 
   return server;
@@ -379,10 +382,15 @@ export async function updateMcpServer(
   projectId: string,
   serverId: string,
   url: string,
+  customHeaders?: Record<string, string>,
 ) {
   const [server] = await db
     .update(schema.toolProviders)
-    .set({ url })
+    .set({
+      url,
+      customHeaders: customHeaders || {},
+      updatedAt: new Date(),
+    })
     .where(
       and(
         eq(schema.toolProviders.id, serverId),
@@ -394,6 +402,7 @@ export async function updateMcpServer(
       projectId: schema.toolProviders.projectId,
       type: schema.toolProviders.type,
       url: schema.toolProviders.url,
+      customHeaders: schema.toolProviders.customHeaders,
     });
 
   return server;

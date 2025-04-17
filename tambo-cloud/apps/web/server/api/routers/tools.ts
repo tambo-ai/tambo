@@ -1,4 +1,6 @@
 import { getComposio } from "@/lib/composio";
+import { ComposioConnectorConfig } from "@/lib/composio-utils";
+import { customHeadersSchema } from "@/lib/headerValidation";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { operations } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
@@ -27,6 +29,9 @@ export const toolsRouter = createTRPCRouter({
           appId: app.appId,
           name: app.name,
           no_auth: app.no_auth,
+          auth_schemes: app.auth_schemes as
+            | ComposioConnectorConfig[]
+            | undefined,
           // mistyped in the SDK
           tags: app.tags as unknown as string[],
           logo: app.logo,
@@ -82,6 +87,7 @@ export const toolsRouter = createTRPCRouter({
             validateZodUrl,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
+        customHeaders: customHeadersSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -91,7 +97,7 @@ export const toolsRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
-      const { projectId, url } = input;
+      const { projectId, url, customHeaders } = input;
       const parsedUrl = new URL(url);
 
       // Perform additional safety checks
@@ -103,7 +109,12 @@ export const toolsRouter = createTRPCRouter({
         });
       }
 
-      const server = await operations.createMcpServer(ctx.db, projectId, url);
+      const server = await operations.createMcpServer(
+        ctx.db,
+        projectId,
+        url,
+        customHeaders,
+      );
       return server;
     }),
   deleteMcpServer: protectedProcedure
@@ -131,6 +142,7 @@ export const toolsRouter = createTRPCRouter({
             validateZodUrl,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
+        customHeaders: customHeadersSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -140,12 +152,13 @@ export const toolsRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
-      const { projectId, serverId, url } = input;
+      const { projectId, serverId, url, customHeaders } = input;
       const server = await operations.updateMcpServer(
         ctx.db,
         projectId,
         serverId,
         url,
+        customHeaders,
       );
       return server;
     }),

@@ -1,0 +1,1 @@
+ALTER TABLE "tool_providers" ADD COLUMN "custom_headers" jsonb DEFAULT '{}'::jsonb NOT NULL;

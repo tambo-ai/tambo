@@ -370,6 +370,9 @@ export const toolProviders = pgTable(
     }).notNull(),
     url: text("url"),
     composioAppId: text("composio_app_id"),
+    customHeaders: customJsonb<Record<string, string>>("custom_headers")
+      .notNull()
+      .default({}),
   }),
 );
 

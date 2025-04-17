@@ -47,6 +47,7 @@ export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
                 server={{
                   id: "new",
                   url: "",
+                  customHeaders: {},
                 }}
                 projectId={project.id}
                 onRefresh={handleRefresh}
