@@ -61,6 +61,10 @@ export type ChatCompletionContentPartImage =
 export type ChatCompletionContentPartInputAudio =
   OpenAI.Chat.Completions.ChatCompletionContentPartInputAudio;
 
+/**
+ * Represents a single content part in a chat completion message
+ * Can be a text, image, or audio
+ */
 export type ChatCompletionContentPart =
   OpenAI.Chat.Completions.ChatCompletionContentPart;
 
