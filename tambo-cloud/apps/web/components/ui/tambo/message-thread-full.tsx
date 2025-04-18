@@ -1,7 +1,6 @@
 "use client";
 
 import { MessageInput } from "@/components/ui/tambo/message-input";
-import { MessageSuggestions } from "@/components/ui/tambo/message-suggestions";
 import { ThreadContent } from "@/components/ui/tambo/thread-content";
 import { ThreadHistory } from "@/components/ui/tambo/thread-history";
 import { cn } from "@/lib/utils";
@@ -46,14 +45,13 @@ const MessageThreadFull = React.forwardRef<
       ref={ref}
       className={cn(
         "flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background border border-gray-200",
-        "h-[calc(100vh-var(--header-height)-4rem)] sm:h-[85vh] md:h-[80vh]",
-        "w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto",
+        "h-full",
+        "w-full",
         className,
       )}
       {...props}
     >
-      <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-semibold text-base sm:text-lg">Try tambo-ai</h2>
+      <div className="p-2 sm:p-3 border-b border-gray-200 flex items-center justify-end">
         <ThreadHistory
           contextKey={contextKey}
           position={{ side: "left", align: "start" }}
@@ -61,12 +59,12 @@ const MessageThreadFull = React.forwardRef<
       </div>
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-3 sm:px-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
+        className="flex-1 overflow-y-auto px-2 sm:px-3 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
       >
-        <ThreadContent className="py-3 sm:py-4" />
+        <ThreadContent className="py-2 sm:py-3" />
       </div>
-      <MessageSuggestions />
-      <div className="p-3 sm:p-4 border-t border-gray-200">
+      {/* <MessageSuggestions /> */}
+      <div className="p-2 sm:p-3 border-t border-gray-200">
         <MessageInput contextKey={contextKey} />
       </div>
     </div>

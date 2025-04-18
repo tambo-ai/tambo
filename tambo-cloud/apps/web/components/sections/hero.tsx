@@ -17,10 +17,10 @@ const heroContent = {
     text: "Github",
     link: "https://github.com/tambo-ai/tambo",
   },
-  title: "An AI powered Interface in a few lines of code.",
-  subtitle: "Bring AI intelligence to your React stack.",
+  title: "Add React components to your AI assistant, copilot, or agent.",
+  subtitle: "Register components so your AI can render UI, not just text.",
   cta: {
-    buttonText: "Take tambo for a spin",
+    buttonText: "see it in action",
   },
 };
 
@@ -175,6 +175,20 @@ function HeroIllustration() {
 }
 
 function HeroCTAButton() {
+  const handleScrollToSection = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const targetElement = document.getElementById("code-examples");
+    if (targetElement) {
+      // Scroll to a position just above the element to trigger the snap effect
+      const offsetPosition = targetElement.offsetTop - 250; // Higher offset to ensure section is just coming into view
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -182,7 +196,9 @@ function HeroCTAButton() {
       transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
     >
       <Button asChild className="mt-4 hover:scale-105 transition-transform">
-        <Link href="#interactive-demo">{heroContent.cta.buttonText}</Link>
+        <Link href="#code-examples" onClick={handleScrollToSection}>
+          {heroContent.cta.buttonText}
+        </Link>
       </Button>
     </motion.div>
   );

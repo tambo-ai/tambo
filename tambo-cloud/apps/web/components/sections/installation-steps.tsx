@@ -1,9 +1,10 @@
 "use client";
 
 import clsx from "clsx";
-import { Clipboard } from "lucide-react";
+import { motion } from "framer-motion";
+import { Check, Clipboard } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type TabType = "template" | "existing";
 
@@ -31,7 +32,11 @@ function CopyButton({ text }: { text: string }) {
       className="text-gray-400 hover:text-gray-600 active:text-gray-800 transition-colors rounded-md p-1"
       aria-label="Copy to clipboard"
     >
-      <Clipboard className="h-4 w-4" />
+      {copied ? (
+        <Check className="h-4 w-4 text-green-500" />
+      ) : (
+        <Clipboard className="h-4 w-4" />
+      )}
     </button>
   );
 }
@@ -98,28 +103,58 @@ function CommandBlock({
 
 export function InstallationSteps() {
   const [activeTab, setActiveTab] = useState<TabType>("template");
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.2,
+      },
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
+  const ease = [0.16, 1, 0.3, 1];
 
   return (
-    <section className="py-24">
-      <div className="space-y-4 mb-16">
-        <h2 className="font-heading text-6xl">Get Started with Tambo</h2>
-        <p className="text-xl text-[#1a2b3b]">
-          Choose your preferred installation method and start building in
-          minutes.
-        </p>
-      </div>
-
-      <div className="w-full">
-        <div className="space-y-8">
-          <CommandBlock activeTab={activeTab} setActiveTab={setActiveTab} />
-          <Link
-            href={`/docs/getting-started/quickstart${
-              activeTab === "template" ? "#template" : "#existing-app"
-            }`}
-            className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/80 text-black rounded-lg font-sans text-sm font-medium transition-colors"
+    <section className="py-24" ref={sectionRef}>
+      <div className="max-w-2xl mx-auto">
+        <div className="space-y-8 flex flex-col items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.8, ease }}
+            className="w-full"
           >
-            View full installation guide →
-          </Link>
+            <CommandBlock activeTab={activeTab} setActiveTab={setActiveTab} />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.8, delay: 0.2, ease }}
+          >
+            <Link
+              href={`/docs/getting-started/quickstart${
+                activeTab === "template" ? "#template" : "#existing-app"
+              }`}
+              className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/80 text-black rounded-lg font-sans text-sm font-medium transition-colors"
+            >
+              view full installation guide
+            </Link>
+          </motion.div>
         </div>
       </div>
     </section>

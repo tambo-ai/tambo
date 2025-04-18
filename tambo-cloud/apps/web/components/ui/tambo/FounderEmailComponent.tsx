@@ -190,20 +190,20 @@ export const FounderEmailComponent = ({
 
   return (
     <div className="founder-email-component p-4 border rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Email the Founders</h2>
+      <h2 className="text-lg font-semibold mb-3">Email the Founders</h2>
 
       {emailState.isSent ? (
-        <div className="bg-green-50 p-4 rounded-md text-green-700 mb-4">
-          <p className="font-medium">Email sent successfully!</p>
-          <p className="text-sm mt-1">
+        <div className="bg-green-50 p-3 rounded-md text-green-700 mb-3">
+          <p className="font-medium text-sm">Email sent successfully!</p>
+          <p className="text-xs mt-1">
             Thanks for trying our demo! We read every email and will get back to
             you as soon as possible.
           </p>
         </div>
       ) : (
-        <form className="space-y-4">
+        <form className="space-y-3">
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium mb-1">
+            <label htmlFor="subject" className="block text-xs font-medium mb-1">
               Subject
             </label>
             <Input
@@ -211,12 +211,12 @@ export const FounderEmailComponent = ({
               value={emailState.subject}
               onChange={handleSubjectChange}
               disabled={emailState.isLoading}
-              className="w-full"
+              className="w-full text-sm"
             />
           </div>
 
           <div>
-            <label htmlFor="body" className="block text-sm font-medium mb-1">
+            <label htmlFor="body" className="block text-xs font-medium mb-1">
               Message
             </label>
             <Textarea
@@ -225,11 +225,11 @@ export const FounderEmailComponent = ({
               onChange={handleBodyChange}
               rows={2}
               disabled={emailState.isLoading}
-              className="w-full"
+              className="w-full text-sm"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label htmlFor="email" className="block text-xs font-medium mb-1">
               Enter Your Email Address
             </label>
             <Input
@@ -239,17 +239,17 @@ export const FounderEmailComponent = ({
               onChange={handleEmailChange}
               placeholder="Enter your email address"
               disabled={emailState.isLoading}
-              className="w-full"
+              className="w-full text-sm"
               required
             />
           </div>
 
           {emailState.error && (
-            <div className="bg-red-50 p-4 rounded-md text-red-700">
+            <div className="bg-red-50 p-3 rounded-md text-red-700">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
                   <svg
-                    className="h-5 w-5"
+                    className="h-4 w-4"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -260,11 +260,11 @@ export const FounderEmailComponent = ({
                     />
                   </svg>
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
+                <div className="ml-2">
+                  <h3 className="text-xs font-medium text-red-800">
                     Email Invalid
                   </h3>
-                  <div className="mt-2 text-sm text-red-700">
+                  <div className="mt-1 text-xs text-red-700">
                     {emailState.error.details?.reason ? (
                       <p>
                         {emailState.error.details.reason === "smtp"
@@ -292,7 +292,7 @@ export const FounderEmailComponent = ({
             disabled={
               emailState.isLoading || !emailState.subject || !emailState.body
             }
-            className="w-full"
+            className="w-full text-sm"
           >
             {emailState.isLoading ? "Sending..." : "Send Email to Founders"}
           </Button>

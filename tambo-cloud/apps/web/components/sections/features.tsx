@@ -62,7 +62,7 @@ export function Features() {
   return (
     <Section id="features" className="py-16 sm:py-24">
       <motion.div
-        className="mb-8 sm:mb-16 text-center sm:text-left"
+        className="mb-8 sm:mb-16 text-center"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -72,7 +72,7 @@ export function Features() {
           {featuresContent.heading}
         </h2>
 
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-4xl mx-auto sm:mx-0">
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-4xl mx-auto">
           {featuresContent.description}
         </p>
       </motion.div>

@@ -74,7 +74,7 @@ export default function RootLayout({
         <PHProvider>
           <body
             className={cn(
-              "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col",
+              "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col snap-y snap-proximity",
             )}
           >
             <ThemeProvider

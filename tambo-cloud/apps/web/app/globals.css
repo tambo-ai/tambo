@@ -258,3 +258,40 @@ html {
   --ring: 240 10% 3.9%;
   --radius: 0.5rem;
 }
+
+/* Scroll snap behavior */
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Add some scroll margin to account for fixed header */
+#code-examples {
+  scroll-margin-top: 4rem;
+}
+
+/* Section highlight animation */
+@keyframes section-highlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0);
+    transform: scale(0.99);
+  }
+  30% {
+    box-shadow: 0 0 25px 5px rgba(127, 255, 196, 0.25);
+    transform: scale(1.01);
+  }
+  70% {
+    box-shadow: 0 0 25px 5px rgba(127, 255, 196, 0.25);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0);
+    transform: scale(1);
+  }
+}
+
+.section-highlight {
+  animation: section-highlight 1.5s ease-in-out;
+  border-radius: var(--radius);
+  transition: transform 0.3s ease;
+}
