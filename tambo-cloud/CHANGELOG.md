@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.37.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.3...repo-v0.37.0) (2025-04-18)
+
+
+### Features
+
+* landing-demo-with-code ([#805](https://github.com/tambo-ai/tambo-cloud/issues/805)) ([bca7dcd](https://github.com/tambo-ai/tambo-cloud/commit/bca7dcd153d05f8bef8066c96b574d958fe58982))
+* update MCP and tools editing to start to account for auth ([#800](https://github.com/tambo-ai/tambo-cloud/issues/800)) ([7cd2f44](https://github.com/tambo-ai/tambo-cloud/commit/7cd2f441c89247e1e08da7e922a4b0298e8408a8))
+
+
+### Miscellaneous Chores
+
+* bump openai and tokenjs ([#804](https://github.com/tambo-ai/tambo-cloud/issues/804)) ([6b29d72](https://github.com/tambo-ai/tambo-cloud/commit/6b29d7245b4eab70eca2d84216efddd4bb25615e))
+* remove old ts-node dep, replace with tsx ([#796](https://github.com/tambo-ai/tambo-cloud/issues/796)) ([e59be39](https://github.com/tambo-ai/tambo-cloud/commit/e59be3947f0106100983523a95b4718b0cdf39b6))
+
+
+### Code Refactoring
+
+* more cleanup to make testing easier ([#798](https://github.com/tambo-ai/tambo-cloud/issues/798)) ([1a79777](https://github.com/tambo-ai/tambo-cloud/commit/1a79777b395dcaf1e74f2b22ab3d2738242d905e))
+
+
+### Tests
+
+* more tests for thread stuff ([#799](https://github.com/tambo-ai/tambo-cloud/issues/799)) ([f36fd71](https://github.com/tambo-ai/tambo-cloud/commit/f36fd71f00ca5f18c81e294f9145197004542186))
+
 ## [0.36.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.2...repo-v0.36.3) (2025-04-16)
 
 
