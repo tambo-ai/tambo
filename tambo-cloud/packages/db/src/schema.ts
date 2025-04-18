@@ -1,22 +1,15 @@
-import type {
-  ComponentDecisionV2,
-  ToolCallRequest,
-} from "@tambo-ai-cloud/core";
 import {
   ActionType,
   ChatCompletionContentPart,
+  ComponentDecisionV2,
+  ComposioAuthMode,
   GenerationStage,
   MessageRole,
+  ToolCallRequest,
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
 import { relations, sql } from "drizzle-orm";
-import {
-  index,
-  pgPolicy,
-  pgRole,
-  pgTable,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { index, pgPolicy, pgRole, pgTable, unique } from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 import { customJsonb } from "./drizzleUtil";
 export { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
@@ -405,16 +398,25 @@ export const toolProviderUserContexts = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
-    // this is effectively the end-user id
-    contextKey: text("context_key").notNull(),
+    // this is effectively the end-user id. If null, then this is the default/global context for the tool provider.
+    contextKey: text("context_key"),
     toolProviderId: text("tool_provider_id")
-      .references(() => toolProviders.id)
+      .references(() => toolProviders.id, { onDelete: "cascade" })
+      .notNull(),
+    composioIntegrationId: text("composio_integration_id"),
+    composioAuthSchemaMode: text("composio_auth_schema_mode", {
+      enum: Object.values(ComposioAuthMode) as [ComposioAuthMode],
+    }),
+    composioAuthFields: customJsonb<Record<string, string>>(
+      "composio_auth_fields",
+    )
+      .default({})
       .notNull(),
   }),
   (table) => {
     return [
       index("context_tool_providers_context_key_idx").on(table.contextKey),
-      uniqueIndex("context_tool_providers_context_key_tool_provider_idx").on(
+      unique("context_tool_providers_context_key_tool_provider_idx").on(
         table.contextKey,
         table.toolProviderId,
       ),

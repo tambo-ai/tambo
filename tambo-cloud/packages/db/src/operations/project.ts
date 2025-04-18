@@ -1,4 +1,5 @@
 import {
+  ComposioAuthMode,
   encryptApiKey,
   encryptProviderKey,
   hashKey,
@@ -6,7 +7,7 @@ import {
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
 import { createHash, randomBytes } from "crypto";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
@@ -450,4 +451,58 @@ export async function disableComposioApp(
         eq(schema.toolProviders.composioAppId, appId),
       ),
     );
+}
+
+export async function getComposioAppProvider(
+  db: HydraDb,
+  projectId: string,
+  appId: string,
+) {
+  const [provider] = await db.query.toolProviders.findMany({
+    where: and(
+      eq(schema.toolProviders.projectId, projectId),
+      eq(schema.toolProviders.type, ToolProviderType.COMPOSIO),
+      eq(schema.toolProviders.composioAppId, appId),
+    ),
+  });
+  return provider;
+}
+
+export async function upsertComposioAuth(
+  db: HydraDb,
+  toolProviderId: string,
+  contextKey: string | null,
+  authMode: ComposioAuthMode,
+  authFields: Record<string, string>,
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    // First try to find an existing context
+    const [existingContext] = await tx.query.toolProviderUserContexts.findMany({
+      where: and(
+        eq(schema.toolProviderUserContexts.toolProviderId, toolProviderId),
+        contextKey
+          ? eq(schema.toolProviderUserContexts.contextKey, contextKey)
+          : isNull(schema.toolProviderUserContexts.contextKey),
+      ),
+    });
+
+    if (existingContext) {
+      // Update existing context
+      await tx
+        .update(schema.toolProviderUserContexts)
+        .set({
+          composioAuthSchemaMode: authMode,
+          composioAuthFields: authFields,
+        })
+        .where(eq(schema.toolProviderUserContexts.id, existingContext.id));
+    } else {
+      // Create new context
+      await tx.insert(schema.toolProviderUserContexts).values({
+        toolProviderId,
+        contextKey,
+        composioAuthSchemaMode: authMode,
+        composioAuthFields: authFields,
+      });
+    }
+  });
 }

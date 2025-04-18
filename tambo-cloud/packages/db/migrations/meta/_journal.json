@@ -225,6 +225,34 @@
       "when": 1744928972454,
       "tag": "0031_previous_frank_castle",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1745003412161,
+      "tag": "0032_conscious_wallflower",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1745004109452,
+      "tag": "0033_small_lucky_pierre",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1745008491289,
+      "tag": "0034_moaning_revanche",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1745010132732,
+      "tag": "0035_famous_shooting_star",
+      "breakpoints": true
     }
   ]
 }

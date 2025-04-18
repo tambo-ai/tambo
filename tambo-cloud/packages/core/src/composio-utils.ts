@@ -2,11 +2,17 @@
 // and then asking it to generate the types.
 
 /** possible authentication modes */
-export type ComposioAuthMode = "API_KEY" | "OAUTH2" | "BEARER_TOKEN" | "BASIC";
+export enum ComposioAuthMode {
+  API_KEY = "API_KEY",
+  OAUTH2 = "OAUTH2",
+  BEARER_TOKEN = "BEARER_TOKEN",
+  BASIC = "BASIC",
+  BASIC_WITH_JWT = "BASIC_WITH_JWT",
+}
 
 export interface ComposioConnectorConfig {
-  /** unique name of this connector */
-  name: string;
+  /** name of this connector */
+  name?: string;
 
   /** where to proxy requests */
   proxy: {
@@ -33,17 +39,17 @@ export interface ComposioConnectorConfig {
   /** OAuth2: how scopes are separated in the URL (often a space) */
   scope_seperator?: string | null;
   /** OAuth2: any extra fixed query‑params for the auth redirect */
-  authorization_params?: Record<string, any> | null;
+  authorization_params?: Record<string, unknown> | null;
   /** OAuth2: method to call token_url (e.g. 'POST') */
   token_access_request_method?: string | null;
   /** OAuth2: how to authenticate when calling token_url */
   token_request_auth_method?: string | null;
   /** OAuth2: extra fixed body‑params for the token request */
-  token_params?: Record<string, any> | null;
+  token_params?: Record<string, unknown> | null;
   /** OAuth2: parameters for refreshing the token */
-  refresh_params?: Record<string, any> | null;
+  refresh_params?: Record<string, unknown> | null;
   /** OAuth2: keys to pluck out of the token response */
-  token_response_metadata?: any[] | null;
+  token_response_metadata?: unknown[] | null;
   /** OAuth2: whether to disable PKCE */
   disable_pkce?: boolean;
   /** OAuth2: all available scopes supported by the provider */
@@ -63,7 +69,7 @@ export interface ComposioField {
   display_name: string;
   required: boolean;
   override: boolean;
-  default: any;
+  default: unknown;
   expected_from_customer: boolean;
   is_secret: boolean;
 }

@@ -1,9 +1,13 @@
 import { getComposio } from "@/lib/composio";
-import { ComposioConnectorConfig } from "@/lib/composio-utils";
 import { customHeadersSchema } from "@/lib/headerValidation";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { operations } from "@tambo-ai-cloud/db";
+import {
+  ComposioAuthMode,
+  ComposioConnectorConfig,
+} from "@tambo-ai-cloud/core";
+import { operations, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
+import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { validateSafeURL, validateZodUrl } from "../../../lib/urlSecurity";
 
@@ -29,10 +33,12 @@ export const toolsRouter = createTRPCRouter({
           appId: app.appId,
           name: app.name,
           no_auth: app.no_auth,
-          auth_schemes: app.auth_schemes as
-            | ComposioConnectorConfig[]
-            | undefined,
-          // mistyped in the SDK
+          auth_schemes: Array.isArray(app.auth_schemes)
+            ? app.auth_schemes.map((scheme: ComposioConnectorConfig) => ({
+                ...scheme,
+                mode: scheme.mode as ComposioAuthMode,
+              }))
+            : undefined,
           tags: app.tags as unknown as string[],
           logo: app.logo,
           description: app.description,
@@ -161,5 +167,90 @@ export const toolsRouter = createTRPCRouter({
         customHeaders,
       );
       return server;
+    }),
+  updateComposioAuth: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        appId: z.string(),
+        contextKey: z.string().nullable(),
+        authMode: z.nativeEnum(ComposioAuthMode),
+        authFields: z.record(z.string(), z.string()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await operations.ensureProjectAccess(
+        ctx.db,
+        input.projectId,
+        ctx.session.user.id,
+      );
+
+      const toolProvider = await operations.getComposioAppProvider(
+        ctx.db,
+        input.projectId,
+        input.appId,
+      );
+
+      if (!toolProvider) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tool provider not found",
+        });
+      }
+
+      await operations.upsertComposioAuth(
+        ctx.db,
+        toolProvider.id,
+        input.contextKey,
+        input.authMode,
+        input.authFields,
+      );
+    }),
+  getComposioAuth: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        appId: z.string(),
+        contextKey: z.string().nullable(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      await operations.ensureProjectAccess(
+        ctx.db,
+        input.projectId,
+        ctx.session.user.id,
+      );
+
+      const toolProvider = await operations.getComposioAppProvider(
+        ctx.db,
+        input.projectId,
+        input.appId,
+      );
+
+      if (!toolProvider) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tool provider not found",
+        });
+      }
+
+      // Get the current auth context
+      const [context] = await ctx.db.query.toolProviderUserContexts.findMany({
+        where: and(
+          eq(schema.toolProviderUserContexts.toolProviderId, toolProvider.id),
+          input.contextKey
+            ? eq(schema.toolProviderUserContexts.contextKey, input.contextKey)
+            : isNull(schema.toolProviderUserContexts.contextKey),
+        ),
+      });
+
+      if (!context) {
+        return null;
+      }
+
+      return {
+        mode: context.composioAuthSchemaMode,
+        fields: context.composioAuthFields,
+      };
     }),
 });
