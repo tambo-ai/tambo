@@ -11,7 +11,6 @@ import {
 } from "@tambo-ai-cloud/core";
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
-import { AvailableComponentDto } from "../../components/dto/generate-component.dto";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { ThreadMessageDto } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
@@ -22,6 +21,26 @@ import {
   verifyLatestMessageConsistency,
 } from "./messages";
 import { extractToolResponse } from "./tool";
+
+/**
+ * Get the final decision from a stream of component decisions
+ * by waiting for the last chunk in the stream.
+ */
+async function getFinalDecision(
+  stream: AsyncIterableIterator<LegacyComponentDecision>,
+): Promise<LegacyComponentDecision> {
+  let finalDecision: LegacyComponentDecision | undefined;
+
+  for await (const chunk of stream) {
+    finalDecision = chunk;
+  }
+
+  if (!finalDecision) {
+    throw new Error("No decision was received from the stream");
+  }
+
+  return finalDecision;
+}
 
 /**
  * Update the generation stage of a thread
@@ -60,7 +79,6 @@ export async function processThreadMessage(
   advanceRequestDto: AdvanceThreadDto,
   tamboBackend: TamboBackend,
   systemTools: SystemTools,
-  availableComponentMap: Record<string, AvailableComponentDto>,
 ): Promise<LegacyComponentDecision> {
   const latestMessage = messages[messages.length - 1];
   // For tool responses, we can fully hydrate the component
@@ -76,40 +94,23 @@ export async function processThreadMessage(
     if (!toolResponse) {
       throw new Error("No tool response found");
     }
-
-    const componentDef = advanceRequestDto.availableComponents?.find(
-      (c) => c.name === latestMessage.component?.componentName,
-    );
-    if (!componentDef) {
-      throw new Error("Component definition not found");
-    }
-
-    return await tamboBackend.hydrateComponentWithData(
-      messages,
-      componentDef,
-      toolResponse,
-      latestMessage.tool_call_id,
+  } else {
+    // For non-tool responses, we need to generate a component
+    await updateGenerationStage(
+      db,
       threadId,
-      systemTools,
+      GenerationStage.CHOOSING_COMPONENT,
+      `Choosing component...`,
     );
   }
-
-  // For non-tool responses, we need to generate a component
-  await updateGenerationStage(
-    db,
-    threadId,
-    GenerationStage.CHOOSING_COMPONENT,
-    `Choosing component...`,
-  );
-
-  return await tamboBackend.generateComponent(
-    messages,
-    availableComponentMap,
-    threadId,
+  const decisionStream = await tamboBackend.runDecisionLoop({
+    messageHistory: messages,
+    availableComponents: advanceRequestDto.availableComponents ?? [],
     systemTools,
-    false,
-    advanceRequestDto.additionalContext,
-  );
+    additionalContext: advanceRequestDto.additionalContext,
+  });
+
+  return await getFinalDecision(decisionStream);
 }
 
 /**
@@ -238,7 +239,6 @@ export async function addAssistantResponse(
 export async function* convertDecisionStreamToMessageStream(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
   inProgressMessage: ThreadMessage,
-  toolCallId?: string,
 ): AsyncIterableIterator<ThreadMessageDto> {
   let finalThreadMessage: ThreadMessageDto = {
     // Only bring in the bare minimum fields from the inProgressMessage
@@ -250,7 +250,7 @@ export async function* convertDecisionStreamToMessageStream(
     threadId: inProgressMessage.threadId,
   };
   let finalToolCallRequest: ToolCallRequest | undefined;
-  let finalToolCallId: string | undefined;
+  // let finalToolCallId: string | undefined;
 
   for await (const chunk of stream) {
     finalThreadMessage = {
@@ -269,7 +269,7 @@ export async function* convertDecisionStreamToMessageStream(
       finalToolCallRequest = chunk.toolCallRequest;
       // toolCallId is set when streaming the response to a tool response
       // chunk.toolCallId is set when streaming the response to a component
-      finalToolCallId = toolCallId ?? chunk.toolCallId;
+      // finalToolCallId = toolCallId ?? chunk.toolCallId;
     }
 
     yield finalThreadMessage;
@@ -279,7 +279,7 @@ export async function* convertDecisionStreamToMessageStream(
   finalThreadMessage = {
     ...finalThreadMessage,
     toolCallRequest: finalToolCallRequest,
-    tool_call_id: finalToolCallId,
+    // tool_call_id: finalToolCallId,
   };
 
   yield finalThreadMessage;

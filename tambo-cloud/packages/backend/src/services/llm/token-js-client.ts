@@ -1,9 +1,6 @@
 import { formatTemplate } from "@libretto/openai/lib/src/template";
 import { StreamCompletionResponse, TokenJS } from "@libretto/token.js";
-import {
-  ChatCompletionMessageParam,
-  tryParseJsonObject,
-} from "@tambo-ai-cloud/core";
+import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { ResponseFormatJSONObject } from "openai/resources";
@@ -137,21 +134,14 @@ export class TokenJSClient implements LLMClient {
         | OpenAI.Chat.Completions.ChatCompletionMessageToolCall
         | undefined;
       if (accumulatedToolCall.name && accumulatedToolCall.arguments) {
-        //don't return tool calls until they are complete and parseable
-        const toolArgs = tryParseJsonObject(
-          accumulatedToolCall.arguments,
-          false,
-        );
-        if (toolArgs) {
-          toolCallRequest = {
-            function: {
-              name: accumulatedToolCall.name,
-              arguments: accumulatedToolCall.arguments,
-            },
-            id: accumulatedToolCall.id ?? "",
-            type: "function",
-          };
-        }
+        toolCallRequest = {
+          function: {
+            name: accumulatedToolCall.name,
+            arguments: accumulatedToolCall.arguments,
+          },
+          id: accumulatedToolCall.id ?? "",
+          type: "function",
+        };
       }
 
       yield {
@@ -159,7 +149,7 @@ export class TokenJSClient implements LLMClient {
           content: accumulatedMessage,
           role: "assistant",
           tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
-          refusal: null, // Added to comply with updated ChatCompletionMessage interface
+          refusal: null,
         },
         index: 0,
         logprobs: null,

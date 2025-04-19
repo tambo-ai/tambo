@@ -508,7 +508,6 @@ export class ThreadsService {
         threadMessageDtoToThreadMessage(messages),
         userMessage,
         advanceRequestDto,
-        availableComponentMap,
       );
     }
 
@@ -521,7 +520,6 @@ export class ThreadsService {
       advanceRequestDto,
       tamboBackend,
       systemTools,
-      availableComponentMap,
     );
     const {
       responseMessageDto,
@@ -613,7 +611,6 @@ export class ThreadsService {
     messages: ThreadMessage[],
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
-    availableComponentMap: Record<string, AvailableComponentDto>,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>> {
     const systemTools = await getSystemTools(db, projectId);
     const latestMessage = messages[messages.length - 1];
@@ -633,23 +630,13 @@ export class ThreadsService {
         throw new Error("No tool response found");
       }
 
-      const componentDef = advanceRequestDto.availableComponents?.find(
-        (c) => c.name === latestMessage.component?.componentName,
-      );
-      if (!componentDef) {
-        throw new Error("Component definition not found");
-      }
+      const streamedResponseMessage = await tamboBackend.runDecisionLoop({
+        messageHistory: messages,
+        availableComponents: advanceRequestDto.availableComponents ?? [],
+        systemTools,
+        additionalContext: advanceRequestDto.additionalContext,
+      });
 
-      const streamedResponseMessage =
-        await tamboBackend.hydrateComponentWithData(
-          messages,
-          componentDef,
-          toolResponse,
-          latestMessage.tool_call_id,
-          threadId,
-          systemTools,
-          true,
-        );
       return this.handleAdvanceThreadStream(
         projectId,
         threadId,
@@ -668,15 +655,12 @@ export class ThreadsService {
       `Choosing component...`,
     );
 
-    const streamedResponseMessage = await tamboBackend.generateComponent(
-      messages,
-      availableComponentMap,
-      threadId,
+    const streamedResponseMessage = await tamboBackend.runDecisionLoop({
+      messageHistory: messages,
+      availableComponents: advanceRequestDto.availableComponents ?? [],
       systemTools,
-      true,
-      advanceRequestDto.additionalContext,
-    );
-
+      additionalContext: advanceRequestDto.additionalContext,
+    });
     return this.handleAdvanceThreadStream(
       projectId,
       threadId,
@@ -723,7 +707,6 @@ export class ThreadsService {
     for await (const threadMessage of convertDecisionStreamToMessageStream(
       stream,
       inProgressMessage,
-      toolCallId,
     )) {
       // Update db message on interval
       const currentTime = Date.now();

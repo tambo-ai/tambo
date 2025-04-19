@@ -15,7 +15,7 @@ import { getAvailableComponentsPromptTemplate } from "../../prompt/component-for
 import { getComponentHydrationPromptTemplate } from "../../prompt/component-hydration";
 import { schemaV1, schemaV2 } from "../../prompt/schemas";
 import { SystemTools } from "../../systemTools";
-import { parseAndValidate } from "../../util/parseResponse";
+import { parseAndValidate } from "../../util/response-parsing";
 import { threadMessagesToChatHistory } from "../../util/threadMessagesToChatHistory";
 import {
   CompleteParams,
