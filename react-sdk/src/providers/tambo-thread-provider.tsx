@@ -406,7 +406,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             chunk.responseMessageDto.threadId,
           );
 
-          // Pass the current message's ID to be removed when the new stream starts, since we now know it is a tool call request message
           return await handleAdvanceStream(
             toolCallResponseStream,
             toolCallResponseParams,
