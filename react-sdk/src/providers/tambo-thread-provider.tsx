@@ -222,13 +222,15 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         }
         const prevMessages = prevMap[threadId]?.messages || [];
         const updatedMessages = [...prevMessages, chatMessage];
-        return {
+
+        const updatedThreadMap = {
           ...prevMap,
           [threadId]: {
             ...prevMap[threadId],
             messages: updatedMessages,
           },
         };
+        return updatedThreadMap;
       });
 
       if (sendToServer) {
@@ -320,19 +322,21 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         console.warn("Switching to placeholder thread, may be a bug.");
         return;
       }
-
       setCurrentThreadId(threadId);
-      if (!threadMap[threadId]) {
-        setThreadMap((prevMap) => {
-          return {
-            ...prevMap,
-            [threadId]: {
-              ...prevMap[PLACEHOLDER_THREAD.id],
-              id: threadId,
-            },
-          };
-        });
-      }
+      setThreadMap((prevMap) => {
+        if (prevMap[threadId]) {
+          return prevMap;
+        }
+        // If this is a new thread, add placeholder thread messages to the thread
+        const updatedThreadMap = {
+          ...prevMap,
+          [threadId]: {
+            ...prevMap[PLACEHOLDER_THREAD.id],
+            id: threadId,
+          },
+        };
+        return updatedThreadMap;
+      });
       if (fetch) {
         await fetchThread(threadId);
       }
@@ -407,7 +411,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             toolCallResponseStream,
             toolCallResponseParams,
             threadId,
-            finalMessage?.id,
           );
         } else {
           if (
