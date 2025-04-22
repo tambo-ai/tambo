@@ -178,10 +178,13 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         }),
       };
 
-      setThreadMap((prevMap) => ({
-        ...prevMap,
-        [threadId]: threadWithRenderedComponents,
-      }));
+      setThreadMap((prevMap) => {
+        const updatedThreadMap = {
+          ...prevMap,
+          [threadId]: threadWithRenderedComponents,
+        };
+        return updatedThreadMap;
+      });
     },
     [client.beta.threads, componentList, currentMessageCache],
   );
@@ -222,13 +225,15 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         }
         const prevMessages = prevMap[threadId]?.messages || [];
         const updatedMessages = [...prevMessages, chatMessage];
-        return {
+
+        const updatedThreadMap = {
           ...prevMap,
           [threadId]: {
             ...prevMap[threadId],
             messages: updatedMessages,
           },
         };
+        return updatedThreadMap;
       });
 
       if (sendToServer) {
@@ -320,19 +325,21 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         console.warn("Switching to placeholder thread, may be a bug.");
         return;
       }
-
       setCurrentThreadId(threadId);
-      if (!threadMap[threadId]) {
-        setThreadMap((prevMap) => {
-          return {
-            ...prevMap,
-            [threadId]: {
-              ...prevMap[PLACEHOLDER_THREAD.id],
-              id: threadId,
-            },
-          };
-        });
-      }
+      setThreadMap((prevMap) => {
+        if (prevMap[threadId]) {
+          return prevMap;
+        }
+        // If this is a new thread, add placeholder thread messages to the thread
+        const updatedThreadMap = {
+          ...prevMap,
+          [threadId]: {
+            ...prevMap[PLACEHOLDER_THREAD.id],
+            id: threadId,
+          },
+        };
+        return updatedThreadMap;
+      });
       if (fetch) {
         await fetchThread(threadId);
       }
@@ -343,7 +350,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   const updateThreadStatus = useCallback(
     (threadId: string, stage: GenerationStage, statusMessage?: string) => {
       setThreadMap((prevMap) => {
-        return {
+        const updatedThreadMap = {
           ...prevMap,
           [threadId]: {
             ...prevMap[threadId],
@@ -351,6 +358,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             statusMessage: statusMessage,
           },
         };
+        return updatedThreadMap;
       });
     },
     [],
@@ -375,7 +383,10 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         isFirstChunk = false;
 
         if (chunk.responseMessageDto.toolCallRequest) {
-          updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
+          updateThreadStatus(
+            chunk.responseMessageDto.threadId,
+            GenerationStage.FETCHING_CONTEXT,
+          );
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
@@ -395,19 +406,20 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
                 tool_call_id: chunk.responseMessageDto.tool_call_id,
               },
             };
-          updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
+          updateThreadStatus(
+            chunk.responseMessageDto.threadId,
+            GenerationStage.STREAMING_RESPONSE,
+          );
           const toolCallResponseStream = await advanceStream(
             client,
             toolCallResponseParams,
             chunk.responseMessageDto.threadId,
           );
 
-          // Pass the current message's ID to be removed when the new stream starts, since we now know it is a tool call request message
           return await handleAdvanceStream(
             toolCallResponseStream,
             toolCallResponseParams,
-            threadId,
-            finalMessage?.id,
+            chunk.responseMessageDto.threadId,
           );
         } else {
           if (
@@ -440,10 +452,10 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         }
       }
 
-      updateThreadStatus(threadId, GenerationStage.COMPLETE);
-      if (finalMessage) {
-        await fetchThread(finalMessage.threadId);
-      }
+      updateThreadStatus(
+        finalMessage?.threadId ?? threadId,
+        GenerationStage.COMPLETE,
+      );
       return (
         finalMessage ?? {
           threadId: "",
