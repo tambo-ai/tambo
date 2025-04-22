@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.4](https://github.com/tambo-ai/tambo/compare/react-v0.20.3...react-v0.20.4) (2025-04-22)
+
+
+### Bug Fixes
+
+* Show toolcall message in thread ([#340](https://github.com/tambo-ai/tambo/issues/340)) ([d1ad5aa](https://github.com/tambo-ai/tambo/commit/d1ad5aa5ccf38dcf1eae1d4e06ae1f9893ef6534))
+
 ## [0.20.3](https://github.com/tambo-ai/tambo/compare/react-v0.20.2...react-v0.20.3) (2025-04-16)
 
 
