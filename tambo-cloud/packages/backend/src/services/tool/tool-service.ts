@@ -18,7 +18,7 @@ export const standardToolParameters: FunctionParameters = {
     displayMessage: {
       type: "string",
       description:
-        "A message to be displayed before the tool is called. This should be a natural language response to the previous message to describe what you are about to do. For example, `First, let me <do something>` or 'Great, I can see <something>, let me <do something>'. Get creative, this is what will make the user feel like they are having a conversation with you.",
+        "A message to be displayed before the tool is called. This should be a natural language response to the previous message to describe what you are about to do. For example, `First, let me <do something>` or 'Great, I can see <something>, let me <do something>'. Get creative, this is what will make the user feel like they are having a conversation with you. You can and should use markdown formatting (code blocks with language specification, bold, lists) when showing examples or code.",
     },
   },
   required: ["statusMessage", "displayMessage"],
@@ -104,7 +104,7 @@ export const displayMessageTool: OpenAI.Chat.Completions.ChatCompletionTool = {
   function: {
     name: "showMessage_tambo_internal",
     description:
-      "Display a message to the user. Use this when you just want to communicate something or ask for clarification without taking any other action.",
+      "Display a message to the user. Use this when you just want to communicate something or ask for clarification without taking any other action. The message can and should include markdown formatting when appropriate (e.g., ```typescript code blocks, **bold text**, lists) - especially when showing code examples.",
     parameters: {
       type: "object",
       properties: {},
