@@ -3,7 +3,6 @@ import { FunctionParameters } from "openai/resources";
 import {
   AvailableComponent,
   ComponentContextToolMetadata,
-  ComponentPropsMetadata,
 } from "../../model/component-metadata";
 
 // Standard parameters to be added to all tools
@@ -90,9 +89,7 @@ export function convertComponentsToUITools(
           typeof component.props === "object" && "properties" in component.props
             ? component.props.properties
             : component.props,
-        required: Object.entries(component.props)
-          .filter(([_, value]) => (value as ComponentPropsMetadata).isRequired)
-          .map(([key]) => key),
+        required: component.props.required,
         additionalProperties: false,
       },
     },
