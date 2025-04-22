@@ -23,7 +23,7 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^15.6.1",
-    "recharts": "^2.15.2",
+    "recharts": "^2.15.3",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
