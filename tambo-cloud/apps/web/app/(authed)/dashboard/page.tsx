@@ -56,6 +56,13 @@ export default function DashboardPage() {
     }
   }, [projectLoadingError, toast]);
 
+  // Open create dialog by default if no projects exist
+  useEffect(() => {
+    if (!isProjectsLoading && projects && projects.length === 0) {
+      setIsCreateDialogOpen(true);
+    }
+  }, [isProjectsLoading, projects]);
+
   const { mutateAsync: createProject } =
     api.project.createProject.useMutation();
   const { mutateAsync: addProviderKey } =

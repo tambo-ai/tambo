@@ -8,6 +8,7 @@ import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
+import { APIKeyDialog } from "./api-key-dialog";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { AlertState } from "./project-details-dialog";
 
@@ -34,6 +35,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [newGeneratedKey, setNewGeneratedKey] = useState<string | null>(null);
+  const [showKeyDialog, setShowKeyDialog] = useState(false);
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
     title: "",
@@ -52,6 +54,9 @@ export function APIKeyList({ project }: APIKeyListProps) {
     error: apiKeysError,
   } = api.project.getApiKeys.useQuery(project.id);
 
+  const { mutateAsync: generateApiKey, isPending: isGeneratingKey } =
+    api.project.generateApiKey.useMutation();
+
   useEffect(() => {
     if (apiKeysError) {
       toast({
@@ -62,11 +67,16 @@ export function APIKeyList({ project }: APIKeyListProps) {
     }
   }, [apiKeysError, toast]);
 
-  const { mutateAsync: generateApiKey, isPending: isGeneratingKey } =
-    api.project.generateApiKey.useMutation();
+  // Auto-create first key if none exist
+  useEffect(() => {
+    if (!apiKeysLoading && apiKeys?.length === 0) {
+      handleCreateApiKey("first-tambo-key");
+    }
+  }, [apiKeysLoading, apiKeys]);
 
-  const handleCreateApiKey = async () => {
-    if (!newKeyName.trim()) {
+  const handleCreateApiKey = async (keyName?: string) => {
+    const name = keyName || newKeyName;
+    if (!name.trim()) {
       toast({
         title: "Error",
         description: "Please enter a key name",
@@ -79,15 +89,23 @@ export function APIKeyList({ project }: APIKeyListProps) {
       setIsCreating(true);
       const newKey = await generateApiKey({
         projectId: project.id,
-        name: newKeyName,
+        name: name,
       });
       setNewGeneratedKey(newKey.apiKey);
+
+      // Only show dialog for auto-generated first key
+      if (keyName === "first-tambo-key") {
+        setShowKeyDialog(true);
+      }
+
       await refetchApiKeys();
       setNewKeyName("");
-      toast({
-        title: "Success",
-        description: "New API key created successfully",
-      });
+      if (!keyName) {
+        toast({
+          title: "Success",
+          description: "New API key created successfully",
+        });
+      }
     } catch (_error) {
       toast({
         title: "Error",
@@ -225,7 +243,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
                   <Button
                     size="sm"
                     className="font-sans"
-                    onClick={handleCreateApiKey}
+                    onClick={async () => await handleCreateApiKey()}
                     disabled={isGeneratingKey || !newKeyName.trim()}
                   >
                     {isGeneratingKey ? (
@@ -242,8 +260,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
             </motion.div>
           )}
 
-          {/* Newly generated key */}
-          {newGeneratedKey && (
+          {newGeneratedKey && !showKeyDialog && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -312,106 +329,92 @@ export function APIKeyList({ project }: APIKeyListProps) {
               </motion.p>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Display API keys */}
-        <div className="min-h-[50px]">
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="h-16 animate-pulse rounded-md"
-                  initial={{ opacity: 0.3, y: 5 }}
-                  animate={{
-                    opacity: [0.3, 0.6, 0.3],
-                    y: 0,
-                  }}
-                  transition={{
-                    opacity: { repeat: Infinity, duration: 1.5 },
-                    y: { duration: 0.3 },
-                  }}
-                />
-              ))}
-            </div>
-          ) : apiKeys?.length ? (
-            <div className="space-y-2">
-              <AnimatePresence>
-                {apiKeys.map((key, index) => (
+          {/* Display API keys */}
+          <div className="min-h-[50px]">
+            {isLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => (
                   <motion.div
-                    key={key.id}
-                    className="p-3 rounded-md border space-y-1"
-                    custom={index}
-                    variants={listItemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    layout
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-sm font-heading font-medium">
-                          {key.name}
-                        </p>
-                        <p className="text-xs font-sans text-muted-foreground">
-                          {key.lastUsedAt
-                            ? `Last used: ${DateTime.fromJSDate(key.lastUsedAt).toFormat("EEE MMM d 'at' h:mma")}`
-                            : "Never used"}
-                        </p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <code className="text-xs font-mono px-2 py-1 bg-muted rounded">
-                            {key.partiallyHiddenKey?.slice(0, 15)}
-                          </code>
-                        </div>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() =>
-                          setAlertState({
-                            show: true,
-                            title: "Delete API Key",
-                            description:
-                              "Are you sure you want to delete this API key? This action cannot be undone.",
-                            data: { id: key.id },
-                          })
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </motion.div>
+                    key={i}
+                    className="h-16 animate-pulse rounded-md"
+                    initial={{ opacity: 0.3, y: 5 }}
+                    animate={{
+                      opacity: [0.3, 0.6, 0.3],
+                      y: 0,
+                    }}
+                    transition={{
+                      opacity: { repeat: Infinity, duration: 1.5 },
+                      y: { duration: 0.3 },
+                    }}
+                  />
                 ))}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <motion.div
-              className="flex flex-col items-center justify-center py-6 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <p className="text-sm font-sans text-muted-foreground mb-2">
-                No API keys available
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="font-sans"
-                onClick={() => setIsCreating(true)}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Add your first API key
-              </Button>
-            </motion.div>
-          )}
-        </div>
+              </div>
+            ) : apiKeys?.length ? (
+              <div className="space-y-2">
+                <AnimatePresence>
+                  {apiKeys.map((key, index) => (
+                    <motion.div
+                      key={key.id}
+                      className="p-3 rounded-md border space-y-1"
+                      custom={index}
+                      variants={listItemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      layout
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-heading font-medium">
+                            {key.name}
+                          </p>
+                          <p className="text-xs font-sans text-muted-foreground">
+                            {key.lastUsedAt
+                              ? `Last used: ${DateTime.fromJSDate(key.lastUsedAt).toFormat("EEE MMM d 'at' h:mma")}`
+                              : "Never used"}
+                          </p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <code className="text-xs font-mono px-2 py-1 bg-muted rounded">
+                              {key.partiallyHiddenKey?.slice(0, 15)}
+                            </code>
+                          </div>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() =>
+                            setAlertState({
+                              show: true,
+                              title: "Delete API Key",
+                              description:
+                                "Are you sure you want to delete this API key? This action cannot be undone.",
+                              data: { id: key.id },
+                            })
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            ) : null}
+          </div>
+        </AnimatePresence>
 
         <DeleteAlertDialog
           alertState={alertState}
           setAlertState={setAlertState}
           onConfirm={handleDeleteApiKey}
+        />
+
+        <APIKeyDialog
+          open={showKeyDialog}
+          onOpenChange={setShowKeyDialog}
+          apiKey={newGeneratedKey || ""}
         />
       </CardContent>
     </Card>
