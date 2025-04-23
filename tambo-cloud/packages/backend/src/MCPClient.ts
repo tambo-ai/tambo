@@ -20,9 +20,12 @@ export class MCPClient {
   /**
    * Private constructor to enforce using the static create method.
    * @param endpoint - The URL of the MCP server to connect to
+   * @param headers - Optional custom headers to include in requests
    */
-  private constructor(endpoint: string) {
-    this.transport = new SSEClientTransport(new URL(endpoint));
+  private constructor(endpoint: string, headers?: Record<string, string>) {
+    this.transport = new SSEClientTransport(new URL(endpoint), {
+      requestInit: { headers },
+    });
     this.client = new Client({
       name: "tambo-mcp-client",
       version: "1.0.0",
@@ -35,11 +38,15 @@ export class MCPClient {
    * instantiation and connection setup.
    *
    * @param endpoint - The URL of the MCP server to connect to
+   * @param headers - Optional custom headers to include in requests
    * @returns A connected MCPClient instance ready for use
    * @throws Will throw an error if connection fails
    */
-  static async create(endpoint: string): Promise<MCPClient> {
-    const mcpClient = new MCPClient(endpoint);
+  static async create(
+    endpoint: string,
+    headers?: Record<string, string>,
+  ): Promise<MCPClient> {
+    const mcpClient = new MCPClient(endpoint, headers);
     await mcpClient.client.connect(mcpClient.transport);
     return mcpClient;
   }
