@@ -1,5 +1,4 @@
 import {
-  ComposioAuthMode,
   encryptApiKey,
   encryptProviderKey,
   hashKey,
@@ -409,15 +408,39 @@ export async function updateMcpServer(
   return server;
 }
 
-export async function getComposioApps(db: HydraDb, projectId: string) {
+/**
+ * Get Composio apps for a project, optionally filtered by context key. If no context key is provided, all apps are returned.
+ * @param db - The database instance
+ * @param projectId - The project ID
+ * @param contextKey - The context key to filter by
+ * @returns The Composio apps for the project
+ */
+export async function getComposioApps(
+  db: HydraDb,
+  projectId: string,
+  contextKey?: string | null,
+) {
   const toolProviders = await db.query.toolProviders.findMany({
     where: and(
       eq(schema.toolProviders.projectId, projectId),
       eq(schema.toolProviders.type, ToolProviderType.COMPOSIO),
     ),
+    with: {
+      contexts: {
+        where:
+          contextKey === undefined
+            ? undefined
+            : contextKey === null
+              ? isNull(schema.toolProviderUserContexts.contextKey)
+              : eq(schema.toolProviderUserContexts.contextKey, contextKey),
+      },
+    },
   });
 
-  return toolProviders;
+  // Only return providers that have matching contexts when contextKey is provided
+  return contextKey !== undefined
+    ? toolProviders.filter((provider) => provider.contexts.length > 0)
+    : toolProviders;
 }
 
 export async function enableComposioApp(
@@ -472,8 +495,10 @@ export async function upsertComposioAuth(
   db: HydraDb,
   toolProviderId: string,
   contextKey: string | null,
-  authMode: ComposioAuthMode,
-  authFields: Record<string, string>,
+  fields: Omit<
+    typeof schema.toolProviderUserContexts.$inferInsert,
+    "toolProviderId" | "contextKey"
+  >,
 ): Promise<void> {
   await db.transaction(async (tx) => {
     // First try to find an existing context
@@ -490,18 +515,14 @@ export async function upsertComposioAuth(
       // Update existing context
       await tx
         .update(schema.toolProviderUserContexts)
-        .set({
-          composioAuthSchemaMode: authMode,
-          composioAuthFields: authFields,
-        })
+        .set(fields)
         .where(eq(schema.toolProviderUserContexts.id, existingContext.id));
     } else {
       // Create new context
       await tx.insert(schema.toolProviderUserContexts).values({
         toolProviderId,
         contextKey,
-        composioAuthSchemaMode: authMode,
-        composioAuthFields: authFields,
+        ...fields,
       });
     }
   });

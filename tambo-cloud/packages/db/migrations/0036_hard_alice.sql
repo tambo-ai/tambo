@@ -1,0 +1,1 @@
+ALTER TABLE "tool_provider_user_contexts" ADD COLUMN "composio_connected_account_id" text;

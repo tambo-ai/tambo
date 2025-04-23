@@ -511,7 +511,11 @@ export class ThreadsService {
       );
     }
 
-    const systemTools = await getSystemTools(db, projectId);
+    const systemTools = await getSystemTools(
+      db,
+      projectId,
+      null, // right now all provider contexts are stored with null context keys
+    );
 
     const responseMessage = await processThreadMessage(
       db,
@@ -612,7 +616,11 @@ export class ThreadsService {
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>> {
-    const systemTools = await getSystemTools(db, projectId);
+    const systemTools = await getSystemTools(
+      db,
+      projectId,
+      null, // right now all provider contexts are stored with null context keys
+    );
     const latestMessage = messages[messages.length - 1];
     const toolCallId = latestMessage.tool_call_id;
     if (latestMessage.role === MessageRole.Tool) {

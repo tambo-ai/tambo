@@ -67,10 +67,6 @@ interface EnabledAppRowProps {
 interface ToolAuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdateAuth: (
-    schemeId: ComposioAuthMode,
-    fields: Record<string, string>,
-  ) => Promise<void>;
   currentScheme?: ComposioConnectorConfig;
   availableSchemes?: ComposioConnectorConfig[];
   projectId: string;
@@ -81,8 +77,6 @@ interface ToolAuthDialogProps {
 export function ToolAuthDialog({
   open,
   onOpenChange,
-  onUpdateAuth,
-  currentScheme,
   availableSchemes,
   projectId,
   appId,
@@ -90,15 +84,34 @@ export function ToolAuthDialog({
 }: ToolAuthDialogProps) {
   const [selectedScheme, setSelectedScheme] = useState<
     ComposioConnectorConfig | undefined
-  >(currentScheme || availableSchemes?.[0]);
+  >(availableSchemes?.[0]);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [currentAuthStatus, setCurrentAuthStatus] = useState<string | null>();
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedScheme(availableSchemes?.[0]);
+      setFieldValues({});
+      setIsAuthenticating(false);
+      setCurrentAuthStatus(undefined);
+    }
+  }, [availableSchemes, open]);
+
+  const {
+    mutateAsync: updateAuth,
+    isPending: isUpdating,
+    error: updateError,
+  } = api.tools.updateComposioAuth.useMutation({
+    onSuccess: async () => await refetchCurrentAuth(),
+  });
 
   // Fetch current auth values when dialog opens
   const {
     data: currentAuth,
-    isFetching,
-    refetch,
-    error,
+    isFetching: isFetchingCurrentAuth,
+    error: fetchError,
+    refetch: refetchCurrentAuth,
   } = api.tools.getComposioAuth.useQuery(
     {
       projectId,
@@ -112,46 +125,70 @@ export function ToolAuthDialog({
     },
   );
 
+  const toolProviderId = currentAuth?.toolProviderId;
+  const redirectUrl = currentAuth?.redirectUrl;
+
+  const showAuthenticateButton =
+    !!redirectUrl && currentAuthStatus === "INITIATED";
+
+  const { data: connectedAccountStatus } =
+    api.tools.checkComposioConnectedAccountStatus.useQuery(
+      {
+        projectId,
+        toolProviderId: toolProviderId ?? "",
+        contextKey: null,
+      },
+      {
+        enabled: open && !!toolProviderId && showAuthenticateButton,
+        refetchInterval: 1000,
+      },
+    );
+
   useEffect(() => {
-    if (open) {
-      // Refetch when dialog opens to ensure fresh data
-      refetch();
-
-      if (currentAuth) {
-        const matchingScheme = availableSchemes?.find(
-          (s) => s.mode === currentAuth.mode,
-        );
-        if (matchingScheme) {
-          setSelectedScheme(matchingScheme);
-          setFieldValues(currentAuth.fields);
-        }
-      } else {
-        // If no current auth, use default scheme selection logic
-        const newScheme =
-          currentScheme ||
-          (availableSchemes?.length === 1 ? availableSchemes[0] : undefined);
-        setSelectedScheme(newScheme);
-        setFieldValues({});
-      }
-    }
-  }, [open, currentAuth, currentScheme, availableSchemes, refetch]);
-
-  // Reset form when dialog closes
+    setCurrentAuthStatus(currentAuth?.status);
+  }, [currentAuth]);
   useEffect(() => {
-    if (!open) {
-      setSelectedScheme(currentScheme || availableSchemes?.[0]);
-      setFieldValues({});
-    }
-  }, [open, currentScheme, availableSchemes]);
+    setCurrentAuthStatus(connectedAccountStatus?.status);
+  }, [connectedAccountStatus]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedScheme?.mode) {
-      await onUpdateAuth(selectedScheme.mode, fieldValues);
-      await refetch();
+  // If the user has initiated any aspect of the auth, and then the auth becomes active, close the dialog
+  useEffect(() => {
+    if (isAuthenticating && currentAuthStatus === "ACTIVE") {
       onOpenChange(false);
     }
+  }, [currentAuthStatus, isAuthenticating, onOpenChange]);
+
+  // When the diaog opens and we have loaded the current auth, initialize the dialog
+  useEffect(() => {
+    if (open && currentAuth && !isFetchingCurrentAuth) {
+      setSelectedScheme(
+        availableSchemes?.find((s) => s.mode === currentAuth.mode) ??
+          availableSchemes?.[0],
+      );
+      setFieldValues(currentAuth.fields);
+    }
+  }, [availableSchemes, currentAuth, isFetchingCurrentAuth, open]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (selectedScheme?.mode) {
+      setIsAuthenticating(true);
+      setCurrentAuthStatus(null);
+      await updateAuth({
+        projectId,
+        appId,
+        contextKey: null,
+        authMode: selectedScheme.mode,
+        authFields: fieldValues,
+      });
+
+      await refetchCurrentAuth();
+    }
   };
+
+  const formDisabled =
+    isFetchingCurrentAuth || isUpdating || showAuthenticateButton;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -159,49 +196,55 @@ export function ToolAuthDialog({
         <DialogHeader>
           <DialogTitle>{appName} - Authentication Method</DialogTitle>
           <DialogDescription>
-            {availableSchemes && availableSchemes.length > 1
-              ? "Select an authentication method and provide the required details."
-              : "Provide the required authentication details."}
+            {showAuthenticateButton
+              ? "Please authenticate with the service. This dialog will close automatically once authenticated."
+              : availableSchemes && availableSchemes.length > 1
+                ? "Select an authentication method and provide the required details."
+                : "Provide the required authentication details."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+        <form onSubmit={handleSave} className="space-y-4">
+          {(fetchError || updateError) && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-              Error loading authentication details: {error.message}
+              {fetchError?.message ||
+                updateError?.message ||
+                "An error occurred"}
             </div>
           )}
 
-          {availableSchemes && availableSchemes.length > 1 && (
-            <div className="space-y-4">
-              <Label>Authentication Method</Label>
-              <Select
-                value={selectedScheme?.mode}
-                onValueChange={(value: ComposioAuthMode) => {
-                  const scheme = availableSchemes?.find(
-                    (s) => s.mode === value,
-                  );
-                  setSelectedScheme(scheme);
-                  setFieldValues({});
-                }}
-                disabled={isFetching || !!error}
-              >
-                <SelectTrigger>
-                  <SelectValue>
-                    {selectedScheme
-                      ? getAuthModeName(selectedScheme.mode)
-                      : "Select a method"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {availableSchemes?.map((scheme) => (
-                    <SelectItem key={scheme.mode} value={scheme.mode}>
-                      {getAuthModeName(scheme.mode)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {availableSchemes &&
+            availableSchemes.length > 1 &&
+            !showAuthenticateButton && (
+              <div className="space-y-4">
+                <Label>Authentication Method</Label>
+                <Select
+                  value={selectedScheme?.mode}
+                  onValueChange={(value: ComposioAuthMode) => {
+                    const scheme = availableSchemes?.find(
+                      (s) => s.mode === value,
+                    );
+                    setSelectedScheme(scheme);
+                    setFieldValues({});
+                  }}
+                  disabled={formDisabled}
+                >
+                  <SelectTrigger>
+                    <SelectValue>
+                      {selectedScheme
+                        ? getAuthModeName(selectedScheme.mode)
+                        : "Select a method"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableSchemes?.map((scheme) => (
+                      <SelectItem key={scheme.mode} value={scheme.mode}>
+                        {getAuthModeName(scheme.mode)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
           {selectedScheme &&
             (!selectedScheme.fields || selectedScheme.fields.length === 0) && (
@@ -225,7 +268,7 @@ export function ToolAuthDialog({
                   }))
                 }
                 required={field.required}
-                disabled={isFetching || !!error}
+                disabled={formDisabled}
               />
               {field.description && (
                 <p className="text-xs text-muted-foreground whitespace-pre-line">
@@ -236,12 +279,26 @@ export function ToolAuthDialog({
           ))}
 
           <DialogFooter>
-            <Button
-              type="submit"
-              disabled={!selectedScheme || isFetching || !!error}
-            >
-              Save
-            </Button>
+            {showAuthenticateButton ? (
+              <>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Click the button below to authenticate with the service
+                </p>
+                <Button type="button" variant="outline" asChild>
+                  <a
+                    href={redirectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Authenticate
+                  </a>
+                </Button>
+              </>
+            ) : (
+              <Button type="submit" disabled={!selectedScheme || formDisabled}>
+                Save
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
@@ -315,10 +372,6 @@ function EnabledAppRow({
       <ToolAuthDialog
         open={authDialogOpen}
         onOpenChange={setAuthDialogOpen}
-        onUpdateAuth={async (schemeId, values) => {
-          await onUpdateAuth(app.appId, schemeId, values);
-        }}
-        currentScheme={app.auth_schemes?.[0]}
         availableSchemes={app.auth_schemes}
         projectId={projectId}
         appId={app.appId}
@@ -356,24 +409,13 @@ export function AvailableTools({ project }: AvailableToolsProps) {
       },
     });
 
-  const { mutateAsync: updateAuth } = api.tools.updateComposioAuth.useMutation({
-    onSuccess: () => {
-      // Could add a toast here if desired
-    },
-  });
-
   const handleUpdateAuth = async (
     appId: string,
     schemeId: ComposioAuthMode,
     values: Record<string, string>,
   ) => {
-    await updateAuth({
-      projectId: project.id,
-      appId,
-      contextKey: null,
-      authMode: schemeId,
-      authFields: values,
-    });
+    // This function is no longer needed since we moved the mutation
+    // but we'll keep it as a no-op to avoid breaking the interface
   };
 
   if (isLoading) {

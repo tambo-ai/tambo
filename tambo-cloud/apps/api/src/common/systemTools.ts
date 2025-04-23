@@ -2,17 +2,20 @@ import { MCPClient, SystemTools } from "@tambo-ai-cloud/backend";
 import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { OpenAIToolSet } from "composio-core";
 import OpenAI from "openai";
+import { getComposio } from "./composio";
 
 /** Get the tools available for the project */
 export async function getSystemTools(
   db: HydraDatabase,
   projectId: string,
+  contextKey: string | null,
 ): Promise<SystemTools> {
   const { mcpTools, mcpToolSources } = await getMcpTools(db, projectId);
 
   const { composioTools, composioClient } = await getComposioTools(
     db,
     projectId,
+    contextKey,
   );
 
   const mcpToolNames = mcpTools.map((tool) => tool.function.name);
@@ -85,11 +88,16 @@ async function getMcpTools(
 async function getComposioTools(
   db: HydraDatabase,
   projectId: string,
+  contextKey: string | null,
 ): Promise<{
   composioTools: OpenAI.Chat.Completions.ChatCompletionTool[];
   composioClient?: OpenAIToolSet;
 }> {
-  const composioApps = await operations.getComposioApps(db, projectId);
+  const composioApps = await operations.getComposioApps(
+    db,
+    projectId,
+    contextKey,
+  );
   if (!composioApps.length) {
     return { composioTools: [], composioClient: undefined };
   }
@@ -98,8 +106,13 @@ async function getComposioTools(
     .map((app) => app.composioAppId)
     .filter((appId): appId is string => !!appId);
   const composioClient = new OpenAIToolSet();
-
-  const tools = await composioClient.getTools({ apps: appIds });
+  const composio = getComposio();
+  const apps = await composio.apps.list();
+  const activeApps = apps.filter(
+    (app) => app.appId && appIds.includes(app.appId),
+  );
+  const activeAppKeys = activeApps.map((app) => app.key);
+  const tools = await composioClient.getTools({ apps: activeAppKeys });
 
   for (const tool of tools) {
     composioTools.push({
