@@ -12,7 +12,12 @@ export const standardToolParameters: FunctionParameters = {
     statusMessage: {
       type: "string",
       description:
-        "a message that will be displayed to the user to explain in a few words what the tool is being used for, starting with a verb. For example, 'looking for <something>' or 'creating <something>'.",
+        "A message that will be displayed to the user to explain in a few words what the tool is being used for, starting with a verb. For example, 'looking for <something>' or 'creating <something>'.",
+    },
+    completionStatusMessage: {
+      type: "string",
+      description:
+        "A message that will be displayed to the user to explain in a few words what the tool has done, to replace the statusMessage when the tool has completed its task. For example, 'looked for <something>' or 'created <something>'",
     },
     displayMessage: {
       type: "string",
@@ -20,7 +25,7 @@ export const standardToolParameters: FunctionParameters = {
         "A message to be displayed before the tool is called. This should be a natural language response to the previous message to describe what you are about to do. For example, `First, let me <do something>` or 'Great, I can see <something>, let me <do something>'. Get creative, this is what will make the user feel like they are having a conversation with you. You can and should use markdown formatting (code blocks with language specification, bold, lists) when showing examples or code.",
     },
   },
-  required: ["statusMessage", "displayMessage"],
+  required: ["statusMessage", "displayMessage", "completionStatusMessage"],
   additionalProperties: false,
 };
 

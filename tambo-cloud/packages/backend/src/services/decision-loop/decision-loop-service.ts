@@ -74,6 +74,7 @@ export async function* runDecisionLoop(
     toolCallRequest: undefined,
     toolCallId: undefined,
     statusMessage: undefined,
+    completionStatusMessage: undefined,
   };
 
   let accumulatedDecision = initialDecision;
@@ -102,7 +103,7 @@ export async function* runDecisionLoop(
 
       const paramDisplayMessage = (toolArgs as any).displayMessage;
       const statusMessage = (toolArgs as any).statusMessage;
-
+      const completionStatusMessage = (toolArgs as any).completionStatusMessage;
       // If this is a non-UI tool call, make sure params are complete and filter out standard tool parameters
       let filteredToolCallRequest;
       if (!isUITool && toolCall) {
@@ -149,6 +150,7 @@ export async function* runDecisionLoop(
             ? undefined
             : getLLMResponseToolCallId(chunk),
         statusMessage,
+        completionStatusMessage,
       };
 
       accumulatedDecision = {
