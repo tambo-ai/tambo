@@ -16,7 +16,11 @@ import {
 } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
 import { renderComponentIntoMessage } from "../util/generate-component";
-import { getAvailableComponents, getClientContext } from "../util/registry";
+import {
+  getAvailableComponents,
+  getClientContext,
+  mapTamboToolToContextTool,
+} from "../util/registry";
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient } from "./tambo-client-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
@@ -518,6 +522,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         },
         contextKey: options.contextKey,
         availableComponents: availableComponents,
+        clientTools: Object.values(toolRegistry).map((tool) =>
+          mapTamboToolToContextTool(tool),
+        ),
       };
 
       if (streamResponse) {
