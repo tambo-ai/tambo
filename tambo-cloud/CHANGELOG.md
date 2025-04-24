@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.38.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.37.0...repo-v0.38.0) (2025-04-24)
+
+
+### Features
+
+* add standard tool param for completionStatusMessage ([#821](https://github.com/tambo-ai/tambo-cloud/issues/821)) ([22c17d5](https://github.com/tambo-ai/tambo-cloud/commit/22c17d5580cd5931e7eb43dfc94316dd075279ef))
+* allow standalone "client tools" to be sent into advance routes ([#825](https://github.com/tambo-ai/tambo-cloud/issues/825)) ([59aa60f](https://github.com/tambo-ai/tambo-cloud/commit/59aa60f3c9c5c4f50164bee404a43c66348459d3))
+* initial decision loop ([#801](https://github.com/tambo-ai/tambo-cloud/issues/801)) ([ece563a](https://github.com/tambo-ai/tambo-cloud/commit/ece563a47a85e058d493f924b74fe571d0d29521))
+* Management side of composio auth flow, plus some decision loop tool updates ([#822](https://github.com/tambo-ai/tambo-cloud/issues/822)) ([cfff091](https://github.com/tambo-ai/tambo-cloud/commit/cfff09170b15945e18f9265c1f882acc59b10446))
+* propagate custom headers through MCPClient to SSEClientTransport ([#803](https://github.com/tambo-ai/tambo-cloud/issues/803)) ([5f97d87](https://github.com/tambo-ai/tambo-cloud/commit/5f97d87c60e8f42e2ec1913d3ada0404e8881e05))
+* store full composio oauth config in the db, including dynamic fields ([#808](https://github.com/tambo-ai/tambo-cloud/issues/808)) ([20dcd4d](https://github.com/tambo-ai/tambo-cloud/commit/20dcd4d93f8b7721400b599c81795711ae0b070f))
+* Update project creation dashboard flow ([#823](https://github.com/tambo-ai/tambo-cloud/issues/823)) ([680cc90](https://github.com/tambo-ai/tambo-cloud/commit/680cc90e81abe41395b5ea1172b7a516e0ccf6b0))
+* wire up composio calls to decision loop ([#824](https://github.com/tambo-ai/tambo-cloud/issues/824)) ([2800783](https://github.com/tambo-ai/tambo-cloud/commit/28007836fe9ff3a0c11eab67e64daa0b21105980))
+
+
+### Bug Fixes
+
+* clarify markdown usage in displayMessageTool ([#819](https://github.com/tambo-ai/tambo-cloud/issues/819)) ([7160a3d](https://github.com/tambo-ai/tambo-cloud/commit/7160a3de0e15bccc4da4a6e988eb3bc6f0c4aada))
+* make sure required field on generated ui tools includes required fields ([#820](https://github.com/tambo-ai/tambo-cloud/issues/820)) ([a654f26](https://github.com/tambo-ai/tambo-cloud/commit/a654f260d6e5222c2f4d7a87d68094331a4616b0))
+
+
+### Miscellaneous Chores
+
+* bump @tambo-ai/react version ([#826](https://github.com/tambo-ai/tambo-cloud/issues/826)) ([36799ff](https://github.com/tambo-ai/tambo-cloud/commit/36799ff3c9a07a5879dd42e23b4e871b547b9dce))
+* **charlie:** make prettier part of 'fix' ([#806](https://github.com/tambo-ai/tambo-cloud/issues/806)) ([6b1bba0](https://github.com/tambo-ai/tambo-cloud/commit/6b1bba0c0ed133a8342ebd71bb4402515ab4bf6c))
+* **deps-dev:** bump @next/eslint-plugin-next from 15.2.4 to 15.3.1 ([#817](https://github.com/tambo-ai/tambo-cloud/issues/817)) ([d17a6db](https://github.com/tambo-ai/tambo-cloud/commit/d17a6db43f9fdc77f1883cb0e458727243ca8bf0))
+* **deps-dev:** bump the eslint group with 3 updates ([#812](https://github.com/tambo-ai/tambo-cloud/issues/812)) ([ace18c8](https://github.com/tambo-ai/tambo-cloud/commit/ace18c8b0cc364901bc3b3139a224b22c5f1a5f4))
+* **deps:** bump @modelcontextprotocol/sdk from 1.9.0 to 1.10.1 ([#813](https://github.com/tambo-ai/tambo-cloud/issues/813)) ([4241271](https://github.com/tambo-ai/tambo-cloud/commit/4241271ed5b47f818d523261632ce717eba4e83b))
+* **deps:** bump openai from 4.94.0 to 4.95.1 ([#818](https://github.com/tambo-ai/tambo-cloud/issues/818)) ([5a2cd7f](https://github.com/tambo-ai/tambo-cloud/commit/5a2cd7f227ea964692285b5ddb6db80528200f39))
+* **deps:** bump react-hook-form from 7.55.0 to 7.56.0 ([#816](https://github.com/tambo-ai/tambo-cloud/issues/816)) ([a899872](https://github.com/tambo-ai/tambo-cloud/commit/a899872def23854e79cc25246ae1969d0a1d19c8))
+* **deps:** bump the drizzle group with 2 updates ([#811](https://github.com/tambo-ai/tambo-cloud/issues/811)) ([504d38f](https://github.com/tambo-ai/tambo-cloud/commit/504d38f40842fa54b849fbf45f0f6fb828093e70))
+* **deps:** bump the nestjs group with 5 updates ([#809](https://github.com/tambo-ai/tambo-cloud/issues/809)) ([2a86401](https://github.com/tambo-ai/tambo-cloud/commit/2a864011bc4e37156cd081d5e01d63b1b0a2aa5a))
+
 ## [0.37.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.36.3...repo-v0.37.0) (2025-04-18)
 
 
