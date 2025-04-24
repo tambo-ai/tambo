@@ -36,6 +36,7 @@ export async function getSystemTools(
     tools: [...mcpTools, ...composioTools],
     mcpToolSources,
     composioClient,
+    composioToolNames,
   };
 }
 async function getMcpTools(

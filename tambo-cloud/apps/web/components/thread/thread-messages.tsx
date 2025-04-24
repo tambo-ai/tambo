@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { RouterOutputs } from "@/trpc/react";
+import { LegacyComponentDecision } from "@tambo-ai-cloud/core";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 
@@ -68,13 +69,6 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
             {message.toolCallRequest && (
               <div className="mt-1">
                 <div>Tool calls</div>
-                {message.toolCallId && <pre>id = {message.toolCallId}</pre>}
-                {message.toolCallRequest.tool_call_id && (
-                  <div className="text-xs text-muted-foreground">
-                    <pre>id = {message.toolCallRequest.tool_call_id}</pre>
-                    (deprecated)
-                  </div>
-                )}
                 <div>{message.toolCallRequest.toolName}(</div>
                 {message.toolCallRequest.parameters.length > 0 && (
                   <ul className="list-disc list-inside">
@@ -89,6 +83,22 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
                 <div>)</div>
               </div>
             )}
+            <div>
+              ToolCallId:{" "}
+              {message.toolCallId && <pre>id = {message.toolCallId}</pre>}
+            </div>
+            {message.toolCallRequest?.tool_call_id && (
+              <div className="text-xs text-muted-foreground">
+                <pre>id = {message.toolCallRequest.tool_call_id}</pre>
+                (deprecated)
+              </div>
+            )}
+            <div>
+              {
+                (message.componentDecision as LegacyComponentDecision)
+                  ?.toolCallId
+              }
+            </div>
           </div>
         </Card>
       ))}

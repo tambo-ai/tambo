@@ -1,6 +1,7 @@
 import { SystemTools } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
+  ContentPartType,
   LegacyComponentDecision,
   MessageRole,
   ToolCallRequest,
@@ -32,44 +33,86 @@ export function extractToolResponse(message: MessageRequest): any {
 export async function callSystemTool(
   systemTools: SystemTools,
   toolCallRequest: ToolCallRequest,
+  toolCallId: string,
   componentDecision: LegacyComponentDecision,
   advanceRequestDto: AdvanceThreadDto,
 ) {
-  const toolSource = systemTools.mcpToolSources[toolCallRequest.toolName];
+  if (toolCallRequest.toolName in systemTools.mcpToolSources) {
+    const toolSource = systemTools.mcpToolSources[toolCallRequest.toolName];
 
-  const result = await toolSource.callTool(
-    toolCallRequest.toolName,
-    Object.fromEntries(
-      toolCallRequest.parameters.map((p) => [
-        p.parameterName,
-        p.parameterValue,
-      ]),
-    ),
-  );
+    const result = await toolSource.callTool(
+      toolCallRequest.toolName,
+      Object.fromEntries(
+        toolCallRequest.parameters.map((p) => [
+          p.parameterName,
+          p.parameterValue,
+        ]),
+      ),
+    );
+    const responseContent =
+      typeof result === "string"
+        ? [{ type: "text" as const, text: result }]
+        : Array.isArray(result.content)
+          ? result.content
+          : [];
 
-  const responseContent =
-    typeof result === "string"
-      ? [{ type: "text" as const, text: result }]
-      : Array.isArray(result.content)
-        ? result.content
-        : [];
+    console.log("MCP tool result", responseContent[0]);
+    // TODO: handle cases where MCP server returns *only* resource types
+    if (responseContent.length === 0) {
+      throw new Error("No response content found");
+    }
 
-  // TODO: handle cases where MCP server returns *only* resource types
-  if (responseContent.length === 0) {
-    throw new Error("No response content found");
+    const messageWithToolResponse: AdvanceThreadDto = {
+      messageToAppend: {
+        actionType: ActionType.ToolResponse,
+        component: componentDecision,
+        role: MessageRole.Tool,
+        content: responseContent,
+      },
+      additionalContext: advanceRequestDto.additionalContext,
+      availableComponents: advanceRequestDto.availableComponents,
+      contextKey: advanceRequestDto.contextKey,
+    };
+
+    return messageWithToolResponse;
   }
 
-  const messageWithToolResponse: AdvanceThreadDto = {
-    messageToAppend: {
-      actionType: ActionType.ToolResponse,
-      component: componentDecision,
-      role: MessageRole.Tool,
-      content: responseContent,
-    },
-    additionalContext: advanceRequestDto.additionalContext,
-    availableComponents: advanceRequestDto.availableComponents,
-    contextKey: advanceRequestDto.contextKey,
-  };
+  if (systemTools.composioToolNames.includes(toolCallRequest.toolName)) {
+    const result = await systemTools.composioClient?.executeToolCall({
+      id: toolCallId,
+      type: "function",
+      function: {
+        name: toolCallRequest.toolName,
+        arguments: JSON.stringify(
+          Object.fromEntries(
+            toolCallRequest.parameters.map((p) => [
+              p.parameterName,
+              p.parameterValue,
+            ]),
+          ),
+        ),
+      },
+    });
+    const responseContent = [
+      { type: ContentPartType.Text, text: result ?? "" },
+    ];
 
-  return messageWithToolResponse;
+    const messageWithToolResponse: AdvanceThreadDto = {
+      messageToAppend: {
+        actionType: ActionType.ToolResponse,
+        component: componentDecision,
+        role: MessageRole.Tool,
+        content: responseContent,
+      },
+      additionalContext: advanceRequestDto.additionalContext,
+      availableComponents: advanceRequestDto.availableComponents,
+      contextKey: advanceRequestDto.contextKey,
+    };
+
+    return messageWithToolResponse;
+  }
+
+  // If we don't have a tool source for the tool call request, return the
+  // original request. Callers should probably handle this as an error.
+  return advanceRequestDto;
 }

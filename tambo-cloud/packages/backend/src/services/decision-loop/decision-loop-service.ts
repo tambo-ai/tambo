@@ -40,7 +40,12 @@ export async function* runDecisionLoop(
   const contextTools = convertMetadataToTools(
     availableComponents.flatMap((component) => component.contextTools),
   );
-  const tools = [...componentTools, ...contextTools, displayMessageTool];
+  const tools = [
+    ...componentTools,
+    ...contextTools,
+    displayMessageTool,
+    ...(systemTools?.tools ?? []),
+  ];
   // Add standard parameters to all tools
   const toolsWithStandardParameters = addParametersToTools(
     tools,

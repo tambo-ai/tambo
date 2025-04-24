@@ -55,6 +55,12 @@ import {
 } from "./util/thread-state";
 import { callSystemTool, extractToolResponse } from "./util/tool";
 
+/**
+ * The maximum depth of tool calls we will make. This is to prevent infinite
+ * loops.
+ */
+const MAX_TOOL_CALL_DEPTH = 3;
+
 @Injectable()
 export class ThreadsService {
   constructor(
@@ -441,12 +447,16 @@ export class ThreadsService {
     advanceRequestDto: AdvanceThreadDto,
     unresolvedThreadId?: string,
     stream?: boolean,
+    depth = 0, // sets a maximum depth for when we do multiple tool calls (which we do with recursion)
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   > {
     const db = this.getDb();
 
     await this.checkMessageLimit(projectId);
+    if (depth > MAX_TOOL_CALL_DEPTH) {
+      throw new Error("Maximum tool call depth reached");
+    }
 
     const thread = await this.ensureThread(
       projectId,
@@ -508,6 +518,7 @@ export class ThreadsService {
         threadMessageDtoToThreadMessage(messages),
         userMessage,
         advanceRequestDto,
+        depth,
       );
     }
 
@@ -540,16 +551,24 @@ export class ThreadsService {
     const toolCallRequest = responseMessage.toolCallRequest;
     if (
       toolCallRequest &&
-      toolCallRequest.toolName in systemTools.mcpToolSources
+      (toolCallRequest.toolName in systemTools.mcpToolSources ||
+        systemTools.composioToolNames.includes(toolCallRequest.toolName))
     ) {
+      if (!responseMessage.toolCallId) {
+        console.warn(
+          `While handling tool call request ${toolCallRequest.toolName}, no tool call id in response message ${responseMessage}, returning assistant message`,
+        );
+      }
       return await this.handleSystemToolCall(
         toolCallRequest,
+        responseMessage.toolCallId ?? "",
         systemTools,
         responseMessage,
         advanceRequestDto,
         projectId,
         thread.id,
         false,
+        depth,
       );
     }
 
@@ -565,45 +584,56 @@ export class ThreadsService {
 
   private async handleSystemToolCall(
     toolCallRequest: ToolCallRequest,
+    toolCallId: string,
     systemTools: SystemTools,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
     projectId: string,
     threadId: string,
     stream: boolean,
+    depth: number,
   ): Promise<AdvanceThreadResponseDto>;
   private async handleSystemToolCall(
     toolCallRequest: ToolCallRequest,
+    toolCallId: string,
     systemTools: SystemTools,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
     projectId: string,
     threadId: string,
     stream: true,
+    depth: number,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>>;
   private async handleSystemToolCall(
     toolCallRequest: ToolCallRequest,
+    toolCallId: string,
     systemTools: SystemTools,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
     projectId: string,
     threadId: string,
     stream: boolean,
+    depth: number,
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   > {
     const messageWithToolResponse: AdvanceThreadDto = await callSystemTool(
       systemTools,
       toolCallRequest,
+      toolCallId,
       componentDecision,
       advanceRequestDto,
     );
+    if (messageWithToolResponse === advanceRequestDto) {
+      throw new Error("No tool call response, returning assistant message");
+    }
 
     return await this.advanceThread(
       projectId,
       messageWithToolResponse,
       threadId,
       stream,
+      depth + 1,
     );
   }
 
@@ -615,6 +645,7 @@ export class ThreadsService {
     messages: ThreadMessage[],
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
+    depth: number,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>> {
     const systemTools = await getSystemTools(
       db,
@@ -653,6 +684,7 @@ export class ThreadsService {
         systemTools,
         advanceRequestDto,
         toolCallId,
+        depth,
       );
     }
 
@@ -677,6 +709,7 @@ export class ThreadsService {
       systemTools,
       advanceRequestDto,
       toolCallId,
+      depth,
     );
   }
 
@@ -688,6 +721,7 @@ export class ThreadsService {
     systemTools: SystemTools,
     originalRequest: AdvanceThreadDto,
     toolCallId?: string,
+    depth: number = 0,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     const db = this.getDb();
     const logger = this.logger;
@@ -752,17 +786,25 @@ export class ThreadsService {
     if (
       componentDecision &&
       finalToolCallRequest &&
-      finalToolCallRequest.toolName in systemTools.mcpToolSources
+      (finalToolCallRequest.toolName in systemTools.mcpToolSources ||
+        systemTools.composioToolNames.includes(finalToolCallRequest.toolName))
     ) {
+      if (!toolCallId) {
+        console.warn(
+          `While handling tool call request ${finalToolCallRequest.toolName}, no tool call id in response message ${finalThreadMessage}, returning assistant message`,
+        );
+      }
       // Note that this effectively consumes finalToolCallRequest and finalToolCallId
       const toolResponseMessageStream = await this.handleSystemToolCall(
         finalToolCallRequest,
+        toolCallId ?? "",
         systemTools,
         componentDecision,
         originalRequest,
         projectId,
         threadId,
         true,
+        depth,
       );
       for await (const chunk of toolResponseMessageStream) {
         yield chunk;

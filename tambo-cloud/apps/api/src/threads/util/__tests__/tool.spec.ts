@@ -123,6 +123,7 @@ describe("tool utilities", () => {
       const result = await callSystemTool(
         mockSystemTools,
         toolCallRequest,
+        "tool-call-1",
         componentDecision,
         advanceRequestDto,
       );
@@ -161,6 +162,7 @@ describe("tool utilities", () => {
       const result = await callSystemTool(
         mockSystemTools,
         toolCallRequest,
+        "tool-call-1",
         componentDecision,
         advanceRequestDto,
       );
@@ -178,6 +180,7 @@ describe("tool utilities", () => {
         callSystemTool(
           mockSystemTools,
           toolCallRequest,
+          "tool-call-1",
           componentDecision,
           advanceRequestDto,
         ),

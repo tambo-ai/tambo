@@ -21,6 +21,8 @@ import {
   ApiActivityMonitor,
   type ApiState,
 } from "./components/ApiActivityMonitor";
+import { LinearIssue } from "./components/LinearIssue";
+import { LinearProjectList } from "./components/LinearProjectList";
 import { LocalFileContents, LocalFileList } from "./components/LocalFileList";
 import { MessageSuggestions } from "./components/MessageSuggestions";
 import { ThreadMessageInput } from "./components/ThreadMessageInput";
@@ -212,6 +214,57 @@ export default function SmokePage() {
       propsSchema: z.object({
         fileName: z.string(),
         fileContents: z.string(),
+      }),
+    });
+    registerComponent({
+      component: LinearIssue,
+      name: "LinearIssue",
+      description:
+        "A Linear issue display that shows issue details including title, description, status, priority, assignee, and labels",
+      propsSchema: z.object({
+        data: z.object({
+          id: z.string().optional(),
+          identifier: z.string().optional(),
+          title: z.string().optional(),
+          description: z.string().optional(),
+          priority: z.number().optional(),
+          url: z.string().url().optional(),
+          status: z
+            .object({
+              name: z.string().optional(),
+              type: z.string().optional(),
+            })
+            .optional(),
+          assignee: z
+            .object({
+              name: z.string().optional(),
+              email: z.string().optional(),
+            })
+            .optional(),
+          labels: z
+            .array(
+              z.object({
+                name: z.string(),
+                color: z.string().optional(),
+              }),
+            )
+            .optional(),
+          createdAt: z.string().optional(),
+          dueDate: z.string().optional(),
+        }),
+      }),
+    });
+    registerComponent({
+      component: LinearProjectList,
+      name: "LinearProjectList",
+      description: "A list of Linear projects",
+      propsSchema: z.object({
+        projects: z.array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+          }),
+        ),
       }),
     });
   }, [registerComponent, tools]);
