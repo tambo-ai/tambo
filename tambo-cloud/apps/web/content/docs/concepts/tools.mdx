@@ -1,109 +1,56 @@
 ---
 title: Tools
-description: Tools enable tambo to interact with your application's apis, agents, and other server-side functionality.
+description: Tools enable tambo to interact with your application's APIs, agents, and other server-side functionality.
 ---
 
-Tools enable tambo to interact with your application's data and functionality. They provide a type-safe way to extend the AI's capabilities with custom business logic. Tambo will call these tools and use their outputs to help decide how to respond to a message, what component to show, and what data to fill the component with.
+Tools enable tambo to interact with your application's data and functionality. They provide a type-safe way to extend the AI's capabilities with custom business logic. When applicable, tambo will automatically call these tools and use their outputs to help decide how to respond to a message, what component to show, and what data to fill the component with.
 
 ```tsx
 interface TamboTool {
   name: string;
   description: string; // What is this tool for and when should tambo use it?
   tool: (input: z.infer<ZodTypeAny>) => any; // The function that tambo will call when using this tool
-  inputSchema: ZodTypeAny; // The parameter type that tambo will use when calling the tool.
+  toolSchema: z.ZodFunction<Args, Returns>; // The schema definition that tambo will use when calling the tool. This is where we describe to tambo what parameters exist, what they are for, whether they are required, etc.
 }
 ```
-
-**To make use of tools, we will:**
-
-1. Add tools by defining them and registering them with tambo
-2. Associate tools with components, so tambo know which tools to focus on when using a given component
 
 ## Adding a Tool
 
 ```tsx
-//define the function's input schema
-const weatherSchema = z.object({
-  city: z.string().optional(),
-});
-
 //define the tool function. This is your own custom function and can perform any logic you want.
-const getWeather = async (city?: string) => {
+const getWeather = async (city: string) => {
   try {
-    const weather = await fetch(`https://api.weatherapi.com/&city=${city}`); //mock weather api
-    return weather;
+    const weather = await fetch(
+      `http://api.weatherapi.com/v1/current.json?key=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}&q=${city}`,
+    );
+    return weather.json();
   } catch (error) {
     throw new Error(`Failed to fetch weather for ${city}`);
   }
 };
 
 //define the tool
-const tool: TamboTool = {
+export const weatherTool: TamboTool = {
   name: "get_weather",
   description: "Fetch current weather information for a specified city",
   tool: getWeather,
-  inputSchema: weatherSchema,
-};
-
-//register the tool
-tamboClient.registerTool(tool);
-```
-
-**Registering a Tool using React Hooks:**
-
-```tsx
-const { registerTool, registerTools } = useTambo();
-
-const tool1 = // tool definition
-const tool2 = // tool definition
-registerTool(tool1); // register a single tool
-registerTools([tool1, tool2]); // register multiple tools at once
-```
-
-## Associating Tools with Components
-
-Once tambo has decided on a component to use in response to a message, it will use the registered tools if it has decided that extra external data is needed to fill the component properly. To tell tambo which tools to consider for a given component, we need to associate the tools with the component. A tool can be associated with multiple components.
-
-**During component definition:**
-
-If you already have the tool functionality defined when you register your components, you can pass the tool directly to the component definition.
-
-```tsx
-const weatherTool: TamboTool = {
-  name: "getForecast",
-  description: "Call the weather API to get today's forecast",
-  // a function, called with `await fetchForecast("Las Vegas")`
-  tool: fetchForecast,
   toolSchema: z
     .function()
-    .args(
-      z
-        .string()
-        .describe(
-          "The geographic location, such as a city, state, or zip code",
-        ),
+    .args(z.string().describe("The city to fetch weather for"))
+    .returns(
+      z.object({
+        location: z.object({
+          name: z.string(),
+        }),
+      }),
     ),
 };
 
-tamboClient.registerComponent({
-  name: "WeatherComponent",
-  //other component definition fields...
-  associatedTools: [weatherTool],
-});
+//register the tool using the @tambo-ai/react package
+const { registerTool, registerTools } = useTambo();
+
+registerTool(weatherTool); // register a single tool
+registerTools([weatherTool, anotherTool]); // register multiple tools at once
 ```
 
-**Using React Hooks:**
-
-If you define your tool functionality sometime after registering your components, you can use the `addToolAssociation` hook to associate the tool with the component.
-
-```tsx
-import { useTambo } from "@tambo-ai/react";
-
-const { addToolAssociation } = useTambo();
-
-const weatherTool: TamboTool = {
-  //tool definition
-};
-
-addToolAssociation("WeatherComponent", weatherTool); // will fail if there is no registered component with the name 'WeatherComponent'
-```
+Now tambo can fetch weather information for a city when responding to a message!
