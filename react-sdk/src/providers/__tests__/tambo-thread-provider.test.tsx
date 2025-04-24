@@ -300,7 +300,7 @@ describe("TamboThreadProvider", () => {
     expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
   });
 
-  it("should handle tool calls during message processing", async () => {
+  it("should handle tool calls during message processing.", async () => {
     const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
       responseMessageDto: {
         id: "tool-call-1",
