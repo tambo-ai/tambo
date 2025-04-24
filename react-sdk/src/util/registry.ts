@@ -48,6 +48,22 @@ export const getAvailableComponents = (
 };
 
 /**
+ * Get tools from tool registry that are not associated with any component
+ * @param toolRegistry - The tool registry
+ * @param toolAssociations - The tool associations
+ * @returns The tools that are not associated with any component
+ */
+export const getUnassociatedTools = (
+  toolRegistry: TamboToolRegistry,
+  toolAssociations: TamboToolAssociations,
+): TamboTool[] => {
+  return Object.values(toolRegistry).filter((tool) => {
+    // Check if the tool's name appears in any of the tool association arrays
+    return !Object.values(toolAssociations).flat().includes(tool.name);
+  });
+};
+
+/**
  * Helper function to convert component props from Zod schema to JSON Schema
  * @param component - The component to convert
  * @returns The converted props

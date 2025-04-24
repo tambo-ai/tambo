@@ -62,7 +62,7 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@tambo-ai/typescript-sdk": "^0.43.0",
+    "@tambo-ai/typescript-sdk": "^0.44.0",
     "@tanstack/react-query": "^5.74.4",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",

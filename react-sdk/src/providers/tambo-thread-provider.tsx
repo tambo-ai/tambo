@@ -16,7 +16,12 @@ import {
 } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
 import { renderComponentIntoMessage } from "../util/generate-component";
-import { getAvailableComponents, getClientContext } from "../util/registry";
+import {
+  getAvailableComponents,
+  getClientContext,
+  getUnassociatedTools,
+  mapTamboToolToContextTool,
+} from "../util/registry";
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient } from "./tambo-client-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
@@ -511,6 +516,10 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         toolRegistry,
         componentToolAssociations,
       );
+      const unassociatedTools = getUnassociatedTools(
+        toolRegistry,
+        componentToolAssociations,
+      );
       const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
         messageToAppend: {
           content: [{ type: "text", text: message }],
@@ -518,6 +527,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         },
         contextKey: options.contextKey,
         availableComponents: availableComponents,
+        clientTools: unassociatedTools.map((tool) =>
+          mapTamboToolToContextTool(tool),
+        ),
       };
 
       if (streamResponse) {
