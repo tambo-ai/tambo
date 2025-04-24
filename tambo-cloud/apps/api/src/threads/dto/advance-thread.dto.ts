@@ -1,6 +1,9 @@
 import { ApiSchema } from "@nestjs/swagger";
 import { GenerationStage } from "@tambo-ai-cloud/core";
-import { AvailableComponentDto } from "../../components/dto/generate-component.dto";
+import {
+  AvailableComponentDto,
+  ComponentContextToolMetadataDto,
+} from "../../components/dto/generate-component.dto";
 import { MessageRequest, ThreadMessageDto } from "./message.dto";
 
 @ApiSchema({ name: "AdvanceThread" })
@@ -8,6 +11,7 @@ export class AdvanceThreadDto {
   messageToAppend!: MessageRequest;
   contextKey?: string;
   availableComponents?: AvailableComponentDto[];
+  clientTools?: ComponentContextToolMetadataDto[];
   additionalContext?: string;
 }
 

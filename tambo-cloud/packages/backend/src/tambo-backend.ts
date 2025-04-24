@@ -2,6 +2,7 @@ import { LegacyComponentDecision, ThreadMessage } from "@tambo-ai-cloud/core";
 import {
   AvailableComponent,
   AvailableComponents,
+  ComponentContextToolMetadata,
   ToolResponseBody,
 } from "./model/component-metadata";
 import { InputContext, InputContextAsArray } from "./model/input-context";
@@ -23,6 +24,7 @@ interface HydraBackendOptions {
 interface RunDecisionLoopParams {
   messageHistory: ThreadMessage[];
   availableComponents: AvailableComponent[];
+  clientTools: ComponentContextToolMetadata[];
   systemTools?: SystemTools;
   toolResponse?: ToolResponseBody;
   toolCallId?: string;
@@ -174,6 +176,7 @@ export default class TamboBackend {
       params.messageHistory,
       params.availableComponents,
       params.systemTools,
+      params.clientTools,
     );
   }
 }
