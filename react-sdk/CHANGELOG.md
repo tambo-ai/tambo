@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.21.0](https://github.com/tambo-ai/tambo/compare/react-v0.20.4...react-v0.21.0) (2025-04-24)
+
+
+### Features
+
+* send all defined tools, even if they are not associated with a component ([#344](https://github.com/tambo-ai/tambo/issues/344)) ([1d3571a](https://github.com/tambo-ai/tambo/commit/1d3571a7b27bfda8f6198b380d3a1b3a3b8d8a04))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group with 4 updates ([#331](https://github.com/tambo-ai/tambo/issues/331)) ([7db258c](https://github.com/tambo-ai/tambo/commit/7db258c858f80c08e49625e3c90f89899282c574))
+* **deps:** bump @tanstack/react-query from 5.74.3 to 5.74.4 ([#337](https://github.com/tambo-ai/tambo/issues/337)) ([e4d0d0a](https://github.com/tambo-ai/tambo/commit/e4d0d0a788b79fb43216ae874ab9c4cbd3f9124b))
+* **deps:** bump zod from 3.24.2 to 3.24.3 ([#335](https://github.com/tambo-ai/tambo/issues/335)) ([b2296aa](https://github.com/tambo-ai/tambo/commit/b2296aa166e69bd01e82fdf34ca5cf41bf78b2c0))
+
 ## [0.20.4](https://github.com/tambo-ai/tambo/compare/react-v0.20.3...react-v0.20.4) (2025-04-22)
 
 
