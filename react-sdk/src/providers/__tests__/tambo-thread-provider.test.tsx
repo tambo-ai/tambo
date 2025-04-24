@@ -249,6 +249,7 @@ describe("TamboThreadProvider", () => {
       },
       availableComponents: serializeRegistry(mockRegistry),
       contextKey: undefined,
+      clientTools: [],
     });
     expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
   });
