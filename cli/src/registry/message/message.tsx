@@ -4,6 +4,7 @@ import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { ExternalLink } from "lucide-react";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 
@@ -12,18 +13,18 @@ import ReactMarkdown from "react-markdown";
  * @typedef {Object} MessageVariants
  * @property {string} default - Default styling
  * @property {string} solid - Solid styling with shadow effects
- * @property {string} bordered - Bordered styling
  */
-const messageVariants = cva("flex", {
+const messageVariants = cva("flex mb-4", {
   variants: {
     variant: {
       default: "",
       solid: [
-        "[&_div]:shadow",
-        "[&_div]:shadow-zinc-900/10",
-        "[&_div]:dark:shadow-zinc-900/20",
+        "[&>div>div:first-child]:shadow-md",
+        "[&>div>div:first-child]:bg-container/50",
+        "[&>div>div:first-child]:hover:bg-container",
+        "[&>div>div:first-child]:transition-all",
+        "[&>div>div:first-child]:duration-200",
       ].join(" "),
-      bordered: ["[&_div]:border", "[&_div]:border-border"].join(" "),
     },
     align: {
       user: "justify-end",
@@ -43,12 +44,12 @@ const messageVariants = cva("flex", {
  * @property {string} assistant - Styling for assistant messages
  */
 const bubbleVariants = cva(
-  "relative inline-block rounded-lg px-3 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
+  "relative inline-block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
   {
     variants: {
       role: {
-        user: "bg-primary text-primary-foreground hover:bg-primary/90",
-        assistant: "bg-muted text-foreground hover:bg-muted/90",
+        user: "text-primary bg-container hover:bg-backdrop font-sans",
+        assistant: "text-primary font-sans",
       },
     },
     defaultVariants: {
@@ -58,24 +59,272 @@ const bubbleVariants = cva(
 );
 
 /**
- * Props for the Message component
- * @interface
+ * @typedef MessageContextValue
+ * @property {"user" | "assistant"} role - The role of the message sender.
+ * @property {VariantProps<typeof messageVariants>["variant"]} [variant] - Optional styling variant for the message container.
+ * @property {TamboThreadMessage} message - The full Tambo thread message object.
+ * @property {boolean} [isLoading] - Optional flag to indicate if the message is in a loading state.
  */
-export interface MessageProps {
+interface MessageContextValue {
+  role: "user" | "assistant";
+  variant?: VariantProps<typeof messageVariants>["variant"];
+  message: TamboThreadMessage;
+  isLoading?: boolean;
+}
+
+/**
+ * React Context for sharing message data and settings among sub-components.
+ * @internal
+ */
+const MessageContext = React.createContext<MessageContextValue | null>(null);
+
+/**
+ * Hook to access the message context.
+ * Throws an error if used outside of a Message.Root component.
+ * @returns {MessageContextValue} The message context value.
+ * @throws {Error} If used outside of Message.Root.
+ * @internal
+ */
+const useMessageContext = () => {
+  const context = React.useContext(MessageContext);
+  if (!context) {
+    throw new Error(
+      "Message sub-components must be used within a Message.Root",
+    );
+  }
+  return context;
+};
+
+// --- Sub-Components ---
+
+/**
+ * Props for the MessageRoot component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export interface MessageRootProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
+  /** The role of the message sender ('user' or 'assistant'). */
+  role: "user" | "assistant";
+  /** The full Tambo thread message object. */
+  message: TamboThreadMessage;
+  /** Optional styling variant for the message container. */
+  variant?: VariantProps<typeof messageVariants>["variant"];
+  /** Optional flag to indicate if the message is in a loading state. */
+  isLoading?: boolean;
+  /** The child elements to render within the root container. Typically includes Message.Bubble and Message.RenderedComponentArea. */
+  children: React.ReactNode;
+}
+
+/**
+ * The root container for a message component.
+ * It establishes the context for its children and applies alignment styles based on the role.
+ * @component Message.Root
+ * @example
+ * ```tsx
+ * <Message.Root role="user" message={messageData} variant="solid">
+ *   <Message.Bubble />
+ *   <Message.RenderedComponentArea />
+ * </Message.Root>
+ * ```
+ */
+const MessageRoot = React.forwardRef<HTMLDivElement, MessageRootProps>(
+  (
+    { children, className, role, variant, message, isLoading, ...props },
+    ref,
+  ) => {
+    const contextValue = React.useMemo(
+      () => ({ role, variant, message, isLoading }),
+      [role, variant, message, isLoading],
+    );
+
+    return (
+      <MessageContext.Provider value={contextValue}>
+        <div
+          ref={ref}
+          className={cn(messageVariants({ variant, align: role }), className)}
+          data-message-role={role}
+          data-message-id={message.id}
+          {...props}
+        >
+          {/* Default structure: column layout */}
+          <div className="flex flex-col">{children}</div>
+        </div>
+      </MessageContext.Provider>
+    );
+  },
+);
+MessageRoot.displayName = "Message.Root";
+
+/**
+ * Props for the MessageBubble component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export interface MessageBubbleProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
+  /** Optional override for the message content. If not provided, uses the content from the message object in the context. */
+  content?: string | { type: string; text?: string }[];
+}
+
+/**
+ * Displays the main chat bubble with content and loading indicator.
+ * Automatically handles content rendering and loading states.
+ * @component Message.Bubble
+ * @example
+ * ```tsx
+ * <Message.Root role="assistant" message={messageData} isLoading={isGenerating}>
+ *   <Message.Bubble />
+ * </Message.Root>
+ * ```
+ */
+const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
+  ({ className, children, content: contentProp, ...props }, ref) => {
+    const { role, message, isLoading } = useMessageContext();
+    const contentToRender = contentProp ?? message.content;
+
+    const safeContent = React.useMemo(() => {
+      if (!contentToRender) return "";
+      if (typeof contentToRender === "string") return contentToRender;
+      if (!Array.isArray(contentToRender)) return "Invalid content format";
+      return contentToRender.map((item) => item?.text ?? "").join("");
+    }, [contentToRender]);
+
+    const showLoading = isLoading ?? (role === "assistant" && !message.content);
+
+    return (
+      <div
+        ref={ref}
+        className={cn(bubbleVariants({ role }), className)}
+        data-slot="message-bubble"
+        {...props}
+      >
+        {children ?? (
+          <>
+            {/* Content section */}
+            {!showLoading && (
+              <div
+                className="break-words whitespace-pre-wrap"
+                data-slot="message-content"
+              >
+                {!contentToRender ? (
+                  <span className="text-muted-foreground italic">
+                    Empty message
+                  </span>
+                ) : (
+                  <ReactMarkdown components={createMarkdownComponents("light")}>
+                    {safeContent}
+                  </ReactMarkdown>
+                )}
+              </div>
+            )}
+
+            {/* Loading indicator */}
+            {showLoading && (
+              <div
+                className="flex items-center justify-center gap-1 h-4 py-1"
+                data-slot="message-loading-indicator"
+              >
+                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  },
+);
+MessageBubble.displayName = "Message.Bubble";
+
+/**
+ * Props for the MessageRenderedComponentArea component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export interface MessageRenderedComponentAreaProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  /** If true, displays a "View component" button intended for use with a separate canvas area. If false or undefined, renders the component directly below the message bubble. */
+  enableCanvasSpace?: boolean;
+}
+
+/**
+ * Displays the `renderedComponent` associated with an assistant message.
+ * If `enableCanvasSpace` is true, it shows a button to trigger showing the component elsewhere (e.g., in a CanvasSpace).
+ * Otherwise, it renders the component directly below the message bubble.
+ * Only renders if the message role is 'assistant' and `message.renderedComponent` exists.
+ * @component Message.RenderedComponentArea
+ * @example Inline Rendering
+ * ```tsx
+ * <Message.Root role="assistant" message={messageWithComponent}>
+ *   <Message.Bubble />
+ *   <Message.RenderedComponentArea /> // Renders component inline
+ * </Message.Root>
+ * ```
+ * @example Canvas Space Button
+ * ```tsx
+ * <Message.Root role="assistant" message={messageWithComponent}>
+ *   <Message.Bubble />
+ *   <Message.RenderedComponentArea enableCanvasSpace={true} /> // Renders button
+ * </Message.Root>
+ * ```
+ */
+const MessageRenderedComponentArea = React.forwardRef<
+  HTMLDivElement,
+  MessageRenderedComponentAreaProps
+>(({ className, children, enableCanvasSpace, ...props }, ref) => {
+  const { message, role } = useMessageContext();
+
+  if (!message.renderedComponent || role !== "assistant") {
+    return null;
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn("mt-2", className)}
+      data-slot="message-rendered-component-area"
+      {...props}
+    >
+      {children ??
+        (!enableCanvasSpace ? (
+          <div className="w-full max-w-md">{message.renderedComponent}</div>
+        ) : (
+          <div className="flex justify-start pl-4">
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(
+                    new CustomEvent("tambo:showComponent", {
+                      detail: {
+                        messageId: message.id,
+                        component: message.renderedComponent,
+                      },
+                    }),
+                  );
+                }
+              }}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-secondary transition-colors duration-200 cursor-pointer group"
+              aria-label="View component in canvas"
+            >
+              View component
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
+    </div>
+  );
+});
+MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
+
+// --- Legacy compatibility function ---
+
+/**
+ * Props for the legacy Message component.
+ * Provides backward compatibility with the original monolithic component.
+ */
+export interface MessageLegacyProps {
   /** The role of the message sender - either 'user' or 'assistant' */
   role: "user" | "assistant";
-  /**
-   * The content of the message. Can be either a string or an array of content objects
-   * @example
-   * // String content
-   * "Hello, how are you?"
-   *
-   * // Array of content objects
-   * [
-   *   { type: "text", text: "Hello" },
-   *   { type: "text", text: "How are you?" }
-   * ]
-   */
+  /** The content of the message */
   content: string | { type: string; text?: string }[];
   /** The Tambo thread message object containing additional message data */
   message: TamboThreadMessage;
@@ -85,84 +334,51 @@ export interface MessageProps {
   className?: string;
   /** Optional flag to indicate if the message is in a loading state */
   isLoading?: boolean;
+  /** Optional flag to indicate if the message is in a canvas space */
+  enableCanvasSpace?: boolean;
 }
 
 /**
- * A component that renders a chat message with support for markdown content and custom styling
- * @component
- * @example
- * ```tsx
- * <Message
- *   role="user"
- *   content="Hello, how are you?"
- *   message={threadMessage}
- *   variant="solid"
- * />
- * ```
+ * Legacy monolithic Message component for backward compatibility.
+ * Uses the new compositional components internally.
  */
-export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
+const Message = React.forwardRef<HTMLDivElement, MessageLegacyProps>(
   (
-    { className, role, content, variant, message, isLoading, ...props },
+    {
+      role,
+      content,
+      message,
+      variant,
+      className,
+      isLoading,
+      enableCanvasSpace,
+    },
     ref,
   ) => {
-    const safeContent = React.useMemo(() => {
-      if (!content) return "";
-      if (typeof content === "string") return content;
-      return content.map((item) => item.text ?? "").join("");
-    }, [content]);
-
     return (
-      <div
+      <MessageRoot
         ref={ref}
-        className={cn(messageVariants({ variant, align: role }), className)}
-        {...props}
+        role={role}
+        message={message}
+        variant={variant}
+        isLoading={isLoading}
+        className={className}
       >
-        <div className="flex flex-col">
-          <div className={cn(bubbleVariants({ role }))}>
-            <div className="break-words whitespace-pre-wrap">
-              <div className="text-sm mb-1 opacity-50">
-                {role === "user" ? "You" : "Tambo AI"}
-              </div>
-              {!content ? (
-                <span className="text-muted-foreground italic">
-                  Empty message
-                </span>
-              ) : typeof content === "string" ? (
-                <ReactMarkdown components={createMarkdownComponents()}>
-                  {safeContent}
-                </ReactMarkdown>
-              ) : (
-                content.map((item, index) => (
-                  <span key={index}>
-                    {item.text ? (
-                      <ReactMarkdown components={createMarkdownComponents()}>
-                        {item.text}
-                      </ReactMarkdown>
-                    ) : (
-                      ""
-                    )}
-                  </span>
-                ))
-              )}
-              {isLoading && role === "assistant" && !content && (
-                <div className="flex items-center gap-1 h-4 p-1 mt-1">
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                </div>
-              )}
-            </div>
-          </div>
-          {message.renderedComponent && role === "assistant" && (
-            <div className="mt-4 w-full max-w-md">
-              {message.renderedComponent}
-            </div>
-          )}
-        </div>
-      </div>
+        <MessageBubble content={content} />
+        <MessageRenderedComponentArea enableCanvasSpace={enableCanvasSpace} />
+      </MessageRoot>
     );
   },
 );
 Message.displayName = "Message";
 
-export { messageVariants };
+// --- Exports ---
+export {
+  messageVariants,
+  MessageRoot,
+  MessageBubble,
+  MessageRenderedComponentArea,
+  Message,
+  // Legacy export for backward compatibility
+  Message as MessageLegacy,
+};

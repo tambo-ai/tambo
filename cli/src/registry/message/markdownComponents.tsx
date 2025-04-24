@@ -2,14 +2,34 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  oneLight,
-  vscDarkPlus,
-} from "react-syntax-highlighter/dist/esm/styles/prism";
 import type { Components } from "react-markdown";
 import { Copy, Check } from "lucide-react";
+import hljs from "highlight.js";
+import "highlight.js/styles/github.css";
 
+/**
+ * Markdown Components for React-Markdown
+ *
+ * This module provides customized components for rendering markdown content with syntax highlighting.
+ * It uses highlight.js for code syntax highlighting and supports streaming content updates.
+ *
+ * @example
+ * ```tsx
+ * import { createMarkdownComponents } from './markdownComponents';
+ * import ReactMarkdown from 'react-markdown';
+ *
+ * const MarkdownRenderer = ({ content }) => {
+ *   const components = createMarkdownComponents('light');
+ *   return <ReactMarkdown components={components}>{content}</ReactMarkdown>;
+ * };
+ * ```
+ */
+
+/**
+ * Determines if a text block looks like code based on common code patterns
+ * @param text - The text to analyze
+ * @returns boolean indicating if the text appears to be code
+ */
 const looksLikeCode = (text: string): boolean => {
   const codeIndicators = [
     /^import\s+/m,
@@ -27,50 +47,79 @@ const looksLikeCode = (text: string): boolean => {
   return codeIndicators.some((pattern) => pattern.test(text));
 };
 
-export const createMarkdownComponents = (theme = "light"): Components => ({
+/**
+ * Header component for code blocks with language display and copy functionality
+ */
+const CodeHeader = ({
+  language,
+  code,
+}: {
+  language?: string;
+  code?: string;
+}) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const copyToClipboard = () => {
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-primary">
+      <span className="lowercase text-primary">{language}</span>
+      <button
+        onClick={copyToClipboard}
+        className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
+        title="Copy code"
+      >
+        {!copied ? (
+          <Copy className="h-4 w-4" />
+        ) : (
+          <Check className="h-4 w-4 text-green-500" />
+        )}
+      </button>
+    </div>
+  );
+};
+
+/**
+ * Creates a set of components for use with react-markdown
+ * @param theme - The theme to use ('light' or 'dark')
+ * @returns Components object for react-markdown
+ */
+export const createMarkdownComponents = (_theme = "light"): Components => ({
   code: function Code({ className, children, ...props }) {
     const match = /language-(\w+)/.exec(className ?? "");
     const content = String(children).replace(/\n$/, "");
-    const [copied, setCopied] = React.useState(false);
+    const deferredContent = React.useDeferredValue(content);
 
-    const copyToClipboard = () => {
-      navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    };
+    const highlighted = React.useMemo(() => {
+      if (!match || !looksLikeCode(deferredContent)) return null;
+      try {
+        return hljs.highlight(deferredContent, { language: match[1] }).value;
+      } catch {
+        return deferredContent;
+      }
+    }, [deferredContent, match]);
 
     if (match && looksLikeCode(content)) {
       return (
-        <div className="relative border border-input rounded-md bg-muted">
-          <div className="absolute -top-3 left-4 px-2 py-0.5 text-xs font-semibold bg-background border border-input rounded-md">
-            {match[1]}
+        <div className="relative border border-border rounded-md bg-muted">
+          <CodeHeader language={match[1]} code={content} />
+          <div className="overflow-x-auto rounded-b-md bg-background">
+            <pre className="p-4">
+              <code
+                className={className}
+                dangerouslySetInnerHTML={{ __html: highlighted ?? content }}
+              />
+            </pre>
           </div>
-          <button
-            onClick={copyToClipboard}
-            className="absolute -top-2.5 right-4 px-2 py-0.5 text-xs font-semibold bg-background border border-input rounded-md z-10 hover:bg-muted transition-colors flex items-center gap-1"
-          >
-            {copied ? (
-              <Check className="h-3 w-3 text-green-500" />
-            ) : (
-              <Copy className="h-3 w-3" />
-            )}
-          </button>
-          <SyntaxHighlighter
-            style={theme === "light" ? oneLight : vscDarkPlus}
-            language={match[1]}
-            PreTag="div"
-            customStyle={{
-              margin: 0,
-              padding: "1rem",
-              fontSize: "0.875rem",
-              borderRadius: "0.375rem",
-            }}
-          >
-            {content}
-          </SyntaxHighlighter>
         </div>
       );
     }
+
     return (
       <code
         className={cn("bg-muted px-1.5 py-0.5 rounded text-sm", className)}
@@ -80,27 +129,77 @@ export const createMarkdownComponents = (theme = "light"): Components => ({
       </code>
     );
   },
+
+  /**
+   * Paragraph component with minimal vertical margin
+   */
   p: ({ children }) => <p className="my-0">{children}</p>,
+
+  /**
+   * Heading 1 component with large text and proper spacing
+   * Used for main section headers
+   */
   h1: ({ children }) => (
     <h1 className="text-2xl font-bold mb-4 mt-6">{children}</h1>
   ),
+
+  /**
+   * Heading 2 component for subsection headers
+   * Slightly smaller than h1 with adjusted spacing
+   */
   h2: ({ children }) => (
     <h2 className="text-xl font-bold mb-3 mt-5">{children}</h2>
   ),
+
+  /**
+   * Heading 3 component for minor sections
+   * Used for smaller subdivisions within h2 sections
+   */
   h3: ({ children }) => (
     <h3 className="text-lg font-bold mb-2 mt-4">{children}</h3>
   ),
+
+  /**
+   * Heading 4 component for the smallest section divisions
+   * Maintains consistent text size with adjusted spacing
+   */
   h4: ({ children }) => (
     <h4 className="text-base font-bold mb-2 mt-3">{children}</h4>
   ),
+
+  /**
+   * Unordered list component with disc-style bullets
+   * Indented from the left margin
+   */
   ul: ({ children }) => <ul className="list-disc pl-5">{children}</ul>,
+
+  /**
+   * Ordered list component with decimal numbering
+   * Indented from the left margin
+   */
   ol: ({ children }) => <ol className="list-decimal pl-5">{children}</ol>,
+
+  /**
+   * List item component with normal line height
+   * Used within both ordered and unordered lists
+   */
   li: ({ children }) => <li className="leading-normal">{children}</li>,
+
+  /**
+   * Blockquote component for quoted content
+   * Features a left border and italic text with proper spacing
+   */
   blockquote: ({ children }) => (
     <blockquote className="border-l-4 border-muted pl-4 italic my-4">
       {children}
     </blockquote>
   ),
+
+  /**
+   * Anchor component for links
+   * Opens links in new tab with security attributes
+   * Includes hover underline effect
+   */
   a: ({ href, children }) => (
     <a
       href={href}
@@ -111,17 +210,37 @@ export const createMarkdownComponents = (theme = "light"): Components => ({
       {children}
     </a>
   ),
+
+  /**
+   * Horizontal rule component
+   * Creates a visual divider with proper spacing
+   */
   hr: () => <hr className="my-4 border-muted" />,
+
+  /**
+   * Table container component
+   * Handles overflow for wide tables with proper spacing
+   */
   table: ({ children }) => (
     <div className="overflow-x-auto my-4">
       <table className="min-w-full border border-border">{children}</table>
     </div>
   ),
+
+  /**
+   * Table header cell component
+   * Features bold text and distinct background
+   */
   th: ({ children }) => (
     <th className="border border-border px-4 py-2 bg-muted font-semibold">
       {children}
     </th>
   ),
+
+  /**
+   * Table data cell component
+   * Consistent styling with header cells
+   */
   td: ({ children }) => (
     <td className="border border-border px-4 py-2">{children}</td>
   ),

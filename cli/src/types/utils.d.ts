@@ -6,6 +6,8 @@
  * This file provides type definitions for:
  * - Internal utility functions (@/lib/utils)
  * - Radix UI components (Dialog, Collapsible)
+ * - React Markdown components
+ * - Highlight.js
  *
  * These type declarations are essential for maintaining type safety and preventing
  * build errors when the package is installed in end-user projects through the CLI.
@@ -110,22 +112,12 @@ declare module "react-markdown" {
   export default ReactMarkdown;
 }
 
-declare module "react-syntax-highlighter" {
-  import type * as React from "react";
-  interface SyntaxHighlighterProps {
-    children: string;
-    language?: string;
-    style?: any;
-    PreTag?: string | React.ComponentType<any>;
-    customStyle?: React.CSSProperties;
-    className?: string;
-    [key: string]: unknown;
-  }
-  export const Prism: React.ComponentType<SyntaxHighlighterProps>;
-  export const SyntaxHighlighter: React.ComponentType<SyntaxHighlighterProps>;
-}
-
-declare module "react-syntax-highlighter/dist/esm/styles/prism" {
-  export const oneLight: any;
-  export const vscDarkPlus: any;
+declare module "highlight.js" {
+  const hljs: {
+    highlight: (
+      code: string,
+      options: { language: string },
+    ) => { value: string };
+  };
+  export default hljs;
 }

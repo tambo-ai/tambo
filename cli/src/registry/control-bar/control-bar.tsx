@@ -2,11 +2,13 @@
 
 import { MessageInput } from "@/components/ui/message-input";
 import { ThreadContent } from "@/components/ui/thread-content";
+import type { messageVariants } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useTambo } from "@tambo-ai/react";
-import * as React from "react";
+import React from "react";
 import { useEffect, useRef } from "react";
+import type { VariantProps } from "class-variance-authority";
 
 /**
  * Props for the ControlBar component
@@ -18,6 +20,10 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
   /** Keyboard shortcut for toggling the control bar (default: "mod+k") */
   hotkey?: string;
+  /** Whether to enable the canvas space */
+  enableCanvasSpace?: boolean;
+  /** Optional styling variant for the message container */
+  variant?: VariantProps<typeof messageVariants>["variant"];
 }
 
 /**
@@ -29,11 +35,22 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
  *   contextKey="my-thread"
  *   hotkey="mod+k"
  *   className="custom-styles"
+ *   enableCanvasSpace={true}
  * />
  * ```
  */
 export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
-  ({ className, contextKey, hotkey = "mod+k", ...props }, ref) => {
+  (
+    {
+      className,
+      contextKey,
+      hotkey = "mod+k",
+      enableCanvasSpace = false,
+      variant,
+      ...props
+    },
+    ref,
+  ) => {
     const [open, setOpen] = React.useState(false);
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
@@ -100,9 +117,12 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
               {thread?.messages?.length > 0 && (
                 <div
                   ref={scrollContainerRef}
-                  className="bg-background border rounded-lg p-4 max-h-[500px] overflow-y-auto [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
+                  className="bg-background border rounded-lg p-4 max-h-[500px] overflow-y-auto [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar:horizontal]:h-[4px]"
                 >
-                  <ThreadContent />
+                  <ThreadContent
+                    enableCanvasSpace={enableCanvasSpace}
+                    variant={variant}
+                  />
                 </div>
               )}
             </div>

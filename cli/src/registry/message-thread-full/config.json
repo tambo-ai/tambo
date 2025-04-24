@@ -2,13 +2,14 @@
   "name": "message-thread-full",
   "description": "Displays a complete message thread with all its content and interactions",
   "componentName": "MessageThreadFull",
-  "dependencies": ["@tambo-ai/react"],
+  "dependencies": ["@tambo-ai/react", "class-variance-authority"],
   "devDependencies": [],
   "requires": [
     "thread-content",
     "message-input",
     "message-suggestions",
-    "thread-history"
+    "thread-history",
+    "message"
   ],
   "files": [
     {
