@@ -214,6 +214,26 @@ declare module "@/components/ui/thread-history" {
   export const ThreadHistory: React.ForwardRefExoticComponent<
     ThreadHistoryProps & React.RefAttributes<HTMLDivElement>
   >;
+
+  export const ThreadHistoryRoot: React.ForwardRefExoticComponent<
+    ThreadHistoryRootProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const ThreadHistoryHeader: React.ForwardRefExoticComponent<
+    ThreadHistoryHeaderProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const ThreadHistoryNewButton: React.ForwardRefExoticComponent<
+    ThreadHistoryNewButtonProps & React.RefAttributes<HTMLButtonElement>
+  >;
+
+  export const ThreadHistorySearch: React.ForwardRefExoticComponent<
+    ThreadHistorySearchProps & React.RefAttributes<HTMLInputElement>
+  >;
+
+  export const ThreadHistoryList: React.ForwardRefExoticComponent<
+    ThreadHistoryListProps & React.RefAttributes<HTMLDivElement>
+  >;
 }
 
 declare module "@/components/ui/thread-list" {

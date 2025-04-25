@@ -52,6 +52,7 @@ body {
     --canvas-position: right;
     --panel-left-width: 500px;
     --panel-right-width: 500px;
+    --sidebar-width: 16rem;
   }
   .dark {
     --background: 240 10% 3.9%;

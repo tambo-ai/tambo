@@ -15,7 +15,13 @@ import {
   ThreadContentRoot,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
-import { ThreadHistory } from "@/components/ui/thread-history";
+import {
+  ThreadHistoryRoot,
+  ThreadHistoryHeader,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadHistoryList,
+} from "@/components/ui/thread-history";
 import type { messageVariants } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
@@ -56,12 +62,13 @@ const CanvasAwareContainer = React.forwardRef<
       className={cn(
         "flex flex-col bg-white rounded-lg overflow-hidden bg-background",
         "h-screen",
+        "ml-[var(--sidebar-width,16rem)]",
+        "transition-[width,margin] duration-300 ease-out",
         enableCanvasSpace
           ? getCanvasPosition() === "right"
-            ? "w-[calc(100%-var(--canvas-width))]"
-            : "w-[calc(100%-var(--canvas-width))] ml-[var(--canvas-width)]"
-          : "w-full max-w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto",
-        "transition-[width,margin] duration-75 ease-out",
+            ? "w-[calc(100%-var(--canvas-width)-var(--sidebar-width,16rem))]"
+            : "w-[calc(100%-var(--canvas-width)-var(--sidebar-width,16rem))] ml-[calc(var(--canvas-width)+var(--sidebar-width,16rem))]"
+          : "w-[calc(100%-var(--sidebar-width,16rem))]",
         className,
       )}
       {...props}
@@ -153,45 +160,49 @@ export const MessageThreadFull = React.forwardRef<
     ref,
   ) => {
     return (
-      <CanvasAwareContainer
-        ref={ref}
-        enableCanvasSpace={enableCanvasSpace}
-        className={className}
-        {...props}
-      >
-        {/* Message thread history */}
-        <div className="p-4 flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Use AI</h2>
-          <ThreadHistory contextKey={contextKey} />
-        </div>
+      <>
+        {/* Thread History Sidebar */}
+        <ThreadHistoryRoot contextKey={contextKey}>
+          <ThreadHistoryHeader />
+          <ThreadHistoryNewButton />
+          <ThreadHistorySearch />
+          <ThreadHistoryList />
+        </ThreadHistoryRoot>
 
-        {/* Message thread content */}
-        <ScrollableMessageContainer>
-          <ThreadContentRoot
-            enableCanvasSpace={enableCanvasSpace}
-            className="py-4"
-            variant={variant}
-          >
-            <ThreadContentMessages />
-          </ThreadContentRoot>
-        </ScrollableMessageContainer>
+        <CanvasAwareContainer
+          ref={ref}
+          enableCanvasSpace={enableCanvasSpace}
+          className={className}
+          {...props}
+        >
+          {/* Message thread content */}
+          <ScrollableMessageContainer>
+            <ThreadContentRoot
+              enableCanvasSpace={enableCanvasSpace}
+              className="py-4"
+              variant={variant}
+            >
+              <ThreadContentMessages />
+            </ThreadContentRoot>
+          </ScrollableMessageContainer>
 
-        {/* Message input */}
-        <div className="p-4">
-          <MessageInputRoot contextKey={contextKey}>
-            <MessageInputTextarea />
-            <MessageInputToolbar>
-              <MessageInputSubmitButton />
-            </MessageInputToolbar>
-          </MessageInputRoot>
-        </div>
+          {/* Message input */}
+          <div className="p-4">
+            <MessageInputRoot contextKey={contextKey}>
+              <MessageInputTextarea />
+              <MessageInputToolbar>
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+            </MessageInputRoot>
+          </div>
 
-        {/* Message suggestions */}
-        <MessageSuggestionsRoot>
-          <MessageSuggestionsStatus />
-          <MessageSuggestionsList />
-        </MessageSuggestionsRoot>
-      </CanvasAwareContainer>
+          {/* Message suggestions */}
+          <MessageSuggestionsRoot>
+            <MessageSuggestionsStatus />
+            <MessageSuggestionsList />
+          </MessageSuggestionsRoot>
+        </CanvasAwareContainer>
+      </>
     );
   },
 );
