@@ -84,7 +84,7 @@ export function convertMetadataToTools(
 
 export function convertComponentsToUITools(
   components: AvailableComponent[],
-  toolNamePrefix: string = "show_",
+  toolNamePrefix: string = "show_component_",
 ): OpenAI.Chat.Completions.ChatCompletionTool[] {
   return components.map((component) => ({
     type: "function" as const,

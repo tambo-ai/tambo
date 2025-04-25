@@ -13,6 +13,7 @@ import { tryParseJson } from "./content";
 export function extractToolResponse(message: MessageRequest): any {
   // need to prioritize toolResponse over content, because that is where the API started.
   if (message.toolResponse) {
+    console.warn("Legacy tool response found");
     return message.toolResponse;
   }
   // TODO: we get back "resource" from MCP servers, but it is not supported yet

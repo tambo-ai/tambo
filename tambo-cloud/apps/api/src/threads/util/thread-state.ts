@@ -12,7 +12,7 @@ import {
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
-import { ThreadMessageDto } from "../dto/message.dto";
+import { MessageRequest, ThreadMessageDto } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import {
   addAssistantMessageToThread,
@@ -120,7 +120,7 @@ export async function processThreadMessage(
 export async function addUserMessage(
   db: HydraDb,
   threadId: string,
-  advanceRequestDto: AdvanceThreadDto,
+  message: MessageRequest,
   logger?: Logger,
 ) {
   try {
@@ -134,13 +134,8 @@ export async function addUserMessage(
           throw new Error(`Thread ${threadId} not found`);
         }
 
-        if (
-          currentThread.generationStage ===
-            GenerationStage.STREAMING_RESPONSE ||
-          currentThread.generationStage ===
-            GenerationStage.HYDRATING_COMPONENT ||
-          currentThread.generationStage === GenerationStage.CHOOSING_COMPONENT
-        ) {
+        const generationStage = currentThread.generationStage;
+        if (isThreadProcessing(generationStage)) {
           throw new Error(
             `Thread is already in processing (${currentThread.generationStage}), only one response can be generated at a time`,
           );
@@ -153,11 +148,7 @@ export async function addUserMessage(
           "Starting processing...",
         );
 
-        return await addMessage(
-          tx,
-          threadId,
-          advanceRequestDto.messageToAppend,
-        );
+        return await addMessage(tx, threadId, message);
       },
       {
         isolationLevel: "serializable",
@@ -172,6 +163,14 @@ export async function addUserMessage(
     );
     throw error;
   }
+}
+
+function isThreadProcessing(generationStage: GenerationStage) {
+  return [
+    GenerationStage.STREAMING_RESPONSE,
+    GenerationStage.HYDRATING_COMPONENT,
+    GenerationStage.CHOOSING_COMPONENT,
+  ].includes(generationStage);
 }
 
 /**

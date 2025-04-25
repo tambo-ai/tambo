@@ -309,6 +309,7 @@ describe("threadMessagesToChatHistory", () => {
               },
             ],
             "role": "assistant",
+            "tool_calls": undefined,
           },
           {
             "content": [

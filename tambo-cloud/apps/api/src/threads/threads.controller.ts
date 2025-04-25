@@ -286,11 +286,12 @@ export class ThreadsController {
     if (!request[ProjectId]) {
       throw new BadRequestException("Project ID is required");
     }
-    return await (this.threadsService.advanceThread(
+    return await this.threadsService.advanceThread(
       request[ProjectId],
       advanceRequestDto,
       threadId,
-    ) as Promise<AdvanceThreadResponseDto>);
+      false,
+    );
   }
 
   @UseGuards(ThreadInProjectGuard)
@@ -336,10 +337,12 @@ export class ThreadsController {
     if (!request[ProjectId]) {
       throw new BadRequestException("Project ID is required");
     }
-    return await (this.threadsService.advanceThread(
+    return await this.threadsService.advanceThread(
       request[ProjectId],
       advanceRequestDto,
-    ) as Promise<AdvanceThreadResponseDto>);
+      undefined,
+      false,
+    );
   }
 
   @Post("advancestream")
@@ -355,15 +358,12 @@ export class ThreadsController {
       throw new BadRequestException("Project ID is required");
     }
     try {
-      const stream = (await this.threadsService.advanceThread(
+      const stream = await this.threadsService.advanceThread(
         request[ProjectId],
         advanceRequestDto,
         undefined,
         true,
-      )) as AsyncIterableIterator<{
-        responseMessageDto: ThreadMessageDto;
-        generationStage: GenerationStage;
-      }>;
+      );
       await this.handleAdvanceStream(response, stream);
     } catch (error: any) {
       response.write(`error: ${error.message}\n\n`);

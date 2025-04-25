@@ -106,7 +106,7 @@ export async function addAssistantMessageToThread(
     component: serializedMessage,
     actionType: component.toolCallRequest ? ActionType.ToolCall : undefined,
     toolCallRequest: component.toolCallRequest,
-    tool_call_id: component.toolCallRequest?.tool_call_id,
+    tool_call_id: component.toolCallId,
     componentState: component.componentState ?? {},
   });
 }

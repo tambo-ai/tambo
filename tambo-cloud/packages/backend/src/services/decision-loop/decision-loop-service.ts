@@ -35,7 +35,7 @@ export async function* runDecisionLoop(
   availableComponents: AvailableComponent[],
   systemTools: SystemTools | undefined,
   clientTools: ComponentContextToolMetadata[],
-  uiToolNamePrefix: string = "show_",
+  uiToolNamePrefix: string = "show_component_",
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = convertComponentsToUITools(
     availableComponents,
@@ -152,7 +152,7 @@ export async function* runDecisionLoop(
       const parsedChunk = {
         message: displayMessage,
         componentName: isUITool
-          ? toolCall?.function.name.replace(uiToolNamePrefix, "")
+          ? toolCall?.function.name.slice(uiToolNamePrefix.length)
           : "",
         props: isUITool ? toolArgs : null,
         toolCallRequest: filteredToolCallRequest,

@@ -139,12 +139,11 @@ describe("Thread State", () => {
           mockDb,
           "thread-1",
           {
-            messageToAppend: {
-              role: MessageRole.User,
-              content: [{ type: ContentPartType.Text, text: "test" }],
-              componentState: {},
-            },
+            role: MessageRole.User,
+            content: [{ type: ContentPartType.Text, text: "test" }],
+            componentState: {},
           },
+
           mockLogger,
         ),
       ).rejects.toThrow("Thread is already in processing");
