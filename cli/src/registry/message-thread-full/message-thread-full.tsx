@@ -5,6 +5,7 @@ import {
   MessageInputTextarea,
   MessageInputToolbar,
   MessageInputSubmitButton,
+  MessageInputError,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestionsRoot,
@@ -201,6 +202,7 @@ export const MessageThreadFull = React.forwardRef<
             <MessageSuggestionsStatus />
             <MessageSuggestionsList />
           </MessageSuggestionsRoot>
+          <MessageInputError />
         </CanvasAwareContainer>
       </>
     );

@@ -13,8 +13,8 @@
     "thread-content",
     "message-input",
     "message-suggestions",
-    "thread-history",
-    "message"
+    "message",
+    "thread-dropdown"
   ],
   "files": [
     {

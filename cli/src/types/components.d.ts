@@ -13,6 +13,7 @@
  * - ThreadList component
  * - MessageGenerationStage component
  * - Tooltip component
+ * - ThreadDropdown component
  *
  * These components are meant to be installed and used in end-user projects
  * through the CLI installation process.
@@ -293,4 +294,16 @@ declare module "@/components/ui/tooltip" {
   >;
   export const TooltipRoot: any;
   export const TooltipTrigger: any;
+}
+
+declare module "@/components/ui/thread-dropdown" {
+  export interface ThreadDropdownProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    variant?: ComponentVariant;
+    contextKey?: string | undefined;
+    onThreadChange?: () => void;
+  }
+  export const ThreadDropdown: React.ForwardRefExoticComponent<
+    ThreadDropdownProps & React.RefAttributes<HTMLDivElement>
+  >;
 }

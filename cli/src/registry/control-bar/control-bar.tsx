@@ -4,7 +4,7 @@ import { MessageInput } from "@/components/ui/message-input";
 import { ThreadContent } from "@/components/ui/thread-content";
 import type { messageVariants } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
-import * as Dialog from "@radix-ui/react-dialog";
+import { Dialog } from "radix-ui";
 import { useTambo } from "@tambo-ai/react";
 import React from "react";
 import { useEffect, useRef } from "react";

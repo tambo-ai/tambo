@@ -5,6 +5,7 @@ import {
   MessageInputTextarea,
   MessageInputToolbar,
   MessageInputSubmitButton,
+  MessageInputError,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestionsRoot,
@@ -292,6 +293,7 @@ export const MessageThreadPanel = React.forwardRef<
                   <MessageInputSubmitButton />
                 </MessageInputToolbar>
               </MessageInputRoot>
+              <MessageInputError />
             </div>
             <MessageSuggestionsRoot>
               <MessageSuggestionsStatus />
