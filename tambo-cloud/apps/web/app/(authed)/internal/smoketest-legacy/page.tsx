@@ -11,6 +11,7 @@ import { TRPCClientErrorLike } from "@trpc/client";
 // Using the existing HydraClient but importing it from the original package
 import { HydraClient } from "hydra-ai";
 import { X } from "lucide-react";
+import Image from "next/image";
 import { ReactElement, useMemo, useState } from "react";
 
 interface Message {
@@ -233,11 +234,12 @@ const WeatherDay = ({ data }: WeatherDayProps): React.ReactNode => {
             {new Date(data.date).toLocaleDateString()}
           </p>
           <div className="flex items-center gap-2">
-            <img
+            <Image
               src={data.day.condition.icon}
               alt={data.day.condition.text}
               width={64}
               height={64}
+              quality={85}
             />
             <p className="text-sm text-muted-foreground">
               {data.day.condition.text}

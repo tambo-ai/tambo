@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -72,14 +73,27 @@ export const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
             {data.date ? new Date(data.date).toLocaleDateString() : ""}
           </p>
           <div className="flex items-center gap-2">
-            {data.day?.condition?.icon && (
-              <img
-                src={data.day.condition.icon}
-                alt={data.day.condition?.text ?? "Weather condition"}
-                width={64}
-                height={64}
-              />
-            )}
+            {data.day?.condition?.icon &&
+              // Check if the icon URL is protocol-relative (starts with '//')
+              // If so, use a regular img tag instead of Next.js Image component
+              (data.day.condition.icon.startsWith("//") ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={data.day.condition.icon}
+                  alt={data.day.condition?.text ?? "Weather condition"}
+                  width={64}
+                  height={64}
+                  style={{ width: "64px", height: "64px" }}
+                />
+              ) : (
+                <Image
+                  src={data.day.condition.icon}
+                  alt={data.day.condition?.text ?? "Weather condition"}
+                  width={64}
+                  height={64}
+                  quality={85}
+                />
+              ))}
             <p className="text-sm text-muted-foreground">
               {data.day?.condition?.text ?? ""}
             </p>

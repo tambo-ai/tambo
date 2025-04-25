@@ -36,6 +36,10 @@ const config = {
         protocol: "http",
         hostname: "localhost",
       },
+      {
+        protocol: "https",
+        hostname: "weatherapi.com",
+      },
     ],
   },
   // Configure webpack to use SVGR for SVG imports
