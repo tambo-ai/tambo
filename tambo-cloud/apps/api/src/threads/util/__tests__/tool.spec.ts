@@ -141,6 +141,7 @@ describe("tool utilities", () => {
           component: componentDecision,
           role: MessageRole.Tool,
           content: [{ type: ContentPartType.Text, text: mockResult }],
+          tool_call_id: "tool-call-1",
         },
         additionalContext: advanceRequestDto.additionalContext,
         availableComponents: advanceRequestDto.availableComponents,

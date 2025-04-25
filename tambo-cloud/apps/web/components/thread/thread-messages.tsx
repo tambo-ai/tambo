@@ -42,9 +42,7 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
               ?.toolCallId === highlightedToolCallId;
 
           const isInternalMessage = !!message.actionType;
-          const hasToolCallRequest =
-            !!message.toolCallRequest?.toolName &&
-            !!message.toolCallRequest?.parameters?.length;
+          const hasToolCallRequest = !!message.toolCallRequest;
 
           return (
             <motion.div
