@@ -140,7 +140,6 @@ export const tamboComponents = [
 export function CodeExamples() {
   const [activeTab, setActiveTab] = useState<TabKey>("demo");
   const sectionRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const demoRef = useRef<HTMLDivElement>(null);
   const [snapEnabled, setSnapEnabled] = useState(true);
   const wheelCountRef = useRef(0);

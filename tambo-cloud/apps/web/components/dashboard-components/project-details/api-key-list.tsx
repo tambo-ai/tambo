@@ -6,7 +6,7 @@ import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
 import { APIKeyDialog } from "./api-key-dialog";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
@@ -67,55 +67,57 @@ export function APIKeyList({ project }: APIKeyListProps) {
     }
   }, [apiKeysError, toast]);
 
+  const handleCreateApiKey = useCallback(
+    async (keyName?: string) => {
+      const name = keyName || newKeyName;
+      if (!name.trim()) {
+        toast({
+          title: "Error",
+          description: "Please enter a key name",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        setIsCreating(true);
+        const newKey = await generateApiKey({
+          projectId: project.id,
+          name: name,
+        });
+        setNewGeneratedKey(newKey.apiKey);
+
+        // Only show dialog for auto-generated first key
+        if (keyName === "first-tambo-key") {
+          setShowKeyDialog(true);
+        }
+
+        await refetchApiKeys();
+        setNewKeyName("");
+        if (!keyName) {
+          toast({
+            title: "Success",
+            description: "New API key created successfully",
+          });
+        }
+      } catch (_error) {
+        toast({
+          title: "Error",
+          description: "Failed to create API key",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [generateApiKey, newKeyName, project.id, refetchApiKeys, toast],
+  );
   // Auto-create first key if none exist
   useEffect(() => {
     if (!apiKeysLoading && apiKeys?.length === 0) {
       handleCreateApiKey("first-tambo-key");
     }
-  }, [apiKeysLoading, apiKeys]);
-
-  const handleCreateApiKey = async (keyName?: string) => {
-    const name = keyName || newKeyName;
-    if (!name.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a key name",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsCreating(true);
-      const newKey = await generateApiKey({
-        projectId: project.id,
-        name: name,
-      });
-      setNewGeneratedKey(newKey.apiKey);
-
-      // Only show dialog for auto-generated first key
-      if (keyName === "first-tambo-key") {
-        setShowKeyDialog(true);
-      }
-
-      await refetchApiKeys();
-      setNewKeyName("");
-      if (!keyName) {
-        toast({
-          title: "Success",
-          description: "New API key created successfully",
-        });
-      }
-    } catch (_error) {
-      toast({
-        title: "Error",
-        description: "Failed to create API key",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  }, [apiKeysLoading, apiKeys, handleCreateApiKey]);
 
   const { mutateAsync: removeApiKey, isPending: isRemovingKey } =
     api.project.removeApiKey.useMutation();

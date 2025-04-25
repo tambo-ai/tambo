@@ -120,9 +120,10 @@ export function InstallationSteps() {
       observer.observe(sectionRef.current);
     }
 
+    const oldSectionRef = sectionRef.current;
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (oldSectionRef) {
+        observer.unobserve(oldSectionRef);
       }
     };
   }, []);
