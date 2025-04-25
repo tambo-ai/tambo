@@ -1,13 +1,17 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { TamboThread } from "@tambo-ai/react";
-import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import type {
+  TamboThread} from "@tambo-ai/react";
 import {
-  ArrowLeftToLine,
-  ArrowRightToLine,
+  useTamboThread,
+  useTamboThreadList,
+} from "@tambo-ai/react";
+import {
   PlusIcon,
   SearchIcon,
+  ArrowLeftToLine,
+  ArrowRightToLine,
 } from "lucide-react";
 import * as React from "react";
 
@@ -28,6 +32,7 @@ interface ThreadHistoryContextValue {
   setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   onThreadChange?: () => void;
   contextKey?: string;
+  position?: "left" | "right";
 }
 
 const ThreadHistoryContext =
@@ -51,6 +56,7 @@ interface ThreadHistoryRootProps extends React.HTMLAttributes<HTMLDivElement> {
   onThreadChange?: () => void;
   children?: React.ReactNode;
   defaultCollapsed?: boolean;
+  position?: "left" | "right";
 }
 
 const ThreadHistoryRoot = React.forwardRef<
@@ -63,6 +69,7 @@ const ThreadHistoryRoot = React.forwardRef<
       contextKey,
       onThreadChange,
       defaultCollapsed = false,
+      position = "left",
       children,
       ...props
     },
@@ -116,6 +123,7 @@ const ThreadHistoryRoot = React.forwardRef<
         setIsCollapsed,
         onThreadChange,
         contextKey,
+        position,
       }),
       [
         threads,
@@ -129,6 +137,7 @@ const ThreadHistoryRoot = React.forwardRef<
         isCollapsed,
         onThreadChange,
         contextKey,
+        position,
       ],
     );
 
@@ -137,7 +146,8 @@ const ThreadHistoryRoot = React.forwardRef<
         <div
           ref={ref}
           className={cn(
-            "border-r border-flat bg-container h-screen fixed left-0 top-0 transition-all duration-300",
+            "border-flat bg-container h-screen fixed top-0 transition-all duration-300",
+            position === "left" ? "border-r left-0" : "border-l right-0",
             isCollapsed ? "w-12" : "w-64",
             className,
           )}
@@ -162,7 +172,11 @@ const ThreadHistoryHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const { isCollapsed, setIsCollapsed } = useThreadHistoryContext();
+  const {
+    isCollapsed,
+    setIsCollapsed,
+    position = "left",
+  } = useThreadHistoryContext();
 
   return (
     <div
@@ -179,13 +193,20 @@ const ThreadHistoryHeader = React.forwardRef<
       )}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="bg-container hover:bg-muted transition-colors ml-auto p-1 hover:bg-backdrop rounded-md cursor-pointer"
+        className={cn(
+          "bg-container hover:bg-muted transition-colors p-1 hover:bg-backdrop rounded-md cursor-pointer",
+          position === "left" ? "ml-auto" : "",
+        )}
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? (
-          <ArrowRightToLine className="h-4 w-4" />
+          <ArrowRightToLine
+            className={cn("h-4 w-4", position === "right" && "rotate-180")}
+          />
         ) : (
-          <ArrowLeftToLine className="h-4 w-4" />
+          <ArrowLeftToLine
+            className={cn("h-4 w-4", position === "right" && "rotate-180")}
+          />
         )}
       </button>
     </div>
@@ -421,33 +442,40 @@ export interface ThreadHistoryProps
   extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
   onThreadChange?: () => void;
+  position?: "left" | "right";
 }
 
 export const ThreadHistory = React.forwardRef<
   HTMLDivElement,
   ThreadHistoryProps
->(({ className, contextKey, onThreadChange, ...props }, ref) => {
-  return (
-    <ThreadHistoryRoot
-      ref={ref}
-      contextKey={contextKey}
-      onThreadChange={onThreadChange}
-      className={className}
-      {...props}
-    >
-      <ThreadHistoryHeader />
-      <ThreadHistoryNewButton />
-      <ThreadHistorySearch />
-      <ThreadHistoryList />
-    </ThreadHistoryRoot>
-  );
-});
+>(
+  (
+    { className, contextKey, onThreadChange, position = "left", ...props },
+    ref,
+  ) => {
+    return (
+      <ThreadHistoryRoot
+        ref={ref}
+        contextKey={contextKey}
+        onThreadChange={onThreadChange}
+        position={position}
+        className={className}
+        {...props}
+      >
+        <ThreadHistoryHeader />
+        <ThreadHistoryNewButton />
+        <ThreadHistorySearch />
+        <ThreadHistoryList />
+      </ThreadHistoryRoot>
+    );
+  },
+);
 ThreadHistory.displayName = "ThreadHistory";
 
 export {
-  ThreadHistoryHeader,
-  ThreadHistoryList,
-  ThreadHistoryNewButton,
   ThreadHistoryRoot,
+  ThreadHistoryHeader,
+  ThreadHistoryNewButton,
   ThreadHistorySearch,
+  ThreadHistoryList,
 };

@@ -1,9 +1,27 @@
 "use client";
 
-import { MessageInput } from "@/components/ui/message-input";
-import { MessageSuggestions } from "@/components/ui/message-suggestions";
-import { ThreadContent } from "@/components/ui/thread-content";
-import { ThreadHistory } from "@/components/ui/thread-history";
+import {
+  MessageInputRoot,
+  MessageInputTextarea,
+  MessageInputToolbar,
+  MessageInputSubmitButton,
+} from "@/components/ui/message-input";
+import {
+  MessageSuggestionsRoot,
+  MessageSuggestionsStatus,
+  MessageSuggestionsList,
+} from "@/components/ui/message-suggestions";
+import {
+  ThreadContentRoot,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
+import {
+  ThreadHistoryRoot,
+  ThreadHistoryHeader,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadHistoryList,
+} from "@/components/ui/thread-history";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
@@ -33,54 +51,34 @@ export interface MessageThreadPanelProps
 }
 
 /**
- * A resizable panel component that displays a chat thread with message history, input, and suggestions
- * @component
- * @example
- * ```tsx
- * <MessageThreadPanel
- *   contextKey="my-thread"
- *   className="custom-styles"
- *   enableCanvasSpace={true}
- *   position="left"
- *   variant="default"
- * />
- * ```
+ * Props for the ResizablePanel component
  */
-export const MessageThreadPanel = React.forwardRef<
-  HTMLDivElement,
-  MessageThreadPanelProps
->(
+interface ResizablePanelProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Whether to enable canvas space integration */
+  enableCanvasSpace?: boolean;
+  /** Position of the panel */
+  position?: "left" | "right";
+  /** Children elements to render inside the container */
+  children: React.ReactNode;
+}
+
+/**
+ * A resizable panel component with a draggable divider
+ */
+const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
   (
     {
-      className,
-      contextKey,
       enableCanvasSpace = false,
-      variant,
       position = "right",
+      className,
+      children,
       ...props
     },
     ref,
   ) => {
     const [width, setWidth] = React.useState(500);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const { thread } = useTambo();
     const isResizing = React.useRef(false);
     const lastUpdateRef = React.useRef(0);
-
-    useEffect(() => {
-      if (scrollContainerRef.current && thread?.messages?.length) {
-        const timeoutId = setTimeout(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTo({
-              top: scrollContainerRef.current.scrollHeight,
-              behavior: "smooth",
-            });
-          }
-        }, 100);
-
-        return () => clearTimeout(timeoutId);
-      }
-    }, [thread?.messages]);
 
     const handleMouseMove = React.useCallback(
       (e: MouseEvent) => {
@@ -136,7 +134,7 @@ export const MessageThreadPanel = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "h-full fixed top-0 bg-background",
+          "h-full fixed top-0 bg-background flex flex-col",
           "transition-[width] duration-75 ease-out",
           position === "left"
             ? "left-0 border-r border-gray-200"
@@ -172,26 +170,150 @@ export const MessageThreadPanel = React.forwardRef<
             }}
           />
         )}
-        <div className="flex flex-col h-full">
-          <div className="p-4 flex items-center justify-between">
-            <h2 className="font-semibold text-lg">Use AI</h2>
-            <ThreadHistory contextKey={contextKey} />
-          </div>
-          <div
-            className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar:horizontal]:h-[4px]"
-            ref={scrollContainerRef}
-          >
-            <ThreadContent
-              enableCanvasSpace={enableCanvasSpace}
-              variant={variant}
-            />
-          </div>
-          <div className="p-4">
-            <MessageInput contextKey={contextKey} />
-          </div>
-          <MessageSuggestions />
-        </div>
+        {children}
       </div>
+    );
+  },
+);
+ResizablePanel.displayName = "ResizablePanel";
+
+/**
+ * A scrollable container for message content with auto-scroll functionality
+ */
+const ScrollableMessageContainer = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, children, ...props }, ref) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { thread } = useTambo();
+
+  // Handle forwarded ref
+  React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollContainerRef.current && thread?.messages?.length) {
+      const timeoutId = setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [thread?.messages]);
+
+  return (
+    <div
+      ref={scrollContainerRef}
+      className={cn(
+        "flex-1 overflow-y-auto p-4",
+        "[&::-webkit-scrollbar]:w-[6px]",
+        "[&::-webkit-scrollbar-thumb]:bg-gray-300",
+        "[&::-webkit-scrollbar:horizontal]:h-[4px]",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
+ScrollableMessageContainer.displayName = "ScrollableMessageContainer";
+
+/**
+ * A resizable panel component that displays a chat thread with message history, input, and suggestions
+ * @component
+ * @example
+ * ```tsx
+ * <MessageThreadPanel
+ *   contextKey="my-thread"
+ *   className="custom-styles"
+ *   enableCanvasSpace={true}
+ *   position="left"
+ *   variant="default"
+ * />
+ * ```
+ */
+export const MessageThreadPanel = React.forwardRef<
+  HTMLDivElement,
+  MessageThreadPanelProps
+>(
+  (
+    {
+      className,
+      contextKey,
+      enableCanvasSpace = false,
+      variant,
+      position = "right",
+      ...props
+    },
+    ref,
+  ) => {
+    return (
+      <ResizablePanel
+        ref={ref}
+        enableCanvasSpace={enableCanvasSpace}
+        position={position}
+        className={className}
+        {...props}
+      >
+        <div className="flex h-full relative">
+          {position === "left" && (
+            <ThreadHistoryRoot
+              contextKey={contextKey}
+              defaultCollapsed={false}
+              position="left"
+              className="relative h-full border-0 border-r border-flat"
+            >
+              <ThreadHistoryHeader />
+              <ThreadHistoryNewButton />
+              <ThreadHistorySearch />
+              <ThreadHistoryList />
+            </ThreadHistoryRoot>
+          )}
+
+          <div className="flex flex-col h-full flex-grow">
+            <ScrollableMessageContainer>
+              <ThreadContentRoot
+                enableCanvasSpace={enableCanvasSpace}
+                variant={variant}
+              >
+                <ThreadContentMessages />
+              </ThreadContentRoot>
+            </ScrollableMessageContainer>
+            <div className="p-4">
+              <MessageInputRoot contextKey={contextKey}>
+                <MessageInputTextarea />
+                <MessageInputToolbar>
+                  <MessageInputSubmitButton />
+                </MessageInputToolbar>
+              </MessageInputRoot>
+            </div>
+            <MessageSuggestionsRoot>
+              <MessageSuggestionsStatus />
+              <MessageSuggestionsList />
+            </MessageSuggestionsRoot>
+          </div>
+
+          {position === "right" && (
+            <ThreadHistoryRoot
+              contextKey={contextKey}
+              defaultCollapsed={false}
+              position="right"
+              className="relative h-full border-0 border-l border-flat"
+            >
+              <ThreadHistoryHeader />
+              <ThreadHistoryNewButton />
+              <ThreadHistorySearch />
+              <ThreadHistoryList />
+            </ThreadHistoryRoot>
+          )}
+        </div>
+      </ResizablePanel>
     );
   },
 );
