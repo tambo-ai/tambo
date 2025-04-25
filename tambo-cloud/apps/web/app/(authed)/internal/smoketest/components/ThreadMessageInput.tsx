@@ -14,7 +14,7 @@ const ThreadMessageInput: FC<ThreadMessageInputProps> = ({
 }) => {
   const { value, setValue, submit, isPending, error } =
     useTamboThreadInput(contextKey);
-  const [streamEnabled, setStreamEnabled] = useState(false);
+  const [streamEnabled, setStreamEnabled] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

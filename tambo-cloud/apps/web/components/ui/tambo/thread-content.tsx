@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/components/ui/tambo/message";
+import { Message } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";

@@ -3,6 +3,7 @@
 import { ThreadList } from "@/components/thread/thread-list";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Message } from "@/components/ui/message";
 import { useSession } from "@/hooks/auth";
 import { api } from "@/trpc/react";
 import { TamboTool, useTambo, useTamboThreadList } from "@tambo-ai/react";
@@ -302,9 +303,9 @@ export default function SmokePage() {
     isThreadInfoLoading;
 
   return (
-    <div className="container max-w-4xl py-8 space-y-4">
-      <div className="flex  gap-4">
-        <Card className="p-4">
+    <div className="container max-w-7xl py-8 space-y-4">
+      <div className="flex gap-4">
+        <Card className="p-4 flex flex-col flex-1">
           <div className="flex justify-between items-center mb-4 gap-2">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold">Threads</h2>
@@ -343,29 +344,16 @@ export default function SmokePage() {
             isLoading={isLoading}
           />
         </Card>
-        <div className="flex-1">
+        <div className="flex-col gap-2 flex-1">
           <Card className="p-4 min-h-[500px] flex flex-col">
             <div className="flex-1 overflow-y-auto space-y-4 mb-4">
               {messages.map((message, index) => (
-                <div
+                <Message
                   key={index}
-                  className={`p-3 rounded-lg ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground ml-12"
-                      : "bg-muted mr-12"
-                  }`}
-                >
-                  {message.content.map((content, index) => (
-                    <div key={index}>
-                      {content.type === "text"
-                        ? content.text
-                        : `[Unhandled ${content.type}]`}
-                    </div>
-                  ))}
-                  {message.renderedComponent && (
-                    <div className="mt-2">{message.renderedComponent}</div>
-                  )}
-                </div>
+                  role={message.role as "user" | "assistant"}
+                  content={message.content}
+                  message={message}
+                />
               ))}
             </div>
             <MessageSuggestions maxSuggestions={3} />
