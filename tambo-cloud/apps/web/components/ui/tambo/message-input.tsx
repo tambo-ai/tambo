@@ -61,11 +61,6 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
       return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
-      setValue(newValue);
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!value?.trim()) return;

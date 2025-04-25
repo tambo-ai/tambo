@@ -7,10 +7,10 @@ export default async function AuthedLayout({
   children: React.ReactNode;
 }) {
   // Check authentication on the server
-  const supabase = await getServerSupabaseclient();
+  const _supabase = await getServerSupabaseclient();
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await _supabase.auth.getSession();
 
   return (
     <AuthedLayoutWrapper hasSession={!!session}>{children}</AuthedLayoutWrapper>

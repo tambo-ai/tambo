@@ -1,14 +1,9 @@
-import { siteConfig } from "@/lib/config";
-import { env } from "@/lib/env";
-
 /**
  * Component to preload critical resources for better Core Web Vitals
  * Improves LCP (Largest Contentful Paint) by preloading critical images
  * Improves FID (First Input Delay) by preloading critical scripts
  */
 export function PreloadResources() {
-  const baseUrl = env.NEXT_PUBLIC_APP_URL || siteConfig.url;
-
   return (
     <>
       {/* Preload logo image for faster LCP */}

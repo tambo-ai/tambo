@@ -23,7 +23,7 @@ export function MessageSuggestions({
     suggestions,
     selectedSuggestionId,
     accept,
-    acceptResult: { isPending: isAccepting },
+    acceptResult: { isPending: _isAccepting },
     generateResult: { isPending: isGenerating, error },
   } = useTamboSuggestions({
     maxSuggestions,
@@ -91,8 +91,8 @@ export function MessageSuggestions({
     };
   }, [suggestions, accept, isMac]);
 
-  const modKey = isMac ? "⌘" : "Ctrl";
-  const altKey = isMac ? "⌥" : "Alt";
+  const _modKey = isMac ? "⌘" : "Ctrl";
+  const _altKey = isMac ? "⌥" : "Alt";
 
   // If we have no messages yet, only show the button
   if (!thread?.messages?.length) {
@@ -140,7 +140,7 @@ export function MessageSuggestions({
                   {suggestions.map((suggestion, index) => (
                     <Tooltip
                       key={suggestion.id}
-                      content={`${isMac ? "⌘" : "Ctrl"}+${isMac ? "⌥" : "Alt"}+${index + 1}`}
+                      content={`${_modKey}+${_altKey}+${index + 1}`}
                       side="top"
                     >
                       <button
