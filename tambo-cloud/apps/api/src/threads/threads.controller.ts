@@ -399,7 +399,6 @@ async function* filterDuplicateChunks<T>(
   let previousChunk: T | undefined = undefined;
   for await (const chunk of stream) {
     if (previousChunk !== undefined && isEqual(chunk, previousChunk)) {
-      console.log("============skipping duplicate chunk");
       continue;
     }
     previousChunk = chunk;
