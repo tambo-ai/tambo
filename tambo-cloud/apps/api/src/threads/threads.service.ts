@@ -751,7 +751,6 @@ export class ThreadsService {
       db,
       threadId,
       userMessage,
-      toolCallId,
       logger,
     );
 

@@ -250,7 +250,7 @@ export async function* convertDecisionStreamToMessageStream(
     threadId: inProgressMessage.threadId,
   };
   let finalToolCallRequest: ToolCallRequest | undefined;
-  // let finalToolCallId: string | undefined;
+  let finalToolCallId: string | undefined;
 
   for await (const chunk of stream) {
     finalThreadMessage = {
@@ -269,7 +269,7 @@ export async function* convertDecisionStreamToMessageStream(
       finalToolCallRequest = chunk.toolCallRequest;
       // toolCallId is set when streaming the response to a tool response
       // chunk.toolCallId is set when streaming the response to a component
-      // finalToolCallId = toolCallId ?? chunk.toolCallId;
+      finalToolCallId = chunk.toolCallId;
     }
 
     yield finalThreadMessage;
@@ -279,7 +279,7 @@ export async function* convertDecisionStreamToMessageStream(
   finalThreadMessage = {
     ...finalThreadMessage,
     toolCallRequest: finalToolCallRequest,
-    // tool_call_id: finalToolCallId,
+    tool_call_id: finalToolCallId,
   };
 
   yield finalThreadMessage;
@@ -293,7 +293,6 @@ export async function addInProgressMessage(
   db: HydraDb,
   threadId: string,
   addedUserMessage: ThreadMessage,
-  toolCallId: string | undefined,
   logger: Logger,
 ) {
   try {
@@ -309,7 +308,6 @@ export async function addInProgressMessage(
               text: "streaming in progress...",
             },
           ],
-          tool_call_id: toolCallId,
         });
       },
       {
