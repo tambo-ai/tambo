@@ -22,6 +22,7 @@ import {
   type ApiState,
 } from "./components/ApiActivityMonitor";
 import { LinearIssue } from "./components/LinearIssue";
+import { LinearIssueList } from "./components/LinearIssueList";
 import { LinearProjectList } from "./components/LinearProjectList";
 import { LocalFileContents, LocalFileList } from "./components/LocalFileList";
 import { MessageSuggestions } from "./components/MessageSuggestions";
@@ -263,6 +264,22 @@ export default function SmokePage() {
           z.object({
             id: z.string(),
             name: z.string(),
+          }),
+        ),
+      }),
+    });
+    registerComponent({
+      component: LinearIssueList,
+      name: "LinearIssueList",
+      description: "A list of Linear issues",
+      propsSchema: z.object({
+        issues: z.array(
+          z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            status: z.string(),
+            priority: z.string(),
           }),
         ),
       }),
