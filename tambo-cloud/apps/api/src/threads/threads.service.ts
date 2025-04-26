@@ -665,7 +665,6 @@ export class ThreadsService {
       null, // right now all provider contexts are stored with null context keys
     );
     const latestMessage = messages[messages.length - 1];
-    const toolCallId = latestMessage.tool_call_id;
     if (latestMessage.role === MessageRole.Tool) {
       await updateGenerationStage(
         db,
@@ -696,7 +695,6 @@ export class ThreadsService {
         userMessage,
         systemTools,
         advanceRequestDto,
-        toolCallId,
         depth,
       );
     }
@@ -722,7 +720,6 @@ export class ThreadsService {
       userMessage,
       systemTools,
       advanceRequestDto,
-      toolCallId,
       depth,
     );
   }
@@ -734,7 +731,6 @@ export class ThreadsService {
     userMessage: ThreadMessage,
     systemTools: SystemTools,
     originalRequest: AdvanceThreadDto,
-    toolCallId?: string,
     depth: number = 0,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     const db = this.getDb();
@@ -800,6 +796,8 @@ export class ThreadsService {
       componentDecision &&
       isSystemToolCall(finalToolCallRequest, systemTools)
     ) {
+      const toolCallId = finalThreadMessage.tool_call_id;
+
       if (!toolCallId) {
         console.warn(
           `While handling tool call request ${finalToolCallRequest.toolName}, no tool call id in response message ${finalThreadMessage}, returning assistant message`,

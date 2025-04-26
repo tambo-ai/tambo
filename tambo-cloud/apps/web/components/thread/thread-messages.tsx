@@ -123,6 +123,12 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
                   {!!message.suggestedActions?.length && (
                     <SuggestedActions actions={message.suggestedActions} />
                   )}
+
+                  <div className="mt-2 flex justify-end">
+                    <span className="text-xs text-muted-foreground bg-[#F8F9FA] dark:bg-[#2A2A2A] px-2 py-1 rounded-md">
+                      {message.id}
+                    </span>
+                  </div>
                 </div>
               </Card>
             </motion.div>
