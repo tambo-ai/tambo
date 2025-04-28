@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.39.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.2...repo-v0.39.3) (2025-04-28)
+
+
+### Bug Fixes
+
+* account for partial LLMResponse... then use lint to find related issues ([#871](https://github.com/tambo-ai/tambo-cloud/issues/871)) ([53df4ad](https://github.com/tambo-ai/tambo-cloud/commit/53df4ad241a9e707df0053861f66ca8f933aabf9))
+* use span for badges, they are usually used as inline ([#872](https://github.com/tambo-ai/tambo-cloud/issues/872)) ([20ceb8d](https://github.com/tambo-ai/tambo-cloud/commit/20ceb8d504572221fa929422b4d42e6fe8e53f31))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 20.17.30 to 20.17.32 ([#869](https://github.com/tambo-ai/tambo-cloud/issues/869)) ([a1cbc5c](https://github.com/tambo-ai/tambo-cloud/commit/a1cbc5c0b53772e513b952da84819f79c57a4956))
+* **deps-dev:** bump eslint-config-prettier from 10.1.1 to 10.1.2 ([#868](https://github.com/tambo-ai/tambo-cloud/issues/868)) ([73908b2](https://github.com/tambo-ai/tambo-cloud/commit/73908b2f15763eb4a2d163482fc82b6320329f54))
+* **deps-dev:** bump turbo from 2.5.0 to 2.5.2 ([#870](https://github.com/tambo-ai/tambo-cloud/issues/870)) ([9fe6df1](https://github.com/tambo-ai/tambo-cloud/commit/9fe6df1640eb7d0b887ddc39753ad2d7171a3fd1))
+* **deps-dev:** bump typescript-eslint from 8.31.0 to 8.31.1 in the eslint group ([#856](https://github.com/tambo-ai/tambo-cloud/issues/856)) ([4d0bc46](https://github.com/tambo-ai/tambo-cloud/commit/4d0bc46ced2a4f2ef23b2dea94cd9d522957470a))
+* **deps:** bump @splinetool/runtime from 1.9.82 to 1.9.89 ([#860](https://github.com/tambo-ai/tambo-cloud/issues/860)) ([5a03800](https://github.com/tambo-ai/tambo-cloud/commit/5a03800de525fe0c0c0199a7c3a6d9435ae3da78))
+* **deps:** bump @tambo-ai/react from 0.20.4 to 0.21.1 ([#859](https://github.com/tambo-ai/tambo-cloud/issues/859)) ([4fdeea4](https://github.com/tambo-ai/tambo-cloud/commit/4fdeea49f18dc4c998910e3655d92bcca709f3cd))
+* **deps:** bump lucide-react from 0.487.0 to 0.503.0 ([#864](https://github.com/tambo-ai/tambo-cloud/issues/864)) ([a4cc0ec](https://github.com/tambo-ai/tambo-cloud/commit/a4cc0ecf7ce1408c650ad65d3cd7d60ec3d14989))
+* **deps:** bump openai from 4.95.1 to 4.96.0 ([#865](https://github.com/tambo-ai/tambo-cloud/issues/865)) ([5eb6645](https://github.com/tambo-ai/tambo-cloud/commit/5eb6645266b7ae5e96d00c3d7b0db57d6dd06573))
+* **deps:** bump pg and @types/pg ([#861](https://github.com/tambo-ai/tambo-cloud/issues/861)) ([617afcc](https://github.com/tambo-ai/tambo-cloud/commit/617afcc31770eed7b73004fce9e95344a675ac58))
+* **deps:** bump posthog-js from 1.234.9 to 1.236.7 ([#863](https://github.com/tambo-ai/tambo-cloud/issues/863)) ([28b1b27](https://github.com/tambo-ai/tambo-cloud/commit/28b1b27841a2ba319cb17872144aa3ff78d06747))
+* **deps:** bump tldts from 6.1.85 to 7.0.4 ([#862](https://github.com/tambo-ai/tambo-cloud/issues/862)) ([955001d](https://github.com/tambo-ai/tambo-cloud/commit/955001d58dced362d6bfd9a0db39a7e6f9b5f277))
+* **deps:** bump token.js from 0.5.4 to 0.7.1 ([#858](https://github.com/tambo-ai/tambo-cloud/issues/858)) ([4e545ce](https://github.com/tambo-ai/tambo-cloud/commit/4e545ce233ead8e46706d912f563f17e4d078a4f))
+* more dependabot groups for fewer prs ([#873](https://github.com/tambo-ai/tambo-cloud/issues/873)) ([37925e8](https://github.com/tambo-ai/tambo-cloud/commit/37925e8f6cf967af2fd532e768ac626140361fae))
+
 ## [0.39.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.1...repo-v0.39.2) (2025-04-28)
 
 
