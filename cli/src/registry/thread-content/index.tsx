@@ -1,8 +1,1 @@
-export {
-  ThreadContent,
-  ThreadContentRoot,
-  ThreadContentMessages,
-  type ThreadContentProps,
-  type ThreadContentRootProps,
-  type ThreadContentMessagesProps,
-} from "./thread-content";
+export { ThreadContent, ThreadContentMessages } from "./thread-content";

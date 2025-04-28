@@ -1,1 +1,1 @@
-export { ThreadList, type ThreadListProps } from "./thread-dropdown";
+export { ThreadDropdown } from "./thread-dropdown";
