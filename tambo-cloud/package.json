@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "turbo build",
+    "build:api": "turbo run build --filter=hydra-api",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "lint:fix": "turbo lint -- --fix",
@@ -12,6 +13,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prettier-check": "prettier --check .",
     "hydra-api:start": "turbo run start --filter=hydra-api",
+    "start:api": "turbo run start --filter=hydra-api",
     "prepare": "husky",
     "db:generate": "cd packages/db && npm run db:generate",
     "db:migrate": "cd packages/db && npm run db:migrate",
