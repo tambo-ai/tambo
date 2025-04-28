@@ -118,8 +118,7 @@ export function useTamboSuggestions(
         latestMessageId,
         {
           maxSuggestions,
-          // The API expects an array of arrays for availableComponents
-          availableComponents: [components],
+          availableComponents: components,
         },
       );
     },
@@ -181,8 +180,7 @@ export function useTamboSuggestions(
         latestMessageId,
         {
           maxSuggestions,
-          // The API expects an array of arrays for availableComponents
-          availableComponents: [components],
+          availableComponents: components,
         },
         { signal: abortController.signal },
       );
