@@ -37,24 +37,24 @@ const MessageSuggestionsContext =
 /**
  * Hook to access the message suggestions context.
  * @returns {MessageSuggestionsContextValue} The message suggestions context value.
- * @throws {Error} If used outside of MessageSuggestions.Root.
+ * @throws {Error} If used outside of MessageSuggestions.
  * @internal
  */
 const useMessageSuggestionsContext = () => {
   const context = React.useContext(MessageSuggestionsContext);
   if (!context) {
     throw new Error(
-      "MessageSuggestions sub-components must be used within a MessageSuggestions.Root",
+      "MessageSuggestions sub-components must be used within a MessageSuggestions",
     );
   }
   return context;
 };
 
 /**
- * Props for the MessageSuggestionsRoot component.
+ * Props for the MessageSuggestions component.
  * Extends standard HTMLDivElement attributes.
  */
-export interface MessageSuggestionsRootProps
+export interface MessageSuggestionsProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /** Maximum number of suggestions to display (default: 3) */
   maxSuggestions?: number;
@@ -76,7 +76,7 @@ export interface MessageSuggestionsRootProps
  */
 const MessageSuggestions = React.forwardRef<
   HTMLDivElement,
-  MessageSuggestionsRootProps
+  MessageSuggestionsProps
 >(({ children, className, maxSuggestions = 3, ...props }, ref) => {
   const { thread } = useTambo();
   const {

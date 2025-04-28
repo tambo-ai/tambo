@@ -1,10 +1,10 @@
 "use client";
 
-import type { messageVariants } from "@/components/ui/message";
 import {
   Message,
   MessageBubble,
   MessageRenderedComponentArea,
+  type messageVariants,
 } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
@@ -35,24 +35,24 @@ const ThreadContentContext =
 /**
  * Hook to access the thread content context.
  * @returns {ThreadContentContextValue} The thread content context value.
- * @throws {Error} If used outside of ThreadContent.Root.
+ * @throws {Error} If used outside of ThreadContent.
  * @internal
  */
 const useThreadContentContext = () => {
   const context = React.useContext(ThreadContentContext);
   if (!context) {
     throw new Error(
-      "ThreadContent sub-components must be used within a ThreadContent.Root",
+      "ThreadContent sub-components must be used within a ThreadContent",
     );
   }
   return context;
 };
 
 /**
- * Props for the ThreadContentRoot component.
+ * Props for the ThreadContent component.
  * Extends standard HTMLDivElement attributes.
  */
-export interface ThreadContentRootProps
+export interface ThreadContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional styling variant for the message container */
   variant?: VariantProps<typeof messageVariants>["variant"];
@@ -63,15 +63,15 @@ export interface ThreadContentRootProps
 /**
  * The root container for thread content.
  * It establishes the context for its children using data from the Tambo hook.
- * @component ThreadContent.Root
+ * @component ThreadContent
  * @example
  * ```tsx
- * <ThreadContent.Root variant="solid">
+ * <ThreadContent variant="solid">
  *   <ThreadContent.Messages />
- * </ThreadContent.Root>
+ * </ThreadContent>
  * ```
  */
-const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentRootProps>(
+const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ children, className, variant, ...props }, ref) => {
     const { thread, generationStage } = useTambo();
     const messages = thread?.messages ?? [];
@@ -115,9 +115,9 @@ export type ThreadContentMessagesProps = React.HTMLAttributes<HTMLDivElement>;
  * @component ThreadContent.Messages
  * @example
  * ```tsx
- * <ThreadContent.Root>
+ * <ThreadContent>
  *   <ThreadContent.Messages />
- * </ThreadContent.Root>
+ * </ThreadContent>
  * ```
  */
 const ThreadContentMessages = React.forwardRef<

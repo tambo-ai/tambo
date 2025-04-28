@@ -80,17 +80,15 @@ const MessageContext = React.createContext<MessageContextValue | null>(null);
 
 /**
  * Hook to access the message context.
- * Throws an error if used outside of a Message.Root component.
+ * Throws an error if used outside of a Message component.
  * @returns {MessageContextValue} The message context value.
- * @throws {Error} If used outside of Message.Root.
+ * @throws {Error} If used outside of Message.
  * @internal
  */
 const useMessageContext = () => {
   const context = React.useContext(MessageContext);
   if (!context) {
-    throw new Error(
-      "Message sub-components must be used within a Message.Root",
-    );
+    throw new Error("Message sub-components must be used within a Message");
   }
   return context;
 };
@@ -98,10 +96,10 @@ const useMessageContext = () => {
 // --- Sub-Components ---
 
 /**
- * Props for the MessageRoot component.
+ * Props for the Message component.
  * Extends standard HTMLDivElement attributes.
  */
-export interface MessageRootProps
+export interface MessageProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
   /** The role of the message sender ('user' or 'assistant'). */
   role: "user" | "assistant";
@@ -118,16 +116,16 @@ export interface MessageRootProps
 /**
  * The root container for a message component.
  * It establishes the context for its children and applies alignment styles based on the role.
- * @component Message.Root
+ * @component Message
  * @example
  * ```tsx
- * <Message.Root role="user" message={messageData} variant="solid">
+ * <Message role="user" message={messageData} variant="solid">
  *   <Message.Bubble />
  *   <Message.RenderedComponentArea />
- * </Message.Root>
+ * </Message>
  * ```
  */
-const Message = React.forwardRef<HTMLDivElement, MessageRootProps>(
+const Message = React.forwardRef<HTMLDivElement, MessageProps>(
   (
     { children, className, role, variant, message, isLoading, ...props },
     ref,
@@ -171,9 +169,9 @@ export interface MessageBubbleProps
  * @component Message.Bubble
  * @example
  * ```tsx
- * <Message.Root role="assistant" message={messageData} isLoading={isGenerating}>
+ * <Message role="assistant" message={messageData} isLoading={isGenerating}>
  *   <Message.Bubble />
- * </Message.Root>
+ * </Message>
  * ```
  */
 const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(

@@ -65,26 +65,26 @@ const MessageInputContext =
 
 /**
  * Hook to access the message input context.
- * Throws an error if used outside of a MessageInput.Root component.
+ * Throws an error if used outside of a MessageInput component.
  * @returns {MessageInputContextValue} The message input context value.
- * @throws {Error} If used outside of MessageInput.Root.
+ * @throws {Error} If used outside of MessageInput.
  * @internal
  */
 const useMessageInputContext = () => {
   const context = React.useContext(MessageInputContext);
   if (!context) {
     throw new Error(
-      "MessageInput sub-components must be used within a MessageInput.Root",
+      "MessageInput sub-components must be used within a MessageInput",
     );
   }
   return context;
 };
 
 /**
- * Props for the MessageInputRoot component.
+ * Props for the MessageInput component.
  * Extends standard HTMLFormElement attributes.
  */
-export interface MessageInputRootProps
+export interface MessageInputProps
   extends React.HTMLAttributes<HTMLFormElement> {
   /** The context key identifying which thread to send messages to. */
   contextKey?: string;
@@ -97,17 +97,17 @@ export interface MessageInputRootProps
 /**
  * The root container for a message input component.
  * It establishes the context for its children and handles the form submission.
- * @component MessageInput.Root
+ * @component MessageInput
  * @example
  * ```tsx
- * <MessageInput.Root contextKey="my-thread" variant="solid">
+ * <MessageInput contextKey="my-thread" variant="solid">
  *   <MessageInput.Textarea />
  *   <MessageInput.SubmitButton />
  *   <MessageInput.Error />
- * </MessageInput.Root>
+ * </MessageInput>
  * ```
  */
-const MessageInput = React.forwardRef<HTMLFormElement, MessageInputRootProps>(
+const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
   ({ children, className, contextKey, variant, ...props }, ref) => {
     const { value, setValue, submit, isPending, error } =
       useTamboThreadInput(contextKey);
@@ -210,9 +210,9 @@ export interface MessageInputTextareaProps
  * @component MessageInput.Textarea
  * @example
  * ```tsx
- * <MessageInput.Root>
+ * <MessageInput>
  *   <MessageInput.Textarea placeholder="Type your message..." />
- * </MessageInput.Root>
+ * </MessageInput>
  * ```
  */
 const MessageInputTextarea = React.forwardRef<
@@ -271,12 +271,12 @@ export interface MessageInputSubmitButtonProps
  * @component MessageInput.SubmitButton
  * @example
  * ```tsx
- * <MessageInput.Root>
+ * <MessageInput>
  *   <MessageInput.Textarea />
  *   <div className="flex justify-end mt-2 p-1">
  *     <MessageInput.SubmitButton />
  *   </div>
- * </MessageInput.Root>
+ * </MessageInput>
  * ```
  */
 const MessageInputSubmitButton = React.forwardRef<
@@ -321,11 +321,11 @@ export type MessageInputErrorProps = React.HTMLAttributes<HTMLParagraphElement>;
  * @component MessageInput.Error
  * @example
  * ```tsx
- * <MessageInput.Root>
+ * <MessageInput>
  *   <MessageInput.Textarea />
  *   <MessageInput.SubmitButton />
  *   <MessageInput.Error />
- * </MessageInput.Root>
+ * </MessageInput>
  * ```
  */
 const MessageInputError = React.forwardRef<
@@ -357,12 +357,12 @@ MessageInputError.displayName = "MessageInput.Error";
  * @component MessageInput.Toolbar
  * @example
  * ```tsx
- * <MessageInput.Root>
+ * <MessageInput>
  *   <MessageInput.Textarea />
  *   <MessageInput.Toolbar>
  *     <MessageInput.SubmitButton />
  *   </MessageInput.Toolbar>
- * </MessageInput.Root>
+ * </MessageInput>
  * ```
  */
 const MessageInputToolbar = React.forwardRef<

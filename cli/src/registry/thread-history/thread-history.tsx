@@ -38,7 +38,7 @@ const useThreadHistoryContext = () => {
   const context = React.useContext(ThreadHistoryContext);
   if (!context) {
     throw new Error(
-      "ThreadHistory components must be used within ThreadHistory.Root",
+      "ThreadHistory components must be used within ThreadHistory",
     );
   }
   return context;
@@ -47,7 +47,7 @@ const useThreadHistoryContext = () => {
 /**
  * Root component that provides context for thread history
  */
-interface ThreadHistoryRootProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ThreadHistoryProps extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
   onThreadChange?: () => void;
   children?: React.ReactNode;
@@ -55,7 +55,7 @@ interface ThreadHistoryRootProps extends React.HTMLAttributes<HTMLDivElement> {
   position?: "left" | "right";
 }
 
-const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryRootProps>(
+const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
   (
     {
       className,
