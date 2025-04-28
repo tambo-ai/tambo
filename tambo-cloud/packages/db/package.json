@@ -20,14 +20,14 @@
     "@tambo-ai-cloud/backend": "*",
     "@tambo-ai-cloud/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.9",
-    "@types/pg": "^8.11.11",
+    "@types/pg": "^8.11.14",
     "drizzle-kit": "^0.31.0"
   },
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
     "drizzle-orm": "^0.43.1",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.14.1",
+    "pg": "^8.15.6",
     "superjson": "^2.2.2"
   },
   "engines": {
