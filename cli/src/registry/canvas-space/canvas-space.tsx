@@ -51,7 +51,7 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
     }
 
     // Update the previous thread ID reference
-    previousThreadId.current = thread?.id || null;
+    previousThreadId.current = thread?.id ?? null;
   }, [thread]);
 
   /**
