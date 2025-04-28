@@ -48,8 +48,6 @@ body {
     --container: 210 29% 97%;
     --backdrop: 210 88% 14% / 0.25;
     --muted-backdrop: 210 88% 14% / 0.1;
-    --canvas-width: 768px;
-    --canvas-position: right;
     --panel-left-width: 500px;
     --panel-right-width: 500px;
     --sidebar-width: 16rem;
