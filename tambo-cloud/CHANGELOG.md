@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.1...repo-v0.39.2) (2025-04-28)
+
+
+### Continuous Integration
+
+* make api-specific build command for faster railway builds ([#854](https://github.com/tambo-ai/tambo-cloud/issues/854)) ([d2631ef](https://github.com/tambo-ai/tambo-cloud/commit/d2631ef1ecca808048a4d7e7805a62cd4bfddca3))
+
 ## [0.39.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.0...repo-v0.39.1) (2025-04-28)
 
 
