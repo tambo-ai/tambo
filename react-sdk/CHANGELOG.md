@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.21.1](https://github.com/tambo-ai/tambo/compare/react-v0.21.0...react-v0.21.1) (2025-04-28)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node from 20.17.30 to 20.17.32 ([#350](https://github.com/tambo-ai/tambo/issues/350)) ([0ae1852](https://github.com/tambo-ai/tambo/commit/0ae1852f2df6eb09c4003ed7e6ffb13d0003166e))
+* **deps-dev:** bump the eslint group with 3 updates ([#345](https://github.com/tambo-ai/tambo/issues/345)) ([72a9ef4](https://github.com/tambo-ai/tambo/commit/72a9ef43edb601b69a1c7a09825da3da90a87464))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.44.0 to 0.45.0 ([#347](https://github.com/tambo-ai/tambo/issues/347)) ([73b1f3a](https://github.com/tambo-ai/tambo/commit/73b1f3ac9c91ff0d15526ef9cf58f481c6a7b9c0))
+* **deps:** bump @tanstack/react-query from 5.74.4 to 5.74.7 ([#346](https://github.com/tambo-ai/tambo/issues/346)) ([e0ee10b](https://github.com/tambo-ai/tambo/commit/e0ee10b940ab4572ebe41f28682b6570c7202d8c))
+
 ## [0.21.0](https://github.com/tambo-ai/tambo/compare/react-v0.20.4...react-v0.21.0) (2025-04-24)
 
 
