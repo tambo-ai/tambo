@@ -297,23 +297,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     [client.beta.threads.messages],
   );
 
-  const deleteThreadMessage = useCallback(
-    (messageId: string, threadId: string) => {
-      if (!threadMap[threadId]) return;
-
-      setThreadMap((prevMap) => ({
-        ...prevMap,
-        [threadId]: {
-          ...prevMap[threadId],
-          messages: prevMap[threadId].messages.filter(
-            (msg) => msg.id !== messageId,
-          ),
-        },
-      }));
-    },
-    [threadMap],
-  );
-
   const startNewThread = useCallback(() => {
     setCurrentThreadId(PLACEHOLDER_THREAD.id);
     setThreadMap((prevMap) => {
@@ -349,7 +332,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         await fetchThread(threadId);
       }
     },
-    [fetchThread, threadMap],
+    [fetchThread],
   );
 
   const updateThreadStatus = useCallback(
@@ -374,19 +357,12 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
-      messageIdToRemove?: string,
     ): Promise<TamboThreadMessage> => {
       let finalMessage: TamboThreadMessage | undefined;
       let hasSetThreadId = false;
-      let isFirstChunk = true;
       updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
 
       for await (const chunk of stream) {
-        if (isFirstChunk && messageIdToRemove) {
-          deleteThreadMessage(messageIdToRemove, threadId);
-        }
-        isFirstChunk = false;
-
         if (chunk.responseMessageDto.toolCallRequest) {
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
@@ -477,8 +453,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       client,
       componentList,
       currentThread?.id,
-      deleteThreadMessage,
-      fetchThread,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
