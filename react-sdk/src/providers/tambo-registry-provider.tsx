@@ -50,6 +50,8 @@ const TamboRegistryContext = createContext<TamboRegistryContext>({
 export interface TamboRegistryProviderProps {
   /** The components to register */
   components?: TamboComponent[];
+  /** The tools to register */
+  tools?: TamboTool[];
 }
 
 /**
@@ -62,7 +64,7 @@ export interface TamboRegistryProviderProps {
  */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>
-> = ({ children, components: userComponents }) => {
+> = ({ children, components: userComponents, tools: userTools }) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
   const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
     {},
@@ -168,6 +170,14 @@ export const TamboRegistryProvider: React.FC<
       });
     }
   }, [registerComponent, userComponents]);
+
+  useEffect(() => {
+    if (userTools) {
+      userTools.forEach((tool) => {
+        registerTool(tool, false);
+      });
+    }
+  }, [registerTool, userTools]);
 
   const value = {
     componentList,
