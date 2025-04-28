@@ -1,12 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type {
-  TamboThread} from "@tambo-ai/react";
-import {
-  useTamboThread,
-  useTamboThreadList,
-} from "@tambo-ai/react";
+import type { TamboThread } from "@tambo-ai/react";
+import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 import {
   PlusIcon,
   SearchIcon,

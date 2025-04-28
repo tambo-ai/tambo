@@ -1,11 +1,10 @@
 "use client";
 
-import type {
-  messageVariants} from "@/components/ui/message";
+import type { messageVariants } from "@/components/ui/message";
 import {
   Message,
   MessageBubble,
-  MessageRenderedComponentArea
+  MessageRenderedComponentArea,
 } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
