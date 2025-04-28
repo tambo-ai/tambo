@@ -37,7 +37,7 @@ export const toolsRouter = createTRPCRouter({
           auth_schemes: Array.isArray(app.auth_schemes)
             ? app.auth_schemes.map((scheme: ComposioConnectorConfig) => ({
                 ...scheme,
-                mode: scheme.mode as ComposioAuthMode,
+                mode: scheme.mode,
               }))
             : undefined,
           tags: app.tags as unknown as string[],

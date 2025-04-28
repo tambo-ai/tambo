@@ -35,7 +35,7 @@ export function MessageSuggestions({
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Find the last AI message
-  const lastAiMessage = thread?.messages
+  const lastAiMessage = thread.messages
     ? [...thread.messages].reverse().find((msg) => msg.role === "assistant")
     : null;
 
@@ -95,7 +95,7 @@ export function MessageSuggestions({
   const _altKey = isMac ? "⌥" : "Alt";
 
   // If we have no messages yet, only show the button
-  if (!thread?.messages?.length) {
+  if (!thread.messages.length) {
     return null;
   }
 
@@ -114,7 +114,7 @@ export function MessageSuggestions({
         )}
 
         {/* First show generation stage until complete, then show suggestions UI */}
-        {thread?.generationStage && thread.generationStage !== "COMPLETE" ? (
+        {thread.generationStage && thread.generationStage !== "COMPLETE" ? (
           <div className="p-2 rounded-md text-sm bg-muted/30">
             <MessageGenerationStage />
           </div>

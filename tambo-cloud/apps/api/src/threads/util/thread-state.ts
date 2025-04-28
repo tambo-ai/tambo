@@ -242,7 +242,7 @@ export async function* convertDecisionStreamToMessageStream(
 ): AsyncIterableIterator<ThreadMessageDto> {
   let finalThreadMessage: ThreadMessageDto = {
     // Only bring in the bare minimum fields from the inProgressMessage
-    componentState: inProgressMessage.componentState,
+    componentState: inProgressMessage.componentState ?? {},
     content: convertContentPartToDto(inProgressMessage.content),
     createdAt: inProgressMessage.createdAt,
     id: inProgressMessage.id,
@@ -255,6 +255,7 @@ export async function* convertDecisionStreamToMessageStream(
   for await (const chunk of stream) {
     finalThreadMessage = {
       ...inProgressMessage,
+      componentState: chunk.componentState ?? {},
       content: [
         {
           type: ContentPartType.Text,

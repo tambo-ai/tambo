@@ -19,7 +19,7 @@ export function InteractiveDemo() {
   return (
     <TamboProvider
       apiKey={env.NEXT_PUBLIC_TAMBO_API_KEY!}
-      tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL!}
+      tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       components={demoComponents}
     >
       <div className="tambo-theme w-full h-full">

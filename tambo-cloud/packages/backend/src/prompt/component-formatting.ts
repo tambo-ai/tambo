@@ -44,12 +44,12 @@ const formatPropInfo = (propName: string, propInfo?: PropInfo): string => {
   const typeStr = String(propInfo?.type || "");
 
   const description =
-    typeof propInfo === "object" && propInfo?.description
+    typeof propInfo === "object" && propInfo.description
       ? ` - ${propInfo.description}`
       : "";
 
   const required =
-    typeof propInfo === "object" && propInfo?.required ? " (required)" : "";
+    typeof propInfo === "object" && propInfo.required ? " (required)" : "";
 
   return `${propName}: ${typeStr}${required}${description}`;
 };

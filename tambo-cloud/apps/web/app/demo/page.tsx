@@ -11,7 +11,7 @@ export default function DemoPage() {
       <div className="w-full flex justify-center items-center bg-white">
         <TamboProvider
           apiKey={env.NEXT_PUBLIC_TAMBO_API_KEY!}
-          tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL!}
+          tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
           components={demoComponents}
         >
           <MessageThreadFull />

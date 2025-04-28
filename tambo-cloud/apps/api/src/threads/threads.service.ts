@@ -117,7 +117,7 @@ export class ThreadsService {
       updatedAt: thread.updatedAt,
       contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
-      generationStage: thread.generationStage ?? undefined,
+      generationStage: thread.generationStage,
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
     };
@@ -138,7 +138,7 @@ export class ThreadsService {
       updatedAt: thread.updatedAt,
       contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
-      generationStage: thread.generationStage ?? undefined,
+      generationStage: thread.generationStage,
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
     }));
@@ -170,7 +170,7 @@ export class ThreadsService {
       updatedAt: thread.updatedAt,
       contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
-      generationStage: thread.generationStage ?? undefined,
+      generationStage: thread.generationStage,
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
       messages: thread.messages.map((message) => ({
@@ -228,7 +228,7 @@ export class ThreadsService {
       throw new NotFoundException("Project not found");
     }
     const providerKeys = project.getProviderKeys();
-    const usingFallbackKey = !providerKeys?.length;
+    const usingFallbackKey = !providerKeys.length;
 
     if (!usage) {
       // Create initial usage record
@@ -249,7 +249,7 @@ export class ThreadsService {
           },
         });
 
-        const ownerEmail = projectOwner?.user?.email;
+        const ownerEmail = projectOwner?.user.email;
 
         if (ownerEmail) {
           await this.emailService.sendMessageLimitNotification(
@@ -340,7 +340,7 @@ export class ThreadsService {
         this.getDb(),
         messageId,
       );
-      if (!suggestions || suggestions.length === 0) {
+      if (suggestions.length === 0) {
         throw new SuggestionNotFoundException(messageId);
       }
 
@@ -381,7 +381,7 @@ export class ThreadsService {
         false,
       );
 
-      if (!suggestions.suggestions || suggestions.suggestions.length === 0) {
+      if (!suggestions.suggestions.length) {
         throw new SuggestionGenerationError(messageId);
       }
 
@@ -507,13 +507,13 @@ export class ThreadsService {
     );
 
     // Log detailed component information
-    if (advanceRequestDto?.availableComponents?.length) {
+    if (advanceRequestDto.availableComponents?.length) {
       this.logger.log(
         `Component details for thread ${thread.id}: ${JSON.stringify(
           advanceRequestDto.availableComponents.map((comp) => ({
             name: comp.name,
             description: comp.description,
-            contextTools: comp.contextTools?.length || 0,
+            contextTools: comp.contextTools.length || 0,
           })),
         )}`,
       );
@@ -588,6 +588,7 @@ export class ThreadsService {
       responseMessageDto: {
         ...responseMessageDto,
         content: convertContentPartToDto(responseMessageDto.content),
+        componentState: responseMessageDto.componentState ?? {},
       },
       generationStage: resultingGenerationStage,
       statusMessage: resultingStatusMessage,
@@ -867,7 +868,7 @@ export class ThreadsService {
     const providerKeys = project.getProviderKeys();
 
     // If no provider keys are set, use the fallback key
-    if (!providerKeys?.length) {
+    if (!providerKeys.length) {
       const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
       if (!fallbackKey) {
         throw new NotFoundException(

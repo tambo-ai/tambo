@@ -93,7 +93,7 @@ export interface ThreadMessage {
   content: ChatCompletionContentPart[];
   /** Component decision for this message */
   component?: LegacyComponentDecision;
-  componentState: Record<string, unknown>;
+  componentState?: Record<string, unknown>;
   /**
    * Additional context for the message - TODO: do we need this here?
    * Marking deprecated until we figure out who sets it

@@ -47,7 +47,7 @@ export class ComponentsController {
       throw new NotFoundException("Project not found");
     }
     const providerKeys = project.getProviderKeys();
-    if (!providerKeys?.length) {
+    if (!providerKeys.length) {
       throw new NotFoundException("No provider keys found for project");
     }
     const providerKey =
@@ -66,7 +66,7 @@ export class ComponentsController {
   ): Promise<ComponentDecisionDto> {
     const { messageHistory, availableComponents, threadId, contextKey } =
       generateComponentDto;
-    if (!messageHistory?.length) {
+    if (!messageHistory.length) {
       throw new BadRequestException(
         "Message history is required and cannot be empty",
       );
@@ -149,9 +149,6 @@ export class ComponentsController {
     const decryptedProviderKey =
       await this.validateProjectAndProviderKeys(projectId);
 
-    if (!component) {
-      throw new BadRequestException("Component is required");
-    }
     const resolvedThreadId = await this.ensureThread(
       projectId,
       threadId,

@@ -56,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // Docs routes
       docsRoutes = docsPages.map((page) => {
         // Fumadocs pages use 'slugs' property instead of 'slug'
-        const slugPath = page.slugs ? page.slugs.join("/") : "";
+        const slugPath = page.slugs.join("/");
         return {
           url: `${baseUrl}/docs${slugPath ? `/${slugPath}` : ""}`,
           lastModified: new Date(), // Use page.data.lastModified if available

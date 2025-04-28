@@ -92,7 +92,7 @@ export async function* runDecisionLoop(
 
   for await (const chunk of responseStream) {
     try {
-      const message = getLLMResponseMessage(chunk) || "";
+      const message = getLLMResponseMessage(chunk);
       const toolCall = chunk.message?.tool_calls?.[0];
 
       // Check if this is a UI tool call
@@ -145,14 +145,14 @@ export async function* runDecisionLoop(
       }
 
       const displayMessage = extractMessageContent(
-        message?.length > 0 ? message.trim() : paramDisplayMessage || " ",
+        message.length > 0 ? message.trim() : paramDisplayMessage || " ",
         false,
       );
 
       const parsedChunk = {
         message: displayMessage,
         componentName: isUITool
-          ? toolCall?.function.name.slice(uiToolNamePrefix.length)
+          ? toolCall.function.name.slice(uiToolNamePrefix.length)
           : "",
         props: isUITool ? toolArgs : null,
         toolCallRequest: filteredToolCallRequest,

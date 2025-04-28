@@ -89,7 +89,7 @@ export function CreateProjectDialog({
       form.reset();
 
       // Navigate to project details page after successful creation
-      if (project?.id) {
+      if (project.id) {
         router.push(`/dashboard/${project.id}`);
       }
     } finally {

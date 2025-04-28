@@ -8,7 +8,7 @@ export default function SubscribePage() {
   return (
     <TamboProvider
       apiKey={env.NEXT_PUBLIC_TAMBO_API_KEY!}
-      tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL!}
+      tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
     >
       <div className="container mx-auto py-2">
         <TamboSubscribeIntegration />

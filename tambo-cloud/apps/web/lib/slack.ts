@@ -107,7 +107,7 @@ async function createChannel(
     },
   );
 
-  if (!channelData?.channel?.id) {
+  if (!channelData.channel.id) {
     throw new Error("Failed to create Slack channel: Invalid response");
   }
 
@@ -126,7 +126,7 @@ async function inviteUserToChannel(
     },
   );
 
-  if (!inviteData?.invite_id) {
+  if (!inviteData.invite_id) {
     throw new Error("Failed to create Slack invite: Invalid response");
   }
 

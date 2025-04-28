@@ -51,7 +51,7 @@ export class TransactionMiddleware implements NestMiddleware {
       ? apiKeyHeader[0]
       : apiKeyHeader;
     const projectId = apiKeyHeaderString
-      ? decryptApiKey(apiKeyHeaderString)?.storedString
+      ? decryptApiKey(apiKeyHeaderString).storedString
       : null;
 
     if (!projectId) {
@@ -88,7 +88,7 @@ export class TransactionMiddleware implements NestMiddleware {
                 select set_config('request.apikey.project_id', NULL, TRUE);
                 reset role;
                 `);
-          delete (req as HydraRequest).tx;
+          delete req.tx;
           resolveFinish(true);
           console.log(
             `[${currentRequestSerialNumber}] finished ${this.db.$client.totalCount} connections (${this.db.$client.idleCount} idle)`,
@@ -113,7 +113,7 @@ export class TransactionMiddleware implements NestMiddleware {
       // automatically rollback on unrecognized errors
       if (!(error instanceof HttpException) || error.getStatus() >= 500) {
         // Rollback transaction manually on error
-        await (req as HydraRequest).tx?.rollback(); // Access tx from request object
+        await req.tx?.rollback(); // Access tx from request object
       }
       throw error;
     }

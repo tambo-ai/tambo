@@ -6,7 +6,10 @@ export default tseslint.config(
   { ignores: [".source/"] },
   {
     rules: {
+      // We would like to turn on these rules, but there are too many small issues
+      // in the apps/web project right now to do so.
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unnecessary-condition": "off",
     },
   },
   {

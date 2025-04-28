@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 
 class ConfigServiceSingleton {
-  private static instance: ConfigService;
+  private static instance?: ConfigService;
 
   static initialize(configService: ConfigService) {
     ConfigServiceSingleton.instance = configService;

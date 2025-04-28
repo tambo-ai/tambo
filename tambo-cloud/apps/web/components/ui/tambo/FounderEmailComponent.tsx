@@ -170,9 +170,9 @@ export const FounderEmailComponent = ({
       // Update state to show error
       const validationError: ValidationError = {
         message:
-          (error as ValidationError)?.message ||
+          (error as ValidationError).message ||
           (error instanceof Error ? error.message : "Failed to send email"),
-        details: (error as ValidationError)?.details || {},
+        details: (error as ValidationError).details || {},
       };
 
       setEmailState({

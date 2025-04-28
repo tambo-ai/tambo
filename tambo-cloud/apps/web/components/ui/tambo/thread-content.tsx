@@ -41,7 +41,7 @@ function isAssistantRole(role: string): boolean {
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ className, variant, ...props }, ref) => {
     const { thread, generationStage } = useTambo();
-    const messages = thread?.messages ?? [];
+    const messages = thread.messages ?? [];
     const isGenerating = generationStage === "STREAMING_RESPONSE";
 
     return (
@@ -67,7 +67,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
             <div
               key={
                 message.id ??
-                `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
+                `${message.role}-${message.createdAt ?? Date.now()}-${message.content.toString().substring(0, 10)}`
               }
               className={cn(
                 "animate-in fade-in-0 slide-in-from-bottom-2",

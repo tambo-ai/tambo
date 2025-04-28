@@ -44,7 +44,7 @@ export default function SmokePage() {
     switchCurrentThread,
     startNewThread,
   } = useTambo();
-  const messages = thread?.messages ?? [];
+  const messages = thread.messages;
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
     api.demo.aqi.useMutation({
@@ -337,7 +337,7 @@ export default function SmokePage() {
           </div>
           <ThreadList
             threads={threadInfo?.items ?? []}
-            selectedThreadId={thread?.id}
+            selectedThreadId={thread.id}
             onThreadSelect={(threadId) => {
               switchCurrentThread(threadId);
             }}
@@ -466,7 +466,7 @@ export default function SmokePage() {
             </div>
           </Card>
           <div>
-            <p>Thread ID: &apos;{thread?.id}&apos;</p>
+            <p>Thread ID: &apos;{thread.id}&apos;</p>
           </div>
         </div>
       </div>

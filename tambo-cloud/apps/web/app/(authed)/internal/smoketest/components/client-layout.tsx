@@ -7,7 +7,7 @@ import { FC, PropsWithChildren } from "react";
 export const ClientLayout: FC<PropsWithChildren> = ({ children }) => {
   return (
     <TamboProvider
-      tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL!}
+      tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       apiKey={env.NEXT_PUBLIC_TAMBO_API_KEY!}
     >
       {children}

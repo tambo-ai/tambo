@@ -35,7 +35,7 @@ export async function addMessage(
     metadata: messageDto.metadata,
     actionType: messageDto.actionType ?? undefined,
     toolCallRequest: messageDto.toolCallRequest ?? undefined,
-    toolCallId: messageDto?.tool_call_id,
+    toolCallId: messageDto.tool_call_id,
     componentState: messageDto.componentState ?? {},
   });
   return {

@@ -16,7 +16,7 @@ export function MessageGenerationStage({
   ...props
 }: GenerationStageProps) {
   const { thread } = useTambo();
-  const stage = thread?.generationStage;
+  const stage = thread.generationStage;
 
   // Only render if we have a generation stage
   if (!stage) {
@@ -35,7 +35,7 @@ export function MessageGenerationStage({
   };
 
   const label =
-    stageLabels[stage] || `${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
+    stageLabels[stage] || stage.charAt(0).toUpperCase() + stage.slice(1);
 
   return (
     <div

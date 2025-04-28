@@ -26,7 +26,7 @@ export async function createProject(
     const [project] = await tx
       .insert(schema.projects)
       .values({
-        name: name ?? "New Project",
+        name: name || "New Project",
       })
       .returning();
 
@@ -91,12 +91,12 @@ export async function updateProject(
   id: string,
   { name }: { name: string },
 ) {
-  const [updated] = await db
+  const updated = await db
     .update(schema.projects)
     .set({ name })
     .where(eq(schema.projects.id, id))
     .returning();
-  return updated;
+  return updated.length > 0 ? updated[0] : undefined;
 }
 
 export async function hasProjectAccess(
@@ -190,7 +190,7 @@ export async function updateApiKeyLastUsed(
     lastUsed: Date;
   },
 ) {
-  const [updated] = await db
+  const updated = await db
     .update(schema.apiKeys)
     .set({ lastUsedAt: lastUsed })
     .where(
@@ -201,10 +201,10 @@ export async function updateApiKeyLastUsed(
     )
     .returning();
 
-  if (!updated) {
+  if (!updated.length) {
     throw new Error("API Key not found");
   }
-  return updated;
+  return updated[0];
 }
 
 export async function deleteApiKey(
@@ -502,7 +502,7 @@ export async function upsertComposioAuth(
 ): Promise<void> {
   await db.transaction(async (tx) => {
     // First try to find an existing context
-    const [existingContext] = await tx.query.toolProviderUserContexts.findMany({
+    const existingContext = await tx.query.toolProviderUserContexts.findFirst({
       where: and(
         eq(schema.toolProviderUserContexts.toolProviderId, toolProviderId),
         contextKey

@@ -171,7 +171,7 @@ export function filterOutStandardToolParameters(
     (tool) => tool.function.name === toolCall.function.name,
   );
 
-  if (!toolDef?.function?.parameters?.properties) return undefined;
+  if (!toolDef?.function.parameters?.properties) return undefined;
 
   // Get the defined parameter names from the tool's schema
   const definedParams = Object.keys(toolDef.function.parameters.properties);

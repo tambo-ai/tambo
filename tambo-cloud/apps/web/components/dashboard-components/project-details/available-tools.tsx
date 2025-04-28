@@ -220,7 +220,7 @@ export function ToolAuthDialog({
                 <Select
                   value={selectedScheme?.mode}
                   onValueChange={(value: ComposioAuthMode) => {
-                    const scheme = availableSchemes?.find(
+                    const scheme = availableSchemes.find(
                       (s) => s.mode === value,
                     );
                     setSelectedScheme(scheme);
@@ -236,7 +236,7 @@ export function ToolAuthDialog({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {availableSchemes?.map((scheme) => (
+                    {availableSchemes.map((scheme) => (
                       <SelectItem key={scheme.mode} value={scheme.mode}>
                         {getAuthModeName(scheme.mode)}
                       </SelectItem>
@@ -246,15 +246,14 @@ export function ToolAuthDialog({
               </div>
             )}
 
-          {selectedScheme &&
-            (!selectedScheme.fields || selectedScheme.fields.length === 0) && (
-              <div className="text-sm text-muted-foreground space-y-2 py-2">
-                This authentication method doesn&apos;t require any additional
-                configuration. You can proceed by clicking Save.
-              </div>
-            )}
+          {selectedScheme && selectedScheme.fields.length === 0 && (
+            <div className="text-sm text-muted-foreground space-y-2 py-2">
+              This authentication method doesn&apos;t require any additional
+              configuration. You can proceed by clicking Save.
+            </div>
+          )}
 
-          {selectedScheme?.fields?.map((field) => (
+          {selectedScheme?.fields.map((field) => (
             <div key={field.name} className="space-y-2">
               <Label htmlFor={field.name}>{field.display_name}</Label>
               <Input

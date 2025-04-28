@@ -67,6 +67,7 @@ export class MCPClient {
       const response = await this.client.listTools({ cursor }, {});
       allTools.push(
         ...response.tools.map((tool): MCPToolSpec => {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (tool.inputSchema.type !== "object") {
             throw new Error(
               `Input schema for tool ${tool.name} is not an object`,

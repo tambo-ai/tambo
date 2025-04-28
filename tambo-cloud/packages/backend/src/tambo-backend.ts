@@ -70,8 +70,8 @@ export default class TamboBackend {
     stream?: boolean,
   ): Promise<SuggestionDecision | AsyncIterableIterator<SuggestionDecision>> {
     const context: InputContextAsArray = {
-      messageHistory: messageHistory ?? [],
-      availableComponents: availableComponents ?? [],
+      messageHistory,
+      availableComponents,
       threadId,
     };
 

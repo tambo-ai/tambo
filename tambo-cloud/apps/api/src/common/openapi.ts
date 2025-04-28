@@ -2,7 +2,7 @@ import { INestApplication, INestApplicationContext } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 export function generateOpenAPIConfig(
-  app: INestApplication<any> | INestApplicationContext,
+  app: INestApplication | INestApplicationContext,
 ) {
   const config = new DocumentBuilder()
     .setTitle("Hydra API")
@@ -12,7 +12,7 @@ export function generateOpenAPIConfig(
     .addSecurityRequirements("apiKey")
     .build();
   const document = SwaggerModule.createDocument(
-    app as INestApplication<any>,
+    app as INestApplication,
     config,
   );
   return document;

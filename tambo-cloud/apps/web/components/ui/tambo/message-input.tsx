@@ -63,7 +63,7 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!value?.trim()) return;
+      if (!value.trim()) return;
 
       setSubmitError(null);
       try {
@@ -85,7 +85,7 @@ const MessageInput = React.forwardRef<HTMLInputElement, MessageInputProps>(
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        if (value?.trim()) {
+        if (value.trim()) {
           handleSubmit(e as unknown as React.FormEvent);
         }
       }

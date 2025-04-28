@@ -64,9 +64,9 @@ export const LinearIssue = ({ data }: LinearIssueProps): ReactNode => {
             </span>
             {data.priority !== undefined && (
               <Badge
-                className={`${
+                className={
                   priorityColors[data.priority as keyof typeof priorityColors]
-                }`}
+                }
               >
                 {priorityLabels[data.priority as keyof typeof priorityLabels]}
               </Badge>

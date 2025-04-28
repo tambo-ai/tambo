@@ -59,20 +59,20 @@ export type CompleteParams = CompleteBaseParams & ResponseFormat;
 export interface LLMClient {
   complete(
     params: StreamingCompleteParams,
-  ): Promise<AsyncIterableIterator<LLMResponse>>;
+  ): Promise<AsyncIterableIterator<Partial<LLMResponse>>>;
 
   complete(params: CompleteParams): Promise<LLMResponse>;
 }
 export type LLMResponse = Omit<ChatCompletionChoice, "finish_reason">;
 
 /** Get the string response from the LLM response */
-export function getLLMResponseMessage(response: LLMResponse) {
+export function getLLMResponseMessage(response: Partial<LLMResponse>) {
   return response.message?.content ?? "";
 }
 
 /** Get the tool call id from the LLM response */
-export function getLLMResponseToolCallId(response: LLMResponse) {
-  return response.message.tool_calls?.[0]?.id;
+export function getLLMResponseToolCallId(response: Partial<LLMResponse>) {
+  return response.message?.tool_calls?.[0]?.id;
 }
 
 /**
@@ -81,9 +81,9 @@ export function getLLMResponseToolCallId(response: LLMResponse) {
  * This is for backwards compatibility with the homegrown tool call format.
  */
 export function getLLMResponseToolCallRequest(
-  response: LLMResponse,
+  response: Partial<LLMResponse>,
 ): ToolCallRequest | undefined {
-  const llmToolCall = response.message.tool_calls?.[0];
+  const llmToolCall = response.message?.tool_calls?.[0];
   if (!llmToolCall) {
     return undefined;
   }

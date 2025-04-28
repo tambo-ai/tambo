@@ -33,7 +33,7 @@ function LoginContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams?.get("returnUrl") || "/dashboard";
+  const returnUrl = searchParams.get("returnUrl") || "/dashboard";
 
   useEffect(() => {
     // If the user is already authenticated, redirect to the return URL

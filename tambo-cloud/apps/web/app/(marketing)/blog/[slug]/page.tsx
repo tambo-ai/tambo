@@ -9,7 +9,6 @@ import { formatDate } from "@/lib/utils";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
@@ -58,9 +57,6 @@ export default async function Page(props: {
 }) {
   const params = await props.params;
   const post = await getPost(params.slug);
-  if (!post) {
-    notFound();
-  }
 
   // Generate blog post schema
   const blogPostSchema = generateBlogPostSchema({

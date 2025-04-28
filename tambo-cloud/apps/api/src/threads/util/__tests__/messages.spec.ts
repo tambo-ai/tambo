@@ -259,11 +259,7 @@ describe("messages utilities", () => {
         .mockResolvedValue([mockMessage]);
       jest.mocked(operations.updateMessage).mockResolvedValue(mockMessage);
 
-      await verifyLatestMessageConsistency(
-        mockDb,
-        "thread1",
-        newMessage as ThreadMessage,
-      );
+      await verifyLatestMessageConsistency(mockDb, "thread1", newMessage);
 
       expect(mockDb.query.messages.findMany).toHaveBeenCalled();
     });

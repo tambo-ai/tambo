@@ -11,7 +11,7 @@ export const Icon = ({
   size: number;
   className?: string;
 }) => {
-  const LucideIcon = icons[name as keyof typeof icons];
+  const LucideIcon = icons[name];
 
   return <LucideIcon color={color} size={size} className={className} />;
 };

@@ -26,7 +26,7 @@ const roleStyles = {
 } as const;
 
 export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
-  const messages = thread?.messages || [];
+  const messages = thread.messages || [];
   const [highlightedToolCallId, setHighlightedToolCallId] = useState<
     string | null
   >(null);
@@ -39,7 +39,7 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
             message.toolCallId === highlightedToolCallId ||
             message.toolCallRequest?.tool_call_id === highlightedToolCallId ||
             (message.componentDecision as LegacyComponentDecision)
-              ?.toolCallId === highlightedToolCallId;
+              .toolCallId === highlightedToolCallId;
 
           const isInternalMessage = !!message.actionType;
           const hasToolCallRequest = !!message.toolCallRequest;
@@ -120,7 +120,7 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
                     />
                   )}
 
-                  {!!message.suggestedActions?.length && (
+                  {!!message.suggestedActions.length && (
                     <SuggestedActions actions={message.suggestedActions} />
                   )}
 

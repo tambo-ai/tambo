@@ -43,7 +43,7 @@ export const FeatureSelector: React.FC<FeatureSelectorProps> = ({
           <div
             className="bg-background font-mono text-sm [&>pre]:!bg-transparent [&>pre]:p-4 [&_code]:break-words [&_code]:whitespace-pre-wrap overflow-y-auto md:max-h-[45vh]"
             dangerouslySetInnerHTML={{
-              __html: features[selectedIndex].code as string,
+              __html: features[selectedIndex].code,
             }}
           />
         ) : (

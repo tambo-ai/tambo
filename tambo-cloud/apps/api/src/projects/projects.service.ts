@@ -31,7 +31,7 @@ export class ProjectsService {
     }
 
     const project = await operations.createProject(this.getDb(), {
-      name: createProjectDto.name ?? "New Project",
+      name: createProjectDto.name || "New Project",
       userId: createProjectDto.userId,
     });
 
@@ -53,7 +53,7 @@ export class ProjectsService {
 
   async findOne(id: string): Promise<ProjectResponse | undefined> {
     const project = await operations.getProject(this.getDb(), id);
-    if (!project || !project.members?.[0]) {
+    if (!project || !project.members[0]) {
       return undefined;
     }
     return {
@@ -65,7 +65,7 @@ export class ProjectsService {
 
   async findOneWithKeys(id: string): Promise<Project | null> {
     const project = await operations.getProjectWithKeys(this.getDb(), id);
-    if (!project || !project.members?.[0]) {
+    if (!project || !project.members[0]) {
       return null;
     }
     if (project.id !== id) {
@@ -78,7 +78,7 @@ export class ProjectsService {
     projectEntity.id = project.id;
     projectEntity.name = project.name;
     projectEntity.userId = project.members[0].userId;
-    projectEntity.apiKeys = (project.apiKeys ?? []).map((apiKey) => ({
+    projectEntity.apiKeys = project.apiKeys.map((apiKey) => ({
       id: apiKey.id,
       name: apiKey.name,
       hashedKey: apiKey.hashedKey,
@@ -87,14 +87,12 @@ export class ProjectsService {
       created: apiKey.createdAt,
       createdByUserId: apiKey.createdByUserId,
     }));
-    projectEntity.providerKeys = (project.providerKeys ?? []).map(
-      (providerKey) => ({
-        id: providerKey.id,
-        providerName: providerKey.providerName,
-        providerKeyEncrypted: providerKey.providerKeyEncrypted,
-        partiallyHiddenKey: providerKey.partiallyHiddenKey ?? undefined,
-      }),
-    );
+    projectEntity.providerKeys = project.providerKeys.map((providerKey) => ({
+      id: providerKey.id,
+      providerName: providerKey.providerName,
+      providerKeyEncrypted: providerKey.providerKeyEncrypted,
+      partiallyHiddenKey: providerKey.partiallyHiddenKey ?? undefined,
+    }));
     return projectEntity;
   }
 

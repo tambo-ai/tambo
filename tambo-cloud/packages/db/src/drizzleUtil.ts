@@ -6,6 +6,7 @@ import { deserialize, type serialize, stringify } from "superjson";
 
 type SuperJSONResult = ReturnType<typeof serialize>;
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export const customJsonb = <TData>(name: string) =>
   customType<{ data: TData; driverData: string }>({
     dataType() {
@@ -15,13 +16,13 @@ export const customJsonb = <TData>(name: string) =>
       return stringify(value);
     },
     /** Database -> TypeScript */
-    fromDriver(valueStr: string | object | SuperJSONResult): TData {
+    fromDriver(valueStr: string | object | SuperJSONResult | null): TData {
       if (typeof valueStr === "string") {
         // hack: incorrect!
         return valueStr as TData;
       }
       if (!valueStr) {
-        return valueStr;
+        return valueStr as TData;
       }
       if ("json" in valueStr) {
         return deserialize<TData>(valueStr);

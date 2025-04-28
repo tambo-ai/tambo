@@ -180,7 +180,7 @@ To respond to the user's message:
 }
 
 async function* handleComponentHydrationStream(
-  responseStream: AsyncIterableIterator<LLMResponse>,
+  responseStream: AsyncIterableIterator<Partial<LLMResponse>>,
   componentName: string,
   threadId: string,
   version: "v1" | "v2" = "v1",

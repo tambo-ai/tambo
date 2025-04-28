@@ -2,7 +2,7 @@ import { env } from "@/lib/env";
 import { createBrowserClient } from "@supabase/ssr";
 import { type SupabaseClient } from "@supabase/supabase-js";
 
-let supabase: SupabaseClient;
+let supabase: SupabaseClient | undefined;
 
 export function getSupabaseClient() {
   if (!supabase) {

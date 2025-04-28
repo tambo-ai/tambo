@@ -26,7 +26,7 @@ const MessageThreadFull = React.forwardRef<
   const { thread } = useTambo();
 
   useEffect(() => {
-    if (scrollContainerRef.current && thread?.messages?.length) {
+    if (scrollContainerRef.current && thread.messages.length) {
       const timeoutId = setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTo({
@@ -38,7 +38,7 @@ const MessageThreadFull = React.forwardRef<
 
       return () => clearTimeout(timeoutId);
     }
-  }, [thread?.messages]);
+  }, [thread.messages]);
 
   return (
     <div

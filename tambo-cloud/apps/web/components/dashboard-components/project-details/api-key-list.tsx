@@ -185,7 +185,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
                   size="sm"
                   className="font-sans"
                   onClick={() => setIsCreating(true)}
-                  disabled={isCreating || !!newGeneratedKey}
+                  disabled={!!newGeneratedKey}
                 >
                   <Plus className="h-3 w-3 mr-1" />
                   Add Key

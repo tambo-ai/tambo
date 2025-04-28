@@ -109,7 +109,7 @@ async function handleNoComponentCase(
 > {
   const chatHistory = threadMessagesToChatHistory(context.messageHistory);
   const { template, args } = getNoComponentPromptTemplate(
-    reasoning ?? "No reasoning provided",
+    reasoning,
     context.availableComponents,
   );
 
@@ -145,7 +145,7 @@ async function handleNoComponentCase(
 }
 
 async function* handleNoComponentStream(
-  responseStream: AsyncIterableIterator<LLMResponse>,
+  responseStream: AsyncIterableIterator<Partial<LLMResponse>>,
   threadId: string,
   version: "v1" | "v2" = "v1",
 ): AsyncIterableIterator<LegacyComponentDecision> {

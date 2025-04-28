@@ -55,7 +55,7 @@ export function TamboSubscribeIntegration() {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollContainerRef.current && thread?.messages?.length) {
+    if (scrollContainerRef.current && thread.messages.length) {
       const timeoutId = setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTo({
@@ -67,7 +67,7 @@ export function TamboSubscribeIntegration() {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [thread?.messages]);
+  }, [thread.messages]);
 
   return (
     <>

@@ -127,7 +127,7 @@ function makeAssistantMessages(
     // Combine original component decision with the current component state
     const combinedComponentDecision = combineComponentWithState(
       message.component,
-      message.componentState,
+      message.componentState ?? {},
     );
 
     // Messages:
@@ -195,7 +195,7 @@ function makeAssistantMessages(
             text: JSON.stringify(
               combineComponentWithState(
                 message.component,
-                message.componentState,
+                message.componentState ?? {},
               ),
             ),
           },
@@ -230,7 +230,7 @@ function makeToolCallWithFakeFallback(
 
   const combinedComponent = combineComponentWithState(
     message.component,
-    message.componentState,
+    message.componentState ?? {},
   );
   const fakeDecision = makeFakeDecisionCall(combinedComponent);
   return formatFunctionCall(fakeDecision, toolCallId);
@@ -242,7 +242,7 @@ function combineComponentWithState(
 ): ComponentDecisionV2 {
   return {
     ...component,
-    reasoning: component.reasoning ?? "",
+    reasoning: component.reasoning || "",
     componentState: {
       ...component.componentState,
       ...componentState,

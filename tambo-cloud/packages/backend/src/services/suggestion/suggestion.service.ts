@@ -21,7 +21,7 @@ export async function generateSuggestions(
   threadId: string,
   stream?: boolean,
 ): Promise<SuggestionDecision | AsyncIterableIterator<SuggestionDecision>> {
-  const components = context.availableComponents ?? [];
+  const components = context.availableComponents;
   const messages = buildSuggestionPrompt(
     components,
     context.messageHistory,
@@ -41,7 +41,7 @@ export async function generateSuggestions(
     });
 
     // Add validation for response message
-    if (!response?.message) {
+    if (!response.message.content) {
       console.warn("No response message received from LLM");
       return {
         suggestions: [],

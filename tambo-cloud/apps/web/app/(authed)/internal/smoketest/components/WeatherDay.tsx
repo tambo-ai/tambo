@@ -80,7 +80,7 @@ export const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={data.day.condition.icon}
-                  alt={data.day.condition?.text ?? "Weather condition"}
+                  alt={data.day.condition.text ?? "Weather condition"}
                   width={64}
                   height={64}
                   style={{ width: "64px", height: "64px" }}
@@ -88,7 +88,7 @@ export const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
               ) : (
                 <Image
                   src={data.day.condition.icon}
-                  alt={data.day.condition?.text ?? "Weather condition"}
+                  alt={data.day.condition.text ?? "Weather condition"}
                   width={64}
                   height={64}
                   quality={85}
@@ -103,11 +103,9 @@ export const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
         <div className="text-right">
           <div className="text-2xl font-bold">
             {data.day?.avgtemp_c !== undefined
-              ? `${
-                  imperialUnits
-                    ? celsiusToFahrenheit(data.day.avgtemp_c) + "°F"
-                    : Math.round(data.day.avgtemp_c) + "°C"
-                }`
+              ? imperialUnits
+                ? celsiusToFahrenheit(data.day.avgtemp_c) + "°F"
+                : Math.round(data.day.avgtemp_c) + "°C"
               : "--°"}
           </div>
           <div className="text-sm text-muted-foreground">
@@ -136,11 +134,9 @@ export const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
           <p className="text-muted-foreground">Wind</p>
           <p>
             {data.day?.maxwind_kph !== undefined
-              ? `${
-                  imperialUnits
-                    ? kmhToMph(data.day.maxwind_kph) + " mph"
-                    : Math.round(data.day.maxwind_kph) + " km/h"
-                }`
+              ? imperialUnits
+                ? kmhToMph(data.day.maxwind_kph) + " mph"
+                : Math.round(data.day.maxwind_kph) + " km/h"
               : "--"}
           </p>
         </div>
@@ -148,11 +144,9 @@ export const WeatherDay = ({ data }: WeatherDayProps): ReactNode => {
           <p className="text-muted-foreground">Precipitation</p>
           <p>
             {data.day?.totalprecip_mm !== undefined
-              ? `${
-                  imperialUnits
-                    ? mmToInches(data.day.totalprecip_mm) + " in"
-                    : data.day.totalprecip_mm + " mm"
-                }`
+              ? imperialUnits
+                ? mmToInches(data.day.totalprecip_mm) + " in"
+                : data.day.totalprecip_mm + " mm"
               : "--"}
           </p>
         </div>

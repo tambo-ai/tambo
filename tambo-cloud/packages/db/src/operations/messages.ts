@@ -76,7 +76,7 @@ export async function checkMessageProjectAccess(
     },
   });
 
-  if (!result?.thread?.project) {
+  if (!result?.thread.project) {
     return { hasAccess: false, projectId: null };
   }
 

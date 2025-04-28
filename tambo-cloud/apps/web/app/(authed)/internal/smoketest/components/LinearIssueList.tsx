@@ -82,11 +82,11 @@ export const LinearIssueList = ({
                 </span>
                 {issue.priority !== undefined && (
                   <Badge
-                    className={`${
+                    className={
                       priorityColors[
                         issue.priority as keyof typeof priorityColors
                       ]
-                    }`}
+                    }
                   >
                     {
                       priorityLabels[

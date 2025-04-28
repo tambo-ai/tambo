@@ -71,7 +71,7 @@ async function getMcpTools(
             parameters: tool.inputSchema?.properties
               ? {
                   type: "object",
-                  properties: tool.inputSchema?.properties,
+                  properties: tool.inputSchema.properties,
                 }
               : undefined,
           },
