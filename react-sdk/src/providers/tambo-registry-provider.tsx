@@ -60,6 +60,7 @@ export interface TamboRegistryProviderProps {
  * @param props - The props for the TamboRegistryProvider
  * @param props.children - The children to wrap
  * @param props.components - The components to register
+ * @param props.tools - The tools to register
  * @returns The TamboRegistryProvider component
  */
 export const TamboRegistryProvider: React.FC<
@@ -173,11 +174,9 @@ export const TamboRegistryProvider: React.FC<
 
   useEffect(() => {
     if (userTools) {
-      userTools.forEach((tool) => {
-        registerTool(tool, false);
-      });
+      registerTools(userTools, false);
     }
-  }, [registerTool, userTools]);
+  }, [registerTools, userTools]);
 
   const value = {
     componentList,
