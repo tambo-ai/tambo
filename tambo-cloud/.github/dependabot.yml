@@ -20,6 +20,7 @@ updates:
       radix-ui:
         patterns:
           - "@radix-ui/*"
+          - "radix-ui"
       drizzle:
         # drizzle-kit and drizzle-orm
         patterns:
@@ -31,6 +32,15 @@ updates:
           - "eslint"
           - "typescript-eslint"
           - "eslint-plugin-*"
+          - "eslint-config-*"
+          - "typescript-eslint"
       fumadocs:
         patterns:
           - "fumadocs-*"
+      testing:
+        patterns:
+          - "jest"
+          - "@types/jest"
+          - "jest-*"
+          - "ts-jest"
+          - "@testing-library/*"
