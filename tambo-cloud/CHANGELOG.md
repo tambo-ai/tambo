@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.39.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.38.0...repo-v0.39.0) (2025-04-28)
+
+
+### Features
+
+* **cli-auth:** implement new CLI auth page and simplify cli-auth ([#758](https://github.com/tambo-ai/tambo-cloud/issues/758)) ([67ae8ae](https://github.com/tambo-ai/tambo-cloud/commit/67ae8ae3425dc2f4a2a275da1ddc003dfef66d3e))
+* **docs:** update index and quickstart documentation, add components guide ([#833](https://github.com/tambo-ai/tambo-cloud/issues/833)) ([43e57b7](https://github.com/tambo-ai/tambo-cloud/commit/43e57b77d43f1242c913687406e00e0b3b45e30c))
+* improvements to the thread display in the "observability" tab ([#834](https://github.com/tambo-ai/tambo-cloud/issues/834)) ([4b4e1ac](https://github.com/tambo-ai/tambo-cloud/commit/4b4e1ac2f425f6dee27de02870d45b4a8a0232b4))
+
+
+### Bug Fixes
+
+* add back tool call ids for streaming, system tool calls ([#841](https://github.com/tambo-ai/tambo-cloud/issues/841)) ([8d91269](https://github.com/tambo-ai/tambo-cloud/commit/8d91269b62dcf4cab79fd1d6dbbeb6322280ec96))
+* add back var ([#831](https://github.com/tambo-ai/tambo-cloud/issues/831)) ([ceac78e](https://github.com/tambo-ai/tambo-cloud/commit/ceac78ef1d4c46fa7e6475684bf56fccd2424ef8))
+* clean up message display in smoketest ([#837](https://github.com/tambo-ai/tambo-cloud/issues/837)) ([5d8b29d](https://github.com/tambo-ai/tambo-cloud/commit/5d8b29d44417662a7ef779b526471fa8d507cce7))
+* cleanup tool call ids ([#830](https://github.com/tambo-ai/tambo-cloud/issues/830)) ([344ec7f](https://github.com/tambo-ai/tambo-cloud/commit/344ec7fbc7e1786c011883124c0be5c29614dfe1))
+* **console:** remove noise from duplicate removal ([#840](https://github.com/tambo-ai/tambo-cloud/issues/840)) ([929a7b6](https://github.com/tambo-ai/tambo-cloud/commit/929a7b6cdecc35b251e0edf9e45220e7a122fdd8))
+* make sure to record tool_call_id when streaming ([#838](https://github.com/tambo-ai/tambo-cloud/issues/838)) ([b34e67e](https://github.com/tambo-ai/tambo-cloud/commit/b34e67e08f22aab2171a84f2e0b867d206415759))
+* missing tool_call_ids on internal calls ([#835](https://github.com/tambo-ai/tambo-cloud/issues/835)) ([bb0640c](https://github.com/tambo-ai/tambo-cloud/commit/bb0640c823a376c9ff648d56d7b5ca2efe20e12c))
+* **performance:** filter out duplicate chunks ([#839](https://github.com/tambo-ai/tambo-cloud/issues/839)) ([d99b1e5](https://github.com/tambo-ai/tambo-cloud/commit/d99b1e532e82faed660795a89548f1cd5b61210c))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-plugin-turbo from 2.5.0 to 2.5.2 in the eslint group ([#845](https://github.com/tambo-ai/tambo-cloud/issues/845)) ([53cc60c](https://github.com/tambo-ai/tambo-cloud/commit/53cc60cc92f60260783474fa0037632549300728))
+* **deps-dev:** bump lint-staged from 15.5.0 to 15.5.1 ([#849](https://github.com/tambo-ai/tambo-cloud/issues/849)) ([3b3540b](https://github.com/tambo-ai/tambo-cloud/commit/3b3540b1ec202637970f0e8aa5470679eb0eaeec))
+* **deps:** bump @t3-oss/env-nextjs from 0.12.0 to 0.13.0 ([#847](https://github.com/tambo-ai/tambo-cloud/issues/847)) ([830cb90](https://github.com/tambo-ai/tambo-cloud/commit/830cb90709f7a1ac6e95012af66348ca425673ea))
+* **deps:** bump drizzle-orm from 0.42.0 to 0.43.1 in the drizzle group ([#844](https://github.com/tambo-ai/tambo-cloud/issues/844)) ([e176b03](https://github.com/tambo-ai/tambo-cloud/commit/e176b035ef835ba7477c3f76ac524a645266fdfc))
+* **deps:** bump framer-motion from 12.6.5 to 12.9.2 ([#851](https://github.com/tambo-ai/tambo-cloud/issues/851)) ([7fbc11a](https://github.com/tambo-ai/tambo-cloud/commit/7fbc11afcc04beed600f102271d4687d45e8d6c4))
+* **deps:** bump js-tiktoken from 1.0.19 to 1.0.20 ([#848](https://github.com/tambo-ai/tambo-cloud/issues/848)) ([09c6642](https://github.com/tambo-ai/tambo-cloud/commit/09c6642f122a7d210b800b8163a0bb7b3671c931))
+* **deps:** bump next from 15.2.4 to 15.3.1 ([#850](https://github.com/tambo-ai/tambo-cloud/issues/850)) ([bc24f87](https://github.com/tambo-ai/tambo-cloud/commit/bc24f8767423fdf5f26e3e75c366100615fcb2f1))
+* **deps:** bump radix-ui from 1.1.3 to 1.3.3 ([#815](https://github.com/tambo-ai/tambo-cloud/issues/815)) ([fd043bc](https://github.com/tambo-ai/tambo-cloud/commit/fd043bcb8c8bccb129d434f650f1b419c266fd3a))
+* **deps:** bump the nestjs group with 6 updates ([#843](https://github.com/tambo-ai/tambo-cloud/issues/843)) ([646d7d5](https://github.com/tambo-ai/tambo-cloud/commit/646d7d566b8dbc73ad3b394f90865a93ef3a3a3b))
+* **deps:** bump the trpc group with 3 updates ([#842](https://github.com/tambo-ai/tambo-cloud/issues/842)) ([a66ef2a](https://github.com/tambo-ai/tambo-cloud/commit/a66ef2a8bc87a13a0d8c319bb362fc0848092c4d))
+* fix a bunch of lint issues ([#832](https://github.com/tambo-ai/tambo-cloud/issues/832)) ([e72f62d](https://github.com/tambo-ai/tambo-cloud/commit/e72f62d9f8760084a29c2b350b559e8718745115))
+* remove old smoketest-legacy and hydra-ai lib ([#836](https://github.com/tambo-ai/tambo-cloud/issues/836)) ([d674803](https://github.com/tambo-ai/tambo-cloud/commit/d6748033f108886f819f86a17a682dfab4d01a2e))
+* safely remove unused variables across web application ([#766](https://github.com/tambo-ai/tambo-cloud/issues/766)) ([53da77a](https://github.com/tambo-ai/tambo-cloud/commit/53da77ad3312822780428a8b1dd04907fd2016c7))
+* update tools doc to remove component association ([#827](https://github.com/tambo-ai/tambo-cloud/issues/827)) ([de196c3](https://github.com/tambo-ai/tambo-cloud/commit/de196c3b620d7bcd2432bbcc044dea77d323f774))
+
+
+### Code Refactoring
+
+* **images:** replace HTML img tags with Next.js Image component ([#767](https://github.com/tambo-ai/tambo-cloud/issues/767)) ([2c96cd5](https://github.com/tambo-ai/tambo-cloud/commit/2c96cd59aa40cbdea710544251e40ef54ecbcce6))
+
 ## [0.38.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.37.0...repo-v0.38.0) (2025-04-24)
 
 
