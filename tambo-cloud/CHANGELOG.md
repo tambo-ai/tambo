@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.3...repo-v0.39.4) (2025-04-28)
+
+
+### Bug Fixes
+
+* make demo email props required ([#878](https://github.com/tambo-ai/tambo-cloud/issues/878)) ([c4f1063](https://github.com/tambo-ai/tambo-cloud/commit/c4f1063a9ca7d0f6c33878bd031617daec9e25d8))
+* make email component props required ([#874](https://github.com/tambo-ai/tambo-cloud/issues/874)) ([2eaebe8](https://github.com/tambo-ai/tambo-cloud/commit/2eaebe82abf3b56ed3275e1a07ce1531ded5df41))
+
 ## [0.39.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.2...repo-v0.39.3) (2025-04-28)
 
 
