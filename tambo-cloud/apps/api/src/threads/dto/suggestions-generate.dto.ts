@@ -1,6 +1,6 @@
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsNumber, IsOptional, Max, Min } from "class-validator";
+import { IsNumber, IsOptional, Max, Min } from "class-validator";
 import { AvailableComponentDto } from "../../components/dto/generate-component.dto";
 
 @ApiSchema({ name: "SuggestionsGenerate" })
@@ -21,7 +21,6 @@ export class SuggestionsGenerateDto {
 
   @ApiProperty({
     description: "Available components that can be used with this suggestion",
-    isArray: true,
     example: [
       {
         name: "Button",
@@ -40,7 +39,6 @@ export class SuggestionsGenerateDto {
       },
     ],
   })
-  @IsArray()
   @IsOptional()
   availableComponents?: AvailableComponentDto[];
 }
