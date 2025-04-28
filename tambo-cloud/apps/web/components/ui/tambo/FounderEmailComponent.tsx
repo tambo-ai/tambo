@@ -14,14 +14,12 @@ export const FounderEmailProps = z
   .object({
     aiGeneratedSubject: z
       .string()
-      .optional()
       .default("")
       .describe(
         "By default, generate the subject of the email, example: Hello from your demo app.",
       ),
     aiGeneratedBody: z
       .string()
-      .optional()
       .default("")
       .describe(
         "By default, generate the body of the email, example: I generated this email using your demo app.",
