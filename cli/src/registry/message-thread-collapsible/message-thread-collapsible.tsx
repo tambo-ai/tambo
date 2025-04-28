@@ -124,6 +124,12 @@ interface CollapsibleTriggerProps {
   onClose: () => void;
   contextKey?: string;
   onThreadChange: () => void;
+  config: {
+    labels: {
+      openState: string;
+      closedState: string;
+    };
+  };
 }
 
 /**
@@ -135,6 +141,7 @@ const CollapsibleTrigger = ({
   onClose,
   contextKey,
   onThreadChange,
+  config,
 }: CollapsibleTriggerProps) => (
   <Collapsible.Trigger asChild>
     <button
@@ -147,7 +154,9 @@ const CollapsibleTrigger = ({
       aria-controls="message-thread-content"
     >
       <div className="flex items-center gap-2">
-        <span>{isOpen ? "Conversations" : "Use AI"}</span>
+        <span>
+          {isOpen ? config.labels.openState : config.labels.closedState}
+        </span>
         {isOpen && (
           <ThreadDropdown
             contextKey={contextKey}
@@ -191,6 +200,16 @@ export const MessageThreadCollapsible = React.forwardRef<
     setIsOpen(true);
   }, [setIsOpen]);
 
+  /**
+   * Configuration for the MessageThreadCollapsible component
+   */
+  const THREAD_CONFIG = {
+    labels: {
+      openState: "Conversations",
+      closedState: "Start chatting with tambo",
+    },
+  };
+
   return (
     <CollapsibleContainer
       ref={ref}
@@ -205,6 +224,7 @@ export const MessageThreadCollapsible = React.forwardRef<
         onClose={() => setIsOpen(false)}
         contextKey={contextKey}
         onThreadChange={handleThreadChange}
+        config={THREAD_CONFIG}
       />
       <Collapsible.Content>
         <div className="h-[600px] flex flex-col">
