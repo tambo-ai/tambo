@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.0...repo-v0.39.1) (2025-04-28)
+
+
+### Bug Fixes
+
+* OpenAPI errors ([#852](https://github.com/tambo-ai/tambo-cloud/issues/852)) ([695502b](https://github.com/tambo-ai/tambo-cloud/commit/695502ba9a2b58f542dc241f15ab135c6de08180))
+
 ## [0.39.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.38.0...repo-v0.39.0) (2025-04-28)
 
 
