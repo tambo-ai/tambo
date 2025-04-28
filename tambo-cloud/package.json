@@ -24,7 +24,7 @@
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.5.0",
+    "lint-staged": "^15.5.1",
     "prettier": "^3.5.3",
     "tsx": "^4.19.3",
     "turbo": "^2.5.0",
