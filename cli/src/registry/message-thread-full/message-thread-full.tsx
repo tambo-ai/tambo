@@ -1,140 +1,39 @@
 "use client";
 
 import {
-  MessageInputRoot,
+  MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputError,
 } from "@/components/ui/message-input";
 import {
-  MessageSuggestionsRoot,
+  MessageSuggestions,
   MessageSuggestionsStatus,
   MessageSuggestionsList,
 } from "@/components/ui/message-suggestions";
 import {
-  ThreadContentRoot,
+  ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
 import {
-  ThreadHistoryRoot,
+  ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
 } from "@/components/ui/thread-history";
 import type { messageVariants } from "@/components/ui/message";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import {
+  useMergedRef,
+  useCanvasDetection,
+  usePositioning,
+} from "@/lib/thread-hooks";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { useEffect, useRef } from "react";
-
-/**
- * Props for the CanvasAwareContainer component
- */
-interface CanvasAwareContainerProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  /** Whether to enable canvas space integration */
-  enableCanvasSpace?: boolean;
-  /** Children elements to render inside the container */
-  children: React.ReactNode;
-}
-
-/**
- * A container component that adjusts its width and position based on canvas space settings
- */
-const CanvasAwareContainer = React.forwardRef<
-  HTMLDivElement,
-  CanvasAwareContainerProps
->(({ enableCanvasSpace = false, className, children, ...props }, ref) => {
-  // Get canvas position from CSS variable
-  const getCanvasPosition = () => {
-    if (typeof document === "undefined") return "right";
-    return (
-      document.documentElement.style.getPropertyValue("--canvas-position") ||
-      "right"
-    );
-  };
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex flex-col bg-white rounded-lg overflow-hidden bg-background",
-        "h-screen",
-        "ml-[var(--sidebar-width,16rem)]",
-        "transition-[width,margin] duration-300 ease-out",
-        enableCanvasSpace
-          ? getCanvasPosition() === "right"
-            ? "w-[calc(100%-var(--canvas-width)-var(--sidebar-width,16rem))]"
-            : "w-[calc(100%-var(--canvas-width)-var(--sidebar-width,16rem))] ml-[calc(var(--canvas-width)+var(--sidebar-width,16rem))]"
-          : "w-[calc(100%-var(--sidebar-width,16rem))]",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
-CanvasAwareContainer.displayName = "CanvasAwareContainer";
-
-/**
- * Props for the ScrollableMessageContainer component
- */
-interface ScrollableMessageContainerProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  /** Children elements to render inside the container */
-  children: React.ReactNode;
-}
-
-/**
- * A scrollable container for message content with auto-scroll functionality
- */
-const ScrollableMessageContainer = React.forwardRef<
-  HTMLDivElement,
-  ScrollableMessageContainerProps
->(({ className, children, ...props }, ref) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { thread } = useTambo();
-
-  // Handle forwarded ref
-  React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (scrollContainerRef.current && thread?.messages?.length) {
-      const timeoutId = setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTo({
-            top: scrollContainerRef.current.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [thread?.messages]);
-
-  return (
-    <div
-      ref={scrollContainerRef}
-      className={cn(
-        "flex-1 overflow-y-auto px-4",
-        "[&::-webkit-scrollbar]:w-[6px]",
-        "[&::-webkit-scrollbar-thumb]:bg-gray-300",
-        "[&::-webkit-scrollbar:horizontal]:h-[4px]",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
-ScrollableMessageContainer.displayName = "ScrollableMessageContainer";
+import { useRef } from "react";
 
 /**
  * Props for the MessageThreadFull component
@@ -143,9 +42,12 @@ export interface MessageThreadFullProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional context key for the thread */
   contextKey?: string;
-  /** Whether to enable the canvas space */
-  enableCanvasSpace?: boolean;
-  /** Optional styling variant for the message container */
+  /**
+   * Controls the visual styling of messages in the thread.
+   * Possible values include: "default", "compact", etc.
+   * These values are defined in messageVariants from "@/components/ui/message".
+   * @example variant="compact"
+   */
   variant?: VariantProps<typeof messageVariants>["variant"];
 }
 
@@ -155,57 +57,87 @@ export interface MessageThreadFullProps
 export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
->(
-  (
-    { className, contextKey, enableCanvasSpace = false, variant, ...props },
-    ref,
-  ) => {
-    return (
-      <>
-        {/* Thread History Sidebar */}
-        <ThreadHistoryRoot contextKey={contextKey}>
-          <ThreadHistoryHeader />
-          <ThreadHistoryNewButton />
-          <ThreadHistorySearch />
-          <ThreadHistoryList />
-        </ThreadHistoryRoot>
+>(({ className, contextKey, variant, ...props }, ref) => {
+  const threadRef = useRef<HTMLDivElement>(null);
+  const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(threadRef);
+  const { isLeftPanel, historyPosition } = usePositioning(
+    className,
+    canvasIsOnLeft,
+    hasCanvasSpace,
+  );
+  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, threadRef);
 
-        <CanvasAwareContainer
-          ref={ref}
-          enableCanvasSpace={enableCanvasSpace}
-          className={className}
-          {...props}
-        >
-          {/* Message thread content */}
-          <ScrollableMessageContainer>
-            <ThreadContentRoot
-              enableCanvasSpace={enableCanvasSpace}
-              className="py-4"
-              variant={variant}
-            >
-              <ThreadContentMessages />
-            </ThreadContentRoot>
-          </ScrollableMessageContainer>
+  const threadHistorySidebar = (
+    <ThreadHistory contextKey={contextKey} position={historyPosition}>
+      <ThreadHistoryHeader />
+      <ThreadHistoryNewButton />
+      <ThreadHistorySearch />
+      <ThreadHistoryList />
+    </ThreadHistory>
+  );
 
-          {/* Message input */}
-          <div className="p-4">
-            <MessageInputRoot contextKey={contextKey}>
-              <MessageInputTextarea />
-              <MessageInputToolbar>
-                <MessageInputSubmitButton />
-              </MessageInputToolbar>
-            </MessageInputRoot>
-          </div>
+  return (
+    <>
+      {/* Thread History Sidebar - rendered first if history is on the left */}
+      {historyPosition === "left" && threadHistorySidebar}
 
-          {/* Message suggestions */}
-          <MessageSuggestionsRoot>
-            <MessageSuggestionsStatus />
-            <MessageSuggestionsList />
-          </MessageSuggestionsRoot>
-          <MessageInputError />
-        </CanvasAwareContainer>
-      </>
-    );
-  },
-);
+      <div
+        ref={mergedRef}
+        className={cn(
+          // Base layout and styling
+          "flex flex-col bg-white overflow-hidden bg-background", // Flex column layout with white background
+          "h-screen", // Full viewport height
+
+          // Sidebar spacing based on history position
+          historyPosition === "right"
+            ? "mr-[var(--sidebar-width,16rem)]" // Margin right when history is on right
+            : "ml-[var(--sidebar-width,16rem)]", // Margin left when history is on left
+
+          // Width constraints based on canvas presence
+          hasCanvasSpace
+            ? "max-w-3xl"
+            : "w-[calc(100%-var(--sidebar-width,16rem))]", // Max width with canvas, full width minus sidebar without
+
+          // Border styling when canvas is present
+          hasCanvasSpace && (canvasIsOnLeft ? "border-l" : "border-r"), // Left/right border based on canvas position
+          hasCanvasSpace && "border-border", // Border color
+
+          // Right alignment when specified
+          !isLeftPanel && "ml-auto", // Auto margin left to push to right when right class is specified
+
+          // Custom classes passed via props
+          className,
+        )}
+        {...props}
+      >
+        {/* Message thread content */}
+        <ScrollableMessageContainer className="p-4">
+          <ThreadContent className="py-4" variant={variant}>
+            <ThreadContentMessages />
+          </ThreadContent>
+        </ScrollableMessageContainer>
+
+        {/* Message input */}
+        <div className="p-4">
+          <MessageInput contextKey={contextKey}>
+            <MessageInputTextarea />
+            <MessageInputToolbar>
+              <MessageInputSubmitButton />
+            </MessageInputToolbar>
+            <MessageInputError />
+          </MessageInput>
+        </div>
+
+        {/* Message suggestions */}
+        <MessageSuggestions>
+          <MessageSuggestionsStatus />
+          <MessageSuggestionsList />
+        </MessageSuggestions>
+      </div>
+
+      {/* Thread History Sidebar - rendered last if history is on the right */}
+      {historyPosition === "right" && threadHistorySidebar}
+    </>
+  );
+});
 MessageThreadFull.displayName = "MessageThreadFull";

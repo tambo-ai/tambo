@@ -1,34 +1,39 @@
 "use client";
 
 import {
-  MessageInputRoot,
+  MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputError,
 } from "@/components/ui/message-input";
 import {
-  MessageSuggestionsRoot,
+  MessageSuggestions,
   MessageSuggestionsStatus,
   MessageSuggestionsList,
 } from "@/components/ui/message-suggestions";
 import {
-  ThreadContentRoot,
+  ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
 import {
-  ThreadHistoryRoot,
+  ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
 } from "@/components/ui/thread-history";
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import {
+  useMergedRef,
+  useCanvasDetection,
+  usePositioning,
+} from "@/lib/thread-hooks";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import type { messageVariants } from "@/components/ui/message";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 
 /**
  * Props for the MessageThreadPanel component
@@ -43,41 +48,31 @@ export interface MessageThreadPanelProps
   contextKey?: string;
   /** Optional content to render in the left panel of the grid */
   children?: React.ReactNode;
-  /** Whether to enable the canvas space */
-  enableCanvasSpace?: boolean;
-  /** Optional styling variant for the message container */
+  /**
+   * Controls the visual styling of messages in the thread.
+   * Possible values include: "default", "compact", etc.
+   * These values are defined in messageVariants from "@/components/ui/message".
+   * @example variant="compact"
+   */
   variant?: VariantProps<typeof messageVariants>["variant"];
-  /** position of the panel */
-  position?: "left" | "right";
 }
 
 /**
  * Props for the ResizablePanel component
  */
 interface ResizablePanelProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Whether to enable canvas space integration */
-  enableCanvasSpace?: boolean;
-  /** Position of the panel */
-  position?: "left" | "right";
   /** Children elements to render inside the container */
   children: React.ReactNode;
+  /** Whether the panel should be positioned on the left (true) or right (false) */
+  isLeftPanel: boolean;
 }
 
 /**
  * A resizable panel component with a draggable divider
  */
 const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
-  (
-    {
-      enableCanvasSpace = false,
-      position = "right",
-      className,
-      children,
-      ...props
-    },
-    ref,
-  ) => {
-    const [width, setWidth] = React.useState(500);
+  ({ className, children, isLeftPanel, ...props }, ref) => {
+    const [width, setWidth] = React.useState(956);
     const isResizing = React.useRef(false);
     const lastUpdateRef = React.useRef(0);
 
@@ -93,7 +88,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
 
         requestAnimationFrame(() => {
           let newWidth;
-          if (position === "left") {
+          if (isLeftPanel) {
             newWidth = Math.round(e.clientX);
           } else {
             newWidth = Math.round(windowWidth - e.clientX);
@@ -107,70 +102,63 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
           setWidth(clampedWidth);
 
           // Update both panel and canvas widths using the same divider position
-          if (position === "left") {
+          if (isLeftPanel) {
             document.documentElement.style.setProperty(
               "--panel-left-width",
               `${clampedWidth}px`,
-            );
-            document.documentElement.style.setProperty(
-              "--canvas-width",
-              `${windowWidth - clampedWidth}px`,
             );
           } else {
             document.documentElement.style.setProperty(
               "--panel-right-width",
               `${clampedWidth}px`,
             );
-            document.documentElement.style.setProperty(
-              "--canvas-width",
-              `${windowWidth - clampedWidth}px`,
-            );
           }
         });
       },
-      [position],
+      [isLeftPanel],
     );
 
     return (
       <div
         ref={ref}
         className={cn(
-          "h-full fixed top-0 bg-background flex flex-col",
+          "h-screen flex flex-col bg-background relative",
           "transition-[width] duration-75 ease-out",
-          position === "left"
-            ? "left-0 border-r border-gray-200"
-            : "right-0 border-l border-gray-200",
+          isLeftPanel
+            ? "border-r border-border"
+            : "border-l border-border ml-auto",
           className,
         )}
-        style={{ width: `${width}px` }}
+        style={{
+          width: `${width}px`,
+          flex: "0 0 auto",
+        }}
         {...props}
       >
-        {/* Only show divider if canvas is enabled */}
-        {enableCanvasSpace && (
-          <div
-            className={cn(
-              "absolute top-0 bottom-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors z-50",
-              position === "left" ? "right-0" : "left-0",
-            )}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              isResizing.current = true;
-              document.body.style.cursor = "ew-resize";
-              document.body.style.userSelect = "none";
-              document.addEventListener("mousemove", handleMouseMove);
-              document.addEventListener(
-                "mouseup",
-                () => {
-                  isResizing.current = false;
-                  document.body.style.cursor = "";
-                  document.body.style.userSelect = "";
-                  document.removeEventListener("mousemove", handleMouseMove);
-                },
-                { once: true },
-              );
-            }}
-          />
-        )}
+        {/* Always show resize handle */}
+        <div
+          className={cn(
+            "absolute top-0 bottom-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors z-50",
+            isLeftPanel ? "right-0" : "left-0",
+          )}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            isResizing.current = true;
+            document.body.style.cursor = "ew-resize";
+            document.body.style.userSelect = "none";
+            document.addEventListener("mousemove", handleMouseMove);
+            document.addEventListener(
+              "mouseup",
+              () => {
+                isResizing.current = false;
+                document.body.style.cursor = "";
+                document.body.style.userSelect = "";
+                document.removeEventListener("mousemove", handleMouseMove);
+              },
+              { once: true },
+            );
+          }}
+        />
         {children}
       </div>
     );
@@ -179,144 +167,103 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
 ResizablePanel.displayName = "ResizablePanel";
 
 /**
- * A scrollable container for message content with auto-scroll functionality
- */
-const ScrollableMessageContainer = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { thread } = useTambo();
-
-  // Handle forwarded ref
-  React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (scrollContainerRef.current && thread?.messages?.length) {
-      const timeoutId = setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTo({
-            top: scrollContainerRef.current.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [thread?.messages]);
-
-  return (
-    <div
-      ref={scrollContainerRef}
-      className={cn(
-        "flex-1 overflow-y-auto p-4",
-        "[&::-webkit-scrollbar]:w-[6px]",
-        "[&::-webkit-scrollbar-thumb]:bg-gray-300",
-        "[&::-webkit-scrollbar:horizontal]:h-[4px]",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
-ScrollableMessageContainer.displayName = "ScrollableMessageContainer";
-
-/**
  * A resizable panel component that displays a chat thread with message history, input, and suggestions
  * @component
  * @example
  * ```tsx
+ * // Default left positioning
  * <MessageThreadPanel
  *   contextKey="my-thread"
- *   className="custom-styles"
- *   enableCanvasSpace={true}
- *   position="left"
- *   variant="default"
+ * />
+ *
+ * // Explicit right positioning
+ * <MessageThreadPanel
+ *   contextKey="my-thread"
+ *   className="right"
  * />
  * ```
  */
 export const MessageThreadPanel = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
->(
-  (
-    {
-      className,
-      contextKey,
-      enableCanvasSpace = false,
-      variant,
-      position = "right",
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <ResizablePanel
-        ref={ref}
-        enableCanvasSpace={enableCanvasSpace}
-        position={position}
-        className={className}
-        {...props}
-      >
-        <div className="flex h-full relative">
-          {position === "left" && (
-            <ThreadHistoryRoot
+>(({ className, contextKey, variant, ...props }, ref) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(panelRef);
+  const { isLeftPanel, historyPosition } = usePositioning(
+    className,
+    canvasIsOnLeft,
+    hasCanvasSpace,
+  );
+  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
+
+  return (
+    <ResizablePanel
+      ref={mergedRef}
+      isLeftPanel={isLeftPanel}
+      className={className}
+      {...props}
+    >
+      <div className="flex h-full relative">
+        {historyPosition === "left" && (
+          <div
+            className="flex-none"
+            style={{ width: "var(--sidebar-width, 16rem)" }}
+          >
+            <ThreadHistory
               contextKey={contextKey}
               defaultCollapsed={false}
               position="left"
-              className="relative h-full border-0 border-r border-flat"
+              className="h-full border-0 border-r border-flat"
             >
               <ThreadHistoryHeader />
               <ThreadHistoryNewButton />
               <ThreadHistorySearch />
               <ThreadHistoryList />
-            </ThreadHistoryRoot>
-          )}
-
-          <div className="flex flex-col h-full flex-grow">
-            <ScrollableMessageContainer>
-              <ThreadContentRoot
-                enableCanvasSpace={enableCanvasSpace}
-                variant={variant}
-              >
-                <ThreadContentMessages />
-              </ThreadContentRoot>
-            </ScrollableMessageContainer>
-            <div className="p-4">
-              <MessageInputRoot contextKey={contextKey}>
-                <MessageInputTextarea />
-                <MessageInputToolbar>
-                  <MessageInputSubmitButton />
-                </MessageInputToolbar>
-              </MessageInputRoot>
-              <MessageInputError />
-            </div>
-            <MessageSuggestionsRoot>
-              <MessageSuggestionsStatus />
-              <MessageSuggestionsList />
-            </MessageSuggestionsRoot>
+            </ThreadHistory>
           </div>
+        )}
 
-          {position === "right" && (
-            <ThreadHistoryRoot
+        <div className="flex flex-col h-full flex-grow">
+          <ScrollableMessageContainer>
+            <ThreadContent variant={variant}>
+              <ThreadContentMessages />
+            </ThreadContent>
+          </ScrollableMessageContainer>
+          <div className="p-4">
+            <MessageInput contextKey={contextKey}>
+              <MessageInputTextarea />
+              <MessageInputToolbar>
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+              <MessageInputError />
+            </MessageInput>
+          </div>
+          <MessageSuggestions>
+            <MessageSuggestionsStatus />
+            <MessageSuggestionsList />
+          </MessageSuggestions>
+        </div>
+
+        {historyPosition === "right" && (
+          <div
+            className="flex-none"
+            style={{ width: "var(--sidebar-width, 16rem)" }}
+          >
+            <ThreadHistory
               contextKey={contextKey}
               defaultCollapsed={false}
               position="right"
-              className="relative h-full border-0 border-l border-flat"
+              className="h-full border-0 border-l border-flat"
             >
               <ThreadHistoryHeader />
               <ThreadHistoryNewButton />
               <ThreadHistorySearch />
               <ThreadHistoryList />
-            </ThreadHistoryRoot>
-          )}
-        </div>
-      </ResizablePanel>
-    );
-  },
-);
+            </ThreadHistory>
+          </div>
+        )}
+      </div>
+    </ResizablePanel>
+  );
+});
 MessageThreadPanel.displayName = "MessageThreadPanel";

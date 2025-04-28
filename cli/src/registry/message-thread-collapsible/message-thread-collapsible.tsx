@@ -1,30 +1,63 @@
 "use client";
 
 import {
-  MessageInputRoot,
+  MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputError,
 } from "@/components/ui/message-input";
 import {
-  MessageSuggestionsRoot,
+  MessageSuggestions,
   MessageSuggestionsStatus,
   MessageSuggestionsList,
 } from "@/components/ui/message-suggestions";
 import {
-  ThreadContentRoot,
+  ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
 import type { messageVariants } from "@/components/ui/message";
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
 import { Collapsible } from "radix-ui";
-import { useTambo } from "@tambo-ai/react";
 import { XIcon } from "lucide-react";
 import * as React from "react";
-import { useEffect, useRef } from "react";
 import { type VariantProps } from "class-variance-authority";
+
+/**
+ * Props for the MessageThreadCollapsible component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
+ */
+export interface MessageThreadCollapsibleProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional context key for the thread */
+  contextKey?: string;
+  /** Whether the collapsible should be open by default (default: false) */
+  defaultOpen?: boolean;
+  /**
+   * Controls the visual styling of messages in the thread.
+   * Possible values include: "default", "compact", etc.
+   * These values are defined in messageVariants from "@/components/ui/message".
+   * @example variant="compact"
+   */
+  variant?: VariantProps<typeof messageVariants>["variant"];
+}
+
+/**
+ * A collapsible chat thread component with keyboard shortcuts and thread management
+ * @component
+ * @example
+ * ```tsx
+ * <MessageThreadCollapsible
+ *   contextKey="my-thread"
+ *   defaultOpen={false}
+ *   className="left-4" // Position on the left instead of right
+ *   variant="default"
+ * />
+ * ```
+ */
 
 /**
  * Custom hook for managing collapsible state with keyboard shortcuts
@@ -57,7 +90,6 @@ interface CollapsibleContainerProps
   extends React.HTMLAttributes<HTMLDivElement> {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  position?: "left" | "right";
   children: React.ReactNode;
 }
 
@@ -67,26 +99,20 @@ interface CollapsibleContainerProps
 const CollapsibleContainer = React.forwardRef<
   HTMLDivElement,
   CollapsibleContainerProps
->(
-  (
-    { className, isOpen, onOpenChange, position = "right", children, ...props },
-    ref,
-  ) => (
-    <Collapsible.Root
-      ref={ref}
-      open={isOpen}
-      onOpenChange={onOpenChange}
-      className={cn(
-        "fixed bottom-4 right-4 w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg transition-all duration-200 bg-background border border-gray-200",
-        position === "left" && "left-4",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </Collapsible.Root>
-  ),
-);
+>(({ className, isOpen, onOpenChange, children, ...props }, ref) => (
+  <Collapsible.Root
+    ref={ref}
+    open={isOpen}
+    onOpenChange={onOpenChange}
+    className={cn(
+      "fixed bottom-4 right-4 w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg transition-all duration-200 bg-background border border-gray-200",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </Collapsible.Root>
+));
 CollapsibleContainer.displayName = "CollapsibleContainer";
 
 /**
@@ -155,145 +181,54 @@ const CollapsibleTrigger = ({
 );
 CollapsibleTrigger.displayName = "CollapsibleTrigger";
 
-/**
- * Scrollable message container with auto-scroll functionality
- */
-const ScrollableMessageContainer = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ children, ...props }, ref) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { thread } = useTambo();
-
-  React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
-
-  useEffect(() => {
-    if (scrollContainerRef.current && thread?.messages?.length) {
-      const timeoutId = setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTo({
-            top: scrollContainerRef.current.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [thread?.messages]);
-
-  return (
-    <div
-      ref={scrollContainerRef}
-      className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar:horizontal]:h-[4px]"
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
-ScrollableMessageContainer.displayName = "ScrollableMessageContainer";
-
-/**
- * Props for the MessageThreadCollapsible component
- * @interface
- * @extends React.HTMLAttributes<HTMLDivElement>
- */
-export interface MessageThreadCollapsibleProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional context key for the thread */
-  contextKey?: string;
-  /** Whether the collapsible should be open by default (default: false) */
-  defaultOpen?: boolean;
-  /** Whether to enable the canvas space */
-  enableCanvasSpace?: boolean;
-  /** Optional styling variant for the message container */
-  variant?: VariantProps<typeof messageVariants>["variant"];
-  /** position of the panel */
-  position?: "left" | "right";
-}
-
-/**
- * A collapsible chat thread component with keyboard shortcuts and thread management
- * @component
- * @example
- * ```tsx
- * <MessageThreadCollapsible
- *   contextKey="my-thread"
- *   defaultOpen={false}
- *   className="custom-styles"
- *   enableCanvasSpace={true}
- *   position="left"
- *   variant="default"
- * />
- * ```
- */
 export const MessageThreadCollapsible = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleProps
->(
-  (
-    {
-      className,
-      contextKey,
-      defaultOpen = false,
-      enableCanvasSpace = false,
-      variant,
-      position = "right",
-      ...props
-    },
-    ref,
-  ) => {
-    const { isOpen, setIsOpen, shortcutText } =
-      useCollapsibleState(defaultOpen);
+>(({ className, contextKey, defaultOpen = false, variant, ...props }, ref) => {
+  const { isOpen, setIsOpen, shortcutText } = useCollapsibleState(defaultOpen);
 
-    const handleThreadChange = React.useCallback(() => {
-      setIsOpen(true);
-    }, [setIsOpen]);
+  const handleThreadChange = React.useCallback(() => {
+    setIsOpen(true);
+  }, [setIsOpen]);
 
-    return (
-      <CollapsibleContainer
-        ref={ref}
+  return (
+    <CollapsibleContainer
+      ref={ref}
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      className={className}
+      {...props}
+    >
+      <CollapsibleTrigger
         isOpen={isOpen}
-        onOpenChange={setIsOpen}
-        position={position}
-        className={className}
-        {...props}
-      >
-        <CollapsibleTrigger
-          isOpen={isOpen}
-          shortcutText={shortcutText}
-          onClose={() => setIsOpen(false)}
-          contextKey={contextKey}
-          onThreadChange={handleThreadChange}
-        />
-        <Collapsible.Content>
-          <div className="h-[600px] flex flex-col">
-            <ScrollableMessageContainer>
-              <ThreadContentRoot
-                enableCanvasSpace={enableCanvasSpace}
-                variant={variant}
-              >
-                <ThreadContentMessages />
-              </ThreadContentRoot>
-            </ScrollableMessageContainer>
-            <div className="p-4">
-              <MessageInputRoot contextKey={contextKey}>
-                <MessageInputTextarea />
-                <MessageInputToolbar>
-                  <MessageInputSubmitButton />
-                </MessageInputToolbar>
-                <MessageInputError />
-              </MessageInputRoot>
-            </div>
-            <MessageSuggestionsRoot>
-              <MessageSuggestionsStatus />
-              <MessageSuggestionsList />
-            </MessageSuggestionsRoot>
+        shortcutText={shortcutText}
+        onClose={() => setIsOpen(false)}
+        contextKey={contextKey}
+        onThreadChange={handleThreadChange}
+      />
+      <Collapsible.Content>
+        <div className="h-[600px] flex flex-col">
+          <ScrollableMessageContainer>
+            <ThreadContent variant={variant}>
+              <ThreadContentMessages />
+            </ThreadContent>
+          </ScrollableMessageContainer>
+          <div className="p-4">
+            <MessageInput contextKey={contextKey}>
+              <MessageInputTextarea />
+              <MessageInputToolbar>
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+              <MessageInputError />
+            </MessageInput>
           </div>
-        </Collapsible.Content>
-      </CollapsibleContainer>
-    );
-  },
-);
+          <MessageSuggestions>
+            <MessageSuggestionsStatus />
+            <MessageSuggestionsList />
+          </MessageSuggestions>
+        </div>
+      </Collapsible.Content>
+    </CollapsibleContainer>
+  );
+});
 MessageThreadCollapsible.displayName = "MessageThreadCollapsible";

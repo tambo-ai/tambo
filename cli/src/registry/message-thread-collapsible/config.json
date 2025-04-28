@@ -14,7 +14,8 @@
     "message-input",
     "message-suggestions",
     "message",
-    "thread-dropdown"
+    "thread-dropdown",
+    "scrollable-message-container"
   ],
   "files": [
     {

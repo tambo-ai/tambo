@@ -9,12 +9,17 @@
     "message-input",
     "message-suggestions",
     "thread-history",
-    "message"
+    "message",
+    "scrollable-message-container"
   ],
   "files": [
     {
       "name": "message-thread-full.tsx",
       "content": "src/registry/message-thread-full/message-thread-full.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/registry/lib/thread-hooks.ts"
     }
   ]
 }

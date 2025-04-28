@@ -107,85 +107,92 @@ export interface MessageInputRootProps
  * </MessageInput.Root>
  * ```
  */
-const MessageInputRoot = React.forwardRef<
-  HTMLFormElement,
-  MessageInputRootProps
->(({ children, className, contextKey, variant, ...props }, ref) => {
-  const { value, setValue, submit, isPending, error } =
-    useTamboThreadInput(contextKey);
-  const [displayValue, setDisplayValue] = React.useState("");
-  const [submitError, setSubmitError] = React.useState<string | null>(null);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+const MessageInput = React.forwardRef<HTMLFormElement, MessageInputRootProps>(
+  ({ children, className, contextKey, variant, ...props }, ref) => {
+    const { value, setValue, submit, isPending, error } =
+      useTamboThreadInput(contextKey);
+    const [displayValue, setDisplayValue] = React.useState("");
+    const [submitError, setSubmitError] = React.useState<string | null>(null);
+    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  React.useEffect(() => {
-    setDisplayValue(value);
-    if (value && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [value]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!value.trim()) return;
-
-    setSubmitError(null);
-    setDisplayValue("");
-    try {
-      await submit({
-        contextKey,
-        streamResponse: true,
-      });
-      setValue("");
-      setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 0);
-    } catch (error) {
-      console.error("Failed to submit message:", error);
+    React.useEffect(() => {
       setDisplayValue(value);
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Failed to send message. Please try again.",
-      );
-    }
-  };
+      if (value && textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, [value]);
 
-  const contextValue = React.useMemo(
-    () => ({
-      value: displayValue,
-      setValue: (newValue: string) => {
-        setValue(newValue);
-        setDisplayValue(newValue);
-      },
-      submit,
-      isPending,
-      error,
-      contextKey,
-      textareaRef,
-      submitError,
-      setSubmitError,
-    }),
-    [displayValue, setValue, submit, isPending, error, contextKey, submitError],
-  );
-  return (
-    <MessageInputContext.Provider
-      value={contextValue as MessageInputContextValue}
-    >
-      <form
-        ref={ref}
-        onSubmit={handleSubmit}
-        className={cn(messageInputVariants({ variant }), className)}
-        data-slot="message-input-form"
-        {...props}
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!value.trim()) return;
+
+      setSubmitError(null);
+      setDisplayValue("");
+      try {
+        await submit({
+          contextKey,
+          streamResponse: true,
+        });
+        setValue("");
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 0);
+      } catch (error) {
+        console.error("Failed to submit message:", error);
+        setDisplayValue(value);
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Failed to send message. Please try again.",
+        );
+      }
+    };
+
+    const contextValue = React.useMemo(
+      () => ({
+        value: displayValue,
+        setValue: (newValue: string) => {
+          setValue(newValue);
+          setDisplayValue(newValue);
+        },
+        submit,
+        isPending,
+        error,
+        contextKey,
+        textareaRef,
+        submitError,
+        setSubmitError,
+      }),
+      [
+        displayValue,
+        setValue,
+        submit,
+        isPending,
+        error,
+        contextKey,
+        submitError,
+      ],
+    );
+    return (
+      <MessageInputContext.Provider
+        value={contextValue as MessageInputContextValue}
       >
-        <div className="flex flex-col border border-gray-200 rounded-xl bg-background shadow-md p-2 px-3">
-          {children}
-        </div>
-      </form>
-    </MessageInputContext.Provider>
-  );
-});
-MessageInputRoot.displayName = "MessageInput.Root";
+        <form
+          ref={ref}
+          onSubmit={handleSubmit}
+          className={cn(messageInputVariants({ variant }), className)}
+          data-slot="message-input-form"
+          {...props}
+        >
+          <div className="flex flex-col border border-gray-200 rounded-xl bg-background shadow-md p-2 px-3">
+            {children}
+          </div>
+        </form>
+      </MessageInputContext.Provider>
+    );
+  },
+);
+MessageInput.displayName = "MessageInput";
 
 /**
  * Props for the MessageInputTextarea component.
@@ -375,54 +382,12 @@ const MessageInputToolbar = React.forwardRef<
 });
 MessageInputToolbar.displayName = "MessageInput.Toolbar";
 
-// --- Legacy compatibility function ---
-
-/**
- * Legacy monolithic MessageInput component for backward compatibility.
- * Uses the new compositional components internally.
- */
-export interface MessageInputProps
-  extends React.HTMLAttributes<HTMLFormElement> {
-  /** Optional styling variant for the input container */
-  variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Thread context key for message routing */
-  contextKey: string | undefined;
-}
-
-const MessageInput = React.forwardRef<HTMLTextAreaElement, MessageInputProps>(
-  ({ className, variant, contextKey, ...props }, ref) => {
-    const inputRef = React.useRef<HTMLTextAreaElement>(null);
-
-    // Forward ref handling
-    React.useImperativeHandle(ref, () => inputRef.current!, []);
-
-    return (
-      <MessageInputRoot
-        contextKey={contextKey}
-        variant={variant}
-        className={className}
-        {...props}
-      >
-        <MessageInputTextarea />
-        <MessageInputToolbar>
-          <MessageInputSubmitButton />
-        </MessageInputToolbar>
-        <MessageInputError />
-      </MessageInputRoot>
-    );
-  },
-);
-MessageInput.displayName = "MessageInput";
-
 // --- Exports ---
 export {
   messageInputVariants,
-  MessageInputRoot,
+  MessageInput,
   MessageInputTextarea,
   MessageInputSubmitButton,
   MessageInputToolbar,
   MessageInputError,
-  MessageInput,
-  // Legacy export for backward compatibility
-  MessageInput as MessageInputLegacy,
 };

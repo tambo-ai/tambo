@@ -14,6 +14,7 @@
  * - MessageGenerationStage component
  * - Tooltip component
  * - ThreadDropdown component
+ * - ScrollableMessageContainer component
  *
  * These components are meant to be installed and used in end-user projects
  * through the CLI installation process.
@@ -24,20 +25,11 @@ declare module "@/components/ui/message" {
   export interface MessageProps {
     className?: string;
     role: "user" | "assistant";
-    content: string | { type: string; text?: string }[];
+    content?: string | { type: string; text?: string }[];
     variant?: ComponentVariant;
     message: TamboThreadMessage;
     isLoading?: boolean;
-    enableCanvasSpace?: boolean;
-  }
-
-  export interface MessageRootProps
-    extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
-    role: "user" | "assistant";
-    message: TamboThreadMessage;
-    variant?: any;
-    isLoading?: boolean;
-    children: React.ReactNode;
+    children?: React.ReactNode;
   }
 
   export interface MessageBubbleProps
@@ -52,10 +44,6 @@ declare module "@/components/ui/message" {
 
   export const Message: React.ForwardRefExoticComponent<
     MessageProps & React.RefAttributes<HTMLDivElement>
-  >;
-
-  export const MessageRoot: React.ForwardRefExoticComponent<
-    MessageRootProps & React.RefAttributes<HTMLDivElement>
   >;
 
   export const MessageBubble: React.ForwardRefExoticComponent<
@@ -211,6 +199,8 @@ declare module "@/components/ui/thread-history" {
     variant?: ComponentVariant;
     contextKey?: string | undefined;
     onThreadChange?: () => void;
+    defaultCollapsed?: boolean;
+    position?: "left" | "right";
   }
   export const ThreadHistory: React.ForwardRefExoticComponent<
     ThreadHistoryProps & React.RefAttributes<HTMLDivElement>
@@ -306,4 +296,31 @@ declare module "@/components/ui/thread-dropdown" {
   export const ThreadDropdown: React.ForwardRefExoticComponent<
     ThreadDropdownProps & React.RefAttributes<HTMLDivElement>
   >;
+}
+
+declare module "@/components/ui/scrollable-message-container" {
+  export const ScrollableMessageContainer: React.ForwardRefExoticComponent<
+    React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>
+  >;
+}
+
+declare module "@/lib/thread-hooks" {
+  export function useMergedRef<T>(
+    ref1: React.Ref<T> | null | undefined,
+    ref2: React.Ref<T> | null | undefined,
+  ): React.RefCallback<T>;
+
+  export function useCanvasDetection(ref: React.RefObject<HTMLElement>): {
+    hasCanvasSpace: boolean;
+    canvasIsOnLeft: boolean;
+  };
+
+  export function usePositioning(
+    className: string | undefined,
+    canvasIsOnLeft: boolean,
+    hasCanvasSpace: boolean,
+  ): {
+    isLeftPanel: boolean;
+    historyPosition: "left" | "right";
+  };
 }

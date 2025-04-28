@@ -65,16 +65,16 @@ export interface MessageSuggestionsRootProps
 /**
  * The root container for message suggestions.
  * It establishes the context for its children and handles overall state management.
- * @component MessageSuggestions.Root
+ * @component MessageSuggestions
  * @example
  * ```tsx
- * <MessageSuggestions.Root maxSuggestions={3}>
+ * <MessageSuggestions maxSuggestions={3}>
  *   <MessageSuggestions.Status />
  *   <MessageSuggestions.List />
- * </MessageSuggestions.Root>
+ * </MessageSuggestions>
  * ```
  */
-const MessageSuggestionsRoot = React.forwardRef<
+const MessageSuggestions = React.forwardRef<
   HTMLDivElement,
   MessageSuggestionsRootProps
 >(({ children, className, maxSuggestions = 3, ...props }, ref) => {
@@ -184,7 +184,7 @@ const MessageSuggestionsRoot = React.forwardRef<
     </MessageSuggestionsContext.Provider>
   );
 });
-MessageSuggestionsRoot.displayName = "MessageSuggestions.Root";
+MessageSuggestions.displayName = "MessageSuggestions";
 
 /**
  * Props for the MessageSuggestionsStatus component.
@@ -199,10 +199,10 @@ export type MessageSuggestionsStatusProps =
  * @component MessageSuggestions.Status
  * @example
  * ```tsx
- * <MessageSuggestions.Root>
+ * <MessageSuggestions>
  *   <MessageSuggestions.Status />
  *   <MessageSuggestions.List />
- * </MessageSuggestions.Root>
+ * </MessageSuggestions>
  * ```
  */
 const MessageSuggestionsStatus = React.forwardRef<
@@ -258,10 +258,10 @@ export type MessageSuggestionsListProps = React.HTMLAttributes<HTMLDivElement>;
  * @component MessageSuggestions.List
  * @example
  * ```tsx
- * <MessageSuggestions.Root>
+ * <MessageSuggestions>
  *   <MessageSuggestions.Status />
  *   <MessageSuggestions.List />
- * </MessageSuggestions.Root>
+ * </MessageSuggestions>
  * ```
  */
 const MessageSuggestionsList = React.forwardRef<
@@ -325,37 +325,4 @@ const MessageSuggestionsList = React.forwardRef<
 });
 MessageSuggestionsList.displayName = "MessageSuggestions.List";
 
-/**
- * Legacy monolithic MessageSuggestions component for backward compatibility.
- * Uses the new compositional components internally.
- */
-export interface MessageSuggestionsProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  /** Maximum number of suggestions to display (default: 3) */
-  maxSuggestions?: number;
-}
-
-const MessageSuggestions = React.forwardRef<
-  HTMLDivElement,
-  MessageSuggestionsProps
->(({ className, maxSuggestions = 3, ...props }, ref) => {
-  return (
-    <MessageSuggestionsRoot
-      ref={ref}
-      maxSuggestions={maxSuggestions}
-      className={className}
-      {...props}
-    >
-      <MessageSuggestionsStatus />
-      <MessageSuggestionsList />
-    </MessageSuggestionsRoot>
-  );
-});
-MessageSuggestions.displayName = "MessageSuggestions";
-
-export {
-  MessageSuggestionsRoot,
-  MessageSuggestionsStatus,
-  MessageSuggestionsList,
-  MessageSuggestions,
-};
+export { MessageSuggestions, MessageSuggestionsStatus, MessageSuggestionsList };

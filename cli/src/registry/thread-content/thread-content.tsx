@@ -1,10 +1,11 @@
 "use client";
 
-import type { messageVariants } from "@/components/ui/message";
+import type {
+  messageVariants} from "@/components/ui/message";
 import {
-  MessageRoot,
+  Message,
   MessageBubble,
-  MessageRenderedComponentArea,
+  MessageRenderedComponentArea
 } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
@@ -17,14 +18,12 @@ import * as React from "react";
  * @property {boolean} isGenerating - Whether a response is being generated
  * @property {string|undefined} generationStage - Current generation stage
  * @property {VariantProps<typeof messageVariants>["variant"]} [variant] - Optional styling variant for messages
- * @property {boolean} enableCanvasSpace - Whether canvas space is enabled
  */
 interface ThreadContentContextValue {
   messages: any[];
   isGenerating: boolean;
   generationStage?: string;
   variant?: VariantProps<typeof messageVariants>["variant"];
-  enableCanvasSpace: boolean;
 }
 
 /**
@@ -56,8 +55,6 @@ const useThreadContentContext = () => {
  */
 export interface ThreadContentRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
-  /** Whether to enable the canvas space */
-  enableCanvasSpace?: boolean;
   /** Optional styling variant for the message container */
   variant?: VariantProps<typeof messageVariants>["variant"];
   /** The child elements to render within the container. */
@@ -70,19 +67,13 @@ export interface ThreadContentRootProps
  * @component ThreadContent.Root
  * @example
  * ```tsx
- * <ThreadContent.Root enableCanvasSpace={true} variant="solid">
+ * <ThreadContent.Root variant="solid">
  *   <ThreadContent.Messages />
  * </ThreadContent.Root>
  * ```
  */
-const ThreadContentRoot = React.forwardRef<
-  HTMLDivElement,
-  ThreadContentRootProps
->(
-  (
-    { children, className, enableCanvasSpace = false, variant, ...props },
-    ref,
-  ) => {
+const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentRootProps>(
+  ({ children, className, variant, ...props }, ref) => {
     const { thread, generationStage } = useTambo();
     const messages = thread?.messages ?? [];
     const isGenerating = generationStage === "STREAMING_RESPONSE";
@@ -93,9 +84,8 @@ const ThreadContentRoot = React.forwardRef<
         isGenerating,
         generationStage,
         variant,
-        enableCanvasSpace,
       }),
-      [messages, isGenerating, generationStage, variant, enableCanvasSpace],
+      [messages, isGenerating, generationStage, variant],
     );
 
     return (
@@ -112,7 +102,7 @@ const ThreadContentRoot = React.forwardRef<
     );
   },
 );
-ThreadContentRoot.displayName = "ThreadContent.Root";
+ThreadContent.displayName = "ThreadContent";
 
 /**
  * Props for the ThreadContentMessages component.
@@ -180,8 +170,7 @@ const ThreadContentItem = ({
   index,
   className,
 }: ThreadContentItemProps) => {
-  const { isGenerating, variant, enableCanvasSpace, messages } =
-    useThreadContentContext();
+  const { isGenerating, variant, messages } = useThreadContentContext();
 
   const showLoading = isGenerating && index === messages.length - 1;
   const messageContent = Array.isArray(message.content)
@@ -207,59 +196,18 @@ const ThreadContentItem = ({
           "max-w-[85%]",
         )}
       >
-        <MessageRoot
+        <Message
           role={message.role === "assistant" ? "assistant" : "user"}
           message={message}
           variant={variant}
           isLoading={showLoading}
         >
           <MessageBubble content={messageContent} />
-          <MessageRenderedComponentArea enableCanvasSpace={enableCanvasSpace} />
-        </MessageRoot>
+          <MessageRenderedComponentArea />
+        </Message>
       </div>
     </div>
   );
 };
 
-/**
- * Legacy ThreadContent component for backward compatibility.
- * Uses the new compositional components internally.
- */
-export interface ThreadContentProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  /** Whether to enable the canvas space */
-  enableCanvasSpace?: boolean;
-  /** Optional styling variant for the message container */
-  variant?: VariantProps<typeof messageVariants>["variant"];
-}
-
-/**
- * A component that displays a chat thread's messages with animations and loading states.
- * @component
- * @example
- * ```tsx
- * <ThreadContent
- *   variant="solid"
- *   className="custom-styles"
- *   enableCanvasSpace={true}
- * />
- * ```
- */
-const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
-  ({ className, enableCanvasSpace = false, variant, ...props }, ref) => {
-    return (
-      <ThreadContentRoot
-        ref={ref}
-        className={className}
-        enableCanvasSpace={enableCanvasSpace}
-        variant={variant}
-        {...props}
-      >
-        <ThreadContentMessages />
-      </ThreadContentRoot>
-    );
-  },
-);
-ThreadContent.displayName = "ThreadContent";
-
-export { ThreadContentRoot, ThreadContentMessages, ThreadContent };
+export { ThreadContent, ThreadContentMessages };

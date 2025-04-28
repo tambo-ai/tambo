@@ -119,7 +119,23 @@ export function cn(...inputs: ClassValue[]) {
 
     for (const file of config.files) {
       const sourcePath = path.join(getRegistryPath(componentName), file.name);
-      const targetPath = path.join(componentDir, file.name);
+
+      // Check if this is a lib file (path contains /lib/)
+      const isLibFile =
+        file.name.includes("/lib/") || file.name.startsWith("lib/");
+
+      // Determine target directory based on file type
+      const targetDir = isLibFile ? libDir : componentDir;
+
+      // Extract just the filename or subdirectory+filename
+      const relativePath = isLibFile
+        ? file.name.substring(file.name.indexOf("lib/") + 4) // Remove 'lib/' prefix
+        : file.name;
+
+      const targetPath = path.join(targetDir, relativePath);
+
+      // Ensure the directory exists
+      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 
       if (!fs.existsSync(targetPath) || options.forceUpdate) {
         if (fs.existsSync(sourcePath)) {

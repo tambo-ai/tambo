@@ -1,8 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { TamboThread } from "@tambo-ai/react";
-import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import type {
+  TamboThread} from "@tambo-ai/react";
+import {
+  useTamboThread,
+  useTamboThreadList,
+} from "@tambo-ai/react";
 import {
   PlusIcon,
   SearchIcon,
@@ -55,10 +59,7 @@ interface ThreadHistoryRootProps extends React.HTMLAttributes<HTMLDivElement> {
   position?: "left" | "right";
 }
 
-const ThreadHistoryRoot = React.forwardRef<
-  HTMLDivElement,
-  ThreadHistoryRootProps
->(
+const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryRootProps>(
   (
     {
       className,
@@ -159,7 +160,7 @@ const ThreadHistoryRoot = React.forwardRef<
     );
   },
 );
-ThreadHistoryRoot.displayName = "ThreadHistory.Root";
+ThreadHistory.displayName = "ThreadHistory";
 
 /**
  * Header component with title and collapse toggle
@@ -216,7 +217,7 @@ ThreadHistoryHeader.displayName = "ThreadHistory.Header";
 const ThreadHistoryNewButton = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, ...props }, ref) => {
+>(({ ...props }, ref) => {
   const { isCollapsed, startNewThread, refetch, onThreadChange } =
     useThreadHistoryContext();
 
@@ -251,7 +252,6 @@ const ThreadHistoryNewButton = React.forwardRef<
       className={cn(
         "flex items-center gap-2 rounded-md mb-4 hover:bg-backdrop transition-colors cursor-pointer",
         isCollapsed ? "p-1 justify-center" : "p-2",
-        className,
       )}
       title="New thread"
       {...props}
@@ -431,45 +431,8 @@ const ThreadHistoryList = React.forwardRef<
 });
 ThreadHistoryList.displayName = "ThreadHistory.List";
 
-/**
- * Legacy ThreadHistory component for backward compatibility
- */
-export interface ThreadHistoryProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  contextKey?: string;
-  onThreadChange?: () => void;
-  position?: "left" | "right";
-}
-
-export const ThreadHistory = React.forwardRef<
-  HTMLDivElement,
-  ThreadHistoryProps
->(
-  (
-    { className, contextKey, onThreadChange, position = "left", ...props },
-    ref,
-  ) => {
-    return (
-      <ThreadHistoryRoot
-        ref={ref}
-        contextKey={contextKey}
-        onThreadChange={onThreadChange}
-        position={position}
-        className={className}
-        {...props}
-      >
-        <ThreadHistoryHeader />
-        <ThreadHistoryNewButton />
-        <ThreadHistorySearch />
-        <ThreadHistoryList />
-      </ThreadHistoryRoot>
-    );
-  },
-);
-ThreadHistory.displayName = "ThreadHistory";
-
 export {
-  ThreadHistoryRoot,
+  ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryNewButton,
   ThreadHistorySearch,

@@ -127,7 +127,7 @@ export interface MessageRootProps
  * </Message.Root>
  * ```
  */
-const MessageRoot = React.forwardRef<HTMLDivElement, MessageRootProps>(
+const Message = React.forwardRef<HTMLDivElement, MessageRootProps>(
   (
     { children, className, role, variant, message, isLoading, ...props },
     ref,
@@ -153,7 +153,7 @@ const MessageRoot = React.forwardRef<HTMLDivElement, MessageRootProps>(
     );
   },
 );
-MessageRoot.displayName = "Message.Root";
+Message.displayName = "Message";
 
 /**
  * Props for the MessageBubble component.
@@ -240,38 +240,40 @@ MessageBubble.displayName = "Message.Bubble";
  * Props for the MessageRenderedComponentArea component.
  * Extends standard HTMLDivElement attributes.
  */
-export interface MessageRenderedComponentAreaProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  /** If true, displays a "View component" button intended for use with a separate canvas area. If false or undefined, renders the component directly below the message bubble. */
-  enableCanvasSpace?: boolean;
-}
+export type MessageRenderedComponentAreaProps =
+  React.HTMLAttributes<HTMLDivElement>;
 
 /**
  * Displays the `renderedComponent` associated with an assistant message.
- * If `enableCanvasSpace` is true, it shows a button to trigger showing the component elsewhere (e.g., in a CanvasSpace).
- * Otherwise, it renders the component directly below the message bubble.
+ * Shows a button to view in canvas if a canvas space exists, otherwise renders inline.
  * Only renders if the message role is 'assistant' and `message.renderedComponent` exists.
  * @component Message.RenderedComponentArea
- * @example Inline Rendering
- * ```tsx
- * <Message.Root role="assistant" message={messageWithComponent}>
- *   <Message.Bubble />
- *   <Message.RenderedComponentArea /> // Renders component inline
- * </Message.Root>
- * ```
- * @example Canvas Space Button
- * ```tsx
- * <Message.Root role="assistant" message={messageWithComponent}>
- *   <Message.Bubble />
- *   <Message.RenderedComponentArea enableCanvasSpace={true} /> // Renders button
- * </Message.Root>
- * ```
  */
 const MessageRenderedComponentArea = React.forwardRef<
   HTMLDivElement,
   MessageRenderedComponentAreaProps
->(({ className, children, enableCanvasSpace, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   const { message, role } = useMessageContext();
+  const [canvasExists, setCanvasExists] = React.useState(false);
+
+  // Check if canvas exists on mount and window resize
+  React.useEffect(() => {
+    const checkCanvasExists = () => {
+      const canvas = document.querySelector('[data-canvas-space="true"]');
+      setCanvasExists(!!canvas);
+    };
+
+    // Check on mount
+    checkCanvasExists();
+
+    // Set up resize listener
+    window.addEventListener("resize", checkCanvasExists);
+
+    // Clean up
+    return () => {
+      window.removeEventListener("resize", checkCanvasExists);
+    };
+  }, []);
 
   if (!message.renderedComponent || role !== "assistant") {
     return null;
@@ -285,9 +287,7 @@ const MessageRenderedComponentArea = React.forwardRef<
       {...props}
     >
       {children ??
-        (!enableCanvasSpace ? (
-          <div className="w-full max-w-md">{message.renderedComponent}</div>
-        ) : (
+        (canvasExists ? (
           <div className="flex justify-start pl-4">
             <button
               onClick={() => {
@@ -309,76 +309,18 @@ const MessageRenderedComponentArea = React.forwardRef<
               <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>
+        ) : (
+          <div className="w-full mt-4 px-2">{message.renderedComponent}</div>
         ))}
     </div>
   );
 });
 MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
 
-// --- Legacy compatibility function ---
-
-/**
- * Props for the legacy Message component.
- * Provides backward compatibility with the original monolithic component.
- */
-export interface MessageLegacyProps {
-  /** The role of the message sender - either 'user' or 'assistant' */
-  role: "user" | "assistant";
-  /** The content of the message */
-  content: string | { type: string; text?: string }[];
-  /** The Tambo thread message object containing additional message data */
-  message: TamboThreadMessage;
-  /** Optional styling variant for the message container */
-  variant?: VariantProps<typeof messageVariants>["variant"];
-  /** Optional CSS class name for additional styling */
-  className?: string;
-  /** Optional flag to indicate if the message is in a loading state */
-  isLoading?: boolean;
-  /** Optional flag to indicate if the message is in a canvas space */
-  enableCanvasSpace?: boolean;
-}
-
-/**
- * Legacy monolithic Message component for backward compatibility.
- * Uses the new compositional components internally.
- */
-const Message = React.forwardRef<HTMLDivElement, MessageLegacyProps>(
-  (
-    {
-      role,
-      content,
-      message,
-      variant,
-      className,
-      isLoading,
-      enableCanvasSpace,
-    },
-    ref,
-  ) => {
-    return (
-      <MessageRoot
-        ref={ref}
-        role={role}
-        message={message}
-        variant={variant}
-        isLoading={isLoading}
-        className={className}
-      >
-        <MessageBubble content={content} />
-        <MessageRenderedComponentArea enableCanvasSpace={enableCanvasSpace} />
-      </MessageRoot>
-    );
-  },
-);
-Message.displayName = "Message";
-
 // --- Exports ---
 export {
   messageVariants,
-  MessageRoot,
+  Message,
   MessageBubble,
   MessageRenderedComponentArea,
-  Message,
-  // Legacy export for backward compatibility
-  Message as MessageLegacy,
 };
