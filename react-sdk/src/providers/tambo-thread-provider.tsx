@@ -223,12 +223,17 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         createdAt,
       };
       const threadId = message.threadId;
+      const messageId = chatMessage.id;
       // optimistically update the thread in the local state
       setThreadMap((prevMap) => {
         if (!threadId) {
           return prevMap;
         }
         const prevMessages = prevMap[threadId]?.messages || [];
+        if (prevMessages.find((msg) => msg.id === messageId)) {
+          console.warn(`Message ${messageId} already exists, skipping`);
+          return prevMap;
+        }
         const updatedMessages = [...prevMessages, chatMessage];
 
         const updatedThreadMap = {
@@ -358,7 +363,8 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
     ): Promise<TamboThreadMessage> => {
-      let finalMessage: TamboThreadMessage | undefined;
+      console.log("Starting handleAdvanceStream");
+      let finalMessage: Readonly<TamboThreadMessage> | undefined;
       let hasSetThreadId = false;
       updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
 
@@ -397,6 +403,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             chunk.responseMessageDto.threadId,
           );
 
+          console.log("recursing into tool call");
           return await handleAdvanceStream(
             toolCallResponseStream,
             toolCallResponseParams,
@@ -419,16 +426,27 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
                   componentList,
                 )
               : chunk.responseMessageDto;
-            addThreadMessage(finalMessage, false);
+            await addThreadMessage({ ...finalMessage }, false);
           } else {
-            const previousId = finalMessage.id;
+            const currentMessageId = chunk.responseMessageDto.id;
+            // if we start getting a new message mid-stream, put the previous one on screen
+            if (chunk.responseMessageDto.id !== finalMessage.id) {
+              console.log(
+                "Messages changed mid-stream, adding previous message. Old Id",
+                finalMessage.id,
+                "New Id",
+                chunk.responseMessageDto.id,
+              );
+              await addThreadMessage(finalMessage, false);
+            }
+
             finalMessage = chunk.responseMessageDto.component?.componentName
               ? renderComponentIntoMessage(
                   chunk.responseMessageDto,
                   componentList,
                 )
               : chunk.responseMessageDto;
-            updateThreadMessage(previousId, finalMessage, false);
+            await updateThreadMessage(currentMessageId, finalMessage, false);
           }
         }
       }
