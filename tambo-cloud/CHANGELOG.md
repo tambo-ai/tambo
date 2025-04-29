@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.39.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.4...repo-v0.39.5) (2025-04-29)
+
+
+### Bug Fixes
+
+* bump react sdk to get streaming behavior ([#881](https://github.com/tambo-ai/tambo-cloud/issues/881)) ([70b4d56](https://github.com/tambo-ai/tambo-cloud/commit/70b4d562f806d697bddf3c2581c9b14338803312))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.3.1 to 29.3.2 in the testing group ([#876](https://github.com/tambo-ai/tambo-cloud/issues/876)) ([887ac87](https://github.com/tambo-ai/tambo-cloud/commit/887ac87f56b3cd661078806e2a892fa045172c62))
+* **deps:** bump react-hook-form from 7.56.0 to 7.56.1 ([#880](https://github.com/tambo-ai/tambo-cloud/issues/880)) ([54f1682](https://github.com/tambo-ai/tambo-cloud/commit/54f1682bb47ab004d6c1102c33032617949f0d9f))
+* **deps:** bump resend from 4.2.0 to 4.4.1 ([#875](https://github.com/tambo-ai/tambo-cloud/issues/875)) ([36738a3](https://github.com/tambo-ai/tambo-cloud/commit/36738a356c200e4eff0e62fc10c0d2ee3603044e))
+
 ## [0.39.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.3...repo-v0.39.4) (2025-04-28)
 
 
