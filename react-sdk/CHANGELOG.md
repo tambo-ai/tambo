@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.2](https://github.com/tambo-ai/tambo/compare/react-v0.21.1...react-v0.21.2) (2025-04-29)
+
+
+### Bug Fixes
+
+* Add `tools=` prop to register tools in provider ([#352](https://github.com/tambo-ai/tambo/issues/352)) ([18f6492](https://github.com/tambo-ai/tambo/commit/18f6492b43526316664cd9a0edf54cd84aaf7aa2))
+
 ## [0.21.1](https://github.com/tambo-ai/tambo/compare/react-v0.21.0...react-v0.21.1) (2025-04-28)
 
 
