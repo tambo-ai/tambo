@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.3](https://github.com/tambo-ai/tambo/compare/react-v0.21.2...react-v0.21.3) (2025-04-29)
+
+
+### Bug Fixes
+
+* make sure to show each streamed message, even if new ones come in on the same stream ([#356](https://github.com/tambo-ai/tambo/issues/356)) ([04e4260](https://github.com/tambo-ai/tambo/commit/04e426043392e6ecd9dee1676706650dc3e4212f))
+
 ## [0.21.2](https://github.com/tambo-ai/tambo/compare/react-v0.21.1...react-v0.21.2) (2025-04-29)
 
 
