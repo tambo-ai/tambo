@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Request } from "express";
 import { decryptApiKey, hashKey } from "../../common/key.utils";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
-import { ProjectsService } from "../../projects/projects.service";
+import { ProjectsService } from "../projects.service";
 
 /**
  * This is the symbol used to store the project that the current request is

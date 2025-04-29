@@ -1,25 +1,5 @@
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
-import {
-  ComponentDecisionV2,
-  SuggestedAction,
-  ToolCallRequest,
-} from "@tambo-ai-cloud/core";
-import { ThreadMessageDto } from "../../threads/dto/message.dto";
-
-/** Legacy - for v1 of generate/hydrate */
-@ApiSchema({ name: "ComponentDecision" })
-export class ComponentDecisionDto {
-  componentName!: string | null;
-  @ApiProperty({
-    type: "object",
-    additionalProperties: true,
-  })
-  props!: Record<string, any>;
-  message!: string;
-  suggestedActions?: SuggestedActionDto[];
-  toolCallRequest?: ToolCallRequestDto;
-  threadId!: string;
-}
+import { ComponentDecisionV2, ToolCallRequest } from "@tambo-ai-cloud/core";
 
 @ApiSchema({ name: "ComponentDecisionV2" })
 export class ComponentDecisionV2Dto implements ComponentDecisionV2 {
@@ -50,15 +30,4 @@ export class ToolCallRequestDto implements Partial<ToolCallRequest> {
   tool?: string;
   parameters!: ToolParameter[];
   toolName!: string;
-}
-
-/** @deprecated - Used only for v1 compatibility */
-@ApiSchema({ name: "SuggestedAction" })
-export class SuggestedActionDto implements Partial<SuggestedAction> {
-  label!: string;
-  actionText!: string;
-}
-
-export class GenerateComponentResponse {
-  message!: ThreadMessageDto;
 }

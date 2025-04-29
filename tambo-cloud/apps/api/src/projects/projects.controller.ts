@@ -10,8 +10,8 @@ import {
 } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
 import { Request } from "express";
-import { ApiKeyGuard, ProjectId } from "../components/guards/apikey.guard";
 import { ProjectResponse } from "./dto/project-response.dto";
+import { ApiKeyGuard, ProjectId } from "./guards/apikey.guard";
 import { ProjectAccessOwnGuard } from "./guards/project-access-own.guard";
 import { ProjectsService } from "./projects.service";
 

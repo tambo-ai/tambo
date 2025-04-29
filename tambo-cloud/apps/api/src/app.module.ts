@@ -16,7 +16,6 @@ import {
 } from "./common/middleware/db-transaction-middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { EmailService } from "./common/services/email.service";
-import { ComponentsModule } from "./components/components.module";
 import { ConfigServiceSingleton } from "./config.service";
 import { ExtractorModule } from "./extractor/extractor.module";
 import { ProjectsModule } from "./projects/projects.module";
@@ -34,7 +33,6 @@ export class GlobalModule {}
   imports: [
     ConfigModule.forRoot(),
     LoggerModule,
-    ComponentsModule,
     ProjectsModule,
     RegistryModule,
     ExtractorModule,

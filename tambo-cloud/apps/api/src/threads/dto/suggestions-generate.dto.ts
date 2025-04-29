@@ -1,7 +1,7 @@
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsOptional, Max, Min } from "class-validator";
-import { AvailableComponentDto } from "../../components/dto/generate-component.dto";
+import { AvailableComponentDto } from "./generate-component.dto";
 
 @ApiSchema({ name: "SuggestionsGenerate" })
 export class SuggestionsGenerateDto {

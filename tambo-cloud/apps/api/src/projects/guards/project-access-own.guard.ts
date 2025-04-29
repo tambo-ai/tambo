@@ -2,8 +2,8 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
-import { ProjectId } from "../../components/guards/apikey.guard";
 import { ProjectsService } from "../projects.service";
+import { ProjectId } from "./apikey.guard";
 
 export const ProjectIdParameterKey = Reflector.createDecorator<string>({});
 

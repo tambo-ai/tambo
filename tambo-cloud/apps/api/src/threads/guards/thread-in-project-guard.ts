@@ -8,7 +8,7 @@ import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { Request } from "express";
 import { DATABASE } from "../../common/middleware/db-transaction-middleware";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
-import { ProjectId } from "../../components/guards/apikey.guard";
+import { ProjectId } from "../../projects/guards/apikey.guard";
 
 @Injectable()
 export class ThreadInProjectGuard implements CanActivate {

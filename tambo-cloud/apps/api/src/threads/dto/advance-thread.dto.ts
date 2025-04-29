@@ -3,7 +3,7 @@ import { GenerationStage } from "@tambo-ai-cloud/core";
 import {
   AvailableComponentDto,
   ComponentContextToolMetadataDto,
-} from "../../components/dto/generate-component.dto";
+} from "./generate-component.dto";
 import { MessageRequest, ThreadMessageDto } from "./message.dto";
 
 @ApiSchema({ name: "AdvanceThread" })

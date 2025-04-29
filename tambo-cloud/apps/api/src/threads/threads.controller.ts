@@ -24,7 +24,7 @@ import {
 import { GenerationStage } from "@tambo-ai-cloud/core";
 import { Request } from "express";
 import isEqual from "react-fast-compare";
-import { ApiKeyGuard, ProjectId } from "../components/guards/apikey.guard";
+import { ApiKeyGuard, ProjectId } from "../projects/guards/apikey.guard";
 import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,

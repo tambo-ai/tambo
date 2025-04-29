@@ -11,7 +11,7 @@ import { type OpenAI } from "openai";
 import {
   ComponentDecisionV2Dto,
   ToolCallRequestDto,
-} from "../../components/dto/component-decision.dto";
+} from "./component-decision.dto";
 
 export enum AudioFormat {
   WAV = "wav",
