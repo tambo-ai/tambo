@@ -426,7 +426,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
               : chunk.responseMessageDto;
             await addThreadMessage(finalMessage, false);
           } else {
-            const currentMessageId = chunk.responseMessageDto.id;
             // if we start getting a new message mid-stream, put the previous one on screen
             const isNewMessage =
               chunk.responseMessageDto.id !== finalMessage.id;
@@ -440,9 +439,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
 
             if (isNewMessage) {
               await addThreadMessage(finalMessage, false);
+            } else {
+              await updateThreadMessage(finalMessage.id, finalMessage, false);
             }
-
-            await updateThreadMessage(currentMessageId, finalMessage, false);
           }
         }
       }
