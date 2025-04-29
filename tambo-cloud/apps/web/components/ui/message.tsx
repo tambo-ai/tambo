@@ -2,7 +2,7 @@
 
 import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import { cn } from "@/lib/utils";
-import type { TamboThreadMessage } from "@tambo-ai/react";
+import { type TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
@@ -110,7 +110,7 @@ export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
       if (typeof content === "string") return content;
       return content.map((item) => item.text ?? "").join("");
     }, [content]);
-
+    const isToolCall = message.actionType === "tool_call";
     return (
       <div
         ref={ref}
@@ -153,6 +153,23 @@ export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
               )}
             </div>
           </div>
+          {isToolCall && isLoading && (
+            <div className="flex items-center gap-2 h-4 p-1 mt-1">
+              <div className="flex items-center gap-1">
+                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+              </div>
+              <span className="text-xs opacity-50">
+                Calling{" "}
+                {message.toolCallRequest?.toolName ? (
+                  <i>{message.toolCallRequest?.toolName}</i>
+                ) : (
+                  "tool"
+                )}
+              </span>
+            </div>
+          )}
           {message.renderedComponent && role === "assistant" && (
             <div className="mt-4 w-full max-w-md">
               {message.renderedComponent}

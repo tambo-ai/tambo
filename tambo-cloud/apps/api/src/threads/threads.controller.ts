@@ -307,15 +307,12 @@ export class ThreadsController {
       throw new BadRequestException("Project ID is required");
     }
     try {
-      const stream = (await this.threadsService.advanceThread(
+      const stream = await this.threadsService.advanceThread(
         request[ProjectId],
         advanceRequestDto,
         threadId,
         true,
-      )) as AsyncIterableIterator<{
-        responseMessageDto: ThreadMessageDto;
-        generationStage: GenerationStage;
-      }>;
+      );
 
       await this.handleAdvanceStream(response, stream);
     } catch (error: any) {

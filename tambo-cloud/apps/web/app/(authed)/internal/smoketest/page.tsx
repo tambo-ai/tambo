@@ -6,7 +6,12 @@ import { Card } from "@/components/ui/card";
 import { Message } from "@/components/ui/message";
 import { useSession } from "@/hooks/auth";
 import { api } from "@/trpc/react";
-import { TamboTool, useTambo, useTamboThreadList } from "@tambo-ai/react";
+import {
+  GenerationStage,
+  TamboTool,
+  useTambo,
+  useTamboThreadList,
+} from "@tambo-ai/react";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { PlusCircle, RefreshCcw, X } from "lucide-react";
 import {
@@ -45,6 +50,11 @@ export default function SmokePage() {
     startNewThread,
   } = useTambo();
   const messages = thread.messages;
+  const isStreaming =
+    generationStage === GenerationStage.STREAMING_RESPONSE ||
+    generationStage === GenerationStage.FETCHING_CONTEXT ||
+    generationStage === GenerationStage.CHOOSING_COMPONENT ||
+    generationStage === GenerationStage.HYDRATING_COMPONENT;
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
     api.demo.aqi.useMutation({
@@ -349,10 +359,11 @@ export default function SmokePage() {
             <div className="flex-1 overflow-y-auto space-y-4 mb-4">
               {messages.map((message, index) => (
                 <Message
-                  key={index}
+                  key={message.id}
                   role={message.role as "user" | "assistant"}
                   content={message.content}
                   message={message}
+                  isLoading={isStreaming && index === messages.length - 1}
                 />
               ))}
             </div>

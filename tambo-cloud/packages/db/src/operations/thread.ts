@@ -1,5 +1,5 @@
-import { GenerationStage } from "@tambo-ai-cloud/core";
-import { and, eq, isNull } from "drizzle-orm";
+import { ActionType, GenerationStage } from "@tambo-ai-cloud/core";
+import { and, eq, isNull, or } from "drizzle-orm";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -45,7 +45,12 @@ export async function getThreadForProjectId(
     ),
     with: {
       messages: {
-        where: includeInternal ? undefined : isNull(schema.messages.actionType),
+        where: includeInternal
+          ? undefined
+          : or(
+              isNull(schema.messages.actionType),
+              eq(schema.messages.actionType, ActionType.ToolCall),
+            ),
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
         with: {
           suggestions: true,
@@ -199,7 +204,10 @@ export async function getMessages(
       ? eq(schema.messages.threadId, threadId)
       : and(
           eq(schema.messages.threadId, threadId),
-          isNull(schema.messages.actionType),
+          or(
+            isNull(schema.messages.actionType),
+            eq(schema.messages.actionType, ActionType.ToolCall),
+          ),
         ),
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });
