@@ -195,7 +195,7 @@ function App() {
 
 You can also pass tools to the provider, and they will be available to the AI:
 
-````jsx
+```jsx
 const tools: TamboTool[] = [{
   name: "getWeather",
   description: "Fetches current weather data for a given location",
@@ -224,11 +224,10 @@ const tools: TamboTool[] = [{
     )
 
 }]
-```jsx
 <TamboProvider apiKey="your-api-key" tools={tools}>
   <YourApp />
 </TamboProvider>
-````
+```
 
 [Read our full documentation](https://tambo.co/docs)
 
