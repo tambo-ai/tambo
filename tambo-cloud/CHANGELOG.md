@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.40.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.5...repo-v0.40.0) (2025-04-29)
+
+
+### Features
+
+* Standardize error shape using ProblemDetails ([#885](https://github.com/tambo-ai/tambo-cloud/issues/885)) ([ee32845](https://github.com/tambo-ai/tambo-cloud/commit/ee328458196d099ae761c06690ba69965a9bac9c))
+
+
+### Code Refactoring
+
+* remove a bunch of dead code from component service removal ([#884](https://github.com/tambo-ai/tambo-cloud/issues/884)) ([3d214bf](https://github.com/tambo-ai/tambo-cloud/commit/3d214bf646e40d419815804dda58575791ba8b17))
+* remove old components entrypoints/controllers/services/etc ([#829](https://github.com/tambo-ai/tambo-cloud/issues/829)) ([6dc71cb](https://github.com/tambo-ai/tambo-cloud/commit/6dc71cb7abfb594dc6f3af448e0256db06a76517))
+
 ## [0.39.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.4...repo-v0.39.5) (2025-04-29)
 
 
