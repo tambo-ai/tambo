@@ -1,5 +1,6 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { useEffect, useState } from "react";
+import { isIdleStage } from "../model/generate-component-response";
 import { validateInput } from "../model/validate-input";
 import { useTamboClient } from "../providers/tambo-client-provider";
 import { useTambo } from "../providers/tambo-provider";
@@ -77,7 +78,7 @@ export function useTamboSuggestions(
   options: useTamboSuggestionsOptions = {},
 ): useTamboSuggestionsResult {
   const { maxSuggestions = 3 } = options;
-  const { thread } = useTamboThread();
+  const { thread, generationStage } = useTamboThread();
   const { sendThreadMessage } = useTambo();
   const tamboClient = useTamboClient();
   const { componentList, toolRegistry, componentToolAssociations } =
@@ -97,12 +98,18 @@ export function useTamboSuggestions(
     setSelectedSuggestionId(null);
   }, [latestMessageId]);
 
+  const shouldGenerateSuggestions =
+    latestMessageId && isLatestFromTambo && isIdleStage(generationStage);
   // Use React Query to fetch suggestions when a new hydra message is received
   const suggestionsResult = useTamboQuery({
-    // Only include latestMessageId in the queryKey if the message is from hydra
-    queryKey: ["suggestions", isLatestFromTambo ? latestMessageId : null],
+    // Make sure the query key changes when the message changes, so that we are
+    // always generating suggestions when there is a new message
+    queryKey: [
+      "suggestions",
+      shouldGenerateSuggestions ? latestMessageId : null,
+    ],
     queryFn: async () => {
-      if (!latestMessageId || !isLatestFromTambo) {
+      if (!shouldGenerateSuggestions) {
         return [];
       }
 
@@ -164,7 +171,7 @@ export function useTamboSuggestions(
     AbortController
   >({
     mutationFn: async (abortController: AbortController) => {
-      if (!latestMessageId || !isLatestFromTambo) {
+      if (!shouldGenerateSuggestions) {
         return undefined;
       }
 
@@ -174,7 +181,6 @@ export function useTamboSuggestions(
         toolRegistry,
         componentToolAssociations,
       );
-
       return await tamboClient.beta.threads.suggestions.generate(
         thread.id,
         latestMessageId,

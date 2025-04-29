@@ -223,13 +223,23 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         createdAt,
       };
       const threadId = message.threadId;
+      const messageId = chatMessage.id;
       // optimistically update the thread in the local state
       setThreadMap((prevMap) => {
         if (!threadId) {
           return prevMap;
         }
         const prevMessages = prevMap[threadId]?.messages || [];
-        const updatedMessages = [...prevMessages, chatMessage];
+        const haveMessage = prevMessages.find((msg) => msg.id === messageId);
+        // Update in place if the message already exists
+        const updatedMessages = haveMessage
+          ? prevMessages.map((msg) => {
+              if (msg.id === messageId) {
+                return chatMessage;
+              }
+              return msg;
+            })
+          : [...prevMessages, chatMessage];
 
         const updatedThreadMap = {
           ...prevMap,
@@ -297,23 +307,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     [client.beta.threads.messages],
   );
 
-  const deleteThreadMessage = useCallback(
-    (messageId: string, threadId: string) => {
-      if (!threadMap[threadId]) return;
-
-      setThreadMap((prevMap) => ({
-        ...prevMap,
-        [threadId]: {
-          ...prevMap[threadId],
-          messages: prevMap[threadId].messages.filter(
-            (msg) => msg.id !== messageId,
-          ),
-        },
-      }));
-    },
-    [threadMap],
-  );
-
   const startNewThread = useCallback(() => {
     setCurrentThreadId(PLACEHOLDER_THREAD.id);
     setThreadMap((prevMap) => {
@@ -349,7 +342,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         await fetchThread(threadId);
       }
     },
-    [fetchThread, threadMap],
+    [fetchThread],
   );
 
   const updateThreadStatus = useCallback(
@@ -374,19 +367,12 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
-      messageIdToRemove?: string,
     ): Promise<TamboThreadMessage> => {
-      let finalMessage: TamboThreadMessage | undefined;
+      let finalMessage: Readonly<TamboThreadMessage> | undefined;
       let hasSetThreadId = false;
-      let isFirstChunk = true;
       updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
 
       for await (const chunk of stream) {
-        if (isFirstChunk && messageIdToRemove) {
-          deleteThreadMessage(messageIdToRemove, threadId);
-        }
-        isFirstChunk = false;
-
         if (chunk.responseMessageDto.toolCallRequest) {
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
@@ -433,7 +419,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             chunk.responseMessageDto.threadId !== currentThread?.id
           ) {
             hasSetThreadId = true;
-            switchCurrentThread(chunk.responseMessageDto.threadId, false);
+            await switchCurrentThread(chunk.responseMessageDto.threadId, false);
           }
 
           if (!finalMessage) {
@@ -443,16 +429,24 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
                   componentList,
                 )
               : chunk.responseMessageDto;
-            addThreadMessage(finalMessage, false);
+            await addThreadMessage(finalMessage, false);
           } else {
-            const previousId = finalMessage.id;
+            // if we start getting a new message mid-stream, put the previous one on screen
+            const isNewMessage =
+              chunk.responseMessageDto.id !== finalMessage.id;
+
             finalMessage = chunk.responseMessageDto.component?.componentName
               ? renderComponentIntoMessage(
                   chunk.responseMessageDto,
                   componentList,
                 )
               : chunk.responseMessageDto;
-            updateThreadMessage(previousId, finalMessage, false);
+
+            if (isNewMessage) {
+              await addThreadMessage(finalMessage, false);
+            } else {
+              await updateThreadMessage(finalMessage.id, finalMessage, false);
+            }
           }
         }
       }
@@ -465,7 +459,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         finalMessage ?? {
           threadId: "",
           content: [{ type: "text", text: `Error processing stream` }],
-          role: "hydra",
+          role: "assistant",
           createdAt: new Date().toISOString(),
           id: crypto.randomUUID(),
           componentState: {},
@@ -477,8 +471,6 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       client,
       componentList,
       currentThread?.id,
-      deleteThreadMessage,
-      fetchThread,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
