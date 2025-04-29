@@ -193,6 +193,43 @@ function App() {
 }
 ```
 
+You can also pass tools to the provider, and they will be available to the AI:
+
+````jsx
+const tools: TamboTool[] = [{
+  name: "getWeather",
+  description: "Fetches current weather data for a given location",
+  tool: async (location: string, units: string = "celsius") => {
+    // Example implementation
+    const weather = await fetchWeatherData(location);
+    return {
+      temperature: weather.temp,
+      condition: weather.condition,
+      location: weather.city
+    };
+  },
+  toolSchema: z.function()
+    .args(
+      z.tuple([
+        z.string().describe("Location name (city)"),
+        z.string().optional().describe("Temperature units (celsius/fahrenheit)")
+      ])
+    )
+    .returns(
+      z.object({
+        temperature: z.number(),
+        condition: z.string(),
+        location: z.string()
+      })
+    )
+
+}]
+```jsx
+<TamboProvider apiKey="your-api-key" tools={tools}>
+  <YourApp />
+</TamboProvider>
+````
+
 [Read our full documentation](https://tambo.co/docs)
 
 ## Development
