@@ -33,7 +33,7 @@ import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
 } from "./dto/advance-thread.dto";
-import { ErrorDto } from "./dto/error.dto";
+import { ProblemDetailsDto } from "./dto/error.dto";
 import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
@@ -201,7 +201,7 @@ export class ThreadsController {
   @ApiResponse({
     status: 404,
     description: "Message not found or has no suggestions",
-    type: ErrorDto,
+    type: ProblemDetailsDto,
   })
   async getSuggestions(
     @Param("id") threadId: string,
@@ -234,17 +234,17 @@ export class ThreadsController {
   @ApiResponse({
     status: 400,
     description: "Invalid request parameters",
-    type: ErrorDto,
+    type: ProblemDetailsDto,
   })
   @ApiResponse({
     status: 404,
     description: "Message not found",
-    type: ErrorDto,
+    type: ProblemDetailsDto,
   })
   @ApiResponse({
     status: 500,
     description: "Failed to generate suggestions",
-    type: ErrorDto,
+    type: ProblemDetailsDto,
   })
   async generateSuggestions(
     @Param("id") threadId: string,

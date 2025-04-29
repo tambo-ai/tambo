@@ -2,7 +2,6 @@ export interface LegacyComponentDecision {
   componentName: string | null;
   props: any | null;
   message: string;
-  suggestedActions?: SuggestedAction[];
   toolCallRequest?: ToolCallRequest;
   toolCallId?: string;
   componentState: Record<string, unknown> | null;

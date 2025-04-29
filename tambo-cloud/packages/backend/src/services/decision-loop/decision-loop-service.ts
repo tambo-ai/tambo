@@ -149,7 +149,7 @@ export async function* runDecisionLoop(
         false,
       );
 
-      const parsedChunk = {
+      const parsedChunk: Partial<LegacyComponentDecision> = {
         message: displayMessage,
         componentName: isUITool
           ? toolCall.function.name.slice(uiToolNamePrefix.length)
