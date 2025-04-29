@@ -230,11 +230,16 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           return prevMap;
         }
         const prevMessages = prevMap[threadId]?.messages || [];
-        if (prevMessages.find((msg) => msg.id === messageId)) {
-          console.warn(`Message ${messageId} already exists, skipping`);
-          return prevMap;
-        }
-        const updatedMessages = [...prevMessages, chatMessage];
+        const haveMessage = prevMessages.find((msg) => msg.id === messageId);
+        // Update in place if the message already exists
+        const updatedMessages = haveMessage
+          ? prevMessages.map((msg) => {
+              if (msg.id === messageId) {
+                return chatMessage;
+              }
+              return msg;
+            })
+          : [...prevMessages, chatMessage];
 
         const updatedThreadMap = {
           ...prevMap,
