@@ -16,6 +16,8 @@ export class ComponentDecisionV2Dto implements ComponentDecisionV2 {
   })
   componentState!: Record<string, unknown> | null;
   reasoning!: string;
+  statusMessage?: string;
+  completionStatusMessage?: string;
 }
 
 export class ToolParameter {
