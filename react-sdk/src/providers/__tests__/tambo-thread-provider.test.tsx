@@ -90,7 +90,6 @@ describe("TamboThreadProvider", () => {
 
   const mockTamboAI = {
     apiKey: "",
-    components: {},
     beta: mockBeta,
   } satisfies PartialTamboAI as unknown as TamboAI;
 
