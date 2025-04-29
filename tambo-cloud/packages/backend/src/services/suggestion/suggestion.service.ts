@@ -1,5 +1,5 @@
 import { ThreadMessage } from "@tambo-ai-cloud/core";
-import { InputContextAsArray } from "../../model/input-context";
+import { AvailableComponent } from "../../model";
 import { buildSuggestionPrompt } from "../../prompt/suggestion-generator";
 import { getLLMResponseMessage, LLMClient } from "../llm/llm-client";
 import {
@@ -7,24 +7,18 @@ import {
   SuggestionsResponseSchema,
 } from "./suggestion.types";
 
-type SuggestionsContext = {
-  messageHistory: ThreadMessage[];
-  availableComponents: InputContextAsArray["availableComponents"];
-  threadId: string;
-};
-
 // Public function
 export async function generateSuggestions(
   llmClient: LLMClient,
-  context: SuggestionsContext,
+  messageHistory: ThreadMessage[],
+  availableComponents: AvailableComponent[],
   count: number,
   threadId: string,
   stream?: boolean,
 ): Promise<SuggestionDecision | AsyncIterableIterator<SuggestionDecision>> {
-  const components = context.availableComponents;
   const messages = buildSuggestionPrompt(
-    components,
-    context.messageHistory,
+    availableComponents,
+    messageHistory,
     count,
   );
 

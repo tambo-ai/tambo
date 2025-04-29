@@ -1,3 +1,4 @@
+import { JSONSchema7 } from "json-schema";
 import OpenAI from "openai";
 import { FunctionParameters } from "openai/resources";
 import {
@@ -94,10 +95,12 @@ export function convertComponentsToUITools(
       parameters: {
         type: "object",
         properties:
-          typeof component.props === "object" && "properties" in component.props
-            ? component.props.properties
+          component.props &&
+          typeof component.props === "object" &&
+          "properties" in component.props
+            ? (component.props as JSONSchema7).properties
             : component.props,
-        required: component.props.required,
+        required: (component.props as JSONSchema7).required,
         additionalProperties: false,
       },
     },

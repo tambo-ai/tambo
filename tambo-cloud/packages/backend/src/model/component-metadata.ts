@@ -1,9 +1,4 @@
-import { z } from "zod";
-
-export const ComponentPropsMetadataSchema = z.any();
-export type ComponentPropsMetadata = z.infer<
-  typeof ComponentPropsMetadataSchema
->;
+export type ComponentPropsMetadata = unknown;
 
 import { type JSONSchema7 } from "json-schema";
 

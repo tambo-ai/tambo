@@ -83,7 +83,6 @@ export class ThreadsService {
 
   private async createHydraBackendForThread(
     threadId: string,
-    options: { version?: "v1" | "v2" } = {},
   ): Promise<TamboBackend> {
     const chainId = await generateChainId(threadId);
 
@@ -102,7 +101,7 @@ export class ThreadsService {
     );
 
     // Use the provider key from the database instead of the environment variable
-    return new TamboBackend(providerKey, chainId, options);
+    return new TamboBackend(providerKey, chainId);
   }
 
   async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
@@ -495,9 +494,7 @@ export class ThreadsService {
     );
 
     // Use the shared method to create the TamboBackend instance
-    const tamboBackend = await this.createHydraBackendForThread(thread.id, {
-      version: "v2",
-    });
+    const tamboBackend = await this.createHydraBackendForThread(thread.id);
 
     // Log available components
     this.logger.log(

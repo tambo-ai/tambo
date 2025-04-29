@@ -3,11 +3,14 @@ import Ajv from "ajv";
 import draft7MetaSchema from "ajv/dist/refs/json-schema-draft-07.json";
 import { z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
-import { AvailableComponents } from "../model/component-metadata";
+import {
+  AvailableComponent,
+  AvailableComponents,
+} from "../model/component-metadata";
 
 const ajv = new Ajv({ strict: true });
 
-function isValidJSONSchema(schema: any) {
+function isValidJSONSchema(schema: unknown) {
   if (!schema || typeof schema !== "object") {
     return false;
   }
@@ -85,12 +88,13 @@ const formatComponentProps = (
   return ` (Props: ${propsWithDetails})`;
 };
 
-const formatComponent = (component: {
-  name: string;
-  description: string;
-  props?: Record<string, PropInfo> | z.ZodType;
-}): string => {
-  const propsStr = formatComponentProps(component.props, "    ");
+const formatComponent = (component: AvailableComponent): string => {
+  const propsStr = component.props
+    ? formatComponentProps(
+        component.props as Record<string, PropInfo> | z.ZodType,
+        "    ",
+      )
+    : "";
   return `
 - componentName: "${component.name}":
     description: ${component.description}
