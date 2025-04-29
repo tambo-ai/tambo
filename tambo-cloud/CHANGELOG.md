@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.41.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.40.0...repo-v0.41.0) (2025-04-29)
+
+
+### Features
+
+* add stream indicator to smoketest, exposing tool calls as non-internal ([#886](https://github.com/tambo-ai/tambo-cloud/issues/886)) ([475e70a](https://github.com/tambo-ai/tambo-cloud/commit/475e70a3df7b1285849e6d1d4f32610519c08c45))
+
+
+### Bug Fixes
+
+* expose status messages in component dto ([#888](https://github.com/tambo-ai/tambo-cloud/issues/888)) ([f8da459](https://github.com/tambo-ai/tambo-cloud/commit/f8da459ca9e8abfe727808426948275683b0ed0a))
+
 ## [0.40.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.39.5...repo-v0.40.0) (2025-04-29)
 
 
