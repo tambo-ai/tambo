@@ -2,8 +2,13 @@ import chalk from "chalk";
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
+
+// Get the current file URL and convert it to a path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Installs multiple components and their dependencies
@@ -141,7 +146,21 @@ export function cn(...inputs: ClassValue[]) {
         if (fs.existsSync(sourcePath)) {
           fs.copyFileSync(sourcePath, targetPath);
         } else {
-          fs.writeFileSync(targetPath, file.content);
+          // Check if content looks like a path to a file in registry
+          if (file.content.startsWith("src/registry/")) {
+            // Get the registry root path
+            const registryRoot = path.join(__dirname, "../../../");
+            const contentPath = path.join(registryRoot, file.content);
+
+            if (fs.existsSync(contentPath)) {
+              const fileContent = fs.readFileSync(contentPath, "utf-8");
+              fs.writeFileSync(targetPath, fileContent);
+            } else {
+              console.error(`Cannot find referenced file: ${contentPath}`);
+            }
+          } else {
+            fs.writeFileSync(targetPath, file.content);
+          }
         }
         filesAdded++;
       }
