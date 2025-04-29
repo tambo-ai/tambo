@@ -441,7 +441,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         finalMessage ?? {
           threadId: "",
           content: [{ type: "text", text: `Error processing stream` }],
-          role: "hydra",
+          role: "assistant",
           createdAt: new Date().toISOString(),
           id: crypto.randomUUID(),
           componentState: {},
