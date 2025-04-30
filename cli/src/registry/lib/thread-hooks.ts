@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
+import type { TamboThreadMessage } from "@tambo-ai/react";
 
 /**
  * Custom hook to merge multiple refs into one callback ref
@@ -98,4 +99,50 @@ export function usePositioning(
       : "left";
 
   return { isLeftPanel, historyPosition };
+}
+
+/**
+ * Converts message content into a safely renderable format.
+ * Primarily joins text blocks from arrays into a single string.
+ * @param content - The message content (string, element, array, etc.)
+ * @returns A renderable string or React element.
+ */
+export function getSafeContent(
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+): string | React.ReactElement {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (React.isValidElement(content)) return content; // Pass elements through
+  if (Array.isArray(content)) {
+    // Filter out non-text items and join text
+    return content
+      .map((item) => (item && item.type === "text" ? (item.text ?? "") : ""))
+      .join("");
+  }
+  // Handle potential edge cases or unknown types
+  // console.warn("getSafeContent encountered unknown content type:", content);
+  return "Invalid content format"; // Or handle differently
+}
+
+/**
+ * Checks if message content contains meaningful, non-empty text.
+ * @param content - The message content (string, element, array, etc.)
+ * @returns True if there is content, false otherwise.
+ */
+export function checkHasContent(
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+): boolean {
+  if (!content) return false;
+  if (typeof content === "string") return content.trim().length > 0;
+  if (React.isValidElement(content)) return true; // Assume elements have content
+  if (Array.isArray(content)) {
+    return content.some(
+      (item) =>
+        item &&
+        item.type === "text" &&
+        typeof item.text === "string" &&
+        item.text.trim().length > 0,
+    );
+  }
+  return false; // Default for unknown types
 }

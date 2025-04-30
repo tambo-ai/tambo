@@ -7,7 +7,8 @@
     "react-markdown",
     "lucide-react",
     "highlight.js",
-    "@tambo-ai/react"
+    "@tambo-ai/react",
+    "dompurify"
   ],
   "devDependencies": [],
   "requires": [],
@@ -19,6 +20,10 @@
     {
       "name": "markdownComponents.tsx",
       "content": "src/registry/message/markdownComponents.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/registry/lib/thread-hooks.ts"
     }
   ]
 }

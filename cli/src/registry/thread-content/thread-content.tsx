@@ -135,11 +135,6 @@ const ThreadContentMessages = React.forwardRef<
     >
       {messages.map((message, index) => {
         const showLoading = isGenerating && index === messages.length - 1;
-        const messageContent = Array.isArray(message.content)
-          ? (message.content[0]?.text ?? "Empty message")
-          : typeof message.content === "string"
-            ? message.content
-            : "Empty message";
 
         return (
           <div
@@ -174,7 +169,6 @@ const ThreadContentMessages = React.forwardRef<
                       ? "text-primary font-sans"
                       : "text-primary bg-container hover:bg-backdrop font-sans"
                   }
-                  content={messageContent}
                 />
                 {/* Rendered component area determines if the message is a canvas message */}
                 <MessageRenderedComponentArea />

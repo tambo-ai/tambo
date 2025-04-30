@@ -10,7 +10,8 @@
     "message-suggestions",
     "thread-history",
     "message",
-    "scrollable-message-container"
+    "scrollable-message-container",
+    "thread-content"
   ],
   "files": [
     {

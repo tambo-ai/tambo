@@ -6,6 +6,7 @@ import type { Components } from "react-markdown";
 import { Copy, Check } from "lucide-react";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
+import DOMPurify from "dompurify";
 
 /**
  * Markdown Components for React-Markdown
@@ -119,7 +120,9 @@ export const createMarkdownComponents = (_theme = "light"): Components => ({
             <pre className="p-4 whitespace-pre">
               <code
                 className={className}
-                dangerouslySetInnerHTML={{ __html: highlighted ?? content }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(highlighted ?? content),
+                }}
               />
             </pre>
           </div>

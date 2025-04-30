@@ -34,6 +34,7 @@ const messageInputVariants = cva("w-full", {
  * @property {string} value - The current input value
  * @property {function} setValue - Function to update the input value
  * @property {function} submit - Function to submit the message
+ * @property {function} handleSubmit - Function to handle form submission
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
  * @property {string|undefined} contextKey - The thread context key
@@ -48,6 +49,7 @@ interface MessageInputContextValue {
     contextKey?: string;
     streamResponse?: boolean;
   }) => Promise<void>;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
   error: Error | null;
   contextKey?: string;
@@ -156,6 +158,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
           setDisplayValue(newValue);
         },
         submit,
+        handleSubmit,
         isPending,
         error,
         contextKey,
@@ -167,6 +170,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         displayValue,
         setValue,
         submit,
+        handleSubmit,
         isPending,
         error,
         contextKey,
@@ -219,7 +223,7 @@ const MessageInputTextarea = React.forwardRef<
   HTMLTextAreaElement,
   MessageInputTextareaProps
 >(({ className, placeholder = "What do you want to do?", ...props }, _) => {
-  const { value, setValue, isPending, textareaRef, submit, contextKey } =
+  const { value, setValue, isPending, textareaRef, handleSubmit } =
     useMessageInputContext();
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -230,7 +234,7 @@ const MessageInputTextarea = React.forwardRef<
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (value.trim()) {
-        submit({ contextKey, streamResponse: true });
+        handleSubmit(e as unknown as React.FormEvent);
       }
     }
   };
@@ -334,7 +338,7 @@ const MessageInputError = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const { error, submitError } = useMessageInputContext();
 
-  if (!error || !submitError) {
+  if (!error && !submitError) {
     return null;
   }
 

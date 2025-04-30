@@ -7,6 +7,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { ExternalLink } from "lucide-react";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
+import { getSafeContent, checkHasContent } from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -147,20 +148,19 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     { className, children, content: contentProp, markdown = true, ...props },
     ref,
   ) => {
-    const { role, message, isLoading } = useMessageContext();
-
-    // Use provided children, then contentProp, then message.content
+    const { message, isLoading } = useMessageContext();
     const contentToRender = children ?? contentProp ?? message.content;
 
-    const safeContent = React.useMemo(() => {
-      if (!contentToRender) return "";
-      if (typeof contentToRender === "string") return contentToRender;
-      if (React.isValidElement(contentToRender)) return contentToRender;
-      if (!Array.isArray(contentToRender)) return "Invalid content format";
-      return contentToRender.map((item) => item?.text ?? "").join("");
-    }, [contentToRender]);
+    const safeContent = React.useMemo(
+      () => getSafeContent(contentToRender as TamboThreadMessage["content"]),
+      [contentToRender],
+    );
+    const hasContent = React.useMemo(
+      () => checkHasContent(contentToRender as TamboThreadMessage["content"]),
+      [contentToRender],
+    );
 
-    const showLoading = isLoading ?? (role === "assistant" && !message.content);
+    const showLoading = isLoading && !hasContent;
 
     return (
       <div

@@ -156,6 +156,7 @@ declare module "@/components/ui/message-suggestions" {
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
     maxSuggestions?: number;
+    initialSuggestions?: Suggestion[];
   }
 
   export interface MessageSuggestionsRootProps
@@ -323,4 +324,12 @@ declare module "@/lib/thread-hooks" {
     isLeftPanel: boolean;
     historyPosition: "left" | "right";
   };
+
+  export function getSafeContent(
+    content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  ): string | React.ReactElement;
+
+  export function checkHasContent(
+    content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  ): boolean;
 }

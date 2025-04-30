@@ -14,17 +14,16 @@ import {
 } from "@/components/ui/message-suggestions";
 import type { messageVariants } from "@/components/ui/message";
 import {
-  Message,
-  MessageRenderedComponentArea,
-  MessageContent,
-} from "@/components/ui/message";
-import {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
 } from "@/components/ui/thread-history";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
 import {
@@ -32,7 +31,7 @@ import {
   useCanvasDetection,
   usePositioning,
 } from "@/lib/thread-hooks";
-import { useTambo } from "@tambo-ai/react";
+import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { useRef } from "react";
@@ -69,11 +68,6 @@ export const MessageThreadFull = React.forwardRef<
   );
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, threadRef);
 
-  // Get message data from Tambo
-  const { thread, generationStage } = useTambo();
-  const messages = thread?.messages ?? [];
-  const isGenerating = generationStage === "STREAMING_RESPONSE";
-
   const threadHistorySidebar = (
     <ThreadHistory contextKey={contextKey} position={historyPosition}>
       <ThreadHistoryHeader />
@@ -82,6 +76,27 @@ export const MessageThreadFull = React.forwardRef<
       <ThreadHistoryList />
     </ThreadHistory>
   );
+
+  const defaultSuggestions: Suggestion[] = [
+    {
+      id: "suggestion-1",
+      title: "Get started",
+      detailedSuggestion: "What can you help me with?",
+      messageId: "welcome-query",
+    },
+    {
+      id: "suggestion-2",
+      title: "Learn more",
+      detailedSuggestion: "Tell me about your capabilities.",
+      messageId: "capabilities-query",
+    },
+    {
+      id: "suggestion-3",
+      title: "Examples",
+      detailedSuggestion: "Show me some example queries I can try.",
+      messageId: "examples-query",
+    },
+  ];
 
   return (
     <>
@@ -119,48 +134,15 @@ export const MessageThreadFull = React.forwardRef<
       >
         {/* Message thread content */}
         <ScrollableMessageContainer className="p-4">
-          <div className="py-4">
-            {messages.map((message, index) => (
-              <div
-                key={message.id ?? `${message.role}-${index}`}
-                className={cn(
-                  isGenerating && "animate-in fade-in-0 slide-in-from-bottom-2",
-                  "duration-200 ease-out",
-                )}
-                style={
-                  isGenerating
-                    ? { animationDelay: `${index * 40}ms` }
-                    : undefined
-                }
-              >
-                <Message
-                  message={message}
-                  role={message.role === "assistant" ? "assistant" : "user"}
-                  variant={variant}
-                  isLoading={isGenerating && index === messages.length - 1}
-                  className={
-                    message.role === "assistant"
-                      ? "flex justify-start"
-                      : "flex justify-end"
-                  }
-                >
-                  <div className="flex flex-col">
-                    <MessageContent
-                      className={
-                        message.role === "assistant"
-                          ? "text-primary font-sans"
-                          : "text-primary bg-container hover:bg-backdrop font-sans"
-                      }
-                      content={message.content}
-                    />
-                    {/* Rendered component area determines if the message is a canvas message */}
-                    <MessageRenderedComponentArea />
-                  </div>
-                </Message>
-              </div>
-            ))}
-          </div>
+          <ThreadContent variant={variant}>
+            <ThreadContentMessages />
+          </ThreadContent>
         </ScrollableMessageContainer>
+
+        {/* Message suggestions status */}
+        <MessageSuggestions>
+          <MessageSuggestionsStatus />
+        </MessageSuggestions>
 
         {/* Message input */}
         <div className="p-4">
@@ -174,8 +156,7 @@ export const MessageThreadFull = React.forwardRef<
         </div>
 
         {/* Message suggestions */}
-        <MessageSuggestions>
-          <MessageSuggestionsStatus />
+        <MessageSuggestions initialSuggestions={defaultSuggestions}>
           <MessageSuggestionsList />
         </MessageSuggestions>
       </div>

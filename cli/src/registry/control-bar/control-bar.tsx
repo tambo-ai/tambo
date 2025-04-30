@@ -1,17 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useRef } from "react";
 import { Dialog } from "radix-ui";
 import { useTambo } from "@tambo-ai/react";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import type { messageVariants } from "@/components/ui/message";
-import {
-  Message,
-  MessageContent,
-  MessageRenderedComponentArea,
-} from "@/components/ui/message";
 import {
   MessageInput,
   MessageInputTextarea,
@@ -19,6 +13,11 @@ import {
   MessageInputSubmitButton,
   MessageInputError,
 } from "@/components/ui/message-input";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 
 /**
  * Props for the ControlBar component
@@ -30,7 +29,12 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
   /** Keyboard shortcut for toggling the control bar (default: "mod+k") */
   hotkey?: string;
-  /** Optional styling variant for the message container */
+  /**
+   * Controls the visual styling of messages in the thread.
+   * Possible values include: "default", "compact", etc.
+   * These values are defined in messageVariants from "@/components/ui/message".
+   * @example variant="compact"
+   */
   variant?: VariantProps<typeof messageVariants>["variant"];
 }
 
@@ -52,22 +56,6 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
     const { thread } = useTambo();
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-      if (scrollContainerRef.current && thread?.messages?.length) {
-        const timeoutId = setTimeout(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTo({
-              top: scrollContainerRef.current.scrollHeight,
-              behavior: "smooth",
-            });
-          }
-        }, 100);
-
-        return () => clearTimeout(timeoutId);
-      }
-    }, [thread?.messages]);
 
     React.useEffect(() => {
       const down = (e: KeyboardEvent) => {
@@ -118,43 +106,11 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                 </div>
               </div>
               {thread?.messages?.length > 0 && (
-                <div
-                  ref={scrollContainerRef}
-                  className="bg-background border rounded-lg p-4 max-h-[500px] overflow-y-auto [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar:horizontal]:h-[4px]"
-                >
-                  {thread.messages.map((message, index) => (
-                    <div
-                      key={message.id ?? `${message.role}-${index}`}
-                      className={cn("duration-200 ease-out")}
-                    >
-                      <Message
-                        message={message}
-                        role={
-                          message.role === "assistant" ? "assistant" : "user"
-                        }
-                        variant={variant}
-                        isLoading={false}
-                        className={
-                          message.role === "assistant"
-                            ? "flex justify-start"
-                            : "flex justify-end"
-                        }
-                      >
-                        <div className="flex flex-col">
-                          <MessageContent
-                            className={
-                              message.role === "assistant"
-                                ? "text-primary font-sans"
-                                : "text-primary bg-container hover:bg-backdrop font-sans"
-                            }
-                            content={message.content}
-                          />
-                          <MessageRenderedComponentArea />
-                        </div>
-                      </Message>
-                    </div>
-                  ))}
-                </div>
+                <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
+                  <ThreadContent variant={variant}>
+                    <ThreadContentMessages />
+                  </ThreadContent>
+                </ScrollableMessageContainer>
               )}
             </div>
           </Dialog.Content>

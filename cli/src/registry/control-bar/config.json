@@ -4,7 +4,12 @@
   "componentName": "ControlBar",
   "dependencies": ["@tambo-ai/react", "radix-ui", "class-variance-authority"],
   "devDependencies": [],
-  "requires": ["thread-content", "message-input", "message"],
+  "requires": [
+    "thread-content",
+    "message-input",
+    "message",
+    "scrollable-message-container"
+  ],
   "files": [
     {
       "name": "control-bar.tsx",
