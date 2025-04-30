@@ -38,3 +38,10 @@ declare module "highlight.js" {
   };
   export default hljs;
 }
+
+declare module "dompurify" {
+  const dompurify: {
+    sanitize: (html: string) => string;
+  };
+  export default dompurify;
+}
