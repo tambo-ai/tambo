@@ -1,0 +1,14 @@
+{
+  "name": "scrollable-message-container",
+  "description": "A container that scrolls to the bottom when new messages are added",
+  "componentName": "ScrollableMessageContainer",
+  "dependencies": ["@tambo-ai/react"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "scrollable-message-container.tsx",
+      "content": "src/registry/scrollable-message-container/scrollable-message-container.tsx"
+    }
+  ]
+}

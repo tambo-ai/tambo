@@ -1,12 +1,23 @@
 "use client";
 
-import { MessageInput } from "@/components/ui/message-input";
-import { ThreadContent } from "@/components/ui/thread-content";
-import { cn } from "@/lib/utils";
-import * as Dialog from "@radix-ui/react-dialog";
-import { useTambo } from "@tambo-ai/react";
 import * as React from "react";
-import { useEffect, useRef } from "react";
+import { Dialog } from "radix-ui";
+import { useTambo } from "@tambo-ai/react";
+import { cn } from "@/lib/utils";
+import type { VariantProps } from "class-variance-authority";
+import type { messageVariants } from "@/components/ui/message";
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputToolbar,
+  MessageInputSubmitButton,
+  MessageInputError,
+} from "@/components/ui/message-input";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 
 /**
  * Props for the ControlBar component
@@ -18,6 +29,13 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   contextKey?: string;
   /** Keyboard shortcut for toggling the control bar (default: "mod+k") */
   hotkey?: string;
+  /**
+   * Controls the visual styling of messages in the thread.
+   * Possible values include: "default", "compact", etc.
+   * These values are defined in messageVariants from "@/components/ui/message".
+   * @example variant="compact"
+   */
+  variant?: VariantProps<typeof messageVariants>["variant"];
 }
 
 /**
@@ -33,27 +51,11 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
  * ```
  */
 export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
-  ({ className, contextKey, hotkey = "mod+k", ...props }, ref) => {
+  ({ className, contextKey, hotkey = "mod+k", variant, ...props }, ref) => {
     const [open, setOpen] = React.useState(false);
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
     const { thread } = useTambo();
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-      if (scrollContainerRef.current && thread?.messages?.length) {
-        const timeoutId = setTimeout(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTo({
-              top: scrollContainerRef.current.scrollHeight,
-              behavior: "smooth",
-            });
-          }
-        }, 100);
-
-        return () => clearTimeout(timeoutId);
-      }
-    }, [thread?.messages]);
 
     React.useEffect(() => {
       const down = (e: KeyboardEvent) => {
@@ -94,16 +96,21 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
             <div className="flex flex-col gap-3">
               <div className="bg-background border rounded-lg p-3 flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <MessageInput contextKey={contextKey} />
+                  <MessageInput contextKey={contextKey}>
+                    <MessageInputTextarea />
+                    <MessageInputToolbar>
+                      <MessageInputSubmitButton />
+                    </MessageInputToolbar>
+                    <MessageInputError />
+                  </MessageInput>
                 </div>
               </div>
               {thread?.messages?.length > 0 && (
-                <div
-                  ref={scrollContainerRef}
-                  className="bg-background border rounded-lg p-4 max-h-[500px] overflow-y-auto [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
-                >
-                  <ThreadContent />
-                </div>
+                <ScrollableMessageContainer className="bg-background border rounded-lg p-4 max-h-[500px]">
+                  <ThreadContent variant={variant}>
+                    <ThreadContentMessages />
+                  </ThreadContent>
+                </ScrollableMessageContainer>
               )}
             </div>
           </Dialog.Content>

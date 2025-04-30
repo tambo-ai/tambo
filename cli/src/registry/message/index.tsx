@@ -1,1 +1,6 @@
-export { Message, type MessageProps } from "./message";
+export {
+  Message,
+  MessageContent,
+  MessageRenderedComponentArea,
+  messageVariants,
+} from "./message";

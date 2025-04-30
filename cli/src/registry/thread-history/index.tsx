@@ -1,1 +1,7 @@
-export { ThreadHistory, type ThreadHistoryProps } from "./thread-history";
+export {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadHistoryList,
+} from "./thread-history";

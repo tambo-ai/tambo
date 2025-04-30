@@ -2,8 +2,13 @@ import chalk from "chalk";
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
+
+// Get the current file URL and convert it to a path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Installs multiple components and their dependencies
@@ -119,13 +124,43 @@ export function cn(...inputs: ClassValue[]) {
 
     for (const file of config.files) {
       const sourcePath = path.join(getRegistryPath(componentName), file.name);
-      const targetPath = path.join(componentDir, file.name);
+
+      // Check if this is a lib file (path contains /lib/)
+      const isLibFile =
+        file.name.includes("/lib/") || file.name.startsWith("lib/");
+
+      // Determine target directory based on file type
+      const targetDir = isLibFile ? libDir : componentDir;
+
+      // Extract just the filename or subdirectory+filename
+      const relativePath = isLibFile
+        ? file.name.substring(file.name.indexOf("lib/") + 4) // Remove 'lib/' prefix
+        : file.name;
+
+      const targetPath = path.join(targetDir, relativePath);
+
+      // Ensure the directory exists
+      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 
       if (!fs.existsSync(targetPath) || options.forceUpdate) {
         if (fs.existsSync(sourcePath)) {
           fs.copyFileSync(sourcePath, targetPath);
         } else {
-          fs.writeFileSync(targetPath, file.content);
+          // Check if content looks like a path to a file in registry
+          if (file.content.startsWith("src/registry/")) {
+            // Get the registry root path
+            const registryRoot = path.join(__dirname, "../../../");
+            const contentPath = path.join(registryRoot, file.content);
+
+            if (fs.existsSync(contentPath)) {
+              const fileContent = fs.readFileSync(contentPath, "utf-8");
+              fs.writeFileSync(targetPath, fileContent);
+            } else {
+              console.error(`Cannot find referenced file: ${contentPath}`);
+            }
+          } else {
+            fs.writeFileSync(targetPath, file.content);
+          }
         }
         filesAdded++;
       }
