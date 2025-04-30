@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.5.0...tambo-v0.5.1) (2025-04-30)
+
+
+### Miscellaneous
+
+* **deps:** bump dotenv from 16.4.7 to 16.5.0 ([#313](https://github.com/tambo-ai/tambo/issues/313)) ([cffc541](https://github.com/tambo-ai/tambo/commit/cffc5416718bd11e8346aa26e426f892a467bbb9))
+* **deps:** bump inquirer from 9.3.7 to 10.2.2 ([#327](https://github.com/tambo-ai/tambo/issues/327)) ([7e7f7e7](https://github.com/tambo-ai/tambo/commit/7e7f7e72beca07af4c6afed982782a32caeb1332))
+* **deps:** bump open from 10.1.0 to 10.1.1 ([#326](https://github.com/tambo-ai/tambo/issues/326)) ([fb7b9cd](https://github.com/tambo-ai/tambo/commit/fb7b9cd4012b2dc895663ef941777a851fe24f20))
+* **deps:** bump sanitize-html from 2.15.0 to 2.16.0 ([#334](https://github.com/tambo-ai/tambo/issues/334)) ([f5b38d6](https://github.com/tambo-ai/tambo/commit/f5b38d61af1bee74354cf04fc3b66351d20aba93))
+
+
+### Code Refactoring
+
+* **UI:** update UI components and styles for improved usability and integration ([#343](https://github.com/tambo-ai/tambo/issues/343)) ([b07b7e3](https://github.com/tambo-ai/tambo/commit/b07b7e3c8433e1dcfcae7ea466d7130bdfcf4639))
+
 ## [0.5.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.4.0...tambo-v0.5.0) (2025-04-09)
 
 
