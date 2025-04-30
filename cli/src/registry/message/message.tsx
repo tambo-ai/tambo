@@ -26,37 +26,11 @@ const messageVariants = cva("flex mb-4", {
         "[&>div>div:first-child]:duration-200",
       ].join(" "),
     },
-    align: {
-      user: "justify-end",
-      assistant: "justify-start",
-    },
   },
   defaultVariants: {
     variant: "default",
-    align: "user",
   },
 });
-
-/**
- * CSS variants for the message bubble
- * @typedef {Object} BubbleVariants
- * @property {string} user - Styling for user messages
- * @property {string} assistant - Styling for assistant messages
- */
-const bubbleVariants = cva(
-  "relative inline-block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
-  {
-    variants: {
-      role: {
-        user: "text-primary bg-container hover:bg-backdrop font-sans",
-        assistant: "text-primary font-sans",
-      },
-    },
-    defaultVariants: {
-      role: "user",
-    },
-  },
-);
 
 /**
  * @typedef MessageContextValue
@@ -127,25 +101,24 @@ export interface MessageProps
  */
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
   (
-    { children, className, role, variant, message, isLoading, ...props },
+    { children, className, role, variant, isLoading, message, ...props },
     ref,
   ) => {
     const contextValue = React.useMemo(
-      () => ({ role, variant, message, isLoading }),
-      [role, variant, message, isLoading],
+      () => ({ role, variant, isLoading, message }),
+      [role, variant, isLoading, message],
     );
 
     return (
       <MessageContext.Provider value={contextValue}>
         <div
           ref={ref}
-          className={cn(messageVariants({ variant, align: role }), className)}
+          className={cn(messageVariants({ variant }), className)}
           data-message-role={role}
           data-message-id={message.id}
           {...props}
         >
-          {/* Default structure: column layout */}
-          <div className="flex flex-col">{children}</div>
+          {children}
         </div>
       </MessageContext.Provider>
     );
@@ -154,34 +127,35 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
 Message.displayName = "Message";
 
 /**
- * Props for the MessageBubble component.
+ * Props for the MessageContent component.
  * Extends standard HTMLDivElement attributes.
  */
-export interface MessageBubbleProps
+export interface MessageContentProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
   /** Optional override for the message content. If not provided, uses the content from the message object in the context. */
   content?: string | { type: string; text?: string }[];
+  /** Optional flag to render as Markdown. Default is true. */
+  markdown?: boolean;
 }
 
 /**
- * Displays the main chat bubble with content and loading indicator.
- * Automatically handles content rendering and loading states.
- * @component Message.Bubble
- * @example
- * ```tsx
- * <Message role="assistant" message={messageData} isLoading={isGenerating}>
- *   <Message.Bubble />
- * </Message>
- * ```
+ * Displays the message content with optional markdown formatting.
+ * @component MessageContent
  */
-const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
-  ({ className, children, content: contentProp, ...props }, ref) => {
+const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
+  (
+    { className, children, content: contentProp, markdown = true, ...props },
+    ref,
+  ) => {
     const { role, message, isLoading } = useMessageContext();
-    const contentToRender = contentProp ?? message.content;
+
+    // Use provided children, then contentProp, then message.content
+    const contentToRender = children ?? contentProp ?? message.content;
 
     const safeContent = React.useMemo(() => {
       if (!contentToRender) return "";
       if (typeof contentToRender === "string") return contentToRender;
+      if (React.isValidElement(contentToRender)) return contentToRender;
       if (!Array.isArray(contentToRender)) return "Invalid content format";
       return contentToRender.map((item) => item?.text ?? "").join("");
     }, [contentToRender]);
@@ -191,48 +165,47 @@ const MessageBubble = React.forwardRef<HTMLDivElement, MessageBubbleProps>(
     return (
       <div
         ref={ref}
-        className={cn(bubbleVariants({ role }), className)}
-        data-slot="message-bubble"
+        className={cn(
+          "relative inline-block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
+          className,
+        )}
+        data-slot="message-content"
         {...props}
       >
-        {children ?? (
-          <>
-            {/* Content section */}
-            {!showLoading && (
-              <div
-                className="break-words whitespace-pre-wrap"
-                data-slot="message-content"
-              >
-                {!contentToRender ? (
-                  <span className="text-muted-foreground italic">
-                    Empty message
-                  </span>
-                ) : (
-                  <ReactMarkdown components={createMarkdownComponents("light")}>
-                    {safeContent}
-                  </ReactMarkdown>
-                )}
-              </div>
+        {showLoading ? (
+          <div
+            className="flex items-center justify-center gap-1 h-4 py-1"
+            data-slot="message-loading-indicator"
+          >
+            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+          </div>
+        ) : (
+          <div
+            className="break-words whitespace-pre-wrap"
+            data-slot="message-content-text"
+          >
+            {!contentToRender ? (
+              <span className="text-muted-foreground italic">
+                Empty message
+              </span>
+            ) : React.isValidElement(contentToRender) ? (
+              contentToRender
+            ) : markdown ? (
+              <ReactMarkdown components={createMarkdownComponents("light")}>
+                {typeof safeContent === "string" ? safeContent : ""}
+              </ReactMarkdown>
+            ) : (
+              safeContent
             )}
-
-            {/* Loading indicator */}
-            {showLoading && (
-              <div
-                className="flex items-center justify-center gap-1 h-4 py-1"
-                data-slot="message-loading-indicator"
-              >
-                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </div>
     );
   },
 );
-MessageBubble.displayName = "Message.Bubble";
+MessageContent.displayName = "MessageContent";
 
 /**
  * Props for the MessageRenderedComponentArea component.
@@ -319,6 +292,6 @@ MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
 export {
   messageVariants,
   Message,
-  MessageBubble,
+  MessageContent,
   MessageRenderedComponentArea,
 };

@@ -32,7 +32,7 @@ declare module "@/components/ui/message" {
     children?: React.ReactNode;
   }
 
-  export interface MessageBubbleProps
+  export interface MessageContentProps
     extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
     content?: string | { type: string; text?: string }[];
   }
@@ -46,8 +46,8 @@ declare module "@/components/ui/message" {
     MessageProps & React.RefAttributes<HTMLDivElement>
   >;
 
-  export const MessageBubble: React.ForwardRefExoticComponent<
-    MessageBubbleProps & React.RefAttributes<HTMLDivElement>
+  export const MessageContent: React.ForwardRefExoticComponent<
+    MessageContentProps & React.RefAttributes<HTMLDivElement>
   >;
 
   export const MessageRenderedComponentArea: React.ForwardRefExoticComponent<

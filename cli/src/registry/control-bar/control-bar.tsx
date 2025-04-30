@@ -1,14 +1,25 @@
 "use client";
 
-import { MessageInput } from "@/components/ui/message-input";
-import { ThreadContent } from "@/components/ui/thread-content";
-import { cn } from "@/lib/utils";
-import { Dialog } from "radix-ui";
-import { useTambo } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useRef } from "react";
-import type { messageVariants } from "@/components/ui/message";
+import { Dialog } from "radix-ui";
+import { useTambo } from "@tambo-ai/react";
+import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
+import type {
+  messageVariants} from "@/components/ui/message";
+import {
+  Message,
+  MessageContent,
+  MessageRenderedComponentArea
+} from "@/components/ui/message";
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputToolbar,
+  MessageInputSubmitButton,
+  MessageInputError,
+} from "@/components/ui/message-input";
 
 /**
  * Props for the ControlBar component
@@ -98,7 +109,13 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
             <div className="flex flex-col gap-3">
               <div className="bg-background border rounded-lg p-3 flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <MessageInput contextKey={contextKey} />
+                  <MessageInput contextKey={contextKey}>
+                    <MessageInputTextarea />
+                    <MessageInputToolbar>
+                      <MessageInputSubmitButton />
+                    </MessageInputToolbar>
+                    <MessageInputError />
+                  </MessageInput>
                 </div>
               </div>
               {thread?.messages?.length > 0 && (
@@ -106,7 +123,38 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                   ref={scrollContainerRef}
                   className="bg-background border rounded-lg p-4 max-h-[500px] overflow-y-auto [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar:horizontal]:h-[4px]"
                 >
-                  <ThreadContent variant={variant} />
+                  {thread.messages.map((message, index) => (
+                    <div
+                      key={message.id ?? `${message.role}-${index}`}
+                      className={cn("duration-200 ease-out")}
+                    >
+                      <Message
+                        message={message}
+                        role={
+                          message.role === "assistant" ? "assistant" : "user"
+                        }
+                        variant={variant}
+                        isLoading={false}
+                        className={
+                          message.role === "assistant"
+                            ? "flex justify-start"
+                            : "flex justify-end"
+                        }
+                      >
+                        <div className="flex flex-col">
+                          <MessageContent
+                            className={
+                              message.role === "assistant"
+                                ? "text-primary font-sans"
+                                : "text-primary bg-container hover:bg-backdrop font-sans"
+                            }
+                            content={message.content}
+                          />
+                          <MessageRenderedComponentArea />
+                        </div>
+                      </Message>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

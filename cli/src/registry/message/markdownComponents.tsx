@@ -106,10 +106,17 @@ export const createMarkdownComponents = (_theme = "light"): Components => ({
 
     if (match && looksLikeCode(content)) {
       return (
-        <div className="relative border border-border rounded-md bg-muted">
+        <div className="relative border border-border rounded-md bg-muted max-w-[80ch] text-sm">
           <CodeHeader language={match[1]} code={content} />
-          <div className="overflow-x-auto rounded-b-md bg-background">
-            <pre className="p-4">
+          <div
+            className={cn(
+              "overflow-x-auto rounded-b-md bg-background",
+              "[&::-webkit-scrollbar]:w-[6px]",
+              "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-md",
+              "[&::-webkit-scrollbar:horizontal]:h-[4px]",
+            )}
+          >
+            <pre className="p-4 whitespace-pre">
               <code
                 className={className}
                 dangerouslySetInnerHTML={{ __html: highlighted ?? content }}

@@ -1,6 +1,6 @@
 export {
   Message,
-  MessageBubble,
+  MessageContent,
   MessageRenderedComponentArea,
   messageVariants,
 } from "./message";

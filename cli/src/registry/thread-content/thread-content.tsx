@@ -2,7 +2,7 @@
 
 import {
   Message,
-  MessageBubble,
+  MessageContent,
   MessageRenderedComponentArea,
   type messageVariants,
 } from "@/components/ui/message";
@@ -124,7 +124,7 @@ const ThreadContentMessages = React.forwardRef<
   HTMLDivElement,
   ThreadContentMessagesProps
 >(({ className, ...props }, ref) => {
-  const { messages } = useThreadContentContext();
+  const { messages, isGenerating, variant } = useThreadContentContext();
 
   return (
     <div
@@ -133,80 +133,59 @@ const ThreadContentMessages = React.forwardRef<
       data-slot="thread-content-messages"
       {...props}
     >
-      {messages.map((message, index) => (
-        <ThreadContentItem
-          key={
-            message.id ??
-            `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
-          }
-          message={message}
-          index={index}
-        />
-      ))}
+      {messages.map((message, index) => {
+        const showLoading = isGenerating && index === messages.length - 1;
+        const messageContent = Array.isArray(message.content)
+          ? (message.content[0]?.text ?? "Empty message")
+          : typeof message.content === "string"
+            ? message.content
+            : "Empty message";
+
+        return (
+          <div
+            key={
+              message.id ??
+              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
+            }
+            className={cn(
+              !isGenerating && "animate-in fade-in-0 slide-in-from-bottom-2",
+              "duration-200 ease-out",
+            )}
+            style={
+              !isGenerating ? { animationDelay: `${index * 40}ms` } : undefined
+            }
+            data-slot="thread-content-item"
+          >
+            <Message
+              role={message.role === "assistant" ? "assistant" : "user"}
+              message={message}
+              variant={variant}
+              isLoading={showLoading}
+              className={
+                message.role === "assistant"
+                  ? "flex justify-start"
+                  : "flex justify-end"
+              }
+            >
+              <div className="flex flex-col">
+                <MessageContent
+                  className={
+                    message.role === "assistant"
+                      ? "text-primary font-sans"
+                      : "text-primary bg-container hover:bg-backdrop font-sans"
+                  }
+                  content={messageContent}
+                />
+                {/* Rendered component area determines if the message is a canvas message */}
+                <MessageRenderedComponentArea />
+              </div>
+            </Message>
+          </div>
+        );
+      })}
     </div>
   );
 });
 ThreadContentMessages.displayName = "ThreadContent.Messages";
-
-/**
- * Props for the ThreadContentItem component.
- */
-interface ThreadContentItemProps {
-  /** The message object */
-  message: any;
-  /** Index of the message in the thread */
-  index: number;
-  /** Optional className */
-  className?: string;
-}
-
-/**
- * Renders an individual message with animation effects.
- * @component ThreadContent.Item (internal)
- */
-const ThreadContentItem = ({
-  message,
-  index,
-  className,
-}: ThreadContentItemProps) => {
-  const { isGenerating, variant, messages } = useThreadContentContext();
-
-  const showLoading = isGenerating && index === messages.length - 1;
-  const messageContent = Array.isArray(message.content)
-    ? (message.content[0]?.text ?? "Empty message")
-    : typeof message.content === "string"
-      ? message.content
-      : "Empty message";
-
-  return (
-    <div
-      className={cn(
-        !isGenerating && "animate-in fade-in-0 slide-in-from-bottom-2",
-        "duration-200 ease-out",
-        className,
-      )}
-      style={!isGenerating ? { animationDelay: `${index * 40}ms` } : undefined}
-      data-slot="thread-content-item"
-    >
-      <div
-        className={cn(
-          "flex flex-col gap-1.5",
-          message.role === "user" ? "ml-auto mr-0" : "ml-0 mr-auto",
-          "max-w-[85%]",
-        )}
-      >
-        <Message
-          role={message.role === "assistant" ? "assistant" : "user"}
-          message={message}
-          variant={variant}
-          isLoading={showLoading}
-        >
-          <MessageBubble content={messageContent} />
-          <MessageRenderedComponentArea />
-        </Message>
-      </div>
-    </div>
-  );
-};
 
 export { ThreadContent, ThreadContentMessages };

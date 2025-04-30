@@ -421,10 +421,32 @@ export default config`;
       (node): node is postcss.AtRule =>
         node.type === "atrule" &&
         node.name === "layer" &&
-        node.params === "utilities" &&
-        node.toString().includes("hsl(var(--"),
+        node.params === "utilities",
     );
 
+    // Extract default utility classes
+    const extractUtilities = (root: Root) => {
+      const utilities = new Map<string, { prop: string; value: string }>();
+      root.walkAtRules("layer", (layer) => {
+        if (layer.params === "utilities") {
+          layer.walkRules((rule) => {
+            if (rule.selector.startsWith(".")) {
+              rule.walkDecls((decl) => {
+                utilities.set(rule.selector, {
+                  prop: decl.prop,
+                  value: decl.value,
+                });
+              });
+            }
+          });
+        }
+      });
+      return utilities;
+    };
+
+    const defaultUtilities = extractUtilities(defaultRoot);
+
+    // Create utilities layer if it doesn't exist
     if (!utilitiesLayer) {
       utilitiesLayer = postcss.atRule({
         name: "layer",
@@ -432,131 +454,45 @@ export default config`;
         raws: { before: "\n\n", after: "\n" },
       });
       existingRoot.append(utilitiesLayer);
-
-      // Add utility classes using PostCSS API
-      const addUtilityClass = (
-        selector: string,
-        prop: string,
-        value: string,
-      ) => {
-        const rule = postcss.rule({ selector });
-        rule.append(postcss.decl({ prop, value }));
-        utilitiesLayer?.append(rule);
-      };
-
-      const utilityClasses = [
-        {
-          selector: ".bg-background",
-          prop: "background-color",
-          value: "hsl(var(--background))",
-        },
-        {
-          selector: ".text-foreground",
-          prop: "color",
-          value: "hsl(var(--foreground))",
-        },
-        {
-          selector: ".bg-card",
-          prop: "background-color",
-          value: "hsl(var(--card))",
-        },
-        {
-          selector: ".text-card-foreground",
-          prop: "color",
-          value: "hsl(var(--card-foreground))",
-        },
-        {
-          selector: ".bg-popover",
-          prop: "background-color",
-          value: "hsl(var(--popover))",
-        },
-        {
-          selector: ".text-popover-foreground",
-          prop: "color",
-          value: "hsl(var(--popover-foreground))",
-        },
-        {
-          selector: ".bg-primary",
-          prop: "background-color",
-          value: "hsl(var(--primary))",
-        },
-        {
-          selector: ".text-primary-foreground",
-          prop: "color",
-          value: "hsl(var(--primary-foreground))",
-        },
-        {
-          selector: ".bg-secondary",
-          prop: "background-color",
-          value: "hsl(var(--secondary))",
-        },
-        {
-          selector: ".text-secondary-foreground",
-          prop: "color",
-          value: "hsl(var(--secondary-foreground))",
-        },
-        {
-          selector: ".bg-muted",
-          prop: "background-color",
-          value: "hsl(var(--muted))",
-        },
-        {
-          selector: ".text-muted-foreground",
-          prop: "color",
-          value: "hsl(var(--muted-foreground))",
-        },
-        {
-          selector: ".bg-accent",
-          prop: "background-color",
-          value: "hsl(var(--accent))",
-        },
-        {
-          selector: ".text-accent-foreground",
-          prop: "color",
-          value: "hsl(var(--accent-foreground))",
-        },
-        {
-          selector: ".bg-destructive",
-          prop: "background-color",
-          value: "hsl(var(--destructive))",
-        },
-        {
-          selector: ".text-destructive-foreground",
-          prop: "color",
-          value: "hsl(var(--destructive-foreground))",
-        },
-        {
-          selector: ".border-border",
-          prop: "border-color",
-          value: "hsl(var(--border))",
-        },
-        {
-          selector: ".bg-input",
-          prop: "background-color",
-          value: "hsl(var(--input))",
-        },
-        {
-          selector: ".ring-ring",
-          prop: "--tw-ring-color",
-          value: "hsl(var(--ring))",
-        },
-        {
-          selector: ".hover\\:bg-primary\\/90:hover",
-          prop: "background-color",
-          value: "hsl(var(--primary) / 0.9)",
-        },
-        {
-          selector: ".hover\\:bg-muted\\/90:hover",
-          prop: "background-color",
-          value: "hsl(var(--muted) / 0.9)",
-        },
-      ];
-
-      // Add all utility classes
-      utilityClasses.forEach(({ selector, prop, value }) => {
-        addUtilityClass(selector, prop, value);
-      });
     }
+
+    // Add utility classes using PostCSS API
+    const addUtilityClass = (selector: string, prop: string, value: string) => {
+      // Check if this utility already exists
+      let existingRule = utilitiesLayer.nodes?.find(
+        (node): node is postcss.Rule =>
+          node.type === "rule" && node.selector === selector,
+      );
+
+      if (!existingRule) {
+        // Create a new rule
+        existingRule = postcss.rule({
+          selector,
+          raws: { before: "\n  ", after: "\n" },
+        });
+        utilitiesLayer.append(existingRule);
+      }
+
+      // Check if the declaration already exists
+      const hasProp = existingRule.nodes?.some(
+        (node) => node.type === "decl" && node.prop === prop,
+      );
+
+      if (!hasProp) {
+        existingRule.append(
+          postcss.decl({
+            prop,
+            value,
+            raws: { before: "\n    ", between: ": " },
+          }),
+        );
+      }
+    };
+
+    // Process all utilities
+    defaultUtilities.forEach((util, selector) => {
+      addUtilityClass(selector, util.prop, util.value);
+    });
 
     // Write updated CSS
     const updatedCSS = existingRoot.toString();

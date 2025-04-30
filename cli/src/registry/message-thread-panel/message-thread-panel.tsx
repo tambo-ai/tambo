@@ -13,10 +13,6 @@ import {
   MessageSuggestionsList,
 } from "@/components/ui/message-suggestions";
 import {
-  ThreadContent,
-  ThreadContentMessages,
-} from "@/components/ui/thread-content";
-import {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryNewButton,
@@ -34,7 +30,12 @@ import * as React from "react";
 import { useRef } from "react";
 import type { messageVariants } from "@/components/ui/message";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
-
+import {
+  Message,
+  MessageContent,
+  MessageRenderedComponentArea,
+} from "@/components/ui/message";
+import { useTambo } from "@tambo-ai/react";
 /**
  * Props for the MessageThreadPanel component
  * @interface
@@ -124,6 +125,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
         className={cn(
           "h-screen flex flex-col bg-background relative",
           "transition-[width] duration-75 ease-out",
+          "overflow-x-auto",
           isLeftPanel
             ? "border-r border-border"
             : "border-l border-border ml-auto",
@@ -196,6 +198,11 @@ export const MessageThreadPanel = React.forwardRef<
   );
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
 
+  // Get message data from Tambo
+  const { thread, generationStage } = useTambo();
+  const messages = thread?.messages ?? [];
+  const isGenerating = generationStage === "STREAMING_RESPONSE";
+
   return (
     <ResizablePanel
       ref={mergedRef}
@@ -224,10 +231,50 @@ export const MessageThreadPanel = React.forwardRef<
         )}
 
         <div className="flex flex-col h-full flex-grow">
-          <ScrollableMessageContainer>
-            <ThreadContent variant={variant}>
-              <ThreadContentMessages />
-            </ThreadContent>
+          {/* Message thread content */}
+          <ScrollableMessageContainer className="p-4">
+            <div className="py-4">
+              {messages.map((message, index) => (
+                <div
+                  key={message.id ?? `${message.role}-${index}`}
+                  className={cn(
+                    isGenerating &&
+                      "animate-in fade-in-0 slide-in-from-bottom-2",
+                    "duration-200 ease-out",
+                  )}
+                  style={
+                    isGenerating
+                      ? { animationDelay: `${index * 40}ms` }
+                      : undefined
+                  }
+                >
+                  <Message
+                    message={message}
+                    role={message.role === "assistant" ? "assistant" : "user"}
+                    variant={variant}
+                    isLoading={isGenerating && index === messages.length - 1}
+                    className={
+                      message.role === "assistant"
+                        ? "flex justify-start"
+                        : "flex justify-end"
+                    }
+                  >
+                    <div className="flex flex-col">
+                      <MessageContent
+                        className={
+                          message.role === "assistant"
+                            ? "text-primary font-sans"
+                            : "text-primary bg-container hover:bg-backdrop font-sans max-w-[600px]"
+                        }
+                        content={message.content}
+                      />
+                      {/* Rendered component area determines if the message is a canvas message */}
+                      <MessageRenderedComponentArea />
+                    </div>
+                  </Message>
+                </div>
+              ))}
+            </div>
           </ScrollableMessageContainer>
           <div className="p-4">
             <MessageInput contextKey={contextKey}>
