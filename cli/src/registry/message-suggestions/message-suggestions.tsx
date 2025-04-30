@@ -3,7 +3,7 @@
 import { MessageGenerationStage } from "@/components/ui/message-generation-stage";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { Suggestion} from "@tambo-ai/react";
+import type { Suggestion } from "@tambo-ai/react";
 import { useTambo, useTamboSuggestions } from "@tambo-ai/react";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
