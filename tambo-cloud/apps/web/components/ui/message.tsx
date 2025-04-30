@@ -110,7 +110,7 @@ export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
       if (typeof content === "string") return content;
       return content.map((item) => item.text ?? "").join("");
     }, [content]);
-    const isToolCall = message.actionType === "tool_call";
+    const toolStatusMessage = getToolStatusMessage(message, isLoading);
     return (
       <div
         ref={ref}
@@ -153,21 +153,16 @@ export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
               )}
             </div>
           </div>
-          {isToolCall && isLoading && (
+          {toolStatusMessage && (
             <div className="flex items-center gap-2 h-4 p-1 mt-1">
-              <div className="flex items-center gap-1">
-                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-              </div>
-              <span className="text-xs opacity-50">
-                Calling{" "}
-                {message.toolCallRequest?.toolName ? (
-                  <i>{message.toolCallRequest?.toolName}</i>
-                ) : (
-                  "tool"
-                )}
-              </span>
+              {isLoading && (
+                <div className="flex items-center gap-1">
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+                </div>
+              )}
+              <span className="text-xs opacity-50">{toolStatusMessage}</span>
             </div>
           )}
           {message.renderedComponent && role === "assistant" && (
@@ -183,3 +178,18 @@ export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
 Message.displayName = "Message";
 
 export { messageVariants };
+function getToolStatusMessage(
+  message: TamboThreadMessage,
+  isLoading: boolean | undefined,
+) {
+  const isToolCall = message.actionType === "tool_call";
+  if (!isToolCall) return null;
+
+  const toolCallMessage = isLoading
+    ? `Calling ${message.toolCallRequest?.toolName ?? "tool"}`
+    : `Called ${message.toolCallRequest?.toolName ?? "tool"}`;
+  const toolStatusMessage = isLoading
+    ? message.component?.statusMessage
+    : message.component?.completionStatusMessage;
+  return toolStatusMessage ?? toolCallMessage;
+}
