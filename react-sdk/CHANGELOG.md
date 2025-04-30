@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.4](https://github.com/tambo-ai/tambo/compare/react-v0.21.3...react-v0.21.4) (2025-04-30)
+
+
+### Miscellaneous
+
+* **deps:** bump typescript-sdk to get status messages ([#360](https://github.com/tambo-ai/tambo/issues/360)) ([48dc083](https://github.com/tambo-ai/tambo/commit/48dc083b0edfd5bef219046edd688e8b9a1e4643))
+* **deps:** manually bump typescript-sdk ([#358](https://github.com/tambo-ai/tambo/issues/358)) ([e84d995](https://github.com/tambo-ai/tambo/commit/e84d995bb8d5fe24d2f78ecfc8a6f0669744778c))
+
 ## [0.21.3](https://github.com/tambo-ai/tambo/compare/react-v0.21.2...react-v0.21.3) (2025-04-29)
 
 
