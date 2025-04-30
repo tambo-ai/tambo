@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.4.1...showcase-v0.4.2) (2025-04-30)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump eslint-config-next from 15.2.4 to 15.3.0 ([#317](https://github.com/tambo-ai/tambo/issues/317)) ([c5098cf](https://github.com/tambo-ai/tambo/commit/c5098cf66e2d0aec5cae4d606d13124bbe68d8d4))
+* **deps-dev:** bump the eslint group with 4 updates ([#331](https://github.com/tambo-ai/tambo/issues/331)) ([7db258c](https://github.com/tambo-ai/tambo/commit/7db258c858f80c08e49625e3c90f89899282c574))
+* **deps:** bump @radix-ui/react-slot from 1.1.2 to 1.2.0 in the radix-ui group ([#310](https://github.com/tambo-ai/tambo/issues/310)) ([fb16322](https://github.com/tambo-ai/tambo/commit/fb163225436c04e5ce1abd2d29a72b86c8a22d38))
+* **deps:** bump framer-motion from 12.6.3 to 12.7.2 ([#315](https://github.com/tambo-ai/tambo/issues/315)) ([f464b13](https://github.com/tambo-ai/tambo/commit/f464b1310bd14500b592ccaceac49c748425b297))
+* **deps:** bump framer-motion from 12.7.2 to 12.7.3 ([#328](https://github.com/tambo-ai/tambo/issues/328)) ([157a05b](https://github.com/tambo-ai/tambo/commit/157a05bd1bdb410a67c6bc1dd950c324f0bc7799))
+* **deps:** bump framer-motion from 12.7.3 to 12.7.4 ([#336](https://github.com/tambo-ai/tambo/issues/336)) ([cad74cb](https://github.com/tambo-ai/tambo/commit/cad74cb2c403062ff23616e7323dab1afdec2ba1))
+* **deps:** bump framer-motion from 12.7.4 to 12.9.2 ([#349](https://github.com/tambo-ai/tambo/issues/349)) ([c52e23a](https://github.com/tambo-ai/tambo/commit/c52e23a7abb69617d34f9b0124ab3e6a8da2f50f))
+* **deps:** bump lucide-react from 0.487.0 to 0.488.0 ([#324](https://github.com/tambo-ai/tambo/issues/324)) ([e46f69c](https://github.com/tambo-ai/tambo/commit/e46f69c8193ef52b09903521d99b6fc3fcff5f65))
+* **deps:** bump lucide-react from 0.488.0 to 0.503.0 ([#338](https://github.com/tambo-ai/tambo/issues/338)) ([15154ae](https://github.com/tambo-ai/tambo/commit/15154ae116df41f535b80c72e4489ea26358fd5a))
+* **deps:** bump next from 15.2.4 to 15.3.0 ([#312](https://github.com/tambo-ai/tambo/issues/312)) ([9a68a8f](https://github.com/tambo-ai/tambo/commit/9a68a8ffe5ea622c10eed061ed2ac4e4df289f0c))
+* **deps:** bump next from 15.3.0 to 15.3.1 ([#332](https://github.com/tambo-ai/tambo/issues/332)) ([d1b6d88](https://github.com/tambo-ai/tambo/commit/d1b6d883197a40af27adc91abd9e34692aa97044))
+* **deps:** bump radix-ui from 1.1.3 to 1.2.0 ([#323](https://github.com/tambo-ai/tambo/issues/323)) ([784247e](https://github.com/tambo-ai/tambo/commit/784247e04ca27fbc38078f9a79a92cbd0cc1598d))
+* **deps:** bump recharts from 2.15.2 to 2.15.3 ([#333](https://github.com/tambo-ai/tambo/issues/333)) ([65c3ca9](https://github.com/tambo-ai/tambo/commit/65c3ca9e47b82e4df51b92ef33054e9814151943))
+
 ## [0.4.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.4.0...showcase-v0.4.1) (2025-04-08)
 
 
