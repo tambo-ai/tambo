@@ -4,165 +4,294 @@ import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { ExternalLink } from "lucide-react";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
+import { getSafeContent, checkHasContent } from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message container
  * @typedef {Object} MessageVariants
  * @property {string} default - Default styling
  * @property {string} solid - Solid styling with shadow effects
- * @property {string} bordered - Bordered styling
  */
-const messageVariants = cva("flex", {
+const messageVariants = cva("flex mb-4", {
   variants: {
     variant: {
       default: "",
       solid: [
-        "[&_div]:shadow",
-        "[&_div]:shadow-zinc-900/10",
-        "[&_div]:dark:shadow-zinc-900/20",
+        "[&>div>div:first-child]:shadow-md",
+        "[&>div>div:first-child]:bg-container/50",
+        "[&>div>div:first-child]:hover:bg-container",
+        "[&>div>div:first-child]:transition-all",
+        "[&>div>div:first-child]:duration-200",
       ].join(" "),
-      bordered: ["[&_div]:border", "[&_div]:border-border"].join(" "),
-    },
-    align: {
-      user: "justify-end",
-      assistant: "justify-start",
     },
   },
   defaultVariants: {
     variant: "default",
-    align: "user",
   },
 });
 
 /**
- * CSS variants for the message bubble
- * @typedef {Object} BubbleVariants
- * @property {string} user - Styling for user messages
- * @property {string} assistant - Styling for assistant messages
+ * @typedef MessageContextValue
+ * @property {"user" | "assistant"} role - The role of the message sender.
+ * @property {VariantProps<typeof messageVariants>["variant"]} [variant] - Optional styling variant for the message container.
+ * @property {TamboThreadMessage} message - The full Tambo thread message object.
+ * @property {boolean} [isLoading] - Optional flag to indicate if the message is in a loading state.
  */
-const bubbleVariants = cva(
-  "relative inline-block rounded-lg px-3 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
-  {
-    variants: {
-      role: {
-        user: "bg-primary text-primary-foreground hover:bg-primary/90",
-        assistant: "bg-muted text-foreground hover:bg-muted/90",
-      },
-    },
-    defaultVariants: {
-      role: "user",
-    },
-  },
-);
-
-/**
- * Props for the Message component
- * @interface
- */
-export interface MessageProps {
-  /** The role of the message sender - either 'user' or 'assistant' */
+interface MessageContextValue {
   role: "user" | "assistant";
-  /**
-   * The content of the message. Can be either a string or an array of content objects
-   * @example
-   * // String content
-   * "Hello, how are you?"
-   *
-   * // Array of content objects
-   * [
-   *   { type: "text", text: "Hello" },
-   *   { type: "text", text: "How are you?" }
-   * ]
-   */
-  content: string | { type: string; text?: string }[];
-  /** The Tambo thread message object containing additional message data */
-  message: TamboThreadMessage;
-  /** Optional styling variant for the message container */
   variant?: VariantProps<typeof messageVariants>["variant"];
-  /** Optional CSS class name for additional styling */
-  className?: string;
-  /** Optional flag to indicate if the message is in a loading state */
+  message: TamboThreadMessage;
   isLoading?: boolean;
 }
 
 /**
- * A component that renders a chat message with support for markdown content and custom styling
- * @component
+ * React Context for sharing message data and settings among sub-components.
+ * @internal
+ */
+const MessageContext = React.createContext<MessageContextValue | null>(null);
+
+/**
+ * Hook to access the message context.
+ * Throws an error if used outside of a Message component.
+ * @returns {MessageContextValue} The message context value.
+ * @throws {Error} If used outside of Message.
+ * @internal
+ */
+const useMessageContext = () => {
+  const context = React.useContext(MessageContext);
+  if (!context) {
+    throw new Error("Message sub-components must be used within a Message");
+  }
+  return context;
+};
+
+// --- Sub-Components ---
+
+/**
+ * Props for the Message component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export interface MessageProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
+  /** The role of the message sender ('user' or 'assistant'). */
+  role: "user" | "assistant";
+  /** The full Tambo thread message object. */
+  message: TamboThreadMessage;
+  /** Optional styling variant for the message container. */
+  variant?: VariantProps<typeof messageVariants>["variant"];
+  /** Optional flag to indicate if the message is in a loading state. */
+  isLoading?: boolean;
+  /** The child elements to render within the root container. Typically includes Message.Bubble and Message.RenderedComponentArea. */
+  children: React.ReactNode;
+}
+
+/**
+ * The root container for a message component.
+ * It establishes the context for its children and applies alignment styles based on the role.
+ * @component Message
  * @example
  * ```tsx
- * <Message
- *   role="user"
- *   content="Hello, how are you?"
- *   message={threadMessage}
- *   variant="solid"
- * />
+ * <Message role="user" message={messageData} variant="solid">
+ *   <Message.Bubble />
+ *   <Message.RenderedComponentArea />
+ * </Message>
  * ```
  */
-export const Message = React.forwardRef<HTMLDivElement, MessageProps>(
+const Message = React.forwardRef<HTMLDivElement, MessageProps>(
   (
-    { className, role, content, variant, message, isLoading, ...props },
+    { children, className, role, variant, isLoading, message, ...props },
     ref,
   ) => {
-    const safeContent = React.useMemo(() => {
-      if (!content) return "";
-      if (typeof content === "string") return content;
-      return content.map((item) => item.text ?? "").join("");
-    }, [content]);
+    const contextValue = React.useMemo(
+      () => ({ role, variant, isLoading, message }),
+      [role, variant, isLoading, message],
+    );
 
     return (
-      <div
-        ref={ref}
-        className={cn(messageVariants({ variant, align: role }), className)}
-        {...props}
-      >
-        <div className="flex flex-col">
-          <div className={cn(bubbleVariants({ role }))}>
-            <div className="break-words whitespace-pre-wrap">
-              <div className="text-sm mb-1 opacity-50">
-                {role === "user" ? "You" : "Tambo AI"}
-              </div>
-              {!content ? (
-                <span className="text-muted-foreground italic">
-                  Empty message
-                </span>
-              ) : typeof content === "string" ? (
-                <ReactMarkdown components={createMarkdownComponents()}>
-                  {safeContent}
-                </ReactMarkdown>
-              ) : (
-                content.map((item, index) => (
-                  <span key={index}>
-                    {item.text ? (
-                      <ReactMarkdown components={createMarkdownComponents()}>
-                        {item.text}
-                      </ReactMarkdown>
-                    ) : (
-                      ""
-                    )}
-                  </span>
-                ))
-              )}
-              {isLoading && role === "assistant" && !content && (
-                <div className="flex items-center gap-1 h-4 p-1 mt-1">
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                </div>
-              )}
-            </div>
-          </div>
-          {message.renderedComponent && role === "assistant" && (
-            <div className="mt-4 w-full max-w-md">
-              {message.renderedComponent}
-            </div>
-          )}
+      <MessageContext.Provider value={contextValue}>
+        <div
+          ref={ref}
+          className={cn(messageVariants({ variant }), className)}
+          data-message-role={role}
+          data-message-id={message.id}
+          {...props}
+        >
+          {children}
         </div>
-      </div>
+      </MessageContext.Provider>
     );
   },
 );
 Message.displayName = "Message";
 
-export { messageVariants };
+/**
+ * Props for the MessageContent component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export interface MessageContentProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
+  /** Optional override for the message content. If not provided, uses the content from the message object in the context. */
+  content?: string | { type: string; text?: string }[];
+  /** Optional flag to render as Markdown. Default is true. */
+  markdown?: boolean;
+}
+
+/**
+ * Displays the message content with optional markdown formatting.
+ * @component MessageContent
+ */
+const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
+  (
+    { className, children, content: contentProp, markdown = true, ...props },
+    ref,
+  ) => {
+    const { message, isLoading } = useMessageContext();
+    const contentToRender = children ?? contentProp ?? message.content;
+
+    const safeContent = React.useMemo(
+      () => getSafeContent(contentToRender as TamboThreadMessage["content"]),
+      [contentToRender],
+    );
+    const hasContent = React.useMemo(
+      () => checkHasContent(contentToRender as TamboThreadMessage["content"]),
+      [contentToRender],
+    );
+
+    const showLoading = isLoading && !hasContent;
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "relative inline-block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
+          className,
+        )}
+        data-slot="message-content"
+        {...props}
+      >
+        {showLoading ? (
+          <div
+            className="flex items-center justify-center gap-1 h-4 py-1"
+            data-slot="message-loading-indicator"
+          >
+            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+          </div>
+        ) : (
+          <div
+            className="break-words whitespace-pre-wrap"
+            data-slot="message-content-text"
+          >
+            {!contentToRender ? (
+              <span className="text-muted-foreground italic">
+                Empty message
+              </span>
+            ) : React.isValidElement(contentToRender) ? (
+              contentToRender
+            ) : markdown ? (
+              <ReactMarkdown components={createMarkdownComponents("light")}>
+                {typeof safeContent === "string" ? safeContent : ""}
+              </ReactMarkdown>
+            ) : (
+              safeContent
+            )}
+          </div>
+        )}
+      </div>
+    );
+  },
+);
+MessageContent.displayName = "MessageContent";
+
+/**
+ * Props for the MessageRenderedComponentArea component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export type MessageRenderedComponentAreaProps =
+  React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Displays the `renderedComponent` associated with an assistant message.
+ * Shows a button to view in canvas if a canvas space exists, otherwise renders inline.
+ * Only renders if the message role is 'assistant' and `message.renderedComponent` exists.
+ * @component Message.RenderedComponentArea
+ */
+const MessageRenderedComponentArea = React.forwardRef<
+  HTMLDivElement,
+  MessageRenderedComponentAreaProps
+>(({ className, children, ...props }, ref) => {
+  const { message, role } = useMessageContext();
+  const [canvasExists, setCanvasExists] = React.useState(false);
+
+  // Check if canvas exists on mount and window resize
+  React.useEffect(() => {
+    const checkCanvasExists = () => {
+      const canvas = document.querySelector('[data-canvas-space="true"]');
+      setCanvasExists(!!canvas);
+    };
+
+    // Check on mount
+    checkCanvasExists();
+
+    // Set up resize listener
+    window.addEventListener("resize", checkCanvasExists);
+
+    // Clean up
+    return () => {
+      window.removeEventListener("resize", checkCanvasExists);
+    };
+  }, []);
+
+  if (!message.renderedComponent || role !== "assistant") {
+    return null;
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn("mt-2", className)}
+      data-slot="message-rendered-component-area"
+      {...props}
+    >
+      {children ??
+        (canvasExists ? (
+          <div className="flex justify-start pl-4">
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(
+                    new CustomEvent("tambo:showComponent", {
+                      detail: {
+                        messageId: message.id,
+                        component: message.renderedComponent,
+                      },
+                    }),
+                  );
+                }
+              }}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-secondary transition-colors duration-200 cursor-pointer group"
+              aria-label="View component in canvas"
+            >
+              View component
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="w-full mt-4 px-2">{message.renderedComponent}</div>
+        ))}
+    </div>
+  );
+});
+MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
+
+// --- Exports ---
+export {
+  messageVariants,
+  Message,
+  MessageContent,
+  MessageRenderedComponentArea,
+};

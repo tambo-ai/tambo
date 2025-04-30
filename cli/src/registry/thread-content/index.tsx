@@ -1,1 +1,1 @@
-export { ThreadContent, type ThreadContentProps } from "./thread-content";
+export { ThreadContent, ThreadContentMessages } from "./thread-content";

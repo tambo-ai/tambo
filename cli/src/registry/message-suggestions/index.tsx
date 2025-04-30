@@ -1,4 +1,5 @@
 export {
   MessageSuggestions,
-  type MessageSuggestionsProps,
+  MessageSuggestionsStatus,
+  MessageSuggestionsList,
 } from "./message-suggestions";

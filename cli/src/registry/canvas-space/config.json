@@ -1,0 +1,14 @@
+{
+  "name": "canvas-space",
+  "description": "A canvas space component that displays rendered components from chat messages.",
+  "componentName": "CanvasSpace",
+  "dependencies": ["@tambo-ai/react"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "canvas-space.tsx",
+      "content": "src/registry/canvas-space/canvas-space.tsx"
+    }
+  ]
+}

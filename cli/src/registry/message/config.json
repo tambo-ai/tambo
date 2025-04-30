@@ -5,11 +5,12 @@
   "dependencies": [
     "class-variance-authority",
     "react-markdown",
-    "react-syntax-highlighter",
     "lucide-react",
-    "@tambo-ai/react"
+    "highlight.js",
+    "@tambo-ai/react",
+    "dompurify"
   ],
-  "devDependencies": ["@types/react-syntax-highlighter"],
+  "devDependencies": [],
   "requires": [],
   "files": [
     {
@@ -19,6 +20,10 @@
     {
       "name": "markdownComponents.tsx",
       "content": "src/registry/message/markdownComponents.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/registry/lib/thread-hooks.ts"
     }
   ]
 }
