@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.42.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.41.0...repo-v0.42.0) (2025-04-30)
+
+
+### Features
+
+* add StartPage redirect to CodeSandbox template ([#889](https://github.com/tambo-ai/tambo-cloud/issues/889)) ([65f27ca](https://github.com/tambo-ai/tambo-cloud/commit/65f27ca815ea7be44a89b1771dd549ee074166db))
+
+
+### Bug Fixes
+
+* show tool status indicator in smoketest ([#890](https://github.com/tambo-ai/tambo-cloud/issues/890)) ([6654e10](https://github.com/tambo-ai/tambo-cloud/commit/6654e1086a131e41c46a503b09c5c93e55263bc1))
+
 ## [0.41.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.40.0...repo-v0.41.0) (2025-04-29)
 
 
