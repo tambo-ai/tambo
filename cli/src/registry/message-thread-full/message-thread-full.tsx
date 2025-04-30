@@ -12,8 +12,7 @@ import {
   MessageSuggestionsStatus,
   MessageSuggestionsList,
 } from "@/components/ui/message-suggestions";
-import type {
-  messageVariants} from "@/components/ui/message";
+import type { messageVariants } from "@/components/ui/message";
 import {
   Message,
   MessageRenderedComponentArea,

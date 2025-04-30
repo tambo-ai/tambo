@@ -6,12 +6,11 @@ import { Dialog } from "radix-ui";
 import { useTambo } from "@tambo-ai/react";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
-import type {
-  messageVariants} from "@/components/ui/message";
+import type { messageVariants } from "@/components/ui/message";
 import {
   Message,
   MessageContent,
-  MessageRenderedComponentArea
+  MessageRenderedComponentArea,
 } from "@/components/ui/message";
 import {
   MessageInput,

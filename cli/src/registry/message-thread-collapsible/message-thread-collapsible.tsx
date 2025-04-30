@@ -12,12 +12,11 @@ import {
   MessageSuggestionsStatus,
   MessageSuggestionsList,
 } from "@/components/ui/message-suggestions";
-import type {
-  messageVariants} from "@/components/ui/message";
+import type { messageVariants } from "@/components/ui/message";
 import {
   Message,
   MessageContent,
-  MessageRenderedComponentArea
+  MessageRenderedComponentArea,
 } from "@/components/ui/message";
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
