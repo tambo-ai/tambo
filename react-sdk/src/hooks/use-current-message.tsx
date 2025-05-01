@@ -1,30 +1,35 @@
 import React, { createContext, PropsWithChildren, useContext } from "react";
 import { useTamboThread } from "../providers";
 
-const TamboMessageContext = createContext<{
-  threadId: string;
+interface TamboMessageContextProps {
+  /**
+   * The threadId of the thread
+   * @deprecated Use the thread object from the TamboThreadProvider instead
+   */
+  threadId?: string;
+  /** The messageId of the message */
   messageId: string;
-}>({} as { threadId: string; messageId: string });
+}
+
+const TamboMessageContext = createContext<TamboMessageContextProps>({
+  messageId: "",
+});
 
 /**
  * Wraps all components, so that they can find what thread and message they are in
  * @param props - props for the TamboMessageProvider
  * @param props.children - The children to wrap
- * @param props.threadId - The threadId of the thread
  * @param props.messageId - The messageId of the message
  * @returns The wrapped component
  */
 export const TamboMessageProvider: React.FC<
-  PropsWithChildren<{ threadId: string; messageId: string }>
-> = ({ children, threadId, messageId }) => {
+  PropsWithChildren<TamboMessageContextProps>
+> = ({ children, messageId }) => {
   // Use a unique key={...} to force a re-render when the messageId changes - this
   // make sure that if the rendered component is swapped into a tree (like if
   // you always show the last rendered component) then the state/etc is correct
   return (
-    <TamboMessageContext.Provider
-      value={{ threadId, messageId }}
-      key={`${threadId}-${messageId}`}
-    >
+    <TamboMessageContext.Provider value={{ messageId }} key={messageId}>
       {children}
     </TamboMessageContext.Provider>
   );
