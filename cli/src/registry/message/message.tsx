@@ -4,7 +4,7 @@ import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Check, Loader2 } from "lucide-react";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import { getSafeContent, checkHasContent } from "@/lib/thread-hooks";
@@ -128,6 +128,57 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
 Message.displayName = "Message";
 
 /**
+ * Loading indicator with bouncing dots animation
+ *
+ * A reusable component that displays three animated dots for loading states.
+ * Used in message content and tool status areas.
+ *
+ * @component
+ * @param {React.HTMLAttributes<HTMLDivElement>} props - Standard HTML div props
+ * @param {string} [props.className] - Optional CSS classes to apply
+ * @returns {JSX.Element} Animated loading indicator component
+ */
+const LoadingIndicator: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+  className,
+  ...props
+}) => {
+  return (
+    <div className={cn("flex items-center gap-1", className)} {...props}>
+      <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+      <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+      <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+    </div>
+  );
+};
+LoadingIndicator.displayName = "LoadingIndicator";
+
+/**
+ * Gets the appropriate status message for a tool call
+ *
+ * This function extracts and formats status messages for tool calls based on
+ * the current loading state and available status information.
+ *
+ * @param {TamboThreadMessage} message - The thread message object containing tool call data
+ * @param {boolean | undefined} isLoading - Whether the tool call is currently in progress
+ * @returns {string | null} The formatted status message or null if not a tool call
+ */
+function getToolStatusMessage(
+  message: TamboThreadMessage,
+  isLoading: boolean | undefined,
+) {
+  const isToolCall = message.actionType === "tool_call";
+  if (!isToolCall) return null;
+
+  const toolCallMessage = isLoading
+    ? `Calling ${message.toolCallRequest?.toolName ?? "tool"}`
+    : `Called ${message.toolCallRequest?.toolName ?? "tool"}`;
+  const toolStatusMessage = isLoading
+    ? message.component?.statusMessage
+    : message.component?.completionStatusMessage;
+  return toolStatusMessage ?? toolCallMessage;
+}
+
+/**
  * Props for the MessageContent component.
  * Extends standard HTMLDivElement attributes.
  */
@@ -161,6 +212,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     );
 
     const showLoading = isLoading && !hasContent;
+    const toolStatusMessage = getToolStatusMessage(message, isLoading);
 
     return (
       <div
@@ -174,12 +226,10 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       >
         {showLoading ? (
           <div
-            className="flex items-center justify-center gap-1 h-4 py-1"
+            className="flex items-center justify-center h-4 py-1"
             data-slot="message-loading-indicator"
           >
-            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-            <span className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+            <LoadingIndicator />
           </div>
         ) : (
           <div
@@ -199,6 +249,16 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : (
               safeContent
             )}
+          </div>
+        )}
+        {toolStatusMessage && (
+          <div className="flex items-center gap-2 text-xs opacity-50 mt-2">
+            {isLoading ? (
+              <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
+            ) : (
+              <Check className="w-3 h-3 text-bold text-green-500" />
+            )}
+            <span>{toolStatusMessage}</span>
           </div>
         )}
       </div>
@@ -294,4 +354,5 @@ export {
   Message,
   MessageContent,
   MessageRenderedComponentArea,
+  LoadingIndicator,
 };
