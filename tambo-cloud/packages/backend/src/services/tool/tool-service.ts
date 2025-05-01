@@ -7,27 +7,37 @@ import {
 } from "../../model/component-metadata";
 import { sanitizeJSONSchemaProperties } from "./json-schema";
 
+export interface TamboToolParameters {
+  _tambo_statusMessage: string;
+  _tambo_completionStatusMessage: string;
+  _tambo_displayMessage: string;
+}
+
 // Standard parameters to be added to all tools
 export const standardToolParameters: FunctionParameters = {
   type: "object",
   properties: {
-    statusMessage: {
+    _tambo_statusMessage: {
       type: "string",
       description:
-        "A message that will be displayed to the user to explain in a few words what the tool is being used for, starting with a verb. For example, 'looking for <something>' or 'creating <something>'.",
+        "A message that will be displayed to the user to explain in a few words what the tool doing, starting with a verb. For example, 'looking for <something>' or 'creating <something>'.",
     },
-    completionStatusMessage: {
+    _tambo_completionStatusMessage: {
       type: "string",
       description:
         "A message that will be displayed to the user to explain in a few words what the tool has done, to replace the statusMessage when the tool has completed its task. For example, 'looked for <something>' or 'created <something>'",
     },
-    displayMessage: {
+    _tambo_displayMessage: {
       type: "string",
       description:
         "A message to be displayed before the tool is called. This should be a natural language response to the previous message to describe what you are about to do. For example, `First, let me <do something>` or 'Great, I can see <something>, let me <do something>'. Get creative, this is what will make the user feel like they are having a conversation with you. You can and should use markdown formatting (code blocks with language specification, bold, lists) when showing examples or code.",
     },
   },
-  required: ["statusMessage", "displayMessage", "completionStatusMessage"],
+  required: [
+    "_tambo_statusMessage",
+    "_tambo_displayMessage",
+    "_tambo_completionStatusMessage",
+  ],
   additionalProperties: false,
 };
 
@@ -202,11 +212,11 @@ export function filterOutStandardToolParameters(
   if (!toolDef?.function.parameters?.properties) return undefined;
 
   // Get the defined parameter names from the tool's schema
-  const definedParams = Object.keys(toolDef.function.parameters.properties);
+  const definedParamNames = Object.keys(toolDef.function.parameters.properties);
 
   // Transform the tool args into array of {parameterName, parameterValue} objects
   return Object.entries(parsedArguments)
-    .filter(([key]) => definedParams.includes(key))
+    .filter(([name]) => definedParamNames.includes(name))
     .map(([parameterName, parameterValue]) => ({
       parameterName,
       parameterValue,
