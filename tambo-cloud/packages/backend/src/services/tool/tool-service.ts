@@ -5,6 +5,7 @@ import {
   AvailableComponent,
   ComponentContextToolMetadata,
 } from "../../model/component-metadata";
+import { sanitizeJSONSchemaProperties } from "./json-schema";
 
 // Standard parameters to be added to all tools
 export const standardToolParameters: FunctionParameters = {
@@ -39,6 +40,7 @@ export function convertMetadataToTools(
     function: {
       name: tool.name,
       description: tool.description,
+      strict: true,
       parameters: {
         type: "object",
         properties: {
@@ -87,24 +89,22 @@ export function convertComponentsToUITools(
   components: AvailableComponent[],
   toolNamePrefix: string = "show_component_",
 ): OpenAI.Chat.Completions.ChatCompletionTool[] {
-  return components.map((component) => ({
-    type: "function" as const,
-    function: {
-      name: `${toolNamePrefix}${component.name}`,
-      description: `Show the ${component.name} UI component the user. Here is a description of the component: ${component.description}`,
-      parameters: {
-        type: "object",
-        properties:
-          component.props &&
-          typeof component.props === "object" &&
-          "properties" in component.props
-            ? (component.props as JSONSchema7).properties
-            : component.props,
-        required: (component.props as JSONSchema7).required,
-        additionalProperties: false,
+  return components.map(
+    (component): OpenAI.Chat.Completions.ChatCompletionTool => ({
+      type: "function" as const,
+      function: {
+        name: `${toolNamePrefix}${component.name}`,
+        description: `Show the ${component.name} UI component the user. Here is a description of the component: ${component.description}`,
+        strict: true,
+        parameters: {
+          type: "object",
+          properties: getComponentProperties(component),
+          required: (component.props as JSONSchema7).required,
+          additionalProperties: false,
+        },
       },
-    },
-  }));
+    }),
+  );
 }
 
 export const displayMessageTool: OpenAI.Chat.Completions.ChatCompletionTool = {
@@ -113,6 +113,7 @@ export const displayMessageTool: OpenAI.Chat.Completions.ChatCompletionTool = {
     name: "showMessage_tambo_internal",
     description:
       "Display a message to the user. Use this when you just want to communicate something or ask for clarification without taking any other action. The message can and should include markdown formatting when appropriate (e.g., ```typescript code blocks, **bold text**, lists) - especially when showing code examples.",
+    strict: true,
     parameters: {
       type: "object",
       properties: {},
@@ -121,6 +122,30 @@ export const displayMessageTool: OpenAI.Chat.Completions.ChatCompletionTool = {
     },
   },
 };
+
+function getComponentProperties(component: AvailableComponent) {
+  if (
+    !component.props ||
+    typeof component.props !== "object" ||
+    !("properties" in component.props)
+  ) {
+    // we don't know what this is, return it as-is
+    console.warn("Unknown component prop format in ", component.name);
+    return component.props;
+  }
+  const componentProps = component.props as JSONSchema7;
+  const properties = componentProps.properties;
+
+  if (!properties) {
+    return {};
+  }
+  return sanitizeJSONSchemaProperties(
+    properties,
+    Array.isArray(componentProps.required)
+      ? componentProps.required
+      : Object.keys(properties),
+  );
+}
 
 export function addParametersToTools(
   tools: OpenAI.Chat.Completions.ChatCompletionTool[],

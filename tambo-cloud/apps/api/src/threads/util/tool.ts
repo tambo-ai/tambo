@@ -57,7 +57,6 @@ export async function callSystemTool(
           ? result.content
           : [];
 
-    console.log("MCP tool result", responseContent[0]);
     // TODO: handle cases where MCP server returns *only* resource types
     if (responseContent.length === 0) {
       throw new Error("No response content found");

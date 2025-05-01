@@ -16,6 +16,7 @@ const config: JestConfigWithTsJest = {
       },
     ],
   },
+  testPathIgnorePatterns: ["/node_modules/", "/dist/"],
 };
 
 export default config;

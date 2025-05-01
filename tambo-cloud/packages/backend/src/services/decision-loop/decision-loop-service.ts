@@ -67,7 +67,7 @@ export async function* runDecisionLoop(
 
   const responseStream = await llmClient.complete({
     messages: promptMessages,
-    tools: [...toolsWithStandardParameters, ...(systemTools?.tools ?? [])],
+    tools: toolsWithStandardParameters,
     promptTemplateName: "decision-loop",
     promptTemplateParams: {
       chat_history: chatHistory,
