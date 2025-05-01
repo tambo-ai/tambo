@@ -61,10 +61,11 @@ export function useTamboComponentState<S>(
   initialValue?: S,
   debounceTime = 500,
 ): StateUpdateResult<S> {
-  const { threadId, messageId } = useTamboMessageContext();
-  const { updateThreadMessage } = useTamboThread();
+  const { messageId } = useTamboMessageContext();
+  const { updateThreadMessage, thread } = useTamboThread();
   const client = useTamboClient();
   const message = useTamboCurrentMessage();
+  const threadId = thread.id;
 
   // Initial value management
   const [cachedInitialValue] = useState(() => initialValue);
