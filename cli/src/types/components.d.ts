@@ -333,3 +333,20 @@ declare module "@/lib/thread-hooks" {
     content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
   ): boolean;
 }
+
+declare module "@/components/ui/thread-container" {
+  export const ThreadContainer: React.ForwardRefExoticComponent<
+    ThreadContainerProps & React.RefAttributes<HTMLDivElement>
+  >;
+  export interface ThreadContainerProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    contextKey?: string;
+  }
+  export function useThreadContainerContext(): {
+    containerRef: React.RefObject<HTMLDivElement>;
+    hasCanvasSpace: boolean;
+    canvasIsOnLeft: boolean;
+    isLeftPanel: boolean;
+    historyPosition: "left" | "right";
+  };
+}
