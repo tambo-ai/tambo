@@ -21,6 +21,10 @@
     {
       "name": "lib/thread-hooks.ts",
       "content": "src/registry/lib/thread-hooks.ts"
+    },
+    {
+      "name": "thread-container.tsx",
+      "content": "src/registry/message-thread-full/thread-container.tsx"
     }
   ]
 }
