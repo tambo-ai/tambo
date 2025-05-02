@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.43.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.42.0...repo-v0.43.0) (2025-05-02)
+
+
+### Features
+
+* enable MCP for all projects ([#895](https://github.com/tambo-ai/tambo-cloud/issues/895)) ([9f30cf9](https://github.com/tambo-ai/tambo-cloud/commit/9f30cf92d5c12d7c93225cb23f8d5943998fab72))
+* make all tool calls strict, by transforming JSONSchema as appropriate ([#892](https://github.com/tambo-ai/tambo-cloud/issues/892)) ([d2f30a6](https://github.com/tambo-ai/tambo-cloud/commit/d2f30a6fc82698d0c062d834a1b0acbb69efdf1b))
+
+
+### Bug Fixes
+
+* prefix internal tool parameter names with "_tambo_" ([#894](https://github.com/tambo-ai/tambo-cloud/issues/894)) ([c94fe94](https://github.com/tambo-ai/tambo-cloud/commit/c94fe943680e2b51db0f55ffa36f1a0db3e5a2b1))
+
 ## [0.42.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.41.0...repo-v0.42.0) (2025-04-30)
 
 
