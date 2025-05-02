@@ -3,7 +3,6 @@ export interface ProjectResponseDto {
   id: string;
   name: string;
   userId: string;
-  mcpEnabled?: boolean;
   composioEnabled?: boolean;
 }
 

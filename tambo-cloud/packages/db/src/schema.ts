@@ -38,7 +38,8 @@ export const projects = pgTable(
       // Need to write raw `auth.uid()` becuse ${authUid} includes a select statement
       .default(sql`auth.uid()`),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-    mcpEnabled: boolean("mcp_enabled").default(false).notNull(),
+    /** @deprecated - everyone has mcp now */
+    deprecated_mcpEnabled: boolean("mcp_enabled").default(false).notNull(),
     composioEnabled: boolean("composio_enabled").default(false).notNull(),
   }),
   (table) => {

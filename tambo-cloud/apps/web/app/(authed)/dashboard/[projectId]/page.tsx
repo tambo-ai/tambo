@@ -137,7 +137,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </div>
         <div className="flex flex-col lg:flex-row gap-6">
           <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
-            {project.mcpEnabled && <AvailableMcpServers project={project} />}
+            <AvailableMcpServers project={project} />
           </motion.div>
           <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
             {project.composioEnabled && <AvailableTools project={project} />}

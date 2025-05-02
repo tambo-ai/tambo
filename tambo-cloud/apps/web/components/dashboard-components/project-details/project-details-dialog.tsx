@@ -84,7 +84,7 @@ export function ProjectDetailsDialog({
             <ProjectInfo project={project} />
             <ProviderKeySection project={project} />
             <APIKeyList project={project} />
-            {project.mcpEnabled && <AvailableMcpServers project={project} />}
+            <AvailableMcpServers project={project} />
             {project.composioEnabled && <AvailableTools project={project} />}
           </div>
         </div>

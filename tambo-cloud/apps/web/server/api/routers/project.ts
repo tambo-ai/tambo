@@ -12,7 +12,6 @@ export const projectRouter = createTRPCRouter({
       id: project.id,
       name: project.name,
       userId: userId,
-      mcpEnabled: project.mcpEnabled,
       composioEnabled: project.composioEnabled,
     }));
   }),
