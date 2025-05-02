@@ -290,7 +290,7 @@ function isZodSchema(obj: unknown): obj is ZodSchema {
 }
 
 /**
- * Fetches tools from MCP servers
+ * Fetches tools from each MCP server and maps them to Tambo tools
  * @param mcpServers - The MCP servers to fetch tools from.
  * @returns The tools fetched from the MCP servers mapped to Tambo tools
  */
@@ -299,10 +299,9 @@ async function fetchToolsFromMCPServers(
 ): Promise<TamboTool[]> {
   const tools = await Promise.all(
     mcpServers.map(async (mcpServer) => {
-      const mcpTools = await fetch(`${mcpServer}/tools`).then(async (res) =>
-        await res.json(),
-      );
-      return mapMcpToolsToTamboTools(mcpTools, mcpServer);
+      const mcpToolsResponse = await fetch(mcpServer);
+      const mcpToolsJson = await mcpToolsResponse.json();
+      return mapMcpToolsToTamboTools(mcpToolsJson.tools, mcpServer);
     }),
   );
   return tools.flat();
