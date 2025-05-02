@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { ZodSchema } from "zod";
+import { z, ZodSchema } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentRegistry,
@@ -23,6 +23,15 @@ export interface TamboRegistryContext {
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
+}
+
+interface MCPTool {
+  name: string;
+  description: string;
+  inputSchema?: {
+    properties?: Record<string, unknown>;
+    required?: string[];
+  };
 }
 
 const TamboRegistryContext = createContext<TamboRegistryContext>({
@@ -52,6 +61,8 @@ export interface TamboRegistryProviderProps {
   components?: TamboComponent[];
   /** The tools to register */
   tools?: TamboTool[];
+  /** The MCP servers to fetch tools from */
+  mcpServers?: string[];
 }
 
 /**
@@ -61,11 +72,17 @@ export interface TamboRegistryProviderProps {
  * @param props.children - The children to wrap
  * @param props.components - The components to register
  * @param props.tools - The tools to register
+ * @param props.mcpServers - MCP servers to fetch tools from
  * @returns The TamboRegistryProvider component
  */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>
-> = ({ children, components: userComponents, tools: userTools }) => {
+> = ({
+  children,
+  components: userComponents,
+  tools: userTools,
+  mcpServers,
+}) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
   const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
     {},
@@ -178,6 +195,14 @@ export const TamboRegistryProvider: React.FC<
     }
   }, [registerTools, userTools]);
 
+  useEffect(() => {
+    if (mcpServers) {
+      fetchToolsFromMCPServers(mcpServers).then((tools) => {
+        registerTools(tools, false);
+      });
+    }
+  }, [mcpServers, registerTools]);
+
   const value = {
     componentList,
     toolRegistry,
@@ -262,4 +287,79 @@ function isZodSchema(obj: unknown): obj is ZodSchema {
     typeof (obj as any).safeParse === "function" &&
     typeof (obj as any)._def === "object"
   );
+}
+
+/**
+ * Fetches tools from MCP servers
+ * @param mcpServers - The MCP servers to fetch tools from.
+ * @returns The tools fetched from the MCP servers mapped to Tambo tools
+ */
+async function fetchToolsFromMCPServers(
+  mcpServers: string[],
+): Promise<TamboTool[]> {
+  const tools = await Promise.all(
+    mcpServers.map(async (mcpServer) => {
+      const mcpTools = await fetch(`${mcpServer}/tools`).then(async (res) =>
+        await res.json(),
+      );
+      return mapMcpToolsToTamboTools(mcpTools, mcpServer);
+    }),
+  );
+  return tools.flat();
+}
+
+/**
+ * Maps MCP tools to Tambo tools
+ * @param mcpTools - The MCP tools to map
+ * @param mcpServerUrl - The URL of the MCP server
+ * @returns The Tambo tools
+ */
+function mapMcpToolsToTamboTools(
+  mcpTools: any[],
+  mcpServerUrl: string,
+): TamboTool[] {
+  return mcpTools.map((tool: MCPTool) => ({
+    name: tool.name,
+    description: tool.description,
+    tool: async (args: Record<string, unknown>) => {
+      try {
+        const response = await fetch(mcpServerUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tool: tool.name,
+            args,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to execute tool ${tool.name}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error(`Error executing tool ${tool.name}:`, error);
+        throw error;
+      }
+    },
+    toolSchema: z
+      .function()
+      .args(
+        tool.inputSchema
+          ? z.object(
+              Object.fromEntries(
+                Object.entries(tool.inputSchema.properties ?? {}).map(
+                  ([key]) => [
+                    key,
+                    tool.inputSchema?.required?.includes(key)
+                      ? z.any()
+                      : z.any().optional(),
+                  ],
+                ),
+              ),
+            )
+          : z.object({}),
+      )
+      .returns(z.any()),
+  }));
 }

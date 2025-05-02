@@ -32,11 +32,20 @@ import {
  * @param props.components - The components to register
  * @param props.environment - The environment to use for the Tambo API
  * @param props.tools - The tools to register
+ * @param props.mcpServers - MCP servers to fetch tools from
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps & TamboRegistryProviderProps>
-> = ({ children, tamboUrl, apiKey, components, environment, tools }) => {
+> = ({
+  children,
+  tamboUrl,
+  apiKey,
+  components,
+  environment,
+  tools,
+  mcpServers,
+}) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
     console.error("TamboProvider must be used within a browser");
@@ -48,7 +57,11 @@ export const TamboProvider: React.FC<
       apiKey={apiKey}
       environment={environment}
     >
-      <TamboRegistryProvider components={components} tools={tools}>
+      <TamboRegistryProvider
+        components={components}
+        tools={tools}
+        mcpServers={mcpServers}
+      >
         <TamboThreadProvider>
           <TamboComponentProvider>
             <TamboCompositeProvider>{children}</TamboCompositeProvider>
