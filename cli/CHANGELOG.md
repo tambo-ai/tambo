@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.5.1...tambo-v0.6.0) (2025-05-01)
+
+
+### Features
+
+* **UI:** add loading indicator and tool status messages to message component ([#361](https://github.com/tambo-ai/tambo/issues/361)) ([54bf5fb](https://github.com/tambo-ai/tambo/commit/54bf5fb11a61ab33d2f2aec29c31bfdc3b0a2ffe))
+
 ## [0.5.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.5.0...tambo-v0.5.1) (2025-04-30)
 
 
