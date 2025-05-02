@@ -314,7 +314,7 @@ async function fetchToolsFromMCPServers(
  * @returns The Tambo tools
  */
 function mapMcpToolsToTamboTools(
-  mcpTools: any[],
+  mcpTools: MCPTool[],
   mcpServerUrl: string,
 ): TamboTool[] {
   return mcpTools.map((tool: MCPTool) => ({
