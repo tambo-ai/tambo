@@ -109,7 +109,9 @@ export function convertComponentsToUITools(
         parameters: {
           type: "object",
           properties: getComponentProperties(component),
-          required: (component.props as JSONSchema7).required,
+          required: Object.keys(
+            (component.props as JSONSchema7).properties ?? {},
+          ),
           additionalProperties: false,
         },
       },

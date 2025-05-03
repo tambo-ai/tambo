@@ -6,16 +6,14 @@ import { useTamboComponentState } from "@tambo-ai/react";
 import { ReactNode } from "react";
 
 interface AirQualityProps {
-  readonly data?: {
-    aqi?: number;
-    pm2_5?: number;
-    pm10?: number;
-    o3?: number;
-    no2?: number;
-  };
+  aqi?: number;
+  pm2_5?: number;
+  pm10?: number;
+  o3?: number;
+  no2?: number;
 }
 
-export const AirQuality = ({ data }: AirQualityProps): ReactNode => {
+export const AirQuality = (data: AirQualityProps): ReactNode => {
   const getAqiLevel = (aqi: number) => {
     if (aqi <= 50) return "Good";
     if (aqi <= 100) return "Moderate";
