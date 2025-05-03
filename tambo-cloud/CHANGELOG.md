@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.44.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.43.0...repo-v0.44.0) (2025-05-03)
+
+
+### Features
+
+* support streamable http for mcp servers ([#896](https://github.com/tambo-ai/tambo-cloud/issues/896)) ([063f5b5](https://github.com/tambo-ai/tambo-cloud/commit/063f5b517910738fff77978f7ee34c10e359a2b1))
+
+
+### Bug Fixes
+
+* drop more props for schema sanitization ([#898](https://github.com/tambo-ai/tambo-cloud/issues/898)) ([17a280e](https://github.com/tambo-ai/tambo-cloud/commit/17a280eb6b76eac44f63385942df65879c1622eb))
+
 ## [0.43.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.42.0...repo-v0.43.0) (2025-05-02)
 
 
