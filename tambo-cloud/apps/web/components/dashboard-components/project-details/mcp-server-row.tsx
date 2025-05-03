@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
+import { MCPTransport } from "@tambo-ai-cloud/core";
 import { Loader2, Pencil, Save, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -9,6 +10,7 @@ interface McpServerRowProps {
     id: string;
     url: string | null;
     customHeaders: Record<string, string>;
+    mcpTransport?: MCPTransport;
   };
   projectId: string;
   onRefresh: () => Promise<void>;
@@ -24,6 +26,9 @@ export function McpServerRow({
   onCancel,
 }: McpServerRowProps) {
   const [isEditing, setIsEditing] = useState(isNew);
+  const [mcpTransport, setMcpTransport] = useState<MCPTransport>(
+    server.mcpTransport || MCPTransport.SSE,
+  );
   const [url, setUrl] = useState(server.url || (isNew ? "https://" : ""));
   const firstHeaderKey = Object.keys(server.customHeaders)[0];
   const [headerName, setHeaderName] = useState(firstHeaderKey || "");
@@ -32,6 +37,12 @@ export function McpServerRow({
   );
   const [isHeaderValueFocused, setIsHeaderValueFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Dynamic IDs based on server ID
+  const urlInputId = `mcp-url-${server.id}`;
+  const transportId = `mcp-transport-${server.id}`;
+  const headerNameId = `header-name-${server.id}`;
+  const headerValueId = `header-value-${server.id}`;
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -105,6 +116,7 @@ export function McpServerRow({
         projectId,
         url: trimmedUrl,
         customHeaders,
+        mcpTransport,
       });
     } else {
       await updateServer({
@@ -112,6 +124,7 @@ export function McpServerRow({
         serverId: server.id,
         url: trimmedUrl,
         customHeaders,
+        mcpTransport,
       });
     }
   };
@@ -138,10 +151,14 @@ export function McpServerRow({
       : error?.message || (error && "An error occurred");
 
   return (
-    <div className="space-y-2 bg-muted/50 p-2 rounded-md">
-      <div className="space-y-1 ">
-        <div className="flex items-center gap-2 ">
+    <div className="flex flex-col gap-2 bg-muted/50 p-2 rounded-md">
+      <div className="flex flex-col gap-1">
+        <label htmlFor={urlInputId} className="block text-sm font-medium">
+          MCP Server URL
+        </label>
+        <div className="flex items-center gap-2">
           <Input
+            id={urlInputId}
             ref={inputRef}
             value={url}
             disabled={!isEditing}
@@ -197,25 +214,47 @@ export function McpServerRow({
           <p className="text-sm text-destructive px-2">{errorMessage}</p>
         )}
       </div>
-
-      <div className="flex gap-2">
-        <Input
-          value={headerName}
-          onChange={(e) => setHeaderName(e.target.value)}
-          placeholder="Optional header name (e.g. Authorization)"
-          className="flex-[2]"
+      <div>
+        <label htmlFor={transportId} className="block text-sm font-medium">
+          MCP Server Type
+        </label>
+        <select
+          id={transportId}
+          name="mcpTransport"
+          className="block w-full border rounded px-2 py-1 font-sans"
+          value={mcpTransport}
+          onChange={(e) => setMcpTransport(e.target.value as MCPTransport)}
           disabled={!isEditing}
-        />
-        <Input
-          type={isHeaderValueFocused ? "text" : "password"}
-          value={headerValue}
-          onChange={(e) => setHeaderValue(e.target.value)}
-          onFocus={() => setIsHeaderValueFocused(true)}
-          onBlur={() => setIsHeaderValueFocused(false)}
-          placeholder="Header value"
-          className="flex-[5]"
-          disabled={!isEditing || !headerName.trim()}
-        />
+        >
+          <option value={MCPTransport.SSE}>SSE</option>
+          <option value={MCPTransport.HTTP}>HTTP Streamable</option>
+        </select>
+      </div>
+      <div>
+        <label htmlFor={headerNameId} className="block text-sm font-medium">
+          Custom Header
+        </label>
+        <div className="flex gap-2">
+          <Input
+            id={headerNameId}
+            value={headerName}
+            onChange={(e) => setHeaderName(e.target.value)}
+            placeholder="Optional header name (e.g. Authorization)"
+            className="flex-[2]"
+            disabled={!isEditing}
+          />
+          <Input
+            id={headerValueId}
+            type={isHeaderValueFocused ? "text" : "password"}
+            value={headerValue}
+            onChange={(e) => setHeaderValue(e.target.value)}
+            onFocus={() => setIsHeaderValueFocused(true)}
+            onBlur={() => setIsHeaderValueFocused(false)}
+            placeholder="Header value"
+            className="flex-[5]"
+            disabled={!isEditing || !headerName.trim()}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
+import { MCPClient } from "@tambo-ai-cloud/core";
 import { OpenAIToolSet } from "composio-core";
 import OpenAI from "openai";
-import { MCPClient } from "./MCPClient";
 
 export interface SystemTools {
   tools: OpenAI.Chat.Completions.ChatCompletionTool[];

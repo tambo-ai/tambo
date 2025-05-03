@@ -1,8 +1,8 @@
 import {
-  MCPClient,
   sanitizeJSONSchemaProperties,
   SystemTools,
 } from "@tambo-ai-cloud/backend";
+import { MCPClient } from "@tambo-ai-cloud/core";
 import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { OpenAIToolSet } from "composio-core";
 import OpenAI from "openai";
@@ -63,7 +63,11 @@ async function getMcpTools(
       | Record<string, string>
       | undefined;
 
-    const mcpClient = await MCPClient.create(mcpServer.url, customHeaders);
+    const mcpClient = await MCPClient.create(
+      mcpServer.url,
+      mcpServer.mcpTransport,
+      customHeaders,
+    );
     const tools = await mcpClient.listTools();
     mcpTools.push(
       ...tools.map((tool): OpenAI.Chat.Completions.ChatCompletionTool => {

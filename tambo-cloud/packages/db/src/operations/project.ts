@@ -3,6 +3,7 @@ import {
   encryptProviderKey,
   hashKey,
   hideApiKey,
+  MCPTransport,
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
 import { createHash, randomBytes } from "crypto";
@@ -341,7 +342,8 @@ export async function createMcpServer(
   db: HydraDb,
   projectId: string,
   url: string,
-  customHeaders?: Record<string, string>,
+  customHeaders: Record<string, string> | undefined,
+  mcpTransport: MCPTransport,
 ) {
   const [server] = await db
     .insert(schema.toolProviders)
@@ -350,6 +352,7 @@ export async function createMcpServer(
       type: ToolProviderType.MCP,
       url,
       customHeaders: customHeaders || {},
+      mcpTransport,
     })
     .returning({
       id: schema.toolProviders.id,
@@ -357,6 +360,7 @@ export async function createMcpServer(
       type: schema.toolProviders.type,
       url: schema.toolProviders.url,
       customHeaders: schema.toolProviders.customHeaders,
+      mcpTransport: schema.toolProviders.mcpTransport,
     });
 
   return server;
@@ -382,13 +386,15 @@ export async function updateMcpServer(
   projectId: string,
   serverId: string,
   url: string,
-  customHeaders?: Record<string, string>,
+  customHeaders: Record<string, string> | undefined,
+  mcpTransport: MCPTransport,
 ) {
   const [server] = await db
     .update(schema.toolProviders)
     .set({
       url,
       customHeaders: customHeaders || {},
+      mcpTransport,
       updatedAt: new Date(),
     })
     .where(
@@ -403,6 +409,7 @@ export async function updateMcpServer(
       type: schema.toolProviders.type,
       url: schema.toolProviders.url,
       customHeaders: schema.toolProviders.customHeaders,
+      mcpTransport: schema.toolProviders.mcpTransport,
     });
 
   return server;

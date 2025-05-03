@@ -12,9 +12,9 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^20.17.32",
     "@tambo-ai-cloud/eslint-config": "*",
-    "@tambo-ai-cloud/typescript-config": "*"
+    "@tambo-ai-cloud/typescript-config": "*",
+    "@types/node": "^20.17.32"
   },
   "engines": {
     "node": ">=20",
@@ -22,5 +22,8 @@
   },
   "volta": {
     "extends": "../../package.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.0"
   }
 }

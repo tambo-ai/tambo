@@ -1,4 +1,3 @@
-export * from "./MCPClient";
 export * from "./model";
 export * from "./services/suggestion/suggestion.types";
 export * from "./services/tool/json-schema";

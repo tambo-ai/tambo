@@ -4,6 +4,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   ComposioAuthMode,
   ComposioConnectorConfig,
+  MCPTransport,
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
 import { operations, schema } from "@tambo-ai-cloud/db";
@@ -95,6 +96,7 @@ export const toolsRouter = createTRPCRouter({
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
         customHeaders: customHeadersSchema,
+        mcpTransport: z.nativeEnum(MCPTransport),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -104,7 +106,7 @@ export const toolsRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
-      const { projectId, url, customHeaders } = input;
+      const { projectId, url, customHeaders, mcpTransport } = input;
       const parsedUrl = new URL(url);
 
       // Perform additional safety checks
@@ -121,6 +123,7 @@ export const toolsRouter = createTRPCRouter({
         projectId,
         url,
         customHeaders,
+        mcpTransport,
       );
       return server;
     }),
@@ -150,6 +153,7 @@ export const toolsRouter = createTRPCRouter({
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
         customHeaders: customHeadersSchema,
+        mcpTransport: z.nativeEnum(MCPTransport),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -159,13 +163,14 @@ export const toolsRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
-      const { projectId, serverId, url, customHeaders } = input;
+      const { projectId, serverId, url, customHeaders, mcpTransport } = input;
       const server = await operations.updateMcpServer(
         ctx.db,
         projectId,
         serverId,
         url,
         customHeaders,
+        mcpTransport,
       );
       return server;
     }),

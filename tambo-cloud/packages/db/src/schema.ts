@@ -4,6 +4,7 @@ import {
   ComponentDecisionV2,
   ComposioAuthMode,
   GenerationStage,
+  MCPTransport,
   MessageRole,
   ToolCallRequest,
   ToolProviderType,
@@ -367,6 +368,11 @@ export const toolProviders = pgTable(
     customHeaders: customJsonb<Record<string, string>>("custom_headers")
       .notNull()
       .default({}),
+    mcpTransport: text("mcp_transport", {
+      enum: Object.values(MCPTransport) as [MCPTransport],
+    })
+      .notNull()
+      .default(MCPTransport.SSE),
   }),
 );
 

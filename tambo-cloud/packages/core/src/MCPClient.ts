@@ -1,7 +1,12 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { JSONSchema7 } from "json-schema";
 
+export enum MCPTransport {
+  SSE = "sse",
+  HTTP = "http",
+}
 /**
  * A client for interacting with MCP (Model Context Protocol) servers.
  * Provides a simple interface for listing and calling tools exposed by the server.
@@ -15,17 +20,27 @@ import { JSONSchema7 } from "json-schema";
  */
 export class MCPClient {
   private client: Client;
-  private transport: SSEClientTransport;
+  private transport: SSEClientTransport | StreamableHTTPClientTransport;
 
   /**
    * Private constructor to enforce using the static create method.
    * @param endpoint - The URL of the MCP server to connect to
    * @param headers - Optional custom headers to include in requests
    */
-  private constructor(endpoint: string, headers?: Record<string, string>) {
-    this.transport = new SSEClientTransport(new URL(endpoint), {
-      requestInit: { headers },
-    });
+  private constructor(
+    endpoint: string,
+    transport: MCPTransport,
+    headers?: Record<string, string>,
+  ) {
+    if (transport === MCPTransport.SSE) {
+      this.transport = new SSEClientTransport(new URL(endpoint), {
+        requestInit: { headers },
+      });
+    } else {
+      this.transport = new StreamableHTTPClientTransport(new URL(endpoint), {
+        requestInit: { headers },
+      });
+    }
     this.client = new Client({
       name: "tambo-mcp-client",
       version: "1.0.0",
@@ -44,9 +59,10 @@ export class MCPClient {
    */
   static async create(
     endpoint: string,
+    transport: MCPTransport = MCPTransport.HTTP,
     headers?: Record<string, string>,
   ): Promise<MCPClient> {
-    const mcpClient = new MCPClient(endpoint, headers);
+    const mcpClient = new MCPClient(endpoint, transport, headers);
     await mcpClient.client.connect(mcpClient.transport);
     return mcpClient;
   }
@@ -111,7 +127,7 @@ export class MCPClient {
 
 // Example usage:
 /*
-const mcp = await MCPClient.create('https://api.example.com/mcp');
+const mcp = await MCPClient.create('https://api.example.com/mcp', MCPTransport.HTTP);
 const tools = await mcp.listTools();
 const result = await mcp.callTool('toolName', { arg1: 'value1' });
 */

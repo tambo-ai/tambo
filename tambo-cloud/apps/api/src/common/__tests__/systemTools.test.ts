@@ -1,6 +1,10 @@
 import { jest } from "@jest/globals";
-import { MCPClient, MCPToolSpec } from "@tambo-ai-cloud/backend";
-import { ToolProviderType } from "@tambo-ai-cloud/core";
+import {
+  MCPClient,
+  MCPToolSpec,
+  MCPTransport,
+  ToolProviderType,
+} from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";
 import { Composio, OpenAIToolSet } from "composio-core";
 import { JSONSchema7 } from "json-schema";
@@ -19,11 +23,10 @@ jest.mock("@tambo-ai-cloud/db", () => {
     getDb: jest.fn(),
   };
 });
-
-jest.mock("@tambo-ai-cloud/backend", () => {
-  const backendModule = jest.requireActual("@tambo-ai-cloud/backend");
+jest.mock("@tambo-ai-cloud/core", () => {
+  const coreModule = jest.requireActual("@tambo-ai-cloud/core");
   return {
-    ...(backendModule as any),
+    ...(coreModule as any),
     MCPClient: {
       create: jest.fn(),
     },
@@ -149,6 +152,7 @@ describe("getSystemTools", () => {
         type: ToolProviderType.MCP,
         updatedAt: new Date(),
         url: "http://mcp1.example.com",
+        mcpTransport: MCPTransport.HTTP,
       },
     ]);
 
@@ -208,6 +212,7 @@ describe("getSystemTools", () => {
         type: ToolProviderType.COMPOSIO,
         updatedAt: new Date(),
         url: null,
+        mcpTransport: MCPTransport.HTTP,
       },
     ]);
 
