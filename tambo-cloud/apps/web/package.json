@@ -36,7 +36,7 @@
     "@splinetool/runtime": "^1.9.89",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
-    "@t3-oss/env-nextjs": "^0.13.0",
+    "@t3-oss/env-nextjs": "^0.13.4",
     "@tambo-ai-cloud/db": "*",
     "@tambo-ai/react": "^0.21.4",
     "@tanstack/react-query": "^5.75.2",
