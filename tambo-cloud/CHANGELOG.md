@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.44.1...repo-v0.45.0) (2025-05-05)
+
+
+### Features
+
+* add custom instructions editor ([#920](https://github.com/tambo-ai/tambo-cloud/issues/920)) ([fe90bca](https://github.com/tambo-ai/tambo-cloud/commit/fe90bcad076194d3478a99ed14cd21155e7a53c5))
+
 ## [0.44.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.44.0...repo-v0.44.1) (2025-05-05)
 
 
