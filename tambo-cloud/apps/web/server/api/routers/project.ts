@@ -13,6 +13,7 @@ export const projectRouter = createTRPCRouter({
       name: project.name,
       userId: userId,
       composioEnabled: project.composioEnabled,
+      customInstructions: project.customInstructions,
     }));
   }),
 
@@ -23,6 +24,41 @@ export const projectRouter = createTRPCRouter({
         name: input,
         userId: ctx.session.user.id,
       });
+    }),
+
+  updateProject: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        name: z.string().optional(),
+        customInstructions: z.string().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { projectId, name, customInstructions } = input;
+      await operations.ensureProjectAccess(
+        ctx.db,
+        projectId,
+        ctx.session.user.id,
+      );
+
+      const updatedProject = await operations.updateProject(ctx.db, projectId, {
+        name,
+        customInstructions:
+          customInstructions === null ? "" : customInstructions,
+      });
+
+      if (!updatedProject) {
+        throw new Error("Failed to update project");
+      }
+
+      return {
+        id: updatedProject.id,
+        name: updatedProject.name,
+        userId: ctx.session.user.id,
+        customInstructions: updatedProject.customInstructions,
+        composioEnabled: updatedProject.composioEnabled,
+      };
     }),
 
   removeProject: protectedProcedure

@@ -90,11 +90,23 @@ export async function getProjectWithKeys(db: HydraDb, id: string) {
 export async function updateProject(
   db: HydraDb,
   id: string,
-  { name }: { name: string },
+  { name, customInstructions }: { name?: string; customInstructions?: string },
 ) {
+  // Create update object with only provided fields
+  const updateData: Partial<typeof schema.projects.$inferInsert> = {};
+  if (name !== undefined) updateData.name = name;
+  if (customInstructions !== undefined)
+    updateData.customInstructions = customInstructions;
+
+  // Only perform update if there are fields to update
+  if (Object.keys(updateData).length === 0) {
+    const project = await getProject(db, id);
+    return project;
+  }
+
   const updated = await db
     .update(schema.projects)
-    .set({ name })
+    .set(updateData)
     .where(eq(schema.projects.id, id))
     .returning();
   return updated.length > 0 ? updated[0] : undefined;

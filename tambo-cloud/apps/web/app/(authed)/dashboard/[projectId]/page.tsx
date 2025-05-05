@@ -3,6 +3,7 @@
 import { APIKeyList } from "@/components/dashboard-components/project-details/api-key-list";
 import { AvailableMcpServers } from "@/components/dashboard-components/project-details/available-mcp-servers";
 import { AvailableTools } from "@/components/dashboard-components/project-details/available-tools";
+import { CustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
 import { DeleteAlertDialog } from "@/components/dashboard-components/project-details/delete-alert-dialog";
 import { ProjectInfo } from "@/components/dashboard-components/project-details/project-info";
 import { ProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
@@ -13,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { AlertTriangle, Trash2 } from "lucide-react";
-import { use, useState } from "react";
+import { use, useCallback, useState } from "react";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -59,13 +60,20 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   });
 
   // Fetch project details
-  const { data: project, isLoading: isLoadingProject } =
-    api.project.getUserProjects.useQuery(undefined, {
-      select: (projects) => projects.find((p) => p.id === projectId),
-    });
+  const {
+    data: project,
+    isLoading: isLoadingProject,
+    refetch,
+  } = api.project.getUserProjects.useQuery(undefined, {
+    select: (projects) => projects.find((p) => p.id === projectId),
+  });
 
   const { mutateAsync: deleteProject, isPending: isDeleting } =
     api.project.removeProject.useMutation();
+
+  const handleRefreshProject = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const handleDeleteProject = async () => {
     try {
@@ -126,20 +134,23 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           />
         </motion.div>
 
-        {/* Flex container for side-by-side layout */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div variants={itemVariants}>
             <ProviderKeySection project={project} />
           </motion.div>
-          <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
+          <motion.div variants={itemVariants}>
             <APIKeyList project={project} />
           </motion.div>
-        </div>
-        <div className="flex flex-col lg:flex-row gap-6">
-          <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
+          <motion.div variants={itemVariants}>
+            <CustomInstructionsEditor
+              project={project}
+              onEdited={handleRefreshProject}
+            />
+          </motion.div>
+          <motion.div variants={itemVariants}>
             <AvailableMcpServers project={project} />
           </motion.div>
-          <motion.div className="w-full lg:w-1/2" variants={itemVariants}>
+          <motion.div variants={itemVariants}>
             {project.composioEnabled && <AvailableTools project={project} />}
           </motion.div>
         </div>

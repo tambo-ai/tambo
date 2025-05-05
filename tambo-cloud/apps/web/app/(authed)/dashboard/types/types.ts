@@ -4,6 +4,7 @@ export interface ProjectResponseDto {
   name: string;
   userId: string;
   composioEnabled?: boolean;
+  customInstructions?: string | null;
 }
 
 export interface ProjectDto {
@@ -15,6 +16,7 @@ export interface Project {
   id: string;
   name: string;
   userId: string;
+  customInstructions?: string | null;
   apiKeys: APIKeyResponseDto[];
   providerKeys: ProviderKeyResponseDto[];
 }

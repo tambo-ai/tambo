@@ -42,6 +42,8 @@ export const projects = pgTable(
     /** @deprecated - everyone has mcp now */
     deprecated_mcpEnabled: boolean("mcp_enabled").default(false).notNull(),
     composioEnabled: boolean("composio_enabled").default(false).notNull(),
+    /** Additional instructions that are injected into the system prompt */
+    customInstructions: text("custom_instructions"),
   }),
   (table) => {
     return [
