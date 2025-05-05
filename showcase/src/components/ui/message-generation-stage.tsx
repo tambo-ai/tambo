@@ -1,9 +1,15 @@
 "use client";
 
+import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useTambo } from "@tambo-ai/react";
 import { Loader2Icon } from "lucide-react";
-import * as React from "react";
+
+/**
+ * Represents the generation stage of a message
+ * @property {string} className - Optional className for custom styling
+ * @property {boolean} showLabel - Whether to show the label
+ */
 
 export interface GenerationStageProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -40,7 +46,7 @@ export function MessageGenerationStage({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 px-2 py-1 text-xs rounded-md bg-muted/30 text-muted-foreground",
+        "inline-flex items-center gap-2 px-2 py-1 text-xs rounded-md bg-background text-muted-foreground",
         className,
       )}
       {...props}

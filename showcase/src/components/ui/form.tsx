@@ -1,5 +1,9 @@
+"use client";
+
 import { cn } from "@/lib/utils";
-import { cva, VariantProps } from "class-variance-authority";
+import { useTambo } from "@tambo-ai/react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2Icon } from "lucide-react";
 import * as React from "react";
 
 const formVariants = cva("w-full rounded-lg transition-all duration-200", {
@@ -26,26 +30,97 @@ const formVariants = cva("w-full rounded-lg transition-all duration-200", {
   },
 });
 
+/**
+ * Represents a field in a form component
+ * @property {string} id - Unique identifier for the field
+ * @property {'text' | 'number' | 'select' | 'textarea'} type - Type of form field
+ * @property {string} label - Display label for the field
+ * @property {string} [placeholder] - Optional placeholder text
+ * @property {string[]} [options] - Options for select fields
+ * @property {boolean} [required] - Whether the field is required
+ * @property {string} [description] - Additional description text for the field
+ */
 export interface FormField {
+  /**
+   * The unique identifier for the field
+   */
   id: string;
+  /**
+   * The type of form field
+   */
   type: "text" | "number" | "select" | "textarea";
+  /**
+   * The display label for the field
+   */
   label: string;
+  /**
+   * The placeholder text for the field
+   */
   placeholder?: string;
+  /**
+   * The options for select fields
+   */
   options?: string[];
+  /**
+   * Whether the field is required
+   */
   required?: boolean;
+  /**
+   * The description text for the field
+   */
   description?: string;
 }
 
+/**
+ * Props for the Form component
+ * @interface
+ */
 export interface FormProps
   extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">,
     VariantProps<typeof formVariants> {
+  /** Array of form fields to display */
   fields: FormField[];
+  /** Callback function called when the form is submitted */
   onSubmit: (data: Record<string, string>) => void;
+  /** Optional error message to display */
   onError?: string;
+  /** Text to display on the submit button (default: "Submit") */
   submitText?: string;
+  /** Text to display as the status message while generating/updating */
+  _tambo_statusMessage?: string;
+  /** Text to display as the completion status message */
+  _tambo_completionStatusMessage?: string;
+  /** Whether to display the status and completion messages (default: true) */
+  _tambo_displayMessage?: boolean;
 }
 
-const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
+/**
+ * A flexible form component that supports various field types and layouts
+ * @component
+ * @example
+ * ```tsx
+ * <Form
+ *   fields={[
+ *     {
+ *       id: "name",
+ *       type: "text",
+ *       label: "Name",
+ *       required: true
+ *     },
+ *     {
+ *       id: "age",
+ *       type: "number",
+ *       label: "Age"
+ *     }
+ *   ]}
+ *   onSubmit={(data) => console.log(data)}
+ *   variant="solid"
+ *   layout="compact"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
   (
     {
       className,
@@ -55,10 +130,20 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       onSubmit,
       onError,
       submitText = "Submit",
+      _tambo_statusMessage,
+      _tambo_completionStatusMessage,
+      _tambo_displayMessage = true,
       ...props
     },
     ref,
   ) => {
+    const { thread } = useTambo();
+    const generationStage = thread?.generationStage;
+    const isGenerating =
+      generationStage &&
+      generationStage !== "COMPLETE" &&
+      generationStage !== "ERROR";
+
     const validFields = React.useMemo(() => {
       return fields.filter((field): field is FormField => {
         if (!field || typeof field !== "object") {
@@ -117,6 +202,15 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
         {...props}
       >
         <div className="p-6 space-y-6">
+          {isGenerating && _tambo_displayMessage && (
+            <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted/50 border border-border text-muted-foreground">
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+              <span className="text-sm">
+                {_tambo_statusMessage || "Updating form..."}
+              </span>
+            </div>
+          )}
+
           {onError && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
               <p className="text-sm text-red-600 dark:text-red-400">
@@ -289,6 +383,7 @@ const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     );
   },
 );
-FormComponent.displayName = "FormComponent";
 
-export { FormComponent, formVariants };
+FormComponent.displayName = "Form";
+
+export { formVariants };

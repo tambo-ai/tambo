@@ -1,7 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useTambo } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2Icon } from "lucide-react";
 import * as React from "react";
 
 const formVariants = cva("w-full rounded-lg transition-all duration-200", {
@@ -84,6 +86,12 @@ export interface FormProps
   onError?: string;
   /** Text to display on the submit button (default: "Submit") */
   submitText?: string;
+  /** Text to display as the status message while generating/updating */
+  _tambo_statusMessage?: string;
+  /** Text to display as the completion status message */
+  _tambo_completionStatusMessage?: string;
+  /** Whether to display the status and completion messages (default: true) */
+  _tambo_displayMessage?: boolean;
 }
 
 /**
@@ -122,10 +130,20 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       onSubmit,
       onError,
       submitText = "Submit",
+      _tambo_statusMessage,
+      _tambo_completionStatusMessage,
+      _tambo_displayMessage = true,
       ...props
     },
     ref,
   ) => {
+    const { thread } = useTambo();
+    const generationStage = thread?.generationStage;
+    const isGenerating =
+      generationStage &&
+      generationStage !== "COMPLETE" &&
+      generationStage !== "ERROR";
+
     const validFields = React.useMemo(() => {
       return fields.filter((field): field is FormField => {
         if (!field || typeof field !== "object") {
@@ -184,6 +202,15 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
         {...props}
       >
         <div className="p-6 space-y-6">
+          {isGenerating && _tambo_displayMessage && (
+            <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted/50 border border-border text-muted-foreground">
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+              <span className="text-sm">
+                {_tambo_statusMessage ?? "Updating form..."}
+              </span>
+            </div>
+          )}
+
           {onError && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
               <p className="text-sm text-red-600 dark:text-red-400">

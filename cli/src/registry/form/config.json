@@ -2,7 +2,11 @@
   "name": "form",
   "description": "Collects user input with validation support",
   "componentName": "Form",
-  "dependencies": ["class-variance-authority"],
+  "dependencies": [
+    "class-variance-authority",
+    "lucide-react",
+    "@tambo-ai/react"
+  ],
   "devDependencies": [],
   "requires": [],
   "files": [

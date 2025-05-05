@@ -18,11 +18,11 @@ import * as React from "react";
  * Context for sharing thread history state and functions
  */
 interface ThreadHistoryContextValue {
-  threads: any;
+  threads: { items?: TamboThread[] } | null | undefined;
   isLoading: boolean;
-  error: any;
-  refetch: () => Promise<any>;
-  currentThread: any;
+  error: Error | null;
+  refetch: () => Promise<unknown>;
+  currentThread: TamboThread;
   switchCurrentThread: (threadId: string) => void;
   startNewThread: () => void;
   searchQuery: string;
@@ -138,7 +138,9 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
     );
 
     return (
-      <ThreadHistoryContext.Provider value={contextValue}>
+      <ThreadHistoryContext.Provider
+        value={contextValue as ThreadHistoryContextValue}
+      >
         <div
           ref={ref}
           className={cn(

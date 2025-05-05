@@ -1,113 +1,207 @@
 "use client";
 
-import { MessageInput } from "@/components/ui/message-input";
-import { MessageSuggestions } from "@/components/ui/message-suggestions";
-import { ThreadContent } from "@/components/ui/thread-content";
-import { ThreadHistory } from "@/components/ui/thread-history";
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputToolbar,
+  MessageInputSubmitButton,
+  MessageInputError,
+} from "@/components/ui/message-input";
+import {
+  MessageSuggestions,
+  MessageSuggestionsStatus,
+  MessageSuggestionsList,
+} from "@/components/ui/message-suggestions";
+import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadHistoryList,
+} from "@/components/ui/thread-history";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
+import type { messageVariants } from "@/components/ui/message";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import { useMergedRef } from "@/lib/thread-hooks";
+import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { useEffect, useRef } from "react";
+import type { Suggestion } from "@tambo-ai/react";
 
 /**
- * Represents a message thread panel component
- * @property {string} className - Optional className for custom styling
- * @property {string} contextKey - Optional context key for the Tambo thread
- * @property {React.ReactNode} children - Optional content to render in the left panel of the grid
+ * Props for the MessageThreadPanel component
+ * @interface
  */
-
 export interface MessageThreadPanelProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * Optional key to identify the context of the thread
+   */
   contextKey?: string;
+  /** Optional content to render in the left panel of the grid */
   children?: React.ReactNode;
+  /**
+   * Controls the visual styling of messages in the thread.
+   * Possible values include: "default", "compact", etc.
+   * These values are defined in messageVariants from "@/components/ui/message".
+   * @example variant="compact"
+   */
+  variant?: VariantProps<typeof messageVariants>["variant"];
 }
 
-const MessageThreadPanel = React.forwardRef<
+/**
+ * Props for the ResizablePanel component
+ */
+interface ResizablePanelProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Children elements to render inside the container */
+  children: React.ReactNode;
+}
+
+/**
+ * A resizable panel component with a draggable divider
+ * Always positioned on the right side for showcase purposes
+ */
+const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
+  ({ className, children, ...props }, ref) => {
+    const [width, setWidth] = React.useState(500);
+    const isResizing = React.useRef(false);
+    const panelRef = React.useRef<HTMLDivElement>(null);
+    const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
+
+    const handleMouseMove = React.useCallback((e: MouseEvent) => {
+      if (!isResizing.current) return;
+
+      const containerRect =
+        panelRef.current?.parentElement?.getBoundingClientRect();
+      if (!containerRect || !panelRef.current) return;
+
+      const newWidth = Math.round(containerRect.right - e.clientX);
+      const clampedWidth = Math.max(
+        300,
+        Math.min(containerRect.width - 300, newWidth),
+      );
+
+      setWidth(clampedWidth);
+      panelRef.current.style.width = `${clampedWidth}px`;
+    }, []);
+
+    const handleMouseDown = React.useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault();
+        isResizing.current = true;
+        document.body.style.cursor = "ew-resize";
+        document.body.style.userSelect = "none";
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener(
+          "mouseup",
+          () => {
+            isResizing.current = false;
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+            document.removeEventListener("mousemove", handleMouseMove);
+          },
+          { once: true },
+        );
+      },
+      [handleMouseMove],
+    );
+
+    return (
+      <div
+        ref={mergedRef}
+        className={cn(
+          "h-full flex flex-col bg-background relative overflow-hidden border-l border-border ml-auto",
+          "transition-[width] duration-75 ease-out",
+          className,
+        )}
+        style={{ width: `${width}px`, flex: "0 0 auto", maxWidth: "100%" }}
+        {...props}
+      >
+        <div
+          className="absolute inset-y-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors z-50 left-0"
+          onMouseDown={handleMouseDown}
+        />
+        {children}
+      </div>
+    );
+  },
+);
+ResizablePanel.displayName = "ResizablePanel";
+
+/**
+ * A resizable panel component that displays a chat thread with message history
+ * Purely for showcase purposes, always positioned on right side
+ */
+export const MessageThreadPanel = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
->(({ className, contextKey, ...props }, _ref) => {
-  const [width, setWidth] = React.useState(400);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { thread } = useTambo();
-  const isResizing = React.useRef(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollContainerRef.current && thread?.messages?.length) {
-      const timeoutId = setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTo({
-            top: scrollContainerRef.current.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [thread?.messages]);
-
-  const handleMouseMove = React.useCallback((e: MouseEvent) => {
-    if (!isResizing.current || !containerRef.current) return;
-
-    const containerRect =
-      containerRef.current.parentElement?.getBoundingClientRect();
-    if (!containerRect) return;
-
-    const parentWidth = containerRect.width;
-    const newWidth = parentWidth - (e.clientX - containerRect.left);
-    setWidth(Math.max(300, Math.min(800, newWidth)));
-  }, []);
-
-  const stopResizing = React.useCallback(() => {
-    isResizing.current = false;
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", stopResizing);
-  }, [handleMouseMove]);
-
-  const startResizing = React.useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      isResizing.current = true;
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", stopResizing);
+>(({ className, contextKey, variant, ...props }, ref) => {
+  const defaultSuggestions: Suggestion[] = [
+    {
+      id: "suggestion-1",
+      title: "Get started",
+      detailedSuggestion: "What can you help me with?",
+      messageId: "welcome-query",
     },
-    [handleMouseMove, stopResizing],
-  );
+    {
+      id: "suggestion-2",
+      title: "Learn more",
+      detailedSuggestion: "Tell me about your capabilities.",
+      messageId: "capabilities-query",
+    },
+    {
+      id: "suggestion-3",
+      title: "Examples",
+      detailedSuggestion: "Show me some example queries I can try.",
+      messageId: "examples-query",
+    },
+  ];
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "h-full border-l border-gray-200 bg-background shadow-lg dark:border-gray-800",
-        className,
-      )}
-      style={{ width: `${width}px` }}
-      {...props}
-    >
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors"
-        onMouseDown={startResizing}
-      />
-      <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Use AI</h2>
-          <ThreadHistory contextKey={contextKey} />
+    <ResizablePanel ref={ref} className={className} {...props}>
+      <div className="flex h-full">
+        <div className="flex flex-col h-full flex-1 min-w-0 w-[calc(100%-16rem)]">
+          <ScrollableMessageContainer className="p-4">
+            <ThreadContent variant={variant}>
+              <ThreadContentMessages />
+            </ThreadContent>
+          </ScrollableMessageContainer>
+
+          <MessageSuggestions>
+            <MessageSuggestionsStatus />
+          </MessageSuggestions>
+
+          <div className="p-4">
+            <MessageInput contextKey={contextKey}>
+              <MessageInputTextarea />
+              <MessageInputToolbar>
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+              <MessageInputError />
+            </MessageInput>
+          </div>
+
+          <MessageSuggestions initialSuggestions={defaultSuggestions}>
+            <MessageSuggestionsList />
+          </MessageSuggestions>
         </div>
-        <div
-          className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700"
-          ref={scrollContainerRef}
+
+        <ThreadHistory
+          contextKey={contextKey}
+          defaultCollapsed={true}
+          position="right"
+          className="h-full border-0 border-l border-flat rounded-r-lg relative z-10"
         >
-          <ThreadContent />
-        </div>
-        <MessageSuggestions />
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <MessageInput contextKey={contextKey} />
-        </div>
+          <ThreadHistoryHeader />
+          <ThreadHistoryNewButton />
+          <ThreadHistorySearch />
+          <ThreadHistoryList />
+        </ThreadHistory>
       </div>
-    </div>
+    </ResizablePanel>
   );
 });
 MessageThreadPanel.displayName = "MessageThreadPanel";
-
-export { MessageThreadPanel };
