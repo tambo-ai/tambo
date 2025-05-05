@@ -34,10 +34,12 @@ export default function DocsPage() {
       {/* Demo Chat Component */}
       <div className="bg-background flex justify-start items-center">
         <ShowcaseThemeProvider defaultTheme="light">
-          <MessageThreadFull
-            contextKey="main-demo"
-            className="w-full max-w-3xl"
-          />
+          <div
+            className="relative rounded-lg bg-background border border-border/40"
+            style={{ height: "1000px", overflow: "hidden" }}
+          >
+            <MessageThreadFull contextKey="message-thread-full" />
+          </div>
         </ShowcaseThemeProvider>
       </div>
     </div>

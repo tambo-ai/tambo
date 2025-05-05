@@ -7,7 +7,7 @@ import {
   type messageVariants,
 } from "@/components/ui/message";
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import { type TamboThreadMessage, useTambo } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -19,7 +19,7 @@ import * as React from "react";
  * @property {VariantProps<typeof messageVariants>["variant"]} [variant] - Optional styling variant for messages
  */
 interface ThreadContentContextValue {
-  messages: any[];
+  messages: TamboThreadMessage[];
   isGenerating: boolean;
   generationStage?: string;
   variant?: VariantProps<typeof messageVariants>["variant"];

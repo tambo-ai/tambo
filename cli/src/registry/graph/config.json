@@ -2,7 +2,7 @@
   "name": "graph",
   "description": "Visualizes and interacts with graph-based data structures",
   "componentName": "Graph",
-  "dependencies": ["class-variance-authority", "recharts"],
+  "dependencies": ["class-variance-authority", "recharts", "@tambo-ai/react"],
   "devDependencies": ["@types/recharts"],
   "requires": [],
   "files": [

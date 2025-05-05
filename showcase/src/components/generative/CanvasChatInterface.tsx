@@ -1,9 +1,10 @@
+import { CanvasSpace } from "@/components/ui/canvas-space";
 import { Graph } from "@/components/ui/graph";
-import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
-export const GraphChatInterface = () => {
+export const CanvasChatInterface = () => {
   const { registerComponent, thread } = useTambo();
 
   useEffect(() => {
@@ -197,11 +198,9 @@ export const GraphChatInterface = () => {
   }, [registerComponent, thread.id]);
 
   return (
-    <div className="relative h-full w-full">
-      <MessageThreadFull
-        contextKey="graph-thread"
-        className="min-h-[600px] md:min-h-[700px] rounded-lg"
-      />
+    <div className="rounded-lg border border-border/40 h-[1000px] relative flex flex-row overflow-hidden">
+      <CanvasSpace className="bg-background rounded-l-lg" />
+      <MessageThreadPanel contextKey="canvas-space-thread" />
     </div>
   );
 };

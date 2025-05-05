@@ -30,42 +30,80 @@ export const FormChatInterface = () => {
       - Data entry interfaces`,
       component: FormComponent,
       propsDefinition: {
-        fields: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              id: "string",
-              type: {
-                type: "enum",
-                options: ["text", "number", "select", "textarea"],
+        type: "object",
+        properties: {
+          fields: {
+            type: "array",
+            description: "Array of field configuration objects for the form.",
+            items: {
+              type: "object",
+              properties: {
+                id: {
+                  type: "string",
+                  description: "Unique identifier for the field.",
+                },
+                type: {
+                  type: "string",
+                  enum: ["text", "number", "select", "textarea"],
+                  description: "The type of form input.",
+                },
+                label: {
+                  type: "string",
+                  description: "Visible label for the field.",
+                },
+                placeholder: {
+                  type: "string",
+                  description: "Placeholder text for the input field.",
+                },
+                options: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "Array of options for 'select' type fields.",
+                },
+                required: {
+                  type: "boolean",
+                  description: "Whether the field is mandatory.",
+                },
+                description: {
+                  type: "string",
+                  description:
+                    "Additional help text displayed below the field.",
+                },
               },
-              label: "string",
-              placeholder: "string?",
-              options: {
-                type: "array",
-                items: "string",
-                optional: true,
-              },
-              required: "boolean?",
-              description: "string?",
+              required: ["id", "type", "label"],
             },
           },
+          onSubmit: {
+            type: "object",
+            description:
+              "Callback function executed when the form is submitted successfully.",
+          },
+          onError: {
+            type: "string",
+            description: "Error message to display on submission failure.",
+          },
+          submitText: {
+            type: "string",
+            description: "Text displayed on the submit button.",
+          },
+          variant: {
+            type: "string",
+            enum: ["default", "solid", "bordered"],
+            description: "Visual style variant of the form.",
+            default: "default",
+          },
+          layout: {
+            type: "string",
+            enum: ["default", "compact", "relaxed"],
+            description: "Spacing layout of the form fields.",
+            default: "default",
+          },
+          className: {
+            type: "string",
+            description: "Additional CSS classes for styling.",
+          },
         },
-        onSubmit: "function",
-        onError: "string?",
-        submitText: "string?",
-        variant: {
-          type: "enum",
-          options: ["default", "solid", "bordered"],
-          optional: true,
-        },
-        layout: {
-          type: "enum",
-          options: ["default", "compact", "relaxed"],
-          optional: true,
-        },
-        className: "string?",
+        required: ["fields", "onSubmit"],
       },
     });
   }, [registerComponent, thread]);
@@ -74,7 +112,7 @@ export const FormChatInterface = () => {
     <div className="relative h-full w-full ">
       <MessageThreadFull
         contextKey="form-thread"
-        className="min-h-[600px] md:min-h-[700px]"
+        className="min-h-[600px] md:min-h-[700px] rounded-lg"
       />
     </div>
   );

@@ -8,19 +8,32 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
+    --primary: 235 12% 21%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --secondary: 218 11% 46%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 14% 90%;
+    --muted-foreground: 217 14% 68%;
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
+    --border: 207 22% 90%;
+    --border-dimension-50: linear-gradient(
+      180deg,
+      hsl(207 22% 95%) 0%,
+      hsl(207 22% 90%) 50%,
+      hsl(207 22% 85%) 100%
+    );
+    --border-dimension-100: linear-gradient(
+      180deg,
+      hsl(207 22% 98%) 0%,
+      hsl(207 22% 90%) 50%,
+      hsl(207 22% 80%) 100%
+    );
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
+    --radius: 0.5rem;
     --chart-1: 30 80% 54.9%;
     --chart-2: 339.8 74.8% 54.9%;
     --chart-3: 219.9 70.2% 50%;
@@ -28,6 +41,12 @@
     --chart-5: 280 64.7% 60%;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
+    --container: 210 29% 97%;
+    --backdrop: 210 88% 14% / 0.25;
+    --muted-backdrop: 210 88% 14% / 0.1;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 16rem;
   }
   .showcase-theme.dark {
     --background: 240 10% 3.9%;
@@ -53,87 +72,118 @@
 }
 
 @layer utilities {
+  /* Background Utilities */
   .bg-background {
     background-color: hsl(var(--background));
   }
-
-  .text-foreground {
-    color: hsl(var(--foreground));
-  }
-
   .bg-card {
     background-color: hsl(var(--card));
   }
-
-  .text-card-foreground {
-    color: hsl(var(--card-foreground));
-  }
-
   .bg-popover {
     background-color: hsl(var(--popover));
   }
-
-  .text-popover-foreground {
-    color: hsl(var(--popover-foreground));
-  }
-
   .bg-primary {
     background-color: hsl(var(--primary));
   }
-
-  .text-primary-foreground {
-    color: hsl(var(--primary-foreground));
-  }
-
   .bg-secondary {
     background-color: hsl(var(--secondary));
   }
-
-  .text-secondary-foreground {
-    color: hsl(var(--secondary-foreground));
+  .bg-backdrop {
+    background-color: hsl(var(--backdrop));
   }
-
   .bg-muted {
     background-color: hsl(var(--muted));
   }
-
-  .text-muted-foreground {
-    color: hsl(var(--muted-foreground));
-  }
-
   .bg-accent {
     background-color: hsl(var(--accent));
   }
-
-  .text-accent-foreground {
-    color: hsl(var(--accent-foreground));
+  .bg-container {
+    background-color: hsl(var(--container));
   }
-
   .bg-destructive {
     background-color: hsl(var(--destructive));
   }
-
-  .text-destructive-foreground {
-    color: hsl(var(--destructive-foreground));
-  }
-
-  .border-border {
-    border-color: hsl(var(--border));
-  }
-
   .bg-input {
     background-color: hsl(var(--input));
   }
+  .bg-border {
+    background-color: hsl(var(--border));
+  }
 
+  /* Text Utilities */
+  .text-primary {
+    color: hsl(var(--primary));
+  }
+  .text-primary-foreground {
+    color: hsl(var(--primary-foreground));
+  }
+  .text-secondary {
+    color: hsl(var(--secondary));
+  }
+  .text-secondary-foreground {
+    color: hsl(var(--secondary-foreground));
+  }
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  .text-card-foreground {
+    color: hsl(var(--card-foreground));
+  }
+  .text-popover-foreground {
+    color: hsl(var(--popover-foreground));
+  }
+  .text-muted-foreground {
+    /* disabled color */
+    color: hsl(var(--muted-foreground));
+  }
+  .text-accent-foreground {
+    color: hsl(var(--accent-foreground));
+  }
+  .text-destructive-foreground {
+    color: hsl(var(--destructive-foreground));
+  }
+  .text-backdrop {
+    color: hsl(var(--backdrop));
+  }
+
+  /* Border Utilities */
+  .border-border {
+    border-color: hsl(var(--border));
+  }
+  .border-dimension-50 {
+    border-image: var(--border-dimension-50);
+    border-image-slice: 1;
+  }
+  .border-dimension-100 {
+    border-image: var(--border-dimension-100);
+    border-image-slice: 1;
+  }
+  .border-flat {
+    border: 1px solid hsl(var(--border));
+  }
+  .border-container {
+    border-color: hsl(var(--container));
+  }
+
+  /* Ring Utilities */
   .ring-ring {
     --tw-ring-color: hsl(var(--ring));
   }
 
+  /* Hover Utilities */
   .hover\:bg-primary\/90:hover {
     background-color: hsl(var(--primary) / 0.9);
   }
-
   .hover\:bg-muted\/90:hover {
     background-color: hsl(var(--muted) / 0.9);
+  }
+  .hover\:bg-backdrop:hover {
+    background-color: hsl(var(--muted-backdrop));
+  }
+  .hover\:bg-container:hover {
+    background-color: hsl(var(--container));
+  }
+  .hover\:text-secondary:hover {
+    color: hsl(var(--secondary));
   }
 }
