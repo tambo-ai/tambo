@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.44.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.44.0...repo-v0.44.1) (2025-05-05)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump drizzle-kit from 0.31.0 to 0.31.1 in the drizzle group ([#901](https://github.com/tambo-ai/tambo-cloud/issues/901)) ([436e032](https://github.com/tambo-ai/tambo-cloud/commit/436e032897c81b4214af1e5eab1c04aed1d784c3))
+* **deps-dev:** bump the eslint group with 2 updates ([#902](https://github.com/tambo-ai/tambo-cloud/issues/902)) ([60e9afe](https://github.com/tambo-ai/tambo-cloud/commit/60e9afe776d64a4142fe05eb437c67c2eb783926))
+* **deps-dev:** bump typescript-eslint from 8.31.1 to 8.32.0 in the eslint group ([#911](https://github.com/tambo-ai/tambo-cloud/issues/911)) ([ccbce97](https://github.com/tambo-ai/tambo-cloud/commit/ccbce97232d67b1f515e6876e7141ec55a3832f0))
+* **deps:** bump @libretto/token.js from 0.7.0 to 0.7.1 ([#913](https://github.com/tambo-ai/tambo-cloud/issues/913)) ([eac07ba](https://github.com/tambo-ai/tambo-cloud/commit/eac07ba0c8c627682560fe9bcb10e370076375b8))
+* **deps:** bump @nestjs/swagger from 11.1.5 to 11.1.6 in the nestjs group ([#900](https://github.com/tambo-ai/tambo-cloud/issues/900)) ([70f6d9a](https://github.com/tambo-ai/tambo-cloud/commit/70f6d9aef79e158bf24a62f32eae635a0322ece4))
+* **deps:** bump @nestjs/swagger from 11.1.6 to 11.2.0 in the nestjs group ([#910](https://github.com/tambo-ai/tambo-cloud/issues/910)) ([86b1e9f](https://github.com/tambo-ai/tambo-cloud/commit/86b1e9f72a95e2c2d189583a2a9aea84b2fd300f))
+* **deps:** bump @t3-oss/env-nextjs from 0.13.0 to 0.13.4 ([#904](https://github.com/tambo-ai/tambo-cloud/issues/904)) ([a3890de](https://github.com/tambo-ai/tambo-cloud/commit/a3890de8b91fd8510ec8a0fb64447dbc2daaadd7))
+* **deps:** bump @tanstack/react-query from 5.74.7 to 5.75.2 ([#906](https://github.com/tambo-ai/tambo-cloud/issues/906)) ([1fc19df](https://github.com/tambo-ai/tambo-cloud/commit/1fc19df99793eda13126fd63857691e1eb94dc9e))
+* **deps:** bump class-validator from 0.14.1 to 0.14.2 ([#917](https://github.com/tambo-ai/tambo-cloud/issues/917)) ([7f321c3](https://github.com/tambo-ai/tambo-cloud/commit/7f321c36363921b6efa44a83e518335267d4bd32))
+* **deps:** bump composio-core from 0.5.33 to 0.5.36 ([#915](https://github.com/tambo-ai/tambo-cloud/issues/915)) ([faacde9](https://github.com/tambo-ai/tambo-cloud/commit/faacde9bc3ff9a53415421d2d90ae7c0f9216963))
+* **deps:** bump framer-motion from 12.9.2 to 12.9.7 ([#916](https://github.com/tambo-ai/tambo-cloud/issues/916)) ([0b5d8a6](https://github.com/tambo-ai/tambo-cloud/commit/0b5d8a6ba2a254d37c930484e73e944557800ff0))
+* **deps:** bump posthog-js from 1.236.7 to 1.239.1 ([#905](https://github.com/tambo-ai/tambo-cloud/issues/905)) ([64fe670](https://github.com/tambo-ai/tambo-cloud/commit/64fe67013c81ef28ff597d2b5691f50937c4c41f))
+* **deps:** bump react-hook-form from 7.56.1 to 7.56.2 ([#907](https://github.com/tambo-ai/tambo-cloud/issues/907)) ([915c168](https://github.com/tambo-ai/tambo-cloud/commit/915c168cf38f6f1d76c3c1e2676a32ef4215383b))
+* **deps:** bump react-speech-recognition from 4.0.0 to 4.0.1 ([#908](https://github.com/tambo-ai/tambo-cloud/issues/908)) ([5619e77](https://github.com/tambo-ai/tambo-cloud/commit/5619e77a732ba5878507bf25abc4d876a9802a4e))
+* **deps:** bump resend from 4.4.1 to 4.5.1 ([#914](https://github.com/tambo-ai/tambo-cloud/issues/914)) ([d6251b9](https://github.com/tambo-ai/tambo-cloud/commit/d6251b947e3ce3dd57b2b1b469070d7a892b5320))
+* **deps:** bump the trpc group with 3 updates ([#899](https://github.com/tambo-ai/tambo-cloud/issues/899)) ([daa8ef6](https://github.com/tambo-ai/tambo-cloud/commit/daa8ef655990c678d963582d195b2ec24235bdc3))
+* **deps:** bump tldts from 7.0.4 to 7.0.6 ([#918](https://github.com/tambo-ai/tambo-cloud/issues/918)) ([2c74e8c](https://github.com/tambo-ai/tambo-cloud/commit/2c74e8c0fa9cd73c1900131b18526e416cea6451))
+* **deps:** bump zod from 3.24.3 to 3.24.4 ([#919](https://github.com/tambo-ai/tambo-cloud/issues/919)) ([747d92e](https://github.com/tambo-ai/tambo-cloud/commit/747d92e8c81fb6a2c6602e9b2b66c5e1f8928634))
+
 ## [0.44.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.43.0...repo-v0.44.0) (2025-05-03)
 
 
