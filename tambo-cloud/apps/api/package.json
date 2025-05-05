@@ -28,7 +28,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.0",
     "@nestjs/platform-express": "^11.1.0",
-    "@nestjs/swagger": "^11.1.5",
+    "@nestjs/swagger": "^11.1.6",
     "@tambo-ai-cloud/backend": "*",
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
