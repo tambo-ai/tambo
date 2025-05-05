@@ -34,7 +34,7 @@
     "@tambo-ai-cloud/db": "*",
     "ajv": "^8.17.1",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
+    "class-validator": "^0.14.2",
     "composio-core": "^0.5.36",
     "drizzle-orm": "^0.43.1",
     "nest-supabase-guard": "^1.0.2",
