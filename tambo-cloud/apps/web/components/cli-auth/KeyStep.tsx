@@ -101,7 +101,7 @@ export function KeyStep({
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              className="h-8"
+              className="h-8 gap-1"
             >
               <Copy />
               Copy
