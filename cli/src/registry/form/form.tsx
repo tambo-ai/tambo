@@ -370,6 +370,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
 
           <button
             type="submit"
+            disabled={isGenerating}
             className="w-full px-4 py-2.5 bg-zinc-900 text-white rounded-lg 
                      hover:bg-zinc-800 active:bg-zinc-950
                      dark:bg-zinc-100 dark:text-zinc-900 
