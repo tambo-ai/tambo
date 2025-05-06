@@ -79,6 +79,7 @@ export async function processThreadMessage(
   advanceRequestDto: AdvanceThreadDto,
   tamboBackend: TamboBackend,
   systemTools: SystemTools,
+  customInstructions: string | undefined,
 ): Promise<LegacyComponentDecision> {
   const latestMessage = messages[messages.length - 1];
   // For tool responses, we can fully hydrate the component
@@ -109,6 +110,7 @@ export async function processThreadMessage(
     clientTools: advanceRequestDto.clientTools ?? [],
     systemTools,
     additionalContext: advanceRequestDto.additionalContext,
+    customInstructions,
   });
 
   return await getFinalDecision(decisionStream);

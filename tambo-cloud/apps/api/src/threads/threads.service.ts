@@ -518,6 +518,9 @@ export class ThreadsService {
 
     // TODO: Let tambobackend package handle different message types internally
     const messages = await this.getMessages(thread.id, true);
+    const project = await operations.getProject(db, projectId);
+    const customInstructions = project?.customInstructions ?? undefined;
+
     if (messages.length === 0) {
       throw new Error("No messages found");
     }
@@ -531,6 +534,7 @@ export class ThreadsService {
         threadMessageDtoToThreadMessage(messages),
         userMessage,
         advanceRequestDto,
+        customInstructions,
         depth,
       );
     }
@@ -548,6 +552,7 @@ export class ThreadsService {
       advanceRequestDto,
       tamboBackend,
       systemTools,
+      customInstructions,
     );
     const {
       responseMessageDto,
@@ -655,6 +660,7 @@ export class ThreadsService {
     messages: ThreadMessage[],
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
+    customInstructions: string | undefined,
     depth: number,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>> {
     const systemTools = await getSystemTools(
@@ -684,6 +690,7 @@ export class ThreadsService {
         clientTools: advanceRequestDto.clientTools ?? [],
         systemTools,
         additionalContext: advanceRequestDto.additionalContext,
+        customInstructions,
       });
 
       return this.handleAdvanceThreadStream(
@@ -710,6 +717,7 @@ export class ThreadsService {
       clientTools: advanceRequestDto.clientTools ?? [],
       systemTools,
       additionalContext: advanceRequestDto.additionalContext,
+      customInstructions,
     });
     return this.handleAdvanceThreadStream(
       projectId,

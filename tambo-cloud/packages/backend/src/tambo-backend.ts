@@ -24,6 +24,7 @@ interface RunDecisionLoopParams {
   toolResponse?: ToolResponseBody;
   toolCallId?: string;
   additionalContext?: string;
+  customInstructions: string | undefined;
 }
 
 export default class TamboBackend {
@@ -77,6 +78,7 @@ export default class TamboBackend {
       params.availableComponents,
       params.systemTools,
       params.clientTools,
+      params.customInstructions,
     );
   }
 }

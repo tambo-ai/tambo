@@ -30,17 +30,19 @@ import {
   TamboToolParameters,
 } from "../tool/tool-service";
 
+const UI_TOOLNAME_PREFIX = "show_component_";
+
 export async function* runDecisionLoop(
   llmClient: LLMClient,
   messageHistory: ThreadMessage[],
   availableComponents: AvailableComponent[],
   systemTools: SystemTools | undefined,
   clientTools: ComponentContextToolMetadata[],
-  uiToolNamePrefix: string = "show_component_",
+  customInstructions: string | undefined,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = convertComponentsToUITools(
     availableComponents,
-    uiToolNamePrefix,
+    UI_TOOLNAME_PREFIX,
   );
   const clientToolsConverted = convertMetadataToTools(clientTools);
   const contextTools = convertMetadataToTools(
@@ -59,7 +61,8 @@ export async function* runDecisionLoop(
     standardToolParameters,
   );
 
-  const { template: systemPrompt } = generateDecisionLoopPrompt();
+  const { template: systemPrompt, args: systemPromptArgs } =
+    generateDecisionLoopPrompt(customInstructions);
   const chatHistory = threadMessagesToChatHistory(messageHistory);
   const promptMessages = objectTemplate<ChatCompletionMessageParam[]>([
     { role: "system", content: systemPrompt },
@@ -72,6 +75,7 @@ export async function* runDecisionLoop(
     promptTemplateName: "decision-loop",
     promptTemplateParams: {
       chat_history: chatHistory,
+      ...systemPromptArgs,
     },
     stream: true,
     tool_choice: "required",
@@ -152,7 +156,7 @@ export async function* runDecisionLoop(
       const parsedChunk: Partial<LegacyComponentDecision> = {
         message: displayMessage,
         componentName: isUITool
-          ? toolCall.function.name.slice(uiToolNamePrefix.length)
+          ? toolCall.function.name.slice(UI_TOOLNAME_PREFIX.length)
           : "",
         props: isUITool ? toolArgs : null,
         toolCallRequest: filteredToolCallRequest,
