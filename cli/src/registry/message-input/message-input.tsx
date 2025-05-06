@@ -124,31 +124,34 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
       }
     }, [value]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!value.trim()) return;
+    const handleSubmit = React.useCallback(
+      async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!value.trim()) return;
 
-      setSubmitError(null);
-      setDisplayValue("");
-      try {
-        await submit({
-          contextKey,
-          streamResponse: true,
-        });
-        setValue("");
-        setTimeout(() => {
-          textareaRef.current?.focus();
-        }, 0);
-      } catch (error) {
-        console.error("Failed to submit message:", error);
-        setDisplayValue(value);
-        setSubmitError(
-          error instanceof Error
-            ? error.message
-            : "Failed to send message. Please try again.",
-        );
-      }
-    };
+        setSubmitError(null);
+        setDisplayValue("");
+        try {
+          await submit({
+            contextKey,
+            streamResponse: true,
+          });
+          setValue("");
+          setTimeout(() => {
+            textareaRef.current?.focus();
+          }, 0);
+        } catch (error) {
+          console.error("Failed to submit message:", error);
+          setDisplayValue(value);
+          setSubmitError(
+            error instanceof Error
+              ? error.message
+              : "Failed to send message. Please try again.",
+          );
+        }
+      },
+      [value, submit, contextKey, setValue, setDisplayValue, setSubmitError],
+    );
 
     const contextValue = React.useMemo(
       () => ({
@@ -219,10 +222,11 @@ export interface MessageInputTextareaProps
  * </MessageInput>
  * ```
  */
-const MessageInputTextarea = React.forwardRef<
-  HTMLTextAreaElement,
-  MessageInputTextareaProps
->(({ className, placeholder = "What do you want to do?", ...props }, _) => {
+const MessageInputTextarea = ({
+  className,
+  placeholder = "What do you want to do?",
+  ...props
+}: MessageInputTextareaProps) => {
   const { value, setValue, isPending, textareaRef, handleSubmit } =
     useMessageInputContext();
 
@@ -256,7 +260,7 @@ const MessageInputTextarea = React.forwardRef<
       {...props}
     />
   );
-});
+};
 MessageInputTextarea.displayName = "MessageInput.Textarea";
 
 /**
