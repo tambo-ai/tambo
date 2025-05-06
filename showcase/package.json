@@ -13,7 +13,7 @@
     "@radix-ui/react-slot": "^1.2.1",
     "@tambo-ai/react": "*",
     "class-variance-authority": "^0.7.1",
-    "framer-motion": "^12.9.2",
+    "framer-motion": "^12.9.7",
     "geist": "^1.4.1",
     "lucide-react": "^0.507.0",
     "next": "^15.3.1",
