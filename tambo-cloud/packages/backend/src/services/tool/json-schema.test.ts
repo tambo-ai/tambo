@@ -14,8 +14,13 @@ describe("sanitizeJSONSchemaProperties", () => {
     const result = sanitizeJSONSchemaProperties(properties, []);
     expect(result).toEqual({
       name: {
-        type: "string",
-        description: "User name",
+        anyOf: [
+          { type: "null" },
+          {
+            type: "string",
+            description: "User name",
+          },
+        ],
       },
     });
   });
@@ -32,8 +37,13 @@ describe("sanitizeJSONSchemaProperties", () => {
         description: "User name",
       },
       age: {
-        type: "number",
-        description: "User age",
+        anyOf: [
+          { type: "null" },
+          {
+            type: "number",
+            description: "User age",
+          },
+        ],
       },
     });
   });
@@ -53,8 +63,12 @@ describe("sanitizeJSONSchemaProperties", () => {
       user: {
         type: "object",
         properties: {
-          name: { type: "string" },
-          age: { type: "number" },
+          name: {
+            anyOf: [{ type: "null" }, { type: "string" }],
+          },
+          age: {
+            anyOf: [{ type: "null" }, { type: "number" }],
+          },
         },
         required: ["name", "age"],
         additionalProperties: false,
@@ -144,8 +158,12 @@ describe("sanitizeJSONSchemaProperties", () => {
           {
             type: "object",
             properties: {
-              name: { type: "string" },
-              age: { type: "number" },
+              name: {
+                anyOf: [{ type: "null" }, { type: "string" }],
+              },
+              age: {
+                anyOf: [{ type: "null" }, { type: "number" }],
+              },
             },
             required: ["name", "age"],
             additionalProperties: false,
@@ -170,7 +188,9 @@ describe("sanitizeJSONSchemaProperties", () => {
           { type: "null" },
           {
             type: "array",
-            items: { type: "string" },
+            items: {
+              anyOf: [{ type: "null" }, { type: "string" }],
+            },
             description: "List of hobbies",
           },
         ],
@@ -202,6 +222,7 @@ describe("sanitizeJSONSchemaProperties", () => {
               city: { type: "string" },
               zipCode: { type: "string", pattern: "^\\d{5}$" },
             },
+            required: ["street", "city", "zipCode"],
           },
         },
       },
@@ -229,7 +250,10 @@ describe("sanitizeJSONSchemaProperties", () => {
     const firstPass = sanitizeJSONSchemaProperties(properties, requiredProps);
 
     // Second pass - should be identical to first pass
-    const secondPass = sanitizeJSONSchemaProperties(firstPass, requiredProps);
+    const secondPass = sanitizeJSONSchemaProperties(
+      firstPass,
+      Object.keys(firstPass),
+    );
 
     // Verify specific properties to make debugging easier if full check fails
     expect(secondPass.name).toEqual(firstPass.name);
@@ -239,6 +263,89 @@ describe("sanitizeJSONSchemaProperties", () => {
     expect(secondPass.mixedArray).toEqual(firstPass.mixedArray);
 
     // Deep equality check
+    expect(secondPass).toEqual(firstPass);
+  });
+
+  it("should handle anyOf with nested objects that have non-required properties", () => {
+    const properties: Record<string, JSONSchema7Definition> = {
+      userOrContact: {
+        anyOf: [
+          {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              email: { type: "string" },
+              age: { type: "number" },
+            },
+            required: ["name", "email"],
+          },
+          {
+            type: "object",
+            properties: {
+              companyName: { type: "string" },
+              contactPerson: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  position: { type: "string" },
+                },
+                required: ["name"],
+              },
+            },
+            required: ["companyName"],
+          },
+        ],
+      },
+    };
+
+    const result = sanitizeJSONSchemaProperties(properties, ["userOrContact"]);
+
+    const firstPass: Record<string, JSONSchema7Definition> = {
+      userOrContact: {
+        anyOf: [
+          {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              email: { type: "string" },
+              age: {
+                anyOf: [{ type: "null" }, { type: "number" }],
+              },
+            },
+            required: ["name", "email", "age"],
+            additionalProperties: false,
+          },
+          {
+            type: "object",
+            properties: {
+              companyName: { type: "string" },
+              contactPerson: {
+                anyOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      position: {
+                        anyOf: [{ type: "null" }, { type: "string" }],
+                      },
+                    },
+                    required: ["name", "position"],
+                    additionalProperties: false,
+                  },
+                ],
+              },
+            },
+            required: ["companyName", "contactPerson"],
+            additionalProperties: false,
+          },
+        ],
+      },
+    };
+    expect(result).toEqual(firstPass);
+    const secondPass = sanitizeJSONSchemaProperties(firstPass, [
+      "userOrContact",
+    ]);
     expect(secondPass).toEqual(firstPass);
   });
 });
