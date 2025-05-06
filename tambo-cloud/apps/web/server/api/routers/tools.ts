@@ -11,7 +11,7 @@ import { operations, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { validateSafeURL, validateZodUrl } from "../../../lib/urlSecurity";
+import { validateSafeURL, validateServerUrl } from "../../../lib/urlSecurity";
 
 export const toolsRouter = createTRPCRouter({
   listApps: protectedProcedure
@@ -92,7 +92,7 @@ export const toolsRouter = createTRPCRouter({
           .string()
           .url()
           .refine(
-            validateZodUrl,
+            validateServerUrl,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
         customHeaders: customHeadersSchema,
@@ -149,7 +149,7 @@ export const toolsRouter = createTRPCRouter({
           .string()
           .url()
           .refine(
-            validateZodUrl,
+            validateServerUrl,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
         customHeaders: customHeadersSchema,

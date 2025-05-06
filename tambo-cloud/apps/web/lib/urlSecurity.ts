@@ -76,7 +76,8 @@ export const validateSafeURL = async (
   }
 };
 
-export const validateZodUrl = async (url: string): Promise<boolean> => {
+/** Validate that the URL is safe to call from the server */
+export const validateServerUrl = async (url: string): Promise<boolean> => {
   try {
     const valid = await validateSafeURL(url);
     if (!valid.safe) {

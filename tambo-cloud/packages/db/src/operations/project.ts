@@ -16,8 +16,14 @@ export async function createProject(
   {
     name,
     userId,
+    customInstructions,
     role = "admin",
-  }: { name: string; userId: string; role?: string },
+  }: {
+    name: string;
+    userId: string;
+    customInstructions?: string;
+    role?: string;
+  },
 ) {
   if (!userId) {
     throw new Error("User ID is required");
@@ -28,6 +34,7 @@ export async function createProject(
       .insert(schema.projects)
       .values({
         name: name || "New Project",
+        customInstructions,
       })
       .returning();
 

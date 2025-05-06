@@ -1,5 +1,6 @@
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { api } from "@/trpc/react";
 import { memo } from "react";
 
 type Project = Readonly<{
@@ -8,10 +9,7 @@ type Project = Readonly<{
 }>;
 
 interface ProjectStepProps {
-  projects: readonly Project[] | undefined;
-  isLoading: boolean;
-  error: unknown;
-  onProjectSelect: (projectId: string) => void;
+  onProjectSelect: (projectId: string, projectName: string) => void;
   onCreateClick: () => void;
 }
 
@@ -24,12 +22,18 @@ interface ProjectStepProps {
  * - Provides option to create new project
  */
 export const ProjectStep = memo(function ProjectStep({
-  projects,
-  isLoading,
-  error,
   onProjectSelect,
   onCreateClick,
 }: ProjectStepProps) {
+  // Fetch projects - parent component handles session checking
+  const projectsQuery = api.project.getUserProjects.useQuery(undefined, {
+    // Fetch enabled by default - session is guaranteed by parent
+  });
+
+  const isLoading = projectsQuery.isLoading;
+  const error = projectsQuery.error;
+  const projects = projectsQuery.data;
+
   if (isLoading) {
     return (
       <div className="py-8 flex flex-col items-center gap-4">
@@ -68,7 +72,7 @@ export const ProjectStep = memo(function ProjectStep({
           <Button
             key={project.id}
             variant="outline"
-            onClick={() => onProjectSelect(project.id)}
+            onClick={() => onProjectSelect(project.id, project.name)}
             className="w-full h-12 justify-start text-base font-medium transition-all hover:scale-[1.02]"
           >
             <svg

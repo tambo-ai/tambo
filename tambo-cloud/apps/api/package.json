@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "tsx --inspect-brk node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist coverage",
     "check-types": "tsc --noEmit",
     "lint": "eslint"
   },

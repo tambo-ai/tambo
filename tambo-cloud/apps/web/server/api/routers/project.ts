@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { hashKey } from "@tambo-ai-cloud/core";
+import { hashKey, MCPTransport } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
 import { z } from "zod";
 
@@ -24,6 +24,45 @@ export const projectRouter = createTRPCRouter({
         name: input,
         userId: ctx.session.user.id,
       });
+    }),
+  createProject2: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        customInstructions: z.string().nullable().optional(),
+        mcpServers: z
+          .array(
+            z.object({
+              url: z.string(),
+              customHeaders: z.record(z.string(), z.string()),
+              mcpTransport: z.nativeEnum(MCPTransport),
+            }),
+          )
+          .optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { name, mcpServers, customInstructions } = input;
+      const project = await operations.createProject(ctx.db, {
+        name,
+        userId: ctx.session.user.id,
+        customInstructions: customInstructions ?? undefined,
+      });
+      if (!project) {
+        throw new Error("Failed to create project");
+      }
+      if (mcpServers) {
+        for (const mcpServer of mcpServers) {
+          await operations.createMcpServer(
+            ctx.db,
+            project.id,
+            mcpServer.url,
+            mcpServer.customHeaders,
+            mcpServer.mcpTransport,
+          );
+        }
+      }
+      return project;
     }),
 
   updateProject: protectedProcedure

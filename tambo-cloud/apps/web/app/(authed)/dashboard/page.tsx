@@ -64,7 +64,7 @@ export default function DashboardPage() {
   }, [isProjectsLoading, projects]);
 
   const { mutateAsync: createProject } =
-    api.project.createProject.useMutation();
+    api.project.createProject2.useMutation();
   const { mutateAsync: addProviderKey } =
     api.project.addProviderKey.useMutation();
 
@@ -73,7 +73,7 @@ export default function DashboardPage() {
     providerKey?: string,
   ) => {
     try {
-      const project = await createProject(projectName);
+      const project = await createProject({ name: projectName });
       await addProviderKey({
         projectId: project.id,
         provider: "openai",

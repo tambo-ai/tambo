@@ -9,7 +9,8 @@
   "main": "./src/index.ts",
   "scripts": {
     "lint": "eslint",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
   },
   "devDependencies": {
     "@tambo-ai-cloud/eslint-config": "*",

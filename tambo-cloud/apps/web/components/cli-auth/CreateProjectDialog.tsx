@@ -1,3 +1,7 @@
+import {
+  McpServerEditor,
+  MCPServerInfo,
+} from "@/components/dashboard-components/project-details/mcp-server-editor";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { MCPTransport } from "@tambo-ai-cloud/core";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { memo, useCallback, useState } from "react";
 
@@ -14,6 +19,11 @@ type CreateProjectDialogState = Readonly<{
   isOpen: boolean;
   name: string;
   providerKey: string;
+  mcpServer?: {
+    url: string;
+    customHeaders: Record<string, string>;
+    mcpTransport: MCPTransport;
+  };
 }>;
 
 interface CreateProjectDialogProps {
@@ -44,6 +54,14 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
   onConfirm,
 }: CreateProjectDialogProps) {
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showMcpServer, setShowMcpServer] = useState(false);
+  const [mcpEditorState, setMcpEditorState] = useState({
+    isEditing: true,
+    isSaving: false,
+    isDeleting: false,
+    error: null,
+    errorMessage: null,
+  });
 
   const handleOpenChange = useCallback(
     (isOpen: boolean) => {
@@ -89,6 +107,64 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
     },
     [isCreating, state.name, onConfirm],
   );
+
+  const handleMcpServerSave = useCallback(
+    async (serverInfo: {
+      url: string;
+      customHeaders: Record<string, string>;
+      mcpTransport: MCPTransport;
+    }) => {
+      // Update the state with the MCP server info
+      onStateChange({
+        ...state,
+        mcpServer: serverInfo,
+      });
+
+      // Set the editing state to false
+      setMcpEditorState({
+        ...mcpEditorState,
+        isEditing: false,
+      });
+    },
+    [state, onStateChange, mcpEditorState],
+  );
+
+  const handleMcpServerEdit = useCallback(() => {
+    setMcpEditorState({
+      ...mcpEditorState,
+      isEditing: true,
+    });
+  }, [mcpEditorState]);
+
+  const handleMcpServerCancel = useCallback(() => {
+    setMcpEditorState({
+      ...mcpEditorState,
+      isEditing: false,
+    });
+
+    // If we're cancelling and there was no server info before, remove it
+    if (!state.mcpServer) {
+      onStateChange({
+        ...state,
+        mcpServer: undefined,
+      });
+    }
+  }, [mcpEditorState, state, onStateChange]);
+
+  const handleMcpServerDelete = useCallback(async () => {
+    onStateChange({
+      ...state,
+      mcpServer: undefined,
+    });
+  }, [state, onStateChange]);
+
+  // Create a dummy server info object for the editor
+  const mcpServerInfo: MCPServerInfo = {
+    id: "new-server",
+    url: state.mcpServer?.url || null,
+    customHeaders: state.mcpServer?.customHeaders || {},
+    mcpTransport: state.mcpServer?.mcpTransport || MCPTransport.SSE,
+  };
 
   const isFormValid = state.name.trim() && isValidOpenAIKey(state.providerKey);
 
@@ -184,6 +260,51 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
                     OpenAI API keys page
                   </a>
                   .
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="mcpServer"
+              className="flex justify-between items-center text-sm font-medium mb-2"
+            >
+              <span>MCP Server (Optional)</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 -mr-2"
+                onClick={() => setShowMcpServer(!showMcpServer)}
+              >
+                {showMcpServer ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </label>
+
+            {showMcpServer && (
+              <div>
+                <McpServerEditor
+                  server={mcpServerInfo}
+                  isEditing
+                  isNew={true}
+                  error={mcpEditorState.error}
+                  isSaving={mcpEditorState.isSaving}
+                  isDeleting={mcpEditorState.isDeleting}
+                  errorMessage={mcpEditorState.errorMessage}
+                  hideEditButtons
+                  onEdit={handleMcpServerEdit}
+                  onCancel={handleMcpServerCancel}
+                  onSave={handleMcpServerSave}
+                  onDelete={handleMcpServerDelete}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Configure a custom MCP server for this project. You can add
+                  additional MCP servers in the project settings.
                 </p>
               </div>
             )}

@@ -3,6 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/trpc/react";
 import { Copy } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
@@ -14,6 +15,8 @@ interface KeyStepProps {
   isGenerating?: boolean;
   error?: unknown;
   projectName?: string;
+  projectId: string;
+  onNavigateToProject?: () => void;
 }
 
 /**
@@ -29,10 +32,19 @@ export function KeyStep({
   onBack,
   onGenerate,
   isGenerating,
-  error,
+  error: propError,
   projectName,
+  projectId,
+  onNavigateToProject,
 }: KeyStepProps) {
   const { toast } = useToast();
+
+  const providerKeysQuery = api.project.getProviderKeys.useQuery(projectId, {
+    staleTime: 30000,
+  });
+
+  // Use either passed error or query error
+  const error = propError || providerKeysQuery.error;
 
   // Automatically generate API key on first render if not already generating
   useEffect(() => {
@@ -118,6 +130,17 @@ export function KeyStep({
             again. This window will close automatically in {countdown} seconds.
           </AlertDescription>
         </Alert>
+
+        {onNavigateToProject && (
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full mt-4"
+            onClick={onNavigateToProject}
+          >
+            Continue to Project
+          </Button>
+        )}
       </div>
     );
   }
