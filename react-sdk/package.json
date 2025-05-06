@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@tambo-ai/typescript-sdk": "^0.47.0",
-    "@tanstack/react-query": "^5.74.7",
+    "@tanstack/react-query": "^5.75.2",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",
     "ts-essentials": "^10.0.4",
