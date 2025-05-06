@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { api } from "@/trpc/react";
 import { MCPTransport } from "@tambo-ai-cloud/core";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { Loader2, Pencil, Save, Trash2, X } from "lucide-react";
@@ -56,6 +57,8 @@ export function McpServerEditor({
     server.customHeaders[firstHeaderKey] || "",
   );
   const [isHeaderValueFocused, setIsHeaderValueFocused] = useState(false);
+  const { data: validationResult, mutateAsync: validateMcpServer } =
+    api.tools.validateMcpServer.useMutation();
 
   const inputRef = useRef<HTMLInputElement>(null);
   // Dynamic IDs based on server ID
@@ -97,6 +100,19 @@ export function McpServerEditor({
 
     if (!trimmedUrl) {
       return;
+    }
+
+    // we don't want to validate on every keystroke
+    // TODO: maybe validate if the user has changed the url or transport?
+    if (!hideEditButtons) {
+      const { valid } = await validateMcpServer({
+        url: trimmedUrl,
+        customHeaders,
+        mcpTransport,
+      });
+      if (!valid) {
+        return;
+      }
     }
 
     await onSave({
@@ -207,6 +223,11 @@ export function McpServerEditor({
         </div>
         {errorMessage && (
           <p className="text-sm text-destructive px-2">{errorMessage}</p>
+        )}
+        {validationResult && (
+          <p className="text-sm text-destructive px-2">
+            {validationResult.error}
+          </p>
         )}
       </div>
       <div>

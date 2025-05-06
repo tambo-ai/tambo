@@ -6,6 +6,7 @@ import {
   ComposioConnectorConfig,
   MCPTransport,
   ToolProviderType,
+  validateMcpServer,
 } from "@tambo-ai-cloud/core";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
@@ -126,6 +127,29 @@ export const toolsRouter = createTRPCRouter({
         mcpTransport,
       );
       return server;
+    }),
+  validateMcpServer: protectedProcedure
+    .input(
+      z.object({
+        url: z
+          .string()
+          .url()
+          .refine(
+            validateServerUrl,
+            "URL appears to be unsafe: must not point to internal, local, or private networks",
+          ),
+        customHeaders: customHeadersSchema,
+        mcpTransport: z.nativeEnum(MCPTransport),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { url, customHeaders, mcpTransport } = input;
+
+      return await validateMcpServer({
+        url,
+        customHeaders,
+        mcpTransport,
+      });
     }),
   deleteMcpServer: protectedProcedure
     .input(z.object({ projectId: z.string(), serverId: z.string() }))
