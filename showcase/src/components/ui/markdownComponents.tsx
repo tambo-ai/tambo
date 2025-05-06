@@ -90,7 +90,7 @@ const CodeHeader = ({
  * @param theme - The theme to use ('light' or 'dark')
  * @returns Components object for react-markdown
  */
-export const createMarkdownComponents = (_theme = "light"): Components => ({
+export const createMarkdownComponents = (): Components => ({
   code: function Code({ className, children, ...props }) {
     const match = /language-(\w+)/.exec(className ?? "");
     const content = String(children).replace(/\n$/, "");
