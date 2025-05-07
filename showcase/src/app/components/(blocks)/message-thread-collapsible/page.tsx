@@ -23,7 +23,7 @@ export default function MessageThreadCollapsiblePage() {
 
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Preview</h2>
-            <div className="rounded-lg bg-background p-6 border border-border/40 h-[1000px] relative">
+            <div className="rounded-lg bg-background p-6 border border-border/40 h-[650px] relative">
               <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full">
                 <div className="h-8 w-[200px] bg-muted/80 rounded-md" />
                 <div className="h-4 w-[300px] bg-muted/80 rounded-md" />

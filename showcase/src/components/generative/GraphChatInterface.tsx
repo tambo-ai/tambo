@@ -200,7 +200,8 @@ export const GraphChatInterface = () => {
     <div className="relative h-full w-full">
       <MessageThreadFull
         contextKey="graph-thread"
-        className="min-h-[600px] md:min-h-[700px] rounded-lg"
+        className="rounded-lg"
+        style={{ height: "100%" }}
       />
     </div>
   );

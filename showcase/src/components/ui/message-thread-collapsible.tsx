@@ -249,7 +249,7 @@ export const MessageThreadCollapsible = React.forwardRef<
         config={THREAD_CONFIG}
       />
       <Collapsible.Content>
-        <div className="h-[700px] flex flex-col">
+        <div className="h-[500px] flex flex-col">
           {/* Message thread content */}
           <ScrollableMessageContainer className="p-4">
             <ThreadContent variant={variant}>
