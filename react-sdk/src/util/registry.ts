@@ -140,18 +140,21 @@ export const mapTamboToolToContextTool = (
 };
 
 /**
- *
+ * Get the parameters from a Zod object
+ * @param inputSchema - The Zod object
+ * @returns The parameters
  */
 export const getParametersFromZodObject = (
-  inputSchema: z.ZodObject,
+  inputSchema: z.ZodObject<any, any>,
 ): ParameterSpec[] => {
   return Object.entries(inputSchema.shape).map(
     ([_key, param], index): ParameterSpec => {
+      const zodSchema = param as z.ZodTypeAny;
       const name = `param${index + 1}`;
-      const type = param.def.typeName;
-      const description = param.description ?? "";
-      const isRequired = !param.isOptional();
-      const schema = z.toJSONSchema(param);
+      const type = zodSchema.def.type;
+      const description = zodSchema.description ?? "";
+      const isRequired = !zodSchema.isOptional();
+      const schema = z.toJSONSchema(zodSchema);
 
       return {
         name,
