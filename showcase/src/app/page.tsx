@@ -6,7 +6,7 @@ import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import Link from "next/link";
 
 export default function DocsPage() {
-  const userContextKey = useUserContextKey("message-thread-full");
+  const userContextKey = useUserContextKey("message-thread-full-showcase");
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
