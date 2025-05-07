@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.6.0...tambo-v0.7.0) (2025-05-07)
+
+
+### Features
+
+* allow env to override tambo URL, for local dev ([#379](https://github.com/tambo-ai/tambo/issues/379)) ([2a79b55](https://github.com/tambo-ai/tambo/commit/2a79b55864134dd89a86f089537e90ddfb834752))
+* update showcase with new components ([#367](https://github.com/tambo-ai/tambo/issues/367)) ([581359a](https://github.com/tambo-ai/tambo/commit/581359adc7f85433c08f7a3c5da7af65cb8529fc))
+
+
+### Miscellaneous
+
+* **deps:** bump open from 10.1.1 to 10.1.2 ([#370](https://github.com/tambo-ai/tambo/issues/370)) ([72df9ad](https://github.com/tambo-ai/tambo/commit/72df9ad2c5ddce8c07be3e095c8ed2220eb6d4ba))
+
 ## [0.6.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.5.1...tambo-v0.6.0) (2025-05-01)
 
 
