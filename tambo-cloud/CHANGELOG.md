@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.46.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.45.0...repo-v0.46.0) (2025-05-06)
+
+
+### Features
+
+* Add MCP server setup during project setup ([#924](https://github.com/tambo-ai/tambo-cloud/issues/924)) ([aaff9b7](https://github.com/tambo-ai/tambo-cloud/commit/aaff9b78d4c891c584309d4b9a884f8a6f63c7da))
+* validate MCP server in mcp editor ([#925](https://github.com/tambo-ai/tambo-cloud/issues/925)) ([ced7acb](https://github.com/tambo-ai/tambo-cloud/commit/ced7acb9806350e9a9fe38283b7950e85a7fb88f))
+
+
+### Bug Fixes
+
+* propagate system prompt from db to prompt ([#926](https://github.com/tambo-ai/tambo-cloud/issues/926)) ([99e3226](https://github.com/tambo-ai/tambo-cloud/commit/99e3226c90e8e9c3f3a329e4195b89b92a3e2215))
+* sanitize other json schema formats like anyOf/etc ([#927](https://github.com/tambo-ai/tambo-cloud/issues/927)) ([11c8bf3](https://github.com/tambo-ai/tambo-cloud/commit/11c8bf3b1feba1445079f08f5acfa68eb3b01004))
+
+
+### Code Refactoring
+
+* move client side components out of pages so they have distinct titles ([#922](https://github.com/tambo-ai/tambo-cloud/issues/922)) ([0e2cf8f](https://github.com/tambo-ai/tambo-cloud/commit/0e2cf8fc2965bc67f78090b245277b1681f1d641))
+
 ## [0.45.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.44.1...repo-v0.45.0) (2025-05-05)
 
 
