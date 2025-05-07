@@ -68,7 +68,7 @@
     "react-fast-compare": "^3.2.2",
     "ts-essentials": "^10.0.4",
     "use-debounce": "^10.0.4",
-    "zod": "^3.24.4",
+    "zod": "^4.0.0-beta.20250505T195954",
     "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
