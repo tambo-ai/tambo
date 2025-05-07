@@ -18,11 +18,11 @@ import * as React from "react";
  * Context for sharing thread history state and functions
  */
 interface ThreadHistoryContextValue {
-  threads: any;
+  threads: { items?: TamboThread[] } | null | undefined;
   isLoading: boolean;
-  error: any;
-  refetch: () => Promise<any>;
-  currentThread: any;
+  error: Error | null;
+  refetch: () => Promise<unknown>;
+  currentThread: TamboThread;
   switchCurrentThread: (threadId: string) => void;
   startNewThread: () => void;
   searchQuery: string;
@@ -138,7 +138,9 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
     );
 
     return (
-      <ThreadHistoryContext.Provider value={contextValue}>
+      <ThreadHistoryContext.Provider
+        value={contextValue as ThreadHistoryContextValue}
+      >
         <div
           ref={ref}
           className={cn(
@@ -220,17 +222,20 @@ const ThreadHistoryNewButton = React.forwardRef<
   const { isCollapsed, startNewThread, refetch, onThreadChange } =
     useThreadHistoryContext();
 
-  const handleNewThread = async (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  const handleNewThread = React.useCallback(
+    async (e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
 
-    try {
-      await startNewThread();
-      await refetch();
-      onThreadChange?.();
-    } catch (error) {
-      console.error("Failed to create new thread:", error);
-    }
-  };
+      try {
+        await startNewThread();
+        await refetch();
+        onThreadChange?.();
+      } catch (error) {
+        console.error("Failed to create new thread:", error);
+      }
+    },
+    [startNewThread, refetch, onThreadChange],
+  );
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -242,7 +247,7 @@ const ThreadHistoryNewButton = React.forwardRef<
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [handleNewThread]);
 
   return (
     <button

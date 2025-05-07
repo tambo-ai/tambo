@@ -3,7 +3,7 @@
 import { MessageGenerationStage } from "@/components/ui/message-generation-stage";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { Suggestion } from "@tambo-ai/react";
+import type { Suggestion, TamboThread } from "@tambo-ai/react";
 import { useTambo, useTamboSuggestions } from "@tambo-ai/react";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
@@ -19,12 +19,12 @@ import { useEffect, useRef } from "react";
  * @property {object} thread - The current Tambo thread
  */
 interface MessageSuggestionsContextValue {
-  suggestions: any[];
+  suggestions: Suggestion[];
   selectedSuggestionId: string | null;
-  accept: (options: { suggestion: any }) => void;
+  accept: (options: { suggestion: Suggestion }) => void;
   isGenerating: boolean;
   error: Error | null;
-  thread: any;
+  thread: TamboThread;
   isMac: boolean;
 }
 

@@ -13,7 +13,7 @@ export default function MessageThreadFullPage() {
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold mb-4">Message Thread Full</h1>
-            <p className="text-lg text-muted-foreground mb-6">
+            <p className="text-lg text-secondary mb-6">
               A full message thread component with chat history and input field.
             </p>
           </div>
@@ -21,7 +21,13 @@ export default function MessageThreadFullPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Preview</h2>
             <div className="rounded-lg bg-background p-6 border border-border/40">
-              <MessageThreadFull contextKey="message-thread-full" />
+              <div className="h-[600px] relative flex rounded-lg shadow-lg overflow-hidden">
+                <MessageThreadFull
+                  contextKey="message-thread-full"
+                  className="w-full rounded-lg"
+                  style={{ height: "100%" }}
+                />
+              </div>
             </div>
           </div>
 

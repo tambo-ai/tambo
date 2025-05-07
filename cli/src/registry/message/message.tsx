@@ -243,7 +243,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <ReactMarkdown components={createMarkdownComponents("light")}>
+              <ReactMarkdown components={createMarkdownComponents()}>
                 {typeof safeContent === "string" ? safeContent : ""}
               </ReactMarkdown>
             ) : (

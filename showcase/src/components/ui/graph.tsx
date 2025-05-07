@@ -1,14 +1,10 @@
+"use client";
+
 import { cn } from "@/lib/utils";
+import { useTambo } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
-
-const defaultColors = [
-  "hsl(220, 100%, 62%)", // Blue
-  "hsl(160, 82%, 47%)", // Green
-  "hsl(32, 100%, 62%)", // Orange
-  "hsl(340, 82%, 66%)", // Pink
-];
 
 const graphVariants = cva(
   "w-full rounded-lg overflow-hidden transition-all duration-200",
@@ -35,259 +31,384 @@ const graphVariants = cva(
   },
 );
 
+/**
+ * Represents a graph data object
+ * @property {string} type - Type of graph to render
+ * @property {string[]} labels - Labels for the graph
+ * @property {Object[]} datasets - Data for the graph
+ */
 export interface GraphData {
-  type?: "bar" | "line" | "pie";
-  labels?: string[];
-  datasets?: {
+  type: "bar" | "line" | "pie";
+  labels: string[];
+  datasets: {
     label: string;
     data: number[];
     color?: string;
   }[];
 }
 
-const defaultData: GraphData = {
-  type: "bar",
-  labels: ["Loading..."],
-  datasets: [
-    {
-      label: "Loading...",
-      data: [0],
-      color: defaultColors[0],
-    },
-  ],
-};
-
+/**
+ * Props for the Graph component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
+ * @extends VariantProps<typeof graphVariants>
+ */
 export interface GraphProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof graphVariants> {
+  /** Data object containing chart configuration and values */
   data?: GraphData;
+  /** Optional title for the chart */
   title?: string;
+  /** Whether to show the legend (default: true) */
   showLegend?: boolean;
+  /** Whether to display the status and completion messages */
+  _tambo_displayMessage?: boolean;
+  /** Text to display as the status message */
+  _tambo_statusMessage?: string;
+  /** Text to display as the completion status message */
+  _tambo_completionStatusMessage?: string;
 }
 
-const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
+const defaultColors = [
+  "hsl(220, 100%, 62%)", // Blue
+  "hsl(160, 82%, 47%)", // Green
+  "hsl(32, 100%, 62%)", // Orange
+  "hsl(340, 82%, 66%)", // Pink
+];
+
+/**
+ * A component that renders various types of charts using Recharts
+ * @component
+ * @example
+ * ```tsx
+ * <Graph
+ *   data={{
+ *     type: "bar",
+ *     labels: ["Jan", "Feb", "Mar"],
+ *     datasets: [{
+ *       label: "Sales",
+ *       data: [100, 200, 300]
+ *     }]
+ *   }}
+ *   title="Monthly Sales"
+ *   variant="solid"
+ *   size="lg"
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
   (
     {
       className,
       variant,
       size,
-      data = defaultData,
+      data,
       title,
       showLegend = true,
+      _tambo_completionStatusMessage,
+      _tambo_statusMessage,
+      _tambo_displayMessage = true,
       ...props
     },
     ref,
   ) => {
-    const safeData: Required<GraphData> = {
-      type: (data?.type ?? defaultData.type) as Required<GraphData>["type"],
-      labels: (data?.labels ??
-        defaultData.labels) as Required<GraphData>["labels"],
-      datasets: (data?.datasets ??
-        defaultData.datasets) as Required<GraphData>["datasets"],
-    };
+    // Get thread state
+    const { thread } = useTambo();
+    const generationStage = thread?.generationStage;
+    const isGenerating =
+      generationStage &&
+      generationStage !== "COMPLETE" &&
+      generationStage !== "ERROR";
 
-    // Normalize the data to ensure all datasets have values for all labels
-    const padData = (data: number[], desiredLength: number) => {
-      return data.concat(Array(desiredLength).fill(0)).slice(0, desiredLength);
-    };
-
-    const normalizedData: Required<GraphData> = {
-      ...safeData,
-      datasets: safeData.datasets.map((dataset) => ({
-        ...dataset,
-        // Ensure each dataset has a value (or 0) for each label
-        // data: Array.from(
-        //   { length: safeData.labels.length },
-        //   (_, i) => dataset.data[i] ?? 0,
-        // ),
-        data: padData(dataset.data ?? [], safeData.labels.length),
-      })),
-    };
-
-    // Transform data for Recharts
-    const chartData = normalizedData.labels.map((label, index) => ({
-      name: label,
-      ...Object.fromEntries(
-        normalizedData.datasets.map((dataset) => [
-          dataset.label,
-          dataset.data[index],
-        ]),
-      ),
-    }));
-
-    const renderChart = () => {
-      switch (normalizedData.type) {
-        case "bar":
-          return (
-            <RechartsCore.BarChart data={chartData}>
-              <RechartsCore.CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="hsl(var(--border))"
-              />
-              <RechartsCore.XAxis
-                dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
-                axisLine={false}
-                tickLine={false}
-              />
-              <RechartsCore.YAxis
-                stroke="hsl(var(--muted-foreground))"
-                axisLine={false}
-                tickLine={false}
-              />
-              <RechartsCore.Tooltip
-                cursor={{
-                  fill: "hsl(var(--muted)/0.3)",
-                  radius: 4,
-                }}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))",
-                }}
-              />
-              {showLegend && (
-                <RechartsCore.Legend
-                  wrapperStyle={{
-                    color: "hsl(var(--foreground))",
-                  }}
-                />
-              )}
-              {normalizedData.datasets.map((dataset, index) => (
-                <RechartsCore.Bar
-                  key={dataset.label}
-                  dataKey={dataset.label}
-                  fill={
-                    dataset.color || defaultColors[index % defaultColors.length]
-                  }
-                  radius={[4, 4, 0, 0]}
-                />
-              ))}
-            </RechartsCore.BarChart>
-          );
-
-        case "line":
-          return (
-            <RechartsCore.LineChart data={chartData}>
-              <RechartsCore.CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="hsl(var(--border))"
-              />
-              <RechartsCore.XAxis
-                dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
-                axisLine={false}
-                tickLine={false}
-              />
-              <RechartsCore.YAxis
-                stroke="hsl(var(--muted-foreground))"
-                axisLine={false}
-                tickLine={false}
-              />
-              <RechartsCore.Tooltip
-                cursor={{
-                  stroke: "hsl(var(--muted))",
-                  strokeWidth: 2,
-                  strokeOpacity: 0.3,
-                }}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))",
-                }}
-              />
-              {showLegend && (
-                <RechartsCore.Legend
-                  wrapperStyle={{
-                    color: "hsl(var(--foreground))",
-                  }}
-                />
-              )}
-              {normalizedData.datasets.map((dataset, index) => (
-                <RechartsCore.Line
-                  key={dataset.label}
-                  type="monotone"
-                  dataKey={dataset.label}
-                  stroke={
-                    dataset.color || defaultColors[index % defaultColors.length]
-                  }
-                  dot={false}
-                />
-              ))}
-            </RechartsCore.LineChart>
-          );
-
-        case "pie":
-        default:
-          return (
-            <RechartsCore.PieChart>
-              <RechartsCore.Pie
-                data={normalizedData.datasets[0].data.map((value, index) => ({
-                  name: normalizedData.labels[index],
-                  value,
-                  fill: defaultColors[index % defaultColors.length],
-                }))}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8884d8"
-              />
-              <RechartsCore.Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                }}
-                itemStyle={{
-                  color: "hsl(var(--foreground))",
-                }}
-                labelStyle={{
-                  color: "hsl(var(--foreground))",
-                }}
-              />
-              {showLegend && (
-                <RechartsCore.Legend
-                  wrapperStyle={{
-                    color: "hsl(var(--foreground))",
-                  }}
-                />
-              )}
-            </RechartsCore.PieChart>
-          );
-      }
-    };
-
-    return (
-      <div
-        ref={ref}
-        className={cn(graphVariants({ variant, size }), className)}
-        {...props}
-      >
-        <div className="p-4 h-full">
-          {title && (
-            <h3 className="text-lg font-medium mb-4 text-foreground">
-              {title}
-            </h3>
-          )}
-          <div className="w-full h-[calc(100%-2rem)]">
-            <RechartsCore.ResponsiveContainer width="100%" height="100%">
-              {renderChart()}
-            </RechartsCore.ResponsiveContainer>
+    // Show streaming state if generation is actively in progress
+    // OR if the basic data structure (labels/datasets arrays) isn't present yet.
+    if (
+      isGenerating ||
+      !data?.labels ||
+      !data.datasets ||
+      !Array.isArray(data.labels) ||
+      !Array.isArray(data.datasets)
+    ) {
+      return (
+        <div
+          ref={ref}
+          className={cn(graphVariants({ variant, size }), className)}
+          {...props}
+        >
+          <div className="p-4 h-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-1 h-4">
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+              </div>
+              {/* Use the specific status message if available, otherwise default */}
+              <span className="text-sm">
+                {(_tambo_displayMessage && _tambo_statusMessage) ||
+                  "Streaming data..."}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
+
+    // If not generating and basic structure exists, proceed with detailed validation and rendering
+    try {
+      // Check for invalid data structure *only after* generation should be complete
+      if (
+        data.datasets.some(
+          (dataset) =>
+            !dataset.label ||
+            !dataset.data ||
+            !Array.isArray(dataset.data) ||
+            dataset.data.length !== data.labels.length,
+        )
+      ) {
+        console.error("Invalid graph data structure (post-generation):", data);
+        // Render a specific error for invalid structure after completion
+        return (
+          <div
+            ref={ref}
+            className={cn(graphVariants({ variant, size }), className)}
+            {...props}
+          >
+            <div className="p-4 h-full flex items-center justify-center">
+              <div className="text-destructive text-center">
+                <p className="font-medium">Invalid Graph Data</p>
+                <p className="text-sm mt-1">
+                  The final data structure is invalid.
+                  {_tambo_displayMessage &&
+                    _tambo_completionStatusMessage &&
+                    ` (${_tambo_completionStatusMessage})`}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Transform data for Recharts (only if structure is valid post-generation)
+      const chartData = data.labels.map((label, index) => ({
+        name: label,
+        ...Object.fromEntries(
+          data.datasets.map((dataset) => [dataset.label, dataset.data[index]]),
+        ),
+      }));
+
+      const renderChart = () => {
+        if (!data.type || !["bar", "line", "pie"].includes(data.type)) {
+          console.error("Invalid chart type:", data.type);
+          return (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-destructive text-center">
+                <p className="font-medium">Error loading chart</p>
+                <p className="text-sm mt-1">
+                  Invalid chart type. Supported types are: bar, line, pie
+                </p>
+              </div>
+            </div>
+          );
+        }
+
+        switch (data.type) {
+          case "bar":
+            return (
+              <RechartsCore.BarChart data={chartData}>
+                <RechartsCore.CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="hsl(var(--border))"
+                />
+                <RechartsCore.XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsCore.YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsCore.Tooltip
+                  cursor={{
+                    fill: "hsl(var(--muted)/0.3)",
+                    radius: 4,
+                  }}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                    color: "hsl(var(--foreground))",
+                  }}
+                />
+                {showLegend && (
+                  <RechartsCore.Legend
+                    wrapperStyle={{
+                      color: "hsl(var(--foreground))",
+                    }}
+                  />
+                )}
+                {data.datasets.map((dataset, index) => (
+                  <RechartsCore.Bar
+                    key={dataset.label}
+                    dataKey={dataset.label}
+                    fill={
+                      dataset.color ??
+                      defaultColors[index % defaultColors.length]
+                    }
+                    radius={[4, 4, 0, 0]}
+                  />
+                ))}
+              </RechartsCore.BarChart>
+            );
+
+          case "line":
+            return (
+              <RechartsCore.LineChart data={chartData}>
+                <RechartsCore.CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="hsl(var(--border))"
+                />
+                <RechartsCore.XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsCore.YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsCore.Tooltip
+                  cursor={{
+                    stroke: "hsl(var(--muted))",
+                    strokeWidth: 2,
+                    strokeOpacity: 0.3,
+                  }}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                    color: "hsl(var(--foreground))",
+                  }}
+                />
+                {showLegend && (
+                  <RechartsCore.Legend
+                    wrapperStyle={{
+                      color: "hsl(var(--foreground))",
+                    }}
+                  />
+                )}
+                {data.datasets.map((dataset, index) => (
+                  <RechartsCore.Line
+                    key={dataset.label}
+                    type="monotone"
+                    dataKey={dataset.label}
+                    stroke={
+                      dataset.color ??
+                      defaultColors[index % defaultColors.length]
+                    }
+                    dot={false}
+                  />
+                ))}
+              </RechartsCore.LineChart>
+            );
+
+          case "pie":
+            return (
+              <RechartsCore.PieChart>
+                <RechartsCore.Pie
+                  data={data.datasets[0].data.map((value, index) => ({
+                    name: data.labels[index],
+                    value,
+                    fill: defaultColors[index % defaultColors.length],
+                  }))}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                />
+                <RechartsCore.Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                    color: "hsl(var(--foreground))",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  }}
+                  itemStyle={{
+                    color: "hsl(var(--foreground))",
+                  }}
+                  labelStyle={{
+                    color: "hsl(var(--foreground))",
+                  }}
+                />
+                {showLegend && (
+                  <RechartsCore.Legend
+                    wrapperStyle={{
+                      color: "hsl(var(--foreground))",
+                    }}
+                  />
+                )}
+              </RechartsCore.PieChart>
+            );
+        }
+      };
+
+      return (
+        <div
+          ref={ref}
+          className={cn(graphVariants({ variant, size }), className)}
+          {...props}
+        >
+          <div className="p-4 h-full">
+            {title && (
+              <h3 className="text-lg font-medium mb-4 text-foreground">
+                {title}
+              </h3>
+            )}
+            <div className="w-full h-[calc(100%-2rem)]">
+              <RechartsCore.ResponsiveContainer width="100%" height="100%">
+                {renderChart()}
+              </RechartsCore.ResponsiveContainer>
+            </div>
+            {/* Optionally display completion message */}
+            {_tambo_displayMessage && _tambo_completionStatusMessage && (
+              <div className="text-xs text-muted-foreground text-center pt-2">
+                {_tambo_completionStatusMessage}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    } catch (error) {
+      console.error("Error rendering chart:", error);
+      return (
+        <div
+          className={cn(graphVariants({ variant, size }), className)}
+          {...props}
+        >
+          <div className="p-4 flex items-center justify-center h-full">
+            <div className="text-destructive text-center">
+              <p className="font-medium">Error loading chart</p>
+              <p className="text-sm mt-1">
+                An error occurred while transforming data. Please try again
+                later.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
   },
 );
 Graph.displayName = "Graph";
-
-export { Graph, graphVariants };
