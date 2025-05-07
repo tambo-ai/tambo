@@ -10,6 +10,7 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.12",
     "@radix-ui/react-slot": "^1.2.1",
     "@tambo-ai/react": "*",
     "class-variance-authority": "^0.7.1",
