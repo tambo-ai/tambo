@@ -24,7 +24,7 @@ export default function GraphPage() {
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold mb-4">Graph</h1>
-            <p className="text-lg text-muted-foreground mb-6">
+            <p className="text-lg mb-6 text-secondary">
               A versatile data visualization component that supports bar charts,
               line charts, and pie charts with customizable styles.
             </p>
@@ -34,11 +34,15 @@ export default function GraphPage() {
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
 
-          <div className="rounded-lg bg-background border border-border/40">
-            <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
-              <GraphChatInterface />
-            </TamboProvider>
-          </div>
+          <Section title="Preview">
+            <div className="rounded-lg bg-background border border-border/40 h-[800px]">
+              <TamboProvider
+                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+              >
+                <GraphChatInterface />
+              </TamboProvider>
+            </div>
+          </Section>
 
           <Section title="Installation">
             <div className="rounded-md">

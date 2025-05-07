@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useTambo } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
@@ -61,6 +62,12 @@ export interface GraphProps
   title?: string;
   /** Whether to show the legend (default: true) */
   showLegend?: boolean;
+  /** Whether to display the status and completion messages */
+  _tambo_displayMessage?: boolean;
+  /** Text to display as the status message */
+  _tambo_statusMessage?: string;
+  /** Text to display as the completion status message */
+  _tambo_completionStatusMessage?: string;
 }
 
 const defaultColors = [
@@ -93,11 +100,32 @@ const defaultColors = [
  */
 export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
   (
-    { className, variant, size, data, title, showLegend = true, ...props },
+    {
+      className,
+      variant,
+      size,
+      data,
+      title,
+      showLegend = true,
+      _tambo_completionStatusMessage,
+      _tambo_statusMessage,
+      _tambo_displayMessage = true,
+      ...props
+    },
     ref,
   ) => {
-    // Show streaming state for any incomplete or invalid data
+    // Get thread state
+    const { thread } = useTambo();
+    const generationStage = thread?.generationStage;
+    const isGenerating =
+      generationStage &&
+      generationStage !== "COMPLETE" &&
+      generationStage !== "ERROR";
+
+    // Show streaming state if generation is actively in progress
+    // OR if the basic data structure (labels/datasets arrays) isn't present yet.
     if (
+      isGenerating ||
       !data?.labels ||
       !data.datasets ||
       !Array.isArray(data.labels) ||
@@ -116,16 +144,20 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                 <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
                 <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
               </div>
-              <span className="text-sm">Streaming data...</span>
+              {/* Use the specific status message if available, otherwise default */}
+              <span className="text-sm">
+                {(_tambo_displayMessage && _tambo_statusMessage) ??
+                  "Streaming data..."}
+              </span>
             </div>
           </div>
         </div>
       );
     }
 
-    // Transform data for Recharts
+    // If not generating and basic structure exists, proceed with detailed validation and rendering
     try {
-      // Check for invalid data structure
+      // Check for invalid data structure *only after* generation should be complete
       if (
         data.datasets.some(
           (dataset) =>
@@ -135,7 +167,8 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
             dataset.data.length !== data.labels.length,
         )
       ) {
-        console.error("Invalid graph data structure:", data);
+        console.error("Invalid graph data structure (post-generation):", data);
+        // Render a specific error for invalid structure after completion
         return (
           <div
             ref={ref}
@@ -143,19 +176,21 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
             {...props}
           >
             <div className="p-4 h-full flex items-center justify-center">
-              <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <div className="flex items-center gap-1 h-4">
-                  <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-                  <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
-                </div>
-                <span className="text-sm">Streaming data...</span>
+              <div className="text-destructive text-center">
+                <p className="font-medium">Invalid Graph Data</p>
+                <p className="text-sm mt-1">
+                  The final data structure is invalid.
+                  {_tambo_displayMessage &&
+                    _tambo_completionStatusMessage &&
+                    ` (${_tambo_completionStatusMessage})`}
+                </p>
               </div>
             </div>
           </div>
         );
       }
 
+      // Transform data for Recharts (only if structure is valid post-generation)
       const chartData = data.labels.map((label, index) => ({
         name: label,
         ...Object.fromEntries(
@@ -346,11 +381,17 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                 {renderChart()}
               </RechartsCore.ResponsiveContainer>
             </div>
+            {/* Optionally display completion message */}
+            {_tambo_displayMessage && _tambo_completionStatusMessage && (
+              <div className="text-xs text-muted-foreground text-center pt-2">
+                {_tambo_completionStatusMessage}
+              </div>
+            )}
           </div>
         </div>
       );
     } catch (error) {
-      console.error("Error transforming data:", error);
+      console.error("Error rendering chart:", error);
       return (
         <div
           className={cn(graphVariants({ variant, size }), className)}

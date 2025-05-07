@@ -10,12 +10,12 @@ export const FormChatInterface = () => {
     registerComponent({
       name: "FormComponent",
       description: `A dynamic form builder component that creates structured forms with multiple input types.
-      It can handle text inputs, number inputs, dropdowns (select), and text areas.
+      It can handle text inputs, number inputs, dropdowns (select), text areas, radio buttons, checkboxes, sliders, and yes/no toggles.
       Each field can have labels, placeholders, validation, and help text.
       The form supports different visual styles through variants (default/solid/bordered) and spacing layouts (default/compact/relaxed).
       Perfect for user input collection, data entry forms, contact forms, surveys, and any structured data collection needs.
       Features:
-      - Multiple input types (text, number, select, textarea)
+      - Multiple input types (text, number, select, textarea, radio, checkbox, slider, yes-no)
       - Required field validation
       - Custom field descriptions
       - Dropdown menus with search
@@ -30,42 +30,112 @@ export const FormChatInterface = () => {
       - Data entry interfaces`,
       component: FormComponent,
       propsDefinition: {
-        fields: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              id: "string",
-              type: {
-                type: "enum",
-                options: ["text", "number", "select", "textarea"],
+        type: "object",
+        properties: {
+          fields: {
+            type: "array",
+            description: "Array of field configuration objects for the form.",
+            items: {
+              type: "object",
+              properties: {
+                id: {
+                  type: "string",
+                  description: "Unique identifier for the field.",
+                },
+                type: {
+                  type: "string",
+                  enum: [
+                    "text",
+                    "number",
+                    "select",
+                    "textarea",
+                    "radio",
+                    "checkbox",
+                    "slider",
+                    "yes-no",
+                  ],
+                  description: "The type of form input.",
+                },
+                label: {
+                  type: "string",
+                  description: "Visible label for the field.",
+                },
+                placeholder: {
+                  type: "string",
+                  description: "Placeholder text for the input field.",
+                },
+                options: {
+                  type: "array",
+                  items: { type: "string" },
+                  description:
+                    "Array of options for 'select', 'radio', or 'checkbox' type fields.",
+                },
+                required: {
+                  type: "boolean",
+                  description: "Whether the field is mandatory.",
+                },
+                description: {
+                  type: "string",
+                  description:
+                    "Additional help text displayed below the field.",
+                },
+                sliderMin: {
+                  type: "number",
+                  description: "The minimum value for slider fields.",
+                },
+                sliderMax: {
+                  type: "number",
+                  description: "The maximum value for slider fields.",
+                },
+                sliderStep: {
+                  type: "number",
+                  description: "The step value for slider fields.",
+                },
+                sliderDefault: {
+                  type: "number",
+                  description: "Default value for slider fields.",
+                },
+                sliderLabels: {
+                  type: "array",
+                  items: { type: "string" },
+                  description:
+                    "Labels to display under slider (typically at min, middle, max positions).",
+                },
               },
-              label: "string",
-              placeholder: "string?",
-              options: {
-                type: "array",
-                items: "string",
-                optional: true,
-              },
-              required: "boolean?",
-              description: "string?",
+              required: ["id", "type", "label"],
             },
           },
+          onSubmit: {
+            type: "object",
+            description:
+              "Callback function executed when the form is submitted successfully.",
+          },
+          onError: {
+            type: "string",
+            description: "Error message to display on submission failure.",
+          },
+          submitText: {
+            type: "string",
+            description: "Text displayed on the submit button.",
+          },
+          variant: {
+            type: "string",
+            enum: ["default", "solid", "bordered"],
+            description: "Visual style variant of the form.",
+            default: "default",
+          },
+          layout: {
+            type: "string",
+            enum: ["default", "compact", "relaxed"],
+            description: "Spacing layout of the form fields.",
+            default: "default",
+          },
+          className: {
+            type: "string",
+            description: "Additional CSS classes for styling.",
+          },
         },
-        onSubmit: "function",
-        onError: "string?",
-        submitText: "string?",
-        variant: {
-          type: "enum",
-          options: ["default", "solid", "bordered"],
-          optional: true,
-        },
-        layout: {
-          type: "enum",
-          options: ["default", "compact", "relaxed"],
-          optional: true,
-        },
-        className: "string?",
+        required: ["fields", "onSubmit"],
       },
     });
   }, [registerComponent, thread]);
@@ -74,7 +144,8 @@ export const FormChatInterface = () => {
     <div className="relative h-full w-full ">
       <MessageThreadFull
         contextKey="form-thread"
-        className="min-h-[600px] md:min-h-[700px]"
+        className="rounded-lg"
+        style={{ height: "100%" }}
       />
     </div>
   );

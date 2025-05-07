@@ -1,8 +1,14 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as React from "react";
+import { Tooltip as TooltipPrimitive } from "radix-ui";
+import { cn } from "@/lib/utils";
+
+/**
+ * Represents a tooltip component
+ * @property {string} className - Optional className for custom styling
+ * @property {number} sideOffset - Offset for the tooltip side
+ */
 
 // Provider component that should wrap any tooltips
 const TooltipProvider = TooltipPrimitive.Provider;
