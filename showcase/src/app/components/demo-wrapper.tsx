@@ -7,6 +7,7 @@ import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 interface DemoWrapperProps {
   children: React.ReactNode;
+  title: string;
   className?: string;
   /** Height of the demo container. Defaults to 650px */
   height?: string | number;
@@ -16,6 +17,7 @@ interface DemoWrapperProps {
 
 export function DemoWrapper({
   children,
+  title,
   className,
   height = "650px",
   hidePreviewHeading = false,
@@ -39,14 +41,19 @@ export function DemoWrapper({
           <DialogContent className="fixed inset-0 w-screen h-screen max-w-none p-0 gap-0 overflow-hidden">
             <ShowcaseThemeProvider defaultTheme="light">
               <div className="absolute inset-0 bg-background">
-                <div className="absolute top-8 right-8 z-50">
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-xs">
-                      Exit Full Screen
-                    </Button>
-                  </DialogTrigger>
+                {/* Header in fullscreen mode */}
+                <div className="absolute top-0 left-0 right-0 h-16 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <div className="h-full px-8 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">{title}</h2>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-xs">
+                        Exit Full Screen
+                      </Button>
+                    </DialogTrigger>
+                  </div>
                 </div>
-                <div className="h-full w-full p-6">{children}</div>
+                {/* Content area with padding to account for header */}
+                <div className="h-full w-full pt-16 p-6">{children}</div>
               </div>
             </ShowcaseThemeProvider>
           </DialogContent>
