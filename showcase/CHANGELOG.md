@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.1...showcase-v0.5.2) (2025-05-07)
+
+
+### Bug Fixes
+
+* sidebar and message input resizing issues ([#386](https://github.com/tambo-ai/tambo/issues/386)) ([09a20dc](https://github.com/tambo-ai/tambo/commit/09a20dc53dd58b8723022b5d66e970dea8387ce2))
+
 ## [0.5.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.0...showcase-v0.5.1) (2025-05-07)
 
 
