@@ -130,7 +130,7 @@ export const getClientContext = (): string => {
 export const mapTamboToolToContextTool = (
   tool: TamboTool,
 ): ComponentContextToolMetadata => {
-  const parameters = getParametersFromZodFunction(tool.toolSchema);
+  const parameters = getParametersFromZodObject(tool.inputSchema);
 
   return {
     name: tool.name,
@@ -139,46 +139,27 @@ export const mapTamboToolToContextTool = (
   };
 };
 
-const getParametersFromZodFunction = (
-  schema: z.ZodFunction<any, any>,
+/**
+ *
+ */
+export const getParametersFromZodObject = (
+  inputSchema: z.ZodObject,
 ): ParameterSpec[] => {
-  const parameters: z.ZodTuple = schema.parameters();
-  return parameters.items.map((param, index): ParameterSpec => {
-    const name = `param${index + 1}`;
-    const type = getZodBaseType(param);
-    const description = param.description ?? "";
-    const isRequired = !param.isOptional();
-    const schema = zodToJsonSchema(param);
+  return Object.entries(inputSchema.shape).map(
+    ([_key, param], index): ParameterSpec => {
+      const name = `param${index + 1}`;
+      const type = param.def.typeName;
+      const description = param.description ?? "";
+      const isRequired = !param.isOptional();
+      const schema = zodToJsonSchema(param);
 
-    return {
-      name,
-      type,
-      description,
-      isRequired,
-      schema,
-    };
-  });
-};
-
-const getZodBaseType = (schema: z.ZodTypeAny): string => {
-  const typeName = schema._def.typeName;
-  switch (typeName) {
-    case "ZodString":
-      return "string";
-    case "ZodNumber":
-      return "number";
-    case "ZodBoolean":
-      return "boolean";
-    case "ZodArray":
-      return "array";
-    case "ZodEnum":
-      return "enum";
-    case "ZodDate":
-      return "date";
-    case "ZodObject":
-      return "object";
-    default:
-      console.warn("falling back to string for", typeName);
-      return "string";
-  }
+      return {
+        name,
+        type,
+        description,
+        isRequired,
+        schema,
+      };
+    },
+  );
 };

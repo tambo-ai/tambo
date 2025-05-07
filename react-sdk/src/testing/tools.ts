@@ -1,6 +1,7 @@
 import { z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import { TamboComponent } from "../providers";
+import { mapTamboToolToContextTool } from "../util/registry";
 
 /**
  * Serializes the registry for testing purposes
@@ -17,19 +18,8 @@ export function serializeRegistry(mockRegistry: TamboComponent[]) {
     }) => ({
       ...componentEntry,
       props: zodToJsonSchema(propsSchema as z.ZodTypeAny),
-      contextTools: associatedTools?.map(
-        ({ toolSchema, tool: _tool, ...toolEntry }) => ({
-          ...toolEntry,
-          parameters: toolSchema
-            .parameters()
-            .items.map((p: z.ZodTypeAny, index: number) => ({
-              name: `param${index + 1}`,
-              schema: zodToJsonSchema(p),
-              isRequired: true,
-              description: p.description,
-              type: (zodToJsonSchema(p) as any).type,
-            })),
-        }),
+      contextTools: associatedTools?.map((tool) =>
+        mapTamboToolToContextTool(tool),
       ),
     }),
   );
