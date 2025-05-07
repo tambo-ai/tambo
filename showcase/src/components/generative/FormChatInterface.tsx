@@ -1,9 +1,11 @@
 import { FormComponent } from "@/components/ui/form";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const FormChatInterface = () => {
+  const userContextKey = useUserContextKey("form-thread");
   const { registerComponent, thread } = useTambo();
 
   useEffect(() => {
@@ -143,7 +145,7 @@ export const FormChatInterface = () => {
   return (
     <div className="relative h-full w-full ">
       <MessageThreadFull
-        contextKey="form-thread"
+        contextKey={userContextKey}
         className="rounded-lg"
         style={{ height: "100%" }}
       />

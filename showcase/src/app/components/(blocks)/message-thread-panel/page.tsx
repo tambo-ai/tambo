@@ -2,9 +2,11 @@
 
 import { CLI } from "@/components/cli";
 import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 export default function MessageThreadPanelPage() {
+  const userContextKey = useUserContextKey("message-thread-panel");
   const installCommand = "npx tambo add message-thread-panel";
 
   return (
@@ -33,7 +35,7 @@ export default function MessageThreadPanelPage() {
                   </div>
                 </div>
                 <MessageThreadPanel
-                  contextKey="message-thread-panel"
+                  contextKey={userContextKey}
                   className="right rounded-r-lg"
                   style={{ height: "100%", width: "60%" }}
                 />
