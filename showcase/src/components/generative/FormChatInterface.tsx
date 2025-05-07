@@ -140,7 +140,7 @@ export const FormChatInterface = () => {
         required: ["fields", "onSubmit"],
       },
     });
-  }, [registerComponent, thread]);
+  }, [registerComponent, thread.id]);
 
   return (
     <div className="relative h-full w-full ">
