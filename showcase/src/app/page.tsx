@@ -41,7 +41,10 @@ export default function DocsPage() {
             className="relative rounded-lg bg-background border border-border/40 flex flex-col"
             style={{ height: "600px", overflow: "hidden" }}
           >
-            <MessageThreadFull contextKey={userContextKey} />
+            <MessageThreadFull
+              contextKey={userContextKey}
+              className="rounded-lg flex-1"
+            />
           </div>
         </ShowcaseThemeProvider>
       </div>

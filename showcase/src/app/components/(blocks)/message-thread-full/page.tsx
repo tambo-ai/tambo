@@ -26,7 +26,7 @@ export default function MessageThreadFullPage() {
               <div className="h-[600px] relative flex rounded-lg shadow-lg overflow-hidden flex-col">
                 <MessageThreadFull
                   contextKey={userContextKey}
-                  className="w-full rounded-lg"
+                  className="w-full rounded-lg flex-1"
                 />
               </div>
             </div>
