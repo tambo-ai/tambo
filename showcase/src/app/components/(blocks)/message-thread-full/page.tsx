@@ -2,9 +2,11 @@
 
 import { CLI } from "@/components/cli";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 export default function MessageThreadFullPage() {
+  const userContextKey = useUserContextKey("message-thread-full");
   const installCommand = "npx tambo add message-thread-full";
 
   return (
@@ -23,7 +25,7 @@ export default function MessageThreadFullPage() {
             <div className="rounded-lg bg-background p-6 border border-border/40">
               <div className="h-[600px] relative flex rounded-lg shadow-lg overflow-hidden">
                 <MessageThreadFull
-                  contextKey="message-thread-full"
+                  contextKey={userContextKey}
                   className="w-full rounded-lg"
                   style={{ height: "100%" }}
                 />
