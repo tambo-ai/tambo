@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.0...showcase-v0.5.1) (2025-05-07)
+
+
+### Code Refactoring
+
+* replace hardcoded context keys with useUserContextKey in message thread components ([#382](https://github.com/tambo-ai/tambo/issues/382)) ([57b900a](https://github.com/tambo-ai/tambo/commit/57b900a523dc77a36db3ce2f9f443f0c629dd248))
+
 ## [0.5.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.4.2...showcase-v0.5.0) (2025-05-07)
 
 
