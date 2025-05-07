@@ -38,13 +38,10 @@ export default function DocsPage() {
       <div className="bg-background flex justify-start items-center">
         <ShowcaseThemeProvider defaultTheme="light">
           <div
-            className="relative rounded-lg bg-background border border-border/40"
+            className="relative rounded-lg bg-background border border-border/40 flex flex-col"
             style={{ height: "600px", overflow: "hidden" }}
           >
-            <MessageThreadFull
-              contextKey={userContextKey}
-              style={{ height: "100%" }}
-            />
+            <MessageThreadFull contextKey={userContextKey} />
           </div>
         </ShowcaseThemeProvider>
       </div>
