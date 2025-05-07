@@ -428,7 +428,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                           : "text-secondary"
                       }
                     >
-                      {state.selectedValues[field.id] || field.placeholder}
+                      {state.selectedValues[field.id] ?? field.placeholder}
                     </span>
                     <svg
                       className={cn(
@@ -470,7 +470,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                   <input
                     type="hidden"
                     name={field.id}
-                    value={state.selectedValues[field.id] || ""}
+                    value={state.selectedValues[field.id] ?? ""}
                     required={field.required}
                   />
                 </div>
@@ -581,7 +581,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                     type="hidden"
                     id={field.id}
                     name={field.id}
-                    value={state.yesNoSelections[field.id] || ""}
+                    value={state.yesNoSelections[field.id] ?? ""}
                     required={field.required}
                   />
                 </div>
