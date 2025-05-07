@@ -2,15 +2,13 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { JSONSchema7 } from "json-schema";
 import { ComponentType } from "react";
 import z from "zod";
-import type zodToJsonSchema from "zod-to-json-schema";
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {
-  schema?: ReturnType<typeof zodToJsonSchema>;
+  schema?: z.ZodType;
 };
 
 /**
  * Extends the base ContextTool interface from Tambo AI to include schema information
- * for parameter validation using zod-to-json-schema.
  */
 export interface ComponentContextToolMetadata
   extends TamboAI.ComponentContextToolMetadata {

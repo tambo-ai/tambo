@@ -1,6 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { z } from "zod";
-import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentContextToolMetadata,
   ComponentRegistry,
@@ -77,8 +76,8 @@ export const convertPropsToJsonSchema = (
 
   // Check if props is a Zod schema (we can't directly check the type, so we check for _def)
   if (component.props._def && typeof component.props.parse === "function") {
-    // Use two-step type assertion for safety
-    return zodToJsonSchema(component.props as unknown as z.ZodTypeAny);
+    // Assert that props is a Zod type with toJSONSchema method
+    return z.toJSONSchema(component.props as unknown as z.ZodTypeAny);
   }
 
   return component.props;
@@ -151,7 +150,7 @@ export const getParametersFromZodObject = (
       const type = param.def.typeName;
       const description = param.description ?? "";
       const isRequired = !param.isOptional();
-      const schema = zodToJsonSchema(param);
+      const schema = z.toJSONSchema(param);
 
       return {
         name,

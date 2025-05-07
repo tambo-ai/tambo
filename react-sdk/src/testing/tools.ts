@@ -1,5 +1,4 @@
 import { z } from "zod";
-import zodToJsonSchema from "zod-to-json-schema";
 import { TamboComponent } from "../providers";
 import { mapTamboToolToContextTool } from "../util/registry";
 
@@ -17,7 +16,7 @@ export function serializeRegistry(mockRegistry: TamboComponent[]) {
       ...componentEntry
     }) => ({
       ...componentEntry,
-      props: zodToJsonSchema(propsSchema as z.ZodTypeAny),
+      props: z.toJSONSchema(propsSchema as z.ZodTypeAny),
       contextTools: associatedTools?.map((tool) =>
         mapTamboToolToContextTool(tool),
       ),
