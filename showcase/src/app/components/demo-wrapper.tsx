@@ -56,9 +56,9 @@ export function DemoWrapper({
               <VisuallyHidden>{title} Demo</VisuallyHidden>
             </DialogTitle>
             <ShowcaseThemeProvider defaultTheme="light">
-              <div className="absolute inset-0 bg-background">
+              <div className="absolute inset-0 bg-gradient-to-br from-background via-background/98 to-muted/30">
                 {/* Header in fullscreen mode */}
-                <div className="absolute top-0 left-0 right-0 h-16 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="absolute top-0 left-0 right-0 h-[var(--header-height)] z-50 border-b border-border/40 bg-gradient-to-b from-background/95 to-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
                   <div className="h-full px-8 flex items-center justify-between">
                     <h2 className="text-lg font-semibold">{title}</h2>
                     <DialogTrigger asChild>
@@ -69,7 +69,9 @@ export function DemoWrapper({
                   </div>
                 </div>
                 {/* Content area with padding to account for header */}
-                <div className="h-full w-full pt-16 p-6">{children}</div>
+                <div className="h-full w-full pt-[var(--header-height)] bg-gradient-to-br from-muted/10 via-transparent to-background/5 shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)]">
+                  {children}
+                </div>
               </div>
             </ShowcaseThemeProvider>
           </DialogContent>
@@ -79,7 +81,7 @@ export function DemoWrapper({
       {/* Regular view */}
       <div
         className={cn(
-          "relative rounded-lg bg-background p-6 border border-border/40",
+          "relative rounded-lg bg-gradient-to-br from-background via-background/98 to-muted/20 border border-border/40 shadow-[0_0_15px_-3px_rgba(0,0,0,0.1),0_0_6px_-2px_rgba(0,0,0,0.05)] overflow-hidden",
           className,
         )}
         style={{ height: containerHeight }}
