@@ -4,6 +4,7 @@ import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentContextToolMetadata,
   ComponentRegistry,
+  JSONSchemaLite,
   ParameterSpec,
   RegisteredComponent,
   TamboTool,
@@ -139,9 +140,33 @@ export const mapTamboToolToContextTool = (
   };
 };
 
+function isJsonSchema(
+  schema: unknown,
+): schema is ReturnType<typeof zodToJsonSchema> {
+  return (
+    typeof schema === "object" &&
+    schema !== null &&
+    "type" in schema &&
+    typeof (schema as { type: unknown }).type === "string" &&
+    (schema as { type: string }).type === "object"
+  );
+}
+
 const getParametersFromZodFunction = (
-  schema: z.ZodFunction<any, any>,
+  schema: z.ZodFunction<any, any> | JSONSchemaLite,
 ): ParameterSpec[] => {
+  if (isJsonSchema(schema)) {
+    return [
+      {
+        name: "args",
+        type: "object",
+        description: schema.description ?? "",
+        isRequired: true,
+        schema: schema,
+      },
+    ];
+  }
+
   const parameters: z.ZodTuple = schema.parameters();
   return parameters.items.map((param, index): ParameterSpec => {
     const name = `param${index + 1}`;
