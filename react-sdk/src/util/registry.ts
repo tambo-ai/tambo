@@ -1,4 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
+import { JSONSchema7 } from "json-schema";
 import { z } from "zod";
 import {
   ComponentContextToolMetadata,
@@ -157,7 +158,7 @@ export const getParametersFromZodObject = (
         type,
         description,
         isRequired,
-        schema,
+        schema: schema as JSONSchema7,
       };
     },
   );

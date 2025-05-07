@@ -4,7 +4,7 @@ import { ComponentType } from "react";
 import z from "zod";
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {
-  schema?: z.ZodType;
+  schema?: JSONSchema7;
 };
 
 /**

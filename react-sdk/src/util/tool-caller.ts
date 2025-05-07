@@ -25,7 +25,10 @@ export const handleToolCall = async (
   return toolResult;
 };
 
-const findTool = (toolName: string, toolRegistry: TamboToolRegistry) => {
+const findTool = (
+  toolName: string,
+  toolRegistry: TamboToolRegistry,
+): ComponentContextTool => {
   const registryTool = toolRegistry[toolName];
 
   if (!registryTool) {
@@ -34,7 +37,7 @@ const findTool = (toolName: string, toolRegistry: TamboToolRegistry) => {
 
   const contextTool = mapTamboToolToContextTool(registryTool);
   return {
-    getComponentContext: registryTool.tool,
+    getComponentContext: registryTool.tool as (...args: any[]) => Promise<any>,
     definition: contextTool,
   };
 };
