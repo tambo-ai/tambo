@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { cn } from "@/lib/utils";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
@@ -46,6 +52,9 @@ export function DemoWrapper({
 
           {/* Fullscreen view - needs its own ThemeProvider since it's rendered in a portal */}
           <DialogContent className="fixed inset-0 w-screen h-screen max-w-none p-0 gap-0 overflow-hidden">
+            <DialogTitle asChild>
+              <VisuallyHidden>{title} Demo</VisuallyHidden>
+            </DialogTitle>
             <ShowcaseThemeProvider defaultTheme="light">
               <div className="absolute inset-0 bg-background">
                 {/* Header in fullscreen mode */}
