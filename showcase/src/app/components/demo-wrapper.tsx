@@ -26,7 +26,14 @@ export function DemoWrapper({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div
+        className={cn(
+          "mb-4",
+          hidePreviewHeading
+            ? "flex justify-end"
+            : "flex items-center justify-between",
+        )}
+      >
         {!hidePreviewHeading && (
           <h2 className="text-xl font-semibold">Preview</h2>
         )}
