@@ -199,11 +199,10 @@ export const GraphChatInterface = () => {
   }, [registerComponent, thread.id]);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full flex flex-col">
       <MessageThreadFull
         contextKey={userContextKey}
-        className="rounded-lg"
-        style={{ height: "100%" }}
+        className="rounded-lg flex-1"
       />
     </div>
   );
