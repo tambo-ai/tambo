@@ -20,11 +20,14 @@ export default function MessageThreadFullPage() {
 
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Preview</h2>
-            <div
-              className="relative rounded-lg bg-background border border-border/40"
-              style={{ height: "1000px", overflow: "hidden" }}
-            >
-              <MessageThreadFull contextKey="message-thread-full" />
+            <div className="rounded-lg bg-background p-6 border border-border/40">
+              <div className="h-[600px] relative flex rounded-lg shadow-lg overflow-hidden">
+                <MessageThreadFull
+                  contextKey="message-thread-full"
+                  className="w-full rounded-lg"
+                  style={{ height: "100%" }}
+                />
+              </div>
             </div>
           </div>
 

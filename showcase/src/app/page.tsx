@@ -36,9 +36,12 @@ export default function DocsPage() {
         <ShowcaseThemeProvider defaultTheme="light">
           <div
             className="relative rounded-lg bg-background border border-border/40"
-            style={{ height: "1000px", overflow: "hidden" }}
+            style={{ height: "600px", overflow: "hidden" }}
           >
-            <MessageThreadFull contextKey="message-thread-full" />
+            <MessageThreadFull
+              contextKey="message-thread-full"
+              style={{ height: "100%" }}
+            />
           </div>
         </ShowcaseThemeProvider>
       </div>

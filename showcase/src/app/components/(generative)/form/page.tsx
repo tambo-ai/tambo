@@ -34,9 +34,10 @@ Make it use the bordered variant with a relaxed layout.`;
           </Section>
 
           <Section title="Preview">
-            <div className="rounded-lg bg-background border border-border/40">
+            <div className="rounded-lg bg-background border border-border/40 h-[800px]">
               <TamboProvider
                 apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+                tamboUrl="http://localhost:4000"
               >
                 <FormChatInterface />
               </TamboProvider>

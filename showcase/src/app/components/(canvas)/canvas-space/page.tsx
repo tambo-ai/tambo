@@ -35,7 +35,9 @@ export default function CanvasSpacePage() {
           </Section>
 
           <Section title="Preview">
-            <CanvasChatInterface />
+            <div className="rounded-lg bg-background border border-border/40 h-[800px]">
+              <CanvasChatInterface />
+            </div>
           </Section>
 
           <div className="space-y-4">
