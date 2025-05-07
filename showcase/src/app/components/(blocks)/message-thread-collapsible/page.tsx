@@ -2,9 +2,11 @@
 
 import { CLI } from "@/components/cli";
 import { MessageThreadCollapsible } from "@/components/ui/message-thread-collapsible";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 export default function MessageThreadCollapsiblePage() {
+  const userContextKey = useUserContextKey("message-thread-collapsible");
   const installCommand = "npx tambo add message-thread-collapsible";
 
   return (
@@ -41,7 +43,7 @@ export default function MessageThreadCollapsiblePage() {
               </div>
               <MessageThreadCollapsible
                 defaultOpen={false}
-                contextKey="message-thread-collapsible"
+                contextKey={userContextKey}
                 className="absolute bottom-6 right-4"
               />
             </div>

@@ -1,10 +1,13 @@
 "use client";
 
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import Link from "next/link";
 
 export default function DocsPage() {
+  const userContextKey = useUserContextKey("message-thread-full-showcase");
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       {/* Hero Section */}
@@ -39,7 +42,7 @@ export default function DocsPage() {
             style={{ height: "600px", overflow: "hidden" }}
           >
             <MessageThreadFull
-              contextKey="message-thread-full"
+              contextKey={userContextKey}
               style={{ height: "100%" }}
             />
           </div>
