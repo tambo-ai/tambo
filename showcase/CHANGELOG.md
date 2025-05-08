@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.6.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.2...showcase-v0.6.0) (2025-05-08)
+
+
+### Features
+
+* add full-screen button to demos ([#388](https://github.com/tambo-ai/tambo/issues/388)) ([c9a5fc6](https://github.com/tambo-ai/tambo/commit/c9a5fc6d8d3f8789b46dcee0c1a52c17979dde0f))
+
+## [0.5.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.1...showcase-v0.5.2) (2025-05-07)
+
+
+### Bug Fixes
+
+* sidebar and message input resizing issues ([#386](https://github.com/tambo-ai/tambo/issues/386)) ([09a20dc](https://github.com/tambo-ai/tambo/commit/09a20dc53dd58b8723022b5d66e970dea8387ce2))
+
+## [0.5.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.0...showcase-v0.5.1) (2025-05-07)
+
+
+### Code Refactoring
+
+* replace hardcoded context keys with useUserContextKey in message thread components ([#382](https://github.com/tambo-ai/tambo/issues/382)) ([57b900a](https://github.com/tambo-ai/tambo/commit/57b900a523dc77a36db3ce2f9f443f0c629dd248))
+
+## [0.5.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.4.2...showcase-v0.5.0) (2025-05-07)
+
+
+### Features
+
+* update showcase with new components ([#367](https://github.com/tambo-ai/tambo/issues/367)) ([581359a](https://github.com/tambo-ai/tambo/commit/581359adc7f85433c08f7a3c5da7af65cb8529fc))
+
+
+### Miscellaneous
+
+* **deps:** bump framer-motion from 12.9.2 to 12.9.7 ([#371](https://github.com/tambo-ai/tambo/issues/371)) ([694e3f4](https://github.com/tambo-ai/tambo/commit/694e3f4032b0fcc2b77e9509c67ef139e64c05ea))
+* **deps:** bump geist from 1.3.1 to 1.4.1 ([#374](https://github.com/tambo-ai/tambo/issues/374)) ([db2b2f6](https://github.com/tambo-ai/tambo/commit/db2b2f64bd26e47679ea3a866243afd62f0508be))
+* **deps:** bump lucide-react from 0.503.0 to 0.507.0 ([#373](https://github.com/tambo-ai/tambo/issues/373)) ([ce4d1cf](https://github.com/tambo-ai/tambo/commit/ce4d1cfc6efef79ed45374899e8ee09b157391f0))
+* **deps:** bump radix-ui from 1.2.0 to 1.3.3 in the radix-ui group ([#330](https://github.com/tambo-ai/tambo/issues/330)) ([27cbcc8](https://github.com/tambo-ai/tambo/commit/27cbcc86177dae5628c5e3389e15d10d8702c76a))
+* **deps:** bump the radix-ui group with 2 updates ([#372](https://github.com/tambo-ai/tambo/issues/372)) ([9031420](https://github.com/tambo-ai/tambo/commit/90314200a15666d6df4c98402b7d47463b865ffa))
+
 ## [0.4.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.4.1...showcase-v0.4.2) (2025-04-30)
 
 

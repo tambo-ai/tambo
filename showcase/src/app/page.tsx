@@ -1,12 +1,16 @@
 "use client";
 
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import Link from "next/link";
+import { DemoWrapper } from "./components/demo-wrapper";
 
 export default function DocsPage() {
+  const userContextKey = useUserContextKey("message-thread-full-showcase");
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-4xl mx-auto px-4">
       {/* Hero Section */}
       <div className="flex flex-col items-start text-left mb-16">
         <h1 className="font-sentient text-5xl font-bold">
@@ -32,19 +36,14 @@ export default function DocsPage() {
       </div>
 
       {/* Demo Chat Component */}
-      <div className="bg-background flex justify-start items-center">
-        <ShowcaseThemeProvider defaultTheme="light">
-          <div
-            className="relative rounded-lg bg-background border border-border/40"
-            style={{ height: "600px", overflow: "hidden" }}
-          >
-            <MessageThreadFull
-              contextKey="message-thread-full"
-              style={{ height: "100%" }}
-            />
-          </div>
-        </ShowcaseThemeProvider>
-      </div>
+      <ShowcaseThemeProvider defaultTheme="light">
+        <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
+          <MessageThreadFull
+            contextKey={userContextKey}
+            style={{ height: "100%" }}
+          />
+        </DemoWrapper>
+      </ShowcaseThemeProvider>
     </div>
   );
 }
