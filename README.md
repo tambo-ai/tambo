@@ -274,6 +274,6 @@ We're building tools for the future of user interfaces. Your contributions matte
 ---
 
 <p align="center">
-  <i>Built by developers, for developers.</i><br>
+  <i>Built by developers, for developers</i><br>
   <i>Because we believe the future of UI is generative and hyper-personalized.</i>
 </p>
