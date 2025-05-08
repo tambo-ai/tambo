@@ -45,54 +45,59 @@ export const standardToolParameters: FunctionParameters = {
 export function convertMetadataToTools(
   toolsMetadata: ComponentContextToolMetadata[],
 ): OpenAI.Chat.Completions.ChatCompletionTool[] {
-  return toolsMetadata.map((tool) => ({
-    type: "function",
-    function: {
-      name: tool.name,
-      description: tool.description,
-      strict: true,
-      parameters: {
-        type: "object",
-        properties: {
-          ...Object.fromEntries(
-            tool.parameters.map((parameter) => {
-              if (parameter.type === "enum") {
-                return [
-                  parameter.name,
-                  {
-                    type: "string",
-                    enum: parameter.enumValues || [],
-                  },
-                ];
-              } else if (parameter.type === "array") {
-                return [
-                  parameter.name,
-                  {
-                    type: "array",
-                    items: { type: parameter.items?.type || "string" },
-                  },
-                ];
-              } else if (parameter.type === "object") {
-                return [
-                  parameter.name,
-                  { type: "object", ...parameter.schema },
-                ];
-              } else {
-                return [
-                  parameter.name,
-                  parameter.schema || { type: parameter.type },
-                ];
-              }
-            }),
-          ),
-        },
-        required: tool.parameters
-          .filter((parameter) => parameter.isRequired)
-          .map((parameter) => parameter.name),
-        additionalProperties: false,
+  return toolsMetadata.map((tool) => {
+    const parameters = {
+      type: "object",
+      properties: {
+        ...Object.fromEntries(
+          tool.parameters.map((parameter) => {
+            if (parameter.type === "enum") {
+              return [
+                parameter.name,
+                {
+                  type: "string",
+                  enum: parameter.enumValues || [],
+                },
+              ];
+            } else if (parameter.type === "array") {
+              return [
+                parameter.name,
+                {
+                  type: "array",
+                  items: { type: parameter.items?.type || "string" },
+                },
+              ];
+            } else if (parameter.type === "object") {
+              return [parameter.name, { type: "object", ...parameter.schema }];
+            } else {
+              return [
+                parameter.name,
+                parameter.schema || { type: parameter.type },
+              ];
+            }
+          }),
+        ),
       },
-    },
-  }));
+      required: tool.parameters
+        .filter((parameter) => parameter.isRequired)
+        .map((parameter) => parameter.name),
+      additionalProperties: false,
+    };
+    const sanitizedProperties = sanitizeJSONSchemaProperties(
+      parameters.properties,
+      parameters.required,
+    );
+
+    return {
+      type: "function",
+      function: {
+        name: tool.name,
+        description: tool.description,
+        strict: true,
+        parameters: sanitizedProperties,
+      },
+    };
+  });
 }
 
 export function convertComponentsToUITools(
@@ -204,17 +209,19 @@ export function filterOutStandardToolParameters(
   }[],
   parsedArguments: Record<string, unknown> | null,
 ): { parameterName: string; parameterValue: unknown }[] | undefined {
-  if (!parsedArguments) return undefined;
+  if (!parsedArguments) {
+    return undefined;
+  }
 
   // Find the matching tool definition
   const toolDef = tools.find(
     (tool) => tool.function.name === toolCall.function.name,
   );
 
-  if (!toolDef?.function.parameters?.properties) return undefined;
-
-  // Get the defined parameter names from the tool's schema
-  const definedParamNames = Object.keys(toolDef.function.parameters.properties);
+  // Get the defined parameter names from the tool's schema. Note that the tool might not take any arguments.
+  const definedParamNames = Object.keys(
+    toolDef?.function.parameters?.properties ?? {},
+  );
 
   // Transform the tool args into array of {parameterName, parameterValue} objects
   return Object.entries(parsedArguments)
