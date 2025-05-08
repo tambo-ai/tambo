@@ -72,27 +72,32 @@ export function sanitizeJSONSchemaProperty(
     minLength: _minLength,
     examples: _examples,
     minimum: _minimum,
+    exclusiveMaximum: _exclusiveMaximum,
+    exclusiveMinimum: _exclusiveMinimum,
     maximum: _maximum,
+    pattern: _pattern,
+    multipleOf: _multipleOf,
+    contentEncoding: _contentEncoding,
+    contentMediaType: _contentMediaType,
     ...restOfProperty
   } = property ?? {};
-  if (_default || _minItems || _maxItems || _maxLength || _minLength) {
-    const droppedKeys = {
-      _default,
-      _minItems,
-      _maxItems,
-      _maxLength,
-      _minLength,
-      _examples,
-      _minimum,
-      _maximum,
-    } as const;
+
+  // Dynamically calculate dropped keys
+  const prop = typeof property === "object" ? property : {};
+  const originalKeys = Object.keys(prop);
+  const restKeys = Object.keys(restOfProperty);
+  const droppedKeys = originalKeys.filter(
+    (key) =>
+      !restKeys.includes(key) &&
+      prop[key as keyof typeof prop] != null &&
+      prop[key as keyof typeof prop] !== undefined, // filters out null and undefined
+  );
+  if (droppedKeys.length > 0) {
     console.warn(
-      "Sanitizing JSON dropped: ",
-      Object.keys(droppedKeys).filter(
-        (key) => !!droppedKeys[key as keyof typeof droppedKeys],
-      ),
+      `Sanitizing JSON dropped keys at ${debugKey}: ${droppedKeys.join(", ")}`,
     );
   }
+
   if (restOfProperty.type === "object") {
     const objectProperty = {
       ...restOfProperty,
@@ -122,13 +127,13 @@ export function sanitizeJSONSchemaProperty(
             sanitizeJSONSchemaProperty(
               item,
               isRequired,
-              `${debugKey}[${index}]`,
+              `${debugKey}.items[${index}]`,
             ),
           )
         : sanitizeJSONSchemaProperty(
             restOfProperty.items as JSONSchema7Definition,
             isRequired,
-            `${debugKey}.??`,
+            `${debugKey}.items`,
           ),
     };
 
@@ -144,11 +149,11 @@ export function sanitizeJSONSchemaProperty(
     if (key in restOfProperty) {
       const value = restOfProperty[key];
       if (Array.isArray(value)) {
-        const sanitizedArray = value.map((item) => {
+        const sanitizedArray = value.map((item, index) => {
           return sanitizeJSONSchemaProperty(
             item,
             isRequired,
-            `${debugKey}=>${key}`,
+            `${debugKey}.${key}[${index}]`,
           );
         });
 
@@ -160,7 +165,7 @@ export function sanitizeJSONSchemaProperty(
           [key]: sanitizeJSONSchemaProperty(
             value,
             isRequired,
-            `${debugKey}=>${key}`,
+            `${debugKey}.${key}`,
           ),
         };
       }
