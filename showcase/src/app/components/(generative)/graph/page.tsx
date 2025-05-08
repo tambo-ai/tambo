@@ -5,6 +5,7 @@ import { GraphChatInterface } from "@/components/generative/GraphChatInterface";
 import { CopyablePrompt, Section } from "@/components/ui/doc-components";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
+import { DemoWrapper } from "../../demo-wrapper";
 
 export default function GraphPage() {
   const installCommand = "npx tambo add graph";
@@ -21,10 +22,10 @@ export default function GraphPage() {
   return (
     <div className="container mx-auto pt-6 px-6 max-w-4xl">
       <ShowcaseThemeProvider defaultTheme="light">
-        <div className="space-y-8">
+        <div className="flex flex-col gap-8">
           <div>
             <h1 className="text-3xl font-bold mb-4">Graph</h1>
-            <p className="text-lg mb-6 text-secondary">
+            <p className="text-lg text-secondary">
               A versatile data visualization component that supports bar charts,
               line charts, and pie charts with customizable styles.
             </p>
@@ -34,15 +35,11 @@ export default function GraphPage() {
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
 
-          <Section title="Preview">
-            <div className="rounded-lg bg-background border border-border/40 h-[800px]">
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-              >
-                <GraphChatInterface />
-              </TamboProvider>
-            </div>
-          </Section>
+          <DemoWrapper title="Graph" height={800}>
+            <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
+              <GraphChatInterface />
+            </TamboProvider>
+          </DemoWrapper>
 
           <Section title="Installation">
             <div className="rounded-md">
