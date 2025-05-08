@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.2...showcase-v0.6.0) (2025-05-08)
+
+
+### Features
+
+* add full-screen button to demos ([#388](https://github.com/tambo-ai/tambo/issues/388)) ([c9a5fc6](https://github.com/tambo-ai/tambo/commit/c9a5fc6d8d3f8789b46dcee0c1a52c17979dde0f))
+
 ## [0.5.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.1...showcase-v0.5.2) (2025-05-07)
 
 
