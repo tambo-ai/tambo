@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.46.0...repo-v0.46.1) (2025-05-08)
+
+
+### Bug Fixes
+
+* still call tools even without parameters ([#928](https://github.com/tambo-ai/tambo-cloud/issues/928)) ([facadb1](https://github.com/tambo-ai/tambo-cloud/commit/facadb12c1b8c776aa140a5e47efb66a2d1e5f08))
+
 ## [0.46.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.45.0...repo-v0.46.0) (2025-05-06)
 
 
