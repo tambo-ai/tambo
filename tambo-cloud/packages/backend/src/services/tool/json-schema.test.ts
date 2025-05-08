@@ -348,4 +348,127 @@ describe("sanitizeJSONSchemaProperties", () => {
     ]);
     expect(secondPass).toEqual(firstPass);
   });
+
+  it("should strip all JSON Schema validation properties", () => {
+    const properties: Record<string, JSONSchema7Definition> = {
+      // String with validation props
+      title: {
+        type: "string",
+        minLength: 3,
+        maxLength: 100,
+        pattern: "^[A-Za-z0-9 ]+$",
+        format: "text",
+        default: "Untitled",
+        examples: ["Example Title"],
+      },
+
+      // Number with validation props
+      age: {
+        type: "number",
+        minimum: 0,
+        maximum: 120,
+        exclusiveMinimum: 0,
+        exclusiveMaximum: 121,
+        multipleOf: 1,
+        default: 18,
+      },
+
+      // Array with validation props
+      tags: {
+        type: "array",
+        items: { type: "string" },
+        minItems: 1,
+        maxItems: 10,
+        default: ["general"],
+        examples: [["tag1", "tag2"]],
+      },
+
+      // Object with validation props and nested properties with validation
+      metadata: {
+        type: "object",
+        properties: {
+          created: {
+            type: "string",
+            format: "date-time",
+            default: "2023-01-01T00:00:00Z",
+          },
+          binary: {
+            type: "string",
+            // these do not need to be removed
+            contentEncoding: "base64",
+            contentMediaType: "image/png",
+          },
+        },
+        default: { created: "2023-01-01T00:00:00Z" },
+      },
+    };
+
+    const result = sanitizeJSONSchemaProperties(properties, ["title"]);
+
+    // Verify title (required) has validation props removed
+    expect(result.title).toEqual({ type: "string" });
+
+    // Verify age (optional) has validation props removed and is nullable
+    expect(result.age).toEqual({
+      anyOf: [{ type: "null" }, { type: "number" }],
+    });
+
+    // Verify tags (optional) has validation props removed and is nullable
+    expect(result.tags).toEqual({
+      anyOf: [
+        { type: "null" },
+        {
+          type: "array",
+          items: { anyOf: [{ type: "null" }, { type: "string" }] },
+        },
+      ],
+    });
+
+    // Verify nested objects have validation props removed
+    const metadata = result.metadata as any;
+    expect(metadata).toHaveProperty("anyOf");
+
+    // Check the object part of the anyOf
+    const objectPart = metadata.anyOf[1];
+    expect(objectPart).toHaveProperty("type", "object");
+
+    // Check nested properties
+    const nestedProps = objectPart.properties;
+    expect(nestedProps.created).toEqual({
+      anyOf: [{ type: "null" }, { type: "string" }],
+    });
+    expect(nestedProps.binary).toEqual({
+      anyOf: [
+        { type: "null" },
+        {
+          contentEncoding: "base64",
+          contentMediaType: "image/png",
+
+          type: "string",
+        },
+      ],
+    });
+
+    // Make sure no validation props exist in the result
+    const resultStr = JSON.stringify(result);
+    const validationProps = [
+      "minLength",
+      "maxLength",
+      "pattern",
+      "format",
+      "default",
+      "examples",
+      "minimum",
+      "maximum",
+      "exclusiveMinimum",
+      "exclusiveMaximum",
+      "multipleOf",
+      "minItems",
+      "maxItems",
+    ];
+
+    for (const prop of validationProps) {
+      expect(resultStr).not.toContain(`"${prop}"`);
+    }
+  });
 });

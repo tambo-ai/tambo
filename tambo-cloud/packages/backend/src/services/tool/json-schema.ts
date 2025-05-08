@@ -77,8 +77,6 @@ export function sanitizeJSONSchemaProperty(
     maximum: _maximum,
     pattern: _pattern,
     multipleOf: _multipleOf,
-    contentEncoding: _contentEncoding,
-    contentMediaType: _contentMediaType,
     ...restOfProperty
   } = property ?? {};
 
