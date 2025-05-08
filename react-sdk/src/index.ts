@@ -47,3 +47,4 @@ export {
   type TamboThreadMessage,
 } from "./model/generate-component-response";
 export { type TamboThread } from "./model/tambo-thread";
+export { TamboMcpProvider } from "./providers/tambo-mcp-provider";
