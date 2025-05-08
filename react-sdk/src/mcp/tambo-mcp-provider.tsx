@@ -1,14 +1,20 @@
 import { FC, useEffect } from "react";
 import { TamboTool } from "../model/component-metadata";
-import { MCPClient, MCPTransport } from "../util/mcp-client";
-import { useTamboRegistry } from "./tambo-registry-provider";
+import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import { MCPClient, MCPTransport } from "./mcp-client";
 
+interface McpServerInfo {
+  name?: string;
+  url: string;
+  description?: string;
+  transport?: MCPTransport;
+}
 /**
  * This provider is used to register tools from MCP servers.
  * @returns the wrapped children
  */
 export const TamboMcpProvider: FC<{
-  mcpServers: string[];
+  mcpServers: (McpServerInfo | string)[];
   children: React.ReactNode;
 }> = ({ mcpServers, children }) => {
   const { registerTool } = useTamboRegistry();
@@ -17,11 +23,16 @@ export const TamboMcpProvider: FC<{
     if (!mcpServers) {
       return;
     }
-    async function registerMcpServers(mcpServers: string[]) {
+    async function registerMcpServers(mcpServers: (McpServerInfo | string)[]) {
       // Maps tool names to the MCP client that registered them
       const mcpServerMap = new Map<string, MCPClient>();
       const serverToolLists = mcpServers.map(async (mcpServer) => {
-        const mcpClient = await MCPClient.create(mcpServer, MCPTransport.SSE);
+        const server =
+          typeof mcpServer === "string"
+            ? { url: mcpServer, transport: MCPTransport.SSE }
+            : mcpServer;
+        const { url, transport = MCPTransport.SSE } = server;
+        const mcpClient = await MCPClient.create(url, transport);
         const tools = await mcpClient.listTools();
         tools.forEach((tool) => {
           mcpServerMap.set(tool.name, mcpClient);
