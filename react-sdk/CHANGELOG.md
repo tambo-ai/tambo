@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/tambo-ai/tambo/compare/react-v0.22.0...react-v0.23.0) (2025-05-08)
+
+
+### Features
+
+* add support for browser-visible MCP servers ([#383](https://github.com/tambo-ai/tambo/issues/383)) ([d6a4387](https://github.com/tambo-ai/tambo/commit/d6a43875e8e12b90fdf278613706c7a8aa9d13b4))
+
 ## [0.22.0](https://github.com/tambo-ai/tambo/compare/react-v0.21.4...react-v0.22.0) (2025-05-07)
 
 
