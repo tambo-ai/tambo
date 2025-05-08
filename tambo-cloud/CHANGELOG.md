@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.46.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.46.1...repo-v0.46.2) (2025-05-08)
+
+
+### Bug Fixes
+
+* more zod validation stuff ([#930](https://github.com/tambo-ai/tambo-cloud/issues/930)) ([2799185](https://github.com/tambo-ai/tambo-cloud/commit/2799185a531be5e6243e851581a4381b53231c6e))
+* refine jsonschema stripping, add back contentEncoding/contentMediaType, add tests ([#932](https://github.com/tambo-ai/tambo-cloud/issues/932)) ([2656eac](https://github.com/tambo-ai/tambo-cloud/commit/2656eac52da9b9ed5cbba6bc40b0daa7147a29e4))
+
 ## [0.46.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.46.0...repo-v0.46.1) (2025-05-08)
 
 
