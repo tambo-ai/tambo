@@ -50,7 +50,7 @@ export const TamboMcpProvider: FC<{
         registerTool({
           description: tool.description ?? "",
           name: tool.name,
-          tool: async (args: Record<string, unknown>) => {
+          tool: async (...args: any) => {
             const mcpServer = mcpServerMap.get(tool.name);
             if (!mcpServer) {
               // should never happen

@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   ComponentContextToolMetadata,
   ComponentRegistry,
+  JSONSchemaLite,
   ParameterSpec,
   RegisteredComponent,
   TamboTool,
@@ -140,11 +141,24 @@ export const mapTamboToolToContextTool = (
 };
 
 /**
- * Get the parameters from the arguments of a Zod function
- * @param toolSchema - The Zod function
+ * Get the parameters from the arguments of a Zod function or JSON Schema
+ * @param toolSchema - The Zod function or JSON Schema
  * @returns The parameters
  */
-function getParameterInfo(toolSchema: z.core.$ZodFunction): ParameterSpec[] {
+function getParameterInfo(
+  toolSchema: z.core.$ZodFunction | JSONSchemaLite,
+): ParameterSpec[] {
+  if (isJSONSchema(toolSchema)) {
+    return [
+      {
+        name: "args",
+        type: "object",
+        description: toolSchema.description ?? "",
+        isRequired: true,
+        schema: toolSchema,
+      },
+    ];
+  }
   if (!toolSchema._def.input) {
     throw new Error("Input is not defined");
   }
@@ -163,4 +177,16 @@ function getParameterInfo(toolSchema: z.core.$ZodFunction): ParameterSpec[] {
   });
 
   return mappedParameters;
+}
+
+function isJSONSchema(
+  schema: unknown,
+): schema is ReturnType<typeof z.toJSONSchema> {
+  return (
+    typeof schema === "object" &&
+    schema !== null &&
+    "type" in schema &&
+    typeof (schema as { type: unknown }).type === "string" &&
+    (schema as { type: string }).type === "object"
+  );
 }
