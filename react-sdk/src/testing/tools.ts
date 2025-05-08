@@ -20,7 +20,7 @@ export function serializeRegistry(mockRegistry: TamboComponent[]) {
       contextTools: associatedTools?.map(
         ({ toolSchema, tool: _tool, ...toolEntry }) => ({
           ...toolEntry,
-          parameters: toolSchema
+          parameters: (toolSchema as z.ZodFunction<any, any>)
             .parameters()
             .items.map((p: z.ZodTypeAny, index: number) => ({
               name: `param${index + 1}`,

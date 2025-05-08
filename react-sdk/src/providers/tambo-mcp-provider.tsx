@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { TamboTool } from "../model/component-metadata";
-import { MCPClient } from "../util/mcp-tools-client";
+import { MCPClient, MCPTransport } from "../util/mcp-client";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 /**
- *
+ * This provider is used to register tools from MCP servers.
  */
 export const TamboMcpProvider = ({
   mcpServers,
@@ -23,12 +23,12 @@ export const TamboMcpProvider = ({
       // Maps tool names to the MCP client that registered them
       const mcpServerMap = new Map<string, MCPClient>();
       const serverToolLists = mcpServers.map(async (mcpServer) => {
-        const mcpClient = new MCPClient(mcpServer);
+        const mcpClient = await MCPClient.create(mcpServer, MCPTransport.SSE);
         const tools = await mcpClient.listTools();
-        tools.tools.forEach((tool) => {
+        tools.forEach((tool) => {
           mcpServerMap.set(tool.name, mcpClient);
         });
-        return tools.tools;
+        return tools;
       });
       const toolResults = await Promise.allSettled(serverToolLists);
 
@@ -61,7 +61,7 @@ export const TamboMcpProvider = ({
             const result = await mcpServer.callTool(tool.name, args);
             if (result.isError) {
               // TODO: is there a better way to handle this?
-              throw new Error(result.content[0].text);
+              throw new Error(`${result.content}`);
             }
             return result.content;
           },
