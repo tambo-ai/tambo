@@ -130,7 +130,7 @@ export const getClientContext = (): string => {
 export const mapTamboToolToContextTool = (
   tool: TamboTool,
 ): ComponentContextToolMetadata => {
-  const parameters = getParametersFromZodObject(tool.inputSchema);
+  const parameters = getParameterInfo(tool.toolSchema);
 
   return {
     name: tool.name,
@@ -140,29 +140,27 @@ export const mapTamboToolToContextTool = (
 };
 
 /**
- * Get the parameters from a Zod object
- * @param inputSchema - The Zod object
+ * Get the parameters from the arguments of a Zod function
+ * @param toolSchema - The Zod function
  * @returns The parameters
  */
-export const getParametersFromZodObject = (
-  inputSchema: z.ZodObject<any, any>,
-): ParameterSpec[] => {
-  return Object.entries(inputSchema.shape).map(
-    ([_key, param], index): ParameterSpec => {
-      const zodSchema = param as z.ZodTypeAny;
-      const name = `param${index + 1}`;
-      const type = zodSchema.def.type;
-      const description = zodSchema.description ?? "";
-      const isRequired = !zodSchema.isOptional();
-      const schema = z.toJSONSchema(zodSchema);
+function getParameterInfo(toolSchema: z.core.$ZodFunction): ParameterSpec[] {
+  if (!toolSchema._def.input) {
+    throw new Error("Input is not defined");
+  }
 
-      return {
-        name,
-        type,
-        description,
-        isRequired,
-        schema: schema as JSONSchema7,
-      };
-    },
-  );
-};
+  const input = toolSchema._def.input as z.ZodObject<any>;
+  const shape = input.shape;
+  const mappedParameters = Object.entries(shape).map(([_key, param], index) => {
+    const paramDef = param as z.ZodObject<any>;
+    return {
+      name: `param${index + 1}`,
+      type: paramDef.def.type,
+      description: paramDef.description ?? "",
+      isRequired: !paramDef.isOptional(),
+      schema: z.toJSONSchema(paramDef) as JSONSchema7,
+    };
+  });
+
+  return mappedParameters;
+}

@@ -36,8 +36,7 @@ export interface TamboTool<
   name: string;
   description: string;
   tool: (...args: z.infer<Args>) => z.infer<Returns>;
-  inputSchema: z.ZodObject;
-  outputSchema: z.ZodObject;
+  toolSchema: z.core.$ZodFunction;
 }
 
 export type TamboToolAssociations = Record<string, string[]>;
