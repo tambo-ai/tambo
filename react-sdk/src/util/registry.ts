@@ -1,5 +1,4 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { JSONSchema7 } from "json-schema";
 import { z } from "zod";
 import {
   ComponentContextToolMetadata,
@@ -172,7 +171,7 @@ function getParameterInfo(
       type: paramDef.def.type,
       description: paramDef.description ?? "",
       isRequired: !paramDef.isOptional(),
-      schema: z.toJSONSchema(paramDef) as JSONSchema7,
+      schema: z.toJSONSchema(paramDef) as JSONSchemaLite,
     };
   });
 

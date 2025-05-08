@@ -4,7 +4,7 @@ import { ComponentType } from "react";
 import z from "zod";
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {
-  schema?: JSONSchema7;
+  schema?: ReturnType<typeof z.toJSONSchema>;
 };
 
 /**
@@ -84,7 +84,7 @@ export interface TamboComponent {
    * A zod schema for the component props. (Recommended)
    * Either this or propsDefinition must be provided, but not both.
    */
-  propsSchema?: z.ZodTypeAny | JSONSchema7;
+  propsSchema?: z.ZodType | JSONSchema7;
   /**
    * The props definition of the component as a JSON object.
    * Either this or propsSchema must be provided, but not both.
