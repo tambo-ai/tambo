@@ -24,6 +24,7 @@ export class MCPClient {
   /**
    * Private constructor to enforce using the static create method.
    * @param endpoint - The URL of the MCP server to connect to
+   * @param transport - The transport to use for the MCP client
    * @param headers - Optional custom headers to include in requests
    */
   private constructor(

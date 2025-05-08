@@ -1,18 +1,16 @@
-import { useEffect } from "react";
+import { FC, useEffect } from "react";
 import { TamboTool } from "../model/component-metadata";
 import { MCPClient, MCPTransport } from "../util/mcp-client";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 /**
  * This provider is used to register tools from MCP servers.
+ * @returns the wrapped children
  */
-export const TamboMcpProvider = ({
-  mcpServers,
-  children,
-}: {
+export const TamboMcpProvider: FC<{
   mcpServers: string[];
   children: React.ReactNode;
-}) => {
+}> = ({ mcpServers, children }) => {
   const { registerTool } = useTamboRegistry();
 
   useEffect(() => {
