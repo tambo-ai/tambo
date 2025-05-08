@@ -5,6 +5,7 @@ import { FormChatInterface } from "@/components/generative/FormChatInterface";
 import { CopyablePrompt, Section } from "@/components/ui/doc-components";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
+import { DemoWrapper } from "../../demo-wrapper";
 
 export default function FormComponentPage() {
   const installCommand = "npx tambo add form";
@@ -20,10 +21,10 @@ Make it use the bordered variant with a relaxed layout.`;
   return (
     <div className="container mx-auto pt-6 px-6 max-w-4xl">
       <ShowcaseThemeProvider defaultTheme="light">
-        <div className="space-y-8">
+        <div className="flex flex-col gap-8">
           <div>
             <h1 className="text-3xl font-bold mb-4">Form</h1>
-            <p className="text-lg mb-6 text-secondary">
+            <p className="text-lg text-secondary">
               A dynamic form builder component that creates structured forms
               with multiple input types.
             </p>
@@ -33,15 +34,11 @@ Make it use the bordered variant with a relaxed layout.`;
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
 
-          <Section title="Preview">
-            <div className="rounded-lg bg-background border border-border/40 h-[800px]">
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-              >
-                <FormChatInterface />
-              </TamboProvider>
-            </div>
-          </Section>
+          <DemoWrapper title="Form" height={800}>
+            <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
+              <FormChatInterface />
+            </TamboProvider>
+          </DemoWrapper>
 
           <Section title="Installation">
             <div className="rounded-md">
