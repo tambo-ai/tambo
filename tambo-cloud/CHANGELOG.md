@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.47.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.46.2...repo-v0.47.0) (2025-05-09)
+
+
+### Features
+
+* allow MCP servers to be passed in via smoketest url ([#934](https://github.com/tambo-ai/tambo-cloud/issues/934)) ([92062d3](https://github.com/tambo-ai/tambo-cloud/commit/92062d370763ed8bf7ecd434227c5f5f924b7f2c))
+
+
+### Bug Fixes
+
+* fix param edge cases in smoketest ([#936](https://github.com/tambo-ai/tambo-cloud/issues/936)) ([0a42a25](https://github.com/tambo-ai/tambo-cloud/commit/0a42a25167fd1f4d1dad6a11690df065e2fa04e8))
+
 ## [0.46.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.46.1...repo-v0.46.2) (2025-05-08)
 
 
