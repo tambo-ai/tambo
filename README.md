@@ -30,7 +30,7 @@ tambo ai is a React library that deals with the boring parts. Get started with a
 - State persistence
 - Streaming responses
 - AI Orchestration
-- A Compatabile React UI Library
+- A compatible React UI Library
 
 You get clean React hooks that integrate seamlessly with your codebase.
 
