@@ -106,10 +106,14 @@ describe("TamboThreadProvider", () => {
           name: "test-tool",
           tool: jest.fn().mockResolvedValue("test-tool"),
           description: "test-tool",
-          toolSchema: z
-            .function()
-            .args(z.string().describe("test-param-description"))
-            .returns(z.string()),
+          toolSchema: z.function({
+            input: z.object({
+              test: z.string().describe("test-param-description"),
+            }),
+            output: z.object({
+              test: z.string(),
+            }),
+          }),
         },
       ],
     },

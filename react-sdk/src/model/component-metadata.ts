@@ -2,15 +2,13 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { JSONSchema7 } from "json-schema";
 import { ComponentType } from "react";
 import z from "zod";
-import type zodToJsonSchema from "zod-to-json-schema";
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {
-  schema?: ReturnType<typeof zodToJsonSchema>;
+  schema?: ReturnType<typeof z.toJSONSchema>;
 };
 
 /**
  * Extends the base ContextTool interface from Tambo AI to include schema information
- * for parameter validation using zod-to-json-schema.
  */
 export interface ComponentContextToolMetadata
   extends TamboAI.ComponentContextToolMetadata {
@@ -37,7 +35,7 @@ export type TamboToolRegistry = Record<string, TamboTool>;
  *
  * Do not export this type from the SDK.
  */
-export type JSONSchemaLite = ReturnType<typeof zodToJsonSchema> & {
+export type JSONSchemaLite = ReturnType<typeof z.toJSONSchema> & {
   description?: string;
 };
 
@@ -48,7 +46,7 @@ export interface TamboTool<
   name: string;
   description: string;
   tool: (...args: z.infer<Args>) => z.infer<Returns>;
-  toolSchema: z.ZodFunction<Args, Returns> | JSONSchemaLite;
+  toolSchema: z.core.$ZodFunction | JSONSchemaLite;
 }
 
 export type TamboToolAssociations = Record<string, string[]>;
@@ -86,7 +84,7 @@ export interface TamboComponent {
    * A zod schema for the component props. (Recommended)
    * Either this or propsDefinition must be provided, but not both.
    */
-  propsSchema?: z.ZodTypeAny | JSONSchema7;
+  propsSchema?: z.ZodType | JSONSchema7;
   /**
    * The props definition of the component as a JSON object.
    * Either this or propsSchema must be provided, but not both.

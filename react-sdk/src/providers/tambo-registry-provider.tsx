@@ -7,8 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { ZodSchema } from "zod";
-import zodToJsonSchema from "zod-to-json-schema";
+import { z } from "zod";
 import {
   ComponentRegistry,
   TamboComponent,
@@ -215,7 +214,7 @@ function getSerializedProps(
 
   if (isZodSchema(propsSchema)) {
     try {
-      return zodToJsonSchema(propsSchema);
+      return z.toJSONSchema(propsSchema);
     } catch (error) {
       console.error(
         `Error converting ${name} props schema to JSON Schema:`,
@@ -247,12 +246,12 @@ function isJSONSchema(propsSchema: any) {
 }
 
 /**
- * Since we require a certain zod version, we need to check if the object is a ZodSchema
+ * Since we require a certain zod version, we need to check if the object is a ZodType
  * @param obj - The object to check
- * @returns True if the object is a ZodSchema, false otherwise
+ * @returns True if the object is a ZodType, false otherwise
  */
-function isZodSchema(obj: unknown): obj is ZodSchema {
-  if (obj instanceof ZodSchema) {
+function isZodSchema(obj: unknown): obj is z.ZodType {
+  if (obj instanceof z.ZodType) {
     return true;
   }
   // try to detect if the object is a ZodSchema

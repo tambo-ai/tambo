@@ -1,6 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { z } from "zod";
-import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentContextToolMetadata,
   ComponentRegistry,
@@ -78,8 +77,8 @@ export const convertPropsToJsonSchema = (
 
   // Check if props is a Zod schema (we can't directly check the type, so we check for _def)
   if (component.props._def && typeof component.props.parse === "function") {
-    // Use two-step type assertion for safety
-    return zodToJsonSchema(component.props as unknown as z.ZodTypeAny);
+    // Assert that props is a Zod type with toJSONSchema method
+    return z.toJSONSchema(component.props as unknown as z.ZodTypeAny);
   }
 
   return component.props;
@@ -131,7 +130,7 @@ export const getClientContext = (): string => {
 export const mapTamboToolToContextTool = (
   tool: TamboTool,
 ): ComponentContextToolMetadata => {
-  const parameters = getParametersFromZodFunction(tool.toolSchema);
+  const parameters = getParameterInfo(tool.toolSchema);
 
   return {
     name: tool.name,
@@ -140,9 +139,48 @@ export const mapTamboToolToContextTool = (
   };
 };
 
-function isJsonSchema(
+/**
+ * Get the parameters from the arguments of a Zod function or JSON Schema
+ * @param toolSchema - The Zod function or JSON Schema
+ * @returns The parameters
+ */
+function getParameterInfo(
+  toolSchema: z.core.$ZodFunction | JSONSchemaLite,
+): ParameterSpec[] {
+  if (isJSONSchema(toolSchema)) {
+    return [
+      {
+        name: "args",
+        type: "object",
+        description: toolSchema.description ?? "",
+        isRequired: true,
+        schema: toolSchema,
+      },
+    ];
+  }
+  if (!toolSchema._def.input) {
+    throw new Error("Input is not defined");
+  }
+
+  const input = toolSchema._def.input as z.ZodObject<any>;
+  const shape = input.shape;
+  const mappedParameters = Object.entries(shape).map(([_key, param], index) => {
+    const paramDef = param as z.ZodObject<any>;
+    return {
+      name: `param${index + 1}`,
+      type: paramDef.def.type,
+      description: paramDef.description ?? "",
+      isRequired: !paramDef.isOptional(),
+      schema: z.toJSONSchema(paramDef) as JSONSchemaLite,
+    };
+  });
+
+  return mappedParameters;
+}
+
+function isJSONSchema(
   schema: unknown,
-): schema is ReturnType<typeof zodToJsonSchema> {
+): schema is ReturnType<typeof z.toJSONSchema> {
   return (
     typeof schema === "object" &&
     schema !== null &&
@@ -151,59 +189,3 @@ function isJsonSchema(
     (schema as { type: string }).type === "object"
   );
 }
-
-const getParametersFromZodFunction = (
-  schema: z.ZodFunction<any, any> | JSONSchemaLite,
-): ParameterSpec[] => {
-  if (isJsonSchema(schema)) {
-    return [
-      {
-        name: "args",
-        type: "object",
-        description: schema.description ?? "",
-        isRequired: true,
-        schema: schema,
-      },
-    ];
-  }
-
-  const parameters: z.ZodTuple = schema.parameters();
-  return parameters.items.map((param, index): ParameterSpec => {
-    const name = `param${index + 1}`;
-    const type = getZodBaseType(param);
-    const description = param.description ?? "";
-    const isRequired = !param.isOptional();
-    const schema = zodToJsonSchema(param);
-
-    return {
-      name,
-      type,
-      description,
-      isRequired,
-      schema,
-    };
-  });
-};
-
-const getZodBaseType = (schema: z.ZodTypeAny): string => {
-  const typeName = schema._def.typeName;
-  switch (typeName) {
-    case "ZodString":
-      return "string";
-    case "ZodNumber":
-      return "number";
-    case "ZodBoolean":
-      return "boolean";
-    case "ZodArray":
-      return "array";
-    case "ZodEnum":
-      return "enum";
-    case "ZodDate":
-      return "date";
-    case "ZodObject":
-      return "object";
-    default:
-      console.warn("falling back to string for", typeName);
-      return "string";
-  }
-};
