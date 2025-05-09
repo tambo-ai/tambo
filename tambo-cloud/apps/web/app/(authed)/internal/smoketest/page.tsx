@@ -195,13 +195,11 @@ export default function SmokePage() {
       name: "AirQuality",
       description: "Air quality",
       propsSchema: z.object({
-        data: z.object({
-          aqi: z.number(),
-          pm2_5: z.number(),
-          pm10: z.number(),
-          o3: z.number(),
-          no2: z.number(),
-        }),
+        aqi: z.number(),
+        pm2_5: z.number(),
+        pm10: z.number(),
+        o3: z.number(),
+        no2: z.number(),
       }),
       associatedTools: [tools.aqi],
     });

@@ -88,15 +88,21 @@ export function convertMetadataToTools(
       parameters.required,
     );
 
-    return {
+    const fn: OpenAI.Chat.Completions.ChatCompletionTool = {
       type: "function",
       function: {
         name: tool.name,
         description: tool.description,
         strict: true,
-        parameters: sanitizedProperties,
+        parameters: {
+          type: "object",
+          properties: sanitizedProperties,
+          required: Object.keys(sanitizedProperties),
+          additionalProperties: false,
+        },
       },
     };
+    return fn;
   });
 }
 
