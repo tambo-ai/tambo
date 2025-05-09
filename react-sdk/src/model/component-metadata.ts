@@ -31,6 +31,16 @@ export type ComponentRegistry = Record<string, RegisteredComponent>;
 
 export type TamboToolRegistry = Record<string, TamboTool>;
 
+/**
+ * A JSON Schema that is compatible with the MCP.
+ * This is a simplified JSON Schema that is compatible with the MCPClient and the toolSchema.
+ *
+ * Do not export this type from the SDK.
+ */
+export type JSONSchemaLite = ReturnType<typeof zodToJsonSchema> & {
+  description?: string;
+};
+
 export interface TamboTool<
   Args extends z.ZodTuple<any, any> = z.ZodTuple<any, any>,
   Returns extends z.ZodTypeAny = z.ZodTypeAny,
@@ -38,7 +48,7 @@ export interface TamboTool<
   name: string;
   description: string;
   tool: (...args: z.infer<Args>) => z.infer<Returns>;
-  toolSchema: z.ZodFunction<Args, Returns>;
+  toolSchema: z.ZodFunction<Args, Returns> | JSONSchemaLite;
 }
 
 export type TamboToolAssociations = Record<string, string[]>;

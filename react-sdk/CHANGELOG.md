@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.23.1](https://github.com/tambo-ai/tambo/compare/react-v0.23.0...react-v0.23.1) (2025-05-08)
+
+
+### Code Refactoring
+
+* move MCP into separate import (@tambo-ai/react/mcp) ([#391](https://github.com/tambo-ai/tambo/issues/391)) ([a9231f6](https://github.com/tambo-ai/tambo/commit/a9231f6fc37ab0688a7cf55202cab8f6bec3f0bb))
+
+## [0.23.0](https://github.com/tambo-ai/tambo/compare/react-v0.22.0...react-v0.23.0) (2025-05-08)
+
+
+### Features
+
+* add support for browser-visible MCP servers ([#383](https://github.com/tambo-ai/tambo/issues/383)) ([d6a4387](https://github.com/tambo-ai/tambo/commit/d6a43875e8e12b90fdf278613706c7a8aa9d13b4))
+
+## [0.22.0](https://github.com/tambo-ai/tambo/compare/react-v0.21.4...react-v0.22.0) (2025-05-07)
+
+
+### Features
+
+* update showcase with new components ([#367](https://github.com/tambo-ai/tambo/issues/367)) ([581359a](https://github.com/tambo-ai/tambo/commit/581359adc7f85433c08f7a3c5da7af65cb8529fc))
+
+
+### Bug Fixes
+
+* get threadId from other hooks ([#363](https://github.com/tambo-ai/tambo/issues/363)) ([9c21c22](https://github.com/tambo-ai/tambo/commit/9c21c22c4f1b41b50fd5348fb81302c69ae7498d))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node from 20.17.32 to 20.17.37 ([#368](https://github.com/tambo-ai/tambo/issues/368)) ([1c1d05f](https://github.com/tambo-ai/tambo/commit/1c1d05f52f703303ef5f5bf3cecd2be08c10c886))
+* **deps-dev:** bump the eslint group with 3 updates ([#375](https://github.com/tambo-ai/tambo/issues/375)) ([03d2058](https://github.com/tambo-ai/tambo/commit/03d20581a4e254cff27cd99c6730497f6149b7a6))
+* **deps:** bump @tanstack/react-query from 5.74.7 to 5.75.2 ([#376](https://github.com/tambo-ai/tambo/issues/376)) ([0999795](https://github.com/tambo-ai/tambo/commit/09997950fc73f3f5c9ca33750d4a815c75237623))
+* **deps:** bump zod from 3.24.3 to 3.24.4 ([#369](https://github.com/tambo-ai/tambo/issues/369)) ([8da0336](https://github.com/tambo-ai/tambo/commit/8da033694b0fa9187f818d53ca8552ff5368be25))
+
 ## [0.21.4](https://github.com/tambo-ai/tambo/compare/react-v0.21.3...react-v0.21.4) (2025-04-30)
 
 

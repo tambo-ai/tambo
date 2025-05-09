@@ -1,10 +1,12 @@
 import { CanvasSpace } from "@/components/ui/canvas-space";
 import { Graph } from "@/components/ui/graph";
 import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const CanvasChatInterface = () => {
+  const userContextKey = useUserContextKey("canvas-space-thread");
   const { registerComponent, thread } = useTambo();
 
   useEffect(() => {
@@ -201,7 +203,7 @@ export const CanvasChatInterface = () => {
     <div className="rounded-lg border border-border/40 h-[800px] relative flex flex-row overflow-hidden">
       <CanvasSpace className="bg-background rounded-l-lg" />
       <MessageThreadPanel
-        contextKey="canvas-space-thread"
+        contextKey={userContextKey}
         className="right rounded-r-lg"
         style={{ height: "100%", width: "60%" }}
       />
