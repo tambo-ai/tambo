@@ -210,10 +210,8 @@ const tools: TamboTool[] = [{
   },
   toolSchema: z.function()
     .args(
-      z.tuple([
-        z.string().describe("Location name (city)"),
-        z.string().optional().describe("Temperature units (celsius/fahrenheit)")
-      ])
+      z.string().describe("Location name (city)"),
+      z.string().optional().describe("Temperature units (celsius/fahrenheit)")
     )
     .returns(
       z.object({
