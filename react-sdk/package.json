@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.22.0",
+  "version": "0.23.1",
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
@@ -16,6 +16,11 @@
       "import": "./esm/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./mcp": {
+      "import": "./esm/mcp/index.js",
+      "require": "./dist/mcp/index.js",
+      "types": "./dist/mcp/index.d.ts"
     }
   },
   "files": [
