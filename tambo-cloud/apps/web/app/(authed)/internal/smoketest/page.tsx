@@ -620,7 +620,7 @@ function makeWeatherTools(
       name: "getAirQuality",
       description: "Get the air quality",
       tool: getAirQuality,
-      toolSchema: z.function().args(aqiSchema).returns(z.any()),
+      toolSchema: z.function().args(aqiSchema, z.string()).returns(z.any()),
     },
     currentWeather: {
       name: "getCurrentWeather",

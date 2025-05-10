@@ -3,15 +3,12 @@ import {
   ChatCompletionMessageParam,
   LegacyComponentDecision,
   ThreadMessage,
+  ToolCallRequest,
   tryParseJsonObject,
 } from "@tambo-ai-cloud/core";
+import OpenAI from "openai";
 import { parse } from "partial-json";
-import {
-  AvailableComponent,
-  ComponentContextToolMetadata,
-} from "../../model/component-metadata";
 import { generateDecisionLoopPrompt } from "../../prompt/decision-loop-prompts";
-import { SystemTools } from "../../systemTools";
 import { extractMessageContent } from "../../util/response-parsing";
 import { threadMessagesToChatHistory } from "../../util/threadMessagesToChatHistory";
 import {
@@ -19,45 +16,29 @@ import {
   getLLMResponseToolCallId,
   getLLMResponseToolCallRequest,
   LLMClient,
+  LLMResponse,
 } from "../llm/llm-client";
 import {
   addParametersToTools,
-  convertComponentsToUITools,
-  convertMetadataToTools,
   displayMessageTool,
   filterOutStandardToolParameters,
   standardToolParameters,
   TamboToolParameters,
+  UI_TOOLNAME_PREFIX,
 } from "../tool/tool-service";
-
-const UI_TOOLNAME_PREFIX = "show_component_";
 
 export async function* runDecisionLoop(
   llmClient: LLMClient,
   messageHistory: ThreadMessage[],
-  availableComponents: AvailableComponent[],
-  systemTools: SystemTools | undefined,
-  clientTools: ComponentContextToolMetadata[],
+  strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   customInstructions: string | undefined,
 ): AsyncIterableIterator<LegacyComponentDecision> {
-  const componentTools = convertComponentsToUITools(
-    availableComponents,
-    UI_TOOLNAME_PREFIX,
+  const componentTools = strictTools.filter((tool) =>
+    tool.function.name.startsWith(UI_TOOLNAME_PREFIX),
   );
-  const clientToolsConverted = convertMetadataToTools(clientTools);
-  const contextTools = convertMetadataToTools(
-    availableComponents.flatMap((component) => component.contextTools),
-  );
-  const tools = [
-    ...componentTools,
-    ...contextTools,
-    ...clientToolsConverted,
-    displayMessageTool,
-    ...(systemTools?.tools ?? []),
-  ];
   // Add standard parameters to all tools
   const toolsWithStandardParameters = addParametersToTools(
-    tools,
+    strictTools,
     standardToolParameters,
   );
 
@@ -120,32 +101,13 @@ export async function* runDecisionLoop(
       const statusMessage = toolArgs._tambo_statusMessage;
       const completionStatusMessage = toolArgs._tambo_completionStatusMessage;
       // If this is a non-UI tool call, make sure params are complete and filter out standard tool parameters
-      let filteredToolCallRequest;
+      let clientToolRequest: ToolCallRequest | undefined;
       if (!isUITool && toolCall) {
-        const parsedToolCall = tryParseJsonObject(
-          toolCall.function.arguments,
-          false,
+        clientToolRequest = removeTamboToolParameters(
+          toolCall,
+          strictTools,
+          chunk,
         );
-        if (parsedToolCall) {
-          const filteredArgs = filterOutStandardToolParameters(
-            toolCall,
-            tools,
-            parsedToolCall,
-          );
-
-          const originalRequest = getLLMResponseToolCallRequest(chunk);
-          // Only include tool call request if it's not the displayMessageTool
-          if (
-            originalRequest &&
-            filteredArgs &&
-            toolCall.function.name !== displayMessageTool.function.name
-          ) {
-            filteredToolCallRequest = {
-              ...originalRequest,
-              parameters: filteredArgs,
-            };
-          }
-        }
       }
 
       const displayMessage = extractMessageContent(
@@ -159,7 +121,7 @@ export async function* runDecisionLoop(
           ? toolCall.function.name.slice(UI_TOOLNAME_PREFIX.length)
           : "",
         props: isUITool ? toolArgs : null,
-        toolCallRequest: filteredToolCallRequest,
+        toolCallRequest: clientToolRequest,
         toolCallId:
           toolCall?.function.name === displayMessageTool.function.name
             ? undefined
@@ -176,6 +138,34 @@ export async function* runDecisionLoop(
       yield accumulatedDecision;
     } catch (e) {
       console.error("Error parsing stream chunk:", e);
+    }
+  }
+}
+
+function removeTamboToolParameters(
+  toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,
+  tools: OpenAI.Chat.Completions.ChatCompletionTool[],
+  chunk: Partial<LLMResponse>,
+) {
+  const parsedToolCall = tryParseJsonObject(toolCall.function.arguments, false);
+  if (parsedToolCall) {
+    const filteredArgs = filterOutStandardToolParameters(
+      toolCall,
+      tools,
+      parsedToolCall,
+    );
+
+    const originalRequest = getLLMResponseToolCallRequest(chunk);
+    // Only include tool call request if it's not the displayMessageTool
+    if (
+      originalRequest &&
+      filteredArgs &&
+      toolCall.function.name !== displayMessageTool.function.name
+    ) {
+      return {
+        ...originalRequest,
+        parameters: filteredArgs,
+      };
     }
   }
 }

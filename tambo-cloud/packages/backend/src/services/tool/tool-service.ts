@@ -5,7 +5,11 @@ import {
   AvailableComponent,
   ComponentContextToolMetadata,
 } from "../../model/component-metadata";
-import { sanitizeJSONSchemaProperties } from "./json-schema";
+import { SystemTools } from "../../systemTools";
+import {
+  strictifyJSONSchemaProperties,
+  strictifyJSONSchemaProperty,
+} from "./json-schema";
 
 export interface TamboToolParameters {
   _tambo_statusMessage: string;
@@ -83,10 +87,6 @@ export function convertMetadataToTools(
         .map((parameter) => parameter.name),
       additionalProperties: false,
     };
-    const sanitizedProperties = sanitizeJSONSchemaProperties(
-      parameters.properties,
-      parameters.required,
-    );
 
     const fn: OpenAI.Chat.Completions.ChatCompletionTool = {
       type: "function",
@@ -96,8 +96,8 @@ export function convertMetadataToTools(
         strict: true,
         parameters: {
           type: "object",
-          properties: sanitizedProperties,
-          required: Object.keys(sanitizedProperties),
+          properties: parameters.properties,
+          required: parameters.required,
           additionalProperties: false,
         },
       },
@@ -108,7 +108,7 @@ export function convertMetadataToTools(
 
 export function convertComponentsToUITools(
   components: AvailableComponent[],
-  toolNamePrefix: string = "show_component_",
+  toolNamePrefix: string = UI_TOOLNAME_PREFIX,
 ): OpenAI.Chat.Completions.ChatCompletionTool[] {
   return components.map(
     (component): OpenAI.Chat.Completions.ChatCompletionTool => ({
@@ -162,7 +162,7 @@ function getComponentProperties(component: AvailableComponent) {
   if (!properties) {
     return {};
   }
-  return sanitizeJSONSchemaProperties(
+  return strictifyJSONSchemaProperties(
     properties,
     Array.isArray(componentProps.required)
       ? componentProps.required
@@ -236,4 +236,45 @@ export function filterOutStandardToolParameters(
       parameterName,
       parameterValue,
     }));
+}
+
+export const UI_TOOLNAME_PREFIX = "show_component_";
+
+export function getToolsFromSources(
+  availableComponents: AvailableComponent[],
+  clientTools: ComponentContextToolMetadata[],
+  systemTools: SystemTools | undefined,
+) {
+  const componentTools = convertComponentsToUITools(
+    availableComponents,
+    UI_TOOLNAME_PREFIX,
+  );
+  const clientToolsConverted = convertMetadataToTools(clientTools);
+  const contextTools = convertMetadataToTools(
+    availableComponents.flatMap((component) => component.contextTools),
+  );
+  const originalTools = [
+    ...componentTools,
+    ...contextTools,
+    ...clientToolsConverted,
+    displayMessageTool,
+    ...(systemTools?.tools ?? []),
+  ];
+  const strictTools = originalTools.map(
+    (tool): OpenAI.Chat.Completions.ChatCompletionTool => {
+      const parameters = (tool.function.parameters ?? {}) as Record<
+        string,
+        JSONSchema7
+      >;
+      const strictTool: OpenAI.Chat.Completions.ChatCompletionTool = {
+        ...tool,
+        function: {
+          ...tool.function,
+          parameters: strictifyJSONSchemaProperty(parameters, true) as any,
+        },
+      };
+      return strictTool;
+    },
+  );
+  return { originalTools, strictTools };
 }

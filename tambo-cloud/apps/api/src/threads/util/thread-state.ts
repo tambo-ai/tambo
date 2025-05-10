@@ -1,5 +1,9 @@
 import { Logger } from "@nestjs/common";
-import { SystemTools, TamboBackend } from "@tambo-ai-cloud/backend";
+import {
+  getToolsFromSources,
+  SystemTools,
+  TamboBackend,
+} from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ContentPartType,
@@ -11,8 +15,10 @@ import {
 } from "@tambo-ai-cloud/core";
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
+import OpenAI from "openai";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { MessageRequest, ThreadMessageDto } from "../dto/message.dto";
+import { unstrictifyToolCallRequest } from "../tool-call-strict";
 import { convertContentPartToDto } from "./content";
 import {
   addAssistantMessageToThread,
@@ -28,6 +34,7 @@ import { extractToolResponse } from "./tool";
  */
 async function getFinalDecision(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
+  originalTools: OpenAI.Chat.Completions.ChatCompletionTool[],
 ): Promise<LegacyComponentDecision> {
   let finalDecision: LegacyComponentDecision | undefined;
 
@@ -37,6 +44,24 @@ async function getFinalDecision(
 
   if (!finalDecision) {
     throw new Error("No decision was received from the stream");
+  }
+
+  const strictToolCallRequest = finalDecision.toolCallRequest;
+  if (strictToolCallRequest) {
+    const originalTool = originalTools.find(
+      (tool) => tool.function.name === strictToolCallRequest.toolName,
+    );
+    if (!originalTool) {
+      throw new Error("Original tool not found");
+    }
+    const finalToolCallRequest = unstrictifyToolCallRequest(
+      originalTool,
+      strictToolCallRequest,
+    );
+    finalDecision = {
+      ...finalDecision,
+      toolCallRequest: finalToolCallRequest,
+    };
   }
 
   return finalDecision;
@@ -104,16 +129,20 @@ export async function processThreadMessage(
       `Choosing component...`,
     );
   }
+  const { strictTools, originalTools } = getToolsFromSources(
+    advanceRequestDto.availableComponents ?? [],
+    advanceRequestDto.clientTools ?? [],
+    systemTools,
+  );
+
   const decisionStream = await tamboBackend.runDecisionLoop({
     messageHistory: messages,
-    availableComponents: advanceRequestDto.availableComponents ?? [],
-    clientTools: advanceRequestDto.clientTools ?? [],
-    systemTools,
+    strictTools,
     additionalContext: advanceRequestDto.additionalContext,
     customInstructions,
   });
 
-  return await getFinalDecision(decisionStream);
+  return await getFinalDecision(decisionStream, originalTools);
 }
 
 /**

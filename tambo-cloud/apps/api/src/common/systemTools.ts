@@ -1,5 +1,5 @@
 import {
-  sanitizeJSONSchemaProperties,
+  strictifyJSONSchemaProperties,
   SystemTools,
 } from "@tambo-ai-cloud/backend";
 import { MCPClient } from "@tambo-ai-cloud/core";
@@ -80,7 +80,7 @@ async function getMcpTools(
             parameters: tool.inputSchema?.properties
               ? {
                   type: "object",
-                  properties: sanitizeJSONSchemaProperties(
+                  properties: strictifyJSONSchemaProperties(
                     tool.inputSchema.properties,
                     Object.keys(tool.inputSchema.properties),
                   ),
@@ -137,7 +137,7 @@ async function getComposioTools(
         description: tool.function.description,
         parameters: {
           type: "object",
-          properties: sanitizeJSONSchemaProperties(
+          properties: strictifyJSONSchemaProperties(
             tool.function.parameters?.properties ?? ({} as any),
             Object.keys(tool.function.parameters?.properties ?? {}),
           ),

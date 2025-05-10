@@ -12,7 +12,7 @@ import { JSONSchema7Definition } from "json-schema";
  * Finally, it drops any JSONSchema metadata that is not valid for strict mode
  * like `default`, `minItems`, `maxItems`, `maxLength`, and `minLength`.
  */
-export function sanitizeJSONSchemaProperties(
+export function strictifyJSONSchemaProperties(
   properties: Record<string, JSONSchema7Definition>,
   requiredProperties: string[],
   debugKey?: string,
@@ -21,7 +21,7 @@ export function sanitizeJSONSchemaProperties(
     Object.entries(properties).map(([key, value]) => {
       return [
         key,
-        sanitizeJSONSchemaProperty(
+        strictifyJSONSchemaProperty(
           value,
           requiredProperties.includes(key),
           debugKey ? `${debugKey}.${key}` : key,
@@ -40,7 +40,7 @@ export function sanitizeJSONSchemaProperties(
  * required list is ["a", "b"], then "a" and "b" will be required, and "c" will
  * be required but nullable.)
  */
-export function sanitizeJSONSchemaProperty(
+export function strictifyJSONSchemaProperty(
   property: JSONSchema7Definition | undefined,
   isRequired: boolean,
   debugKey?: string,
@@ -99,7 +99,7 @@ export function sanitizeJSONSchemaProperty(
   if (restOfProperty.type === "object") {
     const objectProperty = {
       ...restOfProperty,
-      properties: sanitizeJSONSchemaProperties(
+      properties: strictifyJSONSchemaProperties(
         (restOfProperty.properties ?? {}) as Record<
           string,
           JSONSchema7Definition
@@ -122,13 +122,13 @@ export function sanitizeJSONSchemaProperty(
       ...restOfProperty,
       items: Array.isArray(restOfProperty.items)
         ? restOfProperty.items.map((item, index) =>
-            sanitizeJSONSchemaProperty(
+            strictifyJSONSchemaProperty(
               item,
               isRequired,
               `${debugKey}.items[${index}]`,
             ),
           )
-        : sanitizeJSONSchemaProperty(
+        : strictifyJSONSchemaProperty(
             restOfProperty.items as JSONSchema7Definition,
             isRequired,
             `${debugKey}.items`,
@@ -148,7 +148,7 @@ export function sanitizeJSONSchemaProperty(
       const value = restOfProperty[key];
       if (Array.isArray(value)) {
         const sanitizedArray = value.map((item, index) => {
-          return sanitizeJSONSchemaProperty(
+          return strictifyJSONSchemaProperty(
             item,
             isRequired,
             `${debugKey}.${key}[${index}]`,
@@ -160,7 +160,7 @@ export function sanitizeJSONSchemaProperty(
         };
       } else {
         return {
-          [key]: sanitizeJSONSchemaProperty(
+          [key]: strictifyJSONSchemaProperty(
             value,
             isRequired,
             `${debugKey}.${key}`,

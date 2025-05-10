@@ -1,9 +1,9 @@
 import { JSONSchema7Definition } from "json-schema";
-import { sanitizeJSONSchemaProperties } from "./json-schema";
+import { strictifyJSONSchemaProperties } from "./json-schema";
 
-describe("sanitizeJSONSchemaProperties", () => {
+describe("strictifyJSONSchemaProperties", () => {
   it("should handle empty properties object", () => {
-    const result = sanitizeJSONSchemaProperties({}, []);
+    const result = strictifyJSONSchemaProperties({}, []);
     expect(result).toEqual({});
   });
 
@@ -11,7 +11,7 @@ describe("sanitizeJSONSchemaProperties", () => {
     const properties: Record<string, JSONSchema7Definition> = {
       name: { type: "string", description: "User name" },
     };
-    const result = sanitizeJSONSchemaProperties(properties, []);
+    const result = strictifyJSONSchemaProperties(properties, []);
     expect(result).toEqual({
       name: {
         anyOf: [
@@ -30,7 +30,7 @@ describe("sanitizeJSONSchemaProperties", () => {
       name: { type: "string", description: "User name" },
       age: { type: "number", description: "User age" },
     };
-    const result = sanitizeJSONSchemaProperties(properties, ["name"]);
+    const result = strictifyJSONSchemaProperties(properties, ["name"]);
     expect(result).toEqual({
       name: {
         type: "string",
@@ -58,7 +58,7 @@ describe("sanitizeJSONSchemaProperties", () => {
         },
       },
     };
-    const result = sanitizeJSONSchemaProperties(properties, ["user"]);
+    const result = strictifyJSONSchemaProperties(properties, ["user"]);
     expect(result).toEqual({
       user: {
         type: "object",
@@ -83,7 +83,7 @@ describe("sanitizeJSONSchemaProperties", () => {
         items: { type: "string" },
       },
     };
-    const result = sanitizeJSONSchemaProperties(properties, ["tags"]);
+    const result = strictifyJSONSchemaProperties(properties, ["tags"]);
     expect(result).toEqual({
       tags: {
         type: "array",
@@ -101,7 +101,7 @@ describe("sanitizeJSONSchemaProperties", () => {
         description: "User email",
       },
     };
-    const result = sanitizeJSONSchemaProperties(properties, ["email"]);
+    const result = strictifyJSONSchemaProperties(properties, ["email"]);
     expect(result).toEqual({
       email: {
         type: "string",
@@ -115,7 +115,7 @@ describe("sanitizeJSONSchemaProperties", () => {
       isActive: true,
       isArchived: false,
     };
-    const result = sanitizeJSONSchemaProperties(properties, ["isActive"]);
+    const result = strictifyJSONSchemaProperties(properties, ["isActive"]);
     expect(result).toEqual({
       isActive: true,
       isArchived: {
@@ -131,7 +131,7 @@ describe("sanitizeJSONSchemaProperties", () => {
         items: [{ type: "string" }, { type: "number" }],
       },
     };
-    const result = sanitizeJSONSchemaProperties(properties, ["mixed"]);
+    const result = strictifyJSONSchemaProperties(properties, ["mixed"]);
     expect(result).toEqual({
       mixed: {
         type: "array",
@@ -150,7 +150,7 @@ describe("sanitizeJSONSchemaProperties", () => {
         },
       },
     };
-    const result = sanitizeJSONSchemaProperties(properties, []);
+    const result = strictifyJSONSchemaProperties(properties, []);
     expect(result).toEqual({
       profile: {
         anyOf: [
@@ -181,7 +181,7 @@ describe("sanitizeJSONSchemaProperties", () => {
         description: "List of hobbies",
       },
     };
-    const result = sanitizeJSONSchemaProperties(properties, []);
+    const result = strictifyJSONSchemaProperties(properties, []);
     expect(result).toEqual({
       hobbies: {
         anyOf: [
@@ -247,10 +247,10 @@ describe("sanitizeJSONSchemaProperties", () => {
     const requiredProps = ["name", "profile", "tags"];
 
     // First pass
-    const firstPass = sanitizeJSONSchemaProperties(properties, requiredProps);
+    const firstPass = strictifyJSONSchemaProperties(properties, requiredProps);
 
     // Second pass - should be identical to first pass
-    const secondPass = sanitizeJSONSchemaProperties(
+    const secondPass = strictifyJSONSchemaProperties(
       firstPass,
       Object.keys(firstPass),
     );
@@ -298,7 +298,7 @@ describe("sanitizeJSONSchemaProperties", () => {
       },
     };
 
-    const result = sanitizeJSONSchemaProperties(properties, ["userOrContact"]);
+    const result = strictifyJSONSchemaProperties(properties, ["userOrContact"]);
 
     const firstPass: Record<string, JSONSchema7Definition> = {
       userOrContact: {
@@ -343,7 +343,7 @@ describe("sanitizeJSONSchemaProperties", () => {
       },
     };
     expect(result).toEqual(firstPass);
-    const secondPass = sanitizeJSONSchemaProperties(firstPass, [
+    const secondPass = strictifyJSONSchemaProperties(firstPass, [
       "userOrContact",
     ]);
     expect(secondPass).toEqual(firstPass);
@@ -403,7 +403,7 @@ describe("sanitizeJSONSchemaProperties", () => {
       },
     };
 
-    const result = sanitizeJSONSchemaProperties(properties, ["title"]);
+    const result = strictifyJSONSchemaProperties(properties, ["title"]);
 
     // Verify title (required) has validation props removed
     expect(result.title).toEqual({ type: "string" });
