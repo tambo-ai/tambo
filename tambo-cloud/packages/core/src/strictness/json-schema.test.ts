@@ -7,7 +7,7 @@ describe("strictifyJSONSchemaProperties", () => {
     expect(result).toEqual({});
   });
 
-  it("should sanitize simple string property", () => {
+  it("should strictify simple string property", () => {
     const properties: Record<string, JSONSchema7Definition> = {
       name: { type: "string", description: "User name" },
     };

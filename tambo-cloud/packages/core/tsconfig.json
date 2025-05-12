@@ -2,8 +2,10 @@
   "extends": "@tambo-ai-cloud/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "rootDir": "./src",
     "module": "ESNext",
     "moduleResolution": "Bundler"
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
 }

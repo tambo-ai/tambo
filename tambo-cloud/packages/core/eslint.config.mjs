@@ -8,4 +8,13 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn",
     },
   },
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ["jest.config.ts", "*.mjs"],
+        },
+      },
+    },
+  },
 ];

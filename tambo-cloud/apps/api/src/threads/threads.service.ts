@@ -12,6 +12,7 @@ import {
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
+  unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
@@ -31,7 +32,6 @@ import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
 import { Thread, ThreadRequest, ThreadWithMessagesDto } from "./dto/thread.dto";
-import { unstrictifyToolCallRequest } from "./tool-call-strict";
 import {
   FREE_MESSAGE_LIMIT,
   FreeLimitReachedError,

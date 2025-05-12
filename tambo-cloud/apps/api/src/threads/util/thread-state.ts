@@ -12,13 +12,13 @@ import {
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
+  unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { MessageRequest, ThreadMessageDto } from "../dto/message.dto";
-import { unstrictifyToolCallRequest } from "../tool-call-strict";
 import { convertContentPartToDto } from "./content";
 import {
   addAssistantMessageToThread,

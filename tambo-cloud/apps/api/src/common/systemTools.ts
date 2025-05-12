@@ -1,8 +1,5 @@
-import {
-  strictifyJSONSchemaProperties,
-  SystemTools,
-} from "@tambo-ai-cloud/backend";
-import { MCPClient } from "@tambo-ai-cloud/core";
+import { SystemTools } from "@tambo-ai-cloud/backend";
+import { MCPClient, strictifyJSONSchemaProperties } from "@tambo-ai-cloud/core";
 import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { OpenAIToolSet } from "composio-core";
 import OpenAI from "openai";

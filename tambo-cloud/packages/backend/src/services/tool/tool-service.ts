@@ -1,3 +1,7 @@
+import {
+  strictifyJSONSchemaProperties,
+  strictifyJSONSchemaProperty,
+} from "@tambo-ai-cloud/core";
 import { JSONSchema7 } from "json-schema";
 import OpenAI from "openai";
 import { FunctionParameters } from "openai/resources";
@@ -6,10 +10,6 @@ import {
   ComponentContextToolMetadata,
 } from "../../model/component-metadata";
 import { SystemTools } from "../../systemTools";
-import {
-  strictifyJSONSchemaProperties,
-  strictifyJSONSchemaProperty,
-} from "./json-schema";
 
 export interface TamboToolParameters {
   _tambo_statusMessage: string;
