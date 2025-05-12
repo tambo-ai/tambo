@@ -4,6 +4,7 @@
     "registering-components",
     "message-threads",
     "tools",
+    "model-context-protocol",
     "streaming",
     "component-state",
     "streaming-props",

@@ -1,0 +1,99 @@
+---
+title: Model Context Protocol (MCP)
+description: Using Tambo with Model Context Protocol to connect to external tools and services
+---
+
+<Callout type="warn" title="Authentication Support">
+  Currently, only unauthenticated MCP servers are supported. Authentication
+  support is in active development and will be available soon.
+</Callout>
+
+# Model Context Protocol (MCP)
+
+Model Context Protocol (MCP) enables AI applications to interact with external tools and services. Tambo provides support for MCP, allowing your agents to connect to various MCP servers and utilize their capabilities.
+
+## What is MCP?
+
+MCP is a protocol that defines how AI models can discover, connect to, and interact with external tools and services. It enables models to:
+
+- Discover available tools through a common interface
+- Call external APIs to access data or perform actions
+- Maintain stateful connections with services
+
+## Tambo's MCP Support
+
+When using Tambo with MCP servers, all of an MCP server's tools will be
+available to Tambo. This is a great alternative to manually registering
+tools in Tambo.
+
+Tambo offers two approaches for connecting to MCP servers.
+
+### 1. Client-Side Support
+
+Client-side MCP integration allows your application to connect to MCP servers that are accessible from the end user's browser. This is useful for:
+
+- Local MCP servers running on the user's machine
+- MCP servers where the user's browser is already authenticated
+- Private or internal services behind a firewall
+
+To implement client-side MCP support, use the `TamboMcpProvider` component inside your `TamboProvider`:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import { TamboMcpProvider, MCPTransport } from "@tambo-ui/react/mcp";
+
+function MyApp() {
+  return (
+    <TamboProvider components={...}>
+      <TamboMcpProvider
+        mcpServers={[
+          {
+            // MCP server configuration
+            url: "http://localhost:8123/",
+            customHeaders: {}, // Optional custom headers
+            transport: MCPTransport.HTTP, // optional, defaults to SSE
+          },
+        ]}
+      >
+        {/* Your application components */}
+      </TamboMcpProvider>
+    </TamboProvider>
+  );
+}
+```
+
+The `TamboMcpProvider` establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
+
+### 2. Server-Side Support
+
+Server-side MCP integration allows you to configure MCP servers at the project level through the Tambo dashboard. This approach is beneficial when:
+
+- MCP servers need to be shared across all users of your application
+- You want centralized management of MCP connections
+- The MCP server is accessible from your Tambo backend
+
+To configure server-side MCP:
+
+1. Navigate to your project dashboard
+2. Find the "MCP Servers" section
+3. Click "Add MCP Server"
+4. Enter the server URL and any required configuration, such as an authentication header
+5. Save your changes
+
+Once configured, the MCP servers will be available to all agents in your project without any additional client-side setup.
+
+## Best Practices
+
+- **Security**: Ensure MCP servers are properly secured, especially when handling sensitive data
+- **Performance**: Consider the latency implications of external MCP calls
+- **Error Handling**: Implement proper error handling for cases when MCP servers are unavailable
+- **Authentication**: Plan for the upcoming authenticated MCP server support
+
+## Limitations
+
+- Authentication support is in development
+- MCP servers must be accessible via HTTP/HTTPS
+
+## Next Steps
+
+- Explore the [MCP specification](https://modelcontextprotocol.io/) for more details
