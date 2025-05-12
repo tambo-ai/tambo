@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.47.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.47.0...repo-v0.47.1) (2025-05-12)
+
+
+### Bug Fixes
+
+* "unstrictify" tool calls ([#937](https://github.com/tambo-ai/tambo-cloud/issues/937)) ([928dba8](https://github.com/tambo-ai/tambo-cloud/commit/928dba83542de2e38bba25f6698c0f0098c360e1))
+
+
+### Documentation
+
+* add page on mcp ([#960](https://github.com/tambo-ai/tambo-cloud/issues/960)) ([a90b448](https://github.com/tambo-ai/tambo-cloud/commit/a90b448e5d9eb581810a96eebe443b027b4125dd))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 20.17.32 to 20.17.46 ([#945](https://github.com/tambo-ai/tambo-cloud/issues/945)) ([ed7cc13](https://github.com/tambo-ai/tambo-cloud/commit/ed7cc13f325d083710a6a47e9b9aa59ba07b90bc))
+* **deps-dev:** bump @types/pg from 8.11.14 to 8.15.1 ([#949](https://github.com/tambo-ai/tambo-cloud/issues/949)) ([00f6e79](https://github.com/tambo-ai/tambo-cloud/commit/00f6e79c6c573fe1e1b287b84003cf3d813746f9))
+* **deps-dev:** bump globals from 16.0.0 to 16.1.0 ([#943](https://github.com/tambo-ai/tambo-cloud/issues/943)) ([e51063d](https://github.com/tambo-ai/tambo-cloud/commit/e51063d301d6f62edcf21f9b0b105801116ff75a))
+* **deps-dev:** bump lint-staged from 15.5.1 to 16.0.0 ([#953](https://github.com/tambo-ai/tambo-cloud/issues/953)) ([6ee064e](https://github.com/tambo-ai/tambo-cloud/commit/6ee064e459e330e1bc94ad3262ff83ff0bf05b46))
+* **deps-dev:** bump supertest from 7.1.0 to 7.1.1 ([#958](https://github.com/tambo-ai/tambo-cloud/issues/958)) ([8e93cb0](https://github.com/tambo-ai/tambo-cloud/commit/8e93cb0b4b0bcd437339fe7b38f777f3075cbf84))
+* **deps-dev:** bump the eslint group with 2 updates ([#941](https://github.com/tambo-ai/tambo-cloud/issues/941)) ([10472b8](https://github.com/tambo-ai/tambo-cloud/commit/10472b8fbf5dac2ed68ada12fcdecfcb2af5da85))
+* **deps-dev:** bump tsx from 4.19.3 to 4.19.4 ([#956](https://github.com/tambo-ai/tambo-cloud/issues/956)) ([83e215c](https://github.com/tambo-ai/tambo-cloud/commit/83e215cddad359b1ed6fa0781e329d4b23176ad3))
+* **deps-dev:** bump turbo from 2.5.2 to 2.5.3 ([#955](https://github.com/tambo-ai/tambo-cloud/issues/955)) ([433399a](https://github.com/tambo-ai/tambo-cloud/commit/433399abe8c1c9530d56f07a311bf9f0e2f4c6e7))
+* **deps:** bump @splinetool/runtime from 1.9.89 to 1.9.92 ([#947](https://github.com/tambo-ai/tambo-cloud/issues/947)) ([164ad09](https://github.com/tambo-ai/tambo-cloud/commit/164ad09e77aa490565f618318ce144a1da516c64))
+* **deps:** bump @splinetool/runtime from 1.9.92 to 1.9.93 ([#957](https://github.com/tambo-ai/tambo-cloud/issues/957)) ([42f06b4](https://github.com/tambo-ai/tambo-cloud/commit/42f06b454ea17e16fa9e5c6a8e9c1c3c02ae6ee5))
+* **deps:** bump framer-motion from 12.10.5 to 12.11.0 ([#959](https://github.com/tambo-ai/tambo-cloud/issues/959)) ([0d8521b](https://github.com/tambo-ai/tambo-cloud/commit/0d8521b098cf093fa11a9b102a5d541d309f57a2))
+* **deps:** bump framer-motion from 12.9.7 to 12.10.5 ([#944](https://github.com/tambo-ai/tambo-cloud/issues/944)) ([c77c4a6](https://github.com/tambo-ai/tambo-cloud/commit/c77c4a6adc5d83ad202b03007d01d3c9769077b7))
+* **deps:** bump geist from 1.3.1 to 1.4.2 ([#954](https://github.com/tambo-ai/tambo-cloud/issues/954)) ([210ee01](https://github.com/tambo-ai/tambo-cloud/commit/210ee01613c82ed0d267beb3d966e9b1e67dfe27))
+* **deps:** bump lucide-react from 0.503.0 to 0.510.0 ([#952](https://github.com/tambo-ai/tambo-cloud/issues/952)) ([d554ec3](https://github.com/tambo-ai/tambo-cloud/commit/d554ec35931cb6342102849262f886a96852bf8a))
+* **deps:** bump openai from 4.96.0 to 4.98.0 ([#948](https://github.com/tambo-ai/tambo-cloud/issues/948)) ([be67268](https://github.com/tambo-ai/tambo-cloud/commit/be672682ef0c7ab3e1dfdc91ad8881cd240c9bf7))
+* **deps:** bump posthog-js from 1.239.1 to 1.240.6 ([#946](https://github.com/tambo-ai/tambo-cloud/issues/946)) ([a32d741](https://github.com/tambo-ai/tambo-cloud/commit/a32d741e824a108f09669dbe7c8a9bca01ddc4e2))
+* **deps:** bump the radix-ui group with 16 updates ([#940](https://github.com/tambo-ai/tambo-cloud/issues/940)) ([7b19c48](https://github.com/tambo-ai/tambo-cloud/commit/7b19c484d528387e6b26db0ac13c5cc13a0ec0b2))
+
+
+### Code Refactoring
+
+* consolidate strict/unstrict code, move tests, setup jest in core ([#939](https://github.com/tambo-ai/tambo-cloud/issues/939)) ([81b2d79](https://github.com/tambo-ai/tambo-cloud/commit/81b2d79d5e38ac412f5babf54100b599ed928c18))
+
 ## [0.47.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.46.2...repo-v0.47.0) (2025-05-09)
 
 
