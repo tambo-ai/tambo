@@ -15,7 +15,7 @@
   "devDependencies": {
     "@tambo-ai-cloud/eslint-config": "*",
     "@tambo-ai-cloud/typescript-config": "*",
-    "@types/node": "^20.17.32"
+    "@types/node": "^20.17.46"
   },
   "engines": {
     "node": ">=20",
