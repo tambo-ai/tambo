@@ -1,11 +1,29 @@
-import { ThreadMessage } from "@tambo-ai-cloud/core";
+import { ThreadMessage, tryParseJsonObject } from "@tambo-ai-cloud/core";
+import OpenAI from "openai";
+import { FunctionParameters } from "openai/resources";
+import zodToJsonSchema from "zod-to-json-schema";
 import { AvailableComponent } from "../../model";
 import { buildSuggestionPrompt } from "../../prompt/suggestion-generator";
-import { getLLMResponseMessage, LLMClient } from "../llm/llm-client";
+import { LLMClient } from "../llm/llm-client";
 import {
   SuggestionDecision,
   SuggestionsResponseSchema,
 } from "./suggestion.types";
+
+// Tool for Suggestion Generation
+export const suggestionsResponseTool: OpenAI.Chat.Completions.ChatCompletionTool =
+  {
+    type: "function",
+    function: {
+      name: "generate_suggestions",
+      description:
+        "Generate suggestions for the user based on the available components and context.",
+      strict: true,
+      parameters: zodToJsonSchema(
+        SuggestionsResponseSchema,
+      ) as FunctionParameters,
+    },
+  };
 
 // Public function
 export async function generateSuggestions(
@@ -31,12 +49,17 @@ export async function generateSuggestions(
       messages,
       promptTemplateName: "suggestion-generation",
       promptTemplateParams: {},
-      zodResponseFormat: SuggestionsResponseSchema,
+      tools: [suggestionsResponseTool],
+      tool_choice: {
+        type: "function",
+        function: { name: "generate_suggestions" },
+      },
     });
 
-    // Add validation for response message
-    if (!response.message.content) {
-      console.warn("No response message received from LLM");
+    // Handle tool call in the response
+    const toolCall = response.message.tool_calls?.[0];
+    if (!toolCall || toolCall.function.name !== "generate_suggestions") {
+      console.warn("No valid tool call received from LLM");
       return {
         suggestions: [],
         message: "No suggestions could be generated at this time.",
@@ -44,12 +67,21 @@ export async function generateSuggestions(
       };
     }
 
-    // Use safeParse for better error handling
-    const parsed = SuggestionsResponseSchema.safeParse(
-      JSON.parse(getLLMResponseMessage(response)),
-    );
+    // Parse the tool call arguments
+    const args = tryParseJsonObject(toolCall.function.arguments, false);
+    if (!args) {
+      console.error("Failed to parse suggestion tool call arguments");
+      return {
+        suggestions: [],
+        message: "Invalid suggestion format received.",
+        threadId,
+      };
+    }
+
+    // Validate against our schema
+    const parsed = SuggestionsResponseSchema.safeParse(args);
     if (!parsed.success) {
-      console.error("Failed to parse suggestions:", parsed.error);
+      console.error("Failed to validate suggestions:", parsed.error);
       return {
         suggestions: [],
         message: "Invalid suggestion format received.",
