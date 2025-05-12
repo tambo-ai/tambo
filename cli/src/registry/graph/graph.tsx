@@ -48,7 +48,7 @@ export const graphSchema = z.object({
 });
 
 // Define the base type from the Zod schema
-type GraphDataType = z.infer<typeof graphDataSchema>;
+export type GraphDataType = z.infer<typeof graphDataSchema>;
 
 // Extend the GraphProps with additional tambo properties
 export interface GraphProps
