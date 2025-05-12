@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.48.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.47.1...repo-v0.48.0) (2025-05-12)
+
+
+### Features
+
+* move suggestions to tool calling ([#950](https://github.com/tambo-ai/tambo-cloud/issues/950)) ([e551590](https://github.com/tambo-ai/tambo-cloud/commit/e5515904bba43f784136ecfa163d1276bd09235d))
+
 ## [0.47.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.47.0...repo-v0.47.1) (2025-05-12)
 
 
