@@ -67,15 +67,15 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow(
-    "add <componentName> --legacy-peer-deps",
-  )}
+      "add <componentName> --legacy-peer-deps",
+    )}
     $ ${chalk.cyan("tambo")} ${chalk.yellow(
-    "update <componentName> --legacy-peer-deps",
-  )}
+      "update <componentName> --legacy-peer-deps",
+    )}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name> --init-git")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow(
-    "create-app <app-name> --template mcp",
-  )}
+      "create-app <app-name> --template mcp",
+    )}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name> -t mcp")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app . --init-git")}
   `,
