@@ -315,7 +315,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       if (!state) return;
 
       // Get current selections or initialize empty array
-      const currentSelections = state.checkboxSelections[fieldId] || [];
+      const currentSelections = state.checkboxSelections[fieldId] ?? [];
 
       // Update selections based on checked state
       let newSelections: string[];
@@ -390,22 +390,24 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     };
 
     /**
+     * Keeps track of latest state for event handlers
+     */
+    const stateRef = React.useRef(state);
+    React.useEffect(() => {
+      stateRef.current = state;
+    }, [state]);
+
+    /**
      * Handles closing dropdowns when clicking outside their containing elements
-     * Attaches and removes global mouse event listeners
      */
     React.useEffect(() => {
-      /**
-       * Event handler for clicks outside dropdown elements
-       * Closes any open dropdown when user clicks elsewhere
-       * @param {MouseEvent} event - The mouse event object
-       */
       const handleClickOutside = (event: MouseEvent) => {
         Object.entries(dropdownRefs.current).forEach(([fieldId, ref]) => {
-          if (ref && !ref.contains(event.target as Node) && state) {
+          if (ref && !ref.contains(event.target as Node) && stateRef.current) {
             setState({
-              ...state,
+              ...stateRef.current,
               openDropdowns: {
-                ...state.openDropdowns,
+                ...stateRef.current.openDropdowns,
                 [fieldId]: false,
               },
             });
@@ -416,7 +418,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
-    }, [setState, state]);
+    }, [setState]);
 
     if (!state) return null;
 
@@ -517,7 +519,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                           : "text-secondary"
                       }
                     >
-                      {state.selectedValues[field.id] || field.placeholder}
+                      {state.selectedValues[field.id] ?? field.placeholder}
                     </span>
                     <svg
                       className={cn(
@@ -559,7 +561,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                   <input
                     type="hidden"
                     name={field.id}
-                    value={state.selectedValues[field.id] || ""}
+                    value={state.selectedValues[field.id] ?? ""}
                     required={field.required}
                   />
                 </div>
@@ -722,7 +724,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 <Loader2Icon className="h-4 w-4 animate-spin" />
                 <span>{_tambo_statusMessage ?? "Updating form..."}</span>
               </div>
-            ) : isGenerating &&
+            ) : !isGenerating &&
               _tambo_displayMessage &&
               _tambo_completionStatusMessage ? (
               <span>{_tambo_completionStatusMessage}</span>
