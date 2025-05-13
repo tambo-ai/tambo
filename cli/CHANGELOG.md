@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.8.0...tambo-v0.9.0) (2025-05-13)
+
+
+### Features
+
+* add template selection for create-app command ([#411](https://github.com/tambo-ai/tambo/issues/411)) ([1e75289](https://github.com/tambo-ai/tambo/commit/1e75289649dcc27da8e19813b825ccb55818724c))
+
+
+### Miscellaneous
+
+* **deps:** bump semver from 7.7.1 to 7.7.2 ([#407](https://github.com/tambo-ai/tambo/issues/407)) ([60bcd53](https://github.com/tambo-ai/tambo/commit/60bcd530ea4c85cc8779fe75b42ef7cb405e9dda))
+
 ## [0.8.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.7.0...tambo-v0.8.0) (2025-05-13)
 
 
