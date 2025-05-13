@@ -15,7 +15,7 @@
     "@tambo-ai/react": "*",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.5",
-    "framer-motion": "^12.9.7",
+    "framer-motion": "^12.11.0",
     "geist": "^1.4.1",
     "highlight.js": "^11.11.1",
     "lucide-react": "^0.510.0",
