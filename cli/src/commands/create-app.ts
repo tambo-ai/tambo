@@ -109,43 +109,43 @@ export async function handleCreateApp(
     chalk.blue(`\nCreating a new Tambo app in ${chalk.cyan(targetDir)}`),
   );
 
-  // Template selection logic
-  let selectedTemplate: Template;
-  if (options.template) {
-    // Check if specified template exists
-    if (!templates[options.template]) {
-      console.error(chalk.red(`\nTemplate "${options.template}" not found.`));
-      console.log(chalk.yellow("Available templates:"));
-      Object.entries(templates).forEach(([key, template]) => {
-        console.log(`  ${chalk.cyan(key)}: ${template.description}`);
-      });
-      throw new Error("Invalid template specified.");
-    }
-    selectedTemplate = templates[options.template];
-    console.log(
-      chalk.blue(`Using template: ${chalk.cyan(selectedTemplate.name)}`),
-    );
-  } else {
-    // Interactive template selection
-    const { templateKey } = await inquirer.prompt([
-      {
-        type: "list",
-        name: "templateKey",
-        message: "Select a template for your new app:",
-        choices: Object.entries(templates).map(([key, template]) => ({
-          name: `${template.name} - ${template.description}`,
-          value: key,
-        })),
-        default: "default",
-      },
-    ]);
-    selectedTemplate = templates[templateKey];
-    console.log(
-      chalk.blue(`Selected template: ${chalk.cyan(selectedTemplate.name)}`),
-    );
-  }
-
   try {
+    // Template selection logic
+    let selectedTemplate: Template;
+    if (options.template) {
+      // Check if specified template exists
+      if (!templates[options.template]) {
+        console.error(chalk.red(`\nTemplate "${options.template}" not found.`));
+        console.log(chalk.yellow("Available templates:"));
+        Object.entries(templates).forEach(([key, template]) => {
+          console.log(`  ${chalk.cyan(key)}: ${template.description}`);
+        });
+        throw new Error("Invalid template specified.");
+      }
+      selectedTemplate = templates[options.template];
+      console.log(
+        chalk.blue(`Using template: ${chalk.cyan(selectedTemplate.name)}`),
+      );
+    } else {
+      // Interactive template selection
+      const { templateKey } = await inquirer.prompt([
+        {
+          type: "list",
+          name: "templateKey",
+          message: "Select a template for your new app:",
+          choices: Object.entries(templates).map(([key, template]) => ({
+            name: `${template.name} - ${template.description}`,
+            value: key,
+          })),
+          default: "standard",
+        },
+      ]);
+      selectedTemplate = templates[templateKey];
+      console.log(
+        chalk.blue(`Selected template: ${chalk.cyan(selectedTemplate.name)}`),
+      );
+    }
+
     // Check if directory is empty when using "."
     if (
       appName === "." &&
