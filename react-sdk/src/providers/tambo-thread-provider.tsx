@@ -55,6 +55,7 @@ export interface TamboThreadContextProps {
       threadId?: string;
       streamResponse?: boolean;
       contextKey?: string;
+      forceToolChoice?: string;
     },
   ) => Promise<TamboThreadMessage>;
   /** The generation stage of the current thread - updated as the thread progresses */
@@ -485,9 +486,14 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         threadId?: string;
         streamResponse?: boolean;
         contextKey?: string;
+        forceToolChoice?: string;
       } = { threadId: PLACEHOLDER_THREAD.id },
     ): Promise<TamboThreadMessage> => {
-      const { threadId = currentThread.id, streamResponse } = options;
+      const {
+        threadId = currentThread.id,
+        streamResponse,
+        forceToolChoice,
+      } = options;
       updateThreadStatus(threadId, GenerationStage.CHOOSING_COMPONENT);
 
       addThreadMessage(
@@ -522,6 +528,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         clientTools: unassociatedTools.map((tool) =>
           mapTamboToolToContextTool(tool),
         ),
+        forceToolChoice: forceToolChoice,
       };
 
       if (streamResponse) {

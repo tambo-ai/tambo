@@ -42,13 +42,14 @@ interface UseThreadInputInternal {
   submit: (options?: {
     contextKey?: string;
     streamResponse?: boolean;
+    forceToolChoice?: string;
   }) => Promise<void>;
 }
 export type UseThreadInput = UseThreadInputInternal &
   UseMutationResult<
     void,
     Error,
-    { contextKey?: string; streamResponse?: boolean }
+    { contextKey?: string; streamResponse?: boolean; forceToolChoice?: string }
   >;
 
 /**
@@ -63,7 +64,12 @@ export function useTamboThreadInput(contextKey?: string): UseThreadInput {
     async ({
       contextKey: submitContextKey,
       streamResponse,
-    }: { contextKey?: string; streamResponse?: boolean } = {}) => {
+      forceToolChoice,
+    }: {
+      contextKey?: string;
+      streamResponse?: boolean;
+      forceToolChoice?: string;
+    } = {}) => {
       const validation = validateInput(inputValue);
       if (!validation.isValid) {
         throw new ThreadInputError(
@@ -76,6 +82,7 @@ export function useTamboThreadInput(contextKey?: string): UseThreadInput {
         threadId: thread.id,
         contextKey: submitContextKey ?? contextKey ?? undefined,
         streamResponse: streamResponse,
+        forceToolChoice: forceToolChoice,
       });
       setInputValue("");
     },
