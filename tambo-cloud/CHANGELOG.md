@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.48.0...repo-v0.49.0) (2025-05-13)
+
+
+### Features
+
+* allow forced tool call on request ([#963](https://github.com/tambo-ai/tambo-cloud/issues/963)) ([dc6e997](https://github.com/tambo-ai/tambo-cloud/commit/dc6e997ac12b52b275f2a4303e8df094d9886e09))
+
 ## [0.48.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.47.1...repo-v0.48.0) (2025-05-12)
 
 
