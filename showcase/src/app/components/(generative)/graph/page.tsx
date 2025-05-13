@@ -36,10 +36,7 @@ export default function GraphPage() {
           </Section>
 
           <DemoWrapper title="Graph" height={800}>
-            <TamboProvider
-              apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-              tamboUrl="http://localhost:4000"
-            >
+            <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
               <GraphChatInterface />
             </TamboProvider>
           </DemoWrapper>
