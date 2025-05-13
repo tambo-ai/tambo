@@ -73,8 +73,8 @@ export interface ThreadContentProps
  */
 const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
   ({ children, className, variant, ...props }, ref) => {
-    const { thread, generationStage } = useTambo();
-    const isGenerating = generationStage === "STREAMING_RESPONSE";
+    const { thread, generationStage, isIdle } = useTambo();
+    const isGenerating = !isIdle;
 
     const contextValue = React.useMemo(
       () => ({
@@ -141,13 +141,6 @@ const ThreadContentMessages = React.forwardRef<
               message.id ??
               `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
             }
-            className={cn(
-              !isGenerating && "animate-in fade-in-0 slide-in-from-bottom-2",
-              "duration-200 ease-out",
-            )}
-            style={
-              !isGenerating ? { animationDelay: `${index * 40}ms` } : undefined
-            }
             data-slot="thread-content-item"
           >
             <Message
@@ -166,7 +159,7 @@ const ThreadContentMessages = React.forwardRef<
                   className={
                     message.role === "assistant"
                       ? "text-primary font-sans"
-                      : "text-primary bg-container hover:bg-muted/50 font-sans"
+                      : "text-primary bg-container hover:bg-backdrop font-sans"
                   }
                 />
                 {/* Rendered component area determines if the message is a canvas message */}
