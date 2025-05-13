@@ -21,7 +21,7 @@ Below is a demo of MCP + Generative UI in action:
 or
 
 ```bash
-npx create-tambo-app@latest --mcp my-tambo-app
+npm create tambo-app -t mcp tambo-mcp-app
 
 npm run dev
 ```
@@ -76,7 +76,12 @@ Here are some templates for how to use tambo-ai in your app:
 Use our template:
 
 ```bash
-npx create-tambo-app@latest my-tambo-app
+
+with mcp:
+npm create tambo-app -t mcp my-tambo-app
+
+with tools:
+npm create tambo-app -t standard my-tambo-app
 
 npm run dev
 ```
