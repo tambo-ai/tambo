@@ -518,9 +518,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         toolRegistry,
         componentToolAssociations,
       );
-      const params: TamboAI.Beta.Threads.ThreadAdvanceParams & {
-        forceToolChoice?: string;
-      } = {
+      const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
         messageToAppend: {
           content: [{ type: "text", text: message }],
           role: "user",
