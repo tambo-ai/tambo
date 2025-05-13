@@ -519,7 +519,6 @@ export class ThreadsService {
       );
     }
 
-    // TODO: Let tambobackend package handle different message types internally
     const messages = await this.getMessages(thread.id, true);
     const project = await operations.getProject(db, projectId);
     const customInstructions = project?.customInstructions ?? undefined;
@@ -728,6 +727,7 @@ export class ThreadsService {
       strictTools,
       additionalContext: advanceRequestDto.additionalContext,
       customInstructions,
+      forceToolChoice: advanceRequestDto.forceToolChoice,
     });
     return this.handleAdvanceThreadStream(
       projectId,

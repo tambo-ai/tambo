@@ -17,6 +17,7 @@ interface RunDecisionLoopParams {
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
   additionalContext?: string;
   customInstructions: string | undefined;
+  forceToolChoice?: string;
 }
 
 export default class TamboBackend {
@@ -69,6 +70,7 @@ export default class TamboBackend {
       params.messageHistory,
       params.strictTools,
       params.customInstructions,
+      params.forceToolChoice,
     );
   }
 }

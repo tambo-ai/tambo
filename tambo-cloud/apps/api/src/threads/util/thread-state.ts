@@ -140,6 +140,10 @@ export async function processThreadMessage(
     strictTools,
     additionalContext: advanceRequestDto.additionalContext,
     customInstructions,
+    forceToolChoice:
+      latestMessage.role === MessageRole.User
+        ? advanceRequestDto.forceToolChoice
+        : undefined,
   });
 
   return await getFinalDecision(decisionStream, originalTools);

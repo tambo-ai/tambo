@@ -13,6 +13,7 @@ export class AdvanceThreadDto {
   availableComponents?: AvailableComponentDto[];
   clientTools?: ComponentContextToolMetadataDto[];
   additionalContext?: string;
+  forceToolChoice?: string;
 }
 
 @ApiSchema({ name: "AdvanceThreadResponse" })

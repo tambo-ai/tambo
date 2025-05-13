@@ -32,6 +32,7 @@ export async function* runDecisionLoop(
   messageHistory: ThreadMessage[],
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   customInstructions: string | undefined,
+  forceToolChoice?: string,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = strictTools.filter((tool) =>
     tool.function.name.startsWith(UI_TOOLNAME_PREFIX),
@@ -41,6 +42,15 @@ export async function* runDecisionLoop(
     strictTools,
     standardToolParameters,
   );
+
+  if (
+    forceToolChoice &&
+    !toolsWithStandardParameters.find(
+      (tool) => tool.function.name === forceToolChoice,
+    )
+  ) {
+    throw new Error(`Tool ${forceToolChoice} not found in provided tools`);
+  }
 
   const { template: systemPrompt, args: systemPromptArgs } =
     generateDecisionLoopPrompt(customInstructions);
@@ -59,7 +69,9 @@ export async function* runDecisionLoop(
       ...systemPromptArgs,
     },
     stream: true,
-    tool_choice: "required",
+    tool_choice: forceToolChoice
+      ? { type: "function", function: { name: forceToolChoice } }
+      : "required",
   });
 
   const initialDecision: LegacyComponentDecision = {
