@@ -38,10 +38,9 @@ export default function DocsPage() {
       {/* Demo Chat Component */}
       <ShowcaseThemeProvider defaultTheme="light">
         <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
-          <MessageThreadFull
-            contextKey={userContextKey}
-            style={{ height: "100%" }}
-          />
+          <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
+            <MessageThreadFull contextKey={userContextKey} />
+          </div>
         </DemoWrapper>
       </ShowcaseThemeProvider>
     </div>
