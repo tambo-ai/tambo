@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.7.0...tambo-v0.8.0) (2025-05-13)
+
+
+### Features
+
+* enhance Graph component with Zod type included and better loading ([#409](https://github.com/tambo-ai/tambo/issues/409)) ([9f7078c](https://github.com/tambo-ai/tambo/commit/9f7078c66fa20b419780464ac771e4c755dbe0fb))
+
+
+### Bug Fixes
+
+* remove unused animation and use isIdle ([#397](https://github.com/tambo-ai/tambo/issues/397)) ([0897067](https://github.com/tambo-ai/tambo/commit/0897067925f8880b147139a9d9c88160df0dbf89))
+* showcase component sidebar issues and update of form component ([#412](https://github.com/tambo-ai/tambo/issues/412)) ([bb3da9c](https://github.com/tambo-ai/tambo/commit/bb3da9c1085b61f655adeca958995b46f3f72b83))
+
 ## [0.7.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.6.0...tambo-v0.7.0) (2025-05-07)
 
 
