@@ -200,12 +200,12 @@ export const CanvasChatInterface = () => {
   }, [registerComponent, thread.id]);
 
   return (
-    <div className="rounded-lg border border-border/40 h-[800px] relative flex flex-row overflow-hidden">
+    <div className="rounded-lg border border-border/40 h-full relative flex flex-row overflow-hidden">
       <CanvasSpace className="bg-background rounded-l-lg" />
       <MessageThreadPanel
         contextKey={userContextKey}
         className="right rounded-r-lg"
-        style={{ height: "100%", width: "60%" }}
+        style={{ width: "60%" }}
       />
     </div>
   );

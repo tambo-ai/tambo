@@ -5,7 +5,6 @@ import { useTambo, useTamboComponentState } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
-import { z } from "zod";
 
 const formVariants = cva("w-full rounded-lg transition-all duration-200", {
   variants: {
@@ -103,17 +102,13 @@ export interface FormField {
   sliderLabels?: string[];
 }
 
-// Define schemas for form state
-const formFieldValueSchema = z.record(z.string());
-
-const _formStateSchema = z.object({
-  values: formFieldValueSchema,
-  openDropdowns: z.record(z.boolean()).default({}),
-  selectedValues: z.record(z.string()).default({}),
-  yesNoSelections: z.record(z.string()).default({}),
-});
-
-export type FormState = z.infer<typeof _formStateSchema>;
+export interface FormState {
+  values: Record<string, string>;
+  openDropdowns: Record<string, boolean>;
+  selectedValues: Record<string, string>;
+  yesNoSelections: Record<string, string>;
+  checkboxSelections: Record<string, string[]>;
+}
 
 /**
  * Props for the Form component
@@ -181,14 +176,13 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     },
     ref,
   ) => {
-    const { thread } = useTambo();
-    const generationStage = thread?.generationStage;
-    const isGenerating =
-      generationStage &&
-      generationStage !== "COMPLETE" &&
-      generationStage !== "ERROR";
+    const { isIdle } = useTambo();
+    const isGenerating = !isIdle;
 
-    // Generate a unique ID for the form
+    /**
+     * Generates a unique identifier for the form based on field IDs
+     * This ensures persistence of state between re-renders
+     */
     const formId = React.useMemo(() => {
       try {
         // Safely create a form ID, handling any potential issues with fields
@@ -202,18 +196,29 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       }
     }, [fields]);
 
-    // Replace the separate useState hooks with useTamboComponentState
+    /**
+     * Component state managed by Tambo
+     * Stores all form values, dropdown states, selections, and other UI state
+     */
     const [state, setState] = useTamboComponentState<FormState>(formId, {
       values: {},
       openDropdowns: {},
       selectedValues: {},
       yesNoSelections: {},
+      checkboxSelections: {},
     });
 
+    /**
+     * References to dropdown DOM elements for handling click-outside behavior
+     */
     const dropdownRefs = React.useRef<Record<string, HTMLDivElement | null>>(
       {},
     );
 
+    /**
+     * Filtered list of valid form fields
+     * Removes any fields with missing/invalid data and provides type safety
+     */
     const validFields = React.useMemo(() => {
       return fields.filter((field): field is FormField => {
         if (!field || typeof field !== "object") {
@@ -228,6 +233,10 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       });
     }, [fields]);
 
+    /**
+     * Handles form submission
+     * @param {React.FormEvent} e - The form submission event
+     */
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const formData = new FormData(e.target as HTMLFormElement);
@@ -237,7 +246,10 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       onSubmit(data);
     };
 
-    // Update to use Tambo state instead of React state
+    /**
+     * Handles dropdown toggle events
+     * @param {string} fieldId - The ID of the dropdown field
+     */
     const handleDropdownToggle = (fieldId: string) => {
       if (!state) return;
       setState({
@@ -249,6 +261,11 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       });
     };
 
+    /**
+     * Handles selection from dropdown options
+     * @param {string} fieldId - The ID of the dropdown field
+     * @param {string} option - The selected option value
+     */
     const handleOptionSelect = (fieldId: string, option: string) => {
       if (!state) return;
       setState({
@@ -264,6 +281,11 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       });
     };
 
+    /**
+     * Handles yes/no selection for yes-no field type
+     * @param {string} fieldId - The ID of the yes-no field
+     * @param {string} value - The selected value ("Yes" or "No")
+     */
     const handleYesNoSelection = (fieldId: string, value: string) => {
       if (!state) return;
       setState({
@@ -279,7 +301,104 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       });
     };
 
+    /**
+     * Handles checkbox selection changes
+     * @param {string} fieldId - The ID of the field being updated
+     * @param {string} option - The option value that was clicked
+     * @param {boolean} checked - Whether the checkbox is now checked
+     */
+    const handleCheckboxChange = (
+      fieldId: string,
+      option: string,
+      checked: boolean,
+    ) => {
+      if (!state) return;
+
+      // Get current selections or initialize empty array
+      const currentSelections = state.checkboxSelections[fieldId] || [];
+
+      // Update selections based on checked state
+      let newSelections: string[];
+      if (checked) {
+        newSelections = [...currentSelections, option];
+      } else {
+        newSelections = currentSelections.filter((item) => item !== option);
+      }
+
+      // Update state with new selections
+      setState({
+        ...state,
+        checkboxSelections: {
+          ...state.checkboxSelections,
+          [fieldId]: newSelections,
+        },
+        // Also update values with comma-separated string for form submission
+        values: {
+          ...state.values,
+          [fieldId]: newSelections.join(","),
+        },
+      });
+    };
+
+    /**
+     * Handles slider value changes
+     * @param {string} fieldId - The ID of the slider field
+     * @param {string} value - The new slider value
+     * @param {FormField} field - The field definition with possible labels
+     */
+    const handleSliderChange = (
+      fieldId: string,
+      value: string,
+      field: FormField,
+    ) => {
+      if (!state) return;
+
+      // Format the display value
+      const label =
+        field.sliderLabels && field.sliderLabels.length > 0
+          ? field.sliderLabels[parseInt(value)]
+          : value;
+
+      // Store as "value : label" format
+      setState({
+        ...state,
+        values: {
+          ...state.values,
+          [fieldId]: `${value} : ${label}`,
+        },
+      });
+    };
+
+    /**
+     * Calculates the default value for a slider field
+     * @param {FormField} field - The slider field to generate a default value for
+     * @returns {string} The formatted default value in "value : label" format
+     */
+    const getDefaultSliderValue = (field: FormField): string => {
+      const defaultVal =
+        field.sliderDefault?.toString() ??
+        (field.sliderLabels && field.sliderLabels.length > 0
+          ? Math.floor((field.sliderLabels.length - 1) / 2).toString()
+          : "5");
+
+      const defaultLabel =
+        field.sliderLabels && field.sliderLabels.length > 0
+          ? field.sliderLabels[parseInt(defaultVal)]
+          : defaultVal;
+
+      return `${defaultVal} : ${defaultLabel}`;
+    };
+
+    /**
+     * Handles closing dropdowns when clicking outside their containing elements
+     * Attaches and removes global mouse event listeners
+     */
     React.useEffect(() => {
+      /**
+       * Event handler for clicks outside dropdown elements
+       * Closes any open dropdown when user clicks elsewhere
+       * @param {MouseEvent} event - The mouse event object
+       */
       const handleClickOutside = (event: MouseEvent) => {
         Object.entries(dropdownRefs.current).forEach(([fieldId, ref]) => {
           if (ref && !ref.contains(event.target as Node) && state) {
@@ -298,36 +417,6 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
     }, [setState, state]);
-
-    React.useEffect(() => {
-      // Handle slider value display
-      validFields.forEach((field) => {
-        if (field.type === "slider") {
-          const slider = document.getElementById(field.id) as HTMLInputElement;
-          const output = document.getElementById(
-            `${field.id}-value`,
-          ) as HTMLOutputElement;
-
-          if (slider && output) {
-            // Display initial value
-            const updateValue = () => {
-              if (field.sliderLabels && field.sliderLabels.length > 0) {
-                const valueIndex = parseInt(slider.value);
-                output.textContent = field.sliderLabels[valueIndex];
-              } else {
-                output.textContent = slider.value;
-              }
-            };
-
-            // Set initial value
-            updateValue();
-
-            // Update when slider changes
-            slider.addEventListener("input", updateValue);
-          }
-        }
-      });
-    }, [validFields, setState]);
 
     if (!state) return null;
 
@@ -428,7 +517,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                           : "text-secondary"
                       }
                     >
-                      {state.selectedValues[field.id] ?? field.placeholder}
+                      {state.selectedValues[field.id] || field.placeholder}
                     </span>
                     <svg
                       className={cn(
@@ -470,7 +559,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                   <input
                     type="hidden"
                     name={field.id}
-                    value={state.selectedValues[field.id] ?? ""}
+                    value={state.selectedValues[field.id] || ""}
                     required={field.required}
                   />
                 </div>
@@ -496,18 +585,39 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
 
               {field.type === "checkbox" && field.options && (
                 <div className="space-y-2">
-                  {field.options.map((option) => (
-                    <label key={option} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={`${field.id}-${option}`}
-                        name={`${field.id}-${option}`}
-                        value="true"
-                        className="h-4 w-4 text-primary border-border focus:ring-ring"
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
+                  {field.options.map((option) => {
+                    // Initialize selections array if it doesn't exist
+                    const selections = state.checkboxSelections[field.id] ?? [];
+                    const isChecked = selections.includes(option);
+
+                    return (
+                      <label
+                        key={option}
+                        className="flex items-center space-x-2"
+                      >
+                        <input
+                          type="checkbox"
+                          id={`${field.id}-${option}`}
+                          checked={isChecked}
+                          value={option}
+                          className="h-4 w-4 text-primary border-border focus:ring-ring accent-primary"
+                          onChange={(e) =>
+                            handleCheckboxChange(
+                              field.id,
+                              option,
+                              e.target.checked,
+                            )
+                          }
+                        />
+                        <span>{option}</span>
+                      </label>
+                    );
+                  })}
+                  <input
+                    type="hidden"
+                    name={field.id}
+                    value={state.checkboxSelections[field.id]?.join(",") ?? ""}
+                  />
                 </div>
               )}
 
@@ -515,8 +625,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                 <div className="space-y-3">
                   <input
                     type="range"
-                    id={field.id}
-                    name={field.id}
+                    id={`${field.id}-range`}
                     min="0"
                     max={
                       field.sliderLabels && field.sliderLabels.length > 0
@@ -524,7 +633,8 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                         : (field.sliderMax ?? 10).toString()
                     }
                     step="1"
-                    defaultValue={
+                    value={
+                      state.values[field.id]?.split(" : ")[0] ??
                       field.sliderDefault?.toString() ??
                       (field.sliderLabels && field.sliderLabels.length > 0
                         ? Math.floor(
@@ -533,7 +643,17 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                         : "5")
                     }
                     required={field.required}
-                    className="w-full slider-primary h-2 rounded-lg cursor-pointer"
+                    className="w-full h-2 bg-muted rounded-lg cursor-pointer accent-primary"
+                    onChange={(e) =>
+                      handleSliderChange(field.id, e.target.value, field)
+                    }
+                  />
+                  <input
+                    type="hidden"
+                    name={field.id}
+                    value={
+                      state.values[field.id] ?? getDefaultSliderValue(field)
+                    }
                   />
                   {field.sliderLabels && field.sliderLabels.length > 0 ? (
                     <div className="flex justify-between text-xs text-muted-foreground">
@@ -597,11 +717,15 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                      disabled:opacity-50 disabled:pointer-events-none
                      font-medium transition-colors duration-200"
           >
-            {isGenerating && _tambo_displayMessage ? (
+            {isGenerating ? (
               <div className="flex items-center justify-center gap-2">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
                 <span>{_tambo_statusMessage ?? "Updating form..."}</span>
               </div>
+            ) : isGenerating &&
+              _tambo_displayMessage &&
+              _tambo_completionStatusMessage ? (
+              <span>{_tambo_completionStatusMessage}</span>
             ) : (
               submitText
             )}

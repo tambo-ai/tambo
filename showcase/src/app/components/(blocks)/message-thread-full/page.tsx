@@ -22,11 +22,10 @@ export default function MessageThreadFullPage() {
           </div>
 
           <DemoWrapper title="Message Thread Full">
-            <div className="h-full relative flex rounded-lg overflow-hidden">
+            <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
               <MessageThreadFull
                 contextKey={userContextKey}
                 className="w-full rounded-lg"
-                style={{ height: "100%" }}
               />
             </div>
           </DemoWrapper>
