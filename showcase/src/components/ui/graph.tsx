@@ -361,9 +361,7 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                   data={data.datasets[0].data.map((value, index) => ({
                     name: data.labels[index],
                     value,
-                    fill:
-                      data.datasets[0].color ??
-                      defaultColors[index % defaultColors.length],
+                    fill: defaultColors[index % defaultColors.length],
                   }))}
                   dataKey="value"
                   nameKey="name"
