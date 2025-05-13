@@ -1,10 +1,76 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import { useTambo, useTamboMessageContext } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
+import { z } from "zod";
+
+/**
+ * Represents a graph data object
+ * @property {string} type - Type of graph to render
+ * @property {string[]} labels - Labels for the graph
+ * @property {Object[]} datasets - Data for the graph
+ */
+
+export const graphDataSchema = z.object({
+  type: z.enum(["bar", "line", "pie"]).describe("Type of graph to render"),
+  labels: z.array(z.string()).describe("Labels for the graph"),
+  datasets: z
+    .array(
+      z.object({
+        label: z.string().describe("Label for the dataset"),
+        data: z.array(z.number()).describe("Data points for the dataset"),
+        color: z.string().optional().describe("Optional color for the dataset"),
+      }),
+    )
+    .describe("Data for the graph"),
+});
+
+export const graphSchema = z.object({
+  data: graphDataSchema.describe(
+    "Data object containing chart configuration and values",
+  ),
+  title: z.string().describe("Title for the chart"),
+  showLegend: z
+    .boolean()
+    .optional()
+    .describe("Whether to show the legend (default: true)"),
+  variant: z
+    .enum(["default", "solid", "bordered"])
+    .optional()
+    .describe("Visual style variant of the graph"),
+  size: z
+    .enum(["default", "sm", "lg"])
+    .optional()
+    .describe("Size of the graph"),
+});
+
+// Define the base type from the Zod schema
+export type GraphDataType = z.infer<typeof graphDataSchema>;
+
+// Extend the GraphProps with additional tambo properties
+export interface GraphProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "data" | "title" | "size">,
+    Omit<VariantProps<typeof graphVariants>, "size" | "variant"> {
+  /** Data object containing chart configuration and values */
+  data?: GraphDataType;
+  /** Optional title for the chart */
+  title?: string;
+  /** Whether to show the legend (default: true) */
+  showLegend?: boolean;
+  /** Visual style variant of the graph */
+  variant?: "default" | "solid" | "bordered";
+  /** Size of the graph */
+  size?: "default" | "sm" | "lg";
+  /** Whether to display the status and completion messages */
+  _tambo_displayMessage?: boolean;
+  /** Text to display as the status message */
+  _tambo_statusMessage?: string;
+  /** Text to display as the completion status message */
+  _tambo_completionStatusMessage?: string;
+}
 
 const graphVariants = cva(
   "w-full rounded-lg overflow-hidden transition-all duration-200",
@@ -30,45 +96,6 @@ const graphVariants = cva(
     },
   },
 );
-
-/**
- * Represents a graph data object
- * @property {string} type - Type of graph to render
- * @property {string[]} labels - Labels for the graph
- * @property {Object[]} datasets - Data for the graph
- */
-export interface GraphData {
-  type: "bar" | "line" | "pie";
-  labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    color?: string;
-  }[];
-}
-
-/**
- * Props for the Graph component
- * @interface
- * @extends React.HTMLAttributes<HTMLDivElement>
- * @extends VariantProps<typeof graphVariants>
- */
-export interface GraphProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof graphVariants> {
-  /** Data object containing chart configuration and values */
-  data?: GraphData;
-  /** Optional title for the chart */
-  title?: string;
-  /** Whether to show the legend (default: true) */
-  showLegend?: boolean;
-  /** Whether to display the status and completion messages */
-  _tambo_displayMessage?: boolean;
-  /** Text to display as the status message */
-  _tambo_statusMessage?: string;
-  /** Text to display as the completion status message */
-  _tambo_completionStatusMessage?: string;
-}
 
 const defaultColors = [
   "hsl(220, 100%, 62%)", // Blue
@@ -116,21 +143,27 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
   ) => {
     // Get thread state
     const { thread } = useTambo();
+    const { messageId } = useTamboMessageContext();
+
+    const message = thread?.messages[thread?.messages.length - 1];
+
+    const isLatestMessage = message?.id === messageId;
+
     const generationStage = thread?.generationStage;
     const isGenerating =
       generationStage &&
       generationStage !== "COMPLETE" &&
       generationStage !== "ERROR";
 
-    // Show streaming state if generation is actively in progress
-    // OR if the basic data structure (labels/datasets arrays) isn't present yet.
-    if (
-      isGenerating ||
-      !data?.labels ||
-      !data.datasets ||
-      !Array.isArray(data.labels) ||
-      !Array.isArray(data.datasets)
-    ) {
+    const dataIsValid =
+      data?.labels &&
+      data.datasets &&
+      Array.isArray(data.labels) &&
+      Array.isArray(data.datasets);
+
+    // For non-latest messages, show the graph immediately if data is valid
+    // For latest message, only show loading state while generating
+    if (!dataIsValid || (isLatestMessage && isGenerating)) {
       return (
         <div
           ref={ref}
