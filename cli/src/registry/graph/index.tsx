@@ -1,1 +1,1 @@
-export { Graph, type GraphData, type GraphProps } from "./graph";
+export { Graph, type GraphDataType, type GraphProps } from "./graph";
