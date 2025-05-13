@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.23.2](https://github.com/tambo-ai/tambo/compare/react-v0.23.1...react-v0.23.2) (2025-05-13)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group with 5 updates ([#401](https://github.com/tambo-ai/tambo/issues/401)) ([8e2439e](https://github.com/tambo-ai/tambo/commit/8e2439e2887bc7e13fa0cca09512a9a5d751b190))
+* **deps:** bump @modelcontextprotocol/sdk from 1.11.0 to 1.11.2 ([#406](https://github.com/tambo-ai/tambo/issues/406)) ([c3ea0d1](https://github.com/tambo-ai/tambo/commit/c3ea0d1d78ce671af36d3789f8d66ea3da0e7de2))
+
 ## [0.23.1](https://github.com/tambo-ai/tambo/compare/react-v0.23.0...react-v0.23.1) (2025-05-08)
 
 
