@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/tambo-ai/tambo/compare/react-v0.23.2...react-v0.24.0) (2025-05-13)
+
+
+### Features
+
+* add forceToolChoice param ([#417](https://github.com/tambo-ai/tambo/issues/417)) ([ecca673](https://github.com/tambo-ai/tambo/commit/ecca67398d4581ffcee013d130024528c4f7e315))
+
 ## [0.23.2](https://github.com/tambo-ai/tambo/compare/react-v0.23.1...react-v0.23.2) (2025-05-13)
 
 
