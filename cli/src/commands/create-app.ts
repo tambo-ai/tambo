@@ -1,12 +1,39 @@
 import chalk from "chalk";
 import { execSync } from "child_process";
 import fs from "fs";
-import path from "path";
+import inquirer from "inquirer";
 import ora from "ora";
+import path from "path";
+
+// Define available templates
+interface Template {
+  name: string;
+  description: string;
+  repository: string;
+}
+
+const templates: Record<string, Template> = {
+  mcp: {
+    name: "mcp",
+    description: "Tambo + MCP (recommended)",
+    repository: "https://github.com/tambo-ai/mcp-template.git",
+  },
+  standard: {
+    name: "standard",
+    description: "Tambo + Tools",
+    repository: "https://github.com/tambo-ai/tambo-template.git",
+  },
+  "conversational-form": {
+    name: "conversational-form",
+    description: "Tambo + Conversational Form",
+    repository: "https://github.com/tambo-ai/conversational-form.git",
+  },
+};
 
 interface CreateAppOptions {
   legacyPeerDeps?: boolean;
   initGit?: boolean;
+  template?: string;
 }
 
 function safeRemoveGitFolder(gitFolder: string): void {
@@ -82,6 +109,42 @@ export async function handleCreateApp(
     chalk.blue(`\nCreating a new Tambo app in ${chalk.cyan(targetDir)}`),
   );
 
+  // Template selection logic
+  let selectedTemplate: Template;
+  if (options.template) {
+    // Check if specified template exists
+    if (!templates[options.template]) {
+      console.error(chalk.red(`\nTemplate "${options.template}" not found.`));
+      console.log(chalk.yellow("Available templates:"));
+      Object.entries(templates).forEach(([key, template]) => {
+        console.log(`  ${chalk.cyan(key)}: ${template.description}`);
+      });
+      throw new Error("Invalid template specified.");
+    }
+    selectedTemplate = templates[options.template];
+    console.log(
+      chalk.blue(`Using template: ${chalk.cyan(selectedTemplate.name)}`),
+    );
+  } else {
+    // Interactive template selection
+    const { templateKey } = await inquirer.prompt([
+      {
+        type: "list",
+        name: "templateKey",
+        message: "Select a template for your new app:",
+        choices: Object.entries(templates).map(([key, template]) => ({
+          name: `${template.name} - ${template.description}`,
+          value: key,
+        })),
+        default: "default",
+      },
+    ]);
+    selectedTemplate = templates[templateKey];
+    console.log(
+      chalk.blue(`Selected template: ${chalk.cyan(selectedTemplate.name)}`),
+    );
+  }
+
   try {
     // Check if directory is empty when using "."
     if (
@@ -106,20 +169,22 @@ export async function handleCreateApp(
 
     // Clone the template repository
     const cloneSpinner = ora({
-      text: "Downloading template...",
+      text: `Downloading ${selectedTemplate.name} template...`,
       spinner: "dots",
     }).start();
 
     try {
       execSync(
-        `git clone --depth 1 https://github.com/tambo-ai/tambo-template.git ${
+        `git clone --depth 1 ${selectedTemplate.repository} ${
           appName === "." ? "." : appName
         }`,
         { stdio: "ignore" },
       );
-      cloneSpinner.succeed("Template downloaded successfully");
+      cloneSpinner.succeed(
+        `${selectedTemplate.name} template downloaded successfully`,
+      );
     } catch (_error) {
-      cloneSpinner.fail("Failed to download template");
+      cloneSpinner.fail(`Failed to download ${selectedTemplate.name} template`);
       throw new Error(
         "Failed to clone template repository. Please check your internet connection and try again.",
       );
@@ -149,9 +214,12 @@ export async function handleCreateApp(
       try {
         execSync("git init", { stdio: "ignore" });
         execSync("git add .", { stdio: "ignore" });
-        execSync('git commit -m "Initial commit from Tambo template"', {
-          stdio: "ignore",
-        });
+        execSync(
+          `git commit -m "Initial commit from Tambo ${selectedTemplate.name} template"`,
+          {
+            stdio: "ignore",
+          },
+        );
         gitInitSpinner.succeed("Git repository initialized successfully");
       } catch (_error) {
         gitInitSpinner.fail("Failed to initialize git repository");
@@ -191,19 +259,30 @@ export async function handleCreateApp(
     }
 
     console.log(chalk.green("\nSuccessfully created a new Tambo app"));
+    console.log(
+      chalk.cyan(
+        `Template: ${selectedTemplate.name} - ${selectedTemplate.description}`,
+      ),
+    );
     console.log("\nNext steps:");
     console.log(`  1. ${chalk.cyan(`cd ${appName === "." ? "." : appName}`)}`);
     if (!options.initGit) {
       console.log(`  2. ${chalk.cyan("git init")} (optional)`);
     }
     console.log(
-      `  ${!options.initGit ? "3" : "2"}. ${chalk.cyan("npx tambo init")} to complete setup`,
+      `  ${!options.initGit ? "3" : "2"}. ${chalk.cyan(
+        "npx tambo init",
+      )} to complete setup`,
     );
     console.log(
-      `  ${!options.initGit ? "4" : "3"}. ${chalk.cyan("npx tambo add <component-name>")} to add components`,
+      `  ${!options.initGit ? "4" : "3"}. ${chalk.cyan(
+        "npx tambo add <component-name>",
+      )} to add components`,
     );
     console.log(
-      `  ${!options.initGit ? "5" : "4"}. ${chalk.cyan("npx tambo update <component-name>")} to update components`,
+      `  ${!options.initGit ? "5" : "4"}. ${chalk.cyan(
+        "npx tambo update <component-name>",
+      )} to update components`,
     );
     console.log(
       `  ${!options.initGit ? "6" : "5"}. ${chalk.cyan("npm run dev")}`,

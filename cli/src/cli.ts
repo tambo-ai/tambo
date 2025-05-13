@@ -9,9 +9,9 @@ import semver from "semver";
 import { fileURLToPath } from "url";
 import { handleAddComponent } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
+import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleUpdateComponent } from "./commands/update.js";
-import { handleCreateApp } from "./commands/create-app.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,6 +27,7 @@ interface CLIFlags extends Record<string, any> {
   legacyPeerDeps?: Flag<"boolean", boolean>;
   initGit?: Flag<"boolean", boolean>;
   version?: Flag<"boolean", boolean>;
+  template?: Flag<"string", string>;
 }
 
 // CLI setup
@@ -36,15 +37,28 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("<command>")} [options]
 
   ${chalk.bold("Commands")}
-    ${chalk.yellow("init")}                Initialize tambo in a project and set up configuration
+    ${chalk.yellow(
+      "init",
+    )}                Initialize tambo in a project and set up configuration
     ${chalk.yellow("add")}                 Add a new component
-    ${chalk.yellow("update")}              Update an existing component from the registry
-    ${chalk.yellow("full-send")}           Full initialization with auth flow and component installation
-    ${chalk.yellow("create-app")}          Create a new tambo app from a template
+    ${chalk.yellow(
+      "update",
+    )}              Update an existing component from the registry
+    ${chalk.yellow(
+      "full-send",
+    )}           Full initialization with auth flow and component installation
+    ${chalk.yellow(
+      "create-app",
+    )}          Create a new tambo app from a template
 
   ${chalk.bold("Options")}
-    ${chalk.yellow("--legacy-peer-deps")}  Install dependencies with --legacy-peer-deps flag
-    ${chalk.yellow("--init-git")}          Initialize a new git repository after creating the app
+    ${chalk.yellow(
+      "--legacy-peer-deps",
+    )}  Install dependencies with --legacy-peer-deps flag
+    ${chalk.yellow(
+      "--init-git",
+    )}          Initialize a new git repository after creating the app
+    ${chalk.yellow("--template, -t <name>")}   Specify template to use (-t mcp)
     ${chalk.yellow("--version")}           Show version number
 
   ${chalk.bold("Examples")}
@@ -52,9 +66,17 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName> --legacy-peer-deps")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName> --legacy-peer-deps")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow(
+    "add <componentName> --legacy-peer-deps",
+  )}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow(
+    "update <componentName> --legacy-peer-deps",
+  )}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name> --init-git")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow(
+    "create-app <app-name> --template mcp",
+  )}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name> -t mcp")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app . --init-git")}
   `,
   {
@@ -70,6 +92,12 @@ const cli = meow(
       initGit: {
         type: "boolean",
         description: "Initialize a new git repository after creating the app",
+      },
+      template: {
+        type: "string",
+        description:
+          "Specify template to use (mcp, standard, conversational-form)",
+        shortFlag: "t",
       },
     },
     importMeta: import.meta,
@@ -142,7 +170,9 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
 
       showComponentList();
       console.log(
-        `Run ${chalk.cyan("tambo update <componentName>")} to update a component`,
+        `Run ${chalk.cyan(
+          "tambo update <componentName>",
+        )} to update a component`,
       );
       return;
     }
@@ -157,15 +187,25 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     if (!appName) {
       console.error(chalk.red("\nApp name is required\n"));
       console.log(
-        `Run ${chalk.cyan("npx tambo create-app <app-name>")} or ${chalk.cyan("npx create-tambo-app@latest <app-name>")} to create a new app\n` +
-          `Use ${chalk.cyan("npx tambo create-app .")} or ${chalk.cyan("npx create-tambo-app@latest .")} to create an app in the current directory\n\n` +
-          `Add ${chalk.yellow("--init-git")} flag to initialize a git repository automatically\n`,
+        `Run ${chalk.cyan("npx tambo create-app <app-name>")} or ${chalk.cyan(
+          "npx create-tambo-app@latest <app-name>",
+        )} to create a new app\n` +
+          `Use ${chalk.cyan("npx tambo create-app .")} or ${chalk.cyan(
+            "npx create-tambo-app@latest .",
+          )} to create an app in the current directory\n\n` +
+          `Add ${chalk.yellow(
+            "--init-git",
+          )} flag to initialize a git repository automatically\n` +
+          `Add ${chalk.yellow("--template <name>")} or ${chalk.yellow(
+            "-t <name>",
+          )} to specify a template (mcp, standard, conversational-form)\n`,
       );
       return;
     }
     await handleCreateApp(appName, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       initGit: Boolean(flags.initGit),
+      template: flags.template as string | undefined,
     });
     return;
   }
