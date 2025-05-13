@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.7.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.6.0...showcase-v0.7.0) (2025-05-13)
+
+
+### Features
+
+* enhance Graph component with Zod type included and better loading ([#409](https://github.com/tambo-ai/tambo/issues/409)) ([9f7078c](https://github.com/tambo-ai/tambo/commit/9f7078c66fa20b419780464ac771e4c755dbe0fb))
+
+
+### Bug Fixes
+
+* showcase component sidebar issues and update of form component ([#412](https://github.com/tambo-ai/tambo/issues/412)) ([bb3da9c](https://github.com/tambo-ai/tambo/commit/bb3da9c1085b61f655adeca958995b46f3f72b83))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group with 5 updates ([#401](https://github.com/tambo-ai/tambo/issues/401)) ([8e2439e](https://github.com/tambo-ai/tambo/commit/8e2439e2887bc7e13fa0cca09512a9a5d751b190))
+* **deps:** bump framer-motion from 12.9.7 to 12.11.0 ([#402](https://github.com/tambo-ai/tambo/issues/402)) ([ecf0d62](https://github.com/tambo-ai/tambo/commit/ecf0d62bc83e743159026b1e5f4241906a61ba94))
+* **deps:** bump geist from 1.4.1 to 1.4.2 ([#400](https://github.com/tambo-ai/tambo/issues/400)) ([6403e95](https://github.com/tambo-ai/tambo/commit/6403e95d423aeabc50e76b2a3fcfb6fb4f962512))
+* **deps:** bump highlight.js from 10.7.3 to 11.11.1 ([#405](https://github.com/tambo-ai/tambo/issues/405)) ([157fbbb](https://github.com/tambo-ai/tambo/commit/157fbbb88d5bc4d44f57f6555a078e32c4b84bc3))
+* **deps:** bump lucide-react from 0.507.0 to 0.510.0 ([#403](https://github.com/tambo-ai/tambo/issues/403)) ([78dfef1](https://github.com/tambo-ai/tambo/commit/78dfef131eef48339fdc3db6458d8e2ebb18fdbe))
+* **deps:** bump the radix-ui group with 3 updates ([#399](https://github.com/tambo-ai/tambo/issues/399)) ([a068e9b](https://github.com/tambo-ai/tambo/commit/a068e9bc556d2311d66d1d40a9f0053ff873151c))
+
 ## [0.6.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.5.2...showcase-v0.6.0) (2025-05-08)
 
 
