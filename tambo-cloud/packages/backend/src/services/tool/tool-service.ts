@@ -270,7 +270,10 @@ export function getToolsFromSources(
         ...tool,
         function: {
           ...tool.function,
-          parameters: strictifyJSONSchemaProperty(parameters, true) as any,
+          parameters: strictifyJSONSchemaProperty(
+            parameters,
+            true,
+          ) as OpenAI.FunctionParameters,
         },
       };
       return strictTool;

@@ -7,8 +7,8 @@ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
 import SuperJSON from "superjson";
 
-import { env } from "@/lib/env";
 import { type AppRouter } from "@/server/api/root";
+import { getBaseUrl } from "../lib/base-url";
 import { createQueryClient } from "./query-client";
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
@@ -69,13 +69,3 @@ export const TRPCReactProvider = (props: { children: React.ReactNode }) => {
     </QueryClientProvider>
   );
 };
-
-function getBaseUrl() {
-  if (typeof window !== "undefined") {
-    return window.location.origin;
-  }
-  if (env.VERCEL_URL) {
-    return `https://${env.VERCEL_URL}`;
-  }
-  return `http://localhost:${env.PORT ?? 3000}`;
-}

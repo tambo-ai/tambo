@@ -1,6 +1,8 @@
+import { getBaseUrl } from "@/lib/base-url";
 import { getComposio } from "@/lib/composio";
 import { customHeadersSchema } from "@/lib/headerValidation";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import {
   ComposioAuthMode,
   ComposioConnectorConfig,
@@ -8,10 +10,11 @@ import {
   ToolProviderType,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
-import { operations, schema } from "@tambo-ai-cloud/db";
+import { HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
+import { OAuthLocalProvider } from "../../../lib/OAuthLocalProvider";
 import { validateSafeURL, validateServerUrl } from "../../../lib/urlSecurity";
 
 export const toolsRouter = createTRPCRouter({
@@ -150,6 +153,82 @@ export const toolsRouter = createTRPCRouter({
         customHeaders,
         mcpTransport,
       });
+    }),
+  authorizeMcpServer: protectedProcedure
+    .input(
+      z.object({
+        toolProviderId: z.string(),
+        contextKey: z.string().nullable(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { contextKey, toolProviderId } = input;
+      const saveAuthUrl = `${getBaseUrl()}/oauth/callback`;
+      try {
+        const db = ctx.db;
+        const toolProvider = await db.query.toolProviders.findFirst({
+          where: and(
+            eq(schema.toolProviders.id, toolProviderId),
+            eq(schema.toolProviders.type, ToolProviderType.MCP),
+            isNotNull(schema.toolProviders.url),
+          ),
+        });
+        if (!toolProvider) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Tool provider not found",
+          });
+        }
+        const { url, projectId } = toolProvider;
+        await operations.ensureProjectAccess(
+          ctx.db,
+          projectId,
+          ctx.session.user.id,
+        );
+
+        if (!url) {
+          // cannot happen due to validation in the query
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Tool provider missing MCP URL",
+          });
+        }
+        const toolProviderUserContextId = await upsertToolProviderUserContext(
+          db,
+          toolProviderId,
+          contextKey,
+        );
+
+        const localProvider = new OAuthLocalProvider(
+          db,
+          toolProviderUserContextId,
+          {
+            saveAuthUrl: saveAuthUrl,
+            serverUrl: url,
+          },
+        );
+        console.log("--> starting auth: ", url);
+        const result = await auth(localProvider, { serverUrl: url });
+        console.log("Auth result:", result);
+        if (result === "AUTHORIZED") {
+          return {
+            success: true,
+          };
+        }
+        if (result === "REDIRECT") {
+          return {
+            success: true,
+            redirectUrl: localProvider.redirectStartAuthUrl?.toString(),
+          };
+        }
+        return { success: false };
+      } catch (error: any) {
+        console.error(error);
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
     }),
   deleteMcpServer: protectedProcedure
     .input(z.object({ projectId: z.string(), serverId: z.string() }))
@@ -377,6 +456,38 @@ export const toolsRouter = createTRPCRouter({
       };
     }),
 });
+
+/** Create a tool provider user context for the given tool provider id,
+ * returning the id of the created or existing tool provider user context */
+async function upsertToolProviderUserContext(
+  db: HydraDb,
+  toolProviderId: string,
+  contextKey: string | null,
+) {
+  return await db.transaction(async (tx) => {
+    const toolProviderUserContext =
+      await tx.query.toolProviderUserContexts.findFirst({
+        where: eq(
+          schema.toolProviderUserContexts.toolProviderId,
+          toolProviderId,
+        ),
+      });
+    if (toolProviderUserContext) {
+      return toolProviderUserContext.id;
+    }
+
+    const [newToolProviderUserContext] = await tx
+      .insert(schema.toolProviderUserContexts)
+      .values({
+        toolProviderId,
+        contextKey,
+      })
+      .returning();
+
+    return newToolProviderUserContext.id;
+  });
+}
+
 async function ensureComposioAccount(
   toolProvider: {
     id: string;

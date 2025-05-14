@@ -281,6 +281,34 @@
       "when": 1746466011918,
       "tag": "0039_nappy_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1747165521764,
+      "tag": "0040_black_nextwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1747166820081,
+      "tag": "0041_odd_viper",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1747167271129,
+      "tag": "0042_worthless_thor",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1747180799347,
+      "tag": "0043_mute_rage",
+      "breakpoints": true
     }
   ]
 }

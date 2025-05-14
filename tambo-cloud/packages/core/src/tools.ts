@@ -25,46 +25,52 @@ export async function validateMcpServer({
     if (error instanceof SseError) {
       if (error.code === 401) {
         return {
-          valid: false,
+          valid: false as const,
           error: mcpAuthSupportMessage,
+          statusCode: 401,
         };
       }
       return {
-        valid: false,
+        valid: false as const,
         error: `Not a valid MCP SSE server: ${error.message}`,
+        statusCode: error.code,
       };
     }
     if (error instanceof StreamableHTTPError) {
       return {
-        valid: false,
+        valid: false as const,
         error: `Not a valid MCP Streamable HTTP server: ${error.message}`,
       };
     }
     if (error instanceof Error) {
       if (error.message.includes("ENOTFOUND")) {
         return {
-          valid: false,
+          valid: false as const,
           error: "Server not found: could not resolve the URL",
+          statusCode: 404, // fake 404
         };
       }
       if (error.message.includes("HTTP 401")) {
         return {
-          valid: false,
+          valid: false as const,
           error: mcpAuthSupportMessage,
+          statusCode: 401,
         };
       }
       return {
-        valid: false,
+        valid: false as const,
         error: error.message,
+        statusCode: 500,
       };
     }
     return {
-      valid: false,
+      valid: false as const,
       error: `${error}`,
+      statusCode: 500,
     };
   }
   return {
-    valid: true,
+    valid: true as const,
     error: null,
   };
 }

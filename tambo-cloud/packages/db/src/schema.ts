@@ -6,11 +6,21 @@ import {
   GenerationStage,
   MCPTransport,
   MessageRole,
+  OAuthClientInformation,
+  OAuthTokens,
+  SessionClientInformation,
   ToolCallRequest,
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
 import { relations, sql } from "drizzle-orm";
-import { index, pgPolicy, pgRole, pgTable, unique } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgPolicy,
+  pgRole,
+  pgTable,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 import { customJsonb } from "./drizzleUtil";
 export { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
@@ -425,6 +435,14 @@ export const toolProviderUserContexts = pgTable(
     )
       .default({})
       .notNull(),
+    // contains the client information for the MCP OAuth client, including the client_id and client_secret
+    mcpOauthClientInfo: customJsonb<OAuthClientInformation>(
+      "mcp_oauth_client_info",
+    ),
+    mcpOauthTokens: customJsonb<OAuthTokens>("mcp_oauth_tokens"),
+    mcpOauthLastRefreshedAt: timestamp("mcp_oauth_last_refreshed_at", {
+      withTimezone: true,
+    }).defaultNow(),
   }),
   (table) => {
     return [
@@ -436,7 +454,6 @@ export const toolProviderUserContexts = pgTable(
     ];
   },
 );
-
 export const toolProviderUserContextRelations = relations(
   toolProviderUserContexts,
   ({ one }) => ({
@@ -446,5 +463,38 @@ export const toolProviderUserContextRelations = relations(
     }),
   }),
 );
-
-export type DBContact = typeof contacts.$inferSelect;
+// These are effectively sessions for the MCP OAuth flow.
+export const mcpOauthClients = pgTable(
+  "mcp_oauth_clients",
+  ({ text, timestamp }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('moc_')`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    toolProviderUserContextId: text("tool_provider_user_context_id")
+      .references(() => toolProviderUserContexts.id, { onDelete: "cascade" })
+      .notNull(),
+    sessionInfo:
+      customJsonb<SessionClientInformation>("client_information").notNull(),
+    // must be generated on the client before insertion
+    sessionId: uuid("session_id").notNull(),
+    codeVerifier: text("code_verifier"),
+  }),
+);
+export const mcpOauthClientRelations = relations(
+  mcpOauthClients,
+  ({ one }) => ({
+    toolProviderUserContext: one(toolProviderUserContexts, {
+      fields: [mcpOauthClients.toolProviderUserContextId],
+      references: [toolProviderUserContexts.id],
+    }),
+  }),
+);
+export type DBMcpOauthClient = typeof mcpOauthClients.$inferSelect;

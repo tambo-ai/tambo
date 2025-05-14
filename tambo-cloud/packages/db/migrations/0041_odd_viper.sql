@@ -1,0 +1,1 @@
+ALTER TABLE "mcp_oauth_clients" ADD COLUMN "session_id" uuid NOT NULL;
