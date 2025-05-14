@@ -1,12 +1,8 @@
-# tambo ai
+# tambo-ai
 
-Build AI assistants and agents in React with a few lines of code.
+A React package for adding generative React UI components to your AI assistant, copilot, or agent.
 
-<p align="center">
-  <img src="assets/tambo-animation.gif" alt="tambo ai Logo">
-</p>
-
-<p align="center">
+<p>
   <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/@tambo-ai/react.svg" alt="npm version"></a>
   <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo.svg" alt="license"></a>
   <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo.svg" alt="GitHub last commit"></a>
@@ -14,86 +10,102 @@ Build AI assistants and agents in React with a few lines of code.
   <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
 </p>
 
-## The Future is Generative
+## Build with MCP and Generative UI
 
-The future of UX is generative and hyper-personalized. But today its really hard to build AI powered generative UI experiences. We are building tools that make this possible without complexity.
+[![Watch the video](https://img.youtube.com/vi/6zDDPfr7Aoo/0.jpg)](https://youtu.be/6zDDPfr7Aoo)
 
-tambo ai eliminates React boilerplate for AI features. We handle the hard parts so you can focus on creating exceptional user experiences.
+[Source code](https://github.com/tambo-ai/mcp-template)
 
-**Build AI assistants and agents in React without the headache.**
+Create a new project using our MCP template:
 
-## What is tambo ai?
-
-tambo ai is a React library that deals with the boring parts. Get started with an AI assistant in minutes.
-
-- Thread management
-- State persistence
-- Streaming responses
-- AI Orchestration
-- A compatible React UI Library
-
-You get clean React hooks that integrate seamlessly with your codebase.
-
-## How It Works
-
-Add tambo ai to your React app with a simple provider pattern:
-
-```jsx
-import { TamboProvider } from "@tambo-ai/react";
-
-function App() {
-  return (
-    <TamboProvider apiKey="your-api-key">
-      <YourApp />
-    </TamboProvider>
-  );
-}
+```bash
+npx tambo create-app -t mcp tambo-mcp-app
 ```
 
-### Core Features
+## How does tambo-ai work?
 
-- **Specialized hooks for specific needs:**
+tambo-ai is a client-side registry of React components that can be used by an LLM.
 
-  - `useTambo` - Primary entrypoint for the Tambo React SDK
-  - `useTamboThreadInput` - Input state and submission
-  - `useTamboSuggestions` - AI-powered message suggestions
-  - `useTamboThreadList` - Conversation management
-  - `useTamboComponentState` - AI-generated component state
-  - `useTamboThread` - Access to current thread context
+### 1. Register your components
 
-- **Component registration for AI-generated UI**
-- **Tool integration for your data sources**
-- **Streaming responses for real-time interactions**
+```tsx
+const components: TamboComponent[] = [
+  {
+    name: "Graph",
+    description:
+      "A component that renders various types of charts (bar, line, pie) using Recharts. Supports customizable data visualization with labels, datasets, and styling options.",
+    component: Graph,
+    propsSchema: graphSchema, // zod schema
+  },
+  // Add more components
+];
+```
+
+### 2. Wrap your app in a TamboProvider
+
+```tsx
+// In your chat page
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  components={components}
+>
+  <MessageThreadFull contextKey="tambo-template" />
+</TamboProvider>
+```
+
+### 3. Submit user messages
+
+```tsx
+const { submit } = useTamboThreadInput(contextKey);
+
+await submit({
+  contextKey,
+  streamResponse: true,
+});
+```
+
+### 4. Render AI-generated components
+
+```tsx
+const { message } = useMessageContext();
+
+// Render the component
+<div>{message.renderedComponent}</div>;
+```
+
+We provide components that use these hooks for you in our templates and in our component library at [ui.tambo.co](https://ui.tambo.co).
 
 ## Getting Started
 
 ### Quick Start
 
-Use our template:
+Create a new tambo app:
 
 ```bash
-npx create-tambo-app@latest .
-
+npm create tambo-app my-tambo-app
+cd my-tambo-app
 npm run dev
 ```
 
-or try adding it to your existing project:
+### Templates
 
-```bash
-npx tambo full-send
-```
+| App                                                                    | Description                            |
+| ---------------------------------------------------------------------- | -------------------------------------- |
+| [MCP](https://github.com/tambo-ai/mcp-template) (new!)                 | Get started with MCP + Generative UX   |
+| [Regular Tools](https://github.com/tambo-ai/tambo-template)            | Get started with Generative UX         |
+| [Conversational Form](https://github.com/tambo-ai/conversational-form) | Collect information with generative UX |
 
 Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
 
 ### Basic Usage
 
-1. Displaying a message thread.
+#### 1. Displaying a message thread:
 
 ```jsx
 import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 
 function ChatInterface() {
-  const { thread, sendThreadMessage } = useTambo();
+  const { thread } = useTambo();
   const { value, setValue, submit } = useTamboThreadInput();
 
   return (
@@ -129,7 +141,7 @@ function ChatInterface() {
 }
 ```
 
-2. Adding AI-Generated Components
+#### 2. Adding AI-Generated Components:
 
 Create components that can be dynamically generated by the AI:
 
@@ -161,7 +173,7 @@ export function WeatherCard() {
 }
 ```
 
-Then register your components in your app's entry point:
+#### 3. Register your components:
 
 ```jsx
 // App.jsx
@@ -193,38 +205,67 @@ function App() {
 }
 ```
 
-You can also pass tools to the provider, and they will be available to the AI:
+### Adding Tools for the AI
+
+Register tools to make them available to the AI:
 
 ```jsx
-const tools: TamboTool[] = [{
-  name: "getWeather",
-  description: "Fetches current weather data for a given location",
-  tool: async (location: string, units: string = "celsius") => {
-    // Example implementation
-    const weather = await fetchWeatherData(location);
-    return {
-      temperature: weather.temp,
-      condition: weather.condition,
-      location: weather.city
-    };
+const tools: TamboTool[] = [
+  {
+    name: "getWeather",
+    description: "Fetches current weather data for a given location",
+    tool: async (location: string, units: string = "celsius") => {
+      // Example implementation
+      const weather = await fetchWeatherData(location);
+      return {
+        temperature: weather.temp,
+        condition: weather.condition,
+        location: weather.city,
+      };
+    },
+    toolSchema: z
+      .function()
+      .args(
+        z.string().describe("Location name (city)"),
+        z
+          .string()
+          .optional()
+          .describe("Temperature units (celsius/fahrenheit)"),
+      )
+      .returns(
+        z.object({
+          temperature: z.number(),
+          condition: z.string(),
+          location: z.string(),
+        }),
+      ),
   },
-  toolSchema: z.function()
-    .args(
-      z.string().describe("Location name (city)"),
-      z.string().optional().describe("Temperature units (celsius/fahrenheit)")
-    )
-    .returns(
-      z.object({
-        temperature: z.number(),
-        condition: z.string(),
-        location: z.string()
-      })
-    )
+];
 
-}]
+// Pass tools to the provider
 <TamboProvider apiKey="your-api-key" tools={tools}>
   <YourApp />
-</TamboProvider>
+</TamboProvider>;
+```
+
+### Using MCP Servers
+
+```tsx
+const mcpServers = [
+  {
+    url: "https://mcp-server-1.com",
+    transport: "http",
+    name: "mcp-server-1",
+  },
+];
+
+// Pass MCP servers to the provider
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  components={components}
+>
+  <TamboMcpProvider mcpServers={mcpServers}>{children}</TamboMcpProvider>
+</TamboProvider>;
 ```
 
 [Read our full documentation](https://tambo.co/docs)
@@ -239,7 +280,7 @@ const tools: TamboTool[] = [{
 ### Quick Commands
 
 ```bash
-# Install
+# Clone and install
 git clone https://github.com/tambo-ai/tambo.git && cd tambo && npm install
 
 # Develop
@@ -272,6 +313,5 @@ We're building tools for the future of user interfaces. Your contributions matte
 ---
 
 <p align="center">
-  <i>Built by developers, for developers.</i><br>
-  <i>Because we believe the future of UI is generative and hyper-personalized.</i>
+  <img src="assets/tambo-animation.gif" alt="tambo ai Logo">
 </p>
