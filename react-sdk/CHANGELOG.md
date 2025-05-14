@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.1](https://github.com/tambo-ai/tambo/compare/react-v0.25.0...react-v0.25.1) (2025-05-14)
+
+
+### Documentation
+
+* update README.md to reflect update to MCP ([#410](https://github.com/tambo-ai/tambo/issues/410)) ([400fbe5](https://github.com/tambo-ai/tambo/commit/400fbe58af81a43092e3bee3b547cb50055f58fb))
+
 ## [0.25.0](https://github.com/tambo-ai/tambo/compare/react-v0.24.0...react-v0.25.0) (2025-05-14)
 
 
