@@ -384,9 +384,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
             toolRegistry,
           );
           const toolCallResponseString =
-            typeof toolCallResponse === "string"
-              ? toolCallResponse
-              : JSON.stringify(toolCallResponse);
+            typeof toolCallResponse.result === "string"
+              ? toolCallResponse.result
+              : JSON.stringify(toolCallResponse.result);
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
@@ -396,8 +396,22 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
                 actionType: "tool_response",
                 component: chunk.responseMessageDto.component,
                 tool_call_id: chunk.responseMessageDto.tool_call_id,
+                error: toolCallResponse.error,
               },
             };
+
+          if (toolCallResponse.error) {
+            //update toolcall message with error
+            const toolCallMessage = {
+              ...chunk.responseMessageDto,
+              error: toolCallResponse.error,
+            };
+            updateThreadMessage(
+              chunk.responseMessageDto.id,
+              toolCallMessage,
+              false,
+            );
+          }
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
             GenerationStage.STREAMING_RESPONSE,
@@ -555,9 +569,9 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           toolRegistry,
         );
         const toolResponseString =
-          typeof toolCallResponse === "string"
-            ? toolCallResponse
-            : JSON.stringify(toolCallResponse);
+          typeof toolCallResponse.result === "string"
+            ? toolCallResponse.result
+            : JSON.stringify(toolCallResponse.result);
         const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
           {
             ...params,
@@ -568,8 +582,17 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
               actionType: "tool_response",
               component: advanceResponse.responseMessageDto.component,
               tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
+              error: toolCallResponse.error,
             },
           };
+        if (toolCallResponse.error) {
+          //update toolcall message with error
+          const toolCallMessage = {
+            ...advanceResponse.responseMessageDto,
+            error: toolCallResponse.error,
+          };
+          updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
+        }
         updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
         advanceResponse = await client.beta.threads.advanceById(
           advanceResponse.responseMessageDto.threadId,
