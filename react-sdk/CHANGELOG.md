@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/tambo-ai/tambo/compare/react-v0.24.0...react-v0.25.0) (2025-05-14)
+
+
+### Features
+
+* handle toolcall failures ([#420](https://github.com/tambo-ai/tambo/issues/420)) ([8a8bd27](https://github.com/tambo-ai/tambo/commit/8a8bd276dfcea261d9f7c6f1171829ef3682ffef))
+
 ## [0.24.0](https://github.com/tambo-ai/tambo/compare/react-v0.23.2...react-v0.24.0) (2025-05-13)
 
 
