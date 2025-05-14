@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.50.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.49.0...repo-v0.50.0) (2025-05-14)
+
+
+### Features
+
+* add error field to messages ([#968](https://github.com/tambo-ai/tambo-cloud/issues/968)) ([c6e68b2](https://github.com/tambo-ai/tambo-cloud/commit/c6e68b2beed1d1789a23dd90d3559a5b61b9a75f))
+* introduce mcp oauth entrypoints, store auth to db ([#966](https://github.com/tambo-ai/tambo-cloud/issues/966)) ([d4b6ea7](https://github.com/tambo-ai/tambo-cloud/commit/d4b6ea76c62880e9fbe3e299c33ac201ae1e1ad2))
+
 ## [0.49.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.48.0...repo-v0.49.0) (2025-05-13)
 
 
