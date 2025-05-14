@@ -1,4 +1,6 @@
-import { eq } from "drizzle-orm";
+import { ActionType } from "@tambo-ai-cloud/core";
+import { and, eq } from "drizzle-orm";
+import { schema } from "..";
 import { messages, projectMembers } from "../schema";
 import type { HydraDb } from "../types";
 import { fixLegacyRole } from "../util/legacyMessages";
@@ -85,4 +87,21 @@ export async function checkMessageProjectAccess(
     hasAccess,
     projectId: hasAccess ? result.thread.project.id : null,
   };
+}
+
+/**
+ * Find the previous tool call message with a matching tool call ID
+ */
+export async function findPreviousToolCallMessage(
+  db: HydraDb,
+  threadId: string,
+  toolCallId: string,
+) {
+  return await db.query.messages.findFirst({
+    where: and(
+      eq(schema.messages.threadId, threadId),
+      eq(schema.messages.toolCallId, toolCallId),
+      eq(schema.messages.actionType, ActionType.ToolCall),
+    ),
+  });
 }

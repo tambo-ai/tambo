@@ -288,6 +288,7 @@ export const messages = pgTable("messages", ({ text, timestamp }) => ({
   actionType: text("action_type", {
     enum: Object.values<string>(ActionType) as [ActionType],
   }),
+  error: text("error"),
   metadata: customJsonb<Record<string, unknown>>("metadata"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`clock_timestamp()`)

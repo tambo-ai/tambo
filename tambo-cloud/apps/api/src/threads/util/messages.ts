@@ -12,7 +12,7 @@ import {
   operations,
   schema,
 } from "@tambo-ai-cloud/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { MessageRequest, ThreadMessageDto } from "../dto/message.dto";
 import {
   convertContentDtoToContentPart,
@@ -37,7 +37,20 @@ export async function addMessage(
     toolCallRequest: messageDto.toolCallRequest ?? undefined,
     toolCallId: messageDto.tool_call_id,
     componentState: messageDto.componentState ?? {},
+    error: messageDto.error,
   });
+
+  if (messageDto.actionType === ActionType.ToolResponse && messageDto.error) {
+    //Update the previous request message with the error
+    //Find message with matching toolCallId and action is tool call
+    await propagateErrorToPreviousToolCall(
+      db,
+      threadId,
+      messageDto.tool_call_id,
+      messageDto.error,
+    );
+  }
+
   return {
     id: message.id,
     threadId: message.threadId,
@@ -50,6 +63,7 @@ export async function addMessage(
     component: message.componentDecision ?? undefined,
     content: message.content,
     tool_call_id: message.toolCallId ?? undefined,
+    error: message.error ?? undefined,
   };
 }
 
@@ -68,7 +82,20 @@ export async function updateMessage(
     actionType: messageDto.actionType ?? undefined,
     toolCallRequest: messageDto.toolCallRequest,
     toolCallId: messageDto.tool_call_id ?? undefined,
+    error: messageDto.error,
   });
+
+  if (messageDto.actionType === ActionType.ToolResponse && messageDto.error) {
+    //Update the previous request message with the error
+    //Find message with matching toolCallId and action is tool call
+    await propagateErrorToPreviousToolCall(
+      db,
+      message.threadId,
+      messageDto.tool_call_id,
+      messageDto.error,
+    );
+  }
+
   return {
     ...message,
     content: convertContentPartToDto(message.content),
@@ -77,7 +104,32 @@ export async function updateMessage(
     tool_call_id: message.toolCallId ?? undefined,
     actionType: message.actionType ?? undefined,
     componentState: message.componentState ?? {},
+    error: message.error ?? undefined,
   };
+}
+
+/**
+ * Update the previous tool call message with an error when a tool response fails
+ */
+async function propagateErrorToPreviousToolCall(
+  db: HydraDb,
+  threadId: string,
+  toolCallId: string | undefined,
+  error: string | undefined,
+) {
+  if (!toolCallId || !error) return;
+
+  const previousMessage = await operations.findPreviousToolCallMessage(
+    db,
+    threadId,
+    toolCallId,
+  );
+
+  if (previousMessage) {
+    await operations.updateMessage(db, previousMessage.id, {
+      error: error,
+    });
+  }
 }
 
 /**
@@ -156,4 +208,21 @@ export function threadMessageDtoToThreadMessage(
       content: convertContentDtoToContentPart(message.content),
     }),
   );
+}
+
+/**
+ * Find the previous tool call message with a matching tool call ID
+ */
+export async function findPreviousToolCallMessage(
+  db: HydraDb,
+  threadId: string,
+  toolCallId: string,
+) {
+  return await db.query.messages.findFirst({
+    where: and(
+      eq(schema.messages.threadId, threadId),
+      eq(schema.messages.toolCallId, toolCallId),
+      eq(schema.messages.actionType, ActionType.ToolCall),
+    ),
+  });
 }

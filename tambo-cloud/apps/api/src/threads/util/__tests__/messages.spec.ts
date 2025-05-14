@@ -69,6 +69,7 @@ describe("messages utilities", () => {
         toolCallRequest: null,
         componentDecision: null,
         actionType: null,
+        error: null,
       };
 
       jest.mocked(operations.addMessage).mockResolvedValue(mockResponse);
@@ -125,6 +126,7 @@ describe("messages utilities", () => {
         toolCallId: null,
         toolCallRequest: null,
         componentDecision: null,
+        error: null,
       };
 
       jest.mocked(operations.updateMessage).mockResolvedValue(mockResponse);
@@ -243,6 +245,7 @@ describe("messages utilities", () => {
         toolCallRequest: null,
         componentDecision: null,
         actionType: ActionType.ToolCall,
+        error: null,
       };
 
       const newMessage: ThreadMessage = {
@@ -252,6 +255,7 @@ describe("messages utilities", () => {
         metadata: {},
         toolCallRequest: undefined,
         tool_call_id: undefined,
+        error: undefined,
       };
 
       jest

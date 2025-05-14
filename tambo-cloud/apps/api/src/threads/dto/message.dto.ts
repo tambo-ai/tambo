@@ -74,6 +74,9 @@ export class ThreadMessageDto {
   @IsEnum(ActionType)
   actionType?: ActionType;
 
+  @ApiProperty({ required: false, type: String })
+  error?: string;
+
   @IsOptional()
   tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
   createdAt!: Date;
@@ -104,6 +107,10 @@ export class MessageRequest implements InternalThreadMessage {
   @IsOptional()
   @IsEnum(ActionType)
   actionType?: ActionType;
+
+  @IsOptional()
+  @ApiProperty({ required: false, type: String })
+  error?: string;
 
   /**
    * @deprecated Put the response in the content instead

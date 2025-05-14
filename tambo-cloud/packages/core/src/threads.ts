@@ -103,6 +103,10 @@ export interface ThreadMessage {
 
   /** Type of action performed */
   actionType?: ActionType;
+
+  /** Error message for the message */
+  error?: string;
+
   /** Additional metadata for the message */
   metadata?: Record<string, unknown>;
   /** Timestamp when the message was created */

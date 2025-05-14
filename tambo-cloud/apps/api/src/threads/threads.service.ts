@@ -187,6 +187,7 @@ export class ThreadsService {
         toolCallRequest: message.toolCallRequest ?? undefined,
         actionType: message.actionType ?? undefined,
         tool_call_id: message.toolCallId ?? undefined,
+        error: message.error ?? undefined,
       })),
     };
   }
@@ -301,6 +302,7 @@ export class ThreadsService {
       actionType: message.actionType ?? undefined,
       componentState: message.componentState ?? {},
       component: message.componentDecision as ComponentDecisionV2 | undefined,
+      error: message.error ?? undefined,
     }));
   }
 
@@ -432,6 +434,7 @@ export class ThreadsService {
       toolCallRequest: message.toolCallRequest ?? undefined,
       tool_call_id: message.toolCallId ?? undefined,
       actionType: message.actionType ?? undefined,
+      error: message.error ?? undefined,
     };
   }
 
