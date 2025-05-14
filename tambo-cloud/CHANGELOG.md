@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.50.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.50.0...repo-v0.50.1) (2025-05-14)
+
+
+### Miscellaneous Chores
+
+* **landing:** update landing and add mcp page ([#962](https://github.com/tambo-ai/tambo-cloud/issues/962)) ([224338b](https://github.com/tambo-ai/tambo-cloud/commit/224338b398107b905d2179b7127592cd2ce07e03))
+
 ## [0.50.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.49.0...repo-v0.50.0) (2025-05-14)
 
 
