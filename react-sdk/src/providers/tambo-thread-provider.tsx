@@ -399,6 +399,17 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
                 error: toolCallResponse.error,
               },
             };
+
+          if (toolCallResponse.error) {
+            //update toolcall message with error
+            const toolCallMessage = chunk.responseMessageDto;
+            toolCallMessage.error = toolCallResponse.error;
+            updateThreadMessage(
+              chunk.responseMessageDto.id,
+              toolCallMessage,
+              false,
+            );
+          }
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
             GenerationStage.STREAMING_RESPONSE,
@@ -572,6 +583,12 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
               error: toolCallResponse.error,
             },
           };
+        if (toolCallResponse.error) {
+          //update toolcall message with error
+          const toolCallMessage = advanceResponse.responseMessageDto;
+          toolCallMessage.error = toolCallResponse.error;
+          updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
+        }
         updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
         advanceResponse = await client.beta.threads.advanceById(
           advanceResponse.responseMessageDto.threadId,
