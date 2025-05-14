@@ -402,8 +402,10 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
 
           if (toolCallResponse.error) {
             //update toolcall message with error
-            const toolCallMessage = chunk.responseMessageDto;
-            toolCallMessage.error = toolCallResponse.error;
+            const toolCallMessage = {
+              ...chunk.responseMessageDto,
+              error: toolCallResponse.error,
+            };
             updateThreadMessage(
               chunk.responseMessageDto.id,
               toolCallMessage,
@@ -585,8 +587,10 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
           };
         if (toolCallResponse.error) {
           //update toolcall message with error
-          const toolCallMessage = advanceResponse.responseMessageDto;
-          toolCallMessage.error = toolCallResponse.error;
+          const toolCallMessage = {
+            ...advanceResponse.responseMessageDto,
+            error: toolCallResponse.error,
+          };
           updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
         }
         updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
