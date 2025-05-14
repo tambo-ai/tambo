@@ -1,12 +1,12 @@
 import chalk from "chalk";
 import fs from "fs";
-import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
 import { installComponents } from "../add/component.js";
 import { componentExists } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
 import type { UpgradeOptions } from "./index.js";
+import { confirmAction } from "./utils.js";
 
 /**
  * Finds the component location in the project
@@ -116,16 +116,12 @@ export async function upgradeComponents(
 
     // Confirm all upgrades if not using acceptAll
     if (!options.acceptAll) {
-      const { confirm } = await inquirer.prompt({
-        type: "confirm",
-        name: "confirm",
-        message: chalk.yellow(
-          `This will upgrade ${verifiedComponents.length} tambo components with the latest versions from the registry. Continue?`,
-        ),
-        default: true,
-      });
+      const proceed = await confirmAction(
+        `This will upgrade ${verifiedComponents.length} tambo components with the latest versions from the registry. Continue?`,
+        true,
+      );
 
-      if (!confirm) {
+      if (!proceed) {
         console.log(chalk.gray("Component upgrades cancelled."));
         return true;
       }

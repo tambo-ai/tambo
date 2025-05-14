@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fs from "fs";
+import inquirer from "inquirer";
 import path from "path";
 
 /**
@@ -71,4 +72,46 @@ export function generateAiUpgradePrompts(template: string | null): string[] {
     : [];
 
   return [...commonPrompts, ...specificPrompts];
+}
+
+/**
+ * For backward compatibility with older Node versions
+ */
+export async function safeFetch(url: string): Promise<any> {
+  try {
+    // Try using global fetch (available in Node.js 18+)
+    return await fetch(url);
+  } catch (_error) {
+    // If global fetch isn't available, try to dynamically import node-fetch
+    try {
+      const nodeFetch = await import("node-fetch");
+      return await nodeFetch.default(url);
+    } catch (_importError) {
+      // If node-fetch isn't installed, provide helpful error
+      throw new Error(
+        `Failed to fetch from ${url}. This CLI requires Node.js v18+ or the 'node-fetch' package. ` +
+          `Please upgrade Node.js or install node-fetch: npm install node-fetch`,
+      );
+    }
+  }
+}
+
+/**
+ * Prompts the user for confirmation with a yes/no question
+ * @param message The message to display in the prompt
+ * @param defaultValue Default answer (true=yes, false=no)
+ * @returns Promise<boolean> True if user confirmed, false otherwise
+ */
+export async function confirmAction(
+  message: string,
+  defaultValue = true,
+): Promise<boolean> {
+  const { confirm } = await inquirer.prompt({
+    type: "confirm",
+    name: "confirm",
+    message: chalk.yellow(message),
+    default: defaultValue,
+  });
+
+  return confirm;
 }

@@ -53,15 +53,27 @@ export async function handleUpgrade(
 
     // Upgrade packages
     console.log(chalk.bold("\n1. Upgrading npm packages"));
-    await upgradeNpmPackages(options);
+    const npmSuccess = await upgradeNpmPackages(options);
+    if (!npmSuccess) {
+      console.error(chalk.red("\n❌ NPM package upgrade failed"));
+      process.exit(1);
+    }
 
     // Upgrade LLM rules
     console.log(chalk.bold("\n2. Upgrading cursor rules"));
-    await upgradeLlmRules(detectedTemplate, options);
+    const rulesSuccess = await upgradeLlmRules(detectedTemplate, options);
+    if (!rulesSuccess) {
+      console.error(chalk.red("\n❌ Cursor rules upgrade failed"));
+      process.exit(1);
+    }
 
     // Upgrade components
     console.log(chalk.bold("\n3. Upgrading tambo components"));
-    await upgradeComponents(options);
+    const componentsSuccess = await upgradeComponents(options);
+    if (!componentsSuccess) {
+      console.error(chalk.red("\n❌ Component upgrade failed"));
+      process.exit(1);
+    }
 
     // Generate AI upgrade prompts
     console.log(chalk.bold("\n4. AI Upgrade Prompts"));

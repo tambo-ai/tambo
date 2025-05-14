@@ -1,9 +1,8 @@
-import chalk from "chalk";
 import fs from "fs";
-import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
 import type { UpgradeOptions } from "./index.js";
+import { confirmAction, safeFetch } from "./utils.js";
 
 /**
  * Upgrade LLM rules in .cursor/rules folder based on template
@@ -51,8 +50,8 @@ export async function upgradeLlmRules(
         return true;
     }
 
-    // Fetch rules from GitHub
-    const response = await fetch(repoRulesPath);
+    // Fetch rules from GitHub using our safeFetch wrapper
+    const response = await safeFetch(repoRulesPath);
     if (!response.ok) {
       spinner.fail(`Failed to fetch rules from GitHub: ${response.statusText}`);
       return false;
@@ -63,7 +62,7 @@ export async function upgradeLlmRules(
 
     // Compare and update rules
     for (const file of files) {
-      const fileResponse = await fetch(file.download_url);
+      const fileResponse = await safeFetch(file.download_url);
       if (!fileResponse.ok) continue;
 
       const templateContent = await fileResponse.text();
@@ -75,14 +74,12 @@ export async function upgradeLlmRules(
         fs.readFileSync(localFilePath, "utf-8") !== templateContent
       ) {
         if (!options.acceptAll && fs.existsSync(localFilePath)) {
-          const { confirm } = await inquirer.prompt({
-            type: "confirm",
-            name: "confirm",
-            message: chalk.yellow(`Update cursor rule file: ${file.name}?`),
-            default: true,
-          });
+          const proceed = await confirmAction(
+            `Update cursor rule file: ${file.name}?`,
+            true,
+          );
 
-          if (!confirm) continue;
+          if (!proceed) continue;
         }
 
         fs.writeFileSync(localFilePath, templateContent);
