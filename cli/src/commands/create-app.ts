@@ -92,15 +92,27 @@ function updatePackageJson(targetDir: string, appName: string): void {
 }
 
 export async function handleCreateApp(
-  appName: string,
   options: CreateAppOptions = {},
 ): Promise<void> {
-  // Validate app name
-  if (appName !== "." && !/^[a-zA-Z0-9-_]+$/.test(appName)) {
-    throw new Error(
-      "App name can only contain letters, numbers, dashes, and underscores",
-    );
-  }
+  console.log("");
+
+  // Always prompt for app name
+  const response = await inquirer.prompt([
+    {
+      type: "input",
+      name: "appName",
+      message:
+        'What is the name of your app? (use "." to create in current directory)',
+      default: "my-tambo-app",
+      validate: (input) => {
+        if (input === "." || /^[a-zA-Z0-9-_]+$/.test(input)) {
+          return true;
+        }
+        return 'App name can only contain letters, numbers, dashes, and underscores, or "." for current directory';
+      },
+    },
+  ]);
+  const appName = response.appName;
 
   const targetDir =
     appName === "." ? process.cwd() : path.join(process.cwd(), appName);
@@ -137,7 +149,7 @@ export async function handleCreateApp(
             name: `${template.name} - ${template.description}`,
             value: key,
           })),
-          default: "standard",
+          default: "mcp",
         },
       ]);
       selectedTemplate = templates[templateKey];

@@ -80,11 +80,9 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow(
       "update <componentName> --legacy-peer-deps",
     )}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name> --init-git")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow(
-      "create-app <app-name> --template mcp",
-    )}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app <app-name> -t mcp")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --init-git")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template mcp")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app -t mcp")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app . --init-git")}
   `,
   {
@@ -195,26 +193,24 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
   }
 
   if (cmd === "create-app") {
-    const appName = cli.input[1];
-    if (!appName) {
-      console.error(chalk.red("\nApp name is required\n"));
-      console.log(
-        `Run ${chalk.cyan("npx tambo create-app <app-name>")} or ${chalk.cyan(
-          "npx create-tambo-app@latest <app-name>",
-        )} to create a new app\n` +
-          `Use ${chalk.cyan("npx tambo create-app .")} or ${chalk.cyan(
-            "npx create-tambo-app@latest .",
-          )} to create an app in the current directory\n\n` +
-          `Add ${chalk.yellow(
-            "--init-git",
-          )} flag to initialize a git repository automatically\n` +
-          `Add ${chalk.yellow("--template <name>")} or ${chalk.yellow(
-            "-t <name>",
-          )} to specify a template (mcp, standard, conversational-form)\n`,
-      );
-      return;
+    let helpText = "";
+
+    if (!flags.initGit) {
+      helpText += `\nAdd ${chalk.yellow(
+        "--init-git",
+      )} flag to initialize a git repository automatically`;
     }
-    await handleCreateApp(appName, {
+
+    if (!flags.template) {
+      helpText += `\nAdd ${chalk.yellow("--template <name>")} or ${chalk.yellow(
+        "-t <name>",
+      )} to specify a template (mcp, standard, conversational-form)`;
+    }
+
+    if (helpText) {
+      console.log(helpText);
+    }
+    await handleCreateApp({
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       initGit: Boolean(flags.initGit),
       template: flags.template as string | undefined,
