@@ -12,19 +12,27 @@ import { mapTamboToolToContextTool } from "./registry";
  * @returns The result of the tool call
  */
 export const handleToolCall = async (
-  message: TamboAI.Beta.ThreadMessage,
+  message: TamboAI.Beta.Threads.ThreadMessage,
   toolRegistry: TamboToolRegistry,
-) => {
+): Promise<{
+  result: string;
+  error?: string;
+}> => {
   if (!message?.toolCallRequest?.toolName) {
     throw new Error("Tool name is required");
   }
 
   try {
     const tool = findTool(message.toolCallRequest.toolName, toolRegistry);
-    return await runToolChoice(message.toolCallRequest, tool);
+    return {
+      result: await runToolChoice(message.toolCallRequest, tool),
+    };
   } catch (error) {
     console.error("Error in calling tool: ", error);
-    return `When attempting to call tool ${message.toolCallRequest.toolName} the following error occurred: ${error}. Explain to the user that the tool call failed and try again if needed.`;
+    return {
+      result: `When attempting to call tool ${message.toolCallRequest.toolName} the following error occurred: ${error}. Explain to the user that the tool call failed and try again if needed.`,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 };
 
