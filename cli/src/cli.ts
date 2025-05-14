@@ -12,6 +12,7 @@ import { getComponentList } from "./commands/add/utils.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleUpdateComponent } from "./commands/update.js";
+import { handleUpgrade } from "./commands/upgrade/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,6 +29,7 @@ interface CLIFlags extends Record<string, any> {
   initGit?: Flag<"boolean", boolean>;
   version?: Flag<"boolean", boolean>;
   template?: Flag<"string", string>;
+  acceptAll?: Flag<"boolean", boolean>;
 }
 
 // CLI setup
@@ -45,6 +47,9 @@ const cli = meow(
       "update",
     )}              Update an existing component from the registry
     ${chalk.yellow(
+      "upgrade",
+    )}             Upgrade packages, components, and LLM rules
+    ${chalk.yellow(
       "full-send",
     )}           Full initialization with auth flow and component installation
     ${chalk.yellow(
@@ -59,6 +64,7 @@ const cli = meow(
       "--init-git",
     )}          Initialize a new git repository after creating the app
     ${chalk.yellow("--template, -t <name>")}   Specify template to use (-t mcp)
+    ${chalk.yellow("--accept-all")}        Accept all upgrades without prompting, use with caution, only works with upgrade command
     ${chalk.yellow("--version")}           Show version number
 
   ${chalk.bold("Examples")}
@@ -66,6 +72,8 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade --accept-all")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow(
       "add <componentName> --legacy-peer-deps",
     )}
@@ -98,6 +106,10 @@ const cli = meow(
         description:
           "Specify template to use (mcp, standard, conversational-form)",
         shortFlag: "t",
+      },
+      acceptAll: {
+        type: "boolean",
+        description: "Accept all upgrades without prompting",
       },
     },
     importMeta: import.meta,
@@ -206,6 +218,14 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       initGit: Boolean(flags.initGit),
       template: flags.template as string | undefined,
+    });
+    return;
+  }
+
+  if (cmd === "upgrade") {
+    await handleUpgrade({
+      legacyPeerDeps: Boolean(flags.legacyPeerDeps),
+      acceptAll: Boolean(flags.acceptAll),
     });
     return;
   }
