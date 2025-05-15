@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.7.0...showcase-v0.8.0) (2025-05-15)
+
+
+### Features
+
+* update showcase message component to show toolcall errors ([#425](https://github.com/tambo-ai/tambo/issues/425)) ([29ad9dd](https://github.com/tambo-ai/tambo/commit/29ad9dd23cf99f6d73d7d9864bb636b640fbaff1))
+
 ## [0.7.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.6.0...showcase-v0.7.0) (2025-05-13)
 
 
