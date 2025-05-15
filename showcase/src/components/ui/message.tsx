@@ -1,13 +1,13 @@
 "use client";
 
 import { createMarkdownComponents } from "@/components/ui/markdownComponents";
+import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ExternalLink, Check, Loader2 } from "lucide-react";
+import { Check, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
-import { getSafeContent, checkHasContent } from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -213,6 +213,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
 
     const showLoading = isLoading && !hasContent;
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
+    const hasToolError = message.actionType === "tool_call" && message.error;
 
     return (
       <div
@@ -253,7 +254,9 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
         )}
         {toolStatusMessage && (
           <div className="flex items-center gap-2 text-xs opacity-50 mt-2">
-            {isLoading ? (
+            {hasToolError ? (
+              <X className="w-3 h-3 text-bold text-red-500" />
+            ) : isLoading ? (
               <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
             ) : (
               <Check className="w-3 h-3 text-bold text-green-500" />
@@ -350,9 +353,9 @@ MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
 
 // --- Exports ---
 export {
-  messageVariants,
+  LoadingIndicator,
   Message,
   MessageContent,
   MessageRenderedComponentArea,
-  LoadingIndicator,
+  messageVariants,
 };
