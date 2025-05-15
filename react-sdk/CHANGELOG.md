@@ -2,410 +2,353 @@
 
 ## [0.25.1](https://github.com/tambo-ai/tambo/compare/react-v0.25.0...react-v0.25.1) (2025-05-14)
 
-
 ### Documentation
 
-* update README.md to reflect update to MCP ([#410](https://github.com/tambo-ai/tambo/issues/410)) ([400fbe5](https://github.com/tambo-ai/tambo/commit/400fbe58af81a43092e3bee3b547cb50055f58fb))
+- update README.md to reflect update to MCP ([#410](https://github.com/tambo-ai/tambo/issues/410)) ([400fbe5](https://github.com/tambo-ai/tambo/commit/400fbe58af81a43092e3bee3b547cb50055f58fb))
 
 ## [0.25.0](https://github.com/tambo-ai/tambo/compare/react-v0.24.0...react-v0.25.0) (2025-05-14)
 
-
 ### Features
 
-* handle toolcall failures ([#420](https://github.com/tambo-ai/tambo/issues/420)) ([8a8bd27](https://github.com/tambo-ai/tambo/commit/8a8bd276dfcea261d9f7c6f1171829ef3682ffef))
+- handle toolcall failures ([#420](https://github.com/tambo-ai/tambo/issues/420)) ([8a8bd27](https://github.com/tambo-ai/tambo/commit/8a8bd276dfcea261d9f7c6f1171829ef3682ffef))
 
 ## [0.24.0](https://github.com/tambo-ai/tambo/compare/react-v0.23.2...react-v0.24.0) (2025-05-13)
 
-
 ### Features
 
-* add forceToolChoice param ([#417](https://github.com/tambo-ai/tambo/issues/417)) ([ecca673](https://github.com/tambo-ai/tambo/commit/ecca67398d4581ffcee013d130024528c4f7e315))
+- add forceToolChoice param ([#417](https://github.com/tambo-ai/tambo/issues/417)) ([ecca673](https://github.com/tambo-ai/tambo/commit/ecca67398d4581ffcee013d130024528c4f7e315))
 
 ## [0.23.2](https://github.com/tambo-ai/tambo/compare/react-v0.23.1...react-v0.23.2) (2025-05-13)
 
-
 ### Miscellaneous
 
-* **deps-dev:** bump the eslint group with 5 updates ([#401](https://github.com/tambo-ai/tambo/issues/401)) ([8e2439e](https://github.com/tambo-ai/tambo/commit/8e2439e2887bc7e13fa0cca09512a9a5d751b190))
-* **deps:** bump @modelcontextprotocol/sdk from 1.11.0 to 1.11.2 ([#406](https://github.com/tambo-ai/tambo/issues/406)) ([c3ea0d1](https://github.com/tambo-ai/tambo/commit/c3ea0d1d78ce671af36d3789f8d66ea3da0e7de2))
+- **deps-dev:** bump the eslint group with 5 updates ([#401](https://github.com/tambo-ai/tambo/issues/401)) ([8e2439e](https://github.com/tambo-ai/tambo/commit/8e2439e2887bc7e13fa0cca09512a9a5d751b190))
+- **deps:** bump @modelcontextprotocol/sdk from 1.11.0 to 1.11.2 ([#406](https://github.com/tambo-ai/tambo/issues/406)) ([c3ea0d1](https://github.com/tambo-ai/tambo/commit/c3ea0d1d78ce671af36d3789f8d66ea3da0e7de2))
 
 ## [0.23.1](https://github.com/tambo-ai/tambo/compare/react-v0.23.0...react-v0.23.1) (2025-05-08)
 
-
 ### Code Refactoring
 
-* move MCP into separate import (@tambo-ai/react/mcp) ([#391](https://github.com/tambo-ai/tambo/issues/391)) ([a9231f6](https://github.com/tambo-ai/tambo/commit/a9231f6fc37ab0688a7cf55202cab8f6bec3f0bb))
+- move MCP into separate import (@tambo-ai/react/mcp) ([#391](https://github.com/tambo-ai/tambo/issues/391)) ([a9231f6](https://github.com/tambo-ai/tambo/commit/a9231f6fc37ab0688a7cf55202cab8f6bec3f0bb))
 
 ## [0.23.0](https://github.com/tambo-ai/tambo/compare/react-v0.22.0...react-v0.23.0) (2025-05-08)
 
-
 ### Features
 
-* add support for browser-visible MCP servers ([#383](https://github.com/tambo-ai/tambo/issues/383)) ([d6a4387](https://github.com/tambo-ai/tambo/commit/d6a43875e8e12b90fdf278613706c7a8aa9d13b4))
+- add support for browser-visible MCP servers ([#383](https://github.com/tambo-ai/tambo/issues/383)) ([d6a4387](https://github.com/tambo-ai/tambo/commit/d6a43875e8e12b90fdf278613706c7a8aa9d13b4))
 
 ## [0.22.0](https://github.com/tambo-ai/tambo/compare/react-v0.21.4...react-v0.22.0) (2025-05-07)
 
-
 ### Features
 
-* update showcase with new components ([#367](https://github.com/tambo-ai/tambo/issues/367)) ([581359a](https://github.com/tambo-ai/tambo/commit/581359adc7f85433c08f7a3c5da7af65cb8529fc))
-
+- update showcase with new components ([#367](https://github.com/tambo-ai/tambo/issues/367)) ([581359a](https://github.com/tambo-ai/tambo/commit/581359adc7f85433c08f7a3c5da7af65cb8529fc))
 
 ### Bug Fixes
 
-* get threadId from other hooks ([#363](https://github.com/tambo-ai/tambo/issues/363)) ([9c21c22](https://github.com/tambo-ai/tambo/commit/9c21c22c4f1b41b50fd5348fb81302c69ae7498d))
-
+- get threadId from other hooks ([#363](https://github.com/tambo-ai/tambo/issues/363)) ([9c21c22](https://github.com/tambo-ai/tambo/commit/9c21c22c4f1b41b50fd5348fb81302c69ae7498d))
 
 ### Miscellaneous
 
-* **deps-dev:** bump @types/node from 20.17.32 to 20.17.37 ([#368](https://github.com/tambo-ai/tambo/issues/368)) ([1c1d05f](https://github.com/tambo-ai/tambo/commit/1c1d05f52f703303ef5f5bf3cecd2be08c10c886))
-* **deps-dev:** bump the eslint group with 3 updates ([#375](https://github.com/tambo-ai/tambo/issues/375)) ([03d2058](https://github.com/tambo-ai/tambo/commit/03d20581a4e254cff27cd99c6730497f6149b7a6))
-* **deps:** bump @tanstack/react-query from 5.74.7 to 5.75.2 ([#376](https://github.com/tambo-ai/tambo/issues/376)) ([0999795](https://github.com/tambo-ai/tambo/commit/09997950fc73f3f5c9ca33750d4a815c75237623))
-* **deps:** bump zod from 3.24.3 to 3.24.4 ([#369](https://github.com/tambo-ai/tambo/issues/369)) ([8da0336](https://github.com/tambo-ai/tambo/commit/8da033694b0fa9187f818d53ca8552ff5368be25))
+- **deps-dev:** bump @types/node from 20.17.32 to 20.17.37 ([#368](https://github.com/tambo-ai/tambo/issues/368)) ([1c1d05f](https://github.com/tambo-ai/tambo/commit/1c1d05f52f703303ef5f5bf3cecd2be08c10c886))
+- **deps-dev:** bump the eslint group with 3 updates ([#375](https://github.com/tambo-ai/tambo/issues/375)) ([03d2058](https://github.com/tambo-ai/tambo/commit/03d20581a4e254cff27cd99c6730497f6149b7a6))
+- **deps:** bump @tanstack/react-query from 5.74.7 to 5.75.2 ([#376](https://github.com/tambo-ai/tambo/issues/376)) ([0999795](https://github.com/tambo-ai/tambo/commit/09997950fc73f3f5c9ca33750d4a815c75237623))
+- **deps:** bump zod from 3.24.3 to 3.24.4 ([#369](https://github.com/tambo-ai/tambo/issues/369)) ([8da0336](https://github.com/tambo-ai/tambo/commit/8da033694b0fa9187f818d53ca8552ff5368be25))
 
 ## [0.21.4](https://github.com/tambo-ai/tambo/compare/react-v0.21.3...react-v0.21.4) (2025-04-30)
 
-
 ### Miscellaneous
 
-* **deps:** bump typescript-sdk to get status messages ([#360](https://github.com/tambo-ai/tambo/issues/360)) ([48dc083](https://github.com/tambo-ai/tambo/commit/48dc083b0edfd5bef219046edd688e8b9a1e4643))
-* **deps:** manually bump typescript-sdk ([#358](https://github.com/tambo-ai/tambo/issues/358)) ([e84d995](https://github.com/tambo-ai/tambo/commit/e84d995bb8d5fe24d2f78ecfc8a6f0669744778c))
+- **deps:** bump typescript-sdk to get status messages ([#360](https://github.com/tambo-ai/tambo/issues/360)) ([48dc083](https://github.com/tambo-ai/tambo/commit/48dc083b0edfd5bef219046edd688e8b9a1e4643))
+- **deps:** manually bump typescript-sdk ([#358](https://github.com/tambo-ai/tambo/issues/358)) ([e84d995](https://github.com/tambo-ai/tambo/commit/e84d995bb8d5fe24d2f78ecfc8a6f0669744778c))
 
 ## [0.21.3](https://github.com/tambo-ai/tambo/compare/react-v0.21.2...react-v0.21.3) (2025-04-29)
 
-
 ### Bug Fixes
 
-* make sure to show each streamed message, even if new ones come in on the same stream ([#356](https://github.com/tambo-ai/tambo/issues/356)) ([04e4260](https://github.com/tambo-ai/tambo/commit/04e426043392e6ecd9dee1676706650dc3e4212f))
+- make sure to show each streamed message, even if new ones come in on the same stream ([#356](https://github.com/tambo-ai/tambo/issues/356)) ([04e4260](https://github.com/tambo-ai/tambo/commit/04e426043392e6ecd9dee1676706650dc3e4212f))
 
 ## [0.21.2](https://github.com/tambo-ai/tambo/compare/react-v0.21.1...react-v0.21.2) (2025-04-29)
 
-
 ### Bug Fixes
 
-* Add `tools=` prop to register tools in provider ([#352](https://github.com/tambo-ai/tambo/issues/352)) ([18f6492](https://github.com/tambo-ai/tambo/commit/18f6492b43526316664cd9a0edf54cd84aaf7aa2))
+- Add `tools=` prop to register tools in provider ([#352](https://github.com/tambo-ai/tambo/issues/352)) ([18f6492](https://github.com/tambo-ai/tambo/commit/18f6492b43526316664cd9a0edf54cd84aaf7aa2))
 
 ## [0.21.1](https://github.com/tambo-ai/tambo/compare/react-v0.21.0...react-v0.21.1) (2025-04-28)
 
-
 ### Miscellaneous
 
-* **deps-dev:** bump @types/node from 20.17.30 to 20.17.32 ([#350](https://github.com/tambo-ai/tambo/issues/350)) ([0ae1852](https://github.com/tambo-ai/tambo/commit/0ae1852f2df6eb09c4003ed7e6ffb13d0003166e))
-* **deps-dev:** bump the eslint group with 3 updates ([#345](https://github.com/tambo-ai/tambo/issues/345)) ([72a9ef4](https://github.com/tambo-ai/tambo/commit/72a9ef43edb601b69a1c7a09825da3da90a87464))
-* **deps:** bump @tambo-ai/typescript-sdk from 0.44.0 to 0.45.0 ([#347](https://github.com/tambo-ai/tambo/issues/347)) ([73b1f3a](https://github.com/tambo-ai/tambo/commit/73b1f3ac9c91ff0d15526ef9cf58f481c6a7b9c0))
-* **deps:** bump @tanstack/react-query from 5.74.4 to 5.74.7 ([#346](https://github.com/tambo-ai/tambo/issues/346)) ([e0ee10b](https://github.com/tambo-ai/tambo/commit/e0ee10b940ab4572ebe41f28682b6570c7202d8c))
+- **deps-dev:** bump @types/node from 20.17.30 to 20.17.32 ([#350](https://github.com/tambo-ai/tambo/issues/350)) ([0ae1852](https://github.com/tambo-ai/tambo/commit/0ae1852f2df6eb09c4003ed7e6ffb13d0003166e))
+- **deps-dev:** bump the eslint group with 3 updates ([#345](https://github.com/tambo-ai/tambo/issues/345)) ([72a9ef4](https://github.com/tambo-ai/tambo/commit/72a9ef43edb601b69a1c7a09825da3da90a87464))
+- **deps:** bump @tambo-ai/typescript-sdk from 0.44.0 to 0.45.0 ([#347](https://github.com/tambo-ai/tambo/issues/347)) ([73b1f3a](https://github.com/tambo-ai/tambo/commit/73b1f3ac9c91ff0d15526ef9cf58f481c6a7b9c0))
+- **deps:** bump @tanstack/react-query from 5.74.4 to 5.74.7 ([#346](https://github.com/tambo-ai/tambo/issues/346)) ([e0ee10b](https://github.com/tambo-ai/tambo/commit/e0ee10b940ab4572ebe41f28682b6570c7202d8c))
 
 ## [0.21.0](https://github.com/tambo-ai/tambo/compare/react-v0.20.4...react-v0.21.0) (2025-04-24)
 
-
 ### Features
 
-* send all defined tools, even if they are not associated with a component ([#344](https://github.com/tambo-ai/tambo/issues/344)) ([1d3571a](https://github.com/tambo-ai/tambo/commit/1d3571a7b27bfda8f6198b380d3a1b3a3b8d8a04))
-
+- send all defined tools, even if they are not associated with a component ([#344](https://github.com/tambo-ai/tambo/issues/344)) ([1d3571a](https://github.com/tambo-ai/tambo/commit/1d3571a7b27bfda8f6198b380d3a1b3a3b8d8a04))
 
 ### Miscellaneous
 
-* **deps-dev:** bump the eslint group with 4 updates ([#331](https://github.com/tambo-ai/tambo/issues/331)) ([7db258c](https://github.com/tambo-ai/tambo/commit/7db258c858f80c08e49625e3c90f89899282c574))
-* **deps:** bump @tanstack/react-query from 5.74.3 to 5.74.4 ([#337](https://github.com/tambo-ai/tambo/issues/337)) ([e4d0d0a](https://github.com/tambo-ai/tambo/commit/e4d0d0a788b79fb43216ae874ab9c4cbd3f9124b))
-* **deps:** bump zod from 3.24.2 to 3.24.3 ([#335](https://github.com/tambo-ai/tambo/issues/335)) ([b2296aa](https://github.com/tambo-ai/tambo/commit/b2296aa166e69bd01e82fdf34ca5cf41bf78b2c0))
+- **deps-dev:** bump the eslint group with 4 updates ([#331](https://github.com/tambo-ai/tambo/issues/331)) ([7db258c](https://github.com/tambo-ai/tambo/commit/7db258c858f80c08e49625e3c90f89899282c574))
+- **deps:** bump @tanstack/react-query from 5.74.3 to 5.74.4 ([#337](https://github.com/tambo-ai/tambo/issues/337)) ([e4d0d0a](https://github.com/tambo-ai/tambo/commit/e4d0d0a788b79fb43216ae874ab9c4cbd3f9124b))
+- **deps:** bump zod from 3.24.2 to 3.24.3 ([#335](https://github.com/tambo-ai/tambo/issues/335)) ([b2296aa](https://github.com/tambo-ai/tambo/commit/b2296aa166e69bd01e82fdf34ca5cf41bf78b2c0))
 
 ## [0.20.4](https://github.com/tambo-ai/tambo/compare/react-v0.20.3...react-v0.20.4) (2025-04-22)
 
-
 ### Bug Fixes
 
-* Show toolcall message in thread ([#340](https://github.com/tambo-ai/tambo/issues/340)) ([d1ad5aa](https://github.com/tambo-ai/tambo/commit/d1ad5aa5ccf38dcf1eae1d4e06ae1f9893ef6534))
+- Show toolcall message in thread ([#340](https://github.com/tambo-ai/tambo/issues/340)) ([d1ad5aa](https://github.com/tambo-ai/tambo/commit/d1ad5aa5ccf38dcf1eae1d4e06ae1f9893ef6534))
 
 ## [0.20.3](https://github.com/tambo-ai/tambo/compare/react-v0.20.2...react-v0.20.3) (2025-04-16)
 
-
 ### Miscellaneous
 
-* **deps-dev:** bump lint-staged from 15.5.0 to 15.5.1 ([#319](https://github.com/tambo-ai/tambo/issues/319)) ([e00ba1e](https://github.com/tambo-ai/tambo/commit/e00ba1e32363d36141f46f37b1707a707d38c6ad))
-* **deps-dev:** bump ts-jest from 29.3.1 to 29.3.2 ([#316](https://github.com/tambo-ai/tambo/issues/316)) ([bea5531](https://github.com/tambo-ai/tambo/commit/bea5531da959d687042e636f6871eb680463c892))
-* **deps-dev:** bump typescript-eslint from 8.29.0 to 8.29.1 in the eslint group ([#301](https://github.com/tambo-ai/tambo/issues/301)) ([e7ccd2b](https://github.com/tambo-ai/tambo/commit/e7ccd2b3d948ce82d1e81bb192980ab826b6393d))
-* **deps-dev:** bump typescript-eslint from 8.29.1 to 8.30.1 in the eslint group ([#311](https://github.com/tambo-ai/tambo/issues/311)) ([d9b10e4](https://github.com/tambo-ai/tambo/commit/d9b10e408d8b87db1c88dcde5e72a66309c06580))
-* **deps:** bump @tambo-ai/typescript-sdk from 0.42.1 to 0.43.0 ([#329](https://github.com/tambo-ai/tambo/issues/329)) ([e09bb2d](https://github.com/tambo-ai/tambo/commit/e09bb2df988f094443001455f88fe86f0d3d13a6))
-* **deps:** bump @tanstack/react-query from 5.71.10 to 5.72.0 ([#300](https://github.com/tambo-ai/tambo/issues/300)) ([faddcdf](https://github.com/tambo-ai/tambo/commit/faddcdf50dc0470fccdaf0e331ad30719cac65af))
-* **deps:** bump @tanstack/react-query from 5.72.0 to 5.74.3 ([#322](https://github.com/tambo-ai/tambo/issues/322)) ([f55642c](https://github.com/tambo-ai/tambo/commit/f55642c5fac7c13e17115d516ca7a0aac63234b7))
-
+- **deps-dev:** bump lint-staged from 15.5.0 to 15.5.1 ([#319](https://github.com/tambo-ai/tambo/issues/319)) ([e00ba1e](https://github.com/tambo-ai/tambo/commit/e00ba1e32363d36141f46f37b1707a707d38c6ad))
+- **deps-dev:** bump ts-jest from 29.3.1 to 29.3.2 ([#316](https://github.com/tambo-ai/tambo/issues/316)) ([bea5531](https://github.com/tambo-ai/tambo/commit/bea5531da959d687042e636f6871eb680463c892))
+- **deps-dev:** bump typescript-eslint from 8.29.0 to 8.29.1 in the eslint group ([#301](https://github.com/tambo-ai/tambo/issues/301)) ([e7ccd2b](https://github.com/tambo-ai/tambo/commit/e7ccd2b3d948ce82d1e81bb192980ab826b6393d))
+- **deps-dev:** bump typescript-eslint from 8.29.1 to 8.30.1 in the eslint group ([#311](https://github.com/tambo-ai/tambo/issues/311)) ([d9b10e4](https://github.com/tambo-ai/tambo/commit/d9b10e408d8b87db1c88dcde5e72a66309c06580))
+- **deps:** bump @tambo-ai/typescript-sdk from 0.42.1 to 0.43.0 ([#329](https://github.com/tambo-ai/tambo/issues/329)) ([e09bb2d](https://github.com/tambo-ai/tambo/commit/e09bb2df988f094443001455f88fe86f0d3d13a6))
+- **deps:** bump @tanstack/react-query from 5.71.10 to 5.72.0 ([#300](https://github.com/tambo-ai/tambo/issues/300)) ([faddcdf](https://github.com/tambo-ai/tambo/commit/faddcdf50dc0470fccdaf0e331ad30719cac65af))
+- **deps:** bump @tanstack/react-query from 5.72.0 to 5.74.3 ([#322](https://github.com/tambo-ai/tambo/issues/322)) ([f55642c](https://github.com/tambo-ai/tambo/commit/f55642c5fac7c13e17115d516ca7a0aac63234b7))
 
 ### Tests
 
-* add some basic tests for the thread provider ([#299](https://github.com/tambo-ai/tambo/issues/299)) ([8f5186d](https://github.com/tambo-ai/tambo/commit/8f5186d4a57175d5daefe20c485f83babef0f562))
-* enable tests in builds, fix suggestions test ([#294](https://github.com/tambo-ai/tambo/issues/294)) ([de9f06d](https://github.com/tambo-ai/tambo/commit/de9f06d04590088e211faa43af2bad1c87ee5b47))
-* start wiring up hook tests ([#298](https://github.com/tambo-ai/tambo/issues/298)) ([8a3d0aa](https://github.com/tambo-ai/tambo/commit/8a3d0aa22dfc873472b40c3ca88ca42516c08ffc))
+- add some basic tests for the thread provider ([#299](https://github.com/tambo-ai/tambo/issues/299)) ([8f5186d](https://github.com/tambo-ai/tambo/commit/8f5186d4a57175d5daefe20c485f83babef0f562))
+- enable tests in builds, fix suggestions test ([#294](https://github.com/tambo-ai/tambo/issues/294)) ([de9f06d](https://github.com/tambo-ai/tambo/commit/de9f06d04590088e211faa43af2bad1c87ee5b47))
+- start wiring up hook tests ([#298](https://github.com/tambo-ai/tambo/issues/298)) ([8a3d0aa](https://github.com/tambo-ai/tambo/commit/8a3d0aa22dfc873472b40c3ca88ca42516c08ffc))
 
 ## [0.20.2](https://github.com/tambo-ai/tambo/compare/react-v0.20.1...react-v0.20.2) (2025-04-07)
 
-
 ### Bug Fixes
 
-* force typescript-sdk to be the right version ([#295](https://github.com/tambo-ai/tambo/issues/295)) ([1660ebb](https://github.com/tambo-ai/tambo/commit/1660ebb54e79d8f4c299ca5c66879edb294aea02))
+- force typescript-sdk to be the right version ([#295](https://github.com/tambo-ai/tambo/issues/295)) ([1660ebb](https://github.com/tambo-ai/tambo/commit/1660ebb54e79d8f4c299ca5c66879edb294aea02))
 
 ## [0.20.1](https://github.com/tambo-ai/tambo/compare/react-v0.20.0...react-v0.20.1) (2025-04-07)
 
-
 ### Bug Fixes
 
-* make threadId optional in sendThreadMessage ([#292](https://github.com/tambo-ai/tambo/issues/292)) ([e043f35](https://github.com/tambo-ai/tambo/commit/e043f35310f125c0da4f2e90a523af2246c547a2))
+- make threadId optional in sendThreadMessage ([#292](https://github.com/tambo-ai/tambo/issues/292)) ([e043f35](https://github.com/tambo-ai/tambo/commit/e043f35310f125c0da4f2e90a523af2246c547a2))
 
 ## [0.20.0](https://github.com/tambo-ai/tambo/compare/react-v0.19.8...react-v0.20.0) (2025-04-05)
 
-
 ### Features
 
-* enforce zod/json-ness of propSchema prop ([#276](https://github.com/tambo-ai/tambo/issues/276)) ([a717c9f](https://github.com/tambo-ai/tambo/commit/a717c9f375cad438cf7850bda62d856b7db3fde9))
-
+- enforce zod/json-ness of propSchema prop ([#276](https://github.com/tambo-ai/tambo/issues/276)) ([a717c9f](https://github.com/tambo-ai/tambo/commit/a717c9f375cad438cf7850bda62d856b7db3fde9))
 
 ### Miscellaneous
 
-* **deps-dev:** bump @testing-library/react from 16.2.0 to 16.3.0 ([#286](https://github.com/tambo-ai/tambo/issues/286)) ([91d0986](https://github.com/tambo-ai/tambo/commit/91d098670a3be669a172594b17a38500cd37f92a))
-* **deps-dev:** bump @types/node from 20.17.28 to 20.17.30 ([#279](https://github.com/tambo-ai/tambo/issues/279)) ([78f7ad2](https://github.com/tambo-ai/tambo/commit/78f7ad2ff4bf6dbdef9b26881c91893637a9d142))
-* **deps-dev:** bump the eslint group with 5 updates ([#278](https://github.com/tambo-ai/tambo/issues/278)) ([88fcd49](https://github.com/tambo-ai/tambo/commit/88fcd49d32dc7a2e23077d81386cf6858089e708))
-* **deps-dev:** bump typescript from 5.8.2 to 5.8.3 ([#282](https://github.com/tambo-ai/tambo/issues/282)) ([0c1fc63](https://github.com/tambo-ai/tambo/commit/0c1fc631be3212e7c3b82c696306d7fac36d5f56))
-* **deps:** bump @tambo-ai/typescript-sdk from 0.42.0 to 0.42.1 ([#285](https://github.com/tambo-ai/tambo/issues/285)) ([e4820b4](https://github.com/tambo-ai/tambo/commit/e4820b436b7357c32b4f9d96640e6664e5affa02))
-* **deps:** bump @tanstack/react-query from 5.71.1 to 5.71.10 ([#281](https://github.com/tambo-ai/tambo/issues/281)) ([bc90e94](https://github.com/tambo-ai/tambo/commit/bc90e946ec27d900a2eccee880de79b8297b2128))
+- **deps-dev:** bump @testing-library/react from 16.2.0 to 16.3.0 ([#286](https://github.com/tambo-ai/tambo/issues/286)) ([91d0986](https://github.com/tambo-ai/tambo/commit/91d098670a3be669a172594b17a38500cd37f92a))
+- **deps-dev:** bump @types/node from 20.17.28 to 20.17.30 ([#279](https://github.com/tambo-ai/tambo/issues/279)) ([78f7ad2](https://github.com/tambo-ai/tambo/commit/78f7ad2ff4bf6dbdef9b26881c91893637a9d142))
+- **deps-dev:** bump the eslint group with 5 updates ([#278](https://github.com/tambo-ai/tambo/issues/278)) ([88fcd49](https://github.com/tambo-ai/tambo/commit/88fcd49d32dc7a2e23077d81386cf6858089e708))
+- **deps-dev:** bump typescript from 5.8.2 to 5.8.3 ([#282](https://github.com/tambo-ai/tambo/issues/282)) ([0c1fc63](https://github.com/tambo-ai/tambo/commit/0c1fc631be3212e7c3b82c696306d7fac36d5f56))
+- **deps:** bump @tambo-ai/typescript-sdk from 0.42.0 to 0.42.1 ([#285](https://github.com/tambo-ai/tambo/issues/285)) ([e4820b4](https://github.com/tambo-ai/tambo/commit/e4820b436b7357c32b4f9d96640e6664e5affa02))
+- **deps:** bump @tanstack/react-query from 5.71.1 to 5.71.10 ([#281](https://github.com/tambo-ai/tambo/issues/281)) ([bc90e94](https://github.com/tambo-ai/tambo/commit/bc90e946ec27d900a2eccee880de79b8297b2128))
 
 ## [0.19.8](https://github.com/tambo-ai/tambo/compare/react-v0.19.7...react-v0.19.8) (2025-04-04)
 
-
 ### Bug Fixes
 
-* Don't throw error if TamboProvider used outside browser ([#271](https://github.com/tambo-ai/tambo/issues/271)) ([0390fb1](https://github.com/tambo-ai/tambo/commit/0390fb1e4b5bf1bba857125716633ac37667d73a))
+- Don't throw error if TamboProvider used outside browser ([#271](https://github.com/tambo-ai/tambo/issues/271)) ([0390fb1](https://github.com/tambo-ai/tambo/commit/0390fb1e4b5bf1bba857125716633ac37667d73a))
 
 ## [0.19.7](https://github.com/tambo-ai/tambo/compare/react-v0.19.6...react-v0.19.7) (2025-04-02)
 
-
 ### Documentation
 
-* update README files for React SDK and CLI, fix links and enhance installation instructions ([#251](https://github.com/tambo-ai/tambo/issues/251)) ([fa85f17](https://github.com/tambo-ai/tambo/commit/fa85f1701fe27fdd59b4d7f0f6741c392c08808d))
+- update README files for React SDK and CLI, fix links and enhance installation instructions ([#251](https://github.com/tambo-ai/tambo/issues/251)) ([fa85f17](https://github.com/tambo-ai/tambo/commit/fa85f1701fe27fdd59b4d7f0f6741c392c08808d))
 
 ## [0.19.6](https://github.com/tambo-ai/tambo/compare/react-v0.19.5...react-v0.19.6) (2025-04-02)
 
-
 ### Bug Fixes
 
-* Remove many uses of currentThreadId ([#246](https://github.com/tambo-ai/tambo/issues/246)) ([9da43ee](https://github.com/tambo-ai/tambo/commit/9da43ee045e0950d4ea63cf9dfe108b17a175433))
+- Remove many uses of currentThreadId ([#246](https://github.com/tambo-ai/tambo/issues/246)) ([9da43ee](https://github.com/tambo-ai/tambo/commit/9da43ee045e0950d4ea63cf9dfe108b17a175433))
 
 ## [0.19.5](https://github.com/tambo-ai/tambo/compare/react-v0.19.4...react-v0.19.5) (2025-04-01)
 
-
 ### Bug Fixes
 
-* minor component cleanups: stop using useEffect/etc ([#242](https://github.com/tambo-ai/tambo/issues/242)) ([7c6d334](https://github.com/tambo-ai/tambo/commit/7c6d334d500d909038469132123c9d163f2f7c5b))
-* workaround turbopack bugs w/Stainless shims ([#243](https://github.com/tambo-ai/tambo/issues/243)) ([c3ef647](https://github.com/tambo-ai/tambo/commit/c3ef6478a47d0acb7f690fdb54d8298f3f7d63ca))
-
+- minor component cleanups: stop using useEffect/etc ([#242](https://github.com/tambo-ai/tambo/issues/242)) ([7c6d334](https://github.com/tambo-ai/tambo/commit/7c6d334d500d909038469132123c9d163f2f7c5b))
+- workaround turbopack bugs w/Stainless shims ([#243](https://github.com/tambo-ai/tambo/issues/243)) ([c3ef647](https://github.com/tambo-ai/tambo/commit/c3ef6478a47d0acb7f690fdb54d8298f3f7d63ca))
 
 ### Miscellaneous
 
-* **deps-dev:** bump @types/node from 20.17.27 to 20.17.28 ([#231](https://github.com/tambo-ai/tambo/issues/231)) ([edee5d1](https://github.com/tambo-ai/tambo/commit/edee5d17860df15f4eb32eaa74afc309f97cbdcb))
-* **deps-dev:** bump ts-jest from 29.2.6 to 29.3.1 ([#235](https://github.com/tambo-ai/tambo/issues/235)) ([bf683cf](https://github.com/tambo-ai/tambo/commit/bf683cf9c79429752b74db3d6adb1239989dcfdd))
-* **deps-dev:** bump typescript-eslint from 8.28.0 to 8.29.0 in the eslint group ([#227](https://github.com/tambo-ai/tambo/issues/227)) ([58134f1](https://github.com/tambo-ai/tambo/commit/58134f16f5bbee49df3390cf7bd3b09ab0e00313))
-* **deps:** bump @tanstack/react-query from 5.69.0 to 5.71.1 ([#232](https://github.com/tambo-ai/tambo/issues/232)) ([4a30da3](https://github.com/tambo-ai/tambo/commit/4a30da3afc057066fcb84da9b60805055572fc77))
+- **deps-dev:** bump @types/node from 20.17.27 to 20.17.28 ([#231](https://github.com/tambo-ai/tambo/issues/231)) ([edee5d1](https://github.com/tambo-ai/tambo/commit/edee5d17860df15f4eb32eaa74afc309f97cbdcb))
+- **deps-dev:** bump ts-jest from 29.2.6 to 29.3.1 ([#235](https://github.com/tambo-ai/tambo/issues/235)) ([bf683cf](https://github.com/tambo-ai/tambo/commit/bf683cf9c79429752b74db3d6adb1239989dcfdd))
+- **deps-dev:** bump typescript-eslint from 8.28.0 to 8.29.0 in the eslint group ([#227](https://github.com/tambo-ai/tambo/issues/227)) ([58134f1](https://github.com/tambo-ai/tambo/commit/58134f16f5bbee49df3390cf7bd3b09ab0e00313))
+- **deps:** bump @tanstack/react-query from 5.69.0 to 5.71.1 ([#232](https://github.com/tambo-ai/tambo/issues/232)) ([4a30da3](https://github.com/tambo-ai/tambo/commit/4a30da3afc057066fcb84da9b60805055572fc77))
 
 ## [0.19.4](https://github.com/tambo-ai/tambo/compare/react-v0.19.3...react-v0.19.4) (2025-03-28)
 
-
 ### Bug Fixes
 
-* do not debounce local updates ([#224](https://github.com/tambo-ai/tambo/issues/224)) ([1ce2227](https://github.com/tambo-ai/tambo/commit/1ce22271b365f6ed07791a80e3337ea46d9e0982))
+- do not debounce local updates ([#224](https://github.com/tambo-ai/tambo/issues/224)) ([1ce2227](https://github.com/tambo-ai/tambo/commit/1ce22271b365f6ed07791a80e3337ea46d9e0982))
 
 ## [0.19.3](https://github.com/tambo-ai/tambo/compare/react-v0.19.2...react-v0.19.3) (2025-03-28)
 
-
 ### Bug Fixes
 
-* now the debounce just stores the current user value and doesn't sync back also made it 500ms default ([#221](https://github.com/tambo-ai/tambo/issues/221)) ([1eabf10](https://github.com/tambo-ai/tambo/commit/1eabf1038348eeb4026906ebafbb8c0b1b72af12))
-
+- now the debounce just stores the current user value and doesn't sync back also made it 500ms default ([#221](https://github.com/tambo-ai/tambo/issues/221)) ([1eabf10](https://github.com/tambo-ai/tambo/commit/1eabf1038348eeb4026906ebafbb8c0b1b72af12))
 
 ### Miscellaneous
 
-* bump typescript-sdk version to get componentState changes ([#223](https://github.com/tambo-ai/tambo/issues/223)) ([2cff5e9](https://github.com/tambo-ai/tambo/commit/2cff5e99d440ee6c80ae716830de989b448abdfe))
+- bump typescript-sdk version to get componentState changes ([#223](https://github.com/tambo-ai/tambo/issues/223)) ([2cff5e9](https://github.com/tambo-ai/tambo/commit/2cff5e99d440ee6c80ae716830de989b448abdfe))
 
 ## [0.19.2](https://github.com/tambo-ai/tambo/compare/react-v0.19.1...react-v0.19.2) (2025-03-27)
 
-
 ### Bug Fixes
 
-* remove setState & currentState from dependency array in useTamboStreamingProps hook ([#218](https://github.com/tambo-ai/tambo/issues/218)) ([b1d5be2](https://github.com/tambo-ai/tambo/commit/b1d5be28302fe3706685ff9fe5a493a622b4da51))
-* update dependency array in useTamboStreamingProps to only include streamingProps ([#220](https://github.com/tambo-ai/tambo/issues/220)) ([da153ac](https://github.com/tambo-ai/tambo/commit/da153ace1063ba0f622b02d83dd36b5e8b706eba))
+- remove setState & currentState from dependency array in useTamboStreamingProps hook ([#218](https://github.com/tambo-ai/tambo/issues/218)) ([b1d5be2](https://github.com/tambo-ai/tambo/commit/b1d5be28302fe3706685ff9fe5a493a622b4da51))
+- update dependency array in useTamboStreamingProps to only include streamingProps ([#220](https://github.com/tambo-ai/tambo/issues/220)) ([da153ac](https://github.com/tambo-ai/tambo/commit/da153ace1063ba0f622b02d83dd36b5e8b706eba))
 
 ## [0.19.1](https://github.com/tambo-ai/tambo/compare/react-v0.19.0...react-v0.19.1) (2025-03-26)
 
-
 ### Miscellaneous
 
-* **deps:** bump @tambo-ai/typescript-sdk to 0.41 ([#217](https://github.com/tambo-ai/tambo/issues/217)) ([e55e76c](https://github.com/tambo-ai/tambo/commit/e55e76c58b4e5b16591bb4988e42691b1926128b))
-
+- **deps:** bump @tambo-ai/typescript-sdk to 0.41 ([#217](https://github.com/tambo-ai/tambo/issues/217)) ([e55e76c](https://github.com/tambo-ai/tambo/commit/e55e76c58b4e5b16591bb4988e42691b1926128b))
 
 ### Documentation
 
-* add even more jsdocs for public methods/hooks/etc ([#216](https://github.com/tambo-ai/tambo/issues/216)) ([4dcbdd1](https://github.com/tambo-ai/tambo/commit/4dcbdd1f29d407d7f3deeb1b4b220f4361b20787))
-* add JSDocs to exported functions ([#215](https://github.com/tambo-ai/tambo/issues/215)) ([cc8714d](https://github.com/tambo-ai/tambo/commit/cc8714d63f30c5311b2e9cd306490c41abc25a1f))
-
+- add even more jsdocs for public methods/hooks/etc ([#216](https://github.com/tambo-ai/tambo/issues/216)) ([4dcbdd1](https://github.com/tambo-ai/tambo/commit/4dcbdd1f29d407d7f3deeb1b4b220f4361b20787))
+- add JSDocs to exported functions ([#215](https://github.com/tambo-ai/tambo/issues/215)) ([cc8714d](https://github.com/tambo-ai/tambo/commit/cc8714d63f30c5311b2e9cd306490c41abc25a1f))
 
 ### Code Refactoring
 
-* use faster/pre-built isEqual, will be useful elsewhere ([#202](https://github.com/tambo-ai/tambo/issues/202)) ([a8bd035](https://github.com/tambo-ai/tambo/commit/a8bd03512a0988b087c38df012212e9b03b8d052))
+- use faster/pre-built isEqual, will be useful elsewhere ([#202](https://github.com/tambo-ai/tambo/issues/202)) ([a8bd035](https://github.com/tambo-ai/tambo/commit/a8bd03512a0988b087c38df012212e9b03b8d052))
 
 ## [0.19.0](https://github.com/tambo-ai/tambo/compare/react-v0.18.2...react-v0.19.0) (2025-03-26)
 
-
 ### Features
 
-* add 'startNewThread' method ([#205](https://github.com/tambo-ai/tambo/issues/205)) ([d62e867](https://github.com/tambo-ai/tambo/commit/d62e8676c0d140faf648597341449be9328e589f))
-* useTamboThreads -&gt; useTamboThreadList ([#200](https://github.com/tambo-ai/tambo/issues/200)) ([4a32eda](https://github.com/tambo-ai/tambo/commit/4a32eda20b6564465b69bccda8ed94f65ea56b01))
-
+- add 'startNewThread' method ([#205](https://github.com/tambo-ai/tambo/issues/205)) ([d62e867](https://github.com/tambo-ai/tambo/commit/d62e8676c0d140faf648597341449be9328e589f))
+- useTamboThreads -&gt; useTamboThreadList ([#200](https://github.com/tambo-ai/tambo/issues/200)) ([4a32eda](https://github.com/tambo-ai/tambo/commit/4a32eda20b6564465b69bccda8ed94f65ea56b01))
 
 ### Bug Fixes
 
-* add period to update release please ([#207](https://github.com/tambo-ai/tambo/issues/207)) ([d4585fd](https://github.com/tambo-ai/tambo/commit/d4585fd775bbb8469051bb666a1ef6a02b41f415))
-
+- add period to update release please ([#207](https://github.com/tambo-ai/tambo/issues/207)) ([d4585fd](https://github.com/tambo-ai/tambo/commit/d4585fd775bbb8469051bb666a1ef6a02b41f415))
 
 ### Miscellaneous
 
-* allow switch to placeholder as 'new thread' ([#201](https://github.com/tambo-ai/tambo/issues/201)) ([9061863](https://github.com/tambo-ai/tambo/commit/9061863dc2dd563b2e204b7ad10ad33237388d21))
-* **deps:** bump @tambo-ai/typescript-sdk from 0.39.0 to 0.40.0 ([#209](https://github.com/tambo-ai/tambo/issues/209)) ([07406d8](https://github.com/tambo-ai/tambo/commit/07406d897a70064d2d34a25d691472531c1d9fb6))
+- allow switch to placeholder as 'new thread' ([#201](https://github.com/tambo-ai/tambo/issues/201)) ([9061863](https://github.com/tambo-ai/tambo/commit/9061863dc2dd563b2e204b7ad10ad33237388d21))
+- **deps:** bump @tambo-ai/typescript-sdk from 0.39.0 to 0.40.0 ([#209](https://github.com/tambo-ai/tambo/issues/209)) ([07406d8](https://github.com/tambo-ai/tambo/commit/07406d897a70064d2d34a25d691472531c1d9fb6))
 
 ## [0.18.2](https://github.com/tambo-ai/tambo/compare/react-v0.18.1...react-v0.18.2) (2025-03-26)
 
-
 ### Miscellaneous
 
-* bump tambo/ts version ([#196](https://github.com/tambo-ai/tambo/issues/196)) ([d24918b](https://github.com/tambo-ai/tambo/commit/d24918b61acc78ae5f1d09a4f70f65c09ebd989d))
+- bump tambo/ts version ([#196](https://github.com/tambo-ai/tambo/issues/196)) ([d24918b](https://github.com/tambo-ai/tambo/commit/d24918b61acc78ae5f1d09a4f70f65c09ebd989d))
 
 ## [0.18.1](https://github.com/tambo-ai/tambo/compare/react-v0.18.0...react-v0.18.1) (2025-03-25)
 
-
 ### Bug Fixes
 
-* suggestions to filter for assistant ([#188](https://github.com/tambo-ai/tambo/issues/188)) ([03b597d](https://github.com/tambo-ai/tambo/commit/03b597d3f1ec19e0c33be1b850c9284db3546d75))
-
+- suggestions to filter for assistant ([#188](https://github.com/tambo-ai/tambo/issues/188)) ([03b597d](https://github.com/tambo-ai/tambo/commit/03b597d3f1ec19e0c33be1b850c9284db3546d75))
 
 ### Miscellaneous
 
-* **deps-dev:** bump @types/node from 20.17.25 to 20.17.27 ([#180](https://github.com/tambo-ai/tambo/issues/180)) ([9caede8](https://github.com/tambo-ai/tambo/commit/9caede80a7999afaf0d8e05521c290c204fb099d))
-* **deps-dev:** bump the eslint group with 4 updates ([#178](https://github.com/tambo-ai/tambo/issues/178)) ([52bcaca](https://github.com/tambo-ai/tambo/commit/52bcaca7c06141955d2185a84f1647cf40847a38))
-* **deps:** bump @tambo-ai/typescript-sdk from 0.37.0 to 0.38.0 ([#182](https://github.com/tambo-ai/tambo/issues/182)) ([e4222b1](https://github.com/tambo-ai/tambo/commit/e4222b132bc647d8216fec3e18df705c9afe8659))
-* **deps:** bump @tanstack/react-query from 5.68.0 to 5.69.0 ([#183](https://github.com/tambo-ai/tambo/issues/183)) ([ba18fba](https://github.com/tambo-ai/tambo/commit/ba18fbab3680c89c62f4f05b5fa342d3798bbcc9))
-* **deps:** bump zod-to-json-schema from 3.24.4 to 3.24.5 ([#187](https://github.com/tambo-ai/tambo/issues/187)) ([45e150f](https://github.com/tambo-ai/tambo/commit/45e150f5ec0224301e8eea160834920754eec6f8))
+- **deps-dev:** bump @types/node from 20.17.25 to 20.17.27 ([#180](https://github.com/tambo-ai/tambo/issues/180)) ([9caede8](https://github.com/tambo-ai/tambo/commit/9caede80a7999afaf0d8e05521c290c204fb099d))
+- **deps-dev:** bump the eslint group with 4 updates ([#178](https://github.com/tambo-ai/tambo/issues/178)) ([52bcaca](https://github.com/tambo-ai/tambo/commit/52bcaca7c06141955d2185a84f1647cf40847a38))
+- **deps:** bump @tambo-ai/typescript-sdk from 0.37.0 to 0.38.0 ([#182](https://github.com/tambo-ai/tambo/issues/182)) ([e4222b1](https://github.com/tambo-ai/tambo/commit/e4222b132bc647d8216fec3e18df705c9afe8659))
+- **deps:** bump @tanstack/react-query from 5.68.0 to 5.69.0 ([#183](https://github.com/tambo-ai/tambo/issues/183)) ([ba18fba](https://github.com/tambo-ai/tambo/commit/ba18fbab3680c89c62f4f05b5fa342d3798bbcc9))
+- **deps:** bump zod-to-json-schema from 3.24.4 to 3.24.5 ([#187](https://github.com/tambo-ai/tambo/issues/187)) ([45e150f](https://github.com/tambo-ai/tambo/commit/45e150f5ec0224301e8eea160834920754eec6f8))
 
 ## [0.18.0](https://github.com/tambo-ai/tambo/compare/react-v0.17.0...react-v0.18.0) (2025-03-22)
 
-
 ### Features
 
-* add support for propsSchema ([#174](https://github.com/tambo-ai/tambo/issues/174)) ([da0e049](https://github.com/tambo-ai/tambo/commit/da0e049295a1bba5c7aa13d137df2602f2ffd09f))
+- add support for propsSchema ([#174](https://github.com/tambo-ai/tambo/issues/174)) ([da0e049](https://github.com/tambo-ai/tambo/commit/da0e049295a1bba5c7aa13d137df2602f2ffd09f))
 
 ## [0.17.0](https://github.com/tambo-ai/tambo/compare/react-v0.16.2...react-v0.17.0) (2025-03-21)
 
-
 ### Features
 
-* add debounce, optimistic updates, and helper functions for prop updates ([#169](https://github.com/tambo-ai/tambo/issues/169)) ([b1f5870](https://github.com/tambo-ai/tambo/commit/b1f587033596857ea0df00499a53caf85af89dc6))
+- add debounce, optimistic updates, and helper functions for prop updates ([#169](https://github.com/tambo-ai/tambo/issues/169)) ([b1f5870](https://github.com/tambo-ai/tambo/commit/b1f587033596857ea0df00499a53caf85af89dc6))
 
 ## [0.16.2](https://github.com/tambo-ai/tambo/compare/react-v0.16.1...react-v0.16.2) (2025-03-21)
 
-
 ### Bug Fixes
 
-* expose fetch param from switchthread ([#170](https://github.com/tambo-ai/tambo/issues/170)) ([83f41fe](https://github.com/tambo-ai/tambo/commit/83f41fe41672f4950346dedc7798c64d3849727e))
+- expose fetch param from switchthread ([#170](https://github.com/tambo-ai/tambo/issues/170)) ([83f41fe](https://github.com/tambo-ai/tambo/commit/83f41fe41672f4950346dedc7798c64d3849727e))
 
 ## [0.16.1](https://github.com/tambo-ai/tambo/compare/react-v0.16.0...react-v0.16.1) (2025-03-19)
 
-
 ### Bug Fixes
 
-* only initialize component state value once ([#165](https://github.com/tambo-ai/tambo/issues/165)) ([316afcf](https://github.com/tambo-ai/tambo/commit/316afcf881435e694017ea06e00afd8f6dad5733))
+- only initialize component state value once ([#165](https://github.com/tambo-ai/tambo/issues/165)) ([316afcf](https://github.com/tambo-ai/tambo/commit/316afcf881435e694017ea06e00afd8f6dad5733))
 
 ## [0.16.0](https://github.com/tambo-ai/tambo/compare/react-v0.15.1...react-v0.16.0) (2025-03-19)
 
-
 ### Features
 
-* add components= prop to pass static component list ([#164](https://github.com/tambo-ai/tambo/issues/164)) ([a78f6da](https://github.com/tambo-ai/tambo/commit/a78f6dae3ac6ca51ca5768c6ea0abe511ba999c0))
-
+- add components= prop to pass static component list ([#164](https://github.com/tambo-ai/tambo/issues/164)) ([a78f6da](https://github.com/tambo-ai/tambo/commit/a78f6dae3ac6ca51ca5768c6ea0abe511ba999c0))
 
 ### Miscellaneous
 
-* pin stuff down to node &gt;=20 ([#159](https://github.com/tambo-ai/tambo/issues/159)) ([169797b](https://github.com/tambo-ai/tambo/commit/169797bc2800b1e42903d358f8023f391898b33f))
+- pin stuff down to node &gt;=20 ([#159](https://github.com/tambo-ai/tambo/issues/159)) ([169797b](https://github.com/tambo-ai/tambo/commit/169797bc2800b1e42903d358f8023f391898b33f))
 
 ## [0.15.1](https://github.com/tambo-ai/tambo/compare/react-v0.15.0...react-v0.15.1) (2025-03-18)
 
-
 ### Bug Fixes
 
-* add explicit key= to work around subtle react caching behavior ([#157](https://github.com/tambo-ai/tambo/issues/157)) ([aaa1ce0](https://github.com/tambo-ai/tambo/commit/aaa1ce0f826afc00f45a2ed27d7b82524c8262a0))
+- add explicit key= to work around subtle react caching behavior ([#157](https://github.com/tambo-ai/tambo/issues/157)) ([aaa1ce0](https://github.com/tambo-ai/tambo/commit/aaa1ce0f826afc00f45a2ed27d7b82524c8262a0))
 
 ## [0.15.0](https://github.com/tambo-ai/tambo/compare/react-v0.14.1...react-v0.15.0) (2025-03-18)
 
-
 ### Features
 
-* send tool response in message content ([#149](https://github.com/tambo-ai/tambo/issues/149)) ([1e90186](https://github.com/tambo-ai/tambo/commit/1e90186ac12c35765441a0c136ca8f6ceb2b165e))
-
+- send tool response in message content ([#149](https://github.com/tambo-ai/tambo/issues/149)) ([1e90186](https://github.com/tambo-ai/tambo/commit/1e90186ac12c35765441a0c136ca8f6ceb2b165e))
 
 ### Miscellaneous
 
-* bump to new typescript-sdk ([#147](https://github.com/tambo-ai/tambo/issues/147)) ([2c4f0bc](https://github.com/tambo-ai/tambo/commit/2c4f0bc38ca62dcac6fb4b3de1f13eff199fe2ac))
-* remove some unused dependencies ([#152](https://github.com/tambo-ai/tambo/issues/152)) ([02f3e0d](https://github.com/tambo-ai/tambo/commit/02f3e0d0d7708ddcf72216a90167938ed1aab78a))
+- bump to new typescript-sdk ([#147](https://github.com/tambo-ai/tambo/issues/147)) ([2c4f0bc](https://github.com/tambo-ai/tambo/commit/2c4f0bc38ca62dcac6fb4b3de1f13eff199fe2ac))
+- remove some unused dependencies ([#152](https://github.com/tambo-ai/tambo/issues/152)) ([02f3e0d](https://github.com/tambo-ai/tambo/commit/02f3e0d0d7708ddcf72216a90167938ed1aab78a))
 
 ## [0.14.1](https://github.com/tambo-ai/tambo/compare/react-v0.14.0...react-v0.14.1) (2025-03-17)
 
-
 ### Bug Fixes
 
-* include tool_call_id in response, for full round-trip ([#143](https://github.com/tambo-ai/tambo/issues/143)) ([deb96ab](https://github.com/tambo-ai/tambo/commit/deb96abdbf606e51c573b3350005884993c2fee3))
+- include tool_call_id in response, for full round-trip ([#143](https://github.com/tambo-ai/tambo/issues/143)) ([deb96ab](https://github.com/tambo-ai/tambo/commit/deb96abdbf606e51c573b3350005884993c2fee3))
 
 ## [0.14.0](https://github.com/tambo-ai/tambo/compare/react-v0.13.4...react-v0.14.0) (2025-03-17)
 
-
 ### Features
 
-* add suggestionResult to useTamboSuggestions interface ([#125](https://github.com/tambo-ai/tambo/issues/125)) ([172c7d2](https://github.com/tambo-ai/tambo/commit/172c7d268527faf57668daf2dcd8c681cda14f57))
-* bump typescript-sdk and fix react hooks lint ([#140](https://github.com/tambo-ai/tambo/issues/140)) ([0039327](https://github.com/tambo-ai/tambo/commit/0039327f1f7ade38c3da90fbdad17b686d600b03))
+- add suggestionResult to useTamboSuggestions interface ([#125](https://github.com/tambo-ai/tambo/issues/125)) ([172c7d2](https://github.com/tambo-ai/tambo/commit/172c7d268527faf57668daf2dcd8c681cda14f57))
+- bump typescript-sdk and fix react hooks lint ([#140](https://github.com/tambo-ai/tambo/issues/140)) ([0039327](https://github.com/tambo-ai/tambo/commit/0039327f1f7ade38c3da90fbdad17b686d600b03))
 
 ## [0.13.4](https://github.com/tambo-ai/tambo/compare/react-v0.13.3...react-v0.13.4) (2025-03-17)
 
-
 ### Bug Fixes
 
-* correct repo url for dependabot references/etc ([#139](https://github.com/tambo-ai/tambo/issues/139)) ([514ca3a](https://github.com/tambo-ai/tambo/commit/514ca3ae8c19cd2e777e0683d6adc6e346492a57))
-
+- correct repo url for dependabot references/etc ([#139](https://github.com/tambo-ai/tambo/issues/139)) ([514ca3a](https://github.com/tambo-ai/tambo/commit/514ca3ae8c19cd2e777e0683d6adc6e346492a57))
 
 ### Miscellaneous
 
-* **deps-dev:** bump lint-staged from 15.4.3 to 15.5.0 ([#137](https://github.com/tambo-ai/tambo/issues/137)) ([46f5837](https://github.com/tambo-ai/tambo/commit/46f5837fe6cb446ac87df58e072cd4ade0527265))
-* **deps:** bump @tanstack/react-query from 5.67.3 to 5.68.0 ([#132](https://github.com/tambo-ai/tambo/issues/132)) ([3e15aa2](https://github.com/tambo-ai/tambo/commit/3e15aa255fd36bcd629a74b4f98ec18e573d269d))
-* **deps:** bump zod-to-json-schema from 3.24.3 to 3.24.4 ([#133](https://github.com/tambo-ai/tambo/issues/133)) ([755762d](https://github.com/tambo-ai/tambo/commit/755762dfd8cf75b977103a189e0f1301c865f03d))
+- **deps-dev:** bump lint-staged from 15.4.3 to 15.5.0 ([#137](https://github.com/tambo-ai/tambo/issues/137)) ([46f5837](https://github.com/tambo-ai/tambo/commit/46f5837fe6cb446ac87df58e072cd4ade0527265))
+- **deps:** bump @tanstack/react-query from 5.67.3 to 5.68.0 ([#132](https://github.com/tambo-ai/tambo/issues/132)) ([3e15aa2](https://github.com/tambo-ai/tambo/commit/3e15aa255fd36bcd629a74b4f98ec18e573d269d))
+- **deps:** bump zod-to-json-schema from 3.24.3 to 3.24.4 ([#133](https://github.com/tambo-ai/tambo/issues/133)) ([755762d](https://github.com/tambo-ai/tambo/commit/755762dfd8cf75b977103a189e0f1301c865f03d))
 
 ## [0.13.3](https://github.com/tambo-ai/tambo/compare/react-v0.13.2...react-v0.13.3) (2025-03-13)
 
-
 ### Bug Fixes
 
-* Send initial component state on render ([#124](https://github.com/tambo-ai/tambo/issues/124)) ([2cfa4b2](https://github.com/tambo-ai/tambo/commit/2cfa4b21274e71edb25a39ca5919ad4bf7c56954))
-
+- Send initial component state on render ([#124](https://github.com/tambo-ai/tambo/issues/124)) ([2cfa4b2](https://github.com/tambo-ai/tambo/commit/2cfa4b21274e71edb25a39ca5919ad4bf7c56954))
 
 ### Miscellaneous
 
-* bump typescript-sdk to pick up required type ([#127](https://github.com/tambo-ai/tambo/issues/127)) ([0f4d4f4](https://github.com/tambo-ai/tambo/commit/0f4d4f485de97479371efb9880b52dad5a8bcec4))
+- bump typescript-sdk to pick up required type ([#127](https://github.com/tambo-ai/tambo/issues/127)) ([0f4d4f4](https://github.com/tambo-ai/tambo/commit/0f4d4f485de97479371efb9880b52dad5a8bcec4))
 
 ## [0.13.2](https://github.com/tambo-ai/tambo/compare/react-v0.13.1...react-v0.13.2) (2025-03-12)
 
-
 ### Bug Fixes
 
-* bump typescript-sdk to eliminate old apis ([#121](https://github.com/tambo-ai/tambo/issues/121)) ([9173a7d](https://github.com/tambo-ai/tambo/commit/9173a7d85863c2009205020c47ce1141b32d554e))
-* during streaming fetch at complete ([#120](https://github.com/tambo-ai/tambo/issues/120)) ([246971a](https://github.com/tambo-ai/tambo/commit/246971afe74b6f06d1deb473d7e466f4c8ed3e03))
-* rename `react` directory to `react-sdk` for name collision avoidance ([#113](https://github.com/tambo-ai/tambo/issues/113)) ([f6ac4c9](https://github.com/tambo-ai/tambo/commit/f6ac4c99892172650b58aad68585eb7aa35da9b2))
-* renaming react suffix on package (as a test) ([#114](https://github.com/tambo-ai/tambo/issues/114)) ([dfe581d](https://github.com/tambo-ai/tambo/commit/dfe581dbb94e82284ac05b15e9e88d440fe87d87))
-
+- bump typescript-sdk to eliminate old apis ([#121](https://github.com/tambo-ai/tambo/issues/121)) ([9173a7d](https://github.com/tambo-ai/tambo/commit/9173a7d85863c2009205020c47ce1141b32d554e))
+- during streaming fetch at complete ([#120](https://github.com/tambo-ai/tambo/issues/120)) ([246971a](https://github.com/tambo-ai/tambo/commit/246971afe74b6f06d1deb473d7e466f4c8ed3e03))
+- rename `react` directory to `react-sdk` for name collision avoidance ([#113](https://github.com/tambo-ai/tambo/issues/113)) ([f6ac4c9](https://github.com/tambo-ai/tambo/commit/f6ac4c99892172650b58aad68585eb7aa35da9b2))
+- renaming react suffix on package (as a test) ([#114](https://github.com/tambo-ai/tambo/issues/114)) ([dfe581d](https://github.com/tambo-ai/tambo/commit/dfe581dbb94e82284ac05b15e9e88d440fe87d87))
 
 ### Miscellaneous
 
-* removes old files and update readmes ([#117](https://github.com/tambo-ai/tambo/issues/117)) ([94e6dde](https://github.com/tambo-ai/tambo/commit/94e6dded0d8abd15b7f2b19c0837cf9baf2f279d))
+- removes old files and update readmes ([#117](https://github.com/tambo-ai/tambo/issues/117)) ([94e6dde](https://github.com/tambo-ai/tambo/commit/94e6dded0d8abd15b7f2b19c0837cf9baf2f279d))
 
 ## [0.13.1](https://github.com/tambo-ai/tambo/compare/react-v0.13.0...react-v0.13.1) (2025-03-11)
 
