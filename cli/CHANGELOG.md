@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.9.0...tambo-v0.10.0) (2025-05-15)
+
+
+### Features
+
+* **cli:** add upgrade command with accept-all option for whole template upgrades ([#419](https://github.com/tambo-ai/tambo/issues/419)) ([5081dcd](https://github.com/tambo-ai/tambo/commit/5081dcd7a08b8e3ce632e0978a478f7410edec5f))
+* handle toolcall failures ([#420](https://github.com/tambo-ai/tambo/issues/420)) ([8a8bd27](https://github.com/tambo-ai/tambo/commit/8a8bd276dfcea261d9f7c6f1171829ef3682ffef))
+
 ## [0.9.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.8.0...tambo-v0.9.0) (2025-05-13)
 
 
