@@ -91,7 +91,15 @@ export const toolsRouter = createTRPCRouter({
         input.projectId,
         null,
       );
-      return servers;
+      return servers.map((server) => ({
+        id: server.id,
+        url: server.url,
+        customHeaders: server.customHeaders,
+        mcpRequiresAuth: server.mcpRequiresAuth,
+        mcpIsAuthed:
+          !!server.contexts.length &&
+          !!server.contexts[0].mcpOauthTokens?.access_token,
+      }));
     }),
   addMcpServer: protectedProcedure
     .input(
@@ -126,6 +134,18 @@ export const toolsRouter = createTRPCRouter({
           message: `URL validation failed: ${safetyCheck.reason}`,
         });
       }
+      const validity = await validateMcpServer({
+        url,
+        customHeaders,
+        mcpTransport,
+        // Cannot pass in oauthProvider, because we don't have the client information yet
+      });
+      if (!validity.valid) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `MCP server validation failed: ${validity.error}`,
+        });
+      }
 
       const server = await operations.createMcpServer(
         ctx.db,
@@ -133,31 +153,19 @@ export const toolsRouter = createTRPCRouter({
         url,
         customHeaders,
         mcpTransport,
+        validity.requiresAuth,
       );
-      return server;
-    }),
-  validateMcpServer: protectedProcedure
-    .input(
-      z.object({
-        url: z
-          .string()
-          .url()
-          .refine(
-            validateServerUrl,
-            "URL appears to be unsafe: must not point to internal, local, or private networks",
-          ),
-        customHeaders: customHeadersSchema,
-        mcpTransport: z.nativeEnum(MCPTransport),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      const { url, customHeaders, mcpTransport } = input;
 
-      return await validateMcpServer({
-        url,
-        customHeaders,
-        mcpTransport,
-      });
+      return {
+        id: server.id,
+        url: server.url,
+        customHeaders: server.customHeaders,
+        mcpTransport: server.mcpTransport,
+        mcpRequiresAuth: server.mcpRequiresAuth,
+        mcpCapabilities: validity.capabilities,
+        mcpVersion: validity.version,
+        mcpInstructions: validity.instructions,
+      };
     }),
   authorizeMcpServer: protectedProcedure
     .input(
@@ -169,71 +177,67 @@ export const toolsRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const { contextKey, toolProviderId } = input;
       const saveAuthUrl = `${getBaseUrl()}/oauth/callback`;
-      try {
-        const db = ctx.db;
-        const toolProvider = await db.query.toolProviders.findFirst({
-          where: and(
-            eq(schema.toolProviders.id, toolProviderId),
-            eq(schema.toolProviders.type, ToolProviderType.MCP),
-            isNotNull(schema.toolProviders.url),
-          ),
+
+      const db = ctx.db;
+      const toolProvider = await db.query.toolProviders.findFirst({
+        where: and(
+          eq(schema.toolProviders.id, toolProviderId),
+          eq(schema.toolProviders.type, ToolProviderType.MCP),
+          isNotNull(schema.toolProviders.url),
+        ),
+      });
+      if (!toolProvider) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tool provider not found",
         });
-        if (!toolProvider) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Tool provider not found",
-          });
-        }
-        const { url, projectId } = toolProvider;
-        await operations.ensureProjectAccess(
-          ctx.db,
-          projectId,
-          ctx.session.user.id,
-        );
+      }
+      const { url, projectId } = toolProvider;
+      await operations.ensureProjectAccess(
+        ctx.db,
+        projectId,
+        ctx.session.user.id,
+      );
 
-        if (!url) {
-          // cannot happen due to validation in the query
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Tool provider missing MCP URL",
-          });
-        }
-        const toolProviderUserContextId = await upsertToolProviderUserContext(
-          db,
-          toolProviderId,
-          contextKey,
-        );
+      if (!url) {
+        // cannot happen due to validation in the query
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tool provider missing MCP URL",
+        });
+      }
+      const toolProviderUserContextId = await upsertToolProviderUserContext(
+        db,
+        toolProviderId,
+        contextKey,
+      );
 
-        const localProvider = new OAuthLocalProvider(
-          db,
-          toolProviderUserContextId,
-          {
-            baseUrl: saveAuthUrl,
-            serverUrl: url,
-          },
-        );
-        console.log("--> starting auth: ", url);
-        const result = await auth(localProvider, { serverUrl: url });
-        console.log("Auth result:", result);
-        if (result === "AUTHORIZED") {
-          return {
-            success: true,
-          };
-        }
-        if (result === "REDIRECT") {
-          return {
-            success: true,
-            redirectUrl: localProvider.redirectStartAuthUrl?.toString(),
-          };
-        }
-        return { success: false };
-      } catch (error: any) {
-        console.error(error);
+      const localProvider = new OAuthLocalProvider(
+        db,
+        toolProviderUserContextId,
+        {
+          baseUrl: saveAuthUrl,
+          serverUrl: url,
+        },
+      );
+      console.log("--> starting auth: ", url);
+      const result = await auth(localProvider, { serverUrl: url });
+      console.log("Auth result:", result);
+      if (result === "AUTHORIZED") {
         return {
-          success: false,
-          error: error.message,
+          success: true,
         };
       }
+      if (result === "REDIRECT") {
+        return {
+          success: true,
+          redirectUrl: localProvider.redirectStartAuthUrl?.toString(),
+        };
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Unexpected auth result",
+      });
     }),
   deleteMcpServer: protectedProcedure
     .input(z.object({ projectId: z.string(), serverId: z.string() }))
@@ -272,7 +276,7 @@ export const toolsRouter = createTRPCRouter({
       );
 
       const { projectId, serverId, url, customHeaders, mcpTransport } = input;
-      const server = await operations.updateMcpServer(
+      const validity = await getServerValidity(
         ctx.db,
         projectId,
         serverId,
@@ -280,7 +284,33 @@ export const toolsRouter = createTRPCRouter({
         customHeaders,
         mcpTransport,
       );
-      return server;
+
+      if (!validity.valid) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `MCP server validation failed: ${validity.error}`,
+        });
+      }
+
+      const server = await operations.updateMcpServer(
+        ctx.db,
+        projectId,
+        serverId,
+        url,
+        customHeaders,
+        mcpTransport,
+        validity.requiresAuth,
+      );
+      return {
+        id: server.id,
+        url: server.url,
+        customHeaders: server.customHeaders,
+        mcpTransport: server.mcpTransport,
+        mcpRequiresAuth: server.mcpRequiresAuth,
+        mcpCapabilities: validity.capabilities,
+        mcpVersion: validity.version,
+        mcpInstructions: validity.instructions,
+      };
     }),
   updateComposioAuth: protectedProcedure
     .input(
@@ -461,6 +491,62 @@ export const toolsRouter = createTRPCRouter({
       };
     }),
 });
+
+/** Validate the MCP server, leveraging the oauth info in the db if available */
+async function getServerValidity(
+  db: HydraDb,
+  projectId: string,
+  serverId: string,
+  url: string,
+  customHeaders: Record<string, string> | undefined,
+  mcpTransport: MCPTransport,
+) {
+  const currentServer = await operations.getMcpServer(
+    db,
+    projectId,
+    serverId,
+    null,
+  );
+  if (!currentServer) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "MCP server not found",
+    });
+  }
+  const oauthProvider = getOauthProvider(db, currentServer.contexts[0], url);
+  const validity = await validateMcpServer({
+    url,
+    customHeaders,
+    mcpTransport,
+    oauthProvider,
+  });
+  return {
+    ...validity,
+    // fake out that the server requires auth if we have an oauth provider
+    requiresAuth: validity.requiresAuth || !!oauthProvider,
+  };
+}
+
+/** Get the oauth provider for the given user context */
+function getOauthProvider(
+  db: HydraDb,
+  userContext: typeof schema.toolProviderUserContexts.$inferSelect | undefined,
+  url: string,
+) {
+  if (!userContext || !userContext.mcpOauthClientInfo) {
+    return undefined;
+  }
+
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+
+  return new OAuthLocalProvider(db, userContext.id, {
+    baseUrl,
+    serverUrl: url,
+    clientInformation: userContext.mcpOauthClientInfo,
+  });
+}
 
 /** Create a tool provider user context for the given tool provider id,
  * returning the id of the created or existing tool provider user context */

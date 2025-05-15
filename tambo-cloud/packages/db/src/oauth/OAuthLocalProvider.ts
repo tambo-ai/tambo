@@ -26,9 +26,13 @@ export class OAuthLocalProvider implements OAuthClientProvider {
       sessionId,
       serverUrl,
     }: {
+      /** The base URL of the Tambo service, usually from process.env.VERCEL_URL */
       baseUrl?: string;
+      /** The client information to use for the OAuth client, e.g. client_id, client_secret, etc. */
       clientInformation?: OAuthClientInformation;
+      /** The session id to use for the OAuth client, generated if not provided */
       sessionId?: string;
+      /** The server URL to use for the OAuth client */
       serverUrl?: string;
     } = {},
   ) {

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { McpServerRow } from "./mcp-server-row";
 
@@ -10,6 +11,7 @@ interface AvailableMcpServersProps {
 
 export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const router = useRouter();
 
   const { data: mcpServers, refetch } = api.tools.listMcpServers.useQuery({
     projectId: project.id,
@@ -18,6 +20,12 @@ export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
   const handleRefresh = useCallback(async () => {
     await refetch();
   }, [refetch]);
+  const redirectToAuth = useCallback(
+    (url: string) => {
+      router.push(url);
+    },
+    [router],
+  );
 
   if (!mcpServers) {
     return <div className="animate-pulse h-8 bg-muted rounded" />;
@@ -39,6 +47,7 @@ export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
                 server={server}
                 projectId={project.id}
                 onRefresh={handleRefresh}
+                redirectToAuth={redirectToAuth}
               />
             ))}
 
@@ -53,6 +62,7 @@ export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
                 onRefresh={handleRefresh}
                 isNew
                 onCancel={() => setIsAddingNew(false)}
+                redirectToAuth={redirectToAuth}
               />
             ) : (
               <Button

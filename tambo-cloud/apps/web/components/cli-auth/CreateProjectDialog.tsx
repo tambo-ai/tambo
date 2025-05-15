@@ -125,6 +125,13 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
         ...mcpEditorState,
         isEditing: false,
       });
+      return {
+        id: "new-server",
+        url: serverInfo.url,
+        customHeaders: serverInfo.customHeaders,
+        mcpTransport: serverInfo.mcpTransport,
+        mcpRequiresAuth: false,
+      };
     },
     [state, onStateChange, mcpEditorState],
   );

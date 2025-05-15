@@ -1,7 +1,8 @@
 import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { hashKey, MCPTransport } from "@tambo-ai-cloud/core";
+import { hashKey, MCPTransport, validateMcpServer } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 export const projectRouter = createTRPCRouter({
@@ -43,25 +44,53 @@ export const projectRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { name, mcpServers, customInstructions } = input;
-      const project = await operations.createProject(ctx.db, {
-        name,
-        userId: ctx.session.user.id,
-        customInstructions: customInstructions ?? undefined,
-      });
-      if (!project) {
-        throw new Error("Failed to create project");
-      }
-      if (mcpServers) {
-        for (const mcpServer of mcpServers) {
-          await operations.createMcpServer(
-            ctx.db,
-            project.id,
-            mcpServer.url,
-            mcpServer.customHeaders,
-            mcpServer.mcpTransport,
-          );
+
+      // Wrap the entire operation in a single DB transaction so that
+      // we either commit *all* related inserts/updates or none.
+      const project = await ctx.db.transaction(async (tx) => {
+        const createdProject = await operations.createProject(tx, {
+          name,
+          userId: ctx.session.user.id,
+          customInstructions: customInstructions ?? undefined,
+        });
+
+        if (!createdProject) {
+          throw new Error("Failed to create project");
         }
-      }
+
+        if (mcpServers?.length) {
+          for (const mcpServer of mcpServers) {
+            const validity = await validateMcpServer({
+              url: mcpServer.url,
+              customHeaders: mcpServer.customHeaders,
+              mcpTransport: mcpServer.mcpTransport,
+            });
+
+            if (!validity.valid) {
+              // Throwing inside the transaction callback causes the transaction
+              // to roll back automatically.
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `MCP server validation failed: ${validity.error}`,
+              });
+            }
+
+            await operations.createMcpServer(
+              tx,
+              createdProject.id,
+              mcpServer.url,
+              mcpServer.customHeaders,
+              mcpServer.mcpTransport,
+              validity.requiresAuth,
+            );
+          }
+        }
+
+        // Returning a value from the transaction callback makes it the
+        // resolved value of `ctx.db.transaction(...)`.
+        return createdProject;
+      });
+
       return project;
     }),
 

@@ -358,6 +358,7 @@ export async function getProjectMcpServers(
       eq(schema.toolProviders.type, ToolProviderType.MCP),
       isNotNull(schema.toolProviders.url),
     ),
+    orderBy: (toolProviders, { asc }) => [asc(toolProviders.createdAt)],
     with: {
       contexts: {
         where:
@@ -367,7 +368,6 @@ export async function getProjectMcpServers(
       },
     },
   });
-  console.log("got project mcp servers: ", providers);
   return providers;
 }
 
@@ -377,6 +377,7 @@ export async function createMcpServer(
   url: string,
   customHeaders: Record<string, string> | undefined,
   mcpTransport: MCPTransport,
+  mcpRequiresAuth: boolean,
 ) {
   const [server] = await db
     .insert(schema.toolProviders)
@@ -386,17 +387,17 @@ export async function createMcpServer(
       url,
       customHeaders: customHeaders || {},
       mcpTransport,
+      mcpRequiresAuth,
     })
-    .returning({
-      id: schema.toolProviders.id,
-      projectId: schema.toolProviders.projectId,
-      type: schema.toolProviders.type,
-      url: schema.toolProviders.url,
-      customHeaders: schema.toolProviders.customHeaders,
-      mcpTransport: schema.toolProviders.mcpTransport,
-    });
+    .returning();
 
-  return server;
+  return {
+    id: server.id,
+    url: server.url!,
+    customHeaders: server.customHeaders,
+    mcpTransport: server.mcpTransport,
+    mcpRequiresAuth: server.mcpRequiresAuth,
+  };
 }
 
 export async function deleteMcpServer(
@@ -421,6 +422,7 @@ export async function updateMcpServer(
   url: string,
   customHeaders: Record<string, string> | undefined,
   mcpTransport: MCPTransport,
+  mcpRequiresAuth: boolean,
 ) {
   const [server] = await db
     .update(schema.toolProviders)
@@ -428,6 +430,7 @@ export async function updateMcpServer(
       url,
       customHeaders: customHeaders || {},
       mcpTransport,
+      mcpRequiresAuth,
       updatedAt: new Date(),
     })
     .where(
@@ -436,16 +439,37 @@ export async function updateMcpServer(
         eq(schema.toolProviders.projectId, projectId),
       ),
     )
-    .returning({
-      id: schema.toolProviders.id,
-      projectId: schema.toolProviders.projectId,
-      type: schema.toolProviders.type,
-      url: schema.toolProviders.url,
-      customHeaders: schema.toolProviders.customHeaders,
-      mcpTransport: schema.toolProviders.mcpTransport,
-    });
+    .returning();
 
-  return server;
+  return {
+    id: server.id,
+    url: server.url!,
+    customHeaders: server.customHeaders,
+    mcpTransport: server.mcpTransport,
+    mcpRequiresAuth: server.mcpRequiresAuth,
+  };
+}
+
+export async function getMcpServer(
+  db: HydraDb,
+  projectId: string,
+  serverId: string,
+  contextKey: string | null,
+) {
+  return await db.query.toolProviders.findFirst({
+    where: and(
+      eq(schema.toolProviders.id, serverId),
+      eq(schema.toolProviders.projectId, projectId),
+    ),
+    with: {
+      contexts: {
+        where:
+          contextKey === null
+            ? isNull(schema.toolProviderUserContexts.contextKey)
+            : eq(schema.toolProviderUserContexts.contextKey, contextKey),
+      },
+    },
+  });
 }
 
 /**

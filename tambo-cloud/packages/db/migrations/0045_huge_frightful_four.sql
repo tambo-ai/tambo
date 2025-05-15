@@ -1,0 +1,1 @@
+ALTER TABLE "tool_providers" ADD COLUMN "mcp_requires_auth" boolean DEFAULT false NOT NULL;

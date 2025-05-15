@@ -358,7 +358,7 @@ export const contacts = pgTable("contacts", ({ text, timestamp, uuid }) => ({
 
 export const toolProviders = pgTable(
   "tool_providers",
-  ({ text, timestamp }) => ({
+  ({ text, timestamp, boolean }) => ({
     id: text("id")
       .primaryKey()
       .notNull()
@@ -386,6 +386,7 @@ export const toolProviders = pgTable(
     })
       .notNull()
       .default(MCPTransport.SSE),
+    mcpRequiresAuth: boolean("mcp_requires_auth").notNull().default(false),
   }),
 );
 

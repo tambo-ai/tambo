@@ -153,6 +153,7 @@ describe("getSystemTools", () => {
         updatedAt: new Date(),
         url: "http://mcp1.example.com",
         mcpTransport: MCPTransport.HTTP,
+        mcpRequiresAuth: false,
         contexts: [],
       },
     ]);
@@ -214,6 +215,7 @@ describe("getSystemTools", () => {
         updatedAt: new Date(),
         url: null,
         mcpTransport: MCPTransport.HTTP,
+        mcpRequiresAuth: false,
       },
     ]);
 

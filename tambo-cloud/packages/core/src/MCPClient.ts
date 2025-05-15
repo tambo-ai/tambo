@@ -113,6 +113,18 @@ export class MCPClient {
     return allTools;
   }
 
+  getServerCapabilities() {
+    return this.client.getServerCapabilities();
+  }
+
+  getServerVersion() {
+    return this.client.getServerVersion();
+  }
+
+  getInstructions() {
+    return this.client.getInstructions();
+  }
+
   /**
    * Calls a specific tool on the MCP server with the provided arguments.
    *

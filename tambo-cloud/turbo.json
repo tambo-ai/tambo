@@ -26,7 +26,8 @@
     "COMPOSIO_API_KEY",
     "RESEND_AUDIENCE_ID",
     "ALLOW_LOCAL_MCP_SERVERS",
-    "FALLBACK_OPENAI_API_KEY"
+    "FALLBACK_OPENAI_API_KEY",
+    "VERCEL_URL"
   ],
   "tasks": {
     "build": {
