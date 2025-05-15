@@ -4,7 +4,7 @@ import { api } from "@/trpc/react";
 import { MCPTransport } from "@tambo-ai-cloud/core";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { Loader2, Pencil, Save, Trash2, X } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
 export interface MCPServerInfo {
@@ -31,6 +31,7 @@ interface McpServerEditorProps {
     mcpTransport: MCPTransport;
   }) => Promise<void>;
   onDelete: () => Promise<void>;
+  projectId?: string;
 }
 
 export function McpServerEditor({
@@ -46,6 +47,7 @@ export function McpServerEditor({
   onCancel,
   onSave,
   onDelete,
+  projectId,
 }: McpServerEditorProps) {
   const [mcpTransport, setMcpTransport] = useState<MCPTransport>(
     server.mcpTransport || MCPTransport.SSE,
@@ -59,6 +61,12 @@ export function McpServerEditor({
   const [isHeaderValueFocused, setIsHeaderValueFocused] = useState(false);
   const { data: validationResult, mutateAsync: validateMcpServer } =
     api.tools.validateMcpServer.useMutation();
+  const {
+    data: authResult,
+    mutateAsync: startAuth,
+    isPending: isAuthPending,
+    error: authError,
+  } = api.tools.authorizeMcpServer.useMutation();
 
   const inputRef = useRef<HTMLInputElement>(null);
   // Dynamic IDs based on server ID
@@ -88,16 +96,17 @@ export function McpServerEditor({
       handleSave();
     }
   };
+  const trimmedUrl = url.trim();
+  const customHeaders = useMemo(() => {
+    const trimmedHeaderName = headerName.trim();
+    const headers: Record<string, string> = {};
+    if (trimmedHeaderName) {
+      headers[trimmedHeaderName] = headerValue;
+    }
+    return headers;
+  }, [headerName, headerValue]);
 
   const handleSave = async () => {
-    const trimmedUrl = url.trim();
-    const trimmedHeaderName = headerName.trim();
-    const customHeaders: Record<string, string> = {};
-
-    if (trimmedHeaderName) {
-      customHeaders[trimmedHeaderName] = headerValue;
-    }
-
     if (!trimmedUrl) {
       return;
     }
@@ -105,11 +114,12 @@ export function McpServerEditor({
     // we don't want to validate on every keystroke
     // TODO: maybe validate if the user has changed the url or transport?
     if (!hideEditButtons) {
-      const { valid } = await validateMcpServer({
+      const { valid, statusCode } = await validateMcpServer({
         url: trimmedUrl,
         customHeaders,
         mcpTransport,
       });
+      console.log("server valid: ", { valid, statusCode });
       if (!valid) {
         return;
       }
@@ -229,6 +239,43 @@ export function McpServerEditor({
             {validationResult.error}
           </p>
         )}
+        <div className="flex flex-col gap-2">
+          {validationResult?.statusCode === 401 &&
+            !authResult?.redirectUrl &&
+            projectId && (
+              <Button
+                variant="outline"
+                disabled={isAuthPending}
+                onClick={async () =>
+                  await startAuth({
+                    contextKey: null, // for now we don't have a context key, this isn't per-user
+                    toolProviderId: server.id,
+                  })
+                }
+              >
+                Begin Authorization
+              </Button>
+            )}
+          {authError && (
+            <p className="text-sm text-destructive px-2">{authError.message}</p>
+          )}
+          {authResult?.error && (
+            <p className="text-sm text-destructive px-2">{authResult.error}</p>
+          )}
+          {authResult?.redirectUrl && (
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                // Prevent default navigation
+                e.preventDefault();
+                // Open in new tab only when clicked
+                window.open(authResult.redirectUrl, "_blank", "noopener");
+              }}
+            >
+              Login to MCP Server
+            </Button>
+          )}
+        </div>
       </div>
       <div>
         <label htmlFor={transportId} className="block text-sm font-medium">

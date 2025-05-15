@@ -10,11 +10,15 @@ import {
   ToolProviderType,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
-import { HydraDb, operations, schema } from "@tambo-ai-cloud/db";
+import {
+  HydraDb,
+  OAuthLocalProvider,
+  operations,
+  schema,
+} from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { OAuthLocalProvider } from "../../../lib/OAuthLocalProvider";
 import { validateSafeURL, validateServerUrl } from "../../../lib/urlSecurity";
 
 export const toolsRouter = createTRPCRouter({
@@ -85,6 +89,7 @@ export const toolsRouter = createTRPCRouter({
       const servers = await operations.getProjectMcpServers(
         ctx.db,
         input.projectId,
+        null,
       );
       return servers;
     }),
@@ -203,7 +208,7 @@ export const toolsRouter = createTRPCRouter({
           db,
           toolProviderUserContextId,
           {
-            saveAuthUrl: saveAuthUrl,
+            baseUrl: saveAuthUrl,
             serverUrl: url,
           },
         );

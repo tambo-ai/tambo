@@ -25,7 +25,7 @@ export async function validateMcpServer({
     if (error instanceof SseError) {
       if (error.code === 401) {
         return {
-          valid: false as const,
+          valid: true as const,
           error: mcpAuthSupportMessage,
           statusCode: 401,
         };
@@ -52,8 +52,7 @@ export async function validateMcpServer({
       }
       if (error.message.includes("HTTP 401")) {
         return {
-          valid: false as const,
-          error: mcpAuthSupportMessage,
+          valid: true as const,
           statusCode: 401,
         };
       }

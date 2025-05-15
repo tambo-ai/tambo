@@ -1,8 +1,7 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { env } from "@/lib/env";
-import { OAuthLocalProvider } from "@/lib/OAuthLocalProvider";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
-import { getDb, schema } from "@tambo-ai-cloud/db";
+import { getDb, OAuthLocalProvider, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";

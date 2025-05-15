@@ -107,6 +107,7 @@ export function McpServerRow({
 
   return (
     <McpServerEditor
+      projectId={projectId}
       server={server}
       isEditing={isEditing}
       isNew={isNew}

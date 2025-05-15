@@ -153,6 +153,7 @@ describe("getSystemTools", () => {
         updatedAt: new Date(),
         url: "http://mcp1.example.com",
         mcpTransport: MCPTransport.HTTP,
+        contexts: [],
       },
     ]);
 

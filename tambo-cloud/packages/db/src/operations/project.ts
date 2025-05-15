@@ -347,14 +347,28 @@ export async function updateApiKeyStatus(
   }
 }
 
-export async function getProjectMcpServers(db: HydraDb, projectId: string) {
-  return await db.query.toolProviders.findMany({
+export async function getProjectMcpServers(
+  db: HydraDb,
+  projectId: string,
+  contextKey: string | null,
+) {
+  const providers = await db.query.toolProviders.findMany({
     where: and(
       eq(schema.toolProviders.projectId, projectId),
       eq(schema.toolProviders.type, ToolProviderType.MCP),
       isNotNull(schema.toolProviders.url),
     ),
+    with: {
+      contexts: {
+        where:
+          contextKey === null
+            ? isNull(schema.toolProviderUserContexts.contextKey)
+            : eq(schema.toolProviderUserContexts.contextKey, contextKey),
+      },
+    },
   });
+  console.log("got project mcp servers: ", providers);
+  return providers;
 }
 
 export async function createMcpServer(

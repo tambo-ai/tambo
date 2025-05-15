@@ -5,8 +5,9 @@ import {
   OAuthClientMetadata,
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
-import { HydraDb, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
+import * as schema from "../schema";
+import { HydraDb } from "../types";
 
 export class OAuthLocalProvider implements OAuthClientProvider {
   private _clientInformation: OAuthClientInformation | undefined;
@@ -21,11 +22,11 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     private toolProviderUserContextId: string,
     {
       clientInformation,
-      saveAuthUrl,
+      baseUrl,
       sessionId,
       serverUrl,
     }: {
-      saveAuthUrl?: string;
+      baseUrl?: string;
       clientInformation?: OAuthClientInformation;
       sessionId?: string;
       serverUrl?: string;
@@ -35,8 +36,8 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     // we generate a session id, because we'll be asked to store the client information
     this._sessionId = sessionId ?? crypto.randomUUID();
 
-    this._saveAuthUrl = saveAuthUrl
-      ? new URL(`/oauth/callback?sessionId=${this._sessionId}`, saveAuthUrl)
+    this._saveAuthUrl = baseUrl
+      ? new URL(`/oauth/callback?sessionId=${this._sessionId}`, baseUrl)
       : undefined;
     this._serverUrl = serverUrl;
   }
@@ -53,11 +54,16 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     return this._redirectStartAuthUrl;
   }
 
-  clientInformation():
-    | OAuthClientInformation
-    | undefined
-    | Promise<OAuthClientInformation | undefined> {
+  async clientInformation(): Promise<OAuthClientInformation | undefined> {
     console.log("--> clientInformation", this._clientInformation);
+    if (!this._clientInformation) {
+      const session = await this.db.query.mcpOauthClients.findFirst({
+        where: eq(schema.mcpOauthClients.sessionId, this._sessionId),
+      });
+      if (session) {
+        this._clientInformation = session.sessionInfo.clientInformation;
+      }
+    }
     return this._clientInformation;
   }
   async saveClientInformation(clientInformation: OAuthClientInformationFull) {
@@ -110,7 +116,7 @@ export class OAuthLocalProvider implements OAuthClientProvider {
     console.log("--> saveCodeVerifier stored", updatedRows);
   }
   get clientMetadata(): OAuthClientMetadata {
-    const clientMetadata = {
+    const clientMetadata: OAuthClientMetadata = {
       redirect_uris: [this.redirectUrl],
       client_name: "Tambo",
     };
@@ -126,8 +132,20 @@ export class OAuthLocalProvider implements OAuthClientProvider {
   }
 
   async tokens() {
+    if (!this._tokens) {
+      const toolProviderUserContext =
+        await this.db.query.toolProviderUserContexts.findFirst({
+          where: eq(
+            schema.toolProviderUserContexts.id,
+            this.toolProviderUserContextId,
+          ),
+        });
+      if (toolProviderUserContext?.mcpOauthTokens) {
+        this._tokens = toolProviderUserContext.mcpOauthTokens;
+      }
+    }
     console.log("--> tokens", this._tokens);
-    // TODO: do we need to fetch the tokens from the database?
+
     return this._tokens;
   }
 

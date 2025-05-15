@@ -1,8 +1,17 @@
+import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { SystemTools } from "@tambo-ai-cloud/backend";
 import { MCPClient, strictifyJSONSchemaProperties } from "@tambo-ai-cloud/core";
-import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
+import {
+  HydraDatabase,
+  HydraDb,
+  OAuthLocalProvider,
+  operations,
+  schema,
+} from "@tambo-ai-cloud/db";
 import { OpenAIToolSet } from "composio-core";
+import { eq } from "drizzle-orm";
 import OpenAI from "openai";
+import { env } from "process";
 import { getComposio } from "./composio";
 
 /** Get the tools available for the project */
@@ -47,7 +56,7 @@ async function getMcpTools(
   mcpTools: OpenAI.Chat.Completions.ChatCompletionTool[];
   mcpToolSources: Record<string, MCPClient>;
 }> {
-  const mcpServers = await operations.getProjectMcpServers(db, projectId);
+  const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
 
   const mcpTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
   const mcpToolSources: Record<string, MCPClient> = {};
@@ -55,6 +64,7 @@ async function getMcpTools(
     if (!mcpServer.url) {
       continue;
     }
+    const authProvider = await getAuthProvider(db, mcpServer);
     // Extract custom_headers if they exist
     const customHeaders = mcpServer.customHeaders as
       | Record<string, string>
@@ -64,6 +74,7 @@ async function getMcpTools(
       mcpServer.url,
       mcpServer.mcpTransport,
       customHeaders,
+      authProvider,
     );
     const tools = await mcpClient.listTools();
     mcpTools.push(
@@ -95,6 +106,48 @@ async function getMcpTools(
     }
   }
   return { mcpTools, mcpToolSources };
+}
+
+type McpServer = Awaited<
+  ReturnType<typeof operations.getProjectMcpServers>
+>[number];
+
+async function getAuthProvider(
+  db: HydraDb,
+  mcpServer: McpServer,
+): Promise<OAuthClientProvider | undefined> {
+  if (!mcpServer.contexts.length) {
+    return undefined;
+  }
+  if (mcpServer.contexts.length > 1) {
+    console.warn(
+      `MCP server ${mcpServer.id} has multiple contexts, using the first one`,
+    );
+  }
+  if (!mcpServer.url) {
+    return undefined;
+  }
+  const context = mcpServer.contexts[0];
+  if (!context.mcpOauthTokens?.refresh_token || !context.mcpOauthClientInfo) {
+    // this is fine, just means this server is not using OAuth
+    return undefined;
+  }
+  // we need to find the client information for this context
+  const client = await db.query.mcpOauthClients.findFirst({
+    // TODO: this should really come in from the toolProviderUserContext
+    where: eq(schema.mcpOauthClients.toolProviderUserContextId, context.id),
+  });
+  if (!client) {
+    return undefined;
+  }
+
+  const authProvider = new OAuthLocalProvider(db, context.id, {
+    baseUrl: env.VERCEL_URL ?? "http://localhost:3000",
+    serverUrl: mcpServer.url,
+    clientInformation: client.sessionInfo.clientInformation,
+    sessionId: client.sessionId,
+  });
+  return authProvider;
 }
 
 async function getComposioTools(

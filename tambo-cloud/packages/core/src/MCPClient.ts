@@ -1,3 +1,4 @@
+import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -31,13 +32,16 @@ export class MCPClient {
     endpoint: string,
     transport: MCPTransport,
     headers?: Record<string, string>,
+    authProvider?: OAuthClientProvider,
   ) {
     if (transport === MCPTransport.SSE) {
       this.transport = new SSEClientTransport(new URL(endpoint), {
+        authProvider,
         requestInit: { headers },
       });
     } else {
       this.transport = new StreamableHTTPClientTransport(new URL(endpoint), {
+        authProvider,
         requestInit: { headers },
       });
     }
@@ -61,8 +65,9 @@ export class MCPClient {
     endpoint: string,
     transport: MCPTransport = MCPTransport.HTTP,
     headers?: Record<string, string>,
+    authProvider?: OAuthClientProvider,
   ): Promise<MCPClient> {
-    const mcpClient = new MCPClient(endpoint, transport, headers);
+    const mcpClient = new MCPClient(endpoint, transport, headers, authProvider);
     await mcpClient.client.connect(mcpClient.transport);
     return mcpClient;
   }
