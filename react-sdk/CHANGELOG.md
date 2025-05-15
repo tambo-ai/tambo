@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/tambo-ai/tambo/compare/react-v0.25.1...react-v0.26.0) (2025-05-15)
+
+
+### Features
+
+* **cli:** add upgrade command with accept-all option for whole template upgrades ([#419](https://github.com/tambo-ai/tambo/issues/419)) ([5081dcd](https://github.com/tambo-ai/tambo/commit/5081dcd7a08b8e3ce632e0978a478f7410edec5f))
+
 ## [0.25.1](https://github.com/tambo-ai/tambo/compare/react-v0.25.0...react-v0.25.1) (2025-05-14)
 
 ### Documentation
