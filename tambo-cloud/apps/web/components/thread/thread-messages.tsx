@@ -39,7 +39,7 @@ export function ThreadMessages({ thread }: Readonly<ThreadMessagesProps>) {
             message.toolCallId === highlightedToolCallId ||
             message.toolCallRequest?.tool_call_id === highlightedToolCallId ||
             (message.componentDecision as LegacyComponentDecision)
-              .toolCallId === highlightedToolCallId;
+              ?.toolCallId === highlightedToolCallId;
 
           const isInternalMessage = !!message.actionType;
           const hasToolCallRequest = !!message.toolCallRequest;

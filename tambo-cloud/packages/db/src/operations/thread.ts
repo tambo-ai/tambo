@@ -60,31 +60,6 @@ export async function getThreadForProjectId(
   });
 }
 
-export async function getThreadForUserId(
-  db: HydraDb,
-  threadId: string,
-  userId: string,
-) {
-  return await db.query.threads.findFirst({
-    where: (threads, { eq, inArray }) =>
-      and(
-        eq(threads.id, threadId),
-        inArray(
-          threads.projectId,
-          db
-            .select({ id: schema.projectMembers.projectId })
-            .from(schema.projectMembers)
-            .where(eq(schema.projectMembers.userId, userId)),
-        ),
-      ),
-    with: {
-      messages: {
-        orderBy: (messages, { asc }) => [asc(messages.createdAt)],
-      },
-    },
-  });
-}
-
 export async function getThreadsByProject(
   db: HydraDb,
   projectId: string,
