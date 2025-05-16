@@ -64,6 +64,12 @@ async function getMcpTools(
     if (!mcpServer.url) {
       continue;
     }
+    if (mcpServer.mcpRequiresAuth && !hasAuthInfo(mcpServer)) {
+      console.warn(
+        `MCP server ${mcpServer.id} in project ${projectId} requires auth, but no auth info found`,
+      );
+      continue;
+    }
     const authProvider = await getAuthProvider(db, mcpServer);
     // Extract custom_headers if they exist
     const customHeaders = mcpServer.customHeaders as
@@ -108,6 +114,23 @@ async function getMcpTools(
   return { mcpTools, mcpToolSources };
 }
 
+function hasAuthInfo(mcpServer: McpServer): boolean {
+  if (!mcpServer.contexts.length) {
+    return false;
+  }
+  if (mcpServer.contexts.length > 1) {
+    console.warn(
+      `MCP server ${mcpServer.id} has multiple contexts, using the first one`,
+    );
+  }
+  const context = mcpServer.contexts[0];
+  if (!context.mcpOauthTokens?.refresh_token || !context.mcpOauthClientInfo) {
+    // this is fine, just means this server is not using OAuth
+    return false;
+  }
+  return true;
+}
+
 type McpServer = Awaited<
   ReturnType<typeof operations.getProjectMcpServers>
 >[number];
@@ -128,7 +151,7 @@ async function getAuthProvider(
     return undefined;
   }
   const context = mcpServer.contexts[0];
-  if (!context.mcpOauthTokens?.refresh_token || !context.mcpOauthClientInfo) {
+  if (!mcpServer.mcpRequiresAuth) {
     // this is fine, just means this server is not using OAuth
     return undefined;
   }
