@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.51.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.51.0...repo-v0.51.1) (2025-05-16)
+
+
+### Bug Fixes
+
+* minor code cleanup + crash fix found while debugging ([#975](https://github.com/tambo-ai/tambo-cloud/issues/975)) ([e519a64](https://github.com/tambo-ai/tambo-cloud/commit/e519a64ad7678003c303af21c6ed5a6fcdbfdfcc))
+
+
+### Code Refactoring
+
+* fix naming consistency for thread message stuff ([#977](https://github.com/tambo-ai/tambo-cloud/issues/977)) ([e6a5392](https://github.com/tambo-ai/tambo-cloud/commit/e6a5392930916ac6ab7e90d7e4d129e0452fc3ad))
+
 ## [0.51.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.50.1...repo-v0.51.0) (2025-05-16)
 
 
