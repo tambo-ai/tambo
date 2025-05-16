@@ -7,17 +7,12 @@ import {
   ThreadMessage,
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
-import {
-  ChatCompletionAssistantMessageParam,
-  ChatCompletionSystemMessageParam,
-  ChatCompletionToolMessageParam,
-  ChatCompletionUserMessageParam,
-} from "openai/resources";
+import type OpenAI from "openai";
 import { formatFunctionCall, generateAdditionalContext } from "./tools";
 
-export function threadMessagesToChatHistory(
-  messageHistory: ThreadMessage[],
-): ChatCompletionMessageParam[] {
+export function threadMessagesToChatCompletionMessageParam(
+  messages: ThreadMessage[],
+): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
   // as per
   // https://platform.openai.com/docs/guides/function-calling?api-mode=chat#handling-function-calls,
   // if the model responds with a tool call then the user MUST respond to the
@@ -26,13 +21,13 @@ export function threadMessagesToChatHistory(
   // As of this moment, the client is not sending back the tool call id in the response,
   // so we have to convert tools to user + assistant messages. These hacks should go away once the client
   // passes the tool call id in the response.
-  const respondedToolIds: string[] = messageHistory
+  const respondedToolIds: string[] = messages
     .filter(
       (message) => message.role === MessageRole.Tool && message.tool_call_id,
     )
     .map((message) => message.tool_call_id)
     .filter((id) => id !== undefined);
-  const newMessages = messageHistory.flatMap(
+  const newMessages = messages.flatMap(
     (message): ChatCompletionMessageParam[] => {
       switch (message.role) {
         case MessageRole.Tool: {
@@ -54,29 +49,37 @@ export function threadMessagesToChatHistory(
 
 function makeToolMessages(
   message: ThreadMessage,
-): (ChatCompletionToolMessageParam | ChatCompletionUserMessageParam)[] {
+): (
+  | OpenAI.Chat.Completions.ChatCompletionToolMessageParam
+  | OpenAI.Chat.Completions.ChatCompletionUserMessageParam
+)[] {
   if (message.tool_call_id) {
-    const toolMessage: ChatCompletionToolMessageParam = {
-      role: "tool",
-      content: message.content as ChatCompletionContentPartText[],
-      tool_call_id: message.tool_call_id,
-    };
+    const toolMessage: OpenAI.Chat.Completions.ChatCompletionToolMessageParam =
+      {
+        role: "tool",
+        content: message.content as ChatCompletionContentPartText[],
+        tool_call_id: message.tool_call_id,
+      };
     return [toolMessage];
   }
   console.warn(
     `no tool id in tool message ${message.id}, converting to user message`,
   );
   // If there's no tool id the we just call it a user message
-  const userToolMessage: ChatCompletionUserMessageParam = {
-    role: "user",
-    content: message.content as ChatCompletionContentPartText[],
-  };
+  const userToolMessage: OpenAI.Chat.Completions.ChatCompletionUserMessageParam =
+    {
+      role: "user",
+      content: message.content as ChatCompletionContentPartText[],
+    };
   return [userToolMessage];
 }
 function makeAssistantMessages(
   message: ThreadMessage,
   respondedToolIds: string[],
-): (ChatCompletionAssistantMessageParam | ChatCompletionToolMessageParam)[] {
+): (
+  | OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam
+  | OpenAI.Chat.Completions.ChatCompletionToolMessageParam
+)[] {
   // Old entries in the db had toolcallrequest in the component decision, but this has since been elevated to its own column/prop
   const toolCallRequest =
     message.toolCallRequest ?? message.component?.toolCallRequest;
@@ -185,29 +188,31 @@ function makeAssistantMessages(
     message,
     toolCallId,
   );
-  const assistantMessage: ChatCompletionAssistantMessageParam = {
-    role: "assistant",
-    tool_calls: componentDecisionToolCalls,
-    content: message.component
-      ? [
-          {
-            type: "text",
-            text: JSON.stringify(
-              combineComponentWithState(
-                message.component,
-                message.componentState ?? {},
+  const assistantMessage: OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam =
+    {
+      role: "assistant",
+      tool_calls: componentDecisionToolCalls,
+      content: message.component
+        ? [
+            {
+              type: "text",
+              text: JSON.stringify(
+                combineComponentWithState(
+                  message.component,
+                  message.componentState ?? {},
+                ),
               ),
-            ),
-          },
-        ]
-      : (message.content as ChatCompletionContentPartText[]),
-  };
-  if (componentDecisionToolCalls && !respondedToolIds.includes(toolCallId)) {
-    const userMessage: ChatCompletionToolMessageParam = {
-      role: "tool",
-      content: [{ type: "text", text: "{}" }],
-      tool_call_id: toolCallId,
+            },
+          ]
+        : (message.content as ChatCompletionContentPartText[]),
     };
+  if (componentDecisionToolCalls && !respondedToolIds.includes(toolCallId)) {
+    const userMessage: OpenAI.Chat.Completions.ChatCompletionToolMessageParam =
+      {
+        role: "tool",
+        content: [{ type: "text", text: "{}" }],
+        tool_call_id: toolCallId,
+      };
     return [assistantMessage, userMessage];
   }
   return [assistantMessage];
@@ -276,7 +281,10 @@ function makeFakeDecisionCall(
 
 function makeUserMessages(
   message: ThreadMessage,
-): (ChatCompletionUserMessageParam | ChatCompletionSystemMessageParam)[] {
+): (
+  | OpenAI.Chat.Completions.ChatCompletionUserMessageParam
+  | OpenAI.Chat.Completions.ChatCompletionSystemMessageParam
+)[] {
   if (
     message.role === MessageRole.Hydra ||
     message.role === MessageRole.Assistant ||

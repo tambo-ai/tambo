@@ -28,15 +28,15 @@ export const suggestionsResponseTool: OpenAI.Chat.Completions.ChatCompletionTool
 // Public function
 export async function generateSuggestions(
   llmClient: LLMClient,
-  messageHistory: ThreadMessage[],
+  messages: ThreadMessage[],
   availableComponents: AvailableComponent[],
   count: number,
   threadId: string,
   stream?: boolean,
 ): Promise<SuggestionDecision | AsyncIterableIterator<SuggestionDecision>> {
-  const messages = buildSuggestionPrompt(
+  const suggestionMessages = buildSuggestionPrompt(
     availableComponents,
-    messageHistory,
+    messages,
     count,
   );
 
@@ -46,7 +46,7 @@ export async function generateSuggestions(
 
   try {
     const response = await llmClient.complete({
-      messages,
+      messages: suggestionMessages,
       promptTemplateName: "suggestion-generation",
       promptTemplateParams: {},
       tools: [suggestionsResponseTool],

@@ -13,7 +13,7 @@ interface HydraBackendOptions {
 }
 
 interface RunDecisionLoopParams {
-  messageHistory: ThreadMessage[];
+  messages: ThreadMessage[];
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
   additionalContext?: string;
   customInstructions: string | undefined;
@@ -32,21 +32,21 @@ export default class TamboBackend {
   }
 
   public async generateSuggestions(
-    messageHistory: ThreadMessage[],
+    messages: ThreadMessage[],
     count: number,
     availableComponents: AvailableComponent[],
     threadId: string,
     stream: true,
   ): Promise<AsyncIterableIterator<SuggestionDecision>>;
   public async generateSuggestions(
-    messageHistory: ThreadMessage[],
+    messages: ThreadMessage[],
     count: number,
     availableComponents: AvailableComponent[],
     threadId: string,
     stream?: false | undefined,
   ): Promise<SuggestionDecision>;
   public async generateSuggestions(
-    messageHistory: ThreadMessage[],
+    messages: ThreadMessage[],
     count: number,
     availableComponents: AvailableComponent[],
     threadId: string,
@@ -54,7 +54,7 @@ export default class TamboBackend {
   ): Promise<SuggestionDecision | AsyncIterableIterator<SuggestionDecision>> {
     return await generateSuggestions(
       this.llmClient,
-      messageHistory,
+      messages,
       availableComponents,
       count,
       threadId,
@@ -67,7 +67,7 @@ export default class TamboBackend {
   ): Promise<AsyncIterableIterator<LegacyComponentDecision>> {
     return runDecisionLoop(
       this.llmClient,
-      params.messageHistory,
+      params.messages,
       params.strictTools,
       params.customInstructions,
       params.forceToolChoice,

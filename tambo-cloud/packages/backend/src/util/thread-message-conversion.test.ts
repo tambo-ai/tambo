@@ -5,7 +5,7 @@ import {
   ThreadMessage,
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
-import { threadMessagesToChatHistory } from "./threadMessagesToChatHistory";
+import { threadMessagesToChatCompletionMessageParam } from "./thread-message-conversion";
 
 const baseThreadMessage = {
   threadId: "test-thread",
@@ -27,7 +27,7 @@ describe("threadMessagesToChatHistory", () => {
         tool_call_id: "test-tool-call-1",
       };
 
-      const result = threadMessagesToChatHistory([toolMessage]);
+      const result = threadMessagesToChatCompletionMessageParam([toolMessage]);
 
       expect(result).toEqual([
         {
@@ -48,7 +48,7 @@ describe("threadMessagesToChatHistory", () => {
         ] as ChatCompletionContentPartText[],
       };
 
-      const result = threadMessagesToChatHistory([toolMessage]);
+      const result = threadMessagesToChatCompletionMessageParam([toolMessage]);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -69,7 +69,9 @@ describe("threadMessagesToChatHistory", () => {
         content: [{ type: "text", text: "assistant message" }],
       };
 
-      const result = threadMessagesToChatHistory([assistantMessage]);
+      const result = threadMessagesToChatCompletionMessageParam([
+        assistantMessage,
+      ]);
 
       // "text" should have a json object in it
       expect(result).toMatchInlineSnapshot(`
@@ -124,7 +126,7 @@ describe("threadMessagesToChatHistory", () => {
         componentState: { state: "test" },
       };
 
-      const result = threadMessagesToChatHistory([
+      const result = threadMessagesToChatCompletionMessageParam([
         assistantMessage,
         toolMessage,
       ]);
@@ -198,7 +200,9 @@ describe("threadMessagesToChatHistory", () => {
         ] as ChatCompletionContentPartText[],
       };
 
-      const result = threadMessagesToChatHistory([assistantMessage]);
+      const result = threadMessagesToChatCompletionMessageParam([
+        assistantMessage,
+      ]);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -220,7 +224,7 @@ describe("threadMessagesToChatHistory", () => {
         additionalContext: "extra context",
       };
 
-      const result = threadMessagesToChatHistory([userMessage]);
+      const result = threadMessagesToChatCompletionMessageParam([userMessage]);
       expect(result).toEqual([
         {
           role: "user",
@@ -245,7 +249,9 @@ describe("threadMessagesToChatHistory", () => {
         ] as ChatCompletionContentPartText[],
       };
 
-      const result = threadMessagesToChatHistory([systemMessage]);
+      const result = threadMessagesToChatCompletionMessageParam([
+        systemMessage,
+      ]);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -288,7 +294,7 @@ describe("threadMessagesToChatHistory", () => {
         },
       ];
 
-      const result = threadMessagesToChatHistory(messages);
+      const result = threadMessagesToChatCompletionMessageParam(messages);
 
       expect(result).toMatchInlineSnapshot(`
         [

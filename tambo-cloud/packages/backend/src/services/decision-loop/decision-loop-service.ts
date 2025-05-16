@@ -10,7 +10,7 @@ import OpenAI from "openai";
 import { parse } from "partial-json";
 import { generateDecisionLoopPrompt } from "../../prompt/decision-loop-prompts";
 import { extractMessageContent } from "../../util/response-parsing";
-import { threadMessagesToChatHistory } from "../../util/threadMessagesToChatHistory";
+import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
@@ -29,7 +29,7 @@ import {
 
 export async function* runDecisionLoop(
   llmClient: LLMClient,
-  messageHistory: ThreadMessage[],
+  messages: ThreadMessage[],
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   customInstructions: string | undefined,
   forceToolChoice?: string,
@@ -54,7 +54,8 @@ export async function* runDecisionLoop(
 
   const { template: systemPrompt, args: systemPromptArgs } =
     generateDecisionLoopPrompt(customInstructions);
-  const chatHistory = threadMessagesToChatHistory(messageHistory);
+  const chatCompletionMessages =
+    threadMessagesToChatCompletionMessageParam(messages);
   const promptMessages = objectTemplate<ChatCompletionMessageParam[]>([
     { role: "system", content: systemPrompt },
     { role: "chat_history" as "user", content: "{chat_history}" },
@@ -65,7 +66,7 @@ export async function* runDecisionLoop(
     tools: toolsWithStandardParameters,
     promptTemplateName: "decision-loop",
     promptTemplateParams: {
-      chat_history: chatHistory,
+      chat_history: chatCompletionMessages,
       ...systemPromptArgs,
     },
     stream: true,

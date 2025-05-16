@@ -7,13 +7,13 @@ import { getAvailableComponentsPromptTemplate } from "./component-formatting";
 
 /**
  * @param components List of available components
- * @param messageHistory Array of thread messages to provide context
+ * @param messages Array of thread messages to provide context
  * @param suggestionCount Number of suggestions to generate
  * @returns Array of system and user messages
  */
 export function buildSuggestionPrompt(
   components: AvailableComponent[],
-  messageHistory: ThreadMessage[] = [],
+  messages: ThreadMessage[] = [],
   suggestionCount: number,
 ): Array<{ role: "system" | "user"; content: string }> {
   // Get current component if available
@@ -21,9 +21,9 @@ export function buildSuggestionPrompt(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let currentProps: any | null = null;
 
-  if (messageHistory.length > 0) {
-    for (let i = messageHistory.length - 1; i >= 0; i--) {
-      const msg = messageHistory[i];
+  if (messages.length > 0) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
       if (msg.component?.componentName) {
         currentComponent = msg.component.componentName;
         currentProps = msg.component.props || null;
@@ -64,9 +64,9 @@ Rules:
 6. Avoid technical language or system-focused phrasing`;
 
   const userMessage = `${
-    messageHistory.length > 0
+    messages.length > 0
       ? `Recent conversation context:
-${messageHistory
+${messages
   .slice(-2)
   .map(
     (m) =>
