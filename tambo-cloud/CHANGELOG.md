@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.51.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.50.1...repo-v0.51.0) (2025-05-16)
+
+
+### Features
+
+* add UI for authenticating OAuth MCP servers ([#970](https://github.com/tambo-ai/tambo-cloud/issues/970)) ([acb0366](https://github.com/tambo-ai/tambo-cloud/commit/acb036695a5cc24afdae627139625c92374b70d5))
+* finalize oauth UI flow for single-user ([#972](https://github.com/tambo-ai/tambo-cloud/issues/972)) ([842bfb8](https://github.com/tambo-ai/tambo-cloud/commit/842bfb860eca99254c151367570adef6b8f319ce))
+* give dashboard pages a title to make it easier to distinguish them ([#973](https://github.com/tambo-ai/tambo-cloud/issues/973)) ([f6e5fb7](https://github.com/tambo-ai/tambo-cloud/commit/f6e5fb7465f4298cd49deca5a698abb1355b79a2))
+
+
+### Bug Fixes
+
+* handle cases where auth has not been set up yet ([#974](https://github.com/tambo-ai/tambo-cloud/issues/974)) ([852303c](https://github.com/tambo-ai/tambo-cloud/commit/852303c0ce3b69c877762c6cf6785bfb309249f9))
+
 ## [0.50.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.50.0...repo-v0.50.1) (2025-05-14)
 
 
