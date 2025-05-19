@@ -135,6 +135,7 @@ async function handleAuthentication(): Promise<boolean> {
     const { apiKey } = await inquirer.prompt({
       type: "password",
       name: "apiKey",
+      mask: "*",
       message: "Please paste your API key from the browser:",
       validate: (input: any) => {
         if (!input?.trim()) return "API key is required";
