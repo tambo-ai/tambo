@@ -10,6 +10,7 @@ import { SuggestionDecision } from "./services/suggestion/suggestion.types";
 interface HydraBackendOptions {
   model?: string;
   provider?: Provider;
+  baseURL?: string;
 }
 
 interface RunDecisionLoopParams {
@@ -23,12 +24,18 @@ interface RunDecisionLoopParams {
 export default class TamboBackend {
   private llmClient: TokenJSClient;
   constructor(
-    openAIKey: string,
+    apiKey: string | undefined,
     private chainId: string,
     options: HydraBackendOptions = {},
   ) {
-    const { model = "gpt-4o-mini", provider = "openai" } = options;
-    this.llmClient = new TokenJSClient(openAIKey, model, provider, chainId);
+    const { model = "gpt-4o-mini", provider = "openai", baseURL } = options;
+    this.llmClient = new TokenJSClient(
+      apiKey,
+      model,
+      provider,
+      chainId,
+      baseURL,
+    );
   }
 
   public async generateSuggestions(

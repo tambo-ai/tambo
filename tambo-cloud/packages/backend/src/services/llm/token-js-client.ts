@@ -16,12 +16,23 @@ export class TokenJSClient implements LLMClient {
   private client: TokenJS;
 
   constructor(
-    apiKey: string,
+    apiKey: string | undefined,
     private model: string,
     private provider: Provider,
     private chainId: string,
+    baseURL?: string,
   ) {
-    this.client = new TokenJS({ apiKey });
+    const tokenJsOptions: ConstructorParameters<typeof TokenJS>[0] = {};
+
+    if (apiKey) {
+      tokenJsOptions.apiKey = apiKey;
+    }
+
+    if (this.provider === "openai-compatible" && baseURL) {
+      tokenJsOptions.baseURL = baseURL;
+    }
+
+    this.client = new TokenJS(tokenJsOptions);
   }
 
   async complete(
@@ -50,9 +61,14 @@ export class TokenJSClient implements LLMClient {
       params.promptTemplateParams,
     );
 
+    const providerForTokenJSCall =
+      this.provider === "openai-compatible"
+        ? "openai-compatible"
+        : this.provider;
+
     if (params.stream) {
       const stream = await this.client.chat.completions.create({
-        provider: this.provider,
+        provider: providerForTokenJSCall,
         model: this.model,
         messages: messagesFormatted,
         temperature: 0,
@@ -75,7 +91,7 @@ export class TokenJSClient implements LLMClient {
     }
 
     const response = await this.client.chat.completions.create({
-      provider: this.provider,
+      provider: providerForTokenJSCall,
       model: this.model,
       messages: messagesFormatted,
       temperature: 0,

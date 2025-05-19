@@ -1,6 +1,5 @@
 "use client";
 
-import { ProjectResponseDto } from "@/app/(authed)/dashboard/types/types";
 import { CopyButton } from "@/components/copy-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,10 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowRight } from "lucide-react";
+import { type RouterOutputs } from "@/trpc/react";
 import Link from "next/link";
 
 interface ProjectTableProps {
-  projects: ProjectResponseDto[];
+  projects: RouterOutputs["project"]["getUserProjects"];
 }
 
 export function ProjectTable({ projects }: ProjectTableProps) {

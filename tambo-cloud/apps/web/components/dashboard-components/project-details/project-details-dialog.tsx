@@ -6,10 +6,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
 import { APIKeyList } from "./api-key-list";
 import { AvailableMcpServers } from "./available-mcp-servers";
 import { AvailableTools } from "./available-tools";
@@ -18,7 +17,7 @@ import { ProjectInfo } from "./project-info";
 import { ProviderKeySection } from "./provider-key-section";
 
 interface ProjectDetailsDialogProps {
-  project: ProjectResponseDto;
+  project: RouterOutputs["project"]["getUserProjects"][number];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onProjectDeleted?: () => void;

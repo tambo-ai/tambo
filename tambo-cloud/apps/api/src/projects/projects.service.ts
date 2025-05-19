@@ -60,6 +60,11 @@ export class ProjectsService {
       id: project.id,
       name: project.name,
       userId: project.members[0].userId,
+      defaultLlmProviderName: project.defaultLlmProviderName ?? undefined,
+      defaultLlmModelName: project.defaultLlmModelName ?? undefined,
+      customLlmModelName: project.customLlmModelName ?? undefined,
+      customLlmBaseURL: project.customLlmBaseURL ?? undefined,
+      customInstructions: project.customInstructions ?? undefined,
     };
   }
 

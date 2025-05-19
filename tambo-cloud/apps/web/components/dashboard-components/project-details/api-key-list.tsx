@@ -2,18 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
-import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
 import { APIKeyDialog } from "./api-key-dialog";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { AlertState } from "./project-details-dialog";
 
 interface APIKeyListProps {
-  project: ProjectResponseDto;
+  project: RouterOutputs["project"]["getUserProjects"][number];
 }
 
 const listItemVariants = {

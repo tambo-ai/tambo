@@ -10,4 +10,9 @@ export class ProjectResponse {
   id!: string;
   name!: string;
   userId!: string;
+  defaultLlmProviderName?: string;
+  defaultLlmModelName?: string;
+  customLlmModelName?: string;
+  customLlmBaseURL?: string;
+  customInstructions?: string;
 }

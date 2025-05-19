@@ -5,4 +5,5 @@ export type Provider =
   | "bedrock"
   | "gemini"
   | "groq"
-  | "openrouter";
+  | "openrouter"
+  | "openai-compatible";

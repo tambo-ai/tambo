@@ -2,7 +2,9 @@ import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { hashKey, MCPTransport, validateMcpServer } from "@tambo-ai-cloud/core";
 import { operations } from "@tambo-ai-cloud/db";
+import { schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const projectRouter = createTRPCRouter({
@@ -15,6 +17,10 @@ export const projectRouter = createTRPCRouter({
       userId: userId,
       composioEnabled: project.composioEnabled,
       customInstructions: project.customInstructions,
+      defaultLlmProviderName: project.defaultLlmProviderName,
+      defaultLlmModelName: project.defaultLlmModelName,
+      customLlmModelName: project.customLlmModelName,
+      customLlmBaseURL: project.customLlmBaseURL,
     }));
   }),
 
@@ -52,6 +58,10 @@ export const projectRouter = createTRPCRouter({
           name,
           userId: ctx.session.user.id,
           customInstructions: customInstructions ?? undefined,
+          defaultLlmProviderName: undefined,
+          defaultLlmModelName: undefined,
+          customLlmModelName: undefined,
+          customLlmBaseURL: undefined,
         });
 
         if (!createdProject) {
@@ -94,16 +104,62 @@ export const projectRouter = createTRPCRouter({
       return project;
     }),
 
+  getProjectLlmSettings: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { projectId } = input;
+      await operations.ensureProjectAccess(
+        ctx.db,
+        projectId,
+        ctx.session.user.id,
+      );
+
+      const project = await ctx.db.query.projects.findFirst({
+        where: eq(schema.projects.id, projectId),
+        columns: {
+          defaultLlmProviderName: true,
+          defaultLlmModelName: true,
+          customLlmModelName: true,
+          customLlmBaseURL: true,
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Project not found.",
+        });
+      }
+      return {
+        defaultLlmProviderName: project.defaultLlmProviderName ?? null,
+        defaultLlmModelName: project.defaultLlmModelName ?? null,
+        customLlmModelName: project.customLlmModelName ?? null,
+        customLlmBaseURL: project.customLlmBaseURL ?? null,
+      };
+    }),
+
   updateProject: protectedProcedure
     .input(
       z.object({
         projectId: z.string(),
         name: z.string().optional(),
         customInstructions: z.string().nullable().optional(),
+        defaultLlmProviderName: z.string().nullable().optional(),
+        defaultLlmModelName: z.string().nullable().optional(),
+        customLlmModelName: z.string().nullable().optional(),
+        customLlmBaseURL: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { projectId, name, customInstructions } = input;
+      const {
+        projectId,
+        name,
+        customInstructions,
+        defaultLlmProviderName,
+        defaultLlmModelName,
+        customLlmModelName,
+        customLlmBaseURL,
+      } = input;
       await operations.ensureProjectAccess(
         ctx.db,
         projectId,
@@ -114,6 +170,22 @@ export const projectRouter = createTRPCRouter({
         name,
         customInstructions:
           customInstructions === null ? "" : customInstructions,
+        defaultLlmProviderName:
+          defaultLlmProviderName === null
+            ? undefined
+            : (defaultLlmProviderName ?? undefined),
+        defaultLlmModelName:
+          defaultLlmModelName === null
+            ? undefined
+            : (defaultLlmModelName ?? undefined),
+        customLlmModelName:
+          customLlmModelName === null
+            ? undefined
+            : (customLlmModelName ?? undefined),
+        customLlmBaseURL:
+          customLlmBaseURL === null
+            ? undefined
+            : (customLlmBaseURL ?? undefined),
       });
 
       if (!updatedProject) {
@@ -126,6 +198,99 @@ export const projectRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         customInstructions: updatedProject.customInstructions,
         composioEnabled: updatedProject.composioEnabled,
+        defaultLlmProviderName: updatedProject.defaultLlmProviderName,
+        defaultLlmModelName: updatedProject.defaultLlmModelName,
+        customLlmModelName: updatedProject.customLlmModelName,
+        customLlmBaseURL: updatedProject.customLlmBaseURL,
+      };
+    }),
+
+  updateProjectLlmSettings: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        defaultLlmProviderName: z.string().nullable().optional(),
+        defaultLlmModelName: z.string().nullable().optional(),
+        customLlmModelName: z.string().nullable().optional(),
+        customLlmBaseURL: z.string().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const {
+        projectId,
+        defaultLlmProviderName,
+        defaultLlmModelName,
+        customLlmModelName,
+        customLlmBaseURL,
+      } = input;
+      await operations.ensureProjectAccess(
+        ctx.db,
+        projectId,
+        ctx.session.user.id,
+      );
+
+      const updateData: Partial<{
+        defaultLlmProviderName: string | null;
+        defaultLlmModelName: string | null;
+        customLlmModelName: string | null;
+        customLlmBaseURL: string | null;
+      }> = {};
+
+      if ("defaultLlmProviderName" in input) {
+        updateData.defaultLlmProviderName = defaultLlmProviderName ?? null;
+      }
+      if ("defaultLlmModelName" in input) {
+        updateData.defaultLlmModelName = defaultLlmModelName ?? null;
+      }
+      if ("customLlmModelName" in input) {
+        updateData.customLlmModelName = customLlmModelName ?? null;
+      }
+      if ("customLlmBaseURL" in input) {
+        updateData.customLlmBaseURL = customLlmBaseURL ?? null;
+      }
+
+      if (
+        updateData.defaultLlmProviderName !== "openai-compatible" &&
+        "defaultLlmProviderName" in input
+      ) {
+        updateData.customLlmBaseURL = null;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        const currentProject = await ctx.db.query.projects.findFirst({
+          where: eq(schema.projects.id, projectId),
+        });
+        if (!currentProject)
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Project not found.",
+          });
+        return {
+          defaultLlmProviderName: currentProject.defaultLlmProviderName ?? null,
+          defaultLlmModelName: currentProject.defaultLlmModelName ?? null,
+          customLlmModelName: currentProject.customLlmModelName ?? null,
+          customLlmBaseURL: currentProject.customLlmBaseURL ?? null,
+        };
+      }
+
+      const updatedProject = await ctx.db
+        .update(schema.projects)
+        .set(updateData)
+        .where(eq(schema.projects.id, projectId))
+        .returning();
+
+      if (!updatedProject || updatedProject.length === 0) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update project LLM settings.",
+        });
+      }
+      return {
+        defaultLlmProviderName:
+          updatedProject[0].defaultLlmProviderName ?? null,
+        defaultLlmModelName: updatedProject[0].defaultLlmModelName ?? null,
+        customLlmModelName: updatedProject[0].customLlmModelName ?? null,
+        customLlmBaseURL: updatedProject[0].customLlmBaseURL ?? null,
       };
     }),
 

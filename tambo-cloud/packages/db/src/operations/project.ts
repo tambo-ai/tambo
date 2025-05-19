@@ -18,10 +18,18 @@ export async function createProject(
     userId,
     customInstructions,
     role = "admin",
+    defaultLlmProviderName,
+    defaultLlmModelName,
+    customLlmModelName,
+    customLlmBaseURL,
   }: {
     name: string;
     userId: string;
     customInstructions?: string;
+    defaultLlmProviderName?: string;
+    defaultLlmModelName?: string;
+    customLlmModelName?: string;
+    customLlmBaseURL?: string;
     role?: string;
   },
 ) {
@@ -35,6 +43,10 @@ export async function createProject(
       .values({
         name: name || "New Project",
         customInstructions,
+        defaultLlmProviderName,
+        defaultLlmModelName,
+        customLlmModelName,
+        customLlmBaseURL,
       })
       .returning();
 
@@ -97,13 +109,35 @@ export async function getProjectWithKeys(db: HydraDb, id: string) {
 export async function updateProject(
   db: HydraDb,
   id: string,
-  { name, customInstructions }: { name?: string; customInstructions?: string },
+  {
+    name,
+    customInstructions,
+    defaultLlmProviderName,
+    defaultLlmModelName,
+    customLlmModelName,
+    customLlmBaseURL,
+  }: {
+    name?: string;
+    customInstructions?: string;
+    defaultLlmProviderName?: string;
+    defaultLlmModelName?: string;
+    customLlmModelName?: string;
+    customLlmBaseURL?: string;
+  },
 ) {
   // Create update object with only provided fields
   const updateData: Partial<typeof schema.projects.$inferInsert> = {};
   if (name !== undefined) updateData.name = name;
   if (customInstructions !== undefined)
     updateData.customInstructions = customInstructions;
+  if (defaultLlmProviderName !== undefined)
+    updateData.defaultLlmProviderName = defaultLlmProviderName;
+  if (defaultLlmModelName !== undefined)
+    updateData.defaultLlmModelName = defaultLlmModelName;
+  if (customLlmModelName !== undefined)
+    updateData.customLlmModelName = customLlmModelName;
+  if (customLlmBaseURL !== undefined)
+    updateData.customLlmBaseURL = customLlmBaseURL;
 
   // Only perform update if there are fields to update
   if (Object.keys(updateData).length === 0) {

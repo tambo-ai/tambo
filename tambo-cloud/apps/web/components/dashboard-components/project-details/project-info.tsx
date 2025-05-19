@@ -1,10 +1,10 @@
 import { CopyButton } from "@/components/copy-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { ProjectResponseDto } from "../../../app/(authed)/dashboard/types/types";
+import { type RouterOutputs } from "@/trpc/react";
 
 interface ProjectInfoProps {
-  project: ProjectResponseDto;
+  project: RouterOutputs["project"]["getUserProjects"][number];
   createdAt?: string; // Optional creation date
 }
 
