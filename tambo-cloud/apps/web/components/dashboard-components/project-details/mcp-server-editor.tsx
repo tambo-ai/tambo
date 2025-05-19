@@ -4,9 +4,10 @@ import { api } from "@/trpc/react";
 import { MCPTransport } from "@tambo-ai-cloud/core";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
-import { Check, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
+import { Check, Info, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { McpServerToolsDialog } from "./mcp-server-tools-dialog";
 
 export interface MCPServerInfo {
   id: string;
@@ -64,6 +65,7 @@ export function McpServerEditor({
     server.customHeaders[firstHeaderKey] || "",
   );
   const [isHeaderValueFocused, setIsHeaderValueFocused] = useState(false);
+  const [isInspecting, setIsInspecting] = useState(false);
   const {
     data: authResult,
     mutateAsync: startAuth,
@@ -220,6 +222,16 @@ export function McpServerEditor({
                 </>
               ) : (
                 <>
+                  {server.mcpIsAuthed && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsInspecting(true)}
+                      title="Inspect tools"
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" onClick={onEdit}>
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -322,6 +334,15 @@ export function McpServerEditor({
           />
         </div>
       </div>
+
+      {projectId && (
+        <McpServerToolsDialog
+          open={isInspecting}
+          onOpenChange={setIsInspecting}
+          projectId={projectId}
+          serverId={server.id}
+        />
+      )}
     </div>
   );
 }
