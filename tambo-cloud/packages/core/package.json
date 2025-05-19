@@ -32,6 +32,6 @@
     "extends": "../../package.json"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.11.0"
+    "@modelcontextprotocol/sdk": "^1.11.4"
   }
 }
