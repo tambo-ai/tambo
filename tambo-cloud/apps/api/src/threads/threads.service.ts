@@ -941,11 +941,20 @@ export class ThreadsService {
     const providerKeys = projectWithKeys.getProviderKeys();
 
     if (!providerKeys.length) {
+      if (providerName === "openai") {
+        const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
+        if (!fallbackKey) {
+          throw new NotFoundException(
+            "No provider keys found for project and no fallback key configured",
+          );
+        }
+        return fallbackKey;
+      }
       this.logger.error(
-        `No API keys configured for project ${projectId}. An API key is required to proceed.`,
+        `No provider keys configured for project ${projectId}. An API key is required to proceed.`,
       );
       throw new NotFoundException(
-        `No API keys found for project ${projectId}. Please configure an API key.`,
+        `No provider keys found for project ${projectId}. Please configure an API key.`,
       );
     }
 
