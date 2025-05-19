@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.10.0...tambo-v0.10.1) (2025-05-19)
+
+
+### Bug Fixes
+
+* **cli:** a few more dev tweaks to allow listing components, not crashing on add, etc ([#442](https://github.com/tambo-ai/tambo/issues/442)) ([3a79f60](https://github.com/tambo-ai/tambo/commit/3a79f606cf116a8924129a426f87362121757b6c))
+* small devex tweaks ([#429](https://github.com/tambo-ai/tambo/issues/429)) ([b42caaa](https://github.com/tambo-ai/tambo/commit/b42caaab3f0e9d98adaea625891e0a2a1f146f83))
+
+
+### Miscellaneous
+
+* **deps:** bump sanitize-html from 2.16.0 to 2.17.0 ([#436](https://github.com/tambo-ai/tambo/issues/436)) ([2e3153d](https://github.com/tambo-ai/tambo/commit/2e3153d8d34145d35014799b96ed943a48cf0d68))
+
 ## [0.10.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.9.0...tambo-v0.10.0) (2025-05-15)
 
 
