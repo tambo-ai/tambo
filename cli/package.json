@@ -64,7 +64,7 @@
     "meow": "^13.2.0",
     "open": "^10.1.2",
     "ora": "^8.1.0",
-    "sanitize-html": "^2.16.0",
+    "sanitize-html": "^2.17.0",
     "semver": "^7.7.2",
     "ts-morph": "^25.0.1"
   },
