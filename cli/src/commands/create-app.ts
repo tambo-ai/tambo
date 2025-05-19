@@ -296,7 +296,7 @@ export async function handleCreateApp(
     console.log(
       `  ${step}. ${chalk.cyan(
         "npx tambo add <component-name>",
-      )} to add additionalcomponents`,
+      )} to add additional components`,
     );
     step++;
     console.log(`  ${step}. ${chalk.cyan("npm run dev")}`);
