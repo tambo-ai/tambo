@@ -246,6 +246,9 @@ export async function handleCreateApp(
     // Update package.json name
     if (appName !== ".") {
       updatePackageJson(targetDir, appName);
+    } else {
+      // use the current directory name as the app name
+      updatePackageJson(targetDir, path.basename(process.cwd()));
     }
 
     // Change to target directory
