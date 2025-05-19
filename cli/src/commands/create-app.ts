@@ -280,28 +280,27 @@ export async function handleCreateApp(
       ),
     );
     console.log("\nNext steps:");
-    console.log(`  1. ${chalk.cyan(`cd ${appName === "." ? "." : appName}`)}`);
-    if (!options.initGit) {
-      console.log(`  2. ${chalk.cyan("git init")} (optional)`);
+    let step = 1;
+    if (appName !== ".") {
+      console.log(
+        `  ${step}. ${chalk.cyan(`cd ${appName === "." ? "." : appName}`)}`,
+      );
+      step++;
     }
+    if (!options.initGit) {
+      console.log(`  ${step}. ${chalk.cyan("git init")}`);
+      step++;
+    }
+    console.log(`  ${step}. ${chalk.cyan("npx tambo init")} to complete setup`);
+    step++;
     console.log(
-      `  ${!options.initGit ? "3" : "2"}. ${chalk.cyan(
-        "npx tambo init",
-      )} to complete setup`,
-    );
-    console.log(
-      `  ${!options.initGit ? "4" : "3"}. ${chalk.cyan(
+      `  ${step}. ${chalk.cyan(
         "npx tambo add <component-name>",
-      )} to add components`,
+      )} to add additionalcomponents`,
     );
-    console.log(
-      `  ${!options.initGit ? "5" : "4"}. ${chalk.cyan(
-        "npx tambo update <component-name>",
-      )} to update components`,
-    );
-    console.log(
-      `  ${!options.initGit ? "6" : "5"}. ${chalk.cyan("npm run dev")}`,
-    );
+    step++;
+    console.log(`  ${step}. ${chalk.cyan("npm run dev")}`);
+    step++;
   } catch (error) {
     console.error(
       chalk.red("\nError creating app:"),
