@@ -1,53 +1,34 @@
 # Hydra API
 
-1. make a `.env` file with contents I will send you
-
-1. make a `firestore-creds.json` file at root with contents I will send you
-
-1. `npm i`
-
-1. `npm run dev`
-
-1. `localhost:3000/api`
+1. Create a `.env` file with the values I will send you.
+2. Run `npm i`.
+3. Start the dev server with `npm run dev`.
+4. Visit `http://localhost:3000/api` for the Swagger UI.
 
 ## Instructions
 
-go to `/api` to find the Swagger UI. You can use the `authenticate` button to set your `x-api-key` header before any request.
+Open `/api` in the browser to see the Swagger UI. Use the **Authorize** button to set your `x-api-key` header before making any request.
 
 ### Intro
 
-Main routes can be found in the controller in `/src/components/components.controller.ts` and are:
+Key component routes (defined in `/src/components/components.controller.ts`) are:
 
-- /components/generate
-- /components/hydrate
+- `POST /components/generate`
+- `POST /components/hydrate`
 
-These routes require a valid api key in the `x-api-key` header. These api keys encode the projectId, and a list of valid keys for each project is stored in the firestore db.
+These routes require a valid API key in the `x-api-key` header.  
+API keys are generated through the Projects controller and are stored securely in the database (hashed at rest).
 
-However, you can't just copy/paste one of the keys from firestore, since all keys are hashed before being stored. Use the generate token route under the Projects controller to get a usable key in the response.
+To manage projects:
 
-To use any of the project routes, you should authenticate using an Admin Key (in the env file i'll provide). Later these project routes will instead be protected by user auth tokens.
+1. Authenticate with an **Admin Key** (defined in your `.env`).
+2. Create a project with `POST /projects`.
+3. Add a provider key to the project with `PUT /projects/{id}/provider-key` (currently only `openai` is supported).
+4. Generate an API key for your project with `PUT /projects/{id}/api-key`.
+5. Use the generated API key when calling component routes or when instantiating a client, e.g.:
 
-Projects also have a list of ProviderKeys. For now, the api expects a project to have a single providerKey that is for openai.
+   ```ts
+   const hydra = new HydraClient(undefined, undefined, "your-api-key", apiUrl);
+   ```
 
-### Steps for testing:
-
-1. Auth with an Admin key
-
-2. Create a Project
-
-Use the `POST /projects` route with whatever data
-
-3. Add a provider key for that project
-
-Use the `PUT projects/id/provider-key` route, with `openai` as providerName, and an openai api key as providerKey
-
-4. Generate an api key for that project
-
-Use the `PUT projects/id/api-key/...` route. Use any data for userId and name for now. Copy the key in the response
-
-5. Authenticate using the api key you generated
-
-6. Start using the /components/ routes! Or more realistically, have a demo project use the API by adding api key in the HydraClient constructor, like:
-   `const hydra = new HydraClient(undefined, undefined, "key", url)`
-
-   (will update so undefined not needed here...)
+That’s it—no Firestore credentials are required anymore.
