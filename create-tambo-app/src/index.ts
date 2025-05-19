@@ -3,7 +3,7 @@
 import { spawn } from "child_process";
 
 // Use npx to ensure we get the latest version of tambo
-const args = ["tambo", "create-app", ...process.argv.slice(2)];
+const args = ["-y", "tambo", "create-app@latest", ...process.argv.slice(2)];
 const child = spawn("npx", args, {
   stdio: "inherit",
   shell: true,
