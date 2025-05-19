@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.52.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.51.1...repo-v0.52.0) (2025-05-19)
+
+
+### Features
+
+* add multiple llm providers ([#988](https://github.com/tambo-ai/tambo-cloud/issues/988)) ([e1a4ac8](https://github.com/tambo-ai/tambo-cloud/commit/e1a4ac8db5e7d38c73e91a518fb68c466bcfe10c))
+* add tool inspector ([#1002](https://github.com/tambo-ai/tambo-cloud/issues/1002)) ([138271f](https://github.com/tambo-ai/tambo-cloud/commit/138271f30936c63be981528b1e62f4685df70f30))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @next/eslint-plugin-next from 15.3.1 to 15.3.2 ([#991](https://github.com/tambo-ai/tambo-cloud/issues/991)) ([50462f7](https://github.com/tambo-ai/tambo-cloud/commit/50462f79c84df2c1e568b9d0ff6e422a34af913d))
+* **deps-dev:** bump @types/node from 20.17.46 to 20.17.48 ([#985](https://github.com/tambo-ai/tambo-cloud/issues/985)) ([a1e5cd6](https://github.com/tambo-ai/tambo-cloud/commit/a1e5cd65f08408d3b15f7a7dac39da7d331b65f2))
+* **deps-dev:** bump the eslint group with 3 updates ([#979](https://github.com/tambo-ai/tambo-cloud/issues/979)) ([c090e78](https://github.com/tambo-ai/tambo-cloud/commit/c090e78d9cd49ab1819ec9c12e3e1b55e865335c))
+* **deps-dev:** bump ts-jest from 29.3.2 to 29.3.4 in the testing group ([#981](https://github.com/tambo-ai/tambo-cloud/issues/981)) ([749ea3e](https://github.com/tambo-ai/tambo-cloud/commit/749ea3ea17573101a01fa4242d6467dce8fb9649))
+* **deps:** bump @modelcontextprotocol/sdk from 1.11.2 to 1.11.4 ([#998](https://github.com/tambo-ai/tambo-cloud/issues/998)) ([1aae348](https://github.com/tambo-ai/tambo-cloud/commit/1aae3485d3c460d9c04b9eabfb53f81ae7d6ed33))
+* **deps:** bump @splinetool/runtime from 1.9.93 to 1.9.96 ([#984](https://github.com/tambo-ai/tambo-cloud/issues/984)) ([a586361](https://github.com/tambo-ai/tambo-cloud/commit/a586361d57bfb8c7bc0eea5656489eae0902e266))
+* **deps:** bump @tambo-ai/react from 0.23.1 to 0.26.0 ([#982](https://github.com/tambo-ai/tambo-cloud/issues/982)) ([0830723](https://github.com/tambo-ai/tambo-cloud/commit/0830723878453e152a5397ac0a2fa9bd39435d37))
+* **deps:** bump @tanstack/react-query from 5.75.2 to 5.76.1 ([#986](https://github.com/tambo-ai/tambo-cloud/issues/986)) ([3baab27](https://github.com/tambo-ai/tambo-cloud/commit/3baab27ba7fa3f45fbea57808154e8db6dcb19ee))
+* **deps:** bump composio-core from 0.5.36 to 0.5.39 ([#993](https://github.com/tambo-ai/tambo-cloud/issues/993)) ([036d9ec](https://github.com/tambo-ai/tambo-cloud/commit/036d9eccc312d503bf801ffa44f1b6445c0b3a8e))
+* **deps:** bump framer-motion from 12.11.0 to 12.12.1 ([#994](https://github.com/tambo-ai/tambo-cloud/issues/994)) ([ed8f73c](https://github.com/tambo-ai/tambo-cloud/commit/ed8f73c519247eccf42cc29a4efb64d08614977a))
+* **deps:** bump lucide-react from 0.510.0 to 0.511.0 ([#997](https://github.com/tambo-ai/tambo-cloud/issues/997)) ([aa67f59](https://github.com/tambo-ai/tambo-cloud/commit/aa67f59338145f171df447fe9151f75a56877d71))
+* **deps:** bump next from 15.3.1 to 15.3.2 ([#987](https://github.com/tambo-ai/tambo-cloud/issues/987)) ([c86bc27](https://github.com/tambo-ai/tambo-cloud/commit/c86bc2793a0eab9522b066ad649b7e9dc05f8a33))
+* **deps:** bump openai from 4.98.0 to 4.100.0 ([#992](https://github.com/tambo-ai/tambo-cloud/issues/992)) ([35cb769](https://github.com/tambo-ai/tambo-cloud/commit/35cb76993ca818b7bd68323730fad05cad5a0b99))
+* **deps:** bump pg and @types/pg ([#983](https://github.com/tambo-ai/tambo-cloud/issues/983)) ([84cef05](https://github.com/tambo-ai/tambo-cloud/commit/84cef053bc8613b4c026c7c94cc092001fcc0ebe))
+* **deps:** bump react-hook-form from 7.56.2 to 7.56.4 ([#995](https://github.com/tambo-ai/tambo-cloud/issues/995)) ([5010fc4](https://github.com/tambo-ai/tambo-cloud/commit/5010fc4dda1949647c6d5c858e57617d11b8324c))
+* **deps:** bump the nestjs group with 4 updates ([#978](https://github.com/tambo-ai/tambo-cloud/issues/978)) ([937681e](https://github.com/tambo-ai/tambo-cloud/commit/937681ee8071bf990173cc4190130fbd6f5d6d66))
+* **deps:** bump tldts from 7.0.6 to 7.0.7 ([#996](https://github.com/tambo-ai/tambo-cloud/issues/996)) ([d6d29c0](https://github.com/tambo-ai/tambo-cloud/commit/d6d29c0aa7986e7e0be98980626e8b237a2e245f))
+* **deps:** remove @google-cloud/firestore from api dependencies ([#1001](https://github.com/tambo-ai/tambo-cloud/issues/1001)) ([2ea5242](https://github.com/tambo-ai/tambo-cloud/commit/2ea52420137a0e9282658833f67c27b06a248913))
+
 ## [0.51.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.51.0...repo-v0.51.1) (2025-05-16)
 
 
