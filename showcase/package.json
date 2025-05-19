@@ -14,7 +14,7 @@
     "@radix-ui/react-slot": "^1.2.2",
     "@tambo-ai/react": "*",
     "class-variance-authority": "^0.7.1",
-    "dompurify": "^3.2.5",
+    "dompurify": "^3.2.6",
     "framer-motion": "^12.11.0",
     "geist": "^1.4.2",
     "highlight.js": "^11.11.1",
