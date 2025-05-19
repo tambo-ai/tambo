@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.0...repo-v0.52.1) (2025-05-19)
+
+
+### Bug Fixes
+
+* add back fallback provider key for openai ([#1003](https://github.com/tambo-ai/tambo-cloud/issues/1003)) ([4a2225e](https://github.com/tambo-ai/tambo-cloud/commit/4a2225ea3d0cbd9c3448b289b3ea97611afb6d75))
+
 ## [0.52.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.51.1...repo-v0.52.0) (2025-05-19)
 
 
