@@ -11,6 +11,7 @@ import { handleAddComponent } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
+import { handleListComponents } from "./commands/list/index.js";
 import { handleUpdateComponent } from "./commands/update.js";
 import { handleUpgrade } from "./commands/upgrade/index.js";
 
@@ -43,6 +44,7 @@ const cli = meow(
       "init",
     )}                Initialize tambo in a project and set up configuration
     ${chalk.yellow("add")}                 Add a new component
+    ${chalk.yellow("list")}                List all installed components
     ${chalk.yellow(
       "update",
     )}              Update an existing component from the registry
@@ -71,6 +73,7 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("list")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade --accept-all")}
@@ -170,6 +173,11 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     await handleAddComponent(componentName, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
     });
+    return;
+  }
+
+  if (cmd === "list") {
+    await handleListComponents();
     return;
   }
 

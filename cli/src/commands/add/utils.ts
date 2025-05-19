@@ -50,14 +50,19 @@ export function getComponentList(): ComponentInfo[] {
     .filter((file) => fs.statSync(path.join(registryPath, file)).isDirectory())
     .filter((dir) => dir !== "config");
 
-  return components.map((componentName) => {
-    const configPath = getConfigPath(componentName);
-    const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  return components
+    .map((componentName) => {
+      const configPath = getConfigPath(componentName);
+      if (!fs.existsSync(configPath)) {
+        return null;
+      }
+      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
-    return {
-      name: componentName,
-      description: config.description ?? "No description available",
-      componentName: config.componentName ?? componentName,
-    };
-  });
+      return {
+        name: componentName,
+        description: config.description ?? "No description available",
+        componentName: config.componentName ?? componentName,
+      };
+    })
+    .filter((component) => component !== null);
 }
