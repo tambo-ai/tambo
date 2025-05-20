@@ -44,7 +44,7 @@ export const ScrollableMessageContainer = React.forwardRef<
             behavior: "smooth",
           });
         }
-      }, 100);
+      }, 250);
 
       return () => clearTimeout(timeoutId);
     }
