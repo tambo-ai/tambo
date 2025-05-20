@@ -143,7 +143,7 @@ const ThreadContentMessages = React.forwardRef<
             }
             data-slot="thread-content-item"
           >
-            {/** Determine alignment once for clarity */}
+            {/* Determine alignment once for clarity */}
             {(() => {
               const isAssistant = message.role === "assistant";
               return (
