@@ -64,7 +64,7 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
       className,
       contextKey,
       onThreadChange,
-      defaultCollapsed = false,
+      defaultCollapsed = true,
       position = "left",
       children,
       ...props
