@@ -90,7 +90,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
       <ThreadContentContext.Provider value={contextValue}>
         <div
           ref={ref}
-          className={cn(className)}
+          className={cn("w-full", className)}
           data-slot="thread-content-container"
           {...props}
         >
@@ -128,7 +128,7 @@ const ThreadContentMessages = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn(className)}
+      className={cn("w-full", className)}
       data-slot="thread-content-messages"
       {...props}
     >
@@ -143,29 +143,34 @@ const ThreadContentMessages = React.forwardRef<
             }
             data-slot="thread-content-item"
           >
-            <Message
-              role={message.role === "assistant" ? "assistant" : "user"}
-              message={message}
-              variant={variant}
-              isLoading={showLoading}
-              className={
-                message.role === "assistant"
-                  ? "flex justify-start"
-                  : "flex justify-end"
-              }
-            >
-              <div className="flex flex-col">
-                <MessageContent
-                  className={
-                    message.role === "assistant"
-                      ? "text-primary font-sans"
-                      : "text-primary bg-container hover:bg-backdrop font-sans"
-                  }
-                />
-                {/* Rendered component area determines if the message is a canvas message */}
-                <MessageRenderedComponentArea />
-              </div>
-            </Message>
+            {/** Determine alignment once for clarity */}
+            {(() => {
+              const isAssistant = message.role === "assistant";
+              return (
+                <Message
+                  role={isAssistant ? "assistant" : "user"}
+                  message={message}
+                  variant={variant}
+                  isLoading={showLoading}
+                  className={cn(
+                    "flex w-full",
+                    isAssistant ? "justify-start" : "justify-end max-w-3xl",
+                  )}
+                >
+                  <div className="flex flex-col">
+                    <MessageContent
+                      className={
+                        isAssistant
+                          ? "text-primary font-sans"
+                          : "text-primary bg-container hover:bg-backdrop font-sans"
+                      }
+                    />
+                    {/* Rendered component area determines if the message is a canvas message */}
+                    <MessageRenderedComponentArea />
+                  </div>
+                </Message>
+              );
+            })()}
           </div>
         );
       })}
