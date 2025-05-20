@@ -1,0 +1,46 @@
+/* Custom styles for documentation section */
+
+/* Override fumadocs theme variables specifically for docs section */
+:root {
+  --fd-background: 0 0% 100% !important;
+  --fd-foreground: 240 10% 3.9% !important;
+  --fd-card: 0 0% 100% !important;
+  --fd-card-foreground: 240 10% 3.9% !important;
+  --fd-popover: 0 0% 100% !important;
+  --fd-popover-foreground: 240 10% 3.9% !important;
+  --fd-primary: 240 5.9% 10% !important;
+  --fd-primary-foreground: 0 0% 98% !important;
+  --fd-secondary: 240 4.8% 95.9% !important;
+  --fd-secondary-foreground: 240 5.9% 10% !important;
+  --fd-muted: 240 4.8% 95.9% !important;
+  --fd-muted-foreground: 240 3.8% 46.1% !important;
+  --fd-accent: 240 4.8% 95.9% !important;
+  --fd-accent-foreground: 240 5.9% 10% !important;
+  --fd-destructive: 0 84.2% 60.2% !important;
+  --fd-destructive-foreground: 0 0% 98% !important;
+  --fd-border: 240 5.9% 90% !important;
+  --fd-input: 240 5.9% 90% !important;
+  --fd-ring: 240 10% 3.9% !important;
+  --fd-radius: 0.5rem !important;
+
+  /* You can add more custom overrides here */
+}
+
+/* Custom styles for heading fonts in docs */
+.fd-prose h1,
+.fd-prose h2,
+.fd-prose h3,
+.fd-prose h4,
+.fd-prose h5,
+.fd-prose h6 {
+  font-family: var(--font-sentient-light), serif !important;
+}
+
+/* Ensure links have the right color */
+.fd-prose a {
+  color: hsl(186 94% 13%) !important; /* Match your primary-foreground */
+}
+
+.fd-prose a:hover {
+  text-decoration: underline;
+}
