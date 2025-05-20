@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.3...create-tambo-app-v0.1.4) (2025-05-20)
+
+
+### Bug Fixes
+
+* use [@latest](https://github.com/latest) on internal tambo cli call in create-tambo-app ([#445](https://github.com/tambo-ai/tambo/issues/445)) ([f78d4a1](https://github.com/tambo-ai/tambo/commit/f78d4a1dfb80f01f345b855cebf5bcabfa439fb2))
+
 ## [0.1.3](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.2...create-tambo-app-v0.1.3) (2025-05-20)
 
 
