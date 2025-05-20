@@ -61,7 +61,7 @@ export const MessageThreadFull = React.forwardRef<
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
   // Track sidebar width changes using state
-  const [sidebarWidth, setSidebarWidth] = React.useState("16rem"); // Default expanded width
+  const [sidebarWidth, setSidebarWidth] = React.useState("3rem"); // Default collapsed width
 
   // Effect to listen for CSS variable changes and update state
   React.useEffect(() => {
@@ -112,7 +112,6 @@ export const MessageThreadFull = React.forwardRef<
     <ThreadHistory
       contextKey={contextKey}
       position={historyPosition}
-      defaultCollapsed={false}
       className="absolute h-full z-10 border-flat rounded-l-lg bg-container transition-all duration-300"
     >
       <ThreadHistoryHeader />
