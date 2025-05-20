@@ -165,7 +165,7 @@ const ThreadContentMessages = React.forwardRef<
                       }
                     />
                     {/* Rendered component area determines if the message is a canvas message */}
-                    <MessageRenderedComponentArea />
+                    <MessageRenderedComponentArea className="w-full" />
                   </div>
                 </Message>
               );
