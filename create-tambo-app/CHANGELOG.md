@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.2...create-tambo-app-v0.1.3) (2025-05-20)
+
+
+### Bug Fixes
+
+* **cli:** update npx command to use create-app without version specifier ([#443](https://github.com/tambo-ai/tambo/issues/443)) ([0b8a60e](https://github.com/tambo-ai/tambo/commit/0b8a60ecfacc03692aefcff57f2ed95b1552c0fc))
+
 ## [0.1.2](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.1...create-tambo-app-v0.1.2) (2025-05-19)
 
 
