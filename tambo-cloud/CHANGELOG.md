@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.1...repo-v0.52.2) (2025-05-20)
+
+
+### Miscellaneous Chores
+
+* **docs:** more neutral doc colors ([#965](https://github.com/tambo-ai/tambo-cloud/issues/965)) ([44cdb50](https://github.com/tambo-ai/tambo-cloud/commit/44cdb50b747db262483e747729508b906e23d405))
+
 ## [0.52.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.0...repo-v0.52.1) (2025-05-19)
 
 
