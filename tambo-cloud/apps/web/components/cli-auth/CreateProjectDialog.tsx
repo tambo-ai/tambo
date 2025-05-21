@@ -14,6 +14,7 @@ import {
 import { MCPTransport } from "@tambo-ai-cloud/core";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { memo, useCallback, useState } from "react";
+import { FREE_MESSAGE_LIMIT } from "../dashboard-components/project-details/provider-key-section";
 
 type CreateProjectDialogState = Readonly<{
   isOpen: boolean;
@@ -210,8 +211,8 @@ export const CreateProjectDialog = memo(function CreateProjectDialog({
               name="project-name"
             />
             <p className="p-2 text-xs text-muted-foreground">
-              Start with 500 free messages, or add your own LLM Provider Key.
-              You can add one at any time in the project settings.
+              Start with {FREE_MESSAGE_LIMIT} free messages, or add your own LLM
+              Provider Key. You can add one at any time in the project settings.
             </p>
           </div>
           <div>

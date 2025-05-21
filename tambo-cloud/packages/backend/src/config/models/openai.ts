@@ -52,6 +52,7 @@ export const openaiModels: LlmModelConfig = {
       supportsTools: true,
       supportsJsonMode: true,
     },
+    isDefaultModel: true,
   },
   "gpt-4-turbo": {
     apiName: "gpt-4-turbo",

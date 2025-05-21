@@ -1,10 +1,9 @@
 import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { hashKey, MCPTransport, validateMcpServer } from "@tambo-ai-cloud/core";
-import { operations } from "@tambo-ai-cloud/db";
-import { schema } from "@tambo-ai-cloud/db";
+import { operations, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const projectRouter = createTRPCRouter({
@@ -321,6 +320,17 @@ export const projectRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
+      // First delete any existing key for this provider
+      await ctx.db
+        .delete(schema.providerKeys)
+        .where(
+          and(
+            eq(schema.providerKeys.projectId, projectId),
+            eq(schema.providerKeys.providerName, providerName),
+          ),
+        );
+
+      // Then add the new key if one was provided
       if (providerKey) {
         return await operations.addProviderKey(
           ctx.db,
@@ -411,5 +421,29 @@ export const projectRouter = createTRPCRouter({
         ctx.session.user.id,
       );
       await operations.deleteApiKey(ctx.db, input.projectId, input.apiKeyId);
+    }),
+
+  getProjectMessageUsage: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { projectId } = input;
+      await operations.ensureProjectAccess(
+        ctx.db,
+        projectId,
+        ctx.session.user.id,
+      );
+
+      const usage = await operations.getProjectMessageUsage(ctx.db, projectId);
+      if (!usage) {
+        return {
+          messageCount: 0,
+          hasApiKey: false,
+        };
+      }
+
+      return {
+        messageCount: usage.messageCount,
+        hasApiKey: usage.hasApiKey,
+      };
     }),
 });

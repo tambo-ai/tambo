@@ -19,6 +19,8 @@ export interface LlmModelConfigInfo {
   tamboDocLink?: string;
   /** Additional capabilities of the model */
   properties?: LlmModelCapabilities;
+  /** Whether the model is the default model */
+  isDefaultModel?: boolean;
 }
 
 export type LlmModelConfig = Record<string, LlmModelConfigInfo>;
@@ -38,6 +40,8 @@ export interface LlmProviderConfigInfo {
   isCustomProvider?: boolean;
   /** Whether the provider requires a base URL */
   requiresBaseUrl?: boolean;
+  /** Whether the provider is the default provider */
+  isDefaultProvider?: boolean;
 }
 
 export type LlmProviderConfig = Record<string, LlmProviderConfigInfo>;

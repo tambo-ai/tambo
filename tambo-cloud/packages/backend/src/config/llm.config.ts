@@ -10,6 +10,7 @@ export const llmProviderConfig: LlmProviderConfig = {
     docLinkRoot: "https://platform.openai.com/docs",
     apiKeyLink: "https://platform.openai.com/api-keys",
     models: openaiModels,
+    isDefaultProvider: true,
   },
   anthropic: {
     apiName: "anthropic",
