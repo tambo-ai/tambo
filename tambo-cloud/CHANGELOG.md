@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.2...repo-v0.52.3) (2025-05-21)
+
+
+### Bug Fixes
+
+* handle tool calls with [] parameters ([#1012](https://github.com/tambo-ai/tambo-cloud/issues/1012)) ([e1b5d42](https://github.com/tambo-ai/tambo-cloud/commit/e1b5d42eae9f06fb877e104b2126d1effdc56ab8))
+
 ## [0.52.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.1...repo-v0.52.2) (2025-05-20)
 
 
