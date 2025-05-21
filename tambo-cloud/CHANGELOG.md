@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.3...repo-v0.52.4) (2025-05-21)
+
+
+### Bug Fixes
+
+* update provider key config ux ([#1014](https://github.com/tambo-ai/tambo-cloud/issues/1014)) ([40935b3](https://github.com/tambo-ai/tambo-cloud/commit/40935b35c3fb0ffce5fd046d3319d3560d6fef12))
+
 ## [0.52.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.2...repo-v0.52.3) (2025-05-21)
 
 
