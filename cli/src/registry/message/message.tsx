@@ -227,7 +227,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       >
         {showLoading ? (
           <div
-            className="flex items-center justify-center h-4 py-1"
+            className="flex items-center justify-start h-4 py-1"
             data-slot="message-loading-indicator"
           >
             <LoadingIndicator />
