@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.10.1...tambo-v0.11.0) (2025-05-21)
+
+
+### Features
+
+* improve ThreadContent component alignment and width TAM-141 ([#447](https://github.com/tambo-ai/tambo/issues/447)) ([a25ea61](https://github.com/tambo-ai/tambo/commit/a25ea61e9d23050f0a0da736be9db0caa9af3e8f))
+* update ThreadHistory to default to collapsed sidebar ([#427](https://github.com/tambo-ai/tambo/issues/427)) ([efa0894](https://github.com/tambo-ai/tambo/commit/efa0894b254c672cd5d2cb154c1e2a3eed8a274e))
+
+
+### Bug Fixes
+
+* **scrollable-message-container:** increase auto-scroll timeout to 250ms ([#449](https://github.com/tambo-ai/tambo/issues/449)) ([b09dbf1](https://github.com/tambo-ai/tambo/commit/b09dbf1b9da170795c18d841346e69639976a149))
+
 ## [0.10.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.10.0...tambo-v0.10.1) (2025-05-19)
 
 
