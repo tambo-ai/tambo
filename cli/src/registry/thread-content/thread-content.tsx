@@ -133,43 +133,44 @@ const ThreadContentMessages = React.forwardRef<
       {...props}
     >
       {messages.map((message, index) => {
-        const showLoading = isGenerating && index === messages.length - 1;
-
         return (
           <div
             key={
               message.id ??
-              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
+              `${message.role}-${
+                message.createdAt ?? Date.now()
+              }-${message.content?.toString().substring(0, 10)}`
             }
             data-slot="thread-content-item"
           >
-            {(() => {
-              const isAssistant = message.role === "assistant";
-              return (
-                <Message
-                  role={isAssistant ? "assistant" : "user"}
-                  message={message}
-                  variant={variant}
-                  isLoading={showLoading}
-                  className={cn(
-                    "flex w-full",
-                    isAssistant ? "justify-start" : "justify-end max-w-3xl",
-                  )}
-                >
-                  <div className="flex flex-col">
-                    <MessageContent
-                      className={
-                        isAssistant
-                          ? "text-primary font-sans"
-                          : "text-primary bg-container hover:bg-backdrop font-sans"
-                      }
-                    />
-                    {/* Rendered component area determines if the message is a canvas message */}
-                    <MessageRenderedComponentArea className="w-full" />
-                  </div>
-                </Message>
-              );
-            })()}
+            <Message
+              role={message.role === "assistant" ? "assistant" : "user"}
+              message={message}
+              variant={variant}
+              isLoading={isGenerating && index === messages.length - 1}
+              className={cn(
+                "flex w-full",
+                message.role === "assistant"
+                  ? "justify-start"
+                  : "justify-end max-w-3xl",
+              )}
+            >
+              <div
+                className={cn(
+                  "flex flex-col",
+                  message.role === "assistant" ? "w-full" : "",
+                )}
+              >
+                <MessageContent
+                  className={
+                    message.role === "assistant"
+                      ? "text-primary font-sans"
+                      : "text-primary bg-container hover:bg-backdrop font-sans"
+                  }
+                />
+                <MessageRenderedComponentArea className="w-full" />
+              </div>
+            </Message>
           </div>
         );
       })}
