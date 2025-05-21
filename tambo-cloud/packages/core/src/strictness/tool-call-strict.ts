@@ -17,9 +17,14 @@ export function unstrictifyToolCallRequest(
     return toolCallRequest;
   }
 
+  if (!originalTool.function.parameters) {
+    // no original pareters, so we can just return the tool call request
+    return toolCallRequest;
+  }
+
   // unpack the actual tool call request
-  const originalToolParams = (originalTool.function.parameters ??
-    {}) as JSONSchema7Object;
+  const originalToolParams = originalTool.function
+    .parameters as JSONSchema7Object;
   const params = Object.fromEntries(
     toolCallRequest.parameters.map(({ parameterName, parameterValue }) => {
       return [parameterName, parameterValue] as const;
@@ -56,7 +61,7 @@ function unstrictifyToolCallParams(
 ): Record<string, unknown> {
   if (originalToolParamSchema.type !== "object") {
     throw new Error(
-      `originalToolParamSchema must be an object, instead got ${originalToolParamSchema.type}`,
+      `tool call parameter schema must be an object, instead got ${originalToolParamSchema.type} / ${typeof originalToolParamSchema}`,
     );
   }
   const newParams = Object.entries(toolCallRequestParams)

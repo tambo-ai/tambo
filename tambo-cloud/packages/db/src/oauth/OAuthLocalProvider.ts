@@ -148,7 +148,6 @@ export class OAuthLocalProvider implements OAuthClientProvider {
         this._tokens = toolProviderUserContext.mcpOauthTokens;
       }
     }
-    console.log("--> tokens", this._tokens);
 
     return this._tokens;
   }

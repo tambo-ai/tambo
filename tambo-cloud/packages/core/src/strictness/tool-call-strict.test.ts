@@ -227,7 +227,9 @@ describe("unstrictifyToolCallRequest", () => {
 
     expect(() =>
       unstrictifyToolCallRequest(originalTool, toolCallRequest),
-    ).toThrow("originalToolParamSchema must be an object, instead got string");
+    ).toThrow(
+      "tool call parameter schema must be an object, instead got string / object",
+    );
   });
 });
 
