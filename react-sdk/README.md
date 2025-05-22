@@ -33,6 +33,11 @@ const components: TamboComponent[] = [
 ];
 ```
 
+> **Note**  
+> `z.record()` is **not supported** in `propsSchema` or `toolSchema`.  
+> Use `z.object({ ... })` with explicit keys instead so the schema can be  
+> converted to JSON Schema for the Tambo backend.
+
 ### 2. Wrap your app in a TamboProvider
 
 ```tsx

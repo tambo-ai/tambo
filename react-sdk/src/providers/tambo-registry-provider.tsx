@@ -14,6 +14,7 @@ import {
   TamboComponent,
   TamboTool,
 } from "../model/component-metadata";
+import { assertNoZodRecord } from "../util/validate-zod-schema";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
@@ -76,6 +77,13 @@ export const TamboRegistryProvider: React.FC<
 
   const registerTool = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
+      // Validate tool schemas
+      if (tool.toolSchema && isZodSchema(tool.toolSchema)) {
+        assertNoZodRecord(
+          tool.toolSchema,
+          `toolSchema of tool "${tool.name}"`,
+        );
+      }
       setToolRegistry((prev) => {
         if (prev[tool.name] && warnOnOverwrite) {
           console.warn(`Overwriting tool ${tool.name}`);
@@ -132,6 +140,14 @@ export const TamboRegistryProvider: React.FC<
       if (propsSchema && propsDefinition) {
         throw new Error(
           `Component ${name} cannot have both propsSchema and propsDefinition defined. Use only one. We recommend using propsSchema.`,
+        );
+      }
+
+      // Validate that the propsSchema does not include z.record()
+      if (propsSchema && isZodSchema(propsSchema)) {
+        assertNoZodRecord(
+          propsSchema,
+          `propsSchema of component "${name}"`,
         );
       }
 
