@@ -1,8 +1,4 @@
-import {
-  z,
-  ZodTypeAny,
-  ZodFirstPartyTypeKind,
-} from "zod";
+import { z, ZodTypeAny, ZodFirstPartyTypeKind } from "zod";
 
 /**
  * Recursively walks a Zod schema and throws when it encounters `z.record()`.
@@ -10,15 +6,20 @@ import {
  * understands, so they are disallowed.
  *
  * @param schema      The root Zod schema to inspect.
- * @param contextName A human-readable label that will be echoed in the error
- *                    message (e.g. `"propsSchema of component \"Chart\""`).
+ * @param contextName A human-readable label echoed in the error message.
  */
 export function assertNoZodRecord(
   schema: ZodTypeAny,
   contextName: string = "schema",
 ): void {
+  const visited = new WeakSet<ZodTypeAny>();
+
   const visit = (current: ZodTypeAny, path: string[]): void => {
-    const typeName = (current as any)._def?.typeName;
+    if (visited.has(current)) return;
+    visited.add(current);
+
+    const def: any = (current as any)._def;
+    const typeName: ZodFirstPartyTypeKind | undefined = def?.typeName;
 
     // ───────────────────── Disallowed ─────────────────────
     if (typeName === ZodFirstPartyTypeKind.ZodRecord) {
@@ -28,17 +29,6 @@ export function assertNoZodRecord(
           `Found at path "${joined}". ` +
           "Replace it with z.object({ ... }) using explicit keys.",
       );
-    }
-
-    // ─────────────────── Wrapper types ────────────────────
-    if (
-      current instanceof z.ZodOptional ||
-      current instanceof z.ZodNullable ||
-      current instanceof z.ZodDefault ||
-      current instanceof z.ZodEffects
-    ) {
-      visit((current as any)._def.schema, path);
-      return;
     }
 
     // ─────────────── Composite / container types ──────────
@@ -55,33 +45,56 @@ export function assertNoZodRecord(
     }
 
     if (current instanceof z.ZodTuple) {
-      current.items.forEach((item, idx) =>
-        visit(item, [...path, `${idx}`]),
-      );
+      current.items.forEach((item, idx) => visit(item, [...path, `${idx}`]));
       return;
     }
 
     if (current instanceof z.ZodUnion) {
-      (current as any)._def.options.forEach((opt: ZodTypeAny, idx: number) =>
+      def.options.forEach((opt: ZodTypeAny, idx: number) =>
         visit(opt, [...path, `|${idx}`]),
       );
       return;
     }
 
     if (current instanceof z.ZodDiscriminatedUnion) {
-      (current as any).options.forEach((opt: ZodTypeAny, idx: number) =>
+      current.options.forEach((opt: ZodTypeAny, idx: number) =>
         visit(opt, [...path, `|${idx}`]),
       );
       return;
     }
 
     if (current instanceof z.ZodIntersection) {
-      visit((current as any)._def.left, [...path, "&0"]);
-      visit((current as any)._def.right, [...path, "&1"]);
+      visit(def.left, [...path, "&0"]);
+      visit(def.right, [...path, "&1"]);
       return;
     }
 
-    // Primitive leaf types need no further inspection.
+    // ───────────── Wrapper / pass-through types ───────────
+    const potentialKeys = [
+      "schema",
+      "innerType",
+      "type",
+      "in",
+      "out",
+      "left",
+      "right",
+    ] as const;
+
+    for (const key of potentialKeys) {
+      const maybe = def?.[key];
+      if (maybe instanceof z.ZodType) visit(maybe, path);
+      else if (Array.isArray(maybe))
+        maybe.forEach((sub) => sub instanceof z.ZodType && visit(sub, path));
+    }
+
+    if (typeof def?.getter === "function") {
+      try {
+        const lazySchema = def.getter();
+        if (lazySchema instanceof z.ZodType) visit(lazySchema, path);
+      } catch {
+        // Ignore lazy getter execution errors.
+      }
+    }
   };
 
   visit(schema, []);
