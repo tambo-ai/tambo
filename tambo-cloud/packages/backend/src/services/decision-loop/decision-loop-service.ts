@@ -113,6 +113,25 @@ export async function* runDecisionLoop(
       const paramDisplayMessage = toolArgs._tambo_displayMessage;
       const statusMessage = toolArgs._tambo_statusMessage;
       const completionStatusMessage = toolArgs._tambo_completionStatusMessage;
+
+      // Filter out Tambo parameters for both UI and non-UI tools
+      let filteredToolArgs = toolArgs;
+      if (toolCall && Object.keys(toolArgs).length > 0) {
+        const filtered = filterOutStandardToolParameters(
+          toolCall,
+          strictTools,
+          toolArgs,
+        ) as { parameterName: string; parameterValue: unknown }[];
+
+        filteredToolArgs = filtered.reduce(
+          (acc, { parameterName, parameterValue }) => ({
+            ...acc,
+            [parameterName]: parameterValue,
+          }),
+          {},
+        ) as Partial<TamboToolParameters>;
+      }
+
       // If this is a non-UI tool call, make sure params are complete and filter out standard tool parameters
       let clientToolRequest: ToolCallRequest | undefined;
       if (!isUITool && toolCall) {
@@ -133,7 +152,7 @@ export async function* runDecisionLoop(
         componentName: isUITool
           ? toolCall.function.name.slice(UI_TOOLNAME_PREFIX.length)
           : "",
-        props: isUITool ? toolArgs : null,
+        props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
         toolCallId:
           toolCall?.function.name === displayMessageTool.function.name
