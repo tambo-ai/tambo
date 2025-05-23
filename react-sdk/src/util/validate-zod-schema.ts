@@ -45,7 +45,9 @@ export function assertNoZodRecord(
     }
 
     if (current instanceof z.ZodTuple) {
-      current.items.forEach((item, idx) => visit(item, [...path, `${idx}`]));
+      current.items.forEach((item: ZodTypeAny, idx: number) =>
+        visit(item, [...path, `${idx}`]),
+      );
       return;
     }
 
