@@ -1,4 +1,3 @@
-// UPDATED TESTS FOR useStreamProps
 import { act, renderHook } from "@testing-library/react";
 import { useStreamProps } from "../use-stream-props";
 
