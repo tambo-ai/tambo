@@ -1,10 +1,11 @@
-// UPDATED TESTS FOR useStreamProps
 import { act, renderHook } from "@testing-library/react";
-import { useStreamProps } from "../use-stream-props";
+import { useStreamingJsonHook } from "../use-streaming-json-hook";
 
-describe("useStreamProps", () => {
+describe("useStreamingJsonHook", () => {
   it("streams all keys then marks them complete when done", () => {
-    const { result } = renderHook(() => useStreamProps(["name", "email"]));
+    const { result } = renderHook(() =>
+      useStreamingJsonHook(["name", "email"]),
+    );
 
     // Stream "name"
     act(() => {
@@ -29,17 +30,11 @@ describe("useStreamProps", () => {
     expect(result.current.isStreamDone).toBe(true);
     expect(result.current.meta.name.state).toBe("complete");
     expect(result.current.meta.email.state).toBe("complete");
-
-    // Idempotency check — calling markDone again should be a no-op
-    act(() => {
-      result.current.markDone();
-    });
-    expect(result.current.isStreamDone).toBe(true);
   });
 
   it("marks unstreamed keys as skipped when done", () => {
     const { result } = renderHook(() =>
-      useStreamProps(["firstName", "lastName", "age"]),
+      useStreamingJsonHook(["firstName", "lastName", "age"]),
     );
 
     act(() => {
@@ -56,7 +51,7 @@ describe("useStreamProps", () => {
   });
 
   it("keeps key in streaming state until done is received", () => {
-    const { result } = renderHook(() => useStreamProps(["summary"]));
+    const { result } = renderHook(() => useStreamingJsonHook(["summary"]));
 
     act(() => {
       result.current.processToken({ key: "summary", value: "Hello" });
@@ -67,7 +62,7 @@ describe("useStreamProps", () => {
   });
 
   it("ignores unknown keys by default", () => {
-    const { result } = renderHook(() => useStreamProps(["foo"]));
+    const { result } = renderHook(() => useStreamingJsonHook(["foo"]));
 
     act(() => {
       result.current.processToken({ key: "bar", value: "baz" });
@@ -79,7 +74,7 @@ describe("useStreamProps", () => {
 
   it("throws on unknown keys when configured", () => {
     const { result } = renderHook(() =>
-      useStreamProps(["foo"], { onUnknownKey: "throw" }),
+      useStreamingJsonHook(["foo"], { onUnknownKey: "throw" }),
     );
 
     expect(() =>

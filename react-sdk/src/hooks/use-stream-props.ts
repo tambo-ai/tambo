@@ -30,11 +30,11 @@ export interface StreamToken {
  */
 export type UnknownKeyMode = "ignore" | "throw";
 
-export interface UseStreamingJsonHookOptions {
+export interface UseStreamPropsOptions {
   onUnknownKey?: UnknownKeyMode;
 }
 
-export interface StreamingJsonResult {
+export interface StreamPropsResult {
   /**
    * Incrementally-built props object.
    */
@@ -61,10 +61,10 @@ export interface StreamingJsonResult {
  * React hook that incrementally builds a props object from a token stream
  * while tracking per-key streaming state (see Linear issue TAM-153).
  */
-export function useStreamingJsonHook(
+export function useStreamProps(
   expectedKeys: string[],
-  options: UseStreamingJsonHookOptions = {},
-): StreamingJsonResult {
+  options: UseStreamPropsOptions = {},
+): StreamPropsResult {
   const { onUnknownKey = "ignore" } = options;
   const expectedKeySet = useMemo(() => new Set(expectedKeys), [expectedKeys]);
 
@@ -82,6 +82,11 @@ export function useStreamingJsonHook(
   const [isStreamDone, setIsStreamDone] = useState(false);
 
   /**
+   * Guard to ensure `markDone` / `processToken` become no-ops once completed.
+   */
+  const isStreamDoneRef = useRef(false);
+
+  /**
    * The key currently receiving tokens (if any).
    */
   const activeKeyRef = useRef<string | null>(null);
@@ -91,6 +96,11 @@ export function useStreamingJsonHook(
   // --------------------------------------------------------------------------- //
   const processToken = useCallback(
     ({ key, value }: StreamToken) => {
+      if (isStreamDoneRef.current) {
+        // Stream already finished – ignore further tokens.
+        return;
+      }
+
       if (!expectedKeySet.has(key)) {
         if (onUnknownKey === "throw") {
           throw new Error(
@@ -146,6 +156,12 @@ export function useStreamingJsonHook(
   // Done handler
   // --------------------------------------------------------------------------- //
   const markDone = useCallback(() => {
+    if (isStreamDoneRef.current) {
+      // Idempotent – ignore if already marked done.
+      return;
+    }
+    isStreamDoneRef.current = true;
+
     const now = Date.now();
 
     setMeta((prev) => {
