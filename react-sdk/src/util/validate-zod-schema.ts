@@ -10,7 +10,7 @@ import { z, ZodTypeAny, ZodFirstPartyTypeKind } from "zod";
  */
 export function assertNoZodRecord(
   schema: ZodTypeAny,
-  contextName: string = "schema",
+  contextName = "schema",
 ): void {
   const visited = new WeakSet<ZodTypeAny>();
 
