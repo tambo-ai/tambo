@@ -4,3 +4,7 @@ checkCommands:
   lint: npm run lint
   types: npm run check-types
   test: npm run test
+
+## Beta feature flags
+beta:
+  forceAllCheckCommands: true
