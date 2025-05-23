@@ -14,7 +14,7 @@ describe("useStreamProps", () => {
     expect(result.current.meta.name.state).toBe("streaming");
     expect(result.current.meta.email.state).toBe("notStarted");
 
-    // Switch to "email" – should complete "name"
+    // Switch to "email" - should complete "name"
     act(() => {
       result.current.processToken({ key: "email", value: "john@" });
     });
