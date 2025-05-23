@@ -37,7 +37,7 @@
     "composio-core": "^0.5.39",
     "drizzle-orm": "^0.43.1",
     "nest-supabase-guard": "^1.0.2",
-    "openai": "^4.100.0",
+    "openai": "^4.103.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.2",
