@@ -25,8 +25,8 @@ export interface StreamToken {
 /**
  * Behaviour when a token arrives for an unexpected key.
  *
- *  • "ignore" (default): drop the token silently.  
- *  • "throw":            throw an Error.
+ *  - "ignore" (default): drop the token silently.
+ *  - "throw":            throw an Error.
  */
 export type UnknownKeyMode = "ignore" | "throw";
 
@@ -97,7 +97,7 @@ export function useStreamProps(
   const processToken = useCallback(
     ({ key, value }: StreamToken) => {
       if (isStreamDoneRef.current) {
-        // Stream already finished – ignore further tokens.
+        // Stream already finished - ignore further tokens.
         return;
       }
 
@@ -109,7 +109,7 @@ export function useStreamProps(
             ].join(", ")})`,
           );
         }
-        // Unknown key in "ignore" mode – drop silently.
+        // Unknown key in "ignore" mode - drop silently.
         return;
       }
 
@@ -157,7 +157,7 @@ export function useStreamProps(
   // --------------------------------------------------------------------------- //
   const markDone = useCallback(() => {
     if (isStreamDoneRef.current) {
-      // Idempotent – ignore if already marked done.
+      // Idempotent - ignore if already marked done.
       return;
     }
     isStreamDoneRef.current = true;

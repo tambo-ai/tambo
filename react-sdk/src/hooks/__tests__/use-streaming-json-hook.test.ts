@@ -29,7 +29,7 @@ describe("useStreamProps", () => {
     expect(result.current.meta.name.state).toBe("complete");
     expect(result.current.meta.email.state).toBe("complete");
 
-    // Idempotency check — calling markDone again should be a no-op
+    // Idempotency check - calling markDone again should be a no-op
     act(() => {
       result.current.markDone();
     });
