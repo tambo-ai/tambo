@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { validateSafeURL } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { hashKey, MCPTransport, validateMcpServer } from "@tambo-ai-cloud/core";
 import { operations, schema } from "@tambo-ai-cloud/db";
@@ -222,11 +223,43 @@ export const projectRouter = createTRPCRouter({
         customLlmModelName,
         customLlmBaseURL,
       } = input;
+
+      // Ensure the user has access to the project before performing any further
+      // (potentially expensive) validation logic.
       await operations.ensureProjectAccess(
         ctx.db,
         projectId,
         ctx.session.user.id,
       );
+
+      // Always work with one trimmed instance so we don't repeat `trim()` calls
+      const sanitizedBaseURL =
+        typeof customLlmBaseURL === "string"
+          ? customLlmBaseURL.trim()
+          : customLlmBaseURL;
+
+      // ─── Validate custom base-URL for OpenAI-compatible providers ───────────
+      if (typeof sanitizedBaseURL === "string" && sanitizedBaseURL !== "") {
+        // Basic URL syntax check
+        let asURL: URL;
+        try {
+          asURL = new URL(sanitizedBaseURL);
+        } catch {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid URL provided for custom LLM base URL.",
+          });
+        }
+
+        // Safety & SSRF checks (local / private networks, etc.)
+        const { safe, reason } = await validateSafeURL(asURL.href);
+        if (!safe) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `URL validation failed${reason ? `: ${reason}` : ""}`,
+          });
+        }
+      }
 
       const updateData: Partial<{
         defaultLlmProviderName: string | null;
@@ -245,7 +278,9 @@ export const projectRouter = createTRPCRouter({
         updateData.customLlmModelName = customLlmModelName ?? null;
       }
       if ("customLlmBaseURL" in input) {
-        updateData.customLlmBaseURL = customLlmBaseURL ?? null;
+        // Store the trimmed value (or null if blank/undefined)
+        updateData.customLlmBaseURL =
+          sanitizedBaseURL && sanitizedBaseURL !== "" ? sanitizedBaseURL : null;
       }
 
       if (
