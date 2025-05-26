@@ -9,6 +9,7 @@ import {
 import {
   ComponentDecisionV2,
   ContentPartType,
+  DEFAULT_OPENAI_MODEL,
   GenerationStage,
   LegacyComponentDecision,
   MessageRole,
@@ -117,7 +118,7 @@ export class ThreadsService {
     }
 
     // Determine the provider, model, and baseURL from project settings
-    // Provider defaults to 'openai' if not set on the project, model to 'gpt-4o-mini'
+    // Provider defaults to 'openai' if not set on the project, model to 'gpt-4o'
     const providerName = project.defaultLlmProviderName ?? "openai";
     let modelName = project.defaultLlmModelName;
     let customModelOverride = project.customLlmModelName;
@@ -125,13 +126,13 @@ export class ThreadsService {
 
     if (providerName === "openai-compatible") {
       // For openai-compatible, the customLlmModelName is the actual model name
-      modelName = project.customLlmModelName ?? "gpt-4o-mini"; // Fallback if customLlmModelName is null
+      modelName = project.customLlmModelName ?? DEFAULT_OPENAI_MODEL; // Fallback if customLlmModelName is null
       customModelOverride = undefined; // No separate override for openai-compatible
     } else if (customModelOverride) {
       // For other providers, if customLlmModelName is set, it overrides defaultLlmModelName
       modelName = customModelOverride;
     } else {
-      modelName = modelName ?? "gpt-4o-mini"; // Fallback if no default model and no override
+      modelName = modelName ?? DEFAULT_OPENAI_MODEL; // Fallback if no default model and no override
     }
 
     // 2. Get the API key for the determined provider

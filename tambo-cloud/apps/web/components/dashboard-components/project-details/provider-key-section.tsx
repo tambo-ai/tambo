@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { api, type RouterOutputs } from "@/trpc/react";
+import { DEFAULT_OPENAI_MODEL } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLinkIcon, InfoIcon, KeyRound, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -100,7 +101,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         );
         if (openaiProvider) {
           setSelectedProviderApiName("openai");
-          setSelectedModelApiName("gpt-4o-mini");
+          setSelectedModelApiName(DEFAULT_OPENAI_MODEL);
           return;
         }
       }
@@ -110,12 +111,12 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         setCustomModelName(data.customLlmModelName ?? "");
         setSelectedModelApiName(undefined);
       } else {
-        // If OpenAI is selected and no model is set, default to gpt-4o-mini
+        // If OpenAI is selected and no model is set, default to DEFAULT_OPENAI_MODEL
         if (
           data.defaultLlmProviderName === "openai" &&
           !data.defaultLlmModelName
         ) {
-          setSelectedModelApiName("gpt-4o-mini");
+          setSelectedModelApiName(DEFAULT_OPENAI_MODEL);
         } else {
           setSelectedModelApiName(data.defaultLlmModelName ?? undefined);
         }
@@ -215,7 +216,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
             selectedProviderApiName === "openai" &&
             !projectLlmSettings.defaultLlmModelName
           ) {
-            setSelectedModelApiName("gpt-4o-mini");
+            setSelectedModelApiName(DEFAULT_OPENAI_MODEL);
           } else {
             setSelectedModelApiName(
               projectLlmSettings.defaultLlmModelName ?? undefined,
@@ -225,9 +226,9 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
           setBaseUrl("");
         }
       } else {
-        // If switching to OpenAI and no model is selected, set gpt-4o-mini
+        // If switching to OpenAI and no model is selected, set DEFAULT_OPENAI_MODEL
         if (selectedProviderApiName === "openai") {
-          setSelectedModelApiName("gpt-4o-mini");
+          setSelectedModelApiName(DEFAULT_OPENAI_MODEL);
         } else {
           setSelectedModelApiName(undefined);
         }
@@ -236,7 +237,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
       }
     } else if (selectedProviderApiName) {
       if (selectedProviderApiName === "openai") {
-        setSelectedModelApiName("gpt-4o-mini");
+        setSelectedModelApiName(DEFAULT_OPENAI_MODEL);
       } else if (selectedProviderApiName !== "openai-compatible") {
         setCustomModelName("");
         setBaseUrl("");
