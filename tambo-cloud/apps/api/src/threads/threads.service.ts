@@ -8,6 +8,7 @@ import {
 } from "@tambo-ai-cloud/backend";
 import {
   ComponentDecisionV2,
+  ContentPartType,
   GenerationStage,
   LegacyComponentDecision,
   MessageRole,
@@ -63,6 +64,12 @@ import { callSystemTool, extractToolResponse } from "./util/tool";
  * loops.
  */
 const MAX_TOOL_CALL_DEPTH = 3;
+
+/**
+ * The maximum number of identical tool calls we will make. This is to prevent
+ * infinite loops.
+ */
+const IDENTICAL_TOOL_LOOP_LIMIT = 3;
 
 @Injectable()
 export class ThreadsService {
@@ -895,6 +902,21 @@ export class ThreadsService {
     }
 
     // We only yield the final response with the tool call request and tool call id set if we did not call a system tool
+
+    //check for identical tool loop
+    if (
+      await this.isIdenticalToolLoop(
+        finalThreadMessage,
+        threadId,
+        IDENTICAL_TOOL_LOOP_LIMIT,
+      )
+    ) {
+      console.log("Identical tool loop detected");
+      finalThreadMessage = await this.handleIdenticalToolLoop(
+        finalThreadMessage,
+        inProgressMessage.id,
+      );
+    }
     yield {
       responseMessageDto: finalThreadMessage,
       generationStage: resultingGenerationStage,
@@ -990,7 +1012,122 @@ export class ThreadsService {
       );
     }
   }
+
+  /**
+   * Checks if the tool call request is identical to a number of previous tool call requests in the thread
+   * @param responseToCaller - The response to the caller
+   * @param threadId - The thread ID
+   * @param toolLoopLimit - The limit of identical tool calls in a row
+   * @returns true if the tool call request is identical to a number of previous tool call requests in the thread, false otherwise
+   */
+  private async isIdenticalToolLoop(
+    responseToCaller: ThreadMessageDto,
+    threadId: string,
+    toolLoopLimit = IDENTICAL_TOOL_LOOP_LIMIT,
+  ): Promise<boolean> {
+    // Only check for loops if there's a tool call request
+    if (!responseToCaller.toolCallRequest?.toolName) {
+      return false;
+    }
+
+    const previousMessages = await this.getMessages(threadId, true);
+
+    let identicalToolCallCount = 0;
+
+    // Loop backwards through messages
+    for (let i = previousMessages.length - 2; i >= 0; i--) {
+      const message = previousMessages[i];
+
+      // If we hit a message without a tool call, we can stop checking
+      if (!message.tool_call_id) {
+        return false;
+      }
+
+      if (
+        message.role === "assistant" &&
+        message.toolCallRequest?.toolName ===
+          responseToCaller.toolCallRequest.toolName &&
+        this.areParametersEqual(
+          message.toolCallRequest.parameters,
+          responseToCaller.toolCallRequest.parameters,
+        )
+      ) {
+        identicalToolCallCount++;
+        if (identicalToolCallCount >= toolLoopLimit - 1) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Handles an identical tool loop by replacing the latest toolcall request message in the thread with an assistant message describing the error.
+   *
+   * @returns A message to return to the client in place of the tool call request message.
+   */
+  private async handleIdenticalToolLoop(
+    responseToCaller: ThreadMessageDto,
+    messageId: string,
+  ): Promise<ThreadMessageDto> {
+    const errorMessage = `I've detected that I'm stuck in a loop making the same tool call. Trying again might help, but if the problem persists, please try a different approach or contact support.`;
+
+    const updatedMessage: ThreadMessageDto = {
+      ...responseToCaller,
+      content: [
+        {
+          type: ContentPartType.Text,
+          text: errorMessage,
+        },
+      ],
+      // Remove the tool call request to break the loop
+      toolCallRequest: undefined,
+      tool_call_id: undefined,
+      actionType: undefined,
+    };
+
+    // Replace the latest tool call request message in db with the updated message
+    await updateMessage(this.getDb(), messageId, {
+      ...updatedMessage,
+    });
+
+    return updatedMessage;
+  }
+
+  private areParametersEqual(params1: unknown, params2: unknown): boolean {
+    // Handle null/undefined cases
+    if (!params1 || !params2) {
+      return params1 === params2;
+    }
+
+    // Sort keys and compare values recursively
+    const sortObject = (
+      obj: Record<string, unknown>,
+    ): Record<string, unknown> => {
+      return Object.keys(obj)
+        .sort()
+        .reduce((result: Record<string, unknown>, key) => {
+          const value = obj[key];
+          result[key] =
+            value && typeof value === "object"
+              ? sortObject(value as Record<string, unknown>)
+              : value;
+          return result;
+        }, {});
+    };
+
+    try {
+      const sortedParams1 = sortObject(params1 as Record<string, unknown>);
+      const sortedParams2 = sortObject(params2 as Record<string, unknown>);
+      return JSON.stringify(sortedParams1) === JSON.stringify(sortedParams2);
+    } catch (_error) {
+      // If we can't sort the objects (e.g., if they're not objects), fall back to direct comparison
+      return JSON.stringify(params1) === JSON.stringify(params2);
+    }
+  }
 }
+
 function isSystemToolCall(
   toolCallRequest: ToolCallRequest | undefined,
   systemTools: SystemTools,
