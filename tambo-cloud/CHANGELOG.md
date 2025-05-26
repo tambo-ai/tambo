@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.54.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.53.0...repo-v0.54.0) (2025-05-26)
+
+
+### Features
+
+* use gpt-4o as default model  ([#1040](https://github.com/tambo-ai/tambo-cloud/issues/1040)) ([a0545d5](https://github.com/tambo-ai/tambo-cloud/commit/a0545d5eb15634974c854d35dbc4f936470f712f))
+
 ## [0.53.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.52.5...repo-v0.53.0) (2025-05-26)
 
 
