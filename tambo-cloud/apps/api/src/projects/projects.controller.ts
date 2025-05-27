@@ -10,7 +10,10 @@ import {
 } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
 import { Request } from "express";
-import { ProjectResponse } from "./dto/project-response.dto";
+import {
+  ProjectResponse,
+  SimpleProjectResponse,
+} from "./dto/project-response.dto";
 import { ApiKeyGuard, ProjectId } from "./guards/apikey.guard";
 import { ProjectAccessOwnGuard } from "./guards/project-access-own.guard";
 import { ProjectsService } from "./projects.service";
@@ -73,7 +76,7 @@ export class ProjectsController {
   async removeProviderKey(
     @Param("id") id: string,
     @Param("providerKeyId") providerKeyId: string,
-  ): Promise<ProjectResponse> {
+  ): Promise<SimpleProjectResponse> {
     return await this.projectsService.removeProviderKey(id, providerKeyId);
   }
 }

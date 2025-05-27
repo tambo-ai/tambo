@@ -3,7 +3,10 @@ import { ConfigService } from "@nestjs/config";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { APIKeyResponse } from "./dto/api-key-response.dto";
-import { ProjectResponse } from "./dto/project-response.dto";
+import {
+  ProjectResponse,
+  SimpleProjectResponse,
+} from "./dto/project-response.dto";
 import { ProviderKeyResponse } from "./dto/provider-key-response.dto";
 import { Project } from "./entities/project.entity";
 
@@ -225,7 +228,7 @@ export class ProjectsService {
   async removeProviderKey(
     projectId: string,
     providerKeyId: string,
-  ): Promise<ProjectResponse> {
+  ): Promise<SimpleProjectResponse> {
     await operations.deleteProviderKey(this.getDb(), projectId, providerKeyId);
     const project = await this.findOneWithKeys(projectId);
     if (!project) {
@@ -234,7 +237,6 @@ export class ProjectsService {
     return {
       id: project.id,
       name: project.name,
-      userId: project.userId,
     };
   }
 }

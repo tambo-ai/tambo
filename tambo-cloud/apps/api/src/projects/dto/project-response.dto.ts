@@ -16,3 +16,8 @@ export class ProjectResponse {
   customLlmBaseURL?: string;
   customInstructions?: string;
 }
+
+export class SimpleProjectResponse {
+  id!: string;
+  name!: string;
+}
