@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.55.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.55.0...repo-v0.55.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* remove use of react-syntax-highlighter for security, consistent with component library ([#1045](https://github.com/tambo-ai/tambo-cloud/issues/1045)) ([0e7c298](https://github.com/tambo-ai/tambo-cloud/commit/0e7c298fb04b28b760ac78e9df2ad0280582514d))
+
+
+### Miscellaneous Chores
+
+* comment out chat popup for the time being ([#1058](https://github.com/tambo-ai/tambo-cloud/issues/1058)) ([898902a](https://github.com/tambo-ai/tambo-cloud/commit/898902a9231b37c0b52ad1235c6ff5346e62f9f6))
+
 ## [0.55.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.54.1...repo-v0.55.0) (2025-05-27)
 
 
