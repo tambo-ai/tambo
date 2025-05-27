@@ -100,7 +100,7 @@
     "@tambo-ai-cloud/eslint-config": "*",
     "@tambo-ai-cloud/typescript-config": "*",
     "@types/luxon": "^3.6.2",
-    "@types/node": "20.17.50",
+    "@types/node": "20.17.51",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.21",
