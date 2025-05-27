@@ -1,0 +1,74 @@
+/* Custom highlight.js theme overrides */
+
+.hljs-comment {
+  color: #005299 !important;
+}
+.hljs-punctuation {
+  color: #121212 !important;
+}
+.hljs-keyword {
+  color: #c41030 !important;
+}
+.hljs-string {
+  color: #097134 !important;
+}
+.hljs-function {
+  color: #5721b0 !important;
+}
+.hljs-variable {
+  color: #953800 !important;
+}
+.hljs-property {
+  color: #004095 !important;
+}
+.hljs-operator {
+  color: #121212 !important;
+}
+.hljs-built_in {
+  color: #7a1fa0 !important;
+}
+.hljs-title,
+.hljs-class {
+  color: #0059b3 !important;
+}
+.hljs-tag {
+  color: #0e6e34 !important;
+}
+.hljs-attr {
+  color: #097134 !important;
+}
+.hljs-attribute {
+  color: #004095 !important;
+}
+.hljs-number {
+  color: #ae2b00 !important;
+}
+.hljs-literal {
+  color: #ae2b00 !important;
+}
+.hljs-constant {
+  color: #0059b3 !important;
+}
+.hljs-params {
+  color: #953800 !important;
+}
+.hljs-delimiter,
+.hljs-brace,
+.hljs-bracket {
+  color: #121212 !important;
+}
+.hljs-meta {
+  color: #121212 !important;
+}
+.hljs-key {
+  color: #004095 !important;
+}
+.hljs-definition {
+  color: #0059b3 !important;
+}
+.hljs-namespace {
+  color: #121212 !important;
+}
+.hljs-import {
+  color: #121212 !important;
+}

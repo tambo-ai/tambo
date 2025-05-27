@@ -1,9 +1,11 @@
 "use client";
 
 import { Section } from "@/components/section";
-import { highContrastLightTheme } from "@/lib/syntax-theme";
 import { clsx } from "clsx";
 import { motion, useScroll, useTransform } from "framer-motion";
+import hljs from "highlight.js/lib/core";
+import typescript from "highlight.js/lib/languages/typescript";
+import "highlight.js/styles/stackoverflow-light.css";
 import {
   Code,
   FileCode,
@@ -11,9 +13,10 @@ import {
   MonitorIcon,
   PackageIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import React, { useEffect, useRef, useState } from "react";
 import { InteractiveDemo } from "./interactive-demo";
+
+hljs.registerLanguage("typescript", typescript);
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -135,6 +138,58 @@ export const tamboComponents = [
     propsSchema: EmailProps, // the zod schema for the props,
   },
 ];`,
+};
+
+// HighlightedCodeBlock component for code rendering with highlight.js
+interface HighlightedCodeBlockProps {
+  code: string;
+  highlightedLines?: number[];
+}
+
+export const HighlightedCodeBlock: React.FC<HighlightedCodeBlockProps> = ({
+  code,
+  highlightedLines = [],
+}) => {
+  const highlighted = hljs.highlight(code, { language: "typescript" }).value;
+  const lines = highlighted.split(/\n/);
+  return (
+    <>
+      {lines.map((line: string, idx: number) => {
+        const lineNumber = idx + 1;
+        const isHighlighted = highlightedLines.includes(lineNumber);
+        return (
+          <div
+            key={lineNumber}
+            style={{
+              display: "block",
+              backgroundColor: isHighlighted
+                ? "rgba(0, 150, 255, 0.15)"
+                : undefined,
+              borderLeft: isHighlighted
+                ? "3px solid rgb(0, 120, 255)"
+                : "3px solid transparent",
+              paddingLeft: 4,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 28,
+                color: "#b0b0b0",
+                userSelect: "none",
+                textAlign: "right",
+                marginRight: 8,
+                fontSize: "0.85em",
+              }}
+            >
+              {lineNumber}
+            </span>
+            <span dangerouslySetInnerHTML={{ __html: line || "\u200B" }} />
+          </div>
+        );
+      })}
+    </>
+  );
 };
 
 export function CodeExamples() {
@@ -310,20 +365,9 @@ export function CodeExamples() {
               </div>
 
               {activeTab !== "demo" && (
-                <SyntaxHighlighter
-                  language="tsx"
-                  style={highContrastLightTheme}
-                  showLineNumbers
-                  wrapLines={true}
-                  lineProps={(lineNumber) => {
-                    const style: React.CSSProperties = { display: "block" };
-                    if (highlightedLines[activeTab].includes(lineNumber)) {
-                      style.backgroundColor = "rgba(0, 150, 255, 0.15)";
-                      style.borderLeft = "3px solid rgb(0, 120, 255)";
-                    }
-                    return { style };
-                  }}
-                  customStyle={{
+                <pre
+                  className="hljs language-typescript"
+                  style={{
                     margin: 0,
                     borderRadius: 0,
                     fontSize: "0.9rem",
@@ -332,8 +376,13 @@ export function CodeExamples() {
                     overflow: "auto",
                   }}
                 >
-                  {codeExamples[activeTab]}
-                </SyntaxHighlighter>
+                  <code>
+                    <HighlightedCodeBlock
+                      code={codeExamples[activeTab]}
+                      highlightedLines={highlightedLines[activeTab]}
+                    />
+                  </code>
+                </pre>
               )}
             </div>
           </div>

@@ -292,3 +292,5 @@ html {
   border-radius: var(--radius);
   transition: transform 0.3s ease;
 }
+
+@import "./highlight-custom.css";
