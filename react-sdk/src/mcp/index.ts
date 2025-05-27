@@ -1,1 +1,2 @@
-export { TamboMcpProvider } from "./tambo-mcp-provider";
+export { type MCPTransport } from "./mcp-client";
+export { TamboMcpProvider, type McpServerInfo } from "./tambo-mcp-provider";
