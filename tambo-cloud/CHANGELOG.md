@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.54.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.54.0...repo-v0.54.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* create SimpleProjectResponse so we are not bleeding fields into other APIs ([#1043](https://github.com/tambo-ai/tambo-cloud/issues/1043)) ([9ef4923](https://github.com/tambo-ai/tambo-cloud/commit/9ef49231bf82eaec107fed31946664c5870900f3))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump globals from 16.1.0 to 16.2.0 ([#1037](https://github.com/tambo-ai/tambo-cloud/issues/1037)) ([1f4659c](https://github.com/tambo-ai/tambo-cloud/commit/1f4659cf9ca1a55b99800372b2e64f659eb906b9))
+* **deps:** bump @tanstack/react-query from 5.76.2 to 5.77.1 ([#1036](https://github.com/tambo-ai/tambo-cloud/issues/1036)) ([731bd65](https://github.com/tambo-ai/tambo-cloud/commit/731bd65f98da32b65e31ae2a7e0129d5ac2a03f1))
+* **deps:** bump zod from 3.25.27 to 3.25.28 ([#1034](https://github.com/tambo-ai/tambo-cloud/issues/1034)) ([e6911de](https://github.com/tambo-ai/tambo-cloud/commit/e6911de96516c43cc83fa8adbff3ed6974558b33))
+
 ## [0.54.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.53.0...repo-v0.54.0) (2025-05-26)
 
 
