@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.55.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.54.1...repo-v0.55.0) (2025-05-27)
+
+
+### Features
+
+* add chat with tambo assistant ([#1021](https://github.com/tambo-ai/tambo-cloud/issues/1021)) ([0af2adc](https://github.com/tambo-ai/tambo-cloud/commit/0af2adcb648c478f741b6b1f7899534347806717))
+
+
+### Bug Fixes
+
+* Make sure toolcallrequest chunks have actionType ([#1046](https://github.com/tambo-ai/tambo-cloud/issues/1046)) ([c3cf317](https://github.com/tambo-ai/tambo-cloud/commit/c3cf31768113f950fd3510986c20f33d9c9396d7))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @libretto/token.js from `2a03c46` to `293523b` ([#1035](https://github.com/tambo-ai/tambo-cloud/issues/1035)) ([2b19cdc](https://github.com/tambo-ai/tambo-cloud/commit/2b19cdc389726f053e804b6a95ff31154664f24a))
+* **deps:** bump @modelcontextprotocol/sdk from 1.11.4 to 1.12.0 ([#1032](https://github.com/tambo-ai/tambo-cloud/issues/1032)) ([1b6b428](https://github.com/tambo-ai/tambo-cloud/commit/1b6b428784e2e627109aa689fa40654431665ad6))
+
 ## [0.54.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.54.0...repo-v0.54.1) (2025-05-27)
 
 
