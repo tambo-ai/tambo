@@ -402,21 +402,13 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
 
           updateThreadMessage(
             chunk.responseMessageDto.id,
-            chunk.responseMessageDto,
-            false,
-          );
-          if (toolCallResponse.error) {
-            //update toolcall message with error
-            const toolCallMessage = {
+            {
               ...chunk.responseMessageDto,
               error: toolCallResponse.error,
-            };
-            updateThreadMessage(
-              chunk.responseMessageDto.id,
-              toolCallMessage,
-              false,
-            );
-          }
+            },
+            false,
+          );
+
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
             GenerationStage.STREAMING_RESPONSE,
