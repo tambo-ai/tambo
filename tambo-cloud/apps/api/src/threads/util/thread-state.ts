@@ -298,7 +298,6 @@ export async function* convertDecisionStreamToMessageStream(
         },
       ],
       component: chunk,
-      actionType: chunk.toolCallRequest ? ActionType.ToolCall : undefined,
       // do NOT set the toolCallRequest or tool_call_id here, we will set them in the final response
     };
     if (chunk.toolCallRequest) {
@@ -316,8 +315,8 @@ export async function* convertDecisionStreamToMessageStream(
     ...finalThreadMessage,
     toolCallRequest: finalToolCallRequest,
     tool_call_id: finalToolCallId,
+    actionType: finalToolCallRequest ? ActionType.ToolCall : undefined,
   };
-
   yield finalThreadMessage;
 }
 
