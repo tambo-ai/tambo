@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.2](https://github.com/tambo-ai/tambo/compare/react-v0.26.1...react-v0.26.2) (2025-05-27)
+
+
+### Bug Fixes
+
+* export some MCP types that are useful for clients ([#464](https://github.com/tambo-ai/tambo/issues/464)) ([d734c2e](https://github.com/tambo-ai/tambo/commit/d734c2e552cdc2cb0f5b1df67556ecdcbdf10ee0))
+* update local thread with toolcallrequest messages ([#463](https://github.com/tambo-ai/tambo/issues/463)) ([b88f271](https://github.com/tambo-ai/tambo/commit/b88f2715f2a96468ccdbe1386ec2e928ff2859fd))
+
 ## [0.26.1](https://github.com/tambo-ai/tambo/compare/react-v0.26.0...react-v0.26.1) (2025-05-27)
 
 
