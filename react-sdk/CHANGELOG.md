@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.3](https://github.com/tambo-ai/tambo/compare/react-v0.26.2...react-v0.26.3) (2025-05-27)
+
+
+### Bug Fixes
+
+* export the full enum, not just the type ([#466](https://github.com/tambo-ai/tambo/issues/466)) ([6c4aaa4](https://github.com/tambo-ai/tambo/commit/6c4aaa427648ac55f4337db96c1af1d31b4af208))
+
 ## [0.26.2](https://github.com/tambo-ai/tambo/compare/react-v0.26.1...react-v0.26.2) (2025-05-27)
 
 
