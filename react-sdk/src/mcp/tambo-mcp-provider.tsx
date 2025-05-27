@@ -3,7 +3,7 @@ import { TamboTool } from "../model/component-metadata";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
-interface McpServerInfo {
+export interface McpServerInfo {
   name?: string;
   url: string;
   description?: string;
