@@ -400,18 +400,15 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
               },
             };
 
-          if (toolCallResponse.error) {
-            //update toolcall message with error
-            const toolCallMessage = {
+          updateThreadMessage(
+            chunk.responseMessageDto.id,
+            {
               ...chunk.responseMessageDto,
               error: toolCallResponse.error,
-            };
-            updateThreadMessage(
-              chunk.responseMessageDto.id,
-              toolCallMessage,
-              false,
-            );
-          }
+            },
+            false,
+          );
+
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
             GenerationStage.STREAMING_RESPONSE,
