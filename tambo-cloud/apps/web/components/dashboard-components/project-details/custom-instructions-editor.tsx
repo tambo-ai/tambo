@@ -10,10 +10,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Edit, Save } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { z } from "zod";
+
+export const CustomInstructionsEditorSchema = z.object({
+  id: z.string().describe("The unique identifier for the project."),
+  name: z.string().describe("The name of the project."),
+  customInstructions: z
+    .string()
+    .nullable()
+    .optional()
+    .describe("Custom instructions for the AI assistant."),
+});
+
+export const CustomInstructionsEditorProps = z.object({
+  project: CustomInstructionsEditorSchema.optional().describe(
+    "The project to edit custom instructions for.",
+  ),
+  onEdited: z
+    .function()
+    .args()
+    .returns(z.void())
+    .optional()
+    .describe(
+      "Optional callback function triggered when instructions are successfully updated.",
+    ),
+});
 
 interface CustomInstructionsEditorProps {
-  project: { id: string; name: string; customInstructions?: string | null };
+  project?: { id: string; name: string; customInstructions?: string | null };
   onEdited?: () => void;
 }
 
@@ -23,17 +48,29 @@ export function CustomInstructionsEditor({
 }: CustomInstructionsEditorProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [customInstructions, setCustomInstructions] = useState(
-    project.customInstructions || "",
+    project?.customInstructions || "",
   );
+
+  // Update the instructions when the project changes (e.g., after loading)
+  useEffect(() => {
+    if (project?.customInstructions !== undefined) {
+      setCustomInstructions(project.customInstructions || "");
+    }
+  }, [project?.customInstructions]);
 
   const updateProject = api.project.updateProject.useMutation({
     onSuccess: () => {
       setIsEditing(false);
-      onEdited?.();
+      // Call the onEdited callback to refresh the project data
+      if (onEdited) {
+        onEdited();
+      }
     },
   });
 
   const handleSave = async () => {
+    if (!project) return;
+
     updateProject.mutate({
       projectId: project.id,
       customInstructions,
@@ -41,9 +78,34 @@ export function CustomInstructionsEditor({
   };
 
   const handleCancel = () => {
-    setCustomInstructions(project.customInstructions || "");
+    setCustomInstructions(project?.customInstructions || "");
     setIsEditing(false);
   };
+
+  // If project is undefined, show a loading state
+  if (!project) {
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-heading font-semibold">
+                Custom Instructions
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Loading project information...
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="min-h-[150px] flex items-center justify-center">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border rounded-md overflow-hidden">

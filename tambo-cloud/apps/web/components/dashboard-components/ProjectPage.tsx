@@ -127,7 +127,7 @@ export function ProjectPage({ projectId }: ProjectPageClientProps) {
         <motion.div variants={itemVariants}>
           <ProjectInfo
             project={project}
-            createdAt={new Date().toLocaleDateString()}
+            createdAt={new Date(project.createdAt).toLocaleDateString()}
           />
         </motion.div>
 

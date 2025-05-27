@@ -68,9 +68,9 @@ export const FounderEmailComponent = ({
   const [emailState, setEmailState] = useTamboComponentState<EmailState>(
     "founder-email-state",
     {
-      subject: "",
-      body: "",
-      usersEmail: "",
+      subject: aiGeneratedSubject || "",
+      body: aiGeneratedBody || "",
+      usersEmail: usersEmail || "",
       isSent: false,
       isLoading: false,
       error: null,
@@ -185,7 +185,7 @@ export const FounderEmailComponent = ({
   }
 
   return (
-    <div className="founder-email-component p-4 border rounded-lg shadow-sm">
+    <div className="founder-email-component p-4 border rounded-lg shadow-sm max-w-md">
       <h2 className="text-lg font-semibold mb-3">Email the Founders</h2>
 
       {emailState.isSent ? (
@@ -204,9 +204,9 @@ export const FounderEmailComponent = ({
             </label>
             <Input
               id="subject"
-              value={emailState.subject}
+              value={emailState?.subject || ""}
               onChange={handleSubjectChange}
-              disabled={emailState.isLoading}
+              disabled={emailState?.isLoading}
               className="w-full text-sm"
             />
           </div>
@@ -217,10 +217,10 @@ export const FounderEmailComponent = ({
             </label>
             <Textarea
               id="body"
-              value={emailState.body}
+              value={emailState?.body || ""}
               onChange={handleBodyChange}
               rows={2}
-              disabled={emailState.isLoading}
+              disabled={emailState?.isLoading}
               className="w-full text-sm"
             />
           </div>
@@ -231,10 +231,10 @@ export const FounderEmailComponent = ({
             <Input
               id="email"
               type="email"
-              value={emailState.usersEmail}
+              value={emailState?.usersEmail || ""}
               onChange={handleEmailChange}
               placeholder="Enter your email address"
-              disabled={emailState.isLoading}
+              disabled={emailState?.isLoading}
               className="w-full text-sm"
               required
             />

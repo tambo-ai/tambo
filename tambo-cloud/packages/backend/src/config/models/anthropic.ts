@@ -1,6 +1,32 @@
 import { LlmModelConfig } from "../llm-config-types";
 
 export const anthropicModels: LlmModelConfig = {
+  "claude-4-sonnet-latest": {
+    apiName: "claude-sonnet-4-20250514",
+    displayName: "Claude 4 Sonnet",
+    status: "tested",
+    notes:
+      "Claude 4 Sonnet is Anthropic's high-performance model with exceptional reasoning and efficiency.",
+    docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
+    tamboDocLink: "https://tambo.co/docs",
+    properties: {
+      supportsTools: true,
+      supportsJsonMode: true,
+    },
+  },
+  "claude-4-opus-latest": {
+    apiName: "claude-opus-4-20250514",
+    displayName: "Claude 4 Opus",
+    status: "tested",
+    notes:
+      "Claude 4 Opus is Anthropic's most capable and intelligent model yet. Claude Opus 4 sets new standards in complex reasoning and advanced coding.",
+    docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
+    tamboDocLink: "https://tambo.co/docs",
+    properties: {
+      supportsTools: true,
+      supportsJsonMode: true,
+    },
+  },
   "claude-3-7-sonnet-latest": {
     apiName: "claude-3-7-sonnet-latest",
     displayName: "Claude 3.7 Sonnet",

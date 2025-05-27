@@ -1,11 +1,29 @@
 import { CopyButton } from "@/components/copy-button";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
 import { type RouterOutputs } from "@/trpc/react";
+import { motion } from "framer-motion";
+import { z } from "zod";
+
+export const ProjectInfoSchema = z.object({
+  id: z.string().describe("The unique identifier for the project."),
+  name: z.string().describe("The human-readable name of the project."),
+  userId: z.string().describe("The user ID of the project owner."),
+  createdAt: z.string().describe("The creation date of the project."),
+});
+
+export const ProjectInfoProps = z.object({
+  project: ProjectInfoSchema.optional().describe("The project to display."),
+  createdAt: z
+    .string()
+    .optional()
+    .describe("The creation date of the project."),
+  isLoading: z.boolean().optional().describe("Whether the project is loading."),
+});
 
 interface ProjectInfoProps {
-  project: RouterOutputs["project"]["getUserProjects"][number];
-  createdAt?: string; // Optional creation date
+  project?: RouterOutputs["project"]["getUserProjects"][number];
+  createdAt?: string;
+  isLoading?: boolean;
 }
 
 // Animation variants for staggered children
@@ -30,6 +48,16 @@ const itemVariants = {
 };
 
 export function ProjectInfo({ project, createdAt }: ProjectInfoProps) {
+  if (!project) {
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">No project found</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardContent className="p-4 space-y-4">

@@ -17,7 +17,7 @@ interface AuthFormProps {
 
 type AuthProvider = "github" | "google";
 
-export function AuthForm({ routeOnSuccess }: AuthFormProps) {
+export function AuthForm({ routeOnSuccess = "/dashboard" }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const supabase = getSupabaseClient();

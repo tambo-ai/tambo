@@ -1,25 +1,68 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
+import { MCPTransport } from "@tambo-ai-cloud/core";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { z } from "zod";
 import { McpServerRow } from "./mcp-server-row";
 
-interface AvailableMcpServersProps {
-  project: { id: string; name: string };
-}
+export const McpServerSchema = z.object({
+  id: z.string().describe("The unique identifier for the MCP server."),
+  url: z.string().nullable().describe("The URL of the MCP server."),
+  customHeaders: z
+    .record(z.string())
+    .describe("Custom headers for the MCP server."),
+  mcpTransport: z
+    .nativeEnum(MCPTransport)
+    .optional()
+    .describe("The transport mechanism for MCP communication."),
+  mcpRequiresAuth: z
+    .boolean()
+    .optional()
+    .describe("Whether the MCP server requires authentication."),
+  mcpIsAuthed: z
+    .boolean()
+    .optional()
+    .describe("Whether the MCP server is authenticated."),
+});
 
-export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
+export const AvailableMcpServersProps = z.object({
+  project: z
+    .object({
+      id: z.string().describe("The unique identifier for the project."),
+      name: z.string().describe("The name of the project."),
+    })
+    .describe("The project to fetch MCP servers for."),
+  onEdited: z
+    .function()
+    .args()
+    .returns(z.void())
+    .optional()
+    .describe(
+      "Optional callback function triggered when MCP servers are successfully updated.",
+    ),
+});
+
+type AvailableMcpServersProps = z.infer<typeof AvailableMcpServersProps>;
+
+export function AvailableMcpServers({
+  project,
+  onEdited,
+}: AvailableMcpServersProps) {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const router = useRouter();
 
-  const { data: mcpServers, refetch } = api.tools.listMcpServers.useQuery({
-    projectId: project.id,
-  });
+  const { data: mcpServers, refetch } = api.tools.listMcpServers.useQuery(
+    { projectId: project?.id || "" },
+    { enabled: !!project?.id },
+  );
 
   const handleRefresh = useCallback(async () => {
     await refetch();
-  }, [refetch]);
+    onEdited?.();
+  }, [refetch, onEdited]);
+
   const redirectToAuth = useCallback(
     (url: string) => {
       router.push(url);
@@ -27,8 +70,38 @@ export function AvailableMcpServers({ project }: AvailableMcpServersProps) {
     [router],
   );
 
+  // Handle case when project is not provided
+  if (!project) {
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-sm font-heading font-semibold">
+            MCP Servers
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">
+            Please select a project to view MCP Servers
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show loading state while fetching data
   if (!mcpServers) {
-    return <div className="animate-pulse h-8 bg-muted rounded" />;
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-sm font-heading font-semibold">
+            MCP Servers
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse h-8 bg-muted rounded" />
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

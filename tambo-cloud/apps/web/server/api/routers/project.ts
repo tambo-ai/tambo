@@ -15,6 +15,7 @@ export const projectRouter = createTRPCRouter({
       id: project.id,
       name: project.name,
       userId: userId,
+      createdAt: project.createdAt,
       composioEnabled: project.composioEnabled,
       customInstructions: project.customInstructions,
       defaultLlmProviderName: project.defaultLlmProviderName,

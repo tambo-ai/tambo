@@ -8,12 +8,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MessageInput } from "@/components/ui/tambo/message-input";
-import { ThreadContent } from "@/components/ui/tambo/thread-content";
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputSubmitButton,
+  MessageInputError,
+  MessageInputToolbar,
+} from "@/components/ui/tambo/message-input";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/tambo/thread-content";
 import { useTambo, useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { SubscribeForm, SubscribeFormProps } from "./SubscribeForm";
+import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 
 export function TamboSubscribeIntegration() {
   const { registerComponent, thread } = useTambo();
@@ -86,24 +96,32 @@ export function TamboSubscribeIntegration() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background border border-gray-200 h-[calc(100vh-var(--header-height)-4rem)] sm:h-[85vh] md:h-[80vh]">
-        <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="font-semibold text-base sm:text-lg">Subscribe Form</h2>
+      <ComponentsThemeProvider defaultTheme="light">
+        <div className="flex flex-col bg-white rounded-lg shadow-sm overflow-hidden bg-background border border-gray-200 h-[calc(100vh-var(--header-height)-4rem)] sm:h-[85vh] md:h-[80vh]">
+          <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="font-semibold text-base sm:text-lg">
+              Subscribe Form
+            </h2>
+          </div>
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto px-3 sm:px-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
+          >
+            <ThreadContent className="py-3 sm:py-4">
+              <ThreadContentMessages />
+            </ThreadContent>
+          </div>
+          <div className="p-3 sm:p-4 border-t border-gray-200">
+            <MessageInput contextKey={contextKey}>
+              <MessageInputTextarea />
+              <MessageInputToolbar>
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+              <MessageInputError />
+            </MessageInput>
+          </div>
         </div>
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto px-3 sm:px-4 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-300"
-        >
-          <ThreadContent className="py-3 sm:py-4" />
-        </div>
-        <div className="p-3 sm:p-4 border-t border-gray-200">
-          <MessageInput
-            contextKey={contextKey}
-            className="bg-white"
-            placeholder="Send us your contact information..."
-          />
-        </div>
-      </div>
+      </ComponentsThemeProvider>
     </>
   );
 }

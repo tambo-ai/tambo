@@ -15,9 +15,37 @@ import { DEFAULT_OPENAI_MODEL } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLinkIcon, InfoIcon, KeyRound, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { z } from "zod";
+
+export const ProviderKeySectionSchema = z
+  .object({
+    id: z.string().describe("The unique identifier for the project."),
+    name: z.string().describe("The name of the project."),
+  })
+  .describe("Project data from the router output.");
+
+export const ProviderKeySectionProps = z.object({
+  project: z
+    .lazy(() =>
+      ProviderKeySectionSchema.describe(
+        "The project to configure LLM providers for.",
+      ),
+    )
+    .optional()
+    .describe("Props for the ProviderKeySection component."),
+  onEdited: z
+    .function()
+    .args()
+    .returns(z.void())
+    .optional()
+    .describe(
+      "Optional callback function triggered when settings are successfully updated.",
+    ),
+});
 
 interface ProviderKeySectionProps {
-  project: RouterOutputs["project"]["getUserProjects"][number];
+  project?: RouterOutputs["project"]["getUserProjects"][number];
+  onEdited?: () => void;
 }
 
 const sectionAnimationVariants = {
@@ -38,7 +66,10 @@ const shortTransition = { duration: 0.2 };
 
 export const FREE_MESSAGE_LIMIT = 500;
 
-export function ProviderKeySection({ project }: ProviderKeySectionProps) {
+export function ProviderKeySection({
+  project,
+  onEdited,
+}: ProviderKeySectionProps) {
   const { toast } = useToast();
 
   // --- TRPC API Calls ---
@@ -53,17 +84,17 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
     isLoading: isLoadingProjectSettingsInitial,
     refetch: refetchProjectLlmSettings,
   } = api.project.getProjectLlmSettings.useQuery(
-    { projectId: project.id },
+    { projectId: project?.id ?? "" },
     {
-      enabled: !!project.id,
+      enabled: !!project?.id,
     },
   );
 
   const { data: messageUsage, isLoading: isLoadingMessageUsage } =
     api.project.getProjectMessageUsage.useQuery(
-      { projectId: project.id },
+      { projectId: project?.id ?? "" },
       {
-        enabled: !!project.id,
+        enabled: !!project?.id,
       },
     );
 
@@ -71,9 +102,17 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
     data: storedApiKeys,
     isLoading: isLoadingStoredKeysInitial,
     refetch: refetchStoredApiKeys,
-  } = api.project.getProviderKeys.useQuery(project.id, {
-    enabled: !!project.id,
+  } = api.project.getProviderKeys.useQuery(project?.id ?? "", {
+    enabled: !!project?.id,
   });
+
+  // Re-fetch data when project changes
+  useEffect(() => {
+    if (project?.id) {
+      refetchProjectLlmSettings();
+      refetchStoredApiKeys();
+    }
+  }, [project?.id, refetchProjectLlmSettings, refetchStoredApiKeys]);
 
   // --- UI State ---
   const [selectedProviderApiName, setSelectedProviderApiName] = useState<
@@ -137,6 +176,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         });
         setHasUnsavedChanges(false);
         await refetchProjectLlmSettings();
+        onEdited?.();
       },
       onError: (error) => {
         toast({
@@ -154,6 +194,7 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
         await refetchStoredApiKeys();
         setIsEditingApiKey(false);
         setApiKeyInput("");
+        onEdited?.();
       },
       onError: (error) => {
         toast({
@@ -263,6 +304,15 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
   }, []);
 
   const handleSaveDefaults = useCallback(() => {
+    if (!project?.id) {
+      toast({
+        title: "Error",
+        description: "No project selected.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setShowValidationErrors(true);
 
     if (!selectedProviderApiName) {
@@ -348,17 +398,17 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
     selectedModelApiName,
     baseUrl,
     updateLlmSettings,
-    project.id,
+    project?.id,
     toast,
     currentApiKeyRecord,
     setShowValidationErrors,
   ]);
 
   const handleSaveApiKey = useCallback(() => {
-    if (!selectedProviderApiName) {
+    if (!project?.id) {
       toast({
         title: "Error",
-        description: "Please select a provider first.",
+        description: "No project selected.",
         variant: "destructive",
       });
       return;
@@ -380,14 +430,14 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
 
     addOrUpdateApiKey({
       projectId: project.id,
-      provider: selectedProviderApiName,
+      provider: selectedProviderApiName ?? "",
       providerKey: apiKeyInput.trim() || undefined,
     });
   }, [
     selectedProviderApiName,
     apiKeyInput,
     addOrUpdateApiKey,
-    project.id,
+    project?.id,
     toast,
     currentProviderConfig,
   ]);
@@ -410,6 +460,21 @@ export function ProviderKeySection({ project }: ProviderKeySectionProps) {
             <div className="h-24 rounded bg-muted-foreground/10" />
             <div className="h-10 rounded bg-muted-foreground/10" />
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!project) {
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-base font-heading font-semibold">
+            LLM Configuration
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">No project selected</p>
         </CardContent>
       </Card>
     );

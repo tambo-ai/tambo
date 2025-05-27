@@ -39,6 +39,83 @@ import {
 import { Check, ChevronsUpDown, Key, Trash2 } from "lucide-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
+import { z } from "zod";
+
+export const ToolAppSchema = z.object({
+  appId: z.string().describe("The unique identifier for the tool/app."),
+  name: z.string().describe("The display name of the tool/app."),
+  logo: z.string().describe("The URL to the logo/icon of the tool/app."),
+  tags: z
+    .array(z.string())
+    .optional()
+    .describe("Tags/categories for the tool."),
+  auth_schemes: z
+    .array(z.custom<ComposioConnectorConfig>())
+    .optional()
+    .describe("Available authentication schemes for the tool."),
+  no_auth: z
+    .boolean()
+    .optional()
+    .describe("Whether the tool requires authentication."),
+  description: z
+    .string()
+    .optional()
+    .describe("Description text for the tool/app."),
+  enabled: z
+    .boolean()
+    .optional()
+    .describe("Whether the tool is enabled for the project."),
+});
+
+export const ToolAuthDialogPropsSchema = z.object({
+  open: z.boolean().describe("Whether the authentication dialog is open."),
+  onOpenChange: z
+    .function()
+    .args(z.boolean())
+    .returns(z.void())
+    .describe("Function called when the dialog open state changes."),
+  currentScheme: z
+    .custom<ComposioConnectorConfig>()
+    .optional()
+    .describe("Currently selected authentication scheme."),
+  availableSchemes: z
+    .array(z.custom<ComposioConnectorConfig>())
+    .optional()
+    .describe("List of available authentication schemes for the tool."),
+  projectId: z.string().describe("The ID of the project."),
+  appId: z.string().describe("The ID of the app/tool being authenticated."),
+  appName: z
+    .string()
+    .describe("The display name of the app/tool being authenticated."),
+});
+
+export const EnabledAppRowPropsSchema = z.object({
+  app: ToolAppSchema.describe("The app data to display."),
+  projectId: z.string().describe("The ID of the project."),
+  onDisable: z
+    .function()
+    .args(z.string())
+    .returns(z.void())
+    .describe("Function called when the app is disabled."),
+  onUpdateAuth: z
+    .function()
+    .args(
+      z.string().describe("App ID"),
+      z.custom<ComposioAuthMode>().describe("Authentication scheme"),
+      z.record(z.string()).describe("Authentication values"),
+    )
+    .returns(z.promise(z.void()))
+    .describe("Function called when authentication is updated."),
+});
+
+export const AvailableToolsProps = z.object({
+  project: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .describe("The project to fetch tools for."),
+});
 
 interface AvailableToolsProps {
   project: { id: string; name: string };
@@ -388,9 +465,14 @@ export function AvailableTools({ project }: AvailableToolsProps) {
     data: apps,
     isLoading,
     refetch: refetchApps,
-  } = api.tools.listApps.useQuery({
-    projectId: project.id,
-  });
+  } = api.tools.listApps.useQuery(
+    {
+      projectId: project?.id || "",
+    },
+    {
+      enabled: !!project?.id,
+    },
+  );
 
   const { mutateAsync: enableApp, error: enableError } =
     api.tools.enableApp.useMutation({
@@ -416,6 +498,16 @@ export function AvailableTools({ project }: AvailableToolsProps) {
     // This function is no longer needed since we moved the mutation
     // but we'll keep it as a no-op to avoid breaking the interface
   };
+
+  if (!project) {
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">No project selected</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return <div className="animate-pulse h-8 bg-muted rounded" />;

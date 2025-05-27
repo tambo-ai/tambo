@@ -7,12 +7,47 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
+import { z } from "zod";
 import { APIKeyDialog } from "./api-key-dialog";
 import { DeleteAlertDialog } from "./delete-alert-dialog";
 import { AlertState } from "./project-details-dialog";
 
+export const APIKeySchema = z.object({
+  id: z.string().describe("The unique identifier for the API key."),
+  name: z.string().describe("The name of the API key."),
+  partiallyHiddenKey: z
+    .string()
+    .optional()
+    .describe("The partially hidden API key value."),
+  lastUsedAt: z.date().nullable().describe("When the key was last used."),
+});
+
+export const APIKeyListProps = z.object({
+  project: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .optional()
+    .describe("The project to fetch API keys for."),
+  isLoading: z
+    .boolean()
+    .optional()
+    .describe("Whether the API keys are loading."),
+  onEdited: z
+    .function()
+    .args()
+    .returns(z.void())
+    .optional()
+    .describe(
+      "Optional callback function triggered when API keys are successfully updated.",
+    ),
+});
+
 interface APIKeyListProps {
-  project: RouterOutputs["project"]["getUserProjects"][number];
+  project?: RouterOutputs["project"]["getUserProjects"][number];
+  isLoading?: boolean;
+  onEdited?: () => void;
 }
 
 const listItemVariants = {
@@ -30,7 +65,11 @@ const listItemVariants = {
   exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
 };
 
-export function APIKeyList({ project }: APIKeyListProps) {
+export function APIKeyList({
+  project,
+  isLoading: externalLoading,
+  onEdited,
+}: APIKeyListProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [newGeneratedKey, setNewGeneratedKey] = useState<string | null>(null);
@@ -51,10 +90,19 @@ export function APIKeyList({ project }: APIKeyListProps) {
     isLoading: apiKeysLoading,
     refetch: refetchApiKeys,
     error: apiKeysError,
-  } = api.project.getApiKeys.useQuery(project.id);
+  } = api.project.getApiKeys.useQuery(project?.id ?? "", {
+    enabled: !!project?.id,
+  });
 
   const { mutateAsync: generateApiKey, isPending: isGeneratingKey } =
     api.project.generateApiKey.useMutation();
+
+  // Re-fetch data when project changes
+  useEffect(() => {
+    if (project?.id) {
+      refetchApiKeys();
+    }
+  }, [project?.id, refetchApiKeys]);
 
   useEffect(() => {
     if (apiKeysError) {
@@ -81,7 +129,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
       try {
         setIsCreating(true);
         const newKey = await generateApiKey({
-          projectId: project.id,
+          projectId: project?.id ?? "",
           name: name,
         });
         setNewGeneratedKey(newKey.apiKey);
@@ -99,6 +147,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
             description: "New API key created successfully",
           });
         }
+        onEdited?.();
       } catch (_error) {
         toast({
           title: "Error",
@@ -109,7 +158,7 @@ export function APIKeyList({ project }: APIKeyListProps) {
         setIsCreating(false);
       }
     },
-    [generateApiKey, newKeyName, project.id, refetchApiKeys, toast],
+    [generateApiKey, newKeyName, project?.id, refetchApiKeys, toast, onEdited],
   );
   // Auto-create first key if none exist
   useEffect(() => {
@@ -123,16 +172,21 @@ export function APIKeyList({ project }: APIKeyListProps) {
 
   const handleDeleteApiKey = async () => {
     try {
-      if (!alertState.data) return;
+      if (!alertState.data || !project?.id) return;
+
       await removeApiKey({
         projectId: project.id,
         apiKeyId: alertState.data.id,
       });
+
       await refetchApiKeys();
+
       toast({
         title: "Success",
         description: "API key deleted successfully",
       });
+
+      onEdited?.();
     } catch (_error) {
       toast({
         title: "Error",
@@ -163,7 +217,29 @@ export function APIKeyList({ project }: APIKeyListProps) {
     }, 2000);
   };
 
-  const isLoading = apiKeysLoading || isRemovingKey || isGeneratingKey;
+  const isLoading =
+    apiKeysLoading || isRemovingKey || isGeneratingKey || externalLoading;
+
+  if (!project) {
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">No project found</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Card className="border rounded-md overflow-hidden">
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">Loading API keys...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border rounded-md overflow-hidden">

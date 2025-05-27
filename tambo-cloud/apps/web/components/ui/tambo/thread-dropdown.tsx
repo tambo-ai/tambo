@@ -1,48 +1,50 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import {
-  useTamboThread,
-  useTamboThreadList,
-  type TamboThread,
-} from "@tambo-ai/react";
-import { PlusIcon } from "lucide-react";
+import { DropdownMenu } from "radix-ui";
+import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import * as React from "react";
 import { useCallback } from "react";
 
-export interface ThreadHistoryProps
+/**
+ * Props for the ThreadDropdown component
+ * @interface
+ * @extends React.HTMLAttributes<HTMLDivElement>
+ */
+export interface ThreadDropdownProps
   extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional context key for filtering threads */
   contextKey?: string;
+  /** Optional callback function called when the current thread changes */
   onThreadChange?: () => void;
-  position?: {
-    side?: "top" | "right" | "bottom" | "left";
-    align?: "start" | "center" | "end";
-  };
 }
 
-export function ThreadHistory({
-  className,
-  contextKey,
-  onThreadChange,
-  position = { side: "right", align: "start" },
-  ...props
-}: ThreadHistoryProps) {
+/**
+ * A component that displays a dropdown menu for managing chat threads with keyboard shortcuts
+ * @component
+ * @example
+ * ```tsx
+ * <ThreadDropdown
+ *   contextKey="my-thread"
+ *   onThreadChange={() => console.log('Thread changed')}
+ *   className="custom-styles"
+ * />
+ * ```
+ */
+export const ThreadDropdown = React.forwardRef<
+  HTMLDivElement,
+  ThreadDropdownProps
+>(({ className, contextKey, onThreadChange, ...props }, ref) => {
   const {
     data: threads,
     isLoading,
     error,
+    refetch,
   } = useTamboThreadList({ contextKey });
-  const { switchCurrentThread } = useTamboThread();
-  const [isMac, setIsMac] = React.useState(false);
-
-  React.useEffect(() => {
-    const isMacOS =
-      typeof navigator !== "undefined" &&
-      navigator.platform.toUpperCase().includes("MAC");
-    setIsMac(isMacOS);
-  }, []);
-
+  const { switchCurrentThread, startNewThread } = useTamboThread();
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
   const modKey = isMac ? "⌥" : "Alt";
 
   const handleNewThread = useCallback(
@@ -52,13 +54,14 @@ export function ThreadHistory({
       }
 
       try {
-        switchCurrentThread(contextKey ?? ""); // TODO: This will be updated when createThread is implemented
+        await startNewThread();
+        await refetch();
         onThreadChange?.();
       } catch (error) {
         console.error("Failed to create new thread:", error);
       }
     },
-    [switchCurrentThread, onThreadChange, contextKey],
+    [onThreadChange, startNewThread, refetch],
   );
 
   React.useEffect(() => {
@@ -89,29 +92,24 @@ export function ThreadHistory({
     }
   };
 
-  const threadItems = React.useMemo<TamboThread[]>(() => {
-    if (!threads) return [];
-    return Array.isArray(threads) ? threads : [];
-  }, [threads]);
-
   return (
-    <div className={cn("relative", className)} {...props}>
+    <div className={cn("relative", className)} ref={ref} {...props}>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
           <div
             role="button"
             tabIndex={0}
-            className="rounded-md px-1 flex items-center gap-2 text-sm border border-border bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
+            className="rounded-md px-1 flex items-center gap-2 text-sm border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
             aria-label="Thread History"
           >
-            <PlusIcon className="h-4 w-4" />
+            <ChevronDownIcon className="h-4 w-4" />
           </div>
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="tambo-theme z-50 min-w-[200px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
-            side={position.side}
-            align={position.align}
+            className="z-50 min-w-[200px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+            side="right"
+            align="start"
             sideOffset={5}
           >
             <DropdownMenu.Item
@@ -125,12 +123,15 @@ export function ThreadHistory({
                 <PlusIcon className="mr-2 h-4 w-4" />
                 <span>New Thread</span>
               </div>
-              <span className="ml-auto text-xs text-muted-foreground">
+              <span
+                className="ml-auto text-xs text-muted-foreground"
+                suppressHydrationWarning
+              >
                 {modKey}+⇧+N
               </span>
             </DropdownMenu.Item>
 
-            <DropdownMenu.Separator className="my-1 h-px bg-border" />
+            <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
 
             {isLoading ? (
               <DropdownMenu.Item
@@ -146,7 +147,7 @@ export function ThreadHistory({
               >
                 Error loading threads
               </DropdownMenu.Item>
-            ) : threadItems.length === 0 ? (
+            ) : threads?.items.length === 0 ? (
               <DropdownMenu.Item
                 className="px-2 py-1.5 text-sm text-muted-foreground"
                 disabled
@@ -154,7 +155,7 @@ export function ThreadHistory({
                 No previous threads
               </DropdownMenu.Item>
             ) : (
-              threadItems.map((thread: TamboThread) => (
+              threads?.items.map((thread) => (
                 <DropdownMenu.Item
                   key={thread.id}
                   className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
@@ -174,4 +175,5 @@ export function ThreadHistory({
       </DropdownMenu.Root>
     </div>
   );
-}
+});
+ThreadDropdown.displayName = "ThreadDropdown";

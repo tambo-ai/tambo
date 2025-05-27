@@ -24,7 +24,7 @@ export function InteractiveDemo() {
     >
       <div className="tambo-theme w-full h-full">
         <div className="relative h-full">
-          <MessageThreadFull className="shadow-xl max-h-full" />
+          <MessageThreadFull className="shadow-xl max-h-full rounded-lg" />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
               <TamboEmailButton />
