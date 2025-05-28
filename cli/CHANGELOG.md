@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.11.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.10.1...tambo-v0.11.0) (2025-05-28)
+
+
+### Features
+
+* improve ThreadContent component alignment and width TAM-141 ([#447](https://github.com/tambo-ai/tambo/issues/447)) ([a25ea61](https://github.com/tambo-ai/tambo/commit/a25ea61e9d23050f0a0da736be9db0caa9af3e8f))
+* update ThreadHistory to default to collapsed sidebar ([#427](https://github.com/tambo-ai/tambo/issues/427)) ([efa0894](https://github.com/tambo-ai/tambo/commit/efa0894b254c672cd5d2cb154c1e2a3eed8a274e))
+
+
+### Bug Fixes
+
+* **scrollable-message-container:** increase auto-scroll timeout to 250ms ([#449](https://github.com/tambo-ai/tambo/issues/449)) ([b09dbf1](https://github.com/tambo-ai/tambo/commit/b09dbf1b9da170795c18d841346e69639976a149))
+
+
+### Miscellaneous
+
+* **deps:** bump ts-morph from 25.0.1 to 26.0.0 ([#458](https://github.com/tambo-ai/tambo/issues/458)) ([b7656cd](https://github.com/tambo-ai/tambo/commit/b7656cd226fbd2dae0035530168cfa38d63f65a6))
+* improve upgrade command, update dependencies and improve UI responsiveness ([#471](https://github.com/tambo-ai/tambo/issues/471)) ([e09d740](https://github.com/tambo-ai/tambo/commit/e09d740d9ac1bfb30dfd2ebb5776f0de98921718))
+* update components, remove unused dependencies and improve TamboProvider integration in showcase components ([#472](https://github.com/tambo-ai/tambo/issues/472)) ([5e0a2af](https://github.com/tambo-ai/tambo/commit/5e0a2af28979e2319319655ae0a4b38527fdfc0d))
+
 ## [0.10.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.10.0...tambo-v0.10.1) (2025-05-19)
 
 
