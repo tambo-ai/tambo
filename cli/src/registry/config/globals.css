@@ -50,7 +50,7 @@ body {
     --muted-backdrop: 210 88% 14% / 0.1;
     --panel-left-width: 500px;
     --panel-right-width: 500px;
-    --sidebar-width: 16rem;
+    --sidebar-width: 3rem;
   }
   .dark {
     --background: 240 10% 3.9%;

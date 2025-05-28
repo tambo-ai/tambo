@@ -125,12 +125,6 @@ export interface FormProps
   onError?: string;
   /** Text to display on the submit button (default: "Submit") */
   submitText?: string;
-  /** Text to display as the status message while generating/updating */
-  _tambo_statusMessage?: string;
-  /** Text to display as the completion status message */
-  _tambo_completionStatusMessage?: string;
-  /** Whether to display the status and completion messages (default: true) */
-  _tambo_displayMessage?: boolean;
 }
 
 /**
@@ -169,9 +163,6 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
       onSubmit,
       onError,
       submitText = "Submit",
-      _tambo_statusMessage,
-      _tambo_completionStatusMessage,
-      _tambo_displayMessage = true,
       ...props
     },
     ref,
@@ -722,12 +713,8 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
             {isGenerating ? (
               <div className="flex items-center justify-center gap-2">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
-                <span>{_tambo_statusMessage ?? "Updating form..."}</span>
+                <span>Updating form...</span>
               </div>
-            ) : !isGenerating &&
-              _tambo_displayMessage &&
-              _tambo_completionStatusMessage ? (
-              <span>{_tambo_completionStatusMessage}</span>
             ) : (
               submitText
             )}
