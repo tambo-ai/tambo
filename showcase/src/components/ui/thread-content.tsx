@@ -150,15 +150,13 @@ const ThreadContentMessages = React.forwardRef<
               isLoading={isGenerating && index === messages.length - 1}
               className={cn(
                 "flex w-full",
-                message.role === "assistant"
-                  ? "justify-start"
-                  : "justify-end max-w-3xl",
+                message.role === "assistant" ? "justify-start" : "justify-end",
               )}
             >
               <div
                 className={cn(
                   "flex flex-col",
-                  message.role === "assistant" ? "w-full" : "",
+                  message.role === "assistant" ? "w-full" : "max-w-3xl",
                 )}
               >
                 <MessageContent
