@@ -106,7 +106,8 @@ const CollapsibleContainer = React.forwardRef<
     open={isOpen}
     onOpenChange={onOpenChange}
     className={cn(
-      "fixed bottom-4 right-4 w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg transition-all duration-200 bg-background border border-gray-200",
+      "fixed bottom-4 right-4 w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg bg-background border border-gray-200",
+      "transition-all duration-300 ease-in-out",
       className,
     )}
     {...props}
@@ -144,50 +145,49 @@ const CollapsibleTrigger = ({
   onThreadChange,
   config,
 }: CollapsibleTriggerProps) => (
-  <Collapsible.Trigger asChild>
-    <button
-      className={cn(
-        "flex items-center justify-between w-full p-4",
-        "hover:bg-muted/50 transition-colors",
-        isOpen,
-      )}
-      aria-expanded={isOpen}
-      aria-controls="message-thread-content"
-    >
-      <div className="flex items-center gap-2">
-        <span>
-          {isOpen ? config.labels.openState : config.labels.closedState}
-        </span>
-        {isOpen && (
+  <>
+    {!isOpen && (
+      <Collapsible.Trigger asChild>
+        <button
+          className={cn(
+            "flex items-center justify-between w-full p-4",
+            "hover:bg-muted/50 transition-colors",
+          )}
+          aria-expanded={isOpen}
+          aria-controls="message-thread-content"
+        >
+          <span>{config.labels.closedState}</span>
+          <span
+            className="text-xs text-muted-foreground pl-8"
+            suppressHydrationWarning
+          >
+            {`(${shortcutText})`}
+          </span>
+        </button>
+      </Collapsible.Trigger>
+    )}
+    {isOpen && (
+      <div className="flex items-center justify-between w-full p-4">
+        <div className="flex items-center gap-2">
+          <span>{config.labels.openState}</span>
           <ThreadDropdown
             contextKey={contextKey}
             onThreadChange={onThreadChange}
           />
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <span
-          className="text-xs text-muted-foreground pl-8"
-          suppressHydrationWarning
+        </div>
+        <button
+          className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          aria-label="Close"
         >
-          {isOpen ? "" : `(${shortcutText})`}
-        </span>
-        {isOpen && (
-          <div
-            role="button"
-            className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            aria-label="Close"
-          >
-            <XIcon className="h-4 w-4" />
-          </div>
-        )}
+          <XIcon className="h-4 w-4" />
+        </button>
       </div>
-    </button>
-  </Collapsible.Trigger>
+    )}
+  </>
 );
 CollapsibleTrigger.displayName = "CollapsibleTrigger";
 
