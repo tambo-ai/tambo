@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.55.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.55.1...repo-v0.55.2) (2025-05-28)
+
+
+### Bug Fixes
+
+* re-add chat with gpt-4o-mini ([#1063](https://github.com/tambo-ai/tambo-cloud/issues/1063)) ([d79df55](https://github.com/tambo-ai/tambo-cloud/commit/d79df550c814bb5cdb7ff4b621c3899585f800d7))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 20.17.50 to 20.17.51 ([#1057](https://github.com/tambo-ai/tambo-cloud/issues/1057)) ([2888634](https://github.com/tambo-ai/tambo-cloud/commit/28886346442a4d6bd17c3dc0a7a98aacc1d9eb9f))
+* **deps-dev:** bump typescript-eslint from 8.32.1 to 8.33.0 in the eslint group ([#1050](https://github.com/tambo-ai/tambo-cloud/issues/1050)) ([a38db89](https://github.com/tambo-ai/tambo-cloud/commit/a38db89dceb4ce8ac9f6b1075aa17293ee3c0518))
+* **deps:** bump @splinetool/runtime from 1.9.96 to 1.9.97 ([#1056](https://github.com/tambo-ai/tambo-cloud/issues/1056)) ([9affe17](https://github.com/tambo-ai/tambo-cloud/commit/9affe17ff55fb9870086aceb9e2b9ff34241a700))
+* **deps:** bump @t3-oss/env-nextjs from 0.13.4 to 0.13.6 ([#1055](https://github.com/tambo-ai/tambo-cloud/issues/1055)) ([58cae0d](https://github.com/tambo-ai/tambo-cloud/commit/58cae0d2805bc26869e327419489d626b142ff45))
+* **deps:** bump @tambo-ai/react from 0.26.0 to 0.26.3 ([#1052](https://github.com/tambo-ai/tambo-cloud/issues/1052)) ([53b6fed](https://github.com/tambo-ai/tambo-cloud/commit/53b6fed941841be434f80d493f4f7093c682aa9b))
+* **deps:** bump @tanstack/react-query from 5.77.1 to 5.77.2 ([#1053](https://github.com/tambo-ai/tambo-cloud/issues/1053)) ([9bb8ed6](https://github.com/tambo-ai/tambo-cloud/commit/9bb8ed6a280547356757bfd973e8c4c91b28ba08))
+* **deps:** bump the nestjs group with 4 updates ([#1049](https://github.com/tambo-ai/tambo-cloud/issues/1049)) ([0d3d6ad](https://github.com/tambo-ai/tambo-cloud/commit/0d3d6ad97705b52f63c330e82d49a6bb9e34ae09))
+* **deps:** bump the trpc group with 3 updates ([#1048](https://github.com/tambo-ai/tambo-cloud/issues/1048)) ([8dda140](https://github.com/tambo-ai/tambo-cloud/commit/8dda140cdaca4b836fc360d1dc89f23e84db4fde))
+* **deps:** bump zod from 3.25.28 to 3.25.31 ([#1054](https://github.com/tambo-ai/tambo-cloud/issues/1054)) ([a26de0a](https://github.com/tambo-ai/tambo-cloud/commit/a26de0ab91b94b491dda111e8f74dd912883025a))
+
 ## [0.55.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.55.0...repo-v0.55.1) (2025-05-27)
 
 
