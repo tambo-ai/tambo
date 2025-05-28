@@ -1,7 +1,7 @@
 import { PreloadResources } from "@/components/preload-resources";
-import { TamboProviderWrapper } from "@/providers/tambo-provider";
 import { Schema } from "@/components/schema";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
+import { TamboProviderWrapper } from "@/providers/tambo-provider";
 // import { MessageThreadCollapsible } from "@/components/ui/tambo/message-thread-collapsible";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,6 +14,8 @@ import {
 } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 // import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
+import { MessageThreadCollapsible } from "@/components/ui/tambo/message-thread-collapsible";
+import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/react";
 import { RootProvider } from "fumadocs-ui/provider";
@@ -88,13 +90,12 @@ export default function RootLayout({
                 forcedTheme="light"
               >
                 <RootProvider>{children}</RootProvider>
-                {/* TODO: Add back in when we solve the issue with openai rate limits */}
-                {/* <ComponentsThemeProvider defaultTheme="light">
+                <ComponentsThemeProvider defaultTheme="light">
                   <MessageThreadCollapsible
                     className="z-50"
                     defaultOpen={false}
                   />
-                </ComponentsThemeProvider> */}
+                </ComponentsThemeProvider>
                 <TailwindIndicator />
               </ThemeProvider>
               <Toaster />

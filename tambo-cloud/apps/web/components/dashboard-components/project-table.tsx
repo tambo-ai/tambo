@@ -10,8 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowRight } from "lucide-react";
 import { type RouterOutputs } from "@/trpc/react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
 
@@ -19,6 +19,10 @@ export const ProjectTableSchema = z
   .object({
     id: z.string().describe("The unique identifier for the project."),
     name: z.string().describe("The human-readable name of the project."),
+    createdAt: z
+      .string()
+      .datetime()
+      .describe("The date and time the project was created."),
   })
   .describe(
     "Defines the structure of a project object, including its ID, name, and creation date.",
