@@ -876,6 +876,20 @@ export class ThreadsService {
       );
     const componentDecision = finalThreadMessage.component;
     if (componentDecision && isSystemToolCall(toolCallRequest, systemTools)) {
+      // Yield a "final" version of the tool call request, because we need
+      // actionType to be set, but hide the toplevel tool call request because
+      // we are handling it server side
+      const finalThreadMessageDto: AdvanceThreadResponseDto = {
+        responseMessageDto: {
+          ...finalThreadMessage,
+          toolCallRequest: undefined,
+          tool_call_id: undefined,
+        },
+        generationStage: resultingGenerationStage,
+        statusMessage: resultingStatusMessage,
+      };
+      yield finalThreadMessageDto;
+
       const toolCallId = finalThreadMessage.tool_call_id;
 
       if (!toolCallId) {
