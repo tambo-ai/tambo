@@ -20,14 +20,41 @@ export async function upgradeNpmPackages(
       return false;
     }
 
-    // Execute npm update to upgrade dependencies
+    // First, try to install npm-check-updates if not available
+    spinner.text = "Checking for npm-check-updates...";
+    try {
+      execSync("npx --version", { stdio: "ignore" });
+    } catch {
+      spinner.fail("npx is required but not available");
+      return false;
+    }
+
+    // Use npm-check-updates in interactive mode to let users choose updates
+    spinner.text = "Checking for package updates...";
+    spinner.stop();
+
+    const ncuFlags = [
+      "--upgrade",
+      "--target",
+      "latest",
+      "--interactive",
+      "--timeout",
+      "60000",
+    ];
+
+    execSync(`npx npm-check-updates ${ncuFlags.join(" ")}`, {
+      stdio: "inherit",
+    });
+
+    // Now install the updated dependencies
+    const installSpinner = ora("Installing updated packages...").start();
     const npmFlags = options.legacyPeerDeps ? " --legacy-peer-deps" : "";
 
-    execSync(`npm update${npmFlags}`, {
+    execSync(`npm install${npmFlags}`, {
       stdio: options.silent ? "ignore" : "inherit",
     });
 
-    spinner.succeed("Successfully upgraded npm packages");
+    installSpinner.succeed("Successfully upgraded npm packages");
     return true;
   } catch (error) {
     spinner.fail(`Failed to upgrade npm packages: ${error}`);

@@ -229,12 +229,12 @@ export const MessageThreadPanel = React.forwardRef<
       <div className="flex h-full relative">
         {historyPosition === "left" && (
           <div
-            className="flex-none"
+            className="flex-none transition-all duration-300 ease-in-out"
             style={{ width: "var(--sidebar-width, 16rem)" }}
           >
             <ThreadHistory
               contextKey={contextKey}
-              defaultCollapsed={false}
+              defaultCollapsed={true}
               position="left"
               className="h-full border-0 border-r border-flat"
             >
@@ -246,7 +246,7 @@ export const MessageThreadPanel = React.forwardRef<
           </div>
         )}
 
-        <div className="flex flex-col h-full flex-grow">
+        <div className="flex flex-col h-full flex-grow transition-all duration-300 ease-in-out">
           {/* Message thread content */}
           <ScrollableMessageContainer className="p-4">
             <ThreadContent variant={variant}>
@@ -278,12 +278,12 @@ export const MessageThreadPanel = React.forwardRef<
 
         {historyPosition === "right" && (
           <div
-            className="flex-none"
+            className="flex-none transition-all duration-300 ease-in-out"
             style={{ width: "var(--sidebar-width, 16rem)" }}
           >
             <ThreadHistory
               contextKey={contextKey}
-              defaultCollapsed={false}
+              defaultCollapsed={true}
               position="right"
               className="h-full border-0 border-l border-flat"
             >
