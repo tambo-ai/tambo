@@ -25,7 +25,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^15.6.1",
     "recharts": "^2.15.3",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -37,7 +36,6 @@
     "@types/node": "^20",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "@types/react-syntax-highlighter": "^15.5.13",
     "@types/recharts": "^1.8.29",
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
