@@ -35,7 +35,10 @@ Make it use the bordered variant with a relaxed layout.`;
           </Section>
 
           <DemoWrapper title="Form" height={800}>
-            <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}>
+            <TamboProvider
+              apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+              tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
+            >
               <FormChatInterface />
             </TamboProvider>
           </DemoWrapper>

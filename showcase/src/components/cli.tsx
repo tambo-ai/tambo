@@ -1,9 +1,9 @@
 "use client";
 
+import hljs from "highlight.js";
+import "highlight.js/styles/vs2015.css";
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useEffect, useRef, useState } from "react";
 
 interface CLIProps {
   command?: string;
@@ -21,6 +21,19 @@ export function CLI({
   language = "typescript",
 }: CLIProps) {
   const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (isCode && codeRef.current && command) {
+      // Clear previous highlighting
+      codeRef.current.removeAttribute("data-highlighted");
+      codeRef.current.className = `language-${language}`;
+      codeRef.current.textContent = command.trim();
+
+      // Apply highlighting
+      hljs.highlightElement(codeRef.current);
+    }
+  }, [command, isCode, language]);
 
   const copyToClipboard = () => {
     if (command) {
@@ -45,20 +58,14 @@ export function CLI({
             )}
             {isCode ? (
               <div className="overflow-x-auto">
-                <SyntaxHighlighter
-                  language={language}
-                  style={vscDarkPlus}
-                  customStyle={{
-                    margin: 0,
-                    background: "transparent",
-                    padding: 0,
-                    fontSize: "inherit",
-                  }}
-                  wrapLines={true}
-                  wrapLongLines={false}
+                <pre
+                  className="!bg-transparent !p-0 !m-0"
+                  style={{ fontSize: "inherit" }}
                 >
-                  {command.trim()}
-                </SyntaxHighlighter>
+                  <code ref={codeRef} className={`language-${language}`}>
+                    {command.trim()}
+                  </code>
+                </pre>
               </div>
             ) : (
               <div className="flex items-start overflow-x-auto">
