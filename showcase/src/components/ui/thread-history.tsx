@@ -343,7 +343,7 @@ const ThreadHistoryList = React.forwardRef<
     onThreadChange,
   } = useThreadHistoryContext();
 
-  // Filter threads based on search query (memoised)
+  // Filter threads based on search query
   const filteredThreads = useMemo(() => {
     // While collapsed we do not need the list, avoid extra work.
     if (isCollapsed) return [];
