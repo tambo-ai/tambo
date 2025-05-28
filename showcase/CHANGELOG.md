@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.8.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.7.0...showcase-v0.8.0) (2025-05-28)
+
+
+### Features
+
+* improve ThreadContent component alignment and width TAM-141 ([#447](https://github.com/tambo-ai/tambo/issues/447)) ([a25ea61](https://github.com/tambo-ai/tambo/commit/a25ea61e9d23050f0a0da736be9db0caa9af3e8f))
+* update showcase message component to show toolcall errors ([#425](https://github.com/tambo-ai/tambo/issues/425)) ([29ad9dd](https://github.com/tambo-ai/tambo/commit/29ad9dd23cf99f6d73d7d9864bb636b640fbaff1))
+* update ThreadHistory to default to collapsed sidebar ([#427](https://github.com/tambo-ai/tambo/issues/427)) ([efa0894](https://github.com/tambo-ai/tambo/commit/efa0894b254c672cd5d2cb154c1e2a3eed8a274e))
+
+
+### Bug Fixes
+
+* **scrollable-message-container:** increase auto-scroll timeout to 250ms ([#449](https://github.com/tambo-ai/tambo/issues/449)) ([b09dbf1](https://github.com/tambo-ai/tambo/commit/b09dbf1b9da170795c18d841346e69639976a149))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump tailwind-merge from 3.2.0 to 3.3.0 ([#431](https://github.com/tambo-ai/tambo/issues/431)) ([8945796](https://github.com/tambo-ai/tambo/commit/89457965415ce6cbaf14fc45adecd18804b7e2b4))
+* **deps:** bump dompurify from 3.2.5 to 3.2.6 ([#435](https://github.com/tambo-ai/tambo/issues/435)) ([468e359](https://github.com/tambo-ai/tambo/commit/468e3599950cb917054bcbe8454f3d6cb66f1afa))
+* **deps:** bump framer-motion from 12.11.0 to 12.12.1 ([#439](https://github.com/tambo-ai/tambo/issues/439)) ([5cc4d71](https://github.com/tambo-ai/tambo/commit/5cc4d71bf0d8bcd2337821b9082bf62e16c6af35))
+* **deps:** bump framer-motion from 12.12.1 to 12.14.0 ([#456](https://github.com/tambo-ai/tambo/issues/456)) ([d3633fd](https://github.com/tambo-ai/tambo/commit/d3633fd855875133598fe6e2e97fd10a3c032140))
+* **deps:** bump lucide-react from 0.510.0 to 0.511.0 ([#430](https://github.com/tambo-ai/tambo/issues/430)) ([c365176](https://github.com/tambo-ai/tambo/commit/c3651760e9bee10c51085d6dd76f48e2baa33c61))
+* **deps:** bump next from 15.3.1 to 15.3.2 ([#440](https://github.com/tambo-ai/tambo/issues/440)) ([00af592](https://github.com/tambo-ai/tambo/commit/00af592e49360ae98d9bc8d7abab465004019ea4))
+* **deps:** bump the radix-ui group with 3 updates ([#454](https://github.com/tambo-ai/tambo/issues/454)) ([25d9305](https://github.com/tambo-ai/tambo/commit/25d93059914e1b9c228523ac47cde7280d029402))
+* update components, remove unused dependencies and improve TamboProvider integration in showcase components ([#472](https://github.com/tambo-ai/tambo/issues/472)) ([5e0a2af](https://github.com/tambo-ai/tambo/commit/5e0a2af28979e2319319655ae0a4b38527fdfc0d))
+
 ## [0.7.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.6.0...showcase-v0.7.0) (2025-05-13)
 
 
