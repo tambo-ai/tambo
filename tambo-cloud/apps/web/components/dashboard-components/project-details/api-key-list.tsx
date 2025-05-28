@@ -234,8 +234,26 @@ export function APIKeyList({
   if (isLoading) {
     return (
       <Card className="border rounded-md overflow-hidden">
-        <CardContent className="p-4">
-          <p className="text-sm text-muted-foreground">Loading API keys...</p>
+        <CardContent className="p-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-heading font-semibold">API Keys</h4>
+            </div>
+            <div className="h-8 w-20 animate-pulse rounded bg-muted" />
+          </div>
+
+          <div className="space-y-2">
+            <div className="p-3 rounded-md border space-y-2 animate-pulse">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-32 bg-muted rounded" />
+                  <div className="h-3 w-48 bg-muted rounded" />
+                  <div className="h-6 w-40 bg-muted rounded" />
+                </div>
+                <div className="h-7 w-7 bg-muted rounded" />
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );

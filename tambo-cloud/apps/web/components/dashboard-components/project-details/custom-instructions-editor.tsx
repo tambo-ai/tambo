@@ -88,19 +88,23 @@ export function CustomInstructionsEditor({
       <Card className="border rounded-md overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="space-y-1">
               <CardTitle className="text-sm font-heading font-semibold">
                 Custom Instructions
               </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Loading project information...
-              </CardDescription>
+              <div className="h-3 w-80 bg-muted rounded animate-pulse" />
             </div>
+            <div className="h-8 w-16 bg-muted rounded animate-pulse" />
           </div>
         </CardHeader>
         <CardContent>
-          <div className="min-h-[150px] flex items-center justify-center">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <div className="min-h-[150px] space-y-3 animate-pulse">
+            <div className="min-h-[100px] rounded-md border border-muted bg-muted/50 p-3 space-y-2">
+              <div className="h-4 w-full bg-muted rounded" />
+              <div className="h-4 w-[80%] bg-muted rounded" />
+              <div className="h-4 w-3/4 bg-muted rounded" />
+              <div className="h-4 w-5/6 bg-muted rounded" />
+            </div>
           </div>
         </CardContent>
       </Card>
