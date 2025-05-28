@@ -6,6 +6,7 @@ export {
   useTamboMessageContext,
 } from "./use-current-message";
 export { useTamboStreamingProps } from "./use-streaming-props";
+export { useStreamingProps } from "./use-streaming-json-props";
 export * from "./use-suggestions";
 export { useTamboThreadList } from "./use-tambo-threads";
 export { useTamboThreadInput } from "./use-thread-input";
