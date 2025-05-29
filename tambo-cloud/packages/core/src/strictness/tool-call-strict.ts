@@ -90,6 +90,12 @@ function unstrictifyToolCallParams(
         // This is the meat of this function. In the strict schema, this is
         // "required and can be null", but in the original schema, the param was
         // not required.
+        if (
+          typeof originalParamSchema === "object" &&
+          "default" in originalParamSchema
+        ) {
+          return [parameterName, originalParamSchema.default] as const;
+        }
         return undefined;
       }
 

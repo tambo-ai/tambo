@@ -179,7 +179,7 @@ export async function addUserMessage(
         await updateGenerationStage(
           tx,
           threadId,
-          GenerationStage.CHOOSING_COMPONENT,
+          GenerationStage.FETCHING_CONTEXT,
           "Starting processing...",
         );
 

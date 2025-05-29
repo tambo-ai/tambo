@@ -495,6 +495,7 @@ export class ThreadsService {
     unresolvedThreadId?: string,
     stream?: true,
     toolCallCounts?: Record<string, number>,
+    systemTools?: SystemTools,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>>;
   async advanceThread(
     projectId: string,
@@ -502,6 +503,7 @@ export class ThreadsService {
     unresolvedThreadId?: string,
     stream?: false,
     toolCallCounts?: Record<string, number>,
+    systemTools?: SystemTools,
   ): Promise<AdvanceThreadResponseDto>;
   async advanceThread(
     projectId: string,
@@ -509,6 +511,7 @@ export class ThreadsService {
     unresolvedThreadId?: string,
     stream?: boolean,
     toolCallCounts?: Record<string, number>,
+    systemTools?: SystemTools,
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   >;
@@ -518,6 +521,7 @@ export class ThreadsService {
     unresolvedThreadId?: string,
     stream?: boolean,
     toolCallCounts: Record<string, number> = {},
+    cachedSystemTools?: SystemTools,
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   > {
@@ -569,6 +573,20 @@ export class ThreadsService {
     if (messages.length === 0) {
       throw new Error("No messages found");
     }
+    const systemToolsStart = Date.now();
+
+    const systemTools =
+      cachedSystemTools ??
+      (await getSystemTools(
+        db,
+        projectId,
+        null, // right now all provider contexts are stored with null context keys
+      ));
+    const systemToolsEnd = Date.now();
+    const systemToolsDuration = systemToolsEnd - systemToolsStart;
+    if (!cachedSystemTools) {
+      this.logger.log(`System tools took ${systemToolsDuration}ms to fetch`);
+    }
 
     if (stream) {
       return await this.generateStreamingResponse(
@@ -581,14 +599,9 @@ export class ThreadsService {
         advanceRequestDto,
         customInstructions,
         toolCallCounts,
+        systemTools,
       );
     }
-
-    const systemTools = await getSystemTools(
-      db,
-      projectId,
-      null, // right now all provider contexts are stored with null context keys
-    );
 
     const responseMessage = await processThreadMessage(
       db,
@@ -723,6 +736,7 @@ export class ThreadsService {
       threadId,
       stream,
       updatedToolCallCounts,
+      systemTools,
     );
   }
 
@@ -736,12 +750,8 @@ export class ThreadsService {
     advanceRequestDto: AdvanceThreadDto,
     customInstructions: string | undefined,
     toolCallCounts: Record<string, number>,
+    systemTools: SystemTools,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>> {
-    const systemTools = await getSystemTools(
-      db,
-      projectId,
-      null, // right now all provider contexts are stored with null context keys
-    );
     const latestMessage = messages[messages.length - 1];
     if (latestMessage.role === MessageRole.Tool) {
       await updateGenerationStage(
@@ -786,8 +796,8 @@ export class ThreadsService {
     await updateGenerationStage(
       db,
       threadId,
-      GenerationStage.CHOOSING_COMPONENT,
-      `Choosing component...`,
+      GenerationStage.FETCHING_CONTEXT,
+      `Fetching data...`,
     );
     const { originalTools, strictTools } = getToolsFromSources(
       advanceRequestDto.availableComponents ?? [],
