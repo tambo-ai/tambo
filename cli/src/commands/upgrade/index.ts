@@ -52,7 +52,7 @@ export async function handleUpgrade(
     }
 
     // Upgrade packages
-    console.log(chalk.bold("\n1. Upgrading npm packages"));
+    console.log(chalk.bold("\n1. Upgrading npm packages\n"));
     const npmSuccess = await upgradeNpmPackages(options);
     if (!npmSuccess) {
       console.error(chalk.red("\n❌ NPM package upgrade failed"));
@@ -60,7 +60,7 @@ export async function handleUpgrade(
     }
 
     // Upgrade LLM rules
-    console.log(chalk.bold("\n2. Upgrading cursor rules"));
+    console.log(chalk.bold("\n2. Upgrading cursor rules\n"));
     const rulesSuccess = await upgradeLlmRules(detectedTemplate, options);
     if (!rulesSuccess) {
       console.error(chalk.red("\n❌ Cursor rules upgrade failed"));
@@ -68,7 +68,7 @@ export async function handleUpgrade(
     }
 
     // Upgrade components
-    console.log(chalk.bold("\n3. Upgrading tambo components"));
+    console.log(chalk.bold("\n3. Upgrading tambo components\n"));
     const componentsSuccess = await upgradeComponents(options);
     if (!componentsSuccess) {
       console.error(chalk.red("\n❌ Component upgrade failed"));
@@ -76,7 +76,7 @@ export async function handleUpgrade(
     }
 
     // Generate AI upgrade prompts
-    console.log(chalk.bold("\n4. AI Upgrade Prompts"));
+    console.log(chalk.bold("\n4. AI Upgrade Prompts\n"));
     console.log(
       chalk.gray(
         "Use these prompts with AI to further upgrade your tambo app:",
@@ -88,7 +88,7 @@ export async function handleUpgrade(
       console.log(chalk.cyan(`  ${index + 1}. ${prompt}`));
     });
 
-    console.log(chalk.green("\n✅ Tambo upgrade complete!"));
+    console.log(chalk.green("\n✅ Tambo upgrade complete!\n"));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(chalk.red(`\n❌ Upgrade failed: ${errorMessage}`));
