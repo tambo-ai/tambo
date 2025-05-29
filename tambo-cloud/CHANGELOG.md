@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.56.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.56.0...repo-v0.56.1) (2025-05-29)
+
+
+### Documentation
+
+* Add a bunch of MCP docs + clarification ([#1068](https://github.com/tambo-ai/tambo-cloud/issues/1068)) ([23c3759](https://github.com/tambo-ai/tambo-cloud/commit/23c3759ee8390422e3723cdd752722a0595829a8))
+
 ## [0.56.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.55.2...repo-v0.56.0) (2025-05-29)
 
 
