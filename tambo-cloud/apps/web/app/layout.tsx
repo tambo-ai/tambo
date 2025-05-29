@@ -2,7 +2,6 @@ import { PreloadResources } from "@/components/preload-resources";
 import { Schema } from "@/components/schema";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { TamboProviderWrapper } from "@/providers/tambo-provider";
-// import { MessageThreadCollapsible } from "@/components/ui/tambo/message-thread-collapsible";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { WebVitalsReporter } from "@/components/web-vitals";
@@ -13,7 +12,6 @@ import {
   generateWebsiteSchema,
 } from "@/lib/schema";
 import { cn } from "@/lib/utils";
-// import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { MessageThreadCollapsible } from "@/components/ui/tambo/message-thread-collapsible";
 import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { TRPCReactProvider } from "@/trpc/react";

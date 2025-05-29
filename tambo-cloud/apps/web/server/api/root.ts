@@ -6,6 +6,7 @@ import { projectRouter } from "./routers/project";
 import { threadRouter } from "./routers/thread";
 import { toolsRouter } from "./routers/tools";
 import { userRouter } from "./routers/user";
+import { validateRouter } from "./routers/validate";
 
 /**
  * This is the primary router for your server.
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   tools: toolsRouter,
   demo: demoRouter,
   llm: llmRouter,
+  validate: validateRouter,
 });
 
 // export type definition of API for the client

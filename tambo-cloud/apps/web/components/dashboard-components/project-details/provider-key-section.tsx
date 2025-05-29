@@ -13,8 +13,15 @@ import { useToast } from "@/hooks/use-toast";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { DEFAULT_OPENAI_MODEL } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
-import { ExternalLinkIcon, InfoIcon, KeyRound, Save } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  InfoIcon,
+  KeyRound,
+  Loader2,
+  Save,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
 import { z } from "zod";
 
 export const ProviderKeySectionSchema = z
@@ -90,13 +97,12 @@ export function ProviderKeySection({
     },
   );
 
-  const { data: messageUsage, isLoading: isLoadingMessageUsage } =
-    api.project.getProjectMessageUsage.useQuery(
-      { projectId: project?.id ?? "" },
-      {
-        enabled: !!project?.id,
-      },
-    );
+  const { data: messageUsage } = api.project.getProjectMessageUsage.useQuery(
+    { projectId: project?.id ?? "" },
+    {
+      enabled: !!project?.id,
+    },
+  );
 
   const {
     data: storedApiKeys,
@@ -165,6 +171,28 @@ export function ProviderKeySection({
       setHasUnsavedChanges(false);
     }
   }, [projectLlmSettings, llmProviderConfigData]);
+
+  // API key validation
+  const [debouncedApiKey] = useDebounce(apiKeyInput, 500);
+
+  const { data: apiKeyValidation, isFetching: isValidatingApiKey } =
+    api.validate.validateApiKey.useQuery(
+      {
+        apiKey: debouncedApiKey,
+        provider: selectedProviderApiName ?? "",
+        options: {
+          allowEmpty: ["openai", "openai-compatible"].includes(
+            selectedProviderApiName ?? "",
+          ),
+          timeout: 5000,
+        },
+      },
+      {
+        enabled: !!selectedProviderApiName && !!debouncedApiKey,
+        staleTime: 30000,
+        retry: false,
+      },
+    );
 
   // --- TRPC Mutations ---
   const { mutate: updateLlmSettings, isPending: isSavingDefaults } =
@@ -326,7 +354,7 @@ export function ProviderKeySection({
 
     // Check if API key is required and present
     if (
-      selectedProviderApiName !== "openai" &&
+      !["openai", "openai-compatible"].includes(selectedProviderApiName) &&
       !currentApiKeyRecord?.partiallyHiddenKey
     ) {
       toast({
@@ -404,7 +432,7 @@ export function ProviderKeySection({
     setShowValidationErrors,
   ]);
 
-  const handleSaveApiKey = useCallback(() => {
+  const handleSaveApiKey = useCallback(async () => {
     if (!project?.id) {
       toast({
         title: "Error",
@@ -414,10 +442,21 @@ export function ProviderKeySection({
       return;
     }
 
+    if (apiKeyInput.trim() && apiKeyValidation && !apiKeyValidation.isValid) {
+      toast({
+        title: "Invalid API Key",
+        description:
+          apiKeyValidation.error || "Please make sure you have a valid api key",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Allow empty key for OpenAI to switch back to free messages
     if (
-      currentProviderConfig?.apiName !== "openai" && // Changed from openai-compatible
-      currentProviderConfig?.apiName !== "openai-compatible" &&
+      !["openai", "openai-compatible"].includes(
+        currentProviderConfig?.apiName ?? "",
+      ) &&
       !apiKeyInput.trim()
     ) {
       toast({
@@ -436,6 +475,7 @@ export function ProviderKeySection({
   }, [
     selectedProviderApiName,
     apiKeyInput,
+    apiKeyValidation,
     addOrUpdateApiKey,
     project?.id,
     toast,
@@ -712,23 +752,60 @@ export function ProviderKeySection({
                     transition={shortTransition}
                     className="space-y-2 overflow-hidden"
                   >
-                    <Input
-                      type="password"
-                      value={apiKeyInput}
-                      onChange={(e) => setApiKeyInput(e.target.value)}
-                      placeholder={
-                        currentProviderConfig?.apiName === "openai"
-                          ? "Enter API Key or leave empty to use free messages"
-                          : `Enter API Key${
-                              currentProviderConfig?.displayName !==
-                              "OpenAI Compatible"
-                                ? ` for ${currentProviderConfig?.displayName}`
-                                : ""
-                            }`
-                      }
-                      autoFocus
-                      className="w-full font-sans"
-                    />
+                    <div className="relative">
+                      <div className="relative">
+                        <Input
+                          type="password"
+                          value={apiKeyInput}
+                          onChange={(e) => setApiKeyInput(e.target.value)}
+                          placeholder={
+                            currentProviderConfig?.apiName === "openai"
+                              ? "Enter API Key or leave empty to use free messages"
+                              : `Enter API Key${
+                                  currentProviderConfig?.displayName !==
+                                  "OpenAI Compatible"
+                                    ? ` for ${currentProviderConfig?.displayName}`
+                                    : ""
+                                }`
+                          }
+                          autoFocus
+                          className={`w-full font-sans pr-8 ${
+                            !apiKeyValidation?.isValid && apiKeyInput
+                              ? "border-destructive"
+                              : ""
+                          }`}
+                        />
+                        {isValidatingApiKey && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Validation feedback */}
+                    {apiKeyInput && apiKeyValidation && (
+                      <div className="space-y-1">
+                        {!apiKeyValidation.isValid && (
+                          <p className="text-sm text-destructive">
+                            {apiKeyValidation.error}
+                          </p>
+                        )}
+                        {apiKeyValidation.isValid &&
+                          apiKeyValidation.details?.note && (
+                            <p className="text-sm text-green-600">
+                              ✓ {apiKeyValidation.details.note}
+                            </p>
+                          )}
+                        {apiKeyValidation.isValid &&
+                          apiKeyValidation.details?.modelCount && (
+                            <p className="text-sm text-green-600">
+                              ✓ API key is valid
+                            </p>
+                          )}
+                      </div>
+                    )}
+
                     <div className="flex justify-end gap-2">
                       <Button
                         size="sm"
@@ -747,10 +824,12 @@ export function ProviderKeySection({
                         onClick={handleSaveApiKey}
                         disabled={
                           isUpdatingApiKey ||
+                          isValidatingApiKey ||
                           (!apiKeyInput.trim() &&
                             currentProviderConfig?.apiName !== "openai" &&
                             currentProviderConfig?.apiName !==
-                              "openai-compatible")
+                              "openai-compatible") ||
+                          (!apiKeyValidation?.isValid && !!apiKeyInput.trim())
                         }
                       >
                         {isUpdatingApiKey ? (
