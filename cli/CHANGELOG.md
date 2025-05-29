@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.11.0...tambo-v0.11.1) (2025-05-29)
+
+
+### Miscellaneous
+
+* update upgrade command to let users choose which components to update ([#473](https://github.com/tambo-ai/tambo/issues/473)) ([50f20d1](https://github.com/tambo-ai/tambo/commit/50f20d1295af80b7bacce41d82fc9af2a4ec2973))
+
 ## [0.11.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.10.1...tambo-v0.11.0) (2025-05-28)
 
 
