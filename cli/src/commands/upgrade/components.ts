@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fs from "fs";
+import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
 import { installComponents } from "../add/component.js";
@@ -80,8 +81,8 @@ export async function upgradeComponents(
 
     // Verify each component location
     const verifySpinner = ora("Verifying component locations...").start();
-    const verifiedComponents = [];
-    const missingComponents = [];
+    const verifiedComponents: { name: string; installPath: string }[] = [];
+    const missingComponents: string[] = [];
 
     for (const componentName of installedComponentNames) {
       const location = await findComponentLocation(
@@ -99,7 +100,7 @@ export async function upgradeComponents(
       }
     }
 
-    verifySpinner.succeed("Component verification complete");
+    verifySpinner.succeed("Component verification complete\n");
 
     if (missingComponents.length > 0) {
       console.log(
@@ -114,23 +115,59 @@ export async function upgradeComponents(
       return true;
     }
 
-    // Confirm all upgrades if not using acceptAll
+    // Component selection interface (unless acceptAll is true)
+    let componentsToUpgrade = verifiedComponents;
+
     if (!options.acceptAll) {
+      const instructions = [
+        chalk.reset.gray("↑↓ to select a component"),
+        chalk.reset.gray("Space: Toggle selection"),
+        chalk.reset.gray("a: Toggle all"),
+        chalk.reset.gray("i: Invert selection"),
+        chalk.reset.gray("Enter: Upgrade"),
+      ].join("\n");
+
+      const { selectedComponents } = await inquirer.prompt({
+        type: "checkbox",
+        name: "selectedComponents",
+        message: `Choose which components to update ·\n${instructions}`,
+        choices: verifiedComponents.map((comp) => ({
+          name: comp.name,
+          value: comp.name,
+          checked: false,
+        })),
+        pageSize: 10,
+        instructions: false,
+      });
+
+      if (selectedComponents.length === 0) {
+        console.log(chalk.gray("\nNo components selected for upgrade."));
+        return true;
+      }
+
+      // Final confirmation
+      console.log("\n");
       const proceed = await confirmAction(
-        `This will upgrade ${verifiedComponents.length} tambo components with the latest versions from the registry. Continue?`,
+        `This will upgrade ${selectedComponents.length} component(s) with the latest versions from the registry. Continue?`,
         true,
       );
 
       if (!proceed) {
-        console.log(chalk.gray("Component upgrades cancelled."));
+        console.log(chalk.gray("\nComponent upgrades cancelled."));
         return true;
       }
+
+      // Filter to only include selected components
+      componentsToUpgrade = selectedComponents.map(
+        (name: string) =>
+          verifiedComponents.find((comp) => comp.name === name)!,
+      );
     }
 
-    // Install/upgrade components one by one
+    // Install/upgrade selected components one by one
     let successCount = 0;
 
-    for (const component of verifiedComponents) {
+    for (const component of componentsToUpgrade) {
       const componentSpinner = ora(`Upgrading ${component.name}...`).start();
 
       try {
@@ -139,11 +176,11 @@ export async function upgradeComponents(
           legacyPeerDeps: options.legacyPeerDeps,
           forceUpdate: true,
           installPath: component.installPath,
-          silent: true, // Use our own spinner instead
+          silent: true,
         });
 
         successCount++;
-        componentSpinner.succeed(`Updated ${component.name}`);
+        componentSpinner.succeed(`Updated ${component.name}\n`);
       } catch (error) {
         componentSpinner.fail(`Failed to update ${component.name}: ${error}`);
       }
@@ -151,7 +188,7 @@ export async function upgradeComponents(
 
     console.log(
       chalk.green(
-        `✔ Successfully upgraded ${successCount} of ${verifiedComponents.length} components`,
+        `✔ Successfully upgraded ${successCount} of ${componentsToUpgrade.length} components`,
       ),
     );
     return true;

@@ -80,9 +80,9 @@ export async function getInstallationPath(): Promise<string> {
   const hasSrcDir = fs.existsSync("src");
 
   if (hasSrcDir) {
-    console.log(chalk.gray(`Found existing ${chalk.cyan("src/")} directory`));
+    console.log(chalk.gray(`Found existing ${chalk.cyan("src/")} directory\n`));
   } else {
-    console.log(chalk.gray(`No ${chalk.cyan("src/")} directory found`));
+    console.log(chalk.gray(`No ${chalk.cyan("src/")} directory found\n`));
   }
 
   const { useSrcDir } = await inquirer.prompt({
