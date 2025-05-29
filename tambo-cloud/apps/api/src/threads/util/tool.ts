@@ -118,3 +118,20 @@ export async function callSystemTool(
   // original request. Callers should probably handle this as an error.
   return advanceRequestDto;
 }
+
+/**
+ * Determines if a tool call request is a system tool call.
+ * @param toolCallRequest - The tool call request to check
+ * @param systemTools - The available system tools
+ * @returns True if the tool call is a system tool call
+ */
+export function isSystemToolCall(
+  toolCallRequest: ToolCallRequest | undefined,
+  systemTools: SystemTools,
+): toolCallRequest is ToolCallRequest {
+  return (
+    !!toolCallRequest &&
+    (toolCallRequest.toolName in systemTools.mcpToolSources ||
+      systemTools.composioToolNames.includes(toolCallRequest.toolName))
+  );
+}
