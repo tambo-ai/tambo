@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.57.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.56.1...repo-v0.57.0) (2025-05-29)
+
+
+### Features
+
+* implement API key validation in ProviderKeySection ([#1059](https://github.com/tambo-ai/tambo-cloud/issues/1059)) ([fad05a9](https://github.com/tambo-ai/tambo-cloud/commit/fad05a9e937f61ca05f2c1c7f9e2896550f9511e))
+* improve tool defaults, cache system tools, default status ([#1071](https://github.com/tambo-ai/tambo-cloud/issues/1071)) ([9dbde61](https://github.com/tambo-ai/tambo-cloud/commit/9dbde61230e062e6937151cd9cd451dd6d265fed))
+
+
+### Miscellaneous Chores
+
+* remove test page ([#1072](https://github.com/tambo-ai/tambo-cloud/issues/1072)) ([9afa52a](https://github.com/tambo-ai/tambo-cloud/commit/9afa52a529bf2692a90855c1277d152c1597bde2))
+
 ## [0.56.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.56.0...repo-v0.56.1) (2025-05-29)
 
 
