@@ -18,7 +18,7 @@ import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
-import { MessageRequest, ThreadMessageDto } from "../dto/message.dto";
+import { MessageRequest } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import {
   addAssistantMessageToThread,
@@ -274,11 +274,11 @@ export async function addAssistantResponse(
 export async function* convertDecisionStreamToMessageStream(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
   inProgressMessage: ThreadMessage,
-): AsyncIterableIterator<ThreadMessageDto> {
-  let finalThreadMessage: ThreadMessageDto = {
+): AsyncIterableIterator<ThreadMessage> {
+  let finalThreadMessage: ThreadMessage = {
     // Only bring in the bare minimum fields from the inProgressMessage
     componentState: inProgressMessage.componentState ?? {},
-    content: convertContentPartToDto(inProgressMessage.content),
+    content: inProgressMessage.content,
     createdAt: inProgressMessage.createdAt,
     id: inProgressMessage.id,
     role: inProgressMessage.role,
@@ -368,7 +368,7 @@ export async function finishInProgressMessage(
   threadId: string,
   addedUserMessage: ThreadMessage,
   inProgressMessageId: string,
-  finalThreadMessage: ThreadMessageDto,
+  finalThreadMessage: ThreadMessage,
   logger?: Logger,
 ): Promise<{
   resultingGenerationStage: GenerationStage;
@@ -384,7 +384,10 @@ export async function finishInProgressMessage(
           inProgressMessageId,
         );
 
-        await updateMessage(tx, inProgressMessageId, finalThreadMessage);
+        await updateMessage(tx, inProgressMessageId, {
+          ...finalThreadMessage,
+          content: convertContentPartToDto(finalThreadMessage.content),
+        });
 
         const resultingGenerationStage = finalThreadMessage.toolCallRequest
           ? GenerationStage.FETCHING_CONTEXT

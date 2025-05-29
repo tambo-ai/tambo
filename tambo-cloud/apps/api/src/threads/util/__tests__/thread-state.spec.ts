@@ -12,7 +12,6 @@ import {
 import { HydraDb } from "@tambo-ai-cloud/db";
 import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
-import { ThreadMessageDto } from "src/threads/dto/message.dto";
 import {
   addUserMessage,
   convertDecisionStreamToMessageStream,
@@ -189,7 +188,7 @@ describe("Thread State", () => {
         mockInProgressMessage,
       );
 
-      const messages: ThreadMessageDto[] = [];
+      const messages: ThreadMessage[] = [];
       for await (const message of messageStream) {
         messages.push(message);
       }
@@ -203,7 +202,7 @@ describe("Thread State", () => {
   describe("finishInProgressMessage", () => {
     it("should update message and generation stage", async () => {
       const now = new Date();
-      const mockFinalMessage: ThreadMessageDto = {
+      const mockFinalMessage: ThreadMessage = {
         id: "msg-2",
         threadId: "thread-1",
         role: MessageRole.Assistant,
@@ -264,7 +263,7 @@ describe("Thread State", () => {
         .mockResolvedValue([mockAssistantMessage, mockUserMessage]);
       jest.mocked(operations.updateMessage).mockResolvedValue({
         ...mockFinalMessage,
-        content: mockFinalMessage.content as ChatCompletionContentPart[],
+        componentState: mockFinalMessage.componentState ?? {},
         toolCallId: null,
         componentDecision: null,
         actionType: null,
