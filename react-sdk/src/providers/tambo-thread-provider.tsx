@@ -505,7 +505,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         streamResponse,
         forceToolChoice,
       } = options;
-      updateThreadStatus(threadId, GenerationStage.CHOOSING_COMPONENT);
+      updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
       addThreadMessage(
         {

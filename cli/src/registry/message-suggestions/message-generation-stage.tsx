@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import { type GenerationStage, useTambo } from "@tambo-ai/react";
 import { Loader2Icon } from "lucide-react";
+import * as React from "react";
 
 /**
  * Represents the generation stage of a message
@@ -30,7 +30,7 @@ export function MessageGenerationStage({
   }
 
   // Map stage names to more user-friendly labels
-  const stageLabels: Record<string, string> = {
+  const stageLabels: Record<GenerationStage, string> = {
     IDLE: "Idle",
     CHOOSING_COMPONENT: "Choosing component",
     FETCHING_CONTEXT: "Fetching context",
