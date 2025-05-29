@@ -54,7 +54,8 @@ export async function upgradeNpmPackages(
       stdio: options.silent ? "ignore" : "inherit",
     });
 
-    installSpinner.succeed("Successfully upgraded npm packages");
+    console.log("\n");
+    installSpinner.succeed("Successfully upgraded npm packages\n");
     return true;
   } catch (error) {
     spinner.fail(`Failed to upgrade npm packages: ${error}`);
