@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.56.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.55.2...repo-v0.56.0) (2025-05-29)
+
+
+### Features
+
+* enhance loading states in API key list, available MCP servers, and custom instructions editor components ([#1062](https://github.com/tambo-ai/tambo-cloud/issues/1062)) ([e3b81dc](https://github.com/tambo-ai/tambo-cloud/commit/e3b81dc60d0d28ebfb0934f17d0fbe2c20970ffe))
+
+
+### Bug Fixes
+
+* combine tool depth and duplicate tool tests ([#1060](https://github.com/tambo-ai/tambo-cloud/issues/1060)) ([485c9c4](https://github.com/tambo-ai/tambo-cloud/commit/485c9c432172986fe4f69171f6e62421f54898e6))
+* yield tool call request for server-side tool message ([#1064](https://github.com/tambo-ai/tambo-cloud/issues/1064)) ([40bdc0c](https://github.com/tambo-ai/tambo-cloud/commit/40bdc0c82a11708eba5ede8a10097a6d809dce00))
+
+
+### Miscellaneous Chores
+
+* add test page for cors check ([#1067](https://github.com/tambo-ai/tambo-cloud/issues/1067)) ([2ff6e1c](https://github.com/tambo-ai/tambo-cloud/commit/2ff6e1c7f3f73215d78032a6462eb63ca6e6bfd3))
+
+
+### Tests
+
+* add some basic tests for the tool call tracking stuff ([#1066](https://github.com/tambo-ai/tambo-cloud/issues/1066)) ([e63f2ba](https://github.com/tambo-ai/tambo-cloud/commit/e63f2bab2e9e8c36d4210d4ccbf89d1e2eb9fbe2))
+
 ## [0.55.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.55.1...repo-v0.55.2) (2025-05-28)
 
 
