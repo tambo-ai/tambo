@@ -158,10 +158,17 @@ export async function upgradeComponents(
       }
 
       // Filter to only include selected components
-      componentsToUpgrade = selectedComponents.map(
-        (name: string) =>
-          verifiedComponents.find((comp) => comp.name === name)!,
-      );
+      const verifiedMap = new Map(verifiedComponents.map((c) => [c.name, c]));
+      componentsToUpgrade = selectedComponents
+        .map((name: string) => verifiedMap.get(name))
+        .filter(Boolean) as { name: string; installPath: string }[];
+
+      if (componentsToUpgrade.length === 0) {
+        console.log(
+          chalk.red("Selected components could not be matched – aborting."),
+        );
+        return false;
+      }
     }
 
     // Install/upgrade selected components one by one
@@ -180,7 +187,7 @@ export async function upgradeComponents(
         });
 
         successCount++;
-        componentSpinner.succeed(`Updated ${component.name}\n`);
+        componentSpinner.succeed(`Updated ${component.name}`);
       } catch (error) {
         componentSpinner.fail(`Failed to update ${component.name}: ${error}`);
       }
