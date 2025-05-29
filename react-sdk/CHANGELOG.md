@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.4](https://github.com/tambo-ai/tambo/compare/react-v0.26.3...react-v0.26.4) (2025-05-29)
+
+
+### Miscellaneous
+
+* **deps:** bump @modelcontextprotocol/sdk from 1.11.2 to 1.12.0 ([#455](https://github.com/tambo-ai/tambo/issues/455)) ([a58555c](https://github.com/tambo-ai/tambo/commit/a58555ca9dacc762d9153ec9b39204972a9e71a8))
+
 ## [0.26.3](https://github.com/tambo-ai/tambo/compare/react-v0.26.2...react-v0.26.3) (2025-05-27)
 
 
