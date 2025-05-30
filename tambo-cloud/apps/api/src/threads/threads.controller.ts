@@ -370,7 +370,7 @@ export class ThreadsController {
   @UseGuards(ThreadInProjectGuard)
   @Post(":id/generate-name")
   @ApiOperation({
-    summary: "Generate and set thread name",
+    summary: "Generate and set a thread's name",
     description:
       "Automatically generates and sets a name for the thread based on its messages",
   })
