@@ -90,7 +90,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
       <ThreadContentContext.Provider value={contextValue}>
         <div
           ref={ref}
-          className={cn("w-full", className)}
+          className={cn(className)}
           data-slot="thread-content-container"
           {...props}
         >
@@ -128,18 +128,18 @@ const ThreadContentMessages = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("w-full", className)}
+      className={cn("flex flex-col gap-4", className)}
       data-slot="thread-content-messages"
       {...props}
     >
       {messages.map((message, index) => {
+        const showLoading = isGenerating && index === messages.length - 1;
+
         return (
           <div
             key={
               message.id ??
-              `${message.role}-${
-                message.createdAt ?? Date.now()
-              }-${message.content?.toString().substring(0, 10)}`
+              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
             }
             data-slot="thread-content-item"
           >
@@ -147,26 +147,23 @@ const ThreadContentMessages = React.forwardRef<
               role={message.role === "assistant" ? "assistant" : "user"}
               message={message}
               variant={variant}
-              isLoading={isGenerating && index === messages.length - 1}
-              className={cn(
-                "flex w-full",
-                message.role === "assistant" ? "justify-start" : "justify-end",
-              )}
+              isLoading={showLoading}
+              className={
+                message.role === "assistant"
+                  ? "flex justify-start"
+                  : "flex justify-end"
+              }
             >
-              <div
-                className={cn(
-                  "flex flex-col",
-                  message.role === "assistant" ? "w-full" : "max-w-3xl",
-                )}
-              >
+              <div className="flex flex-col">
                 <MessageContent
                   className={
                     message.role === "assistant"
                       ? "text-primary font-sans"
-                      : "text-primary bg-container hover:bg-backdrop font-sans"
+                      : "text-primary bg-gray-100 hover:bg-gray-200 font-sans"
                   }
                 />
-                <MessageRenderedComponentArea className="w-full" />
+                {/* Rendered component area determines if the message is a canvas message */}
+                <MessageRenderedComponentArea />
               </div>
             </Message>
           </div>

@@ -7,7 +7,9 @@ import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import stringify from "json-stringify-pretty-compact";
 
 /**
  * CSS variants for the message container
@@ -15,7 +17,7 @@ import ReactMarkdown from "react-markdown";
  * @property {string} default - Default styling
  * @property {string} solid - Solid styling with shadow effects
  */
-const messageVariants = cva("flex mb-4", {
+const messageVariants = cva("flex", {
   variants: {
     variant: {
       default: "",
@@ -199,9 +201,10 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     { className, children, content: contentProp, markdown = true, ...props },
     ref,
   ) => {
+    const [isToolcallExpanded, setIsToolcallExpanded] = useState(false);
     const { message, isLoading } = useMessageContext();
-    const [isToolcallExpanded, setIsToolcallExpanded] = React.useState(false);
     const contentToRender = children ?? contentProp ?? message.content;
+    const toolDetailsId = React.useId();
 
     const safeContent = React.useMemo(
       () => getSafeContent(contentToRender as TamboThreadMessage["content"]),
@@ -220,7 +223,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div
         ref={ref}
         className={cn(
-          "relative inline-block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:my-1 [&_ul]:-my-5 [&_ol]:-my-5",
+          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_ul]:py-4 [&_ol]:py-4 [&_li]:list-item",
           className,
         )}
         data-slot="message-content"
@@ -235,7 +238,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
           </div>
         ) : (
           <div
-            className="break-words whitespace-pre-wrap"
+            className={cn("break-words", !markdown && "whitespace-pre-wrap")}
             data-slot="message-content-text"
           >
             {!contentToRender ? (
@@ -254,41 +257,46 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
           </div>
         )}
         {toolStatusMessage && (
-          <div className="flex flex-col items-start gap-2 text-xs opacity-50 mt-2">
-            <button
-              type="button"
-              aria-expanded={isToolcallExpanded}
-              onClick={() => setIsToolcallExpanded(!isToolcallExpanded)}
-              className={cn(
-                "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none",
-              )}
-            >
-              {hasToolError ? (
-                <X className="w-3 h-3 text-bold text-red-500" />
-              ) : isLoading ? (
-                <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
-              ) : (
-                <Check className="w-3 h-3 text-bold text-green-500" />
-              )}
-              <span>{toolStatusMessage}</span>
-              <ChevronDown
+          <div className="flex flex-col items-start text-xs opacity-50 pt-2">
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                aria-expanded={isToolcallExpanded}
+                aria-controls={toolDetailsId}
+                onClick={() => setIsToolcallExpanded(!isToolcallExpanded)}
                 className={cn(
-                  "w-3 h-3 transition-transform duration-200",
-                  !isToolcallExpanded && "-rotate-90",
+                  "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none",
                 )}
-              />
-            </button>
-            <div
-              className={cn(
-                "flex flex-col gap-1 ml-4 overflow-hidden transition-all duration-300",
-                isToolcallExpanded ? "h-auto opacity-100" : "h-0 opacity-0",
-              )}
-            >
-              <span>tool: {message.toolCallRequest?.toolName}</span>
-              <span>
-                parameters:{" "}
-                {JSON.stringify(message.toolCallRequest?.parameters)}
-              </span>
+              >
+                {hasToolError ? (
+                  <X className="w-3 h-3 text-bold text-red-500" />
+                ) : isLoading ? (
+                  <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
+                ) : (
+                  <Check className="w-3 h-3 text-bold text-green-500" />
+                )}
+                <span>{toolStatusMessage}</span>
+                <ChevronDown
+                  className={cn(
+                    "w-3 h-3 transition-transform duration-200",
+                    !isToolcallExpanded && "-rotate-90",
+                  )}
+                />
+              </button>
+              <div
+                id={toolDetailsId}
+                className={cn(
+                  "flex flex-col gap-1 pl-4 overflow-hidden transition-[max-height,opacity] duration-300",
+                  isToolcallExpanded
+                    ? "max-h-96 opacity-100"
+                    : "max-h-0 opacity-0",
+                )}
+              >
+                <span>tool: {message.toolCallRequest?.toolName}</span>
+                <span>
+                  parameters: {stringify(message.toolCallRequest?.parameters)}
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -344,7 +352,7 @@ const MessageRenderedComponentArea = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("mt-2", className)}
+      className={cn("pt-2", className)}
       data-slot="message-rendered-component-area"
       {...props}
     >
@@ -372,7 +380,7 @@ const MessageRenderedComponentArea = React.forwardRef<
             </button>
           </div>
         ) : (
-          <div className="w-full mt-4 px-2">{message.renderedComponent}</div>
+          <div className="w-full pt-4 px-2">{message.renderedComponent}</div>
         ))}
     </div>
   );

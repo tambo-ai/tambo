@@ -7,6 +7,8 @@
  * - Internal utility functions (@/lib/utils)
  * - React Markdown components
  * - Highlight.js
+ * - Dompurify
+ * - Json-stringify-pretty-compact
  *
  * These type declarations are essential for maintaining type safety and preventing
  * build errors when the package is installed in end-user projects through the CLI.
@@ -44,4 +46,18 @@ declare module "dompurify" {
     sanitize: (html: string) => string;
   };
   export default dompurify;
+}
+
+declare module "json-stringify-pretty-compact" {
+  const stringify: (
+    value: any,
+    options?: {
+      indent?: number | string;
+      maxLength?: number;
+      replacer?:
+        | ((this: any, key: string, value: any) => any)
+        | (number | string)[];
+    },
+  ) => string;
+  export default stringify;
 }
