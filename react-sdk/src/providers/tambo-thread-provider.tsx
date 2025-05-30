@@ -51,7 +51,7 @@ export interface TamboThreadContextProps {
   /** Send a message to the current thread */
   sendThreadMessage: (
     message: string,
-    options: {
+    options?: {
       threadId?: string;
       streamResponse?: boolean;
       contextKey?: string;
