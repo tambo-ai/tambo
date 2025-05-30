@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.59.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.58.0...repo-v0.59.0) (2025-05-30)
+
+
+### Features
+
+* add 'name' field to thread type ([#1076](https://github.com/tambo-ai/tambo-cloud/issues/1076)) ([07b9111](https://github.com/tambo-ai/tambo-cloud/commit/07b91116ac6ae6a402463ce857af90ef15d110b6))
+* add route for thread name autogeneration ([#1078](https://github.com/tambo-ai/tambo-cloud/issues/1078)) ([bd2be92](https://github.com/tambo-ai/tambo-cloud/commit/bd2be92c26f4f53f90ef024a47f3cd6612bf23a6))
+
 ## [0.58.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.57.0...repo-v0.58.0) (2025-05-30)
 
 
