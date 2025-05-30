@@ -78,6 +78,7 @@ describe("Thread State", () => {
         metadata: null,
         generationStage: GenerationStage.CHOOSING_COMPONENT,
         statusMessage: "Test status",
+        name: "Test name",
         createdAt: now,
         updatedAt: now,
       });
@@ -116,6 +117,7 @@ describe("Thread State", () => {
         contextKey: null,
         metadata: null,
         statusMessage: null,
+        name: null,
       };
 
       const mockTransaction = {

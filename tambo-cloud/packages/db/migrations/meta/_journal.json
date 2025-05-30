@@ -330,6 +330,20 @@
       "when": 1747526133495,
       "tag": "0046_odd_slipstream",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1748625293432,
+      "tag": "0047_violet_salo",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1748625873504,
+      "tag": "0048_furry_reavers",
+      "breakpoints": true
     }
   ]
 }

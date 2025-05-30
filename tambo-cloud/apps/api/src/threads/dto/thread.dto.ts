@@ -25,6 +25,10 @@ export class ThreadRequest {
   @IsString()
   @IsOptional()
   statusMessage?: string;
+
+  @IsString()
+  @IsOptional()
+  name?: string;
 }
 
 @ApiSchema({ name: "Thread" })

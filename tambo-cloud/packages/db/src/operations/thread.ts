@@ -14,10 +14,12 @@ export async function createThread(
     projectId,
     contextKey,
     metadata,
+    name,
   }: {
     projectId: string;
     contextKey?: string;
     metadata?: ThreadMetadata;
+    name?: string;
   },
 ) {
   const [thread] = await db
@@ -26,6 +28,7 @@ export async function createThread(
       projectId,
       contextKey,
       metadata,
+      name,
     })
     .returning();
 
@@ -105,11 +108,13 @@ export async function updateThread(
     metadata,
     generationStage,
     statusMessage,
+    name,
   }: {
     contextKey?: string | null;
     metadata?: ThreadMetadata;
     generationStage?: GenerationStage;
     statusMessage?: string;
+    name?: string;
   },
 ) {
   const [updated] = await db
@@ -120,6 +125,7 @@ export async function updateThread(
       updatedAt: new Date(),
       generationStage,
       statusMessage,
+      name,
     })
     .where(eq(schema.threads.id, threadId))
     .returning();

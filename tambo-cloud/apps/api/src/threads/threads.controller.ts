@@ -132,6 +132,7 @@ export class ThreadsController {
       metadata: thread.metadata ?? undefined,
       generationStage: thread.generationStage,
       statusMessage: thread.statusMessage ?? undefined,
+      name: thread.name ?? undefined,
     };
   }
 
