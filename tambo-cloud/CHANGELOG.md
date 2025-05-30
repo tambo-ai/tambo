@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.59.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.59.1...repo-v0.59.2) (2025-05-30)
+
+
+### Bug Fixes
+
+* update message component to include expandable tool call and fix markdown lists ([#1081](https://github.com/tambo-ai/tambo-cloud/issues/1081)) ([4e09a65](https://github.com/tambo-ai/tambo-cloud/commit/4e09a65b88c54142e527becba6e218fc1d11917b))
+
 ## [0.59.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.59.0...repo-v0.59.1) (2025-05-30)
 
 
