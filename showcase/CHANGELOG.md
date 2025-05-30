@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.8.0...showcase-v0.8.1) (2025-05-30)
+
+
+### Miscellaneous
+
+* upgrade showcase message component ([#478](https://github.com/tambo-ai/tambo/issues/478)) ([7b57458](https://github.com/tambo-ai/tambo/commit/7b57458a25564b547d7690941898ffdb7693918c))
+
 ## [0.8.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.7.0...showcase-v0.8.0) (2025-05-28)
 
 
