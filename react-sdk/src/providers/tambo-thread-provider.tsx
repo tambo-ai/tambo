@@ -33,6 +33,10 @@ export interface TamboThreadContextProps {
   switchCurrentThread: (threadId: string, fetch?: boolean) => void;
   /** Start a new thread */
   startNewThread: () => void;
+  /** Update a thread's name */
+  updateThreadName: (name: string, threadId?: string) => void;
+  /** Triggers a name autogeneration for a thread */
+  generateThreadName: (threadId?: string) => void;
   /** Add a message to the current thread */
   addThreadMessage: (
     message: TamboThreadMessage,
@@ -95,6 +99,18 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
    */
   startNewThread: () => {
     throw new Error("startNewThread not implemented");
+  },
+  /**
+   *
+   */
+  updateThreadName: () => {
+    throw new Error("updateThreadName not implemented");
+  },
+  /**
+   *
+   */
+  generateThreadName: () => {
+    throw new Error("generateThreadName not implemented");
   },
   /**
    *
@@ -317,6 +333,20 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       };
     });
   }, []);
+
+  const updateThreadName = useCallback(
+    (_name: string, threadId?: string) => {
+      threadId ??= currentThreadId;
+    },
+    [currentThreadId],
+  );
+
+  const generateThreadName = useCallback(
+    (threadId?: string) => {
+      threadId ??= currentThreadId;
+    },
+    [currentThreadId],
+  );
 
   const switchCurrentThread = useCallback(
     async (threadId: string, fetch = true) => {
@@ -630,6 +660,8 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         thread: currentThread,
         switchCurrentThread,
         startNewThread,
+        updateThreadName,
+        generateThreadName,
         addThreadMessage,
         updateThreadMessage,
         inputValue,
