@@ -255,9 +255,13 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
         )}
         {toolStatusMessage && (
           <div className="flex flex-col items-start gap-2 text-xs opacity-50 mt-2">
-            <div
-              className="flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none"
+            <button
+              type="button"
+              aria-expanded={isToolcallExpanded}
               onClick={() => setIsToolcallExpanded(!isToolcallExpanded)}
+              className={cn(
+                "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none",
+              )}
             >
               {hasToolError ? (
                 <X className="w-3 h-3 text-bold text-red-500" />
@@ -273,7 +277,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
                   !isToolcallExpanded && "-rotate-90",
                 )}
               />
-            </div>
+            </button>
             <div
               className={cn(
                 "flex flex-col gap-1 ml-4 overflow-hidden transition-all duration-300",
