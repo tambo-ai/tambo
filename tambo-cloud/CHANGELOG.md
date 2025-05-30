@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.58.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.57.0...repo-v0.58.0) (2025-05-30)
+
+
+### Features
+
+* enhance ProjectTable component with compact mode and loading state ([#1073](https://github.com/tambo-ai/tambo-cloud/issues/1073)) ([aa2e24d](https://github.com/tambo-ai/tambo-cloud/commit/aa2e24d3559f1bf0c350d26773e4438ac81197e1))
+
+
+### Documentation
+
+* update some old docs ([#1074](https://github.com/tambo-ai/tambo-cloud/issues/1074)) ([a284046](https://github.com/tambo-ai/tambo-cloud/commit/a2840467dba6a090c3498adf188245baeac348bc))
+
 ## [0.57.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.56.1...repo-v0.57.0) (2025-05-29)
 
 
