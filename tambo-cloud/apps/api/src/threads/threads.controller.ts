@@ -367,6 +367,39 @@ export class ThreadsController {
     }
   }
 
+  @UseGuards(ThreadInProjectGuard)
+  @Post(":id/generate-name")
+  @ApiOperation({
+    summary: "Generate and set thread name",
+    description:
+      "Automatically generates and sets a name for the thread based on its messages",
+  })
+  @ApiParam({
+    name: "id",
+    description: "ID of the thread to generate name for",
+    example: "thread_123456789",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "Thread name generated successfully",
+    type: Thread,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Thread not found",
+    type: ProblemDetailsDto,
+  })
+  async generateName(
+    @Param("id") threadId: string,
+    @Req() request: Request,
+  ): Promise<Thread> {
+    const projectId = request[ProjectId];
+    if (!projectId) {
+      throw new BadRequestException("Project ID is required");
+    }
+    return await this.threadsService.generateThreadName(threadId, projectId);
+  }
+
   private async handleAdvanceStream(
     @Res() response,
     stream: AsyncIterableIterator<{

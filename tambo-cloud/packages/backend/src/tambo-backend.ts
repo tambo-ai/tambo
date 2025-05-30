@@ -10,6 +10,7 @@ import { runDecisionLoop } from "./services/decision-loop/decision-loop-service"
 import { TokenJSClient } from "./services/llm/token-js-client";
 import { generateSuggestions } from "./services/suggestion/suggestion.service";
 import { SuggestionDecision } from "./services/suggestion/suggestion.types";
+import { generateThreadName } from "./services/thread-name/thread-name.service";
 
 interface HydraBackendOptions {
   model?: string;
@@ -87,6 +88,15 @@ export default class TamboBackend {
       params.customInstructions,
       params.forceToolChoice,
     );
+  }
+
+  /**
+   * Generates a 'summary' name for a thread based on the messages in the thread
+   * @param messages - The messages in the thread
+   * @returns A name for the thread
+   */
+  public async generateThreadName(messages: ThreadMessage[]): Promise<string> {
+    return await generateThreadName(this.llmClient, messages);
   }
 }
 

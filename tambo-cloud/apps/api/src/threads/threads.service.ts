@@ -464,6 +464,26 @@ export class ThreadsService {
     }
   }
 
+  async generateThreadName(
+    threadId: string,
+    projectId: string,
+  ): Promise<Thread> {
+    const messages = await this.getMessages(threadId, true);
+    const tamboBackend = await this.getHydraBackend(threadId);
+    const name = await tamboBackend.generateThreadName(
+      messages as ThreadMessage[],
+    );
+    const updatedThread = await this.update(threadId, { projectId, name });
+    return {
+      ...updatedThread,
+      contextKey: updatedThread.contextKey ?? undefined,
+      metadata: updatedThread.metadata ?? undefined,
+      generationStage: updatedThread.generationStage,
+      statusMessage: updatedThread.statusMessage ?? undefined,
+      name: updatedThread.name ?? undefined,
+    };
+  }
+
   async updateComponentState(
     messageId: string,
     newState: Record<string, unknown>,
