@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.61.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.60.0...repo-v0.61.0) (2025-05-30)
+
+
+### Features
+
+* bump ([#1087](https://github.com/tambo-ai/tambo-cloud/issues/1087)) ([5f60038](https://github.com/tambo-ai/tambo-cloud/commit/5f60038c3a5297ca932a2777c19f78e1974acce8))
+
 ## [0.60.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.59.2...repo-v0.60.0) (2025-05-30)
 
 
