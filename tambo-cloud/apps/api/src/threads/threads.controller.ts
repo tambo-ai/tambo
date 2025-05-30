@@ -372,7 +372,7 @@ export class ThreadsController {
   @ApiOperation({
     summary: "Generate and set a thread's name",
     description:
-      "Automatically generates and sets a name for the thread based on its messages",
+      "Automatically generates and sets a name for the thread, as a summary based on its messages",
   })
   @ApiParam({
     name: "id",
