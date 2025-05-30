@@ -31,6 +31,8 @@ export default tseslint.config(
       // disable console.log but allow console.error and console.warn
       "no-console": ["error", { allow: ["error", "warn"] }],
       "no-unused-vars": "off",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "error",
       "@typescript-eslint/no-empty-function": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
