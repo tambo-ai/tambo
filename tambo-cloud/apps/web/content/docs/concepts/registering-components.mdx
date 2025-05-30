@@ -1,6 +1,6 @@
 ---
-title: Registering Components
-description: Learn how to register components with Tambo.
+title: Registering Components as UI Tools
+description: Learn how to register components as UI Tools with Tambo.
 ---
 
 One of the core features of Tambo is its ability to intelligently respond to user messages with UI components filled with relevant data instead of just text. With this ability, Tambo allows your users to conversationally control your app with AI assistance rather than simply have questions answered.
@@ -23,7 +23,7 @@ You can pass a list of components directly to the `TamboProvider` component. All
 import { TamboProvider } from "@tambo-ai/react";
 import { z } from "zod";
 
-// Define a Zod schema for the weather data
+// Define a Zod schema for the weather data passed as props to the component
 export const WeatherDisplayProps = z.object({
   data: z.object({
     date: z.string(),
@@ -48,7 +48,6 @@ const components = [
     description: "A display of the weather in a city",
     component: WeatherDisplay,
     propsSchema: WeatherDisplayProps, // Using Zod schema
-    associatedTools: [tools.forecast, tools.history], // Any context tools that Tambo should focus on when getting extra information to fill in the props of this component
   },
 ];
 
@@ -71,7 +70,7 @@ import { useTamboRegistry } from "@tambo-ai/react";
 import { z } from "zod";
 import { WeatherDisplay } from "@/components/WeatherDisplay";
 
-// Define a Zod schema for the weather data
+// Define a Zod schema for the weather data passed as props to the component
 export const WeatherDisplayProps = z.object({
   data: z.object({
     date: z.string(),

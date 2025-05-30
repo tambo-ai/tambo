@@ -2,7 +2,7 @@
 title: Component Props and Performance
 ---
 
-When Tambo chooses a component to use, it will look at the component's `propsDefinition` to know what props to pass to the component, and how they should be structured.
+When Tambo chooses a component to use, it will look at the component's `propsSchema` to know what props to pass to the component, and how they should be structured.
 
 If the size of the props object passed to a component is large, it can impact Tambo's performance, since Tambo needs to generate more data. Essentially, the response time of a request to Tambo is directly related to, and mostly determined by, the size (token count) of the props object generated for the chosen component.
 
@@ -27,11 +27,17 @@ registerComponent({
   name: "MeetingsList",
   description: "A list of meetings",
   component: MeetingsList,
-  propsDefinition: {
-    meetings:
-      "{id: string, title: string, date: string, location: string, attendees: string[]}[]",
-  },
-  associatedTools: [meetingsTool],
+  propsSchema: z.object({
+    meetings: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        date: z.string(),
+        location: z.string(),
+        attendees: z.array(z.string()),
+      }),
+    ),
+  }),
 });
 ```
 
@@ -77,9 +83,12 @@ Tambo.registerComponent({
   name: "MeetingsList",
   description: "A list of meetings",
   component: MeetingsList,
-  propsDefinition: {
-    meetingsRequest: "{startDate: string, endDate: string}",
-  },
+  propsSchema: z.object({
+    meetingsRequest: z.object({
+      startDate: z.string(),
+      endDate: z.string(),
+    }),
+  }),
   associatedTools: [meetingsTool],
 });
 ```

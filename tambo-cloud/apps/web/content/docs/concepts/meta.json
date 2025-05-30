@@ -9,6 +9,6 @@
     "component-state",
     "streaming-props",
     "suggestions",
-    "generation-stage"
+    "tracking-progress"
   ]
 }
