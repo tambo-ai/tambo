@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.59.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.59.0...repo-v0.59.1) (2025-05-30)
+
+
+### Miscellaneous Chores
+
+* small change ([#1079](https://github.com/tambo-ai/tambo-cloud/issues/1079)) ([d3f11e9](https://github.com/tambo-ai/tambo-cloud/commit/d3f11e99cc560577fac062b35786552567fee137))
+
 ## [0.59.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.58.0...repo-v0.59.0) (2025-05-30)
 
 
