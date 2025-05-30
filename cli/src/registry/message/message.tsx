@@ -5,7 +5,7 @@ import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, ExternalLink, Loader2, X } from "lucide-react";
+import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 
@@ -200,6 +200,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     ref,
   ) => {
     const { message, isLoading } = useMessageContext();
+    const [isToolcallExpanded, setIsToolcallExpanded] = React.useState(false);
     const contentToRender = children ?? contentProp ?? message.content;
 
     const safeContent = React.useMemo(
@@ -253,15 +254,42 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
           </div>
         )}
         {toolStatusMessage && (
-          <div className="flex items-center gap-2 text-xs opacity-50 mt-2">
-            {hasToolError ? (
-              <X className="w-3 h-3 text-bold text-red-500" />
-            ) : isLoading ? (
-              <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
-            ) : (
-              <Check className="w-3 h-3 text-bold text-green-500" />
-            )}
-            <span>{toolStatusMessage}</span>
+          <div className="flex flex-col items-start gap-2 text-xs opacity-50 mt-2">
+            <button
+              type="button"
+              aria-expanded={isToolcallExpanded}
+              onClick={() => setIsToolcallExpanded(!isToolcallExpanded)}
+              className={cn(
+                "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none",
+              )}
+            >
+              {hasToolError ? (
+                <X className="w-3 h-3 text-bold text-red-500" />
+              ) : isLoading ? (
+                <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
+              ) : (
+                <Check className="w-3 h-3 text-bold text-green-500" />
+              )}
+              <span>{toolStatusMessage}</span>
+              <ChevronDown
+                className={cn(
+                  "w-3 h-3 transition-transform duration-200",
+                  !isToolcallExpanded && "-rotate-90",
+                )}
+              />
+            </button>
+            <div
+              className={cn(
+                "flex flex-col gap-1 ml-4 overflow-hidden transition-all duration-300",
+                isToolcallExpanded ? "h-auto opacity-100" : "h-0 opacity-0",
+              )}
+            >
+              <span>tool: {message.toolCallRequest?.toolName}</span>
+              <span>
+                parameters:{" "}
+                {JSON.stringify(message.toolCallRequest?.parameters)}
+              </span>
+            </div>
           </div>
         )}
       </div>
