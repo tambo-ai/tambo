@@ -52,6 +52,7 @@ export class MCPClient {
    * This is the recommended way to create an MCPClient as it handles both
    * instantiation and connection setup.
    * @param endpoint - The URL of the MCP server to connect to
+   * @param transport - The transport type to use for the MCP client. Defaults to HTTP.
    * @param headers - Optional custom headers to include in requests
    * @returns A connected MCPClient instance ready for use
    * @throws Will throw an error if connection fails
