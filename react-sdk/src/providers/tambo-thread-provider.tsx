@@ -335,8 +335,21 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   }, []);
 
   const updateThreadName = useCallback(
-    (_name: string, threadId?: string) => {
+    async (name: string, threadId?: string) => {
       threadId ??= currentThreadId;
+
+      setThreadMap((prevMap) => {
+        if (!prevMap[threadId]) {
+          return prevMap;
+        }
+        return { ...prevMap, [threadId]: { ...prevMap[threadId], name } };
+      });
+
+      const currentProject = await client.beta.projects.getCurrent();
+      await client.beta.threads.update(threadId, {
+        name,
+        projectId: currentProject.id,
+      });
     },
     [currentThreadId],
   );
@@ -345,6 +358,8 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     (threadId?: string) => {
       threadId ??= currentThreadId;
     },
+
+    // const thread = await client.beta.threads.
     [currentThreadId],
   );
 
