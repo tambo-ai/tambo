@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.11.1...tambo-v0.12.0) (2025-05-30)
+
+
+### Features
+
+* show toolcall name and params under status ([#476](https://github.com/tambo-ai/tambo/issues/476)) ([7fefe78](https://github.com/tambo-ai/tambo/commit/7fefe783262731f61e5100891110fc57b2fbe468))
+
 ## [0.11.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.11.0...tambo-v0.11.1) (2025-05-29)
 
 
