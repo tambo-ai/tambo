@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.12.0...tambo-v0.13.0) (2025-05-31)
+
+
+### Features
+
+* show threadname in history ([#488](https://github.com/tambo-ai/tambo/issues/488)) ([9fa1a5d](https://github.com/tambo-ai/tambo/commit/9fa1a5d776de4480b60838afb1b8d7fa351ffee5))
+
+
+### Bug Fixes
+
+* default to "fetching data" instead of "Choosing component" ([#475](https://github.com/tambo-ai/tambo/issues/475)) ([7a062e5](https://github.com/tambo-ai/tambo/commit/7a062e5f85702e5590326c2ce314c0414d2e4316))
+
 ## [0.12.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.11.1...tambo-v0.12.0) (2025-05-30)
 
 
