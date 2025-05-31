@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/tambo-ai/tambo/compare/react-v0.27.0...react-v0.28.0) (2025-05-31)
+
+
+### Features
+
+* add method for changing a thread's name ([#486](https://github.com/tambo-ai/tambo/issues/486)) ([f303dc1](https://github.com/tambo-ai/tambo/commit/f303dc1d422aed9ab8b5aac698c5d16bda776b5d))
+
 ## [0.27.0](https://github.com/tambo-ai/tambo/compare/react-v0.26.4...react-v0.27.0) (2025-05-31)
 
 
