@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.27.0](https://github.com/tambo-ai/tambo/compare/react-v0.26.4...react-v0.27.0) (2025-05-31)
+
+
+### Features
+
+* add a streaming prop, turn it on by default ([#480](https://github.com/tambo-ai/tambo/issues/480)) ([f0454b3](https://github.com/tambo-ai/tambo/commit/f0454b3bfaf43142e328e49c230333e30266db6a))
+
+
+### Bug Fixes
+
+* default to "fetching data" instead of "Choosing component" ([#475](https://github.com/tambo-ai/tambo/issues/475)) ([7a062e5](https://github.com/tambo-ai/tambo/commit/7a062e5f85702e5590326c2ce314c0414d2e4316))
+* make options optional in sendThreadMessage ([#481](https://github.com/tambo-ai/tambo/issues/481)) ([48b5e69](https://github.com/tambo-ai/tambo/commit/48b5e6915e350ab2bcc2ead96f452d59dd4aaad5))
+
 ## [0.26.4](https://github.com/tambo-ai/tambo/compare/react-v0.26.3...react-v0.26.4) (2025-05-29)
 
 
