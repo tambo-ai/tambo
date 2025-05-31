@@ -1082,6 +1082,17 @@ export class ThreadsService {
       (key) => key.providerName === providerName,
     );
     if (!chosenKey) {
+      // Check for fallback key if OpenAI is requested
+      if (providerName === "openai") {
+        const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
+        if (!fallbackKey) {
+          throw new NotFoundException(
+            `No OpenAI key found for project ${projectId} and no fallback key configured`,
+          );
+        }
+        return fallbackKey;
+      }
+
       throw new Error(
         `No key found for provider ${providerName} in project ${projectId}`,
       );
