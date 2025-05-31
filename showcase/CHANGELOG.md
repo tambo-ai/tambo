@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.8.1...showcase-v0.8.2) (2025-05-31)
+
+
+### Bug Fixes
+
+* default to "fetching data" instead of "Choosing component" ([#475](https://github.com/tambo-ai/tambo/issues/475)) ([7a062e5](https://github.com/tambo-ai/tambo/commit/7a062e5f85702e5590326c2ce314c0414d2e4316))
+
+
+### Miscellaneous
+
+* add json-stringify-pretty-compact and ExternalLink component; enhance message styling ([#485](https://github.com/tambo-ai/tambo/issues/485)) ([644ab74](https://github.com/tambo-ai/tambo/commit/644ab74e5502f2d8f393e7b25de774f4c0900d95))
+
 ## [0.8.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.8.0...showcase-v0.8.1) (2025-05-30)
 
 
