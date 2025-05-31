@@ -118,7 +118,7 @@ describe("TamboThreadProvider", () => {
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <TamboRegistryProvider components={mockRegistry}>
-      <TamboThreadProvider>{children}</TamboThreadProvider>
+      <TamboThreadProvider streaming={false}>{children}</TamboThreadProvider>
     </TamboRegistryProvider>
   );
 
@@ -352,6 +352,17 @@ describe("TamboThreadProvider", () => {
 
   describe("streaming behavior", () => {
     it("should call advanceStream when streamResponse=true", async () => {
+      // Use wrapper with streaming=true to show that explicit streamResponse=true works
+      const wrapperWithStreaming = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboThreadProvider streaming={true}>{children}</TamboThreadProvider>
+        </TamboRegistryProvider>
+      );
+
       const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "stream-response",
@@ -373,7 +384,9 @@ describe("TamboThreadProvider", () => {
 
       jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
 
-      const { result } = renderHook(() => useTamboThread(), { wrapper });
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithStreaming,
+      });
 
       await act(async () => {
         await result.current.sendThreadMessage("Hello streaming", {
@@ -403,7 +416,20 @@ describe("TamboThreadProvider", () => {
     });
 
     it("should call advanceById when streamResponse=false for existing thread", async () => {
-      const { result } = renderHook(() => useTamboThread(), { wrapper });
+      // Use wrapper with streaming=true to show that explicit streamResponse=false overrides provider setting
+      const wrapperWithStreaming = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboThreadProvider streaming={true}>{children}</TamboThreadProvider>
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithStreaming,
+      });
 
       await act(async () => {
         await result.current.sendThreadMessage("Hello non-streaming", {
@@ -428,13 +454,28 @@ describe("TamboThreadProvider", () => {
       expect(advanceStream).not.toHaveBeenCalled();
     });
 
-    it("should call advanceById when streamResponse is undefined (default) for existing thread", async () => {
-      const { result } = renderHook(() => useTamboThread(), { wrapper });
+    it("should call advanceById when streamResponse is undefined and provider streaming=false", async () => {
+      // Use wrapper with streaming=false to test that undefined streamResponse respects provider setting
+      const wrapperWithoutStreaming = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboThreadProvider streaming={false}>
+            {children}
+          </TamboThreadProvider>
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithoutStreaming,
+      });
 
       await act(async () => {
         await result.current.sendThreadMessage("Hello default", {
           threadId: "test-thread-1",
-          // streamResponse is undefined by default
+          // streamResponse is undefined, should use provider's streaming=false
         });
       });
 
@@ -454,8 +495,85 @@ describe("TamboThreadProvider", () => {
       expect(advanceStream).not.toHaveBeenCalled();
     });
 
+    it("should call advanceStream when streamResponse is undefined and provider streaming=true (default)", async () => {
+      // Use wrapper with streaming=true (default) to test that undefined streamResponse respects provider setting
+      const wrapperWithDefaultStreaming = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboThreadProvider>{children}</TamboThreadProvider>
+        </TamboRegistryProvider>
+      );
+
+      const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "stream-response",
+          content: [{ type: "text", text: "Streaming response" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: undefined,
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockStreamResponse;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithDefaultStreaming,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Hello default streaming", {
+          threadId: "test-thread-1",
+          // streamResponse is undefined, should use provider's streaming=true (default)
+        });
+      });
+
+      expect(advanceStream).toHaveBeenCalledWith(
+        mockTamboAI,
+        {
+          messageToAppend: {
+            content: [{ type: "text", text: "Hello default streaming" }],
+            role: "user",
+          },
+          availableComponents: serializeRegistry(mockRegistry),
+          contextKey: undefined,
+          clientTools: [],
+          forceToolChoice: undefined,
+        },
+        "test-thread-1",
+      );
+
+      // Should not call advance or advanceById
+      expect(mockThreadsApi.advance).not.toHaveBeenCalled();
+      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+    });
+
     it("should call advance when streamResponse=false for placeholder thread", async () => {
-      const { result } = renderHook(() => useTamboThread(), { wrapper });
+      // Use wrapper with streaming=true to show that explicit streamResponse=false overrides provider setting
+      const wrapperWithStreaming = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboThreadProvider streaming={true}>{children}</TamboThreadProvider>
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithStreaming,
+      });
 
       // Start with placeholder thread (which is the default state)
       expect(result.current.thread.id).toBe("placeholder");
@@ -484,6 +602,19 @@ describe("TamboThreadProvider", () => {
     });
 
     it("should call advanceStream when streamResponse=true for placeholder thread", async () => {
+      // Use wrapper with streaming=false to show that explicit streamResponse=true overrides provider setting
+      const wrapperWithoutStreaming = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboThreadProvider streaming={false}>
+            {children}
+          </TamboThreadProvider>
+        </TamboRegistryProvider>
+      );
+
       const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "stream-response",
@@ -505,7 +636,9 @@ describe("TamboThreadProvider", () => {
 
       jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
 
-      const { result } = renderHook(() => useTamboThread(), { wrapper });
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithoutStreaming,
+      });
 
       // Start with placeholder thread (which is the default state)
       expect(result.current.thread.id).toBe("placeholder");
