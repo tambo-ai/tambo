@@ -345,7 +345,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         });
       }
     },
-    [currentThreadId],
+    [currentThreadId, client.beta.projects, client.beta.threads],
   );
 
   const switchCurrentThread = useCallback(
