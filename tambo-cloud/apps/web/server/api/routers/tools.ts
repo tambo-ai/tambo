@@ -1,6 +1,5 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { getComposio } from "@/lib/composio";
-import { env } from "@/lib/env";
 import { customHeadersSchema } from "@/lib/headerValidation";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
@@ -577,9 +576,7 @@ async function getOAuthProvider(
   // If we have a user context with client info, use that directly
   if (userContext?.mcpOauthClientInfo) {
     return new OAuthLocalProvider(db, userContext.id, {
-      baseUrl: env.VERCEL_URL
-        ? `https://${env.VERCEL_URL}`
-        : "http://localhost:3000",
+      baseUrl: getBaseUrl(),
       serverUrl: url,
       clientInformation: userContext.mcpOauthClientInfo,
     });
@@ -611,9 +608,7 @@ async function getOAuthProvider(
   }
 
   return new OAuthLocalProvider(db, context.id, {
-    baseUrl: env.VERCEL_URL
-      ? `https://${env.VERCEL_URL}`
-      : "http://localhost:3000",
+    baseUrl: getBaseUrl(),
     serverUrl: url,
     clientInformation: client.sessionInfo.clientInformation,
     sessionId: client.sessionId,
