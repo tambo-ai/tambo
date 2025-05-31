@@ -33,6 +33,8 @@ export interface TamboThreadContextProps {
   switchCurrentThread: (threadId: string, fetch?: boolean) => void;
   /** Start a new thread */
   startNewThread: () => void;
+  /** Update a thread's name */
+  updateThreadName: (name: string, threadId?: string) => void;
   /** Add a message to the current thread */
   addThreadMessage: (
     message: TamboThreadMessage,
@@ -97,6 +99,12 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
    */
   startNewThread: () => {
     throw new Error("startNewThread not implemented");
+  },
+  /**
+   *
+   */
+  updateThreadName: () => {
+    throw new Error("updateThreadName not implemented");
   },
   /**
    *
@@ -326,6 +334,28 @@ export const TamboThreadProvider: React.FC<
       };
     });
   }, []);
+
+  const updateThreadName = useCallback(
+    async (name: string, threadId?: string) => {
+      threadId ??= currentThreadId;
+
+      setThreadMap((prevMap) => {
+        if (!prevMap[threadId]) {
+          return prevMap;
+        }
+        return { ...prevMap, [threadId]: { ...prevMap[threadId], name } };
+      });
+
+      if (threadId !== PLACEHOLDER_THREAD.id) {
+        const currentProject = await client.beta.projects.getCurrent();
+        await client.beta.threads.update(threadId, {
+          name,
+          projectId: currentProject.id,
+        });
+      }
+    },
+    [currentThreadId, client.beta.projects, client.beta.threads],
+  );
 
   const switchCurrentThread = useCallback(
     async (threadId: string, fetch = true) => {
@@ -641,6 +671,7 @@ export const TamboThreadProvider: React.FC<
         thread: currentThread,
         switchCurrentThread,
         startNewThread,
+        updateThreadName,
         addThreadMessage,
         updateThreadMessage,
         inputValue,
