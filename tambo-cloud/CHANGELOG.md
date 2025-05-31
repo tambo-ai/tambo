@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.61.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.61.0...repo-v0.61.1) (2025-05-31)
+
+
+### Bug Fixes
+
+* enhance provider key section and message component styling ([#1086](https://github.com/tambo-ai/tambo-cloud/issues/1086)) ([9ab8b7d](https://github.com/tambo-ai/tambo-cloud/commit/9ab8b7d065683d0b183712bf03c47647ee102767))
+* make sure MCP oauth redirects to the right environment ([#1089](https://github.com/tambo-ai/tambo-cloud/issues/1089)) ([deac12c](https://github.com/tambo-ai/tambo-cloud/commit/deac12c7f932bd951a25cf4869dcd17c381bf069))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/react ([#1091](https://github.com/tambo-ai/tambo-cloud/issues/1091)) ([dbc9318](https://github.com/tambo-ai/tambo-cloud/commit/dbc9318e5f45a3fdb3a3b77cf80fbb4bf932f8ae))
+
 ## [0.61.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.60.0...repo-v0.61.0) (2025-05-30)
 
 
