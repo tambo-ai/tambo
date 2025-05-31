@@ -1,17 +1,18 @@
 /**
  * @file utils.d.ts
- * @description Type declarations for utility functions and third-party libraries used in the CLI project.
- * These declarations ensure TypeScript compatibility when the project is installed via CLI.
+ * @description Type declarations for utility functions and third-party libraries used in CLI components.
+ * These declarations prevent build errors in the CLI during development without requiring actual package installations.
  *
  * This file provides type definitions for:
- * - Internal utility functions (@/lib/utils)
+ * - Internal utility functions (@/lib/utils) - created during component installation, declared here to avoid creating lib folder in CLI
  * - React Markdown components
  * - Highlight.js
  * - Dompurify
  * - Json-stringify-pretty-compact
  *
- * These type declarations are essential for maintaining type safety and preventing
- * build errors when the package is installed in end-user projects through the CLI.
+ * These packages are NOT installed in the CLI itself, but are required by the actual components
+ * when they are installed in end-user projects. The type declarations here allow the CLI to
+ * build successfully while avoiding unnecessary package dependencies in the CLI bundle.
  */
 
 declare module "@/lib/utils" {
