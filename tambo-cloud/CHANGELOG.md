@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.61.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.61.1...repo-v0.61.2) (2025-05-31)
+
+
+### Bug Fixes
+
+* **api:** use fallback OpenAI key when project has non-OpenAI provider keys ([#1093](https://github.com/tambo-ai/tambo-cloud/issues/1093)) ([f49e60f](https://github.com/tambo-ai/tambo-cloud/commit/f49e60f5da5ac547a3dfa86366535fa865c39f7e))
+
 ## [0.61.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.61.0...repo-v0.61.1) (2025-05-31)
 
 
