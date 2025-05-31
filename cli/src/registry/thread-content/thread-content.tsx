@@ -90,7 +90,7 @@ const ThreadContent = React.forwardRef<HTMLDivElement, ThreadContentProps>(
       <ThreadContentContext.Provider value={contextValue}>
         <div
           ref={ref}
-          className={cn(className)}
+          className={cn("w-full", className)}
           data-slot="thread-content-container"
           {...props}
         >
@@ -133,13 +133,13 @@ const ThreadContentMessages = React.forwardRef<
       {...props}
     >
       {messages.map((message, index) => {
-        const showLoading = isGenerating && index === messages.length - 1;
-
         return (
           <div
             key={
               message.id ??
-              `${message.role}-${message.createdAt ?? Date.now()}-${message.content?.toString().substring(0, 10)}`
+              `${message.role}-${
+                message.createdAt ?? Date.now()
+              }-${message.content?.toString().substring(0, 10)}`
             }
             data-slot="thread-content-item"
           >
@@ -147,23 +147,26 @@ const ThreadContentMessages = React.forwardRef<
               role={message.role === "assistant" ? "assistant" : "user"}
               message={message}
               variant={variant}
-              isLoading={showLoading}
-              className={
-                message.role === "assistant"
-                  ? "flex justify-start"
-                  : "flex justify-end"
-              }
+              isLoading={isGenerating && index === messages.length - 1}
+              className={cn(
+                "flex w-full",
+                message.role === "assistant" ? "justify-start" : "justify-end",
+              )}
             >
-              <div className="flex flex-col">
+              <div
+                className={cn(
+                  "flex flex-col",
+                  message.role === "assistant" ? "w-full" : "max-w-3xl",
+                )}
+              >
                 <MessageContent
                   className={
                     message.role === "assistant"
                       ? "text-primary font-sans"
-                      : "text-primary bg-gray-100 hover:bg-gray-200 font-sans"
+                      : "text-primary bg-container hover:bg-backdrop font-sans"
                   }
                 />
-                {/* Rendered component area determines if the message is a canvas message */}
-                <MessageRenderedComponentArea />
+                <MessageRenderedComponentArea className="w-full" />
               </div>
             </Message>
           </div>
