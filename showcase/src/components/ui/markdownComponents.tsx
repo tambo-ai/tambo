@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import type { Components } from "react-markdown";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, ExternalLink } from "lucide-react";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
 import DOMPurify from "dompurify";
@@ -107,7 +107,7 @@ export const createMarkdownComponents = (): Components => ({
 
     if (match && looksLikeCode(content)) {
       return (
-        <div className="relative border border-border rounded-md bg-muted max-w-[80ch] text-sm">
+        <div className="relative border border-border rounded-md bg-muted max-w-[80ch] text-sm my-4">
           <CodeHeader language={match[1]} code={content} />
           <div
             className={cn(
@@ -215,9 +215,10 @@ export const createMarkdownComponents = (): Components => ({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-primary hover:underline"
+      className="text-primary font-medium px-1.5 py-0.5 rounded-md bg-primary/5 hover:bg-primary/10 hover:underline transition-colors inline-flex items-center gap-1.5"
     >
       {children}
+      <ExternalLink className="w-3 h-3" />
     </a>
   ),
 
