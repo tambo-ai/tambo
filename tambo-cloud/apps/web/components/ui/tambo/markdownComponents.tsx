@@ -215,10 +215,10 @@ export const createMarkdownComponents = (): Components => ({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-primary font-medium px-1.5 py-0.5 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors inline-flex items-center gap-1.5"
+      className="text-primary font-medium px-1.5 py-0.5 rounded-md bg-primary/5 hover:bg-primary/10 hover:underline transition-colors inline-flex items-center gap-1.5"
     >
       {children}
-      <ExternalLink className="w-4 h-4" />
+      <ExternalLink className="w-3 h-3" />
     </a>
   ),
 

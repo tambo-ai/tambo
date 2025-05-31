@@ -787,9 +787,17 @@ export function ProviderKeySection({
                     {apiKeyInput && apiKeyValidation && (
                       <div className="space-y-1">
                         {!apiKeyValidation.isValid && (
-                          <p className="text-sm text-destructive">
-                            {apiKeyValidation.error}
-                          </p>
+                          <div className="space-y-1">
+                            <p className="text-sm text-destructive">
+                              {apiKeyValidation.error}
+                            </p>
+                            {currentProviderConfig?.apiName === "mistral" && (
+                              <p className="text-sm text-muted-foreground">
+                                Note: Mistral API keys may be invalid for a few
+                                minutes after creation.
+                              </p>
+                            )}
+                          </div>
                         )}
                         {apiKeyValidation.isValid &&
                           apiKeyValidation.details?.note && (

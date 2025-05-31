@@ -64,6 +64,7 @@
     "highlight.js": "^11.11.1",
     "jiti": "^2.4.2",
     "js-tiktoken": "^1.0.20",
+    "json-stringify-pretty-compact": "^4.0.0",
     "lucide-react": "^0.511.0",
     "luxon": "^3.6.1",
     "next": "^15.3.2",
