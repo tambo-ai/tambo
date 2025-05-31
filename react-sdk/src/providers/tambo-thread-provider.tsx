@@ -46,6 +46,8 @@ export interface TamboThreadContextProps {
   ) => Promise<void>;
   /** The input value of the current thread */
   inputValue: string;
+  /** Whether the thread is streaming */
+  streaming: boolean;
   /** Set the input value of the current thread */
   setInputValue: (value: string) => void;
   /** Send a message to the current thread */
@@ -103,6 +105,7 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
     throw new Error("updateThreadMessageHistory not implemented");
   },
   inputValue: "",
+  streaming: true,
   /**
    *
    */
@@ -126,16 +129,22 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   isIdle: true,
 });
 
+export interface TamboThreadProviderProps {
+  /** Whether to stream the response */
+  streaming?: boolean;
+}
+
 /**
  * The TamboThreadProvider is a React provider that provides a thread context
  * to the descendants of the provider.
  * @param props - The props for the TamboThreadProvider
  * @param props.children - The children to wrap
+ * @param props.streaming - Whether to stream the response by default. Defaults to true.
  * @returns The TamboThreadProvider component
  */
-export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
-  children,
-}) => {
+export const TamboThreadProvider: React.FC<
+  PropsWithChildren<TamboThreadProviderProps>
+> = ({ children, streaming = true }) => {
   const [threadMap, setThreadMap] = useState<Record<string, TamboThread>>({
     [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
   });
@@ -502,7 +511,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
     ): Promise<TamboThreadMessage> => {
       const {
         threadId = currentThread.id,
-        streamResponse,
+        streamResponse = streaming,
         forceToolChoice,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
@@ -622,6 +631,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
       updateThreadMessage,
       updateThreadStatus,
       handleAdvanceStream,
+      streaming,
     ],
   );
 
@@ -636,6 +646,7 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         inputValue,
         setInputValue,
         sendThreadMessage,
+        streaming,
         generationStage: (currentThread?.generationStage ??
           GenerationStage.IDLE) as GenerationStage,
         generationStatusMessage: currentThread?.statusMessage ?? "",
