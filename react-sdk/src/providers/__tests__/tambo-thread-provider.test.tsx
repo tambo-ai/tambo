@@ -79,6 +79,7 @@ describe("TamboThreadProvider", () => {
       create: jest.fn(),
     },
     retrieve: jest.fn(),
+    advance: jest.fn(),
     advanceById: jest.fn(),
   } satisfies DeepPartial<
     TamboAI["beta"]["threads"]
@@ -122,10 +123,14 @@ describe("TamboThreadProvider", () => {
   );
 
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.mocked(mockThreadsApi.retrieve).mockResolvedValue(mockThread);
     jest
       .mocked(mockThreadsApi.messages.create)
       .mockResolvedValue(createMockMessage());
+    jest
+      .mocked(mockThreadsApi.advance)
+      .mockResolvedValue(createMockAdvanceResponse());
     jest
       .mocked(mockThreadsApi.advanceById)
       .mockResolvedValue(createMockAdvanceResponse());
@@ -343,5 +348,193 @@ describe("TamboThreadProvider", () => {
     expect(mockRegistry[0]?.associatedTools?.[0]?.tool).toHaveBeenCalledWith(
       "test",
     );
+  });
+
+  describe("streaming behavior", () => {
+    it("should call advanceStream when streamResponse=true", async () => {
+      const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "stream-response",
+          content: [{ type: "text", text: "Streaming response" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: undefined,
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockStreamResponse;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Hello streaming", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      expect(advanceStream).toHaveBeenCalledWith(
+        mockTamboAI,
+        {
+          messageToAppend: {
+            content: [{ type: "text", text: "Hello streaming" }],
+            role: "user",
+          },
+          availableComponents: serializeRegistry(mockRegistry),
+          contextKey: undefined,
+          clientTools: [],
+          forceToolChoice: undefined,
+        },
+        "test-thread-1",
+      );
+
+      // Should not call advance or advanceById
+      expect(mockThreadsApi.advance).not.toHaveBeenCalled();
+      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+    });
+
+    it("should call advanceById when streamResponse=false for existing thread", async () => {
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Hello non-streaming", {
+          threadId: "test-thread-1",
+          streamResponse: false,
+        });
+      });
+
+      expect(mockThreadsApi.advanceById).toHaveBeenCalledWith("test-thread-1", {
+        messageToAppend: {
+          content: [{ type: "text", text: "Hello non-streaming" }],
+          role: "user",
+        },
+        availableComponents: serializeRegistry(mockRegistry),
+        contextKey: undefined,
+        clientTools: [],
+        forceToolChoice: undefined,
+      });
+
+      // Should not call advance or advanceStream
+      expect(mockThreadsApi.advance).not.toHaveBeenCalled();
+      expect(advanceStream).not.toHaveBeenCalled();
+    });
+
+    it("should call advanceById when streamResponse is undefined (default) for existing thread", async () => {
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Hello default", {
+          threadId: "test-thread-1",
+          // streamResponse is undefined by default
+        });
+      });
+
+      expect(mockThreadsApi.advanceById).toHaveBeenCalledWith("test-thread-1", {
+        messageToAppend: {
+          content: [{ type: "text", text: "Hello default" }],
+          role: "user",
+        },
+        availableComponents: serializeRegistry(mockRegistry),
+        contextKey: undefined,
+        clientTools: [],
+        forceToolChoice: undefined,
+      });
+
+      // Should not call advance or advanceStream
+      expect(mockThreadsApi.advance).not.toHaveBeenCalled();
+      expect(advanceStream).not.toHaveBeenCalled();
+    });
+
+    it("should call advance when streamResponse=false for placeholder thread", async () => {
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Start with placeholder thread (which is the default state)
+      expect(result.current.thread.id).toBe("placeholder");
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Hello new thread", {
+          threadId: "placeholder",
+          streamResponse: false,
+        });
+      });
+
+      expect(mockThreadsApi.advance).toHaveBeenCalledWith({
+        messageToAppend: {
+          content: [{ type: "text", text: "Hello new thread" }],
+          role: "user",
+        },
+        availableComponents: serializeRegistry(mockRegistry),
+        contextKey: undefined,
+        clientTools: [],
+        forceToolChoice: undefined,
+      });
+
+      // Should not call advanceById or advanceStream
+      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+      expect(advanceStream).not.toHaveBeenCalled();
+    });
+
+    it("should call advanceStream when streamResponse=true for placeholder thread", async () => {
+      const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "stream-response",
+          content: [{ type: "text", text: "Streaming response" }],
+          role: "assistant",
+          threadId: "new-thread-1",
+          component: undefined,
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockStreamResponse;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Start with placeholder thread (which is the default state)
+      expect(result.current.thread.id).toBe("placeholder");
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Hello streaming new thread", {
+          threadId: "placeholder",
+          streamResponse: true,
+        });
+      });
+
+      expect(advanceStream).toHaveBeenCalledWith(
+        mockTamboAI,
+        {
+          messageToAppend: {
+            content: [{ type: "text", text: "Hello streaming new thread" }],
+            role: "user",
+          },
+          availableComponents: serializeRegistry(mockRegistry),
+          contextKey: undefined,
+          clientTools: [],
+          forceToolChoice: undefined,
+        },
+        undefined, // threadId is undefined for placeholder thread
+      );
+
+      // Should not call advance or advanceById
+      expect(mockThreadsApi.advance).not.toHaveBeenCalled();
+      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+    });
   });
 });
