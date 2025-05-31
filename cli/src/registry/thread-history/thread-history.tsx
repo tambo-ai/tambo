@@ -7,10 +7,10 @@ import {
   useTamboThreadList,
 } from "@tambo-ai/react";
 import {
-  PlusIcon,
-  SearchIcon,
   ArrowLeftToLine,
   ArrowRightToLine,
+  PlusIcon,
+  SearchIcon,
 } from "lucide-react";
 import React, { useMemo } from "react";
 
@@ -413,7 +413,7 @@ const ThreadHistoryList = React.forwardRef<
           >
             <div className="text-sm">
               <span className="font-medium">
-                {`Thread ${thread.id.substring(0, 8)}`}
+                {thread.name ?? `Thread ${thread.id.substring(0, 8)}`}
               </span>
               <p className="text-xs text-muted-foreground truncate mt-1">
                 {new Date(thread.createdAt).toLocaleString(undefined, {
@@ -451,7 +451,7 @@ ThreadHistoryList.displayName = "ThreadHistory.List";
 export {
   ThreadHistory,
   ThreadHistoryHeader,
+  ThreadHistoryList,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-  ThreadHistoryList,
 };
