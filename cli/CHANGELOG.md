@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.13.0...tambo-v0.13.1) (2025-05-31)
+
+
+### Miscellaneous
+
+* add json-stringify-pretty-compact and ExternalLink component; enhance message styling ([#485](https://github.com/tambo-ai/tambo/issues/485)) ([644ab74](https://github.com/tambo-ai/tambo/commit/644ab74e5502f2d8f393e7b25de774f4c0900d95))
+
 ## [0.13.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.12.0...tambo-v0.13.0) (2025-05-31)
 
 
