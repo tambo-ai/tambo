@@ -18,6 +18,7 @@
     "framer-motion": "^12.14.0",
     "geist": "^1.4.2",
     "highlight.js": "^11.11.1",
+    "json-stringify-pretty-compact": "^4.0.0",
     "lucide-react": "^0.511.0",
     "next": "^15.3.2",
     "next-themes": "^0.4.6",

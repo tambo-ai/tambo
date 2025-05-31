@@ -8,7 +8,8 @@
     "lucide-react",
     "highlight.js",
     "@tambo-ai/react",
-    "dompurify"
+    "dompurify",
+    "json-stringify-pretty-compact"
   ],
   "devDependencies": [],
   "requires": [],
