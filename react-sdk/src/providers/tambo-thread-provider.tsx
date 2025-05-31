@@ -345,11 +345,13 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
         return { ...prevMap, [threadId]: { ...prevMap[threadId], name } };
       });
 
-      const currentProject = await client.beta.projects.getCurrent();
-      await client.beta.threads.update(threadId, {
-        name,
-        projectId: currentProject.id,
-      });
+      if (threadId !== PLACEHOLDER_THREAD.id) {
+        const currentProject = await client.beta.projects.getCurrent();
+        await client.beta.threads.update(threadId, {
+          name,
+          projectId: currentProject.id,
+        });
+      }
     },
     [currentThreadId],
   );
