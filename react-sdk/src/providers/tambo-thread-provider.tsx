@@ -359,9 +359,8 @@ export const TamboThreadProvider: React.FC<PropsWithChildren> = ({
   const generateThreadName = useCallback(
     (threadId?: string) => {
       threadId ??= currentThreadId;
+      throw new Error("not implemented");
     },
-
-    // const thread = await client.beta.threads.
     [currentThreadId],
   );
 
