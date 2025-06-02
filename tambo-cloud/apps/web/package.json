@@ -56,7 +56,7 @@
     "dompurify": "^3.2.6",
     "drizzle-orm": "^0.44.1",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.12.2",
+    "framer-motion": "^12.15.0",
     "fumadocs-core": "^14.2.1",
     "fumadocs-mdx": "^11.4.0",
     "fumadocs-ui": "^14.7.7",
