@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/tambo-ai/tambo/compare/react-v0.28.0...react-v0.29.0) (2025-06-02)
+
+
+### Features
+
+* add method to auto-generate a thread's name based on its messages ([#490](https://github.com/tambo-ai/tambo/issues/490)) ([b584f63](https://github.com/tambo-ai/tambo/commit/b584f63b31fa1e486680a4df1d8e37d7d795bbd5))
+
 ## [0.28.0](https://github.com/tambo-ai/tambo/compare/react-v0.27.0...react-v0.28.0) (2025-05-31)
 
 
