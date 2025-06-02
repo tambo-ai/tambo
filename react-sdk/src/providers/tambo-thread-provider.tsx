@@ -1,5 +1,6 @@
 "use client";
 import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
+import { Thread } from "@tambo-ai/typescript-sdk/resources/beta/threads/threads";
 import React, {
   createContext,
   PropsWithChildren,
@@ -35,6 +36,8 @@ export interface TamboThreadContextProps {
   startNewThread: () => void;
   /** Update a thread's name */
   updateThreadName: (name: string, threadId?: string) => void;
+  /** Let Tambo generate and set a thread's name based on the thread's messages */
+  generateThreadName: (threadId?: string) => Promise<Thread>;
   /** Add a message to the current thread */
   addThreadMessage: (
     message: TamboThreadMessage,
@@ -105,6 +108,12 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
    */
   updateThreadName: () => {
     throw new Error("updateThreadName not implemented");
+  },
+  /**
+   *
+   */
+  generateThreadName: () => {
+    throw new Error("generateThreadName not implemented");
   },
   /**
    *
@@ -355,6 +364,21 @@ export const TamboThreadProvider: React.FC<
       }
     },
     [currentThreadId, client.beta.projects, client.beta.threads],
+  );
+
+  const generateThreadName = useCallback(
+    async (threadId?: string) => {
+      threadId ??= currentThreadId;
+      if (threadId === PLACEHOLDER_THREAD.id) {
+        console.warn("Cannot generate name for empty thread");
+        return threadMap[threadId];
+      }
+
+      const threadWithGeneratedName =
+        await client.beta.threads.generateName(threadId);
+      return threadWithGeneratedName;
+    },
+    [client.beta.threads, currentThreadId, threadMap],
   );
 
   const switchCurrentThread = useCallback(
@@ -672,6 +696,7 @@ export const TamboThreadProvider: React.FC<
         switchCurrentThread,
         startNewThread,
         updateThreadName,
+        generateThreadName,
         addThreadMessage,
         updateThreadMessage,
         inputValue,
