@@ -41,10 +41,10 @@
     "extends": "../package.json"
   },
   "devDependencies": {
-    "@eslint/js": "^9.27.0",
-    "eslint": "^9.27.0",
+    "@eslint/js": "^9.28.0",
+    "eslint": "^9.28.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1"
+    "typescript-eslint": "^8.33.1"
   }
 }
