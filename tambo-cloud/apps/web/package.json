@@ -54,7 +54,7 @@
     "composio-core": "^0.5.39",
     "deep-email-validator": "^0.1.21",
     "dompurify": "^3.2.6",
-    "drizzle-orm": "^0.43.1",
+    "drizzle-orm": "^0.44.1",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.12.2",
     "fumadocs-core": "^14.2.1",
