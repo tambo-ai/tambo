@@ -376,6 +376,19 @@ export const TamboThreadProvider: React.FC<
 
       const threadWithGeneratedName =
         await client.beta.threads.generateName(threadId);
+
+      setThreadMap((prevMap) => {
+        if (!prevMap[threadId]) {
+          return prevMap;
+        }
+        return {
+          ...prevMap,
+          [threadId]: {
+            ...prevMap[threadId],
+            name: threadWithGeneratedName.name,
+          },
+        };
+      });
       return threadWithGeneratedName;
     },
     [client.beta.threads, currentThreadId, threadMap],
