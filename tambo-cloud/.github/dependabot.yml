@@ -10,6 +10,9 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    ignore:
+      # For now, we don't want to update fumadocs, it requires tailwind 4
+      - dependency-name: "fumadocs-*"
     groups:
       trpc:
         patterns:
