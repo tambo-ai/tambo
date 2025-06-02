@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.13.1...tambo-v0.13.2) (2025-06-02)
+
+
+### Bug Fixes
+
+* use proper whitespace wrapping and format tool params correctly ([#505](https://github.com/tambo-ai/tambo/issues/505)) ([2346610](https://github.com/tambo-ai/tambo/commit/23466105ae4a9c89c0a4fc3f37e7f2705393e8a4))
+
 ## [0.13.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.13.0...tambo-v0.13.1) (2025-05-31)
 
 
