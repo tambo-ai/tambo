@@ -29,7 +29,7 @@
     "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
     "tsx": "^4.19.4",
-    "turbo": "^2.5.3",
+    "turbo": "^2.5.4",
     "typescript": "^5.8.3"
   },
   "workspaces": [
