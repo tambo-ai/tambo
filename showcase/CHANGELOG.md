@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.8.2...showcase-v0.8.3) (2025-06-02)
+
+
+### Bug Fixes
+
+* use proper whitespace wrapping and format tool params correctly ([#505](https://github.com/tambo-ai/tambo/issues/505)) ([2346610](https://github.com/tambo-ai/tambo/commit/23466105ae4a9c89c0a4fc3f37e7f2705393e8a4))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump postcss from 8.5.3 to 8.5.4 ([#497](https://github.com/tambo-ai/tambo/issues/497)) ([9bc9ae3](https://github.com/tambo-ai/tambo/commit/9bc9ae3764342ac91e25dfa3e411cec9639e05ff))
+* **deps-dev:** bump the eslint group with 6 updates ([#492](https://github.com/tambo-ai/tambo/issues/492)) ([9efc361](https://github.com/tambo-ai/tambo/commit/9efc3611ab68d4a38709d6f6b148f28f25258716))
+* **deps:** bump framer-motion from 12.14.0 to 12.15.0 ([#494](https://github.com/tambo-ai/tambo/issues/494)) ([698a204](https://github.com/tambo-ai/tambo/commit/698a204e7e208f809b0476741bfca02f3baef296))
+* **deps:** bump next from 15.3.2 to 15.3.3 ([#501](https://github.com/tambo-ai/tambo/issues/501)) ([29ea278](https://github.com/tambo-ai/tambo/commit/29ea2787fc38496dca5393f1c2e1088380d297a6))
+
 ## [0.8.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.8.1...showcase-v0.8.2) (2025-05-31)
 
 
