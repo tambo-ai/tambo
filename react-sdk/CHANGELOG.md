@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.29.1](https://github.com/tambo-ai/tambo/compare/react-v0.29.0...react-v0.29.1) (2025-06-02)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node from 20.17.50 to 20.17.57 ([#496](https://github.com/tambo-ai/tambo/issues/496)) ([ac42562](https://github.com/tambo-ai/tambo/commit/ac42562b44bd283881f465f60640b605d1f47bd5))
+* **deps-dev:** bump lint-staged from 16.0.0 to 16.1.0 ([#499](https://github.com/tambo-ai/tambo/issues/499)) ([381da89](https://github.com/tambo-ai/tambo/commit/381da8930c9cc355bec872741e7ce6ec02cb4555))
+* **deps-dev:** bump the eslint group with 6 updates ([#492](https://github.com/tambo-ai/tambo/issues/492)) ([9efc361](https://github.com/tambo-ai/tambo/commit/9efc3611ab68d4a38709d6f6b148f28f25258716))
+* **deps:** bump @modelcontextprotocol/sdk from 1.12.0 to 1.12.1 ([#500](https://github.com/tambo-ai/tambo/issues/500)) ([2640927](https://github.com/tambo-ai/tambo/commit/26409279d2cd0f33ac8dd3ae6af51180743c8f80))
+* **deps:** bump @tanstack/react-query from 5.77.2 to 5.79.2 ([#493](https://github.com/tambo-ai/tambo/issues/493)) ([572f536](https://github.com/tambo-ai/tambo/commit/572f53629771e3f0d8b73e2519bb94693f5f56b7))
+* **deps:** bump zod from 3.25.28 to 3.25.48 ([#498](https://github.com/tambo-ai/tambo/issues/498)) ([707b2b8](https://github.com/tambo-ai/tambo/commit/707b2b805c9666bf8fdb48bba8e70775615acfb3))
+
 ## [0.29.0](https://github.com/tambo-ai/tambo/compare/react-v0.28.0...react-v0.29.0) (2025-06-02)
 
 
