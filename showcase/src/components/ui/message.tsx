@@ -4,12 +4,13 @@ import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
+import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import stringify from "json-stringify-pretty-compact";
 
 /**
  * CSS variants for the message container
@@ -292,9 +293,14 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
                     : "max-h-0 opacity-0",
                 )}
               >
-                <span>tool: {message.toolCallRequest?.toolName}</span>
-                <span>
-                  parameters: {stringify(message.toolCallRequest?.parameters)}
+                <span className="whitespace-pre-wrap">
+                  tool: {message.toolCallRequest?.toolName}
+                </span>
+                <span className="whitespace-pre-wrap">
+                  parameters:{"\n"}
+                  {stringify(
+                    keyifyParameters(message.toolCallRequest?.parameters),
+                  )}
                 </span>
               </div>
             </div>
@@ -305,6 +311,15 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
   },
 );
 MessageContent.displayName = "MessageContent";
+
+function keyifyParameters(
+  parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
+) {
+  if (!parameters) return;
+  return Object.fromEntries(
+    parameters.map((p) => [p.parameterName, p.parameterValue]),
+  );
+}
 
 /**
  * Props for the MessageRenderedComponentArea component.
