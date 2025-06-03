@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.62.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.61.3...repo-v0.62.0) (2025-06-03)
+
+
+### Features
+
+* **home:** add Showcase component to the main page ([#1119](https://github.com/tambo-ai/tambo-cloud/issues/1119)) ([df70137](https://github.com/tambo-ai/tambo-cloud/commit/df70137ab5c93fdf5e7be359473ed74c37104ddd))
+
+
+### Documentation
+
+* add chat starter template to docs ([#1121](https://github.com/tambo-ai/tambo-cloud/issues/1121)) ([5554f03](https://github.com/tambo-ai/tambo-cloud/commit/5554f03c17328a235134137e76d0679583fbc3d1))
+
 ## [0.61.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.61.2...repo-v0.61.3) (2025-06-02)
 
 
