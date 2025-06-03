@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.62.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.62.0...repo-v0.62.1) (2025-06-03)
+
+
+### Documentation
+
+* add supabase demo to example docs ([#1122](https://github.com/tambo-ai/tambo-cloud/issues/1122)) ([930fa13](https://github.com/tambo-ai/tambo-cloud/commit/930fa13adb8369ea03b39a91ab5272e6f0df1558))
+
 ## [0.62.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.61.3...repo-v0.62.0) (2025-06-03)
 
 
