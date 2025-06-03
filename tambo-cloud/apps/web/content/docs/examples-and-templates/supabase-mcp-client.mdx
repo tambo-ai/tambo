@@ -1,0 +1,20 @@
+---
+title: Supabase MCP Client App
+description: Conversationally use Supabase
+---
+
+Add MCP server tools and UI tools to a React app using tambo to build an AI app with minimal custom code.
+
+Use this as a starting point to build apps to interact with any MCP server.
+
+<img
+  src="/assets/docs/supabase-mcp-client-short.gif"
+  alt="Demo GIF"
+  style={{ border: "2px solid #e5e7eb", borderRadius: "8px", width: "80%" }}
+/>
+
+[Github](https://github.com/tambo-ai/supabase-mcp-client/tree/main?tab=readme-ov-file#supabase-mcp-client-react-app)
+
+This application makes use of tambo's `TamboMcpProvider` to easily add the tools defined by the official [Supabase MCP server](https://github.com/supabase-community/supabase-mcp).
+
+Custom react components to show interactive visualizations of the responses from the Supabase tools are registered with tambo in [src/lib/tambo.ts](https://github.com/tambo-ai/supabase-mcp-client/blob/main/src/lib/tambo.ts)
