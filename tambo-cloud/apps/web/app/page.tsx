@@ -5,6 +5,7 @@ import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
 import { Hero } from "@/components/sections/hero";
 import { InstallationSteps } from "@/components/sections/installation-steps";
+import { Showcase } from "@/components/sections/showcase";
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
           {/* <Statistics /> */}
           {/* <Testimonials /> */}
           <Features />
+          <Showcase />
           <FinalCTA />
           <Footer />
         </div>
