@@ -41,15 +41,13 @@ export async function callSystemTool(
   if (toolCallRequest.toolName in systemTools.mcpToolSources) {
     const toolSource = systemTools.mcpToolSources[toolCallRequest.toolName];
 
-    const result = await toolSource.callTool(
-      toolCallRequest.toolName,
-      Object.fromEntries(
-        toolCallRequest.parameters.map((p) => [
-          p.parameterName,
-          p.parameterValue,
-        ]),
-      ),
+    const params = Object.fromEntries(
+      toolCallRequest.parameters.map((p) => [
+        p.parameterName,
+        p.parameterValue,
+      ]),
     );
+    const result = await toolSource.callTool(toolCallRequest.toolName, params);
     const responseContent =
       typeof result === "string"
         ? [{ type: "text" as const, text: result }]

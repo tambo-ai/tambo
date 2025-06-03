@@ -187,7 +187,7 @@ describe("getSystemTools", () => {
                     type: "string",
                   },
                 },
-                required: ["param1"],
+                required: undefined,
                 type: "object",
                 additionalProperties: false,
               },

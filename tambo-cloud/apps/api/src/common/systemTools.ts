@@ -94,11 +94,8 @@ async function getMcpTools(
             parameters: tool.inputSchema?.properties
               ? {
                   type: "object",
-                  properties: strictifyJSONSchemaProperties(
-                    tool.inputSchema.properties,
-                    Object.keys(tool.inputSchema.properties),
-                  ),
-                  required: Object.keys(tool.inputSchema.properties),
+                  properties: tool.inputSchema.properties,
+                  required: tool.inputSchema.required,
                   additionalProperties: false,
                 }
               : undefined,
