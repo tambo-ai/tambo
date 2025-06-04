@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.62.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.62.1...repo-v0.62.2) (2025-06-03)
+
+
+### Bug Fixes
+
+* do not double-strictify mcp tool schema ([#1124](https://github.com/tambo-ai/tambo-cloud/issues/1124)) ([47899b5](https://github.com/tambo-ai/tambo-cloud/commit/47899b51356558c177c331f67f927031d391a87a))
+
 ## [0.62.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.62.0...repo-v0.62.1) (2025-06-03)
 
 
