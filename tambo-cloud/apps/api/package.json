@@ -35,7 +35,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "composio-core": "^0.5.39",
-    "drizzle-orm": "^0.44.1",
+    "drizzle-orm": "^0.44.2",
     "nest-supabase-guard": "^1.0.2",
     "openai": "^4.103.0",
     "react-fast-compare": "^3.2.2",
