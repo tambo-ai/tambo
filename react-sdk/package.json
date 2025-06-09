@@ -102,6 +102,6 @@
     "react-dom": "^18.3.1",
     "ts-jest": "^29.3.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1"
+    "typescript-eslint": "^8.34.0"
   }
 }
