@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.63.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.62.2...repo-v0.63.0) (2025-06-09)
+
+
+### Features
+
+* **web:** add Discord icon link to top navigation bar ([#1139](https://github.com/tambo-ai/tambo-cloud/issues/1139)) ([2783bab](https://github.com/tambo-ai/tambo-cloud/commit/2783bab7b0fabb154d8bfa0a0fe8fb646924101e))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 20.17.57 to 20.19.0 ([#1133](https://github.com/tambo-ai/tambo-cloud/issues/1133)) ([f44d95d](https://github.com/tambo-ai/tambo-cloud/commit/f44d95d348a1d80bf4732d6ffdc474d81e36845a))
+* **deps-dev:** bump typescript-eslint from 8.33.0 to 8.33.1 in the eslint group ([#1130](https://github.com/tambo-ai/tambo-cloud/issues/1130)) ([a91a3da](https://github.com/tambo-ai/tambo-cloud/commit/a91a3dae23bd43db8c387ca3d60d06ca3065bf5d))
+* **deps:** bump @tanstack/react-query from 5.79.0 to 5.80.6 ([#1132](https://github.com/tambo-ai/tambo-cloud/issues/1132)) ([6235e6c](https://github.com/tambo-ai/tambo-cloud/commit/6235e6cd0a5dac0ff086d37faa7dab494ae7ea86))
+* **deps:** bump drizzle-orm from 0.44.1 to 0.44.2 in the drizzle group ([#1129](https://github.com/tambo-ai/tambo-cloud/issues/1129)) ([a3b3954](https://github.com/tambo-ai/tambo-cloud/commit/a3b3954f268ade195f4835baab45dafffa8095a9))
+* **deps:** bump lucide-react from 0.511.0 to 0.513.0 ([#1134](https://github.com/tambo-ai/tambo-cloud/issues/1134)) ([22f5932](https://github.com/tambo-ai/tambo-cloud/commit/22f59320842526d83c773a414ac148b01d1b78d7))
+* **deps:** bump resend from 4.5.1 to 4.5.2 ([#1135](https://github.com/tambo-ai/tambo-cloud/issues/1135)) ([05d6ccb](https://github.com/tambo-ai/tambo-cloud/commit/05d6ccb14643a2831aedd822f7ad6832d7728f8b))
+* **deps:** bump the nestjs group with 4 updates ([#1128](https://github.com/tambo-ai/tambo-cloud/issues/1128)) ([8fe024c](https://github.com/tambo-ai/tambo-cloud/commit/8fe024cd5c9ef6283e53c6c9d677a0e879c10a22))
+* **deps:** bump the trpc group with 3 updates ([#1127](https://github.com/tambo-ai/tambo-cloud/issues/1127)) ([7e2210c](https://github.com/tambo-ai/tambo-cloud/commit/7e2210cf5b4091b99d2348f7e1a13bc66848b8ab))
+* **deps:** bump use-debounce from 10.0.4 to 10.0.5 ([#1131](https://github.com/tambo-ai/tambo-cloud/issues/1131)) ([02fb1db](https://github.com/tambo-ai/tambo-cloud/commit/02fb1dbc9986ea0dfa3851c634dfbe055e6b4b3e))
+
 ## [0.62.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.62.1...repo-v0.62.2) (2025-06-03)
 
 
