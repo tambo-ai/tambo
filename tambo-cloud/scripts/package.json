@@ -6,7 +6,7 @@
     "github:stars": "tsx get-github-stars.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.3",
+    "@supabase/supabase-js": "^2.50.0",
     "dotenv": "^16.4.2",
     "node-fetch": "^2.7.0"
   },
