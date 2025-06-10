@@ -10,15 +10,15 @@ import type { InstallComponentOptions } from "./types.js";
 
 /**
  * Main function to handle component installation
- * @param componentName The name of the component to install
+ * @param componentNames Array of component names to install
  * @param options Installation options
  */
-export async function handleAddComponent(
-  componentName: string,
+export async function handleAddComponents(
+  componentNames: string[],
   options: InstallComponentOptions = {},
 ) {
-  if (!componentName) {
-    console.log(chalk.red("Please specify a component name."));
+  if (!componentNames || componentNames.length === 0) {
+    console.log(chalk.red("Please specify at least one component name."));
     return;
   }
 
@@ -38,7 +38,14 @@ export async function handleAddComponent(
       console.log(`${chalk.blue("ℹ")} Resolving dependencies...`);
     }
 
-    const components = await resolveComponentDependencies(componentName);
+    // Collect all components and their dependencies
+    const allComponents = new Set<string>();
+    for (const componentName of componentNames) {
+      const components = await resolveComponentDependencies(componentName);
+      components.forEach((comp) => allComponents.add(comp));
+    }
+
+    const components = Array.from(allComponents);
 
     // 4. Check which components need to be installed
     const existingComponents = components.filter((comp) =>
@@ -96,4 +103,16 @@ export async function handleAddComponent(
     }
     throw error;
   }
+}
+
+/**
+ * Legacy function to handle single component installation
+ * @param componentName The name of the component to install
+ * @param options Installation options
+ */
+export async function handleAddComponent(
+  componentName: string,
+  options: InstallComponentOptions = {},
+) {
+  return await handleAddComponents([componentName], options);
 }

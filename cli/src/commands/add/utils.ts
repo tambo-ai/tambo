@@ -66,3 +66,30 @@ export function getComponentList(): ComponentInfo[] {
     })
     .filter((component) => component !== null);
 }
+
+/**
+ * Gets a list of all installed component names in the project
+ * @param installPath The installation path for components
+ * @returns An array of installed component names (tambo components only)
+ */
+export async function getInstalledComponents(
+  installPath: string,
+): Promise<string[]> {
+  try {
+    const componentsPath = path.join(process.cwd(), installPath, "ui");
+
+    if (!fs.existsSync(componentsPath)) {
+      return [];
+    }
+
+    const files = fs.readdirSync(componentsPath);
+    const components = files
+      .filter((file) => file.endsWith(".tsx"))
+      .map((file) => file.replace(".tsx", ""))
+      .filter((componentName) => componentExists(componentName)); // Only return tambo components
+
+    return components;
+  } catch (_error) {
+    return [];
+  }
+}
