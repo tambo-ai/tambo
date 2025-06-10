@@ -31,6 +31,13 @@ export default function CanvasSpacePage() {
             </p>
           </div>
 
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+          </div>
+
           <Section title="Example Prompt">
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
@@ -38,13 +45,6 @@ export default function CanvasSpacePage() {
           <DemoWrapper title="Canvas Space" height={800}>
             <CanvasChatInterface />
           </DemoWrapper>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Installation</h2>
-            <div className="rounded-md">
-              <CLI command={installCommand} />
-            </div>
-          </div>
         </div>
       </ShowcaseThemeProvider>
     </div>
