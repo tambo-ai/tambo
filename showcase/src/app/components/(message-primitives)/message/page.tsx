@@ -71,6 +71,33 @@ export default function MessagePage() {
             </p>
           </div>
 
+          {/* Sub-components */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <strong>
+                    <code>&lt;MessageContent /&gt;</code> -
+                  </strong>{" "}
+                  Displays the actual message text content with optional
+                  markdown rendering. Handles loading states, tool call status,
+                  and content formatting. Supports custom content override and
+                  markdown toggle.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;MessageRenderedComponentArea /&gt;</code> -
+                  </strong>{" "}
+                  Renders interactive components returned by assistant messages.
+                  Shows a &quot;View in canvas&quot; button if a canvas space
+                  exists, otherwise renders the component inline. Only appears
+                  for assistant messages with rendered components.
+                </li>
+              </ul>
+            </div>
+          </div>
+
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>

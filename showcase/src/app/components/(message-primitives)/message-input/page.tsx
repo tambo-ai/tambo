@@ -23,6 +23,44 @@ export default function MessageInputPage() {
             </p>
           </div>
 
+          {/* Sub-components */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <strong>
+                    <code>&lt;MessageInputTextarea /&gt;</code> -
+                  </strong>{" "}
+                  The main text input area where users type their messages.
+                  Automatically resizes based on content and handles keyboard
+                  shortcuts for submission.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;MessageInputToolbar /&gt;</code> -
+                  </strong>{" "}
+                  Container for toolbar elements positioned alongside the input.
+                  Typically contains the submit button and other action buttons.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;MessageInputSubmitButton /&gt;</code> -
+                  </strong>{" "}
+                  Button to submit the message form. Shows loading state during
+                  submission and is disabled when input is empty.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;MessageInputError /&gt;</code> -
+                  </strong>{" "}
+                  Displays error messages when message submission fails.
+                  Automatically shows/hides based on submission state.
+                </li>
+              </ul>
+            </div>
+          </div>
+
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>
@@ -153,28 +191,6 @@ export default function MessageInputPage() {
                   </tr>
                 </tbody>
               </table>
-            </div>
-
-            <h3 className="text-lg font-medium mb-3">Sub-components</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <strong>MessageInputTextarea:</strong> The main text input
-                  area for typing messages
-                </li>
-                <li>
-                  <strong>MessageInputToolbar:</strong> Container for toolbar
-                  elements like submit button
-                </li>
-                <li>
-                  <strong>MessageInputSubmitButton:</strong> Button to submit
-                  the message form
-                </li>
-                <li>
-                  <strong>MessageInputError:</strong> Displays error messages
-                  from failed submissions
-                </li>
-              </ul>
             </div>
           </div>
         </div>

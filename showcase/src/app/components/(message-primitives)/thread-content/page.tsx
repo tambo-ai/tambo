@@ -20,6 +20,25 @@ export default function ThreadContentPage() {
             </p>
           </div>
 
+          {/* Sub-components */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <strong>
+                    <code>&lt;ThreadContentMessages /&gt;</code> -
+                  </strong>{" "}
+                  Renders the list of messages in the thread. Automatically
+                  connects to the Tambo context to display messages with proper
+                  alignment based on sender role. Handles loading indicators for
+                  messages being generated and supports rendered components
+                  within assistant messages.
+                </li>
+              </ul>
+            </div>
+          </div>
+
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>
@@ -131,7 +150,9 @@ export default function ThreadContentPage() {
               </table>
             </div>
 
-            <h3 className="text-lg font-medium mb-3">ThreadContentMessages</h3>
+            <h3 className="text-lg font-medium mb-3">
+              ThreadContentMessages Props
+            </h3>
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <table className="w-full text-sm">
                 <thead>

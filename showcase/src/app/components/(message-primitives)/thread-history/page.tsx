@@ -23,6 +23,47 @@ export default function ThreadHistoryPage() {
             </p>
           </div>
 
+          {/* Sub-components */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <strong>
+                    <code>&lt;ThreadHistoryHeader /&gt;</code> -
+                  </strong>{" "}
+                  Header section with title and collapse/expand toggle button.
+                  Handles the sidebar visibility state and provides visual
+                  indication of current state.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;ThreadHistoryNewButton /&gt;</code> -
+                  </strong>{" "}
+                  Button to create a new conversation thread. Supports keyboard
+                  shortcut (Alt+Shift+N) and automatically refreshes the thread
+                  list after creation.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;ThreadHistorySearch /&gt;</code> -
+                  </strong>{" "}
+                  Search input for filtering through conversation history.
+                  Automatically expands the sidebar when focused from collapsed
+                  state and filters threads in real-time.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;ThreadHistoryList /&gt;</code> -
+                  </strong>{" "}
+                  Displays the list of previous conversation threads. Shows
+                  thread metadata like creation time, handles thread switching,
+                  and displays appropriate empty states.
+                </li>
+              </ul>
+            </div>
+          </div>
+
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>
@@ -206,28 +247,6 @@ export default function ThreadHistoryPage() {
                   </tr>
                 </tbody>
               </table>
-            </div>
-
-            <h3 className="text-lg font-medium mb-3">Sub-components</h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <strong>ThreadHistoryHeader:</strong> Header with title and
-                  collapse/expand toggle
-                </li>
-                <li>
-                  <strong>ThreadHistoryNewButton:</strong> Button to create a
-                  new conversation thread
-                </li>
-                <li>
-                  <strong>ThreadHistorySearch:</strong> Search input to filter
-                  through conversation history
-                </li>
-                <li>
-                  <strong>ThreadHistoryList:</strong> List of previous
-                  conversation threads
-                </li>
-              </ul>
             </div>
 
             <h3 className="text-lg font-medium mb-3">Features</h3>
