@@ -75,28 +75,6 @@ export default function ThreadContentPage() {
             </div>
           </div>
 
-          {/* Solid Variant Example */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
-            <div className="p-4 h-96 border rounded-lg bg-white">
-              <ThreadContent variant="solid">
-                <ThreadContentMessages />
-              </ThreadContent>
-            </div>
-          </div>
-
-          {/* Custom Styling Example */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">
-              With Custom Message Styling
-            </h3>
-            <div className="p-4 h-96 border rounded-lg bg-white">
-              <ThreadContent>
-                <ThreadContentMessages className="space-y-6" />
-              </ThreadContent>
-            </div>
-          </div>
-
           {/* Empty State Example */}
           <div>
             <h3 className="text-lg font-medium mb-3">

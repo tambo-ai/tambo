@@ -123,29 +123,6 @@ export default function ThreadHistoryPage() {
             </div>
           </div>
 
-          {/* Right Position Example */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">
-              Right Position (Expanded)
-            </h3>
-            <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden border">
-              <div className="mr-64 p-4 h-full">
-                <p className="text-gray-500">Main content area would go here</p>
-              </div>
-              <ThreadHistory
-                contextKey="demo-right"
-                position="right"
-                defaultCollapsed={false}
-                className="relative bg-white border-l"
-              >
-                <ThreadHistoryHeader />
-                <ThreadHistoryNewButton />
-                <ThreadHistorySearch />
-                <ThreadHistoryList />
-              </ThreadHistory>
-            </div>
-          </div>
-
           {/* Collapsed State Example */}
           <div>
             <h3 className="text-lg font-medium mb-3">Collapsed State</h3>
