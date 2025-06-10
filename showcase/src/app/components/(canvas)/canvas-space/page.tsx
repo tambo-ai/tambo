@@ -1,5 +1,3 @@
-"use client";
-
 import { CLI } from "@/components/cli";
 import { CanvasChatInterface } from "@/components/generative/CanvasChatInterface";
 import { CopyablePrompt, Section } from "@/components/ui/doc-components";

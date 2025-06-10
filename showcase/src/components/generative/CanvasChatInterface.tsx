@@ -1,3 +1,5 @@
+"use client";
+
 import { CanvasSpace } from "@/components/ui/canvas-space";
 import { Graph } from "@/components/ui/graph";
 import { MessageThreadPanel } from "@/components/ui/message-thread-panel";

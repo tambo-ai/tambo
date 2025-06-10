@@ -72,7 +72,9 @@ export const SyntaxHighlighter = ({
         <pre className="p-4 whitespace-pre">
           <code
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(highlighted),
+              __html: DOMPurify.isSupported
+                ? DOMPurify.sanitize(highlighted)
+                : "",
             }}
           />
         </pre>

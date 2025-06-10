@@ -1,5 +1,3 @@
-"use client";
-
 import { CLI } from "@/components/cli";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import {
