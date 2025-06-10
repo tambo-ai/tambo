@@ -7,12 +7,12 @@ import meow, { type Flag, type Result } from "meow";
 import { dirname, join } from "path";
 import semver from "semver";
 import { fileURLToPath } from "url";
-import { handleAddComponent } from "./commands/add/index.js";
+import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleListComponents } from "./commands/list/index.js";
-import { handleUpdateComponent } from "./commands/update.js";
+import { handleUpdateComponents } from "./commands/update.js";
 import { handleUpgrade } from "./commands/upgrade/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,11 +43,11 @@ const cli = meow(
     ${chalk.yellow(
       "init",
     )}                Initialize tambo in a project and set up configuration
-    ${chalk.yellow("add")}                 Add a new component
+    ${chalk.yellow("add")}                 Add new components
     ${chalk.yellow("list")}                List all installed components
     ${chalk.yellow(
       "update",
-    )}              Update an existing component from the registry
+    )}              Update existing components from the registry
     ${chalk.yellow(
       "upgrade",
     )}             Upgrade packages, components, and LLM rules
@@ -73,8 +73,11 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("add <component1> <component2> <component3>")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("list")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update <component1> <component2> <component3>")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade --accept-all")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow(
@@ -160,17 +163,17 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
   }
 
   if (cmd === "add") {
-    const componentName = cli.input[1];
-    if (!componentName) {
-      console.error(chalk.red("Component name is required"));
+    const componentNames = cli.input.slice(1);
+    if (componentNames.length === 0) {
+      console.error(chalk.red("Component names are required"));
 
       showComponentList();
       console.log(
-        `Run ${chalk.cyan("tambo add <componentName>")} to add a new component`,
+        `Run ${chalk.cyan("tambo add <componentName> [componentName2] [...]")} to add components`,
       );
       return;
     }
-    await handleAddComponent(componentName, {
+    await handleAddComponents(componentNames, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
     });
     return;
@@ -182,19 +185,19 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
   }
 
   if (cmd === "update") {
-    const componentName = cli.input[1];
-    if (!componentName) {
-      console.error(chalk.red("Component name is required"));
+    const componentNames = cli.input.slice(1);
+    if (componentNames.length === 0) {
+      console.error(chalk.red("Component names are required"));
 
       showComponentList();
       console.log(
         `Run ${chalk.cyan(
-          "tambo update <componentName>",
-        )} to update a component`,
+          "tambo update <componentName> [componentName2] [...]",
+        )} to update components or ${chalk.cyan("tambo update installed")} to update all installed components`,
       );
       return;
     }
-    await handleUpdateComponent(componentName, {
+    await handleUpdateComponents(componentNames, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
     });
     return;

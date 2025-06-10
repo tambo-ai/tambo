@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
+import { getInstalledComponents } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
 
 /**
@@ -17,34 +18,48 @@ export async function handleListComponents() {
 
     // 2. Get installation path
     const installPath = await getInstallationPath();
+
+    // 3. Get all installed components (tambo components only)
+    const tamboComponents = await getInstalledComponents(installPath);
+
+    // 4. Get all .tsx files in the components directory (including non-tambo)
     const componentsPath = path.join(process.cwd(), installPath, "ui");
+    let allComponents: string[] = [];
 
-    // 3. Check if components directory exists
-    if (!fs.existsSync(componentsPath)) {
+    if (fs.existsSync(componentsPath)) {
+      const files = fs.readdirSync(componentsPath);
+      allComponents = files
+        .filter((file) => file.endsWith(".tsx"))
+        .map((file) => file.replace(".tsx", ""));
+    }
+
+    if (allComponents.length === 0) {
       console.log(chalk.blue("ℹ No components installed yet."));
       return;
     }
 
-    // 4. Read all component files
-    const files = fs.readdirSync(componentsPath);
-    const components = files
-      .filter((file) => file.endsWith(".tsx"))
-      .map((file) => file.replace(".tsx", ""));
-
-    if (components.length === 0) {
-      console.log(chalk.blue("ℹ No components installed yet."));
-      return;
-    }
-
-    // 5. Display components
+    // 5. Display components with distinction between tambo and non-tambo
     console.log(chalk.blue("\nℹ Installed components:"));
-    // add a note that not all of these components are from tambo
-    components.forEach((component) => {
-      console.log(`  - ${component}`);
-    });
-    console.log(`\nTotal: ${components.length} component(s)`);
+
+    if (tamboComponents.length > 0) {
+      console.log(chalk.green("\n  Tambo components:"));
+      tamboComponents.forEach((component) => {
+        console.log(`    - ${component}`);
+      });
+    }
+
+    const nonTamboComponents = allComponents.filter(
+      (comp) => !tamboComponents.includes(comp),
+    );
+    if (nonTamboComponents.length > 0) {
+      console.log(chalk.gray("\n  Other components:"));
+      nonTamboComponents.forEach((component) => {
+        console.log(chalk.gray(`    - ${component}`));
+      });
+    }
+
     console.log(
-      chalk.gray("Note: Some of these components may be from other libraries."),
+      `\nTotal: ${allComponents.length} component(s) (${tamboComponents.length} from tambo)`,
     );
   } catch (error) {
     console.log(chalk.red(`\n✖ Failed to list components: ${error}`));
