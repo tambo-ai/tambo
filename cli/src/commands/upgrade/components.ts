@@ -4,7 +4,7 @@ import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
 import { installComponents } from "../add/component.js";
-import { componentExists } from "../add/utils.js";
+import { getInstalledComponents } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
 import type { UpgradeOptions } from "./index.js";
 import { confirmAction } from "./utils.js";
@@ -16,7 +16,7 @@ import { confirmAction } from "./utils.js";
  * @param installPath Pre-determined installation path
  * @returns Object containing component path and installation path
  */
-async function findComponentLocation(
+function findComponentLocation(
   componentName: string,
   projectRoot: string,
   installPath: string,
@@ -65,11 +65,7 @@ export async function upgradeComponents(
     }
 
     // Get list of installed components
-    const files = fs.readdirSync(componentDir);
-    const installedComponentNames = files
-      .filter((file) => file.endsWith(".tsx"))
-      .map((file) => file.replace(".tsx", ""))
-      .filter((componentName) => componentExists(componentName));
+    const installedComponentNames = await getInstalledComponents(installPath);
 
     spinner.succeed(
       `Found ${installedComponentNames.length} tambo components to upgrade`,
@@ -85,7 +81,7 @@ export async function upgradeComponents(
     const missingComponents: string[] = [];
 
     for (const componentName of installedComponentNames) {
-      const location = await findComponentLocation(
+      const location = findComponentLocation(
         componentName,
         projectRoot,
         installPath,
