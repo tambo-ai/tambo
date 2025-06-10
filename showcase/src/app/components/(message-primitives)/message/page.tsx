@@ -5,6 +5,7 @@ import {
   MessageContent,
   MessageRenderedComponentArea,
 } from "@/components/ui/message";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 export default function MessagePage() {
@@ -58,6 +59,28 @@ export default function MessagePage() {
     ),
   };
 
+  const usageCode = `import { Message, MessageContent, MessageRenderedComponentArea } from "@/components/ui/message";
+
+// Basic usage
+<Message 
+  role="user" 
+  message={{ id: "msg-1", role: "user", content: "Hello!", createdAt: "..." }}
+  variant="default"
+  isLoading={false}
+>
+  <MessageContent />
+  <MessageRenderedComponentArea />
+</Message>
+
+// With custom content
+<Message 
+  role="assistant" 
+  message={{ id: "msg-2", role: "assistant", content: "Hi there!", createdAt: "..." }}
+  variant="solid"
+>
+  <MessageContent content="Custom message content" markdown={false} />
+</Message>`;
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -101,31 +124,7 @@ export default function MessagePage() {
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <pre className="text-sm overflow-x-auto">
-                <code>{`import { Message, MessageContent, MessageRenderedComponentArea } from "@/components/ui/message";
-
-// Basic usage
-<Message 
-  role="user" 
-  message={{ id: "msg-1", role: "user", content: "Hello!", createdAt: "..." }}
-  variant="default"
-  isLoading={false}
->
-  <MessageContent />
-  <MessageRenderedComponentArea />
-</Message>
-
-// With custom content
-<Message 
-  role="assistant" 
-  message={{ id: "msg-2", role: "assistant", content: "Hi there!", createdAt: "..." }}
-  variant="solid"
->
-  <MessageContent content="Custom message content" markdown={false} />
-</Message>`}</code>
-              </pre>
-            </div>
+            <SyntaxHighlighter code={usageCode} language="tsx" />
           </div>
 
           {/* User Message Example */}

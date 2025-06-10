@@ -1,5 +1,6 @@
 "use client";
 
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import {
   ThreadContent,
   ThreadContentMessages,
@@ -7,6 +8,25 @@ import {
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 export default function ThreadContentPage() {
+  const usageCode = `import { ThreadContent, ThreadContentMessages } from "@/components/ui/thread-content";
+
+// Basic usage
+<ThreadContent variant="default">
+  <ThreadContentMessages />
+</ThreadContent>
+
+// With solid variant
+<ThreadContent variant="solid">
+  <ThreadContentMessages className="custom-messages-styling" />
+</ThreadContent>
+
+// Custom wrapper
+<ThreadContent>
+  <div className="custom-wrapper">
+    <ThreadContentMessages />
+  </div>
+</ThreadContent>`;
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -42,28 +62,7 @@ export default function ThreadContentPage() {
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <pre className="text-sm overflow-x-auto">
-                <code>{`import { ThreadContent, ThreadContentMessages } from "@/components/ui/thread-content";
-
-// Basic usage
-<ThreadContent variant="default">
-  <ThreadContentMessages />
-</ThreadContent>
-
-// With solid variant
-<ThreadContent variant="solid">
-  <ThreadContentMessages className="custom-messages-styling" />
-</ThreadContent>
-
-// Custom wrapper
-<ThreadContent>
-  <div className="custom-wrapper">
-    <ThreadContentMessages />
-  </div>
-</ThreadContent>`}</code>
-              </pre>
-            </div>
+            <SyntaxHighlighter code={usageCode} language="tsx" />
           </div>
 
           {/* Default Example */}

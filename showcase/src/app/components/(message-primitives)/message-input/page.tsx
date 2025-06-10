@@ -7,9 +7,35 @@ import {
   MessageInputTextarea,
   MessageInputToolbar,
 } from "@/components/ui/message-input";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 export default function MessageInputPage() {
+  const usageCode = `import { 
+  MessageInput, 
+  MessageInputTextarea, 
+  MessageInputToolbar,
+  MessageInputSubmitButton,
+  MessageInputError 
+} from "@/components/ui/message-input";
+
+// Basic usage
+<MessageInput contextKey="my-thread" variant="default">
+  <MessageInputTextarea />
+  <MessageInputToolbar>
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+  <MessageInputError />
+</MessageInput>
+
+// With solid variant
+<MessageInput contextKey="my-thread" variant="solid">
+  <MessageInputTextarea placeholder="Type your message..." />
+  <MessageInputToolbar>
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+</MessageInput>`;
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -64,34 +90,7 @@ export default function MessageInputPage() {
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <pre className="text-sm overflow-x-auto">
-                <code>{`import { 
-  MessageInput, 
-  MessageInputTextarea, 
-  MessageInputToolbar,
-  MessageInputSubmitButton,
-  MessageInputError 
-} from "@/components/ui/message-input";
-
-// Basic usage
-<MessageInput contextKey="my-thread" variant="default">
-  <MessageInputTextarea />
-  <MessageInputToolbar>
-    <MessageInputSubmitButton />
-  </MessageInputToolbar>
-  <MessageInputError />
-</MessageInput>
-
-// With solid variant
-<MessageInput contextKey="my-thread" variant="solid">
-  <MessageInputTextarea placeholder="Type your message..." />
-  <MessageInputToolbar>
-    <MessageInputSubmitButton />
-  </MessageInputToolbar>
-</MessageInput>`}</code>
-              </pre>
-            </div>
+            <SyntaxHighlighter code={usageCode} language="tsx" />
           </div>
 
           {/* Default Variant Example */}

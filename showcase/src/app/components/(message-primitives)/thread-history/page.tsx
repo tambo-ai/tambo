@@ -1,5 +1,6 @@
 "use client";
 
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import {
   ThreadHistory,
   ThreadHistoryHeader,
@@ -10,6 +11,35 @@ import {
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 
 export default function ThreadHistoryPage() {
+  const usageCode = `import { 
+  ThreadHistory, 
+  ThreadHistoryHeader, 
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadHistoryList 
+} from "@/components/ui/thread-history";
+
+// Basic usage (left sidebar)
+<ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
+  <ThreadHistoryHeader />
+  <ThreadHistoryNewButton />
+  <ThreadHistorySearch />
+  <ThreadHistoryList />
+</ThreadHistory>
+
+// Right sidebar with callbacks
+<ThreadHistory 
+  contextKey="my-app" 
+  position="right" 
+  defaultCollapsed={true}
+  onThreadChange={() => console.log("Thread changed")}
+>
+  <ThreadHistoryHeader />
+  <ThreadHistoryNewButton />
+  <ThreadHistorySearch />
+  <ThreadHistoryList />
+</ThreadHistory>`;
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -67,38 +97,7 @@ export default function ThreadHistoryPage() {
           {/* Sample Code */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Usage</h2>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <pre className="text-sm overflow-x-auto">
-                <code>{`import { 
-  ThreadHistory, 
-  ThreadHistoryHeader, 
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-  ThreadHistoryList 
-} from "@/components/ui/thread-history";
-
-// Basic usage (left sidebar)
-<ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
-  <ThreadHistoryHeader />
-  <ThreadHistoryNewButton />
-  <ThreadHistorySearch />
-  <ThreadHistoryList />
-</ThreadHistory>
-
-// Right sidebar with callbacks
-<ThreadHistory 
-  contextKey="my-app" 
-  position="right" 
-  defaultCollapsed={true}
-  onThreadChange={() => console.log("Thread changed")}
->
-  <ThreadHistoryHeader />
-  <ThreadHistoryNewButton />
-  <ThreadHistorySearch />
-  <ThreadHistoryList />
-</ThreadHistory>`}</code>
-              </pre>
-            </div>
+            <SyntaxHighlighter code={usageCode} language="tsx" />
           </div>
 
           {/* Left Position Example */}
