@@ -16,7 +16,7 @@ import { confirmAction } from "./utils.js";
  * @param installPath Pre-determined installation path
  * @returns Object containing component path and installation path
  */
-async function findComponentLocation(
+function findComponentLocation(
   componentName: string,
   projectRoot: string,
   installPath: string,
@@ -81,7 +81,7 @@ export async function upgradeComponents(
     const missingComponents: string[] = [];
 
     for (const componentName of installedComponentNames) {
-      const location = await findComponentLocation(
+      const location = findComponentLocation(
         componentName,
         projectRoot,
         installPath,

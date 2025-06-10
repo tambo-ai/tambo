@@ -15,15 +15,15 @@ interface UpdateComponentOptions {
  * Finds the component location in the project
  * @param componentName Name of the component to find
  * @param projectRoot Project root directory
+ * @param installPath Pre-determined installation path
  * @returns Object containing component path and installation path
  */
-async function findComponentLocation(
+function findComponentLocation(
   componentName: string,
   projectRoot: string,
+  installPath: string,
 ) {
   try {
-    // Get the correct installation path based on project structure
-    const installPath = await getInstallationPath();
     const componentDir = path.join(projectRoot, installPath, "ui");
     const componentPath = path.join(componentDir, `${componentName}.tsx`);
 
@@ -57,11 +57,14 @@ export async function handleUpdateComponents(
     }
 
     const projectRoot = process.cwd();
+
+    // Get installation path once at the beginning
+    const installPath = await getInstallationPath();
+
     let componentsToUpdate: string[] = [];
 
     // Handle special "installed" keyword
     if (componentNames.length === 1 && componentNames[0] === "installed") {
-      const installPath = await getInstallationPath();
       const installedComponents = await getInstalledComponents(installPath);
 
       if (installedComponents.length === 0) {
@@ -101,7 +104,11 @@ export async function handleUpdateComponents(
     const missingComponents: string[] = [];
 
     for (const componentName of componentsToUpdate) {
-      const location = await findComponentLocation(componentName, projectRoot);
+      const location = findComponentLocation(
+        componentName,
+        projectRoot,
+        installPath,
+      );
       if (location) {
         validComponents.push({
           name: componentName,
