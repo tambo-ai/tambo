@@ -1,5 +1,6 @@
 "use client";
 
+import { CLI } from "@/components/cli";
 import {
   MessageInput,
   MessageInputError,
@@ -36,6 +37,8 @@ export default function MessageInputPage() {
   </MessageInputToolbar>
 </MessageInput>`;
 
+  const installCommand = "npx tambo add message-input";
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -46,6 +49,18 @@ export default function MessageInputPage() {
               A primitive component for handling message input with textarea,
               toolbar, submit button, and error display. Provides form
               submission and state management for chat interfaces.
+            </p>
+          </div>
+
+          {/* Installation */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+            <p className="text-sm text-muted-foreground italic mt-2">
+              Note: This component is automatically included when you install
+              any of the &quot;Message Thread&quot; blocks.
             </p>
           </div>
 

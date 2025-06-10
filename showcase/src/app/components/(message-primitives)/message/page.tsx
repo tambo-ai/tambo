@@ -1,5 +1,6 @@
 "use client";
 
+import { CLI } from "@/components/cli";
 import {
   Message,
   MessageContent,
@@ -81,6 +82,8 @@ export default function MessagePage() {
   <MessageContent content="Custom message content" markdown={false} />
 </Message>`;
 
+  const installCommand = "npx tambo add message";
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -91,6 +94,18 @@ export default function MessagePage() {
               A primitive component for displaying individual messages in a
               conversation thread. Supports user and assistant roles with
               customizable styling variants.
+            </p>
+          </div>
+
+          {/* Installation */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+            <p className="text-sm text-muted-foreground italic mt-2">
+              Note: This component is automatically included when you install
+              any of the &quot;Message Thread&quot; blocks.
             </p>
           </div>
 

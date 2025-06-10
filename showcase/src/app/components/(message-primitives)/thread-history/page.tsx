@@ -1,5 +1,6 @@
 "use client";
 
+import { CLI } from "@/components/cli";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import {
   ThreadHistory,
@@ -40,6 +41,8 @@ export default function ThreadHistoryPage() {
   <ThreadHistoryList />
 </ThreadHistory>`;
 
+  const installCommand = "npx tambo add thread-history";
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -50,6 +53,18 @@ export default function ThreadHistoryPage() {
               A primitive component that displays a sidebar with conversation
               history, search functionality, and thread management. Supports
               collapsible behavior and can be positioned on left or right.
+            </p>
+          </div>
+
+          {/* Installation */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+            <p className="text-sm text-muted-foreground italic mt-2">
+              Note: This component is automatically included when you install
+              any of the &quot;Message Thread&quot; blocks.
             </p>
           </div>
 

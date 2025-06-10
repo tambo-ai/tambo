@@ -1,5 +1,6 @@
 "use client";
 
+import { CLI } from "@/components/cli";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import {
   ThreadContent,
@@ -27,6 +28,8 @@ export default function ThreadContentPage() {
   </div>
 </ThreadContent>`;
 
+  const installCommand = "npx tambo add thread-content";
+
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
@@ -37,6 +40,18 @@ export default function ThreadContentPage() {
               A primitive component that displays the main content area of a
               conversation thread. Automatically connects to the Tambo context
               to render messages with customizable styling variants.
+            </p>
+          </div>
+
+          {/* Installation */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+            <p className="text-sm text-muted-foreground italic mt-2">
+              Note: This component is automatically included when you install
+              any of the &quot;Message Thread&quot; blocks.
             </p>
           </div>
 
