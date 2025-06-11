@@ -31,6 +31,13 @@ export default function GraphPage() {
             </p>
           </div>
 
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+          </div>
+
           <Section title="Example Prompt">
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
@@ -43,12 +50,6 @@ export default function GraphPage() {
               <GraphChatInterface />
             </TamboProvider>
           </DemoWrapper>
-
-          <Section title="Installation">
-            <div className="rounded-md">
-              <CLI command={installCommand} />
-            </div>
-          </Section>
         </div>
       </ShowcaseThemeProvider>
     </div>

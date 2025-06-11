@@ -21,6 +21,13 @@ export default function MessageThreadFullPage() {
             </p>
           </div>
 
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+          </div>
+
           <DemoWrapper title="Message Thread Full">
             <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
               <MessageThreadFull
@@ -29,13 +36,6 @@ export default function MessageThreadFullPage() {
               />
             </div>
           </DemoWrapper>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Installation</h2>
-            <div className="rounded-md">
-              <CLI command={installCommand} />
-            </div>
-          </div>
         </div>
       </ShowcaseThemeProvider>
     </div>

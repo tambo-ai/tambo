@@ -30,6 +30,13 @@ Make it use the bordered variant with a relaxed layout.`;
             </p>
           </div>
 
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+          </div>
+
           <Section title="Example Prompt">
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
@@ -42,12 +49,6 @@ Make it use the bordered variant with a relaxed layout.`;
               <FormChatInterface />
             </TamboProvider>
           </DemoWrapper>
-
-          <Section title="Installation">
-            <div className="rounded-md">
-              <CLI command={installCommand} />
-            </div>
-          </Section>
         </div>
       </ShowcaseThemeProvider>
     </div>

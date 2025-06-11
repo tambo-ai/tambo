@@ -36,6 +36,28 @@ export const navigation: NavigationItem[] = [
         ],
       },
       {
+        title: "Message Primitives",
+        href: "#",
+        children: [
+          {
+            title: "Message",
+            href: "/components/message",
+          },
+          {
+            title: "Message Input",
+            href: "/components/message-input",
+          },
+          {
+            title: "Thread Content",
+            href: "/components/thread-content",
+          },
+          {
+            title: "Thread History",
+            href: "/components/thread-history",
+          },
+        ],
+      },
+      {
         title: "Generative",
         href: "#",
         children: [

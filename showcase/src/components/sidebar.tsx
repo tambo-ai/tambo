@@ -1,5 +1,3 @@
-"use client";
-
 import { navigation, NavigationItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
