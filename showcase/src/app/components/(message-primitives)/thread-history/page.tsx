@@ -8,6 +8,44 @@ import {
   ThreadHistorySearch,
 } from "@/components/ui/thread-history";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
+import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
+
+const mockThreads: TamboThread[] = [
+  {
+    id: "1",
+    name: "Mock Thread",
+    messages: [
+      {
+        componentState: {},
+        content: [{ type: "text", text: "Hello, world!" }],
+        createdAt: new Date().toISOString(),
+        id: "1",
+        role: "user",
+        threadId: "1",
+      },
+    ],
+    createdAt: new Date().toISOString(),
+    projectId: "1",
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    name: "Mock Thread 2",
+    messages: [
+      {
+        componentState: {},
+        content: [{ type: "text", text: "Hello, world!" }],
+        createdAt: new Date().toISOString(),
+        id: "2",
+        role: "user",
+        threadId: "2",
+      },
+    ],
+    createdAt: new Date().toISOString(),
+    projectId: "1",
+    updatedAt: new Date().toISOString(),
+  },
+];
 
 export default function ThreadHistoryPage() {
   const usageCode = `import { 
@@ -116,20 +154,32 @@ export default function ThreadHistoryPage() {
           {/* Left Position Example */}
           <div>
             <h3 className="text-lg font-medium mb-3">
-              Left Position (Expanded)
+              Left Position (Expanded) XXXX
             </h3>
             <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden border">
-              <ThreadHistory
+              <TamboStubProvider
+                thread={mockThreads[0]}
+                threads={{
+                  items: mockThreads,
+                  total: 1,
+                  count: 1,
+                  hasNextPage: () => false,
+                }}
+                projectId="1"
                 contextKey="demo-left"
-                position="left"
-                defaultCollapsed={false}
-                className="relative bg-white border-r"
               >
-                <ThreadHistoryHeader />
-                <ThreadHistoryNewButton />
-                <ThreadHistorySearch />
-                <ThreadHistoryList />
-              </ThreadHistory>
+                <ThreadHistory
+                  contextKey="demo-left"
+                  position="left"
+                  defaultCollapsed={false}
+                  className="relative bg-white border-r"
+                >
+                  <ThreadHistoryHeader />
+                  <ThreadHistoryNewButton />
+                  <ThreadHistorySearch />
+                  <ThreadHistoryList />
+                </ThreadHistory>
+              </TamboStubProvider>
               <div className="ml-64 p-4 h-full">
                 <p className="text-gray-500">Main content area would go here</p>
               </div>

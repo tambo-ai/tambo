@@ -1,3 +1,4 @@
+"use client";
 import React, { createContext, PropsWithChildren, useContext } from "react";
 import { useTamboThread } from "../providers";
 

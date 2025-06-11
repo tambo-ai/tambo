@@ -1,3 +1,4 @@
+"use client";
 import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import React, { createContext, PropsWithChildren, useState } from "react";

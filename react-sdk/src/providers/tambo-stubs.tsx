@@ -1,7 +1,7 @@
 "use client";
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useEffect } from "react";
 import { TamboComponent, TamboTool } from "../model/component-metadata";
 import { GenerationStage } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
@@ -30,14 +30,38 @@ export interface TamboStubProviderProps extends Partial<TamboContextProps> {
   components?: TamboComponent[];
   /** Optional: Tools registry - defaults to empty */
   tools?: TamboTool[];
+  /** Optional: Threads data to populate thread list - overrides useTamboThreadList() */
+  threads?: Partial<TamboAI.Beta.Threads.ThreadsOffsetAndLimit>;
+  /** Optional: Project ID to use for query cache - defaults to thread.projectId */
+  projectId?: string;
+  /** Optional: Context key for thread list queries */
+  contextKey?: string;
 }
 
 /**
  * Stub client provider that accepts a client and queryClient as props
+ * @returns The TamboStubClientProvider component
  */
 const TamboStubClientProvider: React.FC<
-  PropsWithChildren<{ client: TamboAI; queryClient: QueryClient }>
-> = ({ children, client, queryClient }) => {
+  PropsWithChildren<{
+    client: TamboAI;
+    queryClient: QueryClient;
+    threads?: Partial<TamboAI.Beta.Threads.ThreadsOffsetAndLimit>;
+    projectId?: string;
+    contextKey?: string;
+  }>
+> = ({ children, client, queryClient, threads, projectId, contextKey }) => {
+  // Prepopulate the query cache with threads data if provided
+  useEffect(() => {
+    if (threads) {
+      // Set the project ID in the cache
+      queryClient.setQueryData(["projectId"], projectId);
+
+      // Set the threads data in the cache using the same query key pattern as useTamboThreadList
+      queryClient.setQueryData(["threads", projectId, contextKey], threads);
+    }
+  }, [threads, projectId, contextKey, queryClient]);
+
   return (
     <TamboClientContext.Provider value={{ client, queryClient }}>
       {children}
@@ -47,6 +71,7 @@ const TamboStubClientProvider: React.FC<
 
 /**
  * Stub registry provider that accepts componentList, toolRegistry, and componentToolAssociations as props
+ * @returns The TamboStubRegistryProvider component
  */
 const TamboStubRegistryProvider: React.FC<
   PropsWithChildren<{
@@ -87,6 +112,7 @@ const TamboStubRegistryProvider: React.FC<
 
 /**
  * Stub thread provider that accepts all thread context props
+ * @returns The TamboStubThreadProvider component
  */
 const TamboStubThreadProvider: React.FC<
   PropsWithChildren<TamboThreadContextProps>
@@ -175,9 +201,17 @@ const createDefaultCallbacks = () => ({
  *   metadata: {},
  * };
  *
+ * const exampleThreadList = [exampleThread];
+ *
  * function MyComponent() {
  *   return (
- *     <TamboStubProvider thread={exampleThread} components={[]} tools={[]}>
+ *     <TamboStubProvider
+ *       thread={exampleThread}
+ *       components={[]}
+ *       tools={[]}
+ *       threads={exampleThreadList}
+ *       projectId="example-project"
+ *     >
  *       <MessageThreadFull />
  *     </TamboStubProvider>
  *   );
@@ -188,17 +222,32 @@ const createDefaultCallbacks = () => ({
  * @param props.thread - The thread data to display
  * @param props.components - Optional components registry
  * @param props.tools - Optional tools registry
+ * @param props.threads - Optional threads data to populate thread list (overrides useTamboThreadList)
+ * @param props.projectId - Optional project ID for query cache (defaults to thread.projectId)
+ * @param props.contextKey - Optional context key for thread list queries
  * @param props...rest - All other TamboContextProps can be provided to override defaults
  * @returns The TamboStubProvider component
  */
 export const TamboStubProvider: React.FC<
   PropsWithChildren<TamboStubProviderProps>
-> = ({ children, thread, components = [], tools = [], ...overrides }) => {
+> = ({
+  children,
+  thread,
+  components = [],
+  tools = [],
+  threads,
+  projectId,
+  contextKey,
+  ...overrides
+}) => {
   const defaults = createDefaultCallbacks();
 
   // Create stub client and queryClient
   const stubClient = {} as TamboAI;
   const stubQueryClient = new QueryClient();
+
+  // Use provided projectId or fall back to thread's projectId
+  const resolvedProjectId = projectId ?? thread.projectId;
 
   // Build component registry from components prop
   const componentList = components.reduce(
@@ -270,7 +319,13 @@ export const TamboStubProvider: React.FC<
   };
 
   return (
-    <TamboStubClientProvider client={stubClient} queryClient={stubQueryClient}>
+    <TamboStubClientProvider
+      client={stubClient}
+      queryClient={stubQueryClient}
+      threads={threads}
+      projectId={resolvedProjectId}
+      contextKey={contextKey}
+    >
       <TamboStubRegistryProvider
         componentList={componentList}
         toolRegistry={toolRegistry}
