@@ -357,8 +357,8 @@ const ThreadHistoryList = React.forwardRef<
         thread.id.toLowerCase().includes(query) ||
         nameMatches ||
         thread.messages.some((message) =>
-          message.content.some((content) =>
-            content.text?.toLowerCase().includes(query),
+          message.content.some(
+            (content) => !!content.text?.toLowerCase().includes(query),
           ),
         )
       );
