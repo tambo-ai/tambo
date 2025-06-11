@@ -1,6 +1,8 @@
 # tambo-ai
 
-A React package for adding generative React UI components to your AI assistant, copilot, or agent.
+Tambo allows AI models to dynamically render React components in response to user messages, enabling AI assistants to display interactive widgets, charts, forms, and other UI elements instead of just text. Tambo is a great way to add generative UI to your AI assistant, copilot, or agent.
+
+This package provides react hooks to talk to the Tambo API and render custom components inline, but does not provide any UI components on its own. For pre-built UI components that use this package, see [tambo-ui](https://ui.tambo.co).
 
 ## Build with MCP and Generative UI
 
@@ -8,19 +10,54 @@ A React package for adding generative React UI components to your AI assistant, 
 
 [Source code](https://github.com/tambo-ai/mcp-template)
 
-Create a new project using our MCP template:
+### Creating a new project
+
+You can create a new project using our MCP template:
 
 ```bash
 npx tambo create-app -t mcp tambo-mcp-app
 ```
 
-## How does tambo-ai work?
+This will create a new nextjs project with Tambo pre-configured, and then step you through the process of setting up a Tambo project, including signing up for an API key, and adding it to `.env.local`.
 
-tambo-ai is a client-side registry of React components that can be used by an LLM.
+### Adding components to an existing project
+
+If you have an existing project, you can add components to it. First, initialize your project:
+
+```bash
+npx tambo init
+```
+
+This will step you through the process of setting up a Tambo project, including signing up for an API key, and adding it to `.env.local`.
+
+Then add components from our library to your project in the `components/ui` directory:
+
+```bash
+npx tambo add message-thread-full
+```
+
+See the complete component library at [ui.tambo.co](https://ui.tambo.co).
+
+### Manual installation
+
+You can also install Tambo manually:
+
+```bash
+npm install @tambo-ai/react
+# or
+yarn add @tambo-ai/react
+```
+
+## How does Tambo work?
+
+Tambo uses a client-side registry of React components that can be used by an LLM.
 
 ### 1. Register your components
 
 ```tsx
+import { type TamboComponent } from "@tambo-ai/react";
+import { Graph, graphSchema } from "@/components/ui/graph";
+
 const components: TamboComponent[] = [
   {
     name: "Graph",
@@ -35,49 +72,119 @@ const components: TamboComponent[] = [
 
 ### 2. Wrap your app in a TamboProvider
 
+If you are using one of Tambo's pre-built components, you can wrap your app in a TamboProvider.
+
 ```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import { MessageThreadFull } from "@/components/ui/message-thread-full";
+
 // In your chat page
 <TamboProvider
   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
   components={components}
 >
-  <MessageThreadFull contextKey="tambo-template" />
-</TamboProvider>
+  <MessageThreadFull />
+</TamboProvider>;
 ```
 
-### 3. Submit user messages
+You can also use your own components with the TamboProvider:
 
 ```tsx
-const { submit } = useTamboThreadInput(contextKey);
+import { TamboProvider } from "@tambo-ai/react";
 
-await submit({
-  contextKey,
-  streamResponse: true,
-});
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  components={components}
+>
+  <YourChatComponents />
+</TamboProvider>;
 ```
 
-### 4. Render AI-generated components
+### 3. Render AI-generated components
+
+This is also handled automatically for you if you are using the `MessageThreadFull` component.
+
+For custom components, you can use the `useMessageContext` hook to get the current message.
 
 ```tsx
-const { message } = useMessageContext();
+import {
+  useTambo,
+  useMessageContext,
+  type TamboThreadMessage,
+} from "@tambo-ai/react";
 
-// Render the component
-<div>{message.renderedComponent}</div>;
+function ChatHistory() {
+  const { thread } = useTambo();
+  return (
+    <div>
+      {thread.messages.map((message) => (
+        <CustomMessage key={message.id} message={message} />
+      ))}
+    </div>
+  );
+}
+
+function CustomMessage({ message }: { message: TamboThreadMessage }) {
+  // Render the component
+  return (
+    <div>
+      {/* Render the message content */}
+      <div>Role: {message.role}</div>
+      <div>
+        {message.content.map((part) =>
+          part.type === "text" ? (
+            <div key={part.id}>{part.text}</div>
+          ) : (
+            <div key={part.id}>Non-text content: {part.type}</div>
+          ),
+        )}
+      </div>
+      {/* Render the component, if any */}
+      <div>{message.renderedComponent}</div>
+    </div>
+  );
+}
 ```
 
-We provide components that use these hooks for you in our templates and in our component library at [ui.tambo.co](https://ui.tambo.co).
+### 4. Submit user messages
+
+If you are using the `MessageThreadFull` component, you can skip this step, it is handled automatically.
+
+If you are using a custom component, you can use the `useTamboThreadInput` hook to submit user messages.
+
+```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
+
+function ChatInput() {
+  const { submit, value, setValue } = useTamboThreadInput();
+
+  return (
+    <div>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+      <button onClick={() => submit()}>Send</button>
+    </div>
+  );
+}
+```
+
+### 5. Put it all together
+
+```tsx
+function ChatInterface() {
+  return (
+    <div>
+      <ChatHistory />
+      <ChatInput />
+    </div>
+  );
+}
+```
 
 ## Getting Started
-
-### Quick Start
-
-Create a new tambo app:
-
-```bash
-npm create tambo-app my-tambo-app
-cd my-tambo-app
-npm run dev
-```
 
 ### Templates
 
@@ -89,11 +196,11 @@ npm run dev
 
 Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
 
-### Basic Usage
+### In depth examples
 
 #### 1. Displaying a message thread:
 
-```jsx
+```tsx
 import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 
 function ChatInterface() {
@@ -107,7 +214,7 @@ function ChatInterface() {
         {thread.messages.map((message, index) => (
           <div key={index} className={`message ${message.role}`}>
             <div>{message.content}</div>
-            {message.component && message.component.renderedComponent}
+            {message.renderedComponent}
           </div>
         ))}
       </div>
@@ -137,29 +244,39 @@ function ChatInterface() {
 
 Create components that can be dynamically generated by the AI:
 
-```jsx
+```tsx
 // components/WeatherCard.jsx
 import { useTamboComponentState } from "@tambo-ai/react";
 
-export function WeatherCard() {
-  const [weatherState, setWeatherState, { isPending }] = useTamboComponentState(
-    "weather",
-    {
-      temperature: 0,
-      condition: "",
-      location: "",
-    },
+export function WeatherCard({
+  location,
+  temperature,
+  condition,
+}: {
+  location: string;
+  temperature: number;
+  condition: string;
+}) {
+  // useTamboComponentState manages state that persists even if
+  // the component is unmounted
+  const [isMetric, setIsMetric] = useTamboComponentState(
+    "isMetric", // unique identifier for this component's state
+    false, // default value
   );
-
-  if (isPending) {
-    return <div>Loading weather data...</div>;
-  }
 
   return (
     <div>
-      <h3>{weatherState.location}</h3>
-      <div>{weatherState.temperature}°C</div>
-      <div>{weatherState.condition}</div>
+      <h3>{location}</h3>
+      <div>
+        {isMetric ? temperature : (temperature * 1.8 + 32).toFixed(1)}°
+        {isMetric ? "C" : "F"}
+      </div>
+      <div>{condition}</div>
+      <input
+        type="checkbox"
+        checked={isMetric}
+        onChange={(e) => setIsMetric(e.target.checked)}
+      />
     </div>
   );
 }
@@ -167,7 +284,7 @@ export function WeatherCard() {
 
 #### 3. Register your components:
 
-```jsx
+```tsx
 // App.jsx
 import { TamboProvider } from "@tambo-ai/react";
 import { WeatherCard } from "./components/WeatherCard";
@@ -201,7 +318,11 @@ function App() {
 
 Register tools to make them available to the AI:
 
-```jsx
+```tsx
+import { TamboTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+// Define your tools
 const tools: TamboTool[] = [
   {
     name: "getWeather",
@@ -243,6 +364,9 @@ const tools: TamboTool[] = [
 ### Using MCP Servers
 
 ```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import { TamboMcpProvider } from "@tambo-ai/react/mcp";
+
 const mcpServers = [
   {
     url: "https://mcp-server-1.com",
