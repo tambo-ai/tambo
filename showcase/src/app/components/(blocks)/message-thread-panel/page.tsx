@@ -22,6 +22,13 @@ export default function MessageThreadPanelPage() {
             </p>
           </div>
 
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Installation</h2>
+            <div className="rounded-md">
+              <CLI command={installCommand} />
+            </div>
+          </div>
+
           <DemoWrapper title="Message Thread Panel">
             <div className="h-full relative flex rounded-lg overflow-hidden">
               <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 min-w-0">
@@ -40,13 +47,6 @@ export default function MessageThreadPanelPage() {
               />
             </div>
           </DemoWrapper>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Installation</h2>
-            <div className="rounded-md">
-              <CLI command={installCommand} />
-            </div>
-          </div>
         </div>
       </ShowcaseThemeProvider>
     </div>

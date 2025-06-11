@@ -1,5 +1,3 @@
-"use client";
-
 import { CLI } from "@/components/cli";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { existingProjectSteps, newProjectSteps } from "@/constants/steps";
