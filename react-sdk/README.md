@@ -1,4 +1,4 @@
-# tambo-ai
+# Tambo React SDK
 
 Tambo allows AI models to dynamically render React components in response to user messages, enabling AI assistants to display interactive widgets, charts, forms, and other UI elements instead of just text. Tambo is a great way to add generative UI to your AI assistant, copilot, or agent.
 
