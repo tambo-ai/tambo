@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.14.0...tambo-v0.15.0) (2025-06-11)
+
+
+### Features
+
+* add threads to showcase, add stub to sdk ([#523](https://github.com/tambo-ai/tambo/issues/523)) ([5c3a194](https://github.com/tambo-ai/tambo/commit/5c3a1944aebc67732ca347fc74714d2fe7a27ac4))
+
 ## [0.14.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.13.2...tambo-v0.14.0) (2025-06-10)
 
 
