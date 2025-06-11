@@ -7,10 +7,10 @@ import {
   useTamboThreadList,
 } from "@tambo-ai/react";
 import {
-  PlusIcon,
-  SearchIcon,
   ArrowLeftToLine,
   ArrowRightToLine,
+  PlusIcon,
+  SearchIcon,
 } from "lucide-react";
 import React, { useMemo } from "react";
 
@@ -351,8 +351,15 @@ const ThreadHistoryList = React.forwardRef<
     if (!threads?.items) return [];
 
     const query = searchQuery.toLowerCase();
-    return threads.items.filter((thread: TamboThread) =>
-      thread.id.toLowerCase().includes(query),
+    return threads.items.filter(
+      (thread: TamboThread) =>
+        thread.id.toLowerCase().includes(query) ||
+        !!thread.name?.toLowerCase().includes(query) ||
+        thread.messages.some((message) =>
+          message.content.some((content) =>
+            content.text?.toLowerCase().includes(query),
+          ),
+        ),
     );
   }, [isCollapsed, threads, searchQuery]);
 
@@ -451,7 +458,7 @@ ThreadHistoryList.displayName = "ThreadHistory.List";
 export {
   ThreadHistory,
   ThreadHistoryHeader,
+  ThreadHistoryList,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-  ThreadHistoryList,
 };
