@@ -14,12 +14,14 @@ export {
   TamboClientProvider,
   TamboComponentProvider,
   TamboProvider,
+  TamboStubProvider,
   TamboThreadProvider,
   useTambo,
   useTamboClient,
   useTamboThread,
   type TamboComponent,
   type TamboRegistryContext,
+  type TamboStubProviderProps,
 } from "./providers";
 
 // Re-export types from Tambo Node SDK

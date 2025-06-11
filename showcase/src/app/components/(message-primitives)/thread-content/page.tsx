@@ -7,7 +7,77 @@ import {
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
+import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 
+const mockThread: TamboThread = {
+  id: "1",
+  name: "Mock Thread",
+  messages: [
+    {
+      id: "msg-1",
+      role: "user",
+      threadId: "1",
+      createdAt: new Date().toISOString(),
+      componentState: {},
+      content: [{ type: "text", text: "What's the weather?" }],
+    },
+    {
+      id: "msg-2",
+      role: "assistant",
+      threadId: "1",
+      createdAt: new Date().toISOString(),
+      componentState: {},
+      content: [
+        {
+          type: "text",
+          text: "Hello, world! I'm an assistant. I'll get the weather for you",
+        },
+      ],
+      actionType: "tool_call",
+      toolCallRequest: {
+        toolName: "get_weather",
+        parameters: [
+          {
+            parameterName: "city",
+            parameterValue: "San Francisco",
+          },
+        ],
+      },
+    },
+    {
+      id: "msg-3",
+      role: "assistant",
+      threadId: "1",
+      createdAt: new Date().toISOString(),
+      componentState: {},
+      content: [
+        { type: "text", text: "The weather in San Francisco is sunny." },
+      ],
+      renderedComponent: (
+        <div>
+          <div className="flex items-center gap-2 p-4 bg-blue-50 rounded-lg">
+            <div className="text-yellow-400 text-2xl">☀️</div>
+            <div>
+              <div className="font-medium">San Francisco</div>
+              <div className="text-sm text-gray-600">Sunny</div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "msg-4",
+      role: "user",
+      threadId: "1",
+      createdAt: new Date().toISOString(),
+      componentState: {},
+      content: [{ type: "text", text: "Thanks" }],
+    },
+  ],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  projectId: "1",
+};
 export default function ThreadContentPage() {
   const usageCode = `import { ThreadContent, ThreadContentMessages } from "@/components/ui/thread-content";
 
@@ -83,10 +153,23 @@ export default function ThreadContentPage() {
           {/* Default Example */}
           <div>
             <h3 className="text-lg font-medium mb-3">Default Thread Content</h3>
-            <div className="p-4 h-96 border rounded-lg bg-white">
-              <ThreadContent variant="default">
-                <ThreadContentMessages />
-              </ThreadContent>
+            <div className="p-4 border rounded-lg bg-white">
+              <TamboStubProvider thread={mockThread}>
+                <ThreadContent variant="default">
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
+            </div>
+          </div>
+          {/* Solid Example */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <TamboStubProvider thread={mockThread}>
+                <ThreadContent variant="solid">
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
             </div>
           </div>
 
@@ -96,14 +179,19 @@ export default function ThreadContentPage() {
               Empty Thread (No Messages)
             </h3>
             <div className="p-4 h-48 border rounded-lg bg-white flex items-center justify-center">
-              <ThreadContent>
-                <div className="text-center text-muted-foreground">
-                  <p>No messages yet</p>
-                  <p className="text-sm mt-1">
-                    Start a conversation to see messages here
-                  </p>
-                </div>
-              </ThreadContent>
+              <TamboStubProvider
+                thread={{
+                  messages: [],
+                  createdAt: new Date().toISOString(),
+                  projectId: "1",
+                  updatedAt: new Date().toISOString(),
+                  id: "1",
+                }}
+              >
+                <ThreadContent>
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
             </div>
           </div>
 

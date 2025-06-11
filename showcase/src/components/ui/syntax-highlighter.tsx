@@ -5,7 +5,7 @@ import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
 import { Check, Copy } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 // CodeHeader component for syntax highlighting
 const CodeHeader = ({
@@ -57,6 +57,11 @@ export const SyntaxHighlighter = ({
       return code;
     }
   }, [code, language]);
+  const [highlightedCode, setHighlightedCode] = useState("");
+  const isSupported = DOMPurify.isSupported;
+  useEffect(() => {
+    setHighlightedCode(isSupported ? DOMPurify.sanitize(highlighted) : "");
+  }, [highlighted, isSupported]);
 
   return (
     <div className="relative border border-border rounded-md bg-muted max-w-full text-sm my-4">
@@ -70,13 +75,15 @@ export const SyntaxHighlighter = ({
         )}
       >
         <pre className="p-4 whitespace-pre">
-          <code
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.isSupported
-                ? DOMPurify.sanitize(highlighted)
-                : "",
-            }}
-          />
+          {highlightedCode ? (
+            <code
+              dangerouslySetInnerHTML={{
+                __html: highlightedCode,
+              }}
+            />
+          ) : (
+            <code>{code}</code>
+          )}
         </pre>
       </div>
     </div>
