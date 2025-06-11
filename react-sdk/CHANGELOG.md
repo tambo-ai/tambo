@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/tambo-ai/tambo/compare/react-v0.29.1...react-v0.30.0) (2025-06-11)
+
+
+### Features
+
+* add threads to showcase, add stub to sdk ([#523](https://github.com/tambo-ai/tambo/issues/523)) ([5c3a194](https://github.com/tambo-ai/tambo/commit/5c3a1944aebc67732ca347fc74714d2fe7a27ac4))
+
 ## [0.29.1](https://github.com/tambo-ai/tambo/compare/react-v0.29.0...react-v0.29.1) (2025-06-11)
 
 
