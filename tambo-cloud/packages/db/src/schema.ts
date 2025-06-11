@@ -95,7 +95,7 @@ export const projects = pgTable(
       pgPolicy("project_api_key_policy", {
         to: projectApiKeyRole,
         for: "select",
-        using: sql`${table.id} = ${projectApiKeyVariable}`,
+        using: sql`${table.id} = (select ${projectApiKeyVariable})`,
       }),
     ];
   },
@@ -128,7 +128,7 @@ export const projectMembers = pgTable(
       }),
       pgPolicy("project_members_api_key_policy", {
         to: projectApiKeyRole,
-        using: sql`${table.projectId} = ${projectApiKeyVariable}`,
+        using: sql`${table.projectId} = (select ${projectApiKeyVariable})`,
       }),
     ];
   },

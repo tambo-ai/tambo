@@ -1,0 +1,2 @@
+ALTER POLICY "project_members_api_key_policy" ON "project_members" TO project_api_key USING ("project_members"."project_id" = (select current_setting('request.apikey.project_id')));--> statement-breakpoint
+ALTER POLICY "project_api_key_policy" ON "projects" TO project_api_key USING ("projects"."id" = (select current_setting('request.apikey.project_id')));
