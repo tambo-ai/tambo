@@ -1,3 +1,4 @@
+"use client";
 import { CLI } from "@/components/cli";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import {
@@ -190,17 +191,29 @@ export default function ThreadHistoryPage() {
           <div>
             <h3 className="text-lg font-medium mb-3">Collapsed State</h3>
             <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden border">
-              <ThreadHistory
+              <TamboStubProvider
+                thread={mockThreads[0]}
+                threads={{
+                  items: mockThreads,
+                  total: 1,
+                  count: 1,
+                  hasNextPage: () => false,
+                }}
+                projectId="1"
                 contextKey="demo-collapsed"
-                position="left"
-                defaultCollapsed={true}
-                className="relative bg-white border-r"
               >
-                <ThreadHistoryHeader />
-                <ThreadHistoryNewButton />
-                <ThreadHistorySearch />
-                <ThreadHistoryList />
-              </ThreadHistory>
+                <ThreadHistory
+                  contextKey="demo-collapsed"
+                  position="left"
+                  defaultCollapsed={true}
+                  className="relative bg-white border-r"
+                >
+                  <ThreadHistoryHeader />
+                  <ThreadHistoryNewButton />
+                  <ThreadHistorySearch />
+                  <ThreadHistoryList />
+                </ThreadHistory>
+              </TamboStubProvider>
               <div className="ml-12 p-4 h-full">
                 <p className="text-gray-500">
                   Main content area adjusts when sidebar is collapsed
@@ -216,14 +229,26 @@ export default function ThreadHistoryPage() {
           <div>
             <h3 className="text-lg font-medium mb-3">Minimal (Header Only)</h3>
             <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden border">
-              <ThreadHistory
+              <TamboStubProvider
+                thread={mockThreads[0]}
+                threads={{
+                  items: mockThreads,
+                  total: 1,
+                  count: 1,
+                  hasNextPage: () => false,
+                }}
                 contextKey="demo-minimal"
-                position="left"
-                defaultCollapsed={false}
-                className="relative bg-white border-r"
               >
-                <ThreadHistoryHeader />
-              </ThreadHistory>
+                <ThreadHistory
+                  contextKey="demo-minimal"
+                  position="left"
+                  defaultCollapsed={false}
+                  className="relative bg-white border-r"
+                >
+                  <ThreadHistoryHeader />
+                  <ThreadHistoryList />
+                </ThreadHistory>
+              </TamboStubProvider>
               <div className="ml-64 p-4 h-full">
                 <p className="text-gray-500">
                   Minimal sidebar with just header
