@@ -354,7 +354,7 @@ const ThreadHistoryList = React.forwardRef<
     return threads.items.filter(
       (thread: TamboThread) =>
         thread.id.toLowerCase().includes(query) ||
-        !!thread.name?.toLowerCase().includes(query) ||
+        (thread.name?.toLowerCase().includes(query) ?? false) ||
         thread.messages.some((message) =>
           message.content.some((content) =>
             content.text?.toLowerCase().includes(query),
