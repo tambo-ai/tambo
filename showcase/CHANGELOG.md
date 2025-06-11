@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.8.3...showcase-v0.9.0) (2025-06-11)
+
+
+### Features
+
+* document primitives, elevate install instructions ([#520](https://github.com/tambo-ai/tambo/issues/520)) ([0fe0e11](https://github.com/tambo-ai/tambo/commit/0fe0e11e37941fb48be279b6046f53aed9620cfd))
+
+
+### Miscellaneous
+
+* **deps:** bump framer-motion from 12.15.0 to 12.16.0 ([#515](https://github.com/tambo-ai/tambo/issues/515)) ([0ee9692](https://github.com/tambo-ai/tambo/commit/0ee9692a4885adc7220add0a3fa21e238eb7fda9))
+* **deps:** bump lucide-react from 0.511.0 to 0.513.0 ([#509](https://github.com/tambo-ai/tambo/issues/509)) ([0621840](https://github.com/tambo-ai/tambo/commit/06218400fd31482a8e45c9c81e30b2f754d10604))
+
 ## [0.8.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.8.2...showcase-v0.8.3) (2025-06-02)
 
 
