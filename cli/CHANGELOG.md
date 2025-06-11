@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.13.2...tambo-v0.14.0) (2025-06-10)
+
+
+### Features
+
+* allow multiple components to add / update command ([#518](https://github.com/tambo-ai/tambo/issues/518)) ([a39d2af](https://github.com/tambo-ai/tambo/commit/a39d2af83d1576e93dcf0eb827e6c3948ed02da7))
+
 ## [0.13.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.13.1...tambo-v0.13.2) (2025-06-02)
 
 
