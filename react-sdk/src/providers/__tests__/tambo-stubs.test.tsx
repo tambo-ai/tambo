@@ -1,6 +1,6 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { renderHook } from "@testing-library/react";
-import React from "react";
+import React, { act } from "react";
 import { useTamboThreadList } from "../../hooks/use-tambo-threads";
 import { TamboThread } from "../../model/tambo-thread";
 import { TamboStubProvider } from "../tambo-stubs";
@@ -38,6 +38,10 @@ describe("TamboStubProvider threads functionality", () => {
     );
 
     const { result } = renderHook(() => useTamboThreadList(), { wrapper });
+    // Wait for the effect to run
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     // The hook should return the pre-populated threads data
     expect(result.current.data).toEqual(mockThreadsData);
@@ -62,6 +66,10 @@ describe("TamboStubProvider threads functionality", () => {
       () => useTamboThreadList({ contextKey: "test-context" }),
       { wrapper },
     );
+    // Wait for the effect to run
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     // The hook should return the pre-populated threads data for the specific context
     expect(result.current.data).toEqual(mockThreadsData);
@@ -82,6 +90,10 @@ describe("TamboStubProvider threads functionality", () => {
     );
 
     const { result } = renderHook(() => useTamboThreadList(), { wrapper });
+    // Wait for the effect to run
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     // The hook should return the pre-populated threads data using thread.projectId
     expect(result.current.data).toEqual(mockThreadsData);
