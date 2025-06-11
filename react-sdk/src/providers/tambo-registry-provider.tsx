@@ -25,7 +25,7 @@ export interface TamboRegistryContext {
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
 }
 
-const TamboRegistryContext = createContext<TamboRegistryContext>({
+export const TamboRegistryContext = createContext<TamboRegistryContext>({
   componentList: {},
   toolRegistry: {},
   componentToolAssociations: {},

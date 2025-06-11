@@ -1,3 +1,4 @@
+"use client";
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { useEffect, useState } from "react";
 import { isIdleStage } from "../model/generate-component-response";

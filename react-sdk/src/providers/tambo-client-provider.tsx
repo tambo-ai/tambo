@@ -1,3 +1,4 @@
+"use client";
 import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import React, { createContext, PropsWithChildren, useState } from "react";
@@ -25,9 +26,9 @@ export interface TamboClientContextProps {
   queryClient: QueryClient;
 }
 
-const TamboClientContext = createContext<TamboClientContextProps | undefined>(
-  undefined,
-);
+export const TamboClientContext = createContext<
+  TamboClientContextProps | undefined
+>(undefined);
 
 /**
  * The TamboClientProvider is a React provider that provides a TamboAI client
