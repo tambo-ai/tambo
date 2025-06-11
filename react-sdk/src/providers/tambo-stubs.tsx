@@ -126,6 +126,7 @@ const TamboStubThreadProvider: React.FC<
 
 /**
  * Default no-op functions that throw errors - used when callbacks are not provided
+ * @returns The default callbacks
  */
 const createDefaultCallbacks = () => ({
   switchCurrentThread: () => {
@@ -225,7 +226,6 @@ const createDefaultCallbacks = () => ({
  * @param props.threads - Optional threads data to populate thread list (overrides useTamboThreadList)
  * @param props.projectId - Optional project ID for query cache (defaults to thread.projectId)
  * @param props.contextKey - Optional context key for thread list queries
- * @param props...rest - All other TamboContextProps can be provided to override defaults
  * @returns The TamboStubProvider component
  */
 export const TamboStubProvider: React.FC<
