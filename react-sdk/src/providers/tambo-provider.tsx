@@ -87,7 +87,9 @@ export const TamboContext = createContext<TamboContextProps>(
  * @param props.children - The children to wrap
  * @returns The wrapped component
  */
-const TamboCompositeProvider: React.FC<PropsWithChildren> = ({ children }) => {
+export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
+  children,
+}) => {
   const threads = useTamboThread();
   const client = useTamboClient();
   const queryClient = useTamboQueryClient();

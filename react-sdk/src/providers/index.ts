@@ -10,6 +10,7 @@ export {
   useTamboRegistry,
   type TamboRegistryContext,
 } from "./tambo-registry-provider";
+export { TamboStubProvider, type TamboStubProviderProps } from "./tambo-stubs";
 export {
   TamboThreadContext,
   TamboThreadProvider,

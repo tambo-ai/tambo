@@ -25,9 +25,9 @@ export interface TamboClientContextProps {
   queryClient: QueryClient;
 }
 
-const TamboClientContext = createContext<TamboClientContextProps | undefined>(
-  undefined,
-);
+export const TamboClientContext = createContext<
+  TamboClientContextProps | undefined
+>(undefined);
 
 /**
  * The TamboClientProvider is a React provider that provides a TamboAI client
