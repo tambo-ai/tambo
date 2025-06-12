@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.63.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.63.0...repo-v0.63.1) (2025-06-12)
+
+
+### Bug Fixes
+
+* if we hit the tool call limits, do not leave the thread in an indeterminate state ([#1143](https://github.com/tambo-ai/tambo-cloud/issues/1143)) ([669a85f](https://github.com/tambo-ai/tambo-cloud/commit/669a85f9996530cd2bc762e383c5ed3a789c9640))
+* update RLS to follow supabase perf recommendations ([#1142](https://github.com/tambo-ai/tambo-cloud/issues/1142)) ([542821d](https://github.com/tambo-ai/tambo-cloud/commit/542821da070cd79a37da2ed92f756325fd9b3762))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @supabase/auth-js and @supabase/supabase-js in /scripts ([#1141](https://github.com/tambo-ai/tambo-cloud/issues/1141)) ([428b1be](https://github.com/tambo-ai/tambo-cloud/commit/428b1bef942638371309486665ff3a652094576e))
+* **deps:** bump openai from 4.103.0 to 5.1.1 ([#1136](https://github.com/tambo-ai/tambo-cloud/issues/1136)) ([0529266](https://github.com/tambo-ai/tambo-cloud/commit/052926611fb88b2b69f44cb9f96d117b7df9ed4e))
+
 ## [0.63.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.62.2...repo-v0.63.0) (2025-06-09)
 
 
