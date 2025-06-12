@@ -2,7 +2,7 @@
   "name": "@tambo-ai-cloud/typescript-config",
   "version": "0.0.0",
   "private": true,
-  "license": "MIT",
+  "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
   },

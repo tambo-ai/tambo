@@ -4,7 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "scripts": {
     "build": "NODE_OPTIONS=--experimental-require-module nest build",
     "start": "NODE_OPTIONS=--experimental-require-module nest start",
