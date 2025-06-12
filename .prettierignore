@@ -4,3 +4,4 @@ CHANGELOG.md
 **/.next
 react/esm/
 react/dist/
+react-sdk/esm
