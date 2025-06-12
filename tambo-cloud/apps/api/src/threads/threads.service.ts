@@ -663,6 +663,7 @@ export class ThreadsService {
         // Replace the tool call request with an error message
         const errorMessage = await this.handleToolCallLimitViolation(
           validationResult,
+          thread.id,
           responseMessageDto.id,
         );
         return {
@@ -945,6 +946,7 @@ export class ThreadsService {
         // Replace the tool call request with an error message
         const errorMessage = await this.handleToolCallLimitViolation(
           validationResult,
+          threadId,
           inProgressMessage.id,
         );
         yield {
@@ -1130,6 +1132,7 @@ export class ThreadsService {
    */
   private async handleToolCallLimitViolation(
     errorMessage: string,
+    threadId: string,
     messageId: string,
   ): Promise<ThreadMessageDto> {
     const updatedMessage: MessageRequest = {
@@ -1146,8 +1149,18 @@ export class ThreadsService {
       tool_call_id: undefined,
       actionType: undefined,
     };
+    // Perform both operations in a single transaction
+    return await this.getDb().transaction(async (tx) => {
+      // Update thread generation status
+      await operations.updateThreadGenerationStatus(
+        tx,
+        threadId,
+        GenerationStage.COMPLETE,
+        "Tool call limit reached",
+      );
 
-    // Update the message in the database
-    return await updateMessage(this.getDb(), messageId, updatedMessage);
+      // Update the message and return the result
+      return await updateMessage(tx, messageId, updatedMessage);
+    });
   }
 }
