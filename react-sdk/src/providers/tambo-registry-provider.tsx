@@ -79,10 +79,7 @@ export const TamboRegistryProvider: React.FC<
     (tool: TamboTool, warnOnOverwrite = true) => {
       // Validate tool schemas
       if (tool.toolSchema && isZodSchema(tool.toolSchema)) {
-        assertNoZodRecord(
-          tool.toolSchema,
-          `toolSchema of tool "${tool.name}"`,
-        );
+        assertNoZodRecord(tool.toolSchema, `toolSchema of tool "${tool.name}"`);
       }
       setToolRegistry((prev) => {
         if (prev[tool.name] && warnOnOverwrite) {
@@ -145,10 +142,7 @@ export const TamboRegistryProvider: React.FC<
 
       // Validate that the propsSchema does not include z.record()
       if (propsSchema && isZodSchema(propsSchema)) {
-        assertNoZodRecord(
-          propsSchema,
-          `propsSchema of component "${name}"`,
-        );
+        assertNoZodRecord(propsSchema, `propsSchema of component "${name}"`);
       }
 
       // Convert propsSchema to JSON Schema if it exists

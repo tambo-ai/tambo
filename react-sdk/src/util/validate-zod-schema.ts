@@ -1,10 +1,9 @@
-import { z, ZodTypeAny, ZodFirstPartyTypeKind } from "zod";
+import { z, ZodFirstPartyTypeKind, ZodTypeAny } from "zod";
 
 /**
  * Recursively walks a Zod schema and throws when it encounters `z.record()`.
  * Records are not serialisable to JSON-Schema in a way that the Tambo backend
  * understands, so they are disallowed.
- *
  * @param schema      The root Zod schema to inspect.
  * @param contextName A human-readable label echoed in the error message.
  */
@@ -15,8 +14,13 @@ export function assertNoZodRecord(
   const visited = new WeakSet<ZodTypeAny>();
 
   const visit = (current: ZodTypeAny, path: string[]): void => {
+    if (
+      !current ||
+      typeof current !== "object" ||
+      !(current instanceof z.ZodType)
+    )
+      return;
     if (visited.has(current)) return;
-    visited.add(current);
 
     const def: any = (current as any)._def;
     const typeName: ZodFirstPartyTypeKind | undefined = def?.typeName;
@@ -30,6 +34,8 @@ export function assertNoZodRecord(
           "Replace it with z.object({ ... }) using explicit keys.",
       );
     }
+
+    visited.add(current);
 
     // ─────────────── Composite / container types ──────────
     if (current instanceof z.ZodObject) {
@@ -92,7 +98,7 @@ export function assertNoZodRecord(
     if (typeof def?.getter === "function") {
       try {
         const lazySchema = def.getter();
-        if (lazySchema instanceof z.ZodType) visit(lazySchema, path);
+        if (lazySchema instanceof z.ZodType) visit(lazySchema, [...path]);
       } catch {
         // Ignore lazy getter execution errors.
       }
