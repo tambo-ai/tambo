@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   generateChainId,
   getToolsFromSources,
@@ -9,6 +10,7 @@ import {
 import {
   ComponentDecisionV2,
   ContentPartType,
+  decryptProviderKey,
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   LegacyComponentDecision,
@@ -21,7 +23,6 @@ import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
-import { decryptProviderKey } from "../common/key.utils";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
@@ -78,6 +79,7 @@ export class ThreadsService {
     private projectsService: ProjectsService,
     private readonly logger: CorrelationLoggerService,
     private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
 
   getDb() {
@@ -1110,8 +1112,16 @@ export class ThreadsService {
     }
 
     try {
+      const providerKeySecret = this.configService.get<string>(
+        "PROVIDER_KEY_SECRET",
+      );
+      if (!providerKeySecret) {
+        throw new Error("PROVIDER_KEY_SECRET is not configured");
+      }
+
       const { providerKey: decryptedKey } = decryptProviderKey(
         chosenKey.providerKeyEncrypted,
+        providerKeySecret,
       );
       return decryptedKey;
     } catch (error) {

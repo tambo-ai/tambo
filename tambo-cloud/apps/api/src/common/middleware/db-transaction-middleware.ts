@@ -6,7 +6,9 @@ import {
   Scope,
   UnauthorizedException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { REQUEST } from "@nestjs/core";
+import { decryptApiKey } from "@tambo-ai-cloud/core";
 import {
   getDb,
   HydraDatabase,
@@ -16,7 +18,6 @@ import {
 import { sql } from "drizzle-orm";
 import { NextFunction, Response } from "express";
 import { IncomingMessage } from "http";
-import { decryptApiKey } from "../key.utils";
 
 interface HydraRequest extends IncomingMessage {
   tx?: HydraTransaction;
@@ -43,6 +44,7 @@ export class TransactionMiddleware implements NestMiddleware {
   constructor(
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
+    private readonly configService: ConfigService,
   ) {}
   async use(req: HydraRequest, res: Response, next: NextFunction) {
     const currentRequestSerialNumber = requestSerialNumber++;
@@ -50,8 +52,14 @@ export class TransactionMiddleware implements NestMiddleware {
     const apiKeyHeaderString = Array.isArray(apiKeyHeader)
       ? apiKeyHeader[0]
       : apiKeyHeader;
+
+    const apiKeySecret = this.configService.get<string>("API_KEY_SECRET");
+    if (!apiKeySecret) {
+      throw new UnauthorizedException("API_KEY_SECRET is not configured");
+    }
+
     const projectId = apiKeyHeaderString
-      ? decryptApiKey(apiKeyHeaderString).storedString
+      ? decryptApiKey(apiKeyHeaderString, apiKeySecret).storedString
       : null;
 
     if (!projectId) {

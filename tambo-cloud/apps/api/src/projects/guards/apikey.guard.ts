@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { decryptApiKey, hashKey } from "@tambo-ai-cloud/core";
 import { Request } from "express";
-import { decryptApiKey, hashKey } from "../../common/key.utils";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { ProjectsService } from "../projects.service";
 
@@ -29,6 +30,7 @@ export class ApiKeyGuard implements CanActivate {
   constructor(
     private readonly projectsService: ProjectsService,
     private readonly logger: CorrelationLoggerService,
+    private readonly configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -41,7 +43,15 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     try {
-      const { storedString: projectIdOrLegacyId } = decryptApiKey(apiKey);
+      const apiKeySecret = this.configService.get<string>("API_KEY_SECRET");
+      if (!apiKeySecret) {
+        throw new Error("API_KEY_SECRET is not configured");
+      }
+
+      const { storedString: projectIdOrLegacyId } = decryptApiKey(
+        apiKey,
+        apiKeySecret,
+      );
 
       const projectId = await this.validateApiKeyWithProject(
         apiKey,
