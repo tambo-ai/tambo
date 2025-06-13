@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.15.0...tambo-v0.16.0) (2025-06-13)
+
+
+### Features
+
+* add ui for thread renaming ([#528](https://github.com/tambo-ai/tambo/issues/528)) ([3d58533](https://github.com/tambo-ai/tambo/commit/3d5853343103222f23e87a9c164162ec3e641ca3))
+
 ## [0.15.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.14.0...tambo-v0.15.0) (2025-06-11)
 
 
