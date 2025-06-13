@@ -1,0 +1,14 @@
+{
+  "extends": "@tambo-ai-cloud/typescript-config/base",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "declaration": true,
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "module": "CommonJS",
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "./dist"]
+}

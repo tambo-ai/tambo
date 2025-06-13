@@ -25,9 +25,13 @@
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
+    "@types/jest": "^29.5.14",
+    "eslint": "^9.28.0",
     "husky": "^9.1.7",
+    "jest": "^30.0.0",
     "lint-staged": "^16.1.0",
     "prettier": "^3.5.3",
+    "ts-jest": "^29.4.0",
     "tsx": "^4.19.4",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
