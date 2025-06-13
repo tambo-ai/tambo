@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.10.0...showcase-v0.11.0) (2025-06-13)
+
+
+### Features
+
+* update thread-history in showcase ([#530](https://github.com/tambo-ai/tambo/issues/530)) ([00ed677](https://github.com/tambo-ai/tambo/commit/00ed677964c3b7f36c9278f1c54ec901f50cdda8))
+
 ## [0.10.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.9.0...showcase-v0.10.0) (2025-06-11)
 
 
