@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     const resend = new Resend(env.RESEND_API_KEY);
 
     // Parse the request body
-    let parsedBody;
+    let parsedBody: unknown;
     try {
       parsedBody = await req.json();
     } catch (e) {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     // Validate required fields
     if (!subject || !body || !usersEmail) {
-      const missingFields = [];
+      const missingFields: string[] = [];
       if (!subject) missingFields.push("subject");
       if (!body) missingFields.push("body");
       if (!usersEmail) missingFields.push("usersEmail");
@@ -97,6 +97,39 @@ export async function POST(req: Request) {
       }
     }
 
+    /*
+     * Attempt to subscribe the user to the Resend audience before
+     * sending the email. This operation is *best-effort* – any failure
+     * is logged but will not block email delivery.
+     */
+    if (env.RESEND_AUDIENCE_ID) {
+      try {
+        console.log(
+          `Subscribing ${usersEmail} to audience ${env.RESEND_AUDIENCE_ID}`,
+        );
+        const contactResponse = await resend.contacts.create({
+          audienceId: env.RESEND_AUDIENCE_ID,
+          email: usersEmail,
+          unsubscribed: false,
+        });
+        console.log("Successfully subscribed contact", contactResponse);
+      } catch (subscriptionError) {
+        console.warn(
+          "Audience subscription failed (continuing with email send):",
+          subscriptionError instanceof Error
+            ? {
+                message: subscriptionError.message,
+                name: subscriptionError.name,
+              }
+            : subscriptionError,
+        );
+      }
+    } else {
+      console.log(
+        "RESEND_AUDIENCE_ID not configured – skipping audience subscription",
+      );
+    }
+
     // Send the email to founders
     console.log("Attempting to send email via Resend");
     const data = await resend.emails.send({
@@ -104,7 +137,8 @@ export async function POST(req: Request) {
       to: FOUNDER_EMAIL,
       cc: usersEmail,
       replyTo: usersEmail,
-      subject: `[Tambo Demo] ${subject}`,
+      // Always embed the user's email in the subject to guarantee uniqueness
+      subject: `[Tambo Demo] ${subject} (${usersEmail})`,
       html: `
         <div>
           ${body.replace(/\n/g, "<br />")}
