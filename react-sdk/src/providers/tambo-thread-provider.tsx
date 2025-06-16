@@ -566,20 +566,23 @@ export const TamboThreadProvider: React.FC<
     ],
   );
 
+  const currentThreadContextKey = currentThread?.contextKey;
+
   const sendThreadMessage = useCallback(
     async (
       message: string,
       options: {
         threadId?: string;
         streamResponse?: boolean;
-        contextKey?: string;
         forceToolChoice?: string;
-      } = { threadId: PLACEHOLDER_THREAD.id },
+        contextKey?: string;
+      } = {},
     ): Promise<TamboThreadMessage> => {
       const {
-        threadId = currentThread.id,
+        threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
         streamResponse = streaming,
         forceToolChoice,
+        contextKey = currentThreadContextKey,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
@@ -610,7 +613,7 @@ export const TamboThreadProvider: React.FC<
           content: [{ type: "text", text: message }],
           role: "user",
         },
-        contextKey: options.contextKey,
+        contextKey,
         availableComponents: availableComponents,
         clientTools: unassociatedTools.map((tool) =>
           mapTamboToolToContextTool(tool),
@@ -691,7 +694,8 @@ export const TamboThreadProvider: React.FC<
       componentList,
       toolRegistry,
       componentToolAssociations,
-      currentThread.id,
+      currentThreadId,
+      currentThreadContextKey,
       switchCurrentThread,
       addThreadMessage,
       client,
