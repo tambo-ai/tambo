@@ -13,6 +13,9 @@ import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { env } from "process";
 import { getComposio } from "./composio";
+import { Logger } from "@nestjs/common";
+
+const logger = new Logger("systemTools");
 
 /** Get the tools available for the project */
 export async function getSystemTools(
@@ -49,6 +52,7 @@ export async function getSystemTools(
     composioToolNames,
   };
 }
+
 async function getMcpTools(
   db: HydraDatabase,
   projectId: string,
@@ -60,6 +64,7 @@ async function getMcpTools(
 
   const mcpTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
   const mcpToolSources: Record<string, MCPClient> = {};
+
   for (const mcpServer of mcpServers) {
     if (!mcpServer.url) {
       continue;
@@ -76,38 +81,49 @@ async function getMcpTools(
       | Record<string, string>
       | undefined;
 
-    const mcpClient = await MCPClient.create(
-      mcpServer.url,
-      mcpServer.mcpTransport,
-      customHeaders,
-      authProvider,
-    );
-    const tools = await mcpClient.listTools();
-    mcpTools.push(
-      ...tools.map((tool): OpenAI.Chat.Completions.ChatCompletionTool => {
-        return {
-          type: "function",
-          function: {
-            name: tool.name,
-            description: tool.description,
-            strict: true,
-            parameters: tool.inputSchema?.properties
-              ? {
-                  type: "object",
-                  properties: tool.inputSchema.properties,
-                  required: tool.inputSchema.required,
-                  additionalProperties: false,
-                }
-              : undefined,
-          },
-        };
-      }),
-    );
+    try {
+      const mcpClient = await MCPClient.create(
+        mcpServer.url,
+        mcpServer.mcpTransport,
+        customHeaders,
+        authProvider,
+      );
 
-    for (const tool of tools) {
-      mcpToolSources[tool.name] = mcpClient;
+      const tools = await mcpClient.listTools();
+
+      mcpTools.push(
+        ...tools.map(
+          (tool): OpenAI.Chat.Completions.ChatCompletionTool => ({
+            type: "function",
+            function: {
+              name: tool.name,
+              description: tool.description,
+              strict: true,
+              parameters: tool.inputSchema?.properties
+                ? {
+                    type: "object",
+                    properties: tool.inputSchema.properties,
+                    required: tool.inputSchema.required,
+                    additionalProperties: false,
+                  }
+                : undefined,
+            },
+          }),
+        ),
+      );
+
+      for (const tool of tools) {
+        mcpToolSources[tool.name] = mcpClient;
+      }
+    } catch (error) {
+      // TODO: attach this error to the project
+      logger.error(
+        `Error processing MCP server ${mcpServer.id} in project ${projectId}: ${error}`,
+      );
+      continue;
     }
   }
+
   return { mcpTools, mcpToolSources };
 }
 
