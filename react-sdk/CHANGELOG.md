@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.31.1](https://github.com/tambo-ai/tambo/compare/react-v0.31.0...react-v0.31.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* make sendThreadMessage retain the current thread id ([#537](https://github.com/tambo-ai/tambo/issues/537)) ([cf87ec6](https://github.com/tambo-ai/tambo/commit/cf87ec6b605b44a8835cb42cf5522b5fcc4bb3ae))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump jest-environment-jsdom from 29.7.0 to 30.0.0 ([#540](https://github.com/tambo-ai/tambo/issues/540)) ([779586d](https://github.com/tambo-ai/tambo/commit/779586db8a075faa706f7e6b3409d84e9a5f451b))
+* **deps-dev:** bump lint-staged from 16.1.0 to 16.1.2 ([#542](https://github.com/tambo-ai/tambo/issues/542)) ([1582323](https://github.com/tambo-ai/tambo/commit/15823233079c1bf41b0ef7d529731ffd8bdd1f00))
+* **deps-dev:** bump ts-jest from 29.3.4 to 29.4.0 ([#548](https://github.com/tambo-ai/tambo/issues/548)) ([1fcb19e](https://github.com/tambo-ai/tambo/commit/1fcb19e62a6a2a885d3124f7bef2d3e50cf8934f))
+* **deps:** bump @modelcontextprotocol/sdk from 1.12.1 to 1.12.3 ([#539](https://github.com/tambo-ai/tambo/issues/539)) ([45c0c88](https://github.com/tambo-ai/tambo/commit/45c0c882be3af5ba8ab92556b6599d7584428b11))
+* **deps:** bump ts-essentials from 10.1.0 to 10.1.1 ([#541](https://github.com/tambo-ai/tambo/issues/541)) ([2b9cec8](https://github.com/tambo-ai/tambo/commit/2b9cec8b268417633b0558522b1791cce9146330))
+* **deps:** bump zod from 3.25.56 to 3.25.65 ([#549](https://github.com/tambo-ai/tambo/issues/549)) ([aeec9c7](https://github.com/tambo-ai/tambo/commit/aeec9c7a587ca17c138d1286b317652386659819))
+
 ## [0.31.0](https://github.com/tambo-ai/tambo/compare/react-v0.30.0...react-v0.31.0) (2025-06-16)
 
 
