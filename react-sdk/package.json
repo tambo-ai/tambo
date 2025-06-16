@@ -72,7 +72,7 @@
     "@tanstack/react-query": "^5.80.6",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",
-    "ts-essentials": "^10.1.0",
+    "ts-essentials": "^10.1.1",
     "use-debounce": "^10.0.5",
     "zod": "^3.25.56",
     "zod-to-json-schema": "^3.24.5"
