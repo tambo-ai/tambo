@@ -100,7 +100,7 @@
     "prettier-2": "npm:prettier@^2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "ts-jest": "^29.3.4",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
   }
