@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.30.0",
+  "version": "0.31.0",
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
