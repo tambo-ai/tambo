@@ -8,6 +8,7 @@ export interface McpServerInfo {
   url: string;
   description?: string;
   transport?: MCPTransport;
+  customHeaders?: Record<string, string>;
 }
 /**
  * This provider is used to register tools from MCP servers.
@@ -31,8 +32,8 @@ export const TamboMcpProvider: FC<{
           typeof mcpServer === "string"
             ? { url: mcpServer, transport: MCPTransport.SSE }
             : mcpServer;
-        const { url, transport = MCPTransport.SSE } = server;
-        const mcpClient = await MCPClient.create(url, transport);
+        const { url, transport = MCPTransport.SSE, customHeaders } = server;
+        const mcpClient = await MCPClient.create(url, transport, customHeaders);
         const tools = await mcpClient.listTools();
         tools.forEach((tool) => {
           mcpServerMap.set(tool.name, mcpClient);
