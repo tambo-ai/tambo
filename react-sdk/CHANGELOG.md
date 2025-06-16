@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/tambo-ai/tambo/compare/react-v0.30.0...react-v0.31.0) (2025-06-16)
+
+
+### Features
+
+* add support for custom headers in client-side MCP ([#535](https://github.com/tambo-ai/tambo/issues/535)) ([39b0c38](https://github.com/tambo-ai/tambo/commit/39b0c385af106983c5ca41e734685d232250dfee))
+
 ## [0.30.0](https://github.com/tambo-ai/tambo/compare/react-v0.29.1...react-v0.30.0) (2025-06-11)
 
 
