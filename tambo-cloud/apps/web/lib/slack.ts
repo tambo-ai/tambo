@@ -123,6 +123,8 @@ async function inviteUserToChannel(
     {
       channel: channelId,
       emails: [email],
+      // Grant the invited external user full-access (can invite/manage others)
+      external_limited: false,
     },
   );
 

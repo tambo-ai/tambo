@@ -36,6 +36,25 @@ There also are some basic supporting packages only used during development:
 - **Infrastructure**: Supabase for local development
 - **Tools**: Turborepo for monorepo management
 
+## Slack Integration
+
+When a new customer requests a dedicated support channel Tambo Cloud:
+
+1. Creates a public channel (`conversations.create`)
+2. Invites the customer’s email (`conversations.inviteShared`)
+3. Adds an internal teammate (`conversations.invite`)
+
+By default Slack grants invited external users a **limited** role, which prevents
+them from inviting additional teammates.  
+We now explicitly set `external_limited: false` so customers receive **full-access**
+rights and can manage their own members.
+
+To allow this, the Slack bot token (`SLACK_OAUTH_TOKEN`) must include the
+`conversations.connect:write` OAuth scope in addition to the scopes you already
+use (e.g. `channels:manage`, `chat:write`).  
+Generate or update the token in your Slack app settings, then place it in
+`apps/web/.env.local` (see `.env.example`).
+
 ## Getting Started
 
 ### Quick Start
