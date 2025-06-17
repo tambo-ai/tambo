@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.0...showcase-v0.11.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* show tool calls even if they're run on the server ([#555](https://github.com/tambo-ai/tambo/issues/555)) ([3592614](https://github.com/tambo-ai/tambo/commit/35926149e7da38cbb4529f36e66b250bdbbdbcf2))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump postcss from 8.5.4 to 8.5.6 ([#554](https://github.com/tambo-ai/tambo/issues/554)) ([65606ab](https://github.com/tambo-ai/tambo/commit/65606abe4475dfb60b27ddef2b128fe8298ee1a4))
+* **deps-dev:** bump tailwind-merge from 3.3.0 to 3.3.1 ([#543](https://github.com/tambo-ai/tambo/issues/543)) ([508ca23](https://github.com/tambo-ai/tambo/commit/508ca2317517ca8a6d29202a8fa3225bfca5c4bf))
+* **deps:** bump framer-motion from 12.16.0 to 12.18.1 ([#551](https://github.com/tambo-ai/tambo/issues/551)) ([087dce1](https://github.com/tambo-ai/tambo/commit/087dce14b653dfca5a2707a073bcd707c586ee29))
+* **deps:** bump lucide-react from 0.513.0 to 0.516.0 ([#545](https://github.com/tambo-ai/tambo/issues/545)) ([a66372c](https://github.com/tambo-ai/tambo/commit/a66372c6f3dae1bca55fb3cfe3115e3c4abdfb0b))
+
 ## [0.11.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.10.0...showcase-v0.11.0) (2025-06-13)
 
 
