@@ -2,6 +2,7 @@
 import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import React, { createContext, PropsWithChildren, useState } from "react";
+import packageJson from "../../package.json";
 
 export interface TamboClientProviderProps {
   /**
@@ -43,7 +44,12 @@ export const TamboClientContext = createContext<
 export const TamboClientProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps>
 > = ({ children, tamboUrl, apiKey, environment }) => {
-  const tamboConfig: ClientOptions = { apiKey };
+  const tamboConfig: ClientOptions = {
+    apiKey,
+    defaultHeaders: {
+      "X-Tambo-React-Version": packageJson.version,
+    },
+  };
   if (tamboUrl) {
     tamboConfig.baseURL = tamboUrl;
   }
