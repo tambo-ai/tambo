@@ -35,7 +35,7 @@
     "@svgr/webpack": "^8.1.0",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
-    "@types/node": "^20",
+    "@types/node": "^24",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/recharts": "^1.8.29",
