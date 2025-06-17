@@ -220,6 +220,10 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
     const hasToolError = message.actionType === "tool_call" && message.error;
 
+    const toolCallRequest: TamboAI.ToolCallRequest | undefined =
+      // Temporary until we have a better way to get the tool call request from a server-side tool call
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (message.toolCallRequest ?? (message.component as any))?.toolCallRequest;
     return (
       <div
         ref={ref}
@@ -294,13 +298,11 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
                 )}
               >
                 <span className="whitespace-pre-wrap">
-                  tool: {message.toolCallRequest?.toolName}
+                  tool: {toolCallRequest?.toolName}
                 </span>
                 <span className="whitespace-pre-wrap">
                   parameters:{"\n"}
-                  {stringify(
-                    keyifyParameters(message.toolCallRequest?.parameters),
-                  )}
+                  {stringify(keyifyParameters(toolCallRequest?.parameters))}
                 </span>
               </div>
             </div>

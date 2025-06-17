@@ -24,6 +24,7 @@ const packageJson = JSON.parse(
 );
 const currentVersion = packageJson.version;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface CLIFlags extends Record<string, any> {
   init?: Flag<"boolean", boolean>;
   legacyPeerDeps?: Flag<"boolean", boolean>;
