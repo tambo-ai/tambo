@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.64.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.63.1...repo-v0.64.0) (2025-06-17)
+
+
+### Features
+
+* fill in some tool call stuff for server-side tool calls ([#1168](https://github.com/tambo-ai/tambo-cloud/issues/1168)) ([197fb3b](https://github.com/tambo-ai/tambo-cloud/commit/197fb3b91cca705630279766beb4fe8eb03e7614))
+* include user email in demo email subject and verify Resend audience subscription ([#1148](https://github.com/tambo-ai/tambo-cloud/issues/1148)) ([78ec20f](https://github.com/tambo-ai/tambo-cloud/commit/78ec20f013797a3e7d6eabe81a5e0910629b5447))
+* **slack:** update channel provisioning to assign full-access permissions ([#1167](https://github.com/tambo-ai/tambo-cloud/issues/1167)) ([1656dba](https://github.com/tambo-ai/tambo-cloud/commit/1656dba06240ce32ed6db9b24b0b18bed06bdb2f))
+* stub out MCP server for future proxy use ([#1146](https://github.com/tambo-ai/tambo-cloud/issues/1146)) ([4396188](https://github.com/tambo-ai/tambo-cloud/commit/4396188d1a0bd954f1b60dfe7ca4e8b672db682a))
+* throttle streaming to 50ms updates ([#1165](https://github.com/tambo-ai/tambo-cloud/issues/1165)) ([508e121](https://github.com/tambo-ai/tambo-cloud/commit/508e12171188478fd99d6286d7a12ada306e47b2))
+
+
+### Bug Fixes
+
+* do not explode if the MCP server is not configured correctly, just log for now ([#1163](https://github.com/tambo-ai/tambo-cloud/issues/1163)) ([bda71e7](https://github.com/tambo-ai/tambo-cloud/commit/bda71e7615e1a994476928c78e38707f1e7f125e))
+
+
+### Documentation
+
+* clarify docs with an example ([#1162](https://github.com/tambo-ai/tambo-cloud/issues/1162)) ([9636d8d](https://github.com/tambo-ai/tambo-cloud/commit/9636d8d8aae3c7949de6a25be69adf0edc4c277f))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump lint-staged from 16.1.0 to 16.1.2 ([#1154](https://github.com/tambo-ai/tambo-cloud/issues/1154)) ([69469b8](https://github.com/tambo-ai/tambo-cloud/commit/69469b8276d19166923814035335bc3e6d08964e))
+* **deps-dev:** bump the eslint group with 3 updates ([#1152](https://github.com/tambo-ai/tambo-cloud/issues/1152)) ([64c6e43](https://github.com/tambo-ai/tambo-cloud/commit/64c6e43c218f35d88cbad95c63cedb9dcdc1970a))
+* **deps-dev:** bump tsx from 4.19.4 to 4.20.3 ([#1156](https://github.com/tambo-ai/tambo-cloud/issues/1156)) ([85ad109](https://github.com/tambo-ai/tambo-cloud/commit/85ad1095a152b56bb31bb3aec23e6aa2b3611f52))
+* **deps:** bump @hookform/resolvers from 5.0.1 to 5.1.1 ([#1158](https://github.com/tambo-ai/tambo-cloud/issues/1158)) ([5a8676c](https://github.com/tambo-ai/tambo-cloud/commit/5a8676cdfdb49b66c203831980244e5d7b634ff0))
+* **deps:** bump @tambo-ai/react from 0.29.0 to 0.30.0 ([#1160](https://github.com/tambo-ai/tambo-cloud/issues/1160)) ([243ff20](https://github.com/tambo-ai/tambo-cloud/commit/243ff203447f7a5cfa28859773ee3d0ea77707f1))
+* **deps:** bump openai from 5.2.0 to 5.3.0 ([#1159](https://github.com/tambo-ai/tambo-cloud/issues/1159)) ([5716792](https://github.com/tambo-ai/tambo-cloud/commit/5716792de841d9c5d0998d0f4f44d85fc65ca03c))
+* **deps:** bump resend from 4.5.2 to 4.6.0 ([#1155](https://github.com/tambo-ai/tambo-cloud/issues/1155)) ([bf014e5](https://github.com/tambo-ai/tambo-cloud/commit/bf014e516d6b6c099a19cc42f833e6ca4b76bc19))
+* **deps:** bump the trpc group with 3 updates ([#1151](https://github.com/tambo-ai/tambo-cloud/issues/1151)) ([d6844dc](https://github.com/tambo-ai/tambo-cloud/commit/d6844dc6d444b67b487ec76c69717f1c79a84658))
+* get rid of duplicated encryption logic ([#1147](https://github.com/tambo-ai/tambo-cloud/issues/1147)) ([3310938](https://github.com/tambo-ai/tambo-cloud/commit/33109385c808df59467d245e803da01b2b5e94d9))
+* standardize license as Apache-2.0 for now ([#1144](https://github.com/tambo-ai/tambo-cloud/issues/1144)) ([61025ca](https://github.com/tambo-ai/tambo-cloud/commit/61025caf95b389477373f4e00be4395520fc0300))
+
 ## [0.63.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.63.0...repo-v0.63.1) (2025-06-12)
 
 
