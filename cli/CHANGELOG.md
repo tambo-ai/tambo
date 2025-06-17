@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.16.0...tambo-v0.16.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* show tool calls even if they're run on the server ([#555](https://github.com/tambo-ai/tambo/issues/555)) ([3592614](https://github.com/tambo-ai/tambo/commit/35926149e7da38cbb4529f36e66b250bdbbdbcf2))
+
 ## [0.16.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.15.0...tambo-v0.16.0) (2025-06-13)
 
 
