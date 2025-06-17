@@ -17,17 +17,18 @@ function getDb(databaseUrl: string): HydraDatabase {
       connectionTimeoutMillis: 10000,
     });
 
-    pool.on("acquire", () => {
-      console.log(
-        `Connection acquired: now → ${pool.totalCount}/${pool.idleCount} (total/idle)`,
-      );
-    });
+    // Uncomment to debug connection pool issues
+    // pool.on("acquire", () => {
+    //   console.log(
+    //     `Connection acquired: now → ${pool.totalCount}/${pool.idleCount} (total/idle)`,
+    //   );
+    // });
 
-    pool.on("release", () => {
-      console.log(
-        `Connection released: now → ${pool.totalCount}/${pool.idleCount} (total/idle) (released connection takes a few ms to be marked as idle)`,
-      );
-    });
+    // pool.on("release", () => {
+    //   console.log(
+    //     `Connection released: now → ${pool.totalCount}/${pool.idleCount} (total/idle) (released connection takes a few ms to be marked as idle)`,
+    //   );
+    // });
 
     globalPool = pool;
   }
