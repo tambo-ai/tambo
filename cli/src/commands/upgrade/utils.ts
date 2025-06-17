@@ -77,7 +77,7 @@ export function generateAiUpgradePrompts(template: string | null): string[] {
 /**
  * For backward compatibility with older Node versions
  */
-export async function safeFetch(url: string): Promise<any> {
+export async function safeFetch(url: string): Promise<Response> {
   try {
     // Try using global fetch (available in Node.js 18+)
     return await fetch(url);
@@ -85,7 +85,7 @@ export async function safeFetch(url: string): Promise<any> {
     // If global fetch isn't available, try to dynamically import node-fetch
     try {
       const nodeFetch = await import("node-fetch");
-      return await nodeFetch.default(url);
+      return (await nodeFetch.default(url)) as unknown as Response;
     } catch (_importError) {
       // If node-fetch isn't installed, provide helpful error
       throw new Error(

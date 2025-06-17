@@ -74,7 +74,7 @@ declare module "@/components/ui/thread-content" {
   export interface ThreadContentRootProps
     extends React.HTMLAttributes<HTMLDivElement> {
     enableCanvasSpace?: boolean;
-    variant?: any;
+    variant?: ComponentVariant;
     children?: React.ReactNode;
   }
 
@@ -103,7 +103,7 @@ declare module "@/components/ui/message-input" {
   export interface MessageInputRootProps
     extends React.HTMLAttributes<HTMLFormElement> {
     contextKey?: string;
-    variant?: any;
+    variant?: ComponentVariant;
     children?: React.ReactNode;
   }
 
@@ -191,6 +191,7 @@ declare module "@/components/ui/message-suggestions" {
 declare module "@/components/ui/markdownComponents" {
   export const createMarkdownComponents: (
     theme?: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) => Record<string, React.ComponentType<any>>;
 }
 
@@ -232,7 +233,7 @@ declare module "@/components/ui/thread-list" {
   export interface ThreadListProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
-    threads: any[];
+    threads: TamboThread[];
     selectedThreadId?: string | null;
     onThreadSelect?: (threadId: string) => void;
     isLoading?: boolean;
@@ -281,9 +282,12 @@ declare module "@/components/ui/tooltip" {
   export const Tooltip: React.FC<TooltipProps>;
   export const TooltipProvider: React.FC<TooltipProviderProps>;
   export const TooltipContent: React.ForwardRefExoticComponent<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     React.ComponentPropsWithoutRef<any> & React.RefAttributes<any>
   >;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export const TooltipRoot: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export const TooltipTrigger: any;
 }
 
