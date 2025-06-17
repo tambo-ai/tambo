@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.31.2](https://github.com/tambo-ai/tambo/compare/react-v0.31.1...react-v0.31.2) (2025-06-17)
+
+
+### Miscellaneous
+
+* add packagejson version to react headers ([#558](https://github.com/tambo-ai/tambo/issues/558)) ([bb840cd](https://github.com/tambo-ai/tambo/commit/bb840cdfd1a8281332bff61ac452adf7f520955f))
+* **deps-dev:** bump the eslint group with 4 updates ([#538](https://github.com/tambo-ai/tambo/issues/538)) ([d3c054c](https://github.com/tambo-ai/tambo/commit/d3c054c73545835424f14ea022252a3996127fc3))
+* **deps:** bump @tanstack/react-query from 5.80.6 to 5.80.7 ([#556](https://github.com/tambo-ai/tambo/issues/556)) ([8bf933e](https://github.com/tambo-ai/tambo/commit/8bf933ef30512a18a9b1944587625855b7e68048))
+
 ## [0.31.1](https://github.com/tambo-ai/tambo/compare/react-v0.31.0...react-v0.31.1) (2025-06-16)
 
 
