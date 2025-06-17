@@ -64,13 +64,24 @@ export class ThreadMessageDto {
   })
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2Dto;
+
   @ApiProperty({
     type: "object",
     additionalProperties: true,
   })
   componentState!: Record<string, unknown>;
+
+  @ApiProperty({
+    description:
+      "The tool call request. This is filled in only if the tool call is a client-side tool call.",
+  })
   toolCallRequest?: ToolCallRequestDto;
+  @ApiProperty({
+    description:
+      "The unique id of the tool call. This is filled in only if the tool call is a client-side tool call.",
+  })
   tool_call_id?: string;
+
   @IsEnum(ActionType)
   actionType?: ActionType;
 
