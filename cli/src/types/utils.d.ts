@@ -25,9 +25,11 @@ declare module "react-markdown" {
   interface ReactMarkdownProps {
     children: string;
     className?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     components?: Record<string, React.ComponentType<any>>;
   }
   const ReactMarkdown: React.ComponentType<ReactMarkdownProps>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export type Components = Record<string, React.ComponentType<any>>;
   export default ReactMarkdown;
 }
@@ -51,13 +53,13 @@ declare module "dompurify" {
 
 declare module "json-stringify-pretty-compact" {
   const stringify: (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
     options?: {
       indent?: number | string;
       maxLength?: number;
-      replacer?:
-        | ((this: any, key: string, value: any) => any)
-        | (number | string)[];
+      replacer?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((this: any, key: string, value: any) => any) | (number | string)[];
     },
   ) => string;
   export default stringify;

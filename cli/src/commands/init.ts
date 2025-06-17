@@ -137,7 +137,7 @@ async function handleAuthentication(): Promise<boolean> {
       name: "apiKey",
       mask: "*",
       message: "Please paste your API key from the browser:",
-      validate: (input: any) => {
+      validate: (input: string) => {
         if (!input?.trim()) return "API key is required";
         return true;
       },
@@ -253,8 +253,8 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
       value: comp.name,
       checked: false,
     })),
-    validate: (answer: any) => {
-      if (!Array.isArray(answer) || answer.length === 0) {
+    validate: (choices: readonly unknown[]) => {
+      if (!Array.isArray(choices) || choices.length === 0) {
         return "Please select at least one component";
       }
       return true;
