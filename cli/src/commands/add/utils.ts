@@ -107,13 +107,17 @@ export function getKnownComponentNames(): Set<string> {
 /**
  * Gets a list of all installed component names in the project
  * @param installPath The installation path for components
+ * @param isExplicitPrefix Whether the installPath was explicitly provided via --prefix
  * @returns An array of installed component names (only tambo registry components)
  */
 export async function getInstalledComponents(
   installPath: string,
+  isExplicitPrefix = false,
 ): Promise<string[]> {
   try {
-    const componentsPath = path.join(process.cwd(), installPath, "ui");
+    const componentsPath = isExplicitPrefix
+      ? path.join(process.cwd(), installPath)
+      : path.join(process.cwd(), installPath, "ui");
 
     if (!fs.existsSync(componentsPath)) {
       return [];

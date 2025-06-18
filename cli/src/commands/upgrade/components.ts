@@ -14,15 +14,21 @@ import { confirmAction } from "./utils.js";
  * @param componentName Name of the component to find
  * @param projectRoot Project root directory
  * @param installPath Pre-determined installation path
+ * @param isExplicitPrefix Whether the prefix is explicitly provided
  * @returns Object containing component path and installation path
  */
 function findComponentLocation(
   componentName: string,
   projectRoot: string,
   installPath: string,
+  isExplicitPrefix = false,
 ) {
   try {
-    const componentDir = path.join(projectRoot, installPath, "ui");
+    // If prefix is explicitly provided, use it as-is
+    // Otherwise, append /ui for backward compatibility
+    const componentDir = isExplicitPrefix
+      ? path.join(projectRoot, installPath)
+      : path.join(projectRoot, installPath, "ui");
     const componentPath = path.join(componentDir, `${componentName}.tsx`);
 
     if (!fs.existsSync(componentPath)) {
@@ -50,12 +56,15 @@ export async function upgradeComponents(
     console.log(chalk.blue("Determining component location..."));
 
     // Get installation path (this will print messages and prompt user)
-    const installPath = await getInstallationPath();
+    const installPath = options.prefix ?? (await getInstallationPath());
+    const isExplicitPrefix = Boolean(options.prefix);
 
     // Resume with a new spinner after installation path is determined
     const spinner = ora("Finding components...").start();
 
-    const componentDir = path.join(projectRoot, installPath, "ui");
+    const componentDir = isExplicitPrefix
+      ? path.join(projectRoot, installPath)
+      : path.join(projectRoot, installPath, "ui");
 
     if (!fs.existsSync(componentDir)) {
       spinner.info(
@@ -65,7 +74,10 @@ export async function upgradeComponents(
     }
 
     // Get list of installed components
-    const installedComponentNames = await getInstalledComponents(installPath);
+    const installedComponentNames = await getInstalledComponents(
+      installPath,
+      isExplicitPrefix,
+    );
 
     spinner.succeed(
       `Found ${installedComponentNames.length} tambo components to upgrade`,
@@ -85,6 +97,7 @@ export async function upgradeComponents(
         componentName,
         projectRoot,
         installPath,
+        isExplicitPrefix,
       );
       if (location) {
         verifiedComponents.push({
