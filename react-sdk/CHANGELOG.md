@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.3](https://github.com/tambo-ai/tambo/compare/react-v0.31.2...react-v0.31.3) (2025-06-18)
+
+
+### Bug Fixes
+
+* update typescript-sdk to get updated component decision type ([#562](https://github.com/tambo-ai/tambo/issues/562)) ([9075b6e](https://github.com/tambo-ai/tambo/commit/9075b6e257e68d2b604b2450537cb16c67697719))
+
 ## [0.31.2](https://github.com/tambo-ai/tambo/compare/react-v0.31.1...react-v0.31.2) (2025-06-17)
 
 
