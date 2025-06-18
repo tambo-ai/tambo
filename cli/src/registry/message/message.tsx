@@ -222,8 +222,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
 
     const toolCallRequest: TamboAI.ToolCallRequest | undefined =
       // Temporary until we have a better way to get the tool call request from a server-side tool call
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (message.toolCallRequest ?? (message.component as any))?.toolCallRequest;
+      message.toolCallRequest ?? message.component?.toolCallRequest;
     return (
       <div
         ref={ref}
