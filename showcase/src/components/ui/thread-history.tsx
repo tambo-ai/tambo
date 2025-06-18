@@ -562,19 +562,21 @@ ThreadHistoryList.displayName = "ThreadHistory.List";
  * Dropdown menu component for thread actions
  */
 const ThreadOptionsDropdown = React.forwardRef<
-  HTMLDivElement,
+  HTMLButtonElement,
   {
     thread: TamboThread;
     onRename: (thread: TamboThread) => void;
     onGenerateName: (thread: TamboThread) => void;
-  } & React.HTMLAttributes<HTMLDivElement>
->(({ thread, onRename, onGenerateName }) => {
+  } & React.HTMLAttributes<HTMLButtonElement>
+>(({ thread, onRename, onGenerateName, ...props }, ref) => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
         <button
+          ref={ref}
           className="p-1 hover:bg-backdrop rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
           onClick={(e) => e.stopPropagation()}
+          {...props}
         >
           <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
         </button>
