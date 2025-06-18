@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.16.1...tambo-v0.17.0) (2025-06-18)
+
+
+### Features
+
+* add -y and --prefix flags to cli ([#561](https://github.com/tambo-ai/tambo/issues/561)) ([49574cd](https://github.com/tambo-ai/tambo/commit/49574cdd857a8caaa807728249b41aad9c33f718))
+
+
+### Bug Fixes
+
+* update typescript-sdk to get updated component decision type ([#562](https://github.com/tambo-ai/tambo/issues/562)) ([9075b6e](https://github.com/tambo-ai/tambo/commit/9075b6e257e68d2b604b2450537cb16c67697719))
+
 ## [0.16.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.16.0...tambo-v0.16.1) (2025-06-17)
 
 
