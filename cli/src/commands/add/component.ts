@@ -11,6 +11,32 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Calculates the lib directory path based on the install path and whether it's an explicit prefix
+ * @param installPath The component installation path
+ * @param isExplicitPrefix Whether the installPath was explicitly provided via --prefix
+ * @returns The calculated lib directory path
+ */
+function calculateLibDir(
+  installPath: string,
+  isExplicitPrefix: boolean,
+): string {
+  if (isExplicitPrefix) {
+    // For explicit prefix, check if it starts with 'src' as a whole directory
+    const pathParts = installPath.split(path.sep);
+    const startsWithSrc = pathParts.length > 0 && pathParts[0] === "src";
+
+    if (startsWithSrc) {
+      return path.join(process.cwd(), "src", "lib");
+    } else {
+      return path.join(process.cwd(), "lib");
+    }
+  } else {
+    // For auto-detected paths, use the standard logic
+    return path.join(process.cwd(), path.dirname(installPath), "lib");
+  }
+}
+
+/**
  * Installs multiple components and their dependencies
  * @param componentNames Array of component names to install
  * @param options Installation options
@@ -30,16 +56,13 @@ export async function installComponents(
   }
 
   // 1. Create component directory
-  const componentDir = path.join(
-    process.cwd(),
-    options.installPath ?? "components",
-    "ui",
-  );
-  const libDir = path.join(
-    process.cwd(),
-    path.dirname(options.installPath ?? "components"),
-    "lib",
-  );
+  const installPath = options.installPath ?? "components";
+  const isExplicitPrefix = Boolean(options.isExplicitPrefix);
+
+  const componentDir = isExplicitPrefix
+    ? path.join(process.cwd(), installPath)
+    : path.join(process.cwd(), installPath, "ui");
+  const libDir = calculateLibDir(installPath, isExplicitPrefix);
   fs.mkdirSync(componentDir, { recursive: true });
   fs.mkdirSync(libDir, { recursive: true });
 

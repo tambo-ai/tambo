@@ -32,6 +32,7 @@ export async function handleAddComponents(
 
     // 2. Get installation path if not provided
     const installPath = options.installPath ?? (await getInstallationPath());
+    const isExplicitPrefix = Boolean(options.installPath);
 
     // 3. Resolve all dependencies first
     if (!options.silent) {
@@ -48,8 +49,11 @@ export async function handleAddComponents(
     const components = Array.from(allComponents);
 
     // 4. Check which components need to be installed
+    const existingComponentsPath = isExplicitPrefix
+      ? path.join(process.cwd(), installPath)
+      : path.join(process.cwd(), installPath, "ui");
     const existingComponents = components.filter((comp) =>
-      fs.existsSync(path.join(process.cwd(), installPath, "ui", `${comp}.tsx`)),
+      fs.existsSync(path.join(existingComponentsPath, `${comp}.tsx`)),
     );
     const newComponents = components.filter(
       (comp) => !existingComponents.includes(comp),
@@ -89,7 +93,11 @@ export async function handleAddComponents(
     }
 
     // 6. Install components in order (dependencies first)
-    await installComponents(newComponents, { ...options, installPath });
+    await installComponents(newComponents, {
+      ...options,
+      installPath,
+      isExplicitPrefix,
+    });
 
     // 7. Setup Tailwind and globals.css after all components are installed
     await setupTailwindandGlobals(process.cwd());
