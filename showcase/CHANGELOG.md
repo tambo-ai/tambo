@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.1...showcase-v0.11.2) (2025-06-18)
+
+
+### Bug Fixes
+
+* update typescript-sdk to get updated component decision type ([#562](https://github.com/tambo-ai/tambo/issues/562)) ([9075b6e](https://github.com/tambo-ai/tambo/commit/9075b6e257e68d2b604b2450537cb16c67697719))
+
 ## [0.11.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.0...showcase-v0.11.1) (2025-06-17)
 
 
