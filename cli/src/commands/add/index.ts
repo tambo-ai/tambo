@@ -31,7 +31,8 @@ export async function handleAddComponents(
     }
 
     // 2. Get installation path if not provided
-    const installPath = options.installPath ?? (await getInstallationPath());
+    const installPath =
+      options.installPath ?? (await getInstallationPath(options.yes));
     const isExplicitPrefix = Boolean(options.installPath);
 
     // 3. Resolve all dependencies first
@@ -79,16 +80,22 @@ export async function handleAddComponents(
         existingComponents.forEach((comp) => console.log(`  - ${comp}`));
       }
 
-      const { proceed } = await inquirer.prompt({
-        type: "confirm",
-        name: "proceed",
-        message: "Do you want to proceed with installation?",
-        default: true,
-      });
+      if (!options.yes) {
+        const { proceed } = await inquirer.prompt({
+          type: "confirm",
+          name: "proceed",
+          message: "Do you want to proceed with installation?",
+          default: true,
+        });
 
-      if (!proceed) {
-        console.log(chalk.yellow("Installation cancelled"));
-        return;
+        if (!proceed) {
+          console.log(chalk.yellow("Installation cancelled"));
+          return;
+        }
+      } else {
+        console.log(
+          chalk.blue("ℹ Auto-proceeding with installation (--yes flag)"),
+        );
       }
     }
 

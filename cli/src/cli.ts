@@ -33,6 +33,7 @@ interface CLIFlags extends Record<string, any> {
   template?: Flag<"string", string>;
   acceptAll?: Flag<"boolean", boolean>;
   prefix?: Flag<"string", string>;
+  yes?: Flag<"boolean", boolean>;
 }
 
 // CLI setup
@@ -70,6 +71,7 @@ const cli = meow(
     ${chalk.yellow("--template, -t <name>")}   Specify template to use (-t mcp)
     ${chalk.yellow("--accept-all")}        Accept all upgrades without prompting, use with caution, only works with upgrade command
     ${chalk.yellow("--prefix <path>")}     Specify custom directory prefix for components (e.g., src/components/ui/tambo)
+    ${chalk.yellow("--yes, -y")}           Answer yes to all prompts automatically
     ${chalk.yellow("--version")}           Show version number
 
   ${chalk.bold("Examples")}
@@ -95,6 +97,9 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app . --init-git")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=src/components/ui/tambo update message")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=components/ui/third-party add message")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("add message -y")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed --yes")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("init -y")}
   `,
   {
     flags: {
@@ -123,6 +128,11 @@ const cli = meow(
       prefix: {
         type: "string",
         description: "Specify custom directory prefix for components",
+      },
+      yes: {
+        type: "boolean",
+        description: "Answer yes to all prompts automatically",
+        shortFlag: "y",
       },
     },
     importMeta: import.meta,
@@ -167,6 +177,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     await handleInit({
       fullSend: cmd === "full-send",
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
+      yes: Boolean(flags.yes),
     });
     return;
   }
@@ -186,6 +197,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       installPath: flags.prefix as string | undefined,
       isExplicitPrefix: Boolean(flags.prefix),
+      yes: Boolean(flags.yes),
     });
     return;
   }
@@ -211,6 +223,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     await handleUpdateComponents(componentNames, {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       prefix: flags.prefix as string | undefined,
+      yes: Boolean(flags.yes),
     });
     return;
   }

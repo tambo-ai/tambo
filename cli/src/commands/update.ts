@@ -11,6 +11,7 @@ interface UpdateComponentOptions {
   silent?: boolean;
   prefix?: string;
   isExplicitPrefix?: boolean;
+  yes?: boolean;
 }
 
 /**
@@ -159,18 +160,22 @@ export async function handleUpdateComponents(
       console.log(chalk.blue(`ℹ Components to be updated:`));
       validComponents.forEach((comp) => console.log(`  - ${comp.name}`));
 
-      const { confirm } = await inquirer.prompt({
-        type: "confirm",
-        name: "confirm",
-        message: chalk.yellow(
-          `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
-        ),
-        default: false,
-      });
+      if (!options.yes) {
+        const { confirm } = await inquirer.prompt({
+          type: "confirm",
+          name: "confirm",
+          message: chalk.yellow(
+            `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
+          ),
+          default: false,
+        });
 
-      if (!confirm) {
-        console.log(chalk.gray("Update cancelled."));
-        return;
+        if (!confirm) {
+          console.log(chalk.gray("Update cancelled."));
+          return;
+        }
+      } else {
+        console.log(chalk.blue("ℹ Auto-proceeding with update (--yes flag)"));
       }
     }
 

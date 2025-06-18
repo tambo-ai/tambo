@@ -40,6 +40,7 @@ class AuthenticationError extends Error {
 interface InitOptions {
   fullSend?: boolean;
   legacyPeerDeps?: boolean;
+  yes?: boolean;
 }
 
 /**
@@ -74,15 +75,35 @@ async function checkExistingApiKey(): Promise<string | null> {
 
 /**
  * Gets user preference for component installation directory
+ * @param yes Whether to automatically answer yes to prompts
  * @returns string The chosen installation path
  */
-export async function getInstallationPath(): Promise<string> {
+export async function getInstallationPath(yes = false): Promise<string> {
   const hasSrcDir = fs.existsSync("src");
 
   if (hasSrcDir) {
     console.log(chalk.gray(`Found existing ${chalk.cyan("src/")} directory\n`));
   } else {
     console.log(chalk.gray(`No ${chalk.cyan("src/")} directory found\n`));
+  }
+
+  if (yes) {
+    // Auto-answer yes - use src if available, otherwise create it
+    const useSrcDir = hasSrcDir;
+    if (!hasSrcDir) {
+      console.log(
+        chalk.blue(
+          `ℹ Auto-creating ${chalk.cyan("src/")} directory for components`,
+        ),
+      );
+    } else {
+      console.log(
+        chalk.blue(
+          `ℹ Using existing ${chalk.cyan("src/")} directory for components`,
+        ),
+      );
+    }
+    return useSrcDir ? "src/components" : "src/components";
   }
 
   const { useSrcDir } = await inquirer.prompt({
@@ -213,7 +234,7 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   );
 
   // Get installation path preference first
-  const installPath = await getInstallationPath();
+  const installPath = await getInstallationPath(options.yes);
 
   const authSuccess = await handleAuthentication();
   if (!authSuccess) return;
@@ -403,10 +424,11 @@ ${componentInstances}
 export async function handleInit({
   fullSend = false,
   legacyPeerDeps = false,
+  yes = false,
 }: InitOptions): Promise<void> {
   try {
     if (fullSend) {
-      return await handleFullSendInit({ fullSend, legacyPeerDeps });
+      return await handleFullSendInit({ fullSend, legacyPeerDeps, yes });
     }
 
     if (!validateRootPackageJson()) return;
