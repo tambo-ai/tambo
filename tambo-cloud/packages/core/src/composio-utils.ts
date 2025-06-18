@@ -58,7 +58,7 @@ export interface ComposioConnectorConfig {
   default_user_scopes?: string[] | null;
 
   /** UI‑driven fields you need to collect from the customer */
-  fields: ComposioField[];
+  fields?: ComposioField[];
 }
 
 /** UI‑driven fields you need to collect from the customer */

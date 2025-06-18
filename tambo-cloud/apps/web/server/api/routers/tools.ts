@@ -106,6 +106,8 @@ export const toolsRouter = createTRPCRouter({
         mcpIsAuthed:
           !!server.contexts.length &&
           !!server.contexts[0].mcpOauthTokens?.access_token,
+
+        mcpTransport: server.mcpTransport,
       }));
     }),
   addMcpServer: protectedProcedure
