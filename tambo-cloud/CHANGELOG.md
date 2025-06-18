@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.65.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.64.0...repo-v0.65.0) (2025-06-18)
+
+
+### Features
+
+* limit prompt tokens when over model's max ([#1171](https://github.com/tambo-ai/tambo-cloud/issues/1171)) ([c96e1ac](https://github.com/tambo-ai/tambo-cloud/commit/c96e1acef94662a068fd8eba3aa618eb66bcafc8))
+* update smoketest to get latest tool behavior ([#1175](https://github.com/tambo-ai/tambo-cloud/issues/1175)) ([563ebe5](https://github.com/tambo-ai/tambo-cloud/commit/563ebe50898e7db17e66f03aea4c37a7e26e35ac))
+
+
+### Bug Fixes
+
+* allow inspection of non-authing servers ([#1174](https://github.com/tambo-ai/tambo-cloud/issues/1174)) ([f52df15](https://github.com/tambo-ai/tambo-cloud/commit/f52df1594f7df0d76245f540bb1801c5ffdf7b53))
+* properly display mcp transport type ([#1173](https://github.com/tambo-ai/tambo-cloud/issues/1173)) ([551d0ac](https://github.com/tambo-ai/tambo-cloud/commit/551d0ac6e8a0fe0b194012fbda3cc4d91a890824))
+
 ## [0.64.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.63.1...repo-v0.64.0) (2025-06-17)
 
 
