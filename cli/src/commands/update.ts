@@ -9,6 +9,9 @@ import { getInstallationPath } from "./init.js";
 interface UpdateComponentOptions {
   legacyPeerDeps?: boolean;
   silent?: boolean;
+  prefix?: string;
+  isExplicitPrefix?: boolean;
+  yes?: boolean;
 }
 
 /**
@@ -16,15 +19,21 @@ interface UpdateComponentOptions {
  * @param componentName Name of the component to find
  * @param projectRoot Project root directory
  * @param installPath Pre-determined installation path
+ * @param isExplicitPrefix Whether the installPath was explicitly provided via --prefix
  * @returns Object containing component path and installation path
  */
 function findComponentLocation(
   componentName: string,
   projectRoot: string,
   installPath: string,
+  isExplicitPrefix = false,
 ) {
   try {
-    const componentDir = path.join(projectRoot, installPath, "ui");
+    // If prefix is explicitly provided, use it as-is
+    // Otherwise, append /ui for backward compatibility
+    const componentDir = isExplicitPrefix
+      ? path.join(projectRoot, installPath)
+      : path.join(projectRoot, installPath, "ui");
     const componentPath = path.join(componentDir, `${componentName}.tsx`);
 
     if (!fs.existsSync(componentPath)) {
@@ -59,13 +68,17 @@ export async function handleUpdateComponents(
     const projectRoot = process.cwd();
 
     // Get installation path once at the beginning
-    const installPath = await getInstallationPath();
+    const installPath = options.prefix ?? (await getInstallationPath());
+    const isExplicitPrefix = Boolean(options.prefix);
 
     let componentsToUpdate: string[] = [];
 
     // Handle special "installed" keyword
     if (componentNames.length === 1 && componentNames[0] === "installed") {
-      const installedComponents = await getInstalledComponents(installPath);
+      const installedComponents = await getInstalledComponents(
+        installPath,
+        isExplicitPrefix,
+      );
 
       if (installedComponents.length === 0) {
         if (!options.silent) {
@@ -108,6 +121,7 @@ export async function handleUpdateComponents(
         componentName,
         projectRoot,
         installPath,
+        isExplicitPrefix,
       );
       if (location) {
         validComponents.push({
@@ -146,18 +160,22 @@ export async function handleUpdateComponents(
       console.log(chalk.blue(`ℹ Components to be updated:`));
       validComponents.forEach((comp) => console.log(`  - ${comp.name}`));
 
-      const { confirm } = await inquirer.prompt({
-        type: "confirm",
-        name: "confirm",
-        message: chalk.yellow(
-          `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
-        ),
-        default: false,
-      });
+      if (!options.yes) {
+        const { confirm } = await inquirer.prompt({
+          type: "confirm",
+          name: "confirm",
+          message: chalk.yellow(
+            `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
+          ),
+          default: false,
+        });
 
-      if (!confirm) {
-        console.log(chalk.gray("Update cancelled."));
-        return;
+        if (!confirm) {
+          console.log(chalk.gray("Update cancelled."));
+          return;
+        }
+      } else {
+        console.log(chalk.blue("ℹ Auto-proceeding with update (--yes flag)"));
       }
     }
 
@@ -179,6 +197,7 @@ export async function handleUpdateComponents(
           ...options,
           forceUpdate: true,
           installPath,
+          isExplicitPrefix,
           silent: true,
         });
         successCount += components.length;

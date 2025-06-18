@@ -14,4 +14,6 @@ export interface InstallComponentOptions {
   legacyPeerDeps?: boolean;
   forceUpdate?: boolean;
   installPath?: string;
+  isExplicitPrefix?: boolean;
+  yes?: boolean;
 }

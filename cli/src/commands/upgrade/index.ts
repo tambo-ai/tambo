@@ -10,6 +10,7 @@ export interface UpgradeOptions {
   legacyPeerDeps?: boolean;
   acceptAll?: boolean;
   silent?: boolean;
+  prefix?: string;
 }
 
 /**

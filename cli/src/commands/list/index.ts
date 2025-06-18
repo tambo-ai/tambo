@@ -7,7 +7,7 @@ import { getInstallationPath } from "../init.js";
 /**
  * Lists all installed components in the project
  */
-export async function handleListComponents() {
+export async function handleListComponents(prefix?: string) {
   try {
     // 1. Check package.json
     if (!fs.existsSync(path.join(process.cwd(), "package.json"))) {
@@ -17,13 +17,19 @@ export async function handleListComponents() {
     }
 
     // 2. Get installation path
-    const installPath = await getInstallationPath();
+    const installPath = prefix ?? (await getInstallationPath());
+    const isExplicitPrefix = Boolean(prefix);
 
     // 3. Get all installed components (tambo components only)
-    const tamboComponents = await getInstalledComponents(installPath);
+    const tamboComponents = await getInstalledComponents(
+      installPath,
+      isExplicitPrefix,
+    );
 
     // 4. Get all .tsx files in the components directory (including non-tambo)
-    const componentsPath = path.join(process.cwd(), installPath, "ui");
+    const componentsPath = isExplicitPrefix
+      ? path.join(process.cwd(), installPath)
+      : path.join(process.cwd(), installPath, "ui");
     let allComponents: string[] = [];
 
     if (fs.existsSync(componentsPath)) {
