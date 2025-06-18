@@ -68,6 +68,7 @@ export class ProjectsService {
       customLlmModelName: project.customLlmModelName ?? undefined,
       customLlmBaseURL: project.customLlmBaseURL ?? undefined,
       customInstructions: project.customInstructions ?? undefined,
+      maxInputTokens: project.maxInputTokens ?? undefined,
     };
   }
 

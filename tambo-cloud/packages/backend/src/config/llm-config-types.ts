@@ -1,4 +1,5 @@
 export interface LlmModelCapabilities {
+  inputTokenLimit: number;
   supportsTools?: boolean;
   supportsJsonMode?: boolean;
   // We can add other specific capabilities here
@@ -18,7 +19,7 @@ export interface LlmModelConfigInfo {
   /** Link to Tambo's documentation about the model or its issues */
   tamboDocLink?: string;
   /** Additional capabilities of the model */
-  properties?: LlmModelCapabilities;
+  properties: LlmModelCapabilities;
   /** Whether the model is the default model */
   isDefaultModel?: boolean;
 }

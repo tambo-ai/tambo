@@ -121,6 +121,7 @@ export class ThreadsService {
     let modelName = project.defaultLlmModelName;
     let customModelOverride = project.customLlmModelName;
     const baseURL = project.customLlmBaseURL;
+    const maxInputTokens = project.maxInputTokens;
 
     if (providerName === "openai-compatible") {
       // For openai-compatible, the customLlmModelName is the actual model name
@@ -148,6 +149,7 @@ export class ThreadsService {
       provider: providerName as Provider,
       model: modelName,
       baseURL: baseURL ?? undefined,
+      maxInputTokens,
     });
   }
 

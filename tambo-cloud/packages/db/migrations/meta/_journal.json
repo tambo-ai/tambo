@@ -351,6 +351,13 @@
       "when": 1749601718389,
       "tag": "0049_equal_stepford_cuckoos",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1750195909355,
+      "tag": "0050_little_prowler",
+      "breakpoints": true
     }
   ]
 }

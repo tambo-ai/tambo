@@ -10,6 +10,7 @@ export const mistralModels: LlmModelConfig = {
     docLink: "https://mistral.ai/news/mistral-small-3-1",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -23,6 +24,7 @@ export const mistralModels: LlmModelConfig = {
     docLink: "https://mistral.ai/news/pixtral-large",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },

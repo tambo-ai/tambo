@@ -15,6 +15,7 @@ export class ProjectResponse {
   customLlmModelName?: string;
   customLlmBaseURL?: string;
   customInstructions?: string;
+  maxInputTokens?: number | null;
 }
 
 export class SimpleProjectResponse {

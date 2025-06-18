@@ -4,6 +4,7 @@ import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { ResponseFormatJSONObject } from "openai/resources";
+import { llmProviderConfig } from "../../config/llm.config";
 import { Provider } from "../../model/providers";
 import {
   CompleteParams,
@@ -11,6 +12,7 @@ import {
   LLMResponse,
   StreamingCompleteParams,
 } from "./llm-client";
+import { limitTokens } from "./token-limiter";
 
 export class TokenJSClient implements LLMClient {
   private client: TokenJS;
@@ -21,6 +23,7 @@ export class TokenJSClient implements LLMClient {
     private provider: Provider,
     private chainId: string,
     baseURL?: string,
+    private maxInputTokens?: number | null,
   ) {
     const tokenJsOptions: ConstructorParameters<typeof TokenJS>[0] = {};
 
@@ -56,7 +59,7 @@ export class TokenJSClient implements LLMClient {
         nonStringParams,
       );
     }
-    const messagesFormatted = tryFormatTemplate(
+    let messagesFormatted = tryFormatTemplate(
       params.messages,
       params.promptTemplateParams,
     );
@@ -65,6 +68,13 @@ export class TokenJSClient implements LLMClient {
       this.provider === "openai-compatible"
         ? "openai-compatible"
         : this.provider;
+
+    const modelTokenLimit =
+      llmProviderConfig[this.provider].models?.[this.model]?.properties
+        .inputTokenLimit;
+    const effectiveTokenLimit = this.maxInputTokens ?? modelTokenLimit;
+
+    messagesFormatted = limitTokens(messagesFormatted, effectiveTokenLimit);
 
     if (params.stream) {
       const stream = await this.client.chat.completions.create({

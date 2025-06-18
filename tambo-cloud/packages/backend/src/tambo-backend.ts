@@ -16,6 +16,7 @@ interface HydraBackendOptions {
   model?: string;
   provider?: Provider;
   baseURL?: string;
+  maxInputTokens?: number | null;
 }
 
 interface RunDecisionLoopParams {
@@ -37,6 +38,7 @@ export default class TamboBackend {
       model = DEFAULT_OPENAI_MODEL,
       provider = "openai",
       baseURL,
+      maxInputTokens,
     } = options;
     this.llmClient = new TokenJSClient(
       apiKey,
@@ -44,6 +46,7 @@ export default class TamboBackend {
       provider,
       chainId,
       baseURL,
+      maxInputTokens,
     );
   }
 

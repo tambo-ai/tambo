@@ -129,6 +129,7 @@ export function ProviderKeySection({
   >();
   const [customModelName, setCustomModelName] = useState<string>("");
   const [baseUrl, setBaseUrl] = useState<string>("");
+  const [maxInputTokens, setMaxInputTokens] = useState<string>("");
 
   const [apiKeyInput, setApiKeyInput] = useState<string>("");
   const [isEditingApiKey, setIsEditingApiKey] = useState<boolean>(false);
@@ -155,6 +156,7 @@ export function ProviderKeySection({
       if (data.defaultLlmProviderName === "openai-compatible") {
         setCustomModelName(data.customLlmModelName ?? "");
         setSelectedModelApiName(undefined);
+        setMaxInputTokens(data.maxInputTokens?.toString() ?? "");
       } else {
         // If OpenAI is selected and no model is set, default to DEFAULT_OPENAI_MODEL
         if (
@@ -166,6 +168,7 @@ export function ProviderKeySection({
           setSelectedModelApiName(data.defaultLlmModelName ?? undefined);
         }
         setCustomModelName("");
+        setMaxInputTokens("");
       }
       setBaseUrl(data.customLlmBaseURL ?? "");
       setHasUnsavedChanges(false);
@@ -279,6 +282,9 @@ export function ProviderKeySection({
           setCustomModelName(projectLlmSettings.customLlmModelName ?? "");
           setSelectedModelApiName(undefined);
           setBaseUrl(projectLlmSettings.customLlmBaseURL ?? "");
+          setMaxInputTokens(
+            projectLlmSettings.maxInputTokens?.toString() ?? "",
+          );
         } else {
           // If OpenAI is selected and no model is set, default to gpt-4o-mini
           if (
@@ -293,6 +299,7 @@ export function ProviderKeySection({
           }
           setCustomModelName("");
           setBaseUrl("");
+          setMaxInputTokens("");
         }
       } else {
         // If switching to OpenAI and no model is selected, set DEFAULT_OPENAI_MODEL
@@ -303,6 +310,7 @@ export function ProviderKeySection({
         }
         setCustomModelName("");
         setBaseUrl("");
+        setMaxInputTokens("");
       }
     } else if (selectedProviderApiName) {
       if (selectedProviderApiName === "openai") {
@@ -311,6 +319,7 @@ export function ProviderKeySection({
         setCustomModelName("");
         setBaseUrl("");
         setSelectedModelApiName(undefined);
+        setMaxInputTokens("");
       }
     }
   }, [selectedProviderApiName, projectLlmSettings]);
@@ -368,6 +377,7 @@ export function ProviderKeySection({
 
     let modelToSave: string | null = null;
     let customNameToSave: string | null = null;
+    let maxInputTokensToSave: number | null = null;
 
     if (currentProviderConfig?.isCustomProvider) {
       if (!customModelName.trim()) {
@@ -380,6 +390,20 @@ export function ProviderKeySection({
       }
       modelToSave = null;
       customNameToSave = customModelName.trim();
+
+      // Validate maxInputTokens for openai-compatible provider
+      if (selectedProviderApiName === "openai-compatible") {
+        const tokens = parseInt(maxInputTokens);
+        if (isNaN(tokens) || tokens <= 0) {
+          toast({
+            title: "Error",
+            description: "Please enter a valid maximum input tokens value.",
+            variant: "destructive",
+          });
+          return;
+        }
+        maxInputTokensToSave = tokens;
+      }
     } else {
       if (!selectedModelApiName) {
         toast({
@@ -418,6 +442,7 @@ export function ProviderKeySection({
       defaultLlmModelName: modelToSave,
       customLlmModelName: customNameToSave,
       customLlmBaseURL: baseUrlToSave,
+      maxInputTokens: maxInputTokensToSave,
     });
   }, [
     selectedProviderApiName,
@@ -425,6 +450,7 @@ export function ProviderKeySection({
     customModelName,
     selectedModelApiName,
     baseUrl,
+    maxInputTokens,
     updateLlmSettings,
     project?.id,
     toast,
@@ -710,6 +736,34 @@ export function ProviderKeySection({
                       />
                       <p className="text-xs text-muted-foreground">
                         The API endpoint URL for your compatible provider.
+                      </p>
+                    </div>
+                  )}
+                  {selectedProviderApiName === "openai-compatible" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="max-input-tokens">
+                        Maximum Input Tokens
+                      </Label>
+                      <Input
+                        id="max-input-tokens"
+                        type="number"
+                        min="1"
+                        placeholder="e.g., 4096"
+                        value={maxInputTokens}
+                        onChange={(e) => {
+                          setMaxInputTokens(e.target.value);
+                          setHasUnsavedChanges(true);
+                        }}
+                      />
+                      {showValidationErrors &&
+                        (!maxInputTokens || parseInt(maxInputTokens) <= 0) && (
+                          <p className="text-sm text-destructive mt-1">
+                            Please enter a valid maximum input tokens value
+                          </p>
+                        )}
+                      <p className="text-xs text-muted-foreground">
+                        The maximum number of input tokens your model can
+                        handle.
                       </p>
                     </div>
                   )}

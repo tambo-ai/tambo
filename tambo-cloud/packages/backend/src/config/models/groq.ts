@@ -10,6 +10,7 @@ export const groqModels: LlmModelConfig = {
     docLink: "https://console.groq.com/docs/model/llama-3.3-70b-versatile",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -23,6 +24,7 @@ export const groqModels: LlmModelConfig = {
     docLink: "https://console.groq.com/docs/model/llama-3.1-8b-instant",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },

@@ -15,6 +15,7 @@ import {
 import { relations, sql } from "drizzle-orm";
 import {
   index,
+  integer,
   pgPolicy,
   pgRole,
   pgTable,
@@ -59,6 +60,7 @@ export const projects = pgTable(
     defaultLlmModelName: text("default_llm_model_name"), // e.g., "gpt-4o", "claude-3-opus-20240229"
     customLlmModelName: text("custom_llm_model_name"), // custom model name for "openai-compatible" provider type
     customLlmBaseURL: text("custom_llm_base_url"), // For "openai-compatible" provider type
+    maxInputTokens: integer("max_input_tokens"), // Maximum number of input tokens to send to the model
   }),
   (table) => {
     return [

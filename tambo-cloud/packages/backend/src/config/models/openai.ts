@@ -10,6 +10,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-4.5-preview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -23,6 +24,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-4.1",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 1047576,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -36,6 +38,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-4o",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -50,6 +53,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-4o-mini",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -63,6 +67,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-4-turbo",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 128000,
       supportsTools: true,
       supportsJsonMode: true,
     },

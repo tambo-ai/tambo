@@ -10,6 +10,7 @@ export const anthropicModels: LlmModelConfig = {
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 200000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -23,6 +24,7 @@ export const anthropicModels: LlmModelConfig = {
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 200000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -36,6 +38,7 @@ export const anthropicModels: LlmModelConfig = {
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 200000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -49,6 +52,7 @@ export const anthropicModels: LlmModelConfig = {
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 200000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -62,6 +66,7 @@ export const anthropicModels: LlmModelConfig = {
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 200000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -75,6 +80,7 @@ export const anthropicModels: LlmModelConfig = {
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 200000,
       supportsTools: true,
       supportsJsonMode: true,
     },
@@ -88,6 +94,7 @@ export const anthropicModels: LlmModelConfig = {
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://tambo.co/docs",
     properties: {
+      inputTokenLimit: 200000,
       supportsTools: true,
       supportsJsonMode: true,
     },

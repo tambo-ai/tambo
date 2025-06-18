@@ -26,6 +26,7 @@
     "@tambo-ai-cloud/core": "*",
     "ajv": "^8.17.1",
     "composio-core": "^0.5.39",
+    "gpt-tokenizer": "^3.0.1",
     "openai": "^5.3.0",
     "partial-json": "^0.1.7",
     "token.js": "^0.7.1",
