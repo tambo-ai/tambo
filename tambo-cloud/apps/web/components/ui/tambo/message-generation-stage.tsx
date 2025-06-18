@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import { type GenerationStage, useTambo } from "@tambo-ai/react";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
 
@@ -30,7 +30,7 @@ export function MessageGenerationStage({
   }
 
   // Map stage names to more user-friendly labels
-  const stageLabels: Record<string, string> = {
+  const stageLabels: Record<GenerationStage, string> = {
     IDLE: "Idle",
     CHOOSING_COMPONENT: "Choosing component",
     FETCHING_CONTEXT: "Fetching context",
@@ -46,7 +46,7 @@ export function MessageGenerationStage({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 px-2 py-1 text-xs rounded-md text-muted-foreground",
+        "inline-flex items-center gap-2 px-2 py-1 text-xs rounded-md bg-muted/30 text-muted-foreground",
         className,
       )}
       {...props}

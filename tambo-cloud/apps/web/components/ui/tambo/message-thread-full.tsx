@@ -1,27 +1,36 @@
 "use client";
 
+import type { messageVariants } from "@/components/ui/tambo/message";
 import {
   MessageInput,
+  MessageInputError,
+  MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputSubmitButton,
-  MessageInputError,
 } from "@/components/ui/tambo/message-input";
 import {
   MessageSuggestions,
+  MessageSuggestionsList,
   MessageSuggestionsStatus,
 } from "@/components/ui/tambo/message-suggestions";
-import type { messageVariants } from "@/components/ui/tambo/message";
+import { ScrollableMessageContainer } from "@/components/ui/tambo/scrollable-message-container";
+import {
+  ThreadContainer,
+  useThreadContainerContext,
+} from "@/components/ui/tambo/thread-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/tambo/thread-content";
 import {
-  ThreadContainer,
-  useThreadContainerContext,
-} from "@/components/ui/tambo/thread-container";
-import { ScrollableMessageContainer } from "@/components/ui/tambo/scrollable-message-container";
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@/components/ui/tambo/thread-history";
 import { useMergedRef } from "@/lib/thread-hooks";
+import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -48,11 +57,44 @@ export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
 >(({ className, contextKey, variant, ...props }, ref) => {
-  const { containerRef } = useThreadContainerContext();
+  const { containerRef, historyPosition } = useThreadContainerContext();
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
+
+  const threadHistorySidebar = (
+    <ThreadHistory contextKey={contextKey} position={historyPosition}>
+      <ThreadHistoryHeader />
+      <ThreadHistoryNewButton />
+      <ThreadHistorySearch />
+      <ThreadHistoryList />
+    </ThreadHistory>
+  );
+
+  const defaultSuggestions: Suggestion[] = [
+    {
+      id: "suggestion-1",
+      title: "Get started",
+      detailedSuggestion: "What can you help me with?",
+      messageId: "welcome-query",
+    },
+    {
+      id: "suggestion-2",
+      title: "Learn more",
+      detailedSuggestion: "Tell me about your capabilities.",
+      messageId: "capabilities-query",
+    },
+    {
+      id: "suggestion-3",
+      title: "Examples",
+      detailedSuggestion: "Show me some example queries I can try.",
+      messageId: "examples-query",
+    },
+  ];
 
   return (
     <>
+      {/* Thread History Sidebar - rendered first if history is on the left */}
+      {historyPosition === "left" && threadHistorySidebar}
+
       <ThreadContainer ref={mergedRef} className={className} {...props}>
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
@@ -75,7 +117,15 @@ export const MessageThreadFull = React.forwardRef<
             <MessageInputError />
           </MessageInput>
         </div>
+
+        {/* Message suggestions */}
+        <MessageSuggestions initialSuggestions={defaultSuggestions}>
+          <MessageSuggestionsList />
+        </MessageSuggestions>
       </ThreadContainer>
+
+      {/* Thread History Sidebar - rendered last if history is on the right */}
+      {historyPosition === "right" && threadHistorySidebar}
     </>
   );
 });

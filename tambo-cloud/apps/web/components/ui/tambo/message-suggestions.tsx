@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
-import { Tooltip, TooltipProvider } from "@/components/ui/tambo/tooltip";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { Suggestion, TamboThread } from "@tambo-ai/react";
 import { useTambo, useTamboSuggestions } from "@tambo-ai/react";
@@ -244,7 +244,7 @@ const MessageSuggestionsStatus = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "p-2 rounded-md text-sm",
+        "p-2 rounded-md text-sm bg-muted/30",
         !error &&
           !isGenerating &&
           (!thread?.generationStage || thread.generationStage === "COMPLETE")
@@ -263,7 +263,7 @@ const MessageSuggestionsStatus = React.forwardRef<
       )}
 
       {/* Always render a container for generation stage to prevent layout shifts */}
-      <div className="generation-stage-container h-2">
+      <div className="generation-stage-container">
         {thread?.generationStage && thread.generationStage !== "COMPLETE" ? (
           <MessageGenerationStage />
         ) : isGenerating ? (
@@ -313,7 +313,7 @@ const MessageSuggestionsList = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex space-x-2 overflow-x-auto pb-2 rounded-md min-h-[2.5rem]",
+        "flex space-x-2 overflow-x-auto pb-2 rounded-md bg-muted/30 min-h-[2.5rem]",
         isGenerating ? "opacity-70" : "",
         className,
       )}

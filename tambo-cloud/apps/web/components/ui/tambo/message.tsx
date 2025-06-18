@@ -1,15 +1,16 @@
 "use client";
 
-import { createMarkdownComponents } from "@/components/ui/tambo/markdownComponents";
+import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
+import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import stringify from "json-stringify-pretty-compact";
 
 /**
  * CSS variants for the message container
@@ -219,6 +220,28 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
     const hasToolError = message.actionType === "tool_call" && message.error;
 
+    const toolCallRequest: TamboAI.ToolCallRequest | undefined =
+      // Temporary until we have a better way to get the tool call request from a server-side tool call
+
+      message.toolCallRequest ?? (message.component as any)?.toolCallRequest;
+    console.log(message.id, "looked for toolCallReqest in ", message);
+    if (toolCallRequest) {
+      console.log(message.id, "1. found toolCallRequest", toolCallRequest);
+    }
+    if (message.toolCallRequest) {
+      console.log(
+        message.id,
+        "2. found toolCallRequest in message",
+        message.toolCallRequest,
+      );
+    }
+    if ((message.component as any)?.toolCallRequest) {
+      console.log(
+        message.id,
+        "3. found toolCallRequest in component",
+        (message.component as any).toolCallRequest,
+      );
+    }
     return (
       <div
         ref={ref}
@@ -292,9 +315,19 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
                     : "max-h-0 opacity-0",
                 )}
               >
-                <span>tool: {message.toolCallRequest?.toolName}</span>
-                <span>
-                  parameters: {stringify(message.toolCallRequest?.parameters)}
+                <pre>
+                  {JSON.stringify(
+                    toolCallRequest ?? "No tool call request",
+                    null,
+                    2,
+                  )}
+                </pre>
+                <span className="whitespace-pre-wrap">
+                  tool: {toolCallRequest?.toolName}
+                </span>
+                <span className="whitespace-pre-wrap">
+                  parameters:{"\n"}
+                  {stringify(keyifyParameters(toolCallRequest?.parameters))}
                 </span>
               </div>
             </div>
@@ -305,6 +338,15 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
   },
 );
 MessageContent.displayName = "MessageContent";
+
+function keyifyParameters(
+  parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
+) {
+  if (!parameters) return;
+  return Object.fromEntries(
+    parameters.map((p) => [p.parameterName, p.parameterValue]),
+  );
+}
 
 /**
  * Props for the MessageRenderedComponentArea component.
