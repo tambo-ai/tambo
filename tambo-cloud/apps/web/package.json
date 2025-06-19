@@ -102,7 +102,7 @@
     "@tambo-ai-cloud/eslint-config": "*",
     "@tambo-ai-cloud/typescript-config": "*",
     "@types/luxon": "^3.6.2",
-    "@types/node": "20.19.0",
+    "@types/node": "^22.15.32",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.21",
@@ -111,7 +111,7 @@
     "typescript": "5.8.3"
   },
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "npm": ">=10"
   },
   "volta": {

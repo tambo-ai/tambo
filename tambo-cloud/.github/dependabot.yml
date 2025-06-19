@@ -1,5 +1,19 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    ignore:
+      - dependency-name: "actions/setup-node"
+      - dependency-name: "actions/checkout"
+      - dependency-name: "actions/upload-artifact"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
