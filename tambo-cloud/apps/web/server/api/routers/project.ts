@@ -1,6 +1,7 @@
 import { env } from "@/lib/env";
 import { validateSafeURL } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { llmProviderConfig } from "@tambo-ai-cloud/backend";
 import { hashKey, MCPTransport, validateMcpServer } from "@tambo-ai-cloud/core";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
@@ -295,7 +296,26 @@ export const projectRouter = createTRPCRouter({
           sanitizedBaseURL && sanitizedBaseURL !== "" ? sanitizedBaseURL : null;
       }
       if ("maxInputTokens" in input) {
-        updateData.maxInputTokens = maxInputTokens;
+        if (defaultLlmProviderName && defaultLlmModelName) {
+          const modelConfig =
+            llmProviderConfig[defaultLlmProviderName]?.models?.[
+              defaultLlmModelName
+            ];
+          if (modelConfig) {
+            if (
+              !input.maxInputTokens ||
+              input.maxInputTokens < 1 ||
+              input.maxInputTokens > modelConfig.properties.inputTokenLimit
+            ) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "Max input tokens must be greater than 0 and less than the model's max.",
+              });
+            }
+          }
+        }
+        updateData.maxInputTokens = input.maxInputTokens;
       }
 
       if (
@@ -303,7 +323,6 @@ export const projectRouter = createTRPCRouter({
         "defaultLlmProviderName" in input
       ) {
         updateData.customLlmBaseURL = null;
-        updateData.maxInputTokens = null;
       }
 
       if (Object.keys(updateData).length === 0) {
