@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
-import { DropdownMenu } from "radix-ui";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as React from "react";
 import { useCallback } from "react";
 
