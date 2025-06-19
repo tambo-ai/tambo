@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AuthService } from "src/common/services/auth.service";
+import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { ProjectsModule } from "../projects/projects.module";
 import { ThreadsController } from "./threads.controller";
 import { ThreadsService } from "./threads.service";
-import { EmailService } from "../common/services/email.service";
 
 @Module({
   imports: [ConfigModule, ProjectsModule],
@@ -12,6 +13,7 @@ import { EmailService } from "../common/services/email.service";
   providers: [
     ThreadsService,
     EmailService,
+    AuthService,
     CorrelationLoggerService,
     {
       provide: "OPENAI_API_KEY", //todo: weird api keys don't match?

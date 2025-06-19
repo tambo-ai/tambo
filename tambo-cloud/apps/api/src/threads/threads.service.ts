@@ -23,6 +23,7 @@ import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
+import { AuthService } from "src/common/services/auth.service";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
@@ -80,6 +81,7 @@ export class ThreadsService {
     private readonly logger: CorrelationLoggerService,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly authService: AuthService,
   ) {}
 
   getDb() {
@@ -616,6 +618,11 @@ export class ThreadsService {
     if (!cachedSystemTools) {
       this.logger.log(`System tools took ${systemToolsDuration}ms to fetch`);
     }
+    const mcpAccessToken = await this.authService.generateMcpAccessToken(
+      projectId,
+      thread.id,
+      advanceRequestDto.contextKey,
+    );
 
     if (stream) {
       return await this.generateStreamingResponse(
@@ -629,6 +636,7 @@ export class ThreadsService {
         customInstructions,
         toolCallCounts,
         systemTools,
+        mcpAccessToken,
       );
     }
 
@@ -674,6 +682,7 @@ export class ThreadsService {
           responseMessageDto: errorMessage,
           generationStage: GenerationStage.COMPLETE,
           statusMessage: "Tool call limit reached",
+          mcpAccessToken,
         };
       }
     }
@@ -705,6 +714,7 @@ export class ThreadsService {
       },
       generationStage: resultingGenerationStage,
       statusMessage: resultingStatusMessage,
+      mcpAccessToken,
     };
   }
 
@@ -781,6 +791,7 @@ export class ThreadsService {
     customInstructions: string | undefined,
     toolCallCounts: Record<string, number>,
     systemTools: SystemTools,
+    mcpAccessToken: string,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>> {
     const latestMessage = messages[messages.length - 1];
     if (latestMessage.role === MessageRole.Tool) {
@@ -820,6 +831,7 @@ export class ThreadsService {
         advanceRequestDto,
         originalTools,
         toolCallCounts,
+        mcpAccessToken,
       );
     }
 
@@ -852,6 +864,7 @@ export class ThreadsService {
       advanceRequestDto,
       originalTools,
       toolCallCounts,
+      mcpAccessToken,
     );
   }
 
@@ -865,6 +878,7 @@ export class ThreadsService {
     originalRequest: AdvanceThreadDto,
     originalTools: OpenAI.Chat.Completions.ChatCompletionTool[],
     toolCallCounts: Record<string, number>,
+    mcpAccessToken: string,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     const db = this.getDb();
     const logger = this.logger;
@@ -913,6 +927,7 @@ export class ThreadsService {
           },
           generationStage: GenerationStage.STREAMING_RESPONSE,
           statusMessage: `Streaming response...`,
+          mcpAccessToken,
         };
       }
       finalThreadMessage = threadMessage;
@@ -957,6 +972,7 @@ export class ThreadsService {
           responseMessageDto: errorMessage,
           generationStage: GenerationStage.COMPLETE,
           statusMessage: "Tool call limit reached",
+          mcpAccessToken,
         };
         return;
       }
@@ -986,6 +1002,7 @@ export class ThreadsService {
         },
         generationStage: resultingGenerationStage,
         statusMessage: resultingStatusMessage,
+        mcpAccessToken,
       };
       yield finalThreadMessageDto;
 
@@ -1025,6 +1042,7 @@ export class ThreadsService {
       },
       generationStage: resultingGenerationStage,
       statusMessage: resultingStatusMessage,
+      mcpAccessToken,
     };
   }
 
