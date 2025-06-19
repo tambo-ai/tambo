@@ -22,13 +22,6 @@ import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/tambo/thread-content";
-import {
-  ThreadHistory,
-  ThreadHistoryHeader,
-  ThreadHistoryList,
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-} from "@/components/ui/tambo/thread-history";
 import { useMergedRef } from "@/lib/thread-hooks";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
@@ -60,15 +53,6 @@ export const MessageThreadFull = React.forwardRef<
   const { containerRef, historyPosition } = useThreadContainerContext();
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
-  const threadHistorySidebar = (
-    <ThreadHistory contextKey={contextKey} position={historyPosition}>
-      <ThreadHistoryHeader />
-      <ThreadHistoryNewButton />
-      <ThreadHistorySearch />
-      <ThreadHistoryList />
-    </ThreadHistory>
-  );
-
   const defaultSuggestions: Suggestion[] = [
     {
       id: "suggestion-1",
@@ -92,9 +76,6 @@ export const MessageThreadFull = React.forwardRef<
 
   return (
     <>
-      {/* Thread History Sidebar - rendered first if history is on the left */}
-      {historyPosition === "left" && threadHistorySidebar}
-
       <ThreadContainer ref={mergedRef} className={className} {...props}>
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
@@ -123,9 +104,6 @@ export const MessageThreadFull = React.forwardRef<
           <MessageSuggestionsList />
         </MessageSuggestions>
       </ThreadContainer>
-
-      {/* Thread History Sidebar - rendered last if history is on the right */}
-      {historyPosition === "right" && threadHistorySidebar}
     </>
   );
 });

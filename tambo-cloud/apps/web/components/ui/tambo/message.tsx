@@ -224,24 +224,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       // Temporary until we have a better way to get the tool call request from a server-side tool call
 
       message.toolCallRequest ?? (message.component as any)?.toolCallRequest;
-    console.log(message.id, "looked for toolCallReqest in ", message);
-    if (toolCallRequest) {
-      console.log(message.id, "1. found toolCallRequest", toolCallRequest);
-    }
-    if (message.toolCallRequest) {
-      console.log(
-        message.id,
-        "2. found toolCallRequest in message",
-        message.toolCallRequest,
-      );
-    }
-    if ((message.component as any)?.toolCallRequest) {
-      console.log(
-        message.id,
-        "3. found toolCallRequest in component",
-        (message.component as any).toolCallRequest,
-      );
-    }
+
     return (
       <div
         ref={ref}
