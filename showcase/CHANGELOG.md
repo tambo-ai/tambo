@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.2...showcase-v0.11.3) (2025-06-19)
+
+
+### Bug Fixes
+
+* convert ThreadOptionsDropdown from forwardRef to regular function component ([#560](https://github.com/tambo-ai/tambo/issues/560)) ([7255a29](https://github.com/tambo-ai/tambo/commit/7255a2902a221d8f0f905b6a9f0fcd0a8e29d952))
+
+
+### Miscellaneous
+
+* bump dev to node 22 ([#569](https://github.com/tambo-ai/tambo/issues/569)) ([fd5209e](https://github.com/tambo-ai/tambo/commit/fd5209e74a88dd4676f663bf0161e0030e41a943))
+* **deps-dev:** bump the eslint group with 2 updates ([#571](https://github.com/tambo-ai/tambo/issues/571)) ([80a95b7](https://github.com/tambo-ai/tambo/commit/80a95b7ee5e73f597c1d30c4a8f37bda1a31550e))
+* **deps:** bump lucide-react from 0.516.0 to 0.518.0 ([#573](https://github.com/tambo-ai/tambo/issues/573)) ([066cafc](https://github.com/tambo-ai/tambo/commit/066cafc5e5e3538d93b695f4b0f43c627a226a3c))
+* **deps:** bump next from 15.3.3 to 15.3.4 ([#575](https://github.com/tambo-ai/tambo/issues/575)) ([3108ded](https://github.com/tambo-ai/tambo/commit/3108ded8b1c317d1fb509974fdb59afb2095740b))
+
 ## [0.11.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.1...showcase-v0.11.2) (2025-06-18)
 
 
