@@ -73,7 +73,7 @@
     "@types/chalk": "^2.2.4",
     "@types/deep-equal": "^1.0.4",
     "@types/inquirer": "^9.0.7",
-    "@types/node": "^20",
+    "@types/node": "^22.15.32",
     "@types/node-fetch": "^2.6.12",
     "@types/ora": "^3.2.0",
     "@types/recharts": "^1.8.29",
