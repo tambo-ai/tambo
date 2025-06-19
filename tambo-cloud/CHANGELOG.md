@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.66.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.65.0...repo-v0.66.0) (2025-06-19)
+
+
+### Features
+
+* Allow max input token setting for all models ([#1190](https://github.com/tambo-ai/tambo-cloud/issues/1190)) ([8edc4ec](https://github.com/tambo-ai/tambo-cloud/commit/8edc4ec70917463be4f00551a6cfea831e52a193))
+
+
+### Bug Fixes
+
+* minor doc rewording, cut down noise from smoketest ([#1192](https://github.com/tambo-ai/tambo-cloud/issues/1192)) ([4e11d00](https://github.com/tambo-ai/tambo-cloud/commit/4e11d00e28c503559461a244306e27eb4465fe63))
+
+
+### Miscellaneous Chores
+
+* Add Claude Code GitHub Workflow ([#1191](https://github.com/tambo-ai/tambo-cloud/issues/1191)) ([6dd513e](https://github.com/tambo-ai/tambo-cloud/commit/6dd513e3ba81a8aecaa13cc6ef620441dfeaefe7))
+* **deps-dev:** bump @types/jsonwebtoken from 9.0.9 to 9.0.10 ([#1183](https://github.com/tambo-ai/tambo-cloud/issues/1183)) ([ed16341](https://github.com/tambo-ai/tambo-cloud/commit/ed1634140ef3ccc495b80853aa943d042a9ae255))
+* **deps-dev:** bump typescript-eslint from 8.34.0 to 8.34.1 in the eslint group ([#1182](https://github.com/tambo-ai/tambo-cloud/issues/1182)) ([445b756](https://github.com/tambo-ai/tambo-cloud/commit/445b7565f82d586a27eac60513640f14b3778bfe))
+* **deps:** bump @t3-oss/env-nextjs from 0.13.6 to 0.13.8 ([#1184](https://github.com/tambo-ai/tambo-cloud/issues/1184)) ([211cd0a](https://github.com/tambo-ai/tambo-cloud/commit/211cd0ac21adf9181abe3793f8fa7e707cb83105))
+* **deps:** bump @tanstack/react-query from 5.80.7 to 5.80.10 ([#1185](https://github.com/tambo-ai/tambo-cloud/issues/1185)) ([84ef9bc](https://github.com/tambo-ai/tambo-cloud/commit/84ef9bcd7699f946b41dcef956d078945b724814))
+* **deps:** bump posthog-js from 1.249.0 to 1.255.0 ([#1186](https://github.com/tambo-ai/tambo-cloud/issues/1186)) ([e07e5da](https://github.com/tambo-ai/tambo-cloud/commit/e07e5da44f7f199b8dc3e9892979f863d49dfebd))
+* **deps:** bump react-hook-form from 7.57.0 to 7.58.1 ([#1189](https://github.com/tambo-ai/tambo-cloud/issues/1189)) ([bcae3de](https://github.com/tambo-ai/tambo-cloud/commit/bcae3de5b931be43357da976f366a2f8da3ea317))
+* **deps:** bump slackapi/slack-github-action from 2.0.0 to 2.1.0 ([#1179](https://github.com/tambo-ai/tambo-cloud/issues/1179)) ([1969e02](https://github.com/tambo-ai/tambo-cloud/commit/1969e0273567eca0da0e735c66922a145b02d99c))
+* **deps:** bump the trpc group with 3 updates ([#1181](https://github.com/tambo-ai/tambo-cloud/issues/1181)) ([a0b43c4](https://github.com/tambo-ai/tambo-cloud/commit/a0b43c41fa005ac46e3052c1ba153ca23c313877))
+* **deps:** bump tldts from 7.0.8 to 7.0.9 ([#1187](https://github.com/tambo-ai/tambo-cloud/issues/1187)) ([a7268d6](https://github.com/tambo-ai/tambo-cloud/commit/a7268d60ec06b56c1af7ff7741bd80fb20452195))
+* **deps:** bump ytanikin/pr-conventional-commits from 1.4.0 to 1.4.1 ([#1180](https://github.com/tambo-ai/tambo-cloud/issues/1180)) ([11ff8b4](https://github.com/tambo-ai/tambo-cloud/commit/11ff8b440d0a2a86fd67fbefddc1a6c2eac41f61))
+* update to node 22 ([#1177](https://github.com/tambo-ai/tambo-cloud/issues/1177)) ([369f985](https://github.com/tambo-ai/tambo-cloud/commit/369f985306a1f9cff54b3bda97936c3eb2d8ba6c))
+
 ## [0.65.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.64.0...repo-v0.65.0) (2025-06-18)
 
 
