@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.32.0](https://github.com/tambo-ai/tambo/compare/react-v0.31.3...react-v0.32.0) (2025-06-19)
+
+
+### Features
+
+* detect and disallow z.record in schema registration with descriptive errors TAM-147 ([#451](https://github.com/tambo-ai/tambo/issues/451)) ([ba31d63](https://github.com/tambo-ai/tambo/commit/ba31d63b2bb176272020de2f4cbfbf7c2515c397))
+
+
+### Miscellaneous
+
+* bump dev to node 22 ([#569](https://github.com/tambo-ai/tambo/issues/569)) ([fd5209e](https://github.com/tambo-ai/tambo/commit/fd5209e74a88dd4676f663bf0161e0030e41a943))
+* **deps-dev:** bump jest and @types/jest ([#579](https://github.com/tambo-ai/tambo/issues/579)) ([46f006c](https://github.com/tambo-ai/tambo/commit/46f006c87d501d5a681b97ad147f324a67f89d95))
+* **deps-dev:** bump jest-environment-jsdom from 30.0.0 to 30.0.2 ([#574](https://github.com/tambo-ai/tambo/issues/574)) ([e895e8f](https://github.com/tambo-ai/tambo/commit/e895e8f44dc330ebe2878b7d9a55c980fb01ab63))
+* **deps-dev:** bump the eslint group with 2 updates ([#571](https://github.com/tambo-ai/tambo/issues/571)) ([80a95b7](https://github.com/tambo-ai/tambo/commit/80a95b7ee5e73f597c1d30c4a8f37bda1a31550e))
+* **deps:** bump @modelcontextprotocol/sdk from 1.12.3 to 1.13.0 ([#578](https://github.com/tambo-ai/tambo/issues/578)) ([8fbc138](https://github.com/tambo-ai/tambo/commit/8fbc138d1fff456087afdaf221cbac8a72705ca7))
+* **deps:** bump @tanstack/react-query from 5.80.7 to 5.80.10 ([#577](https://github.com/tambo-ai/tambo/issues/577)) ([fa8d83a](https://github.com/tambo-ai/tambo/commit/fa8d83a9db77d5db5179d8d7cb7c8339d48173a6))
+* **deps:** bump zod from 3.25.65 to 3.25.67 ([#576](https://github.com/tambo-ai/tambo/issues/576)) ([86584a4](https://github.com/tambo-ai/tambo/commit/86584a495a62ae5269c0bf04b65ab3bc915a6750))
+
 ## [0.31.3](https://github.com/tambo-ai/tambo/compare/react-v0.31.2...react-v0.31.3) (2025-06-18)
 
 
