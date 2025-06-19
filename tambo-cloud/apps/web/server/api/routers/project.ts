@@ -250,7 +250,7 @@ export const projectRouter = createTRPCRouter({
           ? customLlmBaseURL.trim()
           : customLlmBaseURL;
 
-      // ─── Validate custom base-URL for OpenAI-compatible providers ───────────
+      // --- Validate custom base-URL for OpenAI-compatible providers ------------
       if (typeof sanitizedBaseURL === "string" && sanitizedBaseURL !== "") {
         // Basic URL syntax check
         let asURL: URL;
@@ -517,5 +517,32 @@ export const projectRouter = createTRPCRouter({
         messageCount: usage.messageCount,
         hasApiKey: usage.hasApiKey,
       };
+    }),
+
+  // -------------------------------------------------------------------------
+  //  Project Logs
+  // -------------------------------------------------------------------------
+
+  getProjectLogs: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        limit: z.number().min(1).max(100).optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { projectId, limit = 20 } = input;
+
+      await operations.ensureProjectAccess(
+        ctx.db,
+        projectId,
+        ctx.session.user.id,
+      );
+
+      return await operations.getRecentProjectLogEntries(
+        ctx.db,
+        projectId,
+        limit,
+      );
     }),
 });

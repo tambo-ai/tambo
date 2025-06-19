@@ -48,7 +48,8 @@ export async function fetchAllProjects() {
 export async function fetchProjectById(projectId: string) {
   const caller = await getCaller();
   const projects = await caller.project.getUserProjects();
-  const project = projects.find((p) => p.id === projectId);
+  // Narrow the parameter type to avoid an implicit-any error
+  const project = projects.find((p: { id: string }) => p.id === projectId);
   return project;
 }
 
@@ -367,7 +368,7 @@ export async function checkComposioConnectedAccountStatus({
   return status;
 }
 
-// BELOW TOOLS ARE NOT TESTED YET
+// BELOW TOOLS ARE NOTED YET
 
 /**
  * Lists available apps/tools for a project.

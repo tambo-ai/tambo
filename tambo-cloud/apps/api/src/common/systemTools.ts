@@ -1,6 +1,11 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
+import { Logger } from "@nestjs/common";
 import { SystemTools } from "@tambo-ai-cloud/backend";
-import { MCPClient, strictifyJSONSchemaProperties } from "@tambo-ai-cloud/core";
+import {
+  LogLevel,
+  MCPClient,
+  strictifyJSONSchemaProperties,
+} from "@tambo-ai-cloud/core";
 import {
   HydraDatabase,
   HydraDb,
@@ -13,7 +18,6 @@ import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { env } from "process";
 import { getComposio } from "./composio";
-import { Logger } from "@nestjs/common";
 
 const logger = new Logger("systemTools");
 
@@ -73,6 +77,14 @@ async function getMcpTools(
       console.warn(
         `MCP server ${mcpServer.id} in project ${projectId} requires auth, but no auth info found`,
       );
+      // Record as a warning so the user can see it on the dashboard
+      await operations.addProjectLogEntry(
+        db,
+        projectId,
+        LogLevel.WARNING,
+        `MCP server ${mcpServer.id} requires auth but no auth info found`,
+        { mcpServerId: mcpServer.id },
+      );
       continue;
     }
     const authProvider = await getAuthProvider(db, mcpServer);
@@ -119,6 +131,15 @@ async function getMcpTools(
       // TODO: attach this error to the project
       logger.error(
         `Error processing MCP server ${mcpServer.id} in project ${projectId}: ${error}`,
+      );
+
+      // Store the error for visibility in the dashboard
+      await operations.addProjectLogEntry(
+        db,
+        projectId,
+        LogLevel.ERROR,
+        `Error processing MCP server ${mcpServer.id}: ${error instanceof Error ? error.message : String(error)}`,
+        { mcpServerId: mcpServer.id },
       );
       continue;
     }

@@ -5,6 +5,7 @@ export * from "./json";
 export type * from "./mcp-auth";
 export * from "./MCPClient";
 export * from "./oauth";
+export * from "./project";
 export * from "./shared-constants";
 export * from "./strictness/json-schema";
 export * from "./strictness/tool-call-strict";
