@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { DropdownMenu } from "radix-ui";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import * as React from "react";

@@ -561,14 +561,15 @@ ThreadHistoryList.displayName = "ThreadHistory.List";
 /**
  * Dropdown menu component for thread actions
  */
-const ThreadOptionsDropdown = React.forwardRef<
-  HTMLDivElement,
-  {
-    thread: TamboThread;
-    onRename: (thread: TamboThread) => void;
-    onGenerateName: (thread: TamboThread) => void;
-  } & React.HTMLAttributes<HTMLDivElement>
->(({ thread, onRename, onGenerateName }) => {
+const ThreadOptionsDropdown = ({
+  thread,
+  onRename,
+  onGenerateName,
+}: {
+  thread: TamboThread;
+  onRename: (thread: TamboThread) => void;
+  onGenerateName: (thread: TamboThread) => void;
+}) => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
@@ -609,8 +610,7 @@ const ThreadOptionsDropdown = React.forwardRef<
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
   );
-});
-ThreadOptionsDropdown.displayName = "ThreadHistory.Dropdown";
+};
 
 export {
   ThreadHistory,
