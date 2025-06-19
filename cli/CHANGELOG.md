@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.17.0...tambo-v0.17.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* convert ThreadOptionsDropdown from forwardRef to regular function component ([#560](https://github.com/tambo-ai/tambo/issues/560)) ([7255a29](https://github.com/tambo-ai/tambo/commit/7255a2902a221d8f0f905b6a9f0fcd0a8e29d952))
+
+
+### Miscellaneous
+
+* bump dev to node 22 ([#569](https://github.com/tambo-ai/tambo/issues/569)) ([fd5209e](https://github.com/tambo-ai/tambo/commit/fd5209e74a88dd4676f663bf0161e0030e41a943))
+
 ## [0.17.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.16.1...tambo-v0.17.0) (2025-06-18)
 
 
