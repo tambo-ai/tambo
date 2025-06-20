@@ -8,3 +8,6 @@ build
 coverage
 *.log
 .DS_Store
+
+#claude local settings
+.claude/settings.local.json
