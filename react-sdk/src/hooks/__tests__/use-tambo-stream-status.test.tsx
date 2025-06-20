@@ -8,11 +8,7 @@ import {
   useTamboThread,
 } from "../../providers/tambo-thread-provider";
 import { useTamboCurrentMessage } from "../use-current-message";
-import {
-  useTamboStreamStatus,
-  StreamStatus,
-  PropStatus,
-} from "../use-tambo-stream-status";
+import { useTamboStreamStatus } from "../use-tambo-stream-status";
 
 // Mock the required providers
 jest.mock("../../providers/tambo-thread-provider", () => ({
@@ -25,6 +21,28 @@ jest.mock("../use-current-message", () => ({
 
 // Mock window for SSR tests
 const originalWindow = global.window;
+
+// Helper function to create mock ComponentDecisionV2
+const createMockComponent = (props: Record<string, unknown> = {}): any => ({
+  componentName: "TestComponent",
+  componentState: {},
+  message: "Component generated",
+  props,
+  reasoning: "Test reasoning",
+});
+
+// Helper function to create mock TamboThreadMessage
+const createMockMessage = (
+  overrides: Partial<TamboThreadMessage> = {},
+): TamboThreadMessage => ({
+  id: "test-message",
+  componentState: {},
+  content: [{ type: "text", text: "test content" }],
+  createdAt: new Date().toISOString(),
+  role: "assistant",
+  threadId: "test-thread",
+  ...overrides,
+});
 
 describe("useTamboStreamStatus", () => {
   beforeEach(() => {
@@ -78,12 +96,11 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.IDLE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "", body: "" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "", body: "" }),
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
@@ -121,12 +138,11 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.STREAMING_RESPONSE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "", body: "" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "", body: "" }),
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
@@ -148,12 +164,11 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.STREAMING_RESPONSE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "Hello", body: "" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "Hello", body: "" }),
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
@@ -179,12 +194,11 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.IDLE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "", body: "" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "", body: "" }),
+        }),
+      );
 
       const { result, rerender } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
@@ -200,12 +214,14 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.STREAMING_RESPONSE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "Hello World", body: "Some content" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            title: "Hello World",
+            body: "Some content",
+          }),
+        }),
+      );
 
       rerender();
 
@@ -231,13 +247,12 @@ describe("useTamboStreamStatus", () => {
       } as TamboThreadContextProps);
 
       const errorMessage = "Generation failed";
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "", body: "" },
-        },
-        error: { message: errorMessage },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "", body: "" }),
+          error: errorMessage,
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
@@ -247,7 +262,9 @@ describe("useTamboStreamStatus", () => {
       expect(result.current.streamStatus.isStreaming).toBe(false);
       expect(result.current.streamStatus.isSuccess).toBe(false);
       expect(result.current.streamStatus.isError).toBe(true);
-      expect(result.current.streamStatus.streamError?.message).toBe(errorMessage);
+      expect(result.current.streamStatus.streamError?.message).toBe(
+        errorMessage,
+      );
     });
   });
 
@@ -257,12 +274,11 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.IDLE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "", body: "", footer: "" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "", body: "", footer: "" }),
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{
@@ -285,12 +301,14 @@ describe("useTamboStreamStatus", () => {
       } as TamboThreadContextProps);
 
       // One prop still streaming
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "Complete Title", body: "Still streaming..." },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            title: "Complete Title",
+            body: "Still streaming...",
+          }),
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
@@ -305,12 +323,14 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.COMPLETE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "Complete Title", body: "Complete Body" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            title: "Complete Title",
+            body: "Complete Body",
+          }),
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
@@ -326,41 +346,46 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.COMPLETE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "Good Title", body: "Good Body" },
-        },
-        error: { message: "Something went wrong" },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            title: "Good Title",
+            body: "Good Body",
+          }),
+          error: "Something went wrong",
+        }),
+      );
 
       const { result } = renderHook(() =>
         useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
       expect(result.current.streamStatus.isError).toBe(true);
-      expect(result.current.streamStatus.streamError?.message).toBe("Something went wrong");
+      expect(result.current.streamStatus.streamError?.message).toBe(
+        "Something went wrong",
+      );
     });
   });
 
   describe("Type Safety", () => {
     it("should provide strongly typed prop status based on generic", () => {
-      type TestProps = {
+      interface TestProps {
         title: string;
         description: string;
         count: number;
-      };
+      }
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "Test", description: "Test desc", count: 42 },
-        },
-      } as TamboThreadMessage);
-
-      const { result } = renderHook(() =>
-        useTamboStreamStatus<TestProps>(),
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            title: "Test",
+            description: "Test desc",
+            count: 42,
+          }),
+        }),
       );
+
+      const { result } = renderHook(() => useTamboStreamStatus<TestProps>());
 
       // TypeScript should infer these keys correctly
       expect(result.current.propStatus.title).toBeDefined();
@@ -372,12 +397,11 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should work without generic type parameter", () => {
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { dynamicProp: "value" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ dynamicProp: "value" }),
+        }),
+      );
 
       const { result } = renderHook(() => useTamboStreamStatus());
 
@@ -413,12 +437,11 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.COMPLETE,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "First Title" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "First Title" }),
+        }),
+      );
 
       const { result, rerender } = renderHook(() =>
         useTamboStreamStatus<{ title: string }>(),
@@ -432,12 +455,11 @@ describe("useTamboStreamStatus", () => {
         generationStage: GenerationStage.CHOOSING_COMPONENT,
       } as TamboThreadContextProps);
 
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test-message",
-        component: {
-          props: { title: "" },
-        },
-      } as TamboThreadMessage);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "" }),
+        }),
+      );
 
       rerender();
 
