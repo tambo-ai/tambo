@@ -58,7 +58,7 @@ jobs:
                   - type: mrkdwn
                     text: "*Version*\n${{ steps.release.outputs.tag_name }}"
                   - type: mrkdwn
-                    text: "*Release PR*\nhttps://github.com/${{ github.repository }}/pull/${{ fromJson(steps.release.outputs.pr).number }}"
+                    text: "*Release PR*\nhttps://github.com/${{ github.repository }}/pull/${{ fromJson(steps.release.outputs.prs)[0].number }}"
               - type: section
                 fields:
                   - type: mrkdwn
