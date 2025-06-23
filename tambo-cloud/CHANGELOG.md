@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.68.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.67.1...repo-v0.68.0) (2025-06-23)
+
+
+### Features
+
+* **UI:** implement new UI redesign ([#1209](https://github.com/tambo-ai/tambo-cloud/issues/1209)) ([9b03cd0](https://github.com/tambo-ai/tambo-cloud/commit/9b03cd028ec3ffd045ffc6a1c05553fd875c2ff6))
+
 ## [0.67.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.67.0...repo-v0.67.1) (2025-06-23)
 
 
