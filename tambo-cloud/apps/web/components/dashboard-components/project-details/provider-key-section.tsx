@@ -12,7 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { DEFAULT_OPENAI_MODEL } from "@tambo-ai-cloud/core";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, Variants } from "framer-motion";
 import {
   ExternalLinkIcon,
   InfoIcon,
@@ -55,7 +55,7 @@ interface ProviderKeySectionProps {
   onEdited?: () => void;
 }
 
-const sectionAnimationVariants = {
+const sectionAnimationVariants: Variants = {
   initial: { opacity: 0, height: 0 },
   animate: {
     opacity: 1,

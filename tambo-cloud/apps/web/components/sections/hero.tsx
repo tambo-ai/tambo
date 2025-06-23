@@ -1,13 +1,13 @@
 "use client";
 
 import { Section } from "@/components/section";
-import { motion } from "framer-motion";
+import { Easing, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { Button } from "../ui/button";
 
-const ease = [0.16, 1, 0.3, 1];
+const ease: Easing = [0.16, 1, 0.3, 1];
 
 // Hero content moved directly into this file
 const heroContent = {

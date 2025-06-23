@@ -2,7 +2,7 @@
 
 import { Section } from "@/components/section";
 import { clsx } from "clsx";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { Easing, motion, useScroll, useTransform } from "framer-motion";
 import hljs from "highlight.js/lib/core";
 import typescript from "highlight.js/lib/languages/typescript";
 import "highlight.js/styles/stackoverflow-light.css";
@@ -18,7 +18,7 @@ import { InteractiveDemo } from "./interactive-demo";
 
 hljs.registerLanguage("typescript", typescript);
 
-const ease = [0.16, 1, 0.3, 1];
+const ease: Easing = [0.16, 1, 0.3, 1];
 
 type TabKey = "demo" | "provider" | "props" | "component" | "register";
 

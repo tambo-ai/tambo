@@ -2,11 +2,11 @@
 
 import { Icons } from "@/components/icons";
 import { Section } from "@/components/section";
-import { motion } from "framer-motion";
+import { Easing, motion } from "framer-motion";
 import Link from "next/link";
 
 // Animation ease curve matching Hero component
-const ease = [0.16, 1, 0.3, 1];
+const ease: Easing = [0.16, 1, 0.3, 1];
 
 const stats = [
   {

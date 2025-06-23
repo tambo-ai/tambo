@@ -4,11 +4,11 @@ import { Section } from "@/components/section";
 import { buttonVariants } from "@/components/ui/button";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { Easing, motion } from "framer-motion";
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 
-const ease = [0.16, 1, 0.3, 1];
+const ease: Easing = [0.16, 1, 0.3, 1];
 
 const content = {
   title: "Check out our Demo App",

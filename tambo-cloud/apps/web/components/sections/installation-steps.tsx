@@ -1,7 +1,7 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import { motion } from "framer-motion";
+import { Easing, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -47,7 +47,7 @@ export function InstallationSteps() {
     };
   }, []);
 
-  const ease = [0.16, 1, 0.3, 1];
+  const ease: Easing = [0.16, 1, 0.3, 1];
 
   const handleTabChange = (id: string) => {
     setActiveTab(id as TabType);

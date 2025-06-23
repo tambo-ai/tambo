@@ -1,7 +1,7 @@
 "use client";
 
 import { Section } from "@/components/section";
-import { motion } from "framer-motion";
+import { Easing, motion } from "framer-motion";
 import Image from "next/image";
 
 // Move copy directly into the component
@@ -56,7 +56,7 @@ const featuresContent = {
 };
 
 // Animation configuration
-const ease = [0.16, 1, 0.3, 1];
+const ease: Easing = [0.16, 1, 0.3, 1];
 
 export function Features() {
   return (

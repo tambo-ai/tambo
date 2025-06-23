@@ -3,13 +3,13 @@
 import { Section } from "@/components/section";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { Easing, motion } from "framer-motion";
 import { EyeIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 // Animation configuration
-const ease = [0.16, 1, 0.3, 1];
+const ease: Easing = [0.16, 1, 0.3, 1];
 
 // Showcase content
 const showcaseContent = {
