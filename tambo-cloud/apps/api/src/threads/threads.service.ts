@@ -607,12 +607,7 @@ export class ThreadsService {
     const systemToolsStart = Date.now();
 
     const systemTools =
-      cachedSystemTools ??
-      (await getSystemTools(
-        db,
-        projectId,
-        null, // right now all provider contexts are stored with null context keys
-      ));
+      cachedSystemTools ?? (await getSystemTools(db, projectId));
     const systemToolsEnd = Date.now();
     const systemToolsDuration = systemToolsEnd - systemToolsStart;
     if (!cachedSystemTools) {

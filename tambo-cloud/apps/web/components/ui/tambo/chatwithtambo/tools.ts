@@ -2,7 +2,7 @@
 
 import { APIKeySchema } from "@/components/dashboard-components/project-details/api-key-list";
 import { ProjectTableSchema } from "@/components/dashboard-components/project-table";
-import { ComposioAuthMode, MCPTransport } from "@tambo-ai-cloud/core";
+import { DeprecatedComposioAuthMode, MCPTransport } from "@tambo-ai-cloud/core";
 import { z } from "zod";
 
 /** user management */
@@ -438,7 +438,7 @@ export const listAvailableAppsSchema = z
       no_auth: z.boolean().optional(),
       auth_schemes: z.array(
         z.object({
-          mode: z.nativeEnum(ComposioAuthMode),
+          mode: z.nativeEnum(DeprecatedComposioAuthMode),
           name: z.string().optional(),
           proxy: z.object({
             base_url: z.string(),
@@ -518,7 +518,7 @@ export const getComposioAuthSchema = z
   )
   .returns(
     z.object({
-      mode: z.nativeEnum(ComposioAuthMode).nullable(),
+      mode: z.nativeEnum(DeprecatedComposioAuthMode).nullable(),
       fields: z.record(z.string(), z.string()),
       redirectUrl: z.string().nullable(),
       status: z.string().nullable(),
@@ -546,7 +546,7 @@ export const updateComposioAuthSchema = z
         .nullable()
         .describe("Optional context key for the authentication"),
       authMode: z
-        .nativeEnum(ComposioAuthMode)
+        .nativeEnum(DeprecatedComposioAuthMode)
         .describe("Authentication mode to use"),
       authFields: z
         .record(z.string(), z.string())

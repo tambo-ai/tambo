@@ -3,7 +3,6 @@
 import {
   addMcpServer,
   authorizeMcpServer,
-  checkComposioConnectedAccountStatus,
   createProject,
   deleteMcpServer,
   deleteProjectApiKey,
@@ -11,20 +10,45 @@ import {
   fetchCurrentUser,
   fetchProjectApiKeys,
   fetchProjectById,
+  fetchProjectLlmSettings,
   fetchProjectMcpServers,
   generateProjectApiKey,
   getMcpServerTools,
   removeProject,
   updateMcpServer,
   updateProject,
-  fetchProjectLlmSettings,
   updateProjectLlmSettings,
 } from "@/app/(authed)/utils/project-utils";
+import { AuthForm } from "@/components/auth/auth-form";
+import {
+  APIKeyList,
+  APIKeyListProps,
+} from "@/components/dashboard-components/project-details/api-key-list";
+import {
+  AvailableMcpServers,
+  AvailableMcpServersProps,
+} from "@/components/dashboard-components/project-details/available-mcp-servers";
+import {
+  CustomInstructionsEditor,
+  CustomInstructionsEditorProps,
+} from "@/components/dashboard-components/project-details/custom-instructions-editor";
+import {
+  ProjectInfo,
+  ProjectInfoProps,
+} from "@/components/dashboard-components/project-details/project-info";
+import {
+  ProviderKeySection,
+  ProviderKeySectionProps,
+} from "@/components/dashboard-components/project-details/provider-key-section";
+import {
+  ProjectTable,
+  ProjectTableProps,
+} from "@/components/dashboard-components/project-table";
 import { TamboTool } from "@tambo-ai/react";
+import { z } from "zod";
 import {
   addMcpServerSchema,
   authorizeMcpServerSchema,
-  checkComposioConnectedAccountStatusSchema,
   createProjectSchema,
   deleteMcpServerSchema,
   deleteProjectApiKeySchema,
@@ -32,41 +56,15 @@ import {
   fetchCurrentUserSchema,
   fetchProjectApiKeysSchema,
   fetchProjectByIdSchema,
+  fetchProjectLlmSettingsSchema,
   fetchProjectMcpServersSchema,
   generateProjectApiKeySchema,
   getMcpServerToolsSchema,
   removeProjectSchema,
   updateMcpServerSchema,
-  fetchProjectLlmSettingsSchema,
   updateProjectLlmSettingsSchema,
   updateProjectSchema,
 } from "./tools";
-import {
-  ProjectTable,
-  ProjectTableProps,
-} from "@/components/dashboard-components/project-table";
-import {
-  ProjectInfo,
-  ProjectInfoProps,
-} from "@/components/dashboard-components/project-details/project-info";
-import {
-  APIKeyList,
-  APIKeyListProps,
-} from "@/components/dashboard-components/project-details/api-key-list";
-import {
-  ProviderKeySection,
-  ProviderKeySectionProps,
-} from "@/components/dashboard-components/project-details/provider-key-section";
-import {
-  CustomInstructionsEditor,
-  CustomInstructionsEditorProps,
-} from "@/components/dashboard-components/project-details/custom-instructions-editor";
-import {
-  AvailableMcpServers,
-  AvailableMcpServersProps,
-} from "@/components/dashboard-components/project-details/available-mcp-servers";
-import { AuthForm } from "@/components/auth/auth-form";
-import { z } from "zod";
 
 export const tamboRegisteredComponents = [
   {
@@ -224,41 +222,5 @@ export const tamboRegisteredTools: TamboTool[] = [
     description: "Gets the tools for an MCP server for a project.",
     toolSchema: getMcpServerToolsSchema,
     tool: getMcpServerTools,
-  },
-  // {
-  //   name: "listAvailableApps",
-  //   description: "Lists available apps for a project.",
-  //   toolSchema: listAvailableAppsSchema,
-  //   tool: listAvailableApps,
-  // },
-  // {
-  //   name: "enableApp",
-  //   description: "Enables an app for a project.",
-  //   toolSchema: enableAppSchema,
-  //   tool: enableApp,
-  // },
-  // {
-  //   name: "disableApp",
-  //   description: "Disables an app for a project.",
-  //   toolSchema: disableAppSchema,
-  //   tool: disableApp,
-  // },
-  // {
-  //   name: "getComposioAuth",
-  //   description: "Gets authentication details for a Composio tool.",
-  //   toolSchema: getComposioAuthSchema,
-  //   tool: getComposioAuth,
-  // },
-  // {
-  //   name: "updateComposioAuth",
-  //   description: "Updates authentication details for a Composio tool.",
-  //   toolSchema: updateComposioAuthSchema,
-  //   tool: updateComposioAuth,
-  // },
-  {
-    name: "checkComposioConnectedAccountStatus",
-    description: "Checks the status of a Composio connected account.",
-    toolSchema: checkComposioConnectedAccountStatusSchema,
-    tool: checkComposioConnectedAccountStatus,
   },
 ];

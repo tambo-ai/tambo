@@ -53,7 +53,6 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "composio-core": "^0.5.39",
     "deep-email-validator": "^0.1.21",
     "dompurify": "^3.2.6",
     "drizzle-orm": "^0.44.2",

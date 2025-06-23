@@ -1,7 +1,6 @@
 import { SystemTools } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
-  ContentPartType,
   LegacyComponentDecision,
   MessageRole,
   ToolCallRequest,
@@ -76,42 +75,6 @@ export async function callSystemTool(
     return messageWithToolResponse;
   }
 
-  if (systemTools.composioToolNames.includes(toolCallRequest.toolName)) {
-    const result = await systemTools.composioClient?.executeToolCall({
-      id: toolCallId,
-      type: "function",
-      function: {
-        name: toolCallRequest.toolName,
-        arguments: JSON.stringify(
-          Object.fromEntries(
-            toolCallRequest.parameters.map((p) => [
-              p.parameterName,
-              p.parameterValue,
-            ]),
-          ),
-        ),
-      },
-    });
-    const responseContent = [
-      { type: ContentPartType.Text, text: result ?? "" },
-    ];
-
-    const messageWithToolResponse: AdvanceThreadDto = {
-      messageToAppend: {
-        actionType: ActionType.ToolResponse,
-        component: componentDecision,
-        role: MessageRole.Tool,
-        content: responseContent,
-        tool_call_id: toolCallId,
-      },
-      additionalContext: advanceRequestDto.additionalContext,
-      availableComponents: advanceRequestDto.availableComponents,
-      contextKey: advanceRequestDto.contextKey,
-    };
-
-    return messageWithToolResponse;
-  }
-
   // If we don't have a tool source for the tool call request, return the
   // original request. Callers should probably handle this as an error.
   return advanceRequestDto;
@@ -128,8 +91,6 @@ export function isSystemToolCall(
   systemTools: SystemTools,
 ): toolCallRequest is ToolCallRequest {
   return (
-    !!toolCallRequest &&
-    (toolCallRequest.toolName in systemTools.mcpToolSources ||
-      systemTools.composioToolNames.includes(toolCallRequest.toolName))
+    !!toolCallRequest && toolCallRequest.toolName in systemTools.mcpToolSources
   );
 }

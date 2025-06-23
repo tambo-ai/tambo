@@ -6,9 +6,7 @@ import {
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";
-import { Composio, OpenAIToolSet } from "composio-core";
-import { JSONSchema7 } from "json-schema";
-import { getComposio } from "../composio";
+import { type JSONSchema7 } from "json-schema";
 import { getSystemTools } from "../systemTools";
 
 jest.mock("@tambo-ai-cloud/db", () => {
@@ -32,24 +30,6 @@ jest.mock("@tambo-ai-cloud/core", () => {
     },
   };
 });
-jest.mock("composio-core", () => ({
-  Composio: jest.fn().mockImplementation(() => ({
-    apps: {
-      list: jest.fn(),
-    },
-  })),
-
-  OpenAIToolSet: jest.fn().mockImplementation(() => ({
-    getTools: jest.fn(),
-  })),
-}));
-jest.mock("../composio", () => ({
-  getComposio: jest.fn().mockImplementation(() => ({
-    apps: {
-      list: jest.fn(),
-    },
-  })),
-}));
 
 const mockMcpTool: MCPToolSpec = {
   name: "mockMcpTool",
@@ -66,44 +46,21 @@ const mockMcpTool: MCPToolSpec = {
 // This is a workaround to an eslint bug where eslint crashes when trying to
 // analyze `typeof ClassName.prototype.methodName` - instead we make fake
 // instances and use `typeof instance.methodName`
-const _openaiToolSetInstance = null as unknown as OpenAIToolSet;
 const _mcpClientInstance = null as unknown as MCPClient;
-const _composioInstance = null as unknown as Composio;
 
 describe("getSystemTools", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    jest.mocked(getComposio).mockImplementation(
-      () =>
-        ({
-          apps: {
-            list: jest
-              .fn<typeof _composioInstance.apps.list>()
-              .mockResolvedValue([]),
-          },
-        }) as any,
-    );
-    jest.mocked(OpenAIToolSet).mockImplementation(
-      () =>
-        ({
-          getTools: jest
-            .fn<typeof _openaiToolSetInstance.getTools>()
-            .mockResolvedValue([]),
-        }) as Partial<OpenAIToolSet> as any,
-    );
     jest.mocked(operations.getProjectMcpServers).mockResolvedValue([]);
-    jest.mocked(operations.getComposioApps).mockResolvedValue([]);
   });
-  it("should return empty tools when no MCP servers or Composio apps exist", async () => {
+  it("should return empty tools when no MCP servers exist", async () => {
     // mockDb.query.toolProviders.findMany.mockResolvedValue([]);
     const mockDb = getDb("");
 
-    const tools = await getSystemTools(mockDb, "project123", "default");
+    const tools = await getSystemTools(mockDb, "project123");
     expect(tools).toEqual({
-      composioToolNames: [],
       mcpToolSources: {},
-      composioClient: undefined,
       tools: [],
     });
   });
@@ -127,25 +84,11 @@ describe("getSystemTools", () => {
           },
         ]),
     } as any);
-    jest.mocked(OpenAIToolSet).mockImplementation(
-      () =>
-        ({
-          getTools: jest
-            .fn<typeof _openaiToolSetInstance.getTools>()
-            .mockResolvedValueOnce([
-              //   {
-              //     type: "function",
-              //     function: {
-              //       name: "mockMcpTool",
-              //     },
-              //   },
-            ]),
-        }) as Partial<OpenAIToolSet> as any,
-    );
+
     jest.mocked(operations.getProjectMcpServers).mockResolvedValueOnce([
       {
         id: "mcp1",
-        composioAppId: "app123",
+        deprecatedComposioAppId: "app123",
         createdAt: new Date(),
         customHeaders: {},
         projectId: "project123",
@@ -168,11 +111,9 @@ describe("getSystemTools", () => {
     );
     const mockDb = getDb("");
 
-    const tools = await getSystemTools(mockDb, "project123", "default");
+    const tools = await getSystemTools(mockDb, "project123");
     expect(tools).toEqual(
       expect.objectContaining({
-        composioClient: undefined,
-        composioToolNames: [],
         mcpToolSources: {
           mockMcpTool: expect.any(Object),
         },
@@ -188,66 +129,6 @@ describe("getSystemTools", () => {
                   },
                 },
                 required: undefined,
-                type: "object",
-                additionalProperties: false,
-              },
-              strict: true,
-            },
-            type: "function",
-          },
-        ],
-      }),
-    );
-  });
-
-  it("should fetch and combine tools from Composio apps", async () => {
-    const mockDb = getDb("");
-
-    jest.mocked(operations.getComposioApps).mockResolvedValueOnce([
-      {
-        id: "composio1",
-        composioAppId: "app123",
-        createdAt: new Date(),
-        customHeaders: {},
-        contexts: [],
-        projectId: "project123",
-        type: ToolProviderType.COMPOSIO,
-        updatedAt: new Date(),
-        url: null,
-        mcpTransport: MCPTransport.HTTP,
-        mcpRequiresAuth: false,
-      },
-    ]);
-
-    jest.mocked(OpenAIToolSet).mockImplementation(
-      () =>
-        ({
-          getTools: jest
-            .fn<typeof _openaiToolSetInstance.getTools>()
-            .mockResolvedValueOnce([
-              {
-                type: "function",
-                function: {
-                  name: "mockComposioTool",
-                },
-              },
-            ]),
-        }) as Partial<OpenAIToolSet> as any,
-    );
-
-    const tools = await getSystemTools(mockDb, "project123", "default");
-    expect(tools).toEqual(
-      expect.objectContaining({
-        composioToolNames: ["mockComposioTool"],
-        mcpToolSources: {},
-        tools: [
-          {
-            function: {
-              description: undefined,
-              name: "mockComposioTool",
-              parameters: {
-                properties: {},
-                required: [],
                 type: "object",
                 additionalProperties: false,
               },

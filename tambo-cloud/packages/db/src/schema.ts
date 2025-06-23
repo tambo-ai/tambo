@@ -2,7 +2,7 @@ import {
   ActionType,
   ChatCompletionContentPart,
   ComponentDecisionV2,
-  ComposioAuthMode,
+  DeprecatedComposioAuthMode,
   GenerationStage,
   LogLevel,
   MCPTransport,
@@ -53,7 +53,10 @@ export const projects = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     /** @deprecated - everyone has mcp now */
     deprecated_mcpEnabled: boolean("mcp_enabled").default(false).notNull(),
-    composioEnabled: boolean("composio_enabled").default(false).notNull(),
+    /** @deprecated - everyone has mcp now */
+    deprecatedComposioEnabled: boolean("composio_enabled")
+      .default(false)
+      .notNull(),
     /** Additional instructions that are injected into the system prompt */
     customInstructions: text("custom_instructions"),
     // New fields for default LLM configuration choices
@@ -386,7 +389,7 @@ export const toolProviders = pgTable(
       enum: Object.values(ToolProviderType) as [ToolProviderType],
     }).notNull(),
     url: text("url"),
-    composioAppId: text("composio_app_id"),
+    deprecatedComposioAppId: text("composio_app_id"),
     customHeaders: customJsonb<Record<string, string>>("custom_headers")
       .notNull()
       .default({}),
@@ -433,15 +436,19 @@ export const toolProviderUserContexts = pgTable(
     toolProviderId: text("tool_provider_id")
       .references(() => toolProviders.id, { onDelete: "cascade" })
       .notNull(),
-    composioIntegrationId: text("composio_integration_id"),
+    deprecatedComposioIntegrationId: text("composio_integration_id"),
     // once the connected account is created, we store the id here - if this is non-null, then we have a connected account
-    composioConnectedAccountId: text("composio_connected_account_id"),
-    composioConnectedAccountStatus: text("composio_connected_account_status"),
-    composioRedirectUrl: text("composio_redirect_url"),
-    composioAuthSchemaMode: text("composio_auth_schema_mode", {
-      enum: Object.values(ComposioAuthMode) as [ComposioAuthMode],
+    deprecatedComposioConnectedAccountId: text("composio_connected_account_id"),
+    deprecatedComposioConnectedAccountStatus: text(
+      "composio_connected_account_status",
+    ),
+    deprecatedComposioRedirectUrl: text("composio_redirect_url"),
+    deprecatedComposioAuthSchemaMode: text("composio_auth_schema_mode", {
+      enum: Object.values(DeprecatedComposioAuthMode) as [
+        DeprecatedComposioAuthMode,
+      ],
     }),
-    composioAuthFields: customJsonb<Record<string, string>>(
+    deprecatedComposioAuthFields: customJsonb<Record<string, string>>(
       "composio_auth_fields",
     )
       .default({})
