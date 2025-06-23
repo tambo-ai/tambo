@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.67.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.67.0...repo-v0.67.1) (2025-06-23)
+
+
+### Bug Fixes
+
+* try plural "prs" to get PR number in release-please slack announcement ([#1210](https://github.com/tambo-ai/tambo-cloud/issues/1210)) ([23c7fbc](https://github.com/tambo-ai/tambo-cloud/commit/23c7fbca61b7fc2d1c6bedae32cfab3a7c8e1ddf))
+
 ## [0.67.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.66.0...repo-v0.67.0) (2025-06-23)
 
 
