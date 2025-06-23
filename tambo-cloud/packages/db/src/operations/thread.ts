@@ -1,5 +1,5 @@
 import { ActionType, GenerationStage } from "@tambo-ai-cloud/core";
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -142,6 +142,21 @@ export async function updateThread(
 
 export async function deleteThread(db: HydraDb, threadId: string) {
   return await db.transaction(async (tx) => {
+    // First, get all message IDs for this thread
+    const threadMessages = await tx.query.messages.findMany({
+      where: eq(schema.messages.threadId, threadId),
+      columns: { id: true },
+    });
+
+    const messageIds = threadMessages.map((msg) => msg.id);
+
+    // Delete all suggestions for messages in this thread
+    if (messageIds.length > 0) {
+      await tx
+        .delete(schema.suggestions)
+        .where(inArray(schema.suggestions.messageId, messageIds));
+    }
+
     // Delete all messages in the thread
     await tx
       .delete(schema.messages)

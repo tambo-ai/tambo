@@ -6,10 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Edit, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -89,7 +89,7 @@ export function CustomInstructionsEditor({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-heading font-semibold">
+              <CardTitle className="text-lg font-semibold">
                 Custom Instructions
               </CardTitle>
               <div className="h-3 w-80 bg-muted rounded animate-pulse" />
@@ -114,40 +114,12 @@ export function CustomInstructionsEditor({
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-sm font-heading font-semibold">
-              Custom Instructions
-            </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              These instructions are added to each conversation and help guide
-              AI responses.
-            </CardDescription>
-          </div>
-          <AnimatePresence mode="wait">
-            {!isEditing && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="font-sans"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Edit className="h-3 w-3 mr-1" />
-                  Edit
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <CardTitle className="text-lg font-semibold">
+          Custom Instructions
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="min-h-[150px] relative">
+        <div className="relative">
           <AnimatePresence mode="wait">
             {isEditing ? (
               <motion.div
@@ -158,6 +130,11 @@ export function CustomInstructionsEditor({
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="space-y-3"
               >
+                <CardDescription className="text-sm text-foreground max-w-sm mb-4">
+                  These instructions are added to each conversation to guide
+                  tambo&apos;s responses.
+                </CardDescription>
+                <Label htmlFor="custom-instructions">Instructions</Label>
                 <Textarea
                   value={customInstructions}
                   onChange={(e) => setCustomInstructions(e.target.value)}
@@ -166,23 +143,14 @@ export function CustomInstructionsEditor({
                   autoFocus
                 />
                 <motion.div
-                  className="flex gap-2 justify-end"
+                  className="flex gap-2 justify-start"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 }}
                 >
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="font-sans"
-                    onClick={handleCancel}
-                    disabled={updateProject.isPending}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="font-sans"
+                    className="font-sans border text-primary bg-transparent hover:bg-accent"
                     onClick={handleSave}
                     disabled={updateProject.isPending}
                   >
@@ -192,25 +160,60 @@ export function CustomInstructionsEditor({
                         Saving...
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1">
-                        <Save className="h-3 w-3" />
-                        Save
+                      <span className="flex items-center text-primary gap-1">
+                        Save Instructions
                       </span>
                     )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                    onClick={handleCancel}
+                    disabled={updateProject.isPending}
+                  >
+                    Cancel
                   </Button>
                 </motion.div>
               </motion.div>
             ) : (
-              <motion.div
-                key="display-instructions"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="min-h-[100px] whitespace-pre-wrap rounded-md border border-muted bg-muted/50 p-3 text-sm"
-              >
-                {project.customInstructions || "No custom instructions set."}
-              </motion.div>
+              <div className="flex justify-between items-start">
+                {project.customInstructions ? (
+                  <motion.div
+                    key="display-instructions"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="flex-1 whitespace-pre-wrap rounded-md text-sm"
+                  >
+                    {project.customInstructions}
+                  </motion.div>
+                ) : (
+                  <CardDescription className="text-sm text-foreground max-w-sm">
+                    These instructions are added to each conversation to guide
+                    tambo&apos;s responses.
+                  </CardDescription>
+                )}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  className="ml-4"
+                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-sans"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    {project.customInstructions
+                      ? "Edit Instructions"
+                      : "Add Instructions"}
+                  </Button>
+                </motion.div>
+              </div>
             )}
           </AnimatePresence>
         </div>

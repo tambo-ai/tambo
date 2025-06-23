@@ -1,6 +1,6 @@
 "use client";
 
-import { ThreadList } from "@/components/thread/thread-list";
+import { ThreadList } from "./components/thread-list";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -25,18 +25,18 @@ import {
   useState,
 } from "react";
 import { z } from "zod";
-import { AirQuality } from "./components/AirQuality";
+import { AirQuality } from "./components/air-quality";
 import {
   ApiActivityMonitor,
   type ApiState,
-} from "./components/ApiActivityMonitor";
-import { LinearIssue } from "./components/LinearIssue";
-import { LinearIssueList } from "./components/LinearIssueList";
-import { LinearProjectList } from "./components/LinearProjectList";
-import { LocalFileContents, LocalFileList } from "./components/LocalFileList";
-import { MessageSuggestions } from "./components/MessageSuggestions";
-import { ThreadMessageInput } from "./components/ThreadMessageInput";
-import { WeatherDay } from "./components/WeatherDay";
+} from "./components/api-activity-monitor";
+import { LinearIssue } from "./components/linear-issue";
+import { LinearIssueList } from "./components/linear-issue-list";
+import { LinearProjectList } from "./components/linear-project-list";
+import { LocalFileContents, LocalFileList } from "./components/local-file-list";
+import { MessageSuggestions } from "./components/message-suggestions";
+import { ThreadMessageInput } from "./components/thread-message-input";
+import { WeatherDay } from "./components/weather-day";
 import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {

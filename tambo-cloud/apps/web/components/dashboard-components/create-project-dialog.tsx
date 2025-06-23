@@ -107,7 +107,7 @@ export function CreateProjectDialog({
         >
           <DialogHeader className="mb-6">
             <motion.div variants={itemVariants}>
-              <DialogTitle className="font-heading">
+              <DialogTitle className="font-semibold">
                 Create New Project
               </DialogTitle>
             </motion.div>

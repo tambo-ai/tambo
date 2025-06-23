@@ -24,7 +24,7 @@ export const ThreadContainer = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(containerRef);
-  const { isLeftPanel, historyPosition } = usePositioning(
+  const { isLeftPanel } = usePositioning(
     className,
     canvasIsOnLeft,
     hasCanvasSpace,

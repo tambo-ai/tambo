@@ -75,9 +75,7 @@ export function AvailableMcpServers({
     return (
       <Card className="border rounded-md overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-sm font-heading font-semibold">
-            MCP Servers
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">MCP Servers</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-sm text-muted-foreground">
@@ -93,9 +91,7 @@ export function AvailableMcpServers({
     return (
       <Card className="border rounded-md overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-sm font-heading font-semibold">
-            MCP Servers
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">MCP Servers</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -130,48 +126,47 @@ export function AvailableMcpServers({
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardHeader>
-        <CardTitle className="text-sm font-heading font-semibold">
-          MCP Servers
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="space-y-2">
-            {mcpServers.map((server) => (
-              <McpServerRow
-                key={server.id}
-                server={server}
-                projectId={project.id}
-                onRefresh={handleRefresh}
-                redirectToAuth={redirectToAuth}
-              />
-            ))}
-
-            {isAddingNew ? (
-              <McpServerRow
-                server={{
-                  id: "new",
-                  url: "",
-                  customHeaders: {},
-                }}
-                projectId={project.id}
-                onRefresh={handleRefresh}
-                isNew
-                onCancel={() => setIsAddingNew(false)}
-                redirectToAuth={redirectToAuth}
-              />
-            ) : (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setIsAddingNew(true)}
-              >
-                Add MCP Server
-              </Button>
-            )}
-          </div>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold">MCP Servers</CardTitle>
+          {!isAddingNew && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddingNew(true)}
+            >
+              Add MCP Server
+            </Button>
+          )}
         </div>
-      </CardContent>
+      </CardHeader>
+      {(mcpServers.length > 0 || isAddingNew) && (
+        <CardContent>
+          {mcpServers.map((server) => (
+            <McpServerRow
+              key={server.id}
+              server={server}
+              projectId={project.id}
+              onRefresh={handleRefresh}
+              redirectToAuth={redirectToAuth}
+            />
+          ))}
+
+          {isAddingNew && (
+            <McpServerRow
+              server={{
+                id: "new",
+                url: "",
+                customHeaders: {},
+              }}
+              projectId={project.id}
+              onRefresh={handleRefresh}
+              isNew
+              onCancel={() => setIsAddingNew(false)}
+              redirectToAuth={redirectToAuth}
+            />
+          )}
+        </CardContent>
+      )}
     </Card>
   );
 }

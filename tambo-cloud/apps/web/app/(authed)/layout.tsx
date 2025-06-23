@@ -1,5 +1,5 @@
 import { getServerSupabaseclient } from "@/server/supabase";
-import { AuthedLayoutWrapper } from "../../components/auth/AuthedLayoutWrapper";
+import { AuthedLayoutWrapper } from "../../components/auth/authed-layout-wrapper";
 
 export default async function AuthedLayout({
   children,

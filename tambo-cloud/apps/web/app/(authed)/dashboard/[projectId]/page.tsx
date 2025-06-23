@@ -1,4 +1,4 @@
-import { ProjectPage } from "@/components/dashboard-components/ProjectPage";
+import { ProjectOverview } from "@/components/dashboard-components/project-overview";
 import { env } from "@/lib/env";
 import { getDb, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
@@ -28,5 +28,5 @@ export async function generateMetadata({
 export default async function MainProjectPage({ params }: ProjectPageProps) {
   const { projectId } = await params;
 
-  return <ProjectPage projectId={projectId} />;
+  return <ProjectOverview projectId={projectId} />;
 }

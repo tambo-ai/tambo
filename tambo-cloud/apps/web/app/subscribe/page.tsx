@@ -2,7 +2,7 @@
 
 import { env } from "@/lib/env";
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboSubscribeIntegration } from "./TamboSubscribeIntegration";
+import { TamboSubscribeIntegration } from "./tambo-subscribe-integration";
 
 export default function SubscribePage() {
   return (

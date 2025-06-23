@@ -13,13 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { DEFAULT_OPENAI_MODEL } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion, Variants } from "framer-motion";
-import {
-  ExternalLinkIcon,
-  InfoIcon,
-  KeyRound,
-  Loader2,
-  Save,
-} from "lucide-react";
+import { ExternalLinkIcon, InfoIcon, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { z } from "zod";
@@ -213,7 +207,7 @@ export function ProviderKeySection({
       setBaseUrl(projectLlmSettings.customLlmBaseURL ?? "");
       setHasUnsavedChanges(false);
     }
-  }, [projectLlmSettings, llmProviderConfigData]);
+  }, [projectLlmSettings, llmProviderConfigData, getModelConfig]);
 
   // API key validation
   const [debouncedApiKey] = useDebounce(apiKeyInput, 500);
@@ -372,7 +366,12 @@ export function ProviderKeySection({
         setMaxInputTokens("");
       }
     }
-  }, [selectedProviderApiName, projectLlmSettings, llmProviderConfigData]);
+  }, [
+    selectedProviderApiName,
+    projectLlmSettings,
+    llmProviderConfigData,
+    getModelConfig,
+  ]);
 
   // Update maxInputTokens when model changes
   useEffect(() => {
@@ -625,9 +624,7 @@ export function ProviderKeySection({
     return (
       <Card className="overflow-hidden rounded-md border">
         <CardHeader>
-          <CardTitle className="font-heading text-base font-semibold">
-            LLM Configuration
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">LLM Providers</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-60 w-full animate-pulse space-y-4 rounded-md bg-muted p-4">
@@ -644,12 +641,10 @@ export function ProviderKeySection({
     return (
       <Card className="border rounded-md overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-base font-heading font-semibold">
-            LLM Configuration
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">LLM Providers</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No project selected</p>
+          <p className="text-sm text-foreground">No project selected</p>
         </CardContent>
       </Card>
     );
@@ -659,22 +654,25 @@ export function ProviderKeySection({
     <Card className="overflow-hidden rounded-md border">
       <CardHeader className="pb-0 pt-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="font-heading text-base font-semibold">
-            LLM Configuration
-          </CardTitle>
+          <CardTitle className="text-lg font-semibold">LLM Providers</CardTitle>
           {hasUnsavedChanges && (
             <Button
               size="sm"
+              className="font-sans bg-transparent border hover:bg-accent"
               onClick={handleSaveDefaults}
               disabled={isSavingDefaults}
             >
-              {isSavingDefaults ? "Saving..." : "Save Settings"}
+              {isSavingDefaults ? (
+                <span className="text-primary">Saving...</span>
+              ) : (
+                <span className="text-primary">Save Settings</span>
+              )}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6 p-6">
-        <div className="space-y-2">
+        <div className="space-y-2 max-w-xl">
           <Label htmlFor="provider-select">Provider</Label>
           <Select
             value={selectedProviderApiName}
@@ -712,24 +710,8 @@ export function ProviderKeySection({
               initial="initial"
               animate="animate"
               exit="exit"
-              className="space-y-4 overflow-hidden rounded-md border bg-muted/10 p-4"
+              className="space-y-4 rounded-md max-w-xl"
             >
-              <div className="flex items-center justify-between">
-                <h4 className="mb-1 text-sm font-medium">
-                  Configure {currentProviderConfig.displayName}
-                </h4>
-                {currentProviderConfig.docLinkRoot && (
-                  <a
-                    href={currentProviderConfig.docLinkRoot}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={`${currentProviderConfig.displayName} Documentation`}
-                  >
-                    <ExternalLinkIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                  </a>
-                )}
-              </div>
-
               {!currentProviderConfig.isCustomProvider ? (
                 <div className="space-y-2">
                   <Label htmlFor="model-select">Model</Label>
@@ -784,7 +766,7 @@ export function ProviderKeySection({
                   )}
 
                   {currentModelConfig && (
-                    <div className="space-y-0.5 pt-1 text-xs text-muted-foreground">
+                    <div className="space-y-0.5 pt-1 text-xs text-foreground">
                       {currentModelConfig.notes && (
                         <p className="mb-2 flex items-start">
                           <InfoIcon className="mr-1.5 mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
@@ -798,8 +780,8 @@ export function ProviderKeySection({
                           rel="noopener noreferrer"
                           className="inline-flex items-center text-link text-xs hover:underline"
                         >
-                          <ExternalLinkIcon className="mr-1 h-3 w-3" />
-                          Model Documentation
+                          Learn more
+                          <ExternalLinkIcon className="ml-1 h-3 w-3" />
                         </a>
                       )}
                     </div>
@@ -826,7 +808,7 @@ export function ProviderKeySection({
                           Please enter a valid maximum input tokens value
                         </p>
                       )}
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground">
                       Tambo will limit the number of tokens sent to the model to
                       this value.
                       {currentModelConfig?.properties?.inputTokenLimit && (
@@ -915,7 +897,7 @@ export function ProviderKeySection({
                 </div>
               )}
 
-              <div className="space-y-2 border-t border-border/60 pt-2">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium">
                     API Key
@@ -925,21 +907,6 @@ export function ProviderKeySection({
                     {currentProviderConfig.displayName ===
                       "OpenAI Compatible" && " (Optional)"}
                   </Label>
-                  {!isEditingApiKey && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="font-sans"
-                      onClick={() => {
-                        setIsEditingApiKey(true);
-                        setApiKeyInput("");
-                      }}
-                      disabled={isLoadingStoredKeysInitial}
-                    >
-                      <KeyRound className="mr-1.5 h-3 w-3" />
-                      {currentApiKeyRecord ? "Update Key" : "Add Key"}
-                    </Button>
-                  )}
                 </div>
 
                 {isEditingApiKey ? (
@@ -949,10 +916,10 @@ export function ProviderKeySection({
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={shortTransition}
-                    className="space-y-2 overflow-hidden"
+                    className="space-y-2"
                   >
-                    <div className="relative">
-                      <div className="relative">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
                         <Input
                           type="password"
                           value={apiKeyInput}
@@ -980,6 +947,38 @@ export function ProviderKeySection({
                           </div>
                         )}
                       </div>
+                      <Button
+                        size="sm"
+                        className="font-sans bg-transparent border hover:bg-accent"
+                        onClick={handleSaveApiKey}
+                        disabled={
+                          isUpdatingApiKey ||
+                          isValidatingApiKey ||
+                          (!apiKeyInput.trim() &&
+                            currentProviderConfig?.apiName !== "openai" &&
+                            currentProviderConfig?.apiName !==
+                              "openai-compatible") ||
+                          (!apiKeyValidation?.isValid && !!apiKeyInput.trim())
+                        }
+                      >
+                        {isUpdatingApiKey ? (
+                          <span className="text-primary">Saving...</span>
+                        ) : (
+                          <span className="text-primary">Save Key</span>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                        onClick={() => {
+                          setIsEditingApiKey(false);
+                          setApiKeyInput("");
+                        }}
+                        disabled={isUpdatingApiKey}
+                      >
+                        Cancel
+                      </Button>
                     </div>
 
                     {/* Validation feedback */}
@@ -1013,43 +1012,6 @@ export function ProviderKeySection({
                           )}
                       </div>
                     )}
-
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setIsEditingApiKey(false);
-                          setApiKeyInput("");
-                        }}
-                        disabled={isUpdatingApiKey}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="font-sans"
-                        onClick={handleSaveApiKey}
-                        disabled={
-                          isUpdatingApiKey ||
-                          isValidatingApiKey ||
-                          (!apiKeyInput.trim() &&
-                            currentProviderConfig?.apiName !== "openai" &&
-                            currentProviderConfig?.apiName !==
-                              "openai-compatible") ||
-                          (!apiKeyValidation?.isValid && !!apiKeyInput.trim())
-                        }
-                      >
-                        {isUpdatingApiKey ? (
-                          "Saving..."
-                        ) : (
-                          <>
-                            <Save className="mr-1.5 h-3 w-3" />
-                            Save Key
-                          </>
-                        )}
-                      </Button>
-                    </div>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -1057,18 +1019,31 @@ export function ProviderKeySection({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={shortTransition}
+                    className="flex items-center gap-2"
                   >
                     {isLoadingStoredKeysInitial ? (
-                      <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+                      <div className="h-8 flex-1 animate-pulse rounded bg-muted" />
                     ) : (
-                      <code className="block truncate rounded-md border bg-background px-2 py-1.5 font-mono text-sm">
+                      <code className="block truncate rounded-md border bg-background px-2 py-1.5 font-mono text-sm flex-1">
                         {maskedApiKeyDisplay}
                       </code>
                     )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="font-sans bg-transparent border hover:bg-accent"
+                      onClick={() => {
+                        setIsEditingApiKey(true);
+                        setApiKeyInput("");
+                      }}
+                      disabled={isLoadingStoredKeysInitial}
+                    >
+                      {currentApiKeyRecord ? "Update Key" : "Add Key"}
+                    </Button>
                   </motion.div>
                 )}
                 {currentProviderConfig.apiKeyLink && (
-                  <p className="pt-1 text-xs text-muted-foreground">
+                  <p className="pt-1 text-xs text-foreground">
                     Need an API key?{" "}
                     <a
                       href={currentProviderConfig.apiKeyLink}

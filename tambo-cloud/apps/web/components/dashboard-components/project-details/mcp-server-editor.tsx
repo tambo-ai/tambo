@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/trpc/react";
 import { MCPTransport } from "@tambo-ai-cloud/core";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
-import { Check, Info, Loader2, Pencil, Save, Trash2, X } from "lucide-react";
+import { Check, Info, Loader2 } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { McpServerToolsDialog } from "./mcp-server-tools-dialog";
@@ -149,8 +156,8 @@ export function McpServerEditor({
     }
   };
 
-  const handleTransportChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setMcpTransport(e.target.value as MCPTransport);
+  const handleTransportChange = (value: string) => {
+    setMcpTransport(value as MCPTransport);
     if (hideEditButtons && isEditing) {
       debouncedSave();
     }
@@ -179,10 +186,10 @@ export function McpServerEditor({
     projectId &&
     redirectToAuth;
   return (
-    <div className="flex flex-col gap-2 bg-muted/50 p-2 rounded-md">
+    <div className="flex flex-col gap-2 rounded-md max-w-xl">
       <div className="flex flex-col gap-1">
         <label htmlFor={urlInputId} className="block text-sm font-medium">
-          MCP Server URL
+          Server URL
         </label>
         <div className="flex items-center gap-2">
           <Input
@@ -193,33 +200,35 @@ export function McpServerEditor({
             onChange={handleUrlChange}
             onKeyDown={handleKeyDown}
             placeholder={isNew ? "Enter server URL" : undefined}
-            className={`flex-1 ${error ? "border-destructive" : ""}`}
+            className={`flex-1 rounded-lg ${error ? "border-destructive" : ""}`}
           />
           {!hideEditButtons && (
             <>
               {isEditing ? (
-                <>
+                <div className="flex items-center gap-1">
                   <Button
-                    variant="ghost"
-                    size="icon"
+                    variant="outline"
+                    size="sm"
                     onClick={() => handleSave()}
                     disabled={isSaving || !url.trim()}
+                    className="font-sans bg-transparent hover:bg-accent text-sm"
                   >
                     {isSaving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      <Save className="h-4 w-4" />
+                      "Save"
                     )}
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={onCancel}
                     disabled={isSaving}
+                    className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500 text-sm"
                   >
-                    <X className="h-4 w-4" />
+                    Cancel
                   </Button>
-                </>
+                </div>
               ) : (
                 <>
                   {(!server.mcpRequiresAuth || server.mcpIsAuthed) && (
@@ -228,23 +237,30 @@ export function McpServerEditor({
                       size="icon"
                       onClick={() => setIsInspecting(true)}
                       title="Inspect tools"
+                      className="font-sans bg-transparent hover:bg-muted text-sm"
                     >
                       <Info className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon" onClick={onEdit}>
-                    <Pencil className="h-4 w-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onEdit}
+                    className="font-sans border bg-transparent hover:bg-accent text-sm"
+                  >
+                    Edit
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={onDelete}
                     disabled={isDeleting}
+                    className="font-sans hover:bg-red-500/10 text-red-500 hover:text-red-500 text-sm"
                   >
                     {isDeleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      <Trash2 className="h-4 w-4" />
+                      "Delete"
                     )}
                   </Button>
                 </>
@@ -294,25 +310,30 @@ export function McpServerEditor({
       </div>
       <div>
         <label htmlFor={transportId} className="block text-sm font-medium">
-          MCP Server Type
+          Server Type
         </label>
-        <select
-          id={transportId}
-          name="mcpTransport"
-          className="block w-full border rounded px-2 py-1 font-sans"
+        <Select
           value={mcpTransport}
-          onChange={handleTransportChange}
+          onValueChange={handleTransportChange}
           disabled={!isEditing}
         >
-          <option value={MCPTransport.SSE}>SSE</option>
-          <option value={MCPTransport.HTTP}>HTTP Streamable</option>
-        </select>
+          <SelectTrigger className="w-full rounded-lg mt-1">
+            <SelectValue placeholder="Select transport type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={MCPTransport.SSE}>SSE</SelectItem>
+            <SelectItem value={MCPTransport.HTTP}>HTTP Streamable</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
-        <label htmlFor={headerNameId} className="block text-sm font-medium">
+        <label
+          htmlFor={headerNameId}
+          className="block text-sm font-medium mt-1"
+        >
           Custom Header
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-1">
           <Input
             id={headerNameId}
             value={headerName}

@@ -1,15 +1,14 @@
 "use client";
 
+import { DashboardCard } from "@/components/dashboard-components/dashboard-card";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/auth";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CreateProjectDialog } from "../../../components/dashboard-components/create-project-dialog";
-import { ProjectTable } from "../../../components/dashboard-components/project-table";
+import { ProjectsManager } from "../../../components/dashboard-components/projects-manager";
 
 // Animation variants
 const containerVariants = {
@@ -23,17 +22,10 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.5 },
-  },
-};
-
 export default function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [messagesPeriod, setMessagesPeriod] = useState("all time");
+  const [usersPeriod, setUsersPeriod] = useState("all time");
   const { toast } = useToast();
   const { data: session, isLoading: isAuthLoading } = useSession();
 
@@ -45,6 +37,16 @@ export default function DashboardPage() {
   } = api.project.getUserProjects.useQuery(undefined, {
     enabled: !!session,
   });
+
+  const { data: totalUsage } = api.project.getTotalMessageUsage.useQuery(
+    { period: messagesPeriod },
+    { enabled: !!session },
+  );
+
+  const { data: totalUsers } = api.project.getTotalUsers.useQuery(
+    { period: usersPeriod },
+    { enabled: !!session },
+  );
 
   useEffect(() => {
     if (projectLoadingError) {
@@ -96,14 +98,20 @@ export default function DashboardPage() {
     }
   };
 
+  const periodOptions = [
+    { value: "all time", label: "all time" },
+    { value: "per month", label: "last 30 days" },
+    { value: "per week", label: "last 7 days" },
+  ];
+
   const LoadingSpinner = () => (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center min-h-[60vh]"
     >
-      <Icons.spinner className="h-8 w-8 animate-spin text-muted-foreground" />
-      <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+      <Icons.spinner className="h-8 w-8 animate-spin text-foreground" />
+      <p className="mt-4 text-sm text-foreground">Loading...</p>
     </motion.div>
   );
 
@@ -115,23 +123,35 @@ export default function DashboardPage() {
   return (
     <motion.div initial="hidden" animate="visible" variants={containerVariants}>
       <>
-        <motion.div
-          className="flex items-center justify-between pb-4"
-          variants={itemVariants}
-        >
-          <h1 className="text-2xl font-heading font-bold">Projects</h1>
-          <Button
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="text-sm px-4 gap-2"
-            variant="default"
-          >
-            <Plus className="h-4 w-4" />
-            Create Project
-          </Button>
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <ProjectTable projects={projects || []} />
-        </motion.div>
+        <div className="flex items-center gap-2 space-x-6 py-14">
+          <DashboardCard
+            title="Number of Projects"
+            value={projects?.length || 0}
+          />
+          <DashboardCard
+            title="Messages"
+            value={totalUsage?.totalMessages || 0}
+            defaultPeriod="all time"
+            periodOptions={periodOptions}
+            onPeriodChange={setMessagesPeriod}
+          />
+          <DashboardCard
+            title="Users"
+            value={totalUsers?.totalUsers || 0}
+            defaultPeriod="all time"
+            periodOptions={periodOptions}
+            onPeriodChange={setUsersPeriod}
+          />
+        </div>
+
+        <ProjectsManager
+          projects={projects}
+          onCreateProject={() => setIsCreateDialogOpen(true)}
+          onRefetchProjects={async () => {
+            await refetchProjects();
+          }}
+        />
+
         <CreateProjectDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}

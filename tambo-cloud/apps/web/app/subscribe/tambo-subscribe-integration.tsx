@@ -22,7 +22,7 @@ import {
 import { useTambo, useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { SubscribeForm, SubscribeFormProps } from "./SubscribeForm";
+import { SubscribeForm, SubscribeFormProps } from "./subscribe-form";
 import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 
 export function TamboSubscribeIntegration() {

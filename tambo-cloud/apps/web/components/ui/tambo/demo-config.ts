@@ -1,7 +1,7 @@
 import {
   FounderEmailComponent,
   FounderEmailProps,
-} from "./FounderEmailComponent";
+} from "./founder-email-component";
 
 export const demoComponents = [
   {

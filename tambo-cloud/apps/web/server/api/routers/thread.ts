@@ -8,6 +8,8 @@ export const threadRouter = createTRPCRouter({
       z.object({
         projectId: z.string(),
         contextKey: z.string().optional(),
+        offset: z.number().min(0).default(0),
+        limit: z.number().min(1).max(100).default(10),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -18,15 +20,22 @@ export const threadRouter = createTRPCRouter({
         ctx.session.user.id,
       );
 
-      const threads = await operations.getThreadsByProject(
-        ctx.db,
-        input.projectId,
-        {
+      // Get both threads and total count
+      const [threads, totalCount] = await Promise.all([
+        operations.getThreadsByProject(ctx.db, input.projectId, {
           contextKey: input.contextKey,
-        },
-      );
+          offset: input.offset,
+          limit: input.limit,
+        }),
+        operations.countThreadsByProject(ctx.db, input.projectId, {
+          contextKey: input.contextKey,
+        }),
+      ]);
 
-      return threads;
+      return {
+        threads,
+        totalCount,
+      };
     }),
 
   getThread: protectedProcedure

@@ -1,0 +1,119 @@
+"use client";
+
+import { CopyButton } from "@/components/copy-button";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { memo, useCallback } from "react";
+import { Thread } from "../hooks/useThreadList";
+import { formatDateThreadTable } from "../utils";
+
+interface ThreadRowProps {
+  thread: Thread;
+  isSelected: boolean;
+  isDeleting: boolean;
+  onSelect: (id: string, checked: boolean) => void;
+  onViewMessages: (id: string) => void;
+}
+
+export const ThreadRow = memo(
+  ({
+    thread,
+    isSelected,
+    isDeleting,
+    onSelect,
+    onViewMessages,
+  }: ThreadRowProps) => {
+    const handleSelect = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        onSelect(thread.id, e.target.checked);
+      },
+      [thread.id, onSelect],
+    );
+
+    const handleViewMessages = useCallback(() => {
+      onViewMessages(thread.id);
+    }, [thread.id, onViewMessages]);
+
+    return (
+      <TableRow
+        className={cn(
+          "hover:bg-accent/5",
+          isDeleting && "opacity-50 pointer-events-none",
+        )}
+      >
+        <TableCell className="py-2 text-sm w-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={handleSelect}
+              disabled={isDeleting}
+              className="rounded border-gray-300"
+              aria-label={`Select thread ${thread.id.slice(0, 8)}`}
+            />
+            {isDeleting && (
+              <div
+                className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent"
+                aria-label="Deleting thread"
+              />
+            )}
+          </div>
+        </TableCell>
+
+        <TableCell className="py-2 text-sm px-4 text-primary">
+          <div className="flex flex-col gap-1">
+            <span>{formatDateThreadTable(thread.createdAt).date}</span>
+            <span className="text-xs text-foreground">
+              {formatDateThreadTable(thread.createdAt).time}
+            </span>
+          </div>
+        </TableCell>
+
+        <TableCell className="py-2 text-sm px-4 hidden sm:table-cell">
+          <div className="flex items-center gap-1">
+            <code className="text-xs bg-info text-info px-1.5 py-0.5 rounded">
+              {thread.id?.slice(0, 8) || "N/A"}...
+            </code>
+            <CopyButton clipboardValue={thread.id || ""} className="h-6 w-6" />
+          </div>
+        </TableCell>
+
+        <TableCell className="py-2 text-sm px-4 font-medium">
+          {thread.name || <span className="text-primary italic">No name</span>}
+        </TableCell>
+
+        <TableCell className="py-2 text-sm px-4 font-medium">
+          {thread.contextKey}
+        </TableCell>
+
+        <TableCell className="py-2 text-sm text-primary px-4 hidden md:table-cell">
+          {thread.messages}
+        </TableCell>
+
+        <TableCell className="py-2 text-sm px-4 hidden md:table-cell">
+          <span
+            className={cn(
+              "font-medium",
+              thread.errors > 0 ? "text-red-600" : "text-primary",
+            )}
+          >
+            {thread.errors}
+          </span>
+        </TableCell>
+
+        <TableCell className="py-2 text-sm">
+          <button
+            onClick={handleViewMessages}
+            disabled={isDeleting}
+            className="text-primary hover:bg-accent rounded-md p-1 disabled:opacity-50"
+            aria-label={`View messages for thread ${thread.id.slice(0, 8)}`}
+          >
+            View messages
+          </button>
+        </TableCell>
+      </TableRow>
+    );
+  },
+);
+
+ThreadRow.displayName = "ThreadRow";

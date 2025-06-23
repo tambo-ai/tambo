@@ -3,11 +3,6 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { memo } from "react";
 
-type Project = Readonly<{
-  id: string;
-  name: string;
-}>;
-
 interface ProjectStepProps {
   onProjectSelect: (projectId: string, projectName: string) => void;
   onCreateClick: () => void;

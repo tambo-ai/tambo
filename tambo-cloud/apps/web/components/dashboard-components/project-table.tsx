@@ -1,7 +1,6 @@
 "use client";
 
 import { CopyButton } from "@/components/copy-button";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,14 +10,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type RouterOutputs } from "@/trpc/react";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 
 export const ProjectTableSchema = z
   .object({
     id: z.string().describe("The unique identifier for the project."),
     name: z.string().describe("The human-readable name of the project."),
+    messages: z.number().describe("The number of messages in the project."),
+    users: z.number().describe("The number of users in the project."),
     createdAt: z
       .string()
       .datetime()
@@ -42,14 +44,37 @@ export const ProjectTableProps = z.object({
 interface ProjectTableProps {
   projects?: RouterOutputs["project"]["getUserProjects"];
   compact?: boolean;
+  selectedProjects: Set<string>;
+  onSelectedProjectsChange: (selected: Set<string>) => void;
 }
 
-export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
+export function ProjectTable({
+  projects,
+  compact = false,
+  selectedProjects,
+  onSelectedProjectsChange,
+}: ProjectTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const projectsPerPage = 4;
+
   const cellClass = compact ? "py-2 text-sm" : "py-4";
   const headerClass = compact ? "text-sm font-medium" : "";
 
   const isLoading = projects === undefined;
   const hasProjects = projects && projects.length > 0;
+
+  // Pagination calculations
+  const totalProjects = projects?.length || 0;
+  const totalPages = Math.ceil(totalProjects / projectsPerPage);
+  const startIndex = (currentPage - 1) * projectsPerPage;
+  const endIndex = startIndex + projectsPerPage;
+
+  // Get current page projects
+  const currentProjects = useMemo(() => {
+    if (!projects) return [];
+    return projects.slice(startIndex, endIndex);
+  }, [projects, startIndex, endIndex]);
 
   const formatDate = (dateValue: Date | string) => {
     try {
@@ -67,30 +92,103 @@ export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newSelected = new Set(
+        currentProjects.map((p) => p.id).filter(Boolean),
+      );
+      onSelectedProjectsChange(newSelected);
+    } else {
+      onSelectedProjectsChange(new Set());
+    }
+  };
+
+  const handleSelectProject = (projectId: string, checked: boolean) => {
+    const newSelected = new Set(selectedProjects);
+    if (checked) {
+      newSelected.add(projectId);
+    } else {
+      newSelected.delete(projectId);
+    }
+    onSelectedProjectsChange(newSelected);
+  };
+
   return (
-    <div className="rounded-md border w-full overflow-hidden">
+    <div className="rounded-md w-full overflow-hidden">
+      {hasProjects && (
+        <div className="flex items-center justify-end gap-2 px-4 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-foreground">
+              {startIndex + 1}-{Math.min(endIndex, totalProjects)} of{" "}
+              {totalProjects}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage <= 1}
+              className="p-1 text-foreground hover:text-foreground disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              className="p-1 text-foreground hover:text-foreground disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <Table className="w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead
-                className={`${headerClass} ${compact ? "px-4 text-primary" : ""}`}
-              >
-                Name
+              <TableHead className={headerClass}>
+                <input
+                  type="checkbox"
+                  checked={
+                    currentProjects.length > 0 &&
+                    currentProjects.every(
+                      (p) => p.id && selectedProjects.has(p.id),
+                    )
+                  }
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+              </TableHead>
+              <TableHead className={`${headerClass} text-foreground`}>
+                Project
               </TableHead>
               <TableHead
-                className={`${headerClass} ${compact ? "px-4 hidden sm:table-cell text-primary" : ""}`}
+                className={`${headerClass} ${compact ? "px-4 hidden sm:table-cell" : ""} text-foreground`}
               >
-                Project ID
+                ID
               </TableHead>
               <TableHead
-                className={`${headerClass} ${compact ? "px-4 hidden md:table-cell text-primary" : ""}`}
+                className={`${headerClass} ${compact ? "px-4 hidden md:table-cell" : ""} text-foreground`}
               >
                 Created
               </TableHead>
               {!compact && (
-                <TableHead className={headerClass}>
-                  <span className="sr-only">Actions</span>
+                <>
+                  <TableHead className={`${headerClass} text-foreground`}>
+                    Messages
+                  </TableHead>
+                  <TableHead className={`${headerClass} text-foreground`}>
+                    Users
+                  </TableHead>
+                </>
+              )}
+              {!compact && (
+                <TableHead className={`${headerClass} text-foreground`}>
+                  Actions
                 </TableHead>
               )}
             </TableRow>
@@ -99,17 +197,17 @@ export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
             {isLoading ? (
               <TableRow key="loading">
                 <TableCell
-                  colSpan={compact ? 3 : 4}
+                  colSpan={compact ? 4 : 7}
                   className={`text-center ${cellClass}`}
                 >
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-muted-foreground">Loading...</span>
+                    <span className="text-foreground">Loading...</span>
                   </div>
                 </TableCell>
               </TableRow>
             ) : hasProjects ? (
-              projects.map((project, index) => {
+              currentProjects.map((project, index) => {
                 const projectId = project.id || "";
                 const displayId =
                   compact && projectId
@@ -121,13 +219,26 @@ export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
                     key={projectId || `project-${index}`}
                     className="hover:bg-accent/5"
                   >
+                    <TableCell className={`${cellClass} w-4`}>
+                      <input
+                        type="checkbox"
+                        checked={
+                          projectId ? selectedProjects.has(projectId) : false
+                        }
+                        onChange={(e) =>
+                          projectId &&
+                          handleSelectProject(projectId, e.target.checked)
+                        }
+                        className="rounded border-gray-300"
+                      />
+                    </TableCell>
                     <TableCell
                       className={`${cellClass} font-medium ${compact ? "px-4" : ""}`}
                     >
                       {compact && projectId ? (
                         <Link
                           href={`/dashboard/${projectId}`}
-                          className="inline-flex items-center gap-1 text-foreground hover:text-primary transition-colors duration-100 group"
+                          className="inline-flex items-center gap-1 transition-colors duration-100 group"
                         >
                           <span className="group-hover:underline underline-offset-4">
                             {project.name}
@@ -143,7 +254,7 @@ export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
                     >
                       <div className="flex items-center gap-1">
                         <code
-                          className={`${compact ? "text-xs" : "text-sm"} bg-muted px-1.5 py-0.5 rounded`}
+                          className={`${compact ? "text-xs" : "text-sm"} bg-info text-info px-1.5 py-0.5 rounded`}
                         >
                           {displayId || "N/A"}
                         </code>
@@ -156,29 +267,32 @@ export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
                       </div>
                     </TableCell>
                     <TableCell
-                      className={`${cellClass} text-muted-foreground ${compact ? "px-4 hidden md:table-cell text-primary" : "text-sm"}`}
+                      className={`${cellClass} ${compact ? "px-4 hidden md:table-cell" : "text-sm"}`}
                     >
                       {formatDate(project.createdAt)}
                     </TableCell>
+                    {!compact && (
+                      <>
+                        <TableCell className={`${cellClass} text-sm`}>
+                          {project.messages}
+                        </TableCell>
+                        <TableCell className={`${cellClass} text-sm`}>
+                          {project.users}
+                        </TableCell>
+                      </>
+                    )}
                     {!compact && !isLoading && (
                       <TableCell className={cellClass}>
-                        <div className="flex justify-end items-center">
+                        <div className="flex items-center">
                           {projectId ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex items-center gap-1"
-                              asChild
+                            <Link
+                              href={`/dashboard/${projectId}`}
+                              className="hover:bg-accent rounded-md p-1"
                             >
-                              <Link href={`/dashboard/${projectId}`}>
-                                <span>Project Details</span>
-                                <ArrowRight className="h-4 w-4" />
-                              </Link>
-                            </Button>
+                              View
+                            </Link>
                           ) : (
-                            <span className="text-muted-foreground text-sm">
-                              No ID
-                            </span>
+                            <span className="text-sm">No ID</span>
                           )}
                         </div>
                       </TableCell>
@@ -189,7 +303,7 @@ export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
             ) : (
               <TableRow key="no-projects">
                 <TableCell
-                  colSpan={compact ? 3 : 4}
+                  colSpan={compact ? 4 : 7}
                   className={`text-center ${cellClass}`}
                 >
                   No projects found.
@@ -199,12 +313,6 @@ export function ProjectTable({ projects, compact = false }: ProjectTableProps) {
           </TableBody>
         </Table>
       </div>
-      {!compact && !isLoading && (
-        <div className="py-3 px-4 text-sm text-muted-foreground border-t">
-          {projects ? projects.length : 0} project
-          {projects && projects.length !== 1 ? "s" : ""}
-        </div>
-      )}
     </div>
   );
 }

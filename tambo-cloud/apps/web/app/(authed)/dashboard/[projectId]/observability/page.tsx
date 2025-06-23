@@ -1,17 +1,18 @@
 "use client";
 
-import { ThreadList } from "@/components/thread/thread-list";
-import { ThreadMessages } from "@/components/thread/thread-messages";
+import { ThreadMessagesModal } from "@/components/observability/messages/thread-messages-modal";
+import { ThreadTable } from "@/components/observability/thread-table/thread-table";
+import { calculateThreadStats } from "@/components/observability/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import { api } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
-import { use, useEffect, useId, useState } from "react";
+import { use, useEffect, useState } from "react";
+
+type MessageType = ThreadType["messages"][0];
+type ThreadType = RouterOutputs["thread"]["getThread"];
 
 interface ProjectPageProps {
   params: Promise<{
@@ -31,21 +32,13 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.5 },
-  },
-};
-
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { projectId } = use(params);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const { toast } = useToast();
-  const [showInternalMessages, setShowInternalMessages] = useState(false);
-  const checkboxId = useId();
+  const [isMessagesModalOpen, setIsMessagesModalOpen] = useState(false);
+  const utils = api.useUtils();
+
   // Fetch project details
   const { data: project, isLoading: isLoadingProject } =
     api.project.getUserProjects.useQuery(undefined, {
@@ -54,48 +47,44 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   // Fetch threads for the project
   const {
-    data: threads,
+    data: threadData,
     isLoading: isLoadingThreads,
     error: threadsError,
     refetch: refetchThreads,
-  } = api.thread.getThreads.useQuery({ projectId });
-
-  const simpleThreads = threads?.map((thread) => ({
-    id: thread.id,
+    isFetching: isFetchingThreads,
+  } = api.thread.getThreads.useQuery({
     projectId,
-    createdAt: thread.createdAt.toLocaleString(),
-    updatedAt: thread.updatedAt.toLocaleString(),
-  }));
+    offset: 0,
+    limit: 100,
+  });
+
+  // Extract threads and total count
+  const threads = threadData?.threads || [];
 
   // Fetch selected thread details
-  const {
-    data: selectedThread,
-    error: threadError,
-    isFetching,
-    refetch,
-  } = api.thread.getThread.useQuery(
-    {
-      threadId: selectedThreadId!,
-      projectId,
-      includeInternal: showInternalMessages,
-    },
-    {
-      enabled: !!selectedThreadId,
-      placeholderData: (prev, prevQuery) => {
-        if (!prevQuery) return undefined;
-        const { input } = prevQuery.queryKey[1];
-        if (
-          input.threadId === selectedThreadId &&
-          input.projectId === projectId
-        ) {
-          return prev;
-        }
-        return undefined;
+  const { data: selectedThread, error: threadError } =
+    api.thread.getThread.useQuery(
+      {
+        threadId: selectedThreadId!,
+        projectId,
+        includeInternal: true,
       },
-    },
-  );
+      {
+        enabled: !!selectedThreadId,
+        placeholderData: (prev, prevQuery) => {
+          if (!prevQuery) return undefined;
+          const { input } = prevQuery.queryKey[1];
+          if (
+            input.threadId === selectedThreadId &&
+            input.projectId === projectId
+          ) {
+            return prev;
+          }
+          return undefined;
+        },
+      },
+    );
 
-  // Handle errors with useEffect
   useEffect(() => {
     if (threadsError) {
       toast({
@@ -115,6 +104,47 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       });
     }
   }, [threadError, toast]);
+
+  const handleViewMessages = (threadId: string) => {
+    setSelectedThreadId(threadId);
+    setIsMessagesModalOpen(true);
+  };
+
+  const handleThreadsDeleted = async () => {
+    await utils.thread.getThreads.invalidate({ projectId });
+  };
+
+  const handleRefresh = async () => {
+    try {
+      await refetchThreads();
+      toast({
+        title: "Refreshed",
+        description: "Threads have been refreshed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to refresh threads ${error}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formattedThreads = threads.map((thread) => {
+    const stats = calculateThreadStats(
+      (thread.messages as MessageType[]) || [],
+    );
+    return {
+      id: thread.id,
+      name: thread.name || null,
+      createdAt: thread.createdAt.toLocaleString(),
+      contextKey: thread.contextKey || "user_context_key",
+      messages: thread.messages?.length || 0,
+      tools: stats.tools,
+      components: stats.components,
+      errors: stats.errors,
+    };
+  });
 
   if (isLoadingProject) {
     return (
@@ -136,80 +166,46 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <motion.div
-      className="flex flex-col h-[calc(100vh-var(--header-height)-8rem)] overflow-hidden"
+      className="flex flex-col h-[calc(100vh-var(--header-height)-8rem)] overflow-hidden py-2 px-2"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Main Content Area */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 h-full overflow-hidden">
-        {/* Thread List */}
-        <motion.div
-          className="border rounded-lg p-4 flex flex-col h-full overflow-hidden"
-          variants={itemVariants}
+      {/* Header with refresh button */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-4xl font-semibold min-h-[3.5rem] flex items-center">
+          Threads
+        </h1>
+        <Button
+          onClick={handleRefresh}
+          disabled={isFetchingThreads}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
         >
-          <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h2 className="text-lg font-semibold">Threads</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async () => await refetchThreads()}
-              disabled={isLoadingThreads}
-            >
-              <RefreshCw
-                className={cn("h-4 w-4", isLoadingThreads && "animate-spin")}
-              />
-            </Button>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            <ThreadList
-              threads={simpleThreads || []}
-              selectedThreadId={selectedThreadId}
-              onThreadSelect={setSelectedThreadId}
-              isLoading={isLoadingThreads}
-            />
-          </div>
-        </motion.div>
-
-        {/* Thread Messages */}
-        <motion.div
-          className="border rounded-lg p-4 flex flex-col h-full overflow-hidden"
-          variants={itemVariants}
-        >
-          <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h2 className="text-lg font-semibold">Messages</h2>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={showInternalMessages}
-                onCheckedChange={(checked) =>
-                  setShowInternalMessages(!!checked)
-                }
-                id={checkboxId}
-              />
-              <Label htmlFor={checkboxId}>Show internal messages</Label>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => await refetch()}
-                disabled={!selectedThreadId}
-              >
-                <RefreshCw
-                  className={cn("h-4 w-4", isFetching && "animate-spin")}
-                />
-              </Button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {selectedThread ? (
-              <ThreadMessages thread={selectedThread} />
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                Select a thread to view messages
-              </p>
-            )}
-          </div>
-        </motion.div>
+          <RefreshCw
+            className={`h-4 w-4 ${isFetchingThreads ? "animate-spin" : ""}`}
+          />
+        </Button>
       </div>
+
+      <div className="flex-1 overflow-hidden">
+        <ThreadTable
+          threads={formattedThreads}
+          onViewMessages={handleViewMessages}
+          isLoading={isLoadingThreads}
+          projectId={projectId}
+          onThreadsDeleted={handleThreadsDeleted}
+        />
+      </div>
+
+      {selectedThread && (
+        <ThreadMessagesModal
+          thread={selectedThread}
+          isOpen={isMessagesModalOpen}
+          onClose={() => setIsMessagesModalOpen(false)}
+        />
+      )}
     </motion.div>
   );
 }

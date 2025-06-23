@@ -382,12 +382,7 @@ export function ToolAuthDialog({
   );
 }
 
-function EnabledAppRow({
-  app,
-  projectId,
-  onDisable,
-  onUpdateAuth,
-}: EnabledAppRowProps) {
+function EnabledAppRow({ app, projectId, onDisable }: EnabledAppRowProps) {
   const [authDialogOpen, setAuthDialogOpen] = React.useState(false);
 
   return (

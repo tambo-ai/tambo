@@ -44,7 +44,7 @@ export function APIKeyDialog({
             value={apiKey}
             className="font-mono text-sm bg-white dark:bg-gray-800"
           />
-          <p className="text-xs font-sans text-muted-foreground">
+          <p className="text-xs font-sans text-foreground">
             Make sure to copy this key now. You won&apos;t be able to see it
             again!
           </p>

@@ -1,9 +1,9 @@
 "use client";
 
-import { CreateProjectDialog } from "@/components/cli-auth/CreateProjectDialog";
-import { KeyStep } from "@/components/cli-auth/KeyStep";
-import { ProgressIndicator } from "@/components/cli-auth/ProgressIndicator";
-import { ProjectStep } from "@/components/cli-auth/ProjectStep";
+import { CreateProjectDialog } from "@/components/cli-auth/create-project-dialog";
+import { KeyStep } from "@/components/cli-auth/key-step";
+import { ProgressIndicator } from "@/components/cli-auth/progress-indicator";
+import { ProjectStep } from "@/components/cli-auth/project-step";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/hooks/auth";
 import { useCountdownTimer } from "@/hooks/useCountdownTimer";
