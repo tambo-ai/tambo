@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.67.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.66.0...repo-v0.67.0) (2025-06-23)
+
+
+### Features
+
+* **logs:** implement per-project logs table, API, dashboard alerts, and backend instrumentation ([#1164](https://github.com/tambo-ai/tambo-cloud/issues/1164)) ([1d8b6a6](https://github.com/tambo-ai/tambo-cloud/commit/1d8b6a6a697a9f2b03a4d4752e804110884af46e))
+* start returning mcpAccessToken in response to advance ([#1150](https://github.com/tambo-ai/tambo-cloud/issues/1150)) ([6511a30](https://github.com/tambo-ai/tambo-cloud/commit/6511a301a18421d732bc02f7a10ef56ee5d18f87))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @next/eslint-plugin-next from 15.3.3 to 15.3.4 ([#1203](https://github.com/tambo-ai/tambo-cloud/issues/1203)) ([89cb03e](https://github.com/tambo-ai/tambo-cloud/commit/89cb03e5364c6dac32792e60f04fbc586be313fe))
+* **deps:** bump @supabase/supabase-js from 2.49.9 to 2.50.0 ([#1207](https://github.com/tambo-ai/tambo-cloud/issues/1207)) ([223fd29](https://github.com/tambo-ai/tambo-cloud/commit/223fd2917f2be4813440303705768a814c182d7e))
+* **deps:** bump @tambo-ai/react from 0.31.3 to 0.32.0 ([#1206](https://github.com/tambo-ai/tambo-cloud/issues/1206)) ([89bdfb7](https://github.com/tambo-ai/tambo-cloud/commit/89bdfb7e6978902be0b935acd6329f371b9f8865))
+* **deps:** bump @tanstack/react-query from 5.80.10 to 5.81.2 ([#1205](https://github.com/tambo-ai/tambo-cloud/issues/1205)) ([23a246f](https://github.com/tambo-ai/tambo-cloud/commit/23a246f24b39b8b8bcef9f943ee0913b91a805b3))
+* **deps:** bump framer-motion from 12.15.0 to 12.18.1 ([#1188](https://github.com/tambo-ai/tambo-cloud/issues/1188)) ([12d96f8](https://github.com/tambo-ai/tambo-cloud/commit/12d96f84ed5c6b7e2bd48ff463d2100d08b3e6fd))
+* **deps:** bump lucide-react from 0.513.0 to 0.522.0 ([#1200](https://github.com/tambo-ai/tambo-cloud/issues/1200)) ([e67787c](https://github.com/tambo-ai/tambo-cloud/commit/e67787c2fcb4868ad5667012228e5740e4f32b12))
+* **deps:** bump next from 15.3.3 to 15.3.4 ([#1208](https://github.com/tambo-ai/tambo-cloud/issues/1208)) ([8c1aafe](https://github.com/tambo-ai/tambo-cloud/commit/8c1aafe23900facb992865f8b16dc2b7736f3503))
+* **deps:** bump pg from 8.16.0 to 8.16.2 ([#1204](https://github.com/tambo-ai/tambo-cloud/issues/1204)) ([03ebc41](https://github.com/tambo-ai/tambo-cloud/commit/03ebc410f40140ac91611151250f9ffaf7b8ba74))
+* **deps:** bump posthog-js from 1.255.0 to 1.255.1 ([#1201](https://github.com/tambo-ai/tambo-cloud/issues/1201)) ([6c96b81](https://github.com/tambo-ai/tambo-cloud/commit/6c96b8189175bb93e5d04920dd0ec1cfea83011d))
+
 ## [0.66.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.65.0...repo-v0.66.0) (2025-06-19)
 
 
