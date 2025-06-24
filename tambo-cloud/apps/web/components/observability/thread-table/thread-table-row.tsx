@@ -71,8 +71,8 @@ export const ThreadRow = memo(
 
         <TableCell className="py-2 text-sm px-4 hidden sm:table-cell">
           <div className="flex items-center gap-1">
-            <code className="text-xs bg-info text-info px-1.5 py-0.5 rounded">
-              {thread.id?.slice(0, 8) || "N/A"}...
+            <code className="text-xs bg-info text-info px-1.5 py-0.5 rounded text-ellipsis overflow-hidden max-w-28 whitespace-nowrap">
+              {thread.id || "N/A"}
             </code>
             <CopyButton clipboardValue={thread.id || ""} className="h-6 w-6" />
           </div>

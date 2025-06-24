@@ -12,7 +12,7 @@ import { MCPTransport } from "@tambo-ai-cloud/core";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { Check, Info, Loader2 } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { McpServerToolsDialog } from "./mcp-server-tools-dialog";
 
@@ -115,14 +115,12 @@ export function McpServerEditor({
     }
   };
   const trimmedUrl = url.trim();
-  const customHeaders = useMemo(() => {
-    const trimmedHeaderName = headerName.trim();
-    const headers: Record<string, string> = {};
-    if (trimmedHeaderName) {
-      headers[trimmedHeaderName] = headerValue;
-    }
-    return headers;
-  }, [headerName, headerValue]);
+
+  const trimmedHeaderName = headerName.trim();
+  const customHeaders: Record<string, string> = {};
+  if (trimmedHeaderName) {
+    customHeaders[trimmedHeaderName] = headerValue;
+  }
 
   const {
     mutate: handleSave,

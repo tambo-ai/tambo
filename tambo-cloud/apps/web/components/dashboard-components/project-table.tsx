@@ -167,12 +167,16 @@ export function ProjectTable({
                 Project
               </TableHead>
               <TableHead
-                className={`${headerClass} ${compact ? "px-4 hidden sm:table-cell" : ""} text-foreground`}
+                className={`${headerClass} ${
+                  compact ? "px-4 hidden sm:table-cell" : ""
+                } text-foreground`}
               >
                 ID
               </TableHead>
               <TableHead
-                className={`${headerClass} ${compact ? "px-4 hidden md:table-cell" : ""} text-foreground`}
+                className={`${headerClass} ${
+                  compact ? "px-4 hidden md:table-cell" : ""
+                } text-foreground`}
               >
                 Created
               </TableHead>
@@ -209,10 +213,6 @@ export function ProjectTable({
             ) : hasProjects ? (
               currentProjects.map((project, index) => {
                 const projectId = project.id || "";
-                const displayId =
-                  compact && projectId
-                    ? projectId.slice(0, 8) + "..."
-                    : projectId;
 
                 return (
                   <TableRow
@@ -233,7 +233,9 @@ export function ProjectTable({
                       />
                     </TableCell>
                     <TableCell
-                      className={`${cellClass} font-medium ${compact ? "px-4" : ""}`}
+                      className={`${cellClass} font-medium ${
+                        compact ? "px-4" : ""
+                      }`}
                     >
                       {compact && projectId ? (
                         <Link
@@ -250,13 +252,17 @@ export function ProjectTable({
                       )}
                     </TableCell>
                     <TableCell
-                      className={`${cellClass} ${compact ? "px-4 hidden sm:table-cell" : ""}`}
+                      className={`${cellClass} ${
+                        compact ? "px-4 hidden sm:table-cell" : ""
+                      }`}
                     >
                       <div className="flex items-center gap-1">
                         <code
-                          className={`${compact ? "text-xs" : "text-sm"} bg-info text-info px-1.5 py-0.5 rounded`}
+                          className={`${
+                            compact ? "text-xs" : "text-sm"
+                          } bg-info text-info px-1.5 py-0.5 rounded text-ellipsis overflow-hidden whitespace-nowrap max-w-28`}
                         >
-                          {displayId || "N/A"}
+                          {projectId || "N/A"}
                         </code>
                         {projectId && (
                           <CopyButton
@@ -267,7 +273,9 @@ export function ProjectTable({
                       </div>
                     </TableCell>
                     <TableCell
-                      className={`${cellClass} ${compact ? "px-4 hidden md:table-cell" : "text-sm"}`}
+                      className={`${cellClass} ${
+                        compact ? "px-4 hidden md:table-cell" : "text-sm"
+                      }`}
                     >
                       {formatDate(project.createdAt)}
                     </TableCell>

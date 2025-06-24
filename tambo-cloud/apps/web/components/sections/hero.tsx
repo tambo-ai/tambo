@@ -93,7 +93,7 @@ function HeroIllustration() {
   const [videoError, setVideoError] = React.useState(false);
 
   React.useEffect(() => {
-    // Simple Safari detection
+    // Simple Safari detection - must run in browser, so must be in useEffect
     const isSafariBrowser =
       /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
       /iPad|iPhone|iPod/.test(navigator.userAgent);

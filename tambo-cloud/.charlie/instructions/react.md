@@ -28,6 +28,7 @@ Use flexbox for layout using Tailwind's flex utilities like `flex` and `flex-col
 - Avoid using margin utilities (`m-{size}`)
 - Use minimal custom CSS properties, preferring Tailwind's utility classes.
 - Use the minimal amount of Tailwind classes to style components.
+- For overflowing text, use css to truncate the text with ellipsis (`text-ellipsis`)
 
 When flexbox is not enough, use Tailwind's grid utilities like `grid` and `grid-cols-{n}`.
 

@@ -67,9 +67,8 @@ export function ProjectsManager({
     return new Set(projects?.map((p) => p.id) || []);
   }, [projects]);
 
-  const allSelected = useMemo(() => {
-    return projects?.length === selectedProjects.size;
-  }, [projects?.length, selectedProjects.size]);
+  // Simple boolean calculation - no need for useMemo
+  const allSelected = projects?.length === selectedProjects.size;
 
   // Handler for select/deselect all
   const handleToggleSelectAll = () => {

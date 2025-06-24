@@ -78,19 +78,13 @@ export default function HeroVideoDialog({
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [videoError, setVideoError] = useState(false);
-  const [currentVideoSrc, setCurrentVideoSrc] = useState(videoSrc);
   const videoRef = useRef<HTMLVideoElement>(null);
   const selectedAnimation = animationVariants[animationStyle];
   const { theme: systemTheme } = useTheme();
 
-  useEffect(() => {
-    const effectiveTheme = theme === "system" ? systemTheme : theme;
-    const newVideoSrc =
-      effectiveTheme === "dark" && darkModeVideoSrc
-        ? darkModeVideoSrc
-        : videoSrc;
-    setCurrentVideoSrc(newVideoSrc);
-  }, [systemTheme, theme, videoSrc, darkModeVideoSrc]);
+  const effectiveTheme = theme === "system" ? systemTheme : theme;
+  const currentVideoSrc =
+    effectiveTheme === "dark" && darkModeVideoSrc ? darkModeVideoSrc : videoSrc;
 
   // Auto-play muted on mount
   useEffect(() => {
