@@ -340,7 +340,7 @@ export async function addInProgressMessage(
           content: [
             {
               type: ContentPartType.Text,
-              text: "streaming in progress...",
+              text: "",
             },
           ],
         });

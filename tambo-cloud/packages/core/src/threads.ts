@@ -143,6 +143,7 @@ export enum GenerationStage {
   STREAMING_RESPONSE = "STREAMING_RESPONSE",
   COMPLETE = "COMPLETE",
   ERROR = "ERROR",
+  CANCELLED = "CANCELLED",
 }
 
 export interface Thread {
