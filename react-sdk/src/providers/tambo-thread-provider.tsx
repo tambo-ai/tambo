@@ -49,6 +49,8 @@ export interface TamboThreadContextProps {
     message: TamboThreadMessage,
     sendToServer: boolean,
   ) => Promise<void>;
+  /** Cancel a thread */
+  cancel: (threadId?: string) => Promise<void>;
   /** The input value of the current thread */
   inputValue: string;
   /** Whether the thread is streaming */
@@ -144,6 +146,9 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   generationStage: GenerationStage.IDLE,
   generationStatusMessage: "",
   isIdle: true,
+  cancel: () => {
+    throw new Error("cancel not implemented");
+  },
 });
 
 export interface TamboThreadProviderProps {
@@ -439,6 +444,30 @@ export const TamboThreadProvider: React.FC<
     [],
   );
 
+  const cancel = useCallback(
+    async (threadId?: string) => {
+      threadId ??= currentThreadId;
+      if (threadId === PLACEHOLDER_THREAD.id) {
+        console.warn("Cannot cancel placeholder thread, may be a bug.");
+        return;
+      }
+      await client.beta.threads.cancel(threadId);
+      setThreadMap((prevMap) => {
+        if (!prevMap[threadId]) {
+          return prevMap;
+        }
+        return {
+          ...prevMap,
+          [threadId]: {
+            ...prevMap[threadId],
+            generationStage: GenerationStage.IDLE,
+          },
+        };
+      });
+    },
+    [client.beta.threads, currentThreadId],
+  );
+
   const handleAdvanceStream = useCallback(
     async (
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
@@ -727,6 +756,7 @@ export const TamboThreadProvider: React.FC<
           (currentThread?.generationStage ??
             GenerationStage.IDLE) as GenerationStage,
         ),
+        cancel,
       }}
     >
       {children}
