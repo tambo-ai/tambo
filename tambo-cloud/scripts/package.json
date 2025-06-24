@@ -2,7 +2,6 @@
   "name": "@tambo-ai-cloud/scripts",
   "private": true,
   "scripts": {
-    "test:suggestions": "tsx test-suggestions.ts",
     "github:stars": "tsx get-github-stars.ts"
   },
   "dependencies": {

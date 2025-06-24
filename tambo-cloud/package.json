@@ -19,7 +19,6 @@
     "db:migrate": "cd packages/db && npm run db:migrate",
     "db:check": "cd packages/db && npm run db:check",
     "db:studio": "cd packages/db && npm run db:studio",
-    "test:suggestions": "cd scripts && tsx test-suggestions.ts",
     "rename-to-tambo": "tsx scripts/update-content.ts && tsx scripts/rename-files.ts",
     "rename-vnext": "tsx scripts/rename-vnext.ts"
   },
