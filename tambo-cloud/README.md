@@ -100,7 +100,6 @@ If you prefer to set things up manually, follow these steps:
 2. **Environment Setup**:
 
    Create `.env` files in the following locations using their respective `.env.example` templates:
-
    - `apps/api/.env`
    - `apps/web/.env.local`
    - `packages/db/.env`
@@ -161,14 +160,12 @@ After setting up your local environment, configure your Tambo API key:
    ```
 
 2. Get your API key:
-
    - Visit: `http://localhost:3000/dashboard`
    - Login with your credentials
    - Create a new project
    - Generate your API key
 
 3. Configure the API key:
-
    - Add the key to `apps/web/.env.local`:
 
    ```bash

@@ -78,13 +78,11 @@ The following terms are preserved and not renamed:
 If you encounter issues:
 
 1. Package resolution errors:
-
    - Ensure new packages are published to npm
    - Update package.json dependencies to use correct versions
    - Clean and reinstall node_modules
 
 2. Linting errors:
-
    - Run `npm run lint:fix`
    - Check eslint configs are properly linked
 

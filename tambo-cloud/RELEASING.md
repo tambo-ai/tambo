@@ -66,7 +66,6 @@ In general, the process is as follows for any repo:
 ### Stainless Studio
 
 - If you want to jump the gun and try out a local version of the Hydra API before an official release:
-
   1. Grab the OpenAPI spec from your local build:
 
      ```
