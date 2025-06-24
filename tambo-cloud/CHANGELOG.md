@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.69.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.68.0...repo-v0.69.0) (2025-06-24)
+
+
+### Features
+
+* Add thread cancellation route and logic ([#1216](https://github.com/tambo-ai/tambo-cloud/issues/1216)) ([d71340a](https://github.com/tambo-ai/tambo-cloud/commit/d71340a7530e8fa6b53dd49047ff5c853d4069c8))
+* remove all composio stuff ([#1212](https://github.com/tambo-ai/tambo-cloud/issues/1212)) ([1a6e9dd](https://github.com/tambo-ai/tambo-cloud/commit/1a6e9dd25fe881d936b1316fa00c374777619063))
+
+
+### Bug Fixes
+
+* project/thread id truncation, and then a few other random bits ([#1215](https://github.com/tambo-ai/tambo-cloud/issues/1215)) ([6fe7566](https://github.com/tambo-ai/tambo-cloud/commit/6fe756669219c20d83af35eb0c5502e0778791c3))
+
 ## [0.68.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.67.1...repo-v0.68.0) (2025-06-23)
 
 
