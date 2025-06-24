@@ -15,14 +15,12 @@ A react component library for [tambo ai](https://tambo.co).
 #### Message Components
 
 - **Full UI**
-
   - `MessageThreadCollapsible`: A collapsible message thread component
   - `MessageThreadFull`: Full version of the message thread
   - `MessageThreadPanel`: Panel version of the message thread
   - `ControlBar`: Control bar component
 
 - **Message Thread Components**
-
   - `ThreadContent`: Content container for message threads
   - `ThreadList`: List of message threads
   - `ThreadHistory`: Historical view of message threads
