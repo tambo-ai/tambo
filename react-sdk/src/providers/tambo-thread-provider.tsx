@@ -8,6 +8,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -174,7 +175,8 @@ export const TamboThreadProvider: React.FC<
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
   const [inputValue, setInputValue] = useState("");
-
+  const [ignoreToolResponse, setIgnoreToolResponse] = useState(false);
+  const ignoreToolResponseRef = useRef(ignoreToolResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
     PLACEHOLDER_THREAD.id,
   );
@@ -190,6 +192,10 @@ export const TamboThreadProvider: React.FC<
     }
     return messageCache;
   }, [currentThread]);
+
+  useEffect(() => {
+    ignoreToolResponseRef.current = ignoreToolResponse;
+  }, [ignoreToolResponse]);
 
   const fetchThread = useCallback(
     async (threadId: string) => {
@@ -452,6 +458,7 @@ export const TamboThreadProvider: React.FC<
         return;
       }
       await client.beta.threads.cancel(threadId);
+      setIgnoreToolResponse(true);
       setThreadMap((prevMap) => {
         if (!prevMap[threadId]) {
           return prevMap;
@@ -460,7 +467,7 @@ export const TamboThreadProvider: React.FC<
           ...prevMap,
           [threadId]: {
             ...prevMap[threadId],
-            generationStage: GenerationStage.IDLE,
+            generationStage: GenerationStage.CANCELLED,
           },
         };
       });
@@ -484,10 +491,24 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId,
             GenerationStage.FETCHING_CONTEXT,
           );
+
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
           );
+          if (ignoreToolResponseRef.current) {
+            setIgnoreToolResponse(false);
+            {
+              return {
+                threadId: threadId,
+                content: [{ type: "text", text: "" }],
+                role: "assistant",
+                createdAt: new Date().toISOString(),
+                id: crypto.randomUUID(),
+                componentState: {},
+              };
+            }
+          }
           const toolCallResponseString =
             typeof toolCallResponse.result === "string"
               ? toolCallResponse.result
@@ -607,6 +628,7 @@ export const TamboThreadProvider: React.FC<
         contextKey?: string;
       } = {},
     ): Promise<TamboThreadMessage> => {
+      setIgnoreToolResponse(false);
       const {
         threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
         streamResponse = streaming,
