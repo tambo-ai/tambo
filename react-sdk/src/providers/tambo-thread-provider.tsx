@@ -197,6 +197,15 @@ export const TamboThreadProvider: React.FC<
     ignoreToolResponseRef.current = ignoreToolResponse;
   }, [ignoreToolResponse]);
 
+  const isIdle = useMemo(
+    () =>
+      isIdleStage(
+        (currentThread?.generationStage ??
+          GenerationStage.IDLE) as GenerationStage,
+      ),
+    [currentThread?.generationStage],
+  );
+
   const fetchThread = useCallback(
     async (threadId: string) => {
       const thread = await client.beta.threads.retrieve(threadId);
@@ -457,6 +466,9 @@ export const TamboThreadProvider: React.FC<
         console.warn("Cannot cancel placeholder thread, may be a bug.");
         return;
       }
+      if (isIdle) {
+        return;
+      }
       await client.beta.threads.cancel(threadId);
       setIgnoreToolResponse(true);
       setThreadMap((prevMap) => {
@@ -472,7 +484,7 @@ export const TamboThreadProvider: React.FC<
         };
       });
     },
-    [client.beta.threads, currentThreadId],
+    [client.beta.threads, currentThreadId, isIdle],
   );
 
   const handleAdvanceStream = useCallback(
@@ -774,10 +786,7 @@ export const TamboThreadProvider: React.FC<
         generationStage: (currentThread?.generationStage ??
           GenerationStage.IDLE) as GenerationStage,
         generationStatusMessage: currentThread?.statusMessage ?? "",
-        isIdle: isIdleStage(
-          (currentThread?.generationStage ??
-            GenerationStage.IDLE) as GenerationStage,
-        ),
+        isIdle,
         cancel,
       }}
     >
