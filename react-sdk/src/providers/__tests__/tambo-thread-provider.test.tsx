@@ -68,6 +68,7 @@ const createMockAdvanceResponse = (
     createdAt: new Date().toISOString(),
   },
   generationStage: GenerationStage.COMPLETE,
+  mcpAccessToken: "test-mcp-access-token",
   ...overrides,
 });
 
@@ -231,6 +232,7 @@ describe("TamboThreadProvider", () => {
         createdAt: new Date().toISOString(),
       },
       generationStage: GenerationStage.COMPLETE,
+      mcpAccessToken: "test-mcp-access-token",
     };
 
     jest
@@ -280,6 +282,7 @@ describe("TamboThreadProvider", () => {
         createdAt: new Date().toISOString(),
       },
       generationStage: GenerationStage.COMPLETE,
+      mcpAccessToken: "test-mcp-access-token",
     };
 
     // Create an async iterator mock
@@ -319,6 +322,7 @@ describe("TamboThreadProvider", () => {
         createdAt: new Date().toISOString(),
       },
       generationStage: GenerationStage.COMPLETE,
+      mcpAccessToken: "test-mcp-access-token",
     };
 
     jest
@@ -334,6 +338,7 @@ describe("TamboThreadProvider", () => {
           createdAt: new Date().toISOString(),
         },
         generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
       });
 
     const { result } = renderHook(() => useTamboThread(), { wrapper });
@@ -374,6 +379,7 @@ describe("TamboThreadProvider", () => {
           createdAt: new Date().toISOString(),
         },
         generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
       };
 
       const mockAsyncIterator = {
@@ -518,6 +524,7 @@ describe("TamboThreadProvider", () => {
           createdAt: new Date().toISOString(),
         },
         generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
       };
 
       const mockAsyncIterator = {
@@ -626,6 +633,7 @@ describe("TamboThreadProvider", () => {
           createdAt: new Date().toISOString(),
         },
         generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
       };
 
       const mockAsyncIterator = {

@@ -8,6 +8,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -49,6 +50,8 @@ export interface TamboThreadContextProps {
     message: TamboThreadMessage,
     sendToServer: boolean,
   ) => Promise<void>;
+  /** Cancel a thread */
+  cancel: (threadId?: string) => Promise<void>;
   /** The input value of the current thread */
   inputValue: string;
   /** Whether the thread is streaming */
@@ -144,6 +147,9 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   generationStage: GenerationStage.IDLE,
   generationStatusMessage: "",
   isIdle: true,
+  cancel: () => {
+    throw new Error("cancel not implemented");
+  },
 });
 
 export interface TamboThreadProviderProps {
@@ -169,7 +175,8 @@ export const TamboThreadProvider: React.FC<
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
   const [inputValue, setInputValue] = useState("");
-
+  const [ignoreResponse, setIgnoreResopnse] = useState(false);
+  const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
     PLACEHOLDER_THREAD.id,
   );
@@ -185,6 +192,19 @@ export const TamboThreadProvider: React.FC<
     }
     return messageCache;
   }, [currentThread]);
+
+  useEffect(() => {
+    ignoreResponseRef.current = ignoreResponse;
+  }, [ignoreResponse]);
+
+  const isIdle = useMemo(
+    () =>
+      isIdleStage(
+        (currentThread?.generationStage ??
+          GenerationStage.IDLE) as GenerationStage,
+      ),
+    [currentThread?.generationStage],
+  );
 
   const fetchThread = useCallback(
     async (threadId: string) => {
@@ -439,12 +459,47 @@ export const TamboThreadProvider: React.FC<
     [],
   );
 
+  const cancel = useCallback(
+    async (threadId?: string) => {
+      threadId ??= currentThreadId;
+      if (isIdle) {
+        return;
+      }
+      setIgnoreResopnse(true);
+      setThreadMap((prevMap) => {
+        if (!prevMap[threadId]) {
+          return prevMap;
+        }
+        return {
+          ...prevMap,
+          [threadId]: {
+            ...prevMap[threadId],
+            generationStage: GenerationStage.CANCELLED,
+          },
+        };
+      });
+      await client.beta.threads.cancel(threadId);
+    },
+    [client.beta.threads, currentThreadId, isIdle],
+  );
+
   const handleAdvanceStream = useCallback(
     async (
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
     ): Promise<TamboThreadMessage> => {
+      if (ignoreResponseRef.current) {
+        setIgnoreResopnse(false);
+        return {
+          threadId: threadId,
+          content: [{ type: "text", text: "" }],
+          role: "assistant",
+          createdAt: new Date().toISOString(),
+          id: crypto.randomUUID(),
+          componentState: {},
+        };
+      }
       let finalMessage: Readonly<TamboThreadMessage> | undefined;
       let hasSetThreadId = false;
       updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
@@ -455,10 +510,24 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId,
             GenerationStage.FETCHING_CONTEXT,
           );
+
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
           );
+          if (ignoreResponseRef.current) {
+            setIgnoreResopnse(false);
+            {
+              return {
+                threadId: threadId,
+                content: [{ type: "text", text: "" }],
+                role: "assistant",
+                createdAt: new Date().toISOString(),
+                id: crypto.randomUUID(),
+                componentState: {},
+              };
+            }
+          }
           const toolCallResponseString =
             typeof toolCallResponse.result === "string"
               ? toolCallResponse.result
@@ -578,6 +647,7 @@ export const TamboThreadProvider: React.FC<
         contextKey?: string;
       } = {},
     ): Promise<TamboThreadMessage> => {
+      setIgnoreResopnse(false);
       const {
         threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
         streamResponse = streaming,
@@ -723,10 +793,8 @@ export const TamboThreadProvider: React.FC<
         generationStage: (currentThread?.generationStage ??
           GenerationStage.IDLE) as GenerationStage,
         generationStatusMessage: currentThread?.statusMessage ?? "",
-        isIdle: isIdleStage(
-          (currentThread?.generationStage ??
-            GenerationStage.IDLE) as GenerationStage,
-        ),
+        isIdle,
+        cancel,
       }}
     >
       {children}
