@@ -175,8 +175,8 @@ export const TamboThreadProvider: React.FC<
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
   const [inputValue, setInputValue] = useState("");
-  const [ignoreToolResponse, setIgnoreToolResponse] = useState(false);
-  const ignoreToolResponseRef = useRef(ignoreToolResponse);
+  const [ignoreResponse, setIgnoreResopnse] = useState(false);
+  const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
     PLACEHOLDER_THREAD.id,
   );
@@ -194,8 +194,8 @@ export const TamboThreadProvider: React.FC<
   }, [currentThread]);
 
   useEffect(() => {
-    ignoreToolResponseRef.current = ignoreToolResponse;
-  }, [ignoreToolResponse]);
+    ignoreResponseRef.current = ignoreResponse;
+  }, [ignoreResponse]);
 
   const isIdle = useMemo(
     () =>
@@ -462,15 +462,10 @@ export const TamboThreadProvider: React.FC<
   const cancel = useCallback(
     async (threadId?: string) => {
       threadId ??= currentThreadId;
-      if (threadId === PLACEHOLDER_THREAD.id) {
-        console.warn("Cannot cancel placeholder thread, may be a bug.");
-        return;
-      }
       if (isIdle) {
         return;
       }
-      await client.beta.threads.cancel(threadId);
-      setIgnoreToolResponse(true);
+      setIgnoreResopnse(true);
       setThreadMap((prevMap) => {
         if (!prevMap[threadId]) {
           return prevMap;
@@ -483,6 +478,7 @@ export const TamboThreadProvider: React.FC<
           },
         };
       });
+      await client.beta.threads.cancel(threadId);
     },
     [client.beta.threads, currentThreadId, isIdle],
   );
@@ -493,6 +489,17 @@ export const TamboThreadProvider: React.FC<
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
     ): Promise<TamboThreadMessage> => {
+      if (ignoreResponseRef.current) {
+        setIgnoreResopnse(false);
+        return {
+          threadId: threadId,
+          content: [{ type: "text", text: "" }],
+          role: "assistant",
+          createdAt: new Date().toISOString(),
+          id: crypto.randomUUID(),
+          componentState: {},
+        };
+      }
       let finalMessage: Readonly<TamboThreadMessage> | undefined;
       let hasSetThreadId = false;
       updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
@@ -508,8 +515,8 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto,
             toolRegistry,
           );
-          if (ignoreToolResponseRef.current) {
-            setIgnoreToolResponse(false);
+          if (ignoreResponseRef.current) {
+            setIgnoreResopnse(false);
             {
               return {
                 threadId: threadId,
@@ -640,7 +647,7 @@ export const TamboThreadProvider: React.FC<
         contextKey?: string;
       } = {},
     ): Promise<TamboThreadMessage> => {
-      setIgnoreToolResponse(false);
+      setIgnoreResopnse(false);
       const {
         threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
         streamResponse = streaming,
