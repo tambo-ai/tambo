@@ -38,6 +38,7 @@ export function MessageGenerationStage({
     STREAMING_RESPONSE: "Generating response",
     COMPLETE: "Complete",
     ERROR: "Error",
+    CANCELLED: "Cancelled",
   };
 
   const label =
