@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.33.0](https://github.com/tambo-ai/tambo/compare/react-v0.32.1...react-v0.33.0) (2025-06-26)
+
+
+### Features
+
+* add and expose `cancel` function to 'cancel' a generation ([#594](https://github.com/tambo-ai/tambo/issues/594)) ([661f31e](https://github.com/tambo-ai/tambo/commit/661f31ed3898e083e740f3975a6040966887324b))
+* Add cancellation UI ([#596](https://github.com/tambo-ai/tambo/issues/596)) ([97e7927](https://github.com/tambo-ai/tambo/commit/97e7927057c42dbb81e45a01215dc6043a107aac))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump prettier from 3.5.3 to 3.6.0 ([#591](https://github.com/tambo-ai/tambo/issues/591)) ([d678b2d](https://github.com/tambo-ai/tambo/commit/d678b2d8a64dd410ac95dd621614be24664f4447))
+
 ## [0.32.1](https://github.com/tambo-ai/tambo/compare/react-v0.32.0...react-v0.32.1) (2025-06-24)
 
 
