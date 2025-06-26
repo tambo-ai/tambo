@@ -1,17 +1,72 @@
-Do introduce configuration changes to prettier, eslint, or other developer tools unless it is explicitly requested.
+# General Guidelines for All Pull Requests
 
-Do not introduce new dependencies unless it is explicitly requested.
+Follow these rules whenever you open a PR in this repository.  
+Keep PRs focused, well-documented, and easy for reviewers to verify.
 
-Do not remove existing dependencies unless it is explicitly requested.
+---
 
-When creating PRs that fix GitHub issues, make sure to add "Fixes #123" to the PR description, replacing 123 with the actual issue number.
+## 1. Dependency, Lint, and Format Rules
 
-When creating PRs, use conventional commits. Most common tags:
+- **Do NOT** add, upgrade, or remove dependencies unless the task explicitly says so.
+- **Do NOT** change the configuration of tools such as Prettier, ESLint, or TypeScript unless the task explicitly says so.
+- Always run the Charlie quick-fix command before pushing:
 
-- feat: A new feature, specifically one that may introduce minor breaking changes
-- fix: A bug fix, specifically one that fixes a bug that may introduce breaking changes
-- chore: A change that doesn't fix a bug or add a feature, such as updating dependencies
-- refactor: A change that neither fixes a bug nor adds a feature, such as improving readability or performance
-- perf: A change that improves performance
-- test: A change that adds or modifies tests
-- docs: A change that adds or modifies documentation
+  ```bash
+  npx charlie fix
+  ```
+
+  This will execute:
+
+  ```bash
+  npm run lint -- --fix   # auto-fix eslint issues
+  npm run format          # run Prettier
+  ```
+
+---
+
+## 2. Conventional Commits
+
+Use the conventional-commits style in every commit message:
+
+- `feat:` for a new feature (may introduce breaking changes)
+- `fix:` for a bug fix (may introduce breaking changes)
+- `chore:` for changes that neither fix a bug nor add a feature (e.g. dependency bumps)
+- `refactor:` for internal code changes that neither fix bugs nor add features
+- `perf:` for performance improvements
+- `test:` for adding or updating tests
+- `docs:` for documentation-only changes
+
+---
+
+## 3. GitHub Issue References
+
+When a PR closes or fixes a GitHub issue, reference it in the description using the exact wording **`Fixes #<number>`**.  
+Example:
+
+```md
+Fixes #217
+```
+
+---
+
+## 4. Local Verification Checklist
+
+Run these commands locally and ensure they pass **before** opening or updating a PR:
+
+```bash
+# 1. Type-check the entire repo
+npm run check-types
+
+# 2. Lint & format (Charlie will auto-fix)
+npx charlie fix
+
+# 3. Run unit & integration tests
+npm test
+
+# 4. Verify database migrations build
+npm run drizzle:generate -- --schema packages/db/src/schema \
+  --out packages/db/migrations
+```
+
+The migrations output directory **must remain exactly**  
+`packages/db/migrations` so that CI can detect and apply new migrations automatically.
