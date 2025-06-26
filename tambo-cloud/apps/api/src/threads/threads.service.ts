@@ -241,6 +241,7 @@ export class ThreadsService {
         actionType: message.actionType ?? undefined,
         tool_call_id: message.toolCallId ?? undefined,
         error: message.error ?? undefined,
+        isCancelled: message.isCancelled,
       })),
     };
   }
@@ -410,6 +411,7 @@ export class ThreadsService {
       componentState: message.componentState ?? {},
       component: message.componentDecision as ComponentDecisionV2 | undefined,
       error: message.error ?? undefined,
+      isCancelled: message.isCancelled,
     }));
   }
 
