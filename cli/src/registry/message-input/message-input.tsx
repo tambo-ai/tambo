@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -294,23 +294,32 @@ const MessageInputSubmitButton = React.forwardRef<
   MessageInputSubmitButtonProps
 >(({ className, children, ...props }, ref) => {
   const { isPending } = useMessageInputContext();
+  const { cancel } = useTamboThread();
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    cancel();
+  };
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
 
   return (
     <button
       ref={ref}
-      type="submit"
-      disabled={isPending}
-      className={cn(
-        "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer",
-        className,
-      )}
-      aria-label="Send message"
-      data-slot="message-input-submit"
+      type={isPending ? "button" : "submit"}
+      onClick={isPending ? handleCancel : undefined}
+      className={buttonClasses}
+      aria-label={isPending ? "Cancel message" : "Send message"}
+      data-slot={isPending ? "message-input-cancel" : "message-input-submit"}
       {...props}
     >
       {children ??
         (isPending ? (
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+          <Square className="w-4 h-4" fill="currentColor" />
         ) : (
           <ArrowUp className="w-5 h-5" />
         ))}
