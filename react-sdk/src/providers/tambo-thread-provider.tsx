@@ -175,7 +175,7 @@ export const TamboThreadProvider: React.FC<
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
   const [inputValue, setInputValue] = useState("");
-  const [ignoreResponse, setIgnoreResopnse] = useState(false);
+  const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
     PLACEHOLDER_THREAD.id,
@@ -465,7 +465,7 @@ export const TamboThreadProvider: React.FC<
       if (isIdle) {
         return;
       }
-      setIgnoreResopnse(true);
+      setIgnoreResponse(true);
       setThreadMap((prevMap) => {
         if (!prevMap[threadId]) {
           return prevMap;
@@ -490,7 +490,7 @@ export const TamboThreadProvider: React.FC<
       threadId: string,
     ): Promise<TamboThreadMessage> => {
       if (ignoreResponseRef.current) {
-        setIgnoreResopnse(false);
+        setIgnoreResponse(false);
         return {
           threadId: threadId,
           content: [{ type: "text", text: "" }],
@@ -516,7 +516,7 @@ export const TamboThreadProvider: React.FC<
             toolRegistry,
           );
           if (ignoreResponseRef.current) {
-            setIgnoreResopnse(false);
+            setIgnoreResponse(false);
             {
               return {
                 threadId: threadId,
@@ -647,7 +647,7 @@ export const TamboThreadProvider: React.FC<
         contextKey?: string;
       } = {},
     ): Promise<TamboThreadMessage> => {
-      setIgnoreResopnse(false);
+      setIgnoreResponse(false);
       const {
         threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
         streamResponse = streaming,
