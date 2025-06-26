@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.70.0...repo-v0.71.0) (2025-06-26)
+
+
+### Features
+
+* make sure to return isCancelled field with message types ([#1231](https://github.com/tambo-ai/tambo-cloud/issues/1231)) ([8454e13](https://github.com/tambo-ai/tambo-cloud/commit/8454e13fa652ec0f2e67191beb1556fc5099228a))
+
 ## [0.70.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.69.0...repo-v0.70.0) (2025-06-26)
 
 
