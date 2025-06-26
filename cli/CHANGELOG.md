@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.17.1...tambo-v0.18.0) (2025-06-26)
+
+
+### Features
+
+* add and expose `cancel` function to 'cancel' a generation ([#594](https://github.com/tambo-ai/tambo/issues/594)) ([661f31e](https://github.com/tambo-ai/tambo/commit/661f31ed3898e083e740f3975a6040966887324b))
+* Add cancellation UI ([#596](https://github.com/tambo-ai/tambo/issues/596)) ([97e7927](https://github.com/tambo-ai/tambo/commit/97e7927057c42dbb81e45a01215dc6043a107aac))
+
 ## [0.17.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.17.0...tambo-v0.17.1) (2025-06-19)
 
 
