@@ -272,6 +272,7 @@ describe("Thread State", () => {
         metadata: null,
         toolCallRequest: null,
         error: null,
+        isCancelled: false,
       });
 
       const result = await finishInProgressMessage(

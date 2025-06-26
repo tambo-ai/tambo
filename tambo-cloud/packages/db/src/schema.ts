@@ -280,7 +280,7 @@ export const threads = pgTable(
   },
 );
 export type DBThread = typeof threads.$inferSelect;
-export const messages = pgTable("messages", ({ text, timestamp }) => ({
+export const messages = pgTable("messages", ({ text, timestamp, boolean }) => ({
   id: text("id")
     .primaryKey()
     .notNull()
@@ -302,6 +302,7 @@ export const messages = pgTable("messages", ({ text, timestamp }) => ({
   }),
   error: text("error"),
   metadata: customJsonb<Record<string, unknown>>("metadata"),
+  isCancelled: boolean("is_cancelled").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`clock_timestamp()`)
     .notNull(),

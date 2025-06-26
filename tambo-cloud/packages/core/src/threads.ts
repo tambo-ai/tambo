@@ -109,6 +109,8 @@ export interface ThreadMessage {
 
   /** Additional metadata for the message */
   metadata?: Record<string, unknown>;
+  /** Whether the message has been cancelled */
+  isCancelled?: boolean;
   /** Timestamp when the message was created */
   createdAt: Date;
 
@@ -129,6 +131,7 @@ export interface InternalThreadMessage {
   actionType?: ActionType;
   toolCallRequest?: Partial<ToolCallRequest>;
   tool_call_id?: string;
+  isCancelled?: boolean;
 }
 
 /**

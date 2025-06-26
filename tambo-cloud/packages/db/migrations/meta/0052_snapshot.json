@@ -1,6 +1,6 @@
 {
-  "id": "e8b153d7-3693-474a-ac0e-68ffa211af1b",
-  "prevId": "804961c3-0438-4925-8565-44b6053a9285",
+  "id": "e88d1995-590e-4d7d-9781-6380b2aaf633",
+  "prevId": "e8b153d7-3693-474a-ac0e-68ffa211af1b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -375,6 +375,13 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
+        },
+        "is_cancelled": {
+          "name": "is_cancelled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",

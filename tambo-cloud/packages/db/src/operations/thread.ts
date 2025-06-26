@@ -1,5 +1,5 @@
 import { ActionType, GenerationStage } from "@tambo-ai-cloud/core";
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -208,6 +208,19 @@ export async function getMessages(
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });
   return fixLegacyRole(messages);
+}
+
+export async function getLatestMessage(
+  db: HydraDb,
+  threadId: string,
+): Promise<typeof schema.messages.$inferSelect> {
+  const [latestMessage] = await db
+    .select()
+    .from(schema.messages)
+    .where(eq(schema.messages.threadId, threadId))
+    .orderBy(desc(schema.messages.createdAt))
+    .limit(1);
+  return latestMessage;
 }
 
 export async function updateMessage(

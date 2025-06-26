@@ -293,11 +293,11 @@ export class ThreadsService {
       projectId: updatedThread.projectId,
     };
 
-    const messages = await operations.getMessages(db, threadId, true);
-    if (messages.length === 0) {
-      return updatedThreadResponse;
-    }
-    const latestMessage = messages[messages.length - 1];
+    const latestMessage = await operations.getLatestMessage(db, threadId);
+
+    await operations.updateMessage(db, latestMessage.id, {
+      isCancelled: true,
+    });
 
     if (latestMessage.toolCallRequest && latestMessage.toolCallId) {
       await addMessage(db, threadId, {

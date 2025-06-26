@@ -70,6 +70,7 @@ describe("messages utilities", () => {
         componentDecision: null,
         actionType: null,
         error: null,
+        isCancelled: false,
       };
 
       jest.mocked(operations.addMessage).mockResolvedValue(mockResponse);
@@ -86,6 +87,8 @@ describe("messages utilities", () => {
         toolCallRequest: undefined,
         toolCallId: undefined,
         componentState: {},
+        error: undefined,
+        isCancelled: false,
       });
 
       expect(result).toEqual({
@@ -95,6 +98,7 @@ describe("messages utilities", () => {
         content: [{ type: "text" as ContentPartType.Text, text: "Hello" }],
         createdAt: mockResponse.createdAt,
         componentState: {},
+        isCancelled: false,
       });
     });
   });
@@ -127,6 +131,7 @@ describe("messages utilities", () => {
         toolCallRequest: null,
         componentDecision: null,
         error: null,
+        isCancelled: false,
       };
 
       jest.mocked(operations.updateMessage).mockResolvedValue(mockResponse);
@@ -142,6 +147,7 @@ describe("messages utilities", () => {
         actionType: undefined,
         toolCallRequest: undefined,
         toolCallId: undefined,
+        error: undefined,
       });
 
       expect(result).toEqual({
@@ -159,6 +165,8 @@ describe("messages utilities", () => {
         metadata: undefined,
         actionType: undefined,
         componentDecision: null,
+        error: undefined,
+        isCancelled: false,
       });
     });
   });
@@ -246,6 +254,7 @@ describe("messages utilities", () => {
         componentDecision: null,
         actionType: ActionType.ToolCall,
         error: null,
+        isCancelled: false,
       };
 
       const newMessage: ThreadMessage = {

@@ -88,6 +88,13 @@ export class ThreadMessageDto {
   @ApiProperty({ required: false, type: String })
   error?: string;
 
+  @ApiProperty({
+    required: false,
+    type: Boolean,
+    description: "Whether the message has been cancelled",
+  })
+  isCancelled?: boolean;
+
   @IsOptional()
   tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
   createdAt!: Date;
@@ -122,6 +129,14 @@ export class MessageRequest implements InternalThreadMessage {
   @IsOptional()
   @ApiProperty({ required: false, type: String })
   error?: string;
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+    type: Boolean,
+    description: "Whether the message has been cancelled",
+  })
+  isCancelled?: boolean;
 
   /**
    * @deprecated Put the response in the content instead
