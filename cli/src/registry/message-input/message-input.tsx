@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTamboThreadInput } from "@tambo-ai/react";
+import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp } from "lucide-react";
 import * as React from "react";
@@ -227,8 +227,10 @@ const MessageInputTextarea = ({
   placeholder = "What do you want to do?",
   ...props
 }: MessageInputTextareaProps) => {
-  const { value, setValue, isPending, textareaRef, handleSubmit } =
+  const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
+  const { isIdle } = useTamboThread();
+  const isPending = !isIdle;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
@@ -392,10 +394,10 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 
 // --- Exports ---
 export {
-  messageInputVariants,
   MessageInput,
-  MessageInputTextarea,
-  MessageInputSubmitButton,
-  MessageInputToolbar,
   MessageInputError,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
+  messageInputVariants,
 };
