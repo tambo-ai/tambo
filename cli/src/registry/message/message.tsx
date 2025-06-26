@@ -259,9 +259,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
               safeContent
             )}
             {message.isCancelled && (
-              <span className="text-muted-foreground text-xs">
-                message cancelled
-              </span>
+              <span className="text-muted-foreground text-xs">cancelled</span>
             )}
           </div>
         )}
