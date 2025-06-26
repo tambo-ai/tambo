@@ -42,6 +42,8 @@ export class ApiKeyGuard implements CanActivate {
       return false;
     }
 
+    // Legacy normalization removed; pass `apiKey` directly below.
+
     try {
       const apiKeySecret = this.configService.get<string>("API_KEY_SECRET");
       if (!apiKeySecret) {
@@ -75,18 +77,18 @@ export class ApiKeyGuard implements CanActivate {
   }
 
   private async validateApiKeyWithProject(
-    apiKey: string,
+    encryptedKey: string,
     projectIdOrLegacyId: string,
   ): Promise<string | null> {
     try {
       const project =
         await this.projectsService.findOneWithKeys(projectIdOrLegacyId);
       if (!project?.id) {
-        this.logger.error(`Project not found for API key ${apiKey}`);
+        this.logger.error(`Project not found for API key ${encryptedKey}`);
         return null;
       }
 
-      const hashedKey = hashKey(apiKey);
+      const hashedKey = hashKey(encryptedKey);
       const isValid = project
         .getApiKeys()
         .some((key) => key.hashedKey === hashedKey);

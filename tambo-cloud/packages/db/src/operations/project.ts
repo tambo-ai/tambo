@@ -6,7 +6,7 @@ import {
   MCPTransport,
   ToolProviderType,
 } from "@tambo-ai-cloud/core";
-import { createHash, randomBytes } from "crypto";
+import { randomBytes } from "crypto";
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -291,7 +291,7 @@ export async function validateApiKey(
   projectId: string,
   apiKey: string,
 ): Promise<boolean> {
-  const hashedKey = createHash("sha256").update(apiKey).digest("hex");
+  const hashedKey = hashKey(apiKey);
 
   const keys = await db
     .select()

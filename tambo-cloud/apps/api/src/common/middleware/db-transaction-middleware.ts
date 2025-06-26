@@ -58,6 +58,10 @@ export class TransactionMiddleware implements NestMiddleware {
       throw new UnauthorizedException("API_KEY_SECRET is not configured");
     }
 
+    // -------------------------------------------------------------------
+    // Support new "tambo_<base64>" user-facing keys while remaining
+    // backward-compatible with the legacy raw encrypted format.
+    // -------------------------------------------------------------------
     const projectId = apiKeyHeaderString
       ? decryptApiKey(apiKeyHeaderString, apiKeySecret).storedString
       : null;
