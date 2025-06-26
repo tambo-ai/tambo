@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.70.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.69.0...repo-v0.70.0) (2025-06-26)
+
+
+### Features
+
+* add isCancelled field to message schema ([#1229](https://github.com/tambo-ai/tambo-cloud/issues/1229)) ([136b870](https://github.com/tambo-ai/tambo-cloud/commit/136b870cdca8d9817da570628c5ca40ddf12e8ea))
+
+
+### Miscellaneous Chores
+
+* charlie rules updates (TAM-217) ([#1199](https://github.com/tambo-ai/tambo-cloud/issues/1199)) ([0bfa917](https://github.com/tambo-ai/tambo-cloud/commit/0bfa917b321b4ba66caf2c839afdc2bac05f8b90))
+* **deps-dev:** bump prettier from 3.5.3 to 3.6.0 ([#1227](https://github.com/tambo-ai/tambo-cloud/issues/1227)) ([8d14f73](https://github.com/tambo-ai/tambo-cloud/commit/8d14f7375a82d956556d682deb7ecce26c04c9c3))
+* **deps-dev:** bump typescript-eslint from 8.34.1 to 8.35.0 in the eslint group ([#1219](https://github.com/tambo-ai/tambo-cloud/issues/1219)) ([f93c4eb](https://github.com/tambo-ai/tambo-cloud/commit/f93c4eb6c36bf2184db2a4c67715a59e4e0cd94b))
+* **deps:** bump @modelcontextprotocol/sdk from 1.13.0 to 1.13.1 ([#1225](https://github.com/tambo-ai/tambo-cloud/issues/1225)) ([3c5969e](https://github.com/tambo-ai/tambo-cloud/commit/3c5969e3a3312781fce9c554bcb9dc91d910925c))
+* **deps:** bump @splinetool/runtime from 1.9.98 to 1.10.14 ([#1223](https://github.com/tambo-ai/tambo-cloud/issues/1223)) ([71e927e](https://github.com/tambo-ai/tambo-cloud/commit/71e927e92ae28d2da7bed716a90b0ffa4eed4793))
+* **deps:** bump @supabase/supabase-js from 2.50.0 to 2.50.1 ([#1222](https://github.com/tambo-ai/tambo-cloud/issues/1222)) ([63dd352](https://github.com/tambo-ai/tambo-cloud/commit/63dd352f413d9b925aa6b1a0a574c2e524bae229))
+* **deps:** bump @tambo-ai/react from 0.32.0 to 0.32.1 ([#1220](https://github.com/tambo-ai/tambo-cloud/issues/1220)) ([3c04d9b](https://github.com/tambo-ai/tambo-cloud/commit/3c04d9b218675a610f1a45321e4beacd745e7c01))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.53.0 to 0.55.0 ([#1226](https://github.com/tambo-ai/tambo-cloud/issues/1226)) ([59df3f3](https://github.com/tambo-ai/tambo-cloud/commit/59df3f3f6bd2e49ceb0242077887de86adefe497))
+* **deps:** bump lucide-react from 0.522.0 to 0.523.0 ([#1221](https://github.com/tambo-ai/tambo-cloud/issues/1221)) ([9ae6cca](https://github.com/tambo-ai/tambo-cloud/commit/9ae6cca2303b677e21b033b90948aff58301e03e))
+* **deps:** bump openai from 5.5.1 to 5.7.0 ([#1224](https://github.com/tambo-ai/tambo-cloud/issues/1224)) ([0250157](https://github.com/tambo-ai/tambo-cloud/commit/0250157307637641c412f9cdd7a21ec12127ea64))
+* **package:** remove test:suggestions script from package.json ([#1198](https://github.com/tambo-ai/tambo-cloud/issues/1198)) ([c39c00e](https://github.com/tambo-ai/tambo-cloud/commit/c39c00e9c74ce3f581494391a7b573370c4c45e4))
+
 ## [0.69.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.68.0...repo-v0.69.0) (2025-06-24)
 
 
