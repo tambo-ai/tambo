@@ -470,14 +470,30 @@ export const TamboThreadProvider: React.FC<
         if (!prevMap[threadId]) {
           return prevMap;
         }
+
         return {
           ...prevMap,
           [threadId]: {
             ...prevMap[threadId],
             generationStage: GenerationStage.CANCELLED,
+            messages: prevMap[threadId].messages.map((message) => {
+              if (
+                message.id ===
+                prevMap[threadId].messages[
+                  prevMap[threadId].messages.length - 1
+                ].id
+              ) {
+                return {
+                  ...message,
+                  isCancelled: true,
+                };
+              }
+              return message;
+            }),
           },
         };
       });
+
       await client.beta.threads.cancel(threadId);
     },
     [client.beta.threads, currentThreadId, isIdle],
@@ -570,6 +586,19 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId,
           );
         } else {
+          if (ignoreResponseRef.current) {
+            setIgnoreResponse(false);
+            return (
+              finalMessage ?? {
+                threadId: threadId,
+                content: [{ type: "text", text: "" }],
+                role: "assistant",
+                createdAt: new Date().toISOString(),
+                id: crypto.randomUUID(),
+                componentState: {},
+              }
+            );
+          }
           if (
             !hasSetThreadId &&
             chunk.responseMessageDto.threadId &&
