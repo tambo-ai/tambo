@@ -175,7 +175,7 @@ export const TamboThreadProvider: React.FC<
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
   const [inputValue, setInputValue] = useState("");
-  const [ignoreResponse, setIgnoreResopnse] = useState(false);
+  const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
     PLACEHOLDER_THREAD.id,
@@ -465,19 +465,35 @@ export const TamboThreadProvider: React.FC<
       if (isIdle) {
         return;
       }
-      setIgnoreResopnse(true);
+      setIgnoreResponse(true);
       setThreadMap((prevMap) => {
         if (!prevMap[threadId]) {
           return prevMap;
         }
+
         return {
           ...prevMap,
           [threadId]: {
             ...prevMap[threadId],
             generationStage: GenerationStage.CANCELLED,
+            messages: prevMap[threadId].messages.map((message) => {
+              if (
+                message.id ===
+                prevMap[threadId].messages[
+                  prevMap[threadId].messages.length - 1
+                ].id
+              ) {
+                return {
+                  ...message,
+                  isCancelled: true,
+                };
+              }
+              return message;
+            }),
           },
         };
       });
+
       await client.beta.threads.cancel(threadId);
     },
     [client.beta.threads, currentThreadId, isIdle],
@@ -490,7 +506,7 @@ export const TamboThreadProvider: React.FC<
       threadId: string,
     ): Promise<TamboThreadMessage> => {
       if (ignoreResponseRef.current) {
-        setIgnoreResopnse(false);
+        setIgnoreResponse(false);
         return {
           threadId: threadId,
           content: [{ type: "text", text: "" }],
@@ -516,7 +532,7 @@ export const TamboThreadProvider: React.FC<
             toolRegistry,
           );
           if (ignoreResponseRef.current) {
-            setIgnoreResopnse(false);
+            setIgnoreResponse(false);
             {
               return {
                 threadId: threadId,
@@ -570,6 +586,19 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId,
           );
         } else {
+          if (ignoreResponseRef.current) {
+            setIgnoreResponse(false);
+            return (
+              finalMessage ?? {
+                threadId: threadId,
+                content: [{ type: "text", text: "" }],
+                role: "assistant",
+                createdAt: new Date().toISOString(),
+                id: crypto.randomUUID(),
+                componentState: {},
+              }
+            );
+          }
           if (
             !hasSetThreadId &&
             chunk.responseMessageDto.threadId &&
@@ -647,7 +676,7 @@ export const TamboThreadProvider: React.FC<
         contextKey?: string;
       } = {},
     ): Promise<TamboThreadMessage> => {
-      setIgnoreResopnse(false);
+      setIgnoreResponse(false);
       const {
         threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
         streamResponse = streaming,
