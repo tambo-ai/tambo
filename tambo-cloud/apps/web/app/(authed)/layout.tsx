@@ -9,10 +9,10 @@ export default async function AuthedLayout({
   // Check authentication on the server
   const _supabase = await getServerSupabaseclient();
   const {
-    data: { session },
-  } = await _supabase.auth.getSession();
+    data: { user },
+  } = await _supabase.auth.getUser();
 
   return (
-    <AuthedLayoutWrapper hasSession={!!session}>{children}</AuthedLayoutWrapper>
+    <AuthedLayoutWrapper hasSession={!!user}>{children}</AuthedLayoutWrapper>
   );
 }

@@ -32,7 +32,7 @@ export const toolsRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
 
       const servers = await operations.getProjectMcpServers(
@@ -71,7 +71,7 @@ export const toolsRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
 
       const { projectId, url, customHeaders, mcpTransport } = input;
@@ -144,11 +144,7 @@ export const toolsRouter = createTRPCRouter({
         });
       }
       const { url, projectId } = toolProvider;
-      await operations.ensureProjectAccess(
-        ctx.db,
-        projectId,
-        ctx.session.user.id,
-      );
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
 
       if (!url) {
         // cannot happen due to validation in the query
@@ -196,7 +192,7 @@ export const toolsRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
 
       const { projectId, serverId } = input;
@@ -223,7 +219,7 @@ export const toolsRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
 
       const { projectId, serverId, url, customHeaders, mcpTransport } = input;
@@ -275,7 +271,7 @@ export const toolsRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
 
       const server = await operations.getMcpServer(

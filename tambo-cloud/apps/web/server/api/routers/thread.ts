@@ -17,7 +17,7 @@ export const threadRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
 
       // Get both threads and total count
@@ -51,7 +51,7 @@ export const threadRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
 
       const thread = await operations.getThreadForProjectId(
@@ -86,7 +86,7 @@ export const threadRouter = createTRPCRouter({
       await operations.ensureProjectAccess(
         ctx.db,
         input.projectId,
-        ctx.session.user.id,
+        ctx.user.id,
       );
       // make sure the thread belongs to the project
       const thread = await operations.getThreadForProjectId(

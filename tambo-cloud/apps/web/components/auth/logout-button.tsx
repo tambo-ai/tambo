@@ -18,9 +18,19 @@ export function LogoutButton({ className, mobile = false }: LogoutButtonProps) {
   useEffect(() => {
     const supabase = getSupabaseClient();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
+    const initializeAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error("Error getting session:", error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    initializeAuth();
 
     const {
       data: { subscription },

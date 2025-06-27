@@ -12,14 +12,14 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { env } from "@/lib/env";
-import { Session, SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
-import jwt from "jsonwebtoken";
 import { getServerSupabaseclient } from "../supabase";
 export type Context = {
   db: HydraDb;
-  session: Session | null;
+  claims: SupabaseToken | null;
+  user: User | null;
   supabase: SupabaseClient;
   headers: Headers;
 };
@@ -52,25 +52,16 @@ export const createTRPCContext = async (opts: {
 }): Promise<Context> => {
   const supabase = await getServerSupabaseclient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
   const db = getDb(env.DATABASE_URL);
-
-  let decoded: SupabaseToken | null = null;
-  if (session?.access_token) {
-    const result = jwt.decode(session.access_token);
-    if (result) {
-      decoded = result as SupabaseToken;
-    }
-  }
-
-  if (!decoded) {
-    console.log("No valid access token found");
-  }
+  const claims = claimsData?.claims as SupabaseToken;
 
   return {
     db,
-    session,
+    claims,
+    user,
     supabase,
     ...opts,
   };
@@ -143,26 +134,35 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 
 const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
   return await ctx.db.transaction(async (tx) => {
-    let token: SupabaseToken | null = null;
-    if (ctx.session?.access_token) {
-      const result = jwt.decode(ctx.session.access_token);
-      if (result) {
-        token = result as SupabaseToken;
-      }
-    }
+    const claims = ctx.claims;
+
+    /**
+     * Whitelisted roles that a request is allowed to assume when running inside
+     * the transaction.  If the incoming JWT’s `role` claim is not in this list
+     * (or is absent), we fall back to the least-privileged `anon` role.
+     */
+    const allowedRoles = new Set<string>([
+      "postgres",
+      "anon",
+      "authenticated",
+      "service_role",
+    ]);
+
+    const requestedRole = claims?.role ?? "anon";
+    const safeRole = allowedRoles.has(requestedRole) ? requestedRole : "anon";
 
     try {
       await tx.execute(sql`
         -- auth.jwt()
         select set_config('request.jwt.claims', '${sql.raw(
-          JSON.stringify(token ?? {}),
+          JSON.stringify(claims ?? {}),
         )}', TRUE);
         -- auth.uid()
         select set_config('request.jwt.claim.sub', '${sql.raw(
-          token?.sub ?? "",
+          claims?.sub ?? "",
         )}', TRUE);												
         -- set local role
-        set local role ${sql.raw(token?.role ?? "anon")};
+        set local role ${sql.raw(safeRole)};
       `);
       return await next({ ctx: { ...ctx, db: tx } });
     } catch (error) {
@@ -194,7 +194,7 @@ export const publicProcedure = t.procedure
  * Protected (authenticated) procedure
  *
  * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
- * the session is valid and guarantees `ctx.session.user` is not null.
+ * the session is valid and guarantees `ctx.user` is not null.
  *
  * @see https://trpc.io/docs/procedures
  */
@@ -202,13 +202,14 @@ export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(transactionMiddleware)
   .use(async ({ ctx, next }) => {
-    if (!ctx.session?.user) {
+    if (!ctx.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     return await next({
       ctx: {
         // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
+        claims: { ...ctx.claims },
+        user: ctx.user,
       },
     });
   });
