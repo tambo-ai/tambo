@@ -60,16 +60,27 @@ export const ThreadRow = memo(
           </div>
         </TableCell>
 
-        <TableCell className="py-2 text-sm px-4 text-primary">
+        <TableCell className="py-2 text-sm px-2 sm:px-4 text-primary">
           <div className="flex flex-col gap-1">
-            <span>{formatDateThreadTable(thread.createdAt).date}</span>
+            <span className="text-xs sm:text-sm">
+              {formatDateThreadTable(thread.createdAt).date}
+            </span>
             <span className="text-xs text-foreground">
               {formatDateThreadTable(thread.createdAt).time}
             </span>
           </div>
         </TableCell>
 
-        <TableCell className="py-2 text-sm px-4 hidden sm:table-cell">
+        <TableCell className="py-2 text-sm px-4 text-primary hidden lg:table-cell">
+          <div className="flex flex-col gap-1">
+            <span>{formatDateThreadTable(thread.updatedAt).date}</span>
+            <span className="text-xs text-foreground">
+              {formatDateThreadTable(thread.updatedAt).time}
+            </span>
+          </div>
+        </TableCell>
+
+        <TableCell className="py-2 text-sm px-2 sm:px-4 hidden sm:table-cell">
           <div className="flex items-center gap-1">
             <code className="text-xs bg-info text-info px-1.5 py-0.5 rounded text-ellipsis overflow-hidden max-w-28 whitespace-nowrap">
               {thread.id || "N/A"}
@@ -78,11 +89,15 @@ export const ThreadRow = memo(
           </div>
         </TableCell>
 
-        <TableCell className="py-2 text-sm px-4 font-medium">
-          {thread.name || <span className="text-primary italic">No name</span>}
+        <TableCell className="py-2 text-xs sm:text-sm px-2 sm:px-4 font-medium">
+          <span className="block truncate max-w-[120px] sm:max-w-none">
+            {thread.name || (
+              <span className="text-primary italic">No name</span>
+            )}
+          </span>
         </TableCell>
 
-        <TableCell className="py-2 text-sm px-4 font-medium">
+        <TableCell className="py-2 text-sm px-4 font-medium hidden md:table-cell">
           {thread.contextKey}
         </TableCell>
 
@@ -101,14 +116,15 @@ export const ThreadRow = memo(
           </span>
         </TableCell>
 
-        <TableCell className="py-2 text-sm">
+        <TableCell className="py-2 text-xs sm:text-sm px-1 sm:px-2">
           <button
             onClick={handleViewMessages}
             disabled={isDeleting}
             className="text-primary hover:bg-accent rounded-md p-1 disabled:opacity-50"
             aria-label={`View messages for thread ${thread.id.slice(0, 8)}`}
           >
-            View messages
+            <span className="hidden sm:inline">View messages</span>
+            <span className="sm:hidden">View</span>
           </button>
         </TableCell>
       </TableRow>

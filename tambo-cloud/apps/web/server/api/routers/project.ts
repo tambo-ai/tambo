@@ -13,7 +13,9 @@ import {
   gte,
   inArray,
   isNotNull,
+  sql,
 } from "drizzle-orm";
+import type { HydraDb } from "@tambo-ai-cloud/db";
 import { z } from "zod";
 
 // Helper function to get date filter based on period
@@ -29,6 +31,61 @@ function getDateFilter(period: string): Date | null {
     default:
       return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+//  Reusable helper to fetch per-day counts (messages or errors) directly
+//  from the database. Keeps network traffic low by letting Postgres aggregate.
+// ---------------------------------------------------------------------------
+async function getDailyCounts(
+  db: HydraDb,
+  projectId: string,
+  days: number,
+  { errorsOnly = false }: { errorsOnly?: boolean } = {},
+): Promise<Array<{ date: string; count: number }>> {
+  // Earliest date to include
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (days - 1));
+
+  // Build where-conditions
+  const conditions = [
+    eq(schema.threads.projectId, projectId),
+    gte(schema.messages.createdAt, startDate),
+  ];
+  if (errorsOnly) {
+    conditions.push(isNotNull(schema.messages.error));
+  }
+
+  // Postgres DATE(<timestamp>) expression
+  const dateExpr = sql<string>`date(${schema.messages.createdAt})`;
+
+  // Aggregate in a single query
+  const rows = await db
+    .select({
+      date: dateExpr.as("date"),
+      count: count(schema.messages.id).as("count"),
+    })
+    .from(schema.messages)
+    .innerJoin(schema.threads, eq(schema.messages.threadId, schema.threads.id))
+    .where(and(...conditions))
+    .groupBy(dateExpr)
+    .orderBy(dateExpr);
+
+  // Map results for O(1) look-ups
+  const daily = new Map<string, number>(
+    rows.map((r) => [r.date, Number(r.count ?? 0)]),
+  );
+
+  // Produce zero-filled series
+  const results: Array<{ date: string; count: number }> = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + i);
+    const key = d.toISOString().split("T")[0];
+    results.push({ date: key, count: daily.get(key) ?? 0 });
+  }
+
+  return results;
 }
 
 export const projectRouter = createTRPCRouter({
@@ -603,6 +660,57 @@ export const projectRouter = createTRPCRouter({
         .where(and(...whereConditions));
 
       return { totalMessages: result[0]?.count || 0 };
+    }),
+
+  /* -------------------------------------------------------------------- */
+  /*  NEW: Per-day message & error counts                                  */
+  /* -------------------------------------------------------------------- */
+  getProjectDailyMessages: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        days: z.number().min(1).max(90).default(30),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { projectId, days } = input;
+
+      // Authorisation – ensure the caller may access this project
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+
+      // Re-use helper that does all SQL aggregation & zero-fill
+      const data = await getDailyCounts(ctx.db, projectId, days);
+
+      // Shape expected by the client: [{ date, messages }]
+      return data.map(({ date, count }) => ({
+        date,
+        messages: count,
+      }));
+    }),
+
+  getProjectDailyThreadErrors: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        days: z.number().min(1).max(90).default(30),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { projectId, days } = input;
+
+      // Re-use the same authorisation check as above
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+
+      // Same helper, but with errorsOnly = true so we only count errored messages
+      const data = await getDailyCounts(ctx.db, projectId, days, {
+        errorsOnly: true,
+      });
+
+      // Shape expected by the client: [{ date, errors }]
+      return data.map(({ date, count }) => ({
+        date,
+        errors: count,
+      }));
     }),
 
   getTotalUsers: protectedProcedure

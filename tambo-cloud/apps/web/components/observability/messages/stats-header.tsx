@@ -42,37 +42,39 @@ const StatCard = memo(({ count, label, items, onItemClick }: StatCardProps) => (
         <Button
           variant="ghost"
           className={cn(
-            "w-full p-4 h-auto flex items-center justify-between hover:bg-muted/50",
+            "w-full p-2 sm:p-4 h-auto flex items-center justify-between hover:bg-muted/50",
             count === 0 && "opacity-50",
           )}
           disabled={count === 0}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="text-left">
-              <div className="text-2xl font-bold">{count}</div>
-              <div className="text-sm text-foreground">{label}</div>
+              <div className="text-lg sm:text-2xl font-bold">{count}</div>
+              <div className="text-xs sm:text-sm text-foreground">{label}</div>
             </div>
           </div>
           {count > 0 && (
             <div className="text-foreground">
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
             </div>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-80 max-h-80 overflow-y-auto"
+        className="w-72 sm:w-80 max-h-64 sm:max-h-80 overflow-y-auto"
         align="start"
         side="bottom"
       >
         {items.map((item) => (
           <DropdownMenuItem
             key={item.id}
-            className="cursor-pointer p-3 focus:bg-muted/50"
+            className="cursor-pointer p-2 sm:p-3 focus:bg-muted/50"
             onClick={() => onItemClick(item.messageId)}
           >
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-sm truncate">{item.title}</div>
+              <div className="font-medium text-xs sm:text-sm truncate">
+                {item.title}
+              </div>
               {item.subtitle && (
                 <div className="text-xs text-foreground truncate mt-1">
                   {item.subtitle}
@@ -109,7 +111,7 @@ export const StatsHeader = memo(
     onToggleSection,
     onScrollToMessage,
   }: StatsHeaderProps) => (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
       <StatCard
         count={stats.messages}
         label="Messages"

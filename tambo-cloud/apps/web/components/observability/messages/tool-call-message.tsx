@@ -180,34 +180,34 @@ export const ToolCallMessage = memo(
 
         {/* Tool Call Message bubble */}
         <motion.div
-          className="relative max-w-[85%] min-w-[200px] transition-all duration-300 group-hover:shadow-lg rounded-2xl"
+          className="relative max-w-full sm:max-w-[85%] min-w-0 sm:min-w-[200px] transition-all duration-300 group-hover:shadow-lg rounded-2xl"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
           <div
             className={cn(
-              "rounded-2xl p-5 shadow-sm border backdrop-blur-sm",
+              "rounded-2xl p-3 sm:p-5 shadow-sm border backdrop-blur-sm",
               "bg-muted/20 text-foreground text-sm border-border",
               isHighlighted && "ring-2 ring-muted-foreground/50 ring-inset",
               hasAnyError && "border-red-200 bg-red-50/50",
             )}
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2 sm:gap-4">
               {/* Header */}
               <div className="flex items-center gap-2">
                 {hasAnyError ? (
-                  <XCircle className="h-4 w-4 text-red-500" />
+                  <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
                 ) : (
-                  <Settings className="h-4 w-4" />
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
                 )}
                 <span
                   className={cn(
-                    "text-sm font-semibold text-primary",
+                    "text-xs sm:text-sm font-semibold text-primary",
                     hasAnyError && "text-red-700",
                   )}
                 >
-                  Tool Call: {toolName}
+                  Tool Call: <span className="font-normal">{toolName}</span>
                 </span>
               </div>
 
@@ -215,28 +215,28 @@ export const ToolCallMessage = memo(
               <div className="border border-border rounded-lg overflow-hidden">
                 <button
                   onClick={() => setShowArguments(!showArguments)}
-                  className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
+                  className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
-                  <span className="font-medium text-sm text-primary">
+                  <span className="font-medium text-xs sm:text-sm text-primary">
                     View Arguments
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
                         onCopyId(formatAllParameters());
                       }}
-                      className="h-6 w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
+                      className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
                     >
                       {copiedId === formatAllParameters() ? (
-                        <Check className="h-3 w-3 text-green-500" />
+                        <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
                       ) : (
-                        <Copy className="h-3 w-3 text-primary" />
+                        <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
                       )}
                     </span>
                     <ChevronDown
                       className={cn(
-                        "h-4 w-4 transition-transform duration-200 text-primary",
+                        "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 text-primary",
                         showArguments && "rotate-180",
                       )}
                     />
@@ -252,8 +252,8 @@ export const ToolCallMessage = memo(
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 bg-background">
-                    <pre className="text-xs font-mono text-primary overflow-auto">
+                  <div className="p-2 sm:p-4 bg-background">
+                    <pre className="text-[10px] sm:text-xs font-mono text-primary overflow-auto">
                       <code>{formatAllParameters()}</code>
                     </pre>
                   </div>
@@ -266,14 +266,14 @@ export const ToolCallMessage = memo(
                   <button
                     onClick={() => setShowResponse(!showResponse)}
                     className={cn(
-                      "w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 transition-colors",
+                      "w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors",
                       hasToolResponseError && "bg-red-50 border-red-200",
                     )}
                   >
                     <div className="flex items-center gap-2">
                       <span
                         className={cn(
-                          "font-medium text-sm",
+                          "font-medium text-xs sm:text-sm",
                           hasToolResponseError
                             ? "text-red-700"
                             : "text-primary",
@@ -282,27 +282,27 @@ export const ToolCallMessage = memo(
                         View Response
                       </span>
                       {hasToolResponseError && (
-                        <AlertCircle className="h-3 w-3 text-red-700" />
+                        <AlertCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-red-700" />
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       <span
                         onClick={(e) => {
                           e.stopPropagation();
                           onCopyId(formatResponseContent(toolResponse.content));
                         }}
-                        className="h-6 w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
+                        className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
                       >
                         {copiedId ===
                         formatResponseContent(toolResponse.content) ? (
-                          <Check className="h-3 w-3 text-green-500" />
+                          <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
                         ) : (
-                          <Copy className="h-3 w-3 text-primary" />
+                          <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
                         )}
                       </span>
                       <ChevronDown
                         className={cn(
-                          "h-4 w-4 transition-transform duration-200 text-primary",
+                          "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 text-primary",
                           showResponse && "rotate-180",
                         )}
                       />
@@ -318,9 +318,9 @@ export const ToolCallMessage = memo(
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="p-4 bg-background max-h-96 overflow-auto">
+                    <div className="p-2 sm:p-4 bg-background max-h-64 sm:max-h-96 overflow-auto">
                       {/* Single unified response content display */}
-                      <pre className="text-xs font-mono text-primary whitespace-pre-wrap break-words overflow-auto">
+                      <pre className="text-[10px] sm:text-xs font-mono text-primary whitespace-pre-wrap break-words overflow-auto">
                         <code>
                           {formatResponseContent(toolResponse.content)}
                         </code>
@@ -335,20 +335,22 @@ export const ToolCallMessage = memo(
 
         {/* Bottom metadata */}
         <motion.div
-          className="flex items-center gap-2 mt-2 text-[11px] text-foreground px-1"
+          className="flex items-center gap-2 mt-2 text-[10px] sm:text-[11px] text-foreground px-1"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
         >
           <span
-            className="font-medium flex items-center gap-1 cursor-pointer bg-muted/50 rounded-md px-2 py-1"
+            className="font-medium flex items-center gap-1 cursor-pointer bg-muted/50 rounded-md px-1.5 sm:px-2 py-0.5 sm:py-1"
             onClick={() => onCopyId(message.id)}
           >
-            {message.id}
+            <span className="max-w-[100px] sm:max-w-none truncate">
+              {message.id}
+            </span>
             {copiedId === message.id ? (
-              <Check className="h-3 w-3 ml-1 text-green-500" />
+              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 text-green-500" />
             ) : (
-              <Copy className="h-3 w-3 ml-1 opacity-50" />
+              <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 opacity-50" />
             )}
           </span>
         </motion.div>

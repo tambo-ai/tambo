@@ -272,7 +272,7 @@ export function APIKeyList({
           <h4 className="text-lg font-semibold">API Keys</h4>
         </div>
 
-        <div className="flex flex-row items-center justify-between gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <p className="text-sm font-sans text-foreground max-w-sm">
             Tambo offers 500 free messages. Once the limit is reached,
             you&apos;ll have to add your API key to your project.
@@ -285,6 +285,7 @@ export function APIKeyList({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
+                className="self-end sm:self-auto"
               >
                 <Button
                   size="sm"
@@ -330,44 +331,46 @@ export function APIKeyList({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Input
                     type="text"
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
                     placeholder="Enter key name"
-                    className="flex-1 font-sans max-w-xs"
+                    className="flex-1 font-sans"
                     disabled={isGeneratingKey}
                     autoFocus
                     onKeyDown={handleKeyPress}
                   />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="font-sans"
-                    onClick={() => {
-                      setIsCreating(false);
-                      setNewKeyName("");
-                    }}
-                    disabled={isGeneratingKey}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="font-sans"
-                    onClick={async () => await handleCreateApiKey()}
-                    disabled={isGeneratingKey || !newKeyName.trim()}
-                  >
-                    {isGeneratingKey ? (
-                      <span className="flex items-center gap-1">
-                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                        Creating...
-                      </span>
-                    ) : (
-                      "Create Key"
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="font-sans flex-1 sm:flex-initial"
+                      onClick={() => {
+                        setIsCreating(false);
+                        setNewKeyName("");
+                      }}
+                      disabled={isGeneratingKey}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="font-sans flex-1 sm:flex-initial"
+                      onClick={async () => await handleCreateApiKey()}
+                      disabled={isGeneratingKey || !newKeyName.trim()}
+                    >
+                      {isGeneratingKey ? (
+                        <span className="flex items-center gap-1">
+                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          <span className="hidden sm:inline">Creating...</span>
+                        </span>
+                      ) : (
+                        "Create Key"
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
@@ -397,40 +400,42 @@ export function APIKeyList({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Input
                     type="text"
                     readOnly
                     value={newGeneratedKey}
-                    className="flex-1 font-mono text-sm max-w-xs"
+                    className="flex-1 font-mono text-sm"
                   />
-                  <Button
-                    size="sm"
-                    className="font-sans"
-                    onClick={() => {
-                      copyToClipboard(newGeneratedKey, "new");
-                    }}
-                  >
-                    {copyState.id === "new" && copyState.copied ? (
-                      <span className="flex items-center gap-1">
-                        <Check className="h-3 w-3" />
-                        Copied
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1">
-                        <Copy className="h-3 w-3" />
-                        Copy
-                      </span>
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="font-sans"
-                    onClick={() => setNewGeneratedKey(null)}
-                  >
-                    Close
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="font-sans flex-1 sm:flex-initial"
+                      onClick={() => {
+                        copyToClipboard(newGeneratedKey, "new");
+                      }}
+                    >
+                      {copyState.id === "new" && copyState.copied ? (
+                        <span className="flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          <span className="hidden sm:inline">Copied</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Copy className="h-3 w-3" />
+                          <span className="hidden sm:inline">Copy</span>
+                        </span>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="font-sans flex-1 sm:flex-initial"
+                      onClick={() => setNewGeneratedKey(null)}
+                    >
+                      Close
+                    </Button>
+                  </div>
                 </div>
                 <motion.p
                   initial={{ opacity: 0 }}
@@ -477,7 +482,7 @@ export function APIKeyList({
                     exit="exit"
                     layout
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-row items-start sm:items-center gap-2 sm:gap-3">
                       {/* API Key Name */}
                       <div className="min-w-[140px]">
                         <p className="text-sm font-medium">{key.name}</p>

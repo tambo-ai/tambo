@@ -73,8 +73,8 @@ export function AuthedLayoutWrapper({
   // Show loading state while checking authentication
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse h-8 w-8 rounded-full bg-muted" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse h-8 w-8 rounded-full bg-background" />
       </div>
     );
   }

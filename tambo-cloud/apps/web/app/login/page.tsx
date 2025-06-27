@@ -1,8 +1,9 @@
 "use client";
 
 import { AuthForm } from "@/components/auth/auth-form";
-import { Header } from "@/components/sections/header";
+import { DashboardHeader } from "@/components/sections/dashboard-header";
 import { useSession } from "@/hooks/auth";
+import { DashboardThemeProvider } from "@/providers/dashboard-theme-provider";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
@@ -55,32 +56,34 @@ function LoginContent() {
 // Main component with Suspense boundary
 export default function LoginPage() {
   return (
-    <motion.div
-      className="container flex flex-col min-h-screen"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <Header showDashboardButton={false} showLogoutButton={false} />
-      <motion.div className="flex-1 flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <Suspense
-            fallback={
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="container max-w-md py-8 flex items-center justify-center"
-              >
-                Loading...
-              </motion.div>
-            }
-          >
-            <LoginContent />
-          </Suspense>
-        </AnimatePresence>
+    <DashboardThemeProvider defaultTheme="light">
+      <motion.div
+        className="container flex flex-col min-h-screen"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <DashboardHeader />
+        <motion.div className="flex-1 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <Suspense
+              fallback={
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="container max-w-md py-8 flex items-center justify-center"
+                >
+                  Loading...
+                </motion.div>
+              }
+            >
+              <LoginContent />
+            </Suspense>
+          </AnimatePresence>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </DashboardThemeProvider>
   );
 }

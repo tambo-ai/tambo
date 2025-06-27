@@ -202,7 +202,8 @@ export const createMessageItems = (
 export const THREADS_PER_PAGE = 5;
 
 export const SORT_FIELDS: readonly SortField[] = [
-  "date",
+  "created",
+  "updated",
   "threadId",
   "threadName",
   "contextKey",
@@ -236,8 +237,10 @@ export const formatDateThreadTable = (dateString: string) => {
 
 export const getSortLabel = (field: SortField): string => {
   switch (field) {
-    case "date":
-      return "Date";
+    case "created":
+      return "Created";
+    case "updated":
+      return "Updated";
     case "threadId":
       return "Thread ID";
     case "threadName":
@@ -258,7 +261,8 @@ export const getSortDirectionLabel = (
   direction: SortDirection,
 ): string => {
   switch (field) {
-    case "date":
+    case "created":
+    case "updated":
       return direction === "asc" ? "Oldest first" : "Newest first";
     case "messages":
     case "errors":

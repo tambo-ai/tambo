@@ -3,6 +3,7 @@
 import { ThreadMessagesModal } from "@/components/observability/messages/thread-messages-modal";
 import { ThreadTable } from "@/components/observability/thread-table/thread-table";
 import { calculateThreadStats } from "@/components/observability/utils";
+import { ObservabilityPageSkeleton } from "@/components/skeletons/observability-skeletons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -62,28 +63,31 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const threads = threadData?.threads || [];
 
   // Fetch selected thread details
-  const { data: selectedThread, error: threadError } =
-    api.thread.getThread.useQuery(
-      {
-        threadId: selectedThreadId!,
-        projectId,
-        includeInternal: true,
+  const {
+    data: selectedThread,
+    error: threadError,
+    isLoading: isLoadingThread,
+  } = api.thread.getThread.useQuery(
+    {
+      threadId: selectedThreadId!,
+      projectId,
+      includeInternal: true,
+    },
+    {
+      enabled: !!selectedThreadId,
+      placeholderData: (prev, prevQuery) => {
+        if (!prevQuery) return undefined;
+        const { input } = prevQuery.queryKey[1];
+        if (
+          input.threadId === selectedThreadId &&
+          input.projectId === projectId
+        ) {
+          return prev;
+        }
+        return undefined;
       },
-      {
-        enabled: !!selectedThreadId,
-        placeholderData: (prev, prevQuery) => {
-          if (!prevQuery) return undefined;
-          const { input } = prevQuery.queryKey[1];
-          if (
-            input.threadId === selectedThreadId &&
-            input.projectId === projectId
-          ) {
-            return prev;
-          }
-          return undefined;
-        },
-      },
-    );
+    },
+  );
 
   useEffect(() => {
     if (threadsError) {
@@ -137,7 +141,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     return {
       id: thread.id,
       name: thread.name || null,
-      createdAt: thread.createdAt.toLocaleString(),
+      createdAt: thread.createdAt.toISOString(),
+      updatedAt: thread.updatedAt.toISOString(),
       contextKey: thread.contextKey || "user_context_key",
       messages: thread.messages?.length || 0,
       tools: stats.tools,
@@ -147,11 +152,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   });
 
   if (isLoadingProject) {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <Card className="h-32 animate-pulse" />
-      </motion.div>
-    );
+    return <ObservabilityPageSkeleton />;
   }
 
   if (!project) {
@@ -172,10 +173,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       variants={containerVariants}
     >
       {/* Header with refresh button */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-4xl font-semibold min-h-[3.5rem] flex items-center">
-          Threads
-        </h1>
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <h1 className="text-2xl sm:text-4xl font-semibold">Threads</h1>
         <Button
           onClick={handleRefresh}
           disabled={isFetchingThreads}
@@ -199,13 +198,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         />
       </div>
 
-      {selectedThread && (
-        <ThreadMessagesModal
-          thread={selectedThread}
-          isOpen={isMessagesModalOpen}
-          onClose={() => setIsMessagesModalOpen(false)}
-        />
-      )}
+      <ThreadMessagesModal
+        thread={selectedThread || ({} as ThreadType)}
+        isOpen={isMessagesModalOpen}
+        onClose={() => setIsMessagesModalOpen(false)}
+        isLoading={isLoadingThread && !selectedThread}
+      />
     </motion.div>
   );
 }

@@ -271,7 +271,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
                 aria-controls={toolDetailsId}
                 onClick={() => setIsToolcallExpanded(!isToolcallExpanded)}
                 className={cn(
-                  "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none",
+                  "flex items-center gap-1 cursor-pointer rounded-md p-1 select-none",
                 )}
               >
                 {hasToolError ? (

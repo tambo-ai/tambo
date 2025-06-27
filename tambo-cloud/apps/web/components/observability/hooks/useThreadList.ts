@@ -4,7 +4,8 @@ import { api } from "@/trpc/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type SortField =
-  | "date"
+  | "created"
+  | "updated"
   | "threadId"
   | "threadName"
   | "contextKey"
@@ -17,6 +18,7 @@ export type Thread = {
   id: string;
   name?: string | null;
   createdAt: string;
+  updatedAt: string;
   contextKey: string;
   messages: number;
   tools: number;
@@ -71,7 +73,7 @@ export function useThreadList({
   onThreadsDeleted,
   threadsPerPage = 5,
 }: UseThreadListProps): UseThreadListReturn {
-  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortField, setSortField] = useState<SortField>("created");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedThreads, setSelectedThreads] = useState<Set<string>>(
@@ -128,10 +130,16 @@ export function useThreadList({
     return (a: Thread, b: Thread) => {
       const direction = sortDirection === "asc" ? 1 : -1;
       switch (sortField) {
-        case "date":
+        case "created":
           return (
             (new Date(a.createdAt).getTime() -
               new Date(b.createdAt).getTime()) *
+            direction
+          );
+        case "updated":
+          return (
+            (new Date(a.updatedAt).getTime() -
+              new Date(b.updatedAt).getTime()) *
             direction
           );
         case "threadId":

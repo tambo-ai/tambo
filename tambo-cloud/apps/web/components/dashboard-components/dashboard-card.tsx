@@ -18,6 +18,7 @@ interface DashboardCardProps {
   onPeriodChange?: (period: string) => void;
   defaultPeriod?: string;
   periodOptions?: { value: string; label: string }[];
+  isLoading?: boolean;
 }
 
 export function DashboardCard({
@@ -27,6 +28,7 @@ export function DashboardCard({
   onPeriodChange,
   defaultPeriod = "",
   periodOptions = [],
+  isLoading = false,
 }: DashboardCardProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<string>(defaultPeriod);
 
@@ -38,23 +40,33 @@ export function DashboardCard({
   return (
     <Card
       className={cn(
-        "border rounded-2xl overflow-hidden h-40 w-full",
+        "border rounded-2xl overflow-hidden w-full",
+        "h-20 md:h-40",
         className,
       )}
     >
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-foreground">{title}</h3>
-          <div className="flex items-end space-x-2">
-            <div className="text-6xl text-foreground">
-              {typeof value === "number" ? value.toLocaleString() : value}
-            </div>
+      <CardContent className="p-3 md:p-6 h-full">
+        <div className="flex md:block items-center justify-between h-full md:space-y-4">
+          <h3 className="text-xs md:text-sm font-medium text-foreground">
+            {title}
+          </h3>
+          <div className="flex items-center md:items-end space-x-2">
+            {isLoading ? (
+              <div className="text-foreground">
+                <div className="h-8 w-16 md:h-16 md:w-24 bg-muted animate-pulse rounded" />
+              </div>
+            ) : (
+              <div className="text-2xl md:text-6xl font-semibold md:font-normal text-foreground">
+                {typeof value === "number" ? value.toLocaleString() : value}
+              </div>
+            )}
             {periodOptions.length > 0 && (
               <Select
                 value={selectedPeriod}
                 onValueChange={(value) => handlePeriodChange(value)}
+                disabled={isLoading}
               >
-                <SelectTrigger className="w-auto h-8 px-3 text-sm text-foreground border-0 bg-transparent hover:bg-muted focus:ring-0 focus:ring-offset-0">
+                <SelectTrigger className="w-auto h-6 md:h-8 px-2 md:px-3 text-xs md:text-sm text-foreground border-0 bg-transparent hover:bg-muted focus:ring-0 focus:ring-offset-0 disabled:opacity-50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -62,7 +74,7 @@ export function DashboardCard({
                     <SelectItem
                       key={option.value}
                       value={option.value}
-                      className="cursor-pointer"
+                      className="cursor-pointer text-xs md:text-sm"
                     >
                       {option.label}
                     </SelectItem>

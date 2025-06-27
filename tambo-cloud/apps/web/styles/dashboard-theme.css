@@ -43,6 +43,7 @@
     --chart-3: 219.9 70.2% 50%;
     --chart-4: 160 60% 45.1%;
     --chart-5: 280 64.7% 60%;
+    --chart-6: 235 12% 21%;
     --background: 0 0% 100%;
     --foreground: 218 10% 46%;
     --container: 210 29% 97%;
@@ -74,6 +75,11 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+  }
+
+  html {
+    /* Force scrollbar to always be visible to prevent layout shift */
+    overflow-y: scroll;
   }
 }
 

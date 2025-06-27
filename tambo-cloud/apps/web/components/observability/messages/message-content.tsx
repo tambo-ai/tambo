@@ -52,7 +52,7 @@ export const MessageContent = memo(
         {/* Message bubble */}
         <motion.div
           className={cn(
-            "relative max-w-[85%] min-w-[200px] transition-all duration-300 group-hover:shadow-lg rounded-2xl",
+            "relative max-w-full sm:max-w-[85%] min-w-0 sm:min-w-[200px] transition-all duration-300 group-hover:shadow-lg rounded-2xl",
           )}
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -60,7 +60,7 @@ export const MessageContent = memo(
         >
           <div
             className={cn(
-              "rounded-2xl p-5 shadow-sm border backdrop-blur-sm",
+              "rounded-2xl p-3 sm:p-5 shadow-sm border backdrop-blur-sm",
               "bg-transparent text-foreground text-sm border-border",
               isHighlighted && "ring-2 ring-muted-foreground/50 ring-inset",
             )}
@@ -86,7 +86,7 @@ export const MessageContent = memo(
         {/* Bottom metadata */}
         <motion.div
           className={cn(
-            "flex items-center gap-2 mt-2 text-[11px] text-foreground px-1",
+            "flex items-center gap-2 mt-2 text-[10px] sm:text-[11px] text-foreground px-1",
             isUserMessage ? "flex-row-reverse" : "flex-row",
           )}
           initial={{ opacity: 0 }}
@@ -94,14 +94,16 @@ export const MessageContent = memo(
           transition={{ delay: 0.7 }}
         >
           <span
-            className="font-medium flex items-center gap-1 cursor-pointer bg-muted/50 rounded-md px-2 py-1"
+            className="font-medium flex items-center gap-1 cursor-pointer bg-muted/50 rounded-md px-1.5 sm:px-2 py-0.5 sm:py-1"
             onClick={() => onCopyId(message.id)}
           >
-            {message.id}
+            <span className="max-w-[100px] sm:max-w-none truncate">
+              {message.id}
+            </span>
             {copiedId === message.id ? (
-              <Check className="h-3 w-3 ml-1 text-green-500" />
+              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 text-green-500" />
             ) : (
-              <Copy className="h-3 w-3 ml-1 opacity-50" />
+              <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 opacity-50" />
             )}
           </span>
         </motion.div>

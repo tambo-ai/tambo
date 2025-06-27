@@ -52,24 +52,25 @@ export const ComponentMessage = memo(
 
         {/* Component Message bubble */}
         <motion.div
-          className="relative max-w-[85%] min-w-[200px] transition-all duration-300 group-hover:shadow-lg rounded-2xl"
+          className="relative max-w-full sm:max-w-[85%] min-w-0 sm:min-w-[200px] transition-all duration-300 group-hover:shadow-lg rounded-2xl"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
           <div
             className={cn(
-              "rounded-2xl p-5 shadow-sm border backdrop-blur-sm",
+              "rounded-2xl p-3 sm:p-5 shadow-sm border backdrop-blur-sm",
               "bg-muted/20 text-foreground text-sm border-border",
               isHighlighted && "ring-2 ring-muted-foreground/50 ring-inset",
             )}
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2 sm:gap-4">
               {/* Header */}
               <div className="flex items-center gap-2">
-                <Monitor className="h-4 w-4" />
-                <span className="text-sm font-semibold text-primary">
-                  UI Component: {componentName}
+                <Monitor className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm font-semibold text-primary">
+                  UI Component:{" "}
+                  <span className="font-normal">{componentName}</span>
                 </span>
               </div>
 
@@ -77,28 +78,28 @@ export const ComponentMessage = memo(
               <div className="border border-border rounded-lg overflow-hidden">
                 <button
                   onClick={() => setShowProps(!showProps)}
-                  className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 transition-colors text-primary"
+                  className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors text-primary"
                 >
-                  <span className="font-medium text-sm text-primary">
+                  <span className="font-medium text-xs sm:text-sm text-primary">
                     View Props
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
                         onCopyId(formatPropsValue(componentProps));
                       }}
-                      className="h-6 w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors text-primary"
+                      className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors text-primary"
                     >
                       {copiedId === formatPropsValue(componentProps) ? (
-                        <Check className="h-3 w-3 text-green-500" />
+                        <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
                       ) : (
-                        <Copy className="h-3 w-3 text-primary" />
+                        <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
                       )}
                     </span>
                     <ChevronDown
                       className={cn(
-                        "h-4 w-4 transition-transform duration-200",
+                        "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200",
                         showProps && "rotate-180",
                       )}
                     />

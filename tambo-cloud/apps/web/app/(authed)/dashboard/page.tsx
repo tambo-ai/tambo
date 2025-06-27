@@ -38,15 +38,17 @@ export default function DashboardPage() {
     enabled: !!session,
   });
 
-  const { data: totalUsage } = api.project.getTotalMessageUsage.useQuery(
-    { period: messagesPeriod },
-    { enabled: !!session },
-  );
+  const { data: totalUsage, isLoading: isLoadingMessageUsage } =
+    api.project.getTotalMessageUsage.useQuery(
+      { period: messagesPeriod },
+      { enabled: !!session },
+    );
 
-  const { data: totalUsers } = api.project.getTotalUsers.useQuery(
-    { period: usersPeriod },
-    { enabled: !!session },
-  );
+  const { data: totalUsers, isLoading: isLoadingUserCount } =
+    api.project.getTotalUsers.useQuery(
+      { period: usersPeriod },
+      { enabled: !!session },
+    );
 
   useEffect(() => {
     if (projectLoadingError) {
@@ -123,7 +125,7 @@ export default function DashboardPage() {
   return (
     <motion.div initial="hidden" animate="visible" variants={containerVariants}>
       <>
-        <div className="flex items-center gap-2 space-x-6 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 md:py-14">
           <DashboardCard
             title="Number of Projects"
             value={projects?.length || 0}
@@ -134,6 +136,7 @@ export default function DashboardPage() {
             defaultPeriod="all time"
             periodOptions={periodOptions}
             onPeriodChange={setMessagesPeriod}
+            isLoading={isLoadingMessageUsage}
           />
           <DashboardCard
             title="Users"
@@ -141,6 +144,7 @@ export default function DashboardPage() {
             defaultPeriod="all time"
             periodOptions={periodOptions}
             onPeriodChange={setUsersPeriod}
+            isLoading={isLoadingUserCount}
           />
         </div>
 

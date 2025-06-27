@@ -59,21 +59,22 @@ export default function ProjectLayout({
         <div className="container mx-auto px-4 md:px-6 pb-0">
           {/* Navigation Row */}
           <motion.div
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-2 sm:gap-4"
             initial="hidden"
             animate="visible"
             variants={fadeInVariants}
           >
             {/* Breadcrumb Navigation */}
-            <Breadcrumb>
+            <Breadcrumb className="py-2">
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link
                       href="/dashboard"
-                      className="text-sm text-muted-foreground"
+                      className="text-xs sm:text-sm text-muted-foreground"
                     >
-                      All Projects
+                      <span className="hidden sm:inline">All Projects</span>
+                      <span className="sm:hidden">Projects</span>
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -85,7 +86,7 @@ export default function ProjectLayout({
                   />
                 </BreadcrumbSeparator>
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-sm text-foreground">
+                  <BreadcrumbPage className="text-xs sm:text-sm text-foreground truncate max-w-[150px] sm:max-w-none">
                     {project?.name || "Loading..."}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -93,18 +94,18 @@ export default function ProjectLayout({
             </Breadcrumb>
 
             {/* Project Navigation Tabs */}
-            <Tabs value={activeTab}>
-              <TabsList className="h-16 bg-transparent">
+            <Tabs value={activeTab} className="w-full overflow-x-auto">
+              <TabsList className="h-12 sm:h-16 bg-transparent inline-flex w-full sm:w-auto">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground"
+                  className="text-xs sm:text-sm rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground px-3 sm:px-4"
                   asChild
                 >
                   <Link href={`/dashboard/${projectId}`}>Overview</Link>
                 </TabsTrigger>
                 <TabsTrigger
                   value="observability"
-                  className="rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground"
+                  className="text-xs sm:text-sm rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground px-3 sm:px-4"
                   asChild
                 >
                   <Link href={`/dashboard/${projectId}/observability`}>
@@ -113,7 +114,7 @@ export default function ProjectLayout({
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
-                  className="rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground"
+                  className="text-xs sm:text-sm rounded-full data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=inactive]:border-transparent data-[state=inactive]:text-foreground px-3 sm:px-4"
                   asChild
                 >
                   <Link href={`/dashboard/${projectId}/settings`}>
@@ -128,7 +129,7 @@ export default function ProjectLayout({
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="container mx-auto px-4 py-6 md:px-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6 md:px-6">
         <motion.div
           initial="hidden"
           animate="visible"

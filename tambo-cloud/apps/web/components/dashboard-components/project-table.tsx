@@ -76,16 +76,18 @@ export function ProjectTable({
     return projects.slice(startIndex, endIndex);
   }, [projects, startIndex, endIndex]);
 
-  const formatDate = (dateValue: Date | string) => {
+  const formatDate = (dateValue: Date | string, forceCompact = false) => {
     try {
       const date = new Date(dateValue);
       if (isNaN(date.getTime())) {
         return "Invalid date";
       }
+      // Use compact format on small screens or when explicitly set to compact
+      const useCompact = forceCompact || compact;
       return date.toLocaleDateString(undefined, {
-        month: compact ? "short" : "long",
+        month: useCompact ? "short" : "long",
         day: "numeric",
-        year: compact ? "2-digit" : "numeric",
+        year: useCompact ? "2-digit" : "numeric",
       });
     } catch {
       return "Invalid date";
@@ -110,7 +112,7 @@ export function ProjectTable({
   };
 
   const handleSelectProject = (projectId: string, checked: boolean) => {
-    const newSelected = new Set(selectedProjects);
+    const newSelected = new Set(selectedProjects || new Set<string>());
     if (checked) {
       newSelected.add(projectId);
     } else {
@@ -150,7 +152,10 @@ export function ProjectTable({
         <Table className="w-full">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className={headerClass}>
+              {/* Checkbox column - hidden on small screens, visible on lg and up (unless compact is true) */}
+              <TableHead
+                className={`${headerClass} ${compact ? "hidden" : "hidden lg:table-cell"}`}
+              >
                 <input
                   type="checkbox"
                   checked={
@@ -166,44 +171,41 @@ export function ProjectTable({
               <TableHead className={`${headerClass} text-foreground`}>
                 Project
               </TableHead>
+              {/* ID column - hidden on xs, visible on sm and up */}
               <TableHead
-                className={`${headerClass} ${
-                  compact ? "px-4 hidden sm:table-cell" : ""
-                } text-foreground`}
+                className={`${headerClass} px-4 hidden sm:table-cell text-foreground`}
               >
                 ID
               </TableHead>
+              {/* Created column - hidden on xs and sm, visible on md and up */}
               <TableHead
-                className={`${headerClass} ${
-                  compact ? "px-4 hidden md:table-cell" : ""
-                } text-foreground`}
+                className={`${headerClass} px-4 hidden md:table-cell text-foreground`}
               >
                 Created
               </TableHead>
-              {!compact && (
-                <>
-                  <TableHead className={`${headerClass} text-foreground`}>
-                    Messages
-                  </TableHead>
-                  <TableHead className={`${headerClass} text-foreground`}>
-                    Users
-                  </TableHead>
-                </>
-              )}
-              {!compact && (
-                <TableHead className={`${headerClass} text-foreground`}>
-                  Actions
-                </TableHead>
-              )}
+              {/* Messages & Users columns - only visible on lg and up (unless compact is true) */}
+              <TableHead
+                className={`${headerClass} text-foreground ${compact ? "hidden" : "hidden lg:table-cell"}`}
+              >
+                Messages
+              </TableHead>
+              <TableHead
+                className={`${headerClass} text-foreground ${compact ? "hidden" : "hidden lg:table-cell"}`}
+              >
+                Users
+              </TableHead>
+              {/* Actions column - only visible on lg and up (unless compact is true) */}
+              <TableHead
+                className={`${headerClass} text-foreground ${compact ? "hidden" : "hidden lg:table-cell"}`}
+              >
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow key="loading">
-                <TableCell
-                  colSpan={compact ? 4 : 7}
-                  className={`text-center ${cellClass}`}
-                >
+                <TableCell colSpan={7} className={`text-center ${cellClass}`}>
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="text-foreground">Loading...</span>
@@ -219,7 +221,10 @@ export function ProjectTable({
                     key={projectId || `project-${index}`}
                     className="hover:bg-accent/5"
                   >
-                    <TableCell className={`${cellClass} w-4`}>
+                    {/* Checkbox cell - hidden on small screens */}
+                    <TableCell
+                      className={`${cellClass} w-4 ${compact ? "hidden" : "hidden lg:table-cell"}`}
+                    >
                       <input
                         type="checkbox"
                         checked={
@@ -232,88 +237,100 @@ export function ProjectTable({
                         className="rounded border-gray-300"
                       />
                     </TableCell>
-                    <TableCell
-                      className={`${cellClass} font-medium ${
-                        compact ? "px-4" : ""
-                      }`}
-                    >
-                      {compact && projectId ? (
-                        <Link
-                          href={`/dashboard/${projectId}`}
-                          className="inline-flex items-center gap-1 transition-colors duration-100 group"
-                        >
-                          <span className="group-hover:underline underline-offset-4">
-                            {project.name}
-                          </span>
-                          <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
-                        </Link>
-                      ) : (
-                        project.name
-                      )}
+                    <TableCell className={`${cellClass} font-medium px-4`}>
+                      {/* Always show as link on small screens, respect compact prop on larger screens */}
+                      <div className="lg:hidden">
+                        {projectId ? (
+                          <Link
+                            href={`/dashboard/${projectId}`}
+                            className="inline-flex items-center gap-1 transition-colors duration-100 group"
+                          >
+                            <span className="group-hover:underline underline-offset-4">
+                              {project.name}
+                            </span>
+                            <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
+                          </Link>
+                        ) : (
+                          project.name
+                        )}
+                      </div>
+                      <div className="hidden lg:block">
+                        {compact && projectId ? (
+                          <Link
+                            href={`/dashboard/${projectId}`}
+                            className="inline-flex items-center gap-1 transition-colors duration-100 group"
+                          >
+                            <span className="group-hover:underline underline-offset-4">
+                              {project.name}
+                            </span>
+                            <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
+                          </Link>
+                        ) : (
+                          project.name
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell
-                      className={`${cellClass} ${
-                        compact ? "px-4 hidden sm:table-cell" : ""
-                      }`}
+                      className={`${cellClass} px-4 hidden sm:table-cell`}
                     >
                       <div className="flex items-center gap-1">
-                        <code
-                          className={`${
-                            compact ? "text-xs" : "text-sm"
-                          } bg-info text-info px-1.5 py-0.5 rounded text-ellipsis overflow-hidden whitespace-nowrap max-w-28`}
-                        >
+                        <code className="text-xs lg:text-sm bg-info text-info px-1.5 py-0.5 rounded truncate max-w-[100px]">
                           {projectId || "N/A"}
                         </code>
                         {projectId && (
                           <CopyButton
                             clipboardValue={projectId}
-                            className={compact ? "h-3 w-3" : ""}
+                            className="h-3 w-3 lg:h-4 lg:w-4"
                           />
                         )}
                       </div>
                     </TableCell>
                     <TableCell
-                      className={`${cellClass} ${
-                        compact ? "px-4 hidden md:table-cell" : "text-sm"
-                      }`}
+                      className={`${cellClass} px-4 hidden md:table-cell text-sm`}
                     >
-                      {formatDate(project.createdAt)}
+                      {/* Show compact date on small/medium screens */}
+                      <span className="lg:hidden">
+                        {formatDate(project.createdAt, true)}
+                      </span>
+                      {/* Show full date on large screens (unless compact is true) */}
+                      <span className="hidden lg:inline">
+                        {formatDate(project.createdAt)}
+                      </span>
                     </TableCell>
-                    {!compact && (
-                      <>
-                        <TableCell className={`${cellClass} text-sm`}>
-                          {project.messages}
-                        </TableCell>
-                        <TableCell className={`${cellClass} text-sm`}>
-                          {project.users}
-                        </TableCell>
-                      </>
-                    )}
-                    {!compact && !isLoading && (
-                      <TableCell className={cellClass}>
-                        <div className="flex items-center">
-                          {projectId ? (
-                            <Link
-                              href={`/dashboard/${projectId}`}
-                              className="hover:bg-accent rounded-md p-1"
-                            >
-                              View
-                            </Link>
-                          ) : (
-                            <span className="text-sm">No ID</span>
-                          )}
-                        </div>
-                      </TableCell>
-                    )}
+                    {/* Messages & Users - only visible on large screens */}
+                    <TableCell
+                      className={`${cellClass} text-sm ${compact ? "hidden" : "hidden lg:table-cell"}`}
+                    >
+                      {project.messages}
+                    </TableCell>
+                    <TableCell
+                      className={`${cellClass} text-sm ${compact ? "hidden" : "hidden lg:table-cell"}`}
+                    >
+                      {project.users}
+                    </TableCell>
+                    {/* Actions - only visible on large screens */}
+                    <TableCell
+                      className={`${cellClass} ${compact ? "hidden" : "hidden lg:table-cell"}`}
+                    >
+                      <div className="flex items-center">
+                        {projectId ? (
+                          <Link
+                            href={`/dashboard/${projectId}`}
+                            className="hover:bg-accent rounded-md p-1"
+                          >
+                            View
+                          </Link>
+                        ) : (
+                          <span className="text-sm">No ID</span>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })
             ) : (
               <TableRow key="no-projects">
-                <TableCell
-                  colSpan={compact ? 4 : 7}
-                  className={`text-center ${cellClass}`}
-                >
+                <TableCell colSpan={7} className={`text-center ${cellClass}`}>
                   No projects found.
                 </TableCell>
               </TableRow>
