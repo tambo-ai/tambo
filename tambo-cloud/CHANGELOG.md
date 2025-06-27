@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.72.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.71.0...repo-v0.72.0) (2025-06-27)
+
+
+### Features
+
+* encode API keys with base64 and add “tambo_” prefix ([#1230](https://github.com/tambo-ai/tambo-cloud/issues/1230)) ([1f83110](https://github.com/tambo-ai/tambo-cloud/commit/1f83110622f1b8f3d95c4ec37f6f27ae1c73f374))
+* **UI:** Dashboard redesign phase 3 ([#1233](https://github.com/tambo-ai/tambo-cloud/issues/1233)) ([b608f9e](https://github.com/tambo-ai/tambo-cloud/commit/b608f9e0bbf47db7969dcce608f2dd6ed67199a2))
+
+
+### Bug Fixes
+
+* stop using getSession, fix await behavior in useEffect ([#1235](https://github.com/tambo-ai/tambo-cloud/issues/1235)) ([eda01ee](https://github.com/tambo-ai/tambo-cloud/commit/eda01eed2f345463cfb233db5468fdb7564867c0))
+
+
+### Documentation
+
+* Small updates based on feedback ([#1236](https://github.com/tambo-ai/tambo-cloud/issues/1236)) ([cc8456b](https://github.com/tambo-ai/tambo-cloud/commit/cc8456b7330553101e084c5c0b0d505bce945a78))
+
 ## [0.71.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.70.0...repo-v0.71.0) (2025-06-26)
 
 
