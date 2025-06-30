@@ -456,7 +456,7 @@ export class ThreadsController {
   async generateName(
     @Param("id") threadId: string,
     @Req() request: Request,
-    @Param("contextKey") contextKey?: string,
+    @Query("contextKey") contextKey?: string,
   ): Promise<Thread> {
     const { projectId } = extractContextInfo(request, contextKey);
     return await this.threadsService.generateThreadName(
