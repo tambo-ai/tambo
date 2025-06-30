@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.73.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.0...repo-v0.73.1) (2025-06-30)
+
+
+### Bug Fixes
+
+* don't doublerender toolcall info ([#1249](https://github.com/tambo-ai/tambo-cloud/issues/1249)) ([83454e1](https://github.com/tambo-ai/tambo-cloud/commit/83454e1738c7dd6a7feebc256d2ee6ac9b14246a))
+
 ## [0.73.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.72.0...repo-v0.73.0) (2025-06-30)
 
 
