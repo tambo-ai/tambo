@@ -298,13 +298,6 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
                     : "max-h-0 opacity-0",
                 )}
               >
-                <pre>
-                  {JSON.stringify(
-                    toolCallRequest ?? "No tool call request",
-                    null,
-                    2,
-                  )}
-                </pre>
                 <span className="whitespace-pre-wrap">
                   tool: {toolCallRequest?.toolName}
                 </span>
