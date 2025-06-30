@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,7 +22,9 @@ import {
 } from "@nestjs/swagger";
 import { GenerationStage } from "@tambo-ai-cloud/core";
 import { Request } from "express";
-import { ApiKeyGuard, ProjectId } from "../projects/guards/apikey.guard";
+import { extractContextInfo } from "../common/utils/extract-context-info";
+import { ApiKeyGuard } from "../projects/guards/apikey.guard";
+import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import {
   ProjectAccessOwnGuard,
   ProjectIdParameterKey,
@@ -49,7 +50,7 @@ import { throttleChunks } from "./util/streaming";
 
 @ApiTags("threads")
 @ApiSecurity("apiKey")
-@UseGuards(ApiKeyGuard)
+@UseGuards(ApiKeyGuard, BearerTokenGuard)
 @Controller("threads")
 export class ThreadsController {
   private readonly logger = new Logger(ThreadsController.name);
@@ -59,8 +60,15 @@ export class ThreadsController {
   @ProjectIdParameterKey("projectId")
   @UseGuards(ProjectAccessOwnGuard)
   @Post()
-  async create(@Body() createThreadDto: ThreadRequest): Promise<Thread> {
-    return await this.threadsService.createThread(createThreadDto);
+  async create(
+    @Body() createThreadDto: ThreadRequest,
+    @Req() request: Request,
+  ): Promise<Thread> {
+    const { contextKey } = extractContextInfo(
+      request,
+      createThreadDto.contextKey,
+    );
+    return await this.threadsService.createThread(createThreadDto, contextKey);
   }
 
   @ProjectIdParameterKey("projectId")
@@ -71,14 +79,15 @@ export class ThreadsController {
   @ApiQuery({ name: "limit", required: false, type: Number, default: 10 })
   async findAllForProject(
     @Req() request: Request,
-    @Param("projectId") projectId: string,
-    @Query("contextKey") contextKey?: string,
+    @Param("projectId") _projectId: string,
+    @Query("contextKey") apiContextKey?: string,
     @Query("offset") offset: number = 0,
     @Query("limit") limit: number = 10,
   ): Promise<ThreadListDto> {
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required.");
-    }
+    const { projectId: projectId, contextKey } = extractContextInfo(
+      request,
+      apiContextKey,
+    );
 
     try {
       const [threads, total] = await Promise.all([
@@ -112,11 +121,13 @@ export class ThreadsController {
   async findOne(
     @Param("id") threadId: string,
     @Req() request: Request,
+    @Query("contextKey") apiContextKey?: string,
   ): Promise<ThreadWithMessagesDto> {
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
-    }
-    return await this.threadsService.findOne(threadId, request[ProjectId]);
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      apiContextKey,
+    );
+    return await this.threadsService.findOne(threadId, projectId, contextKey);
   }
 
   @UseGuards(ThreadInProjectGuard)
@@ -315,15 +326,21 @@ export class ThreadsController {
     @Req() request: Request,
     @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
-    }
-    return await this.threadsService.advanceThread(
-      request[ProjectId],
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      advanceRequestDto.contextKey,
+    );
+    const result = await this.threadsService.advanceThread(
+      projectId,
       advanceRequestDto,
       threadId,
       false,
+      {},
+      undefined,
+      contextKey,
     );
+    // Since stream=false, result will be AdvanceThreadResponseDto
+    return result as AdvanceThreadResponseDto;
   }
 
   @UseGuards(ThreadInProjectGuard)
@@ -337,15 +354,19 @@ export class ThreadsController {
     response.setHeader("Content-Type", "text/event-stream");
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
-    }
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      advanceRequestDto.contextKey,
+    );
     try {
       const stream = await this.threadsService.advanceThread(
-        request[ProjectId],
+        projectId,
         advanceRequestDto,
         threadId,
         true,
+        {},
+        undefined,
+        contextKey,
       );
 
       await this.handleAdvanceStream(response, stream);
@@ -363,15 +384,21 @@ export class ThreadsController {
     @Req() request: Request,
     @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
-    }
-    return await this.threadsService.advanceThread(
-      request[ProjectId],
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      advanceRequestDto.contextKey,
+    );
+    const result = await this.threadsService.advanceThread(
+      projectId,
       advanceRequestDto,
       undefined,
       false,
+      {},
+      undefined,
+      contextKey,
     );
+    // Since stream=false, result will be AdvanceThreadResponseDto
+    return result as AdvanceThreadResponseDto;
   }
 
   @Post("advancestream")
@@ -383,15 +410,19 @@ export class ThreadsController {
     response.setHeader("Content-Type", "text/event-stream");
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
-    }
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      advanceRequestDto.contextKey,
+    );
     try {
       const stream = await this.threadsService.advanceThread(
-        request[ProjectId],
+        projectId,
         advanceRequestDto,
         undefined,
         true,
+        {},
+        undefined,
+        contextKey,
       );
       await this.handleAdvanceStream(response, stream);
     } catch (error: any) {
@@ -425,12 +456,14 @@ export class ThreadsController {
   async generateName(
     @Param("id") threadId: string,
     @Req() request: Request,
+    @Param("contextKey") contextKey?: string,
   ): Promise<Thread> {
-    const projectId = request[ProjectId];
-    if (!projectId) {
-      throw new BadRequestException("Project ID is required");
-    }
-    return await this.threadsService.generateThreadName(threadId, projectId);
+    const { projectId } = extractContextInfo(request, contextKey);
+    return await this.threadsService.generateThreadName(
+      threadId,
+      projectId,
+      contextKey,
+    );
   }
 
   private async handleAdvanceStream(

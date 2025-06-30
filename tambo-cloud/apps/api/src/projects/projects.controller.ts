@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Controller,
   Delete,
   Get,
@@ -10,16 +9,18 @@ import {
 } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
 import { Request } from "express";
+import { extractContextInfo } from "../common/utils/extract-context-info";
 import {
   ProjectResponse,
   SimpleProjectResponse,
 } from "./dto/project-response.dto";
-import { ApiKeyGuard, ProjectId } from "./guards/apikey.guard";
+import { ApiKeyGuard } from "./guards/apikey.guard";
+import { BearerTokenGuard } from "./guards/bearer-token.guard";
 import { ProjectAccessOwnGuard } from "./guards/project-access-own.guard";
 import { ProjectsService } from "./projects.service";
 
 @ApiSecurity("apiKey")
-@UseGuards(ApiKeyGuard)
+@UseGuards(ApiKeyGuard, BearerTokenGuard)
 // @UseInterceptors(TransactionInterceptor)
 @Controller("projects")
 export class ProjectsController {
@@ -27,10 +28,8 @@ export class ProjectsController {
 
   @Get()
   async getCurrentProject(@Req() request: Request) {
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
-    }
-    const result = await this.projectsService.findOne(request[ProjectId]);
+    const { projectId } = extractContextInfo(request, undefined);
+    const result = await this.projectsService.findOne(projectId);
     return result;
   }
 

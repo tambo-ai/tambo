@@ -40,12 +40,19 @@ export async function getThreadForProjectId(
   threadId: string,
   projectId: string,
   includeInternal: boolean = false,
+  contextKey?: string,
 ) {
   return await db.query.threads.findFirst({
-    where: and(
-      eq(schema.threads.id, threadId),
-      eq(schema.threads.projectId, projectId),
-    ),
+    where: contextKey
+      ? and(
+          eq(schema.threads.id, threadId),
+          eq(schema.threads.projectId, projectId),
+          eq(schema.threads.contextKey, contextKey),
+        )
+      : and(
+          eq(schema.threads.id, threadId),
+          eq(schema.threads.projectId, projectId),
+        ),
     with: {
       messages: {
         where: includeInternal

@@ -2,7 +2,7 @@ import { env } from "@/lib/env";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function getServerSupabaseclient() {
+export async function getServerSupabaseClient() {
   const cookieStore = await cookies();
 
   const supabase = createServerClient(

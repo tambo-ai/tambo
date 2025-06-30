@@ -15,7 +15,7 @@ import { env } from "@/lib/env";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
-import { getServerSupabaseclient } from "../supabase";
+import { getServerSupabaseClient } from "../supabase";
 export type Context = {
   db: HydraDb;
   claims: SupabaseToken | null;
@@ -50,7 +50,7 @@ type SupabaseToken = {
 export const createTRPCContext = async (opts: {
   headers: Headers;
 }): Promise<Context> => {
-  const supabase = await getServerSupabaseclient();
+  const supabase = await getServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

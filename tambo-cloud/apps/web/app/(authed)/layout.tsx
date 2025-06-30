@@ -1,4 +1,4 @@
-import { getServerSupabaseclient } from "@/server/supabase";
+import { getServerSupabaseClient } from "@/server/supabase";
 import { AuthedLayoutWrapper } from "../../components/auth/authed-layout-wrapper";
 
 export default async function AuthedLayout({
@@ -7,7 +7,7 @@ export default async function AuthedLayout({
   children: React.ReactNode;
 }) {
   // Check authentication on the server
-  const _supabase = await getServerSupabaseclient();
+  const _supabase = await getServerSupabaseClient();
   const {
     data: { user },
   } = await _supabase.auth.getUser();

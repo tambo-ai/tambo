@@ -1,10 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateMcpAccessTokenDto {
   @ApiProperty({
     description: "Context key for the MCP access token",
     example: "user-context-123",
+  })
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  contextKey?: string;
+
+  @ApiProperty({
+    description: "Thread ID for the MCP access token",
+    example: "thread-123",
   })
   @IsString()
   @IsNotEmpty()

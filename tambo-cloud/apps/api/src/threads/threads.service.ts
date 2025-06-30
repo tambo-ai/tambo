@@ -156,10 +156,13 @@ export class ThreadsService {
     });
   }
 
-  async createThread(createThreadDto: ThreadRequest): Promise<Thread> {
+  async createThread(
+    createThreadDto: Omit<ThreadRequest, "contextKey">,
+    contextKey?: string,
+  ): Promise<Thread> {
     const thread = await operations.createThread(this.getDb(), {
       projectId: createThreadDto.projectId,
-      contextKey: createThreadDto.contextKey,
+      contextKey: contextKey,
       metadata: createThreadDto.metadata,
       name: createThreadDto.name,
     });
@@ -209,11 +212,17 @@ export class ThreadsService {
     );
   }
 
-  async findOne(id: string, projectId: string): Promise<ThreadWithMessagesDto> {
+  async findOne(
+    id: string,
+    projectId: string,
+    contextKey?: string,
+  ): Promise<ThreadWithMessagesDto> {
     const thread = await operations.getThreadForProjectId(
       this.getDb(),
       id,
       projectId,
+      false,
+      contextKey,
     );
     if (!thread) {
       throw new NotFoundException("Thread not found");
@@ -248,7 +257,6 @@ export class ThreadsService {
 
   async update(id: string, updateThreadDto: ThreadRequest) {
     const thread = await operations.updateThread(this.getDb(), id, {
-      contextKey: updateThreadDto.contextKey,
       metadata: updateThreadDto.metadata,
       generationStage: updateThreadDto.generationStage,
       statusMessage: updateThreadDto.statusMessage,
@@ -526,23 +534,61 @@ export class ThreadsService {
     }
   }
 
+  // generateThreadName overloads
   async generateThreadName(
     threadId: string,
     projectId: string,
+  ): Promise<Thread>;
+  async generateThreadName(
+    threadId: string,
+    projectId: string,
+    contextKey?: string,
+  ): Promise<Thread>;
+
+  async generateThreadName(
+    threadId: string,
+    projectId: string,
+    contextKey?: string,
   ): Promise<Thread> {
-    const messages = await this.getMessages(threadId, true);
-    const tamboBackend = await this.getHydraBackend(threadId);
-    const name = await tamboBackend.generateThreadName(
-      messages as ThreadMessage[],
+    const thread = await operations.getThreadForProjectId(
+      this.getDb(),
+      threadId,
+      projectId,
+      false,
+      contextKey,
     );
-    const updatedThread = await this.update(threadId, { projectId, name });
+    if (!thread) {
+      throw new NotFoundException("Thread not found");
+    }
+
+    const messages = await this.getMessages(threadId, false);
+    if (messages.length === 0) {
+      throw new NotFoundException("No messages found for thread");
+    }
+
+    const tamboBackend = await this.createHydraBackendForThread(threadId);
+    const generatedName = await tamboBackend.generateThreadName(
+      threadMessageDtoToThreadMessage(messages),
+    );
+
+    const updatedThread = await operations.updateThread(
+      this.getDb(),
+      threadId,
+      {
+        name: generatedName,
+      },
+    );
+
     return {
-      ...updatedThread,
+      id: updatedThread.id,
+      createdAt: updatedThread.createdAt,
+      updatedAt: updatedThread.updatedAt,
+      name: updatedThread.name ?? undefined,
       contextKey: updatedThread.contextKey ?? undefined,
       metadata: updatedThread.metadata ?? undefined,
       generationStage: updatedThread.generationStage,
       statusMessage: updatedThread.statusMessage ?? undefined,
-      name: updatedThread.name ?? undefined,
+      projectId: updatedThread.projectId,
     };
   }
 
@@ -578,15 +624,16 @@ export class ThreadsService {
    */
   async advanceThread(
     projectId: string,
-    advanceRequestDto: AdvanceThreadDto,
+    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     stream?: true,
     toolCallCounts?: Record<string, number>,
     systemTools?: SystemTools,
+    contextKey?: string,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>>;
   async advanceThread(
     projectId: string,
-    advanceRequestDto: AdvanceThreadDto,
+    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     stream?: false,
     toolCallCounts?: Record<string, number>,
@@ -594,32 +641,35 @@ export class ThreadsService {
   ): Promise<AdvanceThreadResponseDto>;
   async advanceThread(
     projectId: string,
-    advanceRequestDto: AdvanceThreadDto,
+    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     stream?: boolean,
     toolCallCounts?: Record<string, number>,
     systemTools?: SystemTools,
+    contextKey?: string,
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   >;
   async advanceThread(
     projectId: string,
-    advanceRequestDto: AdvanceThreadDto,
+    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
     stream?: boolean,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: SystemTools,
+    contextKey?: string,
   ): Promise<
     AdvanceThreadResponseDto | AsyncIterableIterator<AdvanceThreadResponseDto>
   > {
     const db = this.getDb();
 
+    // Rate limiting check
     await this.checkMessageLimit(projectId);
 
     const thread = await this.ensureThread(
       projectId,
       unresolvedThreadId,
-      advanceRequestDto.contextKey,
+      contextKey,
     );
 
     // Check if we should ignore this request due to cancellation
@@ -696,7 +746,7 @@ export class ThreadsService {
     const mcpAccessToken = await this.authService.generateMcpAccessToken(
       projectId,
       thread.id,
-      advanceRequestDto.contextKey,
+      contextKey,
     );
 
     if (stream) {
@@ -1173,10 +1223,12 @@ export class ThreadsService {
     }
 
     // If the threadId is not provided, create a new thread
-    const newThread = await this.createThread({
-      projectId,
+    const newThread = await this.createThread(
+      {
+        projectId,
+      },
       contextKey,
-    });
+    );
     return newThread;
   }
 

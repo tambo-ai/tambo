@@ -1,12 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import {
   ApiOperation,
   ApiResponse,
@@ -20,7 +12,9 @@ import {
   McpAccessTokenResponseDto,
 } from "./common/dto/mcp-access-token.dto";
 import { AuthService } from "./common/services/auth.service";
-import { ApiKeyGuard, ProjectId } from "./projects/guards/apikey.guard";
+import { extractContextInfo } from "./common/utils/extract-context-info";
+import { ApiKeyGuard } from "./projects/guards/apikey.guard";
+import { BearerTokenGuard } from "./projects/guards/bearer-token.guard";
 
 @ApiTags("Auth")
 @Controller()
@@ -41,7 +35,7 @@ export class AppController {
   }
 
   @ApiSecurity("apiKey")
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(ApiKeyGuard, BearerTokenGuard)
   @Post("auth/mcp-access-token")
   @ApiOperation({
     summary: "Create an MCP access token",
@@ -61,16 +55,17 @@ export class AppController {
     @Body() createMcpAccessTokenDto: CreateMcpAccessTokenDto,
     @Req() request: Request,
   ): Promise<McpAccessTokenResponseDto> {
-    if (!request[ProjectId]) {
-      throw new BadRequestException("Project ID is required");
-    }
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      createMcpAccessTokenDto.contextKey,
+    );
 
-    const projectId = request[ProjectId];
     const { threadId } = createMcpAccessTokenDto;
 
     const mcpAccessToken = await this.authService.generateMcpAccessToken(
       projectId,
       threadId,
+      contextKey,
     );
 
     return {
