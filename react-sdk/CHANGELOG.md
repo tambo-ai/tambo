@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.34.0](https://github.com/tambo-ai/tambo/compare/react-v0.33.0...react-v0.34.0) (2025-07-01)
+
+
+### Features
+
+* implement useTamboStreamStatus hook with generation vs prop streaming distinction ([#581](https://github.com/tambo-ai/tambo/issues/581)) ([dae15ca](https://github.com/tambo-ai/tambo/commit/dae15caf71f12cec1397d495034a69b755c0b6b6))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump jest from 30.0.2 to 30.0.3 ([#606](https://github.com/tambo-ai/tambo/issues/606)) ([0808872](https://github.com/tambo-ai/tambo/commit/0808872744cfc3e98dce4c12489874a4e963b6ea))
+* **deps-dev:** bump prettier from 3.6.0 to 3.6.2 ([#607](https://github.com/tambo-ai/tambo/issues/607)) ([7baee41](https://github.com/tambo-ai/tambo/commit/7baee41445557496e4d9a697b9bbdf8276658ebf))
+* **deps-dev:** bump the eslint group with 4 updates ([#602](https://github.com/tambo-ai/tambo/issues/602)) ([00832a8](https://github.com/tambo-ai/tambo/commit/00832a88e5440afbfe9033322090ed7914d5ae98))
+* **deps:** bump @modelcontextprotocol/sdk from 1.13.1 to 1.13.2 ([#601](https://github.com/tambo-ai/tambo/issues/601)) ([03c28cd](https://github.com/tambo-ai/tambo/commit/03c28cda4496f02b25d87d1a8a7b7bf2048e0da1))
+* **deps:** bump @tanstack/react-query from 5.81.2 to 5.81.5 ([#600](https://github.com/tambo-ai/tambo/issues/600)) ([291b878](https://github.com/tambo-ai/tambo/commit/291b8784fd6f24823b5c4c11ffa1825e7fcade32))
+* **deps:** bump zod-to-json-schema from 3.24.5 to 3.24.6 ([#610](https://github.com/tambo-ai/tambo/issues/610)) ([2fa1be5](https://github.com/tambo-ai/tambo/commit/2fa1be59cc8d69c9cab135f58afa192689f24d91))
+* **deps:** Manually bump typescript-sdk to 0.58 ([#612](https://github.com/tambo-ai/tambo/issues/612)) ([217c383](https://github.com/tambo-ai/tambo/commit/217c38395e82edebb4b01baa9b259363c7a7325d))
+
 ## [0.33.0](https://github.com/tambo-ai/tambo/compare/react-v0.32.1...react-v0.33.0) (2025-06-26)
 
 
