@@ -17,6 +17,7 @@ export enum GenerationStage {
   STREAMING_RESPONSE = "STREAMING_RESPONSE",
   COMPLETE = "COMPLETE",
   ERROR = "ERROR",
+  CANCELLED = "CANCELLED",
 }
 /**
  * Checks if the generation stage is in a state where it can accept user input.
@@ -28,5 +29,6 @@ export function isIdleStage(generationStage: GenerationStage) {
     GenerationStage.IDLE,
     GenerationStage.COMPLETE,
     GenerationStage.ERROR,
+    GenerationStage.CANCELLED,
   ].includes(generationStage);
 }

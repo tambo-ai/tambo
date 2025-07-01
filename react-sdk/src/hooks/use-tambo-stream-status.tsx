@@ -65,12 +65,6 @@ export interface PropStatus {
   isSuccess: boolean;
 
   /**
-   * Indicates an error occurred while streaming this specific prop.
-   * Check the error property for details.
-   */
-  isError: boolean;
-
-  /**
    * The error that occurred during streaming (if any).
    * Will be undefined if no error occurred for this prop.
    */
@@ -138,6 +132,8 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
       const updated = { ...prev };
       let hasChanges = false;
 
+      // First pass: identify which props are starting now
+      const propsStartingNow: string[] = [];
       Object.entries(props).forEach(([key, value]) => {
         const current = prev[key] || {
           hasStarted: false,
@@ -149,11 +145,37 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
           value !== undefined && value !== null && value !== "";
         const justStarted = hasContent && !current.hasStarted;
 
-        /** A prop is complete when generation is done and it has content */
+        if (justStarted) {
+          propsStartingNow.push(key);
+        }
+      });
+
+      // Second pass: update tracking and mark previous props as complete
+      Object.entries(props).forEach(([key, value]) => {
+        const current = prev[key] || {
+          hasStarted: false,
+          isComplete: false,
+        };
+
+        /** A prop starts streaming when it has a non-empty value for the first time */
+        const hasContent =
+          value !== undefined && value !== null && value !== "";
+        const justStarted = hasContent && !current.hasStarted;
+
+        /**
+         * A prop is complete when it has started and either:
+         * 1. A following prop has started, OR
+         * 2. Generation is complete (for the final prop)
+         */
+        const hasFollowingPropStarted = propsStartingNow.some(
+          (startingKey) => startingKey !== key,
+        );
         const isGenerationComplete =
           generationStage === GenerationStage.COMPLETE;
         const isComplete =
-          isGenerationComplete && hasContent && !current.isComplete;
+          current.hasStarted &&
+          (hasFollowingPropStarted || isGenerationComplete) &&
+          !current.isComplete;
 
         // Once a prop is complete for this message, it stays complete
         if (current.isComplete && current.messageId === messageId) {
@@ -205,7 +227,6 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
           !isCompleteForThisMessage &&
           isGenerationStreaming,
         isSuccess: isCompleteForThisMessage,
-        isError: !!tracking.error,
         error: tracking.error,
       };
     });
@@ -263,7 +284,7 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
     /** isError: generation error OR any prop error */
     isError:
       isGenerationError ||
-      propStatuses.some((p) => p.isError) ||
+      propStatuses.some((p) => p.error) ||
       !!generationError,
 
     streamError: firstError,

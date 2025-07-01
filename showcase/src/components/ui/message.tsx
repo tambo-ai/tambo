@@ -1,3 +1,5 @@
+"use client";
+
 import { createMarkdownComponents } from "@/components/ui/markdownComponents";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
@@ -256,6 +258,9 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : (
               safeContent
             )}
+            {message.isCancelled && (
+              <span className="text-muted-foreground text-xs">cancelled</span>
+            )}
           </div>
         )}
         {toolStatusMessage && (
@@ -359,7 +364,11 @@ const MessageRenderedComponentArea = React.forwardRef<
     };
   }, []);
 
-  if (!message.renderedComponent || role !== "assistant") {
+  if (
+    !message.renderedComponent ||
+    role !== "assistant" ||
+    message.isCancelled
+  ) {
     return null;
   }
 

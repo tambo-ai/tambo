@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.12.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.3...showcase-v0.12.0) (2025-06-26)
+
+
+### Features
+
+* add and expose `cancel` function to 'cancel' a generation ([#594](https://github.com/tambo-ai/tambo/issues/594)) ([661f31e](https://github.com/tambo-ai/tambo/commit/661f31ed3898e083e740f3975a6040966887324b))
+* update showcase with updated ui components ([#597](https://github.com/tambo-ai/tambo/issues/597)) ([e27b28d](https://github.com/tambo-ai/tambo/commit/e27b28d0ba6ecf134bc3f0cd7b2c2b67648e3cfd))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump prettier from 3.5.3 to 3.6.0 ([#591](https://github.com/tambo-ai/tambo/issues/591)) ([d678b2d](https://github.com/tambo-ai/tambo/commit/d678b2d8a64dd410ac95dd621614be24664f4447))
+* **deps:** bump framer-motion from 12.18.1 to 12.19.1 ([#586](https://github.com/tambo-ai/tambo/issues/586)) ([d67604c](https://github.com/tambo-ai/tambo/commit/d67604c0933ed106952d6f166122311118de6ad2))
+* **deps:** bump lucide-react from 0.518.0 to 0.522.0 ([#584](https://github.com/tambo-ai/tambo/issues/584)) ([a16d10a](https://github.com/tambo-ai/tambo/commit/a16d10a20134fd9a9bac321aa21ee4c0c1341abf))
+
 ## [0.11.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.2...showcase-v0.11.3) (2025-06-19)
 
 
