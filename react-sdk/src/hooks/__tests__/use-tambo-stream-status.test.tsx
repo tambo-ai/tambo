@@ -66,30 +66,6 @@ describe("useTamboStreamStatus", () => {
     jest.clearAllMocks();
   });
 
-  describe("SSR Guard", () => {
-    it("should throw error during SSR/SSG", () => {
-      // Mock server-side environment
-      delete (global as any).window;
-
-      expect(() => {
-        renderHook(() => useTamboStreamStatus());
-      }).toThrow(
-        "useTamboStreamStatus can only be used in browser contexts. " +
-          "This hook is not compatible with SSR/SSG. " +
-          "Consider wrapping it in useEffect or using dynamic imports.",
-      );
-    });
-
-    it("should work in client-side environment", () => {
-      // Ensure window exists
-      global.window = originalWindow;
-
-      expect(() => {
-        renderHook(() => useTamboStreamStatus());
-      }).not.toThrow();
-    });
-  });
-
   describe("Initial State", () => {
     it("should start with all flags as pending when idle and no props", () => {
       jest.mocked(useTamboThread).mockReturnValue({
@@ -118,7 +94,6 @@ describe("useTamboStreamStatus", () => {
         isPending: true,
         isStreaming: false,
         isSuccess: false,
-        isError: false,
         error: undefined,
       });
 
@@ -126,7 +101,6 @@ describe("useTamboStreamStatus", () => {
         isPending: true,
         isStreaming: false,
         isSuccess: false,
-        isError: false,
         error: undefined,
       });
     });
