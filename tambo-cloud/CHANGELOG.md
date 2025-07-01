@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.3...repo-v0.74.0) (2025-07-01)
+
+
+### Features
+
+* **UI:** implementation of phase 4 ([#1255](https://github.com/tambo-ai/tambo-cloud/issues/1255)) ([540bf3f](https://github.com/tambo-ai/tambo-cloud/commit/540bf3fb1f923625ae1fcecf01ee75ca64dbd65f))
+
 ## [0.73.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.2...repo-v0.73.3) (2025-07-01)
 
 
