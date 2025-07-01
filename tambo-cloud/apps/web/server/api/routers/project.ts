@@ -88,6 +88,57 @@ async function getDailyCounts(
   return results;
 }
 
+async function getMultiProjectDailyCounts(
+  db: HydraDb,
+  projectIds: string[],
+  days: number,
+  { errorsOnly = false }: { errorsOnly?: boolean } = {},
+): Promise<Array<{ date: string; count: number }>> {
+  // Earliest date to include
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (days - 1));
+
+  // Build where-conditions
+  const conditions = [
+    inArray(schema.threads.projectId, projectIds),
+    gte(schema.messages.createdAt, startDate),
+  ];
+  if (errorsOnly) {
+    conditions.push(isNotNull(schema.messages.error));
+  }
+
+  // Postgres DATE(<timestamp>) expression
+  const dateExpr = sql<string>`date(${schema.messages.createdAt})`;
+
+  // Aggregate in a single query
+  const rows = await db
+    .select({
+      date: dateExpr.as("date"),
+      count: count(schema.messages.id).as("count"),
+    })
+    .from(schema.messages)
+    .innerJoin(schema.threads, eq(schema.messages.threadId, schema.threads.id))
+    .where(and(...conditions))
+    .groupBy(dateExpr)
+    .orderBy(dateExpr);
+
+  // Map results for O(1) look-ups
+  const daily = new Map<string, number>(
+    rows.map((r) => [r.date, Number(r.count ?? 0)]),
+  );
+
+  // Produce zero-filled series
+  const results: Array<{ date: string; count: number }> = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + i);
+    const key = d.toISOString().split("T")[0];
+    results.push({ date: key, count: daily.get(key) ?? 0 });
+  }
+
+  return results;
+}
+
 export const projectRouter = createTRPCRouter({
   getUserProjects: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user.id;
@@ -668,18 +719,35 @@ export const projectRouter = createTRPCRouter({
   getProjectDailyMessages: protectedProcedure
     .input(
       z.object({
-        projectId: z.string(),
+        projectId: z
+          .union([z.string(), z.array(z.string()).min(1)])
+          .describe("Single project ID or array of project IDs"),
         days: z.number().min(1).max(90).default(30),
       }),
     )
     .query(async ({ ctx, input }) => {
       const { projectId, days } = input;
 
-      // Authorisation – ensure the caller may access this project
-      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+      // Normalize to array
+      const projectIds = Array.isArray(projectId) ? projectId : [projectId];
 
-      // Re-use helper that does all SQL aggregation & zero-fill
-      const data = await getDailyCounts(ctx.db, projectId, days);
+      // Ensure the user has access to all projects
+      await Promise.all(
+        projectIds.map(
+          async (id) =>
+            await operations.ensureProjectAccess(ctx.db, id, ctx.user.id),
+        ),
+      );
+
+      // Use appropriate helper based on number of projects
+      let data: Array<{ date: string; count: number }>;
+      if (projectIds.length === 1) {
+        // Use existing single-project helper for backward compatibility
+        data = await getDailyCounts(ctx.db, projectIds[0], days);
+      } else {
+        // Use multi-project helper
+        data = await getMultiProjectDailyCounts(ctx.db, projectIds, days);
+      }
 
       // Shape expected by the client: [{ date, messages }]
       return data.map(({ date, count }) => ({

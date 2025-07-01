@@ -1,21 +1,16 @@
 "use client";
 
-import { ThreadMessagesModal } from "@/components/observability/messages/thread-messages-modal";
-import { ThreadTable } from "@/components/observability/thread-table/thread-table";
-import { calculateThreadStats } from "@/components/observability/utils";
+import { ThreadTableContainer } from "@/components/observability/thread-table/thread-table-container";
 import { ObservabilityPageSkeleton } from "@/components/skeletons/observability-skeletons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { api, type RouterOutputs } from "@/trpc/react";
+import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { use } from "react";
 
-type MessageType = ThreadType["messages"][0];
-type ThreadType = RouterOutputs["thread"]["getThread"];
-
-interface ProjectPageProps {
+interface ObservabilityPageProps {
   params: Promise<{
     projectId: string;
   }>;
@@ -33,12 +28,9 @@ const containerVariants = {
   },
 };
 
-export default function ProjectPage({ params }: ProjectPageProps) {
+export default function ObservabilityPage({ params }: ObservabilityPageProps) {
   const { projectId } = use(params);
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const { toast } = useToast();
-  const [isMessagesModalOpen, setIsMessagesModalOpen] = useState(false);
-  const utils = api.useUtils();
 
   // Fetch project details
   const { data: project, isLoading: isLoadingProject } =
@@ -46,77 +38,13 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       select: (projects) => projects.find((p) => p.id === projectId),
     });
 
-  // Fetch threads for the project
-  const {
-    data: threadData,
-    isLoading: isLoadingThreads,
-    error: threadsError,
-    refetch: refetchThreads,
-    isFetching: isFetchingThreads,
-  } = api.thread.getThreads.useQuery({
-    projectId,
-    offset: 0,
-    limit: 100,
-  });
-
-  // Extract threads and total count
-  const threads = threadData?.threads || [];
-
-  // Fetch selected thread details
-  const {
-    data: selectedThread,
-    error: threadError,
-    isLoading: isLoadingThread,
-  } = api.thread.getThread.useQuery(
-    {
-      threadId: selectedThreadId!,
+  // For refresh functionality
+  const { refetch: refetchThreads, isFetching: isFetchingThreads } =
+    api.thread.getThreads.useQuery({
       projectId,
-      includeInternal: true,
-    },
-    {
-      enabled: !!selectedThreadId,
-      placeholderData: (prev, prevQuery) => {
-        if (!prevQuery) return undefined;
-        const { input } = prevQuery.queryKey[1];
-        if (
-          input.threadId === selectedThreadId &&
-          input.projectId === projectId
-        ) {
-          return prev;
-        }
-        return undefined;
-      },
-    },
-  );
-
-  useEffect(() => {
-    if (threadsError) {
-      toast({
-        title: "Error",
-        description: "Failed to load threads",
-        variant: "destructive",
-      });
-    }
-  }, [threadsError, toast]);
-
-  useEffect(() => {
-    if (threadError) {
-      toast({
-        title: "Error",
-        description: "Failed to load thread details",
-        variant: "destructive",
-      });
-    }
-  }, [threadError, toast]);
-
-  const handleViewMessages = (threadId: string) => {
-    setSelectedThreadId(threadId);
-    setIsMessagesModalOpen(true);
-  };
-
-  const handleThreadsDeleted = async () => {
-    await utils.thread.getThreads.invalidate({ projectId });
-  };
+      offset: 0,
+      limit: 100,
+    });
 
   const handleRefresh = async () => {
     try {
@@ -133,23 +61,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       });
     }
   };
-
-  const formattedThreads = threads.map((thread) => {
-    const stats = calculateThreadStats(
-      (thread.messages as MessageType[]) || [],
-    );
-    return {
-      id: thread.id,
-      name: thread.name || null,
-      createdAt: thread.createdAt.toISOString(),
-      updatedAt: thread.updatedAt.toISOString(),
-      contextKey: thread.contextKey || "user_context_key",
-      messages: thread.messages?.length || 0,
-      tools: stats.tools,
-      components: stats.components,
-      errors: stats.errors,
-    };
-  });
 
   if (isLoadingProject) {
     return <ObservabilityPageSkeleton />;
@@ -189,21 +100,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <ThreadTable
-          threads={formattedThreads}
-          onViewMessages={handleViewMessages}
-          isLoading={isLoadingThreads}
-          projectId={projectId}
-          onThreadsDeleted={handleThreadsDeleted}
-        />
+        {/* Thread Table Container - contains the thread table and the thread messages modal */}
+        <ThreadTableContainer projectId={projectId} />
       </div>
-
-      <ThreadMessagesModal
-        thread={selectedThread || ({} as ThreadType)}
-        isOpen={isMessagesModalOpen}
-        onClose={() => setIsMessagesModalOpen(false)}
-        isLoading={isLoadingThread && !selectedThread}
-      />
     </motion.div>
   );
 }

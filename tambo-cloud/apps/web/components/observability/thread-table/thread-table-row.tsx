@@ -13,6 +13,7 @@ interface ThreadRowProps {
   isDeleting: boolean;
   onSelect: (id: string, checked: boolean) => void;
   onViewMessages: (id: string) => void;
+  compact?: boolean;
 }
 
 export const ThreadRow = memo(
@@ -22,6 +23,7 @@ export const ThreadRow = memo(
     isDeleting,
     onSelect,
     onViewMessages,
+    compact = false,
   }: ThreadRowProps) => {
     const handleSelect = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +73,11 @@ export const ThreadRow = memo(
           </div>
         </TableCell>
 
-        <TableCell className="py-2 text-sm px-4 text-primary hidden lg:table-cell">
+        <TableCell
+          className={`py-2 text-sm px-4 text-primary ${
+            compact ? "hidden" : "hidden lg:table-cell"
+          }`}
+        >
           <div className="flex flex-col gap-1">
             <span>{formatDateThreadTable(thread.updatedAt).date}</span>
             <span className="text-xs text-foreground">
@@ -89,7 +95,11 @@ export const ThreadRow = memo(
           </div>
         </TableCell>
 
-        <TableCell className="py-2 text-xs sm:text-sm px-2 sm:px-4 font-medium">
+        <TableCell
+          className={`py-2 text-xs sm:text-sm px-2 sm:px-4 font-medium ${
+            compact ? "hidden" : ""
+          }`}
+        >
           <span className="block truncate max-w-[120px] sm:max-w-none">
             {thread.name || (
               <span className="text-primary italic">No name</span>
@@ -97,7 +107,11 @@ export const ThreadRow = memo(
           </span>
         </TableCell>
 
-        <TableCell className="py-2 text-sm px-4 font-medium hidden md:table-cell">
+        <TableCell
+          className={`py-2 text-sm px-4 font-medium ${
+            compact ? "hidden" : "hidden md:table-cell"
+          }`}
+        >
           {thread.contextKey}
         </TableCell>
 

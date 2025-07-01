@@ -161,7 +161,7 @@ export function ProjectTable({
                   checked={
                     currentProjects.length > 0 &&
                     currentProjects.every(
-                      (p) => p.id && selectedProjects.has(p.id),
+                      (p) => p.id && (selectedProjects?.has(p.id) ?? false),
                     )
                   }
                   onChange={(e) => handleSelectAll(e.target.checked)}
@@ -183,10 +183,8 @@ export function ProjectTable({
               >
                 Created
               </TableHead>
-              {/* Messages & Users columns - only visible on lg and up (unless compact is true) */}
-              <TableHead
-                className={`${headerClass} text-foreground ${compact ? "hidden" : "hidden lg:table-cell"}`}
-              >
+              {/* Messages column - visible in both compact and full modes */}
+              <TableHead className={`${headerClass} text-foreground`}>
                 Messages
               </TableHead>
               <TableHead
@@ -228,7 +226,9 @@ export function ProjectTable({
                       <input
                         type="checkbox"
                         checked={
-                          projectId ? selectedProjects.has(projectId) : false
+                          projectId
+                            ? (selectedProjects?.has(projectId) ?? false)
+                            : false
                         }
                         onChange={(e) =>
                           projectId &&
@@ -298,9 +298,7 @@ export function ProjectTable({
                       </span>
                     </TableCell>
                     {/* Messages & Users - only visible on large screens */}
-                    <TableCell
-                      className={`${cellClass} text-sm ${compact ? "hidden" : "hidden lg:table-cell"}`}
-                    >
+                    <TableCell className={`${cellClass} text-sm`}>
                       {project.messages}
                     </TableCell>
                     <TableCell

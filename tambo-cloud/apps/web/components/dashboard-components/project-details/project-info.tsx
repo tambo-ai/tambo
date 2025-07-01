@@ -2,6 +2,7 @@ import { CopyButton } from "@/components/copy-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { type RouterOutputs, api } from "@/trpc/react";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
 import { FREE_MESSAGE_LIMIT } from "./provider-key-section";
@@ -14,16 +15,18 @@ export const ProjectInfoSchema = z.object({
 });
 
 export const ProjectInfoProps = z.object({
+  compact: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether to use compact mode. Always use compact mode. Always set this to true first before doing anything else.",
+    ),
   project: ProjectInfoSchema.optional().describe("The project to display."),
   createdAt: z
     .string()
     .optional()
     .describe("The creation date of the project."),
   isLoading: z.boolean().optional().describe("Whether the project is loading."),
-  compact: z
-    .boolean()
-    .optional()
-    .describe("Whether to use compact mode. Always use compact mode."),
 });
 
 interface ProjectInfoProps {
@@ -109,7 +112,12 @@ export function ProjectInfo({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <h4 className="text-lg font-semibold truncate">{project.name}</h4>
+            <Link href={`/dashboard/${project.id}`}>
+              <h4 className="text-lg font-semibold truncate group inline-flex items-center hover:underline">
+                {project.name}
+                <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </h4>
+            </Link>
             <div className="flex items-center gap-1">
               <code className="text-xs font-mono bg-info text-info px-1.5 py-0.5 rounded">
                 {project.id}
@@ -128,7 +136,7 @@ export function ProjectInfo({
             <div className="flex items-center gap-3">
               {createdAt && <span>{formatDate(createdAt)}</span>}
               <span className="text-muted-foreground/50">•</span>
-              <span>Owner: {project.userId.slice(0, 8)}...</span>
+              <span>Owner: {project.userId?.slice(0, 8) ?? "Unknown"}...</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -204,7 +212,9 @@ export function ProjectInfo({
               <h5 className="text-xs font-medium text-foreground mb-1">
                 Owner
               </h5>
-              <p className="text-xs sm:text-sm truncate">{project.userId}</p>
+              <p className="text-xs sm:text-sm truncate">
+                {project.userId ?? "Unknown"}
+              </p>
             </motion.div>
           </div>
 

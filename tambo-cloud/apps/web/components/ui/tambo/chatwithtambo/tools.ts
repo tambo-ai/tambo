@@ -2,7 +2,10 @@
 
 import { APIKeySchema } from "@/components/dashboard-components/project-details/api-key-list";
 import { ProjectTableSchema } from "@/components/dashboard-components/project-table";
-import { DeprecatedComposioAuthMode, MCPTransport } from "@tambo-ai-cloud/core";
+import { api, useTRPCClient } from "@/trpc/react";
+import { MCPTransport } from "@tambo-ai-cloud/core";
+import { useTambo } from "@tambo-ai/react";
+import { useEffect } from "react";
 import { z } from "zod";
 
 /** user management */
@@ -53,6 +56,7 @@ export const fetchProjectByIdSchema = z
       defaultLlmModelName: z.string().nullable(),
       customLlmModelName: z.string().nullable(),
       customLlmBaseURL: z.string().nullable(),
+      maxInputTokens: z.number().nullable(),
     }),
   );
 
@@ -82,6 +86,9 @@ export const updateProjectSchema = z
       customLlmBaseURL: z
         .string()
         .describe("The new custom LLM base URL for the project"),
+      maxInputTokens: z
+        .number()
+        .describe("The new max input tokens for the project"),
     }),
   )
   .returns(
@@ -95,6 +102,7 @@ export const updateProjectSchema = z
       defaultLlmModelName: z.string().nullable(),
       customLlmModelName: z.string().nullable(),
       customLlmBaseURL: z.string().nullable(),
+      maxInputTokens: z.number().nullable(),
     }),
   );
 
@@ -181,6 +189,61 @@ export const deleteProjectApiKeySchema = z
     }),
   );
 
+/** dashboard statistics management */
+
+/**
+ * Zod schema for the `fetchProjectCount` function.
+ * Defines no arguments and returns the count of projects for the current user.
+ */
+export const fetchProjectCountSchema = z
+  .function()
+  .args()
+  .returns(
+    z.object({
+      count: z.number(),
+    }),
+  );
+
+/**
+ * Zod schema for the `fetchTotalMessageUsage` function.
+ * Defines a period argument and returns total message usage.
+ */
+export const fetchTotalMessageUsageSchema = z
+  .function()
+  .args(
+    z
+      .string()
+      .describe(
+        "Time period filter: 'all time', 'per month', or 'per week'. Defaults to 'all time'",
+      ),
+  )
+  .returns(
+    z.object({
+      totalMessages: z.number(),
+      period: z.string(),
+    }),
+  );
+
+/**
+ * Zod schema for the `fetchTotalUsers` function.
+ * Defines a period argument and returns total user count.
+ */
+export const fetchTotalUsersSchema = z
+  .function()
+  .args(
+    z
+      .string()
+      .describe(
+        "Time period filter: 'all time', 'per month', or 'per week'. Defaults to 'all time'",
+      ),
+  )
+  .returns(
+    z.object({
+      totalUsers: z.number(),
+      period: z.string(),
+    }),
+  );
+
 /** llm provider settings management */
 
 /**
@@ -196,6 +259,7 @@ export const fetchProjectLlmSettingsSchema = z
       defaultLlmModelName: z.string().nullable(),
       customLlmModelName: z.string().nullable(),
       customLlmBaseURL: z.string().nullable(),
+      maxInputTokens: z.number().nullable(),
     }),
   );
 
@@ -214,6 +278,7 @@ export const updateProjectLlmSettingsSchema = z
         defaultLlmModelName: z.string().nullable(),
         customLlmModelName: z.string().nullable(),
         customLlmBaseURL: z.string().nullable(),
+        maxInputTokens: z.number().nullable(),
       })
       .describe("The LLM settings to update"),
   )
@@ -223,6 +288,7 @@ export const updateProjectLlmSettingsSchema = z
       defaultLlmModelName: z.string().nullable(),
       customLlmModelName: z.string().nullable(),
       customLlmBaseURL: z.string().nullable(),
+      maxInputTokens: z.number().nullable(),
     }),
   );
 
@@ -263,39 +329,6 @@ export const addMcpServerSchema = z
       mcpTransport: z
         .nativeEnum(MCPTransport)
         .describe("Transport mechanism for MCP communication, default is SSE"),
-    }),
-  )
-  .returns(
-    z.object({
-      id: z.string(),
-      url: z.string(),
-      customHeaders: z.record(z.string(), z.string()),
-      mcpTransport: z.nativeEnum(MCPTransport),
-      mcpRequiresAuth: z.boolean(),
-      mcpCapabilities: z.record(z.string(), z.any()).optional(),
-      mcpVersion: z.record(z.string(), z.any()).optional(),
-      mcpInstructions: z.string().optional(),
-    }),
-  );
-
-/**
- * Zod schema for the `updateMcpServer` function.
- * Defines the argument as an object containing parameters for updating an MCP server (project ID, server ID, URL, custom headers, MCP transport)
- * and the return type as an object representing the updated MCP server's details.
- */
-export const updateMcpServerSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z.string().describe("The project ID"),
-      serverId: z.string().describe("The ID of the MCP server to update"),
-      url: z.string().describe("The updated URL of the MCP server"),
-      customHeaders: z
-        .record(z.string(), z.string())
-        .describe("Updated custom headers for the MCP server"),
-      mcpTransport: z
-        .nativeEnum(MCPTransport)
-        .describe("Updated transport mechanism for MCP communication"),
     }),
   )
   .returns(
@@ -383,178 +416,451 @@ export const getMcpServerToolsSchema = z
     }),
   );
 
-/**
- * Zod schema for the `checkComposioConnectedAccountStatus` function.
- * Defines the argument as an object containing the project ID, tool provider ID, and an optional context key,
- * and the return type as an object representing the connection status (discriminated union based on status).
- */
-export const checkComposioConnectedAccountStatusSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z.string().describe("The project ID"),
-      toolProviderId: z
-        .string()
-        .describe("The ID of the tool provider to check"),
-      contextKey: z
-        .string()
-        .nullable()
-        .describe("Optional context key for the authentication"),
-    }),
-  )
-  .returns(
-    z.discriminatedUnion("status", [
-      z.object({
-        status: z.literal("NOT_CONNECTED"),
-        lastCheckedAt: z.undefined().optional(),
-      }),
-      z.object({
-        status: z.enum(["INITIATED", "ACTIVE", "FAILED", "EXPIRED"]),
-        lastCheckedAt: z.date(),
-      }),
-    ]),
-  );
+export function useTamboManagementTools() {
+  const { registerTool } = useTambo();
+  const trpcClient = useTRPCClient();
+  const utils = api.useUtils();
 
-// BELOW TOOLS ARE NOT TESTED YET
+  /* user management */
+  useEffect(() => {
+    /**
+     * Registers a tool to fetch the current user information.
+     * Returns user details including ID, email, creation date, and image URL.
+     * If the user is not logged in, provides a link to the login page.
+     */
+    registerTool({
+      name: "fetchCurrentUser",
+      description:
+        "Fetches the current user. If the user is not logged in, return a link that leads to the login page at /login",
+      tool: async () => {
+        return await trpcClient.user.getUser.query();
+      },
+      toolSchema: fetchCurrentUserSchema,
+    });
 
-/**
- * Zod schema for the `listAvailableApps` function.
- * Defines the argument as an object containing the project ID.
- * The schema's return type is an object representing the details of a single available app (as per this schema definition).
- */
-export const listAvailableAppsSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z
-        .string()
-        .describe("The project ID to fetch available apps for"),
-    }),
-  )
-  .returns(
-    z.object({
-      appId: z.string(),
-      name: z.string(),
-      no_auth: z.boolean().optional(),
-      auth_schemes: z.array(
-        z.object({
-          mode: z.nativeEnum(DeprecatedComposioAuthMode),
-          name: z.string().optional(),
-          proxy: z.object({
-            base_url: z.string(),
-            headers: z.record(z.string(), z.string()).optional(),
-          }),
-          fields: z.array(
-            z.object({
-              name: z.string(),
-              type: z.string(),
-              required: z.boolean(),
-              description: z.string(),
-            }),
-          ),
-        }),
-      ),
-      tags: z.array(z.string()),
-      logo: z.string(),
-      description: z.string(),
-      enabled: z.boolean(),
-    }),
-  );
+    /* project management */
 
-/**
- * Zod schema for the `enableApp` function.
- * Defines the argument as an object containing the project ID and app ID,
- * and the return type as an object indicating success.
- */
-export const enableAppSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z.string().describe("The project ID"),
-      appId: z.string().describe("The ID of the app to enable"),
-    }),
-  )
-  .returns(
-    z.object({
-      success: z.boolean(),
-    }),
-  );
+    /**
+     * Registers a tool to fetch all projects for the current user.
+     * Returns an array of project objects with detailed information.
+     */
+    registerTool({
+      name: "fetchAllProjects",
+      description: "Fetches all projects for the current user.",
+      tool: async () => {
+        return await trpcClient.project.getUserProjects.query();
+      },
+      toolSchema: fetchAllProjectsSchema,
+    });
 
-/**
- * Zod schema for the `disableApp` function.
- * Defines the argument as an object containing the project ID and app ID,
- * and the return type as an object indicating success.
- */
-export const disableAppSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z.string().describe("The project ID"),
-      appId: z.string().describe("The ID of the app to disable"),
-    }),
-  )
-  .returns(
-    z.object({
-      success: z.boolean(),
-    }),
-  );
+    /**
+     * Registers a tool to fetch a specific project by its ID.
+     * @param {string} projectId - The unique identifier of the project to fetch
+     * @returns {Object} Project details including ID, name, user ID, settings, and timestamps
+     */
+    registerTool({
+      name: "fetchProjectById",
+      description: "Fetches a specific project by ID.",
+      tool: async (projectId: string) => {
+        const projects = await trpcClient.project.getUserProjects.query();
+        return projects.find((p: { id: string }) => p.id === projectId);
+      },
+      toolSchema: fetchProjectByIdSchema,
+    });
 
-/**
- * Zod schema for the `getComposioAuth` function.
- * Defines the argument as an object containing the project ID, app ID, and an optional context key,
- * and the return type as an object containing Composio authentication details.
- */
-export const getComposioAuthSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z.string().describe("The project ID"),
-      appId: z.string().describe("The ID of the app to get authentication for"),
-      contextKey: z
-        .string()
-        .nullable()
-        .describe("Optional context key for the authentication"),
-    }),
-  )
-  .returns(
-    z.object({
-      mode: z.nativeEnum(DeprecatedComposioAuthMode).nullable(),
-      fields: z.record(z.string(), z.string()),
-      redirectUrl: z.string().nullable(),
-      status: z.string().nullable(),
-      toolProviderId: z.string(),
-      integrationId: z.string().nullable(),
-      connectedAccountId: z.string().nullable(),
-    }),
-  );
+    /**
+     * Registers a tool to update an existing project's configuration.
+     * Updates project name, custom instructions, and LLM provider settings.
+     * @param {Object} params - Project update parameters
+     * @param {string} params.projectId - The ID of the project to update
+     * @param {string} params.projectName - The new name for the project
+     * @param {string} params.customInstructions - Custom AI instructions for the project
+     * @param {string} params.defaultLlmProviderName - Default LLM provider name
+     * @param {string} params.defaultLlmModelName - Default LLM model name
+     * @param {string} params.customLlmModelName - Custom LLM model name
+     * @param {string} params.customLlmBaseURL - Custom LLM base URL
+     * @returns {Object} Updated project details
+     */
+    registerTool({
+      name: "updateProject",
+      description: "Updates a project.",
+      tool: async (params: {
+        id: string;
+        name: string;
+        customInstructions: string;
+        defaultLlmProviderName: string;
+        defaultLlmModelName: string;
+        customLlmModelName: string;
+        customLlmBaseURL: string;
+        maxInputTokens: number;
+      }) => {
+        const result = await trpcClient.project.updateProject.mutate({
+          projectId: params.id,
+          name: params.name,
+          customInstructions: params.customInstructions,
+          defaultLlmProviderName: params.defaultLlmProviderName,
+          defaultLlmModelName: params.defaultLlmModelName,
+          customLlmModelName: params.customLlmModelName,
+          customLlmBaseURL: params.customLlmBaseURL,
+          maxInputTokens: params.maxInputTokens,
+        });
 
-/**
- * Zod schema for the `updateComposioAuth` function.
- * Defines the argument as an object containing parameters for updating Composio authentication (project ID, app ID, context key, auth mode, auth fields),
- * and the return type as an object indicating success.
- */
-export const updateComposioAuthSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z.string().describe("The project ID"),
-      appId: z
-        .string()
-        .describe("The ID of the app to update authentication for"),
-      contextKey: z
-        .string()
-        .nullable()
-        .describe("Optional context key for the authentication"),
-      authMode: z
-        .nativeEnum(DeprecatedComposioAuthMode)
-        .describe("Authentication mode to use"),
-      authFields: z
-        .record(z.string(), z.string())
-        .describe("Authentication field values"),
-    }),
-  )
-  .returns(
-    z.object({
-      success: z.boolean(),
-    }),
-  );
+        // Invalidate the project cache to refresh the component
+        await utils.project.getUserProjects.invalidate();
+
+        return result;
+      },
+      toolSchema: updateProjectSchema,
+    });
+
+    /**
+     * Registers a tool to create a new project.
+     * @param {string} projectName - The name for the new project
+     * @returns {Object} Created project details with ID, name, and user ID
+     */
+    registerTool({
+      name: "createProject",
+      description: "create a new project",
+      tool: async (projectName: string) => {
+        const result =
+          await trpcClient.project.createProject.mutate(projectName);
+
+        // Invalidate the project cache to refresh the component
+        await utils.project.getUserProjects.invalidate();
+
+        return result;
+      },
+      toolSchema: createProjectSchema,
+    });
+
+    /**
+     * Registers a tool to remove/delete a project.
+     * @param {string} projectId - The ID of the project to remove
+     * @returns {Object} Success status indicating the project was deleted
+     */
+    registerTool({
+      name: "removeProject",
+      description: "remove a project",
+      tool: async (projectId: string) => {
+        await trpcClient.project.removeProject.mutate(projectId);
+
+        // Invalidate the project cache to refresh the component
+        await utils.project.getUserProjects.invalidate();
+
+        return { success: true };
+      },
+      toolSchema: removeProjectSchema,
+    });
+
+    /* tambo API key management */
+
+    /**
+     * Registers a tool to fetch all API keys for a specific project.
+     * @param {string} projectId - The project ID to fetch API keys for
+     * @returns {Object} Object containing an array of API key details
+     */
+    registerTool({
+      name: "fetchProjectApiKeys",
+      description: "get all api keys for the current project",
+      tool: async (projectId: string) => {
+        return await trpcClient.project.getApiKeys.query(projectId);
+      },
+      toolSchema: fetchProjectApiKeysSchema,
+    });
+
+    /**
+     * Registers a tool to generate a new API key for a project.
+     * @param {string} projectId - The project ID to generate an API key for
+     * @param {string} name - The name/label for the new API key
+     * @returns {Object} Generated API key details including the key value and metadata
+     */
+    registerTool({
+      name: "generateProjectApiKey",
+      description: "generate a new api key for the current project",
+      tool: async (projectId: string, name: string) => {
+        const result = await trpcClient.project.generateApiKey.mutate({
+          projectId,
+          name,
+        });
+
+        // Invalidate the API keys cache to refresh the component
+        await utils.project.getApiKeys.invalidate(projectId);
+
+        return result;
+      },
+      toolSchema: generateProjectApiKeySchema,
+    });
+
+    /**
+     * Registers a tool to delete an existing API key from a project.
+     * @param {string} projectId - The project ID containing the API key
+     * @param {string} apiKeyId - The ID of the API key to delete
+     * @returns {Object} Confirmation message that the key was deleted
+     */
+    registerTool({
+      name: "deleteProjectApiKey",
+      description: "delete an api key for the current project",
+      tool: async (projectId: string, apiKeyId: string) => {
+        await trpcClient.project.removeApiKey.mutate({
+          projectId,
+          apiKeyId,
+        });
+
+        // Invalidate the API keys cache to refresh the component
+        await utils.project.getApiKeys.invalidate(projectId);
+
+        return { deletedKey: "The key was deleted successfully." };
+      },
+      toolSchema: deleteProjectApiKeySchema,
+    });
+
+    /* dashboard statistics management */
+
+    /**
+     * Registers a tool to fetch the total number of projects for the current user.
+     * Returns the count of projects associated with the user's account.
+     * @returns {Object} Object containing the project count
+     */
+    registerTool({
+      name: "fetchProjectCount",
+      description: "Fetches the total number of projects for the current user.",
+      tool: async () => {
+        const projects = await trpcClient.project.getUserProjects.query();
+        return { count: projects.length };
+      },
+      toolSchema: fetchProjectCountSchema,
+    });
+
+    /**
+     * Registers a tool to fetch total message usage statistics.
+     * @param {string} period - Time period filter ('all time', 'per month', 'per week'). Defaults to 'all time' if not specified.
+     * @returns {Object} Object containing total message count and period
+     */
+    registerTool({
+      name: "fetchTotalMessageUsage",
+      description:
+        "Fetches total message usage statistics with period filtering. Period can be 'all time', 'per month', or 'per week'.",
+      tool: async (period: string) => {
+        // Use 'all time' as default if period is not provided or invalid
+        const validPeriod = period || "all time";
+        const result = await trpcClient.project.getTotalMessageUsage.query({
+          period: validPeriod,
+        });
+        return {
+          totalMessages: result.totalMessages,
+          period: validPeriod,
+        };
+      },
+      toolSchema: fetchTotalMessageUsageSchema,
+    });
+
+    /**
+     * Registers a tool to fetch total user count statistics.
+     * @param {string} period - Time period filter ('all time', 'per month', 'per week'). Defaults to 'all time' if not specified.
+     * @returns {Object} Object containing total user count and period
+     */
+    registerTool({
+      name: "fetchTotalUsers",
+      description:
+        "Fetches total user count statistics with period filtering. Period can be 'all time', 'per month', or 'per week'.",
+      tool: async (period: string) => {
+        // Use 'all time' as default if period is not provided or invalid
+        const validPeriod = period || "all time";
+        const result = await trpcClient.project.getTotalUsers.query({
+          period: validPeriod,
+        });
+        return {
+          totalUsers: result.totalUsers,
+          period: validPeriod,
+        };
+      },
+      toolSchema: fetchTotalUsersSchema,
+    });
+
+    /* llm provider settings management */
+
+    /**
+     * Registers a tool to fetch LLM configuration settings for a project.
+     * Returns the current LLM provider, model, and custom settings.
+     * @param {string} projectId - The project ID to fetch LLM settings for
+     * @returns {Object} LLM configuration including provider, model, and custom settings
+     */
+    registerTool({
+      name: "fetchProjectLlmSettings",
+      description: "Fetches LLM configuration settings for a project.",
+      tool: async (projectId: string) => {
+        return await trpcClient.project.getProjectLlmSettings.query({
+          projectId,
+        });
+      },
+      toolSchema: fetchProjectLlmSettingsSchema,
+    });
+
+    /**
+     * Registers a tool to update LLM configuration settings for a project.
+     * Updates the default LLM provider, model, and custom configurations.
+     * Note: Always show ProviderKeySection component after calling this tool.
+     * @param {string} projectId - The project ID to update
+     * @param {Object} settings - LLM configuration settings to update
+     * @param {string} settings.defaultLlmProviderName - The LLM provider name (e.g., 'openai', 'anthropic')
+     * @param {string|null} settings.defaultLlmModelName - The default model name
+     * @param {string|null} settings.customLlmModelName - Custom model name if using custom provider
+     * @param {string|null} settings.customLlmBaseURL - Custom base URL for LLM API
+     * @returns {Object} Updated LLM configuration settings
+     */
+    registerTool({
+      name: "updateProjectLlmSettings",
+      description:
+        "Updates LLM configuration settings for a project. Always show ProviderKeySection component after calling this tool.",
+      tool: async (
+        projectId: string,
+        settings: {
+          defaultLlmProviderName: string;
+          defaultLlmModelName: string | null;
+          customLlmModelName: string | null;
+          customLlmBaseURL: string | null;
+          maxInputTokens: number | null;
+        },
+      ) => {
+        const result = await trpcClient.project.updateProjectLlmSettings.mutate(
+          {
+            projectId: projectId,
+            defaultLlmProviderName: settings.defaultLlmProviderName,
+            defaultLlmModelName: settings.defaultLlmModelName,
+            customLlmModelName: settings.customLlmModelName,
+            customLlmBaseURL: settings.customLlmBaseURL,
+            maxInputTokens: settings.maxInputTokens,
+          },
+        );
+
+        // Invalidate the llm settings cache to refresh the component
+        await utils.project.getProjectLlmSettings.invalidate({ projectId });
+
+        return result;
+      },
+      toolSchema: updateProjectLlmSettingsSchema,
+    });
+
+    /* mcp server management */
+
+    /**
+     * Registers a tool to fetch all MCP (Model Context Protocol) servers for a project.
+     * Returns server configuration including URL, headers, and authentication status.
+     * @param {string} projectId - The project ID to fetch MCP servers for
+     * @returns {Object} MCP server details including ID, URL, headers, and auth status
+     */
+    registerTool({
+      name: "fetchProjectMcpServers",
+      description: "Fetches MCP servers for a project.",
+      tool: async (projectId: string) => {
+        return await trpcClient.tools.listMcpServers.query({ projectId });
+      },
+      toolSchema: fetchProjectMcpServersSchema,
+    });
+
+    /**
+     * Registers a tool to add a new MCP server to a project.
+     * @param {string} projectId - The project ID to add the MCP server to
+     * @param {Object} server - MCP server configuration
+     * @param {string} server.url - The URL of the MCP server
+     * @param {Record<string, string>} server.customHeaders - Custom HTTP headers for the server
+     * @param {MCPTransport} server.mcpTransport - Transport mechanism (e.g., SSE, WebSocket)
+     * @returns {Object} Created MCP server details including capabilities and version info
+     */
+    registerTool({
+      name: "addMcpServer",
+      description: "Adds a new MCP server to a project.",
+      tool: async (params: {
+        projectId: string;
+        url: string;
+        customHeaders: Record<string, string>;
+        mcpTransport: MCPTransport;
+      }) => {
+        const result = await trpcClient.tools.addMcpServer.mutate({
+          projectId: params.projectId,
+          url: params.url,
+          customHeaders: params.customHeaders,
+          mcpTransport: params.mcpTransport,
+        });
+
+        // Invalidate the mcp server cache to refresh the component
+        await utils.tools.listMcpServers.invalidate({
+          projectId: params.projectId,
+        });
+
+        return result;
+      },
+      toolSchema: addMcpServerSchema,
+    });
+
+    /**
+     * Registers a tool to delete an MCP server from a project.
+     * @param {Object} params - Deletion parameters
+     * @param {string} params.projectId - The project ID containing the MCP server
+     * @param {string} params.serverId - The ID of the MCP server to delete
+     * @returns {Object} Success status indicating the server was deleted
+     */
+    registerTool({
+      name: "deleteMcpServer",
+      description: "Deletes an MCP server for a project.",
+      tool: async (params: { projectId: string; serverId: string }) => {
+        await trpcClient.tools.deleteMcpServer.mutate({
+          projectId: params.projectId,
+          serverId: params.serverId,
+        });
+
+        // Invalidate the mcp server cache to refresh the component
+        await utils.tools.listMcpServers.invalidate({
+          projectId: params.projectId,
+        });
+
+        return { success: true };
+      },
+      toolSchema: deleteMcpServerSchema,
+    });
+
+    /**
+     * Registers a tool to authorize an MCP server for access to external services.
+     * Handles OAuth flows and other authentication mechanisms for MCP servers.
+     * @param {Object} params - Authorization parameters
+     * @param {string|null} params.contextKey - Optional context key for authorization flow
+     * @param {string} params.toolProviderId - The ID of the MCP server to authorize
+     * @returns {Object} Authorization result with success status and optional redirect URL
+     */
+    registerTool({
+      name: "authorizeMcpServer",
+      description: "Authorizes an MCP server for a project.",
+      tool: async (params: {
+        contextKey: string | null;
+        toolProviderId: string;
+      }) => {
+        const authResult = await trpcClient.tools.authorizeMcpServer.mutate({
+          contextKey: params.contextKey,
+          toolProviderId: params.toolProviderId,
+        });
+        return authResult;
+      },
+      toolSchema: authorizeMcpServerSchema,
+    });
+
+    /**
+     * Registers a tool to inspect and get available tools from an MCP server.
+     * Returns the tools/capabilities exposed by the MCP server along with server information.
+     * @param {Object} params - Inspection parameters
+     * @param {string} params.projectId - The project ID containing the MCP server
+     * @param {string} params.serverId - The ID of the MCP server to inspect
+     * @returns {Object} Available tools and server information including capabilities and version
+     */
+    registerTool({
+      name: "getMcpServerTools",
+      description: "Gets the tools for an MCP server for a project.",
+      tool: async (params: { projectId: string; serverId: string }) => {
+        return await trpcClient.tools.inspectMcpServer.query({
+          projectId: params.projectId,
+          serverId: params.serverId,
+        });
+      },
+      toolSchema: getMcpServerToolsSchema,
+    });
+  }, [registerTool, trpcClient, utils]);
+}

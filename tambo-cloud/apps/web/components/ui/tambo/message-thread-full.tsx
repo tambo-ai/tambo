@@ -50,7 +50,7 @@ export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
 >(({ className, contextKey, variant, ...props }, ref) => {
-  const { containerRef, historyPosition } = useThreadContainerContext();
+  const { containerRef } = useThreadContainerContext();
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
   const defaultSuggestions: Suggestion[] = [

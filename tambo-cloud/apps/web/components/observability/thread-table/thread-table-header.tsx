@@ -9,6 +9,7 @@ interface ThreadTableHeaderProps {
   allSelected: boolean;
   onSelectAll: (checked: boolean) => void;
   hasCurrentThreads: boolean;
+  compact?: boolean;
 }
 
 export function ThreadTableHeader({
@@ -18,6 +19,7 @@ export function ThreadTableHeader({
   allSelected,
   onSelectAll,
   hasCurrentThreads,
+  compact = false,
 }: ThreadTableHeaderProps) {
   return (
     <TableHeader>
@@ -65,7 +67,9 @@ export function ThreadTableHeader({
           </div>
         </TableHead>
         <TableHead
-          className="cursor-pointer text-sm font-medium px-4 hidden lg:table-cell"
+          className={`cursor-pointer text-sm font-medium px-4 ${
+            compact ? "hidden" : "hidden lg:table-cell"
+          }`}
           onClick={() => onSort("updated")}
           role="button"
           tabIndex={0}
@@ -121,7 +125,9 @@ export function ThreadTableHeader({
           </div>
         </TableHead>
         <TableHead
-          className="cursor-pointer text-sm font-medium px-4"
+          className={`cursor-pointer text-sm font-medium px-4 ${
+            compact ? "hidden" : ""
+          }`}
           onClick={() => onSort("threadName")}
           role="button"
           tabIndex={0}
@@ -150,7 +156,9 @@ export function ThreadTableHeader({
           </div>
         </TableHead>
         <TableHead
-          className="cursor-pointer text-sm font-medium px-4 hidden md:table-cell"
+          className={`cursor-pointer text-sm font-medium px-4 ${
+            compact ? "hidden" : "hidden md:table-cell"
+          }`}
           onClick={() => onSort("contextKey")}
           role="button"
           tabIndex={0}

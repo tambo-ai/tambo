@@ -23,12 +23,13 @@ import { SORT_FIELDS, getSortDirectionLabel, getSortLabel } from "../utils";
 import { ThreadTableHeader } from "./thread-table-header";
 import { ThreadRow } from "./thread-table-row";
 
-interface ThreadListProps {
+export interface ThreadTableProps {
   threads: Thread[];
   onViewMessages: (threadId: string) => void;
   onThreadsDeleted?: () => void;
   projectId: string;
   isLoading: boolean;
+  compact?: boolean;
 }
 
 export const ThreadTable = memo(
@@ -38,7 +39,8 @@ export const ThreadTable = memo(
     onThreadsDeleted,
     projectId,
     isLoading,
-  }: ThreadListProps) => {
+    compact = false,
+  }: ThreadTableProps) => {
     const {
       // State
       sortField,
@@ -88,11 +90,18 @@ export const ThreadTable = memo(
       [handleSelectThread],
     );
 
-    if (isLoading) {
+    if (isLoading || projectId === undefined) {
       return <ThreadTableSkeleton />;
     }
 
     const hasThreads = threads && threads.length > 0;
+
+    // Filter sort fields based on compact mode
+    const availableSortFields = compact
+      ? SORT_FIELDS.filter(
+          (field) => !["updated", "threadName", "contextKey"].includes(field),
+        )
+      : SORT_FIELDS;
 
     return (
       <div className="space-y-4">
@@ -110,7 +119,7 @@ export const ThreadTable = memo(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
-                {SORT_FIELDS.map((field) => (
+                {availableSortFields.map((field) => (
                   <DropdownMenuItem
                     key={field}
                     onClick={() => handleSort(field)}
@@ -233,6 +242,7 @@ export const ThreadTable = memo(
                 }
                 onSelectAll={handleSelectAll}
                 hasCurrentThreads={currentThreads.length > 0}
+                compact={compact}
               />
               <TableBody>
                 {currentThreads.length > 0 ? (
@@ -244,12 +254,13 @@ export const ThreadTable = memo(
                       isDeleting={deletingThreadIds.has(thread.id)}
                       onSelect={handleThreadSelect}
                       onViewMessages={handleViewMessages}
+                      compact={compact}
                     />
                   ))
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={compact ? 6 : 9}
                       className="text-center py-2 text-sm text-muted-foreground"
                     >
                       {searchQuery

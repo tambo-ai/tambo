@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  tamboRegisteredComponents,
-  tamboRegisteredTools,
-} from "@/components/ui/tambo/chatwithtambo/config";
+import { tamboRegisteredComponents } from "@/components/ui/tambo/chatwithtambo/config";
 import { env } from "@/lib/env";
 import { TamboProvider } from "@tambo-ai/react";
 
@@ -17,7 +14,6 @@ export function TamboProviderWrapper({ children }: TamboProviderWrapperProps) {
       apiKey={env.NEXT_PUBLIC_TAMBO_DASH_KEY!}
       tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       components={tamboRegisteredComponents}
-      tools={tamboRegisteredTools}
     >
       {children}
     </TamboProvider>

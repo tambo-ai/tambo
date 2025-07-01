@@ -5,10 +5,26 @@ import { Graph } from "@/components/ui/tambo/graph";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { MessageCircleIcon } from "lucide-react";
+import { z } from "zod";
 
-interface DailyMessagesChartProps {
-  projectId: string;
-}
+export const DailyMessagesChartSchema = z.object({
+  projectIds: z
+    .union([
+      z.string().describe("A single project ID"),
+      z.array(z.string()).describe("An array of project IDs"),
+    ])
+    .describe(
+      "The ID(s) of the project(s) to fetch daily messages for. Can be a single ID or an array of IDs.",
+    ),
+  days: z
+    .number()
+    .min(1)
+    .max(90)
+    .default(30)
+    .describe("Number of days to display (1-90, default: 30)"),
+});
+
+export type DailyMessagesChartProps = z.infer<typeof DailyMessagesChartSchema>;
 
 const formatDate = (dateString: string, format: "chart" | "header"): string => {
   const date = new Date(dateString);
@@ -29,14 +45,23 @@ const formatDate = (dateString: string, format: "chart" | "header"): string => {
   }
 };
 
-export function DailyMessagesChart({ projectId }: DailyMessagesChartProps) {
+export function DailyMessagesChart({
+  projectIds,
+  days = 30,
+}: DailyMessagesChartProps) {
+  // The API now accepts both string and array, so we can pass projectIds directly
   const { data: dailyMessages, isLoading } =
     api.project.getProjectDailyMessages.useQuery(
-      { projectId, days: 30 },
+      { projectId: projectIds, days },
       {
-        enabled: !!projectId,
+        enabled:
+          !!projectIds &&
+          (Array.isArray(projectIds) ? projectIds.length > 0 : true),
       },
     );
+
+  // Normalize projectIds to array for UI purposes
+  const projectIdArray = Array.isArray(projectIds) ? projectIds : [projectIds];
 
   if (isLoading) {
     return (
@@ -51,7 +76,7 @@ export function DailyMessagesChart({ projectId }: DailyMessagesChartProps) {
     );
   }
 
-  // Process chart data: generate 30-day timeline with message counts
+  // Process chart data
   const messagesMap = new Map(
     dailyMessages?.map((item) => [item.date, item.messages]) || [],
   );
@@ -60,9 +85,9 @@ export function DailyMessagesChart({ projectId }: DailyMessagesChartProps) {
   const labels: string[] = [];
   const data: number[] = [];
 
-  Array.from({ length: 30 }, (_, i) => {
+  Array.from({ length: days }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() - (29 - i));
+    date.setDate(date.getDate() - (days - 1 - i));
     const dateString = date.toISOString().split("T")[0];
     const formattedDate = formatDate(dateString, "chart");
 
@@ -87,8 +112,12 @@ export function DailyMessagesChart({ projectId }: DailyMessagesChartProps) {
     icon: <MessageCircleIcon className="w-6 h-6" />,
     title: "No messages yet",
     description:
-      "Message activity will appear here once your project starts receiving messages.",
+      projectIdArray.length > 1
+        ? "Message activity will appear here once your projects start receiving messages."
+        : "Message activity will appear here once your project starts receiving messages.",
   };
+
+  const timeframeText = days === 1 ? "today" : `the last ${days} days`;
 
   return (
     <motion.div
@@ -103,7 +132,9 @@ export function DailyMessagesChart({ projectId }: DailyMessagesChartProps) {
               Daily Messages
             </CardTitle>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Message activity over the last 30 days
+              Message activity over {timeframeText}
+              {projectIdArray.length > 1 &&
+                ` (${projectIdArray.length} projects combined)`}
             </p>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground">
