@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.74.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.74.0...repo-v0.74.1) (2025-07-01)
+
+
+### Bug Fixes
+
+* open hero pill link in new tab ([#1259](https://github.com/tambo-ai/tambo-cloud/issues/1259)) ([a3255c8](https://github.com/tambo-ai/tambo-cloud/commit/a3255c86e64c7d135d9606be2c4c96e414385953))
+
+
+### Documentation
+
+* update hero pill to point to customhack ([#1257](https://github.com/tambo-ai/tambo-cloud/issues/1257)) ([4d27a9e](https://github.com/tambo-ai/tambo-cloud/commit/4d27a9e645389072a38cff902625af3e5ec6fc24))
+
 ## [0.74.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.3...repo-v0.74.0) (2025-07-01)
 
 
