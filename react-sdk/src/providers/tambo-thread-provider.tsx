@@ -205,10 +205,13 @@ export const TamboThreadProvider: React.FC<
       ),
     [currentThread?.generationStage],
   );
+  const currentThreadContextKey = currentThread?.contextKey;
 
   const fetchThread = useCallback(
     async (threadId: string) => {
-      const thread = await client.beta.threads.retrieve(threadId);
+      const thread = await client.beta.threads.retrieve(threadId, {
+        contextKey: currentThreadContextKey ?? "",
+      });
       const threadWithRenderedComponents = {
         ...thread,
         messages: thread.messages.map((message) => {
@@ -238,7 +241,12 @@ export const TamboThreadProvider: React.FC<
         return updatedThreadMap;
       });
     },
-    [client.beta.threads, componentList, currentMessageCache],
+    [
+      client.beta.threads,
+      componentList,
+      currentMessageCache,
+      currentThreadContextKey,
+    ],
   );
 
   useEffect(() => {
@@ -394,8 +402,12 @@ export const TamboThreadProvider: React.FC<
         return threadMap[threadId];
       }
 
-      const threadWithGeneratedName =
-        await client.beta.threads.generateName(threadId);
+      const threadWithGeneratedName = await client.beta.threads.generateName(
+        threadId,
+        {
+          contextKey: currentThreadContextKey ?? "",
+        },
+      );
 
       setThreadMap((prevMap) => {
         if (!prevMap[threadId]) {
@@ -411,7 +423,7 @@ export const TamboThreadProvider: React.FC<
       });
       return threadWithGeneratedName;
     },
-    [client.beta.threads, currentThreadId, threadMap],
+    [client.beta.threads, currentThreadContextKey, currentThreadId, threadMap],
   );
 
   const switchCurrentThread = useCallback(
@@ -663,8 +675,6 @@ export const TamboThreadProvider: React.FC<
       updateThreadStatus,
     ],
   );
-
-  const currentThreadContextKey = currentThread?.contextKey;
 
   const sendThreadMessage = useCallback(
     async (
