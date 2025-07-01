@@ -12,9 +12,9 @@ const ease: Easing = [0.16, 1, 0.3, 1];
 // Hero content moved directly into this file
 const heroContent = {
   pill: {
-    label: "🚀 New",
-    text: "MCP Support",
-    link: "/mcp",
+    label: "🚀 Join",
+    text: "CustomHack hackathon this weekend",
+    link: "https://customhack.dev",
   },
   title: "Add React components to your AI assistant, copilot, or agent.",
   subtitle: "Register components so your AI can render UI, not just text.",
@@ -30,6 +30,7 @@ function HeroPill() {
       className="flex w-auto items-center space-x-2 rounded-full bg-[#5C94F7]/10 px-2 py-1 ring-1 ring-[#5C94F7] whitespace-pre"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ opacity: 0.8 }}
       transition={{ duration: 0.8, ease }}
     >
       <div className="w-fit rounded-full bg-[#5C94F7] px-2 py-0.5 text-left text-xs font-medium text-white sm:text-sm">
