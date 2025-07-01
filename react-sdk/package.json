@@ -75,7 +75,7 @@
     "ts-essentials": "^10.1.1",
     "use-debounce": "^10.0.5",
     "zod": "^3.25.67",
-    "zod-to-json-schema": "^3.24.5"
+    "zod-to-json-schema": "^3.24.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.0",
