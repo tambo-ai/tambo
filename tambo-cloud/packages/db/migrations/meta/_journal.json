@@ -372,6 +372,20 @@
       "when": 1750894376255,
       "tag": "0052_bright_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1751396793025,
+      "tag": "0053_friendly_luckman",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1751410368445,
+      "tag": "0054_rich_iron_lad",
+      "breakpoints": true
     }
   ]
 }

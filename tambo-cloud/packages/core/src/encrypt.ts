@@ -16,7 +16,7 @@ const IV_LENGTH = 16; // 16 bytes for AES
 /** Prefix for user-facing API keys – intentionally NOT exported. */
 const TAMBO_PREFIX = "tambo_";
 
-/** Strict Base64 check (standard “+/=” alphabet, length multiple of 4, no whitespace). */
+/** Strict Base64 check (standard "+/=" alphabet, length multiple of 4, no whitespace). */
 const BASE64_REGEX =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
@@ -26,14 +26,14 @@ function getHashedKey(key: string): Buffer {
 }
 
 /**
- * Encrypt an internal “stored string” and the raw, plaintext API key into a
+ * Encrypt an internal "stored string" and the raw, plaintext API key into a
  * single tambo-prefixed value that can safely be returned to end-users.
  *
  * The resulting format is:
  *   tambo_⟨base64( IV ⧺ cipherText )⟩
  *
  * 1.  A random 16-byte IV is generated (AES-256-CBC requirement).
- * 2.  The `storedString` and `apiKey` are concatenated with “.” to keep them
+ * 2.  The `storedString` and `apiKey` are concatenated with "." to keep them
  *     easily separable after decryption.
  * 3.  AES-256-CBC encryption is performed with a key derived from
  *     `apiKeySecret` (SHA-256 hash → 32 bytes).
@@ -180,6 +180,36 @@ export function decryptProviderKey(
 export function hideApiKey(apiKey: string, visibleCharacters = 4): string {
   const hiddenPart = apiKey.substring(visibleCharacters).replace(/./g, "*");
   return apiKey.substring(0, visibleCharacters) + hiddenPart;
+}
+
+/**
+ * Encrypt OAuth secret key using the same encryption as provider keys
+ */
+export function encryptOAuthSecretKey(
+  secretKey: string,
+  apiKeySecret: string,
+): string {
+  return encryptProviderKey("oauth", secretKey, apiKeySecret);
+}
+
+/**
+ * Decrypt OAuth secret key using the same decryption as provider keys
+ */
+export function decryptOAuthSecretKey(
+  encryptedSecretKey: string,
+  apiKeySecret: string,
+): string {
+  const { providerName, providerKey } = decryptProviderKey(
+    encryptedSecretKey,
+    apiKeySecret,
+  );
+
+  // Verify that this was encrypted as an OAuth secret key
+  if (providerName !== "oauth") {
+    throw new Error("Invalid OAuth secret key - wrong provider name");
+  }
+
+  return providerKey;
 }
 
 // The standalone helpers and exported constant above have been removed

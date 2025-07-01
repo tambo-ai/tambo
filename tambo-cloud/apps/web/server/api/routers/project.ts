@@ -2,7 +2,14 @@ import { env } from "@/lib/env";
 import { validateSafeURL } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { llmProviderConfig } from "@tambo-ai-cloud/backend";
-import { hashKey, MCPTransport, validateMcpServer } from "@tambo-ai-cloud/core";
+import {
+  encryptOAuthSecretKey,
+  hashKey,
+  MCPTransport,
+  OAuthValidationMode,
+  validateMcpServer,
+} from "@tambo-ai-cloud/core";
+import type { HydraDb } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
 import {
@@ -15,7 +22,6 @@ import {
   isNotNull,
   sql,
 } from "drizzle-orm";
-import type { HydraDb } from "@tambo-ai-cloud/db";
 import { z } from "zod";
 
 // Helper function to get date filter based on period
@@ -834,5 +840,92 @@ export const projectRouter = createTRPCRouter({
         projectId,
         limit,
       );
+    }),
+
+  // -------------------------------------------------------------------------
+  //  OAuth Token Validation Settings
+  // -------------------------------------------------------------------------
+
+  getOAuthValidationSettings: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { projectId } = input;
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+
+      const settings = await operations.getOAuthValidationSettings(
+        ctx.db,
+        projectId,
+      );
+
+      if (!settings) {
+        return {
+          mode: OAuthValidationMode.NONE,
+          hasSecretKey: false,
+          hasPublicKey: false,
+        };
+      }
+
+      return {
+        mode: settings.mode,
+        hasSecretKey: !!settings.secretKeyEncrypted,
+        hasPublicKey: !!settings.publicKey,
+        publicKey: settings.publicKey, // Public key is safe to return
+      };
+    }),
+
+  updateOAuthValidationSettings: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        mode: z.enum(
+          Object.values(OAuthValidationMode) as [OAuthValidationMode],
+        ),
+        secretKey: z.string().optional(),
+        publicKey: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { projectId, mode, secretKey, publicKey } = input;
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+
+      // Encrypt secret key if provided
+      let secretKeyEncrypted: string | null = null;
+      if (secretKey && mode === OAuthValidationMode.SYMMETRIC) {
+        secretKeyEncrypted = encryptOAuthSecretKey(
+          secretKey,
+          env.API_KEY_SECRET,
+        );
+      }
+
+      // Validate inputs based on mode
+      if (mode === OAuthValidationMode.SYMMETRIC && !secretKey) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Secret key is required for symmetric validation mode",
+        });
+      }
+
+      if (mode === OAuthValidationMode.ASYMMETRIC_MANUAL && !publicKey) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Public key is required for manual asymmetric validation mode",
+        });
+      }
+
+      const settings = {
+        mode,
+        secretKeyEncrypted,
+        publicKey:
+          mode === OAuthValidationMode.ASYMMETRIC_MANUAL ? publicKey : null,
+      };
+
+      await operations.updateOAuthValidationSettings(
+        ctx.db,
+        projectId,
+        settings,
+      );
+
+      return { success: true };
     }),
 });

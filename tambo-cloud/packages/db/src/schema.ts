@@ -9,6 +9,7 @@ import {
   MessageRole,
   OAuthClientInformation,
   OAuthTokens,
+  OAuthValidationMode,
   SessionClientInformation,
   ToolCallRequest,
   ToolProviderType,
@@ -65,6 +66,14 @@ export const projects = pgTable(
     customLlmModelName: text("custom_llm_model_name"), // custom model name for "openai-compatible" provider type
     customLlmBaseURL: text("custom_llm_base_url"), // For "openai-compatible" provider type
     maxInputTokens: integer("max_input_tokens"), // Maximum number of input tokens to send to the model
+    // OAuth token validation settings
+    oauthValidationMode: text("oauth_validation_mode", {
+      enum: Object.values(OAuthValidationMode) as [OAuthValidationMode],
+    })
+      .notNull()
+      .default(OAuthValidationMode.ASYMMETRIC_AUTO), // Default to no validation
+    oauthSecretKeyEncrypted: text("oauth_secret_key_encrypted"), // Encrypted secret key for symmetric validation
+    oauthPublicKey: text("oauth_public_key"), // Public key for manual asymmetric validation
   }),
   (table) => {
     return [
