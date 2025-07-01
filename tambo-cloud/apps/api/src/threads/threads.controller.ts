@@ -118,6 +118,7 @@ export class ThreadsController {
 
   @Get(":id")
   @UseGuards(ThreadInProjectGuard)
+  @ApiQuery({ name: "contextKey", required: false })
   async findOne(
     @Param("id") threadId: string,
     @Req() request: Request,
@@ -453,6 +454,7 @@ export class ThreadsController {
     description: "Thread not found",
     type: ProblemDetailsDto,
   })
+  @ApiQuery({ name: "contextKey", required: false })
   async generateName(
     @Param("id") threadId: string,
     @Req() request: Request,
