@@ -122,14 +122,14 @@ describe("useTamboStreamStatus", () => {
         useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
-      // Global streaming should be true because generation is streaming
-      expect(result.current.streamStatus.isStreaming).toBe(true);
+      // Global streaming should be false because no props are actually streaming yet
+      expect(result.current.streamStatus.isStreaming).toBe(false);
       expect(result.current.streamStatus.isPending).toBe(false);
 
-      // But individual props should still be pending since they have no content
-      expect(result.current.propStatus.title.isPending).toBe(false); // Not pending because generation is active
-      expect(result.current.propStatus.title.isStreaming).toBe(false); // Not streaming yet
-      expect(result.current.propStatus.body.isPending).toBe(false);
+      // Individual props should be pending because they haven't started streaming yet
+      expect(result.current.propStatus.title.isPending).toBe(true);
+      expect(result.current.propStatus.title.isStreaming).toBe(false);
+      expect(result.current.propStatus.body.isPending).toBe(true);
       expect(result.current.propStatus.body.isStreaming).toBe(false);
     });
 
@@ -152,11 +152,11 @@ describe("useTamboStreamStatus", () => {
       expect(result.current.propStatus.title.isStreaming).toBe(true);
       expect(result.current.propStatus.title.isPending).toBe(false);
 
-      // Body prop should not be streaming yet
+      // Body prop should still be pending since it has no content
       expect(result.current.propStatus.body.isStreaming).toBe(false);
-      expect(result.current.propStatus.body.isPending).toBe(false);
+      expect(result.current.propStatus.body.isPending).toBe(true);
 
-      // Global should be streaming
+      // Global should be streaming because at least one prop is streaming
       expect(result.current.streamStatus.isStreaming).toBe(true);
     });
   });
@@ -232,7 +232,7 @@ describe("useTamboStreamStatus", () => {
         useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
-      expect(result.current.streamStatus.isPending).toBe(false);
+      expect(result.current.streamStatus.isPending).toBe(true);
       expect(result.current.streamStatus.isStreaming).toBe(false);
       expect(result.current.streamStatus.isSuccess).toBe(false);
       expect(result.current.streamStatus.isError).toBe(true);
@@ -293,10 +293,36 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should derive isSuccess correctly (generation complete AND all props successful)", () => {
+      // Step 1: Start with streaming, props empty
       jest.mocked(useTamboThread).mockReturnValue({
-        generationStage: GenerationStage.COMPLETE,
+        generationStage: GenerationStage.STREAMING_RESPONSE,
       } as TamboThreadContextProps);
 
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            title: "",
+            body: "",
+          }),
+        }),
+      );
+
+      const { result, rerender } = renderHook(() =>
+        useTamboStreamStatus<{ title: string; body: string }>(),
+      );
+
+      // Step 2: Simulate streaming in title
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            title: "Complete Title",
+            body: "",
+          }),
+        }),
+      );
+      rerender();
+
+      // Step 3: Simulate streaming in body
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
           component: createMockComponent({
@@ -305,14 +331,18 @@ describe("useTamboStreamStatus", () => {
           }),
         }),
       );
+      rerender();
 
-      const { result } = renderHook(() =>
-        useTamboStreamStatus<{ title: string; body: string }>(),
-      );
+      // Step 4: Generation complete
+      jest.mocked(useTamboThread).mockReturnValue({
+        generationStage: GenerationStage.COMPLETE,
+      } as TamboThreadContextProps);
+      rerender();
 
-      expect(result.current.streamStatus.isSuccess).toBe(true);
+      // Now both props should be successful
       expect(result.current.propStatus.title.isSuccess).toBe(true);
       expect(result.current.propStatus.body.isSuccess).toBe(true);
+      expect(result.current.streamStatus.isSuccess).toBe(true);
     });
 
     it("should derive isError correctly (generation error OR any prop error)", () => {
@@ -407,36 +437,44 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should reset prop tracking when generation restarts", () => {
+      // Step 1: Complete a message
       jest.mocked(useTamboThread).mockReturnValue({
-        generationStage: GenerationStage.COMPLETE,
+        generationStage: GenerationStage.STREAMING_RESPONSE,
       } as TamboThreadContextProps);
-
-      jest.mocked(useTamboCurrentMessage).mockReturnValue(
-        createMockMessage({
-          component: createMockComponent({ title: "First Title" }),
-        }),
-      );
-
-      const { result, rerender } = renderHook(() =>
-        useTamboStreamStatus<{ title: string }>(),
-      );
-
-      // Should be successful initially
-      expect(result.current.propStatus.title.isSuccess).toBe(true);
-
-      // Start new generation
-      jest.mocked(useTamboThread).mockReturnValue({
-        generationStage: GenerationStage.CHOOSING_COMPONENT,
-      } as TamboThreadContextProps);
-
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
           component: createMockComponent({ title: "" }),
         }),
       );
-
+      const { result, rerender } = renderHook(() =>
+        useTamboStreamStatus<{ title: string }>(),
+      );
+      // Simulate streaming in title
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "First Title" }),
+        }),
+      );
       rerender();
+      // Complete generation
+      jest.mocked(useTamboThread).mockReturnValue({
+        generationStage: GenerationStage.COMPLETE,
+      } as TamboThreadContextProps);
+      rerender();
+      // Should be successful initially
+      expect(result.current.propStatus.title.isSuccess).toBe(true);
 
+      // Step 2: Start new generation with a new message ID to trigger reset
+      jest.mocked(useTamboThread).mockReturnValue({
+        generationStage: GenerationStage.CHOOSING_COMPONENT,
+      } as TamboThreadContextProps);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          id: "new-message-id", // Different message ID to trigger reset
+          component: createMockComponent({ title: "" }),
+        }),
+      );
+      rerender();
       // Should reset to pending
       expect(result.current.propStatus.title.isPending).toBe(true);
       expect(result.current.propStatus.title.isSuccess).toBe(false);
