@@ -27,6 +27,8 @@ function HeroPill() {
   return (
     <motion.a
       href={heroContent.pill.link}
+      target="_blank"
+      rel="noopener noreferrer"
       className="flex w-auto items-center space-x-2 rounded-full bg-[#5C94F7]/10 px-2 py-1 ring-1 ring-[#5C94F7] whitespace-pre"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
