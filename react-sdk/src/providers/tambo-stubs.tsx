@@ -165,6 +165,9 @@ const createDefaultCallbacks = () => ({
   addToolAssociation: () => {
     throw new Error("addToolAssociation not implemented in stub");
   },
+  cancel: () => {
+    throw new Error("cancel not implemented in stub");
+  },
 });
 
 /**
@@ -307,6 +310,7 @@ export const TamboStubProvider: React.FC<
     generationStage: overrides.generationStage ?? GenerationStage.IDLE,
     generationStatusMessage: overrides.generationStatusMessage ?? "",
     isIdle: overrides.isIdle ?? true,
+    cancel: overrides.cancel ?? defaults.cancel,
   };
 
   const componentContextProps: TamboComponentContextProps = {

@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.33.0](https://github.com/tambo-ai/tambo/compare/react-v0.32.1...react-v0.33.0) (2025-06-26)
+
+
+### Features
+
+* add and expose `cancel` function to 'cancel' a generation ([#594](https://github.com/tambo-ai/tambo/issues/594)) ([661f31e](https://github.com/tambo-ai/tambo/commit/661f31ed3898e083e740f3975a6040966887324b))
+* Add cancellation UI ([#596](https://github.com/tambo-ai/tambo/issues/596)) ([97e7927](https://github.com/tambo-ai/tambo/commit/97e7927057c42dbb81e45a01215dc6043a107aac))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump prettier from 3.5.3 to 3.6.0 ([#591](https://github.com/tambo-ai/tambo/issues/591)) ([d678b2d](https://github.com/tambo-ai/tambo/commit/d678b2d8a64dd410ac95dd621614be24664f4447))
+
+## [0.32.1](https://github.com/tambo-ai/tambo/compare/react-v0.32.0...react-v0.32.1) (2025-06-24)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump concurrently from 9.1.2 to 9.2.0 ([#588](https://github.com/tambo-ai/tambo/issues/588)) ([04ed552](https://github.com/tambo-ai/tambo/commit/04ed5520354ef5ec4efcb69f130f1c8902e4ab48))
+* **deps-dev:** bump the eslint group with 2 updates ([#585](https://github.com/tambo-ai/tambo/issues/585)) ([f49223d](https://github.com/tambo-ai/tambo/commit/f49223d888ba9b921e80825f2ff04ebde15f6f6a))
+* **deps:** bump @modelcontextprotocol/sdk from 1.13.0 to 1.13.1 ([#583](https://github.com/tambo-ai/tambo/issues/583)) ([5d9638d](https://github.com/tambo-ai/tambo/commit/5d9638de9bbe756bfa0e19fe4edbdfb22799eaca))
+* **deps:** bump @tanstack/react-query from 5.80.10 to 5.81.2 ([#592](https://github.com/tambo-ai/tambo/issues/592)) ([0f2599b](https://github.com/tambo-ai/tambo/commit/0f2599ba4212a8fceac3afed85fca696d59b8f26))
+
 ## [0.32.0](https://github.com/tambo-ai/tambo/compare/react-v0.31.3...react-v0.32.0) (2025-06-19)
 
 
