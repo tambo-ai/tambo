@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.73.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.2...repo-v0.73.3) (2025-07-01)
+
+
+### Bug Fixes
+
+* make contextKey optional ([#1253](https://github.com/tambo-ai/tambo-cloud/issues/1253)) ([ff975e5](https://github.com/tambo-ai/tambo-cloud/commit/ff975e5114bf659940ef1d1fd8103a44f1437a03))
+
 ## [0.73.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.1...repo-v0.73.2) (2025-06-30)
 
 
