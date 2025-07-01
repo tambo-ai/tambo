@@ -13,7 +13,7 @@
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.53.0",
+    "@tambo-ai/typescript-sdk": "^0.58.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
     "framer-motion": "^12.20.1",
