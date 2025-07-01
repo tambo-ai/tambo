@@ -65,12 +65,6 @@ export interface PropStatus {
   isSuccess: boolean;
 
   /**
-   * Indicates an error occurred while streaming this specific prop.
-   * Check the error property for details.
-   */
-  isError: boolean;
-
-  /**
    * The error that occurred during streaming (if any).
    * Will be undefined if no error occurred for this prop.
    */
@@ -233,7 +227,6 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
           !isCompleteForThisMessage &&
           isGenerationStreaming,
         isSuccess: isCompleteForThisMessage,
-        isError: !!tracking.error,
         error: tracking.error,
       };
     });
@@ -291,7 +284,7 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
     /** isError: generation error OR any prop error */
     isError:
       isGenerationError ||
-      propStatuses.some((p) => p.isError) ||
+      propStatuses.some((p) => p.error) ||
       !!generationError,
 
     streamError: firstError,
