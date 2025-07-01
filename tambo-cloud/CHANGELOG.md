@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.73.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.1...repo-v0.73.2) (2025-06-30)
+
+
+### Bug Fixes
+
+* put context key in the url ([#1251](https://github.com/tambo-ai/tambo-cloud/issues/1251)) ([c49a4aa](https://github.com/tambo-ai/tambo-cloud/commit/c49a4aa8d11ac66b2c26b134797087d7c95c1e84))
+
 ## [0.73.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.73.0...repo-v0.73.1) (2025-06-30)
 
 
