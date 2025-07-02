@@ -3,4 +3,5 @@ export {
   MessageContent,
   MessageRenderedComponentArea,
   messageVariants,
+  ToolcallInfo,
 } from "./message";
