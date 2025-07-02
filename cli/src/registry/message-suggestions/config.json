@@ -15,8 +15,8 @@
       "content": "src/registry/message-suggestions/message-generation-stage.tsx"
     },
     {
-      "name": "tooltip.tsx",
-      "content": "src/registry/message-suggestions/tooltip.tsx"
+      "name": "suggestions-tooltip.tsx",
+      "content": "src/registry/message-suggestions/suggestions-tooltip.tsx"
     }
   ]
 }

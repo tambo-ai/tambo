@@ -20,8 +20,8 @@
       "content": "src/registry/message/message.tsx"
     },
     {
-      "name": "markdownComponents.tsx",
-      "content": "src/registry/message/markdownComponents.tsx"
+      "name": "markdown-components.tsx",
+      "content": "src/registry/message/markdown-components.tsx"
     },
     {
       "name": "lib/thread-hooks.ts",
