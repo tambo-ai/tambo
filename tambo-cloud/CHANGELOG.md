@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.75.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.74.1...repo-v0.75.0) (2025-07-02)
+
+
+### Features
+
+* implement symmetric and oauth validation with secret key ([#1260](https://github.com/tambo-ai/tambo-cloud/issues/1260)) ([501e154](https://github.com/tambo-ai/tambo-cloud/commit/501e1540f63e70927363c18d38e2bba7f6d7c3c4))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/react to get updated getToken signature ([#1262](https://github.com/tambo-ai/tambo-cloud/issues/1262)) ([8bf5b4e](https://github.com/tambo-ai/tambo-cloud/commit/8bf5b4e0f88d70e7bbd8455434cc029e13e3a499))
+
 ## [0.74.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.74.0...repo-v0.74.1) (2025-07-01)
 
 
