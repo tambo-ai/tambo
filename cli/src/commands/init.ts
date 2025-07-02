@@ -245,6 +245,13 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   // Install required components
   console.log(chalk.cyan("\nStep 2: Choose starter components to install"));
 
+  // Add helpful message with showcase link
+  console.log(
+    chalk.gray(
+      `💡 Not sure which component to choose? See them in action at: ${chalk.cyan("https://ui.tambo.co")}\n`,
+    ),
+  );
+
   const availableComponents = [
     {
       name: "message-thread-full",
