@@ -31,7 +31,7 @@ export function SettingsPageSkeleton() {
         {/* Sidebar Navigation skeleton */}
         <div className="py-6 w-1/5">
           <div className="flex flex-col gap-1">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-9 w-full rounded-full" />
             ))}
           </div>
@@ -51,7 +51,9 @@ export function SettingsPageSkeleton() {
             </div>
             <div className="p-2">
               <AvailableMcpServersSkeleton />
-              <div className="h-[calc(100vh-600px)] min-h-[200px] max-h-[600px]" />
+            </div>
+            <div className="p-2">
+              <OAuthSettingsSkeleton />
             </div>
           </div>
         </div>
@@ -60,7 +62,7 @@ export function SettingsPageSkeleton() {
   );
 }
 
-export function APIKeyListSkeleton() {
+function APIKeyListSkeleton() {
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardContent className="p-6 space-y-4">
@@ -86,7 +88,7 @@ export function APIKeyListSkeleton() {
   );
 }
 
-export function ProviderKeySectionSkeleton() {
+function ProviderKeySectionSkeleton() {
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardHeader>
@@ -115,7 +117,7 @@ export function ProviderKeySectionSkeleton() {
   );
 }
 
-export function CustomInstructionsEditorSkeleton() {
+function CustomInstructionsEditorSkeleton() {
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardHeader>
@@ -174,6 +176,54 @@ export function AvailableMcpServersSkeleton() {
               </div>
             </div>
           </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function OAuthSettingsSkeleton() {
+  return (
+    <Card className="border rounded-md overflow-hidden">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-4 rounded-full" />
+        </div>
+        <Skeleton className="h-4 w-80 mt-2" />
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Validation Mode Label */}
+        <div className="space-y-4">
+          <Skeleton className="h-5 w-32" />
+
+          {/* Radio Group Options */}
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 p-3 border rounded-lg"
+              >
+                <Skeleton className="h-4 w-4 rounded-full mt-1" />
+                <div className="flex-1 space-y-1">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Conditional Input Field Area */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-3 w-64" />
+        </div>
+
+        {/* Save Button Area */}
+        <div className="flex justify-end pt-4 border-t">
+          <SkeletonButton className="w-24" />
         </div>
       </CardContent>
     </Card>

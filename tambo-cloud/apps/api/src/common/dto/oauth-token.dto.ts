@@ -56,6 +56,10 @@ export class OAuthTokenRequestDto {
   scope?: string;
 }
 
+@ApiSchema({
+  name: "OAuthTokenResponse",
+  description: "OAuth 2.0 Token Response",
+})
 export class OAuthTokenResponseDto {
   @ApiProperty({
     description: "JWT access token signed by Tambo with projectId as issuer",

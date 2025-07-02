@@ -150,19 +150,16 @@ export function CustomInstructionsEditor({
                 >
                   <Button
                     size="sm"
-                    className="font-sans border text-primary bg-transparent hover:bg-accent"
                     onClick={handleSave}
                     disabled={updateProject.isPending}
                   >
                     {updateProject.isPending ? (
                       <span className="flex items-center gap-1">
-                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current" />
                         Saving...
                       </span>
                     ) : (
-                      <span className="flex items-center text-primary gap-1">
-                        Save Instructions
-                      </span>
+                      <span>Save Instructions</span>
                     )}
                   </Button>
                   <Button
