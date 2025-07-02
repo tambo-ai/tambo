@@ -527,6 +527,14 @@ export const TamboThreadProvider: React.FC<
             GenerationStage.FETCHING_CONTEXT,
           );
 
+          updateThreadMessage(
+            chunk.responseMessageDto.id,
+            {
+              ...chunk.responseMessageDto,
+            },
+            false,
+          );
+
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
