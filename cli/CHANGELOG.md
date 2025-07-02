@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.19.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.18.0...tambo-v0.19.0) (2025-07-02)
+
+
+### Features
+
+* update registry message component to show tool results ([#619](https://github.com/tambo-ai/tambo/issues/619)) ([b80effd](https://github.com/tambo-ai/tambo/commit/b80effd956557d6aad41e07c12802ccc7aebbba9))
+
+
+### Miscellaneous
+
+* **deps:** bump dotenv from 16.5.0 to 17.0.0 ([#611](https://github.com/tambo-ai/tambo/issues/611)) ([bbc08a2](https://github.com/tambo-ai/tambo/commit/bbc08a238cfaedb5da965225fb10351d1e64653d))
+* **deps:** Manually bump typescript-sdk to 0.58 ([#612](https://github.com/tambo-ai/tambo/issues/612)) ([217c383](https://github.com/tambo-ai/tambo/commit/217c38395e82edebb4b01baa9b259363c7a7325d))
+
 ## [0.18.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.17.1...tambo-v0.18.0) (2025-06-26)
 
 
