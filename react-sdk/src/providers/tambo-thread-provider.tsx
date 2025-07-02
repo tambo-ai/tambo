@@ -207,8 +207,10 @@ export const TamboThreadProvider: React.FC<
   );
 
   const fetchThread = useCallback(
-    async (threadId: string) => {
-      const thread = await client.beta.threads.retrieve(threadId);
+    async (threadId: string, includeInternalMessages = true) => {
+      const thread = await client.beta.threads.retrieve(threadId, {
+        includeInternal: includeInternalMessages,
+      });
       const threadWithRenderedComponents = {
         ...thread,
         messages: thread.messages.map((message) => {
@@ -527,6 +529,14 @@ export const TamboThreadProvider: React.FC<
             GenerationStage.FETCHING_CONTEXT,
           );
 
+          updateThreadMessage(
+            chunk.responseMessageDto.id,
+            {
+              ...chunk.responseMessageDto,
+            },
+            false,
+          );
+
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
@@ -565,6 +575,21 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.id,
             {
               ...chunk.responseMessageDto,
+              error: toolCallResponse.error,
+            },
+            false,
+          );
+
+          addThreadMessage(
+            {
+              threadId: chunk.responseMessageDto.threadId,
+              content: [{ type: "text", text: toolCallResponseString }],
+              role: "tool",
+              id: crypto.randomUUID(),
+              createdAt: new Date().toISOString(),
+              componentState: {},
+              actionType: "tool_response",
+              tool_call_id: chunk.responseMessageDto.tool_call_id,
               error: toolCallResponse.error,
             },
             false,
@@ -769,6 +794,21 @@ export const TamboThreadProvider: React.FC<
           updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
         }
         updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
+        addThreadMessage(
+          {
+            threadId: threadId,
+            content: [{ type: "text", text: toolResponseString }],
+            role: "tool",
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString(),
+            componentState: {},
+            actionType: "tool_response",
+            tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
+            error: toolCallResponse.error,
+          },
+          false,
+        );
+
         advanceResponse = await client.beta.threads.advanceById(
           advanceResponse.responseMessageDto.threadId,
           toolCallResponseParams,

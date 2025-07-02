@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/showcase",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,7 @@
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.58.0",
+    "@tambo-ai/typescript-sdk": "^0.59.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
     "framer-motion": "^12.20.1",
@@ -27,7 +27,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
-    "recharts": "^2.15.3",
+    "recharts": "^3.0.2",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
