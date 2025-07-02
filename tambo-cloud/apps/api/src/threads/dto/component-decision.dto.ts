@@ -3,6 +3,10 @@ import { ComponentDecisionV2, ToolCallRequest } from "@tambo-ai-cloud/core";
 
 export class ToolParameter {
   parameterName!: string;
+  @ApiProperty({
+    type: "object",
+    additionalProperties: true,
+  })
   parameterValue!: any;
 }
 

@@ -11,6 +11,7 @@ export function generateOpenAPIConfig(
     .addApiKey({ type: "apiKey", name: "x-api-key", in: "header" }, "apiKey")
     .addBearerAuth()
     .addSecurityRequirements("apiKey")
+    .addSecurityRequirements("bearer")
     .build();
   const document = SwaggerModule.createDocument(
     app as INestApplication,
