@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.77.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.77.0...repo-v0.77.1) (2025-07-02)
+
+
+### Bug Fixes
+
+* add bearer as a requirement ([#1269](https://github.com/tambo-ai/tambo-cloud/issues/1269)) ([4ec1341](https://github.com/tambo-ai/tambo-cloud/commit/4ec134155a0a942e7b69390fd5687217ec99f80e))
+
 ## [0.77.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.76.0...repo-v0.77.0) (2025-07-02)
 
 
