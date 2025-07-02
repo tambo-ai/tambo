@@ -11,6 +11,7 @@ import { installComponents } from "./component.js";
 import { resolveComponentDependencies } from "./dependencies.js";
 import { setupTailwindandGlobals } from "./tailwind.js";
 import type { InstallComponentOptions } from "./types.js";
+import { getKnownComponentNames } from "./utils.js";
 
 /**
  * Main function to handle component installation
@@ -49,14 +50,25 @@ export async function handleAddComponents(
       );
       const newPath = path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
 
-      const hasLegacyComponents =
+      // Get known Tambo component names to filter
+      const knownTamboComponents = getKnownComponentNames();
+
+      // Check for Tambo components specifically in legacy location
+      const hasTamboComponentsInLegacy =
         fs.existsSync(legacyPath) &&
-        fs.readdirSync(legacyPath).some((f) => f.endsWith(".tsx"));
+        fs
+          .readdirSync(legacyPath)
+          .filter((f) => f.endsWith(".tsx"))
+          .map((f) => f.replace(".tsx", ""))
+          .some((componentName) => knownTamboComponents.has(componentName));
+
+      // Check for any components in new location (this is fine since it's the designated Tambo directory)
       const hasNewComponents =
         fs.existsSync(newPath) &&
         fs.readdirSync(newPath).some((f) => f.endsWith(".tsx"));
 
-      if (hasLegacyComponents && !hasNewComponents) {
+      if (hasTamboComponentsInLegacy && !hasNewComponents) {
+        // Only install to ui/ if there are actual Tambo components there
         console.log(
           chalk.yellow(
             `\n⚠️  Found existing components in ${LEGACY_COMPONENT_SUBDIR}/. ` +
@@ -79,8 +91,8 @@ export async function handleAddComponents(
         // Override to use legacy location for consistency
         installPath = path.join(installPath, LEGACY_COMPONENT_SUBDIR);
         isExplicitPrefix = true; // This prevents adding COMPONENT_SUBDIR again
-      } else if (hasLegacyComponents && hasNewComponents) {
-        // Components in both locations - this is problematic
+      } else if (hasTamboComponentsInLegacy && hasNewComponents) {
+        // Only show warning if there are actual Tambo components in legacy location
         console.log(
           chalk.red(
             `\n❌ Found components in both ${LEGACY_COMPONENT_SUBDIR}/ and ${COMPONENT_SUBDIR}/ locations.\n` +

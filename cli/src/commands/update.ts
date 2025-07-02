@@ -1,14 +1,21 @@
 import chalk from "chalk";
-import fs from "fs";
 import inquirer from "inquirer";
+import ora from "ora";
 import path from "path";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../constants/paths.js";
 import { installComponents } from "./add/component.js";
+import type { InstallComponentOptions } from "./add/types.js";
 import { componentExists, getInstalledComponents } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
+import {
+  detectCrossLocationDependencies,
+  findComponentLocation,
+  handleDependencyInconsistencies,
+  type DependencyInconsistency,
+} from "./shared/component-utils.js";
 
 interface UpdateComponentOptions {
   legacyPeerDeps?: boolean;
@@ -19,86 +26,7 @@ interface UpdateComponentOptions {
 }
 
 /**
- * Finds the component location in the project
- * @param componentName Name of the component to find
- * @param projectRoot Project root directory
- * @param installPath Pre-determined installation path
- * @param isExplicitPrefix Whether the installPath was explicitly provided via --prefix
- * @returns Object containing component path and installation path
- */
-function findComponentLocation(
-  componentName: string,
-  projectRoot: string,
-  installPath: string,
-  isExplicitPrefix = false,
-) {
-  try {
-    // If prefix is explicitly provided, use it as-is
-    if (isExplicitPrefix) {
-      const componentPath = path.join(
-        projectRoot,
-        installPath,
-        `${componentName}.tsx`,
-      );
-      if (fs.existsSync(componentPath)) {
-        return { componentPath, installPath };
-      }
-      return null;
-    }
-
-    // Check new location first
-    const newComponentDir = path.join(
-      projectRoot,
-      installPath,
-      COMPONENT_SUBDIR,
-    );
-    const newComponentPath = path.join(newComponentDir, `${componentName}.tsx`);
-
-    if (fs.existsSync(newComponentPath)) {
-      return {
-        componentPath: newComponentPath,
-        installPath,
-      };
-    }
-
-    // Then check legacy location
-    const legacyComponentDir = path.join(
-      projectRoot,
-      installPath,
-      LEGACY_COMPONENT_SUBDIR,
-    );
-    const legacyComponentPath = path.join(
-      legacyComponentDir,
-      `${componentName}.tsx`,
-    );
-
-    if (fs.existsSync(legacyComponentPath)) {
-      // Found in legacy location - updates will go to new location
-      console.log(
-        chalk.yellow(
-          `⚠️  Component ${componentName} found in legacy location (${LEGACY_COMPONENT_SUBDIR}/). ` +
-            `Updates will be installed to the new location (${COMPONENT_SUBDIR}/).`,
-        ),
-      );
-
-      // Return the new location for installation
-      return {
-        componentPath: newComponentPath,
-        installPath,
-        needsCreation: true,
-      };
-    }
-
-    return null;
-  } catch (error) {
-    throw new Error(`Failed to locate component: ${error}`);
-  }
-}
-
-/**
- * Handles updating multiple components from the registry
- * @param componentNames Array of component names to update, or ["installed"] to update all
- * @param options Update options
+ * Handles updating multiple components from the registry with dependency inconsistency detection
  */
 export async function handleUpdateComponents(
   componentNames: string[],
@@ -112,14 +40,12 @@ export async function handleUpdateComponents(
     }
 
     const projectRoot = process.cwd();
-
-    // Get installation path once at the beginning
     const installPath = options.prefix ?? (await getInstallationPath());
     const isExplicitPrefix = Boolean(options.prefix);
 
     let componentsToUpdate: string[] = [];
 
-    // Handle special "installed" keyword
+    // Handle "installed" keyword
     if (componentNames.length === 1 && componentNames[0] === "installed") {
       const installedComponents = await getInstalledComponents(
         installPath,
@@ -144,10 +70,10 @@ export async function handleUpdateComponents(
           ),
         );
         installedComponents.forEach((comp) => console.log(`  - ${comp}`));
-        console.log(); // Empty line for spacing
+        console.log();
       }
     } else {
-      // Validate all components exist in registry
+      // Validate components exist in registry
       for (const componentName of componentNames) {
         if (!componentExists(componentName)) {
           throw new Error(
@@ -158,9 +84,11 @@ export async function handleUpdateComponents(
       componentsToUpdate = componentNames;
     }
 
-    // Check which components are actually installed
-    const validComponents: { name: string; installPath: string }[] = [];
+    // Check which components are actually installed and categorize them
+    const verifiedComponents: { name: string; installPath: string }[] = [];
     const missingComponents: string[] = [];
+    const legacyComponents: string[] = [];
+    const newComponents: string[] = [];
 
     for (const componentName of componentsToUpdate) {
       const location = findComponentLocation(
@@ -169,16 +97,24 @@ export async function handleUpdateComponents(
         installPath,
         isExplicitPrefix,
       );
+
       if (location) {
-        validComponents.push({
+        verifiedComponents.push({
           name: componentName,
           installPath: location.installPath,
         });
+
+        if (location.needsCreation) {
+          legacyComponents.push(componentName);
+        } else {
+          newComponents.push(componentName);
+        }
       } else {
         missingComponents.push(componentName);
       }
     }
 
+    // Show missing components
     if (missingComponents.length > 0) {
       if (!options.silent) {
         console.log(
@@ -187,24 +123,75 @@ export async function handleUpdateComponents(
           ),
         );
 
-        if (validComponents.length === 0) {
+        if (verifiedComponents.length === 0) {
           console.log(chalk.blue("ℹ No components to update."));
           return;
         }
       }
     }
 
-    if (validComponents.length === 0) {
+    if (verifiedComponents.length === 0) {
       if (!options.silent) {
         console.log(chalk.blue("ℹ No components to update."));
       }
       return;
     }
 
+    // Check for cross-location dependencies
+    let inconsistencies: DependencyInconsistency[] = [];
+    if (legacyComponents.length > 0 && newComponents.length > 0) {
+      const dependencySpinner = ora(
+        "Checking component dependencies...",
+      ).start();
+      inconsistencies = await detectCrossLocationDependencies(
+        verifiedComponents,
+        installPath,
+        isExplicitPrefix,
+      );
+
+      if (inconsistencies.length > 0) {
+        dependencySpinner.fail("Found component location inconsistencies!");
+      } else {
+        dependencySpinner.succeed("Component dependencies verified");
+      }
+    }
+
+    // Handle dependency inconsistencies
+    let migrationPerformed = false;
+    if (inconsistencies.length > 0) {
+      migrationPerformed = await handleDependencyInconsistencies(
+        inconsistencies,
+        legacyComponents,
+        installPath,
+        "update",
+      );
+    }
+
+    // Prepare final component list
+    const finalComponents = verifiedComponents.map((component) => {
+      if (!migrationPerformed && legacyComponents.includes(component.name)) {
+        // Component stays in legacy location
+        return {
+          name: component.name,
+          installPath: path.join(
+            component.installPath,
+            LEGACY_COMPONENT_SUBDIR,
+          ),
+          isLegacy: true,
+          baseInstallPath: component.installPath,
+        };
+      }
+      return {
+        name: component.name,
+        installPath: component.installPath,
+        isLegacy: false,
+      };
+    });
+
     // Show update plan and ask for confirmation
     if (!options.silent) {
       console.log(chalk.blue(`ℹ Components to be updated:`));
-      validComponents.forEach((comp) => console.log(`  - ${comp.name}`));
+      finalComponents.forEach((comp) => console.log(`  - ${comp.name}`));
 
       if (!options.yes) {
         const { confirm } = await inquirer.prompt({
@@ -225,47 +212,37 @@ export async function handleUpdateComponents(
       }
     }
 
-    // Group components by install path to minimize reinstalls
-    const componentsByPath = new Map<string, string[]>();
-    for (const component of validComponents) {
-      const existing = componentsByPath.get(component.installPath) ?? [];
-      existing.push(component.name);
-      componentsByPath.set(component.installPath, existing);
-    }
-
-    // Update components grouped by install path
+    // Update components
     let successCount = 0;
-    const totalComponents = validComponents.length;
+    const totalComponents = finalComponents.length;
 
-    for (const [installPath, components] of componentsByPath.entries()) {
+    for (const component of finalComponents) {
       try {
-        await installComponents(components, {
+        const installOptions: InstallComponentOptions = {
           ...options,
           forceUpdate: true,
-          installPath,
-          isExplicitPrefix,
+          installPath: component.installPath,
           silent: true,
-        });
-        successCount += components.length;
+        };
+
+        if (component.isLegacy) {
+          installOptions.isExplicitPrefix = true;
+          installOptions.baseInstallPath = component.baseInstallPath;
+        }
+
+        await installComponents([component.name], installOptions);
+        successCount++;
 
         if (!options.silent) {
-          for (const componentName of components) {
-            console.log(
-              chalk.green(`✔ Successfully updated ${componentName}`),
-            );
-          }
+          console.log(chalk.green(`✔ Successfully updated ${component.name}`));
         }
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         if (!options.silent) {
-          for (const componentName of components) {
-            console.error(
-              chalk.red(
-                `✖ Failed to update ${componentName}: ${errorMessage}`,
-              ),
-            );
-          }
+          console.error(
+            chalk.red(`✖ Failed to update ${component.name}: ${errorMessage}`),
+          );
         }
       }
     }
@@ -281,6 +258,27 @@ export async function handleUpdateComponents(
         console.log(
           chalk.yellow(
             `\n⚠️ Updated ${successCount} of ${totalComponents} components.`,
+          ),
+        );
+      }
+
+      // Show guidance for mixed locations
+      const legacyUpdatedComponents = finalComponents.filter((c) => c.isLegacy);
+      if (legacyUpdatedComponents.length > 0) {
+        console.log(chalk.blue("\n📝 Post-update notes:"));
+        console.log(
+          chalk.gray(
+            `• ${legacyUpdatedComponents.length} components remain in ${LEGACY_COMPONENT_SUBDIR}/ location`,
+          ),
+        );
+        console.log(
+          chalk.gray(
+            `• Import paths: @/components/${LEGACY_COMPONENT_SUBDIR}/component-name`,
+          ),
+        );
+        console.log(
+          chalk.gray(
+            `• Run 'npx tambo migrate' anytime to move all components to ${COMPONENT_SUBDIR}/`,
           ),
         );
       }

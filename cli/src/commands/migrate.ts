@@ -16,14 +16,27 @@ interface MigrateOptions {
 }
 
 /**
- * Updates import paths in a file from old to new location
+ * Updates import paths in a file between ui/ and tambo/ locations
+ * @param content File content to update
+ * @param targetLocation Target location: 'tambo' (default) or 'ui'
  */
-function updateImportPaths(content: string): string {
-  // Update imports from @/components/ui/ to @/components/tambo/
-  return content.replace(
-    /@\/components\/ui\//g,
-    `@/components/${COMPONENT_SUBDIR}/`,
-  );
+export function updateImportPaths(
+  content: string,
+  targetLocation: "tambo" | "ui" = "tambo",
+): string {
+  if (targetLocation === "tambo") {
+    // Update imports from @/components/ui/ to @/components/tambo/
+    return content.replace(
+      /@\/components\/ui\//g,
+      `@/components/${COMPONENT_SUBDIR}/`,
+    );
+  } else {
+    // Update imports from @/components/tambo/ to @/components/ui/
+    return content.replace(
+      new RegExp(`@/components/${COMPONENT_SUBDIR}/`, "g"),
+      `@/components/${LEGACY_COMPONENT_SUBDIR}/`,
+    );
+  }
 }
 
 /**
@@ -128,13 +141,26 @@ export async function handleMigrate(options: MigrateOptions = {}) {
       }
     }
 
+    // Calculate Tambo files count early
+    const tamboFiles = [...mainTamboComponents, ...supportTamboComponents];
+
+    // Update dry-run
     if (options.dryRun) {
       console.log(chalk.gray("\n--dry-run mode: No files will be modified.\n"));
       console.log(chalk.gray("Would perform the following actions:\n"));
       console.log(chalk.gray(`1. Create directory: ${newPath}`));
-      console.log(chalk.gray(`2. Move ${componentFiles.length} files`));
-      console.log(chalk.gray(`3. Update import paths in all moved files`));
-      console.log(chalk.gray(`4. Remove empty directory: ${legacyPath}`));
+      console.log(
+        chalk.gray(`2. Move ${tamboFiles.length} Tambo component files`),
+      );
+      if (customComponents.length > 0) {
+        console.log(
+          chalk.gray(
+            `3. Leave ${customComponents.length} custom components in ${LEGACY_COMPONENT_SUBDIR}/`,
+          ),
+        );
+      }
+      console.log(chalk.gray(`4. Update import paths in moved files`));
+      console.log(chalk.gray(`5. Remove empty directory: ${legacyPath}`));
       return;
     }
 
@@ -142,7 +168,7 @@ export async function handleMigrate(options: MigrateOptions = {}) {
       const { confirm } = await inquirer.prompt({
         type: "confirm",
         name: "confirm",
-        message: `Migrate ${componentFiles.length} components from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/?`,
+        message: `Migrate ${tamboFiles.length} Tambo components from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/?`,
         default: true,
       });
 
@@ -162,14 +188,14 @@ export async function handleMigrate(options: MigrateOptions = {}) {
       const errors: string[] = [];
 
       // Move files and update imports
-      for (const file of componentFiles) {
+      for (const file of tamboFiles) {
         try {
           const oldFile = path.join(legacyPath, file);
           const newFile = path.join(newPath, file);
 
           // Read content and update import paths
           const content = fs.readFileSync(oldFile, "utf-8");
-          const updatedContent = updateImportPaths(content);
+          const updatedContent = updateImportPaths(content, "tambo");
 
           // Write to new location
           fs.writeFileSync(newFile, updatedContent);
@@ -180,22 +206,6 @@ export async function handleMigrate(options: MigrateOptions = {}) {
           successCount++;
         } catch (error) {
           errors.push(`${file}: ${error}`);
-        }
-      }
-
-      // Also update other support files (markdownComponents.tsx, etc)
-      const supportFiles = ["markdownComponents.tsx", "tooltip.tsx"];
-      for (const file of supportFiles) {
-        const oldFile = path.join(legacyPath, file);
-        if (fs.existsSync(oldFile)) {
-          try {
-            const content = fs.readFileSync(oldFile, "utf-8");
-            const updatedContent = updateImportPaths(content);
-            fs.writeFileSync(path.join(newPath, file), updatedContent);
-            fs.unlinkSync(oldFile);
-          } catch (_error) {
-            // Non-critical, continue
-          }
         }
       }
 
@@ -218,27 +228,43 @@ export async function handleMigrate(options: MigrateOptions = {}) {
 
       console.log(
         chalk.green(
-          `\n✨ Successfully migrated ${successCount} components to ${COMPONENT_SUBDIR}/`,
+          `\n✨ Successfully migrated ${successCount} Tambo components to ${COMPONENT_SUBDIR}/`,
         ),
       );
+
+      if (customComponents.length > 0) {
+        console.log(
+          chalk.blue(
+            `\nℹ️  ${customComponents.length} custom component${customComponents.length > 1 ? "s" : ""} remain${customComponents.length === 1 ? "s" : ""} in ${LEGACY_COMPONENT_SUBDIR}/`,
+          ),
+        );
+        customComponents.forEach((file) => console.log(`    - ${file}`));
+      }
 
       // Show next steps
       console.log(chalk.blue("\n📝 Next steps:"));
       console.log(chalk.gray("1. Update your imports in non-component files:"));
       console.log(
         chalk.gray(
-          `   From: @/components/${LEGACY_COMPONENT_SUBDIR}/component-name`,
+          `   From: @/components/${LEGACY_COMPONENT_SUBDIR}/tambo-component-name`,
         ),
-      );
-      console.log(
-        chalk.gray(`   To:   @/components/${COMPONENT_SUBDIR}/component-name`),
       );
       console.log(
         chalk.gray(
-          "\n2. Update your tambo.ts file if you have custom components registered",
+          `   To:   @/components/${COMPONENT_SUBDIR}/tambo-component-name`,
         ),
       );
-      console.log(chalk.gray("\n3. Restart your development server"));
+      console.log(
+        chalk.gray(
+          `\n2. Custom components remain in ${LEGACY_COMPONENT_SUBDIR}/ - update imports as needed`,
+        ),
+      );
+      console.log(
+        chalk.gray(
+          "\n3. Update your tambo.ts file if you have custom components registered",
+        ),
+      );
+      console.log(chalk.gray("\n4. Restart your development server"));
     } catch (error) {
       spinner.fail(`Migration failed: ${error}`);
       console.log(

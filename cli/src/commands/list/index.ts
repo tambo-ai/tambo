@@ -156,15 +156,21 @@ export async function handleListComponents(prefix?: string) {
         });
       }
 
-      console.log(
-        chalk.gray(
-          `\n  💡 To migrate to the new directory structure:` +
-            `\n     1. Move all files from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/` +
-            `\n     2. Update imports: @/components/${LEGACY_COMPONENT_SUBDIR}/ → @/components/${COMPONENT_SUBDIR}/` +
-            `\n     3. Update any custom components in tambo.ts` +
-            `\n\n   or you can run ${chalk.bold("npx tambo migrate")} to migrate all components to the new location`,
-        ),
-      );
+      // Only show migration instructions if there are Tambo components in legacy location
+      const legacyTamboComponents =
+        categorizedComponents.legacy.main.length +
+        categorizedComponents.legacy.support.length;
+      if (legacyTamboComponents > 0) {
+        console.log(
+          chalk.gray(
+            `\n  💡 To migrate to the new directory structure:` +
+              `\n     1. Move all files from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/` +
+              `\n     2. Update imports: @/components/${LEGACY_COMPONENT_SUBDIR}/ → @/components/${COMPONENT_SUBDIR}/` +
+              `\n     3. Update any custom components in tambo.ts` +
+              `\n\n   or you can run ${chalk.bold("npx tambo migrate")} to migrate all components to the new location`,
+          ),
+        );
+      }
     }
 
     // Show summary

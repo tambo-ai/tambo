@@ -3,7 +3,11 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { COMPONENT_SUBDIR } from "../../constants/paths.js";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../../constants/paths.js";
+import { updateImportPaths } from "../migrate.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
 
@@ -155,6 +159,13 @@ export function cn(...inputs: ClassValue[]) {
 
   // 5. Copy component files
   let filesAdded = 0;
+  // Determine if we're installing to legacy location
+  const isLegacyLocation =
+    options.baseInstallPath !== undefined ||
+    (isExplicitPrefix && installPath.includes(LEGACY_COMPONENT_SUBDIR));
+
+  const targetLocation = isLegacyLocation ? "ui" : "tambo";
+
   for (const componentName of componentNames) {
     const config: ComponentConfig = JSON.parse(
       fs.readFileSync(getConfigPath(componentName), "utf-8"),
@@ -181,8 +192,10 @@ export function cn(...inputs: ClassValue[]) {
       fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 
       if (!fs.existsSync(targetPath) || options.forceUpdate) {
+        let fileContent = "";
+
         if (fs.existsSync(sourcePath)) {
-          fs.copyFileSync(sourcePath, targetPath);
+          fileContent = fs.readFileSync(sourcePath, "utf-8");
         } else {
           // Check if content looks like a path to a file in registry
           if (file.content.startsWith("src/registry/")) {
@@ -191,15 +204,21 @@ export function cn(...inputs: ClassValue[]) {
             const contentPath = path.join(registryRoot, file.content);
 
             if (fs.existsSync(contentPath)) {
-              const fileContent = fs.readFileSync(contentPath, "utf-8");
-              fs.writeFileSync(targetPath, fileContent);
+              fileContent = fs.readFileSync(contentPath, "utf-8");
             } else {
               console.error(`Cannot find referenced file: ${contentPath}`);
             }
           } else {
-            fs.writeFileSync(targetPath, file.content);
+            fileContent = file.content;
           }
         }
+
+        // Update import paths if this is a component file
+        if (file.name.endsWith(".tsx") || file.name.endsWith(".ts")) {
+          fileContent = updateImportPaths(fileContent, targetLocation);
+        }
+
+        fs.writeFileSync(targetPath, fileContent);
         filesAdded++;
       }
     }

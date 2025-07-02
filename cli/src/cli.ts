@@ -45,67 +45,86 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("<command>")} [options]
 
   ${chalk.bold("Commands")}
-    ${chalk.yellow(
-      "init",
-    )}                Initialize tambo in a project and set up configuration
-    ${chalk.yellow("add")}                 Add new components
-    ${chalk.yellow("list")}                List all installed components
-    ${chalk.yellow(
-      "update",
-    )}              Update existing components from the registry
-    ${chalk.yellow(
-      "upgrade",
-    )}             Upgrade packages, components, and LLM rules
-    ${chalk.yellow(
-      "full-send",
-    )}           Full initialization with auth flow and component installation
-    ${chalk.yellow(
-      "create-app",
-    )}          Create a new tambo app from a template
-    ${chalk.yellow("migrate")}             Migrate components from ui/ to tambo/ directory
 
-  ${chalk.bold("Options")}
-    ${chalk.yellow(
-      "--legacy-peer-deps",
-    )}  Install dependencies with --legacy-peer-deps flag
-    ${chalk.yellow(
-      "--init-git",
-    )}          Initialize a new git repository after creating the app
-    ${chalk.yellow("--template, -t <name>")}   Specify template to use (-t mcp)
-    ${chalk.yellow("--accept-all")}        Accept all upgrades without prompting, use with caution, only works with upgrade command
-    ${chalk.yellow("--prefix <path>")}     Specify custom directory prefix for components (e.g., src/components/ui/tambo)
-    ${chalk.yellow("--yes, -y")}           Answer yes to all prompts automatically
-    ${chalk.yellow("--version")}           Show version number
-    ${chalk.yellow("--dry-run")}           Dry run migration without making changes
+    ${chalk.yellow("init")}                 Initialize tambo in a project and set up configuration
+      Options: ${chalk.dim("--yes, --legacy-peer-deps")}
+
+    ${chalk.yellow("full-send")}            Full initialization with auth flow and component installation
+      Options: ${chalk.dim("--yes, --legacy-peer-deps")}
+
+    ${chalk.yellow("add <components...>")}   Add new components to your project
+      Options: ${chalk.dim("--prefix, --yes, --legacy-peer-deps")}
+
+    ${chalk.yellow("list")}                 List all installed components
+      Options: ${chalk.dim("--prefix")}
+
+    ${chalk.yellow("update <components...>")} Update specific tambo components from the registry
+      Options: ${chalk.dim("--prefix, --yes, --legacy-peer-deps")}
+
+    ${chalk.yellow("update installed")}     ${chalk.bold("Update ALL installed tambo components at once")}
+      Options: ${chalk.dim("--prefix, --yes, --legacy-peer-deps")}
+      ${chalk.dim("This will update every tambo component currently in your project")}
+
+    ${chalk.yellow("upgrade")}              Upgrade packages, components, and LLM rules
+      Options: ${chalk.dim("--prefix, --accept-all, --legacy-peer-deps")}
+
+    ${chalk.yellow("create-app [directory]")} Create a new tambo app from a template
+      Options: ${chalk.dim("--template, --init-git, --legacy-peer-deps")}
+
+    ${chalk.yellow("migrate")}              Migrate components from ui/ to tambo/ directory
+      Options: ${chalk.dim("--yes, --dry-run")}
+
+  ${chalk.bold("Global Options")}
+    ${chalk.yellow("--version")}            Show version number
+
+  ${chalk.bold("Option Details")}
+    ${chalk.yellow("--prefix <path>")}      Custom directory for components (e.g., src/components/ui)
+    ${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts
+    ${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install
+    ${chalk.yellow("--accept-all")}         Accept all upgrades without prompting ${chalk.red("(upgrade only)")}
+    ${chalk.yellow("--template, -t <name>")} Template to use: mcp, standard, conversational-form ${chalk.red("(create-app only)")}
+    ${chalk.yellow("--init-git")}           Initialize git repository ${chalk.red("(create-app only)")}
+    ${chalk.yellow("--dry-run")}            Preview changes without applying ${chalk.red("(migrate only)")}
 
   ${chalk.bold("Examples")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("add <componentName>")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("add <component1> <component2> <component3>")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("list")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("update <componentName>")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("update <component1> <component2> <component3>")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade --accept-all")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow(
-      "add <componentName> --legacy-peer-deps",
-    )}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow(
-      "update <componentName> --legacy-peer-deps",
-    )}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --init-git")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template mcp")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app -t mcp")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app . --init-git")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=src/components/tambo update message")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=components/tambo/third-party add message")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("add message -y")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed --yes")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("init -y")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("migrate")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("migrate --dry-run")}
+
+    ${chalk.dim("Getting Started")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}                           # Initialize tambo
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("init --yes")}                     # Skip prompts
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("full-send")}                      # Full setup with components
+
+    ${chalk.dim("Adding Components")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("add message")}                    # Add single component
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("add message form graph")}         # Add multiple components
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("add message --yes")}              # Skip prompts
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("add message --prefix=src/ui")}    # Custom directory
+
+    ${chalk.dim("Managing Components")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("list")}                           # List all components
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update message")}                 # Update specific component
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update message form")}            # Update multiple components
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update message --prefix=src/ui")} # Update in custom directory
+    
+    ${chalk.dim("Update All Components")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed")}               # ${chalk.bold("Update ALL installed tambo components")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed --yes")}         # Skip confirmation prompts
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed --prefix=src/ui")} # Update all in custom directory
+
+    ${chalk.dim("Creating New Apps")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app")}                     # Create in new directory
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app .")}                   # Create in current directory
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=mcp")}      # Use MCP template
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --init-git")}          # Initialize git repo
+
+    ${chalk.dim("Upgrading & Migration")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade")}                        # Interactive upgrade
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("upgrade --accept-all")}           # Auto-accept all changes
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("migrate --dry-run")}              # Preview migration
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("migrate --yes")}                  # Migrate ui/ to tambo/
+
+    ${chalk.dim("Troubleshooting")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("add message --legacy-peer-deps")} # Fix dependency conflicts
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("--version")}                      # Check version
   `,
   {
     flags: {
