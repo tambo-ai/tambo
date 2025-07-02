@@ -32,7 +32,6 @@ interface ComponentToUpgrade {
   isLegacy?: boolean;
   /** Base installation path (used for lib directory calculation) */
   baseInstallPath?: string;
-  /** Install path */
 }
 
 /**
