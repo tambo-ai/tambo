@@ -109,16 +109,15 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
     { children, className, role, variant, isLoading, message, ...props },
     ref,
   ) => {
-    // Don't render tool response messages as they're shown in tool call dropdowns
-    if (message.actionType === "tool_response") {
-      return null;
-    }
-
     const contextValue = React.useMemo(
       () => ({ role, variant, isLoading, message }),
       [role, variant, isLoading, message],
     );
 
+    // Don't render tool response messages as they're shown in tool call dropdowns
+    if (message.actionType === "tool_response") {
+      return null;
+    }
     return (
       <MessageContext.Provider value={contextValue}>
         <div
@@ -389,6 +388,8 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
     );
   },
 );
+
+ToolcallInfo.displayName = "ToolcallInfo";
 
 function keyifyParameters(
   parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
