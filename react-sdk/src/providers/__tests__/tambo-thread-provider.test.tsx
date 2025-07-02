@@ -153,7 +153,9 @@ describe("TamboThreadProvider", () => {
       await result.current.switchCurrentThread("test-thread-1");
     });
 
-    expect(mockThreadsApi.retrieve).toHaveBeenCalledWith("test-thread-1");
+    expect(mockThreadsApi.retrieve).toHaveBeenCalledWith("test-thread-1", {
+      includeInternal: true,
+    });
     expect(result.current.thread.id).toBe("test-thread-1");
   });
 
