@@ -42,12 +42,22 @@ declare module "@/components/ui/message" {
     enableCanvasSpace?: boolean;
   }
 
+  export interface ToolcallInfoProps
+    extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
+    /** Optional flag to render response content as Markdown. Default is true. */
+    markdown?: boolean;
+  }
+
   export const Message: React.ForwardRefExoticComponent<
     MessageProps & React.RefAttributes<HTMLDivElement>
   >;
 
   export const MessageContent: React.ForwardRefExoticComponent<
     MessageContentProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const ToolcallInfo: React.ForwardRefExoticComponent<
+    ToolcallInfoProps & React.RefAttributes<HTMLDivElement>
   >;
 
   export const MessageRenderedComponentArea: React.ForwardRefExoticComponent<
