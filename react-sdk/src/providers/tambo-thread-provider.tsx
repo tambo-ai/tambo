@@ -570,6 +570,21 @@ export const TamboThreadProvider: React.FC<
             false,
           );
 
+          addThreadMessage(
+            {
+              threadId: chunk.responseMessageDto.threadId,
+              content: [{ type: "text", text: toolCallResponseString }],
+              role: "tool",
+              id: crypto.randomUUID(),
+              createdAt: new Date().toISOString(),
+              componentState: {},
+              actionType: "tool_response",
+              tool_call_id: chunk.responseMessageDto.tool_call_id,
+              error: toolCallResponse.error,
+            },
+            false,
+          );
+
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
             GenerationStage.STREAMING_RESPONSE,
@@ -769,6 +784,21 @@ export const TamboThreadProvider: React.FC<
           updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
         }
         updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
+        addThreadMessage(
+          {
+            threadId: threadId,
+            content: [{ type: "text", text: toolResponseString }],
+            role: "tool",
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString(),
+            componentState: {},
+            actionType: "tool_response",
+            tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
+            error: toolCallResponse.error,
+          },
+          false,
+        );
+
         advanceResponse = await client.beta.threads.advanceById(
           advanceResponse.responseMessageDto.threadId,
           toolCallResponseParams,
