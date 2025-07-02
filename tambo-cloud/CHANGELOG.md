@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.76.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.75.0...repo-v0.76.0) (2025-07-02)
+
+
+### Features
+
+* allow requesting a thread with internal messages ([#1264](https://github.com/tambo-ai/tambo-cloud/issues/1264)) ([986afd0](https://github.com/tambo-ai/tambo-cloud/commit/986afd0ed0e09886c8e9afb54f57002b25dddc31))
+
 ## [0.75.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.74.1...repo-v0.75.0) (2025-07-02)
 
 
