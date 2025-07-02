@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.77.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.76.0...repo-v0.77.0) (2025-07-02)
+
+
+### Features
+
+* add UI for Auth setup ([#1266](https://github.com/tambo-ai/tambo-cloud/issues/1266)) ([9401369](https://github.com/tambo-ai/tambo-cloud/commit/9401369c32390a3d9c74dd4344458845ab3a92b1))
+
+
+### Bug Fixes
+
+* add missing bearer auth from oauth definition ([#1268](https://github.com/tambo-ai/tambo-cloud/issues/1268)) ([e06384c](https://github.com/tambo-ai/tambo-cloud/commit/e06384cf8316a1e9ce5dbfa6db373ece23eada5c))
+* replace regexes with explicit, safer alternatives ([#1263](https://github.com/tambo-ai/tambo-cloud/issues/1263)) ([de86c13](https://github.com/tambo-ai/tambo-cloud/commit/de86c1358119adce18e875f3e93733fa1ee02ae1))
+
 ## [0.76.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.75.0...repo-v0.76.0) (2025-07-02)
 
 
