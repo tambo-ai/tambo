@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.12.0...showcase-v0.13.0) (2025-07-02)
+
+
+### Features
+
+* update components to show tool results ([#622](https://github.com/tambo-ai/tambo/issues/622)) ([b68ca9a](https://github.com/tambo-ai/tambo/commit/b68ca9ab7f0b5a0dea43357715ad6ffbaadffcb6))
+
+
+### Miscellaneous
+
+* **deps:** bump framer-motion from 12.19.1 to 12.20.1 ([#598](https://github.com/tambo-ai/tambo/issues/598)) ([71a4918](https://github.com/tambo-ai/tambo/commit/71a49184d586f755cfdd12590841feed5ab290eb))
+* **deps:** bump lucide-react from 0.522.0 to 0.525.0 ([#608](https://github.com/tambo-ai/tambo/issues/608)) ([9330086](https://github.com/tambo-ai/tambo/commit/93300861b86cb04d2d45f958b734e38aa21794ea))
+* **deps:** bump recharts from 2.15.3 to 3.0.2 ([#603](https://github.com/tambo-ai/tambo/issues/603)) ([62d8b0d](https://github.com/tambo-ai/tambo/commit/62d8b0d5831438312e7e05bf2f25f71ecb5607dd))
+* **deps:** Manually bump typescript-sdk to 0.58 ([#612](https://github.com/tambo-ai/tambo/issues/612)) ([217c383](https://github.com/tambo-ai/tambo/commit/217c38395e82edebb4b01baa9b259363c7a7325d))
+
 ## [0.12.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.11.3...showcase-v0.12.0) (2025-06-26)
 
 
