@@ -42,13 +42,12 @@ export class BearerTokenGuard implements CanActivate {
     }
 
     // Extract bearer token
-    const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-    if (!bearerMatch) {
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
       this.logger.error("Invalid Authorization header format");
       throw new UnauthorizedException("Invalid Authorization header format");
     }
 
-    const token = bearerMatch[1];
+    const token = authHeader.slice(7); // Remove "Bearer " prefix
 
     try {
       // Decode the token without verification to get the issuer (projectId)

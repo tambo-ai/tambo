@@ -1,13 +1,13 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import type { Components } from "react-markdown";
-import { Copy, Check } from "lucide-react";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js/lib/core";
 import ts from "highlight.js/lib/languages/typescript";
 import "highlight.js/styles/github.css";
-import DOMPurify from "dompurify";
+import { Check, Copy } from "lucide-react";
+import * as React from "react";
+import type { Components } from "react-markdown";
 
 // Register the single language we need to keep the bundle lean
 hljs.registerLanguage("typescript", ts);
@@ -97,7 +97,10 @@ const CodeHeader = ({
 export const createMarkdownComponents = (): Components => ({
   code: function Code({ className, children, ...props }) {
     const match = /language-(\w+)/.exec(className ?? "");
-    const content = String(children).replace(/\n$/, "");
+    let content = String(children);
+    if (content.endsWith("\n")) {
+      content = content.slice(0, -1);
+    }
     const deferredContent = React.useDeferredValue(content);
 
     const highlighted = React.useMemo(() => {

@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import type { Components } from "react-markdown";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import DOMPurify from "dompurify";
+import { Check, Copy, ExternalLink } from "lucide-react";
+import * as React from "react";
+import type { Components } from "react-markdown";
 
 /**
  * Markdown Components for React-Markdown
@@ -93,7 +93,10 @@ const CodeHeader = ({
 export const createMarkdownComponents = (): Components => ({
   code: function Code({ className, children, ...props }) {
     const match = /language-(\w+)/.exec(className ?? "");
-    const content = String(children).replace(/\n$/, "");
+    let content = String(children);
+    if (content.endsWith("\n")) {
+      content = content.slice(0, -1);
+    }
     const deferredContent = React.useDeferredValue(content);
 
     const highlighted = React.useMemo(() => {

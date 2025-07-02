@@ -178,7 +178,9 @@ export function decryptProviderKey(
 }
 
 export function hideApiKey(apiKey: string, visibleCharacters = 4): string {
-  const hiddenPart = apiKey.substring(visibleCharacters).replace(/./g, "*");
+  // Ensure we never call .repeat() with a negative value
+  const hiddenCount = Math.max(0, apiKey.length - visibleCharacters);
+  const hiddenPart = "*".repeat(hiddenCount);
   return apiKey.substring(0, visibleCharacters) + hiddenPart;
 }
 

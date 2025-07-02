@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       subject: `[Tambo Demo] ${subject} (${usersEmail})`,
       html: `
         <div>
-          ${body.replace(/\n/g, "<br />")}
+          ${body.replaceAll("\n", "<br />")}
         </div>
         <hr>
         <p>This email was sent from ${usersEmail}</p>

@@ -280,7 +280,9 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
             Navigate to:{" "}
             {activeSection
               .replace("-", " ")
-              .replace(/\b\w/g, (l) => l.toUpperCase())}
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")}
           </span>
           <ChevronDown
             className={`h-4 w-4 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}

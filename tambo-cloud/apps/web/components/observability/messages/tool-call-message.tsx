@@ -134,9 +134,9 @@ export const ToolCallMessage = memo(
             if (content.includes("\\n") || content.includes('\\"')) {
               try {
                 const unescaped = content
-                  .replace(/\\n/g, "\n")
-                  .replace(/\\"/g, '"')
-                  .replace(/\\\\/g, "\\");
+                  .replaceAll("\\n", "\n")
+                  .replaceAll('\\"', '"')
+                  .replaceAll("\\\\", "\\");
 
                 const parsed = JSON.parse(unescaped);
                 const deepParsed = deepParseJson(parsed);
@@ -144,9 +144,9 @@ export const ToolCallMessage = memo(
               } catch {
                 // Return unescaped version for better readability
                 return content
-                  .replace(/\\n/g, "\n")
-                  .replace(/\\"/g, '"')
-                  .replace(/\\\\/g, "\\");
+                  .replaceAll("\\n", "\n")
+                  .replaceAll('\\"', '"')
+                  .replaceAll("\\\\", "\\");
               }
             }
 

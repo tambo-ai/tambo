@@ -24,7 +24,7 @@ export default function NotFound() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: `404 - ${pageTitle}`,
-    description: pageDescription.replace(/&apos;/g, "'"),
+    description: pageDescription.replaceAll("&apos;", "'"),
     isPartOf: {
       "@type": "WebSite",
       name: siteConfig.name,

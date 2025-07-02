@@ -1,6 +1,6 @@
+import type { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import type { TamboThreadMessage } from "@tambo-ai/react";
 
 /**
  * Custom hook to merge multiple refs into one callback ref
@@ -71,7 +71,7 @@ export function useCanvasDetection(
  * @returns true if the className contains "right", false otherwise
  */
 export function hasRightClass(className?: string): boolean {
-  return className ? /(?:^|\s)right(?:\s|$)/i.test(className) : false;
+  return className ? className.split(" ").includes("right") : false;
 }
 
 /**
