@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.35.0](https://github.com/tambo-ai/tambo/compare/react-v0.34.0...react-v0.35.0) (2025-07-02)
+
+
+### Features
+
+* add client toolresponse to local thread state ([#616](https://github.com/tambo-ai/tambo/issues/616)) ([e6f4436](https://github.com/tambo-ai/tambo/commit/e6f4436a01ccacd37ea3d819b4c1dd6afecf6f3c))
+
+
+### Bug Fixes
+
+* update local toolrequestmessage before running toolcall ([#618](https://github.com/tambo-ai/tambo/issues/618)) ([3188a80](https://github.com/tambo-ai/tambo/commit/3188a80af661d4c41ca9d4c0792d8e08e3090bb8))
+
 ## [0.34.0](https://github.com/tambo-ai/tambo/compare/react-v0.33.0...react-v0.34.0) (2025-07-01)
 
 
