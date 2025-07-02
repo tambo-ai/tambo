@@ -1,6 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
+@ApiSchema({
+  name: "CreateMcpAccessToken",
+  description: "Create MCP access token request",
+})
 export class CreateMcpAccessTokenDto {
   @ApiProperty({
     description: "Context key for the MCP access token",
@@ -20,6 +24,10 @@ export class CreateMcpAccessTokenDto {
   threadId!: string;
 }
 
+@ApiSchema({
+  name: "McpAccessTokenResponse",
+  description: "MCP access token response",
+})
 export class McpAccessTokenResponseDto {
   @ApiProperty({
     description: "JWT MCP access token to be used as bearer token",

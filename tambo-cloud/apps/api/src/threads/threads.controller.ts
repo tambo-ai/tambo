@@ -50,6 +50,7 @@ import { throttleChunks } from "./util/streaming";
 
 @ApiTags("threads")
 @ApiSecurity("apiKey")
+@ApiSecurity("bearer")
 @UseGuards(ApiKeyGuard, BearerTokenGuard)
 @Controller("threads")
 export class ThreadsController {

@@ -9,6 +9,7 @@ export function generateOpenAPIConfig(
     .setDescription("Hosted Hydra Backend")
     .setVersion("0.0.1")
     .addApiKey({ type: "apiKey", name: "x-api-key", in: "header" }, "apiKey")
+    .addBearerAuth()
     .addSecurityRequirements("apiKey")
     .build();
   const document = SwaggerModule.createDocument(
