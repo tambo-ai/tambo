@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.0](https://github.com/tambo-ai/tambo/compare/react-v0.35.0...react-v0.36.0) (2025-07-02)
+
+
+### Features
+
+* fetch threads with internal messages by default ([#620](https://github.com/tambo-ai/tambo/issues/620)) ([ed28ce2](https://github.com/tambo-ai/tambo/commit/ed28ce249599b4b2e8fdb2231c6d0b84c130e5b9))
+
 ## [0.35.0](https://github.com/tambo-ai/tambo/compare/react-v0.34.0...react-v0.35.0) (2025-07-02)
 
 
