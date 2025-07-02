@@ -2,6 +2,10 @@ import chalk from "chalk";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../../constants/paths.js";
 import { getInstallationPath } from "../init.js";
 import { installComponents } from "./component.js";
 import { resolveComponentDependencies } from "./dependencies.js";
@@ -31,9 +35,81 @@ export async function handleAddComponents(
     }
 
     // 2. Get installation path if not provided
-    const installPath =
+    let installPath =
       options.installPath ?? (await getInstallationPath(options.yes));
-    const isExplicitPrefix = Boolean(options.installPath);
+    let isExplicitPrefix = Boolean(options.installPath);
+    let baseInstallPath: string | undefined; // Track the original base path
+
+    // Check if there are existing components in legacy location
+    if (!isExplicitPrefix) {
+      const legacyPath = path.join(
+        process.cwd(),
+        installPath,
+        LEGACY_COMPONENT_SUBDIR,
+      );
+      const newPath = path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+
+      const hasLegacyComponents =
+        fs.existsSync(legacyPath) &&
+        fs.readdirSync(legacyPath).some((f) => f.endsWith(".tsx"));
+      const hasNewComponents =
+        fs.existsSync(newPath) &&
+        fs.readdirSync(newPath).some((f) => f.endsWith(".tsx"));
+
+      if (hasLegacyComponents && !hasNewComponents) {
+        console.log(
+          chalk.yellow(
+            `\n⚠️  Found existing components in ${LEGACY_COMPONENT_SUBDIR}/. ` +
+              `Installing new components to the same location for compatibility.\n`,
+          ),
+        );
+        console.log(
+          chalk.blue(
+            `💡 To migrate all components to the new location (${COMPONENT_SUBDIR}/), you'll need to:\n` +
+              `   1. Move all components from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/\n` +
+              `   2. Update all import paths from @/components/${LEGACY_COMPONENT_SUBDIR}/ to @/components/${COMPONENT_SUBDIR}/\n` +
+              `   3. Update any custom component registrations in tambo.ts\n` +
+              `\n` +
+              `   or you can run ${chalk.bold("npx tambo migrate")} to migrate all components to the new location\n`,
+          ),
+        );
+
+        // Save the base path before modifying installPath
+        baseInstallPath = installPath;
+        // Override to use legacy location for consistency
+        installPath = path.join(installPath, LEGACY_COMPONENT_SUBDIR);
+        isExplicitPrefix = true; // This prevents adding COMPONENT_SUBDIR again
+      } else if (hasLegacyComponents && hasNewComponents) {
+        // Components in both locations - this is problematic
+        console.log(
+          chalk.red(
+            `\n❌ Found components in both ${LEGACY_COMPONENT_SUBDIR}/ and ${COMPONENT_SUBDIR}/ locations.\n` +
+              `   This can cause import path issues between components.\n`,
+          ),
+        );
+        console.log(
+          chalk.yellow(
+            `   Please consolidate your components to one location:\n` +
+              `   - Move all to ${COMPONENT_SUBDIR}/ (recommended): npx tambo migrate\n` +
+              `   - Or manually move components from ${COMPONENT_SUBDIR}/ back to ${LEGACY_COMPONENT_SUBDIR}/\n`,
+          ),
+        );
+
+        if (!options.yes) {
+          const { continueAnyway } = await inquirer.prompt({
+            type: "confirm",
+            name: "continueAnyway",
+            message: "Continue installation anyway?",
+            default: false,
+          });
+
+          if (!continueAnyway) {
+            console.log(chalk.gray("Installation cancelled."));
+            return;
+          }
+        }
+      }
+    }
 
     // 3. Resolve all dependencies first
     if (!options.silent) {
@@ -52,10 +128,23 @@ export async function handleAddComponents(
     // 4. Check which components need to be installed
     const existingComponentsPath = isExplicitPrefix
       ? path.join(process.cwd(), installPath)
-      : path.join(process.cwd(), installPath, "ui");
-    const existingComponents = components.filter((comp) =>
-      fs.existsSync(path.join(existingComponentsPath, `${comp}.tsx`)),
-    );
+      : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+
+    // Also check legacy location for existing components
+    const legacyComponentsPath = !isExplicitPrefix
+      ? path.join(process.cwd(), installPath, LEGACY_COMPONENT_SUBDIR)
+      : null;
+
+    const existingComponents = components.filter((comp) => {
+      const newPath = path.join(existingComponentsPath, `${comp}.tsx`);
+      const legacyPath = legacyComponentsPath
+        ? path.join(legacyComponentsPath, `${comp}.tsx`)
+        : null;
+
+      return (
+        fs.existsSync(newPath) || (legacyPath && fs.existsSync(legacyPath))
+      );
+    });
     const newComponents = components.filter(
       (comp) => !existingComponents.includes(comp),
     );
@@ -104,6 +193,7 @@ export async function handleAddComponents(
       ...options,
       installPath,
       isExplicitPrefix,
+      baseInstallPath, // Pass the original base path for lib calculation
     });
 
     // 7. Setup Tailwind and globals.css after all components are installed

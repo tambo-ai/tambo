@@ -12,6 +12,7 @@ import { getComponentList } from "./commands/add/utils.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleListComponents } from "./commands/list/index.js";
+import { handleMigrate } from "./commands/migrate.js";
 import { handleUpdateComponents } from "./commands/update.js";
 import { handleUpgrade } from "./commands/upgrade/index.js";
 
@@ -34,6 +35,7 @@ interface CLIFlags extends Record<string, any> {
   acceptAll?: Flag<"boolean", boolean>;
   prefix?: Flag<"string", string>;
   yes?: Flag<"boolean", boolean>;
+  dryRun?: Flag<"boolean", boolean>;
 }
 
 // CLI setup
@@ -60,6 +62,7 @@ const cli = meow(
     ${chalk.yellow(
       "create-app",
     )}          Create a new tambo app from a template
+    ${chalk.yellow("migrate")}             Migrate components from ui/ to tambo/ directory
 
   ${chalk.bold("Options")}
     ${chalk.yellow(
@@ -73,6 +76,7 @@ const cli = meow(
     ${chalk.yellow("--prefix <path>")}     Specify custom directory prefix for components (e.g., src/components/ui/tambo)
     ${chalk.yellow("--yes, -y")}           Answer yes to all prompts automatically
     ${chalk.yellow("--version")}           Show version number
+    ${chalk.yellow("--dry-run")}           Dry run migration without making changes
 
   ${chalk.bold("Examples")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("init")}
@@ -95,11 +99,13 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template mcp")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app -t mcp")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app . --init-git")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=src/components/ui/tambo update message")}
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=components/ui/third-party add message")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=src/components/tambo update message")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("--prefix=components/tambo/third-party add message")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("add message -y")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("update installed --yes")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("init -y")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("migrate")}
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("migrate --dry-run")}
   `,
   {
     flags: {
@@ -133,6 +139,10 @@ const cli = meow(
         type: "boolean",
         description: "Answer yes to all prompts automatically",
         shortFlag: "y",
+      },
+      dryRun: {
+        type: "boolean",
+        description: "Dry run migration without making changes",
       },
     },
     importMeta: import.meta,
@@ -259,6 +269,14 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       acceptAll: Boolean(flags.acceptAll),
       prefix: flags.prefix as string | undefined,
+    });
+    return;
+  }
+
+  if (cmd === "migrate") {
+    await handleMigrate({
+      yes: Boolean(flags.yes),
+      dryRun: Boolean(flags.dryRun),
     });
     return;
   }

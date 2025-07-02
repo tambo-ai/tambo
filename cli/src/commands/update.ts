@@ -2,6 +2,10 @@ import chalk from "chalk";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../constants/paths.js";
 import { installComponents } from "./add/component.js";
 import { componentExists, getInstalledComponents } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
@@ -30,20 +34,62 @@ function findComponentLocation(
 ) {
   try {
     // If prefix is explicitly provided, use it as-is
-    // Otherwise, append /ui for backward compatibility
-    const componentDir = isExplicitPrefix
-      ? path.join(projectRoot, installPath)
-      : path.join(projectRoot, installPath, "ui");
-    const componentPath = path.join(componentDir, `${componentName}.tsx`);
-
-    if (!fs.existsSync(componentPath)) {
+    if (isExplicitPrefix) {
+      const componentPath = path.join(
+        projectRoot,
+        installPath,
+        `${componentName}.tsx`,
+      );
+      if (fs.existsSync(componentPath)) {
+        return { componentPath, installPath };
+      }
       return null;
     }
 
-    return {
-      componentPath,
+    // Check new location first
+    const newComponentDir = path.join(
+      projectRoot,
       installPath,
-    };
+      COMPONENT_SUBDIR,
+    );
+    const newComponentPath = path.join(newComponentDir, `${componentName}.tsx`);
+
+    if (fs.existsSync(newComponentPath)) {
+      return {
+        componentPath: newComponentPath,
+        installPath,
+      };
+    }
+
+    // Then check legacy location
+    const legacyComponentDir = path.join(
+      projectRoot,
+      installPath,
+      LEGACY_COMPONENT_SUBDIR,
+    );
+    const legacyComponentPath = path.join(
+      legacyComponentDir,
+      `${componentName}.tsx`,
+    );
+
+    if (fs.existsSync(legacyComponentPath)) {
+      // Found in legacy location - updates will go to new location
+      console.log(
+        chalk.yellow(
+          `⚠️  Component ${componentName} found in legacy location (${LEGACY_COMPONENT_SUBDIR}/). ` +
+            `Updates will be installed to the new location (${COMPONENT_SUBDIR}/).`,
+        ),
+      );
+
+      // Return the new location for installation
+      return {
+        componentPath: newComponentPath,
+        installPath,
+        needsCreation: true,
+      };
+    }
+
+    return null;
   } catch (error) {
     throw new Error(`Failed to locate component: ${error}`);
   }

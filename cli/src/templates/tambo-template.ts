@@ -10,6 +10,9 @@ export const tamboTsTemplate = `/**
  * This file serves as the central place to register your Tambo components and tools.
  * It exports arrays that will be used by the TamboProvider.
  * 
+ * IMPORTANT: If you have components in different directories (e.g., both ui/ and tambo/),
+ * make sure all import paths are consistent. Run 'npx tambo migrate' to consolidate.
+ * 
  * Read more about Tambo at https://tambo.co/docs
  */
 
@@ -43,4 +46,7 @@ import type { TamboComponent } from "@tambo-ai/react";
  * \`\`\`
  */
 export const components: TamboComponent[] = [];
+
+// Import your custom components that utilize the Tambo SDK
+// import { CustomChart } from "../components/tambo/custom-chart";
 `;

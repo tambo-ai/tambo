@@ -3,6 +3,10 @@ import fs from "fs";
 import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../../constants/paths.js";
 import { installComponents } from "../add/component.js";
 import { getInstalledComponents } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
@@ -24,21 +28,54 @@ function findComponentLocation(
   isExplicitPrefix = false,
 ) {
   try {
-    // If prefix is explicitly provided, use it as-is
-    // Otherwise, append /ui for backward compatibility
-    const componentDir = isExplicitPrefix
-      ? path.join(projectRoot, installPath)
-      : path.join(projectRoot, installPath, "ui");
-    const componentPath = path.join(componentDir, `${componentName}.tsx`);
-
-    if (!fs.existsSync(componentPath)) {
+    // Similar logic to update.ts findComponentLocation
+    if (isExplicitPrefix) {
+      const componentPath = path.join(
+        projectRoot,
+        installPath,
+        `${componentName}.tsx`,
+      );
+      if (fs.existsSync(componentPath)) {
+        return { componentPath, installPath };
+      }
       return null;
     }
 
-    return {
-      componentPath,
+    // Check new location first
+    const newComponentDir = path.join(
+      projectRoot,
       installPath,
-    };
+      COMPONENT_SUBDIR,
+    );
+    const newComponentPath = path.join(newComponentDir, `${componentName}.tsx`);
+
+    if (fs.existsSync(newComponentPath)) {
+      return {
+        componentPath: newComponentPath,
+        installPath,
+      };
+    }
+
+    // Then check legacy location
+    const legacyComponentDir = path.join(
+      projectRoot,
+      installPath,
+      LEGACY_COMPONENT_SUBDIR,
+    );
+    const legacyComponentPath = path.join(
+      legacyComponentDir,
+      `${componentName}.tsx`,
+    );
+
+    if (fs.existsSync(legacyComponentPath)) {
+      return {
+        componentPath: newComponentPath, // Return new path for upgrade
+        installPath,
+        needsCreation: true,
+      };
+    }
+
+    return null;
   } catch (error) {
     throw new Error(`Failed to locate component: ${error}`);
   }
@@ -64,9 +101,16 @@ export async function upgradeComponents(
 
     const componentDir = isExplicitPrefix
       ? path.join(projectRoot, installPath)
-      : path.join(projectRoot, installPath, "ui");
+      : path.join(projectRoot, installPath, COMPONENT_SUBDIR);
 
-    if (!fs.existsSync(componentDir)) {
+    const legacyDir = !isExplicitPrefix
+      ? path.join(projectRoot, installPath, LEGACY_COMPONENT_SUBDIR)
+      : null;
+
+    if (
+      !fs.existsSync(componentDir) &&
+      (!legacyDir || !fs.existsSync(legacyDir))
+    ) {
       spinner.info(
         "No tambo components directory found. Skipping component upgrades.",
       );

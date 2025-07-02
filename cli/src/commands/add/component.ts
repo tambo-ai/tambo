@@ -3,6 +3,7 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { COMPONENT_SUBDIR } from "../../constants/paths.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
 
@@ -61,12 +62,26 @@ export async function installComponents(
 
   const componentDir = isExplicitPrefix
     ? path.join(process.cwd(), installPath)
-    : path.join(process.cwd(), installPath, "ui");
-  const libDir = calculateLibDir(installPath, isExplicitPrefix);
-  fs.mkdirSync(componentDir, { recursive: true });
-  fs.mkdirSync(libDir, { recursive: true });
+    : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
 
-  // 2. Setup utils
+  // For lib directory, use the base install path if provided (for legacy compatibility)
+  // Otherwise use the standard calculation
+  let libDir: string;
+  if (options.baseInstallPath) {
+    // When using legacy location, calculate lib based on the original base path
+    libDir = calculateLibDir(options.baseInstallPath, false);
+  } else {
+    libDir = calculateLibDir(installPath, isExplicitPrefix);
+  }
+
+  fs.mkdirSync(componentDir, { recursive: true });
+
+  // Only create lib directory if it doesn't exist
+  if (!fs.existsSync(libDir)) {
+    fs.mkdirSync(libDir, { recursive: true });
+  }
+
+  // 2. Setup utils - only if it doesn't exist
   const utilsPath = path.join(libDir, "utils.ts");
   if (!fs.existsSync(utilsPath)) {
     const utilsContent = `
