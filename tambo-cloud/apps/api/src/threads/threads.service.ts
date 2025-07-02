@@ -216,12 +216,13 @@ export class ThreadsService {
     id: string,
     projectId: string,
     contextKey?: string,
+    includeInternal: boolean = false,
   ): Promise<ThreadWithMessagesDto> {
     const thread = await operations.getThreadForProjectId(
       this.getDb(),
       id,
       projectId,
-      false,
+      includeInternal,
       contextKey,
     );
     if (!thread) {
