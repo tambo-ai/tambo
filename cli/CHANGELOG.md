@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.19.0...tambo-v0.20.0) (2025-07-02)
+
+
+### Features
+
+* update components to show tool results ([#622](https://github.com/tambo-ai/tambo/issues/622)) ([b68ca9a](https://github.com/tambo-ai/tambo/commit/b68ca9ab7f0b5a0dea43357715ad6ffbaadffcb6))
+
 ## [0.19.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.18.0...tambo-v0.19.0) (2025-07-02)
 
 
