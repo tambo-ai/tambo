@@ -1,7 +1,12 @@
 "use client";
 import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
-import React, { createContext, PropsWithChildren, useState } from "react";
+import React, {
+  createContext,
+  PropsWithChildren,
+  useEffect,
+  useState,
+} from "react";
 import packageJson from "../../package.json";
 
 export interface TamboClientProviderProps {
@@ -18,6 +23,14 @@ export interface TamboClientProviderProps {
    * The environment to use for the Tambo API
    */
   environment?: "production" | "staging";
+
+  /**
+   * The user token to use to identify the user in the Tambo API. This token is
+   * a 3rd party token like a Google or GitHub access token, exchanged with the
+   * Tambo API to get a session token. This is used to securely identify the
+   * user when calling the Tambo API.
+   */
+  userToken?: string;
 }
 
 export interface TamboClientContextProps {
@@ -43,7 +56,7 @@ export const TamboClientContext = createContext<
  */
 export const TamboClientProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps>
-> = ({ children, tamboUrl, apiKey, environment }) => {
+> = ({ children, tamboUrl, apiKey, environment, userToken }) => {
   const tamboConfig: ClientOptions = {
     apiKey,
     defaultHeaders: {
@@ -58,6 +71,10 @@ export const TamboClientProvider: React.FC<
   }
   const [client] = useState(() => new TamboAI(tamboConfig));
   const [queryClient] = useState(() => new QueryClient());
+
+  // Keep the session token updated
+  useTamboSessionToken(client, userToken);
+
   return (
     <TamboClientContext.Provider value={{ client, queryClient }}>
       {children}
@@ -93,3 +110,61 @@ export const useTamboQueryClient = () => {
   }
   return context.queryClient;
 };
+
+function useTamboSessionToken(client: TamboAI, userToken: string | undefined) {
+  const [tamboSessionToken, setTamboSessionToken] = useState<string | null>(
+    null,
+  );
+  // we need to set this to true when the token is expired, this is effectively
+  // like a dirty bit, which will trigger a new useEffect()
+  const [isExpired, setIsExpired] = useState(true);
+  useEffect(() => {
+    let expireTimer: NodeJS.Timeout | null = null;
+
+    async function updateToken(
+      subjectToken: string,
+      abortController: AbortController,
+    ) {
+      if (abortController.signal.aborted || !userToken) {
+        return;
+      }
+      const tamboToken = await client.beta.auth.getToken({
+        subject_token: subjectToken,
+        grant_type: "subject_token",
+        subject_token_type: "urn:ietf:params:oauth:token-type:access_token",
+      });
+
+      if (abortController.signal.aborted) {
+        return;
+      }
+
+      setTamboSessionToken(tamboToken.access_token);
+      client.bearer = tamboToken.access_token;
+
+      // we need to set a timer to refresh the token when it expires
+      const refreshTime = Math.max(tamboToken.expires_in - 60, 0);
+
+      // careful with the assignment here: since this is an async function, this
+      // code is executed outside the of the scope of the useEffect() hook, so
+      // we need to use a let variable to store the timer
+      expireTimer = setTimeout(() => {
+        setIsExpired(true);
+      }, refreshTime * 1000);
+    }
+
+    const abortController = new AbortController();
+    if (userToken && isExpired) {
+      updateToken(userToken, abortController);
+    }
+
+    return () => {
+      // This fires when the component unmounts or the userToken changes
+      abortController.abort();
+      if (expireTimer) {
+        clearTimeout(expireTimer);
+      }
+    };
+  }, [client, isExpired, userToken]);
+
+  return tamboSessionToken;
+}
