@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.78.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.1...repo-v0.78.2) (2025-07-03)
+
+
+### Bug Fixes
+
+* add BetterAuth and Octa presets ([#1279](https://github.com/tambo-ai/tambo-cloud/issues/1279)) ([99528be](https://github.com/tambo-ai/tambo-cloud/commit/99528be03ed4c99079e17b9e22ea9212c39c35b2))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 2 updates ([#1240](https://github.com/tambo-ai/tambo-cloud/issues/1240)) ([a8c726b](https://github.com/tambo-ai/tambo-cloud/commit/a8c726bc3fbf2a6bcfeabb9697e93f1fcfd419f1))
+
 ## [0.78.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.0...repo-v0.78.1) (2025-07-03)
 
 
