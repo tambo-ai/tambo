@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../../constants/paths.js";
 
 // Get the current file URL and convert it to a path
 const __filename = fileURLToPath(import.meta.url);
@@ -80,17 +84,29 @@ export function getComponentList(): ComponentInfo[] {
 }
 
 /**
- * Gets a set of all known tambo registry component names
- * @returns A Set of component names that exist in the registry
+ * Gets detailed information about all known Tambo components
+ * @returns An object with main components and support components
  */
-export function getKnownComponentNames(): Set<string> {
+export function getTamboComponentInfo(): {
+  mainComponents: Set<string>;
+  supportComponents: Set<string>;
+  allComponents: Set<string>;
+} {
   try {
     const registryPath = path.join(__dirname, "../../../src/registry");
     if (!fs.existsSync(registryPath)) {
-      return new Set();
+      return {
+        mainComponents: new Set(),
+        supportComponents: new Set(),
+        allComponents: new Set(),
+      };
     }
 
-    const components = fs
+    const mainComponents = new Set<string>();
+    const supportComponents = new Set<string>();
+
+    // First, add all components that have their own directories
+    const directories = fs
       .readdirSync(registryPath)
       .filter((file) => {
         const fullPath = path.join(registryPath, file);
@@ -98,10 +114,79 @@ export function getKnownComponentNames(): Set<string> {
       })
       .filter((componentName) => componentExists(componentName));
 
-    return new Set(components);
+    directories.forEach((name) => mainComponents.add(name));
+
+    // Then, scan all config files to find additional components that are included as files
+    directories.forEach((componentName) => {
+      const configPath = getConfigPath(componentName);
+      if (fs.existsSync(configPath)) {
+        try {
+          const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+          if (config.files && Array.isArray(config.files)) {
+            config.files.forEach((file: { name: string }) => {
+              if (file.name?.endsWith(".tsx")) {
+                // Extract component name from filename (remove .tsx extension)
+                const fileName = path.basename(file.name, ".tsx");
+                // Don't add the component itself
+                if (
+                  fileName !== componentName &&
+                  !mainComponents.has(fileName)
+                ) {
+                  supportComponents.add(fileName);
+                }
+              }
+            });
+          }
+        } catch (_error) {
+          // Skip if config parsing fails
+        }
+      }
+    });
+
+    // Combine both sets for allComponents
+    const allComponents = new Set([...mainComponents, ...supportComponents]);
+
+    return { mainComponents, supportComponents, allComponents };
   } catch (_error) {
-    return new Set();
+    return {
+      mainComponents: new Set(),
+      supportComponents: new Set(),
+      allComponents: new Set(),
+    };
   }
+}
+
+/**
+ * Gets a set of all known tambo registry component names
+ * @returns A Set of component names that exist in the registry
+ */
+export function getKnownComponentNames(): Set<string> {
+  const { allComponents } = getTamboComponentInfo();
+  return allComponents;
+}
+
+/**
+ * Checks if components exist in the legacy location
+ * @param installPath The installation path for components
+ * @returns Path to legacy components if they exist, null otherwise
+ */
+export function checkLegacyComponents(installPath: string): string | null {
+  const legacyPath = path.join(
+    process.cwd(),
+    installPath,
+    LEGACY_COMPONENT_SUBDIR,
+  );
+
+  if (fs.existsSync(legacyPath)) {
+    const files = fs.readdirSync(legacyPath);
+    const hasComponents = files.some((file) => file.endsWith(".tsx"));
+
+    if (hasComponents) {
+      return legacyPath;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -117,31 +202,39 @@ export async function getInstalledComponents(
   try {
     const componentsPath = isExplicitPrefix
       ? path.join(process.cwd(), installPath)
-      : path.join(process.cwd(), installPath, "ui");
+      : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
 
-    if (!fs.existsSync(componentsPath)) {
-      return [];
+    const legacyPath = !isExplicitPrefix
+      ? path.join(process.cwd(), installPath, LEGACY_COMPONENT_SUBDIR)
+      : null;
+
+    const allComponents = new Set<string>();
+
+    // Check new location
+    if (fs.existsSync(componentsPath)) {
+      const files = fs.readdirSync(componentsPath);
+      const knownComponents = getKnownComponentNames();
+
+      files
+        .filter((file) => file.endsWith(".tsx"))
+        .map((file) => file.replace(".tsx", ""))
+        .filter((name) => knownComponents.has(name) && componentExists(name))
+        .forEach((name) => allComponents.add(name));
     }
 
-    // Get all known tambo components from the registry for validation
-    const knownComponents = getKnownComponentNames();
+    // Check legacy location
+    if (legacyPath && fs.existsSync(legacyPath)) {
+      const files = fs.readdirSync(legacyPath);
+      const knownComponents = getKnownComponentNames();
 
-    const files = fs.readdirSync(componentsPath);
+      files
+        .filter((file) => file.endsWith(".tsx"))
+        .map((file) => file.replace(".tsx", ""))
+        .filter((name) => knownComponents.has(name) && componentExists(name))
+        .forEach((name) => allComponents.add(name));
+    }
 
-    // Get all .tsx files and extract component names
-    const allComponentNames = files
-      .filter((file) => file.endsWith(".tsx"))
-      .map((file) => file.replace(".tsx", ""));
-
-    // Filter to only include components that exist in the tambo registry
-    // Use both checks: known components list and componentExists for extra validation
-    const tamboComponents = allComponentNames.filter((componentName) => {
-      return (
-        knownComponents.has(componentName) && componentExists(componentName)
-      );
-    });
-
-    return tamboComponents;
+    return Array.from(allComponents);
   } catch (_error) {
     return [];
   }

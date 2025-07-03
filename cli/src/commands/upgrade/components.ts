@@ -3,94 +3,135 @@ import fs from "fs";
 import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../../constants/paths.js";
 import { installComponents } from "../add/component.js";
+import type { InstallComponentOptions } from "../add/types.js";
 import { getInstalledComponents } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
+import {
+  detectCrossLocationDependencies,
+  findComponentLocation,
+  handleDependencyInconsistencies,
+  type DependencyInconsistency,
+} from "../shared/component-utils.js";
 import type { UpgradeOptions } from "./index.js";
-import { confirmAction } from "./utils.js";
+import { confirmAction, migrateComponentsDuringUpgrade } from "./utils.js";
 
 /**
- * Finds the component location in the project
- * @param componentName Name of the component to find
- * @param projectRoot Project root directory
- * @param installPath Pre-determined installation path
- * @param isExplicitPrefix Whether the prefix is explicitly provided
- * @returns Object containing component path and installation path
+ * Represents a component that will be upgraded
  */
-function findComponentLocation(
-  componentName: string,
-  projectRoot: string,
-  installPath: string,
-  isExplicitPrefix = false,
-) {
-  try {
-    // If prefix is explicitly provided, use it as-is
-    // Otherwise, append /ui for backward compatibility
-    const componentDir = isExplicitPrefix
-      ? path.join(projectRoot, installPath)
-      : path.join(projectRoot, installPath, "ui");
-    const componentPath = path.join(componentDir, `${componentName}.tsx`);
-
-    if (!fs.existsSync(componentPath)) {
-      return null;
-    }
-
-    return {
-      componentPath,
-      installPath,
-    };
-  } catch (error) {
-    throw new Error(`Failed to locate component: ${error}`);
-  }
+interface ComponentToUpgrade {
+  /** Component name */
+  name: string;
+  /** Installation path for the component */
+  installPath: string;
+  /** Whether this component is in legacy location */
+  isLegacy?: boolean;
+  /** Base installation path (used for lib directory calculation) */
+  baseInstallPath?: string;
 }
 
 /**
- * Upgrade tambo registry components
+ * Prepares the final component list for upgrade based on migration decisions
+ * @param componentsToUpgrade - Initial components to upgrade
+ * @param legacyComponents - Components in legacy location
+ * @param shouldMigrate - Whether migration should be performed
+ * @param installPath - Base installation path
+ * @returns Final list of components with correct paths
+ */
+async function prepareFinalComponentList(
+  componentsToUpgrade: { name: string; installPath: string }[],
+  legacyComponents: string[],
+  shouldMigrate: boolean,
+  installPath: string,
+): Promise<ComponentToUpgrade[]> {
+  if (shouldMigrate) {
+    return componentsToUpgrade.map((component) => ({
+      name: component.name,
+      installPath: component.installPath,
+    }));
+  }
+
+  return componentsToUpgrade.map((component) => {
+    if (legacyComponents.includes(component.name)) {
+      return {
+        name: component.name,
+        installPath: path.join(component.installPath, LEGACY_COMPONENT_SUBDIR),
+        isLegacy: true,
+        baseInstallPath: component.installPath,
+      };
+    }
+    return {
+      name: component.name,
+      installPath: component.installPath,
+      baseInstallPath: installPath,
+    };
+  });
+}
+
+/**
+ * Upgrades tambo registry components with directory structure migration support
+ *
+ * This function handles the complete upgrade workflow:
+ * 1. Discovers installed components in both legacy (ui/) and new (tambo/) locations
+ * 2. Detects cross-location dependencies that could cause import issues
+ * 3. Offers migration options to resolve inconsistencies
+ * 4. Upgrades components to latest registry versions
+ * 5. Maintains proper import paths and support file locations
+ *
+ * @param options - Upgrade configuration options
+ * @returns Promise that resolves to true if upgrade succeeded, false otherwise
  */
 export async function upgradeComponents(
   options: UpgradeOptions,
 ): Promise<boolean> {
   try {
     const projectRoot = process.cwd();
-
     console.log(chalk.blue("Determining component location..."));
 
-    // Get installation path (this will print messages and prompt user)
     const installPath = options.prefix ?? (await getInstallationPath());
     const isExplicitPrefix = Boolean(options.prefix);
 
-    // Resume with a new spinner after installation path is determined
+    // Find and verify components
     const spinner = ora("Finding components...").start();
 
     const componentDir = isExplicitPrefix
       ? path.join(projectRoot, installPath)
-      : path.join(projectRoot, installPath, "ui");
+      : path.join(projectRoot, installPath, COMPONENT_SUBDIR);
 
-    if (!fs.existsSync(componentDir)) {
+    const legacyDir = !isExplicitPrefix
+      ? path.join(projectRoot, installPath, LEGACY_COMPONENT_SUBDIR)
+      : null;
+
+    if (
+      !fs.existsSync(componentDir) &&
+      (!legacyDir || !fs.existsSync(legacyDir))
+    ) {
       spinner.info(
         "No tambo components directory found. Skipping component upgrades.",
       );
       return true;
     }
 
-    // Get list of installed components
     const installedComponentNames = await getInstalledComponents(
       installPath,
       isExplicitPrefix,
     );
-
     spinner.succeed(
       `Found ${installedComponentNames.length} tambo components to upgrade`,
     );
 
-    if (installedComponentNames.length === 0) {
-      return true;
-    }
+    if (installedComponentNames.length === 0) return true;
 
-    // Verify each component location
+    // Verify component locations
     const verifySpinner = ora("Verifying component locations...").start();
     const verifiedComponents: { name: string; installPath: string }[] = [];
     const missingComponents: string[] = [];
+    const legacyComponents: string[] = [];
+    const newComponents: string[] = [];
 
     for (const componentName of installedComponentNames) {
       const location = findComponentLocation(
@@ -99,18 +140,45 @@ export async function upgradeComponents(
         installPath,
         isExplicitPrefix,
       );
+
       if (location) {
         verifiedComponents.push({
           name: componentName,
           installPath: location.installPath,
         });
+
+        if (location.needsCreation) {
+          legacyComponents.push(componentName);
+        } else {
+          newComponents.push(componentName);
+        }
       } else {
         missingComponents.push(componentName);
       }
     }
 
-    verifySpinner.succeed("Component verification complete\n");
+    verifySpinner.succeed("Component verification complete");
 
+    // Check for cross-location dependencies
+    let inconsistencies: DependencyInconsistency[] = [];
+    if (legacyComponents.length > 0 && newComponents.length > 0) {
+      const dependencySpinner = ora(
+        "Checking component dependencies...",
+      ).start();
+      inconsistencies = await detectCrossLocationDependencies(
+        verifiedComponents,
+        installPath,
+        isExplicitPrefix,
+      );
+
+      if (inconsistencies.length > 0) {
+        dependencySpinner.fail("Found component location inconsistencies!");
+      } else {
+        dependencySpinner.succeed("Component dependencies verified");
+      }
+    }
+
+    // Show missing components
     if (missingComponents.length > 0) {
       console.log(
         chalk.yellow(
@@ -124,29 +192,20 @@ export async function upgradeComponents(
       return true;
     }
 
-    // Component selection interface (unless acceptAll is true)
+    // Component selection
     let componentsToUpgrade = verifiedComponents;
 
     if (!options.acceptAll) {
-      const instructions = [
-        chalk.reset.gray("↑↓ to select a component"),
-        chalk.reset.gray("Space: Toggle selection"),
-        chalk.reset.gray("a: Toggle all"),
-        chalk.reset.gray("i: Invert selection"),
-        chalk.reset.gray("Enter: Upgrade"),
-      ].join("\n");
-
       const { selectedComponents } = await inquirer.prompt({
         type: "checkbox",
         name: "selectedComponents",
-        message: `Choose which components to update ·\n${instructions}`,
+        message: "Choose which components to update:",
         choices: verifiedComponents.map((comp) => ({
           name: comp.name,
           value: comp.name,
           checked: false,
         })),
         pageSize: 10,
-        instructions: false,
       });
 
       if (selectedComponents.length === 0) {
@@ -154,8 +213,6 @@ export async function upgradeComponents(
         return true;
       }
 
-      // Final confirmation
-      console.log("\n");
       const proceed = await confirmAction(
         `This will upgrade ${selectedComponents.length} component(s) with the latest versions from the registry. Continue?`,
         true,
@@ -166,35 +223,68 @@ export async function upgradeComponents(
         return true;
       }
 
-      // Filter to only include selected components
       const verifiedMap = new Map(verifiedComponents.map((c) => [c.name, c]));
       componentsToUpgrade = selectedComponents
         .map((name: string) => verifiedMap.get(name))
         .filter(Boolean) as { name: string; installPath: string }[];
+    }
 
-      if (componentsToUpgrade.length === 0) {
-        console.log(
-          chalk.red("Selected components could not be matched – aborting."),
-        );
-        return false;
+    // Handle inconsistencies and migration
+    let migrationPerformed = false;
+
+    if (inconsistencies.length > 0) {
+      migrationPerformed = await handleDependencyInconsistencies(
+        inconsistencies,
+        legacyComponents,
+        installPath,
+        "upgrade",
+      );
+    } else if (legacyComponents.length > 0 && !options.acceptAll) {
+      console.log(
+        chalk.yellow(
+          `\n⚠️  Found ${legacyComponents.length} components in legacy location (${LEGACY_COMPONENT_SUBDIR}/):`,
+        ),
+      );
+      legacyComponents.forEach((comp) => console.log(`    - ${comp}`));
+
+      migrationPerformed = await confirmAction(
+        `Would you like to automatically migrate these to ${COMPONENT_SUBDIR}/ and update import paths during upgrade?`,
+        false,
+      );
+
+      if (migrationPerformed) {
+        await migrateComponentsDuringUpgrade(legacyComponents, installPath);
       }
     }
 
-    // Install/upgrade selected components one by one
+    // Prepare final component list
+    const finalComponentsToUpgrade = await prepareFinalComponentList(
+      componentsToUpgrade,
+      legacyComponents,
+      migrationPerformed,
+      installPath,
+    );
+
+    // Upgrade components
     let successCount = 0;
 
-    for (const component of componentsToUpgrade) {
+    for (const component of finalComponentsToUpgrade) {
       const componentSpinner = ora(`Upgrading ${component.name}...`).start();
 
       try {
-        // Install one component at a time
-        await installComponents([component.name], {
+        const installOptions: InstallComponentOptions = {
           legacyPeerDeps: options.legacyPeerDeps,
           forceUpdate: true,
           installPath: component.installPath,
           silent: true,
-        });
+        };
 
+        if (component.isLegacy) {
+          installOptions.isExplicitPrefix = true;
+          installOptions.baseInstallPath = component.baseInstallPath;
+        }
+
+        await installComponents([component.name], installOptions);
         successCount++;
         componentSpinner.succeed(`Updated ${component.name}`);
       } catch (error) {
@@ -204,9 +294,33 @@ export async function upgradeComponents(
 
     console.log(
       chalk.green(
-        `✔ Successfully upgraded ${successCount} of ${componentsToUpgrade.length} components`,
+        `✔ Successfully upgraded ${successCount} of ${finalComponentsToUpgrade.length} components`,
       ),
     );
+
+    // Show post-upgrade guidance
+    const remainingLegacyComponents = finalComponentsToUpgrade.filter(
+      (c) => c.isLegacy,
+    );
+    if (remainingLegacyComponents.length > 0) {
+      console.log(chalk.blue("\n📝 Post-upgrade notes:"));
+      console.log(
+        chalk.gray(
+          `• ${remainingLegacyComponents.length} components remain in ${LEGACY_COMPONENT_SUBDIR}/ location`,
+        ),
+      );
+      console.log(
+        chalk.gray(
+          `• Import paths: @/components/${LEGACY_COMPONENT_SUBDIR}/component-name`,
+        ),
+      );
+      console.log(
+        chalk.gray(
+          `• Run 'npx tambo migrate' anytime to move all components to ${COMPONENT_SUBDIR}/`,
+        ),
+      );
+    }
+
     return true;
   } catch (error) {
     console.error(chalk.red(`Failed to upgrade components: ${error}`));
