@@ -30,6 +30,7 @@ import {
   SiClerk,
   SiGithub,
   SiGoogle,
+  SiOkta,
   SiSupabase,
 } from "react-icons/si";
 
@@ -60,6 +61,12 @@ const OAUTH_PRESETS = [
     icon: SiSupabase,
   },
   { name: "Neon", mode: OAuthValidationMode.ASYMMETRIC_AUTO, icon: Database },
+  { name: "Okta", mode: OAuthValidationMode.ASYMMETRIC_AUTO, icon: SiOkta },
+  {
+    name: "BetterAuth",
+    mode: OAuthValidationMode.ASYMMETRIC_AUTO,
+    icon: Shield,
+  },
 ] as const;
 
 export function OAuthSettings({ project }: OAuthSettingsProps) {
