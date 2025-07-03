@@ -211,6 +211,9 @@
   .ring-ring {
     --tw-ring-color: hsl(var(--ring));
   }
+  .ring-theme-accent {
+    --tw-ring-color: hsl(var(--theme-accent));
+  }
 
   /* Hover Utilities */
   .hover\:bg-primary\/90:hover {

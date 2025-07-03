@@ -61,7 +61,7 @@ export const ComponentMessage = memo(
             className={cn(
               "rounded-2xl p-3 sm:p-5 shadow-sm border backdrop-blur-sm",
               "bg-muted/20 text-foreground text-sm border-border",
-              isHighlighted && "ring-2 ring-muted-foreground/50 ring-inset",
+              isHighlighted && "ring-4 ring-theme-accent ring-inset",
             )}
           >
             <div className="flex flex-col gap-2 sm:gap-4">

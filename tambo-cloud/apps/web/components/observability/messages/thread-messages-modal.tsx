@@ -9,6 +9,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { getSafeContent } from "@/lib/thread-hooks";
+import { cn } from "@/lib/utils";
 import { RouterOutputs } from "@/trpc/react";
 import { Search, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -33,10 +34,10 @@ export function ThreadMessagesModal({
   isLoading = false,
 }: Readonly<ThreadMessagesModalProps>) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [highlightedMessageId, setHighlightedMessageId] = useState<
     string | null
   >(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const messageRefs = useRef<Record<string, HTMLDivElement>>({});
 
   const filteredMessages = useMemo(() => {
@@ -73,9 +74,10 @@ export function ThreadMessagesModal({
     }
   }, []);
 
-  const toggleSection = useCallback((section: string) => {
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
-  }, []);
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    setIsScrolled(scrollTop > 20);
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -119,20 +121,43 @@ export function ThreadMessagesModal({
               </div>
             </div>
 
-            <div className="flex-shrink-0">
+            {/* Normal header */}
+            <div
+              className={cn(
+                "flex-shrink-0 transition-all duration-200",
+                isScrolled && "hidden",
+              )}
+            >
               <StatsHeader
                 stats={stats}
                 messageItems={messageItems}
                 componentItems={componentItems}
                 errorItems={errorItems}
                 toolItems={toolItems}
-                openSections={openSections}
-                onToggleSection={toggleSection}
                 onScrollToMessage={scrollToMessage}
               />
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden">
+            {/* Scrollable content area */}
+            <div
+              onScroll={handleScroll}
+              className="flex-1 min-h-0 overflow-y-auto relative [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden"
+            >
+              {/* Sticky condensed header */}
+              {isScrolled && (
+                <div className="sticky top-0 z-20">
+                  <StatsHeader
+                    stats={stats}
+                    messageItems={messageItems}
+                    componentItems={componentItems}
+                    errorItems={errorItems}
+                    toolItems={toolItems}
+                    onScrollToMessage={scrollToMessage}
+                    isCondensed
+                  />
+                </div>
+              )}
+
               <ThreadMessages
                 thread={thread}
                 searchQuery={searchQuery}
