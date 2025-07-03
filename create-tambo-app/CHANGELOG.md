@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.5](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.4...create-tambo-app-v0.1.5) (2025-07-03)
+
+
+### Miscellaneous
+
+* bump dev to node 22 ([#569](https://github.com/tambo-ai/tambo/issues/569)) ([fd5209e](https://github.com/tambo-ai/tambo/commit/fd5209e74a88dd4676f663bf0161e0030e41a943))
+* **deps-dev:** bump the eslint group with 2 updates ([#585](https://github.com/tambo-ai/tambo/issues/585)) ([f49223d](https://github.com/tambo-ai/tambo/commit/f49223d888ba9b921e80825f2ff04ebde15f6f6a))
+* **deps-dev:** bump the eslint group with 4 updates ([#538](https://github.com/tambo-ai/tambo/issues/538)) ([d3c054c](https://github.com/tambo-ai/tambo/commit/d3c054c73545835424f14ea022252a3996127fc3))
+* **deps-dev:** bump the eslint group with 4 updates ([#602](https://github.com/tambo-ai/tambo/issues/602)) ([00832a8](https://github.com/tambo-ai/tambo/commit/00832a88e5440afbfe9033322090ed7914d5ae98))
+* **deps-dev:** bump the eslint group with 6 updates ([#492](https://github.com/tambo-ai/tambo/issues/492)) ([9efc361](https://github.com/tambo-ai/tambo/commit/9efc3611ab68d4a38709d6f6b148f28f25258716))
+* **deps-dev:** bump typescript-eslint from 8.33.1 to 8.34.0 in the eslint group ([#507](https://github.com/tambo-ai/tambo/issues/507)) ([c662d2b](https://github.com/tambo-ai/tambo/commit/c662d2b5f006c553e6daef134a862b47a50fdd18))
+
 ## [0.1.4](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.3...create-tambo-app-v0.1.4) (2025-05-20)
 
 
