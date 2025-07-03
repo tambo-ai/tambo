@@ -52,6 +52,7 @@ export const TamboClientContext = createContext<
  * @param props.tamboUrl - The URL of the Tambo API
  * @param props.apiKey - The API key for the Tambo API
  * @param props.environment - The environment to use for the Tambo API
+ * @param props.userToken - The oauth access token to use to identify the user in the Tambo API
  * @returns The TamboClientProvider component
  */
 export const TamboClientProvider: React.FC<
@@ -128,16 +129,24 @@ function useTamboSessionToken(client: TamboAI, userToken: string | undefined) {
       if (abortController.signal.aborted || !userToken) {
         return;
       }
-      const tamboToken = await client.beta.auth.getToken({
+      const tokenRequest = {
+        grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
         subject_token: subjectToken,
-        grant_type: "subject_token",
         subject_token_type: "urn:ietf:params:oauth:token-type:access_token",
-      });
+      };
+      const tokenRequestFormEncoded = new URLSearchParams(
+        tokenRequest,
+      ).toString();
+      const tokenAsArrayBuffer = new TextEncoder().encode(
+        tokenRequestFormEncoded,
+      );
+      const tamboToken = await client.beta.auth.getToken(
+        tokenAsArrayBuffer as any,
+      );
 
       if (abortController.signal.aborted) {
         return;
       }
-
       setTamboSessionToken(tamboToken.access_token);
       client.bearer = tamboToken.access_token;
 
