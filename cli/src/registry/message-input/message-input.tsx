@@ -18,10 +18,20 @@ const messageInputVariants = cva("w-full", {
     variant: {
       default: "",
       solid: [
-        "shadow shadow-zinc-900/10 dark:shadow-zinc-900/20",
-        "[&_input]:bg-muted [&_input]:dark:bg-muted",
+        "[&>div]:bg-background",
+        "[&>div]:border-0",
+        "[&>div]:shadow-xl [&>div]:shadow-black/5 [&>div]:dark:shadow-black/20",
+        "[&>div]:ring-1 [&>div]:ring-black/5 [&>div]:dark:ring-white/10",
+        "[&_textarea]:bg-transparent",
+        "[&_textarea]:rounded-lg",
       ].join(" "),
-      bordered: ["[&_input]:border-2", "[&_input]:border-border"].join(" "),
+      bordered: [
+        "[&>div]:bg-transparent",
+        "[&>div]:border-2 [&>div]:border-gray-300 [&>div]:dark:border-zinc-600",
+        "[&>div]:shadow-none",
+        "[&_textarea]:bg-transparent",
+        "[&_textarea]:border-0",
+      ].join(" "),
     },
   },
   defaultVariants: {

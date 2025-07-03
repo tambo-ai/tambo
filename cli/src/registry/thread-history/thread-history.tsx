@@ -500,35 +500,50 @@ const ThreadHistoryList = React.forwardRef<
             className={cn(
               "p-2 rounded-md hover:bg-backdrop cursor-pointer group flex items-center justify-between",
               currentThread?.id === thread.id ? "bg-muted" : "",
+              editingThread?.id === thread.id ? "bg-muted" : "",
             )}
           >
-            {editingThread?.id === thread.id ? (
-              <form onSubmit={handleNameSubmit} className="flex-1">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full bg-background rounded px-2 py-1 text-sm focus:outline-none"
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </form>
-            ) : (
-              <div className="text-sm flex-1">
-                <span className="font-medium line-clamp-1">
-                  {thread.name ?? `Thread ${thread.id.substring(0, 8)}`}
-                </span>
-                <p className="text-xs text-muted-foreground truncate mt-1">
-                  {new Date(thread.createdAt).toLocaleString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            )}
+            <div className="text-sm flex-1">
+              {editingThread?.id === thread.id ? (
+                <form
+                  onSubmit={handleNameSubmit}
+                  className="flex flex-col gap-1"
+                >
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="w-full bg-background px-1 text-sm font-medium focus:outline-none rounded-sm"
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="Thread name..."
+                  />
+                  <p className="text-xs text-muted-foreground truncate">
+                    {new Date(thread.createdAt).toLocaleString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </form>
+              ) : (
+                <>
+                  <span className="font-medium line-clamp-1">
+                    {thread.name ?? `Thread ${thread.id.substring(0, 8)}`}
+                  </span>
+                  <p className="text-xs text-muted-foreground truncate mt-1">
+                    {new Date(thread.createdAt).toLocaleString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </>
+              )}
+            </div>
             <ThreadOptionsDropdown
               thread={thread}
               onRename={handleRename}
