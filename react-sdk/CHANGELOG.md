@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.37.1](https://github.com/tambo-ai/tambo/compare/react-v0.37.0...react-v0.37.1) (2025-07-03)
+
+
+### Miscellaneous
+
+* update CLI with the new feedback ([#615](https://github.com/tambo-ai/tambo/issues/615)) ([66fd8d0](https://github.com/tambo-ai/tambo/commit/66fd8d0c968bb27249362d48f08bfd42047d8701))
+
+
+### Tests
+
+* add tests for auth token handling ([#628](https://github.com/tambo-ai/tambo/issues/628)) ([eee05fe](https://github.com/tambo-ai/tambo/commit/eee05fe54f274963efb238f841ce980222633e6c))
+
 ## [0.37.0](https://github.com/tambo-ai/tambo/compare/react-v0.36.0...react-v0.37.0) (2025-07-03)
 
 
