@@ -148,8 +148,19 @@ export async function validateSubjectToken(
   }
 
   switch (validationMode) {
-    case OAuthValidationMode.NONE:
-      return await decodeJwt(subjectToken);
+    case OAuthValidationMode.NONE: {
+      const payload = decodeJwt(subjectToken);
+
+      // Even in NONE mode, we should check token expiry for security
+      if (payload.exp && typeof payload.exp === "number") {
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (payload.exp < currentTime) {
+          throw new UnauthorizedException("Token has expired");
+        }
+      }
+
+      return payload;
+    }
 
     case OAuthValidationMode.SYMMETRIC: {
       if (!oauthSettings?.secretKeyEncrypted) {

@@ -114,8 +114,23 @@ export class OAuthController {
       // TODO: Use project-specific signing key from database
       const signingKey = new TextEncoder().encode(`token-for-${projectId}`);
 
-      const expiresIn = 3600; // 1 hour
       const currentTime = Math.floor(Date.now() / 1000);
+      const maxExpiresIn = 3600; // 1 hour
+
+      // Respect the incoming token's expiry - our token should not live longer than the original
+      let expiresIn = maxExpiresIn;
+      if (verifiedPayload.exp && typeof verifiedPayload.exp === "number") {
+        const incomingTokenRemainingTime = verifiedPayload.exp - currentTime;
+        if (
+          incomingTokenRemainingTime > 0 &&
+          incomingTokenRemainingTime < maxExpiresIn
+        ) {
+          expiresIn = incomingTokenRemainingTime;
+          this.logger.log(
+            `Limiting token expiry to ${expiresIn} seconds to match incoming token expiry`,
+          );
+        }
+      }
 
       const accessToken = await new SignJWT({
         sub: verifiedPayload.sub,

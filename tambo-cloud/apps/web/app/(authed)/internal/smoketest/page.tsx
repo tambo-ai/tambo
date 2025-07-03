@@ -1,20 +1,13 @@
 "use client";
 
-import { ThreadList } from "./components/thread-list";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/tambo/thread-content";
-import { useSession } from "@/hooks/auth";
 import { api } from "@/trpc/react";
-import {
-  GenerationStage,
-  TamboTool,
-  useTambo,
-  useTamboThreadList,
-} from "@tambo-ai/react";
+import { TamboTool, useTambo, useTamboThreadList } from "@tambo-ai/react";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { PlusCircle, RefreshCcw, X } from "lucide-react";
 import {
@@ -35,13 +28,12 @@ import { LinearIssueList } from "./components/linear-issue-list";
 import { LinearProjectList } from "./components/linear-project-list";
 import { LocalFileContents, LocalFileList } from "./components/local-file-list";
 import { MessageSuggestions } from "./components/message-suggestions";
+import { ThreadList } from "./components/thread-list";
 import { ThreadMessageInput } from "./components/thread-message-input";
 import { WeatherDay } from "./components/weather-day";
 import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {
-  const { data: session } = useSession();
-  const userId = session?.user.id;
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
     [],
   );
@@ -52,12 +44,6 @@ export default function SmokePage() {
     switchCurrentThread,
     startNewThread,
   } = useTambo();
-  const messages = thread.messages;
-  const isStreaming =
-    generationStage === GenerationStage.STREAMING_RESPONSE ||
-    generationStage === GenerationStage.FETCHING_CONTEXT ||
-    generationStage === GenerationStage.CHOOSING_COMPONENT ||
-    generationStage === GenerationStage.HYDRATING_COMPONENT;
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
     api.demo.aqi.useMutation({
@@ -302,9 +288,7 @@ export default function SmokePage() {
     data: threadInfo,
     isLoading: isThreadInfoLoading,
     refetch: refetchThreadInfo,
-  } = useTamboThreadList({
-    contextKey: userId,
-  });
+  } = useTamboThreadList();
 
   const isLoading =
     isAqiPending ||
@@ -367,7 +351,6 @@ export default function SmokePage() {
               </p>
             </div>
             <ThreadMessageInput
-              contextKey={userId}
               onSubmit={async () => {
                 await refetchThreadInfo();
               }}

@@ -1,3 +1,4 @@
+import { getServerSupabaseClient } from "@/server/supabase";
 import { Metadata } from "next";
 import { ClientLayout } from "./components/client-layout";
 
@@ -6,6 +7,16 @@ export const metadata: Metadata = {
   description: "Tambo Smoketest",
 };
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return <ClientLayout>{children}</ClientLayout>;
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await getServerSupabaseClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return (
+    <ClientLayout userToken={session?.access_token}>{children}</ClientLayout>
+  );
 }

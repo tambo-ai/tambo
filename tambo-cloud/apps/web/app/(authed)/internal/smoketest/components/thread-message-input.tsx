@@ -4,7 +4,7 @@ import { useTamboThreadInput } from "@tambo-ai/react";
 import { FC, useState } from "react";
 
 interface ThreadMessageInputProps {
-  contextKey: string | undefined;
+  contextKey?: string;
   onSubmit: (value: string) => void;
 }
 
