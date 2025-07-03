@@ -64,6 +64,37 @@ const MyComponent = ({ age }: { age?: number }) => {
 };
 ```
 
+## Handle streaming status of each prop
+
+Tambo provides a `useTamboStreamStatus` hook that allows you to track the streaming status of each prop individually.
+
+For example, if I want my component to render most props as they stream in, but I want the `createdAt` prop to render only when it is done streaming in:
+
+```tsx title="props streaming status"
+export default function Note({
+  title = "",
+  content = "",
+  createdAt = "",
+}: NoteProps) {
+  const { propStatus } = useTamboStreamStatus();
+
+  return (
+    <div>
+      <h3>{title}</h3>
+      <p>{content}</p>
+      {propStatus["createdAt"]?.isSuccess && <p>{createdAt}</p>}
+    </div>
+  );
+}
+```
+
+Each prop in `propStatus` has the following fields:
+
+- `isPending`: whether we have received no values for this prop yet.
+- `isStreaming`: whether the we have started receiving values for this prop.
+- `isSuccess`: whether this prop has completed streaming without any errors.
+- `error?`: any error message recieved during streaming of this prop.
+
 <Callout type="info">
   For handling streaming updates in components we recommend using [Streaming
   Props](/docs/concepts/streaming-props).
