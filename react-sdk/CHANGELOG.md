@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/tambo-ai/tambo/compare/react-v0.36.0...react-v0.37.0) (2025-07-03)
+
+
+### Features
+
+* support accessToken ([#624](https://github.com/tambo-ai/tambo/issues/624)) ([2134cdc](https://github.com/tambo-ai/tambo/commit/2134cdc3c26aa319d5f77bec6dd779564284edfe))
+
 ## [0.36.0](https://github.com/tambo-ai/tambo/compare/react-v0.35.0...react-v0.36.0) (2025-07-02)
 
 
