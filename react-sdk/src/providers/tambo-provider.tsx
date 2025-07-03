@@ -46,6 +46,7 @@ export const TamboProvider: React.FC<
   children,
   tamboUrl,
   apiKey,
+  userToken,
   components,
   environment,
   tools,
@@ -61,6 +62,7 @@ export const TamboProvider: React.FC<
       tamboUrl={tamboUrl}
       apiKey={apiKey}
       environment={environment}
+      userToken={userToken}
     >
       <TamboRegistryProvider components={components} tools={tools}>
         <TamboThreadProvider streaming={streaming}>
