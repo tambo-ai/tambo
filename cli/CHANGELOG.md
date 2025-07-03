@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.21.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.20.0...tambo-v0.21.0) (2025-07-03)
+
+
+### Features
+
+* support accessToken ([#624](https://github.com/tambo-ai/tambo/issues/624)) ([2134cdc](https://github.com/tambo-ai/tambo/commit/2134cdc3c26aa319d5f77bec6dd779564284edfe))
+
+
+### Bug Fixes
+
+* showcase thread renaming and component variants ([#631](https://github.com/tambo-ai/tambo/issues/631)) ([cf3638e](https://github.com/tambo-ai/tambo/commit/cf3638e848afdb9a37e068f46c877a12900c716f))
+
+
+### Miscellaneous
+
+* update CLI init command with showcase link and add control bar to showcase ([#630](https://github.com/tambo-ai/tambo/issues/630)) ([63a381c](https://github.com/tambo-ai/tambo/commit/63a381cc9dbd9f5ba445012b71e8653c9e3d4bff))
+* update CLI with the new feedback ([#615](https://github.com/tambo-ai/tambo/issues/615)) ([66fd8d0](https://github.com/tambo-ai/tambo/commit/66fd8d0c968bb27249362d48f08bfd42047d8701))
+
 ## [0.20.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.19.0...tambo-v0.20.0) (2025-07-02)
 
 ### Features
