@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.78.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.0...repo-v0.78.1) (2025-07-03)
+
+
+### Documentation
+
+* add section about `useTamboStreamStatus` ([#1277](https://github.com/tambo-ai/tambo-cloud/issues/1277)) ([de40ab5](https://github.com/tambo-ai/tambo-cloud/commit/de40ab5543e35bc97584f9e5e3b6cef0397f52e7))
+
 ## [0.78.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.77.2...repo-v0.78.0) (2025-07-03)
 
 
