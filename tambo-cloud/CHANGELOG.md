@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.78.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.77.2...repo-v0.78.0) (2025-07-03)
+
+
+### Features
+
+* update observability colors and toolbar condension ([#1275](https://github.com/tambo-ai/tambo-cloud/issues/1275)) ([3ca06d7](https://github.com/tambo-ai/tambo-cloud/commit/3ca06d778f8e1af9617ab8e47aa233fb44a128c7))
+* use new userToken in smoketest ([#1273](https://github.com/tambo-ai/tambo-cloud/issues/1273)) ([1addd50](https://github.com/tambo-ai/tambo-cloud/commit/1addd50b2182fb40a25b0b79b44e61f1e3fce3ee))
+
+
+### Bug Fixes
+
+* do not error out the input if no context key ([#1276](https://github.com/tambo-ai/tambo-cloud/issues/1276)) ([0d1fce4](https://github.com/tambo-ai/tambo-cloud/commit/0d1fce4784bc89445df8c81aad1a43f19482fd8d))
+
 ## [0.77.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.77.1...repo-v0.77.2) (2025-07-03)
 
 
