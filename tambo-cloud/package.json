@@ -24,10 +24,10 @@
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "eslint": "^9.30.0",
     "husky": "^9.1.7",
-    "jest": "^30.0.0",
+    "jest": "^30.0.3",
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.0",
     "ts-jest": "^29.4.0",

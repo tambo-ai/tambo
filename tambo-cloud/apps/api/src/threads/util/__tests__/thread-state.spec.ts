@@ -177,16 +177,17 @@ describe("Thread State", () => {
         componentState: {},
       };
 
-      const stream = {
+      const stream: AsyncIterableIterator<LegacyComponentDecision> = {
         async *[Symbol.asyncIterator]() {
           for (const decision of mockDecisions) {
             yield decision;
           }
         },
+        next: jest.fn(),
       };
 
       const messageStream = convertDecisionStreamToMessageStream(
-        stream as AsyncIterableIterator<LegacyComponentDecision>,
+        stream,
         mockInProgressMessage,
       );
 
