@@ -198,7 +198,7 @@ declare module "@/components/ui/message-suggestions" {
   >;
 }
 
-declare module "@/components/ui/markdownComponents" {
+declare module "@/components/ui/markdown-components" {
   export const createMarkdownComponents: (
     theme?: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -272,7 +272,7 @@ declare module "@/components/ui/message-generation-stage" {
   >;
 }
 
-declare module "@/components/ui/tooltip" {
+declare module "@/components/ui/suggestions-tooltip" {
   export interface TooltipProps {
     content: React.ReactNode;
     children: React.ReactNode;

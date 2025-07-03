@@ -5,6 +5,7 @@ import inquirer from "inquirer";
 import open from "open";
 import ora from "ora";
 import path from "path";
+import { COMPONENT_SUBDIR } from "../constants/paths.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
 
@@ -360,7 +361,7 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
   const importStatements = selectedComponents
     .map(
       (comp) =>
-        `import { ${componentNameMap[comp]} } from "@/components/ui/${comp}";`,
+        `import { ${componentNameMap[comp]} } from "@/components/${COMPONENT_SUBDIR}/${comp}";`,
     )
     .join("\n");
 

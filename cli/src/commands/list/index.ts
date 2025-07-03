@@ -1,7 +1,11 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import { getInstalledComponents } from "../add/utils.js";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../../constants/paths.js";
+import { getTamboComponentInfo } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
 
 /**
@@ -20,52 +24,170 @@ export async function handleListComponents(prefix?: string) {
     const installPath = prefix ?? (await getInstallationPath());
     const isExplicitPrefix = Boolean(prefix);
 
-    // 3. Get all installed components (tambo components only)
-    const tamboComponents = await getInstalledComponents(
-      installPath,
-      isExplicitPrefix,
-    );
+    // 3. Get detailed Tambo component information
+    const { mainComponents, supportComponents } = getTamboComponentInfo();
 
-    // 4. Get all .tsx files in the components directory (including non-tambo)
+    // 4. Get all .tsx files in both component directories
     const componentsPath = isExplicitPrefix
       ? path.join(process.cwd(), installPath)
-      : path.join(process.cwd(), installPath, "ui");
-    let allComponents: string[] = [];
+      : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
 
+    const legacyPath = !isExplicitPrefix
+      ? path.join(process.cwd(), installPath, LEGACY_COMPONENT_SUBDIR)
+      : null;
+
+    // Categorize components by location and type
+    const categorizedComponents = {
+      new: {
+        main: [] as string[],
+        support: [] as string[],
+        custom: [] as string[],
+      },
+      legacy: {
+        main: [] as string[],
+        support: [] as string[],
+        custom: [] as string[],
+      },
+    };
+
+    // Check new location
     if (fs.existsSync(componentsPath)) {
       const files = fs.readdirSync(componentsPath);
-      allComponents = files
+      files
         .filter((file) => file.endsWith(".tsx"))
-        .map((file) => file.replace(".tsx", ""));
+        .map((file) => file.replace(".tsx", ""))
+        .forEach((name) => {
+          if (mainComponents.has(name)) {
+            categorizedComponents.new.main.push(name);
+          } else if (supportComponents.has(name)) {
+            categorizedComponents.new.support.push(name);
+          } else {
+            categorizedComponents.new.custom.push(name);
+          }
+        });
     }
 
-    if (allComponents.length === 0) {
+    // Check legacy location
+    if (legacyPath && fs.existsSync(legacyPath)) {
+      const files = fs.readdirSync(legacyPath);
+      files
+        .filter((file) => file.endsWith(".tsx"))
+        .map((file) => file.replace(".tsx", ""))
+        .forEach((name) => {
+          if (mainComponents.has(name)) {
+            categorizedComponents.legacy.main.push(name);
+          } else if (supportComponents.has(name)) {
+            categorizedComponents.legacy.support.push(name);
+          } else {
+            categorizedComponents.legacy.custom.push(name);
+          }
+        });
+    }
+
+    // Calculate totals
+    const totalNew =
+      categorizedComponents.new.main.length +
+      categorizedComponents.new.support.length +
+      categorizedComponents.new.custom.length;
+    const totalLegacy =
+      categorizedComponents.legacy.main.length +
+      categorizedComponents.legacy.support.length +
+      categorizedComponents.legacy.custom.length;
+    const totalComponents = totalNew + totalLegacy;
+
+    if (totalComponents === 0) {
       console.log(chalk.blue("ℹ No components installed yet."));
       return;
     }
 
-    // 5. Display components with distinction between tambo and non-tambo
+    // 5. Display components with location and type info
     console.log(chalk.blue("\nℹ Installed components:"));
 
-    if (tamboComponents.length > 0) {
-      console.log(chalk.green("\n  Tambo components:"));
-      tamboComponents.forEach((component) => {
-        console.log(`    - ${component}`);
-      });
+    // Show components in new location
+    if (totalNew > 0) {
+      console.log(chalk.green(`\n  In ${COMPONENT_SUBDIR}/:`));
+
+      if (categorizedComponents.new.main.length > 0) {
+        console.log(chalk.cyan(`    Tambo components:`));
+        categorizedComponents.new.main.forEach((component) => {
+          console.log(`      - ${component}`);
+        });
+      }
+
+      if (categorizedComponents.new.support.length > 0) {
+        console.log(chalk.cyan(`    Tambo support components:`));
+        categorizedComponents.new.support.forEach((component) => {
+          console.log(`      - ${component}`);
+        });
+      }
+
+      if (categorizedComponents.new.custom.length > 0) {
+        console.log(chalk.yellow(`    Custom components:`));
+        categorizedComponents.new.custom.forEach((component) => {
+          console.log(`      - ${component}`);
+        });
+      }
     }
 
-    const nonTamboComponents = allComponents.filter(
-      (comp) => !tamboComponents.includes(comp),
-    );
-    if (nonTamboComponents.length > 0) {
-      console.log(chalk.gray("\n  Other components:"));
-      nonTamboComponents.forEach((component) => {
-        console.log(chalk.gray(`    - ${component}`));
-      });
+    // Show components in legacy location
+    if (totalLegacy > 0) {
+      console.log(
+        chalk.yellow(`\n  In ${LEGACY_COMPONENT_SUBDIR}/ (legacy location):`),
+      );
+
+      if (categorizedComponents.legacy.main.length > 0) {
+        console.log(chalk.cyan(`    Tambo components:`));
+        categorizedComponents.legacy.main.forEach((component) => {
+          console.log(`      - ${component}`);
+        });
+      }
+
+      if (categorizedComponents.legacy.support.length > 0) {
+        console.log(chalk.cyan(`    Tambo support components:`));
+        categorizedComponents.legacy.support.forEach((component) => {
+          console.log(`      - ${component}`);
+        });
+      }
+
+      if (categorizedComponents.legacy.custom.length > 0) {
+        console.log(chalk.yellow(`    Custom components:`));
+        categorizedComponents.legacy.custom.forEach((component) => {
+          console.log(`      - ${component}`);
+        });
+      }
+
+      // Only show migration instructions if there are Tambo components in legacy location
+      const legacyTamboComponents =
+        categorizedComponents.legacy.main.length +
+        categorizedComponents.legacy.support.length;
+      if (legacyTamboComponents > 0) {
+        console.log(
+          chalk.gray(
+            `\n  💡 To migrate to the new directory structure:` +
+              `\n     1. Move all files from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/` +
+              `\n     2. Update imports: @/components/${LEGACY_COMPONENT_SUBDIR}/ → @/components/${COMPONENT_SUBDIR}/` +
+              `\n     3. Update any custom components in tambo.ts` +
+              `\n\n   or you can run ${chalk.bold("npx tambo migrate")} to migrate all components to the new location`,
+          ),
+        );
+      }
     }
+
+    // Show summary
+    const totalTambo =
+      categorizedComponents.new.main.length +
+      categorizedComponents.new.support.length +
+      categorizedComponents.legacy.main.length +
+      categorizedComponents.legacy.support.length;
+    const totalCustom =
+      categorizedComponents.new.custom.length +
+      categorizedComponents.legacy.custom.length;
 
     console.log(
-      `\nTotal: ${allComponents.length} component(s) (${tamboComponents.length} from tambo)`,
+      chalk.blue(
+        `\nTotal: ${totalComponents} component(s) ` +
+          `(${totalTambo} from Tambo, ${totalCustom} custom)`,
+      ),
     );
   } catch (error) {
     console.log(chalk.red(`\n✖ Failed to list components: ${error}`));

@@ -16,4 +16,5 @@ export interface InstallComponentOptions {
   installPath?: string;
   isExplicitPrefix?: boolean;
   yes?: boolean;
+  baseInstallPath?: string;
 }

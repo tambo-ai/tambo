@@ -1,7 +1,13 @@
 import chalk from "chalk";
 import fs from "fs";
 import inquirer from "inquirer";
+import ora from "ora";
 import path from "path";
+import {
+  COMPONENT_SUBDIR,
+  LEGACY_COMPONENT_SUBDIR,
+} from "../../constants/paths.js";
+import { updateImportPaths } from "../migrate.js";
 
 /**
  * Determines which template is being used in the current project
@@ -114,4 +120,43 @@ export async function confirmAction(
   });
 
   return confirm;
+}
+
+export async function migrateComponentsDuringUpgrade(
+  componentNames: string[],
+  installPath: string,
+): Promise<void> {
+  const spinner = ora("Migrating components to new location...").start();
+
+  try {
+    const legacyPath = path.join(
+      process.cwd(),
+      installPath,
+      LEGACY_COMPONENT_SUBDIR,
+    );
+    const newPath = path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+
+    // Create new directory
+    fs.mkdirSync(newPath, { recursive: true });
+
+    for (const componentName of componentNames) {
+      const oldFile = path.join(legacyPath, `${componentName}.tsx`);
+      const newFile = path.join(newPath, `${componentName}.tsx`);
+
+      if (fs.existsSync(oldFile)) {
+        // Read, update import paths, write to new location
+        const content = fs.readFileSync(oldFile, "utf-8");
+        const updatedContent = updateImportPaths(content, "tambo");
+        fs.writeFileSync(newFile, updatedContent);
+        fs.unlinkSync(oldFile);
+      }
+    }
+
+    spinner.succeed(
+      `Migrated ${componentNames.length} components to ${COMPONENT_SUBDIR}/`,
+    );
+  } catch (error) {
+    spinner.fail(`Migration failed: ${error}`);
+    throw error;
+  }
 }
