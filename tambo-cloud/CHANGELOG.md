@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.77.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.77.1...repo-v0.77.2) (2025-07-03)
+
+
+### Bug Fixes
+
+* remove problematic additionalProperties, as this is most often a string ([#1271](https://github.com/tambo-ai/tambo-cloud/issues/1271)) ([954a385](https://github.com/tambo-ai/tambo-cloud/commit/954a38591567ea093783691b2ff95d8ad4f715f5))
+
 ## [0.77.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.77.0...repo-v0.77.1) (2025-07-02)
 
 
