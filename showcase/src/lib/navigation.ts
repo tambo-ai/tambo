@@ -33,10 +33,6 @@ export const navigation: NavigationItem[] = [
             title: "Message Thread Panel",
             href: "/components/message-thread-panel",
           },
-          {
-            title: "Control Bar",
-            href: "/components/control-bar",
-          },
         ],
       },
       {
