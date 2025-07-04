@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.78.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.2...repo-v0.78.3) (2025-07-04)
+
+
+### Bug Fixes
+
+* update tambo-dash components to handle tool response ([#1281](https://github.com/tambo-ai/tambo-cloud/issues/1281)) ([5553ead](https://github.com/tambo-ai/tambo-cloud/commit/5553ead4f220f3cb4a2f0054d6d84985371c14f8))
+
 ## [0.78.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.1...repo-v0.78.2) (2025-07-03)
 
 
