@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.0...tambo-v0.21.1) (2025-07-05)
+
+
+### Bug Fixes
+
+* update tool result scrolling ([#633](https://github.com/tambo-ai/tambo/issues/633)) ([941e456](https://github.com/tambo-ai/tambo/commit/941e4568c06a7596a1d2094c5078b89f70c0000a))
+
 ## [0.21.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.20.0...tambo-v0.21.0) (2025-07-03)
 
 
