@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.78.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.3...repo-v0.78.4) (2025-07-05)
+
+
+### Bug Fixes
+
+* tambo chat toolresult scrolling ([#1283](https://github.com/tambo-ai/tambo-cloud/issues/1283)) ([3abff5a](https://github.com/tambo-ai/tambo-cloud/commit/3abff5a50eebe7bbbaeff2caaa434a1c66455c8f))
+
 ## [0.78.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.2...repo-v0.78.3) (2025-07-04)
 
 
