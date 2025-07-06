@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.78.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.5...repo-v0.78.6) (2025-07-06)
+
+
+### Bug Fixes
+
+* prompt to be more specific about previous context ([#1287](https://github.com/tambo-ai/tambo-cloud/issues/1287)) ([ba7814b](https://github.com/tambo-ai/tambo-cloud/commit/ba7814b5bae57c539a35cd6131a03c01948941f2))
+
 ## [0.78.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.4...repo-v0.78.5) (2025-07-06)
 
 
