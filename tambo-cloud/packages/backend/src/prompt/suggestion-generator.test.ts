@@ -78,6 +78,7 @@ describe("suggestion-generator", () => {
         Your task is to suggest 3 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
+        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -155,6 +156,7 @@ describe("suggestion-generator", () => {
         Your task is to suggest 2 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
+        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -237,6 +239,7 @@ describe("suggestion-generator", () => {
         Your task is to suggest 2 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
+        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -278,6 +281,7 @@ describe("suggestion-generator", () => {
         Your task is to suggest 1 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
+        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -355,6 +359,7 @@ describe("suggestion-generator", () => {
         Your task is to suggest 1 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
+        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -450,6 +455,7 @@ describe("suggestion-generator", () => {
         Your task is to suggest 1 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
+        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
