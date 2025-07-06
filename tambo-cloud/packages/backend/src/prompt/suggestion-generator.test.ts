@@ -88,12 +88,13 @@ describe("suggestion-generator", () => {
             "role": "system",
           },
           {
-            "content": "No conversation history yet.
-
-        Generate 3 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+            "content": "Generate 3 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
-        ",
+
+        The suggestions should be written in the same language as the above conversation.
+
+        No component currently in use.",
             "role": "user",
           },
         ]
@@ -166,16 +167,21 @@ describe("suggestion-generator", () => {
             "role": "system",
           },
           {
-            "content": "Recent conversation context:
-        user: Show me a button
-        assistant: Here's your button
-
-        No component currently in use.
-
-        Generate 2 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+            "content": "Show me a button",
+            "role": "user",
+          },
+          {
+            "content": "Here's your button",
+            "role": "assistant",
+          },
+          {
+            "content": "Generate 2 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
-        ",
+
+        The suggestions should be written in the same language as the above conversation.
+
+        No component currently in use.",
             "role": "user",
           },
         ]
@@ -249,18 +255,20 @@ describe("suggestion-generator", () => {
             "role": "system",
           },
           {
-            "content": "Recent conversation context:
-        user: Show me a button
+            "content": "Show me a button",
+            "role": "user",
+          },
+          {
+            "content": "Generate 2 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+
+        The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
+
+        The suggestions should be written in the same language as the above conversation.
 
         Current component: Button
         Current props: {
           "label": "Click me"
-        }
-
-        Generate 2 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
-
-        The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
-        ",
+        }",
             "role": "user",
           },
         ]
@@ -291,12 +299,13 @@ describe("suggestion-generator", () => {
             "role": "system",
           },
           {
-            "content": "No conversation history yet.
-
-        Generate 1 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+            "content": "Generate 1 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
-        ",
+
+        The suggestions should be written in the same language as the above conversation.
+
+        No component currently in use.",
             "role": "user",
           },
         ]
@@ -369,12 +378,13 @@ describe("suggestion-generator", () => {
             "role": "system",
           },
           {
-            "content": "No conversation history yet.
-
-        Generate 1 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+            "content": "Generate 1 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
-        ",
+
+        The suggestions should be written in the same language as the above conversation.
+
+        No component currently in use.",
             "role": "user",
           },
         ]
@@ -465,19 +475,24 @@ describe("suggestion-generator", () => {
             "role": "system",
           },
           {
-            "content": "Recent conversation context:
-        user: Show button
-        user: Show input
+            "content": "Show button",
+            "role": "user",
+          },
+          {
+            "content": "Show input",
+            "role": "user",
+          },
+          {
+            "content": "Generate 1 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+
+        The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
+
+        The suggestions should be written in the same language as the above conversation.
 
         Current component: Input
         Current props: {
           "value": "Latest"
-        }
-
-        Generate 1 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
-
-        The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
-        ",
+        }",
             "role": "user",
           },
         ]

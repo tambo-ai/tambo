@@ -1,4 +1,4 @@
-import { ThreadMessage } from "@tambo-ai-cloud/core";
+import { MessageRole, ThreadMessage } from "@tambo-ai-cloud/core";
 import {
   AvailableComponent,
   AvailableComponents,
@@ -15,7 +15,7 @@ export function buildSuggestionPrompt(
   components: AvailableComponent[],
   messages: ThreadMessage[] = [],
   suggestionCount: number,
-): Array<{ role: "system" | "user"; content: string }> {
+): Array<{ role: MessageRole; content: string }> {
   // Get current component if available
   let currentComponent: string | null = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,28 +64,40 @@ Rules:
 5. Write in a natural, conversational tone as if the user is typing
 6. Avoid technical language or system-focused phrasing`;
 
-  const userMessage = `${
-    messages.length > 0
-      ? `Recent conversation context:
-${messages
-  .slice(-2)
-  .map(
-    (m) =>
-      `${m.role}: ${m.content.map((c) => ("text" in c ? c.text : "")).join("")}`,
-  )
-  .join("\n")}
+  // Build the result array starting with the system message
+  const result: Array<{
+    role: MessageRole;
+    content: string;
+  }> = [{ role: MessageRole.System, content: systemMessage }];
 
-${currentComponent ? `Current component: ${currentComponent}\nCurrent props: ${JSON.stringify(currentProps, null, 2)}` : "No component currently in use."}`
-      : "No conversation history yet."
+  // Add recent conversation history as separate messages
+  if (messages.length > 0) {
+    const recentMessages = messages.slice(-2);
+    recentMessages.forEach((msg) => {
+      const content = msg.content
+        .map((c) => ("text" in c ? c.text : ""))
+        .join("");
+      if (content.trim()) {
+        result.push({ role: msg.role, content });
+      }
+    });
   }
 
-Generate ${suggestionCount} natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+  // Add current component context if available
+  const componentContext = currentComponent
+    ? `Current component: ${currentComponent}\nCurrent props: ${JSON.stringify(currentProps, null, 2)}`
+    : "No component currently in use.";
+
+  // Add the final user message with the request
+  const finalUserMessage = `Generate ${suggestionCount} natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
 
 The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
-`;
 
-  return [
-    { role: "system", content: systemMessage },
-    { role: "user", content: userMessage },
-  ];
+The suggestions should be written in the same language as the above conversation.
+
+${componentContext}`;
+
+  result.push({ role: MessageRole.User, content: finalUserMessage });
+
+  return result;
 }

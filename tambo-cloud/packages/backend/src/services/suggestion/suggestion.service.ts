@@ -1,6 +1,9 @@
 import { ThreadMessage, tryParseJsonObject } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
-import { FunctionParameters } from "openai/resources";
+import {
+  ChatCompletionMessageParam,
+  FunctionParameters,
+} from "openai/resources";
 import zodToJsonSchema from "zod-to-json-schema";
 import { AvailableComponent } from "../../model";
 import { buildSuggestionPrompt } from "../../prompt/suggestion-generator";
@@ -46,7 +49,7 @@ export async function generateSuggestions(
 
   try {
     const response = await llmClient.complete({
-      messages: suggestionMessages,
+      messages: suggestionMessages as ChatCompletionMessageParam[],
       promptTemplateName: "suggestion-generation",
       promptTemplateParams: {},
       tools: [suggestionsResponseTool],
