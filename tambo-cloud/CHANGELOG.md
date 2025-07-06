@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.78.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.4...repo-v0.78.5) (2025-07-06)
+
+
+### Bug Fixes
+
+* add rule to suggestions to respond in user's language ([#1285](https://github.com/tambo-ai/tambo-cloud/issues/1285)) ([f5b2af5](https://github.com/tambo-ai/tambo-cloud/commit/f5b2af5dd9233bcdff5adba62a1fe17bd5be1c40))
+
 ## [0.78.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.3...repo-v0.78.4) (2025-07-05)
 
 
