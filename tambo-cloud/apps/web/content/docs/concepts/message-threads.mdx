@@ -3,7 +3,9 @@ title: Message Threads
 description: Get all the hooks you need for managing AI message threads with tambo.
 ---
 
-Message threads are the core building block for creating interactive AI experiences with Tambo. They provide a structured way to manage conversations between users and AI.
+Message threads are the core building block for creating interactive AI
+experiences with Tambo. They provide a structured way to manage conversations
+between users and AI.
 
 Tambo provides hooks to easily interact with the current thread state and its messages, generation stage, and other values.
 
@@ -22,10 +24,8 @@ We recommend using the `useTamboThreadInput` hook to send messages to the thread
 ```tsx
 import { useTamboThreadInput } from "@tambo-ai/react";
 
-const { value, setValue, submit } = useTamboThreadInput(contextKey);
+const { value, setValue, submit } = useTamboThreadInput();
 ```
-
-The `contextKey` is developer generated and is used to identify the thread group.
 
 The `value` is the value of the message that you want to send.
 
