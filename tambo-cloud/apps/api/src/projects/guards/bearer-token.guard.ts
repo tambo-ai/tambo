@@ -7,6 +7,7 @@ import {
 import { Request } from "express";
 import { decodeJwt, jwtVerify } from "jose";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
+import { generateContextKey } from "../../common/utils/generate-context-key";
 import { ProjectId } from "./apikey.guard";
 
 /**
@@ -80,10 +81,22 @@ export class BearerTokenGuard implements CanActivate {
 
       // Set the projectId and contextKey on the request
       request[ProjectId] = verifiedPayload.iss;
-      request[ContextKey] = `oauth:user:${verifiedPayload.sub}`;
+
+      // Generate unique context key to prevent cross-provider user ID collisions
+      const contextKey = generateContextKey(
+        verifiedPayload.original_iss,
+        {
+          hd: verifiedPayload.original_hd,
+          tid: verifiedPayload.original_tid,
+          org_id: verifiedPayload.original_org_id,
+        },
+        verifiedPayload.sub,
+      );
+
+      request[ContextKey] = contextKey;
 
       this.logger.log(
-        `Valid OAuth bearer token used for project ${verifiedPayload.iss} with context ${request[ContextKey]}`,
+        `Valid OAuth bearer token used for project ${verifiedPayload.iss} with context ${contextKey}`,
       );
 
       return true;
