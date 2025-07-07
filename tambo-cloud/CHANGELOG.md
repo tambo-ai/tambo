@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.79.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.79.0...repo-v0.79.1) (2025-07-07)
+
+
+### Documentation
+
+* add user auth docs ([#1302](https://github.com/tambo-ai/tambo-cloud/issues/1302)) ([6876c96](https://github.com/tambo-ai/tambo-cloud/commit/6876c96ca79cf81f199a461052d04323fa792b8f))
+
 ## [0.79.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.6...repo-v0.79.0) (2025-07-07)
 
 
