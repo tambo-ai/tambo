@@ -35,7 +35,7 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
-    "jest": "^30.0.3",
+    "jest": "^30.0.4",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.3.4",
     "typescript": "^5.8.3"
