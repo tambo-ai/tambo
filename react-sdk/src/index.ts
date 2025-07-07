@@ -6,12 +6,12 @@ export {
   useTamboMessageContext,
 } from "./hooks/use-current-message";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
+export * from "./hooks/use-suggestions";
 export {
   useTamboStreamStatus,
-  type StreamStatus,
   type PropStatus,
+  type StreamStatus,
 } from "./hooks/use-tambo-stream-status";
-export * from "./hooks/use-suggestions";
 export { useTamboThreadInput } from "./hooks/use-thread-input";
 
 // Re-export provider components
@@ -54,3 +54,9 @@ export {
   type TamboThreadMessage,
 } from "./model/generate-component-response";
 export { type TamboThread } from "./model/tambo-thread";
+
+export type {
+  InteractableComponent,
+  TamboInteractableContext,
+} from "./model/tambo-interactable";
+export { useTamboInteractable } from "./providers/tambo-interactable-provider";
