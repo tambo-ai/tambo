@@ -5,11 +5,15 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
-import TamboInteractableContext, {
+import { z } from "zod";
+import {
   InteractableComponent,
+  type TamboInteractableContext,
 } from "../model/tambo-interactable";
+import { useTamboComponent } from "./tambo-component-provider";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -28,7 +32,8 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
 
 /**
  * The TamboInteractableProvider manages a list of components that are currently
- * interactable, along with their props and metadata.
+ * interactable, along with their props and metadata. It also registers tools
+ * for Tambo to perform CRUD operations on the components.
  * @param props - The props for the TamboInteractableProvider
  * @param props.children - The children to wrap
  * @returns The TamboInteractableProvider component
@@ -39,6 +44,245 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const [interactableComponents, setInteractableComponents] = useState<
     InteractableComponent[]
   >([]);
+  const { registerTool } = useTamboComponent();
+
+  useEffect(() => {
+    registerTool({
+      name: "get_all_interactable_components",
+      description:
+        "Get all currently interactable components with their details",
+      tool: () => {
+        return {
+          components: interactableComponents.map((component) => ({
+            id: component.id,
+            componentName: component.componentName,
+            props: component.props,
+            messageId: component.messageId,
+            threadId: component.threadId,
+            isInteractable: component.isInteractable,
+            createdAt: component.createdAt.toISOString(),
+            lastInteraction: component.lastInteraction?.toISOString(),
+            metadata: component.metadata,
+          })),
+          totalCount: interactableComponents.length,
+        };
+      },
+      toolSchema: z.function().returns(
+        z.object({
+          components: z.array(
+            z.object({
+              id: z.string(),
+              componentName: z.string(),
+              props: z.record(z.any()),
+              messageId: z.string(),
+              threadId: z.string(),
+              isInteractable: z.boolean(),
+              createdAt: z.string(),
+              lastInteraction: z.string().optional(),
+              metadata: z.record(z.any()).optional(),
+            }),
+          ),
+          totalCount: z.number(),
+        }),
+      ),
+    });
+
+    registerTool({
+      name: "get_interactable_component_by_id",
+      description: "Get a specific interactable component by its ID",
+      tool: (componentId: string) => {
+        const component = interactableComponents.find(
+          (c) => c.id === componentId,
+        );
+
+        if (!component) {
+          return {
+            success: false,
+            error: `Component with ID ${componentId} not found`,
+          };
+        }
+
+        return {
+          success: true,
+          component: {
+            id: component.id,
+            componentName: component.componentName,
+            props: component.props,
+            messageId: component.messageId,
+            threadId: component.threadId,
+            isInteractable: component.isInteractable,
+            createdAt: component.createdAt.toISOString(),
+            lastInteraction: component.lastInteraction?.toISOString(),
+            metadata: component.metadata,
+          },
+        };
+      },
+      toolSchema: z
+        .function()
+        .args(z.string())
+        .returns(
+          z.object({
+            success: z.boolean(),
+            component: z
+              .object({
+                id: z.string(),
+                componentName: z.string(),
+                props: z.record(z.any()),
+                messageId: z.string(),
+                threadId: z.string(),
+                isInteractable: z.boolean(),
+                createdAt: z.string(),
+                lastInteraction: z.string().optional(),
+                metadata: z.record(z.any()).optional(),
+              })
+              .optional(),
+            error: z.string().optional(),
+          }),
+        ),
+    });
+
+    registerTool({
+      name: "update_interactable_component",
+      description:
+        "Update an interactable component's props, metadata, or interactable state",
+      tool: (params: {
+        componentId: string;
+        props: Record<string, any>;
+        metadata?: Record<string, any>;
+        isInteractable?: boolean;
+      }) => {
+        const component = interactableComponents.find(
+          (c) => c.id === params.componentId,
+        );
+
+        if (!component) {
+          return {
+            success: false,
+            error: `Component with ID ${params.componentId} not found`,
+          };
+        }
+
+        setInteractableComponents((prev) =>
+          prev.map((c) =>
+            c.id === params.componentId
+              ? {
+                  ...c,
+                  props: { ...c.props, ...params.props },
+                  ...(params.metadata && {
+                    metadata: { ...c.metadata, ...params.metadata },
+                  }),
+                  ...(params.isInteractable !== undefined && {
+                    isInteractable: params.isInteractable,
+                  }),
+                }
+              : c,
+          ),
+        );
+
+        return {
+          success: true,
+          componentId: params.componentId,
+          updatedComponent: {
+            id: component.id,
+            componentName: component.componentName,
+            props: { ...component.props, ...params.props },
+            messageId: component.messageId,
+            threadId: component.threadId,
+            isInteractable: params.isInteractable ?? component.isInteractable,
+            createdAt: component.createdAt.toISOString(),
+            lastInteraction: component.lastInteraction?.toISOString(),
+            metadata: params.metadata
+              ? { ...component.metadata, ...params.metadata }
+              : component.metadata,
+          },
+        };
+      },
+      toolSchema: z
+        .function()
+        .args(
+          z.object({
+            componentId: z.string(),
+            props: z.record(z.any()),
+            metadata: z.record(z.any()).optional(),
+            isInteractable: z.boolean().optional(),
+          }),
+        )
+        .returns(
+          z.object({
+            success: z.boolean(),
+            componentId: z.string(),
+            updatedComponent: z.object({
+              id: z.string(),
+              componentName: z.string(),
+              props: z.record(z.any()),
+              messageId: z.string(),
+              threadId: z.string(),
+              isInteractable: z.boolean(),
+              createdAt: z.string(),
+              lastInteraction: z.string().optional(),
+              metadata: z.record(z.any()).optional(),
+            }),
+            error: z.string().optional(),
+          }),
+        ),
+    });
+
+    registerTool({
+      name: "remove_interactable_component",
+      description: "Remove an interactable component from the system",
+      tool: (componentId: string) => {
+        const component = interactableComponents.find(
+          (c) => c.id === componentId,
+        );
+
+        if (!component) {
+          return {
+            success: false,
+            error: `Component with ID ${componentId} not found`,
+          };
+        }
+
+        setInteractableComponents((prev) =>
+          prev.filter((c) => c.id !== componentId),
+        );
+
+        return {
+          success: true,
+          componentId,
+          removedComponent: {
+            id: component.id,
+            componentName: component.componentName,
+            props: component.props,
+            messageId: component.messageId,
+            threadId: component.threadId,
+            isInteractable: component.isInteractable,
+            createdAt: component.createdAt.toISOString(),
+            metadata: component.metadata,
+          },
+        };
+      },
+      toolSchema: z
+        .function()
+        .args(z.string())
+        .returns(
+          z.object({
+            success: z.boolean(),
+            componentId: z.string(),
+            removedComponent: z.object({
+              id: z.string(),
+              componentName: z.string(),
+              props: z.record(z.any()),
+              messageId: z.string(),
+              threadId: z.string(),
+              isInteractable: z.boolean(),
+              createdAt: z.string(),
+              metadata: z.record(z.any()).optional(),
+            }),
+            error: z.string().optional(),
+          }),
+        ),
+    });
+  }, [interactableComponents, registerTool]);
 
   const addInteractableComponent = useCallback(
     (component: Omit<InteractableComponent, "id" | "createdAt">): string => {
