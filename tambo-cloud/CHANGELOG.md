@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.79.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.6...repo-v0.79.0) (2025-07-07)
+
+
+### Features
+
+* change contextKey format to be more secure ([#1301](https://github.com/tambo-ai/tambo-cloud/issues/1301)) ([1f0824d](https://github.com/tambo-ai/tambo-cloud/commit/1f0824dc40a539399f3c5c80a807ff26a1c0e777))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump jest from 30.0.3 to 30.0.4 in the testing group ([#1289](https://github.com/tambo-ai/tambo-cloud/issues/1289)) ([0eaadf2](https://github.com/tambo-ai/tambo-cloud/commit/0eaadf2905aebff11e136285c71735801387341c))
+* **deps-dev:** bump the eslint group with 3 updates ([#1290](https://github.com/tambo-ai/tambo-cloud/issues/1290)) ([59e5b89](https://github.com/tambo-ai/tambo-cloud/commit/59e5b89dfa156aa9ef15bd0d7741153d1d6c19cc))
+* **deps:** bump @supabase/supabase-js from 2.50.1 to 2.50.3 ([#1298](https://github.com/tambo-ai/tambo-cloud/issues/1298)) ([cbee55d](https://github.com/tambo-ai/tambo-cloud/commit/cbee55d0c19c44d683fcabb8c9a60f495918e19d))
+* **deps:** bump @tambo-ai/react from 0.37.0 to 0.37.1 ([#1297](https://github.com/tambo-ai/tambo-cloud/issues/1297)) ([722cb07](https://github.com/tambo-ai/tambo-cloud/commit/722cb0772956e378212e42a268ca3707bffdf9ab))
+* **deps:** bump next from 15.3.4 to 15.3.5 ([#1292](https://github.com/tambo-ai/tambo-cloud/issues/1292)) ([6529cfd](https://github.com/tambo-ai/tambo-cloud/commit/6529cfd62a5ae7ac222211ff77c9467bd3ffce01))
+* **deps:** bump openai from 5.7.0 to 5.8.2 ([#1293](https://github.com/tambo-ai/tambo-cloud/issues/1293)) ([fab0dd1](https://github.com/tambo-ai/tambo-cloud/commit/fab0dd1cbc19a8c0beb6d04eaea70dd2c67bcecd))
+* **deps:** bump react-hook-form from 7.59.0 to 7.60.0 ([#1294](https://github.com/tambo-ai/tambo-cloud/issues/1294)) ([32a4139](https://github.com/tambo-ai/tambo-cloud/commit/32a413962c3670bfec0a68e477564ba9f6dd47c0))
+* **deps:** bump tldts from 7.0.9 to 7.0.10 ([#1296](https://github.com/tambo-ai/tambo-cloud/issues/1296)) ([7b55a99](https://github.com/tambo-ai/tambo-cloud/commit/7b55a99de8235771703e00c31c2bf57d039488f4))
+* **deps:** bump zod from 3.25.67 to 3.25.74 ([#1291](https://github.com/tambo-ai/tambo-cloud/issues/1291)) ([209376e](https://github.com/tambo-ai/tambo-cloud/commit/209376e16959c59dec85edfbe5898aea78f213d8))
+
 ## [0.78.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.78.5...repo-v0.78.6) (2025-07-06)
 
 
