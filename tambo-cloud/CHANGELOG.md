@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.79.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.79.1...repo-v0.79.2) (2025-07-08)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @next/eslint-plugin-next from 15.3.4 to 15.3.5 ([#1313](https://github.com/tambo-ai/tambo-cloud/issues/1313)) ([78103c6](https://github.com/tambo-ai/tambo-cloud/commit/78103c6feece910f8c308e62b3a7c4faef8d9567))
+* **deps-dev:** bump globals from 16.2.0 to 16.3.0 ([#1315](https://github.com/tambo-ai/tambo-cloud/issues/1315)) ([72eb4b2](https://github.com/tambo-ai/tambo-cloud/commit/72eb4b26d4163843ee3ac5d3c2c25e2eaa0212f7))
+* **deps-dev:** bump prettier from 3.6.0 to 3.6.2 ([#1312](https://github.com/tambo-ai/tambo-cloud/issues/1312)) ([e786fa9](https://github.com/tambo-ai/tambo-cloud/commit/e786fa94bcbcd9b0d4a49b81b8b8812a1dea3305))
+* **deps-dev:** bump supertest from 7.1.1 to 7.1.3 ([#1314](https://github.com/tambo-ai/tambo-cloud/issues/1314)) ([17e5158](https://github.com/tambo-ai/tambo-cloud/commit/17e5158350f3fd5390e00f8fe00127010b7fc1ca))
+* **deps-dev:** bump typescript-eslint from 8.35.1 to 8.36.0 in the eslint group ([#1306](https://github.com/tambo-ai/tambo-cloud/issues/1306)) ([785402a](https://github.com/tambo-ai/tambo-cloud/commit/785402a1dfb4315d7b78b2c691d6573e57d4dd64))
+* **deps:** bump @modelcontextprotocol/sdk from 1.13.3 to 1.15.0 ([#1317](https://github.com/tambo-ai/tambo-cloud/issues/1317)) ([dd3dc7c](https://github.com/tambo-ai/tambo-cloud/commit/dd3dc7c4ffe853c411bb2ef50a6f57a34adcbf1c))
+* **deps:** bump @splinetool/runtime from 1.10.16 to 1.10.24 ([#1308](https://github.com/tambo-ai/tambo-cloud/issues/1308)) ([8a4dd96](https://github.com/tambo-ai/tambo-cloud/commit/8a4dd966276df6d98c16aaf03105e7df0cfe78ed))
+* **deps:** bump framer-motion from 12.19.1 to 12.23.0 ([#1310](https://github.com/tambo-ai/tambo-cloud/issues/1310)) ([ca8b3e7](https://github.com/tambo-ai/tambo-cloud/commit/ca8b3e7764e14b6f29dfc3394af59dd34ce887e3))
+* **deps:** bump lucide-react from 0.523.0 to 0.525.0 ([#1309](https://github.com/tambo-ai/tambo-cloud/issues/1309)) ([50ea56a](https://github.com/tambo-ai/tambo-cloud/commit/50ea56ae689bb427337f44b0816f1757544eb05a))
+* **deps:** bump openai from 5.8.2 to 5.8.3 ([#1311](https://github.com/tambo-ai/tambo-cloud/issues/1311)) ([1f7eab8](https://github.com/tambo-ai/tambo-cloud/commit/1f7eab8b7ec5790e53bed28590589fa6a133068b))
+* **deps:** bump posthog-js from 1.255.1 to 1.256.2 ([#1318](https://github.com/tambo-ai/tambo-cloud/issues/1318)) ([dbb95f1](https://github.com/tambo-ai/tambo-cloud/commit/dbb95f1626cf4e3582c32cac423f5b18a58ed0d7))
+* **deps:** bump zod from 3.25.74 to 3.25.76 ([#1307](https://github.com/tambo-ai/tambo-cloud/issues/1307)) ([18431a3](https://github.com/tambo-ai/tambo-cloud/commit/18431a38955a328c175c63bff0bdd05c28d519b0))
+
 ## [0.79.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.79.0...repo-v0.79.1) (2025-07-07)
 
 
