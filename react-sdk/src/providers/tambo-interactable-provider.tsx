@@ -198,30 +198,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     });
   }, [interactableComponents, registerTool]);
 
-  const addInteractableComponent = useCallback(
-    (component: Omit<InteractableComponent, "id" | "createdAt">): string => {
-      const id = `${component.componentName}-${component.messageId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const newComponent: InteractableComponent = {
-        ...component,
-        id,
-        createdAt: new Date(),
-      };
-
-      setInteractableComponents((prev) => {
-        // Remove any existing component with the same ID (shouldn't happen, but safety)
-        const filtered = prev.filter((c) => c.id !== id);
-        return [...filtered, newComponent];
-      });
-
-      return id;
-    },
-    [],
-  );
-
-  const removeInteractableComponent = useCallback((id: string) => {
-    setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
-  }, []);
-
   const updateInteractableComponentProps = useCallback(
     (id: string, newProps: Record<string, any>) => {
       setInteractableComponents((prev) =>
@@ -232,6 +208,48 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     },
     [],
   );
+
+  const registerInteractableComponentUpdateTool = useCallback(
+    (componentId: string) => {
+      registerTool({
+        name: `update_interactable_component_${componentId}`,
+        description: `Update the props of interactable component ${componentId}`,
+        tool: (componentId: string, newProps: any) => {
+          updateInteractableComponentProps(componentId, newProps);
+          return "Updated interactable component";
+        },
+        toolSchema: z
+          .function()
+          .args(z.string(), z.record(z.any()))
+          .returns(z.string()),
+      });
+    },
+    [registerTool, updateInteractableComponentProps],
+  );
+
+  const addInteractableComponent = useCallback(
+    (component: Omit<InteractableComponent, "id" | "createdAt">): string => {
+      const id = `${component.componentName}-${Math.random().toString(36).substr(2, 9)}`;
+      const newComponent: InteractableComponent = {
+        ...component,
+        id,
+        createdAt: new Date(),
+      };
+
+      registerInteractableComponentUpdateTool(id);
+
+      setInteractableComponents((prev) => {
+        return [...prev, newComponent];
+      });
+
+      return id;
+    },
+    [registerInteractableComponentUpdateTool],
+  );
+
+  const removeInteractableComponent = useCallback((id: string) => {
+    setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
+  }, []);
 
   const updateInteractableComponentMetadata = useCallback(
     (id: string, metadata: Record<string, any>) => {
