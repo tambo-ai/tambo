@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.37.2](https://github.com/tambo-ai/tambo/compare/react-v0.37.1...react-v0.37.2) (2025-07-08)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump jest from 30.0.3 to 30.0.4 ([#640](https://github.com/tambo-ai/tambo/issues/640)) ([d8d9dee](https://github.com/tambo-ai/tambo/commit/d8d9dee4fe7eb75c5ca794749c190c52b8c7f575))
+* **deps-dev:** bump the eslint group with 5 updates ([#647](https://github.com/tambo-ai/tambo/issues/647)) ([32077e3](https://github.com/tambo-ai/tambo/commit/32077e36e194d712c7b1c7b8446ddd12aa7d1fe3))
+* **deps:** bump @modelcontextprotocol/sdk from 1.13.2 to 1.15.0 ([#641](https://github.com/tambo-ai/tambo/issues/641)) ([04011d4](https://github.com/tambo-ai/tambo/commit/04011d4cbce865206b7c9072ba2b1631ec249648))
+* **deps:** bump zod from 3.25.67 to 3.25.75 ([#643](https://github.com/tambo-ai/tambo/issues/643)) ([ba8525e](https://github.com/tambo-ai/tambo/commit/ba8525e2e97f5acd69f529c98d7b05439622a698))
+* trying to set package URL so dependabot picks up versioning ([#648](https://github.com/tambo-ai/tambo/issues/648)) ([66634ef](https://github.com/tambo-ai/tambo/commit/66634ef719423d80aa9a19d406e16606025f625b))
+
 ## [0.37.1](https://github.com/tambo-ai/tambo/compare/react-v0.37.0...react-v0.37.1) (2025-07-03)
 
 
