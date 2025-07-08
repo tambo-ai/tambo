@@ -21,7 +21,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.13.1",
+    "@modelcontextprotocol/sdk": "^1.15.0",
     "commander": "^14.0.0",
     "express": "^5.1.0"
   },
