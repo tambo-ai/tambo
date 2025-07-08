@@ -50,7 +50,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     registerTool({
       name: "get_all_interactable_components",
       description:
-        "Get all currently interactable components with their details",
+        "Get all currently interactable components with their details including their current props structure",
       tool: () => {
         return {
           components: interactableComponents.map((component) => ({
@@ -136,92 +136,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
                 metadata: z.record(z.any()).optional(),
               })
               .optional(),
-            error: z.string().optional(),
-          }),
-        ),
-    });
-
-    registerTool({
-      name: "update_interactable_component",
-      description:
-        "Update an interactable component's props, metadata, or interactable state",
-      tool: (params: {
-        componentId: string;
-        props: Record<string, any>;
-        metadata?: Record<string, any>;
-        isInteractable?: boolean;
-      }) => {
-        const component = interactableComponents.find(
-          (c) => c.id === params.componentId,
-        );
-
-        if (!component) {
-          return {
-            success: false,
-            error: `Component with ID ${params.componentId} not found`,
-          };
-        }
-
-        setInteractableComponents((prev) =>
-          prev.map((c) =>
-            c.id === params.componentId
-              ? {
-                  ...c,
-                  props: { ...c.props, ...params.props },
-                  ...(params.metadata && {
-                    metadata: { ...c.metadata, ...params.metadata },
-                  }),
-                  ...(params.isInteractable !== undefined && {
-                    isInteractable: params.isInteractable,
-                  }),
-                }
-              : c,
-          ),
-        );
-
-        return {
-          success: true,
-          componentId: params.componentId,
-          updatedComponent: {
-            id: component.id,
-            componentName: component.componentName,
-            props: { ...component.props, ...params.props },
-            messageId: component.messageId,
-            threadId: component.threadId,
-            isInteractable: params.isInteractable ?? component.isInteractable,
-            createdAt: component.createdAt.toISOString(),
-            lastInteraction: component.lastInteraction?.toISOString(),
-            metadata: params.metadata
-              ? { ...component.metadata, ...params.metadata }
-              : component.metadata,
-          },
-        };
-      },
-      toolSchema: z
-        .function()
-        .args(
-          z.object({
-            componentId: z.string(),
-            props: z.record(z.any()),
-            metadata: z.record(z.any()).optional(),
-            isInteractable: z.boolean().optional(),
-          }),
-        )
-        .returns(
-          z.object({
-            success: z.boolean(),
-            componentId: z.string(),
-            updatedComponent: z.object({
-              id: z.string(),
-              componentName: z.string(),
-              props: z.record(z.any()),
-              messageId: z.string(),
-              threadId: z.string(),
-              isInteractable: z.boolean(),
-              createdAt: z.string(),
-              lastInteraction: z.string().optional(),
-              metadata: z.record(z.any()).optional(),
-            }),
             error: z.string().optional(),
           }),
         ),
