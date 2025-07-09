@@ -524,6 +524,14 @@ export const TamboThreadProvider: React.FC<
 
       for await (const chunk of stream) {
         if (chunk.responseMessageDto.toolCallRequest) {
+          // Increment tool call count for this tool
+          const toolName = chunk.responseMessageDto.toolCallRequest.toolName;
+          if (toolName && params.toolCallCounts) {
+            (params.toolCallCounts as Record<string, number>)[toolName] =
+              ((params.toolCallCounts as Record<string, number>)[toolName] ||
+                0) + 1;
+          }
+
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
             GenerationStage.FETCHING_CONTEXT,
@@ -732,6 +740,10 @@ export const TamboThreadProvider: React.FC<
         toolRegistry,
         componentToolAssociations,
       );
+
+      // Track tool call counts for this message processing
+      const toolCallCounts: Record<string, number> = {};
+
       const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
         messageToAppend: {
           content: [{ type: "text", text: message }],
@@ -743,6 +755,7 @@ export const TamboThreadProvider: React.FC<
           mapTamboToolToContextTool(tool),
         ),
         forceToolChoice: forceToolChoice,
+        toolCallCounts,
       };
 
       if (streamResponse) {
@@ -763,6 +776,13 @@ export const TamboThreadProvider: React.FC<
 
       //handle tool calls
       while (advanceResponse.responseMessageDto.toolCallRequest) {
+        // Increment tool call count for this tool
+        const toolName =
+          advanceResponse.responseMessageDto.toolCallRequest.toolName;
+        if (toolName) {
+          toolCallCounts[toolName] = (toolCallCounts[toolName] || 0) + 1;
+        }
+
         updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
         const toolCallResponse = await handleToolCall(
           advanceResponse.responseMessageDto,
