@@ -60,3 +60,8 @@ export type {
   TamboInteractableContext,
 } from "./model/tambo-interactable";
 export { useTamboInteractable } from "./providers/tambo-interactable-provider";
+export {
+  withInteractable,
+  type InteractableConfig,
+  type WithInteractableProps,
+} from "./providers/with-interactable";
