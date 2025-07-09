@@ -1,6 +1,12 @@
 // react-sdk/src/providers/with-interactable.tsx
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTamboInteractable } from "./tambo-interactable-provider";
 
 export interface InteractableConfig {
@@ -47,6 +53,7 @@ export function withInteractable<P extends object>(
       useTamboInteractable();
 
     const [interactableId, setInteractableId] = useState<string | null>(null);
+    const isInitialized = useRef(false);
 
     // Extract interactable-specific props
     const { onInteractableReady, onPropsUpdate, ...componentProps } =
@@ -58,24 +65,32 @@ export function withInteractable<P extends object>(
       [componentProps],
     );
 
-    // Register the component as interactable on mount
-    useEffect(() => {
-      const id = addInteractableComponent({
-        componentName: config.componentName,
-        props: memoizedComponentProps,
-        messageId: config.messageId,
-        threadId: config.threadId,
-        isInteractable: config.isInteractable ?? true,
-        metadata: config.metadata,
-      });
+    // Memoize the registration function
+    const registerComponent = useCallback(() => {
+      if (!isInitialized.current) {
+        const id = addInteractableComponent({
+          componentName: config.componentName,
+          props: memoizedComponentProps,
+          messageId: config.messageId,
+          threadId: config.threadId,
+          isInteractable: config.isInteractable ?? true,
+          metadata: config.metadata,
+        });
 
-      setInteractableId(id);
-      onInteractableReady?.(id);
+        setInteractableId(id);
+        onInteractableReady?.(id);
+        isInitialized.current = true;
+      }
     }, [addInteractableComponent, memoizedComponentProps, onInteractableReady]);
+
+    // Register the component as interactable on mount (only once)
+    useEffect(() => {
+      registerComponent();
+    }, [registerComponent]);
 
     // Update the interactable component when props change
     useEffect(() => {
-      if (interactableId) {
+      if (interactableId && isInitialized.current) {
         updateInteractableComponentProps(
           interactableId,
           memoizedComponentProps,
