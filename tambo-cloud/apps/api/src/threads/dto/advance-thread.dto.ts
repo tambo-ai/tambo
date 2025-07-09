@@ -14,6 +14,7 @@ export class AdvanceThreadDto {
   clientTools?: ComponentContextToolMetadataDto[];
   additionalContext?: string;
   forceToolChoice?: string;
+  toolCallCounts?: Record<string, number>;
 }
 
 @ApiSchema({ name: "AdvanceThreadResponse" })

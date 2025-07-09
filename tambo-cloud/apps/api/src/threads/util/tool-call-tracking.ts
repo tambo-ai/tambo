@@ -10,7 +10,7 @@ const MAX_IDENTICAL_TOOL_CALLS = 3;
  * The maximum total number of tool calls we will make. This is to prevent
  * infinite loops.
  */
-const MAX_TOTAL_TOOL_CALLS = 10;
+export const DEFAULT_MAX_TOTAL_TOOL_CALLS = 10;
 
 /**
  * Creates a unique signature for a tool call request for tracking purposes.
@@ -37,6 +37,7 @@ function createToolCallSignature(toolCallRequest: ToolCallRequest): string {
  * @param messages - All messages in the thread (usually from the db)
  * @param currentToolCounts - Dictionary mapping tool call signatures to their counts, within the current request
  * @param newToolCallRequest - The new tool call request to validate
+ * @param maxToolCallLimit - The maximum total number of tool calls allowed (from project settings)
  * @returns An error message if limits are exceeded, undefined if valid
  */
 export function validateToolCallLimits(
@@ -44,6 +45,7 @@ export function validateToolCallLimits(
   messages: ThreadMessage[],
   currentToolCounts: Record<string, number>,
   newToolCallRequest: ToolCallRequest,
+  maxToolCallLimit: number,
 ): string | undefined {
   // Handle cases where tool calls are happening across requests - like we're
   // bouncing to the browser to make tool calls multiple times in a row
@@ -56,8 +58,8 @@ export function validateToolCallLimits(
     0,
   );
 
-  if (totalCalls >= MAX_TOTAL_TOOL_CALLS) {
-    return `I've reached the maximum number of tool calls (${MAX_TOTAL_TOOL_CALLS}). This usually indicates I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
+  if (totalCalls >= maxToolCallLimit) {
+    return `I've reached the maximum number of tool calls (${maxToolCallLimit}). This usually indicates I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
   }
 
   const signature = createToolCallSignature(newToolCallRequest);

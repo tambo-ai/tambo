@@ -67,6 +67,7 @@ import {
   isSystemToolCall,
 } from "./util/tool";
 import {
+  DEFAULT_MAX_TOTAL_TOOL_CALLS,
   updateToolCallCounts,
   validateToolCallLimits,
 } from "./util/tool-call-tracking";
@@ -763,6 +764,7 @@ export class ThreadsService {
         toolCallCounts,
         systemTools,
         mcpAccessToken,
+        project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
       );
     }
 
@@ -797,6 +799,7 @@ export class ThreadsService {
         threadMessageDtoToThreadMessage(messages),
         toolCallCounts,
         toolCallRequest,
+        project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
       );
       if (validationResult) {
         // Replace the tool call request with an error message
@@ -919,6 +922,7 @@ export class ThreadsService {
     toolCallCounts: Record<string, number>,
     systemTools: SystemTools,
     mcpAccessToken: string,
+    maxToolCallLimit: number,
   ): Promise<AsyncIterableIterator<AdvanceThreadResponseDto>> {
     const latestMessage = messages[messages.length - 1];
     if (latestMessage.role === MessageRole.Tool) {
@@ -959,6 +963,7 @@ export class ThreadsService {
         originalTools,
         toolCallCounts,
         mcpAccessToken,
+        maxToolCallLimit,
       );
     }
 
@@ -992,6 +997,7 @@ export class ThreadsService {
       originalTools,
       toolCallCounts,
       mcpAccessToken,
+      maxToolCallLimit,
     );
   }
 
@@ -1006,6 +1012,7 @@ export class ThreadsService {
     originalTools: OpenAI.Chat.Completions.ChatCompletionTool[],
     toolCallCounts: Record<string, number>,
     mcpAccessToken: string,
+    maxToolCallLimit: number,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     const db = this.getDb();
     const logger = this.logger;
@@ -1119,6 +1126,7 @@ export class ThreadsService {
         threadMessages,
         toolCallCounts,
         toolCallRequest,
+        maxToolCallLimit,
       );
       if (validationResult) {
         // Replace the tool call request with an error message

@@ -344,7 +344,7 @@ export class ThreadsController {
       advanceRequestDto,
       threadId,
       false,
-      {},
+      advanceRequestDto.toolCallCounts ?? {},
       undefined,
       contextKey,
     );
@@ -373,7 +373,7 @@ export class ThreadsController {
         advanceRequestDto,
         threadId,
         true,
-        {},
+        advanceRequestDto.toolCallCounts ?? {},
         undefined,
         contextKey,
       );
@@ -402,7 +402,7 @@ export class ThreadsController {
       advanceRequestDto,
       undefined,
       false,
-      {},
+      advanceRequestDto.toolCallCounts ?? {},
       undefined,
       contextKey,
     );

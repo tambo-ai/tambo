@@ -141,6 +141,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         toolCounts,
         toolCallRequest,
+        10,
       );
 
       expect(result).toBeUndefined();
@@ -162,6 +163,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         toolCounts,
         toolCallRequest,
+        10,
       );
 
       expect(result).toContain("maximum number of tool calls");
@@ -185,6 +187,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         toolCounts,
         toolCallRequest,
+        10,
       );
 
       expect(result).toContain("making the same tool call repeatedly");
@@ -209,6 +212,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         {},
         toolCallRequest,
+        10,
       );
 
       expect(result).toContain("making the same tool call repeatedly");
@@ -232,6 +236,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         {},
         toolCallRequest1,
+        10,
       );
 
       expect(result).toBeUndefined();
@@ -254,6 +259,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         {},
         toolCallRequest,
+        10,
       );
 
       expect(result).toBeUndefined();
@@ -269,6 +275,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         {},
         toolCallRequest,
+        10,
       );
 
       expect(result).toBeUndefined();
@@ -283,6 +290,7 @@ describe("tool-call-tracking utilities", () => {
         [],
         {},
         toolCallRequest,
+        10,
       );
 
       expect(result).toBeUndefined();
@@ -303,6 +311,7 @@ describe("tool-call-tracking utilities", () => {
         messages,
         {},
         toolCallRequest,
+        10,
       );
 
       expect(result).toBeUndefined();
