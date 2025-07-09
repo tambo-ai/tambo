@@ -258,6 +258,7 @@ describe("TamboThreadProvider", () => {
       availableComponents: serializeRegistry(mockRegistry),
       contextKey: undefined,
       clientTools: [],
+      toolCallCounts: {},
     });
     expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
   });
@@ -414,6 +415,7 @@ describe("TamboThreadProvider", () => {
           contextKey: undefined,
           clientTools: [],
           forceToolChoice: undefined,
+          toolCallCounts: {},
         },
         "test-thread-1",
       );
@@ -455,6 +457,7 @@ describe("TamboThreadProvider", () => {
         contextKey: undefined,
         clientTools: [],
         forceToolChoice: undefined,
+        toolCallCounts: {},
       });
 
       // Should not call advance or advanceStream
@@ -496,6 +499,7 @@ describe("TamboThreadProvider", () => {
         contextKey: undefined,
         clientTools: [],
         forceToolChoice: undefined,
+        toolCallCounts: {},
       });
 
       // Should not call advance or advanceStream
@@ -559,6 +563,7 @@ describe("TamboThreadProvider", () => {
           contextKey: undefined,
           clientTools: [],
           forceToolChoice: undefined,
+          toolCallCounts: {},
         },
         "test-thread-1",
       );
@@ -603,6 +608,7 @@ describe("TamboThreadProvider", () => {
         contextKey: undefined,
         clientTools: [],
         forceToolChoice: undefined,
+        toolCallCounts: {},
       });
 
       // Should not call advanceById or advanceStream
@@ -671,6 +677,7 @@ describe("TamboThreadProvider", () => {
           contextKey: undefined,
           clientTools: [],
           forceToolChoice: undefined,
+          toolCallCounts: {},
         },
         undefined, // threadId is undefined for placeholder thread
       );
