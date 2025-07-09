@@ -100,6 +100,7 @@ export class ProblemDetailsDto implements ProblemDetails {
   @ApiProperty({
     description: "Additional error details specific to this occurrence",
     example: { messageId: "msg_123456789" },
+    additionalProperties: true,
   })
   @IsObject()
   @IsOptional()

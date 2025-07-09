@@ -14,6 +14,15 @@ export class AdvanceThreadDto {
   clientTools?: ComponentContextToolMetadataDto[];
   additionalContext?: string;
   forceToolChoice?: string;
+  @ApiProperty({
+    description: "Tool call counts",
+    example: {
+      tool_name: 1,
+    },
+    additionalProperties: {
+      type: "number",
+    },
+  })
   toolCallCounts?: Record<string, number>;
 }
 
