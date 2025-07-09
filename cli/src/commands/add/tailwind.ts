@@ -2,9 +2,11 @@ import chalk from "chalk";
 import deepEqual from "deep-equal";
 import deepmerge from "deepmerge";
 import fs from "fs";
+import inquirer from "inquirer";
 import path from "path";
 import type { Root } from "postcss";
 import postcss from "postcss";
+import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind, SyntaxKind } from "ts-morph";
 import { fileURLToPath } from "url";
@@ -12,6 +14,231 @@ import { fileURLToPath } from "url";
 // Get the current file URL and convert it to a path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+/**
+ * Detects the Tailwind CSS version from package.json
+ * @param projectRoot The root directory of the project
+ * @returns The Tailwind CSS version or null if not found
+ */
+function detectTailwindVersion(projectRoot: string): string | null {
+  try {
+    const packageJsonPath = path.join(projectRoot, "package.json");
+    if (!fs.existsSync(packageJsonPath)) {
+      return null;
+    }
+
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+    const tailwindVersion =
+      packageJson.dependencies?.tailwindcss ??
+      packageJson.devDependencies?.tailwindcss;
+
+    if (!tailwindVersion) {
+      return null;
+    }
+
+    // Extract version number from version string (e.g., "^4.0.0" -> "4.0.0")
+    const cleanVersion =
+      semver.clean(tailwindVersion) ?? semver.coerce(tailwindVersion)?.version;
+
+    return cleanVersion ?? null;
+  } catch (error) {
+    console.warn(`Warning: Could not detect Tailwind version: ${error}`);
+    return null;
+  }
+}
+
+/**
+ * Extracts CSS variables from a specific selector in a CSS file
+ * @param cssFilePath Path to the CSS file
+ * @param selector The CSS selector to extract variables from (e.g., ":root", ".dark")
+ * @returns Map of CSS variables and their values
+ */
+function extractVariablesFromCSS(
+  cssFilePath: string,
+  selector: string,
+): Map<string, string> {
+  const variables = new Map<string, string>();
+
+  if (!fs.existsSync(cssFilePath)) {
+    console.warn(`Warning: CSS file not found: ${cssFilePath}`);
+    return variables;
+  }
+
+  try {
+    const cssContent = fs.readFileSync(cssFilePath, "utf-8");
+    const root = postcss.parse(cssContent);
+
+    // Look for the selector in the CSS
+    root.walkRules(selector, (rule) => {
+      rule.walkDecls((decl) => {
+        if (decl.prop.startsWith("--")) {
+          variables.set(decl.prop, decl.value);
+        }
+      });
+    });
+
+    // For v3, also check inside @layer base
+    root.walkAtRules("layer", (layer) => {
+      if (layer.params === "base") {
+        layer.walkRules(selector, (rule) => {
+          rule.walkDecls((decl) => {
+            if (decl.prop.startsWith("--")) {
+              variables.set(decl.prop, decl.value);
+            }
+          });
+        });
+      }
+    });
+  } catch (error) {
+    console.warn(`Warning: Could not parse CSS file ${cssFilePath}: ${error}`);
+  }
+
+  return variables;
+}
+
+/**
+ * Gets the appropriate CSS variables for the detected Tailwind version
+ * @param version The Tailwind CSS version
+ * @returns Object containing root and dark variables
+ */
+function getTailwindVariables(version: string | null): {
+  rootVars: Map<string, string>;
+  darkVars: Map<string, string>;
+} {
+  const isV4 = version && semver.gte(version, "4.0.0");
+  const registryPath = path.join(__dirname, "../../../src/registry");
+
+  // Choose the appropriate CSS file based on version
+  const cssFile = isV4
+    ? path.join(registryPath, "config", "globals-v4.css")
+    : path.join(registryPath, "config", "globals-v3.css");
+
+  // Extract variables from the registry CSS file
+  const rootVars = extractVariablesFromCSS(cssFile, ":root");
+  const darkVars = extractVariablesFromCSS(cssFile, ".dark");
+
+  return { rootVars, darkVars };
+}
+
+/**
+ * Checks if a CSS variable already exists in the stylesheet
+ * @param root The PostCSS root to search in
+ * @param selector The CSS selector to look for (e.g., ":root", ".dark")
+ * @param variable The CSS variable to check for (e.g., "--background")
+ * @returns Whether the variable exists
+ */
+function cssVariableExists(
+  root: Root,
+  selector: string,
+  variable: string,
+): boolean {
+  let found = false;
+  root.walkRules(selector, (rule) => {
+    rule.walkDecls((decl) => {
+      if (decl.prop === variable) {
+        found = true;
+      }
+    });
+  });
+  return found;
+}
+
+/**
+ * Safely adds CSS variables to a root without removing existing ones
+ * @param root The PostCSS root to modify
+ * @param selector The CSS selector (e.g., ":root", ".dark")
+ * @param variables Map of variables to add
+ */
+function safelyAddVariables(
+  root: Root,
+  selector: string,
+  variables: Map<string, string>,
+) {
+  let targetRule: postcss.Rule | null = null;
+
+  // Find existing rule with the selector
+  root.walkRules(selector, (rule) => {
+    targetRule ??= rule;
+  });
+
+  // If no rule exists, create it
+  if (!targetRule) {
+    targetRule = postcss.rule({
+      selector: selector,
+      raws: { before: "\n  ", after: "\n" },
+    });
+
+    // Find the best place to insert it
+    let insertAfter: postcss.Node | null = null;
+    root.walkRules((rule) => {
+      if (rule.selector === ":root" || rule.selector.startsWith(":root")) {
+        insertAfter = rule;
+      }
+    });
+
+    if (insertAfter) {
+      root.insertAfter(insertAfter, targetRule);
+    } else {
+      root.append(targetRule);
+    }
+  }
+
+  // Add only missing variables
+  variables.forEach((value, prop) => {
+    if (!cssVariableExists(root, selector, prop)) {
+      targetRule!.append(
+        postcss.decl({
+          prop,
+          value,
+          raws: { before: "\n    ", between: ": " },
+        }),
+      );
+    }
+  });
+}
+
+/**
+ * Safely adds CSS variables inside an @layer or @at-rule block
+ */
+function safelyAddVariablesToLayer(
+  layer: postcss.AtRule,
+  selector: string,
+  variables: Map<string, string>,
+) {
+  let targetRule: postcss.Rule | null = null;
+
+  // Find existing rule with the selector inside the layer
+  layer.walkRules(selector, (rule) => {
+    targetRule ??= rule;
+  });
+
+  // If no rule exists, create it inside the layer
+  if (!targetRule) {
+    targetRule = postcss.rule({
+      selector: selector,
+      raws: { before: "\n  ", after: "\n" },
+    });
+    layer.append(targetRule);
+  }
+
+  // Add only missing variables
+  variables.forEach((value, prop) => {
+    const exists = targetRule!.nodes?.some(
+      (node): node is postcss.Declaration =>
+        node.type === "decl" && node.prop === prop,
+    );
+
+    if (!exists) {
+      targetRule!.append(
+        postcss.decl({
+          prop,
+          value,
+          raws: { before: "\n    ", between: ": " },
+        }),
+      );
+    }
+  });
+}
 
 /**
  * Parses a TypeScript configuration object into a plain JavaScript object.
@@ -173,42 +400,287 @@ function parseConfigObject(sourceFile: string, configName: string): Config {
 }
 
 /**
- * Ensures a CSS section exists and updates its variables
- * @param baseLayer The base layer AtRule to modify
- * @param selector CSS selector for the section
- * @param variables Map of CSS variables to add/update
+ * Safely merges @theme blocks without overwriting user values
  */
-function ensureSection(
-  baseLayer: postcss.AtRule,
-  selector: string,
-  variables: Map<string, string>,
-) {
-  let sectionRule = baseLayer.nodes?.find(
-    (node): node is postcss.Rule =>
-      node.type === "rule" && node.selector === selector,
+function safelyMergeTheme(root: Root, newThemeVars: Map<string, string>) {
+  let themeRule = root.nodes.find(
+    (node): node is postcss.AtRule =>
+      node.type === "atrule" && node.name === "theme",
   );
 
-  if (!sectionRule) {
-    sectionRule = postcss.rule({
-      selector: selector,
-      raws: { before: "\n  ", after: "\n" },
+  if (!themeRule) {
+    themeRule = postcss.atRule({
+      name: "theme",
+      raws: { before: "\n\n", after: "\n" },
     });
-    baseLayer.append(sectionRule);
+    root.prepend(themeRule);
   }
 
-  variables.forEach((value, prop) => {
-    if (
-      !sectionRule.nodes?.some(
-        (node) => node.type === "decl" && node.prop === prop,
-      )
-    ) {
-      sectionRule.append(
+  // Add only missing theme variables
+  newThemeVars.forEach((value, prop) => {
+    const exists = themeRule!.nodes?.some(
+      (node): node is postcss.Declaration =>
+        node.type === "decl" && node.prop === prop,
+    );
+
+    if (!exists) {
+      themeRule!.append(
         postcss.decl({
           prop,
           value,
-          raws: { before: "\n    ", between: ": " },
+          raws: { before: "\n  ", between: ": " },
         }),
       );
+    }
+  });
+}
+
+/**
+ * Safely adds missing @variant definitions
+ */
+function safelyAddVariants(root: Root, newVariants: Map<string, string>) {
+  newVariants.forEach((definition, name) => {
+    // Check if variant already exists
+    const exists = root.nodes.some(
+      (node): node is postcss.AtRule =>
+        node.type === "atrule" &&
+        node.name === "variant" &&
+        node.params.startsWith(name),
+    );
+
+    if (!exists) {
+      const variantRule = postcss.atRule({
+        name: "variant",
+        params: `${name} ${definition}`,
+        raws: { before: "\n", after: "\n" },
+      });
+      root.append(variantRule);
+    }
+  });
+}
+
+/**
+ * Extracts all v4 configuration from registry file
+ */
+function extractV4Configuration(cssFilePath: string): {
+  variables: Map<string, string>;
+  darkVariables: Map<string, string>;
+  themeVars: Map<string, string>;
+  variants: Map<string, string>;
+  utilities: Map<string, postcss.AtRule>;
+} {
+  const cssContent = fs.readFileSync(cssFilePath, "utf-8");
+  const root = postcss.parse(cssContent);
+
+  return {
+    variables: extractVariablesFromCSS(cssFilePath, ":root"),
+    darkVariables: extractVariablesFromCSS(cssFilePath, ".dark"),
+    themeVars: extractThemeBlocks(root),
+    variants: extractVariants(root),
+    utilities: extractUtilities(root),
+  };
+}
+
+/**
+ * Handles @theme inline blocks
+ */
+function handleInlineTheme(root: Root) {
+  // Find existing @theme inline block
+  let inlineThemeRule = root.nodes.find(
+    (node): node is postcss.AtRule =>
+      node.type === "atrule" &&
+      node.name === "theme" &&
+      node.params === "inline",
+  );
+
+  // If no inline theme block exists, create one
+  if (!inlineThemeRule) {
+    inlineThemeRule = postcss.atRule({
+      name: "theme",
+      params: "inline",
+      raws: { before: "\n\n", after: "\n" },
+    });
+    root.prepend(inlineThemeRule);
+  }
+
+  // Define the standard color mappings for tambo components
+  const colorMappings = [
+    "background",
+    "foreground",
+    "card",
+    "card-foreground",
+    "popover",
+    "popover-foreground",
+    "primary",
+    "primary-foreground",
+    "secondary",
+    "secondary-foreground",
+    "muted",
+    "muted-foreground",
+    "accent",
+    "accent-foreground",
+    "destructive",
+    "border",
+    "input",
+    "ring",
+    "chart-1",
+    "chart-2",
+    "chart-3",
+    "chart-4",
+    "chart-5",
+    "container",
+    "backdrop",
+    "muted-backdrop",
+  ];
+
+  // Add only missing color mappings
+  colorMappings.forEach((color) => {
+    const colorProp = `--color-${color}`;
+    const colorValue = `var(--${color})`;
+
+    // Check if this color mapping already exists
+    const exists = inlineThemeRule!.nodes?.some(
+      (node): node is postcss.Declaration =>
+        node.type === "decl" && node.prop === colorProp,
+    );
+
+    if (!exists) {
+      inlineThemeRule!.append(
+        postcss.decl({
+          prop: colorProp,
+          value: colorValue,
+          raws: { before: "\n  ", between: ": " },
+        }),
+      );
+    }
+  });
+}
+
+/**
+ * Preserves user's @config directives
+ */
+function preserveConfigDirectives(root: Root) {
+  // Don't interfere with user's @config directives
+  root.walkAtRules("config", (rule) => {
+    // Leave these untouched - they're user-defined JS config references
+    // Example: @config "../../tailwind.config.js";
+
+    // Just log that we found one for debugging
+    console.log(`${chalk.blue("ℹ")} Found @config directive: ${rule.params}`);
+
+    // We explicitly don't modify these - they're user's explicit config references
+    // The user is using JS config in v4, which requires explicit loading
+  });
+}
+
+/**
+ * Extracts @theme blocks from CSS
+ */
+function extractThemeBlocks(root: Root): Map<string, string> {
+  const themeVars = new Map<string, string>();
+
+  root.walkAtRules("theme", (rule) => {
+    rule.walkDecls((decl) => {
+      if (decl.prop.startsWith("--")) {
+        themeVars.set(decl.prop, decl.value);
+      }
+    });
+  });
+
+  return themeVars;
+}
+
+/**
+ * Extracts @variant definitions from CSS
+ */
+function extractVariants(root: Root): Map<string, string> {
+  const variants = new Map<string, string>();
+
+  root.walkAtRules("variant", (rule) => {
+    const [name, ...definition] = rule.params.split(" ");
+    variants.set(name, definition.join(" "));
+  });
+
+  return variants;
+}
+
+/**
+ * Extracts @utility definitions from CSS
+ */
+function extractUtilities(root: Root): Map<string, postcss.AtRule> {
+  const utilities = new Map<string, postcss.AtRule>();
+
+  root.walkAtRules("utility", (rule) => {
+    const utilityName = rule.params.trim();
+    utilities.set(utilityName, rule);
+  });
+
+  return utilities;
+}
+
+/**
+ * Extracts utilities from @layer utilities section for v3
+ */
+function extractUtilitiesFromLayer(cssFilePath: string): postcss.Rule[] {
+  const utilities: postcss.Rule[] = [];
+
+  if (!fs.existsSync(cssFilePath)) {
+    return utilities;
+  }
+
+  try {
+    const cssContent = fs.readFileSync(cssFilePath, "utf-8");
+    const root = postcss.parse(cssContent);
+
+    // Look for @layer utilities
+    root.walkAtRules("layer", (layer) => {
+      if (layer.params === "utilities") {
+        layer.walkRules((rule) => {
+          utilities.push(rule.clone());
+        });
+      }
+    });
+  } catch (error) {
+    console.warn(
+      `Warning: Could not extract utilities from ${cssFilePath}: ${error}`,
+    );
+  }
+
+  return utilities;
+}
+
+/**
+ * Safely adds missing utilities to @layer utilities
+ */
+function safelyAddUtilities(root: Root, newUtilities: postcss.Rule[]) {
+  // Find existing @layer utilities
+  let utilitiesLayer = root.nodes.find(
+    (node): node is postcss.AtRule =>
+      node.type === "atrule" &&
+      node.name === "layer" &&
+      node.params === "utilities",
+  );
+
+  // If no utilities layer exists, create one
+  if (!utilitiesLayer) {
+    utilitiesLayer = postcss.atRule({
+      name: "layer",
+      params: "utilities",
+      raws: { before: "\n\n", after: "\n" },
+    });
+    root.append(utilitiesLayer);
+  }
+
+  // Add only missing utilities
+  newUtilities.forEach((newRule) => {
+    // Check if this utility already exists
+    const exists = utilitiesLayer!.nodes?.some(
+      (node): node is postcss.Rule =>
+        node.type === "rule" && node.selector === newRule.selector,
+    );
+
+    if (!exists) {
+      utilitiesLayer!.append(newRule);
     }
   });
 }
@@ -219,6 +691,20 @@ function ensureSection(
  */
 export async function setupTailwindandGlobals(projectRoot: string) {
   const tailwindConfigPath = path.join(projectRoot, "tailwind.config.ts");
+
+  // Detect Tailwind version first
+  const tailwindVersion = detectTailwindVersion(projectRoot);
+  const isV4 = tailwindVersion && semver.gte(tailwindVersion, "4.0.0");
+
+  if (tailwindVersion) {
+    console.log(
+      `${chalk.blue("ℹ")} Detected Tailwind CSS v${tailwindVersion}`,
+    );
+  } else {
+    console.log(
+      `${chalk.yellow("⚠")} Could not detect Tailwind CSS version, assuming v3`,
+    );
+  }
 
   // Detect if src directory exists
   const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
@@ -237,276 +723,349 @@ export async function setupTailwindandGlobals(projectRoot: string) {
     "config",
     "tailwind.config.ts",
   );
-  const defaultGlobalsCSS = path.join(registryPath, "config", "globals.css");
+
+  // Choose the appropriate globals.css file based on Tailwind version
+  const defaultGlobalsCSS = path.join(
+    registryPath,
+    "config",
+    isV4 ? "globals-v4.css" : "globals-v3.css",
+  );
 
   // Initialize flags to track if updates are needed
   let configUpdated = false;
   let globalsUpdated = false;
 
-  // Handle tailwind.config.ts
-  if (!fs.existsSync(tailwindConfigPath)) {
-    fs.copyFileSync(defaultTailwindConfig, tailwindConfigPath);
-    console.log(`${chalk.green("✔")} Created tailwind.config.ts`);
-  } else {
-    // Create a new TypeScript project
-    const project = new Project({
-      skipFileDependencyResolution: true,
-      compilerOptions: { allowJs: true },
-    });
+  // Only process tailwind.config.ts for v3 users
+  if (!isV4) {
+    // Handle tailwind.config.ts for v3
+    if (!fs.existsSync(tailwindConfigPath)) {
+      fs.copyFileSync(defaultTailwindConfig, tailwindConfigPath);
+      console.log(`${chalk.green("✔")} Created tailwind.config.ts`);
+    } else {
+      // Merge logic for v3
+      // Create a new TypeScript project
+      const project = new Project({
+        skipFileDependencyResolution: true,
+        compilerOptions: { allowJs: true },
+      });
 
-    // Add both config files to the project
-    const existingConfigFile = project.createSourceFile(
-      "existing.ts",
-      fs.readFileSync(tailwindConfigPath, "utf-8"),
-      { scriptKind: ScriptKind.TS },
-    );
+      // Add both config files to the project
+      const existingConfigFile = project.createSourceFile(
+        "existing.ts",
+        fs.readFileSync(tailwindConfigPath, "utf-8"),
+        { scriptKind: ScriptKind.TS },
+      );
 
-    const defaultConfigFile = project.createSourceFile(
-      "default.ts",
-      fs.readFileSync(defaultTailwindConfig, "utf-8"),
-      { scriptKind: ScriptKind.TS },
-    );
+      const defaultConfigFile = project.createSourceFile(
+        "default.ts",
+        fs.readFileSync(defaultTailwindConfig, "utf-8"),
+        { scriptKind: ScriptKind.TS },
+      );
 
-    // Extract config objects
-    const existingConfig = existingConfigFile
-      .getVariableDeclaration("config")
-      ?.getInitializer()
-      ?.getText();
+      // Extract config objects
+      const existingConfig = existingConfigFile
+        .getVariableDeclaration("config")
+        ?.getInitializer()
+        ?.getText();
 
-    const defaultConfig = defaultConfigFile
-      .getVariableDeclaration("config")
-      ?.getInitializer()
-      ?.getText();
+      const defaultConfig = defaultConfigFile
+        .getVariableDeclaration("config")
+        ?.getInitializer()
+        ?.getText();
 
-    if (existingConfig && defaultConfig) {
-      try {
-        const existing = parseConfigObject(existingConfig, "existing");
-        const defaults = parseConfigObject(defaultConfig, "default");
+      if (existingConfig && defaultConfig) {
+        try {
+          const existing = parseConfigObject(existingConfig, "existing");
+          const defaults = parseConfigObject(defaultConfig, "default");
 
-        // Deep merge the configurations, with existing taking precedence
-        const merged = deepmerge(defaults, existing, {
-          arrayMerge: (target, source) => [...new Set([...target, ...source])],
-        }) as Config;
+          // Deep merge the configurations, with existing taking precedence
+          const merged = deepmerge(defaults, existing, {
+            arrayMerge: (target, source) => [
+              ...new Set([...target, ...source]),
+            ],
+          }) as Config;
 
-        // Update the theme colors specifically
-        if (defaults.theme?.colors) {
-          merged.theme ??= {};
-          merged.theme.colors = {
-            ...merged.theme.colors,
-            ...defaults.theme.colors,
-          };
-        }
+          // Update the theme colors specifically
+          if (defaults.theme?.colors) {
+            merged.theme ??= {};
+            merged.theme.colors = {
+              ...merged.theme.colors,
+              ...defaults.theme.colors,
+            };
+          }
 
-        // Write back the merged config with error handling
-        const formattedConfig = `import type { Config } from 'tailwindcss'
+          // Write back the merged config with error handling
+          const formattedConfig = `import type { Config } from 'tailwindcss'
 
 const config: Config = ${JSON.stringify(merged, null, 2)}
 
 export default config`;
 
-        // Only update and log if there were actual changes
-        if (!deepEqual(existing, merged)) {
-          try {
-            // Create backup of existing config
-            if (fs.existsSync(tailwindConfigPath)) {
-              fs.copyFileSync(
-                tailwindConfigPath,
-                `${tailwindConfigPath}.backup`,
-              );
-            }
+          // Only update and log if there were actual changes
+          if (!deepEqual(existing, merged)) {
+            try {
+              // Create backup of existing config
+              if (fs.existsSync(tailwindConfigPath)) {
+                fs.copyFileSync(
+                  tailwindConfigPath,
+                  `${tailwindConfigPath}.backup`,
+                );
+              }
 
-            // Write new config
-            fs.writeFileSync(tailwindConfigPath, formattedConfig);
-            configUpdated = true;
+              // Write new config
+              fs.writeFileSync(tailwindConfigPath, formattedConfig);
+              configUpdated = true;
 
-            // Remove backup if successful
-            if (fs.existsSync(`${tailwindConfigPath}.backup`)) {
-              fs.unlinkSync(`${tailwindConfigPath}.backup`);
+              // Remove backup if successful
+              if (fs.existsSync(`${tailwindConfigPath}.backup`)) {
+                fs.unlinkSync(`${tailwindConfigPath}.backup`);
+              }
+            } catch (error) {
+              // Restore from backup if available
+              if (fs.existsSync(`${tailwindConfigPath}.backup`)) {
+                fs.copyFileSync(
+                  `${tailwindConfigPath}.backup`,
+                  tailwindConfigPath,
+                );
+                fs.unlinkSync(`${tailwindConfigPath}.backup`);
+              }
+              throw error;
             }
-          } catch (error) {
-            // Restore from backup if available
-            if (fs.existsSync(`${tailwindConfigPath}.backup`)) {
-              fs.copyFileSync(
-                `${tailwindConfigPath}.backup`,
-                tailwindConfigPath,
-              );
-              fs.unlinkSync(`${tailwindConfigPath}.backup`);
-            }
-            throw error;
           }
+        } catch (error) {
+          throw new Error(`Failed to merge configs: ${error}`);
         }
-      } catch (error) {
-        throw new Error(`Failed to merge configs: ${error}`);
       }
     }
+  } else {
+    // For v4, maybe just inform the user
+    console.log(`${chalk.blue("ℹ")} Tailwind v4 uses CSS-first configuration`);
   }
 
   if (configUpdated) {
     console.log(`${chalk.green("✔")} Updated tailwind.config.ts`);
   }
 
-  // Handle globals.css
+  // Handle globals.css with careful preservation of user content
   fs.mkdirSync(path.dirname(globalsPath), { recursive: true });
 
   if (!fs.existsSync(globalsPath)) {
+    // If no globals.css exists, create it from the appropriate template
     fs.copyFileSync(defaultGlobalsCSS, globalsPath);
     console.log(`${chalk.green("✔")} Created globals.css`);
   } else {
+    // Existing globals.css - ask for permission before modifying
     const existingCSS = fs.readFileSync(globalsPath, "utf-8");
-    const defaultCSS = fs.readFileSync(defaultGlobalsCSS, "utf-8");
-
     const existingRoot = postcss.parse(existingCSS);
-    const defaultRoot = postcss.parse(defaultCSS);
 
-    // Find or create the @layer base rule for our HSL variables
-    let baseLayer = existingRoot.nodes.find(
-      (node): node is postcss.AtRule =>
-        node.type === "atrule" &&
-        node.name === "layer" &&
-        node.params === "base",
+    // Get the appropriate variables for this Tailwind version from registry files
+    const { rootVars, darkVars } = getTailwindVariables(tailwindVersion);
+
+    // Ask user for confirmation before making CSS changes
+    console.log(
+      `\n${chalk.yellow("⚠")} Tambo needs to add CSS variables to your globals.css file.`,
+    );
+    console.log(
+      `${chalk.blue("ℹ")} This will preserve your existing styles and only add missing variables.`,
     );
 
-    // If no base layer exists, create a new one
-    if (!baseLayer) {
-      baseLayer = postcss.atRule({
-        name: "layer",
-        params: "base",
-        raws: { before: "\n\n", after: "\n" },
-      });
-      existingRoot.append(baseLayer);
-    }
-
-    // Modify the root level variables to use HSL
-    existingRoot.walkRules(":root", (rule) => {
-      rule.walkDecls((decl) => {
-        if (decl.prop === "--background" || decl.prop === "--foreground") {
-          rule.removeChild(decl);
-        }
-      });
+    const { proceedWithCss } = await inquirer.prompt({
+      type: "confirm",
+      name: "proceedWithCss",
+      message: "Allow Tambo to modify your globals.css file?",
+      default: true,
     });
 
-    // Remove the media query for dark mode as we'll handle it through .dark class
-    existingRoot.walkAtRules("media", (rule) => {
-      if (rule.params.includes("prefers-color-scheme")) {
-        existingRoot.removeChild(rule);
-      }
-    });
+    if (!proceedWithCss) {
+      console.log(`\n${chalk.yellow("⚠")} CSS modifications skipped.`);
 
-    // Extract and add HSL variables
-    const extractVariables = (root: Root, selector: string) => {
-      const vars = new Map<string, string>();
-      root.walkAtRules("layer", (layer) => {
-        if (layer.params === "base") {
-          layer.walkRules(selector, (rule) => {
-            rule.walkDecls((decl) => {
-              if (decl.prop.startsWith("--") && decl.value.includes(" ")) {
-                vars.set(decl.prop, decl.value);
-              }
-            });
-          });
-        }
-      });
-      return vars;
-    };
+      // Check what variables would have been added
+      let hasMissingVariables = false;
+      const missingRootVars = new Map<string, string>();
+      const missingDarkVars = new Map<string, string>();
 
-    const defaultRootVars = extractVariables(defaultRoot, ":root");
-    const defaultDarkVars = extractVariables(defaultRoot, ".dark");
+      if (isV4) {
+        // Extract all v4 configuration from registry
+        const v4Config = extractV4Configuration(defaultGlobalsCSS);
 
-    // Ensure both sections exist and have all required HSL variables
-    ensureSection(baseLayer, ":root", defaultRootVars);
-    ensureSection(baseLayer, ".dark", defaultDarkVars);
-
-    // Add utilities layer if it doesn't exist
-    let utilitiesLayer = existingRoot.nodes.find(
-      (node): node is postcss.AtRule =>
-        node.type === "atrule" &&
-        node.name === "layer" &&
-        node.params === "utilities",
-    );
-
-    // Extract default utility classes
-    const extractUtilities = (root: Root) => {
-      const utilities = new Map<string, { prop: string; value: string }>();
-      root.walkAtRules("layer", (layer) => {
-        if (layer.params === "utilities") {
-          layer.walkRules((rule) => {
-            if (rule.selector.startsWith(".")) {
-              rule.walkDecls((decl) => {
-                utilities.set(rule.selector, {
-                  prop: decl.prop,
-                  value: decl.value,
-                });
-              });
-            }
-          });
-        }
-      });
-      return utilities;
-    };
-
-    const defaultUtilities = extractUtilities(defaultRoot);
-
-    // Create utilities layer if it doesn't exist
-    if (!utilitiesLayer) {
-      utilitiesLayer = postcss.atRule({
-        name: "layer",
-        params: "utilities",
-        raws: { before: "\n\n", after: "\n" },
-      });
-      existingRoot.append(utilitiesLayer);
-    }
-
-    // Add utility classes using PostCSS API
-    const addUtilityClass = (selector: string, prop: string, value: string) => {
-      // Check if this utility already exists
-      let existingRule = utilitiesLayer.nodes?.find(
-        (node): node is postcss.Rule =>
-          node.type === "rule" && node.selector === selector,
-      );
-
-      if (!existingRule) {
-        // Create a new rule
-        existingRule = postcss.rule({
-          selector,
-          raws: { before: "\n  ", after: "\n" },
+        // Check for missing variables
+        v4Config.variables.forEach((value, prop) => {
+          if (!cssVariableExists(existingRoot, ":root", prop)) {
+            missingRootVars.set(prop, value);
+            hasMissingVariables = true;
+          }
         });
-        utilitiesLayer.append(existingRule);
+
+        v4Config.darkVariables.forEach((value, prop) => {
+          if (!cssVariableExists(existingRoot, ".dark", prop)) {
+            missingDarkVars.set(prop, value);
+            hasMissingVariables = true;
+          }
+        });
+
+        // Check for missing theme mappings
+        const hasInlineTheme = existingRoot.nodes.some(
+          (node): node is postcss.AtRule =>
+            node.type === "atrule" &&
+            node.name === "theme" &&
+            node.params === "inline",
+        );
+
+        if (!hasInlineTheme) {
+          hasMissingVariables = true;
+        }
+      } else {
+        // v3 - check for missing variables
+        rootVars.forEach((value, prop) => {
+          if (!cssVariableExists(existingRoot, ":root", prop)) {
+            missingRootVars.set(prop, value);
+            hasMissingVariables = true;
+          }
+        });
+
+        darkVars.forEach((value, prop) => {
+          if (!cssVariableExists(existingRoot, ".dark", prop)) {
+            missingDarkVars.set(prop, value);
+            hasMissingVariables = true;
+          }
+        });
       }
 
-      // Check if the declaration already exists
-      const hasProp = existingRule.nodes?.some(
-        (node) => node.type === "decl" && node.prop === prop,
-      );
+      if (hasMissingVariables) {
+        console.log(
+          `\n${chalk.blue("ℹ")} Missing CSS variables that tambo components need:`,
+        );
 
-      if (!hasProp) {
-        existingRule.append(
-          postcss.decl({
-            prop,
-            value,
-            raws: { before: "\n    ", between: ": " },
-          }),
+        if (missingRootVars.size > 0) {
+          console.log(`\n${chalk.bold("Missing :root variables:")}`);
+          missingRootVars.forEach((value, prop) => {
+            console.log(`  ${chalk.cyan(prop)}: ${chalk.gray(value)}`);
+          });
+        }
+
+        if (missingDarkVars.size > 0) {
+          console.log(`\n${chalk.bold("Missing .dark variables:")}`);
+          missingDarkVars.forEach((value, prop) => {
+            console.log(`  ${chalk.cyan(prop)}: ${chalk.gray(value)}`);
+          });
+        }
+
+        if (isV4) {
+          const hasInlineTheme = existingRoot.nodes.some(
+            (node): node is postcss.AtRule =>
+              node.type === "atrule" &&
+              node.name === "theme" &&
+              node.params === "inline",
+          );
+
+          if (!hasInlineTheme) {
+            console.log(
+              `\n${chalk.bold("Missing @theme inline block needed")}`,
+            );
+          }
+        }
+
+        console.log(
+          `\n${chalk.blue("ℹ")} Setup guide: ${chalk.underline("https://tambo.co/docs")}`,
+        );
+      } else {
+        console.log(
+          `\n${chalk.green("✔")} All required CSS variables are already present in your globals.css!`,
+        );
+        console.log(
+          `${chalk.blue("ℹ")} Your tambo components should work without any additional setup.`,
         );
       }
-    };
 
-    // Process all utilities
-    defaultUtilities.forEach((util, selector) => {
-      addUtilityClass(selector, util.prop, util.value);
-    });
+      return; // Exit early without making changes
+    }
 
-    // Write updated CSS
+    // User confirmed, proceed with CSS modifications
+    console.log(`${chalk.green("✔")} Proceeding with CSS modifications...`);
+
+    // Check if user is using Tailwind v4 format and we have v4 variables
+    if (isV4) {
+      console.log(
+        `${chalk.blue("ℹ")} Using Tailwind v4 CSS-first configuration`,
+      );
+
+      // Extract all v4 configuration from registry
+      const v4Config = extractV4Configuration(defaultGlobalsCSS);
+
+      // Preserve user's existing @config directives
+      preserveConfigDirectives(existingRoot);
+
+      // Handle @theme inline blocks
+      handleInlineTheme(existingRoot);
+
+      // Merge theme variables
+      safelyMergeTheme(existingRoot, v4Config.themeVars);
+
+      // Add missing CSS variables
+      safelyAddVariables(existingRoot, ":root", v4Config.variables);
+      safelyAddVariables(existingRoot, ".dark", v4Config.darkVariables);
+
+      // Add missing variants
+      safelyAddVariants(existingRoot, v4Config.variants);
+    } else {
+      // For v3, use the traditional approach with @layer base
+      console.log(
+        `${chalk.blue("ℹ")} Using Tailwind v3 format for CSS variables`,
+      );
+
+      // Find or create @layer base
+      let baseLayer = existingRoot.nodes.find(
+        (node): node is postcss.AtRule =>
+          node.type === "atrule" &&
+          node.name === "layer" &&
+          node.params === "base",
+      );
+
+      if (!baseLayer) {
+        baseLayer = postcss.atRule({
+          name: "layer",
+          params: "base",
+          raws: { before: "\n\n", after: "\n" },
+        });
+        existingRoot.append(baseLayer);
+      }
+
+      // Add variables INSIDE the @layer base block
+      // Add missing root variables
+      safelyAddVariablesToLayer(baseLayer, ":root", rootVars);
+
+      // Add missing dark variables
+      safelyAddVariablesToLayer(baseLayer, ".dark", darkVars);
+
+      // Handle utilities layer for v3
+      const registryUtilities = extractUtilitiesFromLayer(defaultGlobalsCSS);
+      safelyAddUtilities(existingRoot, registryUtilities);
+    }
+
+    // Write updated CSS only if there were changes
     const updatedCSS = existingRoot.toString();
+    if (existingCSS !== updatedCSS) {
+      // Create backup before making changes
+      fs.writeFileSync(`${globalsPath}.backup`, existingCSS);
 
-    // Only update if there were changes
-    const originalContent = fs.readFileSync(globalsPath, "utf-8");
+      try {
+        fs.writeFileSync(globalsPath, updatedCSS);
+        globalsUpdated = true;
 
-    if (originalContent !== updatedCSS) {
-      fs.writeFileSync(globalsPath, updatedCSS);
-      globalsUpdated = true;
+        // Remove backup if successful
+        fs.unlinkSync(`${globalsPath}.backup`);
+      } catch (error) {
+        // Restore from backup if write fails
+        fs.copyFileSync(`${globalsPath}.backup`, globalsPath);
+        fs.unlinkSync(`${globalsPath}.backup`);
+        throw error;
+      }
     }
   }
 
   if (globalsUpdated) {
-    console.log(`${chalk.green("✔")} Updated globals.css`);
+    console.log(
+      `${chalk.green("✔")} Updated globals.css (preserved existing content)`,
+    );
   }
 }
