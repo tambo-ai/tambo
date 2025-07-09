@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.80.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.79.2...repo-v0.80.0) (2025-07-09)
+
+
+### Features
+
+* update project field to store max toolcall limit ([#1320](https://github.com/tambo-ai/tambo-cloud/issues/1320)) ([df5196e](https://github.com/tambo-ai/tambo-cloud/commit/df5196eb5ee168de1599a0546a47ddfdf709b8ce))
+
 ## [0.79.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.79.1...repo-v0.79.2) (2025-07-08)
 
 
