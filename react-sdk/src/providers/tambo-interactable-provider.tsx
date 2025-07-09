@@ -220,7 +220,12 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         },
         toolSchema: z
           .function()
-          .args(z.string(), z.record(z.any()))
+          .args(
+            z.string(),
+            z
+              .record(z.any())
+              .describe("The new props to update the component with"),
+          )
           .returns(z.string()),
       });
     },
