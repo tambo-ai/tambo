@@ -1,4 +1,3 @@
-import { ChatCompletionChoice } from "@libretto/token.js";
 import {
   ChatCompletionMessageParam,
   ToolCallRequest,
@@ -63,7 +62,17 @@ export interface LLMClient {
 
   complete(params: CompleteParams): Promise<LLMResponse>;
 }
-export type LLMResponse = Omit<ChatCompletionChoice, "finish_reason">;
+
+type LLMChatCompletionChoice = Omit<
+  OpenAI.Chat.Completions.ChatCompletion.Choice,
+  "finish_reason"
+> & {
+  finish_reason:
+    | OpenAI.Chat.Completions.ChatCompletion.Choice["finish_reason"]
+    | "unknown";
+};
+
+export type LLMResponse = Omit<LLMChatCompletionChoice, "finish_reason">;
 
 /** Get the string response from the LLM response */
 export function getLLMResponseMessage(response: Partial<LLMResponse>) {
