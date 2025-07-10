@@ -527,9 +527,8 @@ export const TamboThreadProvider: React.FC<
           // Increment tool call count for this tool
           const toolName = chunk.responseMessageDto.toolCallRequest.toolName;
           if (toolName && params.toolCallCounts) {
-            (params.toolCallCounts as Record<string, number>)[toolName] =
-              ((params.toolCallCounts as Record<string, number>)[toolName] ||
-                0) + 1;
+            params.toolCallCounts[toolName] =
+              (params.toolCallCounts[toolName] ?? 0) + 1;
           }
 
           updateThreadStatus(
