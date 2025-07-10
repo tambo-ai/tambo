@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.37.3](https://github.com/tambo-ai/tambo/compare/react-v0.37.2...react-v0.37.3) (2025-07-10)
+
+
+### Bug Fixes
+
+* send toolcall counts ([#650](https://github.com/tambo-ai/tambo/issues/650)) ([c18650a](https://github.com/tambo-ai/tambo/commit/c18650a82fd69e1718bffee3331f55fda548f060))
+* with correct types, remove cast ([#652](https://github.com/tambo-ai/tambo/issues/652)) ([ccbd42e](https://github.com/tambo-ai/tambo/commit/ccbd42edd850fb79603f6ea26894b8bbc6278c63))
+
 ## [0.37.2](https://github.com/tambo-ai/tambo/compare/react-v0.37.1...react-v0.37.2) (2025-07-08)
 
 
