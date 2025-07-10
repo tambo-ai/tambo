@@ -202,6 +202,7 @@ export const projectRouter = createTRPCRouter({
         defaultLlmModelName: project.defaultLlmModelName,
         customLlmModelName: project.customLlmModelName,
         customLlmBaseURL: project.customLlmBaseURL,
+        maxToolCallLimit: project.maxToolCallLimit,
         messages: stats.messages,
         users: stats.users,
       };
@@ -331,6 +332,7 @@ export const projectRouter = createTRPCRouter({
         customLlmModelName: z.string().nullable().optional(),
         customLlmBaseURL: z.string().nullable().optional(),
         maxInputTokens: z.number().nullable().optional(),
+        maxToolCallLimit: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -343,6 +345,7 @@ export const projectRouter = createTRPCRouter({
         customLlmModelName,
         customLlmBaseURL,
         maxInputTokens,
+        maxToolCallLimit,
       } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
 
@@ -368,6 +371,7 @@ export const projectRouter = createTRPCRouter({
             : (customLlmBaseURL ?? undefined),
         maxInputTokens:
           maxInputTokens === null ? undefined : (maxInputTokens ?? undefined),
+        maxToolCallLimit,
       });
 
       if (!updatedProject) {
@@ -384,6 +388,7 @@ export const projectRouter = createTRPCRouter({
         customLlmModelName: updatedProject.customLlmModelName,
         customLlmBaseURL: updatedProject.customLlmBaseURL,
         maxInputTokens: updatedProject.maxInputTokens,
+        maxToolCallLimit: updatedProject.maxToolCallLimit,
       };
     }),
 

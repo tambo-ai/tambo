@@ -9,6 +9,7 @@ import { AvailableMcpServers } from "@/components/dashboard-components/project-d
 import { CustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
 import { OAuthSettings } from "@/components/dashboard-components/project-details/oauth-settings";
 import { ProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
+import { ToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
 import { SettingsPageSkeleton } from "@/components/skeletons/settings-skeletons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -53,6 +54,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
   const customInstructionsRef = useRef<HTMLDivElement>(null);
   const oauthSettingsRef = useRef<HTMLDivElement>(null);
   const mcpServersRef = useRef<HTMLDivElement>(null);
+  const toolCallLimitRef = useRef<HTMLDivElement>(null);
 
   // Add a ref for the scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -146,6 +148,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
       "custom-instructions": customInstructionsRef,
       "oauth-settings": oauthSettingsRef,
       "mcp-servers": mcpServersRef,
+      "tool-call-limit": toolCallLimitRef,
     };
 
     // Get the target element and the scroll container
@@ -359,6 +362,20 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
             >
               MCP servers
             </Button>
+            <Button
+              variant="ghost"
+              className={`w-full justify-start gap-2 rounded-full ${
+                activeSection === "tool-call-limit"
+                  ? "bg-accent"
+                  : "hover:bg-accent"
+              }`}
+              onClick={() => {
+                scrollToSection("tool-call-limit");
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              Tool Call Limit
+            </Button>
           </div>
         )}
       </div>
@@ -413,6 +430,17 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
             <Button
               variant="ghost"
               className={`justify-start gap-2 rounded-full text-sm ${
+                activeSection === "tool-call-limit"
+                  ? "bg-accent"
+                  : "hover:bg-accent"
+              }`}
+              onClick={() => scrollToSection("tool-call-limit")}
+            >
+              Tool Call Limit
+            </Button>
+            <Button
+              variant="ghost"
+              className={`justify-start gap-2 rounded-full text-sm ${
                 activeSection === "oauth-settings"
                   ? "bg-accent"
                   : "hover:bg-accent"
@@ -447,6 +475,13 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
 
             <div ref={mcpServersRef} className="p-2">
               <AvailableMcpServers project={project} />
+            </div>
+
+            <div ref={toolCallLimitRef} className="p-2">
+              <ToolCallLimitEditor
+                project={project}
+                onEdited={handleRefreshProject}
+              />
             </div>
 
             <div ref={oauthSettingsRef} className="p-2">
