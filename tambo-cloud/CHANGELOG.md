@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.80.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.80.0...repo-v0.80.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* add proper types for toolCallCounts ([#1322](https://github.com/tambo-ai/tambo-cloud/issues/1322)) ([58c9c34](https://github.com/tambo-ai/tambo-cloud/commit/58c9c349021604e7a45b149b7ff3ef456f0183d5))
+
 ## [0.80.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.79.2...repo-v0.80.0) (2025-07-09)
 
 
