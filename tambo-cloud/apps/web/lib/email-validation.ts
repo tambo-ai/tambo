@@ -38,9 +38,22 @@ export interface EmailValidationOptions {
 // DNS over HTTPS for cross-platform MX record checking
 async function checkMxRecords(domain: string): Promise<boolean> {
   try {
-    // Use Cloudflare's DNS over HTTPS service
+    // Convert IDN domains to punycode using the URL constructor
+    // This handles internationalized domain names properly
+    let punycodeAsciiDomain: string;
+    try {
+      // Create a temporary URL to get the punycode version of the domain
+      const tempUrl = new URL(`https://${domain}`);
+      punycodeAsciiDomain = tempUrl.hostname;
+    } catch (error) {
+      // If URL construction fails, the domain is likely invalid
+      console.warn(`Invalid domain format: ${domain}`, error);
+      return false;
+    }
+
+    // Use Cloudflare's DNS over HTTPS service with the punycode domain
     const response = await fetch(
-      `https://one.one.one.one/dns-query?name=${encodeURIComponent(domain)}&type=MX`,
+      `https://one.one.one.one/dns-query?name=${encodeURIComponent(punycodeAsciiDomain)}&type=MX`,
       {
         headers: {
           Accept: "application/dns-json",
