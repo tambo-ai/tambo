@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.82.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.81.0...repo-v0.82.0) (2025-07-10)
+
+
+### Features
+
+* add settings section to set toolcall limit for project ([#1334](https://github.com/tambo-ai/tambo-cloud/issues/1334)) ([0ac2cc1](https://github.com/tambo-ai/tambo-cloud/commit/0ac2cc1dc32399d140333733327f1aa04174fc59))
+
+
+### Bug Fixes
+
+* remove tokenjs from the build ([#1335](https://github.com/tambo-ai/tambo-cloud/issues/1335)) ([6205f9a](https://github.com/tambo-ai/tambo-cloud/commit/6205f9a10bdcee1e9a3f28ae63b6bc7409525ec1))
+
 ## [0.81.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.80.1...repo-v0.81.0) (2025-07-10)
 
 
