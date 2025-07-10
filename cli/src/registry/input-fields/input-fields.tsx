@@ -189,7 +189,7 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
                 type={field.type}
                 id={field.id}
                 name={field.id}
-                value={state.values[field.id] || ""}
+                value={state.values[field.id] ?? ""}
                 onChange={(e) => handleInputChange(field.id, e.target.value)}
                 placeholder={field.placeholder}
                 required={field.required}
