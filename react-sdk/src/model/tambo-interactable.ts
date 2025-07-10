@@ -1,8 +1,8 @@
-export interface InteractableComponent {
+import { TamboComponent } from "./component-metadata";
+
+export interface InteractableComponent extends TamboComponent {
   /** Unique identifier for this component instance */
   id: string;
-  /** Name of the component */
-  componentName: string;
   /** Current props for the component */
   props: Record<string, any>;
   /** Message ID where this component was rendered */

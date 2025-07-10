@@ -55,7 +55,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         return {
           components: interactableComponents.map((component) => ({
             id: component.id,
-            componentName: component.componentName,
+            componentName: component.name,
             props: component.props,
             messageId: component.messageId,
             threadId: component.threadId,
@@ -106,7 +106,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           success: true,
           component: {
             id: component.id,
-            componentName: component.componentName,
+            componentName: component.name,
             props: component.props,
             messageId: component.messageId,
             threadId: component.threadId,
@@ -165,7 +165,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           componentId,
           removedComponent: {
             id: component.id,
-            componentName: component.componentName,
+            componentName: component.name,
             props: component.props,
             messageId: component.messageId,
             threadId: component.threadId,
@@ -210,21 +210,29 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const registerInteractableComponentUpdateTool = useCallback(
-    (componentId: string) => {
+    (component: InteractableComponent) => {
+      // Handle both Zod schema and JSONSchema7 types
+      const schemaForArgs =
+        typeof component.propsSchema === "object" &&
+        "describe" in component.propsSchema
+          ? component.propsSchema
+          : z.object({});
+
       registerTool({
-        name: `update_interactable_component_${componentId}`,
-        description: `Update the props of interactable component ${componentId}`,
+        name: `update_interactable_component_${component.id}`,
+        description: `Update the props of interactable component ${component.id} (${component.name})`,
         tool: (componentId: string, newProps: any) => {
-          updateInteractableComponentProps(componentId, newProps);
-          return "Updated interactable component";
+          return updateInteractableComponentProps(componentId, newProps);
         },
         toolSchema: z
           .function()
           .args(
-            z.string(),
             z
-              .record(z.any())
-              .describe("The new props to update the component with"),
+              .string()
+              .describe("The ID of the interactable component to update"),
+            schemaForArgs.describe(
+              "The new props to update the component with",
+            ),
           )
           .returns(z.string()),
       });
@@ -234,14 +242,14 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
   const addInteractableComponent = useCallback(
     (component: Omit<InteractableComponent, "id" | "createdAt">): string => {
-      const id = `${component.componentName}-${Math.random().toString(36).substr(2, 9)}`;
+      const id = `${component.name}-${Math.random().toString(36).substr(2, 9)}`;
       const newComponent: InteractableComponent = {
         ...component,
         id,
         createdAt: new Date(),
       };
 
-      registerInteractableComponentUpdateTool(id);
+      registerInteractableComponentUpdateTool(newComponent);
 
       setInteractableComponents((prev) => {
         return [...prev, newComponent];
@@ -285,9 +293,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
   const getInteractableComponentsByName = useCallback(
     (componentName: string) => {
-      return interactableComponents.filter(
-        (c) => c.componentName === componentName,
-      );
+      return interactableComponents.filter((c) => c.name === componentName);
     },
     [interactableComponents],
   );
