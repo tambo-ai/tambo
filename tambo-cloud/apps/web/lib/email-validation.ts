@@ -1,8 +1,4 @@
-import { resolveMx } from "dns";
-import { promisify } from "util";
 import { z } from "zod";
-
-const resolveMxAsync = promisify(resolveMx);
 
 // Common disposable email domains - you can expand this list as needed
 const DISPOSABLE_DOMAINS = new Set([
@@ -39,6 +35,34 @@ export interface EmailValidationOptions {
   // Removed validateSMTP and validateTypo as they're unreliable/not needed
 }
 
+// DNS over HTTPS for cross-platform MX record checking
+async function checkMxRecords(domain: string): Promise<boolean> {
+  try {
+    // Use Cloudflare's DNS over HTTPS service
+    const response = await fetch(
+      `https://one.one.one.one/dns-query?name=${encodeURIComponent(domain)}&type=MX`,
+      {
+        headers: {
+          Accept: "application/dns-json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+
+    // Check if there are any MX records
+    return data.Answer && data.Answer.length > 0;
+  } catch (error) {
+    // If the DNS lookup fails, we'll assume the domain is invalid
+    console.warn(`MX record lookup failed for ${domain}:`, error);
+    return false;
+  }
+}
+
 export async function validateEmail(
   email: string,
   options: EmailValidationOptions = {},
@@ -56,7 +80,9 @@ export async function validateEmail(
   }
 
   // Extract domain from email
-  const domain = email.split("@")[1]?.toLowerCase();
+  const atIndex = email.lastIndexOf("@");
+  const domain =
+    atIndex > -1 ? email.slice(atIndex + 1).toLowerCase() : undefined;
   if (!domain) {
     return {
       valid: false,
@@ -75,20 +101,10 @@ export async function validateEmail(
     };
   }
 
-  // MX record validation
+  // MX record validation using DNS over HTTPS
   if (validateMx) {
-    try {
-      const mxRecords = await resolveMxAsync(domain);
-      if (!mxRecords || mxRecords.length === 0) {
-        return {
-          valid: false,
-          reason: "mx",
-          message:
-            "The email domain appears to be invalid or cannot receive emails.",
-        };
-      }
-    } catch (_error) {
-      // DNS resolution failed
+    const hasMxRecords = await checkMxRecords(domain);
+    if (!hasMxRecords) {
       return {
         valid: false,
         reason: "mx",
