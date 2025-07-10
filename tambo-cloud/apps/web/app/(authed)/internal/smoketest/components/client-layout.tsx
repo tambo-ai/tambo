@@ -15,7 +15,7 @@ export const ClientLayout: FC<
   return (
     <TamboProvider
       tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
-      apiKey={env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      apiKey={env.NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY!}
       userToken={userToken}
     >
       <TamboMcpProvider mcpServers={mcpServersArray}>

@@ -42,6 +42,7 @@ export const env = createEnv({
     NEXT_PUBLIC_TAMBO_API_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_TAMBO_DASH_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_TAMBO_API_URL: z.string().min(1).optional(),
+    NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_SMOKETEST_PROJECT_ID: z.string().min(1).optional(),
   },
   /*
@@ -70,6 +71,8 @@ export const env = createEnv({
     NEXT_PUBLIC_TAMBO_API_KEY: process.env.NEXT_PUBLIC_TAMBO_API_KEY,
     NEXT_PUBLIC_TAMBO_DASH_KEY: process.env.NEXT_PUBLIC_TAMBO_DASH_KEY,
     NEXT_PUBLIC_TAMBO_API_URL: process.env.NEXT_PUBLIC_TAMBO_API_URL,
+    NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY:
+      process.env.NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY,
     NEXT_PUBLIC_SMOKETEST_PROJECT_ID:
       process.env.NEXT_PUBLIC_SMOKETEST_PROJECT_ID,
     COMPOSIO_API_KEY: process.env.COMPOSIO_API_KEY,
