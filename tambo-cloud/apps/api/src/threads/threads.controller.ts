@@ -482,13 +482,20 @@ export class ThreadsController {
       responseMessageDto: ThreadMessageDto;
       generationStage: GenerationStage;
     }>,
+    shouldThrottle = true, // used mainly for debugging
   ) {
     try {
-      for await (const chunk of throttleChunks(
-        stream,
-        (m1, m2) => m1.responseMessageDto.id !== m2.responseMessageDto.id,
-      )) {
-        response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+      if (shouldThrottle) {
+        for await (const chunk of throttleChunks(
+          stream,
+          (m1, m2) => m1.responseMessageDto.id !== m2.responseMessageDto.id,
+        )) {
+          response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        }
+      } else {
+        for await (const chunk of stream) {
+          response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        }
       }
     } catch (error: any) {
       console.error(error);

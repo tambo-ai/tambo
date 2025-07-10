@@ -41,10 +41,8 @@ export async function* throttleChunks<T>(
       !shouldForceYield?.(lastChunk, chunk) &&
       currentTime - lastUpdateTime < STREAMING_UPDATE_INTERVAL_MS
     ) {
-      console.log("skipping chunk:", currentTime - lastUpdateTime);
       continue;
     }
-    console.log("***yielding chunk:", currentTime - lastUpdateTime);
     lastUpdateTime = currentTime;
     lastYieldedChunk = chunk;
     yield chunk;

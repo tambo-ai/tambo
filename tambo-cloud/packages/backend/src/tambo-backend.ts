@@ -7,7 +7,8 @@ import OpenAI from "openai";
 import { AvailableComponent } from "./model/component-metadata";
 import { Provider } from "./model/providers";
 import { runDecisionLoop } from "./services/decision-loop/decision-loop-service";
-import { TokenJSClient } from "./services/llm/token-js-client";
+import { AISdkClient } from "./services/llm/ai-sdk-client";
+import { LLMClient } from "./services/llm/llm-client";
 import { generateSuggestions } from "./services/suggestion/suggestion.service";
 import { SuggestionDecision } from "./services/suggestion/suggestion.types";
 import { generateThreadName } from "./services/thread-name/thread-name.service";
@@ -28,7 +29,7 @@ interface RunDecisionLoopParams {
 }
 
 export default class TamboBackend {
-  private llmClient: TokenJSClient;
+  private llmClient: LLMClient;
   constructor(
     apiKey: string | undefined,
     private chainId: string,
@@ -40,7 +41,7 @@ export default class TamboBackend {
       baseURL,
       maxInputTokens,
     } = options;
-    this.llmClient = new TokenJSClient(
+    this.llmClient = new AISdkClient(
       apiKey,
       model,
       provider,
