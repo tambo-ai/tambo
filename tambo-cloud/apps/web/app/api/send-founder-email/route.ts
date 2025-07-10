@@ -1,5 +1,5 @@
+import { validateEmail } from "@/lib/email-validation";
 import { env } from "@/lib/env";
-import { validate } from "deep-email-validator";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
@@ -56,10 +56,7 @@ export async function POST(req: Request) {
 
     // Validate user's email with custom validation options
     console.log("Validating user email:", usersEmail);
-    const userEmailValidation = await validate({
-      email: usersEmail,
-      validateTypo: false, // Disable typo checking
-      validateSMTP: true,
+    const userEmailValidation = await validateEmail(usersEmail, {
       validateMx: true,
       validateDisposable: true,
     });
@@ -68,33 +65,21 @@ export async function POST(req: Request) {
       console.error("User email validation failed:", {
         email: usersEmail,
         reason: userEmailValidation.reason,
-        validators: userEmailValidation.validators,
+        message: userEmailValidation.message,
       });
 
-      // Skip validation failure if it's just an SMTP timeout
-      if (
-        !(
-          userEmailValidation.reason === "smtp" &&
-          userEmailValidation.validators.smtp?.reason === "Timeout"
-        )
-      ) {
-        return NextResponse.json(
-          {
-            error: "Invalid email address",
-            message:
-              userEmailValidation.reason === "disposable"
-                ? "Please use your regular email address instead of a temporary one."
-                : userEmailValidation.reason === "mx"
-                  ? "The email domain appears to be invalid or cannot receive emails."
-                  : "Please check your email address and try again.",
-            details: {
-              reason: userEmailValidation.reason,
-              technical_details: userEmailValidation.validators,
-            },
+      return NextResponse.json(
+        {
+          error: "Invalid email address",
+          message:
+            userEmailValidation.message ||
+            "Please check your email address and try again.",
+          details: {
+            reason: userEmailValidation.reason,
           },
-          { status: 400 },
-        );
-      }
+        },
+        { status: 400 },
+      );
     }
 
     /*
