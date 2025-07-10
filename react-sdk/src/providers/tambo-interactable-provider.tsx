@@ -205,6 +205,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           c.id === id ? { ...c, props: { ...c.props, ...newProps } } : c,
         ),
       );
+      return "Updated successfully";
     },
     [],
   );
