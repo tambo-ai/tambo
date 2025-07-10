@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.81.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.80.1...repo-v0.81.0) (2025-07-10)
+
+
+### Features
+
+* switch to AI SDK from forked tokenjs ([#1324](https://github.com/tambo-ai/tambo-cloud/issues/1324)) ([715cfa3](https://github.com/tambo-ai/tambo-cloud/commit/715cfa319803508e5e40c0ebfdb2a1267f99e29c))
+
+
+### Bug Fixes
+
+* correctly pass api key to provider ([#1329](https://github.com/tambo-ai/tambo-cloud/issues/1329)) ([de1cb92](https://github.com/tambo-ai/tambo-cloud/commit/de1cb92e526ccacc91469c9025f541de30e2aaa0))
+* deal with edge cases in email validation ([#1332](https://github.com/tambo-ai/tambo-cloud/issues/1332)) ([d89fe73](https://github.com/tambo-ai/tambo-cloud/commit/d89fe7388586fbb68c42860c5aa772be37f206c3))
+* handle punycode domains ([#1333](https://github.com/tambo-ai/tambo-cloud/issues/1333)) ([6defc17](https://github.com/tambo-ai/tambo-cloud/commit/6defc172ab9eee94b99d12e367843fa4a7508edf))
+* make smoketest use a separate API key than the rest of the app ([#1331](https://github.com/tambo-ai/tambo-cloud/issues/1331)) ([d4803f1](https://github.com/tambo-ai/tambo-cloud/commit/d4803f1c538e0530cb30276535993b5904625c28))
+* remove deep-email-validator for security issues ([#1326](https://github.com/tambo-ai/tambo-cloud/issues/1326)) ([3c70f63](https://github.com/tambo-ai/tambo-cloud/commit/3c70f631d8db68805b19fa6658eb100f7792126f))
+* remove unused package with security issue ([#1328](https://github.com/tambo-ai/tambo-cloud/issues/1328)) ([8560cbf](https://github.com/tambo-ai/tambo-cloud/commit/8560cbf7e5bae648956e6352b233e49c19867219))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @vercel/og from 0.6.8 to 0.7.1 ([#1319](https://github.com/tambo-ai/tambo-cloud/issues/1319)) ([1afa684](https://github.com/tambo-ai/tambo-cloud/commit/1afa684f5c691b384a9ef088c7b11f0b785f286c))
+
 ## [0.80.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.80.0...repo-v0.80.1) (2025-07-09)
 
 
