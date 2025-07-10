@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.21.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.1...tambo-v0.21.2) (2025-07-10)
+
+
+### Bug Fixes
+
+* with correct types, remove cast ([#652](https://github.com/tambo-ai/tambo/issues/652)) ([ccbd42e](https://github.com/tambo-ai/tambo/commit/ccbd42edd850fb79603f6ea26894b8bbc6278c63))
+
+
+### Miscellaneous
+
+* **deps:** bump dotenv from 17.0.0 to 17.0.1 ([#639](https://github.com/tambo-ai/tambo/issues/639)) ([81afd5f](https://github.com/tambo-ai/tambo/commit/81afd5ff8f24bff859fd80dc48b0c543b0d95efc))
+
 ## [0.21.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.0...tambo-v0.21.1) (2025-07-05)
 
 
