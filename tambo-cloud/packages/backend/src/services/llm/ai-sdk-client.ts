@@ -1,8 +1,8 @@
-import { anthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
-import { groq } from "@ai-sdk/groq";
-import { mistral } from "@ai-sdk/mistral";
-import { openai } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGroq } from "@ai-sdk/groq";
+import { createMistral } from "@ai-sdk/mistral";
+import { createOpenAI } from "@ai-sdk/openai";
 import { formatTemplate } from "@libretto/openai/lib/src/template";
 import { ChatCompletionMessageParam, tryParseJson } from "@tambo-ai-cloud/core";
 import {
@@ -32,33 +32,38 @@ import {
 } from "./llm-client";
 import { limitTokens } from "./token-limiter";
 
-// Provider function type - these functions have different signatures but all return LanguageModel
-type ProviderFunction = (...args: any[]) => LanguageModel;
 type TextCompleteParams = Parameters<typeof streamText<ToolSet, never>>[0];
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
 
-// Provider instances mapping
-const PROVIDER_INSTANCES: Record<string, ProviderFunction> = {
-  openai: openai,
-  anthropic: anthropic,
-  mistral: mistral,
-  google: google,
-  groq: groq,
-  "openai-compatible": openai, // Will be configured with custom baseURL
-} as const;
-
-// Provider configuration type
+// Common provider configuration interface
 interface ProviderConfig {
   apiKey?: string;
   baseURL?: string;
+  headers?: Record<string, string>;
   [key: string]: unknown;
 }
+
+// Type for a configured provider instance that can create language models
+type ConfiguredProvider = (modelId: string) => LanguageModel;
+
+// Provider factory function type - creates configured provider instances
+type ProviderFactory = (config?: ProviderConfig) => ConfiguredProvider;
+
+// Provider instances mapping - these are factory functions
+const PROVIDER_FACTORIES: Record<string, ProviderFactory> = {
+  openai: createOpenAI,
+  anthropic: createAnthropic,
+  mistral: createMistral,
+  google: createGoogleGenerativeAI,
+  groq: createGroq,
+  "openai-compatible": createOpenAI, // Will be configured with custom baseURL
+} as const;
 
 // Model to provider mapping based on our config
 function getProviderFromModel(
   model: string,
   provider: Provider,
-): keyof typeof PROVIDER_INSTANCES {
+): keyof typeof PROVIDER_FACTORIES {
   // For openai-compatible, always use openai instance
   if (provider === "openai-compatible") {
     return "openai-compatible";
@@ -114,10 +119,9 @@ export class AISdkClient implements LLMClient {
     params: StreamingCompleteParams | CompleteParams,
   ): Promise<LLMResponse | AsyncIterableIterator<LLMResponse>> {
     const providerKey = getProviderFromModel(this.model, this.provider);
-    const providerInstance = PROVIDER_INSTANCES[providerKey];
 
     // Get the model instance with proper configuration
-    const modelInstance = this.getModelInstance(providerInstance, providerKey);
+    const modelInstance = this.getModelInstance(providerKey);
 
     // Format messages using the same template system as token.js client
     const nonStringParams = Object.entries(params.promptTemplateParams).filter(
@@ -181,10 +185,7 @@ export class AISdkClient implements LLMClient {
     }
   }
 
-  private getModelInstance(
-    providerInstance: ProviderFunction,
-    providerKey: string,
-  ): LanguageModel {
+  private getModelInstance(providerKey: string): LanguageModel {
     const config: ProviderConfig = {};
 
     if (this.apiKey) {
@@ -195,7 +196,12 @@ export class AISdkClient implements LLMClient {
       config.baseURL = this.baseURL;
     }
 
-    return providerInstance(this.model, config);
+    // Create the configured provider instance
+    const providerFactory = PROVIDER_FACTORIES[providerKey];
+    const configuredProvider = providerFactory(config);
+
+    // Now call the configured provider with the model ID
+    return configuredProvider(this.model);
   }
 
   private convertTools(tools: OpenAI.Chat.Completions.ChatCompletionTool[]) {
