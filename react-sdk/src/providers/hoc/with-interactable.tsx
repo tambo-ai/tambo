@@ -7,10 +7,6 @@ import { useTamboInteractable } from "../tambo-interactable-provider";
 export interface InteractableConfig {
   componentName: string;
   description: string;
-  messageId: string;
-  threadId: string;
-  isInteractable?: boolean;
-  metadata?: Record<string, any>;
   propsSchema?: z.ZodTypeAny;
 }
 
@@ -27,15 +23,17 @@ export interface WithInteractableProps {
  * @returns A new component that is automatically registered as interactable
  * @example
  * ```tsx
- * const MyInteractableButton = withInteractable(MyButton, {
- *   componentName: "MyButton",
- *   messageId: "msg-123",
- *   threadId: "thread-456",
- *   metadata: { category: "action" }
+ * const MyInteractableNote = withInteractable(MyNote, {
+ *   componentName: "MyNote",
+ *   description: "A note component",
+ *   propsSchema: z.object({
+ *     title: z.string(),
+ *     content: z.string(),
+ *   }),
  * });
  *
  * // Usage
- * <MyInteractableButton text="Click me!" />
+ * <MyInteractableNote title="My Note" content="This is my note" />
  * ```
  */
 export function withInteractable<P extends object>(
