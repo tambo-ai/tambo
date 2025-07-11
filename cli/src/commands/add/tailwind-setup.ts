@@ -460,9 +460,6 @@ export default config`;
       // Create backup before making changes
       const backupPath = `${globalsPath}.backup`;
       fs.writeFileSync(backupPath, originalCSS);
-      console.log(
-        `${chalk.blue("ℹ")} Created backup: ${path.basename(backupPath)}`,
-      );
 
       try {
         // Write the changes
@@ -475,7 +472,7 @@ export default config`;
       } catch (error) {
         // Restore from backup if write fails
         console.log(
-          `${chalk.red("✖")} Failed to write changes, restoring from backup...`,
+          `${chalk.red("✖")} Failed to write changes, your globals.css file has not been modified.`,
         );
         fs.copyFileSync(backupPath, globalsPath);
         fs.unlinkSync(backupPath);
