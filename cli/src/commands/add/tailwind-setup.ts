@@ -10,6 +10,7 @@ import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
 import { fileURLToPath } from "url";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
+import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
 import {
   extractUtilitiesFromLayer,
   extractV4Configuration,
@@ -43,7 +44,7 @@ export async function setupTailwindandGlobals(projectRoot: string) {
 
   // Detect Tailwind version first
   const tailwindVersion = detectTailwindVersion(projectRoot);
-  const isV4 = tailwindVersion && semver.gte(tailwindVersion, "4.0.0");
+  const isV4 = !!(tailwindVersion && semver.gte(tailwindVersion, "4.0.0"));
 
   if (tailwindVersion) {
     console.log(
@@ -356,8 +357,13 @@ export default config`;
     // User confirmed, proceed with CSS modifications
     console.log(`${chalk.green("✔")} Proceeding with CSS modifications...`);
 
-    // Check if user is using Tailwind v4 format and we have v4 variables
+    // Create a copy of the original CSS for diff comparison
+    const originalCSS = existingCSS;
+    const modifiedRoot = postcss.parse(existingCSS);
+
+    // Apply all your modifications to modifiedRoot instead of existingRoot
     if (isV4) {
+      // ... your v4 modifications on modifiedRoot
       console.log(
         `${chalk.blue("ℹ")} Using Tailwind v4 CSS-first configuration`,
       );
@@ -366,31 +372,31 @@ export default config`;
       const v4Config = extractV4Configuration(defaultGlobalsCSS);
 
       // Preserve user's existing @config directives
-      preserveConfigDirectives(existingRoot);
+      preserveConfigDirectives(modifiedRoot);
 
       // Handle @theme inline blocks
-      handleInlineTheme(existingRoot);
+      handleInlineTheme(modifiedRoot);
 
       // Merge theme variables
-      mergeTheme(existingRoot, v4Config.themeVars);
+      mergeTheme(modifiedRoot, v4Config.themeVars);
 
       // Add missing CSS variables
-      addVariables(existingRoot, ":root", v4Config.variables);
-      addVariables(existingRoot, ".dark", v4Config.darkVariables);
+      addVariables(modifiedRoot, ":root", v4Config.variables);
+      addVariables(modifiedRoot, ".dark", v4Config.darkVariables);
 
       // Add missing variants (old @variant syntax)
-      addVariants(existingRoot, v4Config.variants);
+      addVariants(modifiedRoot, v4Config.variants);
 
       // Add missing custom variants (new @custom-variant syntax)
-      addCustomVariants(existingRoot, v4Config.customVariants);
+      addCustomVariants(modifiedRoot, v4Config.customVariants);
     } else {
-      // For v3, use the traditional approach with @layer base
+      // ... your v3 modifications on modifiedRoot
       console.log(
         `${chalk.blue("ℹ")} Using Tailwind v3 format for CSS variables`,
       );
 
       // Find or create @layer base
-      let baseLayer = existingRoot.nodes.find(
+      let baseLayer = modifiedRoot.nodes.find(
         (node): node is postcss.AtRule =>
           node.type === "atrule" &&
           node.name === "layer" &&
@@ -403,7 +409,7 @@ export default config`;
           params: "base",
           raws: { before: "\n\n", after: "\n" },
         });
-        existingRoot.append(baseLayer);
+        modifiedRoot.append(baseLayer);
       }
 
       // Add variables INSIDE the @layer base block
@@ -415,27 +421,70 @@ export default config`;
 
       // Handle utilities layer for v3
       const registryUtilities = extractUtilitiesFromLayer(defaultGlobalsCSS);
-      addUtilities(existingRoot, registryUtilities);
+      addUtilities(modifiedRoot, registryUtilities);
     }
 
-    // Write updated CSS only if there were changes
-    const updatedCSS = existingRoot.toString();
-    if (existingCSS !== updatedCSS) {
+    // Generate the modified CSS string
+    const modifiedCSS = modifiedRoot.toString();
+
+    // Show diff if there are changes
+    if (originalCSS !== modifiedCSS) {
+      // Show summary first
+      showChangesSummary(originalCSS, modifiedCSS, isV4);
+
+      // Ask if user wants to see detailed diff
+      const { showDetailedDiff } = await inquirer.prompt({
+        type: "confirm",
+        name: "showDetailedDiff",
+        message: "Show detailed diff view?",
+        default: false,
+      });
+
+      if (showDetailedDiff) {
+        showCssDiff(originalCSS, modifiedCSS, "globals.css");
+      }
+
+      // Final confirmation
+      const { proceedWithWrite } = await inquirer.prompt({
+        type: "confirm",
+        name: "proceedWithWrite",
+        message: "Apply these changes?",
+        default: true,
+      });
+
+      if (!proceedWithWrite) {
+        console.log(`${chalk.yellow("⚠")} Changes cancelled by user`);
+        return;
+      }
+
       // Create backup before making changes
-      fs.writeFileSync(`${globalsPath}.backup`, existingCSS);
+      const backupPath = `${globalsPath}.backup`;
+      fs.writeFileSync(backupPath, originalCSS);
+      console.log(
+        `${chalk.blue("ℹ")} Created backup: ${path.basename(backupPath)}`,
+      );
 
       try {
-        fs.writeFileSync(globalsPath, updatedCSS);
+        // Write the changes
+        fs.writeFileSync(globalsPath, modifiedCSS);
         globalsUpdated = true;
 
         // Remove backup if successful
-        fs.unlinkSync(`${globalsPath}.backup`);
+        fs.unlinkSync(backupPath);
+        console.log(`${chalk.green("✔")} Successfully updated globals.css`);
       } catch (error) {
         // Restore from backup if write fails
-        fs.copyFileSync(`${globalsPath}.backup`, globalsPath);
-        fs.unlinkSync(`${globalsPath}.backup`);
+        console.log(
+          `${chalk.red("✖")} Failed to write changes, restoring from backup...`,
+        );
+        fs.copyFileSync(backupPath, globalsPath);
+        fs.unlinkSync(backupPath);
         throw error;
       }
+    } else {
+      console.log(
+        `${chalk.blue("ℹ")} No changes needed - globals.css is already up to date`,
+      );
     }
   }
 
