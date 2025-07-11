@@ -20,14 +20,9 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   addInteractableComponent: () => "",
   removeInteractableComponent: () => {},
   updateInteractableComponentProps: () => {},
-  updateInteractableComponentMetadata: () => {},
-  setInteractableComponentState: () => {},
   getInteractableComponent: () => undefined,
   getInteractableComponentsByName: () => [],
-  getInteractableComponentsByThread: () => [],
   clearAllInteractableComponents: () => {},
-  clearInteractableComponentsByThread: () => {},
-  markComponentInteracted: () => {},
 });
 
 /**
@@ -57,12 +52,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             id: component.id,
             componentName: component.name,
             props: component.props,
-            messageId: component.messageId,
-            threadId: component.threadId,
-            isInteractable: component.isInteractable,
-            createdAt: component.createdAt.toISOString(),
-            lastInteraction: component.lastInteraction?.toISOString(),
-            metadata: component.metadata,
           })),
           totalCount: interactableComponents.length,
         };
@@ -74,12 +63,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
               id: z.string(),
               componentName: z.string(),
               props: z.record(z.any()),
-              messageId: z.string(),
-              threadId: z.string(),
-              isInteractable: z.boolean(),
-              createdAt: z.string(),
-              lastInteraction: z.string().optional(),
-              metadata: z.record(z.any()).optional(),
             }),
           ),
           totalCount: z.number(),
@@ -108,12 +91,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             id: component.id,
             componentName: component.name,
             props: component.props,
-            messageId: component.messageId,
-            threadId: component.threadId,
-            isInteractable: component.isInteractable,
-            createdAt: component.createdAt.toISOString(),
-            lastInteraction: component.lastInteraction?.toISOString(),
-            metadata: component.metadata,
           },
         };
       },
@@ -128,12 +105,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
                 id: z.string(),
                 componentName: z.string(),
                 props: z.record(z.any()),
-                messageId: z.string(),
-                threadId: z.string(),
-                isInteractable: z.boolean(),
-                createdAt: z.string(),
-                lastInteraction: z.string().optional(),
-                metadata: z.record(z.any()).optional(),
               })
               .optional(),
             error: z.string().optional(),
@@ -167,11 +138,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             id: component.id,
             componentName: component.name,
             props: component.props,
-            messageId: component.messageId,
-            threadId: component.threadId,
-            isInteractable: component.isInteractable,
-            createdAt: component.createdAt.toISOString(),
-            metadata: component.metadata,
           },
         };
       },
@@ -186,11 +152,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
               id: z.string(),
               componentName: z.string(),
               props: z.record(z.any()),
-              messageId: z.string(),
-              threadId: z.string(),
-              isInteractable: z.boolean(),
-              createdAt: z.string(),
-              metadata: z.record(z.any()).optional(),
             }),
             error: z.string().optional(),
           }),
@@ -247,7 +208,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       const newComponent: InteractableComponent = {
         ...component,
         id,
-        createdAt: new Date(),
       };
 
       registerInteractableComponentUpdateTool(newComponent);
@@ -265,26 +225,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
-  const updateInteractableComponentMetadata = useCallback(
-    (id: string, metadata: Record<string, any>) => {
-      setInteractableComponents((prev) =>
-        prev.map((c) =>
-          c.id === id ? { ...c, metadata: { ...c.metadata, ...metadata } } : c,
-        ),
-      );
-    },
-    [],
-  );
-
-  const setInteractableComponentState = useCallback(
-    (id: string, isInteractable: boolean) => {
-      setInteractableComponents((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, isInteractable } : c)),
-      );
-    },
-    [],
-  );
-
   const getInteractableComponent = useCallback(
     (id: string) => {
       return interactableComponents.find((c) => c.id === id);
@@ -299,32 +239,8 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [interactableComponents],
   );
 
-  const getInteractableComponentsByThread = useCallback(
-    (threadId: string) => {
-      return interactableComponents.filter((c) => c.threadId === threadId);
-    },
-    [interactableComponents],
-  );
-
   const clearAllInteractableComponents = useCallback(() => {
     setInteractableComponents([]);
-  }, []);
-
-  const clearInteractableComponentsByThread = useCallback(
-    (threadId: string) => {
-      setInteractableComponents((prev) =>
-        prev.filter((c) => c.threadId !== threadId),
-      );
-    },
-    [],
-  );
-
-  const markComponentInteracted = useCallback((id: string) => {
-    setInteractableComponents((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, lastInteraction: new Date() } : c,
-      ),
-    );
   }, []);
 
   const value: TamboInteractableContext = {
@@ -332,14 +248,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     addInteractableComponent,
     removeInteractableComponent,
     updateInteractableComponentProps,
-    updateInteractableComponentMetadata,
-    setInteractableComponentState,
     getInteractableComponent,
     getInteractableComponentsByName,
-    getInteractableComponentsByThread,
     clearAllInteractableComponents,
-    clearInteractableComponentsByThread,
-    markComponentInteracted,
   };
 
   return (

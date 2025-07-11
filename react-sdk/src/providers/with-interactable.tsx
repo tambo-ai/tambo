@@ -77,10 +77,6 @@ export function withInteractable<P extends object>(
           description: config.description,
           component: WrappedComponent,
           props: componentProps,
-          messageId: config.messageId,
-          threadId: config.threadId,
-          isInteractable: config.isInteractable ?? true,
-          metadata: config.metadata,
           propsSchema: config.propsSchema,
         });
 
