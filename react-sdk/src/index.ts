@@ -56,12 +56,12 @@ export {
 export { type TamboThread } from "./model/tambo-thread";
 
 export type {
-  InteractableComponent,
+  TamboInteractableComponent as InteractableComponent,
   TamboInteractableContext,
 } from "./model/tambo-interactable";
 export {
-  withInteractable,
+  withTamboInteractable as withInteractable,
   type InteractableConfig,
-  type WithInteractableProps,
-} from "./providers/hoc/with-interactable";
+  type WithTamboInteractableProps,
+} from "./providers/hoc/with-tambo-interactable";
 export { useTamboInteractable } from "./providers/tambo-interactable-provider";

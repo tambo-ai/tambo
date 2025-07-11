@@ -10,7 +10,7 @@ export interface InteractableConfig {
   propsSchema?: z.ZodTypeAny;
 }
 
-export interface WithInteractableProps {
+export interface WithTamboInteractableProps {
   interactableId?: string;
   onInteractableReady?: (id: string) => void;
   onPropsUpdate?: (newProps: Record<string, any>) => void;
@@ -23,7 +23,7 @@ export interface WithInteractableProps {
  * @returns A new component that is automatically registered as interactable
  * @example
  * ```tsx
- * const MyInteractableNote = withInteractable(MyNote, {
+ * const MyInteractableNote = withTamboInteractable(MyNote, {
  *   componentName: "MyNote",
  *   description: "A note component",
  *   propsSchema: z.object({
@@ -36,14 +36,16 @@ export interface WithInteractableProps {
  * <MyInteractableNote title="My Note" content="This is my note" />
  * ```
  */
-export function withInteractable<P extends object>(
+export function withTamboInteractable<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   config: InteractableConfig,
 ) {
   const displayName =
     WrappedComponent.displayName ?? WrappedComponent.name ?? "Component";
 
-  const InteractableWrapper: React.FC<P & WithInteractableProps> = (props) => {
+  const TamboInteractableWrapper: React.FC<P & WithTamboInteractableProps> = (
+    props,
+  ) => {
     const {
       addInteractableComponent,
       updateInteractableComponentProps,
@@ -56,7 +58,7 @@ export function withInteractable<P extends object>(
 
     // Extract interactable-specific props
     const { onInteractableReady, onPropsUpdate, ...componentProps } =
-      props as P & WithInteractableProps;
+      props as P & WithTamboInteractableProps;
 
     // Get the current interactable component to track prop updates
     const currentInteractable = interactableId
@@ -112,7 +114,7 @@ export function withInteractable<P extends object>(
     return <WrappedComponent {...(effectiveProps as P)} />;
   };
 
-  InteractableWrapper.displayName = `withInteractable(${displayName})`;
+  TamboInteractableWrapper.displayName = `withTamboInteractable(${displayName})`;
 
-  return InteractableWrapper;
+  return TamboInteractableWrapper;
 }

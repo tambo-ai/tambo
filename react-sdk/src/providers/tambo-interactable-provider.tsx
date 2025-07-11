@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { z } from "zod";
 import {
-  InteractableComponent,
+  TamboInteractableComponent,
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
 import { useTamboComponent } from "./tambo-component-provider";
@@ -27,7 +27,7 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
 
 /**
  * The TamboInteractableProvider manages a list of components that are currently
- * interactable, along with their props and metadata. It also registers tools
+ * interactable, along with their props. It also registers tools
  * for Tambo to perform CRUD operations on the components.
  * @param props - The props for the TamboInteractableProvider
  * @param props.children - The children to wrap
@@ -37,7 +37,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const [interactableComponents, setInteractableComponents] = useState<
-    InteractableComponent[]
+    TamboInteractableComponent[]
   >([]);
   const { registerTool } = useTamboComponent();
 
@@ -172,7 +172,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const registerInteractableComponentUpdateTool = useCallback(
-    (component: InteractableComponent) => {
+    (component: TamboInteractableComponent) => {
       // Handle both Zod schema and JSONSchema7 types
       const schemaForArgs =
         typeof component.propsSchema === "object" &&
@@ -203,9 +203,11 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const addInteractableComponent = useCallback(
-    (component: Omit<InteractableComponent, "id" | "createdAt">): string => {
+    (
+      component: Omit<TamboInteractableComponent, "id" | "createdAt">,
+    ): string => {
       const id = `${component.name}-${Math.random().toString(36).substr(2, 9)}`;
-      const newComponent: InteractableComponent = {
+      const newComponent: TamboInteractableComponent = {
         ...component,
         id,
       };

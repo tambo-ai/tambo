@@ -1,6 +1,6 @@
 import { TamboComponent } from "./component-metadata";
 
-export interface InteractableComponent extends TamboComponent {
+export interface TamboInteractableComponent extends TamboComponent {
   /** Unique identifier for this component instance */
   id: string;
   /** Current props for the component */
@@ -9,10 +9,10 @@ export interface InteractableComponent extends TamboComponent {
 
 export interface TamboInteractableContext {
   /** List of all interactable components */
-  interactableComponents: InteractableComponent[];
+  interactableComponents: TamboInteractableComponent[];
   /** Add a new interactable component */
   addInteractableComponent: (
-    component: Omit<InteractableComponent, "id" | "createdAt">,
+    component: Omit<TamboInteractableComponent, "id" | "createdAt">,
   ) => string;
   /** Remove an interactable component by ID */
   removeInteractableComponent: (id: string) => void;
@@ -22,11 +22,13 @@ export interface TamboInteractableContext {
     newProps: Record<string, any>,
   ) => void;
   /** Get an interactable component by ID */
-  getInteractableComponent: (id: string) => InteractableComponent | undefined;
+  getInteractableComponent: (
+    id: string,
+  ) => TamboInteractableComponent | undefined;
   /** Get all interactable components by component name */
   getInteractableComponentsByName: (
     componentName: string,
-  ) => InteractableComponent[];
+  ) => TamboInteractableComponent[];
   /** Clear all interactable components */
   clearAllInteractableComponents: () => void;
 }
