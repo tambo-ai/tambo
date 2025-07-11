@@ -8,6 +8,9 @@ body {
 
 @layer base {
   :root {
+    /* Default Tailwind CSS Variables customized with tambo colors */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
@@ -21,30 +24,17 @@ body {
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
     --border: 207 22% 90%;
-    --border-dimension-50: linear-gradient(
-      180deg,
-      hsl(207 22% 95%) 0%,
-      hsl(207 22% 90%) 50%,
-      hsl(207 22% 85%) 100%
-    );
-    --border-dimension-100: linear-gradient(
-      180deg,
-      hsl(207 22% 98%) 0%,
-      hsl(207 22% 90%) 50%,
-      hsl(207 22% 80%) 100%
-    );
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
     --chart-1: 30 80% 54.9%;
     --chart-2: 339.8 74.8% 54.9%;
     --chart-3: 219.9 70.2% 50%;
     --chart-4: 160 60% 45.1%;
     --chart-5: 280 64.7% 60%;
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --radius: 0.5rem;
     --container: 210 29% 97%;
     --backdrop: 210 88% 14% / 0.25;
     --muted-backdrop: 210 88% 14% / 0.1;
@@ -53,6 +43,7 @@ body {
     --sidebar-width: 3rem;
   }
   .dark {
+    /* Default Tailwind CSS Variables customized with tambo colors */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -68,13 +59,25 @@ body {
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    --chart-1: 30 80% 54.9%;
+    --chart-2: 339.8 74.8% 54.9%;
+    --chart-3: 219.9 70.2% 50%;
+    --chart-4: 160 60% 45.1%;
+    --chart-5: 280 64.7% 60%;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --radius: 0.5rem;
+    --container: 210 29% 97%;
+    --backdrop: 210 88% 14% / 0.25;
+    --muted-backdrop: 210 88% 14% / 0.1;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
   }
 }
-
 @layer utilities {
   /* Background Utilities */
   .bg-background {
@@ -143,9 +146,6 @@ body {
   .text-accent-foreground {
     color: hsl(var(--accent-foreground));
   }
-  .text-destructive-foreground {
-    color: hsl(var(--destructive-foreground));
-  }
   .text-backdrop {
     color: hsl(var(--backdrop));
   }
@@ -153,14 +153,6 @@ body {
   /* Border Utilities */
   .border-border {
     border-color: hsl(var(--border));
-  }
-  .border-dimension-50 {
-    border-image: var(--border-dimension-50);
-    border-image-slice: 1;
-  }
-  .border-dimension-100 {
-    border-image: var(--border-dimension-100);
-    border-image-slice: 1;
   }
   .border-flat {
     border: 1px solid hsl(var(--border));

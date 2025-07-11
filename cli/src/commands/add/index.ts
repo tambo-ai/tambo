@@ -9,7 +9,7 @@ import {
 import { getInstallationPath } from "../init.js";
 import { installComponents } from "./component.js";
 import { resolveComponentDependencies } from "./dependencies.js";
-import { setupTailwindandGlobals } from "./tailwind.js";
+import { setupTailwindandGlobals } from "./tailwind-setup.js";
 import type { InstallComponentOptions } from "./types.js";
 import { getKnownComponentNames } from "./utils.js";
 
