@@ -45,7 +45,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     registerTool({
       name: "get_all_interactable_components",
       description:
-        "Get all currently interactable components with their details including their current props",
+        "Get all currently interactable components with their details including their current props. These are components that you can interact with on behalf of the user.",
       tool: () => {
         return {
           components: interactableComponents,
