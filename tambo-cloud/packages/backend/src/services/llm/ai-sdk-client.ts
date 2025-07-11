@@ -22,6 +22,7 @@ import {
   type ToolSet,
 } from "ai";
 import type OpenAI from "openai";
+import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import { llmProviderConfig } from "../../config/llm.config";
 import { Provider } from "../../model/providers";
 import {
@@ -164,6 +165,14 @@ export class AISdkClient implements LLMClient {
         ),
     );
 
+    // Prepare experimental telemetry for Langfuse
+    const experimentalTelemetry = createLangfuseTelemetryConfig({
+      sessionId: this.chainId,
+      provider: this.provider,
+      model: this.model,
+      functionId: `${this.provider}-${this.model}`,
+    });
+
     const baseConfig: TextCompleteParams = {
       model: modelInstance,
       messages: coreMessages,
@@ -174,6 +183,9 @@ export class AISdkClient implements LLMClient {
         : undefined,
       ...(responseFormat && { responseFormat }),
       toolCallStreaming: true,
+      ...(experimentalTelemetry && {
+        experimental_telemetry: experimentalTelemetry,
+      }),
     };
 
     if (params.stream) {
