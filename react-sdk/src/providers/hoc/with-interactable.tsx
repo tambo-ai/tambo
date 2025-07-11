@@ -2,7 +2,7 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import { useTamboInteractable } from "./tambo-interactable-provider";
+import { useTamboInteractable } from "../tambo-interactable-provider";
 
 export interface InteractableConfig {
   componentName: string;

@@ -59,9 +59,9 @@ export type {
   InteractableComponent,
   TamboInteractableContext,
 } from "./model/tambo-interactable";
-export { useTamboInteractable } from "./providers/tambo-interactable-provider";
 export {
   withInteractable,
   type InteractableConfig,
   type WithInteractableProps,
-} from "./providers/with-interactable";
+} from "./providers/hoc/with-interactable";
+export { useTamboInteractable } from "./providers/tambo-interactable-provider";
