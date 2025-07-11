@@ -1,10 +1,10 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.37.1",
+  "version": "0.37.3",
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tambo-ai/tambo.git",
+    "url": "https://github.com/tambo-ai/tambo.git",
     "directory": "react-sdk"
   },
   "homepage": "https://tambo.co",
@@ -67,18 +67,18 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.13.2",
-    "@tambo-ai/typescript-sdk": "^0.61.0",
+    "@modelcontextprotocol/sdk": "^1.15.0",
+    "@tambo-ai/typescript-sdk": "^0.63.0",
     "@tanstack/react-query": "^5.81.5",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",
     "ts-essentials": "^10.1.1",
     "use-debounce": "^10.0.5",
-    "zod": "^3.25.67",
+    "zod": "^3.25.75",
     "zod-to-json-schema": "^3.24.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.30.0",
+    "@eslint/js": "^9.30.1",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@testing-library/jest-dom": "^6.4.2",
@@ -89,11 +89,11 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.5",
     "concurrently": "^9.2.0",
-    "eslint": "^9.30.0",
-    "eslint-plugin-jsdoc": "^51.3.1",
+    "eslint": "^9.30.1",
+    "eslint-plugin-jsdoc": "^51.3.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.1.0",
-    "jest": "^30.0.3",
+    "jest": "^30.0.4",
     "jest-environment-jsdom": "^30.0.2",
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
@@ -102,6 +102,6 @@
     "react-dom": "^18.3.1",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.35.1"
+    "typescript-eslint": "^8.36.0"
   }
 }
