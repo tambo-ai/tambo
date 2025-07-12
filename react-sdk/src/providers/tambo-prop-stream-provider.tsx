@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { StreamStatus } from "../hooks/use-tambo-stream-status";
 
-interface TamboStreamContextValue {
+interface TamboPropStreamContextValue {
   /** The stream data */
   data: any;
   /** The stream status */
@@ -23,9 +23,10 @@ interface TamboStreamContextValue {
   };
 }
 
-const TamboStreamContext = createContext<TamboStreamContextValue | null>(null);
+const TamboPropStreamContext =
+  createContext<TamboPropStreamContextValue | null>(null);
 
-export interface TamboStreamProviderProps {
+export interface TamboPropStreamProviderProps {
   /** The stream data */
   data: any;
   /** Optional stream status for more granular control */
@@ -50,10 +51,10 @@ export interface EmptyProps {
   className?: string;
 }
 
-export interface ContentProps {
-  /** The key to identify this content state */
+export interface CompleteProps {
+  /** The key to identify this complete state */
   key?: string;
-  /** The children to render when content is available */
+  /** The children to render when complete */
   children: React.ReactNode;
   /** Optional className for styling */
   className?: string;
@@ -130,14 +131,14 @@ const Empty: React.FC<EmptyProps> = ({
 };
 
 /**
- * Content component that renders children when the stream has data
- * @param props - The props for the Content component
- * @param props.key - The key to identify this content state
- * @param props.children - The children to render when content is available
+ * Complete component that renders children when the stream has data
+ * @param props - The props for the Complete component
+ * @param props.key - The key to identify this complete state
+ * @param props.children - The children to render when complete
  * @param props.className - Optional className for styling
- * @returns The Content component
+ * @returns The Complete component
  */
-const Content: React.FC<ContentProps> = ({
+const Complete: React.FC<CompleteProps> = ({
   key = "default",
   children,
   className,
@@ -149,11 +150,11 @@ const Content: React.FC<ContentProps> = ({
   const keyData =
     data && typeof data === "object" && !Array.isArray(data) ? data[key] : data;
 
-  // Show content when we have data for this key and the stream is successful
-  const shouldShowContent =
+  // Show complete when we have data for this key and the stream is successful
+  const shouldShowComplete =
     status.isSuccess && keyData !== undefined && keyData !== null;
 
-  if (!shouldShowContent) {
+  if (!shouldShowComplete) {
     return null;
   }
 
@@ -161,7 +162,7 @@ const Content: React.FC<ContentProps> = ({
     <div
       className={className}
       data-stream-key={key}
-      data-stream-state="content"
+      data-stream-state="complete"
     >
       {children}
     </div>
@@ -173,7 +174,7 @@ const Content: React.FC<ContentProps> = ({
  * @returns The TamboStream context
  */
 export const useTamboStream = () => {
-  const context = useContext(TamboStreamContext);
+  const context = useContext(TamboPropStreamContext);
   if (!context) {
     throw new Error("useTamboStream must be used within a TamboStreamProvider");
   }
@@ -182,15 +183,15 @@ export const useTamboStream = () => {
 
 /**
  * The TamboStreamProvider provides a context for managing stream states
- * with compound components for Loading, Empty, and Content states.
+ * with compound components for Loading, Empty, and Complete states.
  * @param props - The props for the TamboStreamProvider
  * @param props.children - The children to wrap
  * @param props.data - The stream data
  * @param props.streamStatus - Optional stream status for more granular control
  * @returns The TamboStreamProvider component
  */
-const TamboStreamProviderComponent: React.FC<
-  PropsWithChildren<TamboStreamProviderProps>
+const TamboPropStreamProviderComponent: React.FC<
+  PropsWithChildren<TamboPropStreamProviderProps>
 > = ({ children, data, streamStatus }) => {
   // Create a default stream status if none provided
   const defaultStreamStatus: StreamStatus = useMemo(
@@ -277,22 +278,23 @@ const TamboStreamProviderComponent: React.FC<
   );
 
   return (
-    <TamboStreamContext.Provider value={contextValue}>
+    <TamboPropStreamContext.Provider value={contextValue}>
       {children}
-    </TamboStreamContext.Provider>
+    </TamboPropStreamContext.Provider>
   );
 };
 
 // Create the compound component type
-type TamboStreamProviderCompound = typeof TamboStreamProviderComponent & {
-  Loading: typeof Loading;
-  Empty: typeof Empty;
-  Content: typeof Content;
-};
+type TamboPropStreamProviderCompound =
+  typeof TamboPropStreamProviderComponent & {
+    Loading: typeof Loading;
+    Empty: typeof Empty;
+    Complete: typeof Complete;
+  };
 
-export const TamboStreamProvider =
-  TamboStreamProviderComponent as TamboStreamProviderCompound;
+export const TamboPropStreamProvider =
+  TamboPropStreamProviderComponent as TamboPropStreamProviderCompound;
 
-TamboStreamProvider.Loading = Loading;
-TamboStreamProvider.Empty = Empty;
-TamboStreamProvider.Content = Content;
+TamboPropStreamProvider.Loading = Loading;
+TamboPropStreamProvider.Empty = Empty;
+TamboPropStreamProvider.Complete = Complete;
