@@ -3,7 +3,6 @@ import { buttonVariants } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -17,11 +16,13 @@ import { IoMenuSharp } from "react-icons/io5";
 interface MobileDrawerProps {
   showDashboardButton: boolean;
   showLogoutButton: boolean;
+  showDiscordButton?: boolean;
 }
 
 export function MobileDrawer({
   showDashboardButton,
   showLogoutButton,
+  showDiscordButton = false,
 }: MobileDrawerProps) {
   return (
     <Drawer>
@@ -42,7 +43,6 @@ export function MobileDrawer({
               />
             </Link>
           </DrawerTitle>
-          <DrawerDescription>{siteConfig.description}</DrawerDescription>
         </DrawerHeader>
         <div className="px-6 flex flex-col gap-2">
           {showDashboardButton && (
@@ -56,6 +56,33 @@ export function MobileDrawer({
               Dashboard
             </Link>
           )}
+          <Link
+            href="/#pricing"
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              "justify-start text-base w-full",
+            )}
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/#demo"
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              "justify-start text-base w-full",
+            )}
+          >
+            Demo
+          </Link>
+          <Link
+            href="/mcp"
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              "justify-start text-base w-full",
+            )}
+          >
+            MCP
+          </Link>
           {showLogoutButton && (
             <button
               className={cn(

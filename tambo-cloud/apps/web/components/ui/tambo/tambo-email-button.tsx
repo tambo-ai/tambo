@@ -27,7 +27,7 @@ export const TamboEmailButton = () => {
   if (hasPressedButton) return null;
 
   return (
-    <div className="z-10">
+    <div className="z-10" data-tambo-email-button>
       <div className="pointer-events-auto">
         <Button
           size="lg"

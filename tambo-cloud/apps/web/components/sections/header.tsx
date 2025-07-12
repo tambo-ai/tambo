@@ -10,11 +10,13 @@ import { MobileNavigation } from "@/components/sections/mobile-navigation";
 export function Header({
   showDashboardButton = true,
   showLogoutButton = false,
+  showDiscordButton = false,
   transparent = true,
   className,
 }: {
   showDashboardButton?: boolean;
   showLogoutButton?: boolean;
+  showDiscordButton?: boolean;
   transparent?: boolean;
   className?: string;
 }) {
@@ -26,10 +28,9 @@ export function Header({
       className={cn(
         "sticky top-0 z-50 h-[var(--header-height)] backdrop-blur",
         bgOpacity,
-        className,
       )}
     >
-      <div className="container mx-auto px-4 md:px-6">
+      <div className={cn("mx-auto w-full max-w-7xl", className)}>
         <div className="flex h-full items-center justify-between pt-2">
           <Link
             href="/"
@@ -43,6 +44,7 @@ export function Header({
           <HeaderActions
             showDashboardButton={showDashboardButton}
             showLogoutButton={showLogoutButton}
+            showDiscordButton={showDiscordButton}
           />
 
           {/* Mobile navigation - client component */}
@@ -50,6 +52,7 @@ export function Header({
             <MobileNavigation
               showDashboardButton={showDashboardButton}
               showLogoutButton={showLogoutButton}
+              showDiscordButton={showDiscordButton}
             />
           </div>
         </div>

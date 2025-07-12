@@ -40,16 +40,16 @@ const featuresContent = {
     },
     {
       // octo-multi-tasking
-      title: "Decision Loop",
+      title: "Tool Calling",
       description:
-        "We handle AI orchestration so you can focus on adding the functionality.",
+        "Register custom tools and functions that your AI can intelligently call to perform actions and retrieve data.",
       image: "/assets/landing/drawings/OCTO-TRANSPARENT-9.svg",
     },
     {
       // octo-painting
-      title: "Component Library",
+      title: "Authentication",
       description:
-        "Need components to set up your AI? We have them for you in one CLI command.",
+        "Built-in authentication system that handles user sessions and secure access to your AI features.",
       image: "/assets/landing/drawings/OCTO-TRANSPARENT-3.svg",
     },
   ],

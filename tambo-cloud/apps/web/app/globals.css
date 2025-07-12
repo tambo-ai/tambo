@@ -218,8 +218,58 @@ html {
   }
 }
 
+@keyframes border-wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes star-sparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes attention-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(92, 148, 247, 0.4);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 8px rgba(92, 148, 247, 0.1);
+  }
+}
+
 .icon-container {
   transition: all 0.3s ease;
+}
+
+.animate-border-wave {
+  background-size: 400% 400%;
+  animation: border-wave 3s ease-in-out infinite;
 }
 
 .icon-container:hover {
@@ -232,6 +282,38 @@ html {
 
 .float-animation {
   animation: icon-float 3s ease-in-out infinite;
+}
+
+.shimmer-animation {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-animation::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.star-sparkle-animation {
+  animation: star-sparkle 2s ease-in-out infinite;
+}
+
+.attention-pulse-animation {
+  animation: attention-pulse 3s ease-in-out infinite;
+  animation-delay: 2s;
 }
 
 :root .tambo-theme {

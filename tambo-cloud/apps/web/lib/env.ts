@@ -26,6 +26,7 @@ export const env = createEnv({
     WEATHER_API_KEY: z.string().min(1).optional(),
     COMPOSIO_API_KEY: z.string().min(1).optional(),
     ALLOW_LOCAL_MCP_SERVERS: z.string().min(1).optional(),
+    GITHUB_TOKEN: z.string().min(1).optional(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -77,5 +78,6 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_SMOKETEST_PROJECT_ID,
     COMPOSIO_API_KEY: process.env.COMPOSIO_API_KEY,
     ALLOW_LOCAL_MCP_SERVERS: process.env.ALLOW_LOCAL_MCP_SERVERS,
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
   },
 });

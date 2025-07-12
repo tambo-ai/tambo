@@ -2,7 +2,7 @@
 
 import { Section } from "@/components/section";
 import { clsx } from "clsx";
-import { Easing, motion, useScroll, useTransform } from "framer-motion";
+
 import hljs from "highlight.js/lib/core";
 import typescript from "highlight.js/lib/languages/typescript";
 import "highlight.js/styles/stackoverflow-light.css";
@@ -17,8 +17,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { InteractiveDemo } from "./interactive-demo";
 
 hljs.registerLanguage("typescript", typescript);
-
-const ease: Easing = [0.16, 1, 0.3, 1];
 
 type TabKey = "demo" | "provider" | "props" | "component" | "register";
 
@@ -199,20 +197,6 @@ export function CodeExamples() {
   const [snapEnabled, setSnapEnabled] = useState(true);
   const wheelCountRef = useRef(0);
 
-  // Use Framer Motion's scroll utilities for smooth scale animation
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-
-  // Transform scroll progress to scale value
-  // Scale starts at 1, peaks at 1.2 when centered, then goes back to 1
-  const scale = useTransform(
-    scrollYProgress,
-    [0, 0.4, 0.6, 1],
-    [1, 1.2, 1.2, 1],
-  );
-
   // Handle wheel events to count scrolls and disable snap after threshold
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -316,14 +300,7 @@ export function CodeExamples() {
         }}
         className="w-full space-y-4"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          style={{ scale }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, ease }}
-          className="w-full max-w-[80vw] md:max-w-[76vw] h-[76vh] md:h-[72vh] mx-auto"
-        >
+        <div className="w-full max-w-[80vw] md:max-w-[76vw] h-[76vh] md:h-[72vh] mx-auto">
           <div className="rounded-lg overflow-hidden border shadow-md bg-background h-full">
             {/* Code editor header with terminal-style tabs */}
             <div className="bg-gray-100 px-4 py-2.5 border-b border-gray-200 flex items-center">
@@ -386,7 +363,7 @@ export function CodeExamples() {
               )}
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </Section>
   );

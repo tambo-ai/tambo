@@ -1,57 +1,70 @@
 "use client";
 
 import { Section } from "@/components/section";
-import { Easing, motion } from "framer-motion";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { AnimatePresence, Easing, motion } from "framer-motion";
+import { Check, Copy } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 import { Button } from "../ui/button";
 
 const ease: Easing = [0.16, 1, 0.3, 1];
 
-// Hero content moved directly into this file
-const heroContent = {
-  pill: {
-    label: "🚀 Join",
-    text: "CustomHack hackathon this weekend",
-    link: "https://customhack.dev",
-  },
-  title: "Add React components to your AI assistant, copilot, or agent.",
-  subtitle: "Register components so your AI can render UI, not just text.",
-  cta: {
-    buttonText: "see it in action",
-  },
-};
-
 function HeroPill() {
+  const [stars, setStars] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const fetchStars = async () => {
+      try {
+        const response = await fetch("/api/github-stars");
+        const data = await response.json();
+        setStars(data.stars);
+      } catch (error) {
+        console.error("Error fetching GitHub stars:", error);
+        setStars(468); // Fallback value
+      }
+    };
+
+    fetchStars();
+  }, []);
+
   return (
     <motion.a
-      href={heroContent.pill.link}
+      href="https://github.com/tambo-ai/tambo"
       target="_blank"
       rel="noopener noreferrer"
-      className="flex w-auto items-center space-x-2 rounded-full bg-[#5C94F7]/10 px-2 py-1 ring-1 ring-[#5C94F7] whitespace-pre"
+      className="flex w-auto items-center space-x-2 rounded-full bg-[#5C94F7]/10 px-4 py-2 ring-1 ring-[#5C94F7]/20 hover:bg-[#5C94F7]/15 hover:ring-[#5C94F7]/30 transition-all duration-300 group shimmer-animation"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ opacity: 0.8 }}
+      whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.8, ease }}
     >
-      <div className="w-fit rounded-full bg-[#5C94F7] px-2 py-0.5 text-left text-xs font-medium text-white sm:text-sm">
-        {heroContent.pill.label}
-      </div>
-      <p className="text-xs font-medium text-[#5C94F7] sm:text-sm">
-        {heroContent.pill.text}
-      </p>
+      {/* Star icon */}
+      <span className="text-[#5C94F7] group-hover:text-[#4A7BD6] transition-colors">
+        ⭐
+      </span>
+      {/* Star count */}
+      <span className="font-semibold text-[#5C94F7] group-hover:text-[#4A7BD6] transition-colors">
+        <AnimatedCounter target={stars || 0} />
+      </span>
+
+      {/* "on GitHub" text */}
+      <span className="text-[#5C94F7]/80 group-hover:text-[#4A7BD6] transition-colors font-medium">
+        give us a star
+      </span>
+
+      {/* Arrow icon */}
       <svg
         width="12"
         height="12"
-        className="ml-1"
+        className="text-[#5C94F7]/60 group-hover:text-[#4A7BD6] group-hover:translate-x-0.5 transition-all duration-300"
         viewBox="0 0 12 12"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path
           d="M8.78141 5.33312L5.20541 1.75712L6.14808 0.814453L11.3334 5.99979L6.14808 11.1851L5.20541 10.2425L8.78141 6.66645H0.666748V5.33312H8.78141Z"
-          fill="#5C94F7"
+          fill="currentColor"
         />
       </svg>
     </motion.a>
@@ -59,6 +72,22 @@ function HeroPill() {
 }
 
 function HeroTitles() {
+  const [currentWordIndex, setCurrentWordIndex] = React.useState(0);
+  const words = ["assistant", "copilot", "agent"];
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prev) => (prev + 1) % words.length);
+    }, 2000); // Change every 2 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const wordVariants = {
+    initial: { y: 20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    exit: { y: -20, opacity: 0 },
+  };
+
   return (
     <div className="flex flex-col items-center lg:items-start">
       <motion.h1
@@ -71,7 +100,25 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        {heroContent.title}
+        Add React UI components to your AI{" "}
+        <span className="inline-block relative align-baseline">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={words[currentWordIndex]}
+              variants={wordVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut",
+              }}
+              className="text-[#5C94F7]"
+            >
+              {words[currentWordIndex]}
+            </motion.span>
+          </AnimatePresence>
+        </span>
       </motion.h1>
       <motion.p
         className="text-center lg:text-left max-w-xl leading-normal text-muted-foreground text-sm sm:text-base md:text-lg lg:text-xl sm:leading-normal mt-2 sm:mt-4"
@@ -83,7 +130,7 @@ function HeroTitles() {
           ease,
         }}
       >
-        {heroContent.subtitle}
+        Tired of your AI returning essays?
       </motion.p>
     </div>
   );
@@ -151,18 +198,18 @@ function HeroIllustration() {
   );
 }
 
-function HeroCTAButton() {
-  const handleScrollToSection = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const targetElement = document.getElementById("code-examples");
-    if (targetElement) {
-      // Scroll to a position just above the element to trigger the snap effect
-      const offsetPosition = targetElement.offsetTop - 250; // Higher offset to ensure section is just coming into view
+// New command box component
+function HeroCommandBox() {
+  const [copied, setCopied] = React.useState(false);
+  const command = "npm create tambo-app";
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
     }
   };
 
@@ -171,12 +218,27 @@ function HeroCTAButton() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
+      className="mt-4"
     >
-      <Button asChild className="mt-4 hover:scale-105 transition-transform">
-        <Link href="#code-examples" onClick={handleScrollToSection}>
-          {heroContent.cta.buttonText}
-        </Link>
-      </Button>
+      <div className="flex items-center rounded-xl bg-slate-50 dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-700 max-w-fit shadow-sm hover:shadow-md transition-shadow duration-300">
+        <code className="font-mono text-sm text-slate-800 dark:text-slate-200 mr-4 select-all">
+          {command}
+        </code>
+        {/* Vertical separator line */}
+        <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mr-4"></div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleCopy}
+          className="h-auto p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+        >
+          {copied ? (
+            <Check className="h-4 w-4 text-green-600" />
+          ) : (
+            <Copy className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+          )}
+        </Button>
+      </div>
     </motion.div>
   );
 }
@@ -189,7 +251,7 @@ export function Hero() {
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:max-w-[50%] space-y-4 sm:space-y-6">
           <HeroPill />
           <HeroTitles />
-          <HeroCTAButton />
+          <HeroCommandBox />
         </div>
 
         {/* Hero illustration */}
@@ -197,15 +259,6 @@ export function Hero() {
           <HeroIllustration />
         </div>
       </div>
-
-      {/* CTA section centered below 
-      // Todo: Add back later?
-      <div className="w-full flex justify-center mt-2 sm:mt-4 lg:mt-6">
-        <div className="w-full max-w-full sm:max-w-3xl">
-          <HeroCTA />
-        </div>
-      </div>
-      */}
     </Section>
   );
 }

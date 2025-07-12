@@ -185,7 +185,10 @@ export const FounderEmailComponent = ({
   }
 
   return (
-    <div className="founder-email-component p-4 border rounded-lg shadow-sm max-w-md">
+    <div
+      className="founder-email-component p-4 border rounded-lg shadow-sm max-w-md"
+      data-tambo-email-form
+    >
       <h2 className="text-lg font-semibold mb-3">Email the Founders</h2>
 
       {emailState.isSent ? (

@@ -3,7 +3,8 @@ import { ImageResponse } from "@vercel/og";
 
 export const runtime = "edge";
 
-export const alt = "tambo - An AI powered Interface in a few lines of code";
+export const alt =
+  "tambo-ai - A react package for adding generative UI to your AI assistant";
 export const size = {
   width: 1200,
   height: 630,
@@ -23,86 +24,11 @@ export default async function Image() {
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#F2F8F6",
-          backgroundImage: "linear-gradient(to bottom right, #F2F8F6, #FFEBF5)",
+          backgroundImage: "linear-gradient(to bottom right, #F2F8F6, #E5F0ED)",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Background images - using each octo exactly once */}
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-1.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "20px",
-          }}
-        />
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-2.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "170px",
-          }}
-        />
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-3.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "320px",
-          }}
-        />
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-4.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "470px",
-          }}
-        />
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-5.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "620px",
-          }}
-        />
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-7.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "770px",
-          }}
-        />
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-8.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "920px",
-          }}
-        />
-
-        <img
-          src={`${siteConfig.url}/assets/landing/drawings/OCTO-TRANSPARENT-9.svg`}
-          style={{
-            position: "absolute",
-            width: "120px",
-            bottom: "30px",
-            left: "1070px",
-          }}
-        />
-
         {/* Main content */}
         <div
           style={{
@@ -143,7 +69,7 @@ export default async function Image() {
               fontFamily: "Georgia, serif",
             }}
           >
-            An AI powered Interface in a few lines of code.
+            A react package for adding generative UI to your AI assistant.
           </p>
         </div>
       </div>

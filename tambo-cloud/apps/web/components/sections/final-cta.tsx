@@ -4,28 +4,28 @@ import { Section } from "@/components/section";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { BookOpenIcon, CalendarIcon } from "lucide-react";
+import { BookOpenIcon, PackageIcon } from "lucide-react";
 import Link from "next/link";
 
 const iconMap = {
   BookOpen: BookOpenIcon,
-  Calendar: CalendarIcon,
+  Package: PackageIcon,
 } as const;
 
 // Final CTA content
 const finalCtaContent = {
-  title: "Want to learn more?",
-  description: "Check out our docs or schedule time with us.",
+  title: "Ready to get started?",
+  description: "Ship an ai assistant with generative ui in minutes.",
   buttons: [
     {
-      text: "Docs",
+      text: "Get Started",
       icon: "BookOpen",
       link: "/docs",
     },
     {
-      text: "Meet us",
-      icon: "Calendar",
-      link: "https://cal.com/michaelmagan/chat?duration=30",
+      text: "Components",
+      icon: "Package",
+      link: "https://ui.tambo.co",
     },
   ],
 };
