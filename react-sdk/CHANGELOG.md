@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.38.0](https://github.com/tambo-ai/tambo/compare/react-v0.37.3...react-v0.38.0) (2025-07-14)
+
+
+### Features
+
+* **sdk:** Add TamboPropStreamProvider ([#654](https://github.com/tambo-ai/tambo/issues/654)) ([049dd93](https://github.com/tambo-ai/tambo/commit/049dd93aee4d52a058ccb5a8bdc4c3e5f477b41d))
+* tambo interactable dev-placed components ([#655](https://github.com/tambo-ai/tambo/issues/655)) ([b693818](https://github.com/tambo-ai/tambo/commit/b6938185cdb299425609bda6fefb44f0b2f2f191))
+
 ## [0.37.3](https://github.com/tambo-ai/tambo/compare/react-v0.37.2...react-v0.37.3) (2025-07-10)
 
 
