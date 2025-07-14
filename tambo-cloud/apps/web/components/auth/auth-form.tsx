@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 interface AuthFormProps {
@@ -45,7 +46,7 @@ export function AuthForm({ routeOnSuccess = "/dashboard" }: AuthFormProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[450px] w-full px-4">
+    <div className="flex flex-col items-center justify-center min-h-[450px] w-full px-4 gap-6">
       <Card className="w-full max-w-md mx-auto shadow-lg border-2">
         <CardHeader className="space-y-3 text-center pb-8">
           <div className="space-y-2">
@@ -80,6 +81,33 @@ export function AuthForm({ routeOnSuccess = "/dashboard" }: AuthFormProps) {
           </div>
         </CardContent>
       </Card>
+      <AuthErrorBanner />
     </div>
   );
+}
+
+function AuthErrorBanner() {
+  const searchParams = useSearchParams();
+  if (
+    searchParams.get("error") &&
+    searchParams.get("error_code") &&
+    searchParams.get("error_description")
+  ) {
+    return (
+      <Card className="w-full max-w-md mx-auto border-red-200 bg-red-50">
+        <CardContent className="pt-6">
+          <div className="space-y-2 text-red-800">
+            <p>{searchParams.get("error_description")}</p>
+            <p>
+              <strong>Error Type:</strong> {searchParams.get("error")}
+            </p>
+            <p>
+              <strong>Error Code:</strong> {searchParams.get("error_code")}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  return null;
 }

@@ -10,8 +10,12 @@ import { Button } from "../ui/button";
 
 const ease: Easing = [0.16, 1, 0.3, 1];
 
+// Update this periodically to match the actual number of stars, this is just a
+// fallback when the API hasn't loaded yet.
+const DEFAULT_STARS = 478;
+
 function HeroPill() {
-  const [stars, setStars] = React.useState<number | null>(null);
+  const [stars, setStars] = React.useState<number>(DEFAULT_STARS);
 
   React.useEffect(() => {
     const fetchStars = async () => {
@@ -21,7 +25,7 @@ function HeroPill() {
         setStars(data.stars);
       } catch (error) {
         console.error("Error fetching GitHub stars:", error);
-        setStars(468); // Fallback value
+        setStars(DEFAULT_STARS); // Fallback value
       }
     };
 
@@ -45,7 +49,7 @@ function HeroPill() {
       </span>
       {/* Star count */}
       <span className="font-semibold text-[#5C94F7] group-hover:text-[#4A7BD6] transition-colors">
-        <AnimatedCounter target={stars || 0} />
+        <AnimatedCounter target={stars} />
       </span>
 
       {/* "on GitHub" text */}
