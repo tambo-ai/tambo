@@ -271,3 +271,126 @@ export const getSortDirectionLabel = (
       return direction === "asc" ? "A → Z" : "Z → A";
   }
 };
+
+// Tool Response Formatting Utils -----------------------------------------------
+
+const deepParseJson = (value: any): any => {
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      // If it's an object or array, recursively parse its contents
+      if (typeof parsed === "object" && parsed !== null) {
+        return deepParseJson(parsed);
+      }
+      return parsed;
+    } catch {
+      return value;
+    }
+  } else if (Array.isArray(value)) {
+    return value.map(deepParseJson);
+  } else if (typeof value === "object" && value !== null) {
+    const result: Record<string, any> = {};
+    for (const [key, val] of Object.entries(value)) {
+      result[key] = deepParseJson(val);
+    }
+    return result;
+  }
+  return value;
+};
+
+export const formatToolResponseContent = (content: any): string => {
+  try {
+    // Handle null or undefined content
+    if (content == null) {
+      return "null";
+    }
+
+    // If content is an array (like message.content format)
+    if (Array.isArray(content)) {
+      // Extract text from content parts (similar to extractToolResponse in backend)
+      const textParts = content
+        .filter((part) => part && part.type === "text" && part.text)
+        .map((part) => part.text);
+
+      if (textParts.length === 0) {
+        return "No text content found";
+      }
+
+      const combinedText = textParts.join("");
+      // Recursively process the combined text
+      return formatToolResponseContent(combinedText);
+    }
+
+    // If content is a string
+    if (typeof content === "string") {
+      // Use the same logic as backend's tryParseJson
+      if (!content.startsWith("{") && !content.startsWith("[")) {
+        return content;
+      }
+
+      try {
+        const parsed = JSON.parse(content);
+        const deepParsed = deepParseJson(parsed);
+        return JSON.stringify(deepParsed, null, 2);
+      } catch {
+        // handle escaped characters
+        if (content.includes("\\n") || content.includes('\\"')) {
+          try {
+            const unescaped = content
+              .replaceAll("\\n", "\n")
+              .replaceAll('\\"', '"')
+              .replaceAll("\\\\", "\\");
+
+            const parsed = JSON.parse(unescaped);
+            const deepParsed = deepParseJson(parsed);
+            return JSON.stringify(deepParsed, null, 2);
+          } catch {
+            // Return unescaped version for better readability
+            return content
+              .replaceAll("\\n", "\n")
+              .replaceAll('\\"', '"')
+              .replaceAll("\\\\", "\\");
+          }
+        }
+
+        // Return original content if parsing fails
+        return content;
+      }
+    }
+
+    // If it's already an object, use deepParseJson and stringify
+    const deepParsed = deepParseJson(content);
+    return JSON.stringify(deepParsed, null, 2);
+  } catch (error) {
+    console.error("Error formatting response content:", error);
+    return String(content);
+  }
+};
+
+export const formatToolParameters = (
+  parameters: Array<{ parameterName: string; parameterValue: string }>,
+): string => {
+  if (!parameters || parameters.length === 0) return "{}";
+
+  const paramObj: Record<string, any> = {};
+  parameters.forEach((param) => {
+    try {
+      // Try to parse the parameter value if it's a string
+      if (typeof param.parameterValue === "string") {
+        try {
+          const parsed = JSON.parse(param.parameterValue);
+          // Use deepParseJson to handle nested JSON strings
+          paramObj[param.parameterName] = deepParseJson(parsed);
+        } catch {
+          paramObj[param.parameterName] = param.parameterValue;
+        }
+      } else {
+        paramObj[param.parameterName] = param.parameterValue;
+      }
+    } catch {
+      paramObj[param.parameterName] = param.parameterValue;
+    }
+  });
+
+  return JSON.stringify(paramObj, null, 2);
+};

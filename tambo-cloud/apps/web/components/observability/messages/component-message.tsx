@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Check, ChevronDown, Copy, Monitor } from "lucide-react";
 import { memo, useState } from "react";
 import { formatTime } from "../utils";
+import { HighlightedJson, HighlightText } from "./highlight";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
@@ -13,6 +14,7 @@ interface ComponentMessageProps {
   isHighlighted?: boolean;
   copiedId: string | null;
   onCopyId: (id: string) => void;
+  searchQuery?: string;
 }
 
 export const ComponentMessage = memo(
@@ -21,6 +23,7 @@ export const ComponentMessage = memo(
     isHighlighted = false,
     copiedId,
     onCopyId,
+    searchQuery,
   }: ComponentMessageProps) => {
     const [showProps, setShowProps] = useState(false);
 
@@ -70,7 +73,14 @@ export const ComponentMessage = memo(
                 <Monitor className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="text-xs sm:text-sm font-semibold text-primary">
                   UI Component:{" "}
-                  <span className="font-normal">{componentName}</span>
+                  {searchQuery ? (
+                    <HighlightText
+                      text={componentName}
+                      searchQuery={searchQuery}
+                    />
+                  ) : (
+                    <span className="font-normal">{componentName}</span>
+                  )}
                 </span>
               </div>
 
@@ -117,7 +127,14 @@ export const ComponentMessage = memo(
                 >
                   <div className="p-4 bg-background">
                     <pre className="text-xs font-mono text-primary overflow-auto max-h-96">
-                      <code>{formatPropsValue(componentProps)}</code>
+                      {searchQuery ? (
+                        <HighlightedJson
+                          json={formatPropsValue(componentProps)}
+                          searchQuery={searchQuery}
+                        />
+                      ) : (
+                        formatPropsValue(componentProps)
+                      )}
                     </pre>
                   </div>
                 </motion.div>

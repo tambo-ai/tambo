@@ -10,7 +10,12 @@ import {
   XCircle,
 } from "lucide-react";
 import { memo, useState } from "react";
-import { formatTime } from "../utils";
+import {
+  formatTime,
+  formatToolParameters,
+  formatToolResponseContent,
+} from "../utils";
+import { HighlightedJson, HighlightText } from "./highlight";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
@@ -21,6 +26,7 @@ interface ToolCallMessageProps {
   isHighlighted?: boolean;
   copiedId: string | null;
   onCopyId: (id: string) => void;
+  searchQuery?: string;
 }
 
 export const ToolCallMessage = memo(
@@ -30,6 +36,7 @@ export const ToolCallMessage = memo(
     isHighlighted = false,
     copiedId,
     onCopyId,
+    searchQuery,
   }: ToolCallMessageProps) => {
     const [showArguments, setShowArguments] = useState(false);
     const [showResponse, setShowResponse] = useState(false);
@@ -42,127 +49,6 @@ export const ToolCallMessage = memo(
     const hasToolResponseError =
       toolResponse?.actionType === "tool_response" && toolResponse?.error;
     const hasAnyError = hasToolCallError || hasToolResponseError;
-
-    const deepParseJson = (value: any): any => {
-      if (typeof value === "string") {
-        try {
-          const parsed = JSON.parse(value);
-          // If it's an object or array, recursively parse its contents
-          if (typeof parsed === "object" && parsed !== null) {
-            return deepParseJson(parsed);
-          }
-          return parsed;
-        } catch {
-          return value;
-        }
-      } else if (Array.isArray(value)) {
-        return value.map(deepParseJson);
-      } else if (typeof value === "object" && value !== null) {
-        const result: Record<string, any> = {};
-        for (const [key, val] of Object.entries(value)) {
-          result[key] = deepParseJson(val);
-        }
-        return result;
-      }
-      return value;
-    };
-
-    const formatAllParameters = () => {
-      if (parameters.length === 0) return "{}";
-
-      const paramObj: Record<string, any> = {};
-      parameters.forEach(
-        (param: { parameterName: string; parameterValue: string }) => {
-          try {
-            // Try to parse the parameter value if it's a string
-            if (typeof param.parameterValue === "string") {
-              try {
-                const parsed = JSON.parse(param.parameterValue);
-                // Use deepParseJson to handle nested JSON strings
-                paramObj[param.parameterName] = deepParseJson(parsed);
-              } catch {
-                paramObj[param.parameterName] = param.parameterValue;
-              }
-            } else {
-              paramObj[param.parameterName] = param.parameterValue;
-            }
-          } catch {
-            paramObj[param.parameterName] = param.parameterValue;
-          }
-        },
-      );
-
-      return JSON.stringify(paramObj, null, 2);
-    };
-
-    const formatResponseContent = (content: any) => {
-      try {
-        // Handle null or undefined content
-        if (content == null) {
-          return "null";
-        }
-
-        // If content is an array (like message.content format)
-        if (Array.isArray(content)) {
-          // Extract text from content parts (similar to extractToolResponse in backend)
-          const textParts = content
-            .filter((part) => part && part.type === "text" && part.text)
-            .map((part) => part.text);
-
-          if (textParts.length === 0) {
-            return "No text content found";
-          }
-
-          const combinedText = textParts.join("");
-          // Recursively process the combined text
-          return formatResponseContent(combinedText);
-        }
-
-        // If content is a string
-        if (typeof content === "string") {
-          // Use the same logic as backend's tryParseJson
-          if (!content.startsWith("{") && !content.startsWith("[")) {
-            return content;
-          }
-
-          try {
-            const parsed = JSON.parse(content);
-            const deepParsed = deepParseJson(parsed);
-            return JSON.stringify(deepParsed, null, 2);
-          } catch {
-            // handle escaped characters
-            if (content.includes("\\n") || content.includes('\\"')) {
-              try {
-                const unescaped = content
-                  .replaceAll("\\n", "\n")
-                  .replaceAll('\\"', '"')
-                  .replaceAll("\\\\", "\\");
-
-                const parsed = JSON.parse(unescaped);
-                const deepParsed = deepParseJson(parsed);
-                return JSON.stringify(deepParsed, null, 2);
-              } catch {
-                // Return unescaped version for better readability
-                return content
-                  .replaceAll("\\n", "\n")
-                  .replaceAll('\\"', '"')
-                  .replaceAll("\\\\", "\\");
-              }
-            }
-
-            // Return original content if parsing fails
-            return content;
-          }
-        }
-
-        // If it's already an object, use deepParseJson and stringify
-        const deepParsed = deepParseJson(content);
-        return JSON.stringify(deepParsed, null, 2);
-      } catch (error) {
-        console.error("Error formatting response content:", error);
-        return String(content);
-      }
-    };
 
     return (
       <>
@@ -207,7 +93,12 @@ export const ToolCallMessage = memo(
                     hasAnyError && "text-red-700",
                   )}
                 >
-                  Tool Call: <span className="font-normal">{toolName}</span>
+                  Tool Call:{" "}
+                  {searchQuery ? (
+                    <HighlightText text={toolName} searchQuery={searchQuery} />
+                  ) : (
+                    <span className="font-normal">{toolName}</span>
+                  )}
                 </span>
               </div>
 
@@ -224,11 +115,11 @@ export const ToolCallMessage = memo(
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
-                        onCopyId(formatAllParameters());
+                        onCopyId(formatToolParameters(parameters));
                       }}
                       className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
                     >
-                      {copiedId === formatAllParameters() ? (
+                      {copiedId === formatToolParameters(parameters) ? (
                         <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
                       ) : (
                         <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
@@ -254,7 +145,14 @@ export const ToolCallMessage = memo(
                 >
                   <div className="p-2 sm:p-4 bg-background">
                     <pre className="text-[10px] sm:text-xs font-mono text-primary overflow-auto">
-                      <code>{formatAllParameters()}</code>
+                      {searchQuery ? (
+                        <HighlightedJson
+                          json={formatToolParameters(parameters)}
+                          searchQuery={searchQuery}
+                        />
+                      ) : (
+                        formatToolParameters(parameters)
+                      )}
                     </pre>
                   </div>
                 </motion.div>
@@ -289,12 +187,14 @@ export const ToolCallMessage = memo(
                       <span
                         onClick={(e) => {
                           e.stopPropagation();
-                          onCopyId(formatResponseContent(toolResponse.content));
+                          onCopyId(
+                            formatToolResponseContent(toolResponse.content),
+                          );
                         }}
                         className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
                       >
                         {copiedId ===
-                        formatResponseContent(toolResponse.content) ? (
+                        formatToolResponseContent(toolResponse.content) ? (
                           <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
                         ) : (
                           <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
@@ -321,9 +221,16 @@ export const ToolCallMessage = memo(
                     <div className="p-2 sm:p-4 bg-background max-h-64 sm:max-h-96 overflow-auto">
                       {/* Single unified response content display */}
                       <pre className="text-[10px] sm:text-xs font-mono text-primary whitespace-pre-wrap break-words overflow-auto">
-                        <code>
-                          {formatResponseContent(toolResponse.content)}
-                        </code>
+                        {searchQuery ? (
+                          <HighlightedJson
+                            json={formatToolResponseContent(
+                              toolResponse.content,
+                            )}
+                            searchQuery={searchQuery}
+                          />
+                        ) : (
+                          formatToolResponseContent(toolResponse.content)
+                        )}
                       </pre>
                     </div>
                   </motion.div>

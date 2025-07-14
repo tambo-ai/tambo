@@ -1,4 +1,3 @@
-import { getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -17,6 +16,12 @@ interface ThreadMessagesProps {
   searchQuery?: string;
   messageRefs?: React.MutableRefObject<Record<string, HTMLDivElement>>;
   highlightedMessageId?: string | null;
+  currentMatchMessageId?: string | null;
+  searchMatches?: Array<{
+    messageId: string;
+    messageType: "message" | "tool_call" | "component";
+    contentType: "content" | "toolArgs" | "toolResponse" | "componentProps";
+  }>;
 }
 
 export function ThreadMessages({
@@ -24,6 +29,8 @@ export function ThreadMessages({
   searchQuery,
   messageRefs,
   highlightedMessageId,
+  currentMatchMessageId,
+  searchMatches = [],
 }: Readonly<ThreadMessagesProps>) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -32,6 +39,14 @@ export function ThreadMessages({
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
+
+  // Check if a message has a search match
+  const hasSearchMatch = useCallback(
+    (messageId: string) => {
+      return searchMatches.some((match) => match.messageId === messageId);
+    },
+    [searchMatches],
+  );
 
   // Group messages and extract tool calls with their responses
   const messageGroups = useMemo(() => {
@@ -84,24 +99,13 @@ export function ThreadMessages({
     return groups;
   }, [thread.messages]);
 
-  const filteredGroups = useMemo(() => {
-    if (!searchQuery) return messageGroups;
-
-    const query = searchQuery.toLowerCase().trim();
-    return messageGroups.filter((group) => {
-      const safeContent = getSafeContent(group.message.content as ReactNode);
-      const textContent = typeof safeContent === "string" ? safeContent : "";
-      return textContent.toLowerCase().includes(query);
-    });
-  }, [messageGroups, searchQuery]);
-
-  // Create elements with date separators
+  // highlight matches in messages
   const elementsWithDateSeparators = useMemo(() => {
     const elements: ReactNode[] = [];
 
-    filteredGroups.forEach((group, index) => {
+    messageGroups.forEach((group, index) => {
       const message = group.message;
-      const prevMessage = index > 0 ? filteredGroups[index - 1].message : null;
+      const prevMessage = index > 0 ? messageGroups[index - 1].message : null;
 
       // Add date separator if this is the first message or if the date changed
       if (
@@ -118,6 +122,8 @@ export function ThreadMessages({
 
       const isUserMessage = message.role === "user";
       const isHighlighted = highlightedMessageId === message.id;
+      const isCurrentMatch = currentMatchMessageId === message.id;
+      const hasMatch = hasSearchMatch(message.id);
       const key =
         group.type === "tool_call"
           ? `tool-${message.id}`
@@ -146,7 +152,10 @@ export function ThreadMessages({
               : isUserMessage
                 ? "items-end"
                 : "items-start",
-            highlightedMessageId && "opacity-40 scale-[0.98]",
+            // apply opacity to non-matching messages when searching
+            searchQuery && !hasMatch && "opacity-40",
+            // highlight current match
+            isCurrentMatch && "ring-2 ring-yellow-400 rounded-lg p-2",
           )}
         >
           {group.type === "tool_call" ? (
@@ -156,6 +165,7 @@ export function ThreadMessages({
               isHighlighted={isHighlighted}
               copiedId={copiedId}
               onCopyId={handleCopyId}
+              searchQuery={searchQuery}
             />
           ) : group.type === "component" ? (
             <ComponentMessage
@@ -163,6 +173,7 @@ export function ThreadMessages({
               isHighlighted={isHighlighted}
               copiedId={copiedId}
               onCopyId={handleCopyId}
+              searchQuery={searchQuery}
             />
           ) : (
             <MessageContent
@@ -171,6 +182,7 @@ export function ThreadMessages({
               isHighlighted={isHighlighted}
               copiedId={copiedId}
               onCopyId={handleCopyId}
+              searchQuery={searchQuery}
             />
           )}
         </motion.div>,
@@ -179,11 +191,14 @@ export function ThreadMessages({
 
     return elements;
   }, [
-    filteredGroups,
+    messageGroups,
     highlightedMessageId,
+    currentMatchMessageId,
     messageRefs,
     copiedId,
     handleCopyId,
+    searchQuery,
+    hasSearchMatch,
   ]);
 
   return (
