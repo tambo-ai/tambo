@@ -176,7 +176,9 @@ const Complete: React.FC<CompleteProps> = ({
 export const useTamboStream = () => {
   const context = useContext(TamboPropStreamContext);
   if (!context) {
-    throw new Error("useTamboStream must be used within a TamboStreamProvider");
+    throw new Error(
+      "useTamboStream must be used within a TamboPropStreamProvider",
+    );
   }
   return context;
 };
