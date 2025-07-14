@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 interface ProjectSettingsProps {
@@ -37,6 +38,7 @@ const containerVariants = {
 
 export function ProjectSettings({ projectId }: ProjectSettingsProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState("api-keys");
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
@@ -84,7 +86,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
         title: "Success",
         description: "Project deleted successfully",
       });
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     } catch (_error) {
       toast({
         title: "Error",
