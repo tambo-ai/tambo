@@ -1,5 +1,6 @@
 "use client";
 import React, { PropsWithChildren, createContext, useContext } from "react";
+import { TamboInteractableContext } from "../model/tambo-interactable";
 import {
   TamboClientContextProps,
   TamboClientProvider,
@@ -13,6 +14,10 @@ import {
   useTamboComponent,
 } from "./tambo-component-provider";
 import {
+  TamboInteractableProvider,
+  useTamboInteractable,
+} from "./tambo-interactable-provider";
+import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
@@ -25,7 +30,7 @@ import {
 
 /**
  * The TamboProvider gives full access to the whole Tambo API. This includes the
- * TamboAI client, the component registry, and the current thread context.
+ * TamboAI client, the component registry, the current thread context, and interactable components.
  * @param props - The props for the TamboProvider
  * @param props.children - The children to wrap
  * @param props.tamboUrl - The URL of the Tambo API
@@ -67,16 +72,20 @@ export const TamboProvider: React.FC<
       <TamboRegistryProvider components={components} tools={tools}>
         <TamboThreadProvider streaming={streaming}>
           <TamboComponentProvider>
-            <TamboCompositeProvider>{children}</TamboCompositeProvider>
+            <TamboInteractableProvider>
+              <TamboCompositeProvider>{children}</TamboCompositeProvider>
+            </TamboInteractableProvider>
           </TamboComponentProvider>
         </TamboThreadProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>
   );
 };
+
 export type TamboContextProps = TamboClientContextProps &
   TamboThreadContextProps &
-  TamboComponentContextProps;
+  TamboComponentContextProps &
+  TamboInteractableContext;
 
 export const TamboContext = createContext<TamboContextProps>(
   {} as TamboContextProps,
@@ -84,7 +93,7 @@ export const TamboContext = createContext<TamboContextProps>(
 
 /**
  * TamboCompositeProvider is a provider that combines the TamboClient,
- * TamboThread, and TamboComponent providers
+ * TamboThread, TamboComponent, and TamboInteractable providers
  * @param props - The props for the TamboCompositeProvider
  * @param props.children - The children to wrap
  * @returns The wrapped component
@@ -96,6 +105,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
   const client = useTamboClient();
   const queryClient = useTamboQueryClient();
   const componentRegistry = useTamboComponent();
+  const interactableComponents = useTamboInteractable();
 
   return (
     <TamboContext.Provider
@@ -104,6 +114,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
         queryClient,
         ...componentRegistry,
         ...threads,
+        ...interactableComponents,
       }}
     >
       {children}
@@ -115,7 +126,8 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
  * The useTambo hook provides access to the Tambo API. This is the primary entrypoint
  * for the Tambo React SDK.
  *
- * This includes the TamboAI client, the component registry, and the current thread context.
+ * This includes the TamboAI client, the component registry, the current thread context,
+ * and interactable component management.
  * @returns The Tambo API
  */
 export const useTambo = () => {
