@@ -205,11 +205,6 @@ export const ThreadTable = memo(
                 <span className="text-xs sm:text-sm text-foreground">
                   {startIndex + 1}-{Math.min(endIndex, totalThreads)} of{" "}
                   {totalThreads}
-                  {threads.length >= 10 && (
-                    <span className="text-xs ml-1 hidden sm:inline">
-                      (showing recent)
-                    </span>
-                  )}
                 </span>
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}

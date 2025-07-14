@@ -1,5 +1,5 @@
 import { ActionType, GenerationStage } from "@tambo-ai-cloud/core";
-import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -77,7 +77,13 @@ export async function getThreadsByProject(
     contextKey,
     offset = 0,
     limit = 10,
-  }: { contextKey?: string; offset?: number; limit?: number } = {},
+    includeMessages = true,
+  }: {
+    contextKey?: string;
+    offset?: number;
+    limit?: number;
+    includeMessages?: boolean;
+  } = {},
 ) {
   return await db.query.threads.findMany({
     where: contextKey
@@ -86,9 +92,11 @@ export async function getThreadsByProject(
           eq(schema.threads.contextKey, contextKey),
         )
       : eq(schema.threads.projectId, projectId),
-    with: {
-      messages: true,
-    },
+    with: includeMessages
+      ? {
+          messages: true,
+        }
+      : undefined,
     orderBy: (threads, { desc }) => [desc(threads.createdAt)],
     offset,
     limit,
@@ -310,4 +318,73 @@ export async function updateThreadGenerationStatus(
     .returning();
 
   return updated;
+}
+
+export async function getThreadsByProjectWithCounts(
+  db: HydraDb,
+  projectId: string,
+  {
+    contextKey,
+    offset = 0,
+    limit = 10,
+  }: { contextKey?: string; offset?: number; limit?: number } = {},
+) {
+  // Get threads without messages
+  const threads = await db.query.threads.findMany({
+    where: contextKey
+      ? and(
+          eq(schema.threads.projectId, projectId),
+          eq(schema.threads.contextKey, contextKey),
+        )
+      : eq(schema.threads.projectId, projectId),
+    orderBy: (threads, { desc }) => [desc(threads.createdAt)],
+    offset,
+    limit,
+  });
+
+  if (threads.length === 0) {
+    return [];
+  }
+
+  // Get all counts in a single query using SQL aggregation
+  const threadIds = threads.map((t) => t.id);
+  const counts = await db
+    .select({
+      threadId: schema.messages.threadId,
+      messageCount: count(schema.messages.id).as("messageCount"),
+      errorCount: count(
+        sql`CASE WHEN ${schema.messages.error} IS NOT NULL THEN 1 END`,
+      ).as("errorCount"),
+      toolCount: count(
+        sql`CASE WHEN ${schema.messages.toolCallRequest} IS NOT NULL THEN 1 END`,
+      ).as("toolCount"),
+      componentCount: count(
+        sql`CASE WHEN ${schema.messages.componentDecision}->>'componentName' IS NOT NULL THEN 1 END`,
+      ).as("componentCount"),
+    })
+    .from(schema.messages)
+    .where(inArray(schema.messages.threadId, threadIds))
+    .groupBy(schema.messages.threadId);
+
+  // Create a map for quick lookup
+  const countsMap = new Map(
+    counts.map((c) => [
+      c.threadId,
+      {
+        messageCount: Number(c.messageCount),
+        errorCount: Number(c.errorCount),
+        toolCount: Number(c.toolCount),
+        componentCount: Number(c.componentCount),
+      },
+    ]),
+  );
+
+  // Combine threads with their counts
+  return threads.map((thread) => ({
+    ...thread,
+    messageCount: countsMap.get(thread.id)?.messageCount || 0,
+    errorCount: countsMap.get(thread.id)?.errorCount || 0,
+    toolCount: countsMap.get(thread.id)?.toolCount || 0,
+    componentCount: countsMap.get(thread.id)?.componentCount || 0,
+  }));
 }
