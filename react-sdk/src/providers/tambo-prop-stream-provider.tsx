@@ -35,7 +35,7 @@ export interface TamboPropStreamProviderProps {
 
 export interface LoadingProps {
   /** The key to identify this loading state */
-  key?: string;
+  streamKey?: string;
   /** The children to render when loading */
   children: React.ReactNode;
   /** Optional className for styling */
@@ -44,7 +44,7 @@ export interface LoadingProps {
 
 export interface EmptyProps {
   /** The key to identify this empty state */
-  key?: string;
+  streamKey?: string;
   /** The children to render when empty */
   children: React.ReactNode;
   /** Optional className for styling */
@@ -53,7 +53,7 @@ export interface EmptyProps {
 
 export interface CompleteProps {
   /** The key to identify this complete state */
-  key?: string;
+  streamKey?: string;
   /** The children to render when complete */
   children: React.ReactNode;
   /** Optional className for styling */
@@ -69,12 +69,12 @@ export interface CompleteProps {
  * @returns The Loading component
  */
 const Loading: React.FC<LoadingProps> = ({
-  key = "default",
+  streamKey = "default",
   children,
   className,
 }) => {
   const { getStatusForKey } = useTamboStream();
-  const status = getStatusForKey(key);
+  const status = getStatusForKey(streamKey);
 
   if (!status.isPending && !status.isStreaming) {
     return null;
@@ -83,7 +83,7 @@ const Loading: React.FC<LoadingProps> = ({
   return (
     <div
       className={className}
-      data-stream-key={key}
+      data-stream-key={streamKey}
       data-stream-state="loading"
     >
       {children}
@@ -100,16 +100,18 @@ const Loading: React.FC<LoadingProps> = ({
  * @returns The Empty component
  */
 const Empty: React.FC<EmptyProps> = ({
-  key = "default",
+  streamKey = "default",
   children,
   className,
 }) => {
   const { data, getStatusForKey } = useTamboStream();
-  const status = getStatusForKey(key);
+  const status = getStatusForKey(streamKey);
 
   // Get the specific data for this key
   const keyData =
-    data && typeof data === "object" && !Array.isArray(data) ? data[key] : data;
+    data && typeof data === "object" && !Array.isArray(data)
+      ? data[streamKey]
+      : data;
 
   // Show empty state when not loading, not streaming, not successful, and no data for this key
   const shouldShowEmpty =
@@ -124,7 +126,11 @@ const Empty: React.FC<EmptyProps> = ({
   }
 
   return (
-    <div className={className} data-stream-key={key} data-stream-state="empty">
+    <div
+      className={className}
+      data-stream-key={streamKey}
+      data-stream-state="empty"
+    >
       {children}
     </div>
   );
@@ -139,16 +145,18 @@ const Empty: React.FC<EmptyProps> = ({
  * @returns The Complete component
  */
 const Complete: React.FC<CompleteProps> = ({
-  key = "default",
+  streamKey = "default",
   children,
   className,
 }) => {
   const { data, getStatusForKey } = useTamboStream();
-  const status = getStatusForKey(key);
+  const status = getStatusForKey(streamKey);
 
   // Get the specific data for this key
   const keyData =
-    data && typeof data === "object" && !Array.isArray(data) ? data[key] : data;
+    data && typeof data === "object" && !Array.isArray(data)
+      ? data[streamKey]
+      : data;
 
   // Show complete when we have data for this key and the stream is successful
   const shouldShowComplete =
@@ -161,7 +169,7 @@ const Complete: React.FC<CompleteProps> = ({
   return (
     <div
       className={className}
-      data-stream-key={key}
+      data-stream-key={streamKey}
       data-stream-state="complete"
     >
       {children}
