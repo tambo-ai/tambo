@@ -44,7 +44,7 @@ jobs:
           git push origin deploy
       - name: Notify Slack of Deploy Start
         if: ${{ steps.release.outputs.release_created }}
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           payload: |
             text: ":rocket: Production Deployment Started"
