@@ -393,6 +393,13 @@
       "when": 1752080583274,
       "tag": "0055_redundant_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1752267905374,
+      "tag": "0056_outstanding_sprite",
+      "breakpoints": true
     }
   ]
 }

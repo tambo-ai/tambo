@@ -20,6 +20,7 @@ import {
   gte,
   inArray,
   isNotNull,
+  max,
   sql,
 } from "drizzle-orm";
 import { z } from "zod";
@@ -146,68 +147,116 @@ async function getMultiProjectDailyCounts(
 }
 
 export const projectRouter = createTRPCRouter({
-  getUserProjects: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.user.id;
-    const projects = await operations.getProjectsForUser(ctx.db, userId);
-
-    // ---------------------------------------------------------------------
-    // Batched aggregation for message & user counts (single query)
-    // ---------------------------------------------------------------------
-    const projectIds = projects.map((p) => p.id);
-
-    let aggregatedCounts = new Map<
-      string,
-      { messages: number; users: number }
-    >();
-
-    if (projectIds.length) {
-      const counts = await ctx.db
-        .select({
-          projectId: schema.threads.projectId,
-          messages: count(schema.messages.id),
-          users: countDistinct(schema.threads.contextKey),
+  // ---------------------------------------------------------------------
+  //  Fetch all projects visible to the current user with optional sorting.
+  //  The default sort is by the most recent thread update ("thread_updated").
+  // ---------------------------------------------------------------------
+  getUserProjects: protectedProcedure
+    .input(
+      z
+        .object({
+          sort: z
+            .enum(["thread_updated", "created", "updated"]) // Future-proof
+            .optional(),
         })
-        .from(schema.threads)
-        .innerJoin(
-          schema.messages,
-          eq(schema.messages.threadId, schema.threads.id),
-        )
-        .where(inArray(schema.threads.projectId, projectIds))
-        .groupBy(schema.threads.projectId);
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const sortBy = input?.sort ?? "thread_updated";
+      const userId = ctx.user.id;
+      const projects = await operations.getProjectsForUser(ctx.db, userId);
 
-      aggregatedCounts = new Map(
-        counts.map((c) => [
-          c.projectId,
-          {
-            messages: Number(c.messages ?? 0),
-            users: Number(c.users ?? 0),
-          },
-        ]),
-      );
-    }
+      // ---------------------------------------------------------------------
+      // Batched aggregation for message & user counts (single query)
+      // ---------------------------------------------------------------------
+      const projectIds = projects.map((p) => p.id);
 
-    // Shape final payload using O(1) look-ups
-    return projects.map((project) => {
-      const stats = aggregatedCounts.get(project.id) ?? {
-        messages: 0,
-        users: 0,
-      };
-      return {
-        id: project.id,
-        name: project.name,
-        userId,
-        createdAt: project.createdAt,
-        customInstructions: project.customInstructions,
-        defaultLlmProviderName: project.defaultLlmProviderName,
-        defaultLlmModelName: project.defaultLlmModelName,
-        customLlmModelName: project.customLlmModelName,
-        customLlmBaseURL: project.customLlmBaseURL,
-        maxToolCallLimit: project.maxToolCallLimit,
-        messages: stats.messages,
-        users: stats.users,
-      };
-    });
-  }),
+      let aggregatedCounts = new Map<
+        string,
+        { messages: number; users: number; lastMessageAt: Date | null }
+      >();
+
+      if (projectIds.length) {
+        const counts = await ctx.db
+          .select({
+            projectId: schema.threads.projectId,
+            messages: count(schema.messages.id),
+            users: countDistinct(schema.threads.contextKey),
+            lastMessageAt: max(schema.threads.updatedAt),
+          })
+          .from(schema.threads)
+          .innerJoin(
+            schema.messages,
+            eq(schema.messages.threadId, schema.threads.id),
+          )
+          .where(inArray(schema.threads.projectId, projectIds))
+          .groupBy(schema.threads.projectId);
+
+        aggregatedCounts = new Map(
+          counts.map((c) => [
+            c.projectId,
+            {
+              messages: Number(c.messages ?? 0),
+              users: Number(c.users ?? 0),
+              lastMessageAt: c.lastMessageAt ?? null,
+            },
+          ]),
+        );
+      }
+
+      // Shape final payload using O(1) look-ups
+      const result = projects.map((project) => {
+        const stats = aggregatedCounts.get(project.id) ?? {
+          messages: 0,
+          users: 0,
+          lastMessageAt: null,
+        };
+        return {
+          id: project.id,
+          name: project.name,
+          userId,
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt,
+          customInstructions: project.customInstructions,
+          defaultLlmProviderName: project.defaultLlmProviderName,
+          defaultLlmModelName: project.defaultLlmModelName,
+          customLlmModelName: project.customLlmModelName,
+          customLlmBaseURL: project.customLlmBaseURL,
+          maxToolCallLimit: project.maxToolCallLimit,
+          messages: stats.messages,
+          users: stats.users,
+          lastMessageAt: stats.lastMessageAt,
+        };
+      });
+
+      // ------------------------------------------------------------
+      //  Sorting
+      // ------------------------------------------------------------
+      if (sortBy === "thread_updated") {
+        result.sort((a, b) => {
+          const aTime = a.lastMessageAt
+            ? new Date(a.lastMessageAt).getTime()
+            : 0;
+          const bTime = b.lastMessageAt
+            ? new Date(b.lastMessageAt).getTime()
+            : 0;
+          return bTime - aTime; // Descending
+        });
+      } else if (sortBy === "updated") {
+        result.sort((a, b) => {
+          const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return bTime - aTime;
+        });
+      } else if (sortBy === "created") {
+        result.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+      }
+
+      return result;
+    }),
 
   createProject: protectedProcedure
     .input(z.string())

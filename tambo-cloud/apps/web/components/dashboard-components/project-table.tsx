@@ -25,6 +25,13 @@ export const ProjectTableSchema = z
       .string()
       .datetime()
       .describe("The date and time the project was created."),
+    lastMessageAt: z
+      .string()
+      .datetime()
+      .nullable()
+      .describe(
+        "Timestamp of the most recently updated thread in the project.",
+      ),
   })
   .describe(
     "Defines the structure of a project object, including its ID, name, and creation date.",
@@ -183,6 +190,12 @@ export function ProjectTable({
               >
                 Created
               </TableHead>
+              {/* Last message column - hidden on xs and sm, visible on md and up */}
+              <TableHead
+                className={`${headerClass} px-4 hidden md:table-cell text-foreground`}
+              >
+                Last message
+              </TableHead>
               {/* Messages column - visible in both compact and full modes */}
               <TableHead className={`${headerClass} text-foreground`}>
                 Messages
@@ -203,7 +216,7 @@ export function ProjectTable({
           <TableBody>
             {isLoading ? (
               <TableRow key="loading">
-                <TableCell colSpan={7} className={`text-center ${cellClass}`}>
+                <TableCell colSpan={8} className={`text-center ${cellClass}`}>
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="text-foreground">Loading...</span>
@@ -297,6 +310,25 @@ export function ProjectTable({
                         {formatDate(project.createdAt)}
                       </span>
                     </TableCell>
+                    {/* Last message column */}
+                    <TableCell
+                      className={`${cellClass} px-4 hidden md:table-cell text-sm`}
+                    >
+                      {project.lastMessageAt ? (
+                        <>
+                          {/* Compact date */}
+                          <span className="lg:hidden">
+                            {formatDate(project.lastMessageAt, true)}
+                          </span>
+                          {/* Full date */}
+                          <span className="hidden lg:inline">
+                            {formatDate(project.lastMessageAt)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">N/A</span>
+                      )}
+                    </TableCell>
                     {/* Messages & Users - only visible on large screens */}
                     <TableCell className={`${cellClass} text-sm`}>
                       {project.messages}
@@ -328,7 +360,7 @@ export function ProjectTable({
               })
             ) : (
               <TableRow key="no-projects">
-                <TableCell colSpan={7} className={`text-center ${cellClass}`}>
+                <TableCell colSpan={8} className={`text-center ${cellClass}`}>
                   No projects found.
                 </TableCell>
               </TableRow>

@@ -70,3 +70,21 @@ npm run drizzle:generate -- --schema packages/db/src/schema \
 
 The migrations output directory **must remain exactly**  
 `packages/db/migrations` so that CI can detect and apply new migrations automatically.
+
+---
+
+## 5. Database Schema Guidance
+
+**The project uses [Drizzle ORM](https://orm.drizzle.team/docs/overview) for all database schema definition and migrations.**
+
+- The canonical schema lives at `packages/db/src/schema.ts`.  
+  Any table or column changes **must** be made in this file.
+- Never edit SQL migration files by hand unless absolutely necessary; instead update the TypeScript schema and regenerate migrations with:
+
+  ```bash
+  npm run db:generate   # shorthand for `drizzle-kit generate`
+  ```
+
+- Prisma is **not** used anywhere in this repository—avoid creating `.prisma` files, running Prisma CLI commands, or installing Prisma-related packages.
+
+Following these guidelines keeps the Drizzle schema, generated SQL migrations, and application types in perfect sync.

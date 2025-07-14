@@ -286,7 +286,18 @@ export const threads = pgTable(
       .notNull(),
   }),
   (table) => {
-    return [index("threads_context_key_idx").on(table.contextKey)];
+    return [
+      // Existing index for quick lookup by context key (end-user ID)
+      index("threads_context_key_idx").on(table.contextKey),
+      // New index to accelerate look-ups and sorting by the most recently
+      // updated thread within a project.
+      // The composite index (project_id, updated_at) supports queries where
+      // we aggregate or order threads by their updated timestamp for a given
+      // project (e.g. MAX(updated_at) GROUP BY project_id).
+      index("threads_project_updated_idx").on(table.projectId, table.updatedAt),
+      // Stand-alone index on updated_at to aid generic recency queries.
+      index("threads_updated_at_idx").on(table.updatedAt),
+    ];
   },
 );
 export type DBThread = typeof threads.$inferSelect;
