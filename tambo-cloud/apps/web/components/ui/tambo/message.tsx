@@ -312,7 +312,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col items-start text-xs opacity-50 pt-2",
+          "flex flex-col items-start text-xs opacity-50",
           className,
         )}
         data-slot="toolcall-info"
@@ -495,7 +495,7 @@ const MessageRenderedComponentArea = React.forwardRef<
             </button>
           </div>
         ) : (
-          <div className="w-full pt-4 px-2">{message.renderedComponent}</div>
+          <div className="w-full px-2">{message.renderedComponent}</div>
         ))}
     </div>
   );

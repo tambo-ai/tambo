@@ -129,7 +129,7 @@ const ThreadContentMessages = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex flex-col gap-4", className)}
+      className={cn("flex flex-col", className)}
       data-slot="thread-content-messages"
       {...props}
     >
@@ -168,7 +168,7 @@ const ThreadContentMessages = React.forwardRef<
                   }
                 />
                 <ToolcallInfo />
-                <MessageRenderedComponentArea className="w-full" />
+                <MessageRenderedComponentArea className="w-full pb-4" />
               </div>
             </Message>
           </div>

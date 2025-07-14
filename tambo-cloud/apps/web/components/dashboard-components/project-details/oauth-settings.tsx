@@ -20,7 +20,6 @@ import {
   Building2,
   ChevronDown,
   Database,
-  InfoIcon,
   Loader2,
   Shield,
 } from "lucide-react";
@@ -33,6 +32,17 @@ import {
   SiOkta,
   SiSupabase,
 } from "react-icons/si";
+import { z } from "zod";
+
+export const OAuthSettingsPropsSchema = z.object({
+  project: z
+    .object({
+      id: z.string().describe("The unique identifier for the project."),
+      name: z.string().describe("The name of the project."),
+    })
+    .optional()
+    .describe("The project to configure OAuth validation settings for."),
+});
 
 interface OAuthSettingsProps {
   project?: RouterOutputs["project"]["getUserProjects"][number];
@@ -187,11 +197,10 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           OAuth Token Validation
-          <InfoIcon className="h-4 w-4 text-muted-foreground" />
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-sans text-foreground max-w-md">
           Configure how OAuth bearer tokens are validated for your
           project&apos;s API endpoints.
         </p>
@@ -243,8 +252,8 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
                 className="mt-1"
               />
               <div className="flex-1">
-                <div className="font-medium">None</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="font-medium text-md">None</div>
+                <div className="text-xs text-foreground">
                   Accept tokens as-is without validation. Useful when validation
                   is handled externally.
                 </div>
@@ -262,8 +271,8 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
                 className="mt-1"
               />
               <div className="flex-1">
-                <div className="font-medium">Symmetric Key (HS256)</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="font-medium text-md">Symmetric Key (HS256)</div>
+                <div className="text-xs text-foreground">
                   Validate tokens using a shared secret key. Requires storing
                   the secret key securely.
                 </div>
@@ -306,10 +315,10 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
                 className="mt-1"
               />
               <div className="flex-1">
-                <div className="font-medium">
+                <div className="font-medium text-md">
                   Asymmetric Auto (OpenID Connect)
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs text-foreground">
                   Automatically fetch public keys from the OAuth provider&apos;s
                   OpenID Connect discovery endpoint.
                 </div>
@@ -327,8 +336,8 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
                 className="mt-1"
               />
               <div className="flex-1">
-                <div className="font-medium">Asymmetric Manual</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="font-medium text-md">Asymmetric Manual</div>
+                <div className="text-xs text-foreground">
                   Validate tokens using a manually provided public key (RS256,
                   ES256, etc.).
                 </div>

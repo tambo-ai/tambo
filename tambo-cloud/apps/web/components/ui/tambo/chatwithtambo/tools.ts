@@ -3,7 +3,7 @@
 import { APIKeySchema } from "@/components/dashboard-components/project-details/api-key-list";
 import { ProjectTableSchema } from "@/components/dashboard-components/project-table";
 import { api, useTRPCClient } from "@/trpc/react";
-import { MCPTransport } from "@tambo-ai-cloud/core";
+import { MCPTransport, OAuthValidationMode } from "@tambo-ai-cloud/core";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 import { z } from "zod";
@@ -57,6 +57,7 @@ export const fetchProjectByIdSchema = z
       customLlmModelName: z.string().nullable(),
       customLlmBaseURL: z.string().nullable(),
       maxInputTokens: z.number().nullable(),
+      maxToolCallLimit: z.number(),
     }),
   );
 
@@ -89,6 +90,10 @@ export const updateProjectSchema = z
       maxInputTokens: z
         .number()
         .describe("The new max input tokens for the project"),
+      maxToolCallLimit: z
+        .number()
+        .optional()
+        .describe("The new maximum number of tool calls allowed per response"),
     }),
   )
   .returns(
@@ -103,6 +108,7 @@ export const updateProjectSchema = z
       customLlmModelName: z.string().nullable(),
       customLlmBaseURL: z.string().nullable(),
       maxInputTokens: z.number().nullable(),
+      maxToolCallLimit: z.number(),
     }),
   );
 
@@ -416,6 +422,67 @@ export const getMcpServerToolsSchema = z
     }),
   );
 
+/** oauth validation settings management */
+
+/**
+ * Zod schema for the `fetchOAuthValidationSettings` function.
+ * Defines the argument as a project ID string and the return type as an object containing OAuth validation settings.
+ */
+export const fetchOAuthValidationSettingsSchema = z
+  .function()
+  .args(
+    z
+      .string()
+      .describe("The project ID to fetch OAuth validation settings for"),
+  )
+  .returns(
+    z.object({
+      mode: z
+        .nativeEnum(OAuthValidationMode)
+        .describe("The OAuth validation mode"),
+      publicKey: z
+        .string()
+        .nullable()
+        .describe("The public key for asymmetric validation"),
+      hasSecretKey: z
+        .boolean()
+        .describe("Whether a secret key is stored for symmetric validation"),
+    }),
+  );
+
+/**
+ * Zod schema for the `updateOAuthValidationSettings` function.
+ * Defines arguments as the project ID string and OAuth validation settings object,
+ * and the return type as an object representing the updated OAuth validation settings.
+ */
+export const updateOAuthValidationSettingsSchema = z
+  .function()
+  .args(
+    z.string().describe("The project ID"),
+    z
+      .object({
+        mode: z
+          .nativeEnum(OAuthValidationMode)
+          .describe("The OAuth validation mode"),
+        secretKey: z
+          .string()
+          .optional()
+          .describe("The secret key for symmetric validation"),
+        publicKey: z
+          .string()
+          .optional()
+          .describe("The public key for asymmetric manual validation"),
+      })
+      .describe("The OAuth validation settings to update"),
+  )
+  .returns(
+    z.object({
+      mode: z.nativeEnum(OAuthValidationMode),
+      publicKey: z.string().nullable(),
+      hasSecretKey: z.boolean(),
+    }),
+  );
+
 export function useTamboManagementTools() {
   const { registerTool } = useTambo();
   const trpcClient = useTRPCClient();
@@ -479,6 +546,8 @@ export function useTamboManagementTools() {
      * @param {string} params.defaultLlmModelName - Default LLM model name
      * @param {string} params.customLlmModelName - Custom LLM model name
      * @param {string} params.customLlmBaseURL - Custom LLM base URL
+     * @param {number} params.maxInputTokens - Maximum input tokens for the project
+     * @param {number} params.maxToolCallLimit - Maximum tool calls allowed per response (optional)
      * @returns {Object} Updated project details
      */
     registerTool({
@@ -493,6 +562,7 @@ export function useTamboManagementTools() {
         customLlmModelName: string;
         customLlmBaseURL: string;
         maxInputTokens: number;
+        maxToolCallLimit?: number;
       }) => {
         const result = await trpcClient.project.updateProject.mutate({
           projectId: params.id,
@@ -503,6 +573,9 @@ export function useTamboManagementTools() {
           customLlmModelName: params.customLlmModelName,
           customLlmBaseURL: params.customLlmBaseURL,
           maxInputTokens: params.maxInputTokens,
+          ...(params.maxToolCallLimit !== undefined && {
+            maxToolCallLimit: params.maxToolCallLimit,
+          }),
         });
 
         // Invalidate the project cache to refresh the component
@@ -861,6 +934,64 @@ export function useTamboManagementTools() {
         });
       },
       toolSchema: getMcpServerToolsSchema,
+    });
+
+    /* oauth validation settings management */
+
+    /**
+     * Registers a tool to fetch OAuth validation settings for a project.
+     * Returns the current OAuth validation mode, public key, and secret key status.
+     * @param {string} projectId - The project ID to fetch OAuth validation settings for
+     * @returns {Object} OAuth validation settings including mode, public key, and secret key status
+     */
+    registerTool({
+      name: "fetchOAuthValidationSettings",
+      description: "Fetches OAuth validation settings for a project.",
+      tool: async (projectId: string) => {
+        return await trpcClient.project.getOAuthValidationSettings.query({
+          projectId,
+        });
+      },
+      toolSchema: fetchOAuthValidationSettingsSchema,
+    });
+
+    /**
+     * Registers a tool to update OAuth validation settings for a project.
+     * Updates the OAuth validation mode and associated keys (secret key for symmetric, public key for asymmetric manual).
+     * @param {string} projectId - The project ID to update
+     * @param {Object} settings - OAuth validation settings to update
+     * @param {OAuthValidationMode} settings.mode - The OAuth validation mode
+     * @param {string} settings.secretKey - The secret key for symmetric validation (optional)
+     * @param {string} settings.publicKey - The public key for asymmetric manual validation (optional)
+     * @returns {Object} Updated OAuth validation settings
+     */
+    registerTool({
+      name: "updateOAuthValidationSettings",
+      description: "Updates OAuth validation settings for a project.",
+      tool: async (
+        projectId: string,
+        settings: {
+          mode: OAuthValidationMode;
+          secretKey?: string;
+          publicKey?: string;
+        },
+      ) => {
+        const result =
+          await trpcClient.project.updateOAuthValidationSettings.mutate({
+            projectId: projectId,
+            mode: settings.mode,
+            secretKey: settings.secretKey,
+            publicKey: settings.publicKey,
+          });
+
+        // Invalidate the OAuth settings cache to refresh the component
+        await utils.project.getOAuthValidationSettings.invalidate({
+          projectId,
+        });
+
+        return result;
+      },
+      toolSchema: updateOAuthValidationSettingsSchema,
     });
   }, [registerTool, trpcClient, utils]);
 }

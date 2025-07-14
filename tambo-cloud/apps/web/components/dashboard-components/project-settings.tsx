@@ -339,20 +339,6 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
             <Button
               variant="ghost"
               className={`w-full justify-start gap-2 rounded-full ${
-                activeSection === "oauth-settings"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => {
-                scrollToSection("oauth-settings");
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              User Authentication
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start gap-2 rounded-full ${
                 activeSection === "mcp-servers"
                   ? "bg-accent"
                   : "hover:bg-accent"
@@ -377,6 +363,20 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
               }}
             >
               Tool Call Limit
+            </Button>
+            <Button
+              variant="ghost"
+              className={`w-full justify-start gap-2 rounded-full ${
+                activeSection === "oauth-settings"
+                  ? "bg-accent"
+                  : "hover:bg-accent"
+              }`}
+              onClick={() => {
+                scrollToSection("oauth-settings");
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              User Authentication
             </Button>
           </div>
         )}
