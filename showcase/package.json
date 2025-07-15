@@ -16,7 +16,7 @@
     "@tambo-ai/typescript-sdk": "^0.63.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
-    "framer-motion": "^12.23.0",
+    "framer-motion": "^12.23.5",
     "geist": "^1.4.2",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
