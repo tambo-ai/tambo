@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.83.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.82.0...repo-v0.83.0) (2025-07-14)
+
+
+### Features
+
+* add CLI section to documentation and update files ([#1339](https://github.com/tambo-ai/tambo-cloud/issues/1339)) ([54c2fcb](https://github.com/tambo-ai/tambo-cloud/commit/54c2fcbcdb4a2ce3ff236a91244a2c7048881bb0))
+* add search functionality to observability components with highlighting ([#1341](https://github.com/tambo-ai/tambo-cloud/issues/1341)) ([9a43c8e](https://github.com/tambo-ai/tambo-cloud/commit/9a43c8ec46ba4f95054b7997657ee7b5b9fb9095))
+* In project list, show "Last message" column (TAM-309) ([#1342](https://github.com/tambo-ai/tambo-cloud/issues/1342)) ([6ae0b53](https://github.com/tambo-ai/tambo-cloud/commit/6ae0b5322140ede8996b1f8271e0b0ae191d952b))
+* Integrate langfuse with vercel AI SDK ([#1337](https://github.com/tambo-ai/tambo-cloud/issues/1337)) ([6635066](https://github.com/tambo-ai/tambo-cloud/commit/6635066e3539938c701a3f47b804dfe3514998be))
+* major landing page refresh and fixed many landing page issue. ([9afbdc2](https://github.com/tambo-ai/tambo-cloud/commit/9afbdc22b55bb5f8354fb28171892f212503a3c3))
+
+
+### Bug Fixes
+
+* correct page reference in CLI meta.json from ellipsis to full name ([#1362](https://github.com/tambo-ai/tambo-cloud/issues/1362)) ([5357532](https://github.com/tambo-ai/tambo-cloud/commit/5357532c6631581dc8d7fea4f74cb12f2af43718))
+* replace window.location.href with router.push for navigation in ProjectSettings component ([#1346](https://github.com/tambo-ai/tambo-cloud/issues/1346)) ([e8dad53](https://github.com/tambo-ai/tambo-cloud/commit/e8dad53e5e12b312a7efa9112f226e2591349644))
+* show all threads in thread-table ([#1340](https://github.com/tambo-ai/tambo-cloud/issues/1340)) ([cdb0a16](https://github.com/tambo-ai/tambo-cloud/commit/cdb0a161805f0d2c0414eaf1eea64a6a7f439691))
+* show auth errors on login screen ([#1360](https://github.com/tambo-ai/tambo-cloud/issues/1360)) ([8d0496b](https://github.com/tambo-ai/tambo-cloud/commit/8d0496b58bef9c536c9ea0952ba3ce6972c2cab7))
+
+
+### Documentation
+
+* add example integrations for auth ([#1343](https://github.com/tambo-ai/tambo-cloud/issues/1343)) ([b626251](https://github.com/tambo-ai/tambo-cloud/commit/b626251fd47d603a6dee9f8bd73ac225935f5de5))
+
+
+### Miscellaneous Chores
+
+* add redirect pages for social links and GitHub ([#1344](https://github.com/tambo-ai/tambo-cloud/issues/1344)) ([7deeeb7](https://github.com/tambo-ai/tambo-cloud/commit/7deeeb7f0eedb23519289c28f61861c2535c9ccb))
+* **deps-dev:** bump the eslint group with 2 updates ([#1356](https://github.com/tambo-ai/tambo-cloud/issues/1356)) ([6cfcb05](https://github.com/tambo-ai/tambo-cloud/commit/6cfcb05836b7cae7d0c1c5abc04f3e4f2270677b))
+* **deps:** bump @modelcontextprotocol/sdk from 1.15.0 to 1.15.1 ([#1357](https://github.com/tambo-ai/tambo-cloud/issues/1357)) ([a016023](https://github.com/tambo-ai/tambo-cloud/commit/a01602356b52104c821255456cbcaca7bae4770e))
+* **deps:** bump @splinetool/runtime from 1.10.24 to 1.10.27 ([#1352](https://github.com/tambo-ai/tambo-cloud/issues/1352)) ([9040424](https://github.com/tambo-ai/tambo-cloud/commit/904042456e8dc98f1b2d0d45de22c33156a8bb0c))
+* **deps:** bump @supabase/supabase-js from 2.50.3 to 2.50.5 ([#1348](https://github.com/tambo-ai/tambo-cloud/issues/1348)) ([9dde900](https://github.com/tambo-ai/tambo-cloud/commit/9dde9008ff79bd0d32f61d18b0a34248333637f3))
+* **deps:** bump @tambo-ai/react from 0.37.1 to 0.37.3 ([#1349](https://github.com/tambo-ai/tambo-cloud/issues/1349)) ([364fd92](https://github.com/tambo-ai/tambo-cloud/commit/364fd920b0b9a9dc5fdf215de6860821c1cef0de))
+* **deps:** bump @tanstack/react-query from 5.81.5 to 5.83.0 ([#1351](https://github.com/tambo-ai/tambo-cloud/issues/1351)) ([034c4db](https://github.com/tambo-ai/tambo-cloud/commit/034c4dbcf808e2f9e6a0d8e05de5decf031cb92e))
+* **deps:** bump @vercel/og from 0.7.1 to 0.7.2 ([#1355](https://github.com/tambo-ai/tambo-cloud/issues/1355)) ([8e0c85f](https://github.com/tambo-ai/tambo-cloud/commit/8e0c85f0babe0bf954a83c9c3e4d68f031f5e2c4))
+* **deps:** bump framer-motion from 12.23.0 to 12.23.3 ([#1353](https://github.com/tambo-ai/tambo-cloud/issues/1353)) ([76365b0](https://github.com/tambo-ai/tambo-cloud/commit/76365b0ae37cba304e98215f6bc39f5f7f418cbb))
+* **deps:** bump luxon from 3.6.1 to 3.7.1 ([#1354](https://github.com/tambo-ai/tambo-cloud/issues/1354)) ([3000ffc](https://github.com/tambo-ai/tambo-cloud/commit/3000ffcdbcbb9c5b955b080236ddda1f7cf9c97d))
+* **deps:** bump posthog-js from 1.256.2 to 1.257.0 ([#1350](https://github.com/tambo-ai/tambo-cloud/issues/1350)) ([073a60e](https://github.com/tambo-ai/tambo-cloud/commit/073a60e0b9404c1f3a0a54ba985c644a5a68a166))
+* **deps:** bump slackapi/slack-github-action from 2.1.0 to 2.1.1 ([#1347](https://github.com/tambo-ai/tambo-cloud/issues/1347)) ([326fc73](https://github.com/tambo-ai/tambo-cloud/commit/326fc734b1afbd677a466d9c7f78b56b779b3453))
+* Enhance streaming-props.mdx with pain points, pitfalls, perf metrics, glossary, and edge-case note ([#1305](https://github.com/tambo-ai/tambo-cloud/issues/1305)) ([d61f825](https://github.com/tambo-ai/tambo-cloud/commit/d61f825c45ae00af757f7338e745a33a4a9bceb5))
+* make the exhaustive-deps rule required ([#1361](https://github.com/tambo-ai/tambo-cloud/issues/1361)) ([86166df](https://github.com/tambo-ai/tambo-cloud/commit/86166dfab119a77740973acac3b663e10bf995ac))
+* register and update new components to work with tambo chat ([#1358](https://github.com/tambo-ai/tambo-cloud/issues/1358)) ([d1d5277](https://github.com/tambo-ai/tambo-cloud/commit/d1d52778fef1c4f33984159649844d2d9e5d1990))
+
 ## [0.82.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.81.0...repo-v0.82.0) (2025-07-10)
 
 
