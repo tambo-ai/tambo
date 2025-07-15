@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.84.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.83.0...repo-v0.84.0) (2025-07-15)
+
+
+### Features
+
+* **web:** major landing page overhaul with improved UX and content ([#1345](https://github.com/tambo-ai/tambo-cloud/issues/1345)) ([e74339b](https://github.com/tambo-ai/tambo-cloud/commit/e74339b2143bc8ef6c04dbfe6088e1b83541fd61))
+
+
+### Miscellaneous Chores
+
+* comment out Pricing component in landing page for the time being ([#1365](https://github.com/tambo-ai/tambo-cloud/issues/1365)) ([00b8fd9](https://github.com/tambo-ai/tambo-cloud/commit/00b8fd98dd91e9ad8b9309af59a906cf3c0e61c2))
+
 ## [0.83.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.82.0...repo-v0.83.0) (2025-07-14)
 
 
