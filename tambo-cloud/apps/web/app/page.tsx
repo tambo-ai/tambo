@@ -5,7 +5,6 @@ import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
 import { Hero } from "@/components/sections/hero";
 import { MCP } from "@/components/sections/mcp";
-import { Pricing } from "@/components/sections/pricing";
 import { SocialProof } from "@/components/sections/social-proof";
 
 export default function Home() {
@@ -24,7 +23,7 @@ export default function Home() {
           <Features />
           <MCP />
 
-          <Pricing />
+          {/* <Pricing /> */}
           <FinalCTA />
           <Footer />
         </div>
