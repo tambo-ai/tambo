@@ -23,15 +23,19 @@ export function AnimatedCounter({
   children,
 }: AnimatedCounterProps) {
   const [animatedValue, setAnimatedValue] = React.useState(0);
-  const [isAnimating, setIsAnimating] = React.useState(false);
-  const [hasAnimated, setHasAnimated] = React.useState(false);
+
+  // Use refs to track animation state to avoid dependency issues
+  const isAnimatingRef = React.useRef(false);
+  const hasAnimatedRef = React.useRef(false);
+  const animationFrameIdRef = React.useRef<number | null>(null);
+  const timeoutIdRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
-    if (target > 0 && !isAnimating && !hasAnimated) {
-      setIsAnimating(true);
-      setHasAnimated(true);
+    if (target > 0 && !isAnimatingRef.current && !hasAnimatedRef.current) {
+      isAnimatingRef.current = true;
+      hasAnimatedRef.current = true;
 
-      setTimeout(() => {
+      timeoutIdRef.current = window.setTimeout(() => {
         const startTime = Date.now();
         const startValue = 0;
         const endValue = target;
@@ -49,16 +53,31 @@ export function AnimatedCounter({
           setAnimatedValue(currentValue);
 
           if (progress < 1) {
-            requestAnimationFrame(animate);
+            animationFrameIdRef.current = requestAnimationFrame(animate);
           } else {
-            setIsAnimating(false);
+            isAnimatingRef.current = false;
+            animationFrameIdRef.current = null;
           }
         };
 
-        requestAnimationFrame(animate);
+        animationFrameIdRef.current = requestAnimationFrame(animate);
       }, delay);
     }
-  }, [target, duration, delay, isAnimating, hasAnimated]);
+  }, [target, duration, delay]);
+
+  // Separate cleanup effect that only runs on unmount
+  React.useEffect(() => {
+    return () => {
+      if (animationFrameIdRef.current !== null) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
+      }
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+    };
+  }, []);
 
   const displayValue = formatNumber
     ? animatedValue.toLocaleString()

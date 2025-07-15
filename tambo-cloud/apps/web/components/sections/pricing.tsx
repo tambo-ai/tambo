@@ -7,6 +7,7 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Easing, motion } from "framer-motion";
 import { Check, Github } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Animation configuration
 const ease: Easing = [0.16, 1, 0.3, 1];
@@ -87,13 +88,15 @@ function PricingTier({
   className?: string;
   index?: number;
 }) {
+  const router = useRouter();
+
   const handleClick = () => {
     if (tier.isOpenSource) {
       window.open("https://github.com/tambo-ai", "_blank");
     } else if (tier.isEnterprise) {
       window.open("https://cal.com/michaelmagan/chat?duration=30", "_blank");
     } else {
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     }
   };
 

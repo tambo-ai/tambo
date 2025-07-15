@@ -142,6 +142,7 @@ function ScrollingTweets({ tweets }: { tweets: Tweet[] }) {
     const maxScroll = scrollWidth - clientWidth;
 
     const scrollSpeed = 0.5;
+    let animationId: number;
 
     const scroll = () => {
       if (!isHovered) {
@@ -151,11 +152,12 @@ function ScrollingTweets({ tweets }: { tweets: Tweet[] }) {
         }
         scrollElement.scrollLeft = scrollPositionRef.current;
       }
+      animationId = requestAnimationFrame(scroll);
     };
 
-    const intervalId = setInterval(scroll, 16);
+    animationId = requestAnimationFrame(scroll);
 
-    return () => clearInterval(intervalId);
+    return () => cancelAnimationFrame(animationId);
   }, [isHovered]);
 
   return (
