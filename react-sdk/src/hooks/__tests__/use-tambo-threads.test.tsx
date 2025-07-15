@@ -179,6 +179,7 @@ describe("useTamboThreadList", () => {
         "failureCount": 0,
         "failureReason": null,
         "fetchStatus": "fetching",
+        "isEnabled": true,
         "isError": false,
         "isFetched": false,
         "isFetchedAfterMount": false,
