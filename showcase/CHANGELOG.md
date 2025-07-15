@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.14.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.14.0...showcase-v0.14.1) (2025-07-15)
+
+
+### Bug Fixes
+
+* with correct types, remove cast ([#652](https://github.com/tambo-ai/tambo/issues/652)) ([ccbd42e](https://github.com/tambo-ai/tambo/commit/ccbd42edd850fb79603f6ea26894b8bbc6278c63))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group with 5 updates ([#647](https://github.com/tambo-ai/tambo/issues/647)) ([32077e3](https://github.com/tambo-ai/tambo/commit/32077e36e194d712c7b1c7b8446ddd12aa7d1fe3))
+* **deps:** bump framer-motion from 12.20.1 to 12.23.0 ([#637](https://github.com/tambo-ai/tambo/issues/637)) ([9b28c6b](https://github.com/tambo-ai/tambo/commit/9b28c6b9866eaaa0bc80a535844831e543eab087))
+* **deps:** bump next from 15.3.4 to 15.3.5 ([#635](https://github.com/tambo-ai/tambo/issues/635)) ([63787c6](https://github.com/tambo-ai/tambo/commit/63787c6d582ad399229417d921248415be40b723))
+
 ## [0.14.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.13.0...showcase-v0.14.0) (2025-07-03)
 
 
