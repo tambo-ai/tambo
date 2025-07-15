@@ -65,6 +65,7 @@ export function combineQueryResults<TData1, TData2, TError1, TError2>(
     isPending: resultA.isPending || resultB.isPending,
     isSuccess: resultA.isSuccess && resultB.isSuccess,
     isError: resultA.isError || resultB.isError,
+    isEnabled: resultA.isEnabled && resultB.isEnabled,
     isLoading: resultA.isLoading || resultB.isLoading,
     isFetched: resultA.isFetched && resultB.isFetched,
     isFetchedAfterMount:
