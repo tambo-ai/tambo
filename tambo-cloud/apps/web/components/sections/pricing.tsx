@@ -66,12 +66,12 @@ const pricingData = [
     name: "Open Source",
     subtitle: "Self-host for Free. Forever.",
     price: "Free",
-    features: [],
-    items: [
+    features: [
       "tambo-ai/react package",
       "ui component library",
-      "tambo server (coming soon)",
+      "tambo-ai/server (coming soon)",
     ],
+    items: [],
     cta: "GitHub",
     popular: false,
     isOpenSource: true,
@@ -153,23 +153,59 @@ function PricingTier({
           )}
 
           {tier.isSimplified ? (
-            <div className="flex-grow p-6 pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex-shrink-0">
-                <div className="text-lg font-semibold">{tier.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {tier.subtitle}
+            <div className="flex-grow p-6 pt-5 flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-shrink-0 space-y-2">
+                  <div className="text-lg font-semibold">{tier.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {tier.subtitle}
+                  </div>
+                </div>
+                <div className="flex-shrink-0 sm:self-center">
+                  <Button
+                    size="lg"
+                    onClick={handleClick}
+                    className="bg-muted text-foreground hover:bg-muted/80 w-full sm:w-auto"
+                  >
+                    <Github className="mr-2 size-4" />
+                    {tier.cta}
+                  </Button>
                 </div>
               </div>
-              <div className="flex-shrink-0">
-                <Button
-                  size="lg"
-                  onClick={handleClick}
-                  className="bg-muted text-foreground hover:bg-muted/80 w-full sm:w-auto"
-                >
-                  <Github className="mr-2 size-4" />
-                  {tier.cta}
-                </Button>
-              </div>
+
+              {tier.features.length > 0 && (
+                <div className="border-t pt-4">
+                  <ul className="space-y-2">
+                    {tier.features.map(
+                      (feature: string, featureIndex: number) => {
+                        const hasComingSoon = feature.includes("(coming soon)");
+                        const featureText = hasComingSoon
+                          ? feature.replace(" (coming soon)", "")
+                          : feature;
+
+                        return (
+                          <li key={featureIndex} className="flex items-start">
+                            <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-medium">
+                                {featureText}
+                              </span>
+                              {hasComingSoon && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1"
+                                >
+                                  Coming Soon
+                                </Badge>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      },
+                    )}
+                  </ul>
+                </div>
+              )}
             </div>
           ) : (
             <>
