@@ -1,14 +1,15 @@
 "use client";
 
+import { CreateProjectDialog } from "@/components/dashboard-components/create-project-dialog";
 import { DashboardCard } from "@/components/dashboard-components/dashboard-card";
+import { OnboardingWizard } from "@/components/dashboard-components/onboarding-wizard";
+import { ProjectsManager } from "@/components/dashboard-components/projects-manager";
 import { Icons } from "@/components/icons";
 import { useSession } from "@/hooks/auth";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { CreateProjectDialog } from "../../../components/dashboard-components/create-project-dialog";
-import { ProjectsManager } from "../../../components/dashboard-components/projects-manager";
 
 // Animation variants
 const containerVariants = {
@@ -24,6 +25,7 @@ const containerVariants = {
 
 export default function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [messagesPeriod, setMessagesPeriod] = useState("all time");
   const [usersPeriod, setUsersPeriod] = useState("all time");
   const { toast } = useToast();
@@ -60,10 +62,10 @@ export default function DashboardPage() {
     }
   }, [projectLoadingError, toast]);
 
-  // Open create dialog by default if no projects exist
+  // Open onboarding wizard for new users (no projects), otherwise use regular create dialog
   useEffect(() => {
     if (!isProjectsLoading && projects && projects.length === 0) {
-      setIsCreateDialogOpen(true);
+      setIsOnboardingOpen(true);
     }
   }, [isProjectsLoading, projects]);
 
@@ -85,6 +87,7 @@ export default function DashboardPage() {
       });
       await refetchProjects();
       setIsCreateDialogOpen(false);
+      setIsOnboardingOpen(false);
       toast({
         title: "Success",
         description: "Project created successfully",
@@ -156,6 +159,14 @@ export default function DashboardPage() {
           }}
         />
 
+        {/* Onboarding wizard for new users (no projects) */}
+        <OnboardingWizard
+          open={isOnboardingOpen}
+          onOpenChange={setIsOnboardingOpen}
+          onSubmit={handleCreateProject}
+        />
+
+        {/* Regular create project dialog for existing users */}
         <CreateProjectDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
