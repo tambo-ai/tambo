@@ -2,7 +2,8 @@
   "name": "@tambo-ai-cloud/scripts",
   "private": true,
   "scripts": {
-    "github:stars": "tsx get-github-stars.ts"
+    "github:stars": "tsx get-github-stars.ts",
+    "namecheap:dns": "tsx get-namecheap-dns-records.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
