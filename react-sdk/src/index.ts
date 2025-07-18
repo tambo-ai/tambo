@@ -1,4 +1,5 @@
 /** Exports for the library. Only publically available exports are re-exported here. Anything not exported here is not supported and may change or break at any time. */
+
 export { useTamboComponentState } from "./hooks/use-component-state";
 export {
   TamboMessageProvider,
@@ -18,11 +19,13 @@ export { useTamboThreadInput } from "./hooks/use-thread-input";
 export {
   TamboClientProvider,
   TamboComponentProvider,
+  TamboPropStreamProvider,
   TamboProvider,
   TamboStubProvider,
   TamboThreadProvider,
   useTambo,
   useTamboClient,
+  useTamboStream,
   useTamboThread,
   type TamboComponent,
   type TamboRegistryContext,
