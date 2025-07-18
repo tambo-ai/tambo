@@ -4,7 +4,10 @@ export {
   TamboComponentProvider,
   useTamboComponent,
 } from "./tambo-component-provider";
-export { TamboPropStreamProvider } from "./tambo-prop-stream-provider";
+export {
+  TamboPropStreamProvider,
+  useTamboStream,
+} from "./tambo-prop-stream-provider";
 export { TamboContext, TamboProvider, useTambo } from "./tambo-provider";
 export {
   TamboRegistryProvider,
