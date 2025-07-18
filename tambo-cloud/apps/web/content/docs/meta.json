@@ -1,11 +1,10 @@
 {
   "title": "Documentation",
   "pages": [
-    "---Introduction---",
-    "index",
     "---Getting Started---",
+    "index",
     "...getting-started",
-    "---Core Concepts---",
+    "---Concepts---",
     "...concepts",
     "---Best Practices---",
     "...best-practices",

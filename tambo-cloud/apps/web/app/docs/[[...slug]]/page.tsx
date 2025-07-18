@@ -39,13 +39,15 @@ export default async function Page(props: {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <div className="font-heading">
-        <DocsTitle>{page.data.title}</DocsTitle>
+      <div className="flex flex-col gap-2">
+        <div className="font-heading">
+          <DocsTitle>{page.data.title}</DocsTitle>
+        </div>
+        {page.data.description && (
+          <DocsDescription>{page.data.description}</DocsDescription>
+        )}
       </div>
-      {page.data.description && (
-        <DocsDescription>{page.data.description}</DocsDescription>
-      )}
-      <DocsBody>
+      <DocsBody className="max-w-[1000px]">
         <MDX components={customMdxComponents} />
       </DocsBody>
     </DocsPage>

@@ -1,0 +1,88 @@
+---
+title: What is Tambo?
+description: Understand what Tambo is used for
+---
+
+Tambo is a **React package** for building AI-powered applications. Users interact through natural language and see dynamic React components rendered in response.
+
+## What Tambo Does
+
+- **Generates UI Components**: Renders React components from user messages
+- **Streams Responses**: Real-time streaming for AI-generated content
+- **Manages Conversations**: Stores and manages message history
+- **Integrates Tools**: Connects to external services via tools and MCP
+- **Adapts to Context**: Learns from user behavior for personalized experiences
+
+## Core Components
+
+### 1. `@tambo-ai/react` Package
+
+- **TamboProvider**: Core provider component
+- **Hooks**: For managing threads, messages, and AI interactions
+- **State Management**: Persists user input and component state
+- **Component Registration**: Register custom components with AI
+
+### 2. Tambo API
+
+- **Processes Messages**: Generates AI responses using language models
+- **Manages Threads**: Handles conversation history
+- **Orchestrates Tools**: Coordinates function calls to external services
+- **Supports MCP**: Connects to Model Context Protocol servers
+- **Handles Authentication**: Manages user authentication
+
+### 3. UI Component Library
+
+Pre-built components available via CLI:
+
+- **Message Interfaces**: Chat components (full-screen, collapsible, panel)
+- **Form Components**: AI-powered forms with smart inputs
+- **Visualization Tools**: Graphs and canvas components
+- **Control Elements**: Command palettes and control bars
+
+## Key Features
+
+<Callout type="info" title="Natural Language Interaction">
+  Users interact through conversations. AI handles understanding and context.
+</Callout>
+
+<Callout type="info" title="Fast Integration">
+  Add to existing apps in hours, not weeks. No AI expertise required.
+</Callout>
+
+<Callout type="info" title="Customizable">
+  Control look, feel, and behavior to fit your brand and needs.
+</Callout>
+
+## Use Cases
+
+- **Conversational Analytics**: Ask questions about data in plain language
+- **AI-Powered Forms**: Dynamic forms that adapt to user needs
+- **Intelligent Dashboards**: Respond to natural language queries
+- **Customer Support**: AI-assisted help and guidance
+- **Data Visualization**: Generate charts based on user requests
+- **Workflow Automation**: Guide users through complex processes
+
+## Getting Started
+
+```bash
+# Create new app
+npm create tambo-app@latest my-tambo-app
+
+# Add to existing project
+npx tambo full-send
+```
+
+<Callout type="warn" title="API Key Required">
+  Sign up at [tambo.co](https://tambo.co) to get your API key.
+</Callout>
+
+## Technology Stack
+
+- **Frontend**: React, TypeScript, Tailwind CSS
+- **Backend**: NestJS, TypeScript, PostgreSQL
+- **AI**: Multiple LLM providers (OpenAI, Anthropic, Google)
+- **Database**: PostgreSQL with Drizzle ORM
+
+## Next Steps
+
+Check out our [Quickstart Guide](/docs/getting-started/quickstart) or explore [Core Concepts](/docs/concepts).

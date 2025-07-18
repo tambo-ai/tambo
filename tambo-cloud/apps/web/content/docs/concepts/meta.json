@@ -1,14 +1,12 @@
 {
-  "title": "Core Concepts",
+  "title": "Concepts",
   "pages": [
-    "registering-components",
+    "components",
     "message-threads",
     "tools",
     "model-context-protocol",
     "streaming",
-    "component-state",
     "user-authentication",
-    "streaming-props",
     "suggestions",
     "tracking-progress"
   ]

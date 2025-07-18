@@ -22,7 +22,8 @@
   --fd-input: 240 5.9% 90% !important;
   --fd-ring: 240 10% 3.9% !important;
   --fd-radius: 0.5rem !important;
-
+  --fd-layout-width: 1400px !important;
+  --fd-sidebar-width: 500px !important;
   /* You can add more custom overrides here */
 }
 
