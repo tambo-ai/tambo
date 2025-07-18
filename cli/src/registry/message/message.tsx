@@ -312,13 +312,13 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col items-start text-xs opacity-50 pt-2",
+          "flex flex-col items-start text-xs opacity-50",
           className,
         )}
         data-slot="toolcall-info"
         {...props}
       >
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
           <button
             type="button"
             aria-expanded={isExpanded}
@@ -346,8 +346,8 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-4 overflow-hidden transition-[max-height,opacity] duration-300 w-full",
-              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
+              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
             <span className="whitespace-pre-wrap">
@@ -467,7 +467,7 @@ const MessageRenderedComponentArea = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("pt-2", className)}
+      className={cn(className)}
       data-slot="message-rendered-component-area"
       {...props}
     >
@@ -495,7 +495,7 @@ const MessageRenderedComponentArea = React.forwardRef<
             </button>
           </div>
         ) : (
-          <div className="w-full pt-4 px-2">{message.renderedComponent}</div>
+          <div className="w-full pt-2 px-2">{message.renderedComponent}</div>
         ))}
     </div>
   );
