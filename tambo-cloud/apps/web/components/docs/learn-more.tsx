@@ -17,17 +17,17 @@ export default function LearnMore({
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 p-4 rounded-lg group"
+      className="flex items-center gap-4 rounded-lg group"
       style={{ textDecoration: "none" }}
     >
       <div className="flex-shrink-0">
-        <Icon className="bg-gray-200 w-14 h-14 rounded-md bg-accent p-4" />
+        <Icon className="bg-gray-200 w-12 h-12 rounded-md bg-accent p-4" />
       </div>
       <div>
         <div className="flex items-center gap-2">
           <div className="font-semibold">{title}</div>
           <ChevronRight
-            className="w-6 h-6 text-neutral-400 opacity-0 -translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0"
+            className="w-4 h-4 text-neutral-400 opacity-0 -translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0"
             aria-hidden="true"
           />
         </div>

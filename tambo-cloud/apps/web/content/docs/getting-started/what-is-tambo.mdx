@@ -1,88 +1,66 @@
 ---
 title: What is Tambo?
-description: Understand what Tambo is used for
+description: Understand what Tambo is used for.
 ---
 
-Tambo is a **React package** for building AI-powered applications. Users interact through natural language and see dynamic React components rendered in response.
+import LearnMore from "@/components/docs/learn-more";
 
-## What Tambo Does
+Tambo is a **React package** for building AI-powered applications with generative UI, where users interact through natural language.
 
-- **Generates UI Components**: Renders React components from user messages
-- **Streams Responses**: Real-time streaming for AI-generated content
-- **Manages Conversations**: Stores and manages message history
-- **Integrates Tools**: Connects to external services via tools and MCP
-- **Adapts to Context**: Learns from user behavior for personalized experiences
+Use Tambo to build AI chats, copilots, or completely custom AI interactions.
 
-## Core Components
+## Core Elements
 
-### 1. `@tambo-ai/react` Package
+### React package `@tambo-ai/react`
 
-- **TamboProvider**: Core provider component
-- **Hooks**: For managing threads, messages, and AI interactions
-- **State Management**: Persists user input and component state
-- **Component Registration**: Register custom components with AI
+The react package provides hooks that help you build the list of components and tools Tambo can use, send user messages to the Tambo API, and interact with responses and message threads.
 
-### 2. Tambo API
+Wrap your app with the `<TamboProvider/>` and use the hooks within your components to send messages and show responses.
 
-- **Processes Messages**: Generates AI responses using language models
-- **Manages Threads**: Handles conversation history
-- **Orchestrates Tools**: Coordinates function calls to external services
-- **Supports MCP**: Connects to Model Context Protocol servers
-- **Handles Authentication**: Manages user authentication
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
 
-### 3. UI Component Library
-
-Pre-built components available via CLI:
-
-- **Message Interfaces**: Chat components (full-screen, collapsible, panel)
-- **Form Components**: AI-powered forms with smart inputs
-- **Visualization Tools**: Graphs and canvas components
-- **Control Elements**: Command palettes and control bars
-
-## Key Features
-
-<Callout type="info" title="Natural Language Interaction">
-  Users interact through conversations. AI handles understanding and context.
-</Callout>
-
-<Callout type="info" title="Fast Integration">
-  Add to existing apps in hours, not weeks. No AI expertise required.
-</Callout>
-
-<Callout type="info" title="Customizable">
-  Control look, feel, and behavior to fit your brand and needs.
-</Callout>
-
-## Use Cases
-
-- **Conversational Analytics**: Ask questions about data in plain language
-- **AI-Powered Forms**: Dynamic forms that adapt to user needs
-- **Intelligent Dashboards**: Respond to natural language queries
-- **Customer Support**: AI-assisted help and guidance
-- **Data Visualization**: Generate charts based on user requests
-- **Workflow Automation**: Guide users through complex processes
-
-## Getting Started
-
-```bash
-# Create new app
-npm create tambo-app@latest my-tambo-app
-
-# Add to existing project
-npx tambo full-send
+export function Home() {
+  return (
+    <TamboProvider
+      components={myTamboComponents}
+      tools={myTamboTools}
+      apiKey={tamboApiKey}
+    >
+      <MyAiApp />
+    </TamboProvider>
+  );
+}
 ```
 
-<Callout type="warn" title="API Key Required">
-  Sign up at [tambo.co](https://tambo.co) to get your API key.
-</Callout>
+<LearnMore
+  title="Package usage concepts"
+  description="Learn how to use the hooks to build AI interactions"
+  href="/docs/concepts/components/"
+/>
 
-## Technology Stack
+### Tambo API
 
-- **Frontend**: React, TypeScript, Tailwind CSS
-- **Backend**: NestJS, TypeScript, PostgreSQL
-- **AI**: Multiple LLM providers (OpenAI, Anthropic, Google)
-- **Database**: PostgreSQL with Drizzle ORM
+The API processes user messages, interacts with LLMs to generate AI responses, manages conversation threads, orchestrates tool calls, and handles user authentication.
 
-## Next Steps
+import { MessageCircleMore } from "lucide-react";
 
-Check out our [Quickstart Guide](/docs/getting-started/quickstart) or explore [Core Concepts](/docs/concepts).
+<LearnMore
+  title="Send messages"
+  description="Learn how to send user messages to the API and handle responses"
+  href="/docs/concepts/message-threads"
+  icon={MessageCircleMore}
+/>
+
+### UI Component Library
+
+The component library provides pre-built React components with Tambo integrated for common AI application interfaces like chat, AI-powered forms, and visualizations. Use these to speed up your AI application building.
+
+import { Box } from "lucide-react";
+
+<LearnMore
+  title="Component Library"
+  description="See the list of pre-built UI components"
+  href="https://ui.tambo.co"
+  icon={Box}
+/>
