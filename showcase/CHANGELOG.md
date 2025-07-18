@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.14.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.14.1...showcase-v0.14.2) (2025-07-18)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#672](https://github.com/tambo-ai/tambo/issues/672)) ([28a6d93](https://github.com/tambo-ai/tambo/commit/28a6d93a686eebf8e102f74ddf989a8627d98e53))
+* **deps:** bump framer-motion from 12.23.0 to 12.23.5 ([#662](https://github.com/tambo-ai/tambo/issues/662)) ([76ef846](https://github.com/tambo-ai/tambo/commit/76ef846ab6e7384c4ad55c1b2ee988a0680c2c33))
+* **deps:** bump next from 15.3.5 to 15.4.1 ([#665](https://github.com/tambo-ai/tambo/issues/665)) ([649eb97](https://github.com/tambo-ai/tambo/commit/649eb9780612e59c9217de5d07894ec130994d4f))
+
 ## [0.14.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.14.0...showcase-v0.14.1) (2025-07-15)
 
 
