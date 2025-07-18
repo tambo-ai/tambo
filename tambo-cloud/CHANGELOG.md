@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.85.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.84.0...repo-v0.85.0) (2025-07-17)
+
+
+### Features
+
+* **dashboard:** implement onboarding wizard for new users and refactor project creation dialog ([#1373](https://github.com/tambo-ai/tambo-cloud/issues/1373)) ([b3707e3](https://github.com/tambo-ai/tambo-cloud/commit/b3707e39cdfbc725130bcdcbcd04380a3161781f))
+* **script:** Add script for fetching Namecheap DNS records ([#1359](https://github.com/tambo-ai/tambo-cloud/issues/1359)) ([fea8827](https://github.com/tambo-ai/tambo-cloud/commit/fea88277a39d242b5eab491ec10ce268e847b247))
+
+
+### Miscellaneous Chores
+
+* add Pricing component in landing page ([#1366](https://github.com/tambo-ai/tambo-cloud/issues/1366)) ([dca394a](https://github.com/tambo-ai/tambo-cloud/commit/dca394aa63030e62882e8af2fe0882c14cceef22))
+
 ## [0.84.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.83.0...repo-v0.84.0) (2025-07-15)
 
 
