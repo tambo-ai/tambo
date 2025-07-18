@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.38.1](https://github.com/tambo-ai/tambo/compare/react-v0.38.0...react-v0.38.1) (2025-07-18)
+
+
+### Bug Fixes
+
+* update exports for tambo stream provider ([#677](https://github.com/tambo-ai/tambo/issues/677)) ([0fe1e80](https://github.com/tambo-ai/tambo/commit/0fe1e8087ec1b8bb87185816e7747f583f7e86d2))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump jest-environment-jsdom from 30.0.2 to 30.0.4 ([#636](https://github.com/tambo-ai/tambo/issues/636)) ([896add9](https://github.com/tambo-ai/tambo/commit/896add99bfd89d8a6b08e5064868f525fce2e9bc))
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#672](https://github.com/tambo-ai/tambo/issues/672)) ([28a6d93](https://github.com/tambo-ai/tambo/commit/28a6d93a686eebf8e102f74ddf989a8627d98e53))
+* **deps:** bump @modelcontextprotocol/sdk from 1.15.0 to 1.15.1 ([#661](https://github.com/tambo-ai/tambo/issues/661)) ([3ad2102](https://github.com/tambo-ai/tambo/commit/3ad21028e2accbe075e93fff501b620ae5cc24ed))
+* **deps:** bump @tanstack/react-query from 5.81.5 to 5.83.0 ([#663](https://github.com/tambo-ai/tambo/issues/663)) ([96d98bf](https://github.com/tambo-ai/tambo/commit/96d98bfa41c56fefa8df27d099e8dfad0f8fe7b1))
+
 ## [0.38.0](https://github.com/tambo-ai/tambo/compare/react-v0.37.3...react-v0.38.0) (2025-07-14)
 
 
