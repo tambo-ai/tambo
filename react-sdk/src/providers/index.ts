@@ -8,6 +8,12 @@ export {
   TamboPropStreamProvider,
   useTamboStream,
 } from "./tambo-prop-stream-provider";
+export type {
+  TamboPropStreamProviderProps,
+  LoadingProps,
+  EmptyProps,
+  CompleteProps,
+} from "./tambo-prop-stream-provider";
 export { TamboContext, TamboProvider, useTambo } from "./tambo-provider";
 export {
   TamboRegistryProvider,
