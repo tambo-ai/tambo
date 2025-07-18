@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.6...create-tambo-app-v0.1.7) (2025-07-18)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#672](https://github.com/tambo-ai/tambo/issues/672)) ([28a6d93](https://github.com/tambo-ai/tambo/commit/28a6d93a686eebf8e102f74ddf989a8627d98e53))
+
 ## [0.1.6](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.5...create-tambo-app-v0.1.6) (2025-07-15)
 
 
