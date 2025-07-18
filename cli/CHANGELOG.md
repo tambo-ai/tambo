@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.22.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.22.0...tambo-v0.22.1) (2025-07-18)
+
+
+### Miscellaneous
+
+* **deps:** bump dotenv from 17.0.1 to 17.2.0 ([#660](https://github.com/tambo-ai/tambo/issues/660)) ([4dc5e6f](https://github.com/tambo-ai/tambo/commit/4dc5e6f6e3b697e87b857569799aac3662556dd2))
+* **deps:** bump open from 10.1.2 to 10.2.0 ([#667](https://github.com/tambo-ai/tambo/issues/667)) ([867f425](https://github.com/tambo-ai/tambo/commit/867f425cee3ac9c48c3fe9187976123896e4e132))
+
+
+### Code Refactoring
+
+* **UI:** adjust padding and gap in message and thread content components ([#676](https://github.com/tambo-ai/tambo/issues/676)) ([b10fb04](https://github.com/tambo-ai/tambo/commit/b10fb049218b4604382992de84d265bab9ca9868))
+
 ## [0.22.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.1...tambo-v0.22.0) (2025-07-15)
 
 
