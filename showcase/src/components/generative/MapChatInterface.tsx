@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import dynamic from "next/dynamic";
 
 const MapWithNoSSR = dynamic(
-  async () => await import("../ui/map").then((mod) => mod.Map),
+  async () => await import("../ui/map").then((mod) => mod.MapComponent),
   {
     ssr: false,
   },

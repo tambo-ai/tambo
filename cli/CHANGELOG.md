@@ -2,45 +2,38 @@
 
 ## [0.22.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.1...tambo-v0.22.0) (2025-07-15)
 
-
 ### Features
 
-* implement Tailwind CSS v3 and v4 support in CLI ([#653](https://github.com/tambo-ai/tambo/issues/653)) ([52664bc](https://github.com/tambo-ai/tambo/commit/52664bcda72fae2c16b9cc63c2d31b6bbf8bf072))
-
+- implement Tailwind CSS v3 and v4 support in CLI ([#653](https://github.com/tambo-ai/tambo/issues/653)) ([52664bc](https://github.com/tambo-ai/tambo/commit/52664bcda72fae2c16b9cc63c2d31b6bbf8bf072))
 
 ### Bug Fixes
 
-* with correct types, remove cast ([#652](https://github.com/tambo-ai/tambo/issues/652)) ([ccbd42e](https://github.com/tambo-ai/tambo/commit/ccbd42edd850fb79603f6ea26894b8bbc6278c63))
-
+- with correct types, remove cast ([#652](https://github.com/tambo-ai/tambo/issues/652)) ([ccbd42e](https://github.com/tambo-ai/tambo/commit/ccbd42edd850fb79603f6ea26894b8bbc6278c63))
 
 ### Miscellaneous
 
-* **deps:** bump dotenv from 17.0.0 to 17.0.1 ([#639](https://github.com/tambo-ai/tambo/issues/639)) ([81afd5f](https://github.com/tambo-ai/tambo/commit/81afd5ff8f24bff859fd80dc48b0c543b0d95efc))
+- **deps:** bump dotenv from 17.0.0 to 17.0.1 ([#639](https://github.com/tambo-ai/tambo/issues/639)) ([81afd5f](https://github.com/tambo-ai/tambo/commit/81afd5ff8f24bff859fd80dc48b0c543b0d95efc))
 
 ## [0.21.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.0...tambo-v0.21.1) (2025-07-05)
 
-
 ### Bug Fixes
 
-* update tool result scrolling ([#633](https://github.com/tambo-ai/tambo/issues/633)) ([941e456](https://github.com/tambo-ai/tambo/commit/941e4568c06a7596a1d2094c5078b89f70c0000a))
+- update tool result scrolling ([#633](https://github.com/tambo-ai/tambo/issues/633)) ([941e456](https://github.com/tambo-ai/tambo/commit/941e4568c06a7596a1d2094c5078b89f70c0000a))
 
 ## [0.21.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.20.0...tambo-v0.21.0) (2025-07-03)
 
-
 ### Features
 
-* support accessToken ([#624](https://github.com/tambo-ai/tambo/issues/624)) ([2134cdc](https://github.com/tambo-ai/tambo/commit/2134cdc3c26aa319d5f77bec6dd779564284edfe))
-
+- support accessToken ([#624](https://github.com/tambo-ai/tambo/issues/624)) ([2134cdc](https://github.com/tambo-ai/tambo/commit/2134cdc3c26aa319d5f77bec6dd779564284edfe))
 
 ### Bug Fixes
 
-* showcase thread renaming and component variants ([#631](https://github.com/tambo-ai/tambo/issues/631)) ([cf3638e](https://github.com/tambo-ai/tambo/commit/cf3638e848afdb9a37e068f46c877a12900c716f))
-
+- showcase thread renaming and component variants ([#631](https://github.com/tambo-ai/tambo/issues/631)) ([cf3638e](https://github.com/tambo-ai/tambo/commit/cf3638e848afdb9a37e068f46c877a12900c716f))
 
 ### Miscellaneous
 
-* update CLI init command with showcase link and add control bar to showcase ([#630](https://github.com/tambo-ai/tambo/issues/630)) ([63a381c](https://github.com/tambo-ai/tambo/commit/63a381cc9dbd9f5ba445012b71e8653c9e3d4bff))
-* update CLI with the new feedback ([#615](https://github.com/tambo-ai/tambo/issues/615)) ([66fd8d0](https://github.com/tambo-ai/tambo/commit/66fd8d0c968bb27249362d48f08bfd42047d8701))
+- update CLI init command with showcase link and add control bar to showcase ([#630](https://github.com/tambo-ai/tambo/issues/630)) ([63a381c](https://github.com/tambo-ai/tambo/commit/63a381cc9dbd9f5ba445012b71e8653c9e3d4bff))
+- update CLI with the new feedback ([#615](https://github.com/tambo-ai/tambo/issues/615)) ([66fd8d0](https://github.com/tambo-ai/tambo/commit/66fd8d0c968bb27249362d48f08bfd42047d8701))
 
 ## [0.20.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.19.0...tambo-v0.20.0) (2025-07-02)
 
