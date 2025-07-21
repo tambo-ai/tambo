@@ -35,7 +35,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
     "@rehype-pretty/transformers": "^0.13.2",
-    "@splinetool/react-spline": "^4.0.0",
+    "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.10.33",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.51.0",
