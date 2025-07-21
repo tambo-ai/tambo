@@ -1,5 +1,4 @@
 import { source } from "@/lib/source";
-import { cn } from "@/lib/utils";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import {
   DocsBody,
@@ -16,16 +15,6 @@ import { notFound } from "next/navigation";
 // Custom MDX components with heading font
 const customMdxComponents = {
   ...defaultMdxComponents,
-  // Use a single function to handle all heading levels
-  h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 {...props} className={cn("font-heading", className)} />
-  ),
-  h2: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 {...props} className={cn("font-heading", className)} />
-  ),
-  h3: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 {...props} className={cn("font-heading", className)} />
-  ),
 };
 
 export default async function Page(props: {
@@ -40,15 +29,15 @@ export default async function Page(props: {
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <div className="flex flex-col gap-2 p-4 md:p-10">
-        <div className="flex flex-col gap-2">
-          <div className="font-heading">
+        <div className="flex flex-col">
+          <div className="fd-prose">
             <DocsTitle>{page.data.title}</DocsTitle>
           </div>
           {page.data.description && (
             <DocsDescription>{page.data.description}</DocsDescription>
           )}
         </div>
-        <DocsBody className="max-w-[1000px]">
+        <DocsBody className="max-w-[1000px] fd-prose">
           <MDX components={customMdxComponents} />
         </DocsBody>
       </div>

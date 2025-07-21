@@ -1,74 +1,77 @@
 ---
-title: Add React Components to Your AI Assistant
-description: Learn how to use Tambo to build AI applications with React UI components that render in response to natural language.
+title: What is Tambo?
+description: Understand what Tambo is used for.
+icon: GraduationCap
 ---
 
-A batteries-included React package for AI apps. Tambo is a React library for
-integrating AI chat or other AI features directly into your application.
+import LearnMore from "@/components/docs/learn-more";
 
-With Tambo you can add a chat interface to your application that includes React
-components in addition to standard text.
+Tambo is a **React package** for building AI-powered applications with generative UI, where users interact through natural language.
 
-### Key Features
+Use Tambo to build AI chats, copilots, or completely custom AI interactions.
+
+## Core Elements
+
+### React package `@tambo-ai/react`
+
+The react package provides hooks that help you build the list of components and tools Tambo can use, send user messages to the Tambo API, and interact with responses and message threads.
+
+Wrap your app with the `<TamboProvider/>` and use the hooks within your components to send messages and show responses.
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+export function Home() {
+  return (
+    <TamboProvider
+      components={myTamboComponents}
+      tools={myTamboTools}
+      apiKey={tamboApiKey}
+    >
+      <MyAiApp />
+    </TamboProvider>
+  );
+}
+```
+
+<LearnMore
+  title="Package usage concepts"
+  description="Learn how to use the hooks to build AI interactions"
+  href="/docs/concepts/components/"
+/>
+
+### Tambo API
+
+The API processes user messages, interacts with LLMs to generate AI responses, manages conversation threads, orchestrates tool calls, and handles user authentication.
+
+import { MessageCircleMore } from "lucide-react";
+
+<LearnMore
+  title="Send messages"
+  description="Learn how to send user messages to the API and handle responses"
+  href="/docs/concepts/message-threads"
+  icon={MessageCircleMore}
+/>
+
+### UI Component Library
+
+The component library provides pre-built React components with Tambo integrated for common AI application interfaces like chat, AI-powered forms, and visualizations. Use these to speed up your AI application building.
+
+import { Box } from "lucide-react";
+
+<LearnMore
+  title="Component Library"
+  description="See the list of pre-built UI components"
+  href="https://ui.tambo.co"
+  icon={Box}
+/>
+
+## Key Features
 
 - **Generative UI Components** - Render dynamic React components in response to user messages
 - **Streaming Support** - Real-time streaming for all AI-generated content with UX-enhancing hooks
 - **Message History** - Automatic conversation storage and management
 - **State Management** - AI-integrated state hooks to persist user input and component state
 - **Suggested Actions** - Guide users through your app's functionality
-- **Decision Loop** - Streamlined AI orchestration
-- **Component Library** - Ready-to-use components available via CLI
-
-import { Card, Cards } from "fumadocs-ui/components/card";
-
-## Getting Started
-
-<Cards>
-  <Card
-    href="/docs/getting-started/quickstart#template"
-    title="Template Project"
-  >
-    Get started quickly with our pre-configured template project.
-  </Card>
-  <Card
-    href="/docs/getting-started/quickstart#existing-app"
-    title="Add to Existing App"
-  >
-    Integrate Tambo into your existing Next.js application.
-  </Card>
-</Cards>
-
-## Core Concepts
-
-<Cards>
-  <Card
-    href="/docs/concepts/registering-components"
-    title="Registering Components"
-  >
-    Learn how to register custom UI components.
-  </Card>
-  <Card href="/docs/concepts/message-threads" title="Message Threads">
-    Understand message threading for conversations.
-  </Card>
-  <Card href="/docs/concepts/tools" title="Tools">
-    Integrate external tools with your AI interface.
-  </Card>
-  <Card href="/docs/concepts/streaming" title="Streaming">
-    Implement real-time response streaming.
-  </Card>
-  <Card href="/docs/concepts/suggestions" title="Suggestions">
-    Add intelligent next-action suggestions.
-  </Card>
-  <Card href="/docs/concepts/component-state" title="Component State">
-    Manage state in generative UI components.
-  </Card>
-  <Card href="/docs/concepts/generation-stage" title="Generation Stage">
-    Control multi-stage generation processes.
-  </Card>
-  <Card
-    href="/docs/best-practices/component-data-props"
-    title="Component Data Props"
-  >
-    Ways to improve the user experience of your generative UI components.
-  </Card>
-</Cards>
+- **Tool calling loop** - Tambo will automatically orchestrate tool calls during response generation
+- **Component Library** - Ready-to-use components integrated with Tambo installable via CLI
