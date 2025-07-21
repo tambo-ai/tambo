@@ -1,10 +1,18 @@
 "use client";
 
-import { Map } from "@/components/ui/map";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
+
+import dynamic from "next/dynamic";
+
+const MapWithNoSSR = dynamic(
+  async () => await import("../ui/map").then((mod) => mod.Map),
+  {
+    ssr: false,
+  },
+);
 
 export const MapChatInterface = () => {
   const userContextKey = useUserContextKey("map-thread");
@@ -13,41 +21,29 @@ export const MapChatInterface = () => {
   useEffect(() => {
     registerComponent({
       name: "Map",
-      description: `An interactive map component powered by Leaflet that displays geographical data with markers and pan/zoom functionality.
+      description: `Interactive map for visualizing geographic data with markers, clustering, and optional heatmap overlays. Ideal for dashboards, store locators, event maps, and spatial analytics.
 
-      Perfect for visualizing location-based data, creating geographical dashboards, showing points of interest, and displaying spatial information.
+Features:
+- Pan/zoom controls
+- Custom markers with tooltips
+- Marker clustering for large datasets
+- Optional heatmap for density visualization
+- Responsive and mobile-friendly
 
-      Features:
-      - Interactive pan and zoom controls
-      - Custom markers with labels and coordinates
-      - Hover tooltips with detailed information
-      - Responsive design that works on all devices
-      - OpenStreetMap tiles for global coverage
-      - Real-time marker updates during generation
-      - Clustering support for large datasets
-      - Optional heat map data visualization
+Props:
+- center: { lat, lng } (required)
+- markers: Array<{ lat, lng, label, id? }> (required)
+- zoom: number (1-20, default 10)
+- heatData: Array<{ lat, lng, intensity? }> (optional)
 
-      IMPORTANT: All coordinates must be valid:
-      - Latitude: -90 to 90 degrees
-      - Longitude: -180 to 180 degrees
-      - Each marker requires: lat, lng, and label
+Best practices:
+- Use valid coordinates (lat: -90 to 90, lng: -180 to 180)
+- Provide clear labels for markers
+- Choose zoom level appropriate for your data
 
-      Use cases:
-      - Store locator maps
-      - Real estate listings
-      - Event locations
-      - Travel itineraries
-      - Data visualization dashboards
-      - Geographic analysis
-      - Business analytics
-      - Customer location tracking
-
-      Best practices:
-      1. Always provide valid latitude/longitude coordinates
-      2. Use descriptive labels for markers
-      3. Choose appropriate zoom levels (1-20)
-      5. Group nearby markers logically`,
-      component: Map,
+Example use cases: store locations, real estate, events, analytics, travel, business intelligence.
+`,
+      component: MapWithNoSSR,
       propsDefinition: {
         type: "object",
         properties: {
@@ -139,7 +135,34 @@ export const MapChatInterface = () => {
           },
           className: {
             type: "string",
-            description: "Additional CSS classes for custom styling",
+            description:
+              "Additional Tailwind CSS classes for styling the map container",
+          },
+          size: {
+            type: "string",
+            enum: ["sm", "md", "lg", "full"],
+            description: "Map height/size variant (sm, md, lg, full)",
+            default: "md",
+          },
+          theme: {
+            type: "string",
+            enum: [
+              "default",
+              "dark",
+              "light",
+              "satellite",
+              "bordered",
+              "shadow",
+            ],
+            description:
+              "Map theme variant (default, dark, light, satellite, bordered, shadow)",
+            default: "default",
+          },
+          rounded: {
+            type: "string",
+            enum: ["none", "sm", "md", "full"],
+            description: "Map border radius variant (none, sm, md, full)",
+            default: "md",
           },
         },
         required: ["center", "markers"],
@@ -280,6 +303,55 @@ export const MapChatInterface = () => {
               { lat: 40.726, lng: -74.0047, intensity: 0.6 },
               { lat: 40.7061, lng: -74.0087, intensity: 0.4 },
             ],
+          },
+          {
+            description: "Custom Styled Map - Tailwind CSS classes applied",
+            center: { lat: 40.7128, lng: -74.006 },
+            zoom: 12,
+            markers: [
+              { lat: 40.7128, lng: -74.006, label: "New York City", id: "nyc" },
+              {
+                lat: 40.7589,
+                lng: -73.9851,
+                label: "Times Square",
+                id: "times-square",
+              },
+              {
+                lat: 40.7505,
+                lng: -73.9934,
+                label: "Empire State Building",
+                id: "empire-state",
+              },
+            ],
+            className:
+              "bg-gray-100 rounded-lg shadow-lg border border-gray-300 p-4",
+          },
+          {
+            description: "Dark full map with rounded corners",
+            center: { lat: 40.7128, lng: -74.006 },
+            zoom: 12,
+            markers: [
+              { lat: 40.7128, lng: -74.006, label: "New York City", id: "nyc" },
+            ],
+            size: "full",
+            theme: "dark",
+            rounded: "full",
+          },
+          {
+            description: "Satellite map, large size, bordered",
+            center: { lat: 37.7749, lng: -122.4194 },
+            zoom: 10,
+            markers: [
+              {
+                lat: 37.7749,
+                lng: -122.4194,
+                label: "San Francisco",
+                id: "sf",
+              },
+            ],
+            size: "lg",
+            theme: "satellite",
+            rounded: "md",
           },
         ],
       },
