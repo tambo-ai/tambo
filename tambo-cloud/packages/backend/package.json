@@ -28,7 +28,7 @@
     "@ai-sdk/openai": "^1.3.23",
     "@libretto/openai": "^1.3.7",
     "@tambo-ai-cloud/core": "*",
-    "ai": "^4.3.17",
+    "ai": "^4.3.19",
     "ajv": "^8.17.1",
     "gpt-tokenizer": "^3.0.1",
     "langfuse": "^3.38.4",
