@@ -56,6 +56,21 @@ const ClusterGroup: React.FC<MarkerClusterGroupProps> = ({
     React.Children.forEach(children, (child) => {
       if (React.isValidElement(child) && child.props.position) {
         const marker = L.marker(child.props.position, child.props);
+
+        const tooltipChild = React.Children.toArray(child.props.children).find(
+          (tooltipChild) =>
+            React.isValidElement(tooltipChild) && tooltipChild.type === Tooltip,
+        );
+
+        if (React.isValidElement(tooltipChild)) {
+          marker.bindTooltip(tooltipChild.props.children, {
+            direction: tooltipChild.props.direction || "auto",
+            permanent: tooltipChild.props.permanent || false,
+            sticky: tooltipChild.props.sticky || false,
+            opacity: tooltipChild.props.opacity || 0.9,
+          });
+        }
+
         clusterGroup.addLayer(marker);
       }
     });
