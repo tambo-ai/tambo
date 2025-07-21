@@ -49,7 +49,7 @@
     "jsonwebtoken": "^9.0.2",
     "langfuse-vercel": "^3.38.4",
     "nest-supabase-guard": "^1.0.2",
-    "openai": "^5.8.3",
+    "openai": "^5.10.1",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.2",
