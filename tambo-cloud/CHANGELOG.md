@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.86.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.86.0...repo-v0.86.1) (2025-07-22)
+
+
+### Bug Fixes
+
+* update turbo env vars with required new variables ([#1393](https://github.com/tambo-ai/tambo-cloud/issues/1393)) ([5a2f54f](https://github.com/tambo-ai/tambo-cloud/commit/5a2f54f87a025fec7d8ef8fd687181f04dafaeba))
+
 ## [0.86.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.85.0...repo-v0.86.0) (2025-07-22)
 
 
