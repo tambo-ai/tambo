@@ -142,6 +142,7 @@ export class ThreadsService {
     const apiKey = await this.validateProjectAndProviderKeys(
       projectId,
       providerName as Provider,
+      modelName,
     );
     if (!apiKey && providerName !== "openai-compatible") {
       throw new Error(
@@ -1244,6 +1245,7 @@ export class ThreadsService {
   private async validateProjectAndProviderKeys(
     projectId: string,
     providerName: Provider,
+    modelName?: string,
   ): Promise<string | undefined> {
     const projectWithKeys =
       await this.projectsService.findOneWithKeys(projectId);
@@ -1255,6 +1257,12 @@ export class ThreadsService {
 
     if (!providerKeys.length) {
       if (providerName === "openai") {
+        // Only allow fallback key for default model
+        if (modelName !== DEFAULT_OPENAI_MODEL) {
+          throw new NotFoundException(
+            `No API key found for project ${projectId}. Free messages are only available for the default model (${DEFAULT_OPENAI_MODEL}). Please add your OpenAI API key to use other models.`,
+          );
+        }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
         if (!fallbackKey) {
           throw new NotFoundException(
@@ -1277,6 +1285,12 @@ export class ThreadsService {
     if (!chosenKey) {
       // Check for fallback key if OpenAI is requested
       if (providerName === "openai") {
+        // Only allow fallback key for default model
+        if (modelName !== DEFAULT_OPENAI_MODEL) {
+          throw new NotFoundException(
+            `No OpenAI API key found for project ${projectId}. Free messages are only available for the default model (${DEFAULT_OPENAI_MODEL}). Please add your OpenAI API key to use other models.`,
+          );
+        }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
         if (!fallbackKey) {
           throw new NotFoundException(
