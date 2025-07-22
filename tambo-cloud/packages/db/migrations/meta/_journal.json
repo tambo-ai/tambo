@@ -400,6 +400,27 @@
       "when": 1752267905374,
       "tag": "0056_outstanding_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1752595047873,
+      "tag": "0057_breezy_angel",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1752619826111,
+      "tag": "0058_open_power_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1752854197349,
+      "tag": "0059_vengeful_prodigy",
+      "breakpoints": true
     }
   ]
 }

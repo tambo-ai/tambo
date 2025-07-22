@@ -573,3 +573,20 @@ export async function updateOAuthValidationSettings(
     .where(eq(schema.projects.id, projectId))
     .returning();
 }
+
+export async function getProjectMembers(db: HydraDb, id: string) {
+  return await db.query.projects.findFirst({
+    where: (projects, { eq, or, and, isNotNull }) =>
+      or(
+        eq(projects.id, id),
+        and(isNotNull(projects.legacyId), eq(projects.legacyId, id)),
+      ),
+    with: {
+      members: {
+        with: {
+          user: true,
+        },
+      },
+    },
+  });
+}

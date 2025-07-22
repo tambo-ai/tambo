@@ -40,6 +40,7 @@ export async function updateProjectMessageUsage(
     messageCount?: number;
     hasApiKey?: boolean;
     notificationSentAt?: Date;
+    firstMessageSentAt?: Date;
   },
 ) {
   const usage = await getProjectMessageUsage(db, projectId);
@@ -50,6 +51,7 @@ export async function updateProjectMessageUsage(
       .set({
         ...data,
         updatedAt: new Date(),
+        firstMessageSentAt: data.firstMessageSentAt ?? usage.firstMessageSentAt,
       })
       .where(eq(schema.projectMessageUsage.projectId, projectId))
       .returning();
@@ -64,4 +66,28 @@ export async function updateProjectMessageUsage(
     })
     .returning();
   return created;
+}
+
+export async function hasUserReceivedFirstMessageEmail(
+  db: HydraDb,
+  userId: string,
+): Promise<boolean> {
+  // Get all projects for the user
+  const userProjects = await db.query.projectMembers.findMany({
+    where: eq(schema.projectMembers.userId, userId),
+    with: {
+      project: true,
+    },
+  });
+
+  // Check if any of their projects have firstMessageSentAt set
+  for (const membership of userProjects) {
+    const usage = await getProjectMessageUsage(db, membership.project.id);
+
+    if (usage && usage.firstMessageSentAt) {
+      return true;
+    }
+  }
+
+  return false;
 }
