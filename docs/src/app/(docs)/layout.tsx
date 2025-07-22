@@ -1,3 +1,4 @@
+import '@/app/(docs)/styles.css';
 import { baseOptions } from '@/app/layout.config';
 import { source } from '@/lib/source';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
