@@ -5,8 +5,13 @@ import React, {
   PropsWithChildren,
   useContext,
   useMemo,
+  useCallback,
 } from "react";
-import { StreamStatus } from "../hooks/use-tambo-stream-status";
+import {
+  StreamStatus,
+  PropStatus,
+  useTamboStreamStatus,
+} from "../hooks/use-tambo-stream-status";
 
 interface TamboPropStreamContextValue {
   /** The stream data */
@@ -31,6 +36,8 @@ export interface TamboPropStreamProviderProps {
   data: any;
   /** Optional stream status for more granular control */
   streamStatus?: StreamStatus;
+  /** Optional per-prop status for fine-grained control */
+  propStatus?: Record<string, PropStatus>;
 }
 
 export interface LoadingProps {
@@ -192,35 +199,112 @@ export const useTamboStream = () => {
  * @param props.children - The children to wrap
  * @param props.data - The stream data
  * @param props.streamStatus - Optional stream status for more granular control
+ * @param props.propStatus - Optional per-prop status for fine-grained control
  * @returns The TamboStreamProvider component
  */
 const TamboPropStreamProviderComponent: React.FC<
   PropsWithChildren<TamboPropStreamProviderProps>
-> = ({ children, data, streamStatus }) => {
-  // Create a default stream status if none provided
-  const defaultStreamStatus: StreamStatus = useMemo(
-    () => ({
-      isPending: false,
-      isStreaming: false,
-      isSuccess: true,
-      isError: false,
-      streamError: undefined,
-    }),
-    [],
+> = ({
+  children,
+  data,
+  streamStatus: providedStreamStatus,
+  propStatus: providedPropStatus,
+}) => {
+  // Always try to call the hook - React hooks must be called unconditionally
+  let hookStreamStatus: StreamStatus | undefined;
+  let hookPropStatus: Record<string, PropStatus> | undefined;
+
+  try {
+    const hookResult = useTamboStreamStatus();
+    hookStreamStatus = hookResult.streamStatus;
+    hookPropStatus = hookResult.propStatus;
+  } catch {
+    // Hook failed (not in Tambo context), that's ok
+  }
+
+  // Use provided status, then hook status, then defaults
+  const finalStreamStatus = useMemo(
+    () =>
+      providedStreamStatus ??
+      hookStreamStatus ?? {
+        isPending: false,
+        isStreaming: false,
+        isSuccess: true,
+        isError: false,
+        streamError: undefined,
+      },
+    [providedStreamStatus, hookStreamStatus],
   );
 
-  // Use provided streamStatus or use default
-  const finalStreamStatus = streamStatus ?? defaultStreamStatus;
+  const finalPropStatus = useMemo(
+    () => providedPropStatus ?? hookPropStatus,
+    [providedPropStatus, hookPropStatus],
+  );
 
-  // Simple getStatusForKey that just returns the stream status
-  // The provider should NOT modify status based on data presence
-  const getStatusForKey = useMemo(
-    () => (_key: string) => {
-      // Always return the same stream status for all keys
-      // This ensures consistent behavior regardless of data values
-      return finalStreamStatus;
+  // Track status by key for compound components
+  const keyStatusMap = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        isPending: boolean;
+        isStreaming: boolean;
+        isSuccess: boolean;
+        isError: boolean;
+        error?: Error;
+      }
+    >();
+
+    // If propStatus is available (from hook), use it for per-prop granularity
+    if (finalPropStatus) {
+      Object.entries(finalPropStatus).forEach(([key, status]) => {
+        map.set(key, {
+          isPending: status.isPending,
+          isStreaming: status.isStreaming,
+          isSuccess: status.isSuccess,
+          isError: !!status.error,
+          error: status.error,
+        });
+      });
+    } else {
+      // Fall back to original behavior: all keys get the same status
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        Object.keys(data).forEach((key) => {
+          map.set(key, {
+            isPending: finalStreamStatus.isPending,
+            isStreaming: finalStreamStatus.isStreaming,
+            isSuccess: finalStreamStatus.isSuccess,
+            isError: finalStreamStatus.isError,
+            error: finalStreamStatus.streamError,
+          });
+        });
+      }
+    }
+
+    // Always set default status for fallback
+    map.set("default", {
+      isPending: finalStreamStatus.isPending,
+      isStreaming: finalStreamStatus.isStreaming,
+      isSuccess: finalStreamStatus.isSuccess,
+      isError: finalStreamStatus.isError,
+      error: finalStreamStatus.streamError,
+    });
+
+    return map;
+  }, [finalStreamStatus, data, finalPropStatus]);
+
+  const getStatusForKey = useCallback(
+    (key: string) => {
+      return (
+        keyStatusMap.get(key) ??
+        keyStatusMap.get("default") ?? {
+          isPending: false,
+          isStreaming: false,
+          isSuccess: false,
+          isError: false,
+        }
+      );
     },
-    [finalStreamStatus],
+    [keyStatusMap],
   );
 
   const contextValue = useMemo(
