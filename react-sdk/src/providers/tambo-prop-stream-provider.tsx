@@ -2,20 +2,24 @@
 
 import React, {
   createContext,
+  memo,
   PropsWithChildren,
+  useCallback,
   useContext,
   useMemo,
-  useCallback,
 } from "react";
 import {
-  StreamStatus,
   PropStatus,
+  StreamStatus,
   useTamboStreamStatus,
 } from "../hooks/use-tambo-stream-status";
 
-interface TamboPropStreamContextValue {
+// Constants
+const DEFAULT_STREAM_KEY = "default";
+
+interface TamboPropStreamContextValue<T = unknown> {
   /** The stream data */
-  data: any;
+  data: T;
   /** The stream status */
   streamStatus: StreamStatus;
   /** Get the status for a specific key */
@@ -29,11 +33,11 @@ interface TamboPropStreamContextValue {
 }
 
 const TamboPropStreamContext =
-  createContext<TamboPropStreamContextValue | null>(null);
+  createContext<TamboPropStreamContextValue<any> | null>(null);
 
-export interface TamboPropStreamProviderProps {
+export interface TamboPropStreamProviderProps<T = unknown> {
   /** The stream data */
-  data: any;
+  data: T;
   /** Optional stream status for more granular control */
   streamStatus?: StreamStatus;
   /** Optional per-prop status for fine-grained control */
@@ -75,28 +79,28 @@ export interface CompleteProps {
  * @param props.className - Optional className for styling
  * @returns The Loading component
  */
-const Loading: React.FC<LoadingProps> = ({
-  streamKey = "default",
-  children,
-  className,
-}) => {
-  const { getStatusForKey } = useTamboStream();
-  const status = getStatusForKey(streamKey);
+const Loading: React.FC<LoadingProps> = memo(
+  ({ streamKey = DEFAULT_STREAM_KEY, children, className }) => {
+    const { getStatusForKey } = useTamboStream();
+    const status = getStatusForKey(streamKey);
 
-  if (!status.isPending && !status.isStreaming) {
-    return null;
-  }
+    if (!status.isPending && !status.isStreaming) {
+      return null;
+    }
 
-  return (
-    <div
-      className={className}
-      data-stream-key={streamKey}
-      data-stream-state="loading"
-    >
-      {children}
-    </div>
-  );
-};
+    return (
+      <div
+        className={className}
+        data-stream-key={streamKey}
+        data-stream-state="loading"
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+Loading.displayName = "TamboPropStreamProvider.Loading";
 
 /**
  * Empty component that renders children when the stream has no data
@@ -106,45 +110,43 @@ const Loading: React.FC<LoadingProps> = ({
  * @param props.className - Optional className for styling
  * @returns The Empty component
  */
-const Empty: React.FC<EmptyProps> = ({
-  streamKey = "default",
-  children,
-  className,
-}) => {
-  const { data, getStatusForKey } = useTamboStream();
-  const status = getStatusForKey(streamKey);
+const Empty: React.FC<EmptyProps> = memo(
+  ({ streamKey = DEFAULT_STREAM_KEY, children, className }) => {
+    const { data, getStatusForKey } = useTamboStream();
+    const status = getStatusForKey(streamKey);
 
-  // Get the specific data for this key
-  const keyData =
-    data && typeof data === "object" && !Array.isArray(data)
-      ? data[streamKey]
-      : data;
+    // Get the specific data for this key
+    const keyData =
+      data && typeof data === "object" && !Array.isArray(data)
+        ? data[streamKey as keyof typeof data]
+        : data;
 
-  // Show empty state only when:
-  // 1. Not in any active state (not pending, streaming, success, or error)
-  // 2. AND the data is actually empty
-  // This prevents showing empty state during streaming or after completion
-  const shouldShowEmpty =
-    !status.isPending &&
-    !status.isStreaming &&
-    !status.isSuccess &&
-    !status.isError &&
-    (keyData === undefined || keyData === null || keyData === "");
+    // Show empty state when data is empty and no active status
+    const hasData = keyData !== undefined && keyData !== null && keyData !== "";
+    const hasActiveStatus =
+      status.isPending ||
+      status.isStreaming ||
+      status.isSuccess ||
+      status.isError;
+    const shouldShowEmpty = !hasData && !hasActiveStatus;
 
-  if (!shouldShowEmpty) {
-    return null;
-  }
+    if (!shouldShowEmpty) {
+      return null;
+    }
 
-  return (
-    <div
-      className={className}
-      data-stream-key={streamKey}
-      data-stream-state="empty"
-    >
-      {children}
-    </div>
-  );
-};
+    return (
+      <div
+        className={className}
+        data-stream-key={streamKey}
+        data-stream-state="empty"
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+Empty.displayName = "TamboPropStreamProvider.Empty";
 
 /**
  * Complete component that renders children when the stream has data
@@ -154,42 +156,44 @@ const Empty: React.FC<EmptyProps> = ({
  * @param props.className - Optional className for styling
  * @returns The Complete component
  */
-const Complete: React.FC<CompleteProps> = ({
-  streamKey = "default",
-  children,
-  className,
-}) => {
-  const { getStatusForKey } = useTamboStream();
-  const status = getStatusForKey(streamKey);
+const Complete: React.FC<CompleteProps> = memo(
+  ({ streamKey = DEFAULT_STREAM_KEY, children, className }) => {
+    const { getStatusForKey } = useTamboStream();
+    const status = getStatusForKey(streamKey);
 
-  // Simple: Show when status is success, regardless of data value
-  if (!status.isSuccess) {
-    return null;
-  }
+    // Simple: Show when status is success, regardless of data value
+    if (!status.isSuccess) {
+      return null;
+    }
 
-  return (
-    <div
-      className={className}
-      data-stream-key={streamKey}
-      data-stream-state="complete"
-    >
-      {children}
-    </div>
-  );
-};
+    return (
+      <div
+        className={className}
+        data-stream-key={streamKey}
+        data-stream-state="complete"
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+Complete.displayName = "TamboPropStreamProvider.Complete";
 
 /**
  * Hook to use the TamboStream context
  * @returns The TamboStream context
  */
-export const useTamboStream = () => {
+export const useTamboStream = <
+  T = unknown,
+>(): TamboPropStreamContextValue<T> => {
   const context = useContext(TamboPropStreamContext);
   if (!context) {
     throw new Error(
       "useTamboStream must be used within a TamboPropStreamProvider",
     );
   }
-  return context;
+  return context as TamboPropStreamContextValue<T>;
 };
 
 /**
@@ -202,14 +206,12 @@ export const useTamboStream = () => {
  * @param props.propStatus - Optional per-prop status for fine-grained control
  * @returns The TamboStreamProvider component
  */
-const TamboPropStreamProviderComponent: React.FC<
-  PropsWithChildren<TamboPropStreamProviderProps>
-> = ({
+const TamboPropStreamProviderComponent = <T = unknown,>({
   children,
   data,
   streamStatus: providedStreamStatus,
   propStatus: providedPropStatus,
-}) => {
+}: PropsWithChildren<TamboPropStreamProviderProps<T>>) => {
   // Always try to call the hook - React hooks must be called unconditionally
   let hookStreamStatus: StreamStatus | undefined;
   let hookPropStatus: Record<string, PropStatus> | undefined;
@@ -281,7 +283,7 @@ const TamboPropStreamProviderComponent: React.FC<
     }
 
     // Always set default status for fallback
-    map.set("default", {
+    map.set(DEFAULT_STREAM_KEY, {
       isPending: finalStreamStatus.isPending,
       isStreaming: finalStreamStatus.isStreaming,
       isSuccess: finalStreamStatus.isSuccess,
@@ -296,7 +298,7 @@ const TamboPropStreamProviderComponent: React.FC<
     (key: string) => {
       return (
         keyStatusMap.get(key) ??
-        keyStatusMap.get("default") ?? {
+        keyStatusMap.get(DEFAULT_STREAM_KEY) ?? {
           isPending: false,
           isStreaming: false,
           isSuccess: false,
@@ -323,17 +325,12 @@ const TamboPropStreamProviderComponent: React.FC<
   );
 };
 
-// Create the compound component type
-type TamboPropStreamProviderCompound =
-  typeof TamboPropStreamProviderComponent & {
-    Loading: typeof Loading;
-    Empty: typeof Empty;
-    Complete: typeof Complete;
-  };
-
-export const TamboPropStreamProvider =
-  TamboPropStreamProviderComponent as TamboPropStreamProviderCompound;
-
-TamboPropStreamProvider.Loading = Loading;
-TamboPropStreamProvider.Empty = Empty;
-TamboPropStreamProvider.Complete = Complete;
+// Create the compound component
+export const TamboPropStreamProvider = Object.assign(
+  TamboPropStreamProviderComponent,
+  {
+    Loading,
+    Empty,
+    Complete,
+  },
+);
