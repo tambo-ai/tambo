@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.86.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.85.0...repo-v0.86.0) (2025-07-22)
+
+
+### Features
+
+* **api, web:** enhance provider-key section with combined provider-model selection and validation for OpenAI API keys ([#1374](https://github.com/tambo-ai/tambo-cloud/issues/1374)) ([4f12e0b](https://github.com/tambo-ai/tambo-cloud/commit/4f12e0b432431cc60fdd34d00ebda870159f7b36))
+* implement gmail notifications for users ([#1368](https://github.com/tambo-ai/tambo-cloud/issues/1368)) ([ecd0ce7](https://github.com/tambo-ai/tambo-cloud/commit/ecd0ce72d832c44c2758e6812842da194096ab68))
+
+
+### Documentation
+
+* add "Start Here" page ([#1392](https://github.com/tambo-ai/tambo-cloud/issues/1392)) ([ef15dac](https://github.com/tambo-ai/tambo-cloud/commit/ef15daca0d3a47e0e64e8420f8d9456950eba3d6))
+* add init what is tambo doc ([#1377](https://github.com/tambo-ai/tambo-cloud/issues/1377)) ([af57ccb](https://github.com/tambo-ai/tambo-cloud/commit/af57ccb937506f67b31ef506838d9e7e113cb9cd))
+* reorg docs draft ([#1370](https://github.com/tambo-ai/tambo-cloud/issues/1370)) ([df77901](https://github.com/tambo-ai/tambo-cloud/commit/df779010b9fa2d9b727650399cfa280b2a2d740e))
+* update docs styles ([#1391](https://github.com/tambo-ai/tambo-cloud/issues/1391)) ([61b6edd](https://github.com/tambo-ai/tambo-cloud/commit/61b6eddbd2ae099b1ef5a8c0b18cba1b4107a7bf))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @next/eslint-plugin-next from 15.3.5 to 15.4.2 ([#1386](https://github.com/tambo-ai/tambo-cloud/issues/1386)) ([60254f4](https://github.com/tambo-ai/tambo-cloud/commit/60254f48c08f4b53cc74829de71d28358304c593))
+* **deps:** a bunch of minor package updates ([#1389](https://github.com/tambo-ai/tambo-cloud/issues/1389)) ([1aba401](https://github.com/tambo-ai/tambo-cloud/commit/1aba40117bd67ff41709b5572ed92ebca3147d77))
+* **deps:** bump @splinetool/react-spline from 4.0.0 to 4.1.0 ([#1381](https://github.com/tambo-ai/tambo-cloud/issues/1381)) ([068079a](https://github.com/tambo-ai/tambo-cloud/commit/068079a85224722e72de098e15765ed4cab0a23e))
+* **deps:** bump @splinetool/runtime from 1.10.27 to 1.10.33 ([#1384](https://github.com/tambo-ai/tambo-cloud/issues/1384)) ([61ad558](https://github.com/tambo-ai/tambo-cloud/commit/61ad55856894e7c2c028a125f9a7f4b946e242cd))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.61.0 to 0.63.0 ([#1385](https://github.com/tambo-ai/tambo-cloud/issues/1385)) ([82cabba](https://github.com/tambo-ai/tambo-cloud/commit/82cabba51683ad9587812b3bd7bd96cb2ea85da1))
+* **deps:** bump ai from 4.3.17 to 4.3.19 ([#1387](https://github.com/tambo-ai/tambo-cloud/issues/1387)) ([74851fd](https://github.com/tambo-ai/tambo-cloud/commit/74851fd395ec6dc3a4303b0135f50b246da9a904))
+* **deps:** bump drizzle-orm from 0.44.2 to 0.44.3 in the drizzle group ([#1379](https://github.com/tambo-ai/tambo-cloud/issues/1379)) ([7544378](https://github.com/tambo-ai/tambo-cloud/commit/75443785e9107fd3f01ee828ba67ed8df86d93da))
+* **deps:** bump framer-motion from 12.23.3 to 12.23.6 ([#1383](https://github.com/tambo-ai/tambo-cloud/issues/1383)) ([c02eb73](https://github.com/tambo-ai/tambo-cloud/commit/c02eb7305781daf30767848df8285de591342d77))
+* **deps:** bump openai from 5.8.3 to 5.10.1 ([#1380](https://github.com/tambo-ai/tambo-cloud/issues/1380)) ([93ca491](https://github.com/tambo-ai/tambo-cloud/commit/93ca49153c698a68eb45e867a91daee94cb1aa65))
+* **deps:** bump the nestjs group with 4 updates ([#1378](https://github.com/tambo-ai/tambo-cloud/issues/1378)) ([a98287a](https://github.com/tambo-ai/tambo-cloud/commit/a98287a1ad07687ca7005c706df9e4d90ed26f81))
+* **docs:** update documentation style guide and update streaming component docs ([#1376](https://github.com/tambo-ai/tambo-cloud/issues/1376)) ([2039042](https://github.com/tambo-ai/tambo-cloud/commit/20390423c9e1be9eaff22d3c68078dd5f49958e8))
+
 ## [0.85.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.84.0...repo-v0.85.0) (2025-07-17)
 
 
