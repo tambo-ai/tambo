@@ -1,0 +1,28 @@
+---
+title: Tools
+description: Extend Tambo's capabilities with custom business logic and API integrations.
+---
+
+Tools are normal JavaScript functions that you give Tambo access to. When processing a user message, Tambo may decide to use tools you have registered to retrieve information or to take actions. Tools allow you to extend the capabilities of Tambo.
+
+```tsx
+const getWeather = (city: string) => {
+  return `The weather in ${city} is warm and sunny!`;
+};
+
+export const tools: TamboTool[] = [
+  {
+    name: "getWeather",
+    description: "A tool to get the current weather conditions of a city",
+    tool: getWeather,
+    toolSchema: z
+      .function()
+      .args(z.string().describe("The city name to get weather information for"))
+      .returns(z.string()),
+  },
+];
+
+<TamboProvider tools={tools}>
+  <App />
+</TamboProvider>;
+```

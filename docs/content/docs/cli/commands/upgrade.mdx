@@ -1,0 +1,64 @@
+---
+title: upgrade
+---
+
+`npx tambo upgrade`
+
+Upgrades your entire Tambo project including npm packages, components, and cursor rules to the latest versions.
+
+**What it upgrades:**
+
+1. **NPM Packages**: Updates `@tambo-ai/react` and related dependencies
+2. **Components**: Updates all installed Tambo components to latest versions
+3. **Cursor Rules**: Updates AI coding assistant rules for better development experience
+4. **Configuration**: Updates CSS variables and Tailwind configuration as needed
+
+**Examples:**
+
+```bash
+# Interactive upgrade with prompts
+npx tambo upgrade
+
+# Auto-accept all changes
+npx tambo upgrade --accept-all
+
+# Upgrade with custom component directory
+npx tambo upgrade --prefix=src/components/ui
+
+# Use legacy peer deps
+npx tambo upgrade --legacy-peer-deps
+```
+
+## Configuration Updates
+
+The upgrade command performs comprehensive updates to your project configuration:
+
+### CSS & Tailwind Updates
+
+The CLI will update your `globals.css` and `tailwind.config.ts` files to ensure they're compatible with the latest Tambo components and your current Tailwind CSS version.
+
+<Callout type="info" title="Safe Configuration Updates">
+  The upgrade process preserves your existing styles and configuration while
+  adding any new CSS variables required by updated components.
+</Callout>
+
+### What Gets Updated
+
+- **CSS Variables**: New variables required by component updates
+- **Tailwind Configuration**: Basic configuration for v3 projects
+- **Component Dependencies**: Latest versions of all component dependencies
+- **Package Versions**: Updates to `@tambo-ai/react` and related packages
+
+<Callout type="warn" title="Backup Recommendation">
+  While the CLI creates automatic backups, consider committing your changes to
+  version control before running `upgrade` to ensure you can easily revert if
+  needed.
+</Callout>
+
+For detailed information about configuration changes, see:
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+<Card href="/docs/cli/configuration" title="CSS & Tailwind Configuration">
+  Complete guide to CSS variables and Tailwind configuration changes
+</Card>
