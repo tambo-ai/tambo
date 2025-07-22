@@ -113,7 +113,10 @@ const Empty: React.FC<EmptyProps> = ({
       ? data[streamKey]
       : data;
 
-  // Show empty state when not loading, not streaming, not successful, and no data for this key
+  // Show empty state only when:
+  // 1. Not in any active state (not pending, streaming, success, or error)
+  // 2. AND the data is actually empty
+  // This prevents showing empty state during streaming or after completion
   const shouldShowEmpty =
     !status.isPending &&
     !status.isStreaming &&
@@ -149,20 +152,11 @@ const Complete: React.FC<CompleteProps> = ({
   children,
   className,
 }) => {
-  const { data, getStatusForKey } = useTamboStream();
+  const { getStatusForKey } = useTamboStream();
   const status = getStatusForKey(streamKey);
 
-  // Get the specific data for this key
-  const keyData =
-    data && typeof data === "object" && !Array.isArray(data)
-      ? data[streamKey]
-      : data;
-
-  // Show complete when we have data for this key and the stream is successful
-  const shouldShowComplete =
-    status.isSuccess && keyData !== undefined && keyData !== null;
-
-  if (!shouldShowComplete) {
+  // Simple: Show when status is success, regardless of data value
+  if (!status.isSuccess) {
     return null;
   }
 
@@ -206,76 +200,27 @@ const TamboPropStreamProviderComponent: React.FC<
   // Create a default stream status if none provided
   const defaultStreamStatus: StreamStatus = useMemo(
     () => ({
-      isPending: false, // No external stream, so not pending
-      isStreaming: false, // No external stream, so not streaming
-      isSuccess: true, // If no stream status provided, assume success
+      isPending: false,
+      isStreaming: false,
+      isSuccess: true,
       isError: false,
       streamError: undefined,
     }),
     [],
   );
 
+  // Use provided streamStatus or use default
   const finalStreamStatus = streamStatus ?? defaultStreamStatus;
 
-  // Track status by key for compound components
-  const keyStatusMap = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        isPending: boolean;
-        isStreaming: boolean;
-        isSuccess: boolean;
-        isError: boolean;
-        error?: Error;
-      }
-    >();
-
-    // Track per-key status based on data structure
-    // If data is an object with keys, create status for each key
-    if (data && typeof data === "object" && !Array.isArray(data)) {
-      Object.keys(data).forEach((key) => {
-        const keyData = data[key];
-        const hasData =
-          keyData !== undefined && keyData !== null && keyData !== "";
-
-        map.set(key, {
-          // If no external stream, show loading when key has no data
-          isPending:
-            finalStreamStatus.isPending ||
-            (!finalStreamStatus.isStreaming && !hasData),
-          isStreaming: finalStreamStatus.isStreaming && !hasData,
-          isSuccess: finalStreamStatus.isSuccess && hasData,
-          isError: finalStreamStatus.isError,
-          error: finalStreamStatus.streamError,
-        });
-      });
-    }
-
-    // Always set default status for fallback
-    map.set("default", {
-      isPending: finalStreamStatus.isPending,
-      isStreaming: finalStreamStatus.isStreaming,
-      isSuccess: finalStreamStatus.isSuccess,
-      isError: finalStreamStatus.isError,
-      error: finalStreamStatus.streamError,
-    });
-
-    return map;
-  }, [finalStreamStatus, data]);
-
+  // Simple getStatusForKey that just returns the stream status
+  // The provider should NOT modify status based on data presence
   const getStatusForKey = useMemo(
-    () => (key: string) => {
-      return (
-        keyStatusMap.get(key) ??
-        keyStatusMap.get("default") ?? {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: false,
-          isError: false,
-        }
-      );
+    () => (_key: string) => {
+      // Always return the same stream status for all keys
+      // This ensures consistent behavior regardless of data values
+      return finalStreamStatus;
     },
-    [keyStatusMap],
+    [finalStreamStatus],
   );
 
   const contextValue = useMemo(

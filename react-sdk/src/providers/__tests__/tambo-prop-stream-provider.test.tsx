@@ -169,7 +169,7 @@ describe("TamboPropStreamProvider", () => {
         expect(screen.getByTestId("complete")).toBeInTheDocument();
       });
 
-      it("should not render complete when data is null", () => {
+      it("should render complete when data is null but isSuccess is true", () => {
         const streamStatus: StreamStatus = {
           isPending: false,
           isStreaming: false,
@@ -185,10 +185,10 @@ describe("TamboPropStreamProvider", () => {
           </TamboPropStreamProvider>,
         );
 
-        expect(screen.queryByTestId("complete")).not.toBeInTheDocument();
+        expect(screen.getByTestId("complete")).toBeInTheDocument();
       });
 
-      it("should not render complete when data is undefined", () => {
+      it("should render complete when data is undefined but isSuccess is true", () => {
         const streamStatus: StreamStatus = {
           isPending: false,
           isStreaming: false,
@@ -204,7 +204,7 @@ describe("TamboPropStreamProvider", () => {
           </TamboPropStreamProvider>,
         );
 
-        expect(screen.queryByTestId("complete")).not.toBeInTheDocument();
+        expect(screen.getByTestId("complete")).toBeInTheDocument();
       });
     });
 
@@ -309,7 +309,7 @@ describe("TamboPropStreamProvider", () => {
       expect(keyStatus.isSuccess).toBe(true); // name has data
     });
 
-    it("should show loading for keys without data", () => {
+    it("should show success for keys without data when stream is successful", () => {
       const testData = { name: "John", age: null };
       const streamStatus: StreamStatus = {
         isPending: false,
@@ -327,7 +327,7 @@ describe("TamboPropStreamProvider", () => {
       const keyStatus = JSON.parse(
         screen.getByTestId("key-status").textContent ?? "{}",
       );
-      expect(keyStatus.isPending).toBe(true); // age has no data
+      expect(keyStatus.isSuccess).toBe(true); // stream is successful, even with null data
     });
 
     it("should handle per-key loading states", () => {
@@ -349,8 +349,8 @@ describe("TamboPropStreamProvider", () => {
       expect(screen.getByTestId("name-complete")).toBeInTheDocument();
       expect(screen.queryByTestId("name-loading")).not.toBeInTheDocument();
 
-      // Age should be loading (no data)
-      expect(screen.getByTestId("age-loading")).toBeInTheDocument();
+      // Age should not be loading when using default status (isSuccess: true)
+      expect(screen.queryByTestId("age-loading")).not.toBeInTheDocument();
     });
   });
 
@@ -412,6 +412,92 @@ describe("TamboPropStreamProvider", () => {
       );
       // Should fallback to default status
       expect(keyStatus.isSuccess).toBe(true);
+    });
+  });
+
+  describe("Progressive Streaming", () => {
+    it("should keep Loading visible while streaming even when data arrives", () => {
+      const streamingStatus: StreamStatus = {
+        isPending: false,
+        isStreaming: true,
+        isSuccess: false,
+        isError: false,
+      };
+
+      const { rerender } = render(
+        <TamboPropStreamProvider
+          data={{ partial: "data" }}
+          streamStatus={streamingStatus}
+        >
+          <TamboPropStreamProvider.Loading>
+            <div data-testid="loading">Loading...</div>
+          </TamboPropStreamProvider.Loading>
+          <TamboPropStreamProvider.Complete>
+            <div data-testid="complete">Complete!</div>
+          </TamboPropStreamProvider.Complete>
+        </TamboPropStreamProvider>,
+      );
+
+      // Loading should be visible during streaming even with partial data
+      expect(screen.getByTestId("loading")).toBeInTheDocument();
+      expect(screen.queryByTestId("complete")).not.toBeInTheDocument();
+
+      // Update to success status
+      const successStatus: StreamStatus = {
+        isPending: false,
+        isStreaming: false,
+        isSuccess: true,
+        isError: false,
+      };
+
+      rerender(
+        <TamboPropStreamProvider
+          data={{ partial: "data", more: "data" }}
+          streamStatus={successStatus}
+        >
+          <TamboPropStreamProvider.Loading>
+            <div data-testid="loading">Loading...</div>
+          </TamboPropStreamProvider.Loading>
+          <TamboPropStreamProvider.Complete>
+            <div data-testid="complete">Complete!</div>
+          </TamboPropStreamProvider.Complete>
+        </TamboPropStreamProvider>,
+      );
+
+      // Complete should be visible after streaming finishes
+      expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
+      expect(screen.getByTestId("complete")).toBeInTheDocument();
+    });
+
+    it("should show Complete for null values when streaming is successful", () => {
+      const successStatus: StreamStatus = {
+        isPending: false,
+        isStreaming: false,
+        isSuccess: true,
+        isError: false,
+      };
+
+      render(
+        <TamboPropStreamProvider
+          data={{ name: "John", age: null, email: undefined }}
+          streamStatus={successStatus}
+        >
+          <TamboPropStreamProvider.Complete streamKey="name">
+            <div data-testid="name-complete">Name Complete</div>
+          </TamboPropStreamProvider.Complete>
+          <TamboPropStreamProvider.Complete streamKey="age">
+            <div data-testid="age-complete">Age Complete</div>
+          </TamboPropStreamProvider.Complete>
+          <TamboPropStreamProvider.Complete streamKey="email">
+            <div data-testid="email-complete">Email Complete</div>
+          </TamboPropStreamProvider.Complete>
+        </TamboPropStreamProvider>,
+      );
+
+      // All fields should show complete, regardless of their values
+      expect(screen.getByTestId("name-complete")).toBeInTheDocument();
+      expect(screen.getByTestId("age-complete")).toBeInTheDocument();
+      expect(screen.getByTestId("email-complete")).toBeInTheDocument();
     });
   });
 
