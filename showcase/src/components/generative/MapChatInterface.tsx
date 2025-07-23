@@ -5,6 +5,11 @@ import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
+/*
+ * We use `dynamic` to load the Map component without server-side rendering (SSR)
+ * because `react-leaflet` and `leaflet` access the `window` object at import time.
+ */
+
 import dynamic from "next/dynamic";
 
 const MapWithNoSSR = dynamic(
