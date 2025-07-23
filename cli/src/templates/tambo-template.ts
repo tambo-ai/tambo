@@ -13,7 +13,7 @@ export const tamboTsTemplate = `/**
  * IMPORTANT: If you have components in different directories (e.g., both ui/ and tambo/),
  * make sure all import paths are consistent. Run 'npx tambo migrate' to consolidate.
  * 
- * Read more about Tambo at https://tambo.co/docs
+ * Read more about Tambo at https://docs.tambo.co
  */
 
 import type { TamboComponent } from "@tambo-ai/react";
