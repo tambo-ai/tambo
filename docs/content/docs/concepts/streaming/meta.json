@@ -3,7 +3,8 @@
   "pages": [
     "response-text-streaming",
     "response-component-streaming",
-    "per-prop-streaming-status",
+    "component-streaming-status",
+    "tambo-prop-stream-provider",
     "streaming-props"
   ]
 }
