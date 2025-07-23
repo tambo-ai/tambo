@@ -253,7 +253,7 @@ function MapClickHandler() {
 }
 
 // --- Map Component ---
-export const MapComponent = React.forwardRef<HTMLDivElement, MapProps>(
+export const Map = React.forwardRef<HTMLDivElement, MapProps>(
   (
     {
       center,
@@ -410,4 +410,4 @@ export const MapComponent = React.forwardRef<HTMLDivElement, MapProps>(
   },
 );
 
-MapComponent.displayName = "MapComponent";
+Map.displayName = "Map";

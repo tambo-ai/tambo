@@ -187,7 +187,10 @@ export const mapSchema = z.object({
   markers: z.array(markerSchema).default([]),
   heatData: z.array(heatDataSchema).optional().nullable(),
   zoomControl: z.boolean().optional().default(true),
-  className: z.string().optional(),
+  className: z
+    .string()
+    .optional()
+    .describe("Optional tailwind className for the map container"),
   size: z.enum(["sm", "md", "lg", "full"]).optional(),
   theme: z
     .enum(["default", "dark", "light", "satellite", "bordered", "shadow"])
@@ -268,7 +271,7 @@ function MapClickHandler() {
 }
 
 // --- Map Component ---
-export const MapComponent = React.forwardRef<HTMLDivElement, MapProps>(
+export const Map = React.forwardRef<HTMLDivElement, MapProps>(
   (
     {
       center,
@@ -425,4 +428,4 @@ export const MapComponent = React.forwardRef<HTMLDivElement, MapProps>(
   },
 );
 
-MapComponent.displayName = "MapComponent";
+Map.displayName = "Map";
