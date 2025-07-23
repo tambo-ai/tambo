@@ -318,7 +318,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
         data-slot="toolcall-info"
         {...props}
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full">
           <button
             type="button"
             aria-expanded={isExpanded}
