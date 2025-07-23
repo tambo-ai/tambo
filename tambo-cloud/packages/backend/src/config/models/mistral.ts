@@ -8,7 +8,7 @@ export const mistralModels: LlmModelConfig = {
     notes:
       "Mistral Small is a compact, open-source model with multimodal support and 128K context. Fast and efficient for real-time tasks like chatbots and coding.",
     docLink: "https://mistral.ai/news/mistral-small-3-1",
-    tamboDocLink: "https://tambo.co/docs",
+    tamboDocLink: "https://docs.tambo.co",
     properties: {
       inputTokenLimit: 128000,
       supportsTools: true,
@@ -22,7 +22,7 @@ export const mistralModels: LlmModelConfig = {
     notes:
       "Mistral Large is Mistral's top-tier reasoning model for complex tasks, with latest version released in Nov 2024. Best for advanced problem-solving and analysis.",
     docLink: "https://mistral.ai/news/pixtral-large",
-    tamboDocLink: "https://tambo.co/docs",
+    tamboDocLink: "https://docs.tambo.co",
     properties: {
       inputTokenLimit: 128000,
       supportsTools: true,
