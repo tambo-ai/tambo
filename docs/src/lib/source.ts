@@ -12,6 +12,9 @@ export const source = loader({
     if (!icon) {
       return;
     }
-    if (icon in icons) return createElement(icons[icon as keyof typeof icons]);
+    if (icon in icons)
+      return createElement(
+        icons[icon as keyof typeof icons],
+      ) as React.ReactElement;
   },
 });
