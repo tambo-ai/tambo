@@ -431,7 +431,7 @@ ${componentInstances}
 
   console.log(chalk.bold("\n3. Documentation"));
   console.log(
-    chalk.gray("   Visit https://tambo.co/docs for detailed usage examples"),
+    chalk.gray("   Visit https://docs.tambo.co for detailed usage examples"),
   );
 
   console.log(chalk.bold("\n4. Start your app"));
@@ -465,7 +465,7 @@ export async function handleInit({
     console.log("\nNext steps:");
     console.log(
       "  1. Visit our quickstart guide at " +
-        chalk.cyan("https://tambo.co/docs/getting-started/quickstart") +
+        chalk.cyan("https://docs.tambo.co/getting-started/quickstart") +
         " to get started",
     );
     console.log(
