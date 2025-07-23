@@ -2,7 +2,6 @@
 
 import React, {
   createContext,
-  memo,
   PropsWithChildren,
   useCallback,
   useContext,
@@ -79,26 +78,28 @@ export interface CompleteProps {
  * @param props.className - Optional className for styling
  * @returns The Loading component
  */
-const Loading: React.FC<LoadingProps> = memo(
-  ({ streamKey = DEFAULT_STREAM_KEY, children, className }) => {
-    const { getStatusForKey } = useTamboStream();
-    const status = getStatusForKey(streamKey);
+const Loading: React.FC<LoadingProps> = ({
+  streamKey = DEFAULT_STREAM_KEY,
+  children,
+  className,
+}) => {
+  const { getStatusForKey } = useTamboStream();
+  const status = getStatusForKey(streamKey);
 
-    if (!status.isPending && !status.isStreaming) {
-      return null;
-    }
+  if (!status.isPending && !status.isStreaming) {
+    return null;
+  }
 
-    return (
-      <div
-        className={className}
-        data-stream-key={streamKey}
-        data-stream-state="loading"
-      >
-        {children}
-      </div>
-    );
-  },
-);
+  return (
+    <div
+      className={className}
+      data-stream-key={streamKey}
+      data-stream-state="loading"
+    >
+      {children}
+    </div>
+  );
+};
 
 Loading.displayName = "TamboPropStreamProvider.Loading";
 
@@ -110,41 +111,43 @@ Loading.displayName = "TamboPropStreamProvider.Loading";
  * @param props.className - Optional className for styling
  * @returns The Empty component
  */
-const Empty: React.FC<EmptyProps> = memo(
-  ({ streamKey = DEFAULT_STREAM_KEY, children, className }) => {
-    const { data, getStatusForKey } = useTamboStream();
-    const status = getStatusForKey(streamKey);
+const Empty: React.FC<EmptyProps> = ({
+  streamKey = DEFAULT_STREAM_KEY,
+  children,
+  className,
+}) => {
+  const { data, getStatusForKey } = useTamboStream();
+  const status = getStatusForKey(streamKey);
 
-    // Get the specific data for this key
-    const keyData =
-      data && typeof data === "object" && !Array.isArray(data)
-        ? data[streamKey as keyof typeof data]
-        : data;
+  // Get the specific data for this key
+  const keyData =
+    data && typeof data === "object" && !Array.isArray(data)
+      ? data[streamKey as keyof typeof data]
+      : data;
 
-    // Show empty state when data is empty and no active status
-    const hasData = keyData !== undefined && keyData !== null && keyData !== "";
-    const hasActiveStatus =
-      status.isPending ||
-      status.isStreaming ||
-      status.isSuccess ||
-      status.isError;
-    const shouldShowEmpty = !hasData && !hasActiveStatus;
+  // Show empty state when data is empty and no active status
+  const hasData = keyData !== undefined && keyData !== null && keyData !== "";
+  const hasActiveStatus =
+    status.isPending ||
+    status.isStreaming ||
+    status.isSuccess ||
+    status.isError;
+  const shouldShowEmpty = !hasData && !hasActiveStatus;
 
-    if (!shouldShowEmpty) {
-      return null;
-    }
+  if (!shouldShowEmpty) {
+    return null;
+  }
 
-    return (
-      <div
-        className={className}
-        data-stream-key={streamKey}
-        data-stream-state="empty"
-      >
-        {children}
-      </div>
-    );
-  },
-);
+  return (
+    <div
+      className={className}
+      data-stream-key={streamKey}
+      data-stream-state="empty"
+    >
+      {children}
+    </div>
+  );
+};
 
 Empty.displayName = "TamboPropStreamProvider.Empty";
 
@@ -156,27 +159,29 @@ Empty.displayName = "TamboPropStreamProvider.Empty";
  * @param props.className - Optional className for styling
  * @returns The Complete component
  */
-const Complete: React.FC<CompleteProps> = memo(
-  ({ streamKey = DEFAULT_STREAM_KEY, children, className }) => {
-    const { getStatusForKey } = useTamboStream();
-    const status = getStatusForKey(streamKey);
+const Complete: React.FC<CompleteProps> = ({
+  streamKey = DEFAULT_STREAM_KEY,
+  children,
+  className,
+}) => {
+  const { getStatusForKey } = useTamboStream();
+  const status = getStatusForKey(streamKey);
 
-    // Simple: Show when status is success, regardless of data value
-    if (!status.isSuccess) {
-      return null;
-    }
+  // Simple: Show when status is success, regardless of data value
+  if (!status.isSuccess) {
+    return null;
+  }
 
-    return (
-      <div
-        className={className}
-        data-stream-key={streamKey}
-        data-stream-state="complete"
-      >
-        {children}
-      </div>
-    );
-  },
-);
+  return (
+    <div
+      className={className}
+      data-stream-key={streamKey}
+      data-stream-state="complete"
+    >
+      {children}
+    </div>
+  );
+};
 
 Complete.displayName = "TamboPropStreamProvider.Complete";
 
