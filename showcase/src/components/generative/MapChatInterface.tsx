@@ -1,6 +1,5 @@
 "use client";
 
-import { mapSchema } from "@/components/ui/map";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
@@ -9,7 +8,7 @@ import { useEffect } from "react";
 import dynamic from "next/dynamic";
 
 const MapWithNoSSR = dynamic(
-  async () => await import("../ui/map").then((mod) => mod.Map),
+  async () => await import("@/components/ui/map").then((mod) => mod.Map),
   {
     ssr: false,
   },
@@ -20,9 +19,13 @@ export const MapChatInterface = () => {
   const { registerComponent, thread } = useTambo();
 
   useEffect(() => {
-    registerComponent({
-      name: "Map",
-      description: `Interactive map for visualizing geographic data with markers, clustering, and optional heatmap overlays. Ideal for dashboards, store locators, event maps, and spatial analytics.
+    const register = async () => {
+      const mod = await import("@/components/ui/map");
+      const mapSchema = mod.mapSchema;
+
+      registerComponent({
+        name: "Map",
+        description: `Interactive map for visualizing geographic data with markers, clustering, and optional heatmap overlays. Ideal for dashboards, store locators, event maps, and spatial analytics.
       Features:
         - Pan/zoom controls
         - Custom markers with tooltips
@@ -42,9 +45,12 @@ export const MapChatInterface = () => {
         - Choose zoom level appropriate for your data
         
       Example use cases: store locations, real estate, events, analytics, travel, business intelligence.`,
-      component: MapWithNoSSR,
-      propsSchema: mapSchema,
-    });
+        component: MapWithNoSSR,
+        propsSchema: mapSchema,
+      });
+    };
+
+    register();
   }, [registerComponent, thread.id]);
 
   return (
