@@ -31,16 +31,3 @@ Once configured, the MCP servers will be available to all users of your project 
 If your server does not support OAuth-based authentication, you can add a custom header to the MCP server configuration. (e.g. `X-Api-Key`)
 
 This is how server-side MCP works:
-
-<Mermaid
-  chart="
-sequenceDiagram
-    Browser->>Tambo: Show me issues in the last 30 days
-    Note over Tambo: Tambo transforms the user's message into a tool call
-    Tambo->>MCP: list_issues({since: '2025-04-29'})
-    MCP->>Tambo: Issues list: [{...}, {...}, {...}]
-    Note over Tambo: Tambo chooses a component
-    Note over Tambo: Tambo reformats the data into component props
-    Tambo->>Browser: '<IssuesTable issues={...} />' 
- "
-/>
