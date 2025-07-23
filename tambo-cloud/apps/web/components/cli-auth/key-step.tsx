@@ -1,11 +1,10 @@
-import { Icons } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import { Copy } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { ArrowLeft, Check, Copy, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 interface KeyStepProps {
   apiKey: string;
@@ -38,7 +37,7 @@ export function KeyStep({
   onNavigateToProject,
 }: KeyStepProps) {
   const { toast } = useToast();
-
+  const [isCopied, setIsCopied] = useState(false);
   const providerKeysQuery = api.project.getProviderKeys.useQuery(projectId, {
     staleTime: 30000,
   });
@@ -56,6 +55,7 @@ export function KeyStep({
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(apiKey);
+      setIsCopied(true);
       toast({
         title: "Copied!",
         description: "API key copied to clipboard",
@@ -68,7 +68,7 @@ export function KeyStep({
         variant: "destructive",
       });
     }
-  }, [apiKey, toast]);
+  }, [apiKey, toast, setIsCopied]);
 
   if (apiKey) {
     return (
@@ -80,26 +80,13 @@ export function KeyStep({
             onClick={onBack}
             className="hover:bg-primary/10 hover:text-primary transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft className="mr-2" size={16} />
             Back to Projects
           </Button>
         </div>
 
         <div className="space-y-1">
-          <h2 className="text-xl font-medium">
+          <h2 className="text-md font-medium">
             Your new API key has been generated
           </h2>
         </div>
@@ -115,15 +102,22 @@ export function KeyStep({
               onClick={handleCopy}
               className="h-8 gap-1"
             >
-              <Copy />
-              Copy
+              {isCopied ? (
+                <Check className="mr-1 text-green-500" size={14} />
+              ) : (
+                <Copy className="mr-1" size={14} />
+              )}
+              {isCopied ? "Copied" : "Copy"}
             </Button>
           </div>
-          <p className="font-mono text-sm bg-white p-3 rounded border break-all">
+          <p className="font-mono text-sm bg-muted p-3 rounded border border-border break-all">
             {apiKey}
           </p>
         </Card>
-        <Alert variant="default" className="text-left">
+        <Alert
+          variant="destructive"
+          className="text-left bg-red-500/10 border-none"
+        >
           <AlertTitle>Important</AlertTitle>
           <AlertDescription>
             Make sure to copy your API key now. You won&apos;t be able to see it
@@ -164,7 +158,7 @@ export function KeyStep({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-center">
-        <Icons.spinner className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin" size={12} />
         <span className="ml-2">
           Generating API key{projectName ? ` for ${projectName}` : ""}...
         </span>

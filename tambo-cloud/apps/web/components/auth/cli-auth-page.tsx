@@ -1,14 +1,13 @@
 "use client";
 
-import { CreateProjectDialog } from "@/components/cli-auth/create-project-dialog";
 import { KeyStep } from "@/components/cli-auth/key-step";
 import { ProgressIndicator } from "@/components/cli-auth/progress-indicator";
 import { ProjectStep } from "@/components/cli-auth/project-step";
+import { CreateProjectDialog } from "@/components/dashboard-components/create-project-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/hooks/auth";
 import { useCountdownTimer } from "@/hooks/useCountdownTimer";
 import { api } from "@/trpc/react";
-import { MCPTransport } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -66,28 +65,6 @@ type StepProps = {
   currentStep: "select" | "key";
   selectedProjectId: string | null;
   selectedProjectName: string;
-  createDialogState: {
-    isOpen: boolean;
-    name: string;
-    providerKey: string;
-    mcpServer?: {
-      url: string;
-      customHeaders: Record<string, string>;
-      mcpTransport: MCPTransport;
-    };
-  };
-  setCreateDialogState: React.Dispatch<
-    React.SetStateAction<{
-      isOpen: boolean;
-      name: string;
-      providerKey: string;
-      mcpServer?: {
-        url: string;
-        customHeaders: Record<string, string>;
-        mcpTransport: MCPTransport;
-      };
-    }>
-  >;
   apiKey: string;
   countdown: number;
   isGenerating: boolean;
@@ -95,14 +72,13 @@ type StepProps = {
   onGenerate: () => Promise<void>;
   onProjectSelect: (projectId: string, projectName: string) => void;
   onNavigateToProject?: () => void;
+  onCreateClick: () => void;
 };
 
 function Step({
   currentStep,
   selectedProjectId,
   selectedProjectName,
-  createDialogState,
-  setCreateDialogState,
   apiKey,
   countdown,
   isGenerating,
@@ -110,6 +86,7 @@ function Step({
   onGenerate,
   onProjectSelect,
   onNavigateToProject,
+  onCreateClick,
 }: StepProps) {
   switch (currentStep) {
     case "select":
@@ -123,12 +100,7 @@ function Step({
         >
           <ProjectStep
             onProjectSelect={onProjectSelect}
-            onCreateClick={() =>
-              setCreateDialogState({
-                ...createDialogState,
-                isOpen: true,
-              })
-            }
+            onCreateClick={onCreateClick}
           />
         </motion.div>
       );
@@ -166,24 +138,11 @@ export function CLIAuthPage() {
   const [selectedProjectName, setSelectedProjectName] = useState<string>("");
   const [apiKey, setApiKey] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [createDialogState, setCreateDialogState] = useState<{
-    isOpen: boolean;
-    name: string;
-    providerKey: string;
-    mcpServer?: {
-      url: string;
-      customHeaders: Record<string, string>;
-      mcpTransport: MCPTransport;
-    };
-  }>({
-    isOpen: false,
-    name: "",
-    providerKey: "",
-    mcpServer: undefined,
-  });
-  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
   const { data: session, isLoading: isAuthLoading } = useSession();
   const router = useRouter();
+  const utils = api.useUtils();
 
   // Use our new countdown timer hook
   const { countdown, startTimer, stopTimer } = useCountdownTimer(60, () => {
@@ -194,11 +153,7 @@ export function CLIAuthPage() {
   });
 
   const createProjectMutation = api.project.createProject2.useMutation();
-  const addProviderKeyMutation = api.project.addProviderKey.useMutation();
   const generateApiKeyMutation = api.project.generateApiKey.useMutation();
-
-  // Get the queryClient for invalidating queries
-  const utils = api.useUtils();
 
   const steps = ["select a project", "generate key"];
 
@@ -247,55 +202,31 @@ export function CLIAuthPage() {
     setApiKey("");
   }, [stopTimer]);
 
-  const handleCreateProject = useCallback(async () => {
-    try {
-      setIsCreatingProject(true);
-
-      // Prepare project creation input
-      const createProjectInput = {
-        name: createDialogState.name,
-        mcpServers: createDialogState.mcpServer
-          ? [createDialogState.mcpServer]
-          : undefined,
-      };
-
-      const newProject =
-        await createProjectMutation.mutateAsync(createProjectInput);
-
-      // Add OpenAI provider key
-      if (createDialogState.providerKey) {
-        await addProviderKeyMutation.mutateAsync({
-          projectId: newProject.id,
-          provider: "openai",
-          providerKey: createDialogState.providerKey,
+  const handleCreateProject = useCallback(
+    async (projectName: string) => {
+      try {
+        // Create the project
+        const project = await createProjectMutation.mutateAsync({
+          name: projectName,
         });
+
+        // Invalidate project list query to refresh the data
+        await utils.project.getUserProjects.invalidate();
+
+        // Close dialog
+        setIsCreateDialogOpen(false);
+
+        // Select the new project and move to key step
+        handleProjectSelect(project.id, project.name);
+
+        return { id: project.id };
+      } catch (error) {
+        console.error("Project creation failed:", error);
+        throw error;
       }
-
-      // Invalidate project list query to refresh the data
-      await utils.project.getUserProjects.invalidate();
-
-      // Close dialog and reset state
-      setCreateDialogState({
-        isOpen: false,
-        name: "",
-        providerKey: "",
-        mcpServer: undefined,
-      });
-
-      // Select the new project
-      handleProjectSelect(newProject.id, newProject.name);
-    } catch (error) {
-      console.error("Project creation failed:", error);
-    } finally {
-      setIsCreatingProject(false);
-    }
-  }, [
-    createDialogState,
-    createProjectMutation,
-    addProviderKeyMutation,
-    handleProjectSelect,
-    utils.project.getUserProjects,
-  ]);
+    },
+    [createProjectMutation, utils.project.getUserProjects, handleProjectSelect],
+  );
 
   const navigateToProject = useCallback(() => {
     if (selectedProjectId) {
@@ -346,8 +277,6 @@ export function CLIAuthPage() {
                   currentStep={step}
                   selectedProjectId={selectedProjectId}
                   selectedProjectName={selectedProjectName}
-                  createDialogState={createDialogState}
-                  setCreateDialogState={setCreateDialogState}
                   apiKey={apiKey}
                   countdown={countdown}
                   isGenerating={isGenerating}
@@ -355,15 +284,17 @@ export function CLIAuthPage() {
                   onGenerate={handleGenerate}
                   onProjectSelect={handleProjectSelect}
                   onNavigateToProject={navigateToProject}
+                  onCreateClick={() => setIsCreateDialogOpen(true)}
                 />
               )}
             </AnimatePresence>
 
             <CreateProjectDialog
-              state={createDialogState}
-              isCreating={isCreatingProject}
-              onStateChange={setCreateDialogState}
-              onConfirm={handleCreateProject}
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+              onSubmit={handleCreateProject}
+              embedded={false}
+              preventNavigation={true}
             />
           </CardContent>
         </Card>

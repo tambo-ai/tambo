@@ -23,13 +23,43 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+/**
+ * Props for the CreateProjectDialog component
+ * @interface CreateProjectDialogProps
+ */
 interface CreateProjectDialogProps {
+  /** Whether the dialog is open */
   open?: boolean;
+  /** Callback function when dialog open state changes. Can be empty function when embedded. */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Callback function when form is submitted
+   * @param projectName - The name of the project to create
+   * @returns Promise resolving to an object containing the created project's ID
+   */
   onSubmit: (projectName: string) => Promise<{ id: string }>;
+  /** Optional callback function when back button is clicked */
   onBack?: () => void;
+  /**
+   * Controls how the dialog content is rendered
+   * @default false
+   * - When true: Renders only the form content without dialog wrapper (for embedding in other dialogs)
+   * - When false: Renders as a standalone dialog with its own modal wrapper
+   * @example
+   * // Inside another dialog (e.g., onboarding wizard)
+   * <CreateProjectDialog embedded={true} onOpenChange={() => {}} />
+   *
+   * // As standalone dialog
+   * <CreateProjectDialog embedded={false} onOpenChange={setIsOpen} />
+   */
   embedded?: boolean;
+  /** Custom title for the dialog */
   title?: string;
+  /**
+   * Whether to prevent automatic navigation after project creation
+   * When true, the dialog won't navigate to the project dashboard after creation
+   */
+  preventNavigation?: boolean;
 }
 
 const formSchema = z.object({
@@ -57,6 +87,47 @@ const itemVariants = {
   },
 };
 
+/**
+ * A dialog component for creating new projects. Can be used either as a standalone dialog
+ * or embedded within another dialog (like the onboarding wizard).
+ *
+ * @component
+ * @example
+ * // As a standalone dialog
+ * ```tsx
+ * <CreateProjectDialog
+ *   open={isOpen}
+ *   onOpenChange={setIsOpen}
+ *   onSubmit={handleCreateProject}
+ *   title="Create New Project"
+ * />
+ * ```
+ *
+ * @example
+ * // Embedded within another dialog
+ * ```tsx
+ * <Dialog>
+ *   <DialogContent>
+ *     <CreateProjectDialog
+ *       embedded={true}
+ *       onOpenChange={() => {}}
+ *       onSubmit={handleCreateProject}
+ *     />
+ *   </DialogContent>
+ * </Dialog>
+ * ```
+ *
+ * @example
+ * // With prevented navigation (e.g., in CLI auth flow)
+ * ```tsx
+ * <CreateProjectDialog
+ *   open={isOpen}
+ *   onOpenChange={setIsOpen}
+ *   onSubmit={handleCreateProject}
+ *   preventNavigation={true}
+ * />
+ * ```
+ */
 export function CreateProjectDialog({
   open = true,
   onOpenChange,
@@ -64,9 +135,9 @@ export function CreateProjectDialog({
   onBack,
   embedded = false,
   title = "Create New Project",
+  preventNavigation = false,
 }: CreateProjectDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,14 +146,18 @@ export function CreateProjectDialog({
     },
   });
 
+  /**
+   * Handles form submission for project creation
+   * @param values - The form values containing the project name
+   */
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
       const project = await onSubmit(values.projectName.trim());
       form.reset();
 
-      // Navigate to project details page after successful creation
-      if (project.id) {
+      // Only navigate to project details page after successful creation if not prevented
+      if (project.id && !preventNavigation) {
         router.push(`/dashboard/${project.id}`);
       }
     } finally {

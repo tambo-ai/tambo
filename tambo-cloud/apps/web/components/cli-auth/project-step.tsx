@@ -1,6 +1,7 @@
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
+import { Plus } from "lucide-react";
 import { memo } from "react";
 
 interface ProjectStepProps {
@@ -55,6 +56,28 @@ export const ProjectStep = memo(function ProjectStep({
     );
   }
 
+  // Handle empty state
+  if (!projects?.length) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center mb-4">
+          <p className="text-sm text-muted-foreground">
+            Get started by creating your first project.
+          </p>
+        </div>
+        <Button
+          variant="default"
+          onClick={onCreateClick}
+          className="w-full h-12 text-base font-medium transition-all hover:scale-[1.02]"
+        >
+          <Plus className="mr-2" size={16} />
+          Create New Project
+        </Button>
+      </div>
+    );
+  }
+
+  // Show existing projects list
   return (
     <div className="space-y-4">
       <div className="text-center mb-4">
@@ -63,29 +86,13 @@ export const ProjectStep = memo(function ProjectStep({
         </p>
       </div>
       <div className="space-y-2">
-        {projects?.map((project) => (
+        {projects.map((project) => (
           <Button
             key={project.id}
             variant="outline"
             onClick={() => onProjectSelect(project.id, project.name)}
             className="w-full h-12 justify-start text-base font-medium transition-all hover:scale-[1.02]"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
-            >
-              <path d="M3 3h18v18H3z" />
-              <path d="M15 9h.01" />
-              <path d="M9 15h.01" />
-            </svg>
             {project.name}
           </Button>
         ))}
@@ -103,20 +110,7 @@ export const ProjectStep = memo(function ProjectStep({
         onClick={onCreateClick}
         className="w-full h-12 text-base font-medium transition-all hover:scale-[1.02]"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="mr-2"
-        >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+        <Plus className="mr-2" size={16} />
         Create New Project
       </Button>
     </div>
