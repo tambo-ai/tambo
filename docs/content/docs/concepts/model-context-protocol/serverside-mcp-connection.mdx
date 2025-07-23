@@ -32,7 +32,8 @@ If your server does not support OAuth-based authentication, you can add a custom
 
 This is how server-side MCP works:
 
-```mermaid
+<Mermaid
+  chart="
 sequenceDiagram
     Browser->>Tambo: Show me issues in the last 30 days
     Note over Tambo: Tambo transforms the user's message into a tool call
@@ -40,5 +41,6 @@ sequenceDiagram
     MCP->>Tambo: Issues list: [{...}, {...}, {...}]
     Note over Tambo: Tambo chooses a component
     Note over Tambo: Tambo reformats the data into component props
-    Tambo->>Browser: "<IssuesTable issues={...} />"
-```
+    Tambo->>Browser: '<IssuesTable issues={...} />' 
+ "
+/>
