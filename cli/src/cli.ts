@@ -279,6 +279,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       initGit: Boolean(flags.initGit),
       template: flags.template as string | undefined,
+      name: cli.input[1],
     });
     return;
   }
