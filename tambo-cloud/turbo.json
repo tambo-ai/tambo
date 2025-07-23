@@ -36,7 +36,8 @@
     "EMAIL_FROM_PERSONAL",
     "EMAIL_REPLY_TO_SUPPORT",
     "EMAIL_REPLY_TO_PERSONAL",
-    "CALENDAR_URL"
+    "CALENDAR_URL",
+    "NEXT_PUBLIC_DOCS_URL"
   ],
   "tasks": {
     "build": {
