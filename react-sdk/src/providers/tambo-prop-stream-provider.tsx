@@ -218,29 +218,26 @@ const TamboPropStreamProviderComponent = <T = unknown,>({
   propStatus: providedPropStatus,
 }: PropsWithChildren<TamboPropStreamProviderProps<T>>) => {
   // Always try to call the hook - React hooks must be called unconditionally
-  let hookStreamStatus: StreamStatus | undefined;
   let hookPropStatus: Record<string, PropStatus> | undefined;
 
   try {
     const hookResult = useTamboStreamStatus();
-    hookStreamStatus = hookResult.streamStatus;
     hookPropStatus = hookResult.propStatus;
   } catch {
     // Hook failed (not in Tambo context), that's ok
   }
 
-  // Use provided status, then hook status, then defaults
+  // Use provided status, then defaults (skip hook for standalone usage)
   const finalStreamStatus = useMemo(
     () =>
-      providedStreamStatus ??
-      hookStreamStatus ?? {
+      providedStreamStatus ?? {
         isPending: false,
         isStreaming: false,
         isSuccess: true,
         isError: false,
         streamError: undefined,
       },
-    [providedStreamStatus, hookStreamStatus],
+    [providedStreamStatus],
   );
 
   const finalPropStatus = useMemo(
