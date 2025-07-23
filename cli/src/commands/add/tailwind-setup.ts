@@ -340,7 +340,7 @@ export default config`;
         }
 
         console.log(
-          `\n${chalk.blue("ℹ")} Setup guide: ${chalk.underline("https://tambo.co/docs")}`,
+          `\n${chalk.blue("ℹ")} Setup guide: ${chalk.underline("https://docs.tambo.co")}`,
         );
       } else {
         console.log(
