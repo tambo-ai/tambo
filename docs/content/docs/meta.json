@@ -1,0 +1,17 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "...getting-started",
+    "---Concepts---",
+    "...concepts",
+    "---Best Practices---",
+    "...best-practices",
+    "---API Reference---",
+    "...api-reference",
+    "---Command Line Interface---",
+    "...cli",
+    "---Examples and Templates---",
+    "...examples-and-templates"
+  ]
+}

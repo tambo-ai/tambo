@@ -1,0 +1,121 @@
+---
+title: list
+---
+
+`npx tambo list`
+
+Lists all installed Tambo components in your project, showing which components are in the current location (`/components/tambo`).
+
+**Examples:**
+
+```bash
+# List all installed components
+npx tambo list
+
+# List components in custom directory
+npx tambo list --prefix=src/components/ui
+```
+
+## Example Output
+
+When you run `npx tambo list`, you'll see output similar to this:
+
+```bash
+$ npx tambo list
+Found existing src/ directory
+
+? Would you like to use the existing src/ directory for components? yes
+
+ℹ Installed components:
+
+  In tambo/:
+    Tambo components:
+      - canvas-space
+      - control-bar
+      - form
+      - graph
+      - input-fields
+      - message-input
+      - message-suggestions
+      - message-thread-collapsible
+      - message-thread-full
+      - message-thread-panel
+      - message
+      - scrollable-message-container
+      - thread-content
+      - thread-dropdown
+      - thread-history
+    Tambo support components:
+      - markdown-components
+      - message-generation-stage
+      - suggestions-tooltip
+      - thread-container
+
+Total: 19 component(s) (19 from Tambo, 0 custom)
+```
+
+### With Custom Directory
+
+If you're using a custom directory with `--prefix`, the output shows that location:
+
+```bash
+$ npx tambo list --prefix=src/components/ui
+
+ℹ Installed components:
+
+  In ui/:
+    Tambo components:
+      - message-thread-collapsible
+      - control-bar
+      - form
+    Tambo support components:
+      - markdown-components
+
+Total: 4 component(s) (4 from Tambo, 0 custom)
+```
+
+### No Components Found
+
+If no components are installed, you'll see:
+
+```bash
+$ npx tambo list
+
+ℹ No Tambo components found in components/tambo/
+
+Get started by installing components:
+  npx tambo add message-thread-full
+  npx tambo add form graph
+```
+
+## Understanding the Output
+
+The `list` command organizes components into two categories:
+
+### Tambo Components
+
+These are the main UI components you can use in your application:
+
+- **Chat Components**: `message-thread-*`, `message-*`, `thread-*`
+- **Input Components**: `input-fields`, `form`, `control-bar`
+- **Visualization**: `graph`, `canvas-space`
+
+### Tambo Support Components
+
+These are utility components that support the main Tambo components:
+
+- **Markdown Support**: `markdown-components`
+- **UI Helpers**: `message-generation-stage`, `suggestions-tooltip`
+- **Containers**: `thread-container`, `scrollable-message-container`
+
+<Callout type="info" title="Component Detection">
+  The CLI automatically detects whether you're using a `src/` directory
+  structure and will prompt you about component location preferences. It
+  distinguishes between main Tambo components and supporting utility components.
+</Callout>
+
+<Callout type="info" title="Total Count">
+  The total count shows both Tambo components and any custom components you may
+  have added. This helps you track what's installed and identify any non-Tambo
+  components in your Tambo directory.
+</Callout>

@@ -1,0 +1,13 @@
+{
+  "title": "Commands",
+  "pages": [
+    "create-app",
+    "init",
+    "full-send",
+    "add",
+    "list",
+    "update",
+    "upgrade",
+    "migrate"
+  ]
+}
