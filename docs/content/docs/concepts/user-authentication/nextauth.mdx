@@ -1,0 +1,200 @@
+---
+title: Auth.js
+description: Learn how to integrate Tambo with Auth.js for user authentication.
+---
+
+Auth.js (formerly NextAuth.js) is a complete authentication solution for Next.js applications. This guide demonstrates integration with Tambo using Google as the OAuth provider.
+
+<Callout type="info" title="Prerequisites">
+  This guide assumes you've already set up Auth.js with Google OAuth in your
+  Next.js application. If you haven't, follow the [Auth.js Google Provider
+  documentation](https://authjs.dev/getting-started/providers/google) first.
+</Callout>
+
+## Installation
+
+Install the required packages:
+
+```bash
+npm install next-auth @auth/core @tambo-ai/react
+```
+
+## Auth.js Configuration
+
+First, configure Auth.js to return the access token in your API route:
+
+```tsx title="app/api/auth/[...nextauth]/route.ts"
+import NextAuth, { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, account }) {
+      // Persist the OAuth access_token to the token right after signin
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Send properties to the client
+      session.accessToken = token.accessToken as string;
+      return session;
+    },
+  },
+};
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
+```
+
+## TypeScript Configuration
+
+Add the access token to your Auth.js session type:
+
+```tsx title="types/next-auth.d.ts"
+import "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+  }
+}
+```
+
+## Integration Options
+
+### Server-Side Token Retrieval (Recommended)
+
+Use this approach for better security and performance, especially for server-rendered applications.
+
+```tsx title="app/layout.tsx"
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+import ClientLayout from "./client-layout";
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await getServerSession(authOptions);
+
+  return (
+    <html lang="en">
+      <body>
+        <ClientLayout userToken={session?.accessToken}>{children}</ClientLayout>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx title="app/client-layout.tsx"
+"use client";
+
+import { TamboProvider } from "@tambo-ai/react";
+import { ReactNode } from "react";
+
+interface ClientLayoutProps {
+  children: ReactNode;
+  userToken?: string;
+}
+
+export default function ClientLayout({
+  children,
+  userToken,
+}: ClientLayoutProps) {
+  return <TamboProvider userToken={userToken}>{children}</TamboProvider>;
+}
+```
+
+### Client-Side Token Retrieval
+
+Use this approach when you need real-time authentication state management or client-side routing.
+
+```tsx title="app/layout.tsx"
+"use client";
+
+import { SessionProvider } from "next-auth/react";
+import ClientLayout from "./client-layout";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <SessionProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </SessionProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx title="app/client-layout.tsx"
+"use client";
+
+import { useSession } from "next-auth/react";
+import { TamboProvider } from "@tambo-ai/react";
+import { ReactNode } from "react";
+
+interface ClientLayoutProps {
+  children: ReactNode;
+}
+
+export default function ClientLayout({ children }: ClientLayoutProps) {
+  const { data: session } = useSession();
+
+  return (
+    <TamboProvider userToken={session?.accessToken}>{children}</TamboProvider>
+  );
+}
+```
+
+## Usage
+
+Once configured, you can use Tambo components throughout your application:
+
+```tsx title="app/dashboard/page.tsx"
+import { MessageThreadFull } from "@components/ui/tambo";
+
+export default function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <MessageThreadFull />
+    </div>
+  );
+}
+```
+
+## Important Considerations
+
+<Callout type="warn" title="Token Refresh">
+  Google access tokens expire after 1 hour. For production applications,
+  consider implementing token refresh logic or using Auth.js's built-in refresh
+  token capabilities.
+</Callout>
+
+<Callout type="info" title="Scope Configuration">
+  Make sure your Google OAuth application has the necessary scopes configured.
+  The `openid`, `email`, and `profile` scopes are typically sufficient for user
+  identification.
+</Callout>

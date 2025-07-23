@@ -1,0 +1,169 @@
+---
+title: Neon
+description: Learn how to integrate Tambo with Auth.js using Neon as the database backend for session storage.
+---
+
+Auth.js (formerly NextAuth.js) is a complete authentication solution that can use various database adapters. This guide shows how to integrate Tambo with Auth.js when using Neon as the database backend for session and user data storage.
+
+<Callout type="info" title="Prerequisites">
+  This guide assumes you've already set up Auth.js with the Neon database
+  adapter. If you haven't, follow the [Neon Auth.js Integration
+  guide](https://neon.tech/docs/guides/auth-authjs) first.
+</Callout>
+
+## Installation
+
+Install the required packages:
+
+```bash
+npm install next-auth @auth/neon-adapter @neondatabase/serverless @tambo-ai/react
+```
+
+## Auth.js Configuration
+
+Configure Auth.js to use the Neon adapter and return access tokens:
+
+```tsx title="app/api/auth/[...nextauth]/route.ts"
+import NextAuth from "next-auth";
+import { NeonAdapter } from "@auth/neon-adapter";
+import { neon } from "@neondatabase/serverless";
+import GoogleProvider from "next-auth/providers/google";
+
+const sql = neon(process.env.NEON_DATABASE_URL!);
+
+export const authOptions = {
+  adapter: NeonAdapter(sql),
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, account }) {
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.accessToken = token.accessToken as string;
+      return session;
+    },
+  },
+};
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
+```
+
+## Integration Options
+
+### Server-Side Token Retrieval (Recommended)
+
+Use this approach for better security and performance, especially when you don't need real-time authentication state changes.
+
+```tsx title="app/layout.tsx"
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./api/auth/[...nextauth]/route";
+import ClientLayout from "./client-layout";
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await getServerSession(authOptions);
+
+  return (
+    <html lang="en">
+      <body>
+        <ClientLayout userToken={session?.accessToken}>{children}</ClientLayout>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx title="app/client-layout.tsx"
+"use client";
+
+import { TamboProvider } from "@tambo-ai/react";
+import { ReactNode } from "react";
+
+interface ClientLayoutProps {
+  children: ReactNode;
+  userToken?: string;
+}
+
+export default function ClientLayout({
+  children,
+  userToken,
+}: ClientLayoutProps) {
+  return <TamboProvider userToken={userToken}>{children}</TamboProvider>;
+}
+```
+
+### Client-Side Token Retrieval
+
+Use this approach when you need real-time authentication state management or client-side routing with authentication guards.
+
+```tsx title="app/layout.tsx"
+"use client";
+
+import { SessionProvider } from "next-auth/react";
+import ClientLayout from "./client-layout";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <SessionProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </SessionProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx title="app/client-layout.tsx"
+"use client";
+
+import { useSession } from "next-auth/react";
+import { TamboProvider } from "@tambo-ai/react";
+import { ReactNode } from "react";
+
+interface ClientLayoutProps {
+  children: ReactNode;
+}
+
+export default function ClientLayout({ children }: ClientLayoutProps) {
+  const { data: session } = useSession();
+
+  return (
+    <TamboProvider userToken={session?.accessToken}>{children}</TamboProvider>
+  );
+}
+```
+
+## Usage
+
+Once configured, you can use Tambo components throughout your application:
+
+```tsx title="app/dashboard/page.tsx"
+import { MessageThreadFull } from "@components/ui/tambo";
+
+export default function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <MessageThreadFull />
+    </div>
+  );
+}
+```

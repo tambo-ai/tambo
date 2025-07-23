@@ -1,0 +1,18 @@
+:root {
+  --fd-layout-width: 1400px !important;
+}
+
+/* Remove sidebar border */
+#nd-sidebar [class*="border-e"] {
+  border-right: none !important;
+}
+
+#nd-toc {
+  margin-top: 40px !important;
+}
+
+#nd-sidebar {
+  margin-top: 40px !important;
+  background-color: transparent !important;
+  border: none !important;
+}

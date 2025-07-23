@@ -1,0 +1,188 @@
+---
+title: Auth0
+description: Learn how to integrate Tambo with Auth0 for user authentication.
+---
+
+Auth0 is a comprehensive identity and access management platform that provides secure authentication and authorization services. This guide shows how to integrate it with Tambo in a Next.js application.
+
+<Callout type="info" title="Prerequisites">
+  This guide assumes you've already set up Auth0 in your Next.js application. If
+  you haven't, follow the [Auth0 Next.js Quick
+  Start](https://auth0.com/docs/quickstart/webapp/nextjs) first.
+</Callout>
+
+## Installation
+
+Install the required packages:
+
+```bash
+npm install @auth0/nextjs-auth0 @tambo-ai/react
+```
+
+## Integration Options
+
+### Server-Side Token Retrieval (Recommended)
+
+Use this approach for better security and performance, especially when you don't need real-time authentication state changes.
+
+```tsx title="app/layout.tsx"
+import { getAccessToken } from "@auth0/nextjs-auth0";
+import ClientLayout from "./client-layout";
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  let accessToken: string | undefined;
+
+  try {
+    // Get the access token from Auth0
+    const tokenResponse = await getAccessToken();
+    accessToken = tokenResponse.accessToken;
+  } catch (error) {
+    // User is not authenticated
+    console.log("User not authenticated");
+  }
+
+  return (
+    <html lang="en">
+      <body>
+        <ClientLayout userToken={accessToken}>{children}</ClientLayout>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx title="app/client-layout.tsx"
+"use client";
+
+import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { TamboProvider } from "@tambo-ai/react";
+import { ReactNode } from "react";
+
+interface ClientLayoutProps {
+  children: ReactNode;
+  userToken?: string;
+}
+
+export default function ClientLayout({
+  children,
+  userToken,
+}: ClientLayoutProps) {
+  return (
+    <UserProvider>
+      <TamboProvider userToken={userToken}>{children}</TamboProvider>
+    </UserProvider>
+  );
+}
+```
+
+### Client-Side Token Retrieval
+
+Use this approach when you need real-time authentication state management or client-side routing with authentication guards.
+
+First, create a token API endpoint:
+
+```tsx title="app/api/auth/token/route.ts"
+import { getAccessToken } from "@auth0/nextjs-auth0";
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  try {
+    const { accessToken } = await getAccessToken();
+    return NextResponse.json({ accessToken });
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+}
+```
+
+Then use Auth0's `useUser` hook in your client layout:
+
+```tsx title="app/client-layout.tsx"
+"use client";
+
+import { UserProvider, useUser } from "@auth0/nextjs-auth0/client";
+import { TamboProvider } from "@tambo-ai/react";
+import { ReactNode, useEffect, useState } from "react";
+
+interface ClientLayoutProps {
+  children: ReactNode;
+}
+
+function TamboWrapper({ children }: { children: ReactNode }) {
+  const { user, isLoading } = useUser();
+  const [accessToken, setAccessToken] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      const fetchToken = async () => {
+        try {
+          const response = await fetch("/api/auth/token");
+          const data = await response.json();
+          setAccessToken(data.accessToken);
+        } catch (error) {
+          console.error("Error fetching token:", error);
+        }
+      };
+
+      fetchToken();
+    }
+  }, [user, isLoading]);
+
+  return <TamboProvider userToken={accessToken}>{children}</TamboProvider>;
+}
+
+export default function ClientLayout({ children }: ClientLayoutProps) {
+  return (
+    <UserProvider>
+      <TamboWrapper>{children}</TamboWrapper>
+    </UserProvider>
+  );
+}
+```
+
+## Usage
+
+Once configured, you can use Tambo components throughout your application:
+
+```tsx title="app/dashboard/page.tsx"
+import { MessageThreadFull } from "@components/ui/tambo";
+
+export default function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <MessageThreadFull />
+    </div>
+  );
+}
+```
+
+## Auth0 Configuration
+
+Make sure your Auth0 application is configured with the appropriate scopes and settings:
+
+### Required Scopes
+
+Ensure your Auth0 application has the necessary scopes configured:
+
+- `openid` - Required for OpenID Connect
+- `profile` - Access to user profile information
+- `email` - Access to user email address
+
+### Token Configuration
+
+In your Auth0 dashboard, verify that your application is configured to:
+
+- Issue access tokens in JWT format
+- Include the user's ID in the `sub` claim
+- Have the appropriate audience configured if using APIs
+
+<Callout type="info" title="Token Security">
+  Auth0 access tokens are JWTs that include the user's ID in the `sub` claim,
+  which is exactly what Tambo needs for user identification. The tokens are
+  automatically signed by Auth0 and can be verified using Auth0's public keys.
+</Callout>
