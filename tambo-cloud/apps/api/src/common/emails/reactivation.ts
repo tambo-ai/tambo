@@ -27,7 +27,7 @@ Sometimes getting started can feel overwhelming, so I'd be happy to:
 • Answer any questions you might have
 • Jump on a quick 15-minute onboarding call
 
-Just reply to this email or <a href="https://cal.com/michaelmagan" style="color: #0066cc; text-decoration: underline;">book a time that works for you</a>.
+Just reply to this email or <a href="${process.env.CALENDAR_URL}" style="color: #0066cc; text-decoration: underline;">book a time that works for you</a>.
 
 No pressure at all - I know how busy things get. But if you're still interested in using tambo, I'm here to make sure you have a great experience.
 
