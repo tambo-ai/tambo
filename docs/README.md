@@ -1,45 +1,34 @@
-# tambo-docs
+# Tambo AI Documentation
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+This repository contains the documentation for [Tambo AI](https://tambo.co).
 
-Run development server:
+## Development
+
+To run the documentation site locally:
 
 ```bash
 npm run dev
-# or
-pnpm dev
-# or
-yarn dev
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+Open http://localhost:3000 to view the documentation.
 
-## Explore
+## Structure
 
-In the project, you can see:
+This documentation is built using [Fumadocs.](https://fumadocs.dev/)
 
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `app/layout.config.tsx`: Shared options for layouts, optional but preferred to keep.
+- `content/docs/` - Documentation content in MDX format
+- `src/app/` - Next.js application routes and layouts, configured with Fumadocs to build pages based on `/content/docs/`
+- `src/components/` - React components for the documentation site
+- `public/` - Static assets and images
 
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
+## License
 
-### Fumadocs MDX
+MIT License - see the [LICENSE](https://github.com/tambo-ai/tambo/blob/main/LICENSE) file for details.
 
-A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
+## Join the Community
 
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
+Help build tools for the future of user interfaces.
 
-## Learn More
+**[Star this repo](https://github.com/tambo-ai/tambo)** to support our work.
 
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.vercel.app) - learn about Fumadocs
+**[Join our Discord](https://discord.gg/dJNvPEHth6)** to connect with other developers.
