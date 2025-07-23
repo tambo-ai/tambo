@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.87.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.86.1...repo-v0.87.0) (2025-07-23)
+
+
+### Features
+
+* redirect old docs and remove old content ([#1401](https://github.com/tambo-ai/tambo-cloud/issues/1401)) ([ef4b8ac](https://github.com/tambo-ai/tambo-cloud/commit/ef4b8ac678ebf145839ce731401cf4c99975b611))
+
+
+### Miscellaneous Chores
+
+* add and update CALENDAR_URL to email reactivation template ([#1399](https://github.com/tambo-ai/tambo-cloud/issues/1399)) ([1a09659](https://github.com/tambo-ai/tambo-cloud/commit/1a096592b0247f093499dd77725f5dfdf292665d))
+* bump components to the latest version ([#1396](https://github.com/tambo-ai/tambo-cloud/issues/1396)) ([cf5d8eb](https://github.com/tambo-ai/tambo-cloud/commit/cf5d8ebfb44d003c40689be270b4d9bfd85861ea))
+* update create-project-dialogue in cli-auth ([#1398](https://github.com/tambo-ai/tambo-cloud/issues/1398)) ([340e7ec](https://github.com/tambo-ai/tambo-cloud/commit/340e7ec76d16f7b0b58cacab21389634b76b67db))
+* update docs links to the new domain ([#1400](https://github.com/tambo-ai/tambo-cloud/issues/1400)) ([49595eb](https://github.com/tambo-ai/tambo-cloud/commit/49595ebb37fd704eb76cd3c419a9d8e0f118064b))
+
 ## [0.86.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.86.0...repo-v0.86.1) (2025-07-22)
 
 
