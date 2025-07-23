@@ -218,7 +218,10 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
 
       showComponentList();
       console.log(
-        `Run ${chalk.cyan("tambo add <componentName> [componentName2] [...]")} to add components`,
+        `Run ${chalk.cyan("npx tambo add <componentName> [componentName2] [...]")} to add components\n`,
+      );
+      console.log(
+        `See demos of all components at ${chalk.cyan("https://ui.tambo.co")}\n`,
       );
       return;
     }
@@ -244,8 +247,13 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       showComponentList();
       console.log(
         `Run ${chalk.cyan(
-          "tambo update <componentName> [componentName2] [...]",
-        )} to update components or ${chalk.cyan("tambo update installed")} to update all installed components`,
+          "npx tambo update <componentName> [componentName2] [...]",
+        )} to update components or ${chalk.cyan(
+          "npx tambo update installed",
+        )} to update all installed components\n`,
+      );
+      console.log(
+        `See demos of all components at ${chalk.cyan("https://ui.tambo.co")}\n`,
       );
       return;
     }
