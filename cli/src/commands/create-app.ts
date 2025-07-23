@@ -34,6 +34,7 @@ interface CreateAppOptions {
   legacyPeerDeps?: boolean;
   initGit?: boolean;
   template?: string;
+  name?: string;
 }
 
 function safeRemoveGitFolder(gitFolder: string): void {
@@ -96,23 +97,36 @@ export async function handleCreateApp(
 ): Promise<void> {
   console.log("");
 
-  // Always prompt for app name
-  const response = await inquirer.prompt([
-    {
-      type: "input",
-      name: "appName",
-      message:
-        'What is the name of your app? (use "." to create in current directory)',
-      default: "my-tambo-app",
-      validate: (input) => {
-        if (input === "." || /^[a-zA-Z0-9-_]+$/.test(input)) {
-          return true;
-        }
-        return 'App name can only contain letters, numbers, dashes, and underscores, or "." for current directory';
+  let appName: string;
+
+  // If name is provided in options, use it directly after validation
+  if (options.name) {
+    if (options.name === "." || /^[a-zA-Z0-9-_]+$/.test(options.name)) {
+      appName = options.name;
+    } else {
+      throw new Error(
+        'App name can only contain letters, numbers, dashes, and underscores, or "." for current directory',
+      );
+    }
+  } else {
+    // Only prompt if name wasn't provided
+    const response = await inquirer.prompt([
+      {
+        type: "input",
+        name: "appName",
+        message:
+          'What is the name of your app? (use "." to create in current directory)',
+        default: "my-tambo-app",
+        validate: (input) => {
+          if (input === "." || /^[a-zA-Z0-9-_]+$/.test(input)) {
+            return true;
+          }
+          return 'App name can only contain letters, numbers, dashes, and underscores, or "." for current directory';
+        },
       },
-    },
-  ]);
-  const appName = response.appName;
+    ]);
+    appName = response.appName;
+  }
 
   const targetDir =
     appName === "." ? process.cwd() : path.join(process.cwd(), appName);
@@ -293,13 +307,14 @@ export async function handleCreateApp(
     }
     console.log(`  ${step}. ${chalk.cyan("npx tambo init")} to complete setup`);
     step++;
-    console.log(
-      `  ${step}. ${chalk.cyan(
-        "npx tambo add <component-name>",
-      )} to add additional components`,
-    );
-    step++;
     console.log(`  ${step}. ${chalk.cyan("npm run dev")}`);
+    console.log("\nLearn More:");
+    console.log(
+      `  • Each component in your template comes with built-in documentation and examples`,
+    );
+    console.log(
+      `  • Visit our UI showcase at ${chalk.cyan("https://ui.tambo.co")} to explore and learn about the components included in your template\n`,
+    );
     step++;
   } catch (error) {
     console.error(
