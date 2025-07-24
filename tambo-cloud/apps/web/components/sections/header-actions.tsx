@@ -40,7 +40,7 @@ export function HeaderActions({
         Demo
       </Link>
       <Link
-        href="/docs"
+        href={process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co"}
         className={cn(
           buttonVariants({ variant: "link" }),
           "h-9 rounded-md group tracking-tight font-medium",
