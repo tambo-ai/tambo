@@ -1,0 +1,38 @@
+---
+title: migrate
+---
+
+`npx tambo migrate`
+
+Migrates Tambo components from the legacy `components/ui` directory to the new `components/tambo` directory and updates import paths automatically.
+
+This command addresses the change in Tambo CLI's installation approach - earlier versions installed components in `components/ui`, while current versions use the dedicated `components/tambo` directory for better organization.
+
+**What it does:**
+
+1. Moves component files from `ui/` to `tambo/` directory
+2. Updates import paths in moved files
+3. Preserves custom (non-Tambo) components in original location
+4. Shows preview of changes before applying
+
+**Examples:**
+
+```bash
+# Preview migration changes (recommended first)
+npx tambo migrate --dry-run
+
+# Perform migration with confirmation
+npx tambo migrate
+
+# Skip confirmation prompts
+npx tambo migrate --yes
+```
+
+**Manual Migration Steps:**
+
+If you prefer to migrate manually:
+
+1. **Move Files**: Move all `.tsx` files from `/components/ui/` to `/components/tambo/`
+2. **Update Imports**: Change all imports from `@/components/ui/` to `@/components/tambo/`
+3. **Update Registry**: Update component registrations in `lib/tambo.ts`
+4. **Test**: Verify all components still work correctly

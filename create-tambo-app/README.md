@@ -51,5 +51,5 @@ This project is part of the Tambo ecosystem. See the Tambo repository for licens
 
 ## Links
 
-- [Tambo Documentation](https://tambo.co/docs)
+- [Tambo Documentation](https://docs.tambo.co)
 - [GitHub Repository](https://github.com/tambo-ai/tambo)

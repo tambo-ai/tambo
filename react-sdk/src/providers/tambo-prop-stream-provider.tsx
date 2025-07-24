@@ -63,7 +63,7 @@ export interface CompleteProps {
 /**
  * Loading component that renders children when the stream is in a loading state
  * @param props - The props for the Loading component
- * @param props.key - The key to identify this loading state
+ * @param props.streamKey - The key to identify this loading state
  * @param props.children - The children to render when loading
  * @param props.className - Optional className for styling
  * @returns The Loading component
@@ -94,7 +94,7 @@ const Loading: React.FC<LoadingProps> = ({
 /**
  * Empty component that renders children when the stream has no data
  * @param props - The props for the Empty component
- * @param props.key - The key to identify this empty state
+ * @param props.streamKey - The key to identify this empty state
  * @param props.children - The children to render when empty
  * @param props.className - Optional className for styling
  * @returns The Empty component
@@ -139,7 +139,7 @@ const Empty: React.FC<EmptyProps> = ({
 /**
  * Complete component that renders children when the stream has data
  * @param props - The props for the Complete component
- * @param props.key - The key to identify this complete state
+ * @param props.streamKey - The key to identify this complete state
  * @param props.children - The children to render when complete
  * @param props.className - Optional className for styling
  * @returns The Complete component

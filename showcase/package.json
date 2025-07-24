@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/showcase",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,7 +17,7 @@
     "@tambo-ai/typescript-sdk": "^0.63.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
-    "framer-motion": "^12.23.5",
+    "framer-motion": "^12.23.6",
     "geist": "^1.4.2",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
@@ -25,14 +25,14 @@
     "leaflet.heat": "^0.2.0",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^0.525.0",
-    "next": "^15.4.1",
+    "next": "^15.4.2",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.4.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0",
-    "recharts": "^3.0.2",
+    "recharts": "^3.1.0",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
@@ -50,7 +50,7 @@
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
     "eslint": "^9",
-    "eslint-config-next": "15.4.1",
+    "eslint-config-next": "15.4.2",
     "postcss": "^8.5.6",
     "rimraf": "^6.0.1",
     "tailwind-merge": "^3.3.1",

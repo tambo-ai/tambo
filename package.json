@@ -11,7 +11,7 @@
     "prepare": "husky",
     "prettier-check": "prettier --check .",
     "test": "turbo test",
-    "dev": "turbo dev --filter=@tambo-ai/showcase"
+    "dev": "turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs"
   },
   "author": "",
   "license": "MIT",
@@ -19,13 +19,14 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
-    "turbo": "^2.5.4",
+    "turbo": "^2.5.5",
     "typescript": "^5.8.3"
   },
   "packageManager": "npm@10.9.2",
   "workspaces": [
     "react-sdk",
     "showcase",
+    "docs",
     "cli",
     "create-tambo-app",
     "packages/*"

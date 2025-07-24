@@ -268,7 +268,7 @@ const mcpServers = [
 </TamboProvider>;
 ```
 
-[Read our full documentation](https://tambo.co/docs)
+[Read our full documentation](https://docs.tambo.co)
 
 ## Development
 

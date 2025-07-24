@@ -176,7 +176,7 @@ export default function RootLayout({ children }) {
 
 ## Documentation
 
-For detailed documentation and examples, visit [tambo.co/docs](https://tambo.co/docs)
+For detailed documentation and examples, visit [docs.tambo.co](https://docs.tambo.co)
 
 For more information about all available components and installation options, check out the [tambo ui showcase](https://github.com/tambo-ai/tambo/tree/main/showcase).
 
