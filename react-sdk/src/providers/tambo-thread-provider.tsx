@@ -727,8 +727,8 @@ export const TamboThreadProvider: React.FC<
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
       const combinedContext = {
-        system: JSON.stringify(getSystemContext()),
-        ...(additionalContext ?? {}),
+        system: getSystemContext(),
+        custom: additionalContext,
       };
 
       addThreadMessage(
