@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.87.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.87.0...repo-v0.87.1) (2025-07-24)
+
+
+### Bug Fixes
+
+* update docs link on landing page ([#1405](https://github.com/tambo-ai/tambo-cloud/issues/1405)) ([7376ec7](https://github.com/tambo-ai/tambo-cloud/commit/7376ec766fcdda070613059a03669ca4fb7da90a))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump form-data from 4.0.2 to 4.0.4 in /scripts ([#1403](https://github.com/tambo-ai/tambo-cloud/issues/1403)) ([2a7a776](https://github.com/tambo-ai/tambo-cloud/commit/2a7a776c80f7f1a47b80b7c823e1b1f53ca83f3c))
+
 ## [0.87.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.86.1...repo-v0.87.0) (2025-07-23)
 
 
