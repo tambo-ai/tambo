@@ -118,7 +118,7 @@ const getDefaultContextObject = () => {
  * @returns a string of context additions that will be added to the prompt when the thread is advanced.
  */
 export const getSystemContext = () => {
-  return JSON.stringify(getDefaultContextObject());
+  return getDefaultContextObject();
 };
 
 /**
