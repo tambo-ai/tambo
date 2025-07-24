@@ -20,7 +20,7 @@ import { TamboThread } from "../model/tambo-thread";
 import { renderComponentIntoMessage } from "../util/generate-component";
 import {
   getAvailableComponents,
-  getClientContext,
+  getSystemContext,
   getUnassociatedTools,
   mapTamboToolToContextTool,
 } from "../util/registry";
@@ -66,6 +66,7 @@ export interface TamboThreadContextProps {
       streamResponse?: boolean;
       contextKey?: string;
       forceToolChoice?: string;
+      additionalContext?: object;
     },
   ) => Promise<TamboThreadMessage>;
   /** The generation stage of the current thread - updated as the thread progresses */
@@ -255,7 +256,7 @@ export const TamboThreadProvider: React.FC<
 
   const addThreadMessage = useCallback(
     async (
-      message: TamboThreadMessage,
+      message: TamboThreadMessage & { additionalContext?: object },
       sendToServer = true,
       createdAt: string = new Date().toISOString(),
     ) => {
@@ -263,12 +264,18 @@ export const TamboThreadProvider: React.FC<
         console.warn("Cannot add messages if we do not have a current thread");
         return [];
       }
+
+      // Combine system context with user context
+      const combinedContext = {
+        system: message.role === "user" ? getSystemContext() : undefined,
+        custom: message.additionalContext,
+      };
+
       const chatMessage: TamboThreadMessage & {
-        additionalContext?: string;
+        additionalContext?: object;
       } = {
         ...message,
-        additionalContext:
-          message.role === "user" ? getClientContext() : undefined,
+        additionalContext: combinedContext,
         createdAt,
       };
       const threadId = message.threadId;
@@ -706,6 +713,7 @@ export const TamboThreadProvider: React.FC<
         streamResponse?: boolean;
         forceToolChoice?: string;
         contextKey?: string;
+        additionalContext?: object;
       } = {},
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);
@@ -714,8 +722,14 @@ export const TamboThreadProvider: React.FC<
         streamResponse = streaming,
         forceToolChoice,
         contextKey = currentThreadContextKey,
+        additionalContext,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
+
+      const combinedContext = {
+        system: getSystemContext(),
+        ...(additionalContext ?? {}),
+      };
 
       addThreadMessage(
         {
@@ -726,6 +740,7 @@ export const TamboThreadProvider: React.FC<
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
           componentState: {},
+          additionalContext: combinedContext,
         },
         false,
       );
@@ -748,6 +763,7 @@ export const TamboThreadProvider: React.FC<
           content: [{ type: "text", text: message }],
           role: "user",
         },
+        additionalContext: combinedContext,
         contextKey,
         availableComponents: availableComponents,
         clientTools: unassociatedTools.map((tool) =>

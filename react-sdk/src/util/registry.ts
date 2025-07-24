@@ -106,21 +106,19 @@ export const getComponentFromRegistry = (
   return componentEntry;
 };
 
-const getDefaultContextAdditions = (): string[] => {
-  const utcOffsetHours = new Date().getTimezoneOffset() / 60;
-  const utcOffset = `(UTC${utcOffsetHours > 0 ? "+" : ""}${utcOffsetHours})`;
-  return [
-    `The current time in user's timezone (${utcOffset}) is: ${new Date().toLocaleString()}`,
-  ];
+const getDefaultContextObject = () => {
+  return {
+    localTime: new Date().toLocaleString(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
 };
 
 /**
  * Get the client context for the current thread, such as the current time in the user's timezone
  * @returns a string of context additions that will be added to the prompt when the thread is advanced.
  */
-export const getClientContext = (): string => {
-  const contextAdditions = getDefaultContextAdditions();
-  return contextAdditions.join("\n");
+export const getSystemContext = () => {
+  return getDefaultContextObject();
 };
 
 /**
