@@ -66,7 +66,7 @@ export interface TamboThreadContextProps {
       streamResponse?: boolean;
       contextKey?: string;
       forceToolChoice?: string;
-      additionalContext?: object;
+      additionalContext?: Record<string, any>;
     },
   ) => Promise<TamboThreadMessage>;
   /** The generation stage of the current thread - updated as the thread progresses */
@@ -256,7 +256,7 @@ export const TamboThreadProvider: React.FC<
 
   const addThreadMessage = useCallback(
     async (
-      message: TamboThreadMessage & { additionalContext?: object },
+      message: TamboThreadMessage & { additionalContext?: Record<string, any> },
       sendToServer = true,
       createdAt: string = new Date().toISOString(),
     ) => {
@@ -272,7 +272,7 @@ export const TamboThreadProvider: React.FC<
       };
 
       const chatMessage: TamboThreadMessage & {
-        additionalContext?: object;
+        additionalContext?: Record<string, any>;
       } = {
         ...message,
         additionalContext: combinedContext,
@@ -713,7 +713,7 @@ export const TamboThreadProvider: React.FC<
         streamResponse?: boolean;
         forceToolChoice?: string;
         contextKey?: string;
-        additionalContext?: object;
+        additionalContext?: Record<string, any>;
       } = {},
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);

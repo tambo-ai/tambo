@@ -43,7 +43,7 @@ interface UseThreadInputInternal {
     contextKey?: string;
     streamResponse?: boolean;
     forceToolChoice?: string;
-    additionalContext?: object;
+    additionalContext?: Record<string, any>;
   }) => Promise<void>;
 }
 export type UseThreadInput = UseThreadInputInternal &
@@ -71,7 +71,7 @@ export function useTamboThreadInput(contextKey?: string): UseThreadInput {
       contextKey?: string;
       streamResponse?: boolean;
       forceToolChoice?: string;
-      additionalContext?: object;
+      additionalContext?: Record<string, any>;
     } = {}) => {
       const validation = validateInput(inputValue);
       if (!validation.isValid) {
