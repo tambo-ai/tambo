@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.88.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.87.1...repo-v0.88.0) (2025-07-24)
+
+
+### Features
+
+* add additionalContext support ([#1402](https://github.com/tambo-ai/tambo-cloud/issues/1402)) ([ce4f888](https://github.com/tambo-ai/tambo-cloud/commit/ce4f8881b35a54f1aa88ee08b8a450a896cc1aa8))
+
 ## [0.87.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.87.0...repo-v0.87.1) (2025-07-24)
 
 
