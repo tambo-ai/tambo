@@ -104,7 +104,7 @@ describe("tool utilities", () => {
         role: MessageRole.Tool,
         content: [],
       },
-      additionalContext: "test context",
+      additionalContext: { test: "context" },
       availableComponents: [],
     };
 

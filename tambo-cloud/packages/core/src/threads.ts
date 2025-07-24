@@ -94,12 +94,8 @@ export interface ThreadMessage {
   /** Component decision for this message */
   component?: LegacyComponentDecision;
   componentState?: Record<string, unknown>;
-  /**
-   * Additional context for the message - TODO: do we need this here?
-   * Marking deprecated until we figure out who sets it
-   * @deprecated
-   * */
-  additionalContext?: string;
+  /** Additional context for the message */
+  additionalContext?: Record<string, any>;
 
   /** Type of action performed */
   actionType?: ActionType;

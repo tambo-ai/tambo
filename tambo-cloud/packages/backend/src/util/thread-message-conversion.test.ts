@@ -221,7 +221,7 @@ describe("threadMessagesToChatHistory", () => {
         content: [
           { type: "text", text: "user input" },
         ] as ChatCompletionContentPartText[],
-        additionalContext: "extra context",
+        additionalContext: { extra: "context" },
       };
 
       const result = threadMessagesToChatCompletionMessageParam([userMessage]);
@@ -231,7 +231,7 @@ describe("threadMessagesToChatHistory", () => {
           content: [
             { type: "text", text: "user input" },
             {
-              text: "<System> The following is additional context provided by the system that you can use when responding to the user: extra context </System>",
+              text: '<System> The following is additional context provided by the system that you can use when responding to the user: {"extra":"context"} </System>',
               type: "text",
             },
           ],
