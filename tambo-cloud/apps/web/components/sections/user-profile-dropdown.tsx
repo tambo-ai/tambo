@@ -1,6 +1,5 @@
 "use client";
 
-import { getSupabaseClient } from "@/app/utils/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -12,13 +11,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { siteConfig } from "@/lib/config";
-import { type User } from "@supabase/supabase-js";
 import { track } from "@vercel/analytics";
 import { BookOpen, Bug, Calendar, LogOut, MessageSquare } from "lucide-react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 
 interface UserProfileDropdownProps {
-  user: User | null | undefined;
+  user:
+    | {
+        id?: string;
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+      }
+    | null
+    | undefined;
 }
 
 export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
@@ -26,10 +33,8 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
 
   const handleLogout = async () => {
     try {
-      const supabase = getSupabaseClient();
-      await supabase.auth.signOut();
+      await signOut({ callbackUrl: "/" });
       track("User Logout");
-      window.location.href = "/";
     } catch (_error) {
       toast({
         title: "Error",
@@ -44,15 +49,14 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
   }
 
   const userInitial = user.email?.charAt(0).toUpperCase() || "U";
-  const displayName =
-    user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+  const displayName = user.name || user.email?.split("@")[0] || "User";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center">
         <Avatar className="h-8 w-8">
           <AvatarImage
-            src={user.user_metadata?.avatar_url}
+            src={user.image || undefined}
             alt={user.email || "User"}
           />
           <AvatarFallback>{userInitial}</AvatarFallback>

@@ -8,11 +8,6 @@ import { useReportWebVitals } from "next/web-vitals";
  */
 export function WebVitalsReporter() {
   useReportWebVitals((metric) => {
-    // Log metrics to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.log(metric);
-    }
-
     // Send metrics to analytics in production
     if (typeof window !== "undefined" && window.posthog) {
       const { name, value, id } = metric;

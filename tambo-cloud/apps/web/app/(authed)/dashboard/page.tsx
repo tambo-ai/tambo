@@ -5,10 +5,10 @@ import { DashboardCard } from "@/components/dashboard-components/dashboard-card"
 import { OnboardingWizard } from "@/components/dashboard-components/onboarding-wizard";
 import { ProjectsManager } from "@/components/dashboard-components/projects-manager";
 import { Icons } from "@/components/icons";
-import { useSession } from "@/hooks/auth";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 // Animation variants
@@ -29,7 +29,8 @@ export default function DashboardPage() {
   const [messagesPeriod, setMessagesPeriod] = useState("all time");
   const [usersPeriod, setUsersPeriod] = useState("all time");
   const { toast } = useToast();
-  const { data: session, isLoading: isAuthLoading } = useSession();
+  const { data: session, status } = useSession();
+  const isAuthLoading = status === "loading";
 
   const {
     data: projects,

@@ -1,18 +1,9 @@
-import { getServerSupabaseClient } from "@/server/supabase";
-import { AuthedLayoutWrapper } from "../../components/auth/authed-layout-wrapper";
+import { NextAuthLayoutWrapper } from "@/components/auth/nextauth-layout-wrapper";
 
-export default async function AuthedLayout({
+export default function AuthedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Check authentication on the server
-  const _supabase = await getServerSupabaseClient();
-  const {
-    data: { user },
-  } = await _supabase.auth.getUser();
-
-  return (
-    <AuthedLayoutWrapper hasSession={!!user}>{children}</AuthedLayoutWrapper>
-  );
+  return <NextAuthLayoutWrapper>{children}</NextAuthLayoutWrapper>;
 }

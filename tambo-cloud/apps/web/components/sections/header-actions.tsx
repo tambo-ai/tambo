@@ -1,6 +1,6 @@
 "use client";
 
-import { LogoutButton } from "@/components/auth/logout-button";
+import { NextAuthLogoutButton } from "@/components/auth/nextauth-logout-button";
 import { buttonVariants } from "@/components/ui/button";
 import { DiscordLink } from "@/components/ui/discord-link";
 import { GitHubLink } from "@/components/ui/github-link";
@@ -72,7 +72,7 @@ export function HeaderActions({
           Dashboard
         </Link>
       )}
-      {showLogoutButton && <LogoutButton />}
+      {showLogoutButton && <NextAuthLogoutButton />}
     </div>
   );
 }

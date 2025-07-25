@@ -167,9 +167,7 @@ export const toolsRouter = createTRPCRouter({
           serverUrl: url,
         },
       );
-      console.log("--> starting auth: ", url);
       const result = await auth(localProvider, { serverUrl: url });
-      console.log("Auth result:", result);
       if (result === "AUTHORIZED") {
         return {
           success: true,

@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { Pool, PoolClient } from "pg";
 import * as operations from "./operations";
 import * as schema from "./schema";
 import type { HydraDatabase } from "./types";
@@ -8,35 +8,64 @@ let globalPool: Pool | null = null;
 
 const MAX_POOL_SIZE = 50;
 
-function getDb(databaseUrl: string): HydraDatabase {
-  // quick hack to get the db connection
+function getPool(databaseUrl: string): Pool {
   if (!globalPool) {
-    const pool = new Pool({
+    globalPool = new Pool({
       connectionString: databaseUrl,
       max: MAX_POOL_SIZE,
       connectionTimeoutMillis: 10000,
     });
-
     // Uncomment to debug connection pool issues
-    // pool.on("acquire", () => {
+    // globalPool.on("acquire", () => {
     //   console.log(
-    //     `Connection acquired: now → ${pool.totalCount}/${pool.idleCount} (total/idle)`,
+    //     `Connection acquired: now → ${globalPool.totalCount}/${globalPool.idleCount} (total/idle)`,
     //   );
     // });
-
-    // pool.on("release", () => {
+    // globalPool.on("release", () => {
     //   console.log(
-    //     `Connection released: now → ${pool.totalCount}/${pool.idleCount} (total/idle) (released connection takes a few ms to be marked as idle)`,
+    //     `Connection released: now → ${globalPool.totalCount}/${globalPool.idleCount} (total/idle) (released connection takes a few ms to be marked as idle)`,
     //   );
     // });
-
-    globalPool = pool;
   }
-  console.log(
-    `Database status: ${globalPool.totalCount} connections (${globalPool.idleCount} idle)`,
-  );
-  const db = drizzle(globalPool, { schema });
+  return globalPool;
+}
+async function getDbClient(databaseUrl: string): Promise<PoolClient> {
+  const pool = getPool(databaseUrl);
+  const client = await pool.connect();
+  return client;
+}
 
+/**
+ * Convenience helper that ensures a `PoolClient` is always released back to the pool.
+ *
+ * Usage:
+ * ```ts
+ * const result = await withDbClient(env.DATABASE_URL, async (client) => {
+ *   const { rows } = await client.query("select now()");
+ *   return rows[0];
+ * });
+ * ```
+ *
+ * The client is automatically released whether the callback resolves or throws.
+ */
+export async function withDbClient<T>(
+  databaseUrl: string,
+  fn: (client: PoolClient) => Promise<T>,
+): Promise<T> {
+  const client = await getDbClient(databaseUrl);
+  try {
+    return await fn(client);
+  } finally {
+    client.release();
+  }
+}
+
+function getDb(databaseUrl: string): HydraDatabase {
+  const pool = getPool(databaseUrl);
+  // console.log(
+  //   `Database status: ${pool.totalCount} connections (${pool.idleCount} idle)`,
+  // );
+  const db = drizzle(pool, { schema });
   return db;
 }
 
@@ -49,4 +78,4 @@ async function closeDb() {
 
 export * from "./oauth/OAuthLocalProvider";
 export * from "./types";
-export { closeDb, getDb, operations, schema };
+export { closeDb, getDb, operations, schema }; // `withDbClient` exported above

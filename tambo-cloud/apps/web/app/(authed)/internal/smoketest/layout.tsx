@@ -1,5 +1,6 @@
-import { getServerSupabaseClient } from "@/server/supabase";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Metadata } from "next";
+import { getServerSession, User } from "next-auth";
 import { ClientLayout } from "./components/client-layout";
 
 export const metadata: Metadata = {
@@ -12,11 +13,11 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await getServerSupabaseClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return (
-    <ClientLayout userToken={session?.access_token}>{children}</ClientLayout>
-  );
+  const session = await getServerSession(authOptions);
+  const user = session?.user as User | undefined;
+
+  // Get the OAuth access token from the session
+  const userToken = user?.idToken;
+
+  return <ClientLayout userToken={userToken}>{children}</ClientLayout>;
 }

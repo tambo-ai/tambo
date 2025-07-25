@@ -1,8 +1,7 @@
 "use client";
 
-import { getSupabaseClient } from "@/app/utils/supabase";
-import { useSession } from "@/hooks/auth";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function AuthedLayoutWrapper({
@@ -13,75 +12,36 @@ export function AuthedLayoutWrapper({
   hasSession: boolean;
 }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const code = searchParams.get("code");
-  const { data: session, isLoading: isSessionLoading } = useSession();
+  const { data: session, status } = useSession();
+  const isSessionLoading = status === "loading";
 
   // Use client-side session info when available, fallback to server-provided status when loading
   const hasValidSession =
     session !== null || (initialHasSession && isSessionLoading);
 
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [authError, setAuthError] = useState<string | null>(null);
   const loginParams = useLoginParams(pathname);
 
   useEffect(() => {
     async function handleAuth() {
-      // If there's an auth code in the URL, exchange it for a session
-      if (code) {
-        try {
-          await getSupabaseClient().auth.exchangeCodeForSession(code);
-          // Refresh the page without the code parameter to load with the new session
-          router.replace(pathname);
-        } catch (error) {
-          console.error("Failed to exchange code for session:", error);
-          setAuthError("Authentication failed. Please try logging in again.");
-          router.replace(`/login${loginParams}`);
-        }
-        return;
-      }
-
       // If no session, redirect to login
-      if (!hasValidSession) {
+      if (!hasValidSession && !isSessionLoading) {
         router.replace(`/login${loginParams}`);
-      } else {
+      } else if (hasValidSession) {
         // Auth check complete, we can render the content
         setIsCheckingAuth(false);
       }
     }
 
     handleAuth();
-
-    // Setup auth state listener
-    const {
-      data: { subscription },
-    } = getSupabaseClient().auth.onAuthStateChange((_event, session) => {
-      // If user signs out, redirect to login
-      if (!session) {
-        router.replace(`/login${loginParams}`);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [hasValidSession, pathname, code, router, isSessionLoading, loginParams]);
+  }, [hasValidSession, pathname, router, isSessionLoading, loginParams]);
 
   // Show loading state while checking authentication
-  if (isCheckingAuth) {
+  if (isCheckingAuth || isSessionLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse h-8 w-8 rounded-full bg-background" />
-      </div>
-    );
-  }
-
-  // Show error message if authentication failed
-  if (authError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-destructive/10 text-destructive p-4 rounded-md">
-          {authError}
-        </div>
       </div>
     );
   }
@@ -109,17 +69,7 @@ function useLoginParams(pathname: string) {
 }
 
 function useAuthErrorArgs(): [string, string][] {
-  const searchParams = useSearchParams();
-  if (
-    searchParams.get("error") &&
-    searchParams.get("error_code") &&
-    searchParams.get("error_description")
-  ) {
-    return [
-      ["error", searchParams.get("error")!],
-      ["error_code", searchParams.get("error_code")!],
-      ["error_description", searchParams.get("error_description")!],
-    ];
-  }
+  // For NextAuth, we don't need to handle auth errors in the same way
+  // as Supabase, so we can simplify this
   return [];
 }

@@ -8,31 +8,26 @@
  */
 
 import { initTRPC, TRPCError } from "@trpc/server";
+import { type JWTPayload } from "jose";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { env } from "@/lib/env";
-import { SupabaseClient, User } from "@supabase/supabase-js";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
-import { getServerSupabaseClient } from "../supabase";
+import { getServerSession, User } from "next-auth";
+
 export type Context = {
   db: HydraDb;
-  claims: SupabaseToken | null;
-  user: User | null;
-  supabase: SupabaseClient;
+  session: any | null;
+  user: {
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
+  } | null;
   headers: Headers;
-};
-
-type SupabaseToken = {
-  iss?: string;
-  sub?: string;
-  aud?: string[] | string;
-  exp?: number;
-  nbf?: number;
-  iat?: number;
-  jti?: string;
-  role?: string;
 };
 
 /**
@@ -50,19 +45,23 @@ type SupabaseToken = {
 export const createTRPCContext = async (opts: {
   headers: Headers;
 }): Promise<Context> => {
-  const supabase = await getServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: claimsData } = await supabase.auth.getClaims();
+  const session = await getServerSession(authOptions);
   const db = getDb(env.DATABASE_URL);
-  const claims = claimsData?.claims as SupabaseToken;
+
+  // Map NextAuth session to the expected user format
+  const user = session?.user
+    ? {
+        id: (session.user as User).id,
+        email: session.user.email,
+        name: session.user.name,
+        image: session.user.image,
+      }
+    : null;
 
   return {
     db,
-    claims,
+    session,
     user,
-    supabase,
     ...opts,
   };
 };
@@ -134,35 +133,35 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 
 const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
   return await ctx.db.transaction(async (tx) => {
-    const claims = ctx.claims;
+    const user = ctx.user;
 
-    /**
-     * Whitelisted roles that a request is allowed to assume when running inside
-     * the transaction.  If the incoming JWT’s `role` claim is not in this list
-     * (or is absent), we fall back to the least-privileged `anon` role.
-     */
-    const allowedRoles = new Set<string>([
-      "postgres",
-      "anon",
-      "authenticated",
-      "service_role",
-    ]);
-
-    const requestedRole = claims?.role ?? "anon";
-    const safeRole = allowedRoles.has(requestedRole) ? requestedRole : "anon";
+    // Create JWT-like claims structure for the database
+    const role = user ? "authenticated" : "anon";
+    const jwtClaims: JWTPayload = user
+      ? {
+          sub: user.id,
+          iss: "nextauth", // NextAuth as issuer
+          aud: "tambo",
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
+          email: user.email,
+          name: user.name,
+          role,
+        }
+      : {};
 
     try {
       await tx.execute(sql`
         -- auth.jwt()
         select set_config('request.jwt.claims', '${sql.raw(
-          JSON.stringify(claims ?? {}),
+          JSON.stringify(jwtClaims),
         )}', TRUE);
         -- auth.uid()
         select set_config('request.jwt.claim.sub', '${sql.raw(
-          claims?.sub ?? "",
+          jwtClaims.sub ?? "",
         )}', TRUE);												
         -- set local role
-        set local role ${sql.raw(safeRole)};
+        set local role ${sql.raw(role)};
       `);
       return await next({ ctx: { ...ctx, db: tx } });
     } catch (error) {
@@ -208,7 +207,7 @@ export const protectedProcedure = t.procedure
     return await next({
       ctx: {
         // infers the `session` as non-nullable
-        claims: { ...ctx.claims },
+        session: { ...ctx.session },
         user: ctx.user,
       },
     });

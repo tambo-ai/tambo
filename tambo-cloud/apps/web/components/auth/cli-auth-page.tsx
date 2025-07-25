@@ -5,10 +5,10 @@ import { ProgressIndicator } from "@/components/cli-auth/progress-indicator";
 import { ProjectStep } from "@/components/cli-auth/project-step";
 import { CreateProjectDialog } from "@/components/dashboard-components/create-project-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSession } from "@/hooks/auth";
 import { useCountdownTimer } from "@/hooks/useCountdownTimer";
 import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -140,7 +140,8 @@ export function CLIAuthPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const { data: session, isLoading: isAuthLoading } = useSession();
+  const { data: session, status } = useSession();
+  const isAuthLoading = status === "loading";
   const router = useRouter();
   const utils = api.useUtils();
 

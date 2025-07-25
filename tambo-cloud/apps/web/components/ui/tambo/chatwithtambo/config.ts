@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthForm } from "@/components/auth/auth-form";
+import { NextAuthAuthForm } from "@/components/auth/nextauth-auth-form";
 import {
   APIKeyList,
   APIKeyListProps,
@@ -90,7 +90,7 @@ export const tamboRegisteredComponents = [
     name: "AuthForm",
     description:
       "A form that allows users to authenticate with GitHub or Google. Use when users are not authenticated and need to log in to access features or when the fetchCurrentUser tool indicates the user is not logged in.",
-    component: AuthForm,
+    component: NextAuthAuthForm,
     propsSchema: z.object({}),
   },
   {

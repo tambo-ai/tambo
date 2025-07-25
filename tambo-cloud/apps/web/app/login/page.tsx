@@ -1,8 +1,8 @@
 "use client";
 
-import { AuthForm } from "@/components/auth/auth-form";
+import { NextAuthAuthForm } from "@/components/auth/nextauth-auth-form";
 import { DashboardHeader } from "@/components/sections/dashboard-header";
-import { useSession } from "@/hooks/auth";
+import { useNextAuthSession } from "@/hooks/nextauth";
 import { DashboardThemeProvider } from "@/providers/dashboard-theme-provider";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,7 +31,7 @@ const contentVariants = {
 
 // Separate component that uses the useSearchParams hook
 function LoginContent() {
-  const { data: session } = useSession();
+  const { data: session } = useNextAuthSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/dashboard";
@@ -48,7 +48,7 @@ function LoginContent() {
       className="container max-w-md py-8 flex items-center justify-center"
       variants={contentVariants}
     >
-      <AuthForm routeOnSuccess={returnUrl} />
+      <NextAuthAuthForm routeOnSuccess={returnUrl} />
     </motion.div>
   );
 }

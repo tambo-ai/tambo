@@ -1,4 +1,3 @@
-import { getSupabaseClient } from "@/app/utils/supabase";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,31 +7,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useSignIn } from "@/hooks/nextauth";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 interface AuthFormProps {
-  routeOnSuccess: string;
+  routeOnSuccess?: string;
 }
 
 type AuthProvider = "github" | "google";
 
-export function AuthForm({ routeOnSuccess = "/dashboard" }: AuthFormProps) {
+export function NextAuthAuthForm({
+  routeOnSuccess = "/dashboard",
+}: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const supabase = getSupabaseClient();
+  const signIn = useSignIn();
 
   const handleAuth = async (provider: AuthProvider) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}${routeOnSuccess}`,
-        },
+      await signIn(provider, {
+        callbackUrl: routeOnSuccess,
       });
-      if (error) throw error;
     } catch (error) {
       console.error("Auth failed:", error);
       toast({
@@ -88,26 +86,30 @@ export function AuthForm({ routeOnSuccess = "/dashboard" }: AuthFormProps) {
 
 function AuthErrorBanner() {
   const searchParams = useSearchParams();
-  if (
-    searchParams.get("error") &&
-    searchParams.get("error_code") &&
-    searchParams.get("error_description")
-  ) {
+  const error = searchParams.get("error");
+
+  if (error) {
     return (
       <Card className="w-full max-w-md mx-auto border-red-200 bg-red-50">
         <CardContent className="pt-6">
           <div className="space-y-2 text-red-800">
-            <p>{searchParams.get("error_description")}</p>
-            <p>
-              <strong>Error Type:</strong> {searchParams.get("error")}
-            </p>
-            <p>
-              <strong>Error Code:</strong> {searchParams.get("error_code")}
-            </p>
+            <p>Authentication failed. Please try again.</p>
+            {error === "Configuration" && (
+              <p className="text-sm">Server configuration error.</p>
+            )}
+            {error === "AccessDenied" && (
+              <p className="text-sm">
+                Access denied. Please check your credentials.
+              </p>
+            )}
+            {error === "Verification" && (
+              <p className="text-sm">Verification failed. Please try again.</p>
+            )}
           </div>
         </CardContent>
       </Card>
     );
   }
+
   return null;
 }

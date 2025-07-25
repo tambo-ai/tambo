@@ -1,6 +1,5 @@
 "use client";
 
-import { getSupabaseClient } from "@/app/utils/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSession } from "@/hooks/auth";
 import { useToast } from "@/hooks/use-toast";
 import { siteConfig } from "@/lib/config";
 import { api } from "@/trpc/react";
@@ -31,6 +29,7 @@ import {
   Menu,
   MessageSquare,
 } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
@@ -43,9 +42,7 @@ export function MobileDashboardNavigation() {
   const projectId = params?.projectId as string | null;
 
   const displayName =
-    session?.user?.user_metadata?.full_name ||
-    session?.user?.email?.split("@")[0] ||
-    "User";
+    session?.user?.name || session?.user?.email?.split("@")[0] || "User";
 
   // Fetch user projects for dropdown
   const { data: projects } = api.project.getUserProjects.useQuery(undefined, {
@@ -57,10 +54,8 @@ export function MobileDashboardNavigation() {
 
   const handleLogout = async () => {
     try {
-      const supabase = getSupabaseClient();
-      await supabase.auth.signOut();
+      await signOut({ callbackUrl: "/" });
       track("User Logout");
-      window.location.href = "/";
     } catch (_error) {
       toast({
         title: "Error",
@@ -91,7 +86,7 @@ export function MobileDashboardNavigation() {
           <DrawerTitle className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src={session?.user?.user_metadata?.avatar_url}
+                src={session?.user?.image || undefined}
                 alt={session?.user?.email || "User"}
               />
               <AvatarFallback>{userInitial}</AvatarFallback>

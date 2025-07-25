@@ -1,5 +1,6 @@
 "use client";
 
+import { useTamboManagementTools } from "@/components/ui/tambo/chatwithtambo/tools";
 import type { messageVariants } from "@/components/ui/tambo/message";
 import { Message, MessageContent } from "@/components/ui/tambo/message";
 import {
@@ -15,12 +16,10 @@ import {
   MessageSuggestionsStatus,
 } from "@/components/ui/tambo/message-suggestions";
 import { ScrollableMessageContainer } from "@/components/ui/tambo/scrollable-message-container";
-import { useTamboManagementTools } from "@/components/ui/tambo/chatwithtambo/tools";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/tambo/thread-content";
-import { useSession } from "@/hooks/auth";
 import { cn } from "@/lib/utils";
 import {
   useTambo,
@@ -29,6 +28,7 @@ import {
 } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { Collapsible } from "radix-ui";
 import * as React from "react";
