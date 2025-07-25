@@ -72,7 +72,7 @@ jobs:
         run: npm publish --access public
 
       - name: Setup Git User
-        if: ${{ steps.release.outputs.docs--release_created }}
+        if: ${{ steps.release.outputs.docs--release_created || steps.release.outputs.showcase--release_created }}
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
@@ -83,3 +83,10 @@ jobs:
           git checkout deploy-docs
           git merge --no-ff main -m "chore: merge main into deploy-docs for release ${{ steps.release.outputs.tag_name }}"
           git push origin deploy-docs
+
+      - name: Merge main into deploy-showcase
+        if: ${{ steps.release.outputs.showcase--release_created }}
+        run: |
+          git checkout deploy-showcase
+          git merge --no-ff main -m "chore: merge main into deploy-showcase for release ${{ steps.release.outputs.tag_name }}"
+          git push origin deploy-showcase
