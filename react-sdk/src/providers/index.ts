@@ -5,13 +5,16 @@ export {
   useTamboComponent,
 } from "./tambo-component-provider";
 export {
+  Complete,
+  Empty,
+  Loading,
   TamboPropStreamProvider,
   useTamboStream,
 } from "./tambo-prop-stream-provider";
 export type {
-  CompleteProps,
-  EmptyProps,
-  LoadingProps,
+  StreamStateComponentProps,
+  StreamStatus,
+  TamboPropStreamContextValue,
 } from "./tambo-prop-stream-provider";
 export { TamboContext, TamboProvider, useTambo } from "./tambo-provider";
 export {
