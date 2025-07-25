@@ -72,7 +72,7 @@ jobs:
         run: npm publish --access public
 
       - name: Setup Git User
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs.docs--release_created }}
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
