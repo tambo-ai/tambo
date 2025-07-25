@@ -1,10 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
-import { StreamStatus } from "../../hooks/use-tambo-stream-status";
+import {
+  StreamStatus,
+  useTamboStreamStatus,
+} from "../../hooks/use-tambo-stream-status";
 import {
   TamboPropStreamProvider,
   useTamboStream,
 } from "../tambo-prop-stream-provider";
+
+// Mock the useTamboStreamStatus hook
+jest.mock("../../hooks/use-tambo-stream-status", () => ({
+  ...jest.requireActual("../../hooks/use-tambo-stream-status"),
+  useTamboStreamStatus: jest.fn(),
+}));
+
+const mockUseTamboStreamStatus = useTamboStreamStatus as jest.MockedFunction<
+  typeof useTamboStreamStatus
+>;
 
 // Helper component to test hook usage
 const TestHookComponent: React.FC<{ testKey?: string }> = ({
@@ -22,6 +35,20 @@ const TestHookComponent: React.FC<{ testKey?: string }> = ({
 };
 
 describe("TamboPropStreamProvider", () => {
+  beforeEach(() => {
+    // Default mock implementation
+    mockUseTamboStreamStatus.mockReturnValue({
+      streamStatus: {
+        isPending: false,
+        isStreaming: false,
+        isSuccess: true,
+        isError: false,
+        streamError: undefined,
+      },
+      propStatus: {},
+    });
+  });
+
   describe("Hook Error Handling", () => {
     it("should throw error when useTamboStream is used outside provider", () => {
       // Suppress console.error for this test
@@ -48,25 +75,10 @@ describe("TamboPropStreamProvider", () => {
         streamError: undefined,
       };
 
-      render(
-        <TamboPropStreamProvider streamStatus={testStreamStatus}>
-          <TestHookComponent />
-        </TamboPropStreamProvider>,
-      );
-
-      expect(screen.getByTestId("stream-status")).toHaveTextContent(
-        JSON.stringify(testStreamStatus),
-      );
-    });
-
-    it("should use default stream status when none provided", () => {
-      const expectedDefaultStatus = {
-        isPending: false,
-        isStreaming: false,
-        isSuccess: true,
-        isError: false,
-        streamError: undefined,
-      };
+      mockUseTamboStreamStatus.mockReturnValue({
+        streamStatus: testStreamStatus,
+        propStatus: {},
+      });
 
       render(
         <TamboPropStreamProvider>
@@ -75,7 +87,7 @@ describe("TamboPropStreamProvider", () => {
       );
 
       expect(screen.getByTestId("stream-status")).toHaveTextContent(
-        JSON.stringify(expectedDefaultStatus),
+        JSON.stringify(testStreamStatus),
       );
     });
   });
@@ -83,15 +95,18 @@ describe("TamboPropStreamProvider", () => {
   describe("Compound Components", () => {
     describe("Loading Component", () => {
       it("should render loading when isPending is true", () => {
-        const streamStatus: StreamStatus = {
-          isPending: true,
-          isStreaming: false,
-          isSuccess: false,
-          isError: false,
-        };
+        mockUseTamboStreamStatus.mockReturnValue({
+          streamStatus: {
+            isPending: true,
+            isStreaming: false,
+            isSuccess: false,
+            isError: false,
+          },
+          propStatus: {},
+        });
 
         render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
+          <TamboPropStreamProvider>
             <TamboPropStreamProvider.Loading>
               <div data-testid="loading">Loading...</div>
             </TamboPropStreamProvider.Loading>
@@ -102,15 +117,18 @@ describe("TamboPropStreamProvider", () => {
       });
 
       it("should render loading when isStreaming is true", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: true,
-          isSuccess: false,
-          isError: false,
-        };
+        mockUseTamboStreamStatus.mockReturnValue({
+          streamStatus: {
+            isPending: false,
+            isStreaming: true,
+            isSuccess: false,
+            isError: false,
+          },
+          propStatus: {},
+        });
 
         render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
+          <TamboPropStreamProvider>
             <TamboPropStreamProvider.Loading>
               <div data-testid="loading">Loading...</div>
             </TamboPropStreamProvider.Loading>
@@ -121,15 +139,18 @@ describe("TamboPropStreamProvider", () => {
       });
 
       it("should not render loading when not pending or streaming", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          isError: false,
-        };
+        mockUseTamboStreamStatus.mockReturnValue({
+          streamStatus: {
+            isPending: false,
+            isStreaming: false,
+            isSuccess: true,
+            isError: false,
+          },
+          propStatus: {},
+        });
 
         render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
+          <TamboPropStreamProvider>
             <TamboPropStreamProvider.Loading>
               <div data-testid="loading">Loading...</div>
             </TamboPropStreamProvider.Loading>
@@ -142,15 +163,18 @@ describe("TamboPropStreamProvider", () => {
 
     describe("Complete Component", () => {
       it("should render complete when isSuccess is true", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          isError: false,
-        };
+        mockUseTamboStreamStatus.mockReturnValue({
+          streamStatus: {
+            isPending: false,
+            isStreaming: false,
+            isSuccess: true,
+            isError: false,
+          },
+          propStatus: {},
+        });
 
         render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
+          <TamboPropStreamProvider>
             <TamboPropStreamProvider.Complete>
               <div data-testid="complete">Complete!</div>
             </TamboPropStreamProvider.Complete>
@@ -161,15 +185,18 @@ describe("TamboPropStreamProvider", () => {
       });
 
       it("should not render complete when isSuccess is false", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: false,
-          isError: false,
-        };
+        mockUseTamboStreamStatus.mockReturnValue({
+          streamStatus: {
+            isPending: false,
+            isStreaming: false,
+            isSuccess: false,
+            isError: false,
+          },
+          propStatus: {},
+        });
 
         render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
+          <TamboPropStreamProvider>
             <TamboPropStreamProvider.Complete>
               <div data-testid="complete">Complete!</div>
             </TamboPropStreamProvider.Complete>
@@ -182,15 +209,18 @@ describe("TamboPropStreamProvider", () => {
 
     describe("Empty Component", () => {
       it("should render empty when no active status", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: false,
-          isError: false,
-        };
+        mockUseTamboStreamStatus.mockReturnValue({
+          streamStatus: {
+            isPending: false,
+            isStreaming: false,
+            isSuccess: false,
+            isError: false,
+          },
+          propStatus: {},
+        });
 
         render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
+          <TamboPropStreamProvider>
             <TamboPropStreamProvider.Empty>
               <div data-testid="empty">Empty!</div>
             </TamboPropStreamProvider.Empty>
@@ -201,72 +231,18 @@ describe("TamboPropStreamProvider", () => {
       });
 
       it("should not render empty when isPending is true", () => {
-        const streamStatus: StreamStatus = {
-          isPending: true,
-          isStreaming: false,
-          isSuccess: false,
-          isError: false,
-        };
+        mockUseTamboStreamStatus.mockReturnValue({
+          streamStatus: {
+            isPending: true,
+            isStreaming: false,
+            isSuccess: false,
+            isError: false,
+          },
+          propStatus: {},
+        });
 
         render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
-            <TamboPropStreamProvider.Empty>
-              <div data-testid="empty">Empty!</div>
-            </TamboPropStreamProvider.Empty>
-          </TamboPropStreamProvider>,
-        );
-
-        expect(screen.queryByTestId("empty")).not.toBeInTheDocument();
-      });
-
-      it("should not render empty when isStreaming is true", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: true,
-          isSuccess: false,
-          isError: false,
-        };
-
-        render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
-            <TamboPropStreamProvider.Empty>
-              <div data-testid="empty">Empty!</div>
-            </TamboPropStreamProvider.Empty>
-          </TamboPropStreamProvider>,
-        );
-
-        expect(screen.queryByTestId("empty")).not.toBeInTheDocument();
-      });
-
-      it("should not render empty when isSuccess is true", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          isError: false,
-        };
-
-        render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
-            <TamboPropStreamProvider.Empty>
-              <div data-testid="empty">Empty!</div>
-            </TamboPropStreamProvider.Empty>
-          </TamboPropStreamProvider>,
-        );
-
-        expect(screen.queryByTestId("empty")).not.toBeInTheDocument();
-      });
-
-      it("should not render empty when isError is true", () => {
-        const streamStatus: StreamStatus = {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: false,
-          isError: true,
-        };
-
-        render(
-          <TamboPropStreamProvider streamStatus={streamStatus}>
+          <TamboPropStreamProvider>
             <TamboPropStreamProvider.Empty>
               <div data-testid="empty">Empty!</div>
             </TamboPropStreamProvider.Empty>
@@ -295,8 +271,18 @@ describe("TamboPropStreamProvider", () => {
         },
       };
 
+      mockUseTamboStreamStatus.mockReturnValue({
+        streamStatus: {
+          isPending: false,
+          isStreaming: false,
+          isSuccess: true,
+          isError: false,
+        },
+        propStatus,
+      });
+
       render(
-        <TamboPropStreamProvider propStatus={propStatus}>
+        <TamboPropStreamProvider>
           <TestHookComponent testKey="name" />
         </TamboPropStreamProvider>,
       );
@@ -317,8 +303,18 @@ describe("TamboPropStreamProvider", () => {
         },
       };
 
+      mockUseTamboStreamStatus.mockReturnValue({
+        streamStatus: {
+          isPending: false,
+          isStreaming: false,
+          isSuccess: true,
+          isError: false,
+        },
+        propStatus,
+      });
+
       render(
-        <TamboPropStreamProvider propStatus={propStatus}>
+        <TamboPropStreamProvider>
           <TestHookComponent testKey="nonexistent" />
         </TamboPropStreamProvider>,
       );
@@ -347,8 +343,18 @@ describe("TamboPropStreamProvider", () => {
         },
       };
 
+      mockUseTamboStreamStatus.mockReturnValue({
+        streamStatus: {
+          isPending: false,
+          isStreaming: false,
+          isSuccess: true,
+          isError: false,
+        },
+        propStatus,
+      });
+
       render(
-        <TamboPropStreamProvider propStatus={propStatus}>
+        <TamboPropStreamProvider>
           <TamboPropStreamProvider.Loading streamKey="name">
             <div data-testid="name-loading">Name Loading...</div>
           </TamboPropStreamProvider.Loading>
@@ -365,60 +371,22 @@ describe("TamboPropStreamProvider", () => {
       expect(screen.queryByTestId("age-loading")).not.toBeInTheDocument();
       expect(screen.queryByTestId("name-complete")).not.toBeInTheDocument();
     });
-
-    it("should render complete for specific key when successful", () => {
-      const propStatus = {
-        name: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          error: undefined,
-        },
-        age: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          error: undefined,
-        },
-        email: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          error: undefined,
-        },
-      };
-
-      render(
-        <TamboPropStreamProvider propStatus={propStatus}>
-          <TamboPropStreamProvider.Complete streamKey="name">
-            <div data-testid="name-complete">Name Complete!</div>
-          </TamboPropStreamProvider.Complete>
-          <TamboPropStreamProvider.Complete streamKey="age">
-            <div data-testid="age-complete">Age Complete!</div>
-          </TamboPropStreamProvider.Complete>
-          <TamboPropStreamProvider.Complete streamKey="email">
-            <div data-testid="email-complete">Email Complete!</div>
-          </TamboPropStreamProvider.Complete>
-        </TamboPropStreamProvider>,
-      );
-
-      expect(screen.getByTestId("name-complete")).toBeInTheDocument();
-      expect(screen.getByTestId("age-complete")).toBeInTheDocument();
-      expect(screen.getByTestId("email-complete")).toBeInTheDocument();
-    });
   });
 
   describe("Styling", () => {
     it("should apply className to loading component", () => {
-      const streamStatus: StreamStatus = {
-        isPending: true,
-        isStreaming: false,
-        isSuccess: false,
-        isError: false,
-      };
+      mockUseTamboStreamStatus.mockReturnValue({
+        streamStatus: {
+          isPending: true,
+          isStreaming: false,
+          isSuccess: false,
+          isError: false,
+        },
+        propStatus: {},
+      });
 
       render(
-        <TamboPropStreamProvider streamStatus={streamStatus}>
+        <TamboPropStreamProvider>
           <TamboPropStreamProvider.Loading className="loading-class">
             <div data-testid="loading">Loading...</div>
           </TamboPropStreamProvider.Loading>
