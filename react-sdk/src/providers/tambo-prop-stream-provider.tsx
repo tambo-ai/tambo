@@ -16,9 +16,7 @@ import {
 // Constants
 const DEFAULT_STREAM_KEY = "default";
 
-interface TamboPropStreamContextValue<T = unknown> {
-  /** The stream data */
-  data: T;
+interface TamboPropStreamContextValue {
   /** The stream status */
   streamStatus: StreamStatus;
   /** Get the status for a specific key */
@@ -32,11 +30,9 @@ interface TamboPropStreamContextValue<T = unknown> {
 }
 
 const TamboPropStreamContext =
-  createContext<TamboPropStreamContextValue<any> | null>(null);
+  createContext<TamboPropStreamContextValue | null>(null);
 
-export interface TamboPropStreamProviderProps<T = unknown> {
-  /** The stream data */
-  data: T;
+export interface TamboPropStreamProviderProps {
   /** Optional stream status for more granular control */
   streamStatus?: StreamStatus;
   /** Optional per-prop status for fine-grained control */
@@ -116,23 +112,16 @@ const Empty: React.FC<EmptyProps> = ({
   children,
   className,
 }) => {
-  const { data, getStatusForKey } = useTamboStream();
+  const { getStatusForKey } = useTamboStream();
   const status = getStatusForKey(streamKey);
 
-  // Get the specific data for this key
-  const keyData =
-    data && typeof data === "object" && !Array.isArray(data)
-      ? data[streamKey as keyof typeof data]
-      : data;
-
-  // Show empty state when data is empty and no active status
-  const hasData = keyData !== undefined && keyData !== null && keyData !== "";
+  // Show empty state when no active status (prop doesn't exist or is pending)
   const hasActiveStatus =
     status.isPending ||
     status.isStreaming ||
     status.isSuccess ||
     status.isError;
-  const shouldShowEmpty = !hasData && !hasActiveStatus;
+  const shouldShowEmpty = !hasActiveStatus;
 
   if (!shouldShowEmpty) {
     return null;
@@ -167,7 +156,7 @@ const Complete: React.FC<CompleteProps> = ({
   const { getStatusForKey } = useTamboStream();
   const status = getStatusForKey(streamKey);
 
-  // Simple: Show when status is success, regardless of data value
+  // Simple: Show when status is success
   if (!status.isSuccess) {
     return null;
   }
@@ -189,16 +178,14 @@ Complete.displayName = "TamboPropStreamProvider.Complete";
  * Hook to use the TamboStream context
  * @returns The TamboStream context
  */
-export const useTamboStream = <
-  T = unknown,
->(): TamboPropStreamContextValue<T> => {
+export const useTamboStream = (): TamboPropStreamContextValue => {
   const context = useContext(TamboPropStreamContext);
   if (!context) {
     throw new Error(
       "useTamboStream must be used within a TamboPropStreamProvider",
     );
   }
-  return context as TamboPropStreamContextValue<T>;
+  return context;
 };
 
 /**
@@ -206,43 +193,34 @@ export const useTamboStream = <
  * with compound components for Loading, Empty, and Complete states.
  * @param props - The props for the TamboStreamProvider
  * @param props.children - The children to wrap
- * @param props.data - The stream data
  * @param props.streamStatus - Optional stream status for more granular control
  * @param props.propStatus - Optional per-prop status for fine-grained control
  * @returns The TamboStreamProvider component
  */
-const TamboPropStreamProviderComponent = <T = unknown,>({
+const TamboPropStreamProviderComponent = ({
   children,
-  data,
   streamStatus: providedStreamStatus,
   propStatus: providedPropStatus,
-}: PropsWithChildren<TamboPropStreamProviderProps<T>>) => {
-  // Always try to call the hook - React hooks must be called unconditionally
-  let hookPropStatus: Record<string, PropStatus> | undefined;
+}: PropsWithChildren<TamboPropStreamProviderProps>) => {
+  const { propStatus, streamStatus } = useTamboStreamStatus();
 
-  try {
-    const hookResult = useTamboStreamStatus();
-    hookPropStatus = hookResult.propStatus;
-  } catch {
-    // Hook failed (not in Tambo context), that's ok
-  }
-
-  // Use provided status, then defaults (skip hook for standalone usage)
+  // Use provided status, then hook status, then defaults
   const finalStreamStatus = useMemo(
     () =>
-      providedStreamStatus ?? {
+      providedStreamStatus ??
+      streamStatus ?? {
         isPending: false,
         isStreaming: false,
         isSuccess: true,
         isError: false,
         streamError: undefined,
       },
-    [providedStreamStatus],
+    [providedStreamStatus, streamStatus],
   );
 
   const finalPropStatus = useMemo(
-    () => providedPropStatus ?? hookPropStatus,
-    [providedPropStatus, hookPropStatus],
+    () => providedPropStatus ?? propStatus,
+    [providedPropStatus, propStatus],
   );
 
   // Track status by key for compound components
@@ -258,7 +236,7 @@ const TamboPropStreamProviderComponent = <T = unknown,>({
       }
     >();
 
-    // If propStatus is available (from hook), use it for per-prop granularity
+    // If propStatus is available, use it for per-prop granularity
     if (finalPropStatus) {
       Object.entries(finalPropStatus).forEach(([key, status]) => {
         map.set(key, {
@@ -269,19 +247,6 @@ const TamboPropStreamProviderComponent = <T = unknown,>({
           error: status.error,
         });
       });
-    } else {
-      // Fall back to original behavior: all keys get the same status
-      if (data && typeof data === "object" && !Array.isArray(data)) {
-        Object.keys(data).forEach((key) => {
-          map.set(key, {
-            isPending: finalStreamStatus.isPending,
-            isStreaming: finalStreamStatus.isStreaming,
-            isSuccess: finalStreamStatus.isSuccess,
-            isError: finalStreamStatus.isError,
-            error: finalStreamStatus.streamError,
-          });
-        });
-      }
     }
 
     // Always set default status for fallback
@@ -294,30 +259,33 @@ const TamboPropStreamProviderComponent = <T = unknown,>({
     });
 
     return map;
-  }, [finalStreamStatus, data, finalPropStatus]);
+  }, [finalStreamStatus, finalPropStatus]);
 
   const getStatusForKey = useCallback(
     (key: string) => {
-      return (
-        keyStatusMap.get(key) ??
-        keyStatusMap.get(DEFAULT_STREAM_KEY) ?? {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: false,
-          isError: false,
-        }
-      );
+      // If the key exists in propStatus, return its status
+      const propStatus = keyStatusMap.get(key);
+      if (propStatus) {
+        return propStatus;
+      }
+
+      // If key doesn't exist in propStatus, assume it's pending
+      return {
+        isPending: true,
+        isStreaming: false,
+        isSuccess: false,
+        isError: false,
+      };
     },
     [keyStatusMap],
   );
 
   const contextValue = useMemo(
     () => ({
-      data,
       streamStatus: finalStreamStatus,
       getStatusForKey,
     }),
-    [data, finalStreamStatus, getStatusForKey],
+    [finalStreamStatus, getStatusForKey],
   );
 
   return (
