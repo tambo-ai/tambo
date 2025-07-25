@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.15.0...showcase-v0.15.1) (2025-07-25)
+
+
+### Bug Fixes
+
+* small update to trigger release ([#711](https://github.com/tambo-ai/tambo/issues/711)) ([c153a02](https://github.com/tambo-ai/tambo/commit/c153a0277848430b1b9b20358abc6aa864bf6d91))
+
 ## [0.15.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.14.2...showcase-v0.15.0) (2025-07-25)
 
 
