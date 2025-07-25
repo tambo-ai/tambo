@@ -1,5 +1,5 @@
 ---
-title: Registering Components Dynamically
+title: Dynamic Registration
 description: Learn how to register components dynamically using the useTamboRegistry hook for runtime registration.
 ---
 
@@ -25,7 +25,7 @@ export default function Page() {
     if(someCondition) {
         registerComponent({
             name: "WeatherDisplay",
-            description: "A display of the weather in a city",
+            description: "A display of the weather in a city.",
             component: WeatherDisplay,
             propsSchema: WeatherDisplayProps,
         })
