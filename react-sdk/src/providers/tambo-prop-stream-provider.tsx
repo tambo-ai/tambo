@@ -258,7 +258,12 @@ const TamboPropStreamProviderComponent = ({ children }: PropsWithChildren) => {
   );
 };
 
-// Create the compound component
+/**
+ * The TamboPropsStreamProvider provides a context for managing stream states
+ * with compound components for Loading, Empty, and Complete states.
+ * @param children - The children to wrap
+ * @returns The TamboPropStreamProvider component
+ */
 export const TamboPropStreamProvider = Object.assign(
   TamboPropStreamProviderComponent,
   {
