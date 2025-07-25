@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.39.0](https://github.com/tambo-ai/tambo/compare/react-v0.38.1...react-v0.39.0) (2025-07-25)
+
+
+### Features
+
+* add additionalContext support ([#702](https://github.com/tambo-ai/tambo/issues/702)) ([f269b31](https://github.com/tambo-ai/tambo/commit/f269b313053490dc417dc18cd6ab673f07f2fb74))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump jest from 30.0.4 to 30.0.5 ([#683](https://github.com/tambo-ai/tambo/issues/683)) ([16d9937](https://github.com/tambo-ai/tambo/commit/16d99378b60c149decbc7e4432791477acbe8d46))
+* **deps-dev:** bump jest-environment-jsdom from 30.0.4 to 30.0.5 ([#687](https://github.com/tambo-ai/tambo/issues/687)) ([e44295f](https://github.com/tambo-ai/tambo/commit/e44295f3359e4a3887dd94430d0ff70794206a1d))
+* **deps-dev:** bump the eslint group with 5 updates ([#680](https://github.com/tambo-ai/tambo/issues/680)) ([846cf38](https://github.com/tambo-ai/tambo/commit/846cf38012985f02958cdec43d970be27e6d0f02))
+* **deps:** add back ts-node to make jest happy ([#703](https://github.com/tambo-ai/tambo/issues/703)) ([523f244](https://github.com/tambo-ai/tambo/commit/523f2442b3ab08fd9870003badeafd29426dd590))
+* **deps:** bump @modelcontextprotocol/sdk from 1.15.1 to 1.16.0 ([#682](https://github.com/tambo-ai/tambo/issues/682)) ([5ec155d](https://github.com/tambo-ai/tambo/commit/5ec155d7b38fc54ee67b2ca93a0d59bf670ee80c))
+* **deps:** bump zod from 3.25.75 to 3.25.76 ([#681](https://github.com/tambo-ai/tambo/issues/681)) ([457291a](https://github.com/tambo-ai/tambo/commit/457291a72efbc9402cafeca561e33e6e5d2c1e5f))
+* update documentation links to new domain and update dev command filter ([#698](https://github.com/tambo-ai/tambo/issues/698)) ([23946de](https://github.com/tambo-ai/tambo/commit/23946de0d4a67919e119f7188731f83bcc2e86a0))
+
 ## [0.38.1](https://github.com/tambo-ai/tambo/compare/react-v0.38.0...react-v0.38.1) (2025-07-18)
 
 
