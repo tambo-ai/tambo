@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.88.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.88.0...repo-v0.88.1) (2025-07-25)
+
+
+### Miscellaneous Chores
+
+* bump sdk versions ([#1407](https://github.com/tambo-ai/tambo-cloud/issues/1407)) ([defbe4c](https://github.com/tambo-ai/tambo-cloud/commit/defbe4c80e0b2135f8a80444ac92494e7fa02ff3))
+
 ## [0.88.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.87.1...repo-v0.88.0) (2025-07-24)
 
 
