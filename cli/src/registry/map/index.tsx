@@ -1,1 +1,1 @@
-export { MapComponent, type MapProps } from "./map";
+export { Map, type MapProps } from "./map";
