@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.23.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.22.1...tambo-v0.23.0) (2025-07-25)
+
+
+### Features
+
+* add additionalContext support ([#702](https://github.com/tambo-ai/tambo/issues/702)) ([f269b31](https://github.com/tambo-ai/tambo/commit/f269b313053490dc417dc18cd6ab673f07f2fb74))
+
+
+### Bug Fixes
+
+* overflow of tool info in message component ([#694](https://github.com/tambo-ai/tambo/issues/694)) ([4120efd](https://github.com/tambo-ai/tambo/commit/4120efdd02cfdcd92833b4637897614a21cddb68))
+
+
+### Miscellaneous
+
+* update CLI based on user feedback ([#696](https://github.com/tambo-ai/tambo/issues/696)) ([0ecda05](https://github.com/tambo-ai/tambo/commit/0ecda05ed68b059637e43a817fdecea3f4e36a6f))
+* update documentation links to new domain and update dev command filter ([#698](https://github.com/tambo-ai/tambo/issues/698)) ([23946de](https://github.com/tambo-ai/tambo/commit/23946de0d4a67919e119f7188731f83bcc2e86a0))
+
 ## [0.22.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.22.0...tambo-v0.22.1) (2025-07-18)
 
 
