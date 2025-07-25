@@ -24,8 +24,8 @@ export default function CanvasSpacePage() {
             <p className="text-lg text-secondary">
               A dedicated area that dynamically displays interactive UI
               components generated within a Tambo chat thread. It automatically
-              updates to show the latest component and clears when switching
-              threads.
+              updates to show the latest generated component and clears when
+              switching threads.
             </p>
           </div>
 
