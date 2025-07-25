@@ -30,6 +30,31 @@ jest.mock("@tambo-ai/typescript-sdk", () => ({
   advanceStream: jest.fn(),
 }));
 
+// Mock the system context and getCustomContext
+jest.mock("../../util/registry", () => ({
+  ...jest.requireActual("../../util/registry"),
+  getSystemContext: () => ({
+    localTime: "7/24/2025, 6:26:21 PM",
+    timezone: "America/New_York",
+  }),
+  getCustomContext: () => ({
+    message: "additional instructions",
+  }),
+}));
+
+// Mock the combined context which includes the system context and the custom context
+const mockCombinedContext = {
+  system: {
+    localTime: "7/24/2025, 6:26:21 PM",
+    timezone: "America/New_York",
+  },
+  ...{
+    custom: {
+      message: "additional instructions",
+    },
+  },
+};
+
 // Test utilities
 const createMockMessage = (
   overrides: Partial<TamboThreadMessage> = {},
@@ -247,6 +272,11 @@ describe("TamboThreadProvider", () => {
       await result.current.sendThreadMessage("Hello", {
         threadId: "test-thread-1",
         streamResponse: false,
+        additionalContext: {
+          custom: {
+            message: "additional instructions",
+          },
+        },
       });
     });
 
@@ -259,6 +289,7 @@ describe("TamboThreadProvider", () => {
       contextKey: undefined,
       clientTools: [],
       toolCallCounts: {},
+      additionalContext: mockCombinedContext,
     });
     expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
   });
@@ -401,6 +432,11 @@ describe("TamboThreadProvider", () => {
         await result.current.sendThreadMessage("Hello streaming", {
           threadId: "test-thread-1",
           streamResponse: true,
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         });
       });
 
@@ -416,6 +452,7 @@ describe("TamboThreadProvider", () => {
           clientTools: [],
           forceToolChoice: undefined,
           toolCallCounts: {},
+          additionalContext: mockCombinedContext,
         },
         "test-thread-1",
       );
@@ -445,6 +482,11 @@ describe("TamboThreadProvider", () => {
         await result.current.sendThreadMessage("Hello non-streaming", {
           threadId: "test-thread-1",
           streamResponse: false,
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         });
       });
 
@@ -458,6 +500,7 @@ describe("TamboThreadProvider", () => {
         clientTools: [],
         forceToolChoice: undefined,
         toolCallCounts: {},
+        additionalContext: mockCombinedContext,
       });
 
       // Should not call advance or advanceStream
@@ -487,6 +530,11 @@ describe("TamboThreadProvider", () => {
         await result.current.sendThreadMessage("Hello default", {
           threadId: "test-thread-1",
           // streamResponse is undefined, should use provider's streaming=false
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         });
       });
 
@@ -500,6 +548,7 @@ describe("TamboThreadProvider", () => {
         clientTools: [],
         forceToolChoice: undefined,
         toolCallCounts: {},
+        additionalContext: mockCombinedContext,
       });
 
       // Should not call advance or advanceStream
@@ -549,6 +598,11 @@ describe("TamboThreadProvider", () => {
         await result.current.sendThreadMessage("Hello default streaming", {
           threadId: "test-thread-1",
           // streamResponse is undefined, should use provider's streaming=true (default)
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         });
       });
 
@@ -564,6 +618,7 @@ describe("TamboThreadProvider", () => {
           clientTools: [],
           forceToolChoice: undefined,
           toolCallCounts: {},
+          additionalContext: mockCombinedContext,
         },
         "test-thread-1",
       );
@@ -596,6 +651,11 @@ describe("TamboThreadProvider", () => {
         await result.current.sendThreadMessage("Hello new thread", {
           threadId: "placeholder",
           streamResponse: false,
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         });
       });
 
@@ -609,6 +669,7 @@ describe("TamboThreadProvider", () => {
         clientTools: [],
         forceToolChoice: undefined,
         toolCallCounts: {},
+        additionalContext: mockCombinedContext,
       });
 
       // Should not call advanceById or advanceStream
@@ -663,6 +724,11 @@ describe("TamboThreadProvider", () => {
         await result.current.sendThreadMessage("Hello streaming new thread", {
           threadId: "placeholder",
           streamResponse: true,
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         });
       });
 
@@ -678,6 +744,7 @@ describe("TamboThreadProvider", () => {
           clientTools: [],
           forceToolChoice: undefined,
           toolCallCounts: {},
+          additionalContext: mockCombinedContext,
         },
         undefined, // threadId is undefined for placeholder thread
       );
