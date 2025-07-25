@@ -21,7 +21,7 @@ const MapWithNoSSR = dynamic(
 
 export const MapChatInterface = () => {
   const userContextKey = useUserContextKey("map-thread");
-  const { registerComponent, thread } = useTambo();
+  const { registerComponent } = useTambo();
 
   useEffect(() => {
     const register = async () => {
@@ -56,7 +56,7 @@ export const MapChatInterface = () => {
     };
 
     register();
-  }, [registerComponent, thread.id]);
+  }, [registerComponent]);
 
   return (
     <div className="relative h-full w-full flex flex-col">
