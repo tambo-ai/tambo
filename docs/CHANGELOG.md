@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/tambo-ai/tambo/compare/docs-v1.0.1...docs-v1.0.2) (2025-07-25)
+
+
+### Documentation
+
+* small update to trigger release ([#708](https://github.com/tambo-ai/tambo/issues/708)) ([52bcfed](https://github.com/tambo-ai/tambo/commit/52bcfedac8e4aca0ede00959787c48b8ab672cc3))
+
 ## [1.0.1](https://github.com/tambo-ai/tambo/compare/docs-v1.0.0...docs-v1.0.1) (2025-07-25)
 
 
