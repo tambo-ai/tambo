@@ -6,7 +6,6 @@
     "namecheap:dns": "tsx get-namecheap-dns-records.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.50.0",
     "dotenv": "^16.4.2",
     "node-fetch": "^2.7.0"
   },
