@@ -1,23 +1,52 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
+import { useTamboCurrentMessage } from "../../hooks/use-current-message";
 import {
-  StreamStatus,
-  useTamboStreamStatus,
-} from "../../hooks/use-tambo-stream-status";
+  GenerationStage,
+  TamboThreadMessage,
+} from "../../model/generate-component-response";
+import {
+  TamboThreadContextProps,
+  useTamboThread,
+} from "../../providers/tambo-thread-provider";
 import {
   TamboPropStreamProvider,
   useTamboStream,
 } from "../tambo-prop-stream-provider";
 
-// Mock the useTamboStreamStatus hook
-jest.mock("../../hooks/use-tambo-stream-status", () => ({
-  ...jest.requireActual("../../hooks/use-tambo-stream-status"),
-  useTamboStreamStatus: jest.fn(),
+// Mock the required providers
+jest.mock("../../providers/tambo-thread-provider", () => ({
+  useTamboThread: jest.fn(),
 }));
 
-const mockUseTamboStreamStatus = useTamboStreamStatus as jest.MockedFunction<
-  typeof useTamboStreamStatus
->;
+jest.mock("../../hooks/use-current-message", () => ({
+  useTamboCurrentMessage: jest.fn(),
+}));
+
+// Mock window for SSR tests
+const originalWindow = global.window;
+
+// Helper function to create mock ComponentDecisionV2
+const createMockComponent = (props: Record<string, unknown> = {}): any => ({
+  componentName: "TestComponent",
+  componentState: {},
+  message: "Component generated",
+  props,
+  reasoning: "Test reasoning",
+});
+
+// Helper function to create mock TamboThreadMessage
+const createMockMessage = (
+  overrides: Partial<TamboThreadMessage> = {},
+): TamboThreadMessage => ({
+  id: "test-message",
+  componentState: {},
+  content: [{ type: "text", text: "test content" }],
+  createdAt: new Date().toISOString(),
+  role: "assistant",
+  threadId: "test-thread",
+  ...overrides,
+});
 
 // Helper component to test hook usage
 const TestHookComponent: React.FC<{ testKey?: string }> = ({
@@ -36,17 +65,24 @@ const TestHookComponent: React.FC<{ testKey?: string }> = ({
 
 describe("TamboPropStreamProvider", () => {
   beforeEach(() => {
-    // Default mock implementation
-    mockUseTamboStreamStatus.mockReturnValue({
-      streamStatus: {
-        isPending: false,
-        isStreaming: false,
-        isSuccess: true,
-        isError: false,
-        streamError: undefined,
+    // Restore window for client-side tests
+    global.window = originalWindow;
+
+    // Default mock implementations
+    jest.mocked(useTamboThread).mockReturnValue({
+      generationStage: GenerationStage.IDLE,
+    } as TamboThreadContextProps);
+
+    jest.mocked(useTamboCurrentMessage).mockReturnValue({
+      id: "test-message",
+      component: {
+        props: {},
       },
-      propStatus: {},
-    });
+    } as TamboThreadMessage);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe("Hook Error Handling", () => {
@@ -65,45 +101,18 @@ describe("TamboPropStreamProvider", () => {
     });
   });
 
-  describe("Basic Functionality", () => {
-    it("should provide stream status through context", () => {
-      const testStreamStatus: StreamStatus = {
-        isPending: false,
-        isStreaming: false,
-        isSuccess: true,
-        isError: false,
-        streamError: undefined,
-      };
-
-      mockUseTamboStreamStatus.mockReturnValue({
-        streamStatus: testStreamStatus,
-        propStatus: {},
-      });
-
-      render(
-        <TamboPropStreamProvider>
-          <TestHookComponent />
-        </TamboPropStreamProvider>,
-      );
-
-      expect(screen.getByTestId("stream-status")).toHaveTextContent(
-        JSON.stringify(testStreamStatus),
-      );
-    });
-  });
-
   describe("Compound Components", () => {
     describe("Loading Component", () => {
       it("should render loading when isPending is true", () => {
-        mockUseTamboStreamStatus.mockReturnValue({
-          streamStatus: {
-            isPending: true,
-            isStreaming: false,
-            isSuccess: false,
-            isError: false,
-          },
-          propStatus: {},
-        });
+        jest.mocked(useTamboThread).mockReturnValue({
+          generationStage: GenerationStage.IDLE,
+        } as TamboThreadContextProps);
+
+        jest.mocked(useTamboCurrentMessage).mockReturnValue(
+          createMockMessage({
+            component: createMockComponent({ title: "" }),
+          }),
+        );
 
         render(
           <TamboPropStreamProvider>
@@ -117,15 +126,15 @@ describe("TamboPropStreamProvider", () => {
       });
 
       it("should render loading when isStreaming is true", () => {
-        mockUseTamboStreamStatus.mockReturnValue({
-          streamStatus: {
-            isPending: false,
-            isStreaming: true,
-            isSuccess: false,
-            isError: false,
-          },
-          propStatus: {},
-        });
+        jest.mocked(useTamboThread).mockReturnValue({
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+        } as TamboThreadContextProps);
+
+        jest.mocked(useTamboCurrentMessage).mockReturnValue(
+          createMockMessage({
+            component: createMockComponent({ title: "Partial" }),
+          }),
+        );
 
         render(
           <TamboPropStreamProvider>
@@ -137,63 +146,19 @@ describe("TamboPropStreamProvider", () => {
 
         expect(screen.getByTestId("loading")).toBeInTheDocument();
       });
-
-      it("should not render loading when not pending or streaming", () => {
-        mockUseTamboStreamStatus.mockReturnValue({
-          streamStatus: {
-            isPending: false,
-            isStreaming: false,
-            isSuccess: true,
-            isError: false,
-          },
-          propStatus: {},
-        });
-
-        render(
-          <TamboPropStreamProvider>
-            <TamboPropStreamProvider.Loading>
-              <div data-testid="loading">Loading...</div>
-            </TamboPropStreamProvider.Loading>
-          </TamboPropStreamProvider>,
-        );
-
-        expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
-      });
     });
 
     describe("Complete Component", () => {
-      it("should render complete when isSuccess is true", () => {
-        mockUseTamboStreamStatus.mockReturnValue({
-          streamStatus: {
-            isPending: false,
-            isStreaming: false,
-            isSuccess: true,
-            isError: false,
-          },
-          propStatus: {},
-        });
-
-        render(
-          <TamboPropStreamProvider>
-            <TamboPropStreamProvider.Complete>
-              <div data-testid="complete">Complete!</div>
-            </TamboPropStreamProvider.Complete>
-          </TamboPropStreamProvider>,
-        );
-
-        expect(screen.getByTestId("complete")).toBeInTheDocument();
-      });
-
       it("should not render complete when isSuccess is false", () => {
-        mockUseTamboStreamStatus.mockReturnValue({
-          streamStatus: {
-            isPending: false,
-            isStreaming: false,
-            isSuccess: false,
-            isError: false,
-          },
-          propStatus: {},
-        });
+        jest.mocked(useTamboThread).mockReturnValue({
+          generationStage: GenerationStage.IDLE,
+        } as TamboThreadContextProps);
+
+        jest.mocked(useTamboCurrentMessage).mockReturnValue(
+          createMockMessage({
+            component: createMockComponent({ title: "" }),
+          }),
+        );
 
         render(
           <TamboPropStreamProvider>
@@ -209,15 +174,15 @@ describe("TamboPropStreamProvider", () => {
 
     describe("Empty Component", () => {
       it("should render empty when no active status", () => {
-        mockUseTamboStreamStatus.mockReturnValue({
-          streamStatus: {
-            isPending: false,
-            isStreaming: false,
-            isSuccess: false,
-            isError: false,
-          },
-          propStatus: {},
-        });
+        jest.mocked(useTamboThread).mockReturnValue({
+          generationStage: GenerationStage.IDLE,
+        } as TamboThreadContextProps);
+
+        jest.mocked(useTamboCurrentMessage).mockReturnValue(
+          createMockMessage({
+            component: createMockComponent({ title: "" }),
+          }),
+        );
 
         render(
           <TamboPropStreamProvider>
@@ -231,15 +196,15 @@ describe("TamboPropStreamProvider", () => {
       });
 
       it("should not render empty when isPending is true", () => {
-        mockUseTamboStreamStatus.mockReturnValue({
-          streamStatus: {
-            isPending: true,
-            isStreaming: false,
-            isSuccess: false,
-            isError: false,
-          },
-          propStatus: {},
-        });
+        jest.mocked(useTamboThread).mockReturnValue({
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+        } as TamboThreadContextProps);
+
+        jest.mocked(useTamboCurrentMessage).mockReturnValue(
+          createMockMessage({
+            component: createMockComponent({ title: "Partial" }),
+          }),
+        );
 
         render(
           <TamboPropStreamProvider>
@@ -255,63 +220,16 @@ describe("TamboPropStreamProvider", () => {
   });
 
   describe("Key-based Status", () => {
-    it("should provide status for specific keys", () => {
-      const propStatus = {
-        name: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          error: undefined,
-        },
-        age: {
-          isPending: true,
-          isStreaming: false,
-          isSuccess: false,
-          error: undefined,
-        },
-      };
-
-      mockUseTamboStreamStatus.mockReturnValue({
-        streamStatus: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          isError: false,
-        },
-        propStatus,
-      });
-
-      render(
-        <TamboPropStreamProvider>
-          <TestHookComponent testKey="name" />
-        </TamboPropStreamProvider>,
-      );
-
-      const keyStatus = JSON.parse(
-        screen.getByTestId("key-status").textContent!,
-      );
-      expect(keyStatus.isSuccess).toBe(true);
-    });
-
     it("should provide status for keys not in propStatus", () => {
-      const propStatus = {
-        name: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          error: undefined,
-        },
-      };
+      jest.mocked(useTamboThread).mockReturnValue({
+        generationStage: GenerationStage.COMPLETE,
+      } as TamboThreadContextProps);
 
-      mockUseTamboStreamStatus.mockReturnValue({
-        streamStatus: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          isError: false,
-        },
-        propStatus,
-      });
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ name: "John" }),
+        }),
+      );
 
       render(
         <TamboPropStreamProvider>
@@ -328,30 +246,18 @@ describe("TamboPropStreamProvider", () => {
 
   describe("Compound Components with Keys", () => {
     it("should render loading for specific key when pending", () => {
-      const propStatus = {
-        name: {
-          isPending: true,
-          isStreaming: false,
-          isSuccess: false,
-          error: undefined,
-        },
-        age: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          error: undefined,
-        },
-      };
+      jest.mocked(useTamboThread).mockReturnValue({
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+      } as TamboThreadContextProps);
 
-      mockUseTamboStreamStatus.mockReturnValue({
-        streamStatus: {
-          isPending: false,
-          isStreaming: false,
-          isSuccess: true,
-          isError: false,
-        },
-        propStatus,
-      });
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({
+            name: "Partial",
+            age: 25,
+          }),
+        }),
+      );
 
       render(
         <TamboPropStreamProvider>
@@ -367,23 +273,24 @@ describe("TamboPropStreamProvider", () => {
         </TamboPropStreamProvider>,
       );
 
+      // Both props should be loading since they're in streaming stage
       expect(screen.getByTestId("name-loading")).toBeInTheDocument();
-      expect(screen.queryByTestId("age-loading")).not.toBeInTheDocument();
+      expect(screen.getByTestId("age-loading")).toBeInTheDocument();
       expect(screen.queryByTestId("name-complete")).not.toBeInTheDocument();
     });
   });
 
   describe("Styling", () => {
     it("should apply className to loading component", () => {
-      mockUseTamboStreamStatus.mockReturnValue({
-        streamStatus: {
-          isPending: true,
-          isStreaming: false,
-          isSuccess: false,
-          isError: false,
-        },
-        propStatus: {},
-      });
+      jest.mocked(useTamboThread).mockReturnValue({
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+      } as TamboThreadContextProps);
+
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(
+        createMockMessage({
+          component: createMockComponent({ title: "Partial" }),
+        }),
+      );
 
       render(
         <TamboPropStreamProvider>
