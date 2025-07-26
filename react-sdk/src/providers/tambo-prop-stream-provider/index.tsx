@@ -1,5 +1,5 @@
 import { TamboPropStreamProviderComponent } from "./provider";
-import { Complete, Empty, Loading } from "./state";
+import { Complete, Empty, Loading } from "./states";
 
 /**
  * The TamboPropsStreamProvider provides a context for managing stream states
@@ -18,5 +18,5 @@ export const TamboPropStreamProvider = Object.assign(
 
 // Re-export components for individual use
 export { useTamboStream } from "./provider";
-export * from "./state";
+export * from "./states";
 export * from "./types";
