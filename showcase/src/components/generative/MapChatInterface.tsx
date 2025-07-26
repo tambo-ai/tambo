@@ -5,28 +5,16 @@ import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
-/*
- * We use `dynamic` to load the Map component without server-side rendering (SSR)
- * because `react-leaflet` and `leaflet` access the `window` object at import time.
- */
-
-import dynamic from "next/dynamic";
-
-const MapWithNoSSR = dynamic(
-  async () => await import("@/components/ui/map").then((mod) => mod.Map),
-  {
-    ssr: false,
-  },
-);
-
 export const MapChatInterface = () => {
   const userContextKey = useUserContextKey("map-thread");
   const { registerComponent } = useTambo();
 
   useEffect(() => {
     const register = async () => {
+      /* Dynamically import the Map component and its schema */
       const mod = await import("@/components/ui/map");
       const mapSchema = mod.mapSchema;
+      const Map = mod.Map;
 
       registerComponent({
         name: "Map",
@@ -50,7 +38,7 @@ export const MapChatInterface = () => {
         - Choose zoom level appropriate for your data
         
       Example use cases: store locations, real estate, events, analytics, travel, business intelligence.`,
-        component: MapWithNoSSR,
+        component: Map,
         propsSchema: mapSchema,
       });
     };
