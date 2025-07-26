@@ -20,10 +20,7 @@ export const Empty: React.FC<StreamStateComponentProps> = ({
 
   // Show empty state when no active status (prop doesn't exist or is pending)
   const hasActiveStatus =
-    status.isPending ||
-    status.isStreaming ||
-    status.isSuccess ||
-    status.isError;
+    status.isStreaming || status.isSuccess || status.isError;
   const shouldShowEmpty = !hasActiveStatus;
 
   if (!shouldShowEmpty) {
