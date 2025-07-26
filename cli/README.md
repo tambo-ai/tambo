@@ -85,6 +85,7 @@ Available components:
 
 - `form` - Dynamic form with validation
 - `input-fields` - Text inputs
+- `map` - Interactive Map
 
 #### Data Visualization
 

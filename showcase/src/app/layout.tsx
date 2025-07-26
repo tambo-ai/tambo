@@ -1,5 +1,6 @@
 import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import "leaflet/dist/leaflet.css";
 import type { Metadata } from "next";
 import "../styles/showcase-theme.css";
 import "./globals.css";
