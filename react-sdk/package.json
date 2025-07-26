@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.38.1",
+  "version": "0.39.0",
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
@@ -68,11 +68,12 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.16.0",
-    "@tambo-ai/typescript-sdk": "^0.63.0",
+    "@tambo-ai/typescript-sdk": "^0.65.0",
     "@tanstack/react-query": "^5.83.0",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",
     "ts-essentials": "^10.1.1",
+    "ts-node": "^10.9.2",
     "use-debounce": "^10.0.5",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.24.6"

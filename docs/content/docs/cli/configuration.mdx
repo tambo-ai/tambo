@@ -1,0 +1,415 @@
+---
+title: CSS & Tailwind Configuration
+---
+
+The Tambo CLI automatically configures your CSS and Tailwind setup based on your project's Tailwind CSS version. This page explains what changes are made and how to configure them manually if needed.
+
+## What Gets Configured
+
+When you run Tambo CLI commands (`full-send`, `add`, `update`, `upgrade`), the CLI:
+
+1. **Detects your Tailwind CSS version** (v3 or v4)
+2. **Updates your `globals.css`** with required CSS variables
+3. **Updates your `tailwind.config.ts`** (v3 only) with basic configuration
+4. **Preserves your existing styles** and configuration
+
+<Callout type="info" title="Automatic Detection">
+  The CLI automatically detects your Tailwind version from your `package.json`
+  and applies the appropriate configuration format. You don't need to specify
+  which version you're using.
+</Callout>
+
+## CSS Variables Added
+
+Tambo components require specific CSS variables to function properly. The CLI adds these in the appropriate format for your Tailwind version:
+
+### Core Tailwind Variables
+
+These standard Tailwind CSS variables are added with Tambo's default color scheme:
+
+```css
+/* Light mode */
+--background: /* White or appropriate light background */ --foreground:
+  /* Dark text color */
+  --primary: /* Tambo brand primary color */
+  --secondary: /* Secondary accent color */
+  --muted: /* Muted backgrounds and borders */ --border: /* Border colors */
+  /* ... additional standard Tailwind variables */;
+```
+
+### Tambo-Specific Variables
+
+These custom variables control Tambo component layouts and behavior:
+
+```css
+/* Layout dimensions */
+--panel-left-width: 500px;
+--panel-right-width: 500px;
+--sidebar-width: 3rem;
+
+/* Container and backdrop styles */
+--container: /* Light container background */ --backdrop:
+  /* Modal backdrop opacity */
+  --muted-backdrop: /* Subtle backdrop for overlays */ /* Border radius */
+  --radius: 0.5rem;
+```
+
+<Callout type="warn" title="Required Variables">
+  The Tambo-specific variables (`--panel-left-width`, `--panel-right-width`,
+  `--sidebar-width`, `--container`, `--backdrop`, `--muted-backdrop`) are
+  essential for proper component functionality. Removing these will break
+  component layouts.
+</Callout>
+
+## Tailwind CSS v3 Configuration
+
+For Tailwind v3 projects, the CLI uses the `@layer base` approach:
+
+### Complete globals.css for v3
+
+```css title="app/globals.css"
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Default Tailwind CSS Variables customized with tambo colors */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 235 12% 21%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 218 11% 46%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 14% 90%;
+    --muted-foreground: 217 14% 68%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --border: 207 22% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --chart-1: 30 80% 54.9%;
+    --chart-2: 339.8 74.8% 54.9%;
+    --chart-3: 219.9 70.2% 50%;
+    --chart-4: 160 60% 45.1%;
+    --chart-5: 280 64.7% 60%;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --radius: 0.5rem;
+    --container: 210 29% 97%;
+    --backdrop: 210 88% 14% / 0.25;
+    --muted-backdrop: 210 88% 14% / 0.1;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
+  }
+  .dark {
+    /* Default Tailwind CSS Variables customized with tambo colors */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 30 80% 54.9%;
+    --chart-2: 339.8 74.8% 54.9%;
+    --chart-3: 219.9 70.2% 50%;
+    --chart-4: 160 60% 45.1%;
+    --chart-5: 280 64.7% 60%;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --radius: 0.5rem;
+    --container: 210 29% 97%;
+    --backdrop: 210 88% 14% / 0.25;
+    --muted-backdrop: 210 88% 14% / 0.1;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+```
+
+### tailwind.config.ts for v3
+
+```tsx title="tailwind.config.ts"
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  darkMode: "class",
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
+  // Your existing theme config is preserved and merged
+};
+
+export default config;
+```
+
+## Tailwind CSS v4 Configuration
+
+Tailwind v4 uses CSS-first configuration with a different approach:
+
+### Complete globals.css for v4
+
+```css title="app/globals.css"
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Tailwind CSS Variables customized with tambo colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Tambo Specific Variables needed for tambo components */
+  --color-container: var(--container);
+  --color-backdrop: var(--backdrop);
+  --color-muted-backdrop: var(--muted-backdrop);
+}
+
+:root {
+  /* Default Tailwind CSS Variables customized with tambo colors */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.14 0 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0 285);
+  --primary: oklch(0.31 0.02 281);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.54 0.027 261);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.92 0 260);
+  --muted-foreground: oklch(0.73 0.022 260);
+  --accent: oklch(0.97 0 286);
+  --accent-foreground: oklch(0.21 0 286);
+  --destructive: oklch(0.64 0.2 25);
+  --border: oklch(0.93 0 242);
+  --input: oklch(0.92 0 286);
+  --ring: oklch(0.14 0 285);
+  --chart-1: oklch(0.72 0.15 60);
+  --chart-2: oklch(0.62 0.2 6);
+  --chart-3: oklch(0.53 0.2 262);
+  --chart-4: oklch(0.7 0.13 165);
+  --chart-5: oklch(0.62 0.2 313);
+
+  /* Tambo Specific Variables needed for tambo components */
+  --container: oklch(0.98 0 247);
+  --backdrop: oklch(0.25 0.07 252 / 0.25);
+  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+  --radius: 0.5rem;
+  --panel-left-width: 500px;
+  --panel-right-width: 500px;
+  --sidebar-width: 3rem;
+}
+
+.dark {
+  /* Dark Mode Tailwind CSS Variables customized with tambo colors */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.72 0.15 60);
+  --chart-2: oklch(0.62 0.2 6);
+  --chart-3: oklch(0.53 0.2 262);
+  --chart-4: oklch(0.7 0.13 165);
+  --chart-5: oklch(0.62 0.2 313);
+
+  /* Tambo Specific Variables needed for tambo components */
+  --container: oklch(0.98 0 247);
+  --backdrop: oklch(0.25 0.07 252 / 0.25);
+  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+  --radius: 0.5rem;
+  --panel-left-width: 500px;
+  --panel-right-width: 500px;
+  --sidebar-width: 3rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
+```
+
+<Callout type="info" title="Tailwind v4 Configuration">
+  With Tailwind v4, most configuration is done in CSS using `@theme inline`. The
+  JavaScript config file is not needed.
+</Callout>
+
+## Manual Configuration
+
+If you need to manually configure these files or the automatic setup doesn't work:
+
+### 1. Check Your Tailwind Version
+
+```bash
+npm list tailwindcss
+# or check package.json
+```
+
+### 2. Copy the Appropriate CSS
+
+Choose the v3 or v4 format based on your version and copy the complete CSS above into your `globals.css` file.
+
+### 3. Update Tailwind Config (v3 only)
+
+For v3, ensure your `tailwind.config.ts` includes `darkMode: "class"` and the proper content paths.
+
+### 4. Verify Required Variables
+
+Ensure these Tambo-specific variables are present:
+
+- `--panel-left-width`
+- `--panel-right-width`
+- `--sidebar-width`
+- `--container`
+- `--backdrop`
+- `--muted-backdrop`
+- `--radius`
+
+## Merging with Existing Styles
+
+<Callout type="warn" title="Preserving Custom Styles">
+  If you already have CSS variables defined, you'll want to merge them carefully
+  rather than replacing your entire file. The CLI automatically preserves
+  existing variables, but manual setup requires more care.
+</Callout>
+
+### If you have existing CSS variables:
+
+1. **Keep your existing variables** that aren't listed in the Tambo configuration
+2. **Add missing Tambo variables** from the appropriate version above
+3. **Update conflicting variables** if you want to use Tambo's color scheme
+4. **Preserve your custom styling** outside of the CSS variables
+
+### If you have existing `@layer base` blocks:
+
+For Tailwind v3, add the Tambo variables inside your existing `@layer base` block rather than creating a duplicate.
+
+## Troubleshooting
+
+### Components Look Broken
+
+**Problem**: Components have no styling or look broken
+
+**Solution**: Check that all CSS variables are present in your `globals.css`
+
+### Dark Mode Not Working
+
+**Problem**: Dark mode styles not applying
+
+**Solution**:
+
+- For v3: Ensure `darkMode: "class"` in `tailwind.config.ts`
+- For v4: Check `@custom-variant dark` is present
+- Verify `.dark` class variables are defined
+
+### Version Mismatch
+
+**Problem**: Wrong CSS format for your Tailwind version
+
+**Solution**:
+
+- Check your Tailwind version with `npm list tailwindcss`
+- Use v3 format (HSL) for Tailwind 3.x
+- Use v4 format (OKLCH) for Tailwind 4.x
+
+### Layout Issues
+
+**Problem**: Panels or sidebars have wrong dimensions
+
+**Solution**: Ensure Tambo layout variables (`--panel-left-width`, etc.) are defined and have appropriate values
+
+### Existing Styles Overridden
+
+**Problem**: Your custom CSS variables got replaced
+
+**Solution**: The CLI preserves existing variables, but if manually copying, merge with your existing styles rather than replacing them
+
+## CLI Behavior
+
+### What the CLI Does
+
+- ✅ **Preserves existing styles**: Your custom CSS is kept
+- ✅ **Adds only missing variables**: Won't override your existing variables
+- ✅ **Backs up files**: Creates `.backup` files before making changes
+- ✅ **Shows diffs**: Previews changes before applying them
+- ✅ **Asks permission**: Prompts before modifying existing files
+
+### What the CLI Doesn't Do
+
+- ❌ **Override existing variables**: Your customizations are preserved
+- ❌ **Change your color scheme**: Only adds missing standard variables
+- ❌ **Modify other CSS**: Only touches CSS variable definitions
+- ❌ **Break existing config**: Merges with your existing Tailwind config
+
+<Callout type="info" title="Safe Configuration">
+  The CLI is designed to be safe and non-destructive. It preserves your existing
+  configuration and only adds what's needed for Tambo components to work.
+</Callout>

@@ -1,0 +1,10 @@
+{
+  "title": "Streaming",
+  "pages": [
+    "response-text-streaming",
+    "response-component-streaming",
+    "component-streaming-status",
+    "tambo-prop-stream-provider",
+    "streaming-props"
+  ]
+}

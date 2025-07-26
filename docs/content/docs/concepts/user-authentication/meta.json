@@ -1,0 +1,13 @@
+{
+  "title": "User Authentication",
+  "pages": [
+    "overview",
+    "nextauth",
+    "auth0",
+    "clerk",
+    "supabase",
+    "neon",
+    "workos",
+    "better-auth"
+  ]
+}

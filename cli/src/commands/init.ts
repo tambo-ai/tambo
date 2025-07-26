@@ -174,6 +174,11 @@ async function handleAuthentication(): Promise<boolean> {
       console.log(chalk.green("✔ Created new .env.local file"));
       fs.appendFileSync(".env.local", envContent);
       console.log(chalk.green("✔ API key saved to .env.local"));
+      console.log(
+        chalk.gray(
+          "Note: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
+        ),
+      );
     } else {
       // Check if API key already exists in the file
       const existingContent = fs.readFileSync(".env.local", "utf8");
@@ -202,11 +207,21 @@ async function handleAuthentication(): Promise<boolean> {
         );
         fs.writeFileSync(".env.local", updatedContent);
         console.log(chalk.green("✔ Updated existing API key in .env.local"));
+        console.log(
+          chalk.gray(
+            "Note: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
+          ),
+        );
         return true;
       } else {
         // Only append if no existing key was found
         fs.appendFileSync(".env.local", envContent);
         console.log(chalk.green("✔ API key saved to .env.local"));
+        console.log(
+          chalk.gray(
+            "Note: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
+          ),
+        );
       }
     }
 
@@ -416,7 +431,7 @@ ${componentInstances}
 
   console.log(chalk.bold("\n3. Documentation"));
   console.log(
-    chalk.gray("   Visit https://tambo.co/docs for detailed usage examples"),
+    chalk.gray("   Visit https://docs.tambo.co for detailed usage examples"),
   );
 
   console.log(chalk.bold("\n4. Start your app"));
@@ -446,11 +461,18 @@ export async function handleInit({
     if (!authSuccess) return;
 
     console.log(chalk.green("\n✨ Basic initialization complete!"));
-    console.log(chalk.blue("\nNext steps:"));
-    console.log("1. Add components using 'npx tambo add <component-name>'");
-    console.log("2. Check the documentation for available components");
-    console.log("3. Add the TamboProvider to your layout file (see the docs)");
-    console.log("4. Run your app to test the integration");
+
+    console.log("\nNext steps:");
+    console.log(
+      "  1. Visit our quickstart guide at " +
+        chalk.cyan("https://docs.tambo.co/getting-started/quickstart") +
+        " to get started",
+    );
+    console.log(
+      "  2. Explore our component library at " +
+        chalk.cyan("https://ui.tambo.co") +
+        " to discover all available components\n",
+    );
   } catch (error) {
     console.error(chalk.red("Initialization failed: " + error));
     process.exit(1);

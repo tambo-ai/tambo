@@ -7,7 +7,8 @@
     "react-sdk": {},
     "showcase": {},
     "cli": {},
-    "create-tambo-app": {}
+    "create-tambo-app": {},
+    "docs": {}
   },
   "changelog-sections": [
     {
