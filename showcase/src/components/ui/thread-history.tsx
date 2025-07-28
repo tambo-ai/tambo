@@ -407,16 +407,10 @@ const ThreadHistoryList = React.forwardRef<
 
     const query = searchQuery.toLowerCase();
     return threads.items.filter((thread: TamboThread) => {
-      const nameMatches = !!thread.name?.toLowerCase().includes(query);
-      return (
-        thread.id.toLowerCase().includes(query) ??
-        nameMatches ??
-        thread.messages.some((message) =>
-          message.content.some(
-            (content) => !!content.text?.toLowerCase().includes(query),
-          ),
-        )
-      );
+      const nameMatches = thread.name?.toLowerCase().includes(query) ?? false;
+      const idMatches = thread.id.toLowerCase().includes(query);
+
+      return idMatches || nameMatches;
     });
   }, [isCollapsed, threads, searchQuery]);
 
