@@ -1,23 +1,16 @@
 ---
 title: Stream Status Provider
-description: A React provider component that manages streaming state for AI-generated component props with compound components.
+description: A React provider component for controlling what renders when.
 ---
 
-## How Does It Work?
-
-The provider uses a **compound component pattern** to manage streaming state. You wrap your content with the main provider and use its sub-components to define what renders in each streaming state.
+The `TamboPropStreamProvider` uses a **compound component pattern** to manage streaming state. You wrap your content with the main provider and use its sub-components to define what renders at each streaming stage.
 
 ```tsx title="basic-usage.tsx"
-import { TamboPropStreamProvider, useTamboStreamStatus } from "@tambo-ai/react";
+import { TamboPropStreamProvider } from "@tambo-ai/react";
 
 function WeatherCard({ location, temperature, condition }) {
-  const { streamStatus } = useTamboStreamStatus();
-
   return (
-    <TamboPropStreamProvider
-      data={{ location, temperature, condition }}
-      streamStatus={streamStatus}
-    >
+    <TamboPropStreamProvider>
       <TamboPropStreamProvider.Pending>
         <div>Loading weather...</div>
       </TamboPropStreamProvider.Pending>
@@ -39,7 +32,6 @@ function WeatherCard({ location, temperature, condition }) {
 - **Declarative rendering** - Use compound components to define what shows in each state
 - **Per-prop tracking** - Handle individual prop streaming (e.g., show title while body loads)
 - **Enhanced UX** - Add highlighting, animations, or transitions during streaming
-- **Type safety** - Full TypeScript support with proper type inference
 
 <Callout type="info" title="Building on Previous Concepts">
   This guide builds on **[Streaming](/concepts/streaming)** and **[Component
@@ -49,21 +41,13 @@ function WeatherCard({ location, temperature, condition }) {
 
 ## API Reference
 
-### TamboPropStreamProvider
-
-| Prop           | Type              | Description                                                           |
-| -------------- | ----------------- | --------------------------------------------------------------------- |
-| `data`         | `any`             | The streaming data (can be any type, objects enable per-key tracking) |
-| `streamStatus` | `StreamStatus`    | Optional stream status from `useTamboStreamStatus()`                  |
-| `children`     | `React.ReactNode` | Child components                                                      |
-
 ### Compound Components
 
-All compound components accept `streamKey?: string` and `className?: string` props.
+**`<TamboPropStreamProvider.Pending />`** - Renders when the stream is pending (no data yet)
 
-**Pending** - Renders when the stream is pending (no data yet)
-**Streaming** - Renders when the stream is actively streaming data
-**Success** - Renders when data is successfully received and complete
+**`<TamboPropStreamProvider.Streaming />`** - Renders when the stream is actively streaming data
+
+**`<TamboPropStreamProvider.Success />`** - Renders when data is successfully received and complete
 
 ### useTamboStream Hook
 
@@ -80,19 +64,14 @@ const { data, streamStatus, getStatusForKey } = useTamboStream();
 
 ## Usage Examples
 
-### Per-Property Streaming
+### Per-Prop Streaming
 
 Track individual properties using the `streamKey` prop to show content progressively:
 
 ```tsx title="per-property-streaming.tsx"
 function ArticleCard({ title, summary }) {
-  const { streamStatus } = useTamboStreamStatus();
-
   return (
-    <TamboPropStreamProvider
-      data={{ title, summary }}
-      streamStatus={streamStatus}
-    >
+    <TamboPropStreamProvider>
       <TamboPropStreamProvider.Streaming streamKey="title">
         <div>Loading title...</div>
       </TamboPropStreamProvider.Streaming>
@@ -120,7 +99,7 @@ function RobustComponent({ data }) {
   const { streamStatus } = useTamboStreamStatus();
 
   return (
-    <TamboPropStreamProvider data={data} streamStatus={streamStatus}>
+    <TamboPropStreamProvider>
       <TamboPropStreamProvider.Streaming>
         <div>AI is generating content...</div>
       </TamboPropStreamProvider.Streaming>
@@ -147,13 +126,8 @@ Show streaming values immediately as they arrive with controlled fallbacks:
 
 ```tsx title="real-time-streaming.tsx"
 function StreamingTextGenerator({ content, title, metadata }) {
-  const { streamStatus } = useTamboStreamStatus();
-
   return (
-    <TamboPropStreamProvider
-      data={{ content, title, metadata }}
-      streamStatus={streamStatus}
-    >
+    <TamboPropStreamProvider>
       <TamboPropStreamProvider.Streaming streamKey="title">
         <h1>{title || "Generating title..."}</h1>
       </TamboPropStreamProvider.Streaming>
