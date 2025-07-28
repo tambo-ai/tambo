@@ -48,7 +48,7 @@
     "@trpc/server": "^11.0.2",
     "@types/react-speech-recognition": "^3.9.6",
     "@vercel/analytics": "^1.5.0",
-    "@vercel/og": "^0.7.2",
+    "@vercel/og": "^0.8.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
