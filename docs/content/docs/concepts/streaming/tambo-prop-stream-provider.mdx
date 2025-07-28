@@ -18,17 +18,17 @@ function WeatherCard({ location, temperature, condition }) {
       data={{ location, temperature, condition }}
       streamStatus={streamStatus}
     >
-      <TamboPropStreamProvider.Loading>
+      <TamboPropStreamProvider.Pending>
         <div>Loading weather...</div>
-      </TamboPropStreamProvider.Loading>
-      <TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Pending>
+      <TamboPropStreamProvider.Success>
         <div>
           <h2>{location}</h2>
           <p>
             {temperature}°C, {condition}
           </p>
         </div>
-      </TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Success>
     </TamboPropStreamProvider>
   );
 }
@@ -61,9 +61,9 @@ function WeatherCard({ location, temperature, condition }) {
 
 All compound components accept `streamKey?: string` and `className?: string` props.
 
-**Loading** - Renders when the stream is pending or streaming
-**Empty** - Renders when no data is available and not loading
-**Complete** - Renders when data is successfully received and complete
+**Pending** - Renders when the stream is pending (no data yet)
+**Streaming** - Renders when the stream is actively streaming data
+**Success** - Renders when data is successfully received and complete
 
 ### useTamboStream Hook
 
@@ -93,19 +93,19 @@ function ArticleCard({ title, summary }) {
       data={{ title, summary }}
       streamStatus={streamStatus}
     >
-      <TamboPropStreamProvider.Loading streamKey="title">
+      <TamboPropStreamProvider.Streaming streamKey="title">
         <div>Loading title...</div>
-      </TamboPropStreamProvider.Loading>
-      <TamboPropStreamProvider.Complete streamKey="title">
+      </TamboPropStreamProvider.Streaming>
+      <TamboPropStreamProvider.Success streamKey="title">
         <h2>{title}</h2>
-      </TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Success>
 
-      <TamboPropStreamProvider.Loading streamKey="summary">
+      <TamboPropStreamProvider.Streaming streamKey="summary">
         <div>Loading summary...</div>
-      </TamboPropStreamProvider.Loading>
-      <TamboPropStreamProvider.Complete streamKey="summary">
+      </TamboPropStreamProvider.Streaming>
+      <TamboPropStreamProvider.Success streamKey="summary">
         <p>{summary}</p>
-      </TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Success>
     </TamboPropStreamProvider>
   );
 }
@@ -121,17 +121,17 @@ function RobustComponent({ data }) {
 
   return (
     <TamboPropStreamProvider data={data} streamStatus={streamStatus}>
-      <TamboPropStreamProvider.Loading>
+      <TamboPropStreamProvider.Streaming>
         <div>AI is generating content...</div>
-      </TamboPropStreamProvider.Loading>
+      </TamboPropStreamProvider.Streaming>
 
-      <TamboPropStreamProvider.Empty>
+      <TamboPropStreamProvider.Pending>
         <div>No content generated yet</div>
-      </TamboPropStreamProvider.Empty>
+      </TamboPropStreamProvider.Pending>
 
-      <TamboPropStreamProvider.Complete>
+      <TamboPropStreamProvider.Success>
         <div>{data.content}</div>
-      </TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Success>
 
       {streamStatus.isError && (
         <div>Error: {streamStatus.streamError?.message}</div>
@@ -154,26 +154,26 @@ function StreamingTextGenerator({ content, title, metadata }) {
       data={{ content, title, metadata }}
       streamStatus={streamStatus}
     >
-      <TamboPropStreamProvider.Loading streamKey="title">
+      <TamboPropStreamProvider.Streaming streamKey="title">
         <h1>{title || "Generating title..."}</h1>
-      </TamboPropStreamProvider.Loading>
-      <TamboPropStreamProvider.Complete streamKey="title">
+      </TamboPropStreamProvider.Streaming>
+      <TamboPropStreamProvider.Success streamKey="title">
         <h1>{title}</h1>
-      </TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Success>
 
-      <TamboPropStreamProvider.Loading streamKey="content">
+      <TamboPropStreamProvider.Streaming streamKey="content">
         <p>{content || "AI is writing..."}</p>
-      </TamboPropStreamProvider.Loading>
-      <TamboPropStreamProvider.Complete streamKey="content">
+      </TamboPropStreamProvider.Streaming>
+      <TamboPropStreamProvider.Success streamKey="content">
         <p>{content}</p>
-      </TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Success>
 
-      <TamboPropStreamProvider.Complete streamKey="metadata">
+      <TamboPropStreamProvider.Success streamKey="metadata">
         <div>
           <span>Generated: {metadata.timestamp}</span>
           <span>Words: {metadata.wordCount}</span>
         </div>
-      </TamboPropStreamProvider.Complete>
+      </TamboPropStreamProvider.Success>
     </TamboPropStreamProvider>
   );
 }
@@ -184,11 +184,11 @@ function StreamingTextGenerator({ content, title, metadata }) {
 Add visual feedback during streaming:
 
 ```tsx title="custom-animations.tsx"
-<TamboPropStreamProvider.Loading streamKey="title">
+<TamboPropStreamProvider.Streaming streamKey="title">
   <div className="animate-pulse">Loading title...</div>
-</TamboPropStreamProvider.Loading>
+</TamboPropStreamProvider.Streaming>
 
-<TamboPropStreamProvider.Complete streamKey="title">
+<TamboPropStreamProvider.Success streamKey="title">
   <h2 className="transition-opacity">{title}</h2>
-</TamboPropStreamProvider.Complete>
+</TamboPropStreamProvider.Success>
 ```
