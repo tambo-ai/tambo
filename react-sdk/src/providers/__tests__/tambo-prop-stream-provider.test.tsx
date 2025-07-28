@@ -102,8 +102,8 @@ describe("TamboPropStreamProvider", () => {
   });
 
   describe("Compound Components", () => {
-    describe("Loading Component", () => {
-      it("should render loading when isPending is true", () => {
+    describe("Streaming Component", () => {
+      it("should render streaming when isPending is true", () => {
         jest.mocked(useTamboThread).mockReturnValue({
           generationStage: GenerationStage.IDLE,
         } as TamboThreadContextProps);
@@ -116,16 +116,16 @@ describe("TamboPropStreamProvider", () => {
 
         render(
           <TamboPropStreamProvider>
-            <TamboPropStreamProvider.Loading>
+            <TamboPropStreamProvider.Streaming>
               <div data-testid="loading">Loading...</div>
-            </TamboPropStreamProvider.Loading>
+            </TamboPropStreamProvider.Streaming>
           </TamboPropStreamProvider>,
         );
 
         expect(screen.getByTestId("loading")).toBeInTheDocument();
       });
 
-      it("should render loading when isStreaming is true", () => {
+      it("should render streaming when isStreaming is true", () => {
         jest.mocked(useTamboThread).mockReturnValue({
           generationStage: GenerationStage.STREAMING_RESPONSE,
         } as TamboThreadContextProps);
@@ -138,9 +138,9 @@ describe("TamboPropStreamProvider", () => {
 
         render(
           <TamboPropStreamProvider>
-            <TamboPropStreamProvider.Loading>
+            <TamboPropStreamProvider.Streaming>
               <div data-testid="loading">Loading...</div>
-            </TamboPropStreamProvider.Loading>
+            </TamboPropStreamProvider.Streaming>
           </TamboPropStreamProvider>,
         );
 
@@ -148,8 +148,8 @@ describe("TamboPropStreamProvider", () => {
       });
     });
 
-    describe("Complete Component", () => {
-      it("should not render complete when isSuccess is false", () => {
+    describe("Success Component", () => {
+      it("should not render success when isSuccess is false", () => {
         jest.mocked(useTamboThread).mockReturnValue({
           generationStage: GenerationStage.IDLE,
         } as TamboThreadContextProps);
@@ -162,9 +162,9 @@ describe("TamboPropStreamProvider", () => {
 
         render(
           <TamboPropStreamProvider>
-            <TamboPropStreamProvider.Complete>
+            <TamboPropStreamProvider.Success>
               <div data-testid="complete">Complete!</div>
-            </TamboPropStreamProvider.Complete>
+            </TamboPropStreamProvider.Success>
           </TamboPropStreamProvider>,
         );
 
@@ -172,8 +172,8 @@ describe("TamboPropStreamProvider", () => {
       });
     });
 
-    describe("Empty Component", () => {
-      it("should render empty when no active status", () => {
+    describe("Pending Component", () => {
+      it("should render pending when no active status", () => {
         jest.mocked(useTamboThread).mockReturnValue({
           generationStage: GenerationStage.IDLE,
         } as TamboThreadContextProps);
@@ -186,16 +186,16 @@ describe("TamboPropStreamProvider", () => {
 
         render(
           <TamboPropStreamProvider>
-            <TamboPropStreamProvider.Empty>
+            <TamboPropStreamProvider.Pending>
               <div data-testid="empty">Empty!</div>
-            </TamboPropStreamProvider.Empty>
+            </TamboPropStreamProvider.Pending>
           </TamboPropStreamProvider>,
         );
 
         expect(screen.getByTestId("empty")).toBeInTheDocument();
       });
 
-      it("should not render empty when isPending is true", () => {
+      it("should not render pending when isPending is true", () => {
         jest.mocked(useTamboThread).mockReturnValue({
           generationStage: GenerationStage.STREAMING_RESPONSE,
         } as TamboThreadContextProps);
@@ -208,9 +208,9 @@ describe("TamboPropStreamProvider", () => {
 
         render(
           <TamboPropStreamProvider>
-            <TamboPropStreamProvider.Empty>
+            <TamboPropStreamProvider.Pending>
               <div data-testid="empty">Empty!</div>
-            </TamboPropStreamProvider.Empty>
+            </TamboPropStreamProvider.Pending>
           </TamboPropStreamProvider>,
         );
 
@@ -261,15 +261,15 @@ describe("TamboPropStreamProvider", () => {
 
       render(
         <TamboPropStreamProvider>
-          <TamboPropStreamProvider.Loading streamKey="name">
+          <TamboPropStreamProvider.Streaming streamKey="name">
             <div data-testid="name-loading">Name Loading...</div>
-          </TamboPropStreamProvider.Loading>
-          <TamboPropStreamProvider.Loading streamKey="age">
+          </TamboPropStreamProvider.Streaming>
+          <TamboPropStreamProvider.Streaming streamKey="age">
             <div data-testid="age-loading">Age Loading...</div>
-          </TamboPropStreamProvider.Loading>
-          <TamboPropStreamProvider.Complete streamKey="name">
+          </TamboPropStreamProvider.Streaming>
+          <TamboPropStreamProvider.Success streamKey="name">
             <div data-testid="name-complete">Name Complete!</div>
-          </TamboPropStreamProvider.Complete>
+          </TamboPropStreamProvider.Success>
         </TamboPropStreamProvider>,
       );
 
@@ -294,9 +294,9 @@ describe("TamboPropStreamProvider", () => {
 
       render(
         <TamboPropStreamProvider>
-          <TamboPropStreamProvider.Loading className="loading-class">
+          <TamboPropStreamProvider.Streaming className="loading-class">
             <div data-testid="loading">Loading...</div>
-          </TamboPropStreamProvider.Loading>
+          </TamboPropStreamProvider.Streaming>
         </TamboPropStreamProvider>,
       );
 

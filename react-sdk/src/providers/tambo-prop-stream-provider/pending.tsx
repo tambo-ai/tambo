@@ -3,14 +3,14 @@ import { useTamboStream } from "./provider";
 import { DEFAULT_STREAM_KEY, StreamStateComponentProps } from "./types";
 
 /**
- * Empty component that renders children when the stream has no data
- * @param props - The props for the Empty component
- * @param props.streamKey - The key to identify this empty state
- * @param props.children - The children to render when empty
+ * Pending component that renders children when the stream has no data
+ * @param props - The props for the Pending component
+ * @param props.streamKey - The key to identify this pending state
+ * @param props.children - The children to render when pending
  * @param props.className - Optional className for styling
- * @returns The Empty component
+ * @returns The Pending component
  */
-export const Empty: React.FC<StreamStateComponentProps> = ({
+export const Pending: React.FC<StreamStateComponentProps> = ({
   streamKey = DEFAULT_STREAM_KEY,
   children,
   className,
@@ -18,12 +18,12 @@ export const Empty: React.FC<StreamStateComponentProps> = ({
   const { getStatusForKey } = useTamboStream();
   const status = getStatusForKey(streamKey);
 
-  // Show empty state when no active status (prop doesn't exist or is pending)
+  // Show pending state when no active status (prop doesn't exist or is pending)
   const hasActiveStatus =
     status.isStreaming || status.isSuccess || status.isError;
-  const shouldShowEmpty = !hasActiveStatus;
+  const shouldShowPending = !hasActiveStatus;
 
-  if (!shouldShowEmpty) {
+  if (!shouldShowPending) {
     return null;
   }
 
@@ -31,11 +31,11 @@ export const Empty: React.FC<StreamStateComponentProps> = ({
     <div
       className={className}
       data-stream-key={streamKey}
-      data-stream-state="empty"
+      data-stream-state="pending"
     >
       {children}
     </div>
   );
 };
 
-Empty.displayName = "TamboPropStreamProvider.Empty";
+Pending.displayName = "TamboPropStreamProvider.Pending";

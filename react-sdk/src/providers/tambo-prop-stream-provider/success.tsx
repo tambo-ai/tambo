@@ -3,14 +3,14 @@ import { useTamboStream } from "./provider";
 import { DEFAULT_STREAM_KEY, StreamStateComponentProps } from "./types";
 
 /**
- * Complete component that renders children when the stream has data
- * @param props - The props for the Complete component
- * @param props.streamKey - The key to identify this complete state
- * @param props.children - The children to render when complete
+ * Success component that renders children when the stream has data
+ * @param props - The props for the Success component
+ * @param props.streamKey - The key to identify this success state
+ * @param props.children - The children to render when success
  * @param props.className - Optional className for styling
- * @returns The Complete component
+ * @returns The Success component
  */
-export const Complete: React.FC<StreamStateComponentProps> = ({
+export const Success: React.FC<StreamStateComponentProps> = ({
   streamKey = DEFAULT_STREAM_KEY,
   children,
   className,
@@ -26,11 +26,11 @@ export const Complete: React.FC<StreamStateComponentProps> = ({
     <div
       className={className}
       data-stream-key={streamKey}
-      data-stream-state="complete"
+      data-stream-state="success"
     >
       {children}
     </div>
   );
 };
 
-Complete.displayName = "TamboPropStreamProvider.Complete";
+Success.displayName = "TamboPropStreamProvider.Success";

@@ -33,7 +33,7 @@ export const useTamboStream = (): TamboPropStreamContextValue => {
 
 /**
  * The TamboStreamProvider provides a context for managing stream states
- * with compound components for Loading, Empty, and Complete states.
+ * with compound components for Pending, Streaming, and Success states.
  * @param props - The props object
  * @param props.children - The children to wrap
  * @returns The TamboStreamProvider component

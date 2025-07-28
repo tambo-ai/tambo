@@ -5,9 +5,9 @@ export {
   useTamboComponent,
 } from "./tambo-component-provider";
 export {
-  Complete,
-  Empty,
-  Loading,
+  Pending,
+  Streaming,
+  Success,
   TamboPropStreamProvider,
   useTamboStream,
 } from "./tambo-prop-stream-provider";

@@ -3,14 +3,14 @@ import { useTamboStream } from "./provider";
 import { DEFAULT_STREAM_KEY, StreamStateComponentProps } from "./types";
 
 /**
- * Loading component that renders children when the stream is in a loading state
- * @param props - The props for the Loading component
- * @param props.streamKey - The key to identify this loading state
- * @param props.children - The children to render when loading
+ * Streaming component that renders children when the stream is in a streaming state
+ * @param props - The props for the Streaming component
+ * @param props.streamKey - The key to identify this streaming state
+ * @param props.children - The children to render when streaming
  * @param props.className - Optional className for styling
- * @returns The Loading component
+ * @returns The Streaming component
  */
-export const Loading: React.FC<StreamStateComponentProps> = ({
+export const Streaming: React.FC<StreamStateComponentProps> = ({
   streamKey = DEFAULT_STREAM_KEY,
   children,
   className,
@@ -26,11 +26,11 @@ export const Loading: React.FC<StreamStateComponentProps> = ({
     <div
       className={className}
       data-stream-key={streamKey}
-      data-stream-state="loading"
+      data-stream-state="streaming"
     >
       {children}
     </div>
   );
 };
 
-Loading.displayName = "TamboPropStreamProvider.Loading";
+Streaming.displayName = "TamboPropStreamProvider.Streaming";
