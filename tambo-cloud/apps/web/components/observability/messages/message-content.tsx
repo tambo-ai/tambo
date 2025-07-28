@@ -1,4 +1,4 @@
-import { createMarkdownComponents } from "@/components/ui/tambo/markdownComponents";
+import { createMarkdownComponents } from "@/components/ui/tambo/markdown-components";
 import { getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
