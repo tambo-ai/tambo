@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.40.0](https://github.com/tambo-ai/tambo/compare/react-v0.39.0...react-v0.40.0) (2025-07-28)
+
+
+### Features
+
+* Add InteractiveMap component using react‑leaflet ([#678](https://github.com/tambo-ai/tambo/issues/678)) ([22b3862](https://github.com/tambo-ai/tambo/commit/22b3862cdefbe5d53425da0f7ad0167698847d09))
+
+
+### Bug Fixes
+
+* cleanup TamboPropStreamProvider ([#713](https://github.com/tambo-ai/tambo/issues/713)) ([d486d0a](https://github.com/tambo-ai/tambo/commit/d486d0aeef52930fb531d15fbe3e662af09ad254))
+
 ## [0.39.0](https://github.com/tambo-ai/tambo/compare/react-v0.38.1...react-v0.39.0) (2025-07-25)
 
 
