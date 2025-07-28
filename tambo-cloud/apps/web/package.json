@@ -61,7 +61,7 @@
     "fumadocs-ui": "^14.7.7",
     "geist": "^1.4.2",
     "highlight.js": "^11.11.1",
-    "jiti": "^2.4.2",
+    "jiti": "^2.5.1",
     "js-tiktoken": "^1.0.20",
     "json-stringify-pretty-compact": "^4.0.0",
     "lucide-react": "^0.526.0",
