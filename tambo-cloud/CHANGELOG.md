@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.89.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.88.1...repo-v0.89.0) (2025-07-28)
+
+
+### Features
+
+* switch from supabase auth to nextauth ([#1395](https://github.com/tambo-ai/tambo-cloud/issues/1395)) ([b21f075](https://github.com/tambo-ai/tambo-cloud/commit/b21f075c31f20e4e9c76affcf438a618e0f13c01))
+
+
+### Miscellaneous Chores
+
+* add some example vars for new auth stuff ([#1410](https://github.com/tambo-ai/tambo-cloud/issues/1410)) ([527f174](https://github.com/tambo-ai/tambo-cloud/commit/527f174683d3a908aff0102ead1d7d13bc7859ba))
+* **deps-dev:** bump @nestjs/cli from 11.0.7 to 11.0.8 in the nestjs group ([#1423](https://github.com/tambo-ai/tambo-cloud/issues/1423)) ([e03b85b](https://github.com/tambo-ai/tambo-cloud/commit/e03b85bc97e9b1166a2dfdb842d70bfe05a32d01))
+* **deps-dev:** bump @next/eslint-plugin-next from 15.4.2 to 15.4.4 ([#1427](https://github.com/tambo-ai/tambo-cloud/issues/1427)) ([b421f28](https://github.com/tambo-ai/tambo-cloud/commit/b421f28a28578633f730ff44d3c64de280ccc1e5))
+* **deps-dev:** bump jest from 30.0.4 to 30.0.5 in the testing group ([#1413](https://github.com/tambo-ai/tambo-cloud/issues/1413)) ([f473962](https://github.com/tambo-ai/tambo-cloud/commit/f47396263e00eca0b0a70585be26d430aa1587e5))
+* **deps-dev:** bump supertest from 7.1.3 to 7.1.4 ([#1422](https://github.com/tambo-ai/tambo-cloud/issues/1422)) ([10e0cca](https://github.com/tambo-ai/tambo-cloud/commit/10e0ccabb2638346841c528cd8941a95140ce35e))
+* **deps-dev:** bump the eslint group with 2 updates ([#1414](https://github.com/tambo-ai/tambo-cloud/issues/1414)) ([0e0e15e](https://github.com/tambo-ai/tambo-cloud/commit/0e0e15edeea7327c65062b9ea8279eebfb387cd1))
+* **deps:** bump @hookform/resolvers from 5.1.1 to 5.2.0 ([#1430](https://github.com/tambo-ai/tambo-cloud/issues/1430)) ([f18e99c](https://github.com/tambo-ai/tambo-cloud/commit/f18e99ca0f7dd54dec0e1cdecda1c5eaa14d6aa6))
+* **deps:** bump @modelcontextprotocol/sdk from 1.16.0 to 1.17.0 ([#1415](https://github.com/tambo-ai/tambo-cloud/issues/1415)) ([9dde30a](https://github.com/tambo-ai/tambo-cloud/commit/9dde30adcf654fbab01092242de7268fac00198b))
+* **deps:** bump @splinetool/runtime from 1.10.33 to 1.10.38 ([#1428](https://github.com/tambo-ai/tambo-cloud/issues/1428)) ([80d0a9d](https://github.com/tambo-ai/tambo-cloud/commit/80d0a9dfd4a717005c46b98d3da81ebe112f77bf))
+* **deps:** bump @vercel/og from 0.7.2 to 0.8.5 ([#1425](https://github.com/tambo-ai/tambo-cloud/issues/1425)) ([b5998b9](https://github.com/tambo-ai/tambo-cloud/commit/b5998b9664260f7968a77aaa25c1fb8a9c3ccdef))
+* **deps:** bump framer-motion from 12.23.6 to 12.23.11 ([#1424](https://github.com/tambo-ai/tambo-cloud/issues/1424)) ([15d5d1d](https://github.com/tambo-ai/tambo-cloud/commit/15d5d1dc65cdcef47c813b337e409b6ca43b314b))
+* **deps:** bump jiti from 2.4.2 to 2.5.1 ([#1416](https://github.com/tambo-ai/tambo-cloud/issues/1416)) ([e55445e](https://github.com/tambo-ai/tambo-cloud/commit/e55445e740cb8c9a7538e0544077e4316fd3b25c))
+* **deps:** bump lucide-react from 0.525.0 to 0.526.0 ([#1421](https://github.com/tambo-ai/tambo-cloud/issues/1421)) ([260eaa3](https://github.com/tambo-ai/tambo-cloud/commit/260eaa30fc494cd105b973b40a028079fa76c1e3))
+* **deps:** bump lucide-react from 0.526.0 to 0.532.0 ([#1426](https://github.com/tambo-ai/tambo-cloud/issues/1426)) ([873a71d](https://github.com/tambo-ai/tambo-cloud/commit/873a71de79aeb38d7e15434e2cbad520c2dd2e7a))
+* **deps:** bump next from 15.4.2 to 15.4.4 ([#1420](https://github.com/tambo-ai/tambo-cloud/issues/1420)) ([b4c5d25](https://github.com/tambo-ai/tambo-cloud/commit/b4c5d25faf4652c3bd3c399c6529ca881ba6bb03))
+* **deps:** bump openai from 5.10.1 to 5.10.2 ([#1429](https://github.com/tambo-ai/tambo-cloud/issues/1429)) ([272eaba](https://github.com/tambo-ai/tambo-cloud/commit/272eabaa1535338a562ddf1c6ae2f6c96bc06952))
+* **deps:** bump posthog-js from 1.257.1 to 1.258.2 ([#1419](https://github.com/tambo-ai/tambo-cloud/issues/1419)) ([3ed7529](https://github.com/tambo-ai/tambo-cloud/commit/3ed7529c193007eb8592ac1bd78e18f9f7b6b730))
+* **deps:** bump react-hook-form from 7.60.0 to 7.61.1 ([#1418](https://github.com/tambo-ai/tambo-cloud/issues/1418)) ([7d697c6](https://github.com/tambo-ai/tambo-cloud/commit/7d697c6014a68e091716de0a574cb2c877cad0c4))
+* **deps:** bump ytanikin/pr-conventional-commits from 1.4.1 to 1.4.2 ([#1412](https://github.com/tambo-ai/tambo-cloud/issues/1412)) ([85fafbb](https://github.com/tambo-ai/tambo-cloud/commit/85fafbb886a362304c16a28255a2ad468e6c075f))
+* remove supabase packages ([#1411](https://github.com/tambo-ai/tambo-cloud/issues/1411)) ([1f516dc](https://github.com/tambo-ai/tambo-cloud/commit/1f516dccd79da9cf8d14d08d237ce747cd1e9a89))
+
 ## [0.88.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.88.0...repo-v0.88.1) (2025-07-25)
 
 
