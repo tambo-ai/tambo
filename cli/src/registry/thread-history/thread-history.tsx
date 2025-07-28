@@ -410,7 +410,7 @@ const ThreadHistoryList = React.forwardRef<
       const nameMatches = thread.name?.toLowerCase().includes(query) ?? false;
       const idMatches = thread.id.toLowerCase().includes(query);
 
-      return (idMatches || nameMatches) ?? false;
+      return idMatches ? true : nameMatches;
     });
   }, [isCollapsed, threads, searchQuery]);
 
