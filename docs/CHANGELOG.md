@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/tambo-ai/tambo/compare/docs-v1.0.2...docs-v1.0.3) (2025-07-28)
+
+
+### Bug Fixes
+
+* cleanup TamboPropStreamProvider ([#713](https://github.com/tambo-ai/tambo/issues/713)) ([d486d0a](https://github.com/tambo-ai/tambo/commit/d486d0aeef52930fb531d15fbe3e662af09ad254))
+
 ## [1.0.2](https://github.com/tambo-ai/tambo/compare/docs-v1.0.1...docs-v1.0.2) (2025-07-25)
 
 
