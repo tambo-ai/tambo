@@ -14,6 +14,7 @@ import {
   jsonSchema,
   LanguageModel,
   streamText,
+  Tool,
   tool,
   ToolCallPart,
   ToolContent,
@@ -94,13 +95,15 @@ export class AISdkClient implements LLMClient {
   private apiKey: string | undefined;
   private baseURL?: string;
   private maxInputTokens?: number | null;
-  chainId: string;
+  readonly chainId: string;
+  readonly userId: string;
 
   constructor(
     apiKey: string | undefined,
     model: string,
     provider: Provider,
     chainId: string,
+    userId: string,
     baseURL?: string,
     maxInputTokens?: number | null,
   ) {
@@ -108,6 +111,7 @@ export class AISdkClient implements LLMClient {
     this.model = model;
     this.provider = provider;
     this.chainId = chainId;
+    this.userId = userId;
     this.baseURL = baseURL;
     this.maxInputTokens = maxInputTokens;
   }
@@ -374,7 +378,7 @@ export class AISdkClient implements LLMClient {
   }
 
   private convertToLLMResponse(
-    result: GenerateTextResult<Record<string, any>, undefined>,
+    result: GenerateTextResult<Record<string, Tool>, undefined>,
   ): LLMResponse {
     const toolCalls = result.toolCalls.map((call) => ({
       function: {

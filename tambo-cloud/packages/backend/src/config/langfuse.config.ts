@@ -21,7 +21,9 @@ export function createLangfuseConfig(): LangfuseConfig {
   };
 }
 
-export function createLangfuseTelemetryConfig(metadata?: Record<string, any>) {
+export function createLangfuseTelemetryConfig(
+  metadata?: Record<string, string>,
+) {
   const config = createLangfuseConfig();
 
   if (!config.enabled) {
@@ -30,7 +32,9 @@ export function createLangfuseTelemetryConfig(metadata?: Record<string, any>) {
 
   return {
     isEnabled: true,
-    functionId: metadata?.functionId || "ai-sdk-call",
+    functionId: metadata?.functionId
+      ? `${metadata.functionId}-ai-sdk-call`
+      : "ai-sdk-call",
     metadata: {
       ...metadata,
       // Include Langfuse configuration in metadata for context

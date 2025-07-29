@@ -13,7 +13,7 @@ import { generateSuggestions } from "./services/suggestion/suggestion.service";
 import { SuggestionDecision } from "./services/suggestion/suggestion.types";
 import { generateThreadName } from "./services/thread-name/thread-name.service";
 
-interface HydraBackendOptions {
+interface TamboBackendOptions {
   model?: string;
   provider?: Provider;
   baseURL?: string;
@@ -23,7 +23,7 @@ interface HydraBackendOptions {
 interface RunDecisionLoopParams {
   messages: ThreadMessage[];
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
-  additionalContext?: Record<string, any> | undefined;
+  additionalContext?: Record<string, string> | undefined;
   customInstructions: string | undefined;
   forceToolChoice?: string;
 }
@@ -32,8 +32,9 @@ export default class TamboBackend {
   private llmClient: LLMClient;
   constructor(
     apiKey: string | undefined,
-    private chainId: string,
-    options: HydraBackendOptions = {},
+    chainId: string,
+    userId: string,
+    options: TamboBackendOptions = {},
   ) {
     const {
       model = DEFAULT_OPENAI_MODEL,
@@ -46,6 +47,7 @@ export default class TamboBackend {
       model,
       provider,
       chainId,
+      userId,
       baseURL,
       maxInputTokens,
     );

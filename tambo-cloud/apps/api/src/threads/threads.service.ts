@@ -72,6 +72,7 @@ import {
   validateToolCallLimits,
 } from "./util/tool-call-tracking";
 
+const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
 export class ThreadsService {
   constructor(
@@ -91,12 +92,9 @@ export class ThreadsService {
     return this.db;
   }
 
-  private async getHydraBackend(threadId: string): Promise<TamboBackend> {
-    return await this.createHydraBackendForThread(threadId);
-  }
-
   private async createHydraBackendForThread(
     threadId: string,
+    userId: string,
   ): Promise<TamboBackend> {
     const chainId = await generateChainId(threadId);
 
@@ -150,7 +148,7 @@ export class ThreadsService {
       );
     }
 
-    return new TamboBackend(apiKey, chainId, {
+    return new TamboBackend(apiKey, chainId, userId, {
       provider: providerName as Provider,
       model: modelName,
       baseURL: baseURL ?? undefined,
@@ -552,10 +550,14 @@ export class ThreadsService {
   ): Promise<SuggestionDto[]> {
     const message = await this.getMessage(messageId);
 
+    const contextKey = message.thread.contextKey ?? TAMBO_ANON_CONTEXT_KEY;
     try {
       const threadMessages = await this.getMessages(message.threadId);
 
-      const tamboBackend = await this.getHydraBackend(message.threadId);
+      const tamboBackend = await this.createHydraBackendForThread(
+        message.threadId,
+        contextKey,
+      );
       const suggestions = await tamboBackend.generateSuggestions(
         threadMessages as ThreadMessage[],
         generateSuggestionsDto.maxSuggestions ?? 3,
@@ -628,7 +630,10 @@ export class ThreadsService {
       throw new NotFoundException("No messages found for thread");
     }
 
-    const tamboBackend = await this.createHydraBackendForThread(threadId);
+    const tamboBackend = await this.createHydraBackendForThread(
+      threadId,
+      `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
+    );
     const generatedName = await tamboBackend.generateThreadName(
       threadMessageDtoToThreadMessage(messages),
     );
@@ -767,7 +772,10 @@ export class ThreadsService {
     );
 
     // Use the shared method to create the TamboBackend instance
-    const tamboBackend = await this.createHydraBackendForThread(thread.id);
+    const tamboBackend = await this.createHydraBackendForThread(
+      thread.id,
+      `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
+    );
 
     // Log available components
     this.logger.log(
