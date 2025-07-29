@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.90.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.90.0...repo-v0.90.1) (2025-07-29)
+
+
+### Bug Fixes
+
+* only check for cancelled on timer interval ([#1439](https://github.com/tambo-ai/tambo-cloud/issues/1439)) ([21e0d39](https://github.com/tambo-ai/tambo-cloud/commit/21e0d391045bc863b1b092e38360a6d65f30a765))
+* propagate userId (contextKey) to langfuse ([#1436](https://github.com/tambo-ai/tambo-cloud/issues/1436)) ([5b99937](https://github.com/tambo-ai/tambo-cloud/commit/5b999375ae466b09ad46c2f8a6e98963830c6fbb))
+
 ## [0.90.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.89.0...repo-v0.90.0) (2025-07-29)
 
 
