@@ -94,7 +94,7 @@ export class AISdkClient implements LLMClient {
   private apiKey: string | undefined;
   private baseURL?: string;
   private maxInputTokens?: number | null;
-  private chainId: string;
+  chainId: string;
 
   constructor(
     apiKey: string | undefined,
@@ -167,7 +167,7 @@ export class AISdkClient implements LLMClient {
 
     // Prepare experimental telemetry for Langfuse
     const experimentalTelemetry = createLangfuseTelemetryConfig({
-      sessionId: this.chainId,
+      sessionId: params.chainId ?? this.chainId,
       provider: this.provider,
       model: this.model,
       functionId: `${this.provider}-${this.model}`,

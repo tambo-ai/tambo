@@ -39,6 +39,7 @@ interface StreamingCompleteBaseParams {
   tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
+  chainId?: string;
 }
 
 export type StreamingCompleteParams = StreamingCompleteBaseParams &
@@ -51,11 +52,13 @@ interface CompleteBaseParams {
   tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
   promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
+  chainId?: string;
 }
 
 export type CompleteParams = CompleteBaseParams & ResponseFormat;
 
 export interface LLMClient {
+  chainId: string;
   complete(
     params: StreamingCompleteParams,
   ): Promise<AsyncIterableIterator<Partial<LLMResponse>>>;

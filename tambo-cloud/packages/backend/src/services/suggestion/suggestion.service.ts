@@ -57,6 +57,8 @@ export async function generateSuggestions(
         type: "function",
         function: { name: "generate_suggestions" },
       },
+      // Make sure that the suggestions are not mixed up with other chains
+      chainId: `${llmClient.chainId}-suggestions`,
     });
 
     // Handle tool call in the response
