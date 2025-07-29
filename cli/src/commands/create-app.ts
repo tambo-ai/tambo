@@ -13,14 +13,9 @@ interface Template {
 }
 
 const templates: Record<string, Template> = {
-  mcp: {
-    name: "mcp",
-    description: "Tambo + MCP (recommended)",
-    repository: "https://github.com/tambo-ai/mcp-template.git",
-  },
   standard: {
     name: "standard",
-    description: "Tambo + Tools",
+    description: "Tambo + Tools + MCP (recommended)",
     repository: "https://github.com/tambo-ai/tambo-template.git",
   },
   "conversational-form": {
@@ -163,7 +158,7 @@ export async function handleCreateApp(
             name: `${template.name} - ${template.description}`,
             value: key,
           })),
-          default: "mcp",
+          default: "standard",
         },
       ]);
       selectedTemplate = templates[templateKey];

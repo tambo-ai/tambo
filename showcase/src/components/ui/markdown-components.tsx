@@ -16,7 +16,7 @@ import DOMPurify from "dompurify";
  *
  * @example
  * ```tsx
- * import { createMarkdownComponents } from './markdownComponents';
+ * import { createMarkdownComponents } from './markdown-components';
  * import ReactMarkdown from 'react-markdown';
  *
  * const MarkdownRenderer = ({ content }) => {

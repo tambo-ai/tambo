@@ -28,10 +28,6 @@ export async function detectTemplate(): Promise<string | null> {
     const readmeContent = fs.readFileSync(readmePath, "utf-8");
 
     // Check for template-specific names in the README
-    if (readmeContent.includes("Tambo MCP Template")) {
-      return "mcp";
-    }
-
     if (readmeContent.includes("Tambo Conversational Form Template")) {
       return "conversational-form";
     }
@@ -59,10 +55,6 @@ export function generateAiUpgradePrompts(template: string | null): string[] {
   ];
 
   const templateSpecificPrompts: Record<string, string[]> = {
-    mcp: [
-      "How can I improve the MCP integration in my tambo application?",
-      "What are best practices for state management in a tambo MCP application?",
-    ],
     "conversational-form": [
       "How can I make my conversational interfaces more intuitive?",
       "What are recommended patterns for handling complex conversational flows?",
