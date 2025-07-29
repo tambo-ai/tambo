@@ -37,13 +37,14 @@ export const McpConfigModal = ({
   className?: string;
 }) => {
   // Initialize from localStorage directly to avoid conflicts
-  const initialMcpServers =
-    typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("mcp-servers") ?? "[]")
-      : [];
-
-  const [mcpServers, setMcpServers] =
-    React.useState<McpServerInfo[]>(initialMcpServers);
+  const [mcpServers, setMcpServers] = React.useState<McpServerInfo[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return JSON.parse(localStorage.getItem("mcp-servers") ?? "[]");
+    } catch {
+      return [];
+    }
+  });
   const [serverUrl, setServerUrl] = React.useState("");
   const [serverName, setServerName] = React.useState("");
   const [transportType, setTransportType] = React.useState<MCPTransport>(
@@ -69,10 +70,18 @@ export const McpConfigModal = ({
     };
   }, [isOpen, onClose]);
 
-  // Save servers to localStorage when updated
+  // Save servers to localStorage when updated and emit events
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("mcp-servers", JSON.stringify(mcpServers));
+
+      // Emit custom event to notify other components in the same tab
+      window.dispatchEvent(
+        new CustomEvent("mcp-servers-updated", {
+          detail: mcpServers,
+        }),
+      );
+
       if (mcpServers.length > 0) {
         setSavedSuccess(true);
         const timer = setTimeout(() => setSavedSuccess(false), 2000);
@@ -136,26 +145,30 @@ After configuring your MCP servers below, integrate them into your application.
 #### 1. Import the required components
 
 \`\`\`tsx
-import { loadMcpServers } from "@/components/tambo/mcp-config-modal";
+import { useMcpServers } from "@/components/tambo/mcp-config-modal";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 \`\`\`
 
 #### 2. Load MCP servers and wrap your components:
 
 \`\`\`tsx
-const mcpServers = loadMcpServers();
+const mcpServers = useMcpServers();
 \`\`\`
 
 #### 3. Example implementation:
 
 \`\`\`tsx
-const mcpServers = loadMcpServers();
+function MyApp() {
+  const mcpServers = useMcpServers(); // Reactive - updates when servers change
 
-<TamboProvider apiKey={apiKey} components={components} tools={tools}>
-  <TamboMcpProvider mcpServers={mcpServers}>
-    {/* Your app components */}
-  </TamboMcpProvider>
-</TamboProvider>
+  return (
+    <TamboProvider apiKey={apiKey} components={components} tools={tools}>
+      <TamboMcpProvider mcpServers={mcpServers}>
+        {/* Your app components */}
+      </TamboMcpProvider>
+    </TamboProvider>
+  );
+}
 \`\`\`
 `;
 
@@ -441,38 +454,95 @@ const mcpServers = loadMcpServers();
 export type McpServer = string | { url: string };
 
 /**
- * Load and process MCP server configurations from browser localStorage.
+ * Load and reactively track MCP server configurations from browser localStorage.
  *
- * This function retrieves saved MCP server configurations, parses them from JSON,
- * and deduplicates them by URL to prevent multiple tool registrations for the same server.
- * It handles parsing errors gracefully and ensures server-side rendering compatibility.
+ * This hook retrieves saved MCP server configurations and automatically updates
+ * when servers are added/removed from the modal or other tabs. It deduplicates
+ * servers by URL and handles parsing errors gracefully.
  *
- * @returns Array of unique MCP server configurations, or empty array if none found or in SSR context
+ * @returns Array of unique MCP server configurations that updates automatically or empty array if none found or in SSR context
  *
  * @example
- * ```ts
- * const servers = loadMcpServers();
- * // Returns: [{ url: "https://api.example.com" }, "https://api2.example.com"]
+ * ```tsx
+ * function MyApp() {
+ *   const mcpServers = useMcpServers(); // Reactive - updates automatically
+ *   // Returns: [{ url: "https://api.example.com" }, "https://api2.example.com"]
+ *
+ *   return (
+ *     <TamboMcpProvider mcpServers={mcpServers}>
+ *       {children}
+ *     </TamboMcpProvider>
+ *   );
+ * }
  * ```
  */
-export function loadMcpServers(): McpServer[] {
-  if (typeof window === "undefined") return [];
+export function useMcpServers(): McpServer[] {
+  const [servers, setServers] = React.useState<McpServer[]>(() => {
+    if (typeof window === "undefined") return [];
 
-  const savedServersData = localStorage.getItem("mcp-servers");
-  if (!savedServersData) return [];
+    const savedServersData = localStorage.getItem("mcp-servers");
+    if (!savedServersData) return [];
 
-  try {
-    const servers = JSON.parse(savedServersData);
-    // Deduplicate servers by URL to prevent multiple tool registrations
-    const uniqueUrls = new Set();
-    return servers.filter((server: McpServer) => {
-      const url = typeof server === "string" ? server : server.url;
-      if (uniqueUrls.has(url)) return false;
-      uniqueUrls.add(url);
-      return true;
-    });
-  } catch (e) {
-    console.error("Failed to parse saved MCP servers", e);
-    return [];
-  }
+    try {
+      const servers = JSON.parse(savedServersData);
+      // Deduplicate servers by URL to prevent multiple tool registrations
+      const uniqueUrls = new Set();
+      return servers.filter((server: McpServer) => {
+        const url = typeof server === "string" ? server : server.url;
+        if (uniqueUrls.has(url)) return false;
+        uniqueUrls.add(url);
+        return true;
+      });
+    } catch (e) {
+      console.error("Failed to parse saved MCP servers", e);
+      return [];
+    }
+  });
+
+  React.useEffect(() => {
+    const updateServers = () => {
+      if (typeof window === "undefined") return;
+
+      const savedServersData = localStorage.getItem("mcp-servers");
+      if (!savedServersData) {
+        setServers([]);
+        return;
+      }
+
+      try {
+        const newServers = JSON.parse(savedServersData);
+        // Deduplicate servers by URL
+        const uniqueUrls = new Set();
+        const deduped = newServers.filter((server: McpServer) => {
+          const url = typeof server === "string" ? server : server.url;
+          if (uniqueUrls.has(url)) return false;
+          uniqueUrls.add(url);
+          return true;
+        });
+        setServers(deduped);
+      } catch (e) {
+        console.error("Failed to parse saved MCP servers", e);
+        setServers([]);
+      }
+    };
+
+    // Listen for custom events (same tab updates)
+    const handleCustomEvent = () => updateServers();
+    window.addEventListener("mcp-servers-updated", handleCustomEvent);
+
+    // Listen for storage events (cross-tab updates)
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === "mcp-servers") {
+        updateServers();
+      }
+    };
+    window.addEventListener("storage", handleStorageEvent);
+
+    return () => {
+      window.removeEventListener("mcp-servers-updated", handleCustomEvent);
+      window.removeEventListener("storage", handleStorageEvent);
+    };
+  }, []);
+
+  return servers;
 }

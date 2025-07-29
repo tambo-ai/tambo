@@ -1,12 +1,12 @@
 "use client";
 
-import { McpConfigModal } from "@/components/ui/mcp-config-modal";
-import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Server, Square } from "lucide-react";
 import * as React from "react";
+import { McpConfigModal } from "@/components/ui/mcp-config-modal";
+import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 
 /**
  * CSS variants for the message input container
@@ -363,7 +363,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -371,8 +371,8 @@ const MessageInputMcpConfigButton = React.forwardRef<
     <TooltipProvider>
       <Tooltip
         content="Configure MCP Servers"
-        side="left"
-        className="bg-gray-100 text-gray-900"
+        side="right"
+        className="bg-muted text-primary"
       >
         <button
           ref={ref}
@@ -459,7 +459,10 @@ const MessageInputToolbar = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex justify-end items-center mt-2 p-1 gap-2", className)}
+      className={cn(
+        "flex justify-between items-center mt-2 p-1 gap-2",
+        className,
+      )}
       data-slot="message-input-toolbar"
       {...props}
     >
