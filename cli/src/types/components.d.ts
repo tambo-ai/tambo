@@ -142,6 +142,11 @@ declare module "@/components/ui/message-input" {
     MessageInputTextareaProps & React.RefAttributes<HTMLTextAreaElement>
   >;
 
+  export const MessageInputMcpConfigButton: React.ForwardRefExoticComponent<
+    React.HTMLAttributes<HTMLButtonElement> &
+      React.RefAttributes<HTMLButtonElement>
+  >;
+
   export const MessageInputSubmitButton: React.ForwardRefExoticComponent<
     MessageInputSubmitButtonProps & React.RefAttributes<HTMLButtonElement>
   >;
@@ -363,4 +368,11 @@ declare module "@/components/ui/thread-container" {
     isLeftPanel: boolean;
     historyPosition: "left" | "right";
   };
+}
+
+declare module "@/components/ui/mcp-config-modal" {
+  export const McpConfigModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+  }>;
 }

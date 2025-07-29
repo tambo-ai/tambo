@@ -2,6 +2,7 @@ import { CLI } from "@/components/cli";
 import {
   MessageInput,
   MessageInputError,
+  MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -15,6 +16,7 @@ export default function MessageInputPage() {
   MessageInputTextarea, 
   MessageInputToolbar,
   MessageInputSubmitButton,
+  MessageInputMcpConfigButton,
   MessageInputError 
 } from "@/components/ui/message-input";
 
@@ -33,6 +35,16 @@ export default function MessageInputPage() {
   <MessageInputToolbar>
     <MessageInputSubmitButton />
   </MessageInputToolbar>
+</MessageInput>
+
+// With MCP configuration button
+<MessageInput contextKey="my-thread" variant="default">
+  <MessageInputTextarea />
+  <MessageInputToolbar>
+    <MessageInputMcpConfigButton />
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+  <MessageInputError />
 </MessageInput>`;
 
   const installCommand = "npx tambo add message-input";
@@ -81,6 +93,14 @@ export default function MessageInputPage() {
                   </strong>{" "}
                   Container for toolbar elements positioned alongside the input.
                   Typically contains the submit button and other action buttons.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;MessageInputMcpConfigButton /&gt;</code> -
+                  </strong>{" "}
+                  Button to open the MCP configuration modal which allows you to
+                  configure client-side MCP servers. You can add or remove this
+                  button from the toolbar.
                 </li>
                 <li>
                   <strong>
@@ -141,6 +161,23 @@ export default function MessageInputPage() {
               <MessageInput contextKey="demo-bordered" variant="bordered">
                 <MessageInputTextarea placeholder="Type your message..." />
                 <MessageInputToolbar>
+                  <MessageInputSubmitButton />
+                </MessageInputToolbar>
+                <MessageInputError />
+              </MessageInput>
+            </div>
+          </div>
+
+          {/* With MCP configuration button */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">
+              With MCP configuration button
+            </h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <MessageInput contextKey="demo-mcp" variant="default">
+                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputToolbar>
+                  <MessageInputMcpConfigButton />
                   <MessageInputSubmitButton />
                 </MessageInputToolbar>
                 <MessageInputError />

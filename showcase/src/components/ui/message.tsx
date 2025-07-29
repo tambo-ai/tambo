@@ -1,6 +1,6 @@
 "use client";
 
-import { createMarkdownComponents } from "@/components/ui/markdownComponents";
+import { createMarkdownComponents } from "@/components/ui/markdown-components";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";

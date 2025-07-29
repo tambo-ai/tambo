@@ -1,9 +1,11 @@
 "use client";
 
+import { McpConfigModal } from "@/components/ui/mcp-config-modal";
+import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp, Server, Square } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -339,6 +341,62 @@ const MessageInputSubmitButton = React.forwardRef<
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
 
 /**
+ * MCP Config Button component for opening the MCP configuration modal.
+ * @component MessageInput.McpConfigButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.McpConfigButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputMcpConfigButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    className?: string;
+  }
+>(({ className, ...props }, ref) => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content="Configure MCP Servers"
+        side="left"
+        className="bg-gray-100 text-gray-900"
+      >
+        <button
+          ref={ref}
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className={buttonClasses}
+          aria-label="Open MCP Configuration"
+          data-slot="message-input-mcp-config"
+          {...props}
+        >
+          <Server className="w-4 h-4" />
+        </button>
+      </Tooltip>
+      <McpConfigModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="showcase-theme"
+      />
+    </TooltipProvider>
+  );
+});
+MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
+
+/**
  * Props for the MessageInputError component.
  * Extends standard HTMLParagraphElement attributes.
  */
@@ -381,7 +439,7 @@ const MessageInputError = React.forwardRef<
 MessageInputError.displayName = "MessageInput.Error";
 
 /**
- * Container for the toolbar components (like submit button).
+ * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
  * @example
@@ -389,9 +447,9 @@ MessageInputError.displayName = "MessageInput.Error";
  * <MessageInput>
  *   <MessageInput.Textarea />
  *   <MessageInput.Toolbar>
+ *     <MessageInput.McpConfigButton />
  *     <MessageInput.SubmitButton />
  *   </MessageInput.Toolbar>
- * </MessageInput>
  * ```
  */
 const MessageInputToolbar = React.forwardRef<
@@ -401,7 +459,7 @@ const MessageInputToolbar = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex justify-end mt-2 p-1", className)}
+      className={cn("flex justify-end items-center mt-2 p-1 gap-2", className)}
       data-slot="message-input-toolbar"
       {...props}
     >
@@ -415,6 +473,7 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 export {
   MessageInput,
   MessageInputError,
+  MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
