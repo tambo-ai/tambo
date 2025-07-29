@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.24.0...tambo-v0.25.0) (2025-07-29)
+
+
+### Features
+
+* **cli:** add mcpconfigbutton in message-input and remove mcp template ([#738](https://github.com/tambo-ai/tambo/issues/738)) ([7b29a20](https://github.com/tambo-ai/tambo/commit/7b29a20de9abbd450c931f9ce0fa63b3c923757d))
+
 ## [0.24.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.23.0...tambo-v0.24.0) (2025-07-29)
 
 
