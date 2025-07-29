@@ -1114,10 +1114,17 @@ export class ThreadsService {
     let lastUpdateTime = 0;
     const updateIntervalMs = 500;
 
+    const logCunkHandling = process.env.LOG_CHUNKS_FOR_PROJECTID === projectId;
+
     for await (const threadMessage of convertDecisionStreamToMessageStream(
       stream,
       inProgressMessage,
     )) {
+      let startTime = 0;
+      if (logCunkHandling) {
+        startTime = Date.now();
+      }
+
       const thread = await this.findOne(threadId, projectId);
       if (thread.generationStage === GenerationStage.CANCELLED) {
         yield {
@@ -1140,6 +1147,10 @@ export class ThreadsService {
           content: convertContentPartToDto(threadMessage.content),
         });
         lastUpdateTime = currentTime;
+      }
+      if (logCunkHandling) {
+        const endTime = Date.now();
+        console.log("chunk time", endTime - startTime, "ms");
       }
 
       // do not yield the final thread message if it is a tool call, because we
