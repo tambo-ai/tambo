@@ -19,11 +19,11 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     env:
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "dummy-anon-key"
-      NEXT_PUBLIC_SUPABASE_URL: "https://dummy-project.supabase.co"
       DATABASE_URL: "postgresql://dummy-user:dummy-password@dummy-host:5432/dummy-database"
       API_KEY_SECRET: "dummy-api-key-secret"
       PROVIDER_KEY_SECRET: "dummy-provider-key-secret"
+      NEXTAUTH_SECRET: "dummy-nextauth-secret"
+      NEXTAUTH_URL: "http://localhost:3000"
 
     steps:
       - name: Checkout repository

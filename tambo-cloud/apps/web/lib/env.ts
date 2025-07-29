@@ -32,8 +32,8 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
-    NEXTAUTH_SECRET: z.string().min(1).optional(),
-    NEXTAUTH_URL: z.string().url().optional(),
+    NEXTAUTH_SECRET: z.string().min(1),
+    NEXTAUTH_URL: z.string().url(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -42,8 +42,6 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-    NEXT_PUBLIC_SUPABASE_URL: z.string().min(1),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1).optional(),
     // for dogfooding our own API
@@ -66,8 +64,6 @@ export const env = createEnv({
     SLACK_OAUTH_TOKEN: process.env.SLACK_OAUTH_TOKEN,
     PORT: process.env.PORT,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     API_KEY_SECRET: process.env.API_KEY_SECRET,
     PROVIDER_KEY_SECRET: process.env.PROVIDER_KEY_SECRET,
@@ -94,4 +90,5 @@ export const env = createEnv({
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   },
+  skipValidation: process.env.SKIP_ENV_VALIDATION === "true",
 });

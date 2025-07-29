@@ -30,6 +30,12 @@ yarn-error.log*
 .env*.local
 .env
 
+# docker environment
+docker.env
+
+# docker generated files
+docker/supabase/
+
 # vercel
 .vercel
 

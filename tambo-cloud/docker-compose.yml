@@ -1,0 +1,133 @@
+networks:
+  tambo_network:
+    driver: bridge
+
+volumes:
+  tambo_node_modules:
+  tambo_api_dist:
+  tambo_web_next:
+  tambo_postgres_data:
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: tambo_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tambo}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - tambo_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - tambo_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tambo}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Web Service (Next.js)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: tambo_web
+    ports:
+      - "3210:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_TAMBO_API_URL=${NEXT_PUBLIC_TAMBO_API_URL:-http://localhost:3211}
+      - NEXT_PUBLIC_TAMBO_API_KEY=${NEXT_PUBLIC_TAMBO_API_KEY}
+      - NEXT_PUBLIC_POSTHOG_HOST=${NEXT_PUBLIC_POSTHOG_HOST}
+      - NEXT_PUBLIC_POSTHOG_KEY=${NEXT_PUBLIC_POSTHOG_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - API_KEY_SECRET=${API_KEY_SECRET}
+      - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_AUDIENCE_ID=${RESEND_AUDIENCE_ID}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - COMPOSIO_API_KEY=${COMPOSIO_API_KEY}
+      - ALLOW_LOCAL_MCP_SERVERS=${ALLOW_LOCAL_MCP_SERVERS}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - EMAIL_FROM_DEFAULT=${EMAIL_FROM_DEFAULT}
+      - EMAIL_FROM_PERSONAL=${EMAIL_FROM_PERSONAL}
+      - EMAIL_REPLY_TO_SUPPORT=${EMAIL_REPLY_TO_SUPPORT}
+      - EMAIL_REPLY_TO_PERSONAL=${EMAIL_REPLY_TO_PERSONAL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+    networks:
+      - tambo_network
+    restart: unless-stopped
+    volumes:
+      - tambo_web_next:/app/apps/web/.next
+      - tambo_node_modules:/app/node_modules
+
+  # API Service (NestJS)
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: tambo_api
+    ports:
+      - "3211:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - API_KEY_SECRET=${API_KEY_SECRET}
+      - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EXTRACTION_OPENAI_API_KEY=${EXTRACTION_OPENAI_API_KEY}
+      - FALLBACK_OPENAI_API_KEY=${FALLBACK_OPENAI_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_AUDIENCE_ID=${RESEND_AUDIENCE_ID}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=${LANGFUSE_HOST}
+      - LIBRETTO_API_KEY=${LIBRETTO_API_KEY}
+      - SLACK_OAUTH_TOKEN=${SLACK_OAUTH_TOKEN}
+      - SLACK_TEAM_ID=${SLACK_TEAM_ID}
+      - INTERNAL_SLACK_USER_ID=${INTERNAL_SLACK_USER_ID}
+      - DISALLOWED_EMAIL_DOMAINS=${DISALLOWED_EMAIL_DOMAINS}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - COMPOSIO_API_KEY=${COMPOSIO_API_KEY}
+      - ALLOW_LOCAL_MCP_SERVERS=${ALLOW_LOCAL_MCP_SERVERS}
+      - EMAIL_FROM_DEFAULT=${EMAIL_FROM_DEFAULT}
+      - EMAIL_FROM_PERSONAL=${EMAIL_FROM_PERSONAL}
+      - EMAIL_REPLY_TO_PERSONAL=${EMAIL_REPLY_TO_PERSONAL}
+      - EMAIL_REPLY_TO_SUPPORT=${EMAIL_REPLY_TO_SUPPORT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tambo_network
+    restart: unless-stopped
+    volumes:
+      - tambo_api_dist:/app/apps/api/dist
+      - tambo_node_modules:/app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

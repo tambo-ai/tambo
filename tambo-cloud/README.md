@@ -33,7 +33,7 @@ There also are some basic supporting packages only used during development:
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Shadcn UI
 - **Backend**: NestJS, TypeScript, Swagger
 - **Database**: PostgreSQL, Drizzle ORM
-- **Infrastructure**: Supabase for local development
+- **Infrastructure**: Docker with PostgreSQL for local development
 - **Tools**: Turborepo for monorepo management
 
 ## Slack Integration
@@ -57,35 +57,34 @@ Generate or update the token in your Slack app settings, then place it in
 
 ## Getting Started
 
-### Quick Start
+### Quick Start with Docker
 
 ```bash
-# Make the script executable
-chmod +x setup.sh
+# Setup the Docker environment
+./scripts/tambo-setup.sh
 
-# Run the setup script
-./setup.sh
+# Configure environment variables
+cp docker.env.example docker.env
+# Edit docker.env with your actual values
+
+# Start the stack
+./scripts/tambo-start.sh
+
+# Initialize the database
+./scripts/init-database.sh
 ```
 
 The setup script will:
 
-1. Check and install prerequisites (Node.js, npm, Supabase CLI)
-2. Install project dependencies
-3. Set up Supabase locally
-4. Create environment files from templates
-
-You can also preview what the script will do without making any changes:
-
-```bash
-./setup.sh --dry-run
-```
+1. Check and install prerequisites (Docker, Docker Compose, jq)
+2. Create environment files from templates
+3. Make all scripts executable
 
 ### Prerequisites
 
-- **Node.js** (v20 or later)
-- **npm** (v10 or later)
-- **Supabase CLI**
-- **Docker** (for running Supabase locally)
+- **Docker** and **Docker Compose**
+- **Node.js** (v20 or later) and **npm** (for database initialization)
+- **jq** command-line tool (for health checks)
 
 ### Manual Development Setup
 
@@ -107,12 +106,17 @@ If you prefer to set things up manually, follow these steps:
 3. **Database Setup**:
 
    ```bash
-   # Start Supabase locally (requires Docker)
-   npx supabase start
+   # Start PostgreSQL locally (requires Docker)
+   ./scripts/tambo-start.sh
 
-   # Run database migrations
-   npm run db:migrate
+   # Initialize the database
+   ./scripts/init-database.sh
    ```
+
+   **Note**: The Docker stack runs on different ports to avoid conflicts with local development:
+   - Docker Web: http://localhost:3210 (vs local:3000)
+   - Docker API: http://localhost:3211 (vs local:3001)
+   - Docker PostgreSQL: localhost:5433 (vs local:5432)
 
 4. **Start Development Server**:
    ```bash
