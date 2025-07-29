@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.90.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.89.0...repo-v0.90.0) (2025-07-29)
+
+
+### Features
+
+* strawman docker-compose config ([#1363](https://github.com/tambo-ai/tambo-cloud/issues/1363)) ([d1d4ebe](https://github.com/tambo-ai/tambo-cloud/commit/d1d4ebe038e0de427e7a777d099f827514b33a1e))
+
+
+### Bug Fixes
+
+* give suggestions a slightly different chain/session id ([#1435](https://github.com/tambo-ai/tambo-cloud/issues/1435)) ([e8a2a5b](https://github.com/tambo-ai/tambo-cloud/commit/e8a2a5bc9ee38df6480c711cc2d2424671b649b9))
+
+
+### Miscellaneous Chores
+
+* add test logs ([#1437](https://github.com/tambo-ai/tambo-cloud/issues/1437)) ([dca801d](https://github.com/tambo-ai/tambo-cloud/commit/dca801d0de2ec284c3fe5ed993cbc4d90ff952ad))
+* remove unnecessary components ([#1432](https://github.com/tambo-ai/tambo-cloud/issues/1432)) ([95aa7bf](https://github.com/tambo-ai/tambo-cloud/commit/95aa7bfda7c939151a286b2cdcb7fd1e0ee2958e))
+
 ## [0.89.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.88.1...repo-v0.89.0) (2025-07-28)
 
 
