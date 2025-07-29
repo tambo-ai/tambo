@@ -8,7 +8,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "fumadocs-core": "15.6.5",
+    "fumadocs-core": "15.6.6",
     "fumadocs-mdx": "11.7.1",
     "fumadocs-ui": "15.6.5",
     "lucide-react": "^0.532.0",
