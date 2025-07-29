@@ -82,7 +82,7 @@ const cli = meow(
     ${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts
     ${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install
     ${chalk.yellow("--accept-all")}         Accept all upgrades without prompting ${chalk.red("(upgrade only)")}
-    ${chalk.yellow("--template, -t <name>")} Template to use: mcp, standard, conversational-form ${chalk.red("(create-app only)")}
+    ${chalk.yellow("--template, -t <name>")} Template to use: standard, conversational-form ${chalk.red("(create-app only)")}
     ${chalk.yellow("--init-git")}           Initialize git repository ${chalk.red("(create-app only)")}
     ${chalk.yellow("--dry-run")}            Preview changes without applying ${chalk.red("(migrate only)")}
 
@@ -113,7 +113,7 @@ const cli = meow(
     ${chalk.dim("Creating New Apps")}
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app")}                     # Create in new directory
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app .")}                   # Create in current directory
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=mcp")}      # Use MCP template
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=standard")} # Use standard template
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --init-git")}          # Initialize git repo
 
     ${chalk.dim("Upgrading & Migration")}
@@ -142,8 +142,7 @@ const cli = meow(
       },
       template: {
         type: "string",
-        description:
-          "Specify template to use (mcp, standard, conversational-form)",
+        description: "Specify template to use (standard, conversational-form)",
         shortFlag: "t",
       },
       acceptAll: {
@@ -277,7 +276,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     if (!flags.template) {
       helpText += `\nAdd ${chalk.yellow("--template <name>")} or ${chalk.yellow(
         "-t <name>",
-      )} to specify a template (mcp, standard, conversational-form)`;
+      )} to specify a template (standard, conversational-form)`;
     }
 
     if (helpText) {
