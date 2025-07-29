@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.5](https://github.com/tambo-ai/tambo/compare/docs-v1.0.4...docs-v1.0.5) (2025-07-29)
+
+
+### Miscellaneous
+
+* **deps:** bump fumadocs-core from 15.6.5 to 15.6.6 ([#732](https://github.com/tambo-ai/tambo/issues/732)) ([14aa154](https://github.com/tambo-ai/tambo/commit/14aa1540c7944d5538ac2e0ab525bfbeb35f3039))
+* **deps:** bump fumadocs-mdx from 11.7.0 to 11.7.1 ([#725](https://github.com/tambo-ai/tambo/issues/725)) ([6f786ae](https://github.com/tambo-ai/tambo/commit/6f786ae482c698f13237fef70a874dbe75f33773))
+* **deps:** bump fumadocs-ui from 15.6.5 to 15.6.6 ([#735](https://github.com/tambo-ai/tambo/issues/735)) ([44a55bd](https://github.com/tambo-ai/tambo/commit/44a55bd92c3a9f8eba1aaac3ac8f8bb9dd32b98f))
+* **deps:** bump next from 15.3.5 to 15.4.4 ([#724](https://github.com/tambo-ai/tambo/issues/724)) ([bcbc50a](https://github.com/tambo-ai/tambo/commit/bcbc50a4e7cea5fcf720ca6d0ffbe57c5897cf54))
+
 ## [1.0.4](https://github.com/tambo-ai/tambo/compare/docs-v1.0.3...docs-v1.0.4) (2025-07-29)
 
 
