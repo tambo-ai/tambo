@@ -77,7 +77,7 @@
     "@types/node": "^22.15.32",
     "@types/node-fetch": "^2.6.12",
     "@types/ora": "^3.2.0",
-    "@types/recharts": "^1.8.29",
+    "@types/recharts": "^2.0.1",
     "@types/semver": "^7.7.0",
     "typescript": "^5.8.3"
   }
