@@ -46,7 +46,7 @@
     "@types/node": "^22.15.32",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "@types/recharts": "^1.8.29",
+    "@types/recharts": "^2.0.1",
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
     "eslint": "^9",
