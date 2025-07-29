@@ -2,10 +2,11 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { api, RouterOutputs } from "@/trpc/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { ThreadMessagesModal } from "../messages/thread-messages-modal";
 import { ThreadTable } from "./index";
+import { THREADS_PER_PAGE } from "../utils";
 
 /**
  * Self-contained wrapper for ThreadTable that handles TRPC data fetching and state management.
@@ -18,7 +19,6 @@ import { ThreadTable } from "./index";
  */
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
-type AllThreadsType = RouterOutputs["thread"]["getThreads"]["threads"];
 
 interface ThreadTableContainerProps {
   projectId: string;
@@ -44,112 +44,47 @@ export function ThreadTableContainer({
   compact = false,
 }: ThreadTableContainerProps) {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-  const { toast } = useToast();
   const [isMessagesModalOpen, setIsMessagesModalOpen] = useState(false);
-  const [allThreads, setAllThreads] = useState<AllThreadsType>([]);
-  const [isLoadingAllThreads, setIsLoadingAllThreads] = useState(false);
+
+  // Server-side state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<
+    | "created"
+    | "updated"
+    | "threadId"
+    | "threadName"
+    | "contextKey"
+    | "messages"
+    | "errors"
+  >("created");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  const { toast } = useToast();
   const utils = api.useUtils();
 
-  // First, fetch initial batch to get totalCount
+  const threadsPerPage = THREADS_PER_PAGE;
+
+  // Fetch threads with server-side pagination and search
   const {
-    data: initialData,
-    isLoading: isLoadingInitial,
+    data: threadsData,
+    isLoading: isLoadingThreads,
     error: threadsError,
   } = api.thread.getThreads.useQuery(
     {
       projectId,
-      offset: 0,
-      limit: 100,
+      offset: (currentPage - 1) * threadsPerPage,
+      limit: threadsPerPage,
       includeMessages: false,
+      searchQuery: searchQuery.trim() || undefined,
+      sortField,
+      sortDirection,
     },
     {
       enabled: !!projectId,
+      placeholderData: (previousData) => previousData,
     },
   );
-
-  // Fetch all threads if totalCount > 100 and reasonable (< 1000)
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchAllThreads() {
-      if (!initialData || !projectId || cancelled) return;
-
-      const { totalCount, threads: firstBatch } = initialData;
-
-      // If we have 100 or fewer threads, we already have them all
-      if (totalCount <= 100) {
-        if (!cancelled) setAllThreads(firstBatch);
-        return;
-      }
-
-      // If more than 1000 threads, show a warning and work with first 100
-      if (totalCount > 1000) {
-        if (!cancelled) {
-          toast({
-            title: "Large dataset",
-            description: `You have ${totalCount} threads. Search and sort will only work on the most recent 100 threads for performance reasons.`,
-          });
-          setAllThreads(firstBatch);
-        }
-        return;
-      }
-
-      // Fetch all threads (100 < totalCount <= 1000)
-      if (!cancelled) setIsLoadingAllThreads(true);
-      try {
-        const allThreadsData = [...firstBatch];
-        const numBatches = Math.ceil((totalCount - 100) / 100);
-
-        // Fetch remaining batches in parallel (up to 3 at a time)
-        const batchPromises = [];
-        for (let i = 0; i < numBatches; i++) {
-          if (cancelled) break;
-
-          const offset = 100 + i * 100;
-          batchPromises.push(
-            utils.thread.getThreads.fetch({
-              projectId,
-              offset,
-              limit: 100,
-              includeMessages: false,
-            }),
-          );
-
-          // Execute in batches of 3
-          if (batchPromises.length === 3 || i === numBatches - 1) {
-            const results = await Promise.all(batchPromises);
-            if (!cancelled) {
-              results.forEach((result) => {
-                allThreadsData.push(...result.threads);
-              });
-            }
-            batchPromises.length = 0;
-          }
-        }
-
-        if (!cancelled) setAllThreads(allThreadsData);
-      } catch (error) {
-        if (!cancelled) {
-          console.error("Failed to fetch all threads:", error);
-          toast({
-            title: "Error",
-            description:
-              "Failed to load all threads. Working with partial data.",
-            variant: "destructive",
-          });
-          setAllThreads(firstBatch);
-        }
-      } finally {
-        if (!cancelled) setIsLoadingAllThreads(false);
-      }
-    }
-
-    fetchAllThreads();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialData, projectId, toast, utils]);
 
   // Fetch selected thread details
   const {
@@ -164,20 +99,10 @@ export function ThreadTableContainer({
     },
     {
       enabled: !!selectedThreadId,
-      placeholderData: (prev, prevQuery) => {
-        if (!prevQuery) return undefined;
-        const { input } = prevQuery.queryKey[1];
-        if (
-          input.threadId === selectedThreadId &&
-          input.projectId === projectId
-        ) {
-          return prev;
-        }
-        return undefined;
-      },
     },
   );
 
+  // Handle errors
   useEffect(() => {
     if (threadsError) {
       toast({
@@ -198,40 +123,73 @@ export function ThreadTableContainer({
     }
   }, [threadError, toast]);
 
-  const handleViewMessages = (threadId: string) => {
+  const handleViewMessages = useCallback((threadId: string) => {
     setSelectedThreadId(threadId);
     setIsMessagesModalOpen(true);
-  };
+  }, []);
 
-  const handleThreadsDeleted = async () => {
+  const handleThreadsDeleted = useCallback(async () => {
     await utils.thread.getThreads.invalidate({ projectId });
-    // Reset allThreads to trigger re-fetch
-    setAllThreads([]);
-  };
+  }, [utils, projectId]);
 
-  const formattedThreads = allThreads.map((thread) => {
-    return {
-      id: thread.id,
-      name: thread.name || null,
-      createdAt: thread.createdAt.toISOString(),
-      updatedAt: thread.updatedAt.toISOString(),
-      contextKey: thread.contextKey || "user_context_key",
-      messages: thread.messageCount || 0,
-      tools: thread.toolCount || 0,
-      components: thread.componentCount || 0,
-      errors: thread.errorCount || 0,
-    };
-  });
+  const handleSort = useCallback(
+    (field: string) => {
+      const typedField = field as typeof sortField;
+      if (sortField === typedField) {
+        setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      } else {
+        setSortField(typedField);
+        setSortDirection("desc");
+      }
+      setCurrentPage(1); // Reset to first page when sorting changes
+    },
+    [sortField, sortDirection],
+  );
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page when search changes
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  const threads = threadsData?.threads || [];
+  const totalCount = threadsData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / threadsPerPage);
+
+  const formattedThreads = threads.map((thread) => ({
+    id: thread.id,
+    name: thread.name || null,
+    createdAt: thread.createdAt.toISOString(),
+    updatedAt: thread.updatedAt.toISOString(),
+    contextKey: thread.contextKey || "user_context_key",
+    messages: thread.messageCount || 0,
+    errors: thread.errorCount || 0,
+  }));
 
   return (
     <>
       <ThreadTable
         threads={formattedThreads}
         onViewMessages={handleViewMessages}
-        isLoading={isLoadingInitial || isLoadingAllThreads}
+        isLoading={isLoadingThreads}
         projectId={projectId}
         onThreadsDeleted={handleThreadsDeleted}
         compact={compact}
+        // Server-side pagination props
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onPageChange={handlePageChange}
+        // Server-side search props
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
+        // Server-side sort props
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
       />
 
       <ThreadMessagesModal

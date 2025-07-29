@@ -1,7 +1,7 @@
 import type { AlertState } from "@/components/dashboard-components/delete-confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type SortField =
   | "created"
@@ -21,8 +21,6 @@ export type Thread = {
   updatedAt: string;
   contextKey: string;
   messages: number;
-  tools: number;
-  components: number;
   errors: number;
 };
 
@@ -30,35 +28,19 @@ interface UseThreadListProps {
   threads: Thread[];
   projectId: string;
   onThreadsDeleted?: () => void;
-  threadsPerPage?: number;
 }
 
 export interface UseThreadListReturn {
   // State
-  sortField: SortField;
-  sortDirection: SortDirection;
-  searchQuery: string;
   selectedThreads: Set<string>;
-  currentPage: number;
   alertState: AlertState;
   isDeletingThreads: boolean;
   deletingThreadIds: Set<string>;
 
-  // Computed values
-  filteredThreads: Thread[];
-  currentThreads: Thread[];
-  totalThreads: number;
-  totalPages: number;
-  startIndex: number;
-  endIndex: number;
-
   // Actions
-  setSearchQuery: (query: string) => void;
   setAlertState: (state: AlertState) => void;
-  handleSort: (field: SortField) => void;
   handleSelectAll: (checked: boolean) => void;
   handleSelectThread: (threadId: string, checked: boolean) => void;
-  handlePageChange: (page: number) => void;
   handleDeleteClick: () => void;
   handleDeleteConfirm: () => Promise<void>;
   areAllCurrentThreadsSelected: () => boolean;
@@ -71,15 +53,10 @@ export function useThreadList({
   threads,
   projectId,
   onThreadsDeleted,
-  threadsPerPage = 5,
 }: UseThreadListProps): UseThreadListReturn {
-  const [sortField, setSortField] = useState<SortField>("created");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedThreads, setSelectedThreads] = useState<Set<string>>(
     new Set(),
   );
-  const [currentPage, setCurrentPage] = useState(1);
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
     title: "",
@@ -113,92 +90,17 @@ export function useThreadList({
     };
   }, []);
 
-  // Optimize expensive computations with proper dependencies
-  const filteredThreads = useMemo(() => {
-    if (!searchQuery.trim()) return threads;
-    const query = searchQuery.toLowerCase().trim();
-    return threads.filter(
-      (thread) =>
-        thread.id.toLowerCase().includes(query) ||
-        thread.contextKey.toLowerCase().includes(query) ||
-        (thread.name && thread.name.toLowerCase().includes(query)),
-    );
-  }, [threads, searchQuery]);
-
-  // Memoize sort function to prevent recreation
-  const sortFunction = useMemo(() => {
-    return (a: Thread, b: Thread) => {
-      const direction = sortDirection === "asc" ? 1 : -1;
-      switch (sortField) {
-        case "created":
-          return (
-            (new Date(a.createdAt).getTime() -
-              new Date(b.createdAt).getTime()) *
-            direction
-          );
-        case "updated":
-          return (
-            (new Date(a.updatedAt).getTime() -
-              new Date(b.updatedAt).getTime()) *
-            direction
-          );
-        case "threadId":
-          return a.id.localeCompare(b.id) * direction;
-        case "threadName":
-          return (a.name || "").localeCompare(b.name || "") * direction;
-        case "contextKey":
-          return a.contextKey.localeCompare(b.contextKey) * direction;
-        case "messages":
-          return (a.messages - b.messages) * direction;
-        case "errors":
-          return (a.errors - b.errors) * direction;
-        default:
-          return 0;
-      }
-    };
-  }, [sortField, sortDirection]);
-
-  // Apply sort with memoized function
-  const sortedThreads = useMemo(() => {
-    return [...filteredThreads].sort(sortFunction);
-  }, [filteredThreads, sortFunction]);
-
-  // Pagination
-  const totalThreads = filteredThreads.length;
-  const validatedThreadsPerPage = Math.max(1, Math.min(100, threadsPerPage));
-  const totalPages = Math.max(
-    1,
-    Math.ceil(totalThreads / validatedThreadsPerPage),
-  );
-  const validatedCurrentPage = Math.max(1, Math.min(totalPages, currentPage));
-  const startIndex = (validatedCurrentPage - 1) * validatedThreadsPerPage;
-  const endIndex = Math.min(startIndex + validatedThreadsPerPage, totalThreads);
-  const currentThreads = sortedThreads.slice(startIndex, endIndex);
-
-  const handleSort = useCallback(
-    (field: SortField) => {
-      if (sortField === field) {
-        setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-      } else {
-        setSortField(field);
-        setSortDirection("desc");
-      }
-    },
-    [sortField, sortDirection],
-  );
-
   const handleSelectAll = useCallback(
     (checked: boolean) => {
       if (checked) {
-        setSelectedThreads(new Set(filteredThreads.map((t) => t.id)));
+        setSelectedThreads(new Set(threads.map((t) => t.id)));
       } else {
         setSelectedThreads(new Set());
       }
     },
-    [filteredThreads],
+    [threads],
   );
 
-  // Optimize callbacks with stable references
   const handleSelectThread = useCallback(
     (threadId: string, checked: boolean) => {
       setSelectedThreads((prev) => {
@@ -211,25 +113,8 @@ export function useThreadList({
         return newSelected;
       });
     },
-    [], // No dependencies needed since we use functional updates
+    [],
   );
-
-  const handlePageChange = useCallback(
-    (page: number) => {
-      const validPage = Math.max(1, Math.min(totalPages, page));
-      if (validPage !== currentPage) {
-        setCurrentPage(validPage);
-      }
-    },
-    [totalPages, currentPage],
-  );
-
-  // Auto-adjust page when filters change
-  useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
 
   const handleDeleteClick = useCallback(() => {
     const selectedCount = selectedThreads.size;
@@ -373,37 +258,21 @@ export function useThreadList({
 
   const areAllCurrentThreadsSelected = useCallback(() => {
     return (
-      filteredThreads.length > 0 &&
-      filteredThreads.every((t) => selectedThreads.has(t.id))
+      threads.length > 0 && threads.every((t) => selectedThreads.has(t.id))
     );
-  }, [filteredThreads, selectedThreads]);
+  }, [threads, selectedThreads]);
 
   return {
     // State
-    sortField,
-    sortDirection,
-    searchQuery,
     selectedThreads,
-    currentPage,
     alertState,
     isDeletingThreads,
     deletingThreadIds,
 
-    // Computed values
-    filteredThreads,
-    currentThreads,
-    totalThreads,
-    totalPages,
-    startIndex,
-    endIndex,
-
     // Actions
-    setSearchQuery,
     setAlertState,
-    handleSort,
     handleSelectAll,
     handleSelectThread,
-    handlePageChange,
     handleDeleteClick,
     handleDeleteConfirm,
     areAllCurrentThreadsSelected,
