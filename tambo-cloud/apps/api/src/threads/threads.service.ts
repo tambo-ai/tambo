@@ -1132,17 +1132,10 @@ export class ThreadsService {
     let lastUpdateTime = 0;
     const updateIntervalMs = 500;
 
-    const logChunkHandling = process.env.LOG_CHUNKS_FOR_PROJECTID === projectId;
-
     for await (const threadMessage of convertDecisionStreamToMessageStream(
       stream,
       inProgressMessage,
     )) {
-      let startTime = 0;
-      if (logChunkHandling) {
-        startTime = Date.now();
-      }
-
       // Update db message on interval
       const currentTime = Date.now();
       if (currentTime - lastUpdateTime >= updateIntervalMs) {
@@ -1166,10 +1159,6 @@ export class ThreadsService {
           content: convertContentPartToDto(threadMessage.content),
         });
         lastUpdateTime = currentTime;
-      }
-      if (logChunkHandling) {
-        const endTime = Date.now();
-        console.log("chunk time", endTime - startTime, "ms");
       }
 
       // do not yield the final thread message if it is a tool call, because we

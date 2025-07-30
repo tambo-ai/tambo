@@ -44,8 +44,7 @@
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
     "GITHUB_TOKEN",
-    "SKIP_ENV_VALIDATION",
-    "LOG_CHUNKS_FOR_PROJECTID"
+    "SKIP_ENV_VALIDATION"
   ],
   "tasks": {
     "build": {
