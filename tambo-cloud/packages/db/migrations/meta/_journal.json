@@ -421,6 +421,13 @@
       "when": 1752854197349,
       "tag": "0059_vengeful_prodigy",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1753829742721,
+      "tag": "0060_clever_karen_page",
+      "breakpoints": true
     }
   ]
 }

@@ -392,12 +392,22 @@ export class ThreadsService {
     );
 
     // Check if we're using the fallback key
-    const project = await this.projectsService.findOneWithKeys(projectId);
+    const projectWithKeys =
+      await this.projectsService.findOneWithKeys(projectId);
+    const project = await this.projectsService.findOne(projectId);
     if (!project) {
       throw new NotFoundException("Project not found");
     }
-    const providerKeys = project.getProviderKeys();
-    const usingFallbackKey = !providerKeys.length;
+    const providerKeys = projectWithKeys?.getProviderKeys() ?? [];
+    // Check specifically if we have a key for the provider being used
+    const openaiKey = providerKeys.find((key) => key.providerName === "openai");
+    // Using fallback key if we're using openai with default model but no openai key
+    const usingFallbackKey =
+      !openaiKey &&
+      (project.defaultLlmProviderName === "openai" ||
+        !project.defaultLlmProviderName) &&
+      (project.defaultLlmModelName === DEFAULT_OPENAI_MODEL ||
+        !project.defaultLlmModelName);
 
     if (!usage) {
       // Create initial usage record

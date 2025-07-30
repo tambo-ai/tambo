@@ -128,14 +128,6 @@ export function APIKeyList({
     },
   });
 
-  const { data: projectMessageUsage } =
-    api.project.getProjectMessageUsage.useQuery(
-      { projectId: project?.id ?? "" },
-      {
-        enabled: !!project?.id,
-      },
-    );
-
   useEffect(() => {
     if (apiKeysError) {
       toast({
@@ -268,15 +260,10 @@ export function APIKeyList({
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardContent className="p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          <h4 className="text-lg font-semibold">API Keys</h4>
-        </div>
-
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <p className="text-sm font-sans text-foreground max-w-sm">
-            Tambo offers 500 free messages. Once the limit is reached,
-            you&apos;ll have to add your API key to your project.
-          </p>
+          <div className="flex items-center gap-2">
+            <h4 className="text-lg font-semibold">API Keys</h4>
+          </div>
 
           <AnimatePresence mode="wait">
             {!isCreating && !newGeneratedKey && (
@@ -298,12 +285,6 @@ export function APIKeyList({
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        <div className="flex items-center gap-2 mt-2 mb-2">
-          <p className="text-xs font-sans text-success max-w-xs bg-success-background rounded-full p-2">
-            {projectMessageUsage?.messageCount} out of 500 messages used
-          </p>
         </div>
 
         <AnimatePresence mode="wait">

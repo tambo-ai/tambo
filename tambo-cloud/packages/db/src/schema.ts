@@ -232,8 +232,9 @@ export const projectMessageUsage = pgTable(
   "project_message_usage",
   ({ text, timestamp, integer, boolean }) => ({
     projectId: text("project_id")
-      .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
+      .references(() => projects.id, { onDelete: "cascade" })
+      .primaryKey()
+      .notNull(),
     messageCount: integer("message_count").notNull().default(0),
     hasApiKey: boolean("has_api_key").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),

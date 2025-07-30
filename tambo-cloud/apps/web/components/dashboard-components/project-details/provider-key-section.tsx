@@ -121,6 +121,14 @@ export function ProviderKeySection({
     enabled: !!project?.id,
   });
 
+  const { data: projectMessageUsage } =
+    api.project.getProjectMessageUsage.useQuery(
+      { projectId: project?.id ?? "" },
+      {
+        enabled: !!project?.id,
+      },
+    );
+
   // --- State Management ---
   const [combinedSelectValue, setCombinedSelectValue] = useState<string>("");
   const [combinedSelectOpen, setCombinedSelectOpen] = useState(false);
@@ -603,7 +611,7 @@ export function ProviderKeySection({
 
   return (
     <Card className="overflow-hidden rounded-md border">
-      <CardHeader className="pb-0 pt-4">
+      <CardHeader className="pb-0 pt-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">LLM Providers</CardTitle>
           {hasUnsavedChanges && (
@@ -622,6 +630,17 @@ export function ProviderKeySection({
           )}
         </div>
       </CardHeader>
+      <CardContent className="space-y-4 pb-0 pt-4">
+        <p className="text-sm font-sans text-foreground max-w-sm">
+          Tambo offers 500 free messages. Once the limit is reached, you&apos;ll
+          have to add your API key to your project.
+        </p>
+        <div className="flex items-center gap-2 mt-2 mb-2">
+          <p className="text-xs font-sans text-success max-w-xs bg-success-background rounded-full p-2">
+            {projectMessageUsage?.messageCount} out of 500 messages used
+          </p>
+        </div>
+      </CardContent>
       <CardContent className="space-y-4 p-6">
         {/* Provider • Model Select */}
         <div className="space-y-2 max-w-xl">
