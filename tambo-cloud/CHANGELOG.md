@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.91.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.90.1...repo-v0.91.0) (2025-07-30)
+
+
+### Features
+
+* add server-side pagination, search, and sorting to thread list component ([#1434](https://github.com/tambo-ai/tambo-cloud/issues/1434)) ([9804102](https://github.com/tambo-ai/tambo-cloud/commit/9804102aa2181088db74fa1c8a2f7843ec11abcc))
+
+
+### Bug Fixes
+
+* free message count not incrementing ([#1441](https://github.com/tambo-ai/tambo-cloud/issues/1441)) ([1cdaa0f](https://github.com/tambo-ai/tambo-cloud/commit/1cdaa0f2b2e20c62d41f9df92669d412b216d13d))
+* remove test logs ([#1442](https://github.com/tambo-ai/tambo-cloud/issues/1442)) ([f63598c](https://github.com/tambo-ai/tambo-cloud/commit/f63598c9b15d8906a5fb3da76040e00127e9499e))
+
 ## [0.90.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.90.0...repo-v0.90.1) (2025-07-29)
 
 
