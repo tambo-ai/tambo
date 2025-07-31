@@ -138,7 +138,6 @@ export async function processThreadMessage(
   const decisionStream = await tamboBackend.runDecisionLoop({
     messages,
     strictTools,
-    additionalContext: advanceRequestDto.additionalContext,
     customInstructions,
     forceToolChoice:
       latestMessage.role === MessageRole.User

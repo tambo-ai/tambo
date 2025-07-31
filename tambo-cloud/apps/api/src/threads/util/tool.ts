@@ -67,7 +67,6 @@ export async function callSystemTool(
         content: responseContent,
         tool_call_id: toolCallId,
       },
-      additionalContext: advanceRequestDto.additionalContext,
       availableComponents: advanceRequestDto.availableComponents,
       contextKey: advanceRequestDto.contextKey,
     };

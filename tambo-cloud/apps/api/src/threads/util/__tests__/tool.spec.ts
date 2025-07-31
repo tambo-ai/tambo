@@ -104,7 +104,6 @@ describe("tool utilities", () => {
         role: MessageRole.Tool,
         content: [],
       },
-      additionalContext: { test: "context" },
       availableComponents: [],
     };
 
@@ -143,7 +142,6 @@ describe("tool utilities", () => {
           content: [{ type: ContentPartType.Text, text: mockResult }],
           tool_call_id: "tool-call-1",
         },
-        additionalContext: advanceRequestDto.additionalContext,
         availableComponents: advanceRequestDto.availableComponents,
         contextKey: undefined,
       });

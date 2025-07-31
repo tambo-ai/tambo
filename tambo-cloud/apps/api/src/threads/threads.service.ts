@@ -490,6 +490,7 @@ export class ThreadsService {
       component: message.componentDecision as ComponentDecisionV2 | undefined,
       error: message.error ?? undefined,
       isCancelled: message.isCancelled,
+      additionalContext: message.additionalContext ?? {},
     }));
   }
 
@@ -687,6 +688,7 @@ export class ThreadsService {
       tool_call_id: message.toolCallId ?? undefined,
       actionType: message.actionType ?? undefined,
       error: message.error ?? undefined,
+      additionalContext: message.additionalContext ?? {},
     };
   }
 
@@ -1026,7 +1028,6 @@ export class ThreadsService {
       const streamedResponseMessage = await tamboBackend.runDecisionLoop({
         messages,
         strictTools,
-        additionalContext: advanceRequestDto.additionalContext,
         customInstructions,
       });
 
@@ -1060,7 +1061,6 @@ export class ThreadsService {
     const streamedResponseMessage = await tamboBackend.runDecisionLoop({
       messages,
       strictTools,
-      additionalContext: advanceRequestDto.additionalContext,
       customInstructions,
       forceToolChoice: advanceRequestDto.forceToolChoice,
     });

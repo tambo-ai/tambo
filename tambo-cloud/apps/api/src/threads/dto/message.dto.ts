@@ -98,6 +98,14 @@ export class ThreadMessageDto {
   @IsOptional()
   tool_calls?: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[];
   createdAt!: Date;
+
+  @IsOptional()
+  @ApiProperty({
+    type: "object",
+    additionalProperties: true,
+    description: "Additional context for the message",
+  })
+  additionalContext?: Record<string, any>;
 }
 
 export class MessageRequest implements InternalThreadMessage {
@@ -153,4 +161,12 @@ export class MessageRequest implements InternalThreadMessage {
     description: "The initial state of the component",
   })
   componentState?: Record<string, unknown>;
+
+  @IsOptional()
+  @ApiProperty({
+    type: "object",
+    additionalProperties: true,
+    description: "Additional context for the message",
+  })
+  additionalContext?: Record<string, any>;
 }

@@ -2,7 +2,6 @@ import { createPromptTemplate } from "@tambo-ai-cloud/core";
 
 export function generateDecisionLoopPrompt(
   customInstructions: string | undefined,
-  additionalContext: Record<string, any> | undefined,
 ) {
   return createPromptTemplate(
     `
@@ -29,19 +28,8 @@ For example, imagine these tools are available:
 If a user asks for weather in a city, you may call the 'get_weather' tool, and
 then call the 'show_component_Weather' tool to pass the weather information to the Weather component on screen.
 
-{additional_context}
-
 {custom_instructions}`,
     {
-      additional_context: additionalContext
-        ? `IMPORTANT: The following context is provided to help you understand the user's environment and state. 
-Use this information to provide more relevant and contextual responses, but DO NOT directly mention or 
-reference this context in your responses unless specifically asked about it by the user.
-
-Context:
-${JSON.stringify(additionalContext, null, 2)}
-`
-        : "",
       custom_instructions: customInstructions
         ? `In addition to the above, please also follow these additional instructions:
 ${customInstructions}

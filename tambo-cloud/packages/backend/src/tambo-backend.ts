@@ -23,7 +23,6 @@ interface TamboBackendOptions {
 interface RunDecisionLoopParams {
   messages: ThreadMessage[];
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
-  additionalContext?: Record<string, string> | undefined;
   customInstructions: string | undefined;
   forceToolChoice?: string;
 }
@@ -91,7 +90,6 @@ export default class TamboBackend {
       this.llmClient,
       params.messages,
       params.strictTools,
-      params.additionalContext,
       params.customInstructions,
       params.forceToolChoice,
     );

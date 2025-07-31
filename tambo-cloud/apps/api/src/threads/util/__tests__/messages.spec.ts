@@ -62,6 +62,7 @@ describe("messages utilities", () => {
         threadId: "thread1",
         role: MessageRole.User,
         content: [{ type: "text" as ContentPartType.Text, text: "Hello" }],
+        additionalContext: { extra: "context" },
         createdAt: new Date(),
         componentState: {},
         metadata: null,
@@ -87,6 +88,7 @@ describe("messages utilities", () => {
         toolCallRequest: undefined,
         toolCallId: undefined,
         componentState: {},
+        additionalContext: {},
         error: undefined,
         isCancelled: false,
       });
@@ -96,6 +98,7 @@ describe("messages utilities", () => {
         threadId: "thread1",
         role: MessageRole.User,
         content: [{ type: "text" as ContentPartType.Text, text: "Hello" }],
+        additionalContext: { extra: "context" },
         createdAt: mockResponse.createdAt,
         componentState: {},
         isCancelled: false,
@@ -123,6 +126,7 @@ describe("messages utilities", () => {
         content: [
           { type: "text" as ContentPartType.Text, text: "Updated message" },
         ],
+        additionalContext: { extra: "context" },
         createdAt: new Date(),
         componentState: {},
         actionType: null,
@@ -147,6 +151,7 @@ describe("messages utilities", () => {
         actionType: undefined,
         toolCallRequest: undefined,
         toolCallId: undefined,
+        additionalContext: {},
         error: undefined,
       });
 
@@ -157,6 +162,7 @@ describe("messages utilities", () => {
         content: [
           { type: "text" as ContentPartType.Text, text: "Updated message" },
         ],
+        additionalContext: { extra: "context" },
         createdAt: mockResponse.createdAt,
         componentState: {},
         toolCallId: null,
@@ -246,6 +252,7 @@ describe("messages utilities", () => {
             text: "Latest message",
           },
         ] as ChatCompletionContentPart[],
+        additionalContext: { extra: "context" },
         createdAt: new Date(),
         componentState: {},
         metadata: null,
@@ -262,6 +269,7 @@ describe("messages utilities", () => {
         componentState: {},
         actionType: ActionType.ToolCall,
         metadata: {},
+        additionalContext: { extra: "context" },
         toolCallRequest: undefined,
         tool_call_id: undefined,
         error: undefined,

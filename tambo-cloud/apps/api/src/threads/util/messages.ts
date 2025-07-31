@@ -39,6 +39,7 @@ export async function addMessage(
     componentState: messageDto.componentState ?? {},
     error: messageDto.error,
     isCancelled: messageDto.isCancelled ?? false,
+    additionalContext: messageDto.additionalContext ?? {},
   });
 
   if (messageDto.actionType === ActionType.ToolResponse && messageDto.error) {
@@ -66,6 +67,7 @@ export async function addMessage(
     tool_call_id: message.toolCallId ?? undefined,
     error: message.error ?? undefined,
     isCancelled: message.isCancelled,
+    additionalContext: message.additionalContext ?? {},
   };
 }
 
@@ -86,6 +88,7 @@ export async function updateMessage(
     toolCallId: messageDto.tool_call_id ?? undefined,
     error: messageDto.error,
     isCancelled: messageDto.isCancelled,
+    additionalContext: messageDto.additionalContext ?? {},
   });
 
   if (messageDto.actionType === ActionType.ToolResponse && messageDto.error) {
@@ -109,6 +112,7 @@ export async function updateMessage(
     componentState: message.componentState ?? {},
     error: message.error ?? undefined,
     isCancelled: message.isCancelled,
+    additionalContext: message.additionalContext ?? {},
   };
 }
 
