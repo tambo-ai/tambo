@@ -3,7 +3,7 @@ title: Interactable Components
 description: Allow Tambo to update your pre-placed components
 ---
 
-When you know what components you want to show on screen, and don't want Tambo to choose, but still want to allow your users to interact with them using natural language, use Tambo's Interactable components.
+When you want to place specific components on screen rather than letting Tambo choose which to show, but still want to allow your users to interact with them using natural language, use Tambo's Interactable components.
 
 Unlike regular registered components that Tambo generates and renders from scratch when responding to messages, interactable components are pre-placed by you while still allowing Tambo to modify their props.
 
@@ -92,21 +92,25 @@ interface InteractableConfig {
 }
 ```
 
+### How it Works
+
+For each component marked as interactable using `withTamboInteractable`, behind the scenes Tambo stores a state object representing the props of the component, and registers a tool to update that object.
+
+When Tambo decides to update an interactable component while responding to a message, it uses that component's 'update' tool, which updates the state and triggers a re-render of your wrapped component.
+
 ## Integration with Tambo Provider
 
-Make sure your app is wrapped with the necessary providers:
+Make sure your app is wrapped with the `<TamboProvider/>`.
 
 ```tsx
-import { TamboProvider, TamboInteractableProvider } from "@tambo-ai/react";
+import { TamboProvider } from "@tambo-ai/react";
 
 function App() {
   return (
     <TamboProvider>
-      <TamboInteractableProvider>
-        {/* Your app with interactable components */}
-        <InteractableNote />
-        <InteractableCounter />
-      </TamboInteractableProvider>
+      {/* Your app with interactable components */}
+      <InteractableNote />
+      <InteractableCounter />
     </TamboProvider>
   );
 }
