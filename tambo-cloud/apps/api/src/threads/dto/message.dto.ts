@@ -103,7 +103,8 @@ export class ThreadMessageDto {
   @ApiProperty({
     type: "object",
     additionalProperties: true,
-    description: "Additional context for the message",
+    description:
+      "Additional context to provide to the AI beyond the user query, such as the info about the current page the user is visiting.",
   })
   additionalContext?: Record<string, any>;
 }
@@ -166,7 +167,8 @@ export class MessageRequest implements InternalThreadMessage {
   @ApiProperty({
     type: "object",
     additionalProperties: true,
-    description: "Additional context for the message",
+    description:
+      "Additional context to provide to the AI beyond the user query, such as the info about the current page the user is visiting.",
   })
   additionalContext?: Record<string, any>;
 }
