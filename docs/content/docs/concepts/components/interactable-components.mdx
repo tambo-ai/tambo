@@ -1,0 +1,99 @@
+---
+title: Interactable Components
+description: Allow Tambo to update your pre-placed components
+---
+
+Interactable components are React components that you place in your UI and allow Tambo to dynamically update their props. Unlike regular registered components that Tambo generates and renders from scratch when responding to messages, interactable components are pre-placed by you while still allowing Tambo to modify their props.
+
+## Creating Interactable Components
+
+The easiest way to make a component interactable to Tambo is using the `withTamboInteractable` HOC. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
+
+```tsx
+import { withTamboInteractable } from "@tambo-ai/react";
+import { z } from "zod";
+
+// Your existing component
+function ContactForm({ fields, onSubmit, title }) {
+  return (
+    <form onSubmit={onSubmit}>
+      <h2>{title}</h2>
+      {fields.map((field) => (
+        <input key={field.id} {...field} />
+      ))}
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+
+// Make it interactable
+const InteractableContactForm = withTamboInteractable(ContactForm, {
+  componentName: "ContactForm",
+  description:
+    "A contact form that can be dynamically updated with different fields",
+  propsSchema: z.object({
+    title: z.string(),
+    fields: z.array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        placeholder: z.string().optional(),
+      }),
+    ),
+    onSubmit: z.function(),
+  }),
+});
+
+// Use it in your app
+function App() {
+  return (
+    <div>
+      <InteractableContactForm
+        title="Contact Us"
+        fields={[
+          { id: "name", type: "text", placeholder: "Your name" },
+          { id: "email", type: "email", placeholder: "Your email" },
+        ]}
+        onSubmit={(data) => console.log(data)}
+      />
+    </div>
+  );
+}
+```
+
+Now Tambo is able to read and update this component in-place when responding to messages.
+
+### InteractableConfig
+
+When using `withTamboInteractable`, you provide a configuration object:
+
+```tsx
+interface InteractableConfig {
+  componentName: string; // Name for Tambo to reference
+  description: string; // Description of what the component does
+  propsSchema: z.ZodTypeAny; // Schema of props for Tambo to generate
+}
+```
+
+## Integration with Tambo Provider
+
+Make sure your app is wrapped with the necessary providers:
+
+```tsx
+import { TamboProvider, TamboInteractableProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider>
+      <TamboInteractableProvider>
+        {/* Your app with interactable components */}
+        <InteractableContactForm />
+        <InteractableChart />
+        <InteractableDataTable />
+      </TamboInteractableProvider>
+    </TamboProvider>
+  );
+}
+```
+
+This creates a truly conversational interface where users can modify your UI through natural language, making your applications more accessible and user-friendly.

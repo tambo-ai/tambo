@@ -4,6 +4,7 @@
     "defining-tambo-components",
     "registering-with-tambo-provider",
     "registering-components-dynamically",
-    "component-state"
+    "component-state",
+    "interactable-components"
   ]
 }
