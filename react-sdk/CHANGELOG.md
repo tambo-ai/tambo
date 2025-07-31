@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.0](https://github.com/tambo-ai/tambo/compare/react-v0.40.1...react-v0.41.0) (2025-07-31)
+
+
+### Features
+
+* move additional context to message request ([#740](https://github.com/tambo-ai/tambo/issues/740)) ([09386ba](https://github.com/tambo-ai/tambo/commit/09386babf964ccdb3f447242ab4b042b1cd3dac6))
+
 ## [0.40.1](https://github.com/tambo-ai/tambo/compare/react-v0.40.0...react-v0.40.1) (2025-07-29)
 
 
