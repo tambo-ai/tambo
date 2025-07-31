@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/tambo-ai/tambo/compare/docs-v1.0.5...docs-v1.0.6) (2025-07-31)
+
+
+### Documentation
+
+* Add Interactables doc page ([#744](https://github.com/tambo-ai/tambo/issues/744)) ([cfacd3d](https://github.com/tambo-ai/tambo/commit/cfacd3dc23a80ef4c2d135a5c02d6a1c5374f119))
+
 ## [1.0.5](https://github.com/tambo-ai/tambo/compare/docs-v1.0.4...docs-v1.0.5) (2025-07-29)
 
 
