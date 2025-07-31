@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.92.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.91.0...repo-v0.92.0) (2025-07-31)
+
+
+### Features
+
+* add additionalContext field to message and thread DTOs, and update related services and database schema ([#1443](https://github.com/tambo-ai/tambo-cloud/issues/1443)) ([ce0d594](https://github.com/tambo-ai/tambo-cloud/commit/ce0d594b6d013ef4f1e79eb928e93d4d138aad0e))
+
 ## [0.91.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.90.1...repo-v0.91.0) (2025-07-30)
 
 
