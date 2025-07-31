@@ -14,7 +14,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@react-leaflet/core": "^2.1.0",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.65.0",
+    "@tambo-ai/typescript-sdk": "^0.66.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
     "framer-motion": "^12.23.11",
