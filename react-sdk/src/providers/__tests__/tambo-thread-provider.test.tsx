@@ -284,12 +284,12 @@ describe("TamboThreadProvider", () => {
       messageToAppend: {
         content: [{ type: "text", text: "Hello" }],
         role: "user",
+        additionalContext: mockCombinedContext,
       },
       availableComponents: serializeRegistry(mockRegistry),
       contextKey: undefined,
       clientTools: [],
       toolCallCounts: {},
-      additionalContext: mockCombinedContext,
     });
     expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
   });
@@ -446,13 +446,13 @@ describe("TamboThreadProvider", () => {
           messageToAppend: {
             content: [{ type: "text", text: "Hello streaming" }],
             role: "user",
+            additionalContext: mockCombinedContext,
           },
           availableComponents: serializeRegistry(mockRegistry),
           contextKey: undefined,
           clientTools: [],
           forceToolChoice: undefined,
           toolCallCounts: {},
-          additionalContext: mockCombinedContext,
         },
         "test-thread-1",
       );
@@ -494,13 +494,13 @@ describe("TamboThreadProvider", () => {
         messageToAppend: {
           content: [{ type: "text", text: "Hello non-streaming" }],
           role: "user",
+          additionalContext: mockCombinedContext,
         },
         availableComponents: serializeRegistry(mockRegistry),
         contextKey: undefined,
         clientTools: [],
         forceToolChoice: undefined,
         toolCallCounts: {},
-        additionalContext: mockCombinedContext,
       });
 
       // Should not call advance or advanceStream
@@ -542,13 +542,13 @@ describe("TamboThreadProvider", () => {
         messageToAppend: {
           content: [{ type: "text", text: "Hello default" }],
           role: "user",
+          additionalContext: mockCombinedContext,
         },
         availableComponents: serializeRegistry(mockRegistry),
         contextKey: undefined,
         clientTools: [],
         forceToolChoice: undefined,
         toolCallCounts: {},
-        additionalContext: mockCombinedContext,
       });
 
       // Should not call advance or advanceStream
@@ -612,13 +612,13 @@ describe("TamboThreadProvider", () => {
           messageToAppend: {
             content: [{ type: "text", text: "Hello default streaming" }],
             role: "user",
+            additionalContext: mockCombinedContext,
           },
           availableComponents: serializeRegistry(mockRegistry),
           contextKey: undefined,
           clientTools: [],
           forceToolChoice: undefined,
           toolCallCounts: {},
-          additionalContext: mockCombinedContext,
         },
         "test-thread-1",
       );
@@ -663,13 +663,13 @@ describe("TamboThreadProvider", () => {
         messageToAppend: {
           content: [{ type: "text", text: "Hello new thread" }],
           role: "user",
+          additionalContext: mockCombinedContext,
         },
         availableComponents: serializeRegistry(mockRegistry),
         contextKey: undefined,
         clientTools: [],
         forceToolChoice: undefined,
         toolCallCounts: {},
-        additionalContext: mockCombinedContext,
       });
 
       // Should not call advanceById or advanceStream
@@ -738,13 +738,13 @@ describe("TamboThreadProvider", () => {
           messageToAppend: {
             content: [{ type: "text", text: "Hello streaming new thread" }],
             role: "user",
+            additionalContext: mockCombinedContext,
           },
           availableComponents: serializeRegistry(mockRegistry),
           contextKey: undefined,
           clientTools: [],
           forceToolChoice: undefined,
           toolCallCounts: {},
-          additionalContext: mockCombinedContext,
         },
         undefined, // threadId is undefined for placeholder thread
       );
