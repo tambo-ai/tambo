@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.93.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.92.0...repo-v0.93.0) (2025-07-31)
+
+
+### Features
+
+* small change to trigger typescript-sdk release ([#1445](https://github.com/tambo-ai/tambo-cloud/issues/1445)) ([82149a4](https://github.com/tambo-ai/tambo-cloud/commit/82149a4cb6fdda7b644ef8625b55d59fb3f8a729))
+
 ## [0.92.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.91.0...repo-v0.92.0) (2025-07-31)
 
 
