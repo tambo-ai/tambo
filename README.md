@@ -15,7 +15,7 @@
   <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
 </p>
 
-## Build with apps with Generative UI and MCP
+## Build apps with Generative UI and MCP
 
 ![template gif](assets/template.gif)
 
@@ -28,6 +28,8 @@ npx tambo create-app my-tambo-app
 ## Documentation
 
 For detailed information about what Tambo is and how it works, check out our [docs site.](https://docs.tambo.co)
+
+For a quick walkthrough of using the fundamental features of Tambo, check out [this page.](https://docs.tambo.co/getting-started/quickstart)
 
 ## How does tambo-ai work?
 
