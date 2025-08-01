@@ -96,12 +96,10 @@ npm run dev
 
 ### Templates
 
-| App | Description |
-| --- | ----------- |
-
-|
-| [AI Chat](https://github.com/tambo-ai/tambo-template) | Get started with Generative UX, tools, and MCP |
-| [Conversational Form](https://github.com/tambo-ai/conversational-form) | Collect information with generative UX |
+| App                                                                      | Description                                    |
+| ------------------------------------------------------------------------ | ---------------------------------------------- |
+| [AI Chat with Generative UI](https://github.com/tambo-ai/tambo-template) | Get started with Generative UX, tools, and MCP |
+| [Conversational Form](https://github.com/tambo-ai/conversational-form)   | Collect information with generative UX         |
 
 Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
 
