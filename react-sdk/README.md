@@ -14,7 +14,7 @@ Get started using our [AI chat template](https://github.com/tambo-ai/tambo-templ
 npx tambo create-app my-tambo-app
 ```
 
-This will create a new nextjs project with Tambo pre-configured, and then step you through the process of setting up a Tambo project, including signing up for an API key, and adding it to `.env.local`.
+This will create a new NextJS project with Tambo pre-configured, and then step you through the process of setting up a Tambo project, including signing up for an API key, and adding it to `.env.local`.
 
 ### Adding components to an existing project
 
