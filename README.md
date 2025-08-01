@@ -1,8 +1,15 @@
-# tambo-ai
+<div align="center">
+	<img src="assets/octo-white-background.png" width="150" height="150" style="border-radius: 6px">
+	<h1>Tambo AI</h1>
+	<p>
+		<b>A React package for building AI-powered applications with generative UI, where users interact through natural language.</b>
+	</p>
+	<br>
+	<br>
+	<br>
+</div>
 
-A React package for adding generative React UI components to your AI assistant, copilot, or agent.
-
-<p>
+<p align="center">
   <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/@tambo-ai/react.svg" alt="npm version"></a>
   <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo.svg" alt="license"></a>
   <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo.svg" alt="GitHub last commit"></a>
@@ -10,7 +17,7 @@ A React package for adding generative React UI components to your AI assistant, 
   <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
 </p>
 
-## Build with MCP and Generative UI
+## Build with apps with Generative UI and MCP
 
 [![Watch the video](https://img.youtube.com/vi/6zDDPfr7Aoo/0.jpg)](https://youtu.be/6zDDPfr7Aoo)
 
