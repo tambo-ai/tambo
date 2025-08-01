@@ -1,0 +1,41 @@
+name: Deploy Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release Please (Docs Only)
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          manifest-file: .release-please-manifest.json
+
+      - uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.docs--release_created }}
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - name: Setup Git User
+        if: ${{ steps.release.outputs.docs--release_created }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Merge main into deploy-docs
+        if: ${{ steps.release.outputs.docs--release_created }}
+        run: |
+          git checkout deploy-docs
+          git merge --no-ff main -m "chore: merge main into deploy-docs for release ${{ steps.release.outputs.tag_name }}"
+          git push origin deploy-docs
