@@ -4,9 +4,13 @@
   "separate-pull-requests": true,
   "always-update": true,
   "packages": {
-    "react-sdk": {},
+    "react-sdk": {
+      "component": "react"
+    },
     "showcase": {},
-    "cli": {},
+    "cli": {
+      "component": "tambo"
+    },
     "create-tambo-app": {},
     "docs": {}
   },
