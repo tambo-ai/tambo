@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.94.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.93.0...repo-v0.94.0) (2025-08-01)
+
+
+### Features
+
+* update observability tab to show additional context separately to user message ([#1449](https://github.com/tambo-ai/tambo-cloud/issues/1449)) ([56fa97a](https://github.com/tambo-ai/tambo-cloud/commit/56fa97a40341dff91b16eca8990d4bd0f23aac79))
+
+
+### Miscellaneous Chores
+
+* bump packages ([#1447](https://github.com/tambo-ai/tambo-cloud/issues/1447)) ([eb1e36e](https://github.com/tambo-ai/tambo-cloud/commit/eb1e36eedd5ef25aa1e6a174407b360dabdb94f3))
+
 ## [0.93.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.92.0...repo-v0.93.0) (2025-07-31)
 
 
