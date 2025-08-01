@@ -60,3 +60,62 @@ await sendThreadMessage("What is the weather like today?", {
   streamResponse: true,
 });
 ```
+
+### Adding Context to Messages
+
+When sending messages, you can include additional context that will be sent along with the user's message. This is useful for providing extra information that tambo should consider when generating a response.
+
+#### With `useTamboThreadInput`
+
+```tsx
+await submit({
+  streamResponse: true,
+  additionalContext: {
+    pageInfo: {
+      url: "/weather",
+    },
+    location: "San Francisco",
+    units: "fahrenheit",
+  },
+});
+```
+
+#### With `sendThreadMessage`
+
+```tsx
+await sendThreadMessage("What is the weather like today?", {
+  streamResponse: true,
+  additionalContext: {
+    pageInfo: {
+      url: "/weather",
+    },
+    location: "San Francisco",
+    units: "fahrenheit",
+  },
+});
+```
+
+The `additionalContext` parameter accepts a `Record<string, any>` object, allowing you to pass any structured data as context.
+
+#### System Context
+
+tambo automatically includes system context with every message, such as:
+
+- `localTime`: Current local time
+- `timezone`: User's timezone
+
+Your additional context will be merged with this system context. For example, the above code would result in a combined context like:
+
+```json
+{
+  "pageInfo": {
+    "url": "/weather"
+  },
+  "location": "San Francisco",
+  "units": "fahrenheit",
+  "system": {
+    "localTime": "7/31/2025, 7:08:25 PM",
+    "timezone": "America/New_York"
+  }
+}
+```
