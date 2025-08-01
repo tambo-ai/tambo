@@ -1,8 +1,13 @@
-# tambo-ai
+<div align="center">
+	<img src="assets/octo-white-background-rounded.png" width="150" height="150" >
+	<h1>Tambo AI</h1>
+	<p>
+		<b>A React package for building AI-powered applications with generative UI, where users interact through natural language.</b>
+	</p>
+	<br>
+</div>
 
-A React package for adding generative React UI components to your AI assistant, copilot, or agent.
-
-<p>
+<p align="center">
   <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/@tambo-ai/react.svg" alt="npm version"></a>
   <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo.svg" alt="license"></a>
   <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo.svg" alt="GitHub last commit"></a>
@@ -10,17 +15,21 @@ A React package for adding generative React UI components to your AI assistant, 
   <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
 </p>
 
-## Build with MCP and Generative UI
+## Build apps with Generative UI and MCP
 
-[![Watch the video](https://img.youtube.com/vi/6zDDPfr7Aoo/0.jpg)](https://youtu.be/6zDDPfr7Aoo)
+![template gif](assets/template.gif)
 
-[Source code](https://github.com/tambo-ai/mcp-template)
-
-Create a new project using our MCP template:
+Get started using our [AI chat template](https://github.com/tambo-ai/tambo-template):
 
 ```bash
-npx tambo create-app -t mcp tambo-mcp-app
+npx tambo create-app my-tambo-app
 ```
+
+## Documentation
+
+For detailed information about what Tambo is and how it works, check out our [docs site.](https://docs.tambo.co)
+
+For a quick walkthrough of using the fundamental features of Tambo, check out [this page.](https://docs.tambo.co/getting-started/quickstart)
 
 ## How does tambo-ai work?
 
@@ -89,11 +98,10 @@ npm run dev
 
 ### Templates
 
-| App                                                                    | Description                            |
-| ---------------------------------------------------------------------- | -------------------------------------- |
-| [MCP](https://github.com/tambo-ai/mcp-template) (new!)                 | Get started with MCP + Generative UX   |
-| [Regular Tools](https://github.com/tambo-ai/tambo-template)            | Get started with Generative UX         |
-| [Conversational Form](https://github.com/tambo-ai/conversational-form) | Collect information with generative UX |
+| App                                                                      | Description                                    |
+| ------------------------------------------------------------------------ | ---------------------------------------------- |
+| [AI Chat with Generative UI](https://github.com/tambo-ai/tambo-template) | Get started with Generative UX, tools, and MCP |
+| [Conversational Form](https://github.com/tambo-ai/conversational-form)   | Collect information with generative UX         |
 
 Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
 
@@ -277,25 +285,9 @@ const mcpServers = [
 - Node.js 18.x+
 - npm 10.x+
 
-### Quick Commands
-
-```bash
-# Clone and install
-git clone https://github.com/tambo-ai/tambo.git && cd tambo && npm install
-
-# Develop
-npm run dev
-
-# Build
-npm run build
-
-# Test
-npm run test
-```
-
 ## Resources
 
-- [React Package Documentation](./react-sdk/README.md)
+- [React Package Documentation](https://docs.tambo.co)
 - [Showcase Documentation](./showcase/README.md)
 
 ## License
