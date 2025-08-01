@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.10](https://github.com/tambo-ai/tambo/compare/docs-v1.0.9...docs-v1.0.10) (2025-08-01)
+
+
+### Documentation
+
+* fix mermaid diagram ([#763](https://github.com/tambo-ai/tambo/issues/763)) ([b33d5cf](https://github.com/tambo-ai/tambo/commit/b33d5cf04c71345f768097e85de13e8dc5a81748))
+
 ## [1.0.9](https://github.com/tambo-ai/tambo/compare/docs-v1.0.8...docs-v1.0.9) (2025-08-01)
 
 
