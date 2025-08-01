@@ -55,6 +55,16 @@ function searchInMessage(message: MessageType, query: string): boolean {
     if (propsStr.toLowerCase().includes(lowerQuery)) return true;
   }
 
+  // Search in additional context
+  if (
+    message.role === "user" && // only search in user messages since we don't have context for assistant messages
+    message.additionalContext &&
+    Object.keys(message.additionalContext).length > 0
+  ) {
+    const contextStr = JSON.stringify(message.additionalContext, null, 2);
+    if (contextStr.toLowerCase().includes(lowerQuery)) return true;
+  }
+
   return false;
 }
 
@@ -62,7 +72,12 @@ function searchInMessage(message: MessageType, query: string): boolean {
 interface SearchMatch {
   messageId: string;
   messageType: "message" | "tool_call" | "component";
-  contentType: "content" | "toolArgs" | "toolResponse" | "componentProps";
+  contentType:
+    | "content"
+    | "toolArgs"
+    | "toolResponse"
+    | "componentProps"
+    | "additionalContext";
 }
 
 function findAllMatches(thread: ThreadType, query: string): SearchMatch[] {
@@ -82,6 +97,22 @@ function findAllMatches(thread: ThreadType, query: string): SearchMatch[] {
         messageType: "message",
         contentType: "content",
       });
+    }
+
+    // Check additional context
+    if (
+      message.role === "user" && // only search in user messages since we don't have context for assistant messages
+      message.additionalContext &&
+      Object.keys(message.additionalContext).length > 0
+    ) {
+      const contextStr = JSON.stringify(message.additionalContext, null, 2);
+      if (contextStr.toLowerCase().includes(query.toLowerCase())) {
+        matches.push({
+          messageId: message.id,
+          messageType: "message",
+          contentType: "additionalContext",
+        });
+      }
     }
 
     // Check tool calls

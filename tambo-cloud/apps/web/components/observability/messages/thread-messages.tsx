@@ -20,7 +20,12 @@ interface ThreadMessagesProps {
   searchMatches?: Array<{
     messageId: string;
     messageType: "message" | "tool_call" | "component";
-    contentType: "content" | "toolArgs" | "toolResponse" | "componentProps";
+    contentType:
+      | "content"
+      | "toolArgs"
+      | "toolResponse"
+      | "componentProps"
+      | "additionalContext";
   }>;
 }
 

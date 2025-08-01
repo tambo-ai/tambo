@@ -3,11 +3,11 @@ import { getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
 import { motion } from "framer-motion";
-import { Check, Copy } from "lucide-react";
-import { isValidElement, memo, ReactNode } from "react";
+import { Check, ChevronDown, Copy, Info } from "lucide-react";
+import { isValidElement, memo, ReactNode, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { formatTime } from "../utils";
-import { HighlightText } from "./highlight";
+import { HighlightedJson, HighlightText } from "./highlight";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
@@ -33,7 +33,22 @@ export const MessageContent = memo(
     onCopyId,
     searchQuery,
   }: MessageContentComponentProps) => {
+    const [showAdditionalContext, setShowAdditionalContext] = useState(false);
     const safeContent = getSafeContent(message.content as ReactNode);
+
+    // Check if there's additional context to display
+    const hasAdditionalContext =
+      isUserMessage &&
+      message.additionalContext &&
+      Object.keys(message.additionalContext).length > 0;
+
+    const formatAdditionalContext = (context: Record<string, any>) => {
+      try {
+        return JSON.stringify(context, null, 2);
+      } catch {
+        return String(context);
+      }
+    };
 
     // Custom markdown component that highlights search terms
     const createHighlightedMarkdownComponents = () => {
@@ -128,6 +143,80 @@ export const MessageContent = memo(
                   <span>No content</span>
                 )}
               </div>
+
+              {/* Additional Context Section - Only for user messages with context */}
+              {hasAdditionalContext && (
+                <div className="mt-3 border border-border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() =>
+                      setShowAdditionalContext(!showAdditionalContext)
+                    }
+                    className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Info className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="font-medium text-xs sm:text-sm text-primary">
+                        Additional Context
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCopyId(
+                            formatAdditionalContext(
+                              message.additionalContext || {},
+                            ),
+                          );
+                        }}
+                        className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
+                      >
+                        {copiedId ===
+                        formatAdditionalContext(
+                          message.additionalContext || {},
+                        ) ? (
+                          <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
+                        ) : (
+                          <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
+                        )}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 text-primary",
+                          showAdditionalContext && "rotate-180",
+                        )}
+                      />
+                    </div>
+                  </button>
+
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      height: showAdditionalContext ? "auto" : 0,
+                      opacity: showAdditionalContext ? 1 : 0,
+                    }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 bg-background">
+                      <pre className="text-xs font-mono text-primary overflow-auto max-h-96">
+                        {searchQuery ? (
+                          <HighlightedJson
+                            json={formatAdditionalContext(
+                              message.additionalContext || {},
+                            )}
+                            searchQuery={searchQuery}
+                          />
+                        ) : (
+                          formatAdditionalContext(
+                            message.additionalContext || {},
+                          )
+                        )}
+                      </pre>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
