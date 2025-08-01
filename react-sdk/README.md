@@ -1,24 +1,20 @@
-# Tambo React SDK
+# Tambo AI React SDK
 
 Tambo allows AI models to dynamically render React components in response to user messages, enabling AI assistants to display interactive widgets, charts, forms, and other UI elements instead of just text. Tambo is a great way to add generative UI to your AI assistant, copilot, or agent.
 
 This package provides react hooks to talk to the Tambo API and render custom components inline, but does not provide any UI components on its own. For pre-built UI components that use this package, see [tambo-ui](https://ui.tambo.co).
 
-## Build with MCP and Generative UI
+## Build apps with Generative UI and MCP
 
-[![Watch the video](https://img.youtube.com/vi/6zDDPfr7Aoo/0.jpg)](https://youtu.be/6zDDPfr7Aoo)
+![template gif](../assets/template.gif)
 
-[Source code](https://github.com/tambo-ai/mcp-template)
-
-### Creating a new project
-
-You can create a new project using our MCP template:
+Get started using our [AI chat template](https://github.com/tambo-ai/tambo-template):
 
 ```bash
-npx tambo create-app -t mcp tambo-mcp-app
+npx tambo create-app my-tambo-app
 ```
 
-This will create a new nextjs project with Tambo pre-configured, and then step you through the process of setting up a Tambo project, including signing up for an API key, and adding it to `.env.local`.
+This will create a new NextJS project with Tambo pre-configured, and then step you through the process of setting up a Tambo project, including signing up for an API key, and adding it to `.env.local`.
 
 ### Adding components to an existing project
 
@@ -188,11 +184,10 @@ function ChatInterface() {
 
 ### Templates
 
-| App                                                                    | Description                            |
-| ---------------------------------------------------------------------- | -------------------------------------- |
-| [MCP](https://github.com/tambo-ai/mcp-template) (new!)                 | Get started with MCP + Generative UX   |
-| [Regular Tools](https://github.com/tambo-ai/tambo-template)            | Get started with Generative UX         |
-| [Conversational Form](https://github.com/tambo-ai/conversational-form) | Collect information with generative UX |
+| App                                                                      | Description                                    |
+| ------------------------------------------------------------------------ | ---------------------------------------------- |
+| [AI Chat with Generative UI](https://github.com/tambo-ai/tambo-template) | Get started with Generative UX, tools, and MCP |
+| [Conversational Form](https://github.com/tambo-ai/conversational-form)   | Collect information with generative UX         |
 
 Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
 

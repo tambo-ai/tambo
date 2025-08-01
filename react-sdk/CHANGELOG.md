@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.41.2](https://github.com/tambo-ai/tambo/compare/react-v0.41.1...react-v0.41.2) (2025-08-01)
+
+
+### Bug Fixes
+
+* bump ([#762](https://github.com/tambo-ai/tambo/issues/762)) ([ada97ec](https://github.com/tambo-ai/tambo/commit/ada97ec8cce2256f973247ff1ccae7f8eabd7117))
+
+
+### Miscellaneous
+
+* trigger release ([#760](https://github.com/tambo-ai/tambo/issues/760)) ([6abd8bc](https://github.com/tambo-ai/tambo/commit/6abd8bc0ea7ab6cb66d1bf8ae00653c5568059eb))
+
+## [0.41.1](https://github.com/tambo-ai/tambo/compare/react-v0.41.0...react-v0.41.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* update sdk readme ([#757](https://github.com/tambo-ai/tambo/issues/757)) ([9db3533](https://github.com/tambo-ai/tambo/commit/9db3533258182c175c6556da728a91233a7d5040))
+
 ## [0.41.0](https://github.com/tambo-ai/tambo/compare/react-v0.40.1...react-v0.41.0) (2025-07-31)
 
 
