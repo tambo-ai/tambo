@@ -256,7 +256,7 @@ export const TamboThreadProvider: React.FC<
 
   const addThreadMessage = useCallback(
     async (
-      message: TamboThreadMessage & { additionalContext?: Record<string, any> },
+      message: TamboThreadMessage,
       sendToServer = true,
       createdAt: string = new Date().toISOString(),
     ) => {
@@ -265,17 +265,8 @@ export const TamboThreadProvider: React.FC<
         return [];
       }
 
-      // Combine system context with user context
-      const combinedContext = {
-        system: message.role === "user" ? getSystemContext() : undefined,
-        custom: message.additionalContext,
-      };
-
-      const chatMessage: TamboThreadMessage & {
-        additionalContext?: Record<string, any>;
-      } = {
+      const chatMessage: TamboThreadMessage = {
         ...message,
-        additionalContext: combinedContext,
         createdAt,
       };
       const threadId = message.threadId;
@@ -312,7 +303,7 @@ export const TamboThreadProvider: React.FC<
         await client.beta.threads.messages.create(message.threadId, {
           content: message.content,
           role: message.role,
-          // additionalContext: chatMessage.additionalContext,
+          additionalContext: chatMessage.additionalContext,
         });
       }
       return threadMap[threadId]?.messages || [];
@@ -356,7 +347,7 @@ export const TamboThreadProvider: React.FC<
         await client.beta.threads.messages.create(message.threadId, {
           content: message.content,
           role: message.role,
-          // additionalContext: chatMessage.additionalContext,
+          additionalContext: chatMessage.additionalContext,
         });
       }
     },
@@ -762,8 +753,8 @@ export const TamboThreadProvider: React.FC<
         messageToAppend: {
           content: [{ type: "text", text: message }],
           role: "user",
+          additionalContext: combinedContext,
         },
-        additionalContext: combinedContext,
         contextKey,
         availableComponents: availableComponents,
         clientTools: unassociatedTools.map((tool) =>

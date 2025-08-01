@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.26.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.25.0...tambo-v0.26.0) (2025-07-31)
+
+
+### Features
+
+* move additional context to message request ([#740](https://github.com/tambo-ai/tambo/issues/740)) ([09386ba](https://github.com/tambo-ai/tambo/commit/09386babf964ccdb3f447242ab4b042b1cd3dac6))
+
+## [0.25.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.24.0...tambo-v0.25.0) (2025-07-29)
+
+
+### Features
+
+* **cli:** add mcpconfigbutton in message-input and remove mcp template ([#738](https://github.com/tambo-ai/tambo/issues/738)) ([7b29a20](https://github.com/tambo-ai/tambo/commit/7b29a20de9abbd450c931f9ce0fa63b3c923757d))
+
+## [0.24.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.23.0...tambo-v0.24.0) (2025-07-29)
+
+
+### Features
+
+* Add InteractiveMap component using react‑leaflet ([#678](https://github.com/tambo-ai/tambo/issues/678)) ([22b3862](https://github.com/tambo-ai/tambo/commit/22b3862cdefbe5d53425da0f7ad0167698847d09))
+
+
+### Bug Fixes
+
+* update thread-history search to search for thread name ([#717](https://github.com/tambo-ai/tambo/issues/717)) ([1deeec5](https://github.com/tambo-ai/tambo/commit/1deeec567c9df8eb5d312a24072d193189756312))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/recharts from 1.8.29 to 2.0.1 ([#729](https://github.com/tambo-ai/tambo/issues/729)) ([400dc89](https://github.com/tambo-ai/tambo/commit/400dc895653b487b3f3b0aad56145577557a8450))
+* **deps:** bump dotenv from 17.2.0 to 17.2.1 ([#734](https://github.com/tambo-ai/tambo/issues/734)) ([6436a9f](https://github.com/tambo-ai/tambo/commit/6436a9f61b21b1b6e8ee52dbe3c4cd864b84afc0))
+
 ## [0.23.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.22.1...tambo-v0.23.0) (2025-07-25)
 
 

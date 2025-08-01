@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.17.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.16.0...showcase-v0.17.0) (2025-07-31)
+
+
+### Features
+
+* move additional context to message request ([#740](https://github.com/tambo-ai/tambo/issues/740)) ([09386ba](https://github.com/tambo-ai/tambo/commit/09386babf964ccdb3f447242ab4b042b1cd3dac6))
+
+## [0.16.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.15.1...showcase-v0.16.0) (2025-07-29)
+
+
+### Features
+
+* Add InteractiveMap component using react‑leaflet ([#678](https://github.com/tambo-ai/tambo/issues/678)) ([22b3862](https://github.com/tambo-ai/tambo/commit/22b3862cdefbe5d53425da0f7ad0167698847d09))
+* **cli:** add mcpconfigbutton in message-input and remove mcp template ([#738](https://github.com/tambo-ai/tambo/issues/738)) ([7b29a20](https://github.com/tambo-ai/tambo/commit/7b29a20de9abbd450c931f9ce0fa63b3c923757d))
+
+
+### Bug Fixes
+
+* update thread-history search to search for thread name ([#717](https://github.com/tambo-ai/tambo/issues/717)) ([1deeec5](https://github.com/tambo-ai/tambo/commit/1deeec567c9df8eb5d312a24072d193189756312))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/recharts from 1.8.29 to 2.0.1 ([#729](https://github.com/tambo-ai/tambo/issues/729)) ([400dc89](https://github.com/tambo-ai/tambo/commit/400dc895653b487b3f3b0aad56145577557a8450))
+* **deps-dev:** bump the eslint group with 4 updates ([#720](https://github.com/tambo-ai/tambo/issues/720)) ([fcfcb6c](https://github.com/tambo-ai/tambo/commit/fcfcb6c8f7e2c98139279cbb0fe41057f45f2f2a))
+* **deps:** bump framer-motion from 12.23.6 to 12.23.11 ([#737](https://github.com/tambo-ai/tambo/issues/737)) ([e19f1e1](https://github.com/tambo-ai/tambo/commit/e19f1e1ab78484f73b64427ac6a39bfdc88d6c23))
+* **deps:** bump lucide-react from 0.525.0 to 0.532.0 ([#721](https://github.com/tambo-ai/tambo/issues/721)) ([669a64d](https://github.com/tambo-ai/tambo/commit/669a64db44b1a87a078395b203b6327836fb857f))
+* **deps:** bump next from 15.3.5 to 15.4.4 ([#724](https://github.com/tambo-ai/tambo/issues/724)) ([bcbc50a](https://github.com/tambo-ai/tambo/commit/bcbc50a4e7cea5fcf720ca6d0ffbe57c5897cf54))
+
 ## [0.15.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.15.0...showcase-v0.15.1) (2025-07-25)
 
 

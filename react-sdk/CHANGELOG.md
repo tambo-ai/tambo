@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.41.0](https://github.com/tambo-ai/tambo/compare/react-v0.40.1...react-v0.41.0) (2025-07-31)
+
+
+### Features
+
+* move additional context to message request ([#740](https://github.com/tambo-ai/tambo/issues/740)) ([09386ba](https://github.com/tambo-ai/tambo/commit/09386babf964ccdb3f447242ab4b042b1cd3dac6))
+
+## [0.40.1](https://github.com/tambo-ai/tambo/compare/react-v0.40.0...react-v0.40.1) (2025-07-29)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @testing-library/jest-dom from 6.6.3 to 6.6.4 ([#730](https://github.com/tambo-ai/tambo/issues/730)) ([aacc7e9](https://github.com/tambo-ai/tambo/commit/aacc7e9f8ac38e8a86a4385998902b915512573a))
+* **deps-dev:** bump the eslint group with 4 updates ([#720](https://github.com/tambo-ai/tambo/issues/720)) ([fcfcb6c](https://github.com/tambo-ai/tambo/commit/fcfcb6c8f7e2c98139279cbb0fe41057f45f2f2a))
+* **deps:** bump @modelcontextprotocol/sdk from 1.16.0 to 1.17.0 ([#723](https://github.com/tambo-ai/tambo/issues/723)) ([958b20a](https://github.com/tambo-ai/tambo/commit/958b20add4af78991962f7e1a9780fc4a5acbd5e))
+
 ## [0.40.0](https://github.com/tambo-ai/tambo/compare/react-v0.39.0...react-v0.40.0) (2025-07-28)
 
 

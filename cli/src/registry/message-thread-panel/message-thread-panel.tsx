@@ -6,6 +6,7 @@ import {
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputError,
+  // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
@@ -264,6 +265,8 @@ export const MessageThreadPanel = React.forwardRef<
             <MessageInput contextKey={contextKey}>
               <MessageInputTextarea />
               <MessageInputToolbar>
+                {/* Uncomment this to enable client-side MCP config modal button */}
+                {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />

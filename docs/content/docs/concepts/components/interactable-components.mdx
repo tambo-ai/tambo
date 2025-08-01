@@ -1,0 +1,119 @@
+---
+title: Interactable Components
+description: Allow Tambo to update your pre-placed components
+---
+
+When you want to place specific components on screen rather than letting Tambo choose which to show, but still want to allow your users to interact with them using natural language, use Tambo's Interactable components.
+
+Unlike regular registered components that Tambo generates and renders from scratch when responding to messages, interactable components are pre-placed by you while still allowing Tambo to modify their props.
+
+## Creating Interactable Components
+
+The easiest way to make a component interactable to Tambo is by using `withTamboInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
+
+```tsx
+import { withTamboInteractable } from "@tambo-ai/react";
+import { z } from "zod";
+
+// Your existing component
+function Note({ title, content, color = "white" }) {
+  return (
+    <div className={`note note-${color}`}>
+      <h3>{title}</h3>
+      <p>{content}</p>
+    </div>
+  );
+}
+
+// Make it interactable
+const InteractableNote = withTamboInteractable(Note, {
+  componentName: "Note",
+  description:
+    "A simple note component that can display title and content with different colors",
+  propsSchema: z.object({
+    title: z.string(),
+    content: z.string(),
+    color: z.enum(["white", "yellow", "blue", "green"]).optional(),
+  }),
+});
+
+// Another simple component
+function Counter({ count, label }) {
+  return (
+    <div className="counter">
+      <span>
+        {label}: {count}
+      </span>
+    </div>
+  );
+}
+
+const InteractableCounter = withTamboInteractable(Counter, {
+  componentName: "Counter",
+  description: "A simple counter that displays a label and count value",
+  propsSchema: z.object({
+    count: z.number(),
+    label: z.string(),
+  }),
+});
+
+// Place both components in your app
+function Page() {
+  return (
+    <div>
+      <InteractableNote
+        title="Welcome"
+        content="This is a simple note that Tambo can update!"
+        color="yellow"
+      />
+      <InteractableCounter count={42} label="Items" />
+    </div>
+  );
+}
+```
+
+Now Tambo is able to read and update these components in-place when responding to messages. Users can ask things like:
+
+- "Change the note title to 'Important Reminder'"
+- "Update the note content to 'Don't forget the meeting at 3pm'"
+- "Make the note blue"
+- "Set the counter to 100"
+- "Change the counter label to 'Tasks Completed'"
+
+### InteractableConfig
+
+When using `withTamboInteractable`, you provide a configuration object describing the component to Tambo:
+
+```tsx
+interface InteractableConfig {
+  componentName: string; // Name for Tambo to reference
+  description: string; // Description of what the component does
+  propsSchema: z.ZodTypeAny; // Schema of props for Tambo to generate
+}
+```
+
+### How it Works
+
+For each component marked as interactable using `withTamboInteractable`, behind the scenes Tambo stores a state object representing the props of the component, and registers a tool to update that object.
+
+When Tambo decides to update an interactable component while responding to a message, it uses that component's 'update' tool, which updates the state and triggers a re-render of your wrapped component.
+
+## Integration with Tambo Provider
+
+Make sure your app is wrapped with the `<TamboProvider/>`.
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider>
+      {/* Your app with interactable components */}
+      <InteractableNote />
+      <InteractableCounter />
+    </TamboProvider>
+  );
+}
+```
+
+This creates a truly conversational interface where users can modify your UI through natural language, making your applications more accessible and user-friendly.
