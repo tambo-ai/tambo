@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.7](https://github.com/tambo-ai/tambo/compare/docs-v1.0.6...docs-v1.0.7) (2025-08-01)
+
+
+### Miscellaneous
+
+* **docs:** add documentation for additional context ([#745](https://github.com/tambo-ai/tambo/issues/745)) ([84ccd70](https://github.com/tambo-ai/tambo/commit/84ccd705fccf3e4acb798134d998bacf199e6fb7))
+
 ## [1.0.6](https://github.com/tambo-ai/tambo/compare/docs-v1.0.5...docs-v1.0.6) (2025-07-31)
 
 
