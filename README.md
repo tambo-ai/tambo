@@ -1,5 +1,5 @@
 <div align="center">
-	<img src="assets/octo-white-background.png" width="150" height="150" style="border-radius: 6px">
+	<img src="assets/octo-white-background-rounded.png" width="150" height="150" >
 	<h1>Tambo AI</h1>
 	<p>
 		<b>A React package for building AI-powered applications with generative UI, where users interact through natural language.</b>
