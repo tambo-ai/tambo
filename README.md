@@ -5,8 +5,6 @@
 		<b>A React package for building AI-powered applications with generative UI, where users interact through natural language.</b>
 	</p>
 	<br>
-	<br>
-	<br>
 </div>
 
 <p align="center">
@@ -19,15 +17,17 @@
 
 ## Build with apps with Generative UI and MCP
 
-[![Watch the video](https://img.youtube.com/vi/6zDDPfr7Aoo/0.jpg)](https://youtu.be/6zDDPfr7Aoo)
+![template gif](assets/template.gif)
 
-[Source code](https://github.com/tambo-ai/mcp-template)
-
-Create a new project using our MCP template:
+Get started using our [AI chat template](https://github.com/tambo-ai/tambo-template):
 
 ```bash
-npx tambo create-app -t mcp tambo-mcp-app
+npx tambo create-app my-tambo-app
 ```
+
+## Documentation
+
+For detailed information about what Tambo is and how it works, check out our [docs site.](https://docs.tambo.co)
 
 ## How does tambo-ai work?
 
@@ -96,10 +96,11 @@ npm run dev
 
 ### Templates
 
-| App                                                                    | Description                            |
-| ---------------------------------------------------------------------- | -------------------------------------- |
-| [MCP](https://github.com/tambo-ai/mcp-template) (new!)                 | Get started with MCP + Generative UX   |
-| [Regular Tools](https://github.com/tambo-ai/tambo-template)            | Get started with Generative UX         |
+| App | Description |
+| --- | ----------- |
+
+|
+| [AI Chat](https://github.com/tambo-ai/tambo-template) | Get started with Generative UX, tools, and MCP |
 | [Conversational Form](https://github.com/tambo-ai/conversational-form) | Collect information with generative UX |
 
 Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
@@ -284,25 +285,9 @@ const mcpServers = [
 - Node.js 18.x+
 - npm 10.x+
 
-### Quick Commands
-
-```bash
-# Clone and install
-git clone https://github.com/tambo-ai/tambo.git && cd tambo && npm install
-
-# Develop
-npm run dev
-
-# Build
-npm run build
-
-# Test
-npm run test
-```
-
 ## Resources
 
-- [React Package Documentation](./react-sdk/README.md)
+- [React Package Documentation](https://docs.tambo.co)
 - [Showcase Documentation](./showcase/README.md)
 
 ## License
