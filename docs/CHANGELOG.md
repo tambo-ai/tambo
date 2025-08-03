@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.11](https://github.com/tambo-ai/tambo/compare/docs-v1.0.10...docs-v1.0.11) (2025-08-03)
+
+
+### Bug Fixes
+
+* add back in doc gif ([#765](https://github.com/tambo-ai/tambo/issues/765)) ([6be69e5](https://github.com/tambo-ai/tambo/commit/6be69e553b9138546d4d66c9059ea50a27faad29))
+
 ## [1.0.10](https://github.com/tambo-ai/tambo/compare/docs-v1.0.9...docs-v1.0.10) (2025-08-01)
 
 
