@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.12](https://github.com/tambo-ai/tambo/compare/docs-v1.0.11...docs-v1.0.12) (2025-08-03)
+
+
+### Documentation
+
+* add 'edit on github' link to docs pages ([#767](https://github.com/tambo-ai/tambo/issues/767)) ([63aae74](https://github.com/tambo-ai/tambo/commit/63aae74b57395baa076a8da80a68ee8da784515b))
+
 ## [1.0.11](https://github.com/tambo-ai/tambo/compare/docs-v1.0.10...docs-v1.0.11) (2025-08-03)
 
 
