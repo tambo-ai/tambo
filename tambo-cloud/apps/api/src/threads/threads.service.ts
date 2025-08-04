@@ -1132,6 +1132,18 @@ export class ThreadsService {
     let lastUpdateTime = 0;
     const updateIntervalMs = 500;
 
+    const cancellationRef = { current: false };
+
+    const checkCancellationStatus = async () => {
+      try {
+        const thread = await operations.getThread(db, threadId, projectId);
+        cancellationRef.current =
+          thread?.generationStage === GenerationStage.CANCELLED;
+      } catch (error) {
+        logger.error(`Error checking thread cancellation status: ${error}`);
+      }
+    };
+
     for await (const threadMessage of convertDecisionStreamToMessageStream(
       stream,
       inProgressMessage,
@@ -1139,14 +1151,10 @@ export class ThreadsService {
       // Update db message on interval
       const currentTime = Date.now();
       if (currentTime - lastUpdateTime >= updateIntervalMs) {
-        const start = Date.now();
-        const thread = await operations.getThread(db, threadId, projectId);
-        if (!thread) {
-          throw new Error("Thread not found");
-        }
-        const threadFetchEnd = Date.now();
+        // Fire off cancellation check asynchronously - will update cancellationRef for future iterations
+        checkCancellationStatus();
 
-        if (thread.generationStage === GenerationStage.CANCELLED) {
+        if (cancellationRef.current) {
           yield {
             responseMessageDto: {
               ...threadMessage,
@@ -1164,10 +1172,6 @@ export class ThreadsService {
           ...threadMessage,
           content: convertContentPartToDto(threadMessage.content),
         });
-        const updateMessageEnd = Date.now();
-        console.log(
-          `findOne thread took ${threadFetchEnd - start}ms, updateMessage took ${updateMessageEnd - threadFetchEnd}ms`,
-        );
         lastUpdateTime = currentTime;
       }
 
