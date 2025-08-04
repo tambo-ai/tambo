@@ -30,7 +30,7 @@
     "jest": "^30.0.5",
     "lint-staged": "^16.1.4",
     "prettier": "^3.6.2",
-    "ts-jest": "^29.4.0",
+    "ts-jest": "^29.4.1",
     "tsx": "^4.20.3",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
