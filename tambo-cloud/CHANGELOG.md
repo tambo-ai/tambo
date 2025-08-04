@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.94.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.94.0...repo-v0.94.1) (2025-08-04)
+
+
+### Bug Fixes
+
+* don't await during chunk handling ([#1476](https://github.com/tambo-ai/tambo-cloud/issues/1476)) ([ad47eff](https://github.com/tambo-ai/tambo-cloud/commit/ad47efff91ed05944616b7a689599afc72fe5eb0))
+
+
+### Miscellaneous Chores
+
+* add test log ([#1473](https://github.com/tambo-ai/tambo-cloud/issues/1473)) ([2fc6349](https://github.com/tambo-ai/tambo-cloud/commit/2fc63494f97e7a08347930f82aedc48200ded3f9))
+* combine ai-sdk, make some smaller package groups ([#1462](https://github.com/tambo-ai/tambo-cloud/issues/1462)) ([09ceff7](https://github.com/tambo-ai/tambo-cloud/commit/09ceff7a0981863aeb86535ed9d0da8ba6d90f6d))
+* **deps-dev:** bump @types/pg from 8.15.4 to 8.15.5 ([#1472](https://github.com/tambo-ai/tambo-cloud/issues/1472)) ([0fdda71](https://github.com/tambo-ai/tambo-cloud/commit/0fdda71937cfa2d20282208cb778513e569131dd))
+* **deps-dev:** bump lint-staged from 16.1.2 to 16.1.4 ([#1457](https://github.com/tambo-ai/tambo-cloud/issues/1457)) ([cb2c437](https://github.com/tambo-ai/tambo-cloud/commit/cb2c437190e80f03923dd2038a490b344e6ac50a))
+* **deps-dev:** bump the nestjs group with 2 updates ([#1451](https://github.com/tambo-ai/tambo-cloud/issues/1451)) ([563bce7](https://github.com/tambo-ai/tambo-cloud/commit/563bce7163748c44ac8fecd228eab012501bc02b))
+* **deps-dev:** bump ts-jest from 29.4.0 to 29.4.1 in the testing group ([#1454](https://github.com/tambo-ai/tambo-cloud/issues/1454)) ([e5ae64b](https://github.com/tambo-ai/tambo-cloud/commit/e5ae64b1ddda45e1943d095721409722e570e52a))
+* **deps-dev:** bump typescript-eslint from 8.38.0 to 8.39.0 in the eslint group ([#1464](https://github.com/tambo-ai/tambo-cloud/issues/1464)) ([0c4ab25](https://github.com/tambo-ai/tambo-cloud/commit/0c4ab25d8acec52cb7785c501cf87a9ac7600930))
+* **deps:** bump @hookform/resolvers from 5.2.0 to 5.2.1 ([#1470](https://github.com/tambo-ai/tambo-cloud/issues/1470)) ([c2aa7ce](https://github.com/tambo-ai/tambo-cloud/commit/c2aa7cea56ff764a90b8bb864276d59921246dfc))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.0 to 1.17.1 ([#1453](https://github.com/tambo-ai/tambo-cloud/issues/1453)) ([0f412b4](https://github.com/tambo-ai/tambo-cloud/commit/0f412b48c5f58d9ec02aa3d051df331acd0f921e))
+* **deps:** bump @splinetool/runtime from 1.10.38 to 1.10.39 ([#1455](https://github.com/tambo-ai/tambo-cloud/issues/1455)) ([d8a94da](https://github.com/tambo-ai/tambo-cloud/commit/d8a94dae063e8235ac55ceb419115499dfc711c7))
+* **deps:** bump @tambo-ai/react from 0.41.0 to 0.41.2 ([#1459](https://github.com/tambo-ai/tambo-cloud/issues/1459)) ([e000c26](https://github.com/tambo-ai/tambo-cloud/commit/e000c263f675066af2b1daface53f20ec42f8a37))
+* **deps:** bump @tanstack/react-query from 5.83.0 to 5.84.1 ([#1458](https://github.com/tambo-ai/tambo-cloud/issues/1458)) ([cbe4d73](https://github.com/tambo-ai/tambo-cloud/commit/cbe4d7313d7b5a11916741acc14027de33c00da1))
+* **deps:** bump drizzle-orm from 0.44.3 to 0.44.4 in the drizzle group ([#1452](https://github.com/tambo-ai/tambo-cloud/issues/1452)) ([439e303](https://github.com/tambo-ai/tambo-cloud/commit/439e303bc82806ab8c7388e9b0f923c815255561))
+* **deps:** bump framer-motion from 12.23.11 to 12.23.12 ([#1471](https://github.com/tambo-ai/tambo-cloud/issues/1471)) ([c060fac](https://github.com/tambo-ai/tambo-cloud/commit/c060facb9a4c9e5171a142e3844497cab2c02ba7))
+* **deps:** bump resend from 4.7.0 to 4.8.0 ([#1469](https://github.com/tambo-ai/tambo-cloud/issues/1469)) ([f94c4a3](https://github.com/tambo-ai/tambo-cloud/commit/f94c4a339ac2e65b398f9f0ef299941bd4a2f502))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1468](https://github.com/tambo-ai/tambo-cloud/issues/1468)) ([92de20a](https://github.com/tambo-ai/tambo-cloud/commit/92de20adaf593f91a8d179e44585fb60d52c29fb))
+* **deps:** bump the trpc group with 3 updates ([#1463](https://github.com/tambo-ai/tambo-cloud/issues/1463)) ([72fc972](https://github.com/tambo-ai/tambo-cloud/commit/72fc972c45ccf2634148644e8c998864acd9f0e0))
+* test update thread fetch logic ([#1474](https://github.com/tambo-ai/tambo-cloud/issues/1474)) ([7362c6d](https://github.com/tambo-ai/tambo-cloud/commit/7362c6d17f3296049d43a8b0599a057d75a15d48))
+
 ## [0.94.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.93.0...repo-v0.94.0) (2025-08-01)
 
 
