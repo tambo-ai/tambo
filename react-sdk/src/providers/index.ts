@@ -5,6 +5,12 @@ export {
   useTamboComponent,
 } from "./tambo-component-provider";
 export {
+  TamboContextHelpersProvider,
+  useTamboContextHelpers,
+  type TamboContextHelpersContextProps,
+  type TamboContextHelpersProviderProps,
+} from "./tambo-context-helpers-provider";
+export {
   Pending,
   Streaming,
   Success,

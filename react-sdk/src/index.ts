@@ -19,15 +19,19 @@ export { useTamboThreadInput } from "./hooks/use-thread-input";
 export {
   TamboClientProvider,
   TamboComponentProvider,
+  TamboContextHelpersProvider,
   TamboPropStreamProvider,
   TamboProvider,
   TamboStubProvider,
   TamboThreadProvider,
   useTambo,
   useTamboClient,
+  useTamboContextHelpers,
   useTamboStream,
   useTamboThread,
   type TamboComponent,
+  type TamboContextHelpersContextProps,
+  type TamboContextHelpersProviderProps,
   type TamboRegistryContext,
   type TamboStubProviderProps,
 } from "./providers";
@@ -68,3 +72,15 @@ export {
   type WithTamboInteractableProps,
 } from "./providers/hoc/with-tambo-interactable";
 export { useTamboInteractable } from "./providers/tambo-interactable-provider";
+
+// Context helpers exports
+export {
+  DEFAULT_CONTEXT_HELPERS,
+  getUserPageContext,
+  getUserTimeContext,
+} from "./context-helpers";
+export type {
+  AdditionalContext,
+  AdditionalContextHelper,
+  ContextHelpersConfig,
+} from "./context-helpers";
