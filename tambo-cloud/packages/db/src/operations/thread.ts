@@ -4,11 +4,11 @@ import {
   count,
   desc,
   eq,
+  ilike,
   inArray,
   isNull,
   or,
   sql,
-  ilike,
 } from "drizzle-orm";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
@@ -43,6 +43,26 @@ export async function createThread(
     .returning();
 
   return thread;
+}
+
+export async function getThread(
+  db: HydraDb,
+  threadId: string,
+  projectId: string,
+  contextKey?: string,
+) {
+  return await db.query.threads.findFirst({
+    where: contextKey
+      ? and(
+          eq(schema.threads.id, threadId),
+          eq(schema.threads.projectId, projectId),
+          eq(schema.threads.contextKey, contextKey),
+        )
+      : and(
+          eq(schema.threads.id, threadId),
+          eq(schema.threads.projectId, projectId),
+        ),
+  });
 }
 
 export async function getThreadForProjectId(
