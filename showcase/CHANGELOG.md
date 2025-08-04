@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.17.0...showcase-v0.17.1) (2025-08-04)
+
+
+### Miscellaneous
+
+* replace Server icon with custom MCPIcon in message input component ([#770](https://github.com/tambo-ai/tambo/issues/770)) ([865eaa3](https://github.com/tambo-ai/tambo/commit/865eaa3516d5e491ac27ee7c77dc13eef61e5ce0))
+
 ## [0.17.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.16.0...showcase-v0.17.0) (2025-07-31)
 
 
