@@ -425,7 +425,7 @@ const MessageInputError = React.forwardRef<
   return (
     <p
       ref={ref}
-      className={cn("text-sm text-[hsl(var(--destructive))] mt-2", className)}
+      className={cn("text-sm text-destructive mt-2", className)}
       data-slot="message-input-error"
       {...props}
     >
