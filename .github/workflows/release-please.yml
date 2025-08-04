@@ -1,10 +1,15 @@
-name: Release
+name: Release Please
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+
+# Prevent multiple simultaneous runs
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -13,80 +18,105 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-
+    outputs:
+      react-sdk--release_created: ${{ steps.release.outputs.react-sdk--release_created }}
+      cli--release_created: ${{ steps.release.outputs.cli--release_created }}
+      create-tambo-app--release_created: ${{ steps.release.outputs.create-tambo-app--release_created }}
+      docs--release_created: ${{ steps.release.outputs.docs--release_created }}
+      showcase--release_created: ${{ steps.release.outputs.showcase--release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
         id: release
         uses: googleapis/release-please-action@v4
         with:
-          # need an explicit token here, otherwise the pull request created will not
-          # get other actions run on its behalf
-          # https://github.com/googleapis/release-please/issues/922#issuecomment-861154425
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           manifest-file: .release-please-manifest.json
 
+  # NPM Package Publishing (only for npm packages)
+  publish-npm:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' || needs.release-please.outputs.cli--release_created == 'true' || needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
+    steps:
       - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.releases_created }}
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - uses: actions/setup-node@v4
-        if: ${{ steps.release.outputs.releases_created }}
         with:
           node-version: "22"
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
-        if: ${{ steps.release.outputs.releases_created }}
-        # This (`npm install) is a workaround for the fact that release-please
-        # is not properly updating the lockfile for interdependencies. `npm ci`
-        # will fail if more than one package has a version change. This is a bug
-        # in release-please, which should be updating the version numbers in release PR.
         run: npm install
 
       - name: Build
-        if: ${{ steps.release.outputs.releases_created }}
         run: npm run build
 
       - name: Publish @tambo-ai/react to npm
-        if: ${{ steps.release.outputs.react-sdk--release_created }}
+        if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
         working-directory: ./react-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
       - name: Publish tambo to npm
-        if: ${{ steps.release.outputs.cli--release_created }}
+        if: ${{ needs.release-please.outputs.cli--release_created == 'true' }}
         working-directory: ./cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
       - name: Publish create-tambo-app to npm
-        if: ${{ steps.release.outputs.create-tambo-app--release_created }}
+        if: ${{ needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
         working-directory: ./create-tambo-app
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
+  # Docs Deployment
+  deploy-docs:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.docs--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
       - name: Setup Git User
-        if: ${{ steps.release.outputs.docs--release_created || steps.release.outputs.showcase--release_created }}
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
 
       - name: Merge main into deploy-docs
-        if: ${{ steps.release.outputs.docs--release_created }}
         run: |
           git checkout deploy-docs
-          git merge --no-ff main -m "chore: merge main into deploy-docs for release ${{ steps.release.outputs.tag_name }}"
+          git merge --no-ff main -m "chore: merge main into deploy-docs for release ${{ needs.release-please.outputs.tag_name }}"
           git push origin deploy-docs
 
+  # Showcase Deployment
+  deploy-showcase:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.showcase--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - name: Setup Git User
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
       - name: Merge main into deploy-showcase
-        if: ${{ steps.release.outputs.showcase--release_created }}
         run: |
           git checkout deploy-showcase
-          git merge --no-ff main -m "chore: merge main into deploy-showcase for release ${{ steps.release.outputs.tag_name }}"
+          git merge --no-ff main -m "chore: merge main into deploy-showcase for release ${{ needs.release-please.outputs.tag_name }}"
           git push origin deploy-showcase

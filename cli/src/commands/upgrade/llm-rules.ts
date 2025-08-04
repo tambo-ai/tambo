@@ -31,10 +31,6 @@ export async function upgradeLlmRules(
     let repoRulesPath: string;
 
     switch (template) {
-      case "mcp":
-        repoRulesPath =
-          "https://api.github.com/repos/tambo-ai/mcp-template/contents/.cursor/rules";
-        break;
       case "conversational-form":
         repoRulesPath =
           "https://api.github.com/repos/tambo-ai/conversational-form/contents/.cursor/rules";

@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.41.2](https://github.com/tambo-ai/tambo/compare/react-v0.41.1...react-v0.41.2) (2025-08-01)
+
+
+### Bug Fixes
+
+* bump ([#762](https://github.com/tambo-ai/tambo/issues/762)) ([ada97ec](https://github.com/tambo-ai/tambo/commit/ada97ec8cce2256f973247ff1ccae7f8eabd7117))
+
+
+### Miscellaneous
+
+* trigger release ([#760](https://github.com/tambo-ai/tambo/issues/760)) ([6abd8bc](https://github.com/tambo-ai/tambo/commit/6abd8bc0ea7ab6cb66d1bf8ae00653c5568059eb))
+
+## [0.41.1](https://github.com/tambo-ai/tambo/compare/react-v0.41.0...react-v0.41.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* update sdk readme ([#757](https://github.com/tambo-ai/tambo/issues/757)) ([9db3533](https://github.com/tambo-ai/tambo/commit/9db3533258182c175c6556da728a91233a7d5040))
+
+## [0.41.0](https://github.com/tambo-ai/tambo/compare/react-v0.40.1...react-v0.41.0) (2025-07-31)
+
+
+### Features
+
+* move additional context to message request ([#740](https://github.com/tambo-ai/tambo/issues/740)) ([09386ba](https://github.com/tambo-ai/tambo/commit/09386babf964ccdb3f447242ab4b042b1cd3dac6))
+
+## [0.40.1](https://github.com/tambo-ai/tambo/compare/react-v0.40.0...react-v0.40.1) (2025-07-29)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @testing-library/jest-dom from 6.6.3 to 6.6.4 ([#730](https://github.com/tambo-ai/tambo/issues/730)) ([aacc7e9](https://github.com/tambo-ai/tambo/commit/aacc7e9f8ac38e8a86a4385998902b915512573a))
+* **deps-dev:** bump the eslint group with 4 updates ([#720](https://github.com/tambo-ai/tambo/issues/720)) ([fcfcb6c](https://github.com/tambo-ai/tambo/commit/fcfcb6c8f7e2c98139279cbb0fe41057f45f2f2a))
+* **deps:** bump @modelcontextprotocol/sdk from 1.16.0 to 1.17.0 ([#723](https://github.com/tambo-ai/tambo/issues/723)) ([958b20a](https://github.com/tambo-ai/tambo/commit/958b20add4af78991962f7e1a9780fc4a5acbd5e))
+
+## [0.40.0](https://github.com/tambo-ai/tambo/compare/react-v0.39.0...react-v0.40.0) (2025-07-28)
+
+
+### Features
+
+* Add InteractiveMap component using react‑leaflet ([#678](https://github.com/tambo-ai/tambo/issues/678)) ([22b3862](https://github.com/tambo-ai/tambo/commit/22b3862cdefbe5d53425da0f7ad0167698847d09))
+
+
+### Bug Fixes
+
+* cleanup TamboPropStreamProvider ([#713](https://github.com/tambo-ai/tambo/issues/713)) ([d486d0a](https://github.com/tambo-ai/tambo/commit/d486d0aeef52930fb531d15fbe3e662af09ad254))
+
 ## [0.39.0](https://github.com/tambo-ai/tambo/compare/react-v0.38.1...react-v0.39.0) (2025-07-25)
 
 

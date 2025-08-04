@@ -14,7 +14,8 @@ Tambo uses OAuth 2.0 [Token Exchange](https://datatracker.ietf.org/doc/html/rfc8
 3. **Your app exchanges this token with Tambo** via the `/oauth/token` endpoint
 4. **Tambo returns a Tambo-specific token** that identifies the user for all subsequent API calls
 
-```mermaid
+<Mermaid
+chart="
 sequenceDiagram
     participant User as User
     participant App as Your App
@@ -30,7 +31,8 @@ sequenceDiagram
 
     App->>Tambo: API requests<br/>(Authorization: Bearer {tambo-token})
     Tambo-->>App: User's threads & messages
-```
+    "
+    />
 
 ## Token Requirements
 

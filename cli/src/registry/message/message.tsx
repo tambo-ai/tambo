@@ -11,7 +11,7 @@ import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { createMarkdownComponents } from "./markdown-components";
+import { createMarkdownComponents } from "@/components/ui/markdown-components";
 
 /**
  * CSS variants for the message container

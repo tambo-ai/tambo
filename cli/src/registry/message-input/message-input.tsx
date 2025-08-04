@@ -5,6 +5,8 @@ import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Square } from "lucide-react";
 import * as React from "react";
+import { McpConfigModal } from "@/components/ui/mcp-config-modal";
+import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 
 /**
  * CSS variants for the message input container
@@ -339,6 +341,87 @@ const MessageInputSubmitButton = React.forwardRef<
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
 
 /**
+ * MCP Config Button component for opening the MCP configuration modal.
+ * @component MessageInput.McpConfigButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.McpConfigButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputMcpConfigButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, ...props }, ref) => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
+
+  const MCPIcon = () => {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width="24"
+        height="24"
+        color="#000000"
+        fill="none"
+      >
+        <path
+          d="M3.49994 11.7501L11.6717 3.57855C12.7762 2.47398 14.5672 2.47398 15.6717 3.57855C16.7762 4.68312 16.7762 6.47398 15.6717 7.57855M15.6717 7.57855L9.49994 13.7501M15.6717 7.57855C16.7762 6.47398 18.5672 6.47398 19.6717 7.57855C20.7762 8.68312 20.7762 10.474 19.6717 11.5785L12.7072 18.543C12.3167 18.9335 12.3167 19.5667 12.7072 19.9572L13.9999 21.2499"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        ></path>
+        <path
+          d="M17.4999 9.74921L11.3282 15.921C10.2237 17.0255 8.43272 17.0255 7.32823 15.921C6.22373 14.8164 6.22373 13.0255 7.32823 11.921L13.4999 5.74939"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        ></path>
+      </svg>
+    );
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content="Configure MCP Servers"
+        side="right"
+        className="bg-muted text-primary"
+      >
+        <button
+          ref={ref}
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className={buttonClasses}
+          aria-label="Open MCP Configuration"
+          data-slot="message-input-mcp-config"
+          {...props}
+        >
+          <MCPIcon />
+        </button>
+      </Tooltip>
+      <McpConfigModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </TooltipProvider>
+  );
+});
+MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
+
+/**
  * Props for the MessageInputError component.
  * Extends standard HTMLParagraphElement attributes.
  */
@@ -381,7 +464,7 @@ const MessageInputError = React.forwardRef<
 MessageInputError.displayName = "MessageInput.Error";
 
 /**
- * Container for the toolbar components (like submit button).
+ * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
  * @example
@@ -389,9 +472,9 @@ MessageInputError.displayName = "MessageInput.Error";
  * <MessageInput>
  *   <MessageInput.Textarea />
  *   <MessageInput.Toolbar>
+ *     <MessageInput.McpConfigButton />
  *     <MessageInput.SubmitButton />
  *   </MessageInput.Toolbar>
- * </MessageInput>
  * ```
  */
 const MessageInputToolbar = React.forwardRef<
@@ -401,11 +484,37 @@ const MessageInputToolbar = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex justify-end mt-2 p-1", className)}
+      className={cn(
+        "flex justify-between items-center mt-2 p-1 gap-2",
+        className,
+      )}
       data-slot="message-input-toolbar"
       {...props}
     >
-      {children}
+      <div className="flex items-center gap-2">
+        {/* Left side - everything except submit button */}
+        {React.Children.map(children, (child) => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return null; // Don't render submit button here
+          }
+          return child;
+        })}
+      </div>
+      <div className="flex items-center gap-2">
+        {/* Right side - only submit button */}
+        {React.Children.map(children, (child) => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return child; // Only render submit button here
+          }
+          return null;
+        })}
+      </div>
     </div>
   );
 });
@@ -415,6 +524,7 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 export {
   MessageInput,
   MessageInputError,
+  MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,

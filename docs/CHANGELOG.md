@@ -1,5 +1,90 @@
 # Changelog
 
+## [1.0.12](https://github.com/tambo-ai/tambo/compare/docs-v1.0.11...docs-v1.0.12) (2025-08-03)
+
+
+### Documentation
+
+* add 'edit on github' link to docs pages ([#767](https://github.com/tambo-ai/tambo/issues/767)) ([63aae74](https://github.com/tambo-ai/tambo/commit/63aae74b57395baa076a8da80a68ee8da784515b))
+
+## [1.0.11](https://github.com/tambo-ai/tambo/compare/docs-v1.0.10...docs-v1.0.11) (2025-08-03)
+
+
+### Bug Fixes
+
+* add back in doc gif ([#765](https://github.com/tambo-ai/tambo/issues/765)) ([6be69e5](https://github.com/tambo-ai/tambo/commit/6be69e553b9138546d4d66c9059ea50a27faad29))
+
+## [1.0.10](https://github.com/tambo-ai/tambo/compare/docs-v1.0.9...docs-v1.0.10) (2025-08-01)
+
+
+### Documentation
+
+* fix mermaid diagram ([#763](https://github.com/tambo-ai/tambo/issues/763)) ([b33d5cf](https://github.com/tambo-ai/tambo/commit/b33d5cf04c71345f768097e85de13e8dc5a81748))
+
+## [1.0.9](https://github.com/tambo-ai/tambo/compare/docs-v1.0.8...docs-v1.0.9) (2025-08-01)
+
+
+### Documentation
+
+* trigger docs release ([#755](https://github.com/tambo-ai/tambo/issues/755)) ([5ff8544](https://github.com/tambo-ai/tambo/commit/5ff8544ac21dac547cc27f7673ba586fe00a0c55))
+
+## [1.0.8](https://github.com/tambo-ai/tambo/compare/docs-v1.0.7...docs-v1.0.8) (2025-08-01)
+
+
+### Documentation
+
+* small change to trigger release ([#752](https://github.com/tambo-ai/tambo/issues/752)) ([7c1975c](https://github.com/tambo-ai/tambo/commit/7c1975cb59c1267d095d1334c0feed882feb8317))
+
+## [1.0.7](https://github.com/tambo-ai/tambo/compare/docs-v1.0.6...docs-v1.0.7) (2025-08-01)
+
+
+### Miscellaneous
+
+* **docs:** add documentation for additional context ([#745](https://github.com/tambo-ai/tambo/issues/745)) ([84ccd70](https://github.com/tambo-ai/tambo/commit/84ccd705fccf3e4acb798134d998bacf199e6fb7))
+
+## [1.0.6](https://github.com/tambo-ai/tambo/compare/docs-v1.0.5...docs-v1.0.6) (2025-07-31)
+
+
+### Documentation
+
+* Add Interactables doc page ([#744](https://github.com/tambo-ai/tambo/issues/744)) ([cfacd3d](https://github.com/tambo-ai/tambo/commit/cfacd3dc23a80ef4c2d135a5c02d6a1c5374f119))
+
+## [1.0.5](https://github.com/tambo-ai/tambo/compare/docs-v1.0.4...docs-v1.0.5) (2025-07-29)
+
+
+### Miscellaneous
+
+* **deps:** bump fumadocs-core from 15.6.5 to 15.6.6 ([#732](https://github.com/tambo-ai/tambo/issues/732)) ([14aa154](https://github.com/tambo-ai/tambo/commit/14aa1540c7944d5538ac2e0ab525bfbeb35f3039))
+* **deps:** bump fumadocs-mdx from 11.7.0 to 11.7.1 ([#725](https://github.com/tambo-ai/tambo/issues/725)) ([6f786ae](https://github.com/tambo-ai/tambo/commit/6f786ae482c698f13237fef70a874dbe75f33773))
+* **deps:** bump fumadocs-ui from 15.6.5 to 15.6.6 ([#735](https://github.com/tambo-ai/tambo/issues/735)) ([44a55bd](https://github.com/tambo-ai/tambo/commit/44a55bd92c3a9f8eba1aaac3ac8f8bb9dd32b98f))
+* **deps:** bump next from 15.3.5 to 15.4.4 ([#724](https://github.com/tambo-ai/tambo/issues/724)) ([bcbc50a](https://github.com/tambo-ai/tambo/commit/bcbc50a4e7cea5fcf720ca6d0ffbe57c5897cf54))
+
+## [1.0.4](https://github.com/tambo-ai/tambo/compare/docs-v1.0.3...docs-v1.0.4) (2025-07-29)
+
+
+### Miscellaneous
+
+* **main:** release docs 1.0.3 ([#719](https://github.com/tambo-ai/tambo/issues/719)) ([4050059](https://github.com/tambo-ai/tambo/commit/40500595b916bab7922cb663f5958bf9cdd2ce3a))
+
+## [1.0.3](https://github.com/tambo-ai/tambo/compare/docs-v1.0.2...docs-v1.0.3) (2025-07-28)
+
+
+### Bug Fixes
+
+* cleanup TamboPropStreamProvider ([#713](https://github.com/tambo-ai/tambo/issues/713)) ([d486d0a](https://github.com/tambo-ai/tambo/commit/d486d0aeef52930fb531d15fbe3e662af09ad254))
+
+
+### Miscellaneous
+
+* **main:** release docs 1.0.3 ([#718](https://github.com/tambo-ai/tambo/issues/718)) ([49b85b1](https://github.com/tambo-ai/tambo/commit/49b85b1717417708e58a9901b7331536bd006b2e))
+
+## [1.0.3](https://github.com/tambo-ai/tambo/compare/docs-v1.0.2...docs-v1.0.3) (2025-07-28)
+
+
+### Bug Fixes
+
+* cleanup TamboPropStreamProvider ([#713](https://github.com/tambo-ai/tambo/issues/713)) ([d486d0a](https://github.com/tambo-ai/tambo/commit/d486d0aeef52930fb531d15fbe3e662af09ad254))
+
 ## [1.0.2](https://github.com/tambo-ai/tambo/compare/docs-v1.0.1...docs-v1.0.2) (2025-07-25)
 
 
