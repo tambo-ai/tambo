@@ -61,3 +61,34 @@ updates:
           - "jest-*"
           - "ts-jest"
           - "@testing-library/*"
+          - "supertest"
+      ai-sdk:
+        patterns:
+          - "ai"
+          - "@ai-sdk/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      next:
+        patterns:
+          - "next"
+          - "@next/*"
+      t3-oss:
+        patterns:
+          - "@t3-oss/*"
+      tambo-ai:
+        patterns:
+          - "@tambo-ai/*"
+      small-safe-packages:
+        # These aren't related, but these are all generally safe to update
+        # unconditionally, so we lump them together to get one PR
+        patterns:
+          - "posthog-js"
+          - "@splinetool/runtime"
+          - "prettier"
+          - "lint-staged"
+          - "globals"
+          - "lucide-react"
