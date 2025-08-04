@@ -1139,7 +1139,10 @@ export class ThreadsService {
       // Update db message on interval
       const currentTime = Date.now();
       if (currentTime - lastUpdateTime >= updateIntervalMs) {
+        const start = Date.now();
         const thread = await this.findOne(threadId, projectId);
+        const end = Date.now();
+        console.log(`findOne thread took ${end - start}ms`);
         if (thread.generationStage === GenerationStage.CANCELLED) {
           yield {
             responseMessageDto: {
