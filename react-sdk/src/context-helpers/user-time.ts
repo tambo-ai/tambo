@@ -10,10 +10,7 @@ export function getUserTimeContext(): AdditionalContext {
   return {
     name: "userTime",
     context: {
-      localTime: now.toLocaleString(),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       timestamp: now.toISOString(),
-      offsetMinutes: now.getTimezoneOffset(),
     },
   };
 }
