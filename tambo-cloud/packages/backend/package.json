@@ -32,7 +32,7 @@
     "ajv": "^8.17.1",
     "gpt-tokenizer": "^3.0.1",
     "langfuse": "^3.38.4",
-    "openai": "^5.10.2",
+    "openai": "^5.11.0",
     "partial-json": "^0.1.7",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.24.3"

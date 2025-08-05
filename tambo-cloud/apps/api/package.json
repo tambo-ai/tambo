@@ -49,7 +49,7 @@
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.2",
     "langfuse-vercel": "^3.38.4",
-    "openai": "^5.10.2",
+    "openai": "^5.11.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.2",
