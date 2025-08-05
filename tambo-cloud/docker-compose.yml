@@ -3,9 +3,6 @@ networks:
     driver: bridge
 
 volumes:
-  tambo_node_modules:
-  tambo_api_dist:
-  tambo_web_next:
   tambo_postgres_data:
 
 services:
@@ -78,9 +75,6 @@ services:
     networks:
       - tambo_network
     restart: unless-stopped
-    volumes:
-      - tambo_web_next:/app/apps/web/.next
-      - tambo_node_modules:/app/node_modules
 
   # API Service (NestJS)
   api:
@@ -122,9 +116,6 @@ services:
     networks:
       - tambo_network
     restart: unless-stopped
-    volumes:
-      - tambo_api_dist:/app/apps/api/dist
-      - tambo_node_modules:/app/node_modules
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s

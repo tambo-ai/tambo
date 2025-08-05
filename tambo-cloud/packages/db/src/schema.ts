@@ -20,19 +20,109 @@ import {
   integer,
   pgPolicy,
   pgRole,
+  pgSchema,
   pgTable,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
-import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
+import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 import { customJsonb } from "./drizzleUtil";
-export { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
+export { authenticatedRole, authUid } from "drizzle-orm/supabase";
 
 /** Use this to get the project id from the api key */
 export const projectApiKeyVariable = sql`current_setting('request.apikey.project_id')`;
 export const projectApiKeyRole = pgRole("project_api_key", {
   inherit: true,
 });
+
+// User schema for NextAuth adapter tables
+export const authSchema = pgSchema("auth");
+
+export const authUsers = authSchema.table(
+  "users",
+  ({ text, timestamp, uuid, jsonb }) => ({
+    id: uuid("id").primaryKey().notNull(),
+    email: text("email"),
+    emailConfirmedAt: timestamp("email_confirmed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    rawUserMetaData: jsonb("raw_user_meta_data").default({}),
+  }),
+  (table) => [index("user_email_idx").on(table.email)],
+);
+
+export const identities = authSchema.table(
+  "identities",
+  ({ text, timestamp, uuid, jsonb }) => ({
+    id: uuid("id").primaryKey().notNull(),
+    userId: uuid("user_id")
+      .references(() => authUsers.id, { onDelete: "cascade" })
+      .notNull(),
+    provider: text("provider").notNull(),
+    providerId: text("provider_id").notNull(),
+    identityData: jsonb("identity_data").default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("identity_provider_provider_id_idx").on(
+      table.provider,
+      table.providerId,
+    ),
+    index("identity_user_id_idx").on(table.userId),
+  ],
+);
+
+export const sessions = authSchema.table(
+  "sessions",
+  ({ text, timestamp, uuid }) => ({
+    id: text("id").primaryKey().notNull(),
+    userId: uuid("user_id")
+      .references(() => authUsers.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    notAfter: timestamp("not_after", { withTimezone: true }),
+  }),
+  (table) => [
+    index("session_user_id_idx").on(table.userId),
+    index("session_not_after_idx").on(table.notAfter),
+  ],
+);
+
+// Relations for user schema tables
+export const userSchemaUserRelations = relations(authUsers, ({ many }) => ({
+  identities: many(identities),
+  sessions: many(sessions),
+  projects: many(projectMembers),
+}));
+
+export const userSchemaIdentityRelations = relations(identities, ({ one }) => ({
+  user: one(authUsers, {
+    fields: [identities.userId],
+    references: [authUsers.id],
+  }),
+}));
+
+export const userSchemaSessionRelations = relations(sessions, ({ one }) => ({
+  user: one(authUsers, {
+    fields: [sessions.userId],
+    references: [authUsers.id],
+  }),
+}));
+
+// Export types for user schema tables
+export type DBUser = typeof authUsers.$inferSelect;
+export type DBIdentity = typeof identities.$inferSelect;
+export type DBSession = typeof sessions.$inferSelect;
 
 export const projects = pgTable(
   "projects",
@@ -159,10 +249,6 @@ export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
     fields: [projectMembers.userId],
     references: [authUsers.id],
   }),
-}));
-
-export const userRelations = relations(authUsers, ({ many }) => ({
-  projects: many(projectMembers),
 }));
 
 export const apiKeys = pgTable("api_keys", ({ text, timestamp, uuid }) => ({

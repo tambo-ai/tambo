@@ -3,6 +3,7 @@ node_modules
 **/node_modules
 
 # Build outputs
+apps/web/.next
 .next/
 dist/
 build/

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Stop Tambo Docker Stack
-# This script stops the Tambo application and PostgreSQL database
+# Build Tambo Docker Containers
+# This script builds all containers for the Tambo application
 
 set -e
 
@@ -20,6 +20,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+echo -e "${GREEN}🔨 Building Tambo Docker Containers...${NC}"
+echo -e "${BLUE}📁 Working directory: $(pwd)${NC}"
+
 # Check if docker.env exists
 if [ ! -f "docker.env" ]; then
     echo -e "${RED}❌ docker.env file not found!${NC}"
@@ -27,15 +30,15 @@ if [ ! -f "docker.env" ]; then
     exit 1
 fi
 
-echo -e "${YELLOW}🛑 Stopping Tambo Docker Stack...${NC}"
+# Check if Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo -e "${RED}❌ Docker is not running. Please start Docker first.${NC}"
+    exit 1
+fi
 
-# Stop all services
-echo -e "${BLUE}🎯 Stopping all services...${NC}"
-docker compose --env-file docker.env down || true
+# Build all containers
+echo -e "${BLUE}🚀 Building containers...${NC}"
+docker compose --env-file docker.env build
 
-# Remove network (only if no other containers are using it)
-echo -e "${BLUE}🔗 Cleaning up network...${NC}"
-docker network rm tambo_network 2>/dev/null || true
-
-echo -e "${GREEN}✅ Tambo Docker Stack stopped successfully!${NC}"
-echo -e "${YELLOW}💡 To start the stack again: ./scripts/tambo-start.sh${NC}" 
+echo -e "${GREEN}✅ Build completed!${NC}"
+echo -e "${YELLOW}💡 To start the containers: ./scripts/tambo-start.sh${NC}" 
