@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.17.1...showcase-v0.18.0) (2025-08-05)
+
+
+### Features
+
+* add pre-built context helpers ([#769](https://github.com/tambo-ai/tambo/issues/769)) ([757448b](https://github.com/tambo-ai/tambo/commit/757448b949f33a89ad0bc25b56918d95748da5ab))
+
 ## [0.17.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.17.0...showcase-v0.17.1) (2025-08-04)
 
 
