@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.1](https://github.com/tambo-ai/tambo/compare/docs-v1.1.0...docs-v1.1.1) (2025-08-05)
+
+
+### Miscellaneous
+
+* update additional context docs ([#780](https://github.com/tambo-ai/tambo/issues/780)) ([dcaaa1c](https://github.com/tambo-ai/tambo/commit/dcaaa1c91a966c6882aa61075b1391a4682ab313))
+
+
+### Documentation
+
+* add init docs llms.txt ([#778](https://github.com/tambo-ai/tambo/issues/778)) ([4624b34](https://github.com/tambo-ai/tambo/commit/4624b3447f115b23879acf58a416de63203d5c3a))
+
 ## [1.1.0](https://github.com/tambo-ai/tambo/compare/docs-v1.0.12...docs-v1.1.0) (2025-08-05)
 
 
