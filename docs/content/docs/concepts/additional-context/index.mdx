@@ -1,0 +1,89 @@
+---
+title: Additional Context
+description: Add additional information along with user's message
+---
+
+Additional Context helps you add additional information that will be sent along with the user's message. You can enable default context helpers to send metadata like timezone or page location to tambo.
+
+## Overview
+
+When enabled, context helpers automatically add metadata to messages without requiring any additional code in your components. This contextual information helps the AI:
+
+- Provide time-aware responses (e.g., "Good morning" at the right time)
+- Understand what page or section the user is currently viewing
+- Give location-specific recommendations
+- Provide more relevant help based on the user's current context
+
+## How to Add Context
+
+There are two ways to add additional context to messages:
+
+### 1. Automatic Context Helpers
+
+Context helpers automatically add predefined contextual information to every message. These are configured at the provider level and run automatically when messages are sent.
+
+### 2. Manual Context via Message Functions
+
+You can also add custom context on a per-message basis using the `additionalContext` parameter:
+
+```tsx
+// Using useTamboThreadInput hook
+const { submit } = useTamboThreadInput();
+
+await submit({
+  streamResponse: true,
+  additionalContext: {
+    customData: "specific to this message",
+    userPreferences: { theme: "dark" },
+  },
+});
+
+// Using sendThreadMessage
+const { sendThreadMessage } = useTamboThread();
+
+await sendThreadMessage("What's the weather?", {
+  additionalContext: {
+    location: "San Francisco",
+    units: "fahrenheit",
+  },
+});
+```
+
+Both automatic context helpers and manual context are merged together when sending messages. See [Sending Messages](message-threads/sending-messages) for more details on manual context.
+
+## Available Context Helpers
+
+Tambo comes with several pre-built context helpers:
+
+### userTime
+
+Provides the user's current time and timezone information.
+
+**Data provided:**
+
+```json
+{
+  "localTime": "1/15/2025, 3:30:00 PM",
+  "timezone": "America/New_York",
+  "timestamp": "2025-01-15T20:30:00.000Z",
+  "offsetMinutes": 300
+}
+```
+
+### userPage
+
+Provides information about the current page/URL the user is viewing.
+
+**Data provided:**
+
+```json
+{
+  "url": "https://example.com/dashboard",
+  "pathname": "/dashboard",
+  "hostname": "example.com",
+  "search": "?tab=settings",
+  "hash": "#profile",
+  "title": "Dashboard - Example App",
+  "referrer": "https://example.com/login"
+}
+```

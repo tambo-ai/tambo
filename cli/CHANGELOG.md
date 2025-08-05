@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.27.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.26.1...tambo-v0.27.0) (2025-08-05)
+
+
+### Features
+
+* add pre-built context helpers ([#769](https://github.com/tambo-ai/tambo/issues/769)) ([757448b](https://github.com/tambo-ai/tambo/commit/757448b949f33a89ad0bc25b56918d95748da5ab))
+
+## [0.26.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.26.0...tambo-v0.26.1) (2025-08-04)
+
+
+### Miscellaneous
+
+* replace Server icon with custom MCPIcon in message input component ([#770](https://github.com/tambo-ai/tambo/issues/770)) ([865eaa3](https://github.com/tambo-ai/tambo/commit/865eaa3516d5e491ac27ee7c77dc13eef61e5ce0))
+
 ## [0.26.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.25.0...tambo-v0.26.0) (2025-07-31)
 
 

@@ -1,6 +1,5 @@
 import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
-import { getGithubLastEdit } from "fumadocs-core/server";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import {
   DocsBody,
@@ -21,12 +20,6 @@ export default async function Page(props: {
 
   const MDXContent = page.data.body;
   const path = `docs/content/docs/${page.path}`;
-  const time = await getGithubLastEdit({
-    owner: "tambo-ai",
-    repo: "tambo",
-    path,
-  });
-  console.log(time);
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
@@ -50,11 +43,6 @@ export default async function Page(props: {
           <Github className="h-4 w-4" />
           Edit this page on GitHub
         </Link>
-        {time && (
-          <p className="text-sm text-gray-500">
-            Last updated on {time.toLocaleDateString()}
-          </p>
-        )}
       </div>
     </DocsPage>
   );
