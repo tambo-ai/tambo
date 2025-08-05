@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.2](https://github.com/tambo-ai/tambo/compare/docs-v1.1.1...docs-v1.1.2) (2025-08-05)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump typescript from 5.8.3 to 5.9.2 ([#790](https://github.com/tambo-ai/tambo/issues/790)) ([49b86a0](https://github.com/tambo-ai/tambo/commit/49b86a0ba3198419054b7b75af9970321224b997))
+* **deps:** bump fumadocs-mdx from 11.7.1 to 11.7.3 ([#785](https://github.com/tambo-ai/tambo/issues/785)) ([f73a4ce](https://github.com/tambo-ai/tambo/commit/f73a4ce189618be6c13a226aa370dca31e61a7cb))
+* **deps:** bump fumadocs-ui from 15.6.6 to 15.6.9 ([#783](https://github.com/tambo-ai/tambo/issues/783)) ([c73936c](https://github.com/tambo-ai/tambo/commit/c73936c84e22308069843439fe0107558d5534ba))
+* **deps:** bump lucide-react from 0.532.0 to 0.536.0 ([#781](https://github.com/tambo-ai/tambo/issues/781)) ([9f80a50](https://github.com/tambo-ai/tambo/commit/9f80a50c9359c3df741f329584608c35f7fbee58))
+
+
+### Documentation
+
+* update function name in interactables doc to 'withInteractable' ([#799](https://github.com/tambo-ai/tambo/issues/799)) ([cbb2ada](https://github.com/tambo-ai/tambo/commit/cbb2adab2e3c5c213203b8a7eb09f56ac4c52225))
+
 ## [1.1.1](https://github.com/tambo-ai/tambo/compare/docs-v1.1.0...docs-v1.1.1) (2025-08-05)
 
 
