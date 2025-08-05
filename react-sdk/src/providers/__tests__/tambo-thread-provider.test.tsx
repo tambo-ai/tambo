@@ -10,6 +10,7 @@ import {
 } from "../../model/generate-component-response";
 import { serializeRegistry } from "../../testing/tools";
 import { useTamboClient } from "../tambo-client-provider";
+import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "../tambo-thread-provider";
 
@@ -30,30 +31,13 @@ jest.mock("@tambo-ai/typescript-sdk", () => ({
   advanceStream: jest.fn(),
 }));
 
-// Mock the system context and getCustomContext
+// Mock the getCustomContext
 jest.mock("../../util/registry", () => ({
   ...jest.requireActual("../../util/registry"),
-  getSystemContext: () => ({
-    localTime: "7/24/2025, 6:26:21 PM",
-    timezone: "America/New_York",
-  }),
   getCustomContext: () => ({
     message: "additional instructions",
   }),
 }));
-
-// Mock the combined context which includes the system context and the custom context
-const mockCombinedContext = {
-  system: {
-    localTime: "7/24/2025, 6:26:21 PM",
-    timezone: "America/New_York",
-  },
-  ...{
-    custom: {
-      message: "additional instructions",
-    },
-  },
-};
 
 // Test utilities
 const createMockMessage = (
@@ -144,7 +128,11 @@ describe("TamboThreadProvider", () => {
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <TamboRegistryProvider components={mockRegistry}>
-      <TamboThreadProvider streaming={false}>{children}</TamboThreadProvider>
+      <TamboContextHelpersProvider
+        contextHelpers={{ userTime: false, userPage: false }}
+      >
+        <TamboThreadProvider streaming={false}>{children}</TamboThreadProvider>
+      </TamboContextHelpersProvider>
     </TamboRegistryProvider>
   );
 
@@ -284,7 +272,11 @@ describe("TamboThreadProvider", () => {
       messageToAppend: {
         content: [{ type: "text", text: "Hello" }],
         role: "user",
-        additionalContext: mockCombinedContext,
+        additionalContext: {
+          custom: {
+            message: "additional instructions",
+          },
+        },
       },
       availableComponents: serializeRegistry(mockRegistry),
       contextKey: undefined,
@@ -398,7 +390,13 @@ describe("TamboThreadProvider", () => {
         children: React.ReactNode;
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
-          <TamboThreadProvider streaming={true}>{children}</TamboThreadProvider>
+          <TamboContextHelpersProvider
+            contextHelpers={{ userTime: false, userPage: false }}
+          >
+            <TamboThreadProvider streaming={true}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
 
@@ -446,7 +444,11 @@ describe("TamboThreadProvider", () => {
           messageToAppend: {
             content: [{ type: "text", text: "Hello streaming" }],
             role: "user",
-            additionalContext: mockCombinedContext,
+            additionalContext: {
+              custom: {
+                message: "additional instructions",
+              },
+            },
           },
           availableComponents: serializeRegistry(mockRegistry),
           contextKey: undefined,
@@ -470,7 +472,13 @@ describe("TamboThreadProvider", () => {
         children: React.ReactNode;
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
-          <TamboThreadProvider streaming={true}>{children}</TamboThreadProvider>
+          <TamboContextHelpersProvider
+            contextHelpers={{ userTime: false, userPage: false }}
+          >
+            <TamboThreadProvider streaming={true}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
 
@@ -494,7 +502,11 @@ describe("TamboThreadProvider", () => {
         messageToAppend: {
           content: [{ type: "text", text: "Hello non-streaming" }],
           role: "user",
-          additionalContext: mockCombinedContext,
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         },
         availableComponents: serializeRegistry(mockRegistry),
         contextKey: undefined,
@@ -516,9 +528,13 @@ describe("TamboThreadProvider", () => {
         children: React.ReactNode;
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
-          <TamboThreadProvider streaming={false}>
-            {children}
-          </TamboThreadProvider>
+          <TamboContextHelpersProvider
+            contextHelpers={{ userTime: false, userPage: false }}
+          >
+            <TamboThreadProvider streaming={false}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
 
@@ -542,7 +558,11 @@ describe("TamboThreadProvider", () => {
         messageToAppend: {
           content: [{ type: "text", text: "Hello default" }],
           role: "user",
-          additionalContext: mockCombinedContext,
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         },
         availableComponents: serializeRegistry(mockRegistry),
         contextKey: undefined,
@@ -564,7 +584,11 @@ describe("TamboThreadProvider", () => {
         children: React.ReactNode;
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
-          <TamboThreadProvider>{children}</TamboThreadProvider>
+          <TamboContextHelpersProvider
+            contextHelpers={{ userTime: false, userPage: false }}
+          >
+            <TamboThreadProvider>{children}</TamboThreadProvider>
+          </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
 
@@ -612,7 +636,11 @@ describe("TamboThreadProvider", () => {
           messageToAppend: {
             content: [{ type: "text", text: "Hello default streaming" }],
             role: "user",
-            additionalContext: mockCombinedContext,
+            additionalContext: {
+              custom: {
+                message: "additional instructions",
+              },
+            },
           },
           availableComponents: serializeRegistry(mockRegistry),
           contextKey: undefined,
@@ -636,7 +664,13 @@ describe("TamboThreadProvider", () => {
         children: React.ReactNode;
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
-          <TamboThreadProvider streaming={true}>{children}</TamboThreadProvider>
+          <TamboContextHelpersProvider
+            contextHelpers={{ userTime: false, userPage: false }}
+          >
+            <TamboThreadProvider streaming={true}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
 
@@ -663,7 +697,11 @@ describe("TamboThreadProvider", () => {
         messageToAppend: {
           content: [{ type: "text", text: "Hello new thread" }],
           role: "user",
-          additionalContext: mockCombinedContext,
+          additionalContext: {
+            custom: {
+              message: "additional instructions",
+            },
+          },
         },
         availableComponents: serializeRegistry(mockRegistry),
         contextKey: undefined,
@@ -685,9 +723,13 @@ describe("TamboThreadProvider", () => {
         children: React.ReactNode;
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
-          <TamboThreadProvider streaming={false}>
-            {children}
-          </TamboThreadProvider>
+          <TamboContextHelpersProvider
+            contextHelpers={{ userTime: false, userPage: false }}
+          >
+            <TamboThreadProvider streaming={false}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
 
@@ -738,7 +780,11 @@ describe("TamboThreadProvider", () => {
           messageToAppend: {
             content: [{ type: "text", text: "Hello streaming new thread" }],
             role: "user",
-            additionalContext: mockCombinedContext,
+            additionalContext: {
+              custom: {
+                message: "additional instructions",
+              },
+            },
           },
           availableComponents: serializeRegistry(mockRegistry),
           contextKey: undefined,
