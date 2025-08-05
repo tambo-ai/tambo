@@ -11,6 +11,10 @@ import {
   TamboComponentProvider,
 } from "./tambo-component-provider";
 import {
+  TamboContextHelpersProvider,
+  TamboContextHelpersProviderProps,
+} from "./tambo-context-helpers-provider";
+import {
   TamboCompositeProvider,
   type TamboContextProps,
 } from "./tambo-provider";
@@ -36,6 +40,8 @@ export interface TamboStubProviderProps extends Partial<TamboContextProps> {
   projectId?: string;
   /** Optional: Context key for thread list queries */
   contextKey?: string;
+  /** Optional: Configuration for which context helpers are enabled/disabled */
+  contextHelpers?: TamboContextHelpersProviderProps["contextHelpers"];
 }
 
 /**
@@ -229,6 +235,7 @@ const createDefaultCallbacks = () => ({
  * @param props.threads - Optional threads data to populate thread list (overrides useTamboThreadList)
  * @param props.projectId - Optional project ID for query cache (defaults to thread.projectId)
  * @param props.contextKey - Optional context key for thread list queries
+ * @param props.contextHelpers - Optional configuration for which context helpers are enabled/disabled
  * @returns The TamboStubProvider component
  */
 export const TamboStubProvider: React.FC<
@@ -241,6 +248,7 @@ export const TamboStubProvider: React.FC<
   threads,
   projectId,
   contextKey,
+  contextHelpers,
   ...overrides
 }) => {
   const defaults = createDefaultCallbacks();
@@ -340,9 +348,11 @@ export const TamboStubProvider: React.FC<
         addToolAssociation={componentContextProps.addToolAssociation}
       >
         <TamboStubThreadProvider {...threadContextProps}>
-          <TamboComponentProvider>
-            <TamboCompositeProvider>{children}</TamboCompositeProvider>
-          </TamboComponentProvider>
+          <TamboContextHelpersProvider contextHelpers={contextHelpers}>
+            <TamboComponentProvider>
+              <TamboCompositeProvider>{children}</TamboCompositeProvider>
+            </TamboComponentProvider>
+          </TamboContextHelpersProvider>
         </TamboStubThreadProvider>
       </TamboStubRegistryProvider>
     </TamboStubClientProvider>

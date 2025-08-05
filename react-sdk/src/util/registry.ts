@@ -106,21 +106,6 @@ export const getComponentFromRegistry = (
   return componentEntry;
 };
 
-const getDefaultContextObject = () => {
-  return {
-    localTime: new Date().toLocaleString(),
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  };
-};
-
-/**
- * Get the client context for the current thread, such as the current time in the user's timezone
- * @returns a string of context additions that will be added to the prompt when the thread is advanced.
- */
-export const getSystemContext = () => {
-  return getDefaultContextObject();
-};
-
 /**
  * Map a Tambo tool to a context tool
  * @param tool - The tool to map
