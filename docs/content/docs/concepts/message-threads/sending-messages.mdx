@@ -97,14 +97,18 @@ await sendThreadMessage("What is the weather like today?", {
 
 The `additionalContext` parameter accepts a `Record<string, any>` object, allowing you to pass any structured data as context.
 
-#### System Context
+#### Context Helpers
 
-tambo automatically includes system context with every message, such as:
+tambo can automatically include context helpers with every message when they are enabled. These context helpers provide useful metadata without requiring additional code in your components.
 
-- `localTime`: Current local time
-- `timezone`: User's timezone
+Available context helpers include:
 
-Your additional context will be merged with this system context. For example, the above code would result in a combined context like:
+- **userTime**: Current time, timezone, and timestamp information
+- **userPage**: Current page URL, title, and navigation information
+
+Context helpers are configured at the provider level and are disabled by default. See [Additional Context](/concepts/additional-context/configuration) for configuration details.
+
+Your manual `additionalContext` will be merged with any enabled context helpers. For example, if the `userTime` context helper is enabled, the above code would result in a combined context like:
 
 ```json
 {
@@ -113,9 +117,11 @@ Your additional context will be merged with this system context. For example, th
   },
   "location": "San Francisco",
   "units": "fahrenheit",
-  "system": {
-    "localTime": "7/31/2025, 7:08:25 PM",
-    "timezone": "America/New_York"
+  "userTime": {
+    "localTime": "1/15/2025, 3:30:00 PM",
+    "timezone": "America/New_York",
+    "timestamp": "2025-01-15T20:30:00.000Z",
+    "offsetMinutes": 300
   }
 }
 ```
