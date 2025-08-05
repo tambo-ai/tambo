@@ -9,10 +9,10 @@ Unlike regular registered components that Tambo generates and renders from scrat
 
 ## Creating Interactable Components
 
-The easiest way to make a component interactable to Tambo is by using `withTamboInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
+The easiest way to make a component interactable to Tambo is by using `withInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
 
 ```tsx
-import { withTamboInteractable } from "@tambo-ai/react";
+import { withInteractable } from "@tambo-ai/react";
 import { z } from "zod";
 
 // Your existing component
@@ -26,7 +26,7 @@ function Note({ title, content, color = "white" }) {
 }
 
 // Make it interactable
-const InteractableNote = withTamboInteractable(Note, {
+const InteractableNote = withInteractable(Note, {
   componentName: "Note",
   description:
     "A simple note component that can display title and content with different colors",
@@ -48,7 +48,7 @@ function Counter({ count, label }) {
   );
 }
 
-const InteractableCounter = withTamboInteractable(Counter, {
+const InteractableCounter = withInteractable(Counter, {
   componentName: "Counter",
   description: "A simple counter that displays a label and count value",
   propsSchema: z.object({
@@ -82,7 +82,7 @@ Now Tambo is able to read and update these components in-place when responding t
 
 ### InteractableConfig
 
-When using `withTamboInteractable`, you provide a configuration object describing the component to Tambo:
+When using `withInteractable`, you provide a configuration object describing the component to Tambo:
 
 ```tsx
 interface InteractableConfig {
@@ -94,7 +94,7 @@ interface InteractableConfig {
 
 ### How it Works
 
-For each component marked as interactable using `withTamboInteractable`, behind the scenes Tambo stores a state object representing the props of the component, and registers a tool to update that object.
+For each component marked as interactable using `withInteractable`, behind the scenes Tambo stores a state object representing the props of the component, and registers a tool to update that object.
 
 When Tambo decides to update an interactable component while responding to a message, it uses that component's 'update' tool, which updates the state and triggers a re-render of your wrapped component.
 
