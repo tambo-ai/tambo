@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/tambo-ai/tambo/compare/docs-v1.0.12...docs-v1.1.0) (2025-08-05)
+
+
+### Features
+
+* add pre-built context helpers ([#769](https://github.com/tambo-ai/tambo/issues/769)) ([757448b](https://github.com/tambo-ai/tambo/commit/757448b949f33a89ad0bc25b56918d95748da5ab))
+
+
+### Bug Fixes
+
+* remove last edit from docs to allow build ([#777](https://github.com/tambo-ai/tambo/issues/777)) ([7cf864a](https://github.com/tambo-ai/tambo/commit/7cf864a38ef5be9bbd1f36bb404538806041f2c9))
+
 ## [1.0.12](https://github.com/tambo-ai/tambo/compare/docs-v1.0.11...docs-v1.0.12) (2025-08-03)
 
 
