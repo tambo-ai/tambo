@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.0](https://github.com/tambo-ai/tambo/compare/react-v0.41.2...react-v0.42.0) (2025-08-05)
+
+
+### Features
+
+* add pre-built context helpers ([#769](https://github.com/tambo-ai/tambo/issues/769)) ([757448b](https://github.com/tambo-ai/tambo/commit/757448b949f33a89ad0bc25b56918d95748da5ab))
+
 ## [0.41.2](https://github.com/tambo-ai/tambo/compare/react-v0.41.1...react-v0.41.2) (2025-08-01)
 
 
