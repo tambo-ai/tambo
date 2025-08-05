@@ -44,9 +44,9 @@ docker network create tambo_network 2>/dev/null || true
 echo -e "${YELLOW}📦 Pulling latest images...${NC}"
 docker compose --env-file docker.env pull
 
-# Start all services
-echo -e "${BLUE}🎯 Starting Tambo services...${NC}"
-docker compose --env-file docker.env up -d
+# Start all services with BuildKit
+echo -e "${BLUE}🎯 Starting Tambo services with BuildKit...${NC}"
+DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose --env-file docker.env up -d
 
 # Wait for services to start
 echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"

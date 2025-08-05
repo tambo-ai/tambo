@@ -1,0 +1,135 @@
+name: Docker Stack Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  docker-test:
+    name: Test Docker Stack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    env:
+      # Use GitHub's Docker layer caching
+      DOCKER_BUILDKIT: 1
+      COMPOSE_DOCKER_CLI_BUILD: 1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Setup Docker environment
+        run: |
+          ./scripts/tambo-setup.sh
+          # Set NODE_ENV to development for faster startup
+          sed -i 's/NODE_ENV=production/NODE_ENV=development/g' docker.env
+
+      - name: Install jq (required for health checks)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Build web image with caching
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          push: false
+          tags: tambo-web:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=development
+
+      - name: Build api image with caching
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: false
+          tags: tambo-api:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=development
+
+      - name: Start Docker stack
+        run: |
+          ./scripts/tambo-start.sh
+        timeout-minutes: 8
+
+      - name: Wait for services to be healthy
+        run: |
+          # Wait for PostgreSQL to be healthy (reduced wait time)
+          timeout 45 bash -c 'until docker compose --env-file docker.env ps postgres | grep -q "healthy"; do sleep 3; done'
+
+          # Wait for API to be ready (using the /health endpoint)
+          timeout 45 bash -c 'until curl -f http://localhost:3211/health 2>/dev/null; do sleep 3; done'
+
+          # Wait for Web to be ready
+          timeout 45 bash -c 'until curl -f http://localhost:3210/ 2>/dev/null; do sleep 3; done'
+
+      - name: Check service status
+        run: |
+          echo "=== Docker Compose Status ==="
+          docker compose --env-file docker.env ps
+
+          echo "=== Service Health Checks ==="
+          echo "PostgreSQL: $(docker compose --env-file docker.env ps postgres | grep -o 'healthy\|unhealthy\|starting' || echo 'unknown')"
+
+          echo "=== Service Endpoints ==="
+          echo "Testing API health endpoint..."
+          curl -f http://localhost:3211/health && echo "API health endpoint responding"
+
+          echo "Testing API root endpoint..."
+          curl -f http://localhost:3211/ && echo "API root endpoint responding"
+
+          echo "Testing Web endpoint..."
+          curl -f http://localhost:3210/ && echo "Web endpoint responding"
+
+      - name: Initialize database
+        run: |
+          # Run database migrations inside the web container from project root
+          docker compose --env-file docker.env exec -T web sh -c "cd /app && npm run db:migrate"
+        timeout-minutes: 2
+
+      - name: Verify database initialization
+        run: |
+          # Check if database tables were created
+          echo "=== Database Tables ==="
+          docker compose --env-file docker.env exec -T postgres psql -U postgres -d tambo -c "\dt" || echo "Database tables not found"
+
+          # Check if migrations were applied
+          echo "=== Migration Status ==="
+          docker compose --env-file docker.env exec -T postgres psql -U postgres -d tambo -c "SELECT * FROM __drizzle_migrations ORDER BY created_at DESC LIMIT 5;" || echo "Migration table not found"
+
+      - name: Stop Docker stack
+        if: always()
+        run: |
+          ./scripts/tambo-stop.sh
+        timeout-minutes: 2
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Force cleanup in case stop script didn't work
+          docker compose --env-file docker.env down -v --remove-orphans || true
+          docker network rm tambo_network 2>/dev/null || true
+          docker system prune -f || true

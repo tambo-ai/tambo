@@ -71,11 +71,6 @@ else
     echo -e "${BLUE}ℹ️  docker.env already exists${NC}"
 fi
 
-# Make scripts executable
-echo -e "${YELLOW}🔧 Making scripts executable...${NC}"
-chmod +x scripts/tambo-*.sh
-chmod +x scripts/init-database.sh
-
 echo -e "${GREEN}✅ Setup completed successfully!${NC}"
 echo -e ""
 echo -e "${BLUE}📋 Next steps:${NC}"

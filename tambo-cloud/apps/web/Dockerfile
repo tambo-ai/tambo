@@ -1,22 +1,22 @@
 # Simple fat Docker image for Web
 FROM node:22-alpine
 
-# Install system dependencies
-RUN apk add --no-cache libc6-compat
+# Install system dependencies (aligned with API)
+RUN apk add --no-cache libc6-compat curl
 
 # Set working directory
 WORKDIR /app
 
-# Create non-root user
+# Create non-root user (aligned with API)
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-RUN chown nextjs:nodejs /app
+RUN adduser --system --uid 1001 nodejs
+RUN chown nodejs:nodejs /app
 
 # Set permissions
-USER nextjs
+USER nodejs
 
 # Copy everything
-COPY --chown=nextjs:nodejs . .
+COPY --chown=nodejs:nodejs . .
 
 # Install all dependencies
 RUN npm ci

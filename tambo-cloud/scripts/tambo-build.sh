@@ -36,9 +36,18 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Build all containers
-echo -e "${BLUE}🚀 Building containers...${NC}"
-docker compose --env-file docker.env build
+# Build all containers with BuildKit
+echo -e "${BLUE}🚀 Building containers with BuildKit...${NC}"
+
+# Check if running in GitHub Actions
+if [ -n "$GITHUB_ACTIONS" ]; then
+    echo -e "${YELLOW}📦 Using GitHub Actions environment with caching...${NC}"
+    # The docker-compose.yml now includes proper caching configuration
+    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose --env-file docker.env build
+else
+    echo -e "${YELLOW}📦 Using default Docker caching...${NC}"
+    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose --env-file docker.env build
+fi
 
 echo -e "${GREEN}✅ Build completed!${NC}"
 echo -e "${YELLOW}💡 To start the containers: ./scripts/tambo-start.sh${NC}" 
