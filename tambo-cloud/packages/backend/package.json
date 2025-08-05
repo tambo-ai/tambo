@@ -44,7 +44,7 @@
     "jest": "^30.0.5",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "engines": {
     "node": ">=22",
