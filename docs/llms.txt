@@ -1,0 +1,52 @@
+# docs.tambo.co llms.txt
+
+- [Response Component Streaming](https://docs.tambo.co/concepts/streaming/response-component-streaming): Explain how to stream response components with real-time prop updates using Tambo.
+- [Tambo React AI Docs](https://docs.tambo.co): Provide documentation for using Tambo React package to build AI-powered applications with generative UI.
+- [Additional Context in Tambo](https://docs.tambo.co/concepts/additional-context): Explain how to add and configure additional context for user messages in Tambo AI applications.
+- [Configuring Tambo Context Helpers](https://docs.tambo.co/concepts/additional-context/configuration): Guide on enabling and configuring context helpers in Tambo applications for enhanced user context management.
+- [Dynamic Component Registration](https://docs.tambo.co/concepts/components/registering-components-dynamically): Explain how to dynamically register components at runtime using useTamboRegistry hook in Tambo framework.
+- [Tambo Interactable Components](https://docs.tambo.co/concepts/components/interactable-components): Explain how to create and use pre-placed interactive components in Tambo that update via natural language.
+- [Adding Custom Tools](https://docs.tambo.co/concepts/tools/adding-tools): Guide users to add and register custom asynchronous tools to extend Tambo's functionality.
+- [Switching Message Threads](https://docs.tambo.co/concepts/message-threads/switching-thread): Explain how to switch between message threads using the switchCurrentThread function in Tambo.
+- [Supabase MCP Client App](https://docs.tambo.co/examples-and-templates/supabase-mcp-client): Provide a React template to build AI apps using Supabase MCP server tools with tambo.
+- [Tracking Thread Status](https://docs.tambo.co/concepts/message-threads/thread-status): Explain how to track and display the stages of Tambo's AI response generation process for user interaction.
+- [Tambo Auth0 Integration](https://docs.tambo.co/concepts/user-authentication/auth0): Guide for integrating Auth0 authentication with Tambo in Next.js applications including setup, token retrieval, and usage.
+- [User Authentication Guide](https://docs.tambo.co/concepts/user-authentication): Explain how to implement secure user authentication and isolation in Tambo applications using various providers.
+- [Streaming Props into State](https://docs.tambo.co/concepts/streaming/streaming-props): Explain how to use the useTamboStreamingProps hook to efficiently stream and sync component props into state in React.
+- [Component Streaming Status](https://docs.tambo.co/concepts/streaming/component-streaming-status): Explain how to track and manage individual component prop streaming statuses for improved rendering control in React.
+- [Tambo Supabase Integration](https://docs.tambo.co/concepts/user-authentication/supabase): Guide to integrating Supabase Auth with Tambo for user authentication in Next.js applications.
+- [Tambo Neon Integration](https://docs.tambo.co/concepts/user-authentication/neon): Guide for integrating Tambo with Auth.js using Neon database for session and user data storage.
+- [WorkOS Integration Guide](https://docs.tambo.co/concepts/user-authentication/workos): Guide to integrating WorkOS authentication with Tambo in a Next.js app for enterprise-grade user management.
+- [Registering Tambo Components](https://docs.tambo.co/concepts/components): Explain how to register React components as UI tools for integration with Tambo.
+- [Tambo Message Threads](https://docs.tambo.co/concepts/message-threads): Explain how to manage and interact with conversational message threads in Tambo for AI applications.
+- [Tambo CLI Workflows](https://docs.tambo.co/cli/workflows): Guide users through common Tambo CLI workflows for setup, development, maintenance, and troubleshooting.
+- [Streaming in Tambo](https://docs.tambo.co/concepts/streaming): Explain how to implement real-time streaming of response messages in Tambo for dynamic user experiences.
+- [Serverside MCP Connection](https://docs.tambo.co/concepts/model-context-protocol/serverside-mcp-connection): Explain how to configure and use server-side MCP connections in Tambo for enhanced integration and authentication.
+- [Tambo CLI Init Command](https://docs.tambo.co/cli/commands/init): Guide users to initialize a Tambo project and configure their API key using the CLI.
+- [Component State in Tambo](https://docs.tambo.co/concepts/components/component-state): Explain how to manage and pass component state to Tambo for contextual user interactions in applications.
+- [Tambo React Hooks API](https://docs.tambo.co/api-reference/react-hooks): Document React hooks provided by Tambo for building AI applications with state and functionality management.
+- [Tambo CLI add command](https://docs.tambo.co/cli/commands/add): Explain how to add and configure Tambo components using the CLI in a React app.
+- [Clerk Integration Guide](https://docs.tambo.co/concepts/user-authentication/clerk): Guide to integrating Clerk authentication with Tambo in Next.js applications.
+- [Showing Thread Responses](https://docs.tambo.co/concepts/message-threads/showing-responses): Explain how to render and display message thread responses and components using Tambo's state in UI applications.
+- [Tambo User Authentication Overview](https://docs.tambo.co/concepts/user-authentication/overview): Explain how to implement secure user authentication in Tambo applications using OAuth 2.0 and JWT tokens.
+- [Registering Components with TamboProvider](https://docs.tambo.co/concepts/components/registering-with-tambo-provider): Explain how to statically register components with TamboProvider in a React application.
+- [Tambo Integration Guide](https://docs.tambo.co/getting-started/integrate): Guide developers to integrate Tambo AI chat functionality into existing React applications.
+- [Component Props Best Practices](https://docs.tambo.co/best-practices/component-data-props): Explain best practices for structuring component props to optimize performance in Tambo applications.
+- [Defining Tambo Components](https://docs.tambo.co/concepts/components/defining-tambo-components): Guide on defining and integrating Tambo components with prop schemas for AI-generated responses.
+- [Tambo CLI Global Options](https://docs.tambo.co/cli/global-options): Document global command-line options and usage for the Tambo CLI tool to guide users in command execution.
+- [Tambo CLI CSS Configuration](https://docs.tambo.co/cli/configuration): Guide users on configuring CSS and Tailwind settings for Tambo CLI compatibility and customization.
+- [Tambo Quickstart Guide](https://docs.tambo.co/getting-started/quickstart): Guide users through installing, running, and customizing Tambo's generative UI chat template.
+- [Sending Thread Messages](https://docs.tambo.co/concepts/message-threads/sending-messages): Explain how to send messages with context using Tambo's React hooks and functions for AI conversations.
+- [Tambo Auth.js Integration](https://docs.tambo.co/concepts/user-authentication/nextauth): Guide for integrating Tambo with Auth.js for secure user authentication in Next.js applications using Google OAuth.
+- [Chat Starter App](https://docs.tambo.co/examples-and-templates/chat-starter-app): Provide a customizable NextJS AI chat app template using Tambo's SDK and tools.
+- [Tambo CLI Documentation](https://docs.tambo.co/cli): Provide documentation and commands for using the Tambo CLI to set up and manage Tambo apps.
+- [Tambo Tools Extension](https://docs.tambo.co/concepts/tools): Explain how to extend Tambo with custom tools and API integrations for enhanced functionality.
+- [Tambo full-send Command](https://docs.tambo.co/cli/commands/full-send): Explain how to use the 'full-send' CLI command for instant Tambo project setup with components and styling configuration.
+- [Tambo create-app CLI](https://docs.tambo.co/cli/commands/create-app): Guide users to create new Tambo apps using CLI with templates for different AI use cases.
+- [Better Auth Integration](https://docs.tambo.co/concepts/user-authentication/better-auth): Guide for integrating Better Auth with Tambo in Next.js for secure user authentication and token management.
+- [Tambo CLI List Command](https://docs.tambo.co/cli/commands/list): Explain how to list installed Tambo components using the CLI 'list' command with examples and output details.
+- [Response Text Streaming](https://docs.tambo.co/concepts/streaming/response-text-streaming): Explain how to stream AI-generated response text in real-time using Tambo's React integration.
+- [TamboPropStreamProvider Guide](https://docs.tambo.co/concepts/streaming/tambo-prop-stream-provider): Explain usage and benefits of TamboPropStreamProvider React component for managing streaming UI states.
+- [Client-side MCP Connection](https://docs.tambo.co/concepts/model-context-protocol/clientside-mcp-connection): Explain how to connect and use client-side MCP servers within Tambo applications for enhanced tool integration.
+- [Model Context Protocol](https://docs.tambo.co/concepts/model-context-protocol): Explain how to connect Tambo to external tools using the Model Context Protocol for conversational integrations.
+- [Tambo Suggestions Guide](https://docs.tambo.co/concepts/suggestions): Explain how to use the useTamboSuggestions hook to generate and manage contextual suggestions in a Tambo assistant thread.
