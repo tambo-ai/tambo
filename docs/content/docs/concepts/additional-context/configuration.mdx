@@ -1,0 +1,104 @@
+---
+title: Configuring Context Helpers
+description: Learn how to enable and configure context helpers in your tambo application
+---
+
+Context helpers can be configured both at initialization time and dynamically during runtime.
+
+## Basic Configuration
+
+Configure context helpers when initializing the TamboProvider:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      contextHelpers={{
+        userTime: true, // Enable time context
+        userPage: true, // Enable page context
+      }}
+    >
+      {/* Your app components */}
+    </TamboProvider>
+  );
+}
+```
+
+By default:
+
+- `userTime` is **disabled**
+- `userPage` is **disabled**
+
+## Dynamic Control
+
+You can dynamically enable or disable context helpers using the `useTamboContextHelpers` hook:
+
+```tsx
+import { useTamboContextHelpers } from "@tambo-ai/react";
+
+function MyComponent() {
+  const { setContextHelperEnabled } = useTamboContextHelpers();
+
+  // Simply toggle helpers on/off
+  const enablePageTracking = () => {
+    setContextHelperEnabled("userPage", true);
+  };
+
+  const disablePageTracking = () => {
+    setContextHelperEnabled("userPage", false);
+  };
+
+  return <button onClick={enablePageTracking}>Enable Page Context</button>;
+}
+```
+
+### Creating a Simple Toggle
+
+Here's a minimal example for a settings toggle:
+
+```tsx
+function PrivacySettings() {
+  const { getContextHelpers, setContextHelperEnabled } =
+    useTamboContextHelpers();
+  const helpers = getContextHelpers();
+  const pageContextEnabled = helpers.find(
+    (h) => h.name === "userPage",
+  )?.enabled;
+
+  return (
+    <label>
+      <input
+        type="checkbox"
+        checked={pageContextEnabled}
+        onChange={(e) => setContextHelperEnabled("userPage", e.target.checked)}
+      />
+      Share current page with AI
+    </label>
+  );
+}
+```
+
+## Conditional Context
+
+You might want to enable certain context helpers only in specific parts of your application:
+
+```tsx
+function SupportChat() {
+  const { setContextHelperEnabled } = useTamboContextHelpers();
+
+  useEffect(() => {
+    // Enable page context only in support chat
+    setContextHelperEnabled("userPage", true);
+
+    // Cleanup: disable when component unmounts
+    return () => {
+      setContextHelperEnabled("userPage", false);
+    };
+  }, [setContextHelperEnabled]);
+
+  return <MessageThread />;
+}
+```

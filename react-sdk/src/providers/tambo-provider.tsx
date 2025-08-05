@@ -14,6 +14,12 @@ import {
   useTamboComponent,
 } from "./tambo-component-provider";
 import {
+  TamboContextHelpersContextProps,
+  TamboContextHelpersProvider,
+  TamboContextHelpersProviderProps,
+  useTamboContextHelpers,
+} from "./tambo-context-helpers-provider";
+import {
   TamboInteractableProvider,
   useTamboInteractable,
 } from "./tambo-interactable-provider";
@@ -39,13 +45,15 @@ import {
  * @param props.environment - The environment to use for the Tambo API
  * @param props.tools - The tools to register
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
+ * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
   PropsWithChildren<
     TamboClientProviderProps &
       TamboRegistryProviderProps &
-      TamboThreadProviderProps
+      TamboThreadProviderProps &
+      TamboContextHelpersProviderProps
   >
 > = ({
   children,
@@ -56,6 +64,7 @@ export const TamboProvider: React.FC<
   environment,
   tools,
   streaming,
+  contextHelpers,
 }) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
@@ -70,13 +79,15 @@ export const TamboProvider: React.FC<
       userToken={userToken}
     >
       <TamboRegistryProvider components={components} tools={tools}>
-        <TamboThreadProvider streaming={streaming}>
-          <TamboComponentProvider>
-            <TamboInteractableProvider>
-              <TamboCompositeProvider>{children}</TamboCompositeProvider>
-            </TamboInteractableProvider>
-          </TamboComponentProvider>
-        </TamboThreadProvider>
+        <TamboContextHelpersProvider contextHelpers={contextHelpers}>
+          <TamboThreadProvider streaming={streaming}>
+            <TamboComponentProvider>
+              <TamboInteractableProvider>
+                <TamboCompositeProvider>{children}</TamboCompositeProvider>
+              </TamboInteractableProvider>
+            </TamboComponentProvider>
+          </TamboThreadProvider>
+        </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>
   );
@@ -85,7 +96,8 @@ export const TamboProvider: React.FC<
 export type TamboContextProps = TamboClientContextProps &
   TamboThreadContextProps &
   TamboComponentContextProps &
-  TamboInteractableContext;
+  TamboInteractableContext &
+  TamboContextHelpersContextProps;
 
 export const TamboContext = createContext<TamboContextProps>(
   {} as TamboContextProps,
@@ -106,6 +118,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
   const queryClient = useTamboQueryClient();
   const componentRegistry = useTamboComponent();
   const interactableComponents = useTamboInteractable();
+  const contextHelpers = useTamboContextHelpers();
 
   return (
     <TamboContext.Provider
@@ -115,6 +128,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
         ...componentRegistry,
         ...threads,
         ...interactableComponents,
+        ...contextHelpers,
       }}
     >
       {children}

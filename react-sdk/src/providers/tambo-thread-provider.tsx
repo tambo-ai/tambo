@@ -20,12 +20,12 @@ import { TamboThread } from "../model/tambo-thread";
 import { renderComponentIntoMessage } from "../util/generate-component";
 import {
   getAvailableComponents,
-  getSystemContext,
   getUnassociatedTools,
   mapTamboToolToContextTool,
 } from "../util/registry";
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient } from "./tambo-client-provider";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 export interface TamboThreadContextProps {
@@ -175,6 +175,7 @@ export const TamboThreadProvider: React.FC<
   const client = useTamboClient();
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
+  const { getAdditionalContext } = useTamboContextHelpers();
   const [inputValue, setInputValue] = useState("");
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
@@ -717,10 +718,18 @@ export const TamboThreadProvider: React.FC<
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
-      const combinedContext = {
-        system: getSystemContext(),
+      // Get additional context from enabled helpers
+      const helperContexts = await getAdditionalContext();
+
+      // Combine all contexts
+      const combinedContext: Record<string, any> = {
         ...(additionalContext ?? {}),
       };
+
+      // Add helper contexts to combinedContext
+      for (const helperContext of helperContexts) {
+        combinedContext[helperContext.name] = helperContext.context;
+      }
 
       addThreadMessage(
         {
@@ -868,6 +877,7 @@ export const TamboThreadProvider: React.FC<
       updateThreadStatus,
       handleAdvanceStream,
       streaming,
+      getAdditionalContext,
     ],
   );
 
