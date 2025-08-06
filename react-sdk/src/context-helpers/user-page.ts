@@ -19,12 +19,7 @@ export function getUserPageContext(): AdditionalContext {
     name: "userPage",
     context: {
       url: window.location.href,
-      pathname: window.location.pathname,
-      hostname: window.location.hostname,
-      search: window.location.search,
-      hash: window.location.hash,
       title: document.title,
-      referrer: document.referrer,
     },
   };
 }
