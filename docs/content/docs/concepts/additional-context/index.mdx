@@ -3,7 +3,7 @@ title: Additional Context
 description: Add additional information along with user's message
 ---
 
-Additional Context helps you add additional information that will be sent along with the user's message. You can enable default context helpers to send metadata like timezone or page location to tambo.
+Additional Context helps you add additional information that will be sent along with the user's message. You can enable default context helpers, create custom helpers, or send metadata to provide more relevant AI responses.
 
 ## Overview
 
@@ -13,18 +13,58 @@ When enabled, context helpers automatically add metadata to messages without req
 - Understand what page or section the user is currently viewing
 - Give location-specific recommendations
 - Provide more relevant help based on the user's current context
+- Access custom business logic and application state
 
 ## How to Add Context
 
-There are two ways to add additional context to messages:
+There are three ways to add additional context to messages:
 
-### 1. Automatic Context Helpers
+### 1. Built-in Context Helpers
 
-Context helpers automatically add predefined contextual information to every message. These are configured at the provider level and run automatically when messages are sent.
+Tambo provides pre-built context helpers that can be enabled through configuration:
 
-### 2. Manual Context via Message Functions
+```tsx
+<TamboProvider
+  contextHelpers={{
+    userTime: true,  // Enable time context
+    userPage: true,  // Enable page context
+  }}
+>
+```
 
-You can also add custom context on a per-message basis using the `additionalContext` parameter:
+### 2. Custom Context Helpers
+
+Create your own context helpers to automatically include application-specific data:
+
+```tsx
+import { createContextHelper } from "@tambo-ai/react";
+
+// Define helpers outside component to avoid recreating on each render
+const profileHelper = createContextHelper(async () => ({
+  userId: getCurrentUserId(),
+  role: getUserRole(),
+  preferences: await getUserPreferences()
+}));
+
+<TamboProvider
+  contextHelpers={{
+    // The key becomes the context name
+    userProfile: profileHelper,
+
+    // Or define inline
+    appState: {
+      run: async () => ({
+        theme: getTheme(),
+        version: getAppVersion()
+      })
+    }
+  }}
+>
+```
+
+### 3. Manual Context via Message Functions
+
+Add custom context on a per-message basis using the `additionalContext` parameter:
 
 ```tsx
 // Using useTamboThreadInput hook
@@ -37,21 +77,11 @@ await submit({
     userPreferences: { theme: "dark" },
   },
 });
-
-// Using sendThreadMessage
-const { sendThreadMessage } = useTamboThread();
-
-await sendThreadMessage("What's the weather?", {
-  additionalContext: {
-    location: "San Francisco",
-    units: "fahrenheit",
-  },
-});
 ```
 
-Both automatic context helpers and manual context are merged together when sending messages. See [Sending Messages](message-threads/sending-messages) for more details on manual context.
+All three methods can be used together - context from helpers and manual context are merged when sending messages. See [Sending Messages](message-threads/sending-messages) for more details on manual context.
 
-## Available Context Helpers
+## Available Built-in Context Helpers
 
 Tambo comes with several pre-built context helpers:
 
@@ -63,27 +93,58 @@ Provides the user's current time and timezone information.
 
 ```json
 {
-  "localTime": "1/15/2025, 3:30:00 PM",
-  "timezone": "America/New_York",
   "timestamp": "2025-01-15T20:30:00.000Z",
-  "offsetMinutes": 300
 }
 ```
 
 ### userPage
 
-Provides information about the current page/URL the user is viewing.
+Provides information about the current page or route.
 
 **Data provided:**
 
 ```json
 {
-  "url": "https://example.com/dashboard",
-  "pathname": "/dashboard",
-  "hostname": "example.com",
-  "search": "?tab=settings",
-  "hash": "#profile",
-  "title": "Dashboard - Example App",
-  "referrer": "https://example.com/login"
+  "title": "Analytics Dashboard",
+  "url": "/dashboard/analytics"
 }
 ```
+
+## Creating Custom Context Helpers
+
+Custom context helpers allow you to automatically include application-specific data with every message. The key you use in the `contextHelpers` object becomes the name of the context in messages.
+
+### Example Usage:
+
+```tsx
+const userHelper = createContextHelper(async () => ({
+  role: getUserRole(),
+  permissions: getUserPermissions(),
+  organization: getOrganization(),
+  preferences: await getUserPreferences()
+}));
+
+// Usage
+<TamboProvider
+  contextHelpers={{
+    user: userHelper,  // Context will be under "user" key
+  }}
+>
+```
+
+## When to Use Each Method
+
+| Method               | Use When                                                 | Example                                    |
+| -------------------- | -------------------------------------------------------- | ------------------------------------------ |
+| **Built-in Helpers** | You need standard metadata like time or page info        | Enable `userTime` for scheduling features  |
+| **Custom Helpers**   | You have app-wide context that should always be included | User profile, app settings, feature flags  |
+| **Manual Context**   | Context is specific to a particular interaction          | Search filters, form data, temporary state |
+
+## Best Practices
+
+1. **Keep context lightweight** - Only include necessary information
+2. **Handle errors gracefully** - Context helper errors won't block message sending
+3. **Consider privacy** - Only share context users would expect
+4. **Use meaningful keys** - The key name becomes the context name in messages
+5. **Avoid duplication** - Don't send the same data through multiple methods
+6. **Define helpers outside components** - Avoid recreating helpers on each render

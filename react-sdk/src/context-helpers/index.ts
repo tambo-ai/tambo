@@ -1,4 +1,4 @@
-import { AdditionalContextHelper } from "./types";
+import { AdditionalContextHelper, CustomContextHelperConfig } from "./types";
 import { getUserPageContext } from "./user-page";
 import { getUserTimeContext } from "./user-time";
 
@@ -21,3 +21,19 @@ export const DEFAULT_CONTEXT_HELPERS: AdditionalContextHelper[] = [
     run: getUserPageContext,
   },
 ];
+
+/**
+ * Helper function to create a custom context helper configuration
+ * @param run - Function that returns the context data
+ * @param enabled - Whether the helper should be enabled by default
+ * @returns A context helper configuration
+ */
+export function createContextHelper(
+  run: () => any | Promise<any>,
+  enabled = true,
+): CustomContextHelperConfig {
+  return {
+    enabled,
+    run,
+  };
+}

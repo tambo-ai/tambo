@@ -1,0 +1,125 @@
+---
+title: Custom Context Helpers
+description: Creating and using custom context helpers
+---
+
+Custom context helpers allow you to automatically include application-specific data with every message.
+
+## Using the Helper Utility
+
+You can use `createContextHelper` function to create a custom context helper:
+
+```tsx
+import { createContextHelper } from "@tambo-ai/react";
+
+// Create reusable context helpers
+const sessionHelper = createContextHelper(async () => ({
+  sessionId: getSessionId(),
+  startTime: getSessionStartTime(),
+  user: await getCurrentUser(),
+}));
+
+const environmentHelper = createContextHelper(async () => ({
+  env: process.env.NODE_ENV,
+  version: process.env.NEXT_PUBLIC_APP_VERSION,
+  feature_flags: await getFeatureFlags(),
+}));
+
+// Use in TamboProvider
+<TamboProvider
+  contextHelpers={{
+    session: sessionHelper,      // Key becomes context name
+    environment: environmentHelper,
+  }}
+>
+```
+
+## Inline Custom Helpers
+
+You can also define helpers inline without the utility:
+
+```tsx
+<TamboProvider
+  contextHelpers={{
+    deviceInfo: {
+      run: async () => ({
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        screenResolution: {
+          width: window.screen.width,
+          height: window.screen.height,
+        }
+      })
+    }
+  }}
+>
+```
+
+## Overriding Built-in Helpers
+
+Replace built-in helpers with custom implementations:
+
+```tsx
+<TamboProvider
+  contextHelpers={{
+    // Override the built-in userTime helper
+    userTime: {
+      enabled: true,
+      run: async () => ({
+        formattedTime: new Date().toLocaleString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        isDST: isDaylightSavingTime()
+      })
+    }
+  }}
+>
+```
+
+## Helper Configuration Options
+
+### Enabled State
+
+Control whether helpers run by default:
+
+```tsx
+const analyticsHelper = createContextHelper(
+  async () => ({
+    pageViews: getPageViews(),
+    events: getEvents()
+  }),
+  false  // Start disabled
+);
+
+// Or inline
+{
+  analytics: {
+    enabled: false,
+    run: async () => ({...})
+  }
+}
+```
+
+### Async vs Sync
+
+Helpers can be synchronous or asynchronous:
+
+```tsx
+// Synchronous
+const syncHelper = createContextHelper(() => ({
+  theme: getTheme(),
+  language: getLanguage(),
+}));
+
+// Asynchronous
+const asyncHelper = createContextHelper(async () => ({
+  user: await fetchUser(),
+  permissions: await fetchPermissions(),
+}));
+```
+
+Now that you've created custom helpers, learn how to [manage them dynamically](dynamic-control) and [see real-world examples](examples) with common patterns and use cases.

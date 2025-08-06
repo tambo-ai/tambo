@@ -1,0 +1,161 @@
+---
+title: Dynamic Control
+description: Managing context helpers at runtime
+---
+
+Context helpers can be dynamically managed using the `useTamboContextHelpers` hook.
+
+## Available Functions
+
+```tsx
+import { useTamboContextHelpers } from "@tambo-ai/react";
+
+const {
+  getContextHelpers,       // Get list of all helpers
+  setContextHelperEnabled, // Toggle helper on/off
+  addContextHelper,        // Add new helper dynamically
+  removeContextHelper,     // Remove helper
+} = useTamboContextHelpers();
+```
+
+## Toggling Helpers
+
+`setContextHelperEnabled` works with ALL helpers (built-in and custom):
+
+```tsx
+function MyComponent() {
+  const { setContextHelperEnabled } = useTamboContextHelpers();
+
+  // Toggle built-in helper
+  setContextHelperEnabled("userPage", true);
+
+  // Toggle custom helper (using its key name)
+  setContextHelperEnabled("session", false);
+
+  // Works with any helper defined in contextHelpers
+  // If you have: contextHelpers={{ analytics: analyticsHelper }}
+  // You can: setContextHelperEnabled("analytics", true)
+}
+```
+
+## Dynamic Helper Management
+
+### Adding Helpers at Runtime
+
+Useful when context depends on user actions or app state:
+
+```tsx
+const { addContextHelper } = useTamboContextHelpers();
+
+// User selects a project
+const onProjectSelect = (projectId: string) => {
+  addContextHelper("currentProject", {
+    run: async () => ({
+      projectId,
+      projectName: await getProjectName(projectId),
+      projectData: await getProjectData(projectId),
+    }),
+  });
+};
+```
+
+### Removing Helpers
+
+Clean up when context is no longer relevant:
+
+```tsx
+const { removeContextHelper } = useTamboContextHelpers();
+
+// User closes project
+const onProjectClose = () => {
+  removeContextHelper("currentProject");
+};
+```
+
+## Advanced: Building Settings UI
+
+For building settings panels, you can use `getContextHelpers`:
+
+```tsx
+function ContextSettings() {
+  const {
+    getContextHelpers, // Get list of all helpers
+    setContextHelperEnabled,
+  } = useTamboContextHelpers();
+
+  const helpers = getContextHelpers();
+
+  return (
+    <div>
+      <h3>Privacy Settings</h3>
+      {helpers.map((helper) => (
+        <label key={helper.name}>
+          <input
+            type="checkbox"
+            checked={helper.enabled}
+            onChange={(e) =>
+              setContextHelperEnabled(helper.name, e.target.checked)
+            }
+          />
+          Share {helper.name} data
+        </label>
+      ))}
+    </div>
+  );
+}
+```
+
+## Common Patterns
+
+### Toggle Based on User Preference
+
+```tsx
+function useUserContextPreferences() {
+  const { setContextHelperEnabled } = useTamboContextHelpers();
+  const [shareLocation, setShareLocation] = useState(false);
+
+  const toggleLocationSharing = (enabled: boolean) => {
+    setShareLocation(enabled);
+    setContextHelperEnabled("userLocation", enabled);
+  };
+
+  return { shareLocation, toggleLocationSharing };
+}
+```
+
+### Conditional Context in Components
+
+```tsx
+function PremiumFeature() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const isPremium = useIsPremiumUser();
+
+  useEffect(() => {
+    if (isPremium) {
+      addContextHelper("premiumContext", {
+        run: async () => ({
+          tier: "premium",
+          features: await getPremiumFeatures(),
+        }),
+      });
+    }
+
+    return () => {
+      if (isPremium) {
+        removeContextHelper("premiumContext");
+      }
+    };
+  }, [isPremium]);
+}
+```
+
+## What Happens Behind the Scenes
+
+When you send a message, tambo automatically:
+
+1. Calls all enabled helpers
+2. Collects their context data
+3. Merges it with any manual `additionalContext`
+4. Sends everything with the message
+
+You don't need to manually call `getAdditionalContext` - this happens automatically!
