@@ -28,10 +28,10 @@ export const DEFAULT_CONTEXT_HELPERS: AdditionalContextHelper[] = [
  * @param enabled - Whether the helper should be enabled by default
  * @returns A context helper configuration
  */
-export function createContextHelper(
-  run: () => any | Promise<any>,
+export function createContextHelper<T = Record<string, unknown>>(
+  run: () => T | Promise<T>,
   enabled = true,
-): CustomContextHelperConfig {
+): CustomContextHelperConfig<T> {
   return {
     enabled,
     run,

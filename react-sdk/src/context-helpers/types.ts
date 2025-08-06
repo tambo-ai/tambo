@@ -23,11 +23,11 @@ export interface AdditionalContextHelper {
 /**
  * Custom context helper configuration that can be passed via contextHelpers
  */
-export interface CustomContextHelperConfig {
+export interface CustomContextHelperConfig<T = Record<string, unknown>> {
   /** Whether this helper is enabled (defaults to true) */
   enabled?: boolean;
   /** Function that generates the additional context */
-  run: () => any | Promise<any>;
+  run: () => T | Promise<T>;
 }
 
 /**
