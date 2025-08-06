@@ -101,20 +101,24 @@ export const TamboContextHelpersProvider: React.FC<
   });
 
   const getAdditionalContext = useCallback(async () => {
-    const contextResults: AdditionalContext[] = [];
+    const contexts = await Promise.all(
+      helpers
+        .filter((helper) => helper.enabled)
+        .map(async (helper) => {
+          try {
+            return await helper.run();
+          } catch (error) {
+            console.error(
+              `Error running context helper ${helper.name}:`,
+              error,
+            );
+            return undefined;
+          }
+        }),
+    );
 
-    for (const helper of helpers) {
-      if (helper.enabled) {
-        try {
-          const context = await helper.run();
-          contextResults.push(context);
-        } catch (error) {
-          console.error(`Error running context helper ${helper.name}:`, error);
-        }
-      }
-    }
-
-    return contextResults;
+    // Filter out any undefined results from errors
+    return contexts.filter(Boolean) as AdditionalContext[];
   }, [helpers]);
 
   const getContextHelpers = useCallback(() => {
