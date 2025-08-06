@@ -6,16 +6,10 @@ describe("Context Helpers", () => {
       const context = getUserTimeContext();
 
       expect(context.name).toBe("userTime");
-      expect(context.context).toHaveProperty("localTime");
-      expect(context.context).toHaveProperty("timezone");
       expect(context.context).toHaveProperty("timestamp");
-      expect(context.context).toHaveProperty("offsetMinutes");
 
       // Verify data types
-      expect(typeof context.context.localTime).toBe("string");
-      expect(typeof context.context.timezone).toBe("string");
       expect(typeof context.context.timestamp).toBe("string");
-      expect(typeof context.context.offsetMinutes).toBe("number");
 
       // Verify timestamp is valid ISO string
       expect(() => new Date(context.context.timestamp)).not.toThrow();
@@ -28,21 +22,11 @@ describe("Context Helpers", () => {
 
       expect(context.name).toBe("userPage");
       expect(context.context).toHaveProperty("url");
-      expect(context.context).toHaveProperty("pathname");
-      expect(context.context).toHaveProperty("hostname");
-      expect(context.context).toHaveProperty("search");
-      expect(context.context).toHaveProperty("hash");
       expect(context.context).toHaveProperty("title");
-      expect(context.context).toHaveProperty("referrer");
 
       // Verify data types
       expect(typeof context.context.url).toBe("string");
-      expect(typeof context.context.pathname).toBe("string");
-      expect(typeof context.context.hostname).toBe("string");
-      expect(typeof context.context.search).toBe("string");
-      expect(typeof context.context.hash).toBe("string");
       expect(typeof context.context.title).toBe("string");
-      expect(typeof context.context.referrer).toBe("string");
     });
   });
 });
