@@ -52,12 +52,8 @@ export interface TamboThreadContextProps {
   ) => Promise<void>;
   /** Cancel a thread */
   cancel: (threadId?: string) => Promise<void>;
-  /** The input value of the current thread */
-  inputValue: string;
   /** Whether the thread is streaming */
   streaming: boolean;
-  /** Set the input value of the current thread */
-  setInputValue: (value: string) => void;
   /** Send a message to the current thread */
   sendThreadMessage: (
     message: string,
@@ -125,14 +121,7 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   addThreadMessage: () => {
     throw new Error("updateThreadMessageHistory not implemented");
   },
-  inputValue: "",
   streaming: true,
-  /**
-   *
-   */
-  setInputValue: () => {
-    throw new Error("setInputValue not implemented");
-  },
   /**
    *
    */
@@ -143,7 +132,7 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
    *
    */
   sendThreadMessage: () => {
-    throw new Error("advance not implemented");
+    throw new Error("sendThreadMessage not implemented");
   },
   generationStage: GenerationStage.IDLE,
   generationStatusMessage: "",
@@ -176,7 +165,6 @@ export const TamboThreadProvider: React.FC<
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
-  const [inputValue, setInputValue] = useState("");
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
@@ -891,15 +879,13 @@ export const TamboThreadProvider: React.FC<
         generateThreadName,
         addThreadMessage,
         updateThreadMessage,
-        inputValue,
-        setInputValue,
-        sendThreadMessage,
         streaming,
         generationStage: (currentThread?.generationStage ??
           GenerationStage.IDLE) as GenerationStage,
         generationStatusMessage: currentThread?.statusMessage ?? "",
         isIdle,
         cancel,
+        sendThreadMessage,
       }}
     >
       {children}

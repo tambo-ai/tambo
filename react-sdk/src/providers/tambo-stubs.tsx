@@ -310,9 +310,7 @@ export const TamboStubProvider: React.FC<
     addThreadMessage: overrides.addThreadMessage ?? defaults.addThreadMessage,
     updateThreadMessage:
       overrides.updateThreadMessage ?? defaults.updateThreadMessage,
-    inputValue: overrides.inputValue ?? "",
     streaming: overrides.streaming ?? true,
-    setInputValue: overrides.setInputValue ?? defaults.setInputValue,
     sendThreadMessage:
       overrides.sendThreadMessage ?? defaults.sendThreadMessage,
     generationStage: overrides.generationStage ?? GenerationStage.IDLE,

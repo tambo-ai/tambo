@@ -286,16 +286,6 @@ describe("TamboThreadProvider", () => {
     expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
   });
 
-  it("should handle input value changes", () => {
-    const { result } = renderHook(() => useTamboThread(), { wrapper });
-
-    act(() => {
-      result.current.setInputValue("New input");
-    });
-
-    expect(result.current.inputValue).toBe("New input");
-  });
-
   it("should handle streaming responses", async () => {
     const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
       responseMessageDto: {
