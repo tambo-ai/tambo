@@ -54,7 +54,7 @@ const locationHelper = {
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
-      
+
       return {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -140,7 +140,7 @@ function App() {
         // Built-in helpers
         userTime: true,
         userPage: true,
-        
+
         // Custom helpers
         session: sessionHelper,
         user: userHelper,
