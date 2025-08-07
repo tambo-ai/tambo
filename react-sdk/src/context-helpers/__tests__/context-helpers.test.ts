@@ -17,7 +17,7 @@ describe("Context Helpers (prebuilt functions)", () => {
       expect(typeof context.timestamp).toBe("string");
 
       // Verify ISO string parses
-      expect(() => new Date(context.timestamp)).not.toThrow();
+      expect(() => new Date(context.timestamp as string)).not.toThrow();
     });
   });
 
