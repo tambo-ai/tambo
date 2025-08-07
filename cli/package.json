@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.27.0",
+  "version": "0.27.1",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
