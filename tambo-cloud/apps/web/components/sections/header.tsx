@@ -1,6 +1,8 @@
 import { Icons } from "@/components/icons";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
+// Whitelabel badge (client component)
+import { WhitelabelBadge } from "@/components/whitelabel-badge";
 import Link from "next/link";
 
 // Client components
@@ -38,6 +40,9 @@ export function Header({
             className="relative mr-6 flex items-center"
           >
             <Icons.logo className="h-6 w-auto" aria-label={siteConfig.name} />
+
+            {/* Partner whitelabel badge */}
+            <WhitelabelBadge />
           </Link>
 
           {/* Desktop navigation - client component */}

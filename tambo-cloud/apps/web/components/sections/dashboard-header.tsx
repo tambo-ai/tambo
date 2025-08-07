@@ -6,6 +6,8 @@ import { ProjectDropdown } from "@/components/sections/project-dropdown";
 import { UserProfileDropdown } from "@/components/sections/user-profile-dropdown";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
+// Whitelabel badge
+import { WhitelabelBadge } from "@/components/whitelabel-badge";
 import { api } from "@/trpc/react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -53,6 +55,8 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
                   className="h-6 w-auto"
                   aria-label={siteConfig.name}
                 />
+
+                <WhitelabelBadge />
               </Link>
             )}
 

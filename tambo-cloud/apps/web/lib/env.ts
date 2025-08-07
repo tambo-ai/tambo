@@ -33,6 +33,10 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     NEXTAUTH_SECRET: z.string().min(1),
     NEXTAUTH_URL: z.string().url(),
+
+    // Whitelabeling (server-side copies; optional so can be omitted)
+    TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional(),
+    TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional(),
     // Restrict logins to a specific verified email domain when self-hosting.
     // When unset, any verified email is allowed.
     ALLOWED_LOGIN_DOMAIN: z.string().min(1).optional(),
@@ -52,6 +56,10 @@ export const env = createEnv({
     NEXT_PUBLIC_TAMBO_API_URL: z.string().min(1).optional(),
     NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_SMOKETEST_PROJECT_ID: z.string().min(1).optional(),
+
+    // Whitelabeling vars
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional(),
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional(),
   },
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
@@ -81,6 +89,14 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY,
     NEXT_PUBLIC_SMOKETEST_PROJECT_ID:
       process.env.NEXT_PUBLIC_SMOKETEST_PROJECT_ID,
+
+    // Whitelabeling (falls back to non-public vars for convenience)
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME:
+      process.env.NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME ??
+      process.env.TAMBO_WHITELABEL_ORG_NAME,
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO:
+      process.env.NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO ??
+      process.env.TAMBO_WHITELABEL_ORG_LOGO,
     ALLOW_LOCAL_MCP_SERVERS: process.env.ALLOW_LOCAL_MCP_SERVERS,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     // NextAuth OAuth providers
@@ -90,6 +106,10 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+
+    // Whitelabeling server values (mirrors client fallbacks)
+    TAMBO_WHITELABEL_ORG_NAME: process.env.TAMBO_WHITELABEL_ORG_NAME,
+    TAMBO_WHITELABEL_ORG_LOGO: process.env.TAMBO_WHITELABEL_ORG_LOGO,
     ALLOWED_LOGIN_DOMAIN: process.env.ALLOWED_LOGIN_DOMAIN,
   },
   skipValidation: process.env.SKIP_ENV_VALIDATION === "true",
