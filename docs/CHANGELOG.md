@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/tambo-ai/tambo/compare/docs-v1.1.2...docs-v1.2.0) (2025-08-07)
+
+
+### Features
+
+* add custom context helpers for additional context ([#801](https://github.com/tambo-ai/tambo/issues/801)) ([2e33769](https://github.com/tambo-ai/tambo/commit/2e3376962c096e965266a9db96b0dcdc5c930b43))
+
 ## [1.1.2](https://github.com/tambo-ai/tambo/compare/docs-v1.1.1...docs-v1.1.2) (2025-08-05)
 
 
