@@ -297,3 +297,25 @@ Current state value stored in the thread message for the given key.
 `const { setValue } = useTamboComponentState()`
 
 Function to update the state value, synchronizing both local state and server state.
+
+### useTamboContextHelpers
+
+This hook provides dynamic control over context helpers.
+
+#### getContextHelpers
+
+`const { getContextHelpers } = useTamboContextHelpers()`
+
+Returns the current map of registered helper functions keyed by name.
+
+#### addContextHelper
+
+`const { addContextHelper } = useTamboContextHelpers()`
+
+Adds or replaces a helper at the given key.
+
+#### removeContextHelper
+
+`const { removeContextHelper } = useTamboContextHelpers()`
+
+Removes a helper by key so it is no longer included in outgoing messages.
