@@ -3,7 +3,6 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import React, { PropsWithChildren, useEffect } from "react";
 import { TamboComponent, TamboTool } from "../model/component-metadata";
-import { GenerationStage } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
 import { TamboClientContext } from "./tambo-client-provider";
 import {
@@ -313,9 +312,6 @@ export const TamboStubProvider: React.FC<
     streaming: overrides.streaming ?? true,
     sendThreadMessage:
       overrides.sendThreadMessage ?? defaults.sendThreadMessage,
-    generationStage: overrides.generationStage ?? GenerationStage.IDLE,
-    generationStatusMessage: overrides.generationStatusMessage ?? "",
-    isIdle: overrides.isIdle ?? true,
     cancel: overrides.cancel ?? defaults.cancel,
   };
 

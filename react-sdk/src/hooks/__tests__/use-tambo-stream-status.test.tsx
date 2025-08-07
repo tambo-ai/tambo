@@ -4,7 +4,7 @@ import {
   TamboThreadMessage,
 } from "../../model/generate-component-response";
 import {
-  TamboThreadContextProps,
+  CombinedTamboThreadContextProps,
   useTamboThread,
 } from "../../providers/tambo-thread-provider";
 import { useTamboCurrentMessage } from "../use-current-message";
@@ -52,7 +52,7 @@ describe("useTamboStreamStatus", () => {
     // Default mock implementations
     jest.mocked(useTamboThread).mockReturnValue({
       generationStage: GenerationStage.IDLE,
-    } as TamboThreadContextProps);
+    } as CombinedTamboThreadContextProps);
 
     jest.mocked(useTamboCurrentMessage).mockReturnValue({
       id: "test-message",
@@ -70,7 +70,7 @@ describe("useTamboStreamStatus", () => {
     it("should start with all flags as pending when idle and no props", () => {
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.IDLE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -110,7 +110,7 @@ describe("useTamboStreamStatus", () => {
     it("should show generation streaming but props still pending when STREAMING_RESPONSE with no prop content", () => {
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -136,7 +136,7 @@ describe("useTamboStreamStatus", () => {
     it("should show prop streaming when props receive content during STREAMING_RESPONSE", () => {
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -166,7 +166,7 @@ describe("useTamboStreamStatus", () => {
       // Start with IDLE (Init phase)
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.IDLE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -186,7 +186,7 @@ describe("useTamboStreamStatus", () => {
       // Phase 2: Streaming - move to STREAMING_RESPONSE with content
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -206,7 +206,7 @@ describe("useTamboStreamStatus", () => {
       // Phase 3: Complete - move to COMPLETE
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       rerender();
 
@@ -218,7 +218,7 @@ describe("useTamboStreamStatus", () => {
     it("should handle error state correctly", () => {
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.ERROR,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       const errorMessage = "Generation failed";
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -246,7 +246,7 @@ describe("useTamboStreamStatus", () => {
     it("should derive isPending correctly (no generation activity AND all props pending)", () => {
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.IDLE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -272,7 +272,7 @@ describe("useTamboStreamStatus", () => {
     it("should derive isStreaming correctly (generation streaming OR any prop streaming)", () => {
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       // One prop still streaming
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -296,7 +296,7 @@ describe("useTamboStreamStatus", () => {
       // Step 1: Start with streaming, props empty
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -336,7 +336,7 @@ describe("useTamboStreamStatus", () => {
       // Step 4: Generation complete
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
       rerender();
 
       // Now both props should be successful
@@ -348,7 +348,7 @@ describe("useTamboStreamStatus", () => {
     it("should derive isError correctly (generation error OR any prop error)", () => {
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -440,7 +440,7 @@ describe("useTamboStreamStatus", () => {
       // Step 1: Complete a message
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
           component: createMockComponent({ title: "" }),
@@ -459,7 +459,7 @@ describe("useTamboStreamStatus", () => {
       // Complete generation
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
       rerender();
       // Should be successful initially
       expect(result.current.propStatus.title.isSuccess).toBe(true);
@@ -467,7 +467,7 @@ describe("useTamboStreamStatus", () => {
       // Step 2: Start new generation with a new message ID to trigger reset
       jest.mocked(useTamboThread).mockReturnValue({
         generationStage: GenerationStage.CHOOSING_COMPONENT,
-      } as TamboThreadContextProps);
+      } as CombinedTamboThreadContextProps);
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
           id: "new-message-id", // Different message ID to trigger reset

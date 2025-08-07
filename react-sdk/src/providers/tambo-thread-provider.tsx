@@ -28,6 +28,44 @@ import { useTamboClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
+// Generation Stage Context - separate from thread context to prevent re-renders
+interface GenerationStageContextProps {
+  generationStage: GenerationStage;
+  generationStatusMessage: string;
+  isIdle: boolean;
+}
+
+const GenerationStageContext = createContext<GenerationStageContextProps>({
+  generationStage: GenerationStage.IDLE,
+  generationStatusMessage: "",
+  isIdle: true,
+});
+
+interface GenerationStageProviderProps {
+  generationStage: GenerationStage;
+  statusMessage: string;
+}
+
+const GenerationStageProvider: React.FC<
+  PropsWithChildren<GenerationStageProviderProps>
+> = ({ children, generationStage, statusMessage }) => {
+  const isIdle = useMemo(() => isIdleStage(generationStage), [generationStage]);
+
+  const contextValue = useMemo(() => {
+    return {
+      generationStage,
+      generationStatusMessage: statusMessage,
+      isIdle,
+    };
+  }, [generationStage, statusMessage, isIdle]);
+
+  return (
+    <GenerationStageContext.Provider value={contextValue}>
+      {children}
+    </GenerationStageContext.Provider>
+  );
+};
+
 export interface TamboThreadContextProps {
   /** The current thread */
   thread: TamboThread;
@@ -65,6 +103,11 @@ export interface TamboThreadContextProps {
       additionalContext?: Record<string, any>;
     },
   ) => Promise<TamboThreadMessage>;
+}
+
+// Combined context interface that includes generation stage fields
+export interface CombinedTamboThreadContextProps
+  extends TamboThreadContextProps {
   /** The generation stage of the current thread - updated as the thread progresses */
   generationStage: GenerationStage;
   /** The generation status message of the current thread - updated as the thread progresses */
@@ -134,9 +177,9 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   sendThreadMessage: () => {
     throw new Error("sendThreadMessage not implemented");
   },
-  generationStage: GenerationStage.IDLE,
-  generationStatusMessage: "",
-  isIdle: true,
+  /**
+   *
+   */
   cancel: () => {
     throw new Error("cancel not implemented");
   },
@@ -172,6 +215,11 @@ export const TamboThreadProvider: React.FC<
   );
   const currentThread: TamboThread | undefined = threadMap[currentThreadId];
 
+  // Generation stage props for GenerationStageProvider
+  const currentGenerationStage =
+    (currentThread?.generationStage as GenerationStage) ?? GenerationStage.IDLE;
+  const currentStatusMessage = currentThread?.statusMessage ?? "";
+
   // Use existing messages from the current thread to avoid re-generating any components
   const currentMessageCache = useMemo(() => {
     const messageCache = new Map<string, TamboThreadMessage>();
@@ -186,15 +234,6 @@ export const TamboThreadProvider: React.FC<
   useEffect(() => {
     ignoreResponseRef.current = ignoreResponse;
   }, [ignoreResponse]);
-
-  const isIdle = useMemo(
-    () =>
-      isIdleStage(
-        (currentThread?.generationStage ??
-          GenerationStage.IDLE) as GenerationStage,
-      ),
-    [currentThread?.generationStage],
-  );
 
   const fetchThread = useCallback(
     async (threadId: string, includeInternalMessages = true) => {
@@ -451,7 +490,9 @@ export const TamboThreadProvider: React.FC<
   const cancel = useCallback(
     async (threadId?: string) => {
       threadId ??= currentThreadId;
-      if (isIdle) {
+      const currentGenerationStage =
+        currentThread?.generationStage ?? GenerationStage.IDLE;
+      if (isIdleStage(currentGenerationStage as GenerationStage)) {
         return;
       }
       setIgnoreResponse(true);
@@ -485,7 +526,7 @@ export const TamboThreadProvider: React.FC<
 
       await client.beta.threads.cancel(threadId);
     },
-    [client.beta.threads, currentThreadId, isIdle],
+    [client.beta.threads, currentThreadId, currentThread?.generationStage],
   );
 
   const handleAdvanceStream = useCallback(
@@ -880,17 +921,33 @@ export const TamboThreadProvider: React.FC<
         addThreadMessage,
         updateThreadMessage,
         streaming,
-        generationStage: (currentThread?.generationStage ??
-          GenerationStage.IDLE) as GenerationStage,
-        generationStatusMessage: currentThread?.statusMessage ?? "",
-        isIdle,
         cancel,
         sendThreadMessage,
       }}
     >
-      {children}
+      <GenerationStageProvider
+        generationStage={currentGenerationStage}
+        statusMessage={currentStatusMessage}
+      >
+        {children}
+      </GenerationStageProvider>
     </TamboThreadContext.Provider>
   );
+};
+
+/**
+ *
+ */
+export const useGenerationStage = (): GenerationStageContextProps => {
+  const generationStageContext = useContext(GenerationStageContext);
+
+  if (generationStageContext === undefined) {
+    throw new Error(
+      "useGenerationStage must be used within a TamboThreadProvider",
+    );
+  }
+
+  return generationStageContext;
 };
 
 /**
@@ -898,10 +955,20 @@ export const TamboThreadProvider: React.FC<
  * to the descendants of the TamboThreadProvider.
  * @returns All state and actions for the current thread
  */
-export const useTamboThread = () => {
-  const context = useContext(TamboThreadContext);
-  if (context === undefined) {
+export const useTamboThread = (): CombinedTamboThreadContextProps => {
+  const threadContext = useContext(TamboThreadContext);
+  const generationStageContext = useContext(GenerationStageContext);
+
+  if (threadContext === undefined) {
     throw new Error("useTamboThread must be used within a TamboThreadProvider");
   }
-  return context;
+
+  if (generationStageContext === undefined) {
+    throw new Error("useTamboThread must be used within a TamboThreadProvider");
+  }
+
+  return {
+    ...threadContext,
+    ...generationStageContext,
+  };
 };
