@@ -24,7 +24,6 @@ export const env = createEnv({
     RESEND_AUDIENCE_ID: z.string().min(1).optional(),
     // for smoketesting
     WEATHER_API_KEY: z.string().min(1).optional(),
-    COMPOSIO_API_KEY: z.string().min(1).optional(),
     ALLOW_LOCAL_MCP_SERVERS: z.string().min(1).optional(),
     GITHUB_TOKEN: z.string().min(1).optional(),
     // NextAuth OAuth providers
@@ -79,7 +78,6 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY,
     NEXT_PUBLIC_SMOKETEST_PROJECT_ID:
       process.env.NEXT_PUBLIC_SMOKETEST_PROJECT_ID,
-    COMPOSIO_API_KEY: process.env.COMPOSIO_API_KEY,
     ALLOW_LOCAL_MCP_SERVERS: process.env.ALLOW_LOCAL_MCP_SERVERS,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     // NextAuth OAuth providers

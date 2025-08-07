@@ -87,7 +87,6 @@ Key environment variables in `docker.env`:
 - `RESEND_API_KEY`: Email service API key
 - `SLACK_OAUTH_TOKEN`: Slack integration token
 - `WEATHER_API_KEY`: Weather service API key
-- `COMPOSIO_API_KEY`: Composio integration API key
 
 ## Scripts
 
