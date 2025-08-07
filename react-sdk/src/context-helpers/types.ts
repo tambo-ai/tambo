@@ -9,38 +9,17 @@ export interface AdditionalContext {
 }
 
 /**
- * Interface for a context helper that can generate additional context
+ * A context helper is a function that returns data to include in the context,
+ * or null/undefined to skip including anything.
  */
-export interface AdditionalContextHelper {
-  /** The name of the context helper */
-  name: string;
-  /** Whether this helper is enabled */
-  enabled: boolean;
-  /** Function that generates the additional context */
-  run: () => AdditionalContext | Promise<AdditionalContext>;
-}
+export type ContextHelperFn = () =>
+  | any
+  | null
+  | undefined
+  | Promise<any | null | undefined>;
 
 /**
- * Custom context helper configuration that can be passed via contextHelpers
+ * A collection of context helpers keyed by their context name.
+ * The key becomes the AdditionalContext.name sent to the model.
  */
-export interface CustomContextHelperConfig<T = Record<string, unknown>> {
-  /** Whether this helper is enabled (defaults to true) */
-  enabled?: boolean;
-  /** Function that generates the additional context */
-  run: () => T | Promise<T>;
-}
-
-/**
- * Configuration for context helpers
- * Can be either:
- * - boolean: to enable/disable built-in helpers
- * - CustomContextHelperConfig: to add custom helpers or override built-in ones
- */
-export interface ContextHelpersConfig {
-  /** Enable/disable or override user time context helper */
-  userTime?: boolean | CustomContextHelperConfig;
-  /** Enable/disable or override user page context helper */
-  userPage?: boolean | CustomContextHelperConfig;
-  /** Custom context helpers - key is the helper name, value is the config */
-  [key: string]: boolean | CustomContextHelperConfig | undefined;
-}
+export type ContextHelpers = Record<string, ContextHelperFn>;

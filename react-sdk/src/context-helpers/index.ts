@@ -1,4 +1,4 @@
-import { AdditionalContextHelper, CustomContextHelperConfig } from "./types";
+import { ContextHelperFn } from "./types";
 import { getUserPageContext } from "./user-page";
 import { getUserTimeContext } from "./user-time";
 
@@ -7,33 +7,27 @@ export * from "./user-page";
 export * from "./user-time";
 
 /**
- * Pre-built context helpers that can be enabled/disabled
+ * Prebuilt context helper that provides information about the user's current time.
+ * @returns a value to include it, or null/undefined to skip.
  */
-export const DEFAULT_CONTEXT_HELPERS: AdditionalContextHelper[] = [
-  {
-    name: "userTime",
-    enabled: false, // Default to disabled
-    run: getUserTimeContext,
-  },
-  {
-    name: "userPage",
-    enabled: false, // Default to disabled
-    run: getUserPageContext,
-  },
-];
+export const getUserTime: ContextHelperFn = () => {
+  try {
+    return getUserTimeContext();
+  } catch (e) {
+    console.error("prebuiltUserTime failed:", e);
+    return null;
+  }
+};
 
 /**
- * Helper function to create a custom context helper configuration
- * @param run - Function that returns the context data
- * @param enabled - Whether the helper should be enabled by default
- * @returns A context helper configuration
+ * Prebuilt context helper that provides information about the user's current page.
+ * @returns a value to include it, or null/undefined to skip.
  */
-export function createContextHelper<T = Record<string, unknown>>(
-  run: () => T | Promise<T>,
-  enabled = true,
-): CustomContextHelperConfig<T> {
-  return {
-    enabled,
-    run,
-  };
-}
+export const getUserPage: ContextHelperFn = () => {
+  try {
+    return getUserPageContext();
+  } catch (e) {
+    console.error("prebuiltUserPage failed:", e);
+    return null;
+  }
+};

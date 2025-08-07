@@ -11,151 +11,164 @@ Context helpers can be dynamically managed using the `useTamboContextHelpers` ho
 import { useTamboContextHelpers } from "@tambo-ai/react";
 
 const {
-  getContextHelpers, // Get list of all helpers
-  setContextHelperEnabled, // Toggle helper on/off
-  addContextHelper, // Add new helper dynamically
-  removeContextHelper, // Remove helper
+  getContextHelpers, // Get the current map of helpers
+  addContextHelper, // Add or replace a helper
+  removeContextHelper, // Remove a helper
 } = useTamboContextHelpers();
 ```
 
-## Toggling Helpers
+**Note:**
 
-`setContextHelperEnabled` works with ALL helpers (built-in and custom):
+- Helpers are just functions; to “disable” a helper, replace it with a function that returns null.
+- You can also configure helpers declaratively using `TamboContextHelpersProvider`; both approaches write to the same global registry.
 
-```tsx
-function MyComponent() {
-  const { setContextHelperEnabled } = useTamboContextHelpers();
-
-  // Toggle built-in helper
-  setContextHelperEnabled("userPage", true);
-
-  // Toggle custom helper (using its key name)
-  setContextHelperEnabled("session", false);
-
-  // Works with any helper defined in contextHelpers
-  // If you have: contextHelpers={{ analytics: analyticsHelper }}
-  // You can: setContextHelperEnabled("analytics", true)
-}
-```
-
-## Dynamic Helper Management
-
-### Adding Helpers at Runtime
+## Add/Replace Helpers at Runtime
 
 Useful when context depends on user actions or app state:
 
 ```tsx
-const { addContextHelper } = useTamboContextHelpers();
+function ProjectContextController({ projectId }: { projectId: string }) {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
-// User selects a project
-const onProjectSelect = (projectId: string) => {
-  addContextHelper("currentProject", {
-    run: async () => ({
+  useEffect(() => {
+    if (!projectId) return;
+
+    addContextHelper("currentProject", async () => ({
       projectId,
       projectName: await getProjectName(projectId),
       projectData: await getProjectData(projectId),
-    }),
-  });
-};
+    }));
+
+    return () => {
+      removeContextHelper("currentProject");
+    };
+  }, [projectId]);
+
+  return null;
+}
 ```
 
-### Removing Helpers
-
-Clean up when context is no longer relevant:
+## Removing Helpers
 
 ```tsx
 const { removeContextHelper } = useTamboContextHelpers();
 
-// User closes project
-const onProjectClose = () => {
-  removeContextHelper("currentProject");
-};
+// User logs out
+removeContextHelper("session");
 ```
 
-## Advanced: Building Settings UI
+## Building a Settings UI
 
-For building settings panels, you can use `getContextHelpers`:
+`getContextHelpers` returns the current map of helper functions keyed by name.
+You can build toggles by swapping in a real function or a no-op function that returns null:
 
 ```tsx
 function ContextSettings() {
-  const {
-    getContextHelpers, // Get list of all helpers
-    setContextHelperEnabled,
-  } = useTamboContextHelpers();
-
+  const { getContextHelpers, addContextHelper } = useTamboContextHelpers();
   const helpers = getContextHelpers();
 
   return (
     <div>
       <h3>Privacy Settings</h3>
-      {helpers.map((helper) => (
-        <label key={helper.name}>
-          <input
-            type="checkbox"
-            checked={helper.enabled}
-            onChange={(e) =>
-              setContextHelperEnabled(helper.name, e.target.checked)
-            }
-          />
-          Share {helper.name} data
-        </label>
+      {Object.keys(helpers).map((key) => (
+        <div key={key}>
+          <span>{key}</span>
+          <button onClick={() => addContextHelper(key, () => null)}>
+            Disable
+          </button>
+        </div>
       ))}
     </div>
   );
 }
 ```
 
-## Common Patterns
+## Register helpers from multiple pages using the Provider
 
-### Toggle Based on User Preference
+You can also register helpers declaratively at the page or layout level with `TamboContextHelpersProvider`. Helpers are registered when the provider mounts and are active only while that provider remains mounted (for example, while you’re on that page/layout). If the same key is registered multiple times at different times, the most recently mounted provider takes effect for as long as it’s mounted.
 
-```tsx
-function useUserContextPreferences() {
-  const { setContextHelperEnabled } = useTamboContextHelpers();
-  const [shareLocation, setShareLocation] = useState(false);
+**App layout (optional global helpers):**
 
-  const toggleLocationSharing = (enabled: boolean) => {
-    setShareLocation(enabled);
-    setContextHelperEnabled("userLocation", enabled);
-  };
+```tsx title="app/layout.tsx"
+import { TamboProvider, TamboContextHelpersProvider } from "@tambo-ai/react";
+import { getUserTime } from "@tambo-ai/react";
 
-  return { shareLocation, toggleLocationSharing };
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      contextHelpers={{
+        // Global helper available across pages
+        userTime: getUserTime,
+      }}
+    ></TamboProvider>
+  );
 }
 ```
 
-### Conditional Context in Components
+**Page A (adds a page-specific helper):**
 
-```tsx
-function PremiumFeature() {
-  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
-  const isPremium = useIsPremiumUser();
+```tsx title="app/dashboard/page.tsx"
+"use client";
 
-  useEffect(() => {
-    if (isPremium) {
-      addContextHelper("premiumContext", {
-        run: async () => ({
-          tier: "premium",
-          features: await getPremiumFeatures(),
-        }),
-      });
-    }
+import { TamboContextHelpersProvider } from "@tambo-ai/react";
+import { getUserPage } from "@tambo-ai/react";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 
-    return () => {
-      if (isPremium) {
-        removeContextHelper("premiumContext");
-      }
-    };
-  }, [isPremium]);
+export default function DashboardPage() {
+  return (
+    <TamboContextHelpersProvider
+      contextHelpers={{
+        // Page-specific helper; overrides any existing "userPage" key
+        userPage: getUserPage,
+      }}
+    >
+      <MessageThreadFull contextKey="dashboard" />
+    </TamboContextHelpersProvider>
+  );
 }
 ```
+
+**Page B (adds a different helper or overrides a key):**
+
+```tsx title="app/settings/page.tsx"
+"use client";
+
+import { TamboContextHelpersProvider } from "@tambo-ai/react";
+
+const getUserSettingsContext = async () => ({
+  theme: "dark",
+  notifications: true,
+});
+
+export default function SettingsPage() {
+  return (
+    <TamboContextHelpersProvider
+      contextHelpers={{
+        // Different key; active only while this page is mounted
+        userSettings: getUserSettingsContext,
+        // Optionally override userPage for this page's context
+        // userPage: () => ({ url: "/settings", title: "Settings" }),
+      }}
+    >
+      {/* Components that send messages */}
+    </TamboContextHelpersProvider>
+  );
+}
+```
+
+- If you only want a helper active while a page is mounted, register it in that page’s provider (like above), or use the hook with add/remove in a `useEffect` with cleanup.
+- Consider namespacing keys if multiple parts of the app might register the same context (e.g., `dashboard:userPage`).
 
 ## What Happens Behind the Scenes
 
-When you send a message, tambo automatically:
+When you send a message, Tambo automatically:
 
-1. Calls all enabled helpers
-2. Collects their context data
-3. Merges it with any manual `additionalContext`
-4. Sends everything with the message
-
-You don't need to manually call `getAdditionalContext` - this happens automatically!
+1. Calls all configured helper functions.
+2. Filters out null/undefined results.
+3. Merges the results with any manual `additionalContext`.
+4. Sends everything with the message.

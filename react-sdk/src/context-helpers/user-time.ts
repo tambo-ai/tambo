@@ -1,16 +1,11 @@
-import { AdditionalContext } from "./types";
-
 /**
  * Context helper that provides the user's current time and timezone
- * @returns Additional context with user's time information
+ * @returns the raw context value. The provider will wrap it with the key.
  */
-export function getUserTimeContext(): AdditionalContext {
+export function getUserTimeContext() {
   const now = new Date();
 
   return {
-    name: "userTime",
-    context: {
-      timestamp: now.toISOString(),
-    },
+    timestamp: now.toISOString(),
   };
 }

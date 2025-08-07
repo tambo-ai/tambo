@@ -1,32 +1,42 @@
 import { getUserPageContext, getUserTimeContext } from "../index";
 
-describe("Context Helpers", () => {
+/**
+ * Tests for prebuilt context helper functions.
+ *
+ * These helpers now return raw values (or null) instead of { name, context }.
+ * The provider is responsible for wrapping values as { name, context }.
+ */
+describe("Context Helpers (prebuilt functions)", () => {
   describe("getUserTimeContext", () => {
-    it("should return user time context with all required fields", () => {
+    it("should return user time context with required fields", () => {
       const context = getUserTimeContext();
 
-      expect(context.name).toBe("userTime");
-      expect(context.context).toHaveProperty("timestamp");
+      // Shape: { timestamp: string }
+      expect(context).toHaveProperty("timestamp");
 
-      // Verify data types
-      expect(typeof context.context.timestamp).toBe("string");
+      expect(typeof context.timestamp).toBe("string");
 
-      // Verify timestamp is valid ISO string
-      expect(() => new Date(context.context.timestamp)).not.toThrow();
+      // Verify ISO string parses
+      expect(() => new Date(context.timestamp)).not.toThrow();
     });
   });
 
   describe("getUserPageContext", () => {
-    it("should return page context with default values in test environment", () => {
+    it("should return page context in browser, or null otherwise", () => {
       const context = getUserPageContext();
 
-      expect(context.name).toBe("userPage");
-      expect(context.context).toHaveProperty("url");
-      expect(context.context).toHaveProperty("title");
+      if (context === null) {
+        // Non-browser environments should return null to skip
+        expect(context).toBeNull();
+        return;
+      }
 
-      // Verify data types
-      expect(typeof context.context.url).toBe("string");
-      expect(typeof context.context.title).toBe("string");
+      // Shape: { url: string, title: string }
+      expect(context).toHaveProperty("url");
+      expect(context).toHaveProperty("title");
+
+      expect(typeof context.url).toBe("string");
+      expect(typeof context.title).toBe("string");
     });
   });
 });

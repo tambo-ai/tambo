@@ -74,15 +74,9 @@ export {
 export { useTamboInteractable } from "./providers/tambo-interactable-provider";
 
 // Context helpers exports
-export {
-  createContextHelper,
-  DEFAULT_CONTEXT_HELPERS,
-  getUserPageContext,
-  getUserTimeContext,
-} from "./context-helpers";
+export { getUserPage, getUserTime } from "./context-helpers";
 export type {
   AdditionalContext,
-  AdditionalContextHelper,
-  ContextHelpersConfig,
-  CustomContextHelperConfig,
+  ContextHelperFn,
+  ContextHelpers,
 } from "./context-helpers";

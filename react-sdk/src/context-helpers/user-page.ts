@@ -1,25 +1,13 @@
-import { AdditionalContext } from "./types";
-
 /**
- * Context helper that provides information about the user's current page
- * @returns Additional context with current page information
+ * Context helper that provides information about the user's current page.
+ * @returns the raw context value. The provider will wrap it with the key.
  */
-export function getUserPageContext(): AdditionalContext {
-  // Only run in browser environment
+export function getUserPageContext() {
   if (typeof window === "undefined") {
-    return {
-      name: "userPage",
-      context: {
-        error: "Not in browser environment",
-      },
-    };
+    return null; // Skip when not in browser
   }
-
   return {
-    name: "userPage",
-    context: {
-      url: window.location.href,
-      title: document.title,
-    },
+    url: window.location.href,
+    title: document.title,
   };
 }

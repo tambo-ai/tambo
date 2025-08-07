@@ -8,69 +8,91 @@ Practical examples of context helpers for common use cases.
 ## E-commerce Context
 
 ```tsx
-const cartHelper = createContextHelper(async () => ({
+const cartHelper = async () => ({
   itemCount: getCartItemCount(),
   totalValue: getCartTotal(),
-  items: getCartItems().map(item => ({
+  items: getCartItems().map((item) => ({
     id: item.id,
     name: item.name,
-    price: item.price
-  }))
-}));
+    price: item.price,
+  })),
+});
 
-const preferencesHelper = createContextHelper(async () => ({
+const preferencesHelper = async () => ({
   currency: getUserCurrency(),
   shippingAddress: await getUserShippingAddress(),
-  paymentMethods: await getSavedPaymentMethods().length
-}));
+  paymentMethods: (await getSavedPaymentMethods()).length,
+});
 
+// Register globally with TamboProvider
 <TamboProvider
   contextHelpers={{
     cart: cartHelper,
     userPreferences: preferencesHelper,
   }}
->
+/>;
+
+// Or register locally per page/layout with TamboContextHelpersProvider
+<TamboContextHelpersProvider
+  contextHelpers={{
+    cart: cartHelper,
+    userPreferences: preferencesHelper,
+  }}
+/>;
 ```
 
 ## Analytics Context
 
 ```tsx
-const analyticsHelper = createContextHelper(async () => ({
+const analyticsHelper = async () => ({
   sessionDuration: getSessionDuration(),
   pageViews: getPageViewCount(),
   referrer: document.referrer,
   utm_params: getUTMParameters(),
   userSegment: await getUserSegment(),
-}));
+});
+
+// Local registration example
+<TamboContextHelpersProvider
+  contextHelpers={{
+    analytics: analyticsHelper,
+  }}
+/>;
 ```
 
 ## Location-Based Context
 
 ```tsx
-const locationHelper = {
-  enabled: true,
-  run: async () => {
-    try {
-      const position = await new Promise((resolve, reject) => {
+const locationHelper = async () => {
+  try {
+    const position: GeolocationPosition = await new Promise(
+      (resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
+      },
+    );
 
-      return {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-      };
-    } catch (error) {
-      return { error: "Location unavailable" };
-    }
-  },
+    return {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+    };
+  } catch {
+    return { error: "Location unavailable" };
+  }
 };
+
+// Register only where geolocation is needed
+<TamboContextHelpersProvider
+  contextHelpers={{
+    location: locationHelper,
+  }}
+/>;
 ```
 
 ## Authentication Context
 
 ```tsx
-const authHelper = createContextHelper(async () => {
+const authHelper = async () => {
   const user = await getCurrentUser();
   return {
     isAuthenticated: !!user,
@@ -79,23 +101,36 @@ const authHelper = createContextHelper(async () => {
     permissions: user?.permissions || [],
     organizationId: user?.organizationId,
   };
-});
+};
+
+// Either global or page-scoped
+<TamboContextHelpersProvider
+  contextHelpers={{
+    auth: authHelper,
+  }}
+/>;
 ```
 
 ## Feature Flags Context
 
 ```tsx
-const featureHelper = createContextHelper(async () => ({
+const featureHelper = async () => ({
   flags: await getFeatureFlags(),
   experiments: await getActiveExperiments(),
   userCohort: getUserCohort(),
-}));
+});
+
+<TamboContextHelpersProvider
+  contextHelpers={{
+    features: featureHelper,
+  }}
+/>;
 ```
 
 ## Multi-tenant Context
 
 ```tsx
-const tenantHelper = createContextHelper(async () => {
+const tenantHelper = async () => {
   const tenant = await getCurrentTenant();
   return {
     tenantId: tenant.id,
@@ -103,51 +138,64 @@ const tenantHelper = createContextHelper(async () => {
     subscription: tenant.subscriptionTier,
     customizations: tenant.customSettings,
   };
-});
+};
+
+<TamboContextHelpersProvider
+  contextHelpers={{
+    tenant: tenantHelper,
+  }}
+/>;
 ```
 
 ## Complete Example
 
-Here's a full implementation with multiple context types:
-
 ```tsx
-import { TamboProvider, createContextHelper } from "@tambo-ai/react";
+import { TamboProvider, TamboContextHelpersProvider } from "@tambo-ai/react";
+import { getUserTime, getUserPage } from "@tambo-ai/react";
 
-// Define all context helpers
-const sessionHelper = createContextHelper(async () => ({
+const sessionHelper = async () => ({
   sessionId: getSessionId(),
   startTime: getSessionStartTime(),
   duration: getSessionDuration(),
-}));
+});
 
-const userHelper = createContextHelper(async () => ({
+const userHelper = async () => ({
   id: getUserId(),
   role: getUserRole(),
   preferences: await getUserPreferences(),
-}));
+});
 
-const appHelper = createContextHelper(() => ({
+const appHelper = () => ({
   version: APP_VERSION,
   environment: process.env.NODE_ENV,
   buildTime: BUILD_TIMESTAMP,
-}));
+});
 
 function App() {
   return (
     <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
       contextHelpers={{
-        // Built-in helpers
-        userTime: true,
-        userPage: true,
+        // Prebuilt helpers (global)
+        userTime: getUserTime,
 
-        // Custom helpers
+        // Custom helpers (global)
         session: sessionHelper,
         user: userHelper,
         app: appHelper,
       }}
     >
-      <YourApp />
+      {/* Page-level overrides/additions */}
+      <TamboContextHelpersProvider
+        contextHelpers={{
+          // Override or add page-specific helpers
+          userPage: getUserPage,
+          // Optionally override an existing key from the root
+          // session: async () => ({ ...customSessionForThisPage })
+        }}
+      >
+        <YourApp />
+      </TamboContextHelpersProvider>
     </TamboProvider>
   );
 }

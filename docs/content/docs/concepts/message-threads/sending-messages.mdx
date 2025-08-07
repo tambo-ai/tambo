@@ -99,16 +99,25 @@ The `additionalContext` parameter accepts a `Record<string, any>` object, allowi
 
 #### Context Helpers
 
-tambo can automatically include context helpers with every message when they are enabled. These context helpers provide useful metadata without requiring additional code in your components.
+Tambo can automatically include context helpers with every message when they are configured. Configure helpers either:
 
-Available context helpers include:
+- Globally on `TamboProvider` via the `contextHelpers` prop, or
+- Locally on a page/layout using `TamboContextHelpersProvider` (active only while mounted)
 
-- **userTime**: Current time, timezone, and timestamp information
-- **userPage**: Current page URL, title, and navigation information
+**Prebuilt helpers include:**
 
-Context helpers are configured at the provider level and are disabled by default. See [Additional Context](/concepts/additional-context/configuration) for configuration details.
+- **getUserTime**: Returns current timestamp
+- **getUserPage**: Returns current page URL/title information
 
-Your manual `additionalContext` will be merged with any enabled context helpers. For example, if the `userTime` context helper is enabled, the above code would result in a combined context like:
+You can also define custom context helpers and register them either globally with `TamboProvider` or locally with `TamboContextHelpersProvider`. Any active helpers will be automatically merged into the message context. If the same key is registered in multiple places at different times, the most recently mounted registration takes precedence while it’s mounted.
+
+<Cards>
+  <Card title="Additional Context" href="/concepts/additional-context">
+    Learn more about additionalContext.
+  </Card>
+</Cards>
+
+Your manual `additionalContext` will be merged with any resolved helper results. For example, if the `getUserTime` context helper is passed, the above code would result in a combined context like:
 
 ```json
 {
@@ -118,10 +127,7 @@ Your manual `additionalContext` will be merged with any enabled context helpers.
   "location": "San Francisco",
   "units": "fahrenheit",
   "userTime": {
-    "localTime": "1/15/2025, 3:30:00 PM",
-    "timezone": "America/New_York",
-    "timestamp": "2025-01-15T20:30:00.000Z",
-    "offsetMinutes": 300
+    "timestamp": "2025-01-15T20:30:00.000Z"
   }
 }
 ```
