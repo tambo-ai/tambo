@@ -14,3 +14,5 @@ export * from "./templates";
 export * from "./threads";
 export * from "./tools";
 export type * from "./typeutils";
+// Auth helpers
+export * from "./auth/email-domain";

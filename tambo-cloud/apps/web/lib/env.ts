@@ -33,6 +33,9 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     NEXTAUTH_SECRET: z.string().min(1),
     NEXTAUTH_URL: z.string().url(),
+    // Restrict logins to a specific verified email domain when self-hosting.
+    // When unset, any verified email is allowed.
+    ALLOWED_LOGIN_DOMAIN: z.string().min(1).optional(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -87,6 +90,7 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    ALLOWED_LOGIN_DOMAIN: process.env.ALLOWED_LOGIN_DOMAIN,
   },
   skipValidation: process.env.SKIP_ENV_VALIDATION === "true",
 });
