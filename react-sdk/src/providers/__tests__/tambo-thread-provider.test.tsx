@@ -131,8 +131,8 @@ describe("TamboThreadProvider", () => {
     <TamboRegistryProvider components={mockRegistry}>
       <TamboContextHelpersProvider
         contextHelpers={{
-          userTime: () => null,
-          userPage: () => null,
+          currentTimeContextHelper: () => null,
+          currentPageContextHelper: () => null,
         }}
       >
         <TamboThreadProvider streaming={false}>{children}</TamboThreadProvider>
@@ -395,7 +395,10 @@ describe("TamboThreadProvider", () => {
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
           <TamboContextHelpersProvider
-            contextHelpers={{ userTime: () => null, userPage: () => null }}
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
           >
             <TamboThreadProvider streaming={true}>
               {children}
@@ -477,7 +480,10 @@ describe("TamboThreadProvider", () => {
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
           <TamboContextHelpersProvider
-            contextHelpers={{ userTime: () => null, userPage: () => null }}
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
           >
             <TamboThreadProvider streaming={true}>
               {children}
@@ -533,7 +539,10 @@ describe("TamboThreadProvider", () => {
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
           <TamboContextHelpersProvider
-            contextHelpers={{ userTime: () => null, userPage: () => null }}
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
           >
             <TamboThreadProvider streaming={false}>
               {children}
@@ -589,7 +598,10 @@ describe("TamboThreadProvider", () => {
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
           <TamboContextHelpersProvider
-            contextHelpers={{ userTime: () => null, userPage: () => null }}
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
           >
             <TamboThreadProvider>{children}</TamboThreadProvider>
           </TamboContextHelpersProvider>
@@ -669,7 +681,10 @@ describe("TamboThreadProvider", () => {
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
           <TamboContextHelpersProvider
-            contextHelpers={{ userTime: () => null, userPage: () => null }}
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
           >
             <TamboThreadProvider streaming={true}>
               {children}
@@ -728,7 +743,10 @@ describe("TamboThreadProvider", () => {
       }) => (
         <TamboRegistryProvider components={mockRegistry}>
           <TamboContextHelpersProvider
-            contextHelpers={{ userTime: () => null, userPage: () => null }}
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
           >
             <TamboThreadProvider streaming={false}>
               {children}
