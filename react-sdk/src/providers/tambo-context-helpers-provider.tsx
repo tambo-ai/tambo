@@ -55,12 +55,24 @@ export const TamboContextHelpersProvider: React.FC<
 > = ({ children, contextHelpers }) => {
   // Hydrate the global registry with initial helpers (runs on prop changes)
   React.useEffect(() => {
+    const addedEntries: [string, ContextHelperFn][] = [];
+
     if (contextHelpers) {
       for (const [name, fn] of Object.entries(contextHelpers)) {
         addHelper(name, fn);
+        addedEntries.push([name, fn]);
       }
     }
-    // no cleanup: global registry is app-scoped; users can remove helpers explicitly
+
+    return () => {
+      const current = getHelpers();
+      for (const [name, fn] of addedEntries) {
+        // Only remove if the registry still points to the same function
+        if (current[name] === fn) {
+          removeGlobalHelper(name);
+        }
+      }
+    };
   }, [contextHelpers]);
 
   const getAdditionalContext = useCallback(async () => {
