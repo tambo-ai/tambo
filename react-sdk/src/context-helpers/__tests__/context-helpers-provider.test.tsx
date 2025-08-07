@@ -12,19 +12,19 @@
  *  - The provider aggregates helpers passed in its props and returns AdditionalContext[].
  */
 
-import React, { PropsWithChildren } from "react";
 import { renderHook } from "@testing-library/react";
+import React, { PropsWithChildren } from "react";
+import { setHelpers } from "../../context-helpers/registry";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
 } from "../../providers/tambo-context-helpers-provider";
 import {
-  type ContextHelperFn,
   type AdditionalContext,
-  getUserPage,
-  getUserTime,
+  type ContextHelperFn,
+  currentPageContextHelper,
+  currentTimeContextHelper,
 } from "../index";
-import { setHelpers } from "../../context-helpers/registry";
 
 /**
  * Test wrapper to provide the TamboContextHelpersProvider for hooks.
@@ -159,8 +159,8 @@ describe("Context Helpers API", () => {
   test("prebuilt helpers can be passed directly", async () => {
     const { result } = renderHook(() => useTamboContextHelpers(), {
       wrapper: wrapper({
-        userTime: getUserTime,
-        userPage: getUserPage,
+        userTime: currentTimeContextHelper,
+        userPage: currentPageContextHelper,
       }),
     });
 

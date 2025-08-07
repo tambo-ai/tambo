@@ -11,15 +11,18 @@ Configure prebuilt context helpers at the root:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { getUserTime, getUserPage } from "@tambo-ai/react";
+import {
+  currentTimeContextHelper,
+  currentPageContextHelper,
+} from "@tambo-ai/react";
 
 function AppRoot({ children }: { children: React.ReactNode }) {
   return (
     <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
       contextHelpers={{
-        userTime: getUserTime,
-        userPage: getUserPage,
+        userTime: currentTimeContextHelper,
+        userPage: currentPageContextHelper,
       }}
     >
       {children}
@@ -40,13 +43,13 @@ If you don’t want to pass `contextHelpers` at the root (or you need to scope h
 
 ```tsx
 import { TamboContextHelpersProvider } from "@tambo-ai/react";
-import { getUserPage } from "@tambo-ai/react";
+import { currentPageContextHelper } from "@tambo-ai/react";
 
 function Page() {
   return (
     <TamboContextHelpersProvider
       contextHelpers={{
-        userPage: getUserPage,
+        userPage: currentPageContextHelper,
       }}
     >
       {/* Components that send messages (e.g., MessageThreadFull, inputs, etc.) */}
@@ -68,7 +71,7 @@ When helpers resolve, they are merged into the message context keyed by your hel
 ```tsx
 <TamboProvider
   contextHelpers={{
-    userTime: getUserTime,
+    userTime: currentTimeContextHelper,
     session: async () => ({
       sessionId: "abc123",
       userId: "user456",

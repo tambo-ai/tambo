@@ -1,4 +1,7 @@
-import { getUserPageContext, getUserTimeContext } from "../index";
+import {
+  currentPageContextHelperContext,
+  currentTimeContextHelperContext,
+} from "../index";
 
 /**
  * Tests for prebuilt context helper functions.
@@ -7,9 +10,9 @@ import { getUserPageContext, getUserTimeContext } from "../index";
  * The provider is responsible for wrapping values as { name, context }.
  */
 describe("Context Helpers (prebuilt functions)", () => {
-  describe("getUserTimeContext", () => {
+  describe("currentTimeContextHelperContext", () => {
     it("should return user time context with required fields", () => {
-      const context = getUserTimeContext();
+      const context = currentTimeContextHelperContext();
 
       // Shape: { timestamp: string }
       expect(context).toHaveProperty("timestamp");
@@ -21,9 +24,9 @@ describe("Context Helpers (prebuilt functions)", () => {
     });
   });
 
-  describe("getUserPageContext", () => {
+  describe("currentPageContextHelperContext", () => {
     it("should return page context in browser, or null otherwise", () => {
-      const context = getUserPageContext();
+      const context = currentPageContextHelperContext();
 
       if (context === null) {
         // Non-browser environments should return null to skip

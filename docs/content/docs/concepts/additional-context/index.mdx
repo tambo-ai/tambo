@@ -25,12 +25,15 @@ Tambo provides prebuilt helper functions that can be passed to the provider:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { getUserTime, getUserPage } from "@tambo-ai/react";
+import {
+  currentTimeContextHelper,
+  currentPageContextHelper,
+} from "@tambo-ai/react";
 
 <TamboProvider
   contextHelpers={{
-    userTime: getUserTime,
-    userPage: getUserPage,
+    userTime: currentTimeContextHelper,
+    userPage: currentPageContextHelper,
   }}
 />;
 ```
@@ -39,14 +42,14 @@ You can also wrap parts of your app with `TamboContextHelpersProvider` to declar
 
 ```tsx
 import { TamboContextHelpersProvider } from "@tambo-ai/react";
-import { getUserPage } from "@tambo-ai/react";
+import { currentPageContextHelper } from "@tambo-ai/react";
 
 export default function DashboardPage() {
   return (
     <TamboContextHelpersProvider
       contextHelpers={{
         // Registers only while this page is mounted
-        userPage: getUserPage,
+        userPage: currentPageContextHelper,
       }}
     >
       {/* Components that send messages (e.g., MessageThreadFull, inputs, etc.) */}
@@ -104,15 +107,15 @@ All three methods can be used together—context from helpers and manual context
 
 ## When to Use Each Method
 
-| Method           | Use When                                                 | Example                                    |
-| ---------------- | -------------------------------------------------------- | ------------------------------------------ |
-| Prebuilt Helpers | You need standard metadata like time or page info        | Use `getUserTime` for scheduling features  |
-| Custom Helpers   | You have app-wide context that should always be included | User profile, app settings, feature flags  |
-| Manual Context   | Context is specific to a particular interaction          | Search filters, form data, temporary state |
+| Method           | Use When                                                 | Example                                                |
+| ---------------- | -------------------------------------------------------- | ------------------------------------------------------ |
+| Prebuilt Helpers | You need standard metadata like time or page info        | Use `currentTimeContextHelper` for scheduling features |
+| Custom Helpers   | You have app-wide context that should always be included | User profile, app settings, feature flags              |
+| Manual Context   | Context is specific to a particular interaction          | Search filters, form data, temporary state             |
 
 ## Available Prebuilt Context Helpers
 
-### getUserTime
+### currentTimeContextHelper
 
 Provides the user's current time and timezone information.
 
@@ -120,12 +123,11 @@ Example result:
 
 ```json
 {
-  "iso": "2025-01-15T20:30:00.000Z",
-  "timezoneOffsetMinutes": -300
+  "timestamp": "2025-01-15T20:30:00.000Z"
 }
 ```
 
-### getUserPage
+### currentPageContextHelper
 
 Provides information about the current page or route.
 

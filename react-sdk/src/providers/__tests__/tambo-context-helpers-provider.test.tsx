@@ -1,11 +1,14 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import {
+  currentPageContextHelper,
+  currentTimeContextHelper,
+} from "../../context-helpers";
+import { setHelpers } from "../../context-helpers/registry";
+import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
 } from "../tambo-context-helpers-provider";
-import { setHelpers } from "../../context-helpers/registry";
-import { getUserPage, getUserTime } from "../../context-helpers";
 
 /**
  * Test suite for TamboContextHelpersProvider (simplified API, registry-backed)
@@ -101,8 +104,8 @@ describe("TamboContextHelpersProvider", () => {
       const withHelpers = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider
           contextHelpers={{
-            userTime: getUserTime,
-            userPage: getUserPage,
+            userTime: currentTimeContextHelper,
+            userPage: currentPageContextHelper,
           }}
         >
           {children}

@@ -151,7 +151,10 @@ const tenantHelper = async () => {
 
 ```tsx
 import { TamboProvider, TamboContextHelpersProvider } from "@tambo-ai/react";
-import { getUserTime, getUserPage } from "@tambo-ai/react";
+import {
+  currentTimeContextHelper,
+  currentPageContextHelper,
+} from "@tambo-ai/react";
 
 const sessionHelper = async () => ({
   sessionId: getSessionId(),
@@ -177,7 +180,7 @@ function App() {
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
       contextHelpers={{
         // Prebuilt helpers (global)
-        userTime: getUserTime,
+        userTime: currentTimeContextHelper,
 
         // Custom helpers (global)
         session: sessionHelper,
@@ -189,7 +192,7 @@ function App() {
       <TamboContextHelpersProvider
         contextHelpers={{
           // Override or add page-specific helpers
-          userPage: getUserPage,
+          userPage: currentPageContextHelper,
           // Optionally override an existing key from the root
           // session: async () => ({ ...customSessionForThisPage })
         }}

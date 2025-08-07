@@ -91,7 +91,7 @@ You can also register helpers declaratively at the page or layout level with `Ta
 
 ```tsx title="app/layout.tsx"
 import { TamboProvider, TamboContextHelpersProvider } from "@tambo-ai/react";
-import { getUserTime } from "@tambo-ai/react";
+import { currentTimeContextHelper } from "@tambo-ai/react";
 
 export default function RootLayout({
   children,
@@ -103,7 +103,7 @@ export default function RootLayout({
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
       contextHelpers={{
         // Global helper available across pages
-        userTime: getUserTime,
+        userTime: currentTimeContextHelper,
       }}
     ></TamboProvider>
   );
@@ -116,7 +116,7 @@ export default function RootLayout({
 "use client";
 
 import { TamboContextHelpersProvider } from "@tambo-ai/react";
-import { getUserPage } from "@tambo-ai/react";
+import { currentPageContextHelper } from "@tambo-ai/react";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 
 export default function DashboardPage() {
@@ -124,7 +124,7 @@ export default function DashboardPage() {
     <TamboContextHelpersProvider
       contextHelpers={{
         // Page-specific helper; overrides any existing "userPage" key
-        userPage: getUserPage,
+        userPage: currentPageContextHelper,
       }}
     >
       <MessageThreadFull contextKey="dashboard" />

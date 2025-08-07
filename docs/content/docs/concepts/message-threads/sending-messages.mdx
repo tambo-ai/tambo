@@ -106,8 +106,8 @@ Tambo can automatically include context helpers with every message when they are
 
 **Prebuilt helpers include:**
 
-- **getUserTime**: Returns current timestamp
-- **getUserPage**: Returns current page URL/title information
+- **currentTimeContextHelper**: Returns current timestamp
+- **currentPageContextHelper**: Returns current page URL/title information
 
 You can also define custom context helpers and register them either globally with `TamboProvider` or locally with `TamboContextHelpersProvider`. Any active helpers will be automatically merged into the message context. If the same key is registered in multiple places at different times, the most recently mounted registration takes precedence while it’s mounted.
 
@@ -117,7 +117,7 @@ You can also define custom context helpers and register them either globally wit
   </Card>
 </Cards>
 
-Your manual `additionalContext` will be merged with any resolved helper results. For example, if the `getUserTime` context helper is passed, the above code would result in a combined context like:
+Your manual `additionalContext` will be merged with any resolved helper results. For example, if the `currentTimeContextHelper` context helper is passed, the above code would result in a combined context like:
 
 ```json
 {
