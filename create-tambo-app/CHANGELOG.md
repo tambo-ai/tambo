@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.10](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.9...create-tambo-app-v0.1.10) (2025-08-07)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump typescript from 5.8.3 to 5.9.2 ([#790](https://github.com/tambo-ai/tambo/issues/790)) ([49b86a0](https://github.com/tambo-ai/tambo/commit/49b86a0ba3198419054b7b75af9970321224b997))
+
 ## [0.1.9](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.8...create-tambo-app-v0.1.9) (2025-07-29)
 
 
