@@ -1,132 +1,111 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import * as contextHelpers from "../../context-helpers";
-import { DEFAULT_CONTEXT_HELPERS } from "../../context-helpers";
+import {
+  currentPageContextHelper,
+  currentTimeContextHelper,
+} from "../../context-helpers";
+import { setHelpers } from "../../context-helpers/registry";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
 } from "../tambo-context-helpers-provider";
 
+/**
+ * Test suite for TamboContextHelpersProvider (simplified API, registry-backed)
+ *
+ * The simplified API:
+ * - Accepts a plain map of { key: () => any | null | undefined | Promise<any | null | undefined> }.
+ * - The key becomes the context name sent to the model.
+ * - Returning null/undefined from a helper skips inclusion.
+ * - Prebuilt helpers are just functions (e.g., prebuiltUserTime, prebuiltUserPage).
+ *
+ * The hook is now registry-backed and safe to call outside a provider. When used
+ * outside a provider, it proxies to a global registry and still works.
+ */
 describe("TamboContextHelpersProvider", () => {
-  // Create a wrapper component that provides the context for testing hooks
+  // Ensure registry is clean for each test to avoid cross-test contamination
+  beforeEach(() => {
+    setHelpers({});
+    jest.clearAllMocks();
+  });
+
+  // Base wrapper with no helpers provided
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <TamboContextHelpersProvider>{children}</TamboContextHelpersProvider>
   );
 
   describe("useTamboContextHelpers", () => {
     /**
-     * Test: Hook throws error when used outside of provider
-     * This ensures developers get a clear error message if they forget to wrap
-     * their components with the TamboContextHelpersProvider
+     * NOTE: The hook is registry-backed and safe outside provider. It should not throw.
+     * This replaces the previous behavior that threw without a provider.
      */
-    it("should throw error when used outside provider", () => {
-      // Mock console.error to prevent error output in test logs
+    it("should be safe outside provider (registry-backed no provider)", async () => {
       const consoleSpy = jest
         .spyOn(console, "error")
         .mockImplementation(() => {});
+      const { result } = renderHook(() => useTamboContextHelpers());
 
-      // Verify that using the hook without a provider throws the expected error
-      expect(() => {
-        renderHook(() => useTamboContextHelpers());
-      }).toThrow(
-        "useTamboContextHelpers must be used within a TamboContextHelpersProvider",
-      );
+      // Should return callable functions
+      expect(typeof result.current.getAdditionalContext).toBe("function");
+      expect(typeof result.current.getContextHelpers).toBe("function");
+      expect(typeof result.current.addContextHelper).toBe("function");
+      expect(typeof result.current.removeContextHelper).toBe("function");
 
-      // Restore console.error to its original implementation
+      // Starts empty
+      expect(await result.current.getAdditionalContext()).toHaveLength(0);
+
+      // Add a helper and verify
+      act(() => {
+        result.current.addContextHelper("outsideHelper", () => ({ ok: true }));
+      });
+
+      const contexts = await result.current.getAdditionalContext();
+      expect(contexts).toContainEqual({
+        name: "outsideHelper",
+        context: { ok: true },
+      });
+
+      // Cleanup
+      act(() => {
+        result.current.removeContextHelper("outsideHelper");
+      });
       consoleSpy.mockRestore();
     });
 
     /**
-     * Test: Hook provides the expected API functions
-     * Verifies that all required functions are available when the hook is used
-     * within the provider context
+     * Verifies that the hook returns the expected API functions when used within a provider.
      */
-    it("should provide context helpers functions", () => {
+    it("should provide context helpers functions (inside provider)", () => {
       const { result } = renderHook(() => useTamboContextHelpers(), {
         wrapper,
       });
-
-      // Verify all expected functions are present in the hook's return value
       expect(result.current).toHaveProperty("getAdditionalContext");
       expect(result.current).toHaveProperty("getContextHelpers");
-      expect(result.current).toHaveProperty("setContextHelperEnabled");
+      expect(result.current).toHaveProperty("addContextHelper");
+      expect(result.current).toHaveProperty("removeContextHelper");
     });
 
     /**
-     * Test: Default configuration is applied correctly
-     * Ensures that the default context helpers are loaded with their
-     * expected enabled/disabled states
+     * With no helpers provided, no additional context should be returned.
      */
-    it("should return default context helpers configuration", () => {
+    it("should return no additional context when no helpers are provided", async () => {
       const { result } = renderHook(() => useTamboContextHelpers(), {
         wrapper,
       });
-
-      const helpers = result.current.getContextHelpers();
-
-      // Verify we have the expected number of default helpers
-      expect(helpers).toHaveLength(DEFAULT_CONTEXT_HELPERS.length);
-
-      // Check specific helpers have their expected default states
-      const userTimeHelper = helpers.find((h) => h.name === "userTime");
-      const userPageHelper = helpers.find((h) => h.name === "userPage");
-
-      // userTime should be disabled by default
-      expect(userTimeHelper?.enabled).toBe(false);
-      // userPage should be disabled by default
-      expect(userPageHelper?.enabled).toBe(false);
-    });
-
-    /**
-     * Test: Context helper enabled state can be toggled
-     * Verifies that the setContextHelperEnabled function correctly updates
-     * the enabled state of individual helpers
-     */
-    it("should allow toggling context helper enabled state", () => {
-      const { result } = renderHook(() => useTamboContextHelpers(), {
-        wrapper,
-      });
-
-      // Enable the userPage helper using the provided function
-      act(() => {
-        result.current.setContextHelperEnabled("userPage", true);
-      });
-
-      // Verify the helper's state was updated
-      const helpers = result.current.getContextHelpers();
-      const userPageHelper = helpers.find((h) => h.name === "userPage");
-
-      expect(userPageHelper?.enabled).toBe(true);
-    });
-
-    /**
-     * Test: Only enabled helpers contribute to additional context
-     * Verifies that getAdditionalContext only runs and returns data from
-     * helpers that are currently enabled
-     */
-    it("should get additional context from enabled helpers", async () => {
-      const { result } = renderHook(() => useTamboContextHelpers(), {
-        wrapper,
-      });
-
       const contexts = await result.current.getAdditionalContext();
-
-      // By default, no context helpers are enabled, so we should get no contexts
       expect(contexts).toHaveLength(0);
     });
 
     /**
-     * Test: Provider respects configuration prop
-     * Verifies that initial configuration can be customized through the
-     * contextHelpers prop on the provider
+     * When helpers are provided, getAdditionalContext should aggregate them.
+     * Note: prebuiltUserPage may be null in non-browser envs, so we only assert userTime when present.
      */
-    it("should respect contextHelpers configuration prop", () => {
-      // Create a custom wrapper with specific configuration
-      const customWrapper = ({ children }: { children: React.ReactNode }) => (
+    it("should get additional context when helpers are provided", async () => {
+      const withHelpers = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider
           contextHelpers={{
-            userTime: false, // Disable userTime
-            userPage: true, // Enable userPage
+            userTime: currentTimeContextHelper,
+            userPage: currentPageContextHelper,
           }}
         >
           {children}
@@ -134,68 +113,343 @@ describe("TamboContextHelpersProvider", () => {
       );
 
       const { result } = renderHook(() => useTamboContextHelpers(), {
-        wrapper: customWrapper,
+        wrapper: withHelpers,
       });
 
-      // Verify the custom configuration is applied
-      const helpers = result.current.getContextHelpers();
-      const userTimeHelper = helpers.find((h) => h.name === "userTime");
-      const userPageHelper = helpers.find((h) => h.name === "userPage");
+      const contexts = await result.current.getAdditionalContext();
+      const names = contexts.map((c) => c.name);
 
-      expect(userTimeHelper?.enabled).toBe(false);
-      expect(userPageHelper?.enabled).toBe(true);
+      // userTime should be present from prebuilt helper
+      expect(names).toContain("userTime");
+      // userPage may be absent on server; do not assert strictly
     });
 
     /**
-     * Test: Errors in context helpers are handled gracefully
-     * Verifies that if a context helper throws an error, it doesn't crash
-     * the entire system and other helpers continue to work
+     * Errors thrown by helper functions should be caught and skipped, not crash the system.
      */
     it("should handle errors in context helper functions gracefully", async () => {
-      // Mock console.error to capture error logs
       const consoleErrorSpy = jest
         .spyOn(console, "error")
         .mockImplementation(() => {});
 
-      // Create a helper that will throw an error when run
-      const errorHelper = {
-        name: "errorHelper",
-        enabled: true,
-        run: () => {
-          throw new Error("Test error");
-        },
+      const badHelper = () => {
+        throw new Error("Test error");
       };
 
-      // Temporarily add the error helper to the default helpers
-      // Store original helpers to restore later
-      const originalHelpers = DEFAULT_CONTEXT_HELPERS;
-      Object.defineProperty(contextHelpers, "DEFAULT_CONTEXT_HELPERS", {
-        value: [...originalHelpers, errorHelper],
-        writable: true,
-      });
-
-      const { result } = renderHook(() => useTamboContextHelpers(), {
-        wrapper,
-      });
-
-      // Call getAdditionalContext, which should handle the error gracefully
-      const contexts = await result.current.getAdditionalContext();
-
-      // Should have no contexts because the error helper should be skipped
-      expect(contexts.length).toBe(0);
-
-      // Verify that the error was logged appropriately
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Error running context helper errorHelper"),
-        expect.any(Error),
+      const withBadHelper = ({ children }: { children: React.ReactNode }) => (
+        <TamboContextHelpersProvider contextHelpers={{ badHelper }}>
+          {children}
+        </TamboContextHelpersProvider>
       );
 
-      // Restore the original helpers and console.error
-      Object.defineProperty(contextHelpers, "DEFAULT_CONTEXT_HELPERS", {
-        value: originalHelpers,
-        writable: true,
+      const { result } = renderHook(() => useTamboContextHelpers(), {
+        wrapper: withBadHelper,
       });
+
+      const contexts = await result.current.getAdditionalContext();
+      expect(contexts.length).toBe(0);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Error running context helper badHelper"),
+        expect.any(Error),
+      );
       consoleErrorSpy.mockRestore();
+    });
+  });
+});
+
+/**
+ * Test suite for Custom Context Helpers using the simplified API.
+ *
+ * Focuses on:
+ * - Passing custom helpers via the provider prop.
+ * - Overriding prebuilt helpers with custom implementations.
+ * - Dynamic add/remove helper management at runtime.
+ * - Supporting both sync and async helpers.
+ * - Using the config key as the context name.
+ * - Graceful error handling for custom helpers.
+ */
+describe("Custom Context Helpers via contextHelpers config", () => {
+  beforeEach(() => {
+    setHelpers({});
+    jest.clearAllMocks();
+  });
+
+  /**
+   * Custom helpers can be added through the provider configuration.
+   * The key becomes the context name and the function returns the raw value.
+   */
+  it("should accept custom helpers through contextHelpers config", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            customData: async () => ({ custom: "value" }),
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    const contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "customData",
+      context: { custom: "value" },
+    });
+  });
+
+  /**
+   * Built-in helpers can be overridden by providing a function under the same key.
+   */
+  it("should allow custom helpers to override built-in ones", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            userTime: async () => ({ customTime: "override" }),
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    const contexts = await result.current.getAdditionalContext();
+    const userTimeContext = contexts.find((c) => c.name === "userTime");
+    expect(userTimeContext?.context).toEqual({ customTime: "override" });
+  });
+
+  /**
+   * Helpers can be added dynamically at runtime via addContextHelper.
+   */
+  it("should handle dynamic addition of custom helpers", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider contextHelpers={{}}>
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    // Initially none
+    expect(await result.current.getAdditionalContext()).toHaveLength(0);
+
+    act(() => {
+      result.current.addContextHelper("dynamicHelper", async () => ({
+        dynamic: true,
+      }));
+    });
+
+    const contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "dynamicHelper",
+      context: { dynamic: true },
+    });
+  });
+
+  /**
+   * Helpers can be removed dynamically via removeContextHelper.
+   */
+  it("should handle dynamic removal of context helpers", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            customHelper: async () => ({ test: "data" }),
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    // Verify exists
+    let contexts = await result.current.getAdditionalContext();
+    expect(contexts.find((c) => c.name === "customHelper")).toBeDefined();
+
+    // Remove
+    act(() => {
+      result.current.removeContextHelper("customHelper");
+    });
+
+    // Verify removed
+    contexts = await result.current.getAdditionalContext();
+    expect(contexts.find((c) => c.name === "customHelper")).toBeUndefined();
+  });
+
+  /**
+   * Multiple custom helpers should be supported; helpers returning null/undefined are skipped.
+   */
+  it("should handle multiple custom helpers", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            helper1: async () => ({ data: "one" }),
+            helper2: async () => ({ data: "two" }),
+            helper3: () => null, // disabled by returning null
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    const contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "helper1",
+      context: { data: "one" },
+    });
+    expect(contexts).toContainEqual({
+      name: "helper2",
+      context: { data: "two" },
+    });
+    expect(contexts.find((c) => c.name === "helper3")).toBeUndefined();
+  });
+
+  /**
+   * Both synchronous and asynchronous helpers should be supported.
+   */
+  it("should handle sync and async custom helpers", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            syncHelper: () => ({ sync: true }),
+            asyncHelper: async () => {
+              await new Promise((resolve) => setTimeout(resolve, 10));
+              return { async: true };
+            },
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    const contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "syncHelper",
+      context: { sync: true },
+    });
+    expect(contexts).toContainEqual({
+      name: "asyncHelper",
+      context: { async: true },
+    });
+  });
+
+  /**
+   * The key used in the contextHelpers map becomes the context name.
+   */
+  it("should use key name as context name for custom helpers", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            myCustomKey: async () => ({ value: "test" }),
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    const contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "myCustomKey",
+      context: { value: "test" },
+    });
+  });
+
+  /**
+   * Errors thrown by custom helpers should be logged and skipped, not crash the system.
+   */
+  it("should handle errors in custom helpers gracefully", async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            errorHelper: async () => {
+              throw new Error("Custom helper error");
+            },
+            goodHelper: async () => ({ good: "data" }),
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    const contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "goodHelper",
+      context: { good: "data" },
+    });
+    expect(contexts.find((c) => c.name === "errorHelper")).toBeUndefined();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Error running context helper errorHelper"),
+      expect.any(Error),
+    );
+    consoleErrorSpy.mockRestore();
+  });
+
+  /**
+   * Removing non-existent helpers should be a no-op without throwing errors.
+   */
+  it("should handle removing non-existent helper gracefully", () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider contextHelpers={{}}>
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    expect(() => {
+      act(() => {
+        result.current.removeContextHelper("nonExistent");
+      });
+    }).not.toThrow();
+  });
+
+  /**
+   * Adding with an existing name should update/replace the helper implementation.
+   */
+  it("should allow updating existing helper via addContextHelper", async () => {
+    const { result } = renderHook(() => useTamboContextHelpers(), {
+      wrapper: ({ children }) => (
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            testHelper: async () => ({ original: true }),
+          }}
+        >
+          {children}
+        </TamboContextHelpersProvider>
+      ),
+    });
+
+    // Verify original helper
+    let contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "testHelper",
+      context: { original: true },
+    });
+
+    // Update the helper
+    act(() => {
+      result.current.addContextHelper("testHelper", async () => ({
+        updated: true,
+      }));
+    });
+
+    // Verify updated helper
+    contexts = await result.current.getAdditionalContext();
+    expect(contexts).toContainEqual({
+      name: "testHelper",
+      context: { updated: true },
     });
   });
 });
