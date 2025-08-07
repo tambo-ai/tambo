@@ -1,10 +1,10 @@
 import { ContextHelperFn } from "./types";
-import { currentPageContextHelperContext } from "./user-page";
-import { currentTimeContextHelperContext } from "./user-time";
+import { currentPageContextHelperContext } from "./current-page-context-helper";
+import { currentTimeContextHelperContext } from "./current-time-context-helper";
 
 export * from "./types";
-export * from "./user-page";
-export * from "./user-time";
+export * from "./current-page-context-helper";
+export * from "./current-time-context-helper";
 
 /**
  * Prebuilt context helper that provides information about the user's current time.
