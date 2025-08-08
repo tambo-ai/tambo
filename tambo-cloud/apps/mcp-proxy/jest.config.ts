@@ -7,7 +7,7 @@ const config: JestConfigWithTsJest = {
   moduleNameMapper: {
     "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../packages/$1/src",
   },
-  prettierPath: require.resolve("prettier"),
+  prettierPath: "prettier-2",
   transform: {
     "^.+\\.tsx?$": [
       "ts-jest",
