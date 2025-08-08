@@ -97,14 +97,27 @@ await sendThreadMessage("What is the weather like today?", {
 
 The `additionalContext` parameter accepts a `Record<string, any>` object, allowing you to pass any structured data as context.
 
-#### System Context
+#### Context Helpers
 
-tambo automatically includes system context with every message, such as:
+Tambo can automatically include context helpers with every message when they are configured. Configure helpers either:
 
-- `localTime`: Current local time
-- `timezone`: User's timezone
+- Globally on `TamboProvider` via the `contextHelpers` prop, or
+- Locally on a page/layout using `TamboContextHelpersProvider` (active only while mounted)
 
-Your additional context will be merged with this system context. For example, the above code would result in a combined context like:
+**Prebuilt helpers include:**
+
+- **currentTimeContextHelper**: Returns current timestamp
+- **currentPageContextHelper**: Returns current page URL/title information
+
+You can also define custom context helpers and register them either globally with `TamboProvider` or locally with `TamboContextHelpersProvider`. Any active helpers will be automatically merged into the message context. If the same key is registered in multiple places at different times, the most recently mounted registration takes precedence while it’s mounted.
+
+<Cards>
+  <Card title="Additional Context" href="/concepts/additional-context">
+    Learn more about additionalContext.
+  </Card>
+</Cards>
+
+Your manual `additionalContext` will be merged with any resolved helper results. For example, if the `currentTimeContextHelper` context helper is passed, the above code would result in a combined context like:
 
 ```json
 {
@@ -113,9 +126,8 @@ Your additional context will be merged with this system context. For example, th
   },
   "location": "San Francisco",
   "units": "fahrenheit",
-  "system": {
-    "localTime": "7/31/2025, 7:08:25 PM",
-    "timezone": "America/New_York"
+  "userTime": {
+    "timestamp": "2025-01-15T20:30:00.000Z"
   }
 }
 ```

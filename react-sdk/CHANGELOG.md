@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.43.0](https://github.com/tambo-ai/tambo/compare/react-v0.42.1...react-v0.43.0) (2025-08-07)
+
+
+### Features
+
+* add custom context helpers for additional context ([#801](https://github.com/tambo-ai/tambo/issues/801)) ([2e33769](https://github.com/tambo-ai/tambo/commit/2e3376962c096e965266a9db96b0dcdc5c930b43))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group across 1 directory with 2 updates ([#798](https://github.com/tambo-ai/tambo/issues/798)) ([a935277](https://github.com/tambo-ai/tambo/commit/a935277e2cfb6d9ff01c7a3084b6900d31855d45))
+* remove extra properties from context helpers ([#796](https://github.com/tambo-ai/tambo/issues/796)) ([ad91eb3](https://github.com/tambo-ai/tambo/commit/ad91eb3394c64682781ea7d666b76155b3bdfdf6))
+
+## [0.42.1](https://github.com/tambo-ai/tambo/compare/react-v0.42.0...react-v0.42.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* update interactables tool description ([#797](https://github.com/tambo-ai/tambo/issues/797)) ([6c7f251](https://github.com/tambo-ai/tambo/commit/6c7f251c3b031b7f68b0acf5e0d69a516cb8c9fd))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump lint-staged from 16.1.2 to 16.1.4 ([#788](https://github.com/tambo-ai/tambo/issues/788)) ([1ccd19b](https://github.com/tambo-ai/tambo/commit/1ccd19b467da4405721123036bbb4d8c5dd37c37))
+* **deps-dev:** bump ts-jest from 29.4.0 to 29.4.1 ([#789](https://github.com/tambo-ai/tambo/issues/789)) ([56d1293](https://github.com/tambo-ai/tambo/commit/56d12931263875eb505f7979a9fdafba74337e5c))
+* **deps-dev:** bump typescript from 5.8.3 to 5.9.2 ([#790](https://github.com/tambo-ai/tambo/issues/790)) ([49b86a0](https://github.com/tambo-ai/tambo/commit/49b86a0ba3198419054b7b75af9970321224b997))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.0 to 1.17.1 ([#784](https://github.com/tambo-ai/tambo/issues/784)) ([61b825e](https://github.com/tambo-ai/tambo/commit/61b825e17383c092b277fc0ad54a1309ae3bc17b))
+
 ## [0.42.0](https://github.com/tambo-ai/tambo/compare/react-v0.41.2...react-v0.42.0) (2025-08-05)
 
 

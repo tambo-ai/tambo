@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.18.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.18.0...showcase-v0.18.1) (2025-08-07)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group across 1 directory with 2 updates ([#798](https://github.com/tambo-ai/tambo/issues/798)) ([a935277](https://github.com/tambo-ai/tambo/commit/a935277e2cfb6d9ff01c7a3084b6900d31855d45))
+* **deps:** bump framer-motion from 12.23.11 to 12.23.12 ([#787](https://github.com/tambo-ai/tambo/issues/787)) ([ec2a0df](https://github.com/tambo-ai/tambo/commit/ec2a0dffd760c664a54bb086ed050e924a9c26c2))
+* **deps:** bump lucide-react from 0.532.0 to 0.536.0 ([#781](https://github.com/tambo-ai/tambo/issues/781)) ([9f80a50](https://github.com/tambo-ai/tambo/commit/9f80a50c9359c3df741f329584608c35f7fbee58))
+
 ## [0.18.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.17.1...showcase-v0.18.0) (2025-08-05)
 
 
