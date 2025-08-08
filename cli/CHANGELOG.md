@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.1...tambo-v0.27.2) (2025-08-08)
+
+
+### Miscellaneous
+
+* **packages:** pin npm to 11.5.2, rereun npm install, npm dedupe ([#810](https://github.com/tambo-ai/tambo/issues/810)) ([e657057](https://github.com/tambo-ai/tambo/commit/e657057af2f3396dfa61d30670544a480ff97a24))
+
 ## [0.27.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.0...tambo-v0.27.1) (2025-08-07)
 
 
