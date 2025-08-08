@@ -28,6 +28,11 @@ export function isEmailAllowed({
   emailVerified: boolean;
   allowedDomain?: string | null;
 }): boolean {
+  if (!allowedDomain) {
+    // No configured restriction – allow all  emails
+    return true;
+  }
+
   // No configured restriction – allow all verified emails
   if (!allowedDomain || allowedDomain.trim() === "") {
     return emailVerified;

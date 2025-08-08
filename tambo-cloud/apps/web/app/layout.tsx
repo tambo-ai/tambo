@@ -21,7 +21,7 @@ import { RootProvider } from "fumadocs-ui/provider";
 import type { Metadata, Viewport } from "next";
 import { getServerSession } from "next-auth";
 import { Suspense } from "react";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "../lib/auth";
 import "./globals.css";
 import { PHProvider, PostHogPageview } from "./providers";
 

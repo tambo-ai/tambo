@@ -1,89 +1,13 @@
-"use client";
+import { getAuthProviders } from "@/lib/auth";
+import { Metadata } from "next";
+import { LoginPageBody } from "./LoginPage";
 
-import { NextAuthAuthForm } from "@/components/auth/nextauth-auth-form";
-import { DashboardHeader } from "@/components/sections/dashboard-header";
-import { useNextAuthSession } from "@/hooks/nextauth";
-import { DashboardThemeProvider } from "@/providers/dashboard-theme-provider";
-import { AnimatePresence, motion } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
-
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      duration: 0.3,
-    },
-  },
+export const metadata: Metadata = {
+  title: "Login",
+  description: "Login to your account",
 };
 
-const contentVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5 },
-  },
-};
-
-// Separate component that uses the useSearchParams hook
-function LoginContent() {
-  const { data: session } = useNextAuthSession();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl") || "/dashboard";
-
-  useEffect(() => {
-    // If the user is already authenticated, redirect to the return URL
-    if (session) {
-      router.push(returnUrl);
-    }
-  }, [session, router, returnUrl]);
-
-  return (
-    <motion.div
-      className="container max-w-md py-8 flex items-center justify-center"
-      variants={contentVariants}
-    >
-      <NextAuthAuthForm routeOnSuccess={returnUrl} />
-    </motion.div>
-  );
-}
-
-// Main component with Suspense boundary
 export default function LoginPage() {
-  return (
-    <DashboardThemeProvider defaultTheme="light">
-      <motion.div
-        className="container flex flex-col min-h-screen"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <DashboardHeader />
-        <motion.div className="flex-1 flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            <Suspense
-              fallback={
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="container max-w-md py-8 flex items-center justify-center"
-                >
-                  Loading...
-                </motion.div>
-              }
-            >
-              <LoginContent />
-            </Suspense>
-          </AnimatePresence>
-        </motion.div>
-      </motion.div>
-    </DashboardThemeProvider>
-  );
+  const providers = getAuthProviders();
+  return <LoginPageBody providers={providers} />;
 }

@@ -12,7 +12,7 @@ import { type JWTPayload } from "jose";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";

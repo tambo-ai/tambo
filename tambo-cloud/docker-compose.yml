@@ -73,6 +73,7 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy

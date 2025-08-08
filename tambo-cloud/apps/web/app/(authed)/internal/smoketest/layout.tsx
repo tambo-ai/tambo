@@ -1,4 +1,4 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { Metadata } from "next";
 import { getServerSession, User } from "next-auth";
 import { ClientLayout } from "./components/client-layout";

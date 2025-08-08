@@ -11,14 +11,14 @@ describe("isEmailAllowed", () => {
     ).toBe(true);
   });
 
-  it("denies unverified email when no domain restriction is configured", () => {
+  it("allows unverified email when no domain restriction is configured", () => {
     expect(
       isEmailAllowed({
         email: "user@example.com",
         emailVerified: false,
         allowedDomain: undefined,
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("allows verified email that matches the allowed domain", () => {
