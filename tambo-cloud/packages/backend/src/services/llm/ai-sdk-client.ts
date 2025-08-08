@@ -24,6 +24,7 @@ import {
 } from "ai";
 import type OpenAI from "openai";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
+import type { LlmProviderConfigInfo } from "../../config/llm-config-types";
 import { llmProviderConfig } from "../../config/llm.config";
 import { Provider } from "../../model/providers";
 import {
@@ -148,9 +149,20 @@ export class AISdkClient implements LLMClient {
     );
 
     // Apply token limiting
-    const modelTokenLimit =
-      llmProviderConfig[this.provider].models?.[this.model]?.properties
-        .inputTokenLimit;
+    const providerCfg = (
+      llmProviderConfig as Partial<Record<Provider, LlmProviderConfigInfo>>
+    )[this.provider];
+
+    const models = providerCfg?.models;
+    const modelCfg = models ? models[this.model] : undefined;
+
+    if (!modelCfg) {
+      console.warn(
+        `Unknown model "${this.model}" for provider "${this.provider}"`,
+      );
+    }
+
+    const modelTokenLimit = modelCfg?.properties.inputTokenLimit;
     const effectiveTokenLimit = this.maxInputTokens ?? modelTokenLimit;
     messagesFormatted = limitTokens(messagesFormatted, effectiveTokenLimit);
 
@@ -177,10 +189,13 @@ export class AISdkClient implements LLMClient {
       functionId: `${this.provider}-${this.model}`,
     });
 
+    // Default temperature to 0 unless overridden by config
+    const temperature = modelCfg?.properties.temperature;
+
     const baseConfig: TextCompleteParams = {
       model: modelInstance,
       messages: coreMessages,
-      temperature: 0,
+      temperature: temperature ?? 0,
       tools,
       toolChoice: params.tool_choice
         ? this.convertToolChoice(params.tool_choice)

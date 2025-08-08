@@ -1,26 +1,54 @@
 import { LlmModelConfig } from "../llm-config-types";
 
 export const openaiModels: LlmModelConfig = {
-  "gpt-4.5-preview": {
-    apiName: "gpt-4.5-preview",
-    displayName: "gpt-4.5 Preview",
+  "gpt-5-2025-08-07": {
+    apiName: "gpt-5-2025-08-07",
+    displayName: "gpt-5",
     status: "tested",
-    notes:
-      "Most advanced and capable model from OpenAI, great for complex reasoning and creative tasks. Ideal for writing, learning, and exploring open-ended ideas.",
-    docLink: "https://platform.openai.com/docs/models/gpt-4.5-preview",
+    notes: "The best model for coding and agentic tasks across domains",
+    docLink: "https://platform.openai.com/docs/models/gpt-5",
     tamboDocLink: "https://docs.tambo.co",
     properties: {
-      inputTokenLimit: 128000,
+      inputTokenLimit: 400000,
+      temperature: 1,
       supportsTools: true,
       supportsJsonMode: true,
     },
   },
-  "gpt-4.1": {
-    apiName: "gpt-4.1",
-    displayName: "gpt-4.1",
+  "gpt-5-mini-2025-08-07": {
+    apiName: "gpt-5-mini-2025-08-07",
+    displayName: "gpt-5-mini",
     status: "tested",
     notes:
-      "Most capable GPT model with strong world knowledge and user intent understanding. Excels at creative tasks, complex reasoning, and open-ended exploration.",
+      "A faster, more cost-efficient version of GPT-5 for well-defined tasks",
+    docLink: "https://platform.openai.com/docs/models/gpt-5-mini",
+    tamboDocLink: "https://docs.tambo.co",
+    properties: {
+      inputTokenLimit: 400000,
+      temperature: 1,
+      supportsTools: true,
+      supportsJsonMode: true,
+    },
+  },
+  "gpt-5-nano-2025-08-07": {
+    apiName: "gpt-5-nano-2025-08-07",
+    displayName: "gpt-5-nano",
+    status: "tested",
+    notes: "Fastest, most cost-efficient version of GPT-5",
+    docLink: "https://platform.openai.com/docs/models/gpt-5-nano",
+    tamboDocLink: "https://docs.tambo.co",
+    properties: {
+      inputTokenLimit: 400000,
+      temperature: 1,
+      supportsTools: true,
+      supportsJsonMode: true,
+    },
+  },
+  "gpt-4.1-2025-04-14": {
+    apiName: "gpt-4.1-2025-04-14",
+    displayName: "gpt-4.1",
+    status: "tested",
+    notes: "Excels at function calling and instruction following",
     docLink: "https://platform.openai.com/docs/models/gpt-4.1",
     tamboDocLink: "https://docs.tambo.co",
     properties: {
@@ -28,9 +56,36 @@ export const openaiModels: LlmModelConfig = {
       supportsTools: true,
       supportsJsonMode: true,
     },
+    isDefaultModel: true,
   },
-  "gpt-4o": {
-    apiName: "gpt-4o",
+  "gpt-4.1-mini-2025-04-14": {
+    apiName: "gpt-4.1-mini-2025-04-14",
+    displayName: "gpt-4.1-mini",
+    status: "tested",
+    notes: "Balanced for intelligence, speed, and cost",
+    docLink: "https://platform.openai.com/docs/models/gpt-4.1-mini",
+    tamboDocLink: "https://docs.tambo.co",
+    properties: {
+      inputTokenLimit: 1047576,
+      supportsTools: true,
+      supportsJsonMode: true,
+    },
+  },
+  "o3-2025-04-16": {
+    apiName: "o3-2025-04-16",
+    displayName: "o3",
+    status: "tested",
+    notes: "The most powerful reasoning model",
+    docLink: "https://platform.openai.com/docs/models/o3",
+    tamboDocLink: "https://docs.tambo.co",
+    properties: {
+      inputTokenLimit: 200000,
+      supportsTools: true,
+      supportsJsonMode: true,
+    },
+  },
+  "gpt-4o-2024-11-20": {
+    apiName: "gpt-4o-2024-11-20",
     displayName: "gpt-4o",
     status: "tested",
     notes:
@@ -42,10 +97,9 @@ export const openaiModels: LlmModelConfig = {
       supportsTools: true,
       supportsJsonMode: true,
     },
-    isDefaultModel: true,
   },
-  "gpt-4o-mini": {
-    apiName: "gpt-4o-mini",
+  "gpt-4o-mini-2024-07-18": {
+    apiName: "gpt-4o-mini-2024-07-18",
     displayName: "gpt-4o-mini",
     status: "tested",
     notes:
@@ -58,8 +112,8 @@ export const openaiModels: LlmModelConfig = {
       supportsJsonMode: true,
     },
   },
-  "gpt-4-turbo": {
-    apiName: "gpt-4-turbo",
+  "gpt-4-turbo-2024-04-09": {
+    apiName: "gpt-4-turbo-2024-04-09",
     displayName: "gpt-4-turbo",
     status: "tested",
     notes:

@@ -701,7 +701,9 @@ export function ProviderKeySection({
                               "ml-2 rounded-full px-1.5 py-0.5 text-xs",
                               option.model.status === "untested"
                                 ? "bg-gray-200 text-gray-700"
-                                : "bg-green-100 text-green-700",
+                                : option.model.status === "known-issues"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-green-100 text-green-700",
                             )}
                           >
                             {option.model.status.charAt(0).toUpperCase() +
@@ -711,14 +713,23 @@ export function ProviderKeySection({
                       </CommandItem>
                     ))}
                   </CommandGroup>
-                  <div className="border-t p-2">
+                  <div className="border-t p-2 flex items-center justify-between text-xs">
                     <a
                       href="https://github.com/tambo-ai/tambo-cloud/issues/new?template=feature_request.md&title=Add%20support%20for%20[Model%20Name]"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center text-xs text-foreground hover:text-primary transition-colors"
+                      className="inline-flex items-center text-foreground hover:text-primary transition-colors"
                     >
                       Request support for another model
+                      <ExternalLinkIcon className="ml-1 h-3 w-3" />
+                    </a>
+                    <a
+                      href="https://docs.tambo.co/models/labels"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-foreground hover:text-primary transition-colors"
+                    >
+                      What do these labels mean?
                       <ExternalLinkIcon className="ml-1 h-3 w-3" />
                     </a>
                   </div>
@@ -769,6 +780,15 @@ export function ProviderKeySection({
                       className="inline-flex items-center text-link text-xs hover:underline"
                     >
                       Request support for another model
+                      <ExternalLinkIcon className="ml-1 h-3 w-3" />
+                    </a>
+                    <a
+                      href="https://docs.tambo.co/models/labels"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-link text-xs hover:underline"
+                    >
+                      Docs
                       <ExternalLinkIcon className="ml-1 h-3 w-3" />
                     </a>
                   </div>

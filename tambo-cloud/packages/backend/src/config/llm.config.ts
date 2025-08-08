@@ -1,5 +1,6 @@
 import type { LlmProviderConfig } from "./llm-config-types";
 import { anthropicModels } from "./models/anthropic";
+import { geminiModels } from "./models/gemini";
 import { mistralModels } from "./models/mistral";
 import { openaiModels } from "./models/openai";
 
@@ -18,6 +19,14 @@ export const llmProviderConfig: LlmProviderConfig = {
     docLinkRoot: "https://docs.anthropic.com",
     apiKeyLink: "https://console.anthropic.com/settings/keys",
     models: anthropicModels,
+  },
+  gemini: {
+    apiName: "gemini",
+    displayName: "Google",
+    docLinkRoot:
+      "https://cloud.google.com/vertex-ai/generative-ai/docs/models/#gemini-models",
+    apiKeyLink: "https://console.cloud.google.com/apis/credentials",
+    models: geminiModels,
   },
   mistral: {
     apiName: "mistral",
