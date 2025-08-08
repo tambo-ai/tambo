@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.95.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.94.1...repo-v0.95.0) (2025-08-08)
+
+
+### Features
+
+* add a way for tambo to know about the page it's on ([#1450](https://github.com/tambo-ai/tambo-cloud/issues/1450)) ([40bfaf0](https://github.com/tambo-ai/tambo-cloud/commit/40bfaf04c9e07e535615da907f31de71eca2818c))
+* Add database setup for user/auth tables and working RLS ([#1480](https://github.com/tambo-ai/tambo-cloud/issues/1480)) ([be93f02](https://github.com/tambo-ai/tambo-cloud/commit/be93f02508732c20adbac77a81f0d19470ad3b3f))
+* **auth:** restrict OAuth logins to verified email domain ([#1488](https://github.com/tambo-ai/tambo-cloud/issues/1488)) ([78060d8](https://github.com/tambo-ai/tambo-cloud/commit/78060d8f59c03fb0995f2d1918f30286b78ab306))
+* **login:** Allow google/github to be turned off, allow email login ([#1490](https://github.com/tambo-ai/tambo-cloud/issues/1490)) ([6fdfca1](https://github.com/tambo-ai/tambo-cloud/commit/6fdfca1a09ed13e8c50c429abe8c4ca321ecfe05))
+* update LLM model configurations and add gpt-5 and gemini support ([#1489](https://github.com/tambo-ai/tambo-cloud/issues/1489)) ([77461b9](https://github.com/tambo-ai/tambo-cloud/commit/77461b96030716e44c603fbef339b12eb5459050))
+* **web:** basic whitelabel header support (TAM-397) ([#1487](https://github.com/tambo-ai/tambo-cloud/issues/1487)) ([591b3cf](https://github.com/tambo-ai/tambo-cloud/commit/591b3cf0ff0b177ec5a6d41ddac909a181df776a))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/luxon from 3.6.2 to 3.7.1 ([#1478](https://github.com/tambo-ai/tambo-cloud/issues/1478)) ([d048b80](https://github.com/tambo-ai/tambo-cloud/commit/d048b80949dca24682d7f8c9f9b3589df4094d60))
+* **deps-dev:** bump typescript from 5.8.3 to 5.9.2 ([#1481](https://github.com/tambo-ai/tambo-cloud/issues/1481)) ([ba6741f](https://github.com/tambo-ai/tambo-cloud/commit/ba6741fd61690956d3e5046d745b4a0dfdcc3125))
+* **deps:** bump openai from 5.10.2 to 5.11.0 ([#1477](https://github.com/tambo-ai/tambo-cloud/issues/1477)) ([31254bb](https://github.com/tambo-ai/tambo-cloud/commit/31254bbe219e2c59809c5a5663f586c4066b8377))
+* **deps:** bump react-hook-form from 7.61.1 to 7.62.0 ([#1482](https://github.com/tambo-ai/tambo-cloud/issues/1482)) ([2a3580b](https://github.com/tambo-ai/tambo-cloud/commit/2a3580be90023127b9588f9849520d52e4791002))
+* **deps:** bump the next group with 2 updates ([#1467](https://github.com/tambo-ai/tambo-cloud/issues/1467)) ([947d7e3](https://github.com/tambo-ai/tambo-cloud/commit/947d7e3350e5febdf1a32939d268504d536aec85))
+* **env:** remove legacy environment variables ([#1485](https://github.com/tambo-ai/tambo-cloud/issues/1485)) ([dc80876](https://github.com/tambo-ai/tambo-cloud/commit/dc80876bef583817409db51053e291356874f82b))
+* **tests:** Get rid of require.resolve for prettier ([#1491](https://github.com/tambo-ai/tambo-cloud/issues/1491)) ([823cac7](https://github.com/tambo-ai/tambo-cloud/commit/823cac76c70945e2b8972b20332bbe0f55c91d8b))
+
+
+### Tests
+
+* add CI/CD for docker setup ([#1483](https://github.com/tambo-ai/tambo-cloud/issues/1483)) ([ef581fe](https://github.com/tambo-ai/tambo-cloud/commit/ef581fe6cb0f7a2004218c3c1a0f97404049170f))
+
 ## [0.94.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.94.0...repo-v0.94.1) (2025-08-04)
 
 
