@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/tambo-ai/tambo/compare/docs-v1.2.0...docs-v1.2.1) (2025-08-08)
+
+
+### Documentation
+
+* add new section for Models ([#809](https://github.com/tambo-ai/tambo/issues/809)) ([7b4652a](https://github.com/tambo-ai/tambo/commit/7b4652a8c961f0b14b9022e5be54e6d86e1f5287))
+
 ## [1.2.0](https://github.com/tambo-ai/tambo/compare/docs-v1.1.2...docs-v1.2.0) (2025-08-07)
 
 
