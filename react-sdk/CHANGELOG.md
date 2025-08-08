@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.43.1](https://github.com/tambo-ai/tambo/compare/react-v0.43.0...react-v0.43.1) (2025-08-08)
+
+
+### Miscellaneous
+
+* **packages:** pin npm to 11.5.2, rereun npm install, npm dedupe ([#810](https://github.com/tambo-ai/tambo/issues/810)) ([e657057](https://github.com/tambo-ai/tambo/commit/e657057af2f3396dfa61d30670544a480ff97a24))
+
+## [0.43.0](https://github.com/tambo-ai/tambo/compare/react-v0.42.1...react-v0.43.0) (2025-08-07)
+
+
+### Features
+
+* add custom context helpers for additional context ([#801](https://github.com/tambo-ai/tambo/issues/801)) ([2e33769](https://github.com/tambo-ai/tambo/commit/2e3376962c096e965266a9db96b0dcdc5c930b43))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group across 1 directory with 2 updates ([#798](https://github.com/tambo-ai/tambo/issues/798)) ([a935277](https://github.com/tambo-ai/tambo/commit/a935277e2cfb6d9ff01c7a3084b6900d31855d45))
+* remove extra properties from context helpers ([#796](https://github.com/tambo-ai/tambo/issues/796)) ([ad91eb3](https://github.com/tambo-ai/tambo/commit/ad91eb3394c64682781ea7d666b76155b3bdfdf6))
+
 ## [0.42.1](https://github.com/tambo-ai/tambo/compare/react-v0.42.0...react-v0.42.1) (2025-08-05)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.42.1",
+  "version": "0.43.1",
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
   ],
   "engines": {
     "node": ">=22",
-    "npm": ">=10"
+    "npm": ">=11"
   },
   "volta": {
     "extends": "../package.json"
