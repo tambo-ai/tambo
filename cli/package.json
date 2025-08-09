@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.27.1",
+  "version": "0.27.2",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
@@ -38,7 +38,7 @@
   },
   "engines": {
     "node": ">=22",
-    "npm": ">=10"
+    "npm": ">=11"
   },
   "volta": {
     "extends": "../package.json"

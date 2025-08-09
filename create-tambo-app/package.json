@@ -1,6 +1,6 @@
 {
   "name": "create-tambo-app",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Create a new Tambo application",
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
   },
   "engines": {
     "node": ">=22",
-    "npm": ">=10"
+    "npm": ">=11"
   },
   "volta": {
     "extends": "../package.json"

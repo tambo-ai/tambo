@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.11](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.10...create-tambo-app-v0.1.11) (2025-08-09)
+
+
+### Miscellaneous
+
+* **packages:** pin npm to 11.5.2, rereun npm install, npm dedupe ([#810](https://github.com/tambo-ai/tambo/issues/810)) ([e657057](https://github.com/tambo-ai/tambo/commit/e657057af2f3396dfa61d30670544a480ff97a24))
+
 ## [0.1.10](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.9...create-tambo-app-v0.1.10) (2025-08-07)
 
 
