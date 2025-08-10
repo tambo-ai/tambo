@@ -36,18 +36,23 @@ export function renderComponentIntoMessage(
     registeredComponent.component,
     validatedProps,
   );
-  const wrappedComponent = wrapWithTamboMessageProvider(
-    renderedComponent,
-    message.threadId,
-    message.id,
-  );
 
-  return {
+  // Create the full message object first so we can pass it to the provider
+  const fullMessage: TamboThreadMessage = {
     ...message,
     component: {
       ...message.component,
       props: validatedProps,
     },
+  };
+
+  const wrappedComponent = wrapWithTamboMessageProvider(
+    renderedComponent,
+    fullMessage,
+  );
+
+  return {
+    ...fullMessage,
     renderedComponent: wrappedComponent,
   };
 }

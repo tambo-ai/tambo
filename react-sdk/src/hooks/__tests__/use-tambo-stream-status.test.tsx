@@ -416,7 +416,14 @@ describe("useTamboStreamStatus", () => {
 
   describe("Edge Cases", () => {
     it("should handle missing message gracefully", () => {
-      jest.mocked(useTamboCurrentMessage).mockReturnValue(undefined);
+      jest.mocked(useTamboCurrentMessage).mockReturnValue({
+        id: "test-message",
+        role: "user",
+        content: [],
+        componentState: {},
+        createdAt: "",
+        threadId: "",
+      } as TamboThreadMessage);
 
       const { result } = renderHook(() => useTamboStreamStatus());
 
