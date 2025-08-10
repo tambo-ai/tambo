@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/showcase",
-  "version": "0.18.0",
+  "version": "0.18.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -50,7 +50,7 @@
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
     "eslint": "^9",
-    "eslint-config-next": "15.4.4",
+    "eslint-config-next": "15.4.5",
     "postcss": "^8.5.6",
     "rimraf": "^6.0.1",
     "tailwind-merge": "^3.3.1",
@@ -59,7 +59,7 @@
   },
   "engines": {
     "node": ">=22",
-    "npm": ">=10"
+    "npm": ">=11"
   },
   "volta": {
     "extends": "../package.json"
