@@ -24,6 +24,7 @@ export {
   TamboProvider,
   TamboStubProvider,
   TamboThreadProvider,
+  useGenerationStage,
   useTambo,
   useTamboClient,
   useTamboContextHelpers,
