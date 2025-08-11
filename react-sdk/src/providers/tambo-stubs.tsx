@@ -20,6 +20,7 @@ import {
 } from "./tambo-provider";
 import { TamboRegistryContext } from "./tambo-registry-provider";
 import {
+  GenerationStageProvider,
   TamboThreadContext,
   TamboThreadContextProps,
 } from "./tambo-thread-provider";
@@ -123,9 +124,20 @@ const TamboStubRegistryProvider: React.FC<
 const TamboStubThreadProvider: React.FC<
   PropsWithChildren<TamboThreadContextProps>
 > = ({ children, ...threadContextProps }) => {
+  // Extract generation stage info from the thread
+  const generationStage =
+    (threadContextProps.thread?.generationStage as GenerationStage) ??
+    GenerationStage.IDLE;
+  const statusMessage = threadContextProps.thread?.statusMessage ?? "";
+
   return (
     <TamboThreadContext.Provider value={threadContextProps}>
-      {children}
+      <GenerationStageProvider
+        generationStage={generationStage}
+        statusMessage={statusMessage}
+      >
+        {children}
+      </GenerationStageProvider>
     </TamboThreadContext.Provider>
   );
 };
@@ -310,14 +322,9 @@ export const TamboStubProvider: React.FC<
     addThreadMessage: overrides.addThreadMessage ?? defaults.addThreadMessage,
     updateThreadMessage:
       overrides.updateThreadMessage ?? defaults.updateThreadMessage,
-    inputValue: overrides.inputValue ?? "",
     streaming: overrides.streaming ?? true,
-    setInputValue: overrides.setInputValue ?? defaults.setInputValue,
     sendThreadMessage:
       overrides.sendThreadMessage ?? defaults.sendThreadMessage,
-    generationStage: overrides.generationStage ?? GenerationStage.IDLE,
-    generationStatusMessage: overrides.generationStatusMessage ?? "",
-    isIdle: overrides.isIdle ?? true,
     cancel: overrides.cancel ?? defaults.cancel,
   };
 
