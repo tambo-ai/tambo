@@ -23,10 +23,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@nestjs/common": "^11.1.5",
+    "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.1.5",
-    "@nestjs/platform-express": "^11.1.5",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/swagger": "^11.2.0",
     "@opentelemetry/api": "^1.9.0",
@@ -59,7 +59,7 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.7",
-    "@nestjs/testing": "^11.1.5",
+    "@nestjs/testing": "^11.1.6",
     "@tambo-ai-cloud/eslint-config": "*",
     "@tambo-ai-cloud/typescript-config": "*",
     "@types/express": "^5.0.0",
