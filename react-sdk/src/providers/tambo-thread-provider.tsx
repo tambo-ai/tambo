@@ -46,6 +46,12 @@ interface GenerationStageProviderProps {
 
 /**
  *
+ * This provider is used to provide the generation stage context to the descendants of the provider.
+ * @param props - The props for the GenerationStageProvider
+ * @param props.children - The children to wrap
+ * @param props.generationStage - The generation stage to provide
+ * @param props.statusMessage - The status message to provide
+ * @returns The GenerationStageProvider component
  */
 export const GenerationStageProvider: React.FC<
   PropsWithChildren<GenerationStageProviderProps>
@@ -931,7 +937,9 @@ export const TamboThreadProvider: React.FC<
 };
 
 /**
- *
+ * The useGenerationStage hook provides access to the generation stage context
+ * to the descendants of the TamboThreadProvider.
+ * @returns The generation stage context
  */
 export const useGenerationStage = (): GenerationStageContextProps => {
   const generationStageContext = useContext(GenerationStageContext);
