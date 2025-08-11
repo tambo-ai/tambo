@@ -1,5 +1,5 @@
 import { UseMutationResult } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { useTamboThread } from "../providers/tambo-thread-provider";
@@ -58,8 +58,8 @@ export type UseThreadInput = UseThreadInputInternal &
  * @returns Interface for managing thread input state and submission
  */
 export function useTamboThreadInput(contextKey?: string): UseThreadInput {
-  const { thread, inputValue, setInputValue, sendThreadMessage } =
-    useTamboThread();
+  const { thread, sendThreadMessage } = useTamboThread();
+  const [inputValue, setInputValue] = useState("");
 
   const submit = useCallback(
     async ({
@@ -88,7 +88,7 @@ export function useTamboThreadInput(contextKey?: string): UseThreadInput {
         forceToolChoice: forceToolChoice,
         additionalContext: additionalContext,
       });
-      setInputValue("");
+      setInputValue(""); // Clear local state
     },
     [inputValue, sendThreadMessage, thread.id, contextKey, setInputValue],
   );
