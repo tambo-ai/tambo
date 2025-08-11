@@ -29,7 +29,7 @@ import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 // Generation Stage Context - separate from thread context to prevent re-renders
-interface GenerationStageContextProps {
+export interface GenerationStageContextProps {
   generationStage: GenerationStage;
   generationStatusMessage: string;
   isIdle: boolean;
@@ -107,14 +107,8 @@ export interface TamboThreadContextProps {
 
 // Combined context interface that includes generation stage fields
 export interface CombinedTamboThreadContextProps
-  extends TamboThreadContextProps {
-  /** The generation stage of the current thread - updated as the thread progresses */
-  generationStage: GenerationStage;
-  /** The generation status message of the current thread - updated as the thread progresses */
-  generationStatusMessage: string;
-  /** Whether the thread is idle */
-  isIdle: boolean;
-}
+  extends TamboThreadContextProps,
+    GenerationStageContextProps {}
 
 /**
  * This is a stub entry for when the thread is not yet created, the first time
