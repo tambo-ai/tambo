@@ -72,7 +72,7 @@ Key environment variables in `docker.env`:
 
 ### Database Connection
 
-- `DATABASE_URL`: Full database connection string
+- `DATABASE_URL`: Full database connection string. By default, this is derived from `POSTGRES_*` directly in `docker-compose.yml`. You can override it by setting `DATABASE_URL` in `docker.env`.
 
 ### API Keys
 
