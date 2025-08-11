@@ -29,17 +29,17 @@ import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 // Generation Stage Context - separate from thread context to prevent re-renders
-export interface GenerationStageContextProps {
+export interface TamboGenerationStageContextProps {
   generationStage: GenerationStage;
   generationStatusMessage: string;
   isIdle: boolean;
 }
 
-const GenerationStageContext = createContext<
-  GenerationStageContextProps | undefined
+const TamboGenerationStageContext = createContext<
+  TamboGenerationStageContextProps | undefined
 >(undefined);
 
-interface GenerationStageProviderProps {
+interface TamboGenerationStageProviderProps {
   generationStage: GenerationStage;
   statusMessage: string;
 }
@@ -53,8 +53,8 @@ interface GenerationStageProviderProps {
  * @param props.statusMessage - The status message to provide
  * @returns The GenerationStageProvider component
  */
-export const GenerationStageProvider: React.FC<
-  PropsWithChildren<GenerationStageProviderProps>
+export const TamboGenerationStageProvider: React.FC<
+  PropsWithChildren<TamboGenerationStageProviderProps>
 > = ({ children, generationStage, statusMessage }) => {
   const isIdle = isIdleStage(generationStage);
 
@@ -67,9 +67,9 @@ export const GenerationStageProvider: React.FC<
   }, [generationStage, statusMessage, isIdle]);
 
   return (
-    <GenerationStageContext.Provider value={contextValue}>
+    <TamboGenerationStageContext.Provider value={contextValue}>
       {children}
-    </GenerationStageContext.Provider>
+    </TamboGenerationStageContext.Provider>
   );
 };
 
@@ -115,7 +115,7 @@ export interface TamboThreadContextProps {
 // Combined context interface that includes generation stage fields
 export interface CombinedTamboThreadContextProps
   extends TamboThreadContextProps,
-    GenerationStageContextProps {}
+    TamboGenerationStageContextProps {}
 
 /**
  * This is a stub entry for when the thread is not yet created, the first time
@@ -926,12 +926,12 @@ export const TamboThreadProvider: React.FC<
         sendThreadMessage,
       }}
     >
-      <GenerationStageProvider
+      <TamboGenerationStageProvider
         generationStage={currentGenerationStage}
         statusMessage={currentStatusMessage}
       >
         {children}
-      </GenerationStageProvider>
+      </TamboGenerationStageProvider>
     </TamboThreadContext.Provider>
   );
 };
@@ -941,8 +941,8 @@ export const TamboThreadProvider: React.FC<
  * to the descendants of the TamboThreadProvider.
  * @returns The generation stage context
  */
-export const useGenerationStage = (): GenerationStageContextProps => {
-  const generationStageContext = useContext(GenerationStageContext);
+export const useTamboGenerationStage = (): TamboGenerationStageContextProps => {
+  const generationStageContext = useContext(TamboGenerationStageContext);
 
   if (generationStageContext === undefined) {
     throw new Error(
@@ -960,7 +960,7 @@ export const useGenerationStage = (): GenerationStageContextProps => {
  */
 export const useTamboThread = (): CombinedTamboThreadContextProps => {
   const threadContext = useContext(TamboThreadContext);
-  const generationStageContext = useContext(GenerationStageContext);
+  const generationStageContext = useContext(TamboGenerationStageContext);
 
   if (threadContext === undefined) {
     throw new Error("useTamboThread must be used within a TamboThreadProvider");

@@ -7,7 +7,7 @@ import { useTamboStreamStatus } from "../use-tambo-stream-status";
 
 // Mock the required providers
 jest.mock("../../providers/tambo-thread-provider", () => ({
-  useGenerationStage: jest.fn(),
+  useTamboGenerationStage: jest.fn(),
 }));
 
 jest.mock("../use-current-message", () => ({
@@ -15,7 +15,7 @@ jest.mock("../use-current-message", () => ({
 }));
 
 // Import the mocked functions
-import { useGenerationStage } from "../../providers/tambo-thread-provider";
+import { useTamboGenerationStage } from "../../providers/tambo-thread-provider";
 import { useTamboCurrentMessage } from "../use-current-message";
 
 // Mock window for SSR tests
@@ -44,7 +44,7 @@ const createMockMessage = (
 });
 
 // Get the mocked functions
-const mockUseGenerationStage = jest.mocked(useGenerationStage);
+const mockUseGenerationStage = jest.mocked(useTamboGenerationStage);
 const mockUseTamboCurrentMessage = jest.mocked(useTamboCurrentMessage);
 
 describe("useTamboStreamStatus", () => {
