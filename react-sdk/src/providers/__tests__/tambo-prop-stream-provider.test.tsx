@@ -7,6 +7,7 @@ import {
 } from "../../model/generate-component-response";
 import {
   CombinedTamboThreadContextProps,
+  useGenerationStage,
   useTamboThread,
 } from "../../providers/tambo-thread-provider";
 import {
@@ -17,6 +18,7 @@ import {
 // Mock the required providers
 jest.mock("../../providers/tambo-thread-provider", () => ({
   useTamboThread: jest.fn(),
+  useGenerationStage: jest.fn(),
 }));
 
 jest.mock("../../hooks/use-current-message", () => ({
@@ -100,6 +102,12 @@ describe("TamboPropStreamProvider", () => {
     // Default mock implementations
     jest.mocked(useTamboThread).mockReturnValue(createMockThreadContext());
 
+    jest.mocked(useGenerationStage).mockReturnValue({
+      generationStage: GenerationStage.IDLE,
+      generationStatusMessage: "",
+      isIdle: true,
+    });
+
     jest.mocked(useTamboCurrentMessage).mockReturnValue({
       id: "test-message",
       component: {
@@ -137,6 +145,12 @@ describe("TamboPropStreamProvider", () => {
           }),
         );
 
+        jest.mocked(useGenerationStage).mockReturnValue({
+          generationStage: GenerationStage.IDLE,
+          generationStatusMessage: "",
+          isIdle: true,
+        });
+
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
           createMockMessage({
             component: createMockComponent({ title: "" }),
@@ -160,6 +174,12 @@ describe("TamboPropStreamProvider", () => {
             generationStage: GenerationStage.STREAMING_RESPONSE,
           }),
         );
+
+        jest.mocked(useGenerationStage).mockReturnValue({
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          generationStatusMessage: "",
+          isIdle: false,
+        });
 
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
           createMockMessage({
@@ -187,6 +207,12 @@ describe("TamboPropStreamProvider", () => {
           }),
         );
 
+        jest.mocked(useGenerationStage).mockReturnValue({
+          generationStage: GenerationStage.IDLE,
+          generationStatusMessage: "",
+          isIdle: true,
+        });
+
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
           createMockMessage({
             component: createMockComponent({ title: "" }),
@@ -213,6 +239,12 @@ describe("TamboPropStreamProvider", () => {
           }),
         );
 
+        jest.mocked(useGenerationStage).mockReturnValue({
+          generationStage: GenerationStage.IDLE,
+          generationStatusMessage: "",
+          isIdle: true,
+        });
+
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
           createMockMessage({
             component: createMockComponent({ title: "" }),
@@ -236,6 +268,12 @@ describe("TamboPropStreamProvider", () => {
             generationStage: GenerationStage.STREAMING_RESPONSE,
           }),
         );
+
+        jest.mocked(useGenerationStage).mockReturnValue({
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          generationStatusMessage: "",
+          isIdle: false,
+        });
 
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
           createMockMessage({
@@ -264,6 +302,12 @@ describe("TamboPropStreamProvider", () => {
         }),
       );
 
+      jest.mocked(useGenerationStage).mockReturnValue({
+        generationStage: GenerationStage.COMPLETE,
+        generationStatusMessage: "",
+        isIdle: false,
+      });
+
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
           component: createMockComponent({ name: "John" }),
@@ -290,6 +334,12 @@ describe("TamboPropStreamProvider", () => {
           generationStage: GenerationStage.STREAMING_RESPONSE,
         }),
       );
+
+      jest.mocked(useGenerationStage).mockReturnValue({
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        generationStatusMessage: "",
+        isIdle: false,
+      });
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -328,6 +378,12 @@ describe("TamboPropStreamProvider", () => {
           generationStage: GenerationStage.STREAMING_RESPONSE,
         }),
       );
+
+      jest.mocked(useGenerationStage).mockReturnValue({
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        generationStatusMessage: "",
+        isIdle: false,
+      });
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
