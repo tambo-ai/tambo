@@ -47,7 +47,7 @@ jobs:
           sudo apt-get install -y jq
 
       - name: Build web image with caching
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./apps/web/Dockerfile
@@ -59,7 +59,7 @@ jobs:
             NODE_ENV=development
 
       - name: Build api image with caching
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./apps/api/Dockerfile
