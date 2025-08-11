@@ -937,7 +937,7 @@ export const TamboThreadProvider: React.FC<
 };
 
 /**
- * The useGenerationStage hook provides access to the generation stage context
+ * The useTamboGenerationStage hook provides access to the generation stage context
  * to the descendants of the TamboThreadProvider.
  * @returns The generation stage context
  */
@@ -946,7 +946,7 @@ export const useTamboGenerationStage = (): TamboGenerationStageContextProps => {
 
   if (generationStageContext === undefined) {
     throw new Error(
-      "useGenerationStage must be used within a TamboThreadProvider",
+      "useTamboGenerationStage must be used within a TamboThreadProvider",
     );
   }
 
