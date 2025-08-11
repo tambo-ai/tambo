@@ -35,11 +35,9 @@ export interface GenerationStageContextProps {
   isIdle: boolean;
 }
 
-const GenerationStageContext = createContext<GenerationStageContextProps>({
-  generationStage: GenerationStage.IDLE,
-  generationStatusMessage: "",
-  isIdle: true,
-});
+const GenerationStageContext = createContext<
+  GenerationStageContextProps | undefined
+>(undefined);
 
 interface GenerationStageProviderProps {
   generationStage: GenerationStage;
