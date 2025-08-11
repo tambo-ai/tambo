@@ -20,7 +20,7 @@ import {
 } from "./tambo-provider";
 import { TamboRegistryContext } from "./tambo-registry-provider";
 import {
-  GenerationStageProvider,
+  TamboGenerationStageProvider,
   TamboThreadContext,
   TamboThreadContextProps,
 } from "./tambo-thread-provider";
@@ -132,12 +132,12 @@ const TamboStubThreadProvider: React.FC<
 
   return (
     <TamboThreadContext.Provider value={threadContextProps}>
-      <GenerationStageProvider
+      <TamboGenerationStageProvider
         generationStage={generationStage}
         statusMessage={statusMessage}
       >
         {children}
-      </GenerationStageProvider>
+      </TamboGenerationStageProvider>
     </TamboThreadContext.Provider>
   );
 };

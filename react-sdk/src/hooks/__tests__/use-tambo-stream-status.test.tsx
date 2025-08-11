@@ -7,7 +7,7 @@ import { useTamboStreamStatus } from "../use-tambo-stream-status";
 
 // Mock the required providers
 jest.mock("../../providers/tambo-thread-provider", () => ({
-  useGenerationStage: jest.fn(),
+  useTamboGenerationStage: jest.fn(),
 }));
 
 jest.mock("../use-current-message", () => ({
@@ -15,7 +15,7 @@ jest.mock("../use-current-message", () => ({
 }));
 
 // Import the mocked functions
-import { useGenerationStage } from "../../providers/tambo-thread-provider";
+import { useTamboGenerationStage } from "../../providers/tambo-thread-provider";
 import { useTamboCurrentMessage } from "../use-current-message";
 
 // Mock window for SSR tests
@@ -44,7 +44,7 @@ const createMockMessage = (
 });
 
 // Get the mocked functions
-const mockUseGenerationStage = jest.mocked(useGenerationStage);
+const mockUseTamboGenerationStage = jest.mocked(useTamboGenerationStage);
 const mockUseTamboCurrentMessage = jest.mocked(useTamboCurrentMessage);
 
 describe("useTamboStreamStatus", () => {
@@ -53,7 +53,7 @@ describe("useTamboStreamStatus", () => {
     global.window = originalWindow;
 
     // Default mock implementations
-    mockUseGenerationStage.mockReturnValue({
+    mockUseTamboGenerationStage.mockReturnValue({
       generationStage: GenerationStage.IDLE,
       generationStatusMessage: "",
       isIdle: true,
@@ -73,7 +73,7 @@ describe("useTamboStreamStatus", () => {
 
   describe("Initial State", () => {
     it("should start with all flags as pending when idle and no props", () => {
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.IDLE,
         generationStatusMessage: "",
         isIdle: true,
@@ -115,7 +115,7 @@ describe("useTamboStreamStatus", () => {
 
   describe("Generation vs Props Streaming", () => {
     it("should show generation streaming but props still pending when STREAMING_RESPONSE with no prop content", () => {
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
         generationStatusMessage: "",
         isIdle: false,
@@ -143,7 +143,7 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should show prop streaming when props receive content during STREAMING_RESPONSE", () => {
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
         generationStatusMessage: "",
         isIdle: false,
@@ -175,7 +175,7 @@ describe("useTamboStreamStatus", () => {
   describe("Boolean Lifecycle", () => {
     it("should transition through Init -> Streaming -> Success lifecycle", () => {
       // Start with IDLE (Init phase)
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.IDLE,
         generationStatusMessage: "",
         isIdle: true,
@@ -197,7 +197,7 @@ describe("useTamboStreamStatus", () => {
       expect(result.current.streamStatus.isSuccess).toBe(false);
 
       // Phase 2: Streaming - move to STREAMING_RESPONSE with content
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
         generationStatusMessage: "",
         isIdle: false,
@@ -219,7 +219,7 @@ describe("useTamboStreamStatus", () => {
       expect(result.current.streamStatus.isSuccess).toBe(false);
 
       // Phase 3: Complete - move to COMPLETE
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
         generationStatusMessage: "",
         isIdle: false,
@@ -233,7 +233,7 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should handle error state correctly", () => {
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.ERROR,
         generationStatusMessage: "",
         isIdle: false,
@@ -263,7 +263,7 @@ describe("useTamboStreamStatus", () => {
 
   describe("Derivation Rules", () => {
     it("should derive isPending correctly (no generation activity AND all props pending)", () => {
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.IDLE,
         generationStatusMessage: "",
         isIdle: true,
@@ -291,7 +291,7 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should derive isStreaming correctly (generation streaming OR any prop streaming)", () => {
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
         generationStatusMessage: "",
         isIdle: false,
@@ -317,7 +317,7 @@ describe("useTamboStreamStatus", () => {
 
     it("should derive isSuccess correctly (generation complete AND all props successful)", () => {
       // Step 1: Start with streaming, props empty
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
         generationStatusMessage: "",
         isIdle: false,
@@ -359,7 +359,7 @@ describe("useTamboStreamStatus", () => {
       rerender();
 
       // Step 4: Generation complete
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
         generationStatusMessage: "",
         isIdle: false,
@@ -373,7 +373,7 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should derive isError correctly (generation error OR any prop error)", () => {
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
         generationStatusMessage: "",
         isIdle: false,
@@ -474,7 +474,7 @@ describe("useTamboStreamStatus", () => {
 
     it("should reset prop tracking when generation restarts", () => {
       // Step 1: Complete a message
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.STREAMING_RESPONSE,
         generationStatusMessage: "",
         isIdle: false,
@@ -495,7 +495,7 @@ describe("useTamboStreamStatus", () => {
       );
       rerender();
       // Complete generation
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.COMPLETE,
         generationStatusMessage: "",
         isIdle: false,
@@ -505,7 +505,7 @@ describe("useTamboStreamStatus", () => {
       expect(result.current.propStatus.title.isSuccess).toBe(true);
 
       // Step 2: Start new generation with a new message ID to trigger reset
-      mockUseGenerationStage.mockReturnValue({
+      mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.CHOOSING_COMPONENT,
         generationStatusMessage: "",
         isIdle: false,
