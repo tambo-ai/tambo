@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.95.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.95.0...repo-v0.95.1) (2025-08-11)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 2 updates ([#1496](https://github.com/tambo-ai/tambo-cloud/issues/1496)) ([f60892e](https://github.com/tambo-ai/tambo-cloud/commit/f60892e4e3043a18774bab197d7877c17a434296))
+* **deps:** bump @tambo-ai/react from 0.43.0 to 0.43.1 in the tambo-ai group ([#1497](https://github.com/tambo-ai/tambo-cloud/issues/1497)) ([6d821b1](https://github.com/tambo-ai/tambo-cloud/commit/6d821b1a3644b9322a83d6d40ed3954ba2a317d5))
+* **deps:** bump @tanstack/react-query from 5.84.1 to 5.84.2 ([#1499](https://github.com/tambo-ai/tambo-cloud/issues/1499)) ([9b2a380](https://github.com/tambo-ai/tambo-cloud/commit/9b2a3802926f5ffe91387f0d9855f87f5b463960))
+* **deps:** bump docker/build-push-action from 5 to 6 ([#1492](https://github.com/tambo-ai/tambo-cloud/issues/1492)) ([8c72093](https://github.com/tambo-ai/tambo-cloud/commit/8c72093e1cb7d2080815fae4f2d096d89b753d60))
+* **deps:** bump js-tiktoken from 1.0.20 to 1.0.21 ([#1500](https://github.com/tambo-ai/tambo-cloud/issues/1500)) ([eb0fcc4](https://github.com/tambo-ai/tambo-cloud/commit/eb0fcc469274bcd36801753342103c28ab0243b7))
+* **deps:** bump the nestjs group with 4 updates ([#1493](https://github.com/tambo-ai/tambo-cloud/issues/1493)) ([93cc633](https://github.com/tambo-ai/tambo-cloud/commit/93cc633ade41a4a446e3860baea5e4fa9c8d2470))
+* **deps:** bump the next group with 2 updates ([#1495](https://github.com/tambo-ai/tambo-cloud/issues/1495)) ([126bee0](https://github.com/tambo-ai/tambo-cloud/commit/126bee07d93d0f3cec7294f2db6b15dacb5ce5f5))
+* **deps:** bump the small-safe-packages group with 4 updates ([#1498](https://github.com/tambo-ai/tambo-cloud/issues/1498)) ([21ac1cf](https://github.com/tambo-ai/tambo-cloud/commit/21ac1cfb634ac4a15c42b25263bfca9b8e654d0c))
+* **deps:** bump tldts from 7.0.10 to 7.0.11 ([#1501](https://github.com/tambo-ai/tambo-cloud/issues/1501)) ([27f4b94](https://github.com/tambo-ai/tambo-cloud/commit/27f4b94f5caee0f18c7a45d860837fdc8949bb4f))
+* **legal:** License with Apache 2.0 ([#1503](https://github.com/tambo-ai/tambo-cloud/issues/1503)) ([2e1627a](https://github.com/tambo-ai/tambo-cloud/commit/2e1627a09f1c91db749d582570777b9be7945078))
+
 ## [0.95.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.94.1...repo-v0.95.0) (2025-08-08)
 
 
