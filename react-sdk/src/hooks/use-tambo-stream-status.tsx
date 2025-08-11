@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { GenerationStage } from "../model/generate-component-response";
-import { useGenerationStage } from "../providers/tambo-thread-provider";
+import { useTamboGenerationStage } from "../providers/tambo-thread-provider";
 import { useTamboCurrentMessage } from "./use-current-message";
 
 /**
@@ -326,7 +326,7 @@ export function useTamboStreamStatus<
   /** SSR Guard - ensure client-side only execution */
   assertClientSide();
 
-  const { generationStage } = useGenerationStage();
+  const { generationStage } = useTamboGenerationStage();
   const message = useTamboCurrentMessage();
 
   /** Get the current component props from the message */
