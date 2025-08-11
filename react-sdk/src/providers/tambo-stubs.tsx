@@ -3,6 +3,7 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import React, { PropsWithChildren, useEffect } from "react";
 import { TamboComponent, TamboTool } from "../model/component-metadata";
+import { GenerationStage } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
 import { TamboClientContext } from "./tambo-client-provider";
 import {
@@ -19,6 +20,7 @@ import {
 } from "./tambo-provider";
 import { TamboRegistryContext } from "./tambo-registry-provider";
 import {
+  GenerationStageProvider,
   TamboThreadContext,
   TamboThreadContextProps,
 } from "./tambo-thread-provider";
@@ -122,9 +124,20 @@ const TamboStubRegistryProvider: React.FC<
 const TamboStubThreadProvider: React.FC<
   PropsWithChildren<TamboThreadContextProps>
 > = ({ children, ...threadContextProps }) => {
+  // Extract generation stage info from the thread
+  const generationStage =
+    (threadContextProps.thread?.generationStage as GenerationStage) ??
+    GenerationStage.IDLE;
+  const statusMessage = threadContextProps.thread?.statusMessage ?? "";
+
   return (
     <TamboThreadContext.Provider value={threadContextProps}>
-      {children}
+      <GenerationStageProvider
+        generationStage={generationStage}
+        statusMessage={statusMessage}
+      >
+        {children}
+      </GenerationStageProvider>
     </TamboThreadContext.Provider>
   );
 };

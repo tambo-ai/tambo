@@ -44,7 +44,10 @@ interface GenerationStageProviderProps {
   statusMessage: string;
 }
 
-const GenerationStageProvider: React.FC<
+/**
+ *
+ */
+export const GenerationStageProvider: React.FC<
   PropsWithChildren<GenerationStageProviderProps>
 > = ({ children, generationStage, statusMessage }) => {
   const isIdle = useMemo(() => isIdleStage(generationStage), [generationStage]);
