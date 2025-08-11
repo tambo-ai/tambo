@@ -50,7 +50,7 @@ interface GenerationStageProviderProps {
 export const GenerationStageProvider: React.FC<
   PropsWithChildren<GenerationStageProviderProps>
 > = ({ children, generationStage, statusMessage }) => {
-  const isIdle = useMemo(() => isIdleStage(generationStage), [generationStage]);
+  const isIdle = isIdleStage(generationStage);
 
   const contextValue = useMemo(() => {
     return {
