@@ -11,7 +11,7 @@ export class AppService {
   ) {}
 
   getHello(): string {
-    return "Welcome to the Hydra AI API!";
+    return "Welcome to the Tambo AI API!";
   }
 
   async checkHealth(): Promise<{ status: string }> {
