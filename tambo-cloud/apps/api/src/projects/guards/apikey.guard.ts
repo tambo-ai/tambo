@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { decryptApiKey, hashKey } from "@tambo-ai-cloud/core";
+import { decryptApiKey, hashKey, hideApiKey } from "@tambo-ai-cloud/core";
 import { Request } from "express";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { ProjectsService } from "../projects.service";
@@ -84,7 +84,10 @@ export class ApiKeyGuard implements CanActivate {
       const project =
         await this.projectsService.findOneWithKeys(projectIdOrLegacyId);
       if (!project?.id) {
-        this.logger.error(`Project not found for API key ${encryptedKey}`);
+        // Do not log raw API keys. Log only a masked, non-sensitive identifier.
+        this.logger.error(
+          `Project not found for API key (masked: ${hideApiKey(encryptedKey, 4)})`,
+        );
         return null;
       }
 
