@@ -54,7 +54,7 @@ services:
       - NEXT_PUBLIC_TAMBO_API_KEY=${NEXT_PUBLIC_TAMBO_API_KEY}
       - NEXT_PUBLIC_POSTHOG_HOST=${NEXT_PUBLIC_POSTHOG_HOST}
       - NEXT_PUBLIC_POSTHOG_KEY=${NEXT_PUBLIC_POSTHOG_KEY}
-      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tambo}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@postgres:5432/${POSTGRES_DB:-tambo}
       - API_KEY_SECRET=${API_KEY_SECRET}
       - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
       - RESEND_API_KEY=${RESEND_API_KEY}
@@ -107,7 +107,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=3000
-      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tambo}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@postgres:5432/${POSTGRES_DB:-tambo}
       - API_KEY_SECRET=${API_KEY_SECRET}
       - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
