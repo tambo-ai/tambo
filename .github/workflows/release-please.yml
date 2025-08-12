@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' || needs.release-please.outputs.cli--release_created == 'true' || needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.docs--release_created == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.showcase--release_created == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
