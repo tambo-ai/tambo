@@ -4,7 +4,6 @@ export { useTamboComponentState } from "./hooks/use-component-state";
 export {
   TamboMessageProvider,
   useTamboCurrentMessage,
-  useTamboMessageContext,
 } from "./hooks/use-current-message";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";
