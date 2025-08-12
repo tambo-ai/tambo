@@ -63,9 +63,7 @@ Generate or update the token in your Slack app settings, then place it in
 # Setup the Docker environment
 ./scripts/tambo-setup.sh
 
-# Configure environment variables
-cp docker.env.example docker.env
-# Edit docker.env with your actual values
+# Edit the created docker.env with your actual values
 
 # Start the stack
 ./scripts/tambo-start.sh
@@ -79,6 +77,8 @@ The setup script will:
 1. Check and install prerequisites (Docker, Docker Compose, jq)
 2. Create environment files from templates
 3. Make all scripts executable
+
+Find detailed instructions on running Tambo through Docker [here.](./DOCKER_README.md)
 
 ### Prerequisites
 
