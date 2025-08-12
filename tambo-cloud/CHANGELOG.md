@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.96.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.95.1...repo-v0.96.0) (2025-08-12)
+
+
+### Features
+
+* **api:** configure Helmet security headers (CSP/HSTS) ([#1511](https://github.com/tambo-ai/tambo-cloud/issues/1511)) ([f936452](https://github.com/tambo-ai/tambo-cloud/commit/f9364521931f848e19655d05e1e8330d5685d6c5))
+* **auth:** secure per-project secret for OAuth bearer tokens (TAM-416) ([#1515](https://github.com/tambo-ai/tambo-cloud/issues/1515)) ([290a05f](https://github.com/tambo-ai/tambo-cloud/commit/290a05f49b9da3f3a5015c4fd908a500a5f439ab))
+
+
+### Bug Fixes
+
+* **api:** stop logging message payloads in addMessage ([#1513](https://github.com/tambo-ai/tambo-cloud/issues/1513)) ([fb371b7](https://github.com/tambo-ai/tambo-cloud/commit/fb371b7148a3bfd4178363b6279e940fba27df55))
+* **auth:** pin HS256 for MCP JWT verification ([#1514](https://github.com/tambo-ai/tambo-cloud/issues/1514)) ([66f005a](https://github.com/tambo-ai/tambo-cloud/commit/66f005a73d9e25d5228e939021079a6104b3b2c5))
+* **auth:** stop logging raw API keys in ApiKeyGuard ([#1508](https://github.com/tambo-ai/tambo-cloud/issues/1508)) ([a2ebe49](https://github.com/tambo-ai/tambo-cloud/commit/a2ebe4994013796f9f766d4a8024d56799d073ed))
+* **oauth:** remove sensitive logging from  [TAM-418] ([#1510](https://github.com/tambo-ai/tambo-cloud/issues/1510)) ([2651a35](https://github.com/tambo-ai/tambo-cloud/commit/2651a35cfffe48eb47a42e84fe1cc8ab52af239b))
+* **self-hosting:** fix url in env variable formatting ([#1507](https://github.com/tambo-ai/tambo-cloud/issues/1507)) ([7b5c5b0](https://github.com/tambo-ai/tambo-cloud/commit/7b5c5b0b9e9564a103933cdaf280e55798a898b8))
+* **self-hosting:** keep database password in sync via POSTGRES_PASSWORD ([#1504](https://github.com/tambo-ai/tambo-cloud/issues/1504)) ([2c9bea4](https://github.com/tambo-ai/tambo-cloud/commit/2c9bea402c8d6041c21142812956682ac6a05b53))
+* update welcome message from hydra to tambo ([#1516](https://github.com/tambo-ai/tambo-cloud/issues/1516)) ([2425025](https://github.com/tambo-ai/tambo-cloud/commit/24250255e51dd009eb164f9d77950afc7fe89234))
+
+
+### Documentation
+
+* **self-hosting/docker:** OAuth setup for Google and GitHub (TAM-427) ([#1512](https://github.com/tambo-ai/tambo-cloud/issues/1512)) ([d27990c](https://github.com/tambo-ai/tambo-cloud/commit/d27990c54bc9f3b31e5a14a2e8a99579476c0ff9))
+
+
+### Miscellaneous Chores
+
+* **auth:** remove AdminKeyGuard and ADMIN_KEYS handling ([#1509](https://github.com/tambo-ai/tambo-cloud/issues/1509)) ([084a51e](https://github.com/tambo-ai/tambo-cloud/commit/084a51ed17d395d79ac5808fa27db7824e70dfdb))
+
 ## [0.95.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.95.0...repo-v0.95.1) (2025-08-11)
 
 
