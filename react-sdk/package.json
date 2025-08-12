@@ -96,7 +96,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
-    "lint-staged": "^16.1.4",
+    "lint-staged": "^16.1.5",
     "prettier": "^3.6.2",
     "prettier-2": "npm:prettier@^2",
     "react": "^18.3.1",
