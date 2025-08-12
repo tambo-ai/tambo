@@ -51,10 +51,10 @@ export function wrapWithTamboMessageProvider(
 
 /**
  * Hook used inside a component wrapped with TamboMessageProvider, to get
- * the message object
- * @returns The message object
+ * the current message.
+ * @returns The current message that is used to render the component
  */
-export const useTamboMessageContext = () => {
+export const useTamboCurrentMessage = () => {
   const context = useContext(TamboMessageContext);
   if (!context) {
     throw new Error(
@@ -62,14 +62,4 @@ export const useTamboMessageContext = () => {
     );
   }
   return context;
-};
-
-/**
- * Hook used inside a component wrapped with TamboMessageProvider, to get
- * the current message.
- * @returns The current message that is used to render the component
- */
-export const useTamboCurrentMessage = () => {
-  const { message } = useTamboMessageContext();
-  return message;
 };
