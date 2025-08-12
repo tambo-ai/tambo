@@ -1,8 +1,21 @@
 import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { SignJWT } from "jose";
+import { getDb, operations } from "@tambo-ai-cloud/db";
 import { CorrelationLoggerService } from "../../../common/services/logger.service";
 import { ProjectId } from "../apikey.guard";
 import { BearerTokenGuard, ContextKey } from "../bearer-token.guard";
+
+jest.mock("@tambo-ai-cloud/db", () => {
+  const actual = jest.requireActual("@tambo-ai-cloud/db");
+  return {
+    ...actual,
+    operations: {
+      ...(actual.operations ?? {}),
+      getBearerTokenSecret: jest.fn(),
+    },
+    getDb: jest.fn(),
+  };
+});
 
 describe("BearerTokenGuard Context Key Generation", () => {
   let guard: BearerTokenGuard;
@@ -30,10 +43,23 @@ describe("BearerTokenGuard Context Key Generation", () => {
         getRequest: () => mockRequest,
       }),
     } as any;
+
+    // Default DB mocks
+    (getDb as jest.Mock).mockReturnValue({});
+    jest
+      .mocked(operations.getBearerTokenSecret)
+      .mockImplementation(async (_db, pId: string) => `secret-for-${pId}`);
   });
 
-  const createTestToken = async (payload: any, projectId: string) => {
-    const signingKey = new TextEncoder().encode(`token-for-${projectId}`);
+  const secretFor = (projectId: string) => `secret-for-${projectId}`;
+  const createTestToken = async (
+    payload: any,
+    projectId: string,
+    overrideSecret?: string,
+  ) => {
+    const signingKey = new TextEncoder().encode(
+      overrideSecret ?? secretFor(projectId),
+    );
     return await new SignJWT(payload)
       .setProtectedHeader({ alg: "HS256" })
       .sign(signingKey);
@@ -210,6 +236,64 @@ describe("BearerTokenGuard Context Key Generation", () => {
 
   it("should reject invalid Authorization header format", async () => {
     mockRequest.headers.authorization = "NotBearer token";
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it("rejects token signed with old predictable secret", async () => {
+    const projectId = "proj-1";
+    const payload = {
+      sub: "user-1",
+      iss: projectId,
+      aud: "tambo",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    };
+    const token = await createTestToken(
+      payload,
+      projectId,
+      `token-for-${projectId}`,
+    );
+    mockRequest.headers.authorization = `Bearer ${token}`;
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it("rejects token signed with a different project's secret", async () => {
+    const projectA = "proj-A";
+    const projectB = "proj-B";
+    const payload = {
+      sub: "user-2",
+      iss: projectA, // claims to be A
+      aud: "tambo",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    };
+    // Sign with B's secret
+    const token = await createTestToken(payload, projectB, secretFor(projectB));
+    mockRequest.headers.authorization = `Bearer ${token}`;
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it("rejects token with invalid signature", async () => {
+    const projectId = "proj-2";
+    const payload = {
+      sub: "user-3",
+      iss: projectId,
+      aud: "tambo",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    };
+    // Sign with arbitrary wrong secret
+    const token = await createTestToken(payload, projectId, "wrong-secret");
+    mockRequest.headers.authorization = `Bearer ${token}`;
 
     await expect(guard.canActivate(mockContext)).rejects.toThrow(
       UnauthorizedException,

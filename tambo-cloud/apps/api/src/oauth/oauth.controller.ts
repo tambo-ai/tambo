@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  InternalServerErrorException,
   Post,
   Req,
   UnauthorizedException,
@@ -111,8 +112,14 @@ export class OAuthController {
       }
 
       // Create new token with projectId as issuer and same sub
-      // TODO: Use project-specific signing key from database
-      const signingKey = new TextEncoder().encode(`token-for-${projectId}`);
+      // Use per-project secret stored in the database for signing
+      const bearerSecret = await operations.getBearerTokenSecret(db, projectId);
+      if (!bearerSecret) {
+        throw new InternalServerErrorException(
+          "Project bearer secret not found",
+        );
+      }
+      const signingKey = new TextEncoder().encode(bearerSecret);
 
       const currentTime = Math.floor(Date.now() / 1000);
       const maxExpiresIn = 3600; // 1 hour
@@ -166,7 +173,8 @@ export class OAuthController {
 
       if (
         error instanceof BadRequestException ||
-        error instanceof UnauthorizedException
+        error instanceof UnauthorizedException ||
+        error instanceof InternalServerErrorException
       ) {
         throw error;
       }

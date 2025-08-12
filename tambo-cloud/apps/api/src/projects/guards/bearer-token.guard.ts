@@ -5,6 +5,8 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { Request } from "express";
+import { getDb, operations } from "@tambo-ai-cloud/db";
+import type { HydraDb } from "@tambo-ai-cloud/db";
 import { decodeJwt, jwtVerify } from "jose";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { generateContextKey } from "../../common/utils/generate-context-key";
@@ -31,7 +33,16 @@ declare module "express" {
  */
 @Injectable()
 export class BearerTokenGuard implements CanActivate {
+  private db?: HydraDb;
+
   constructor(private readonly logger: CorrelationLoggerService) {}
+
+  private getDbInstance(): HydraDb {
+    if (!this.db) {
+      this.db = getDb(process.env.DATABASE_URL!);
+    }
+    return this.db;
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
@@ -63,8 +74,16 @@ export class BearerTokenGuard implements CanActivate {
 
       const projectId = payload.iss;
 
-      // Verify the token using the same dummy signing key pattern from oauth.controller.ts
-      const signingKey = new TextEncoder().encode(`token-for-${projectId}`);
+      // Load the per-project signing secret from the database (reusing a shared instance)
+      const db = this.getDbInstance();
+      const bearerSecret = await operations.getBearerTokenSecret(db, projectId);
+      if (!bearerSecret) {
+        this.logger.error(
+          `No bearer secret configured for project ${projectId}`,
+        );
+        throw new UnauthorizedException("Invalid bearer token");
+      }
+      const signingKey = new TextEncoder().encode(bearerSecret);
 
       // Validate both issuer and audience claims during verification
       const { payload: verifiedPayload } = await jwtVerify(token, signingKey, {

@@ -590,3 +590,20 @@ export async function getProjectMembers(db: HydraDb, id: string) {
     },
   });
 }
+
+/**
+ * Get the per-project bearer token secret used for signing/verifying
+ * first-party OAuth bearer access tokens.
+ */
+export async function getBearerTokenSecret(
+  db: HydraDb,
+  projectId: string,
+): Promise<string | null> {
+  const row = await db.query.projects.findFirst({
+    where: eq(schema.projects.id, projectId),
+    columns: {
+      bearerTokenSecret: true,
+    },
+  });
+  return row?.bearerTokenSecret ?? null;
+}

@@ -165,6 +165,11 @@ export const projects = pgTable(
       .default(OAuthValidationMode.ASYMMETRIC_AUTO), // Default to no validation
     oauthSecretKeyEncrypted: text("oauth_secret_key_encrypted"), // Encrypted secret key for symmetric validation
     oauthPublicKey: text("oauth_public_key"), // Public key for manual asymmetric validation
+    // Secret used to sign/verify first-party OAuth bearer access tokens issued by our API.
+    // Generated per-project by Postgres with strong entropy. Kept server-side only.
+    bearerTokenSecret: text("bearer_token_secret")
+      .notNull()
+      .default(sql`encode(gen_random_bytes(32), 'hex')`),
   }),
   (table) => {
     return [

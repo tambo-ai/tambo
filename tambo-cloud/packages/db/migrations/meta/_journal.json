@@ -435,6 +435,13 @@
       "when": 1753909936009,
       "tag": "0061_dear_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1755019802535,
+      "tag": "0062_secure_bearer_secret",
+      "breakpoints": true
     }
   ]
 }
