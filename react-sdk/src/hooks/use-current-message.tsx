@@ -49,7 +49,7 @@ export const useTamboCurrentMessage = () => {
   const message = useContext(TamboMessageContext);
   if (!message) {
     throw new Error(
-      "useTamboMessageContext must be used within a TamboMessageProvider",
+      "useTamboCurrentMessage must be used within a TamboMessageProvider",
     );
   }
   return message;
