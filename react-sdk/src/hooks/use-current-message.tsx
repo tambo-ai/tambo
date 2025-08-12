@@ -2,16 +2,7 @@
 import React, { createContext, PropsWithChildren, useContext } from "react";
 import { TamboThreadMessage } from "../model/generate-component-response";
 
-interface TamboMessageContextProps {
-  /**
-   * The actual message object for this context
-   */
-  message: TamboThreadMessage;
-}
-
-const TamboMessageContext = createContext<TamboMessageContextProps | null>(
-  null,
-);
+const TamboMessageContext = createContext<TamboThreadMessage | null>(null);
 
 /**
  * Wraps all components, so that they can find what message they are in
@@ -27,7 +18,7 @@ export const TamboMessageProvider: React.FC<
   // make sure that if the rendered component is swapped into a tree (like if
   // you always show the last rendered component) then the state/etc is correct
   return (
-    <TamboMessageContext.Provider value={{ message }} key={message.id}>
+    <TamboMessageContext.Provider value={message} key={message.id}>
       {children}
     </TamboMessageContext.Provider>
   );
@@ -55,11 +46,11 @@ export function wrapWithTamboMessageProvider(
  * @returns The current message that is used to render the component
  */
 export const useTamboCurrentMessage = () => {
-  const context = useContext(TamboMessageContext);
-  if (!context) {
+  const message = useContext(TamboMessageContext);
+  if (!message) {
     throw new Error(
       "useTamboMessageContext must be used within a TamboMessageProvider",
     );
   }
-  return context;
+  return message;
 };
