@@ -75,6 +75,10 @@ export class AuthService {
       throw new Error("API_KEY_SECRET is not configured");
     }
 
-    return jwt.verify(token, secret) as McpAccessTokenPayload;
+    // Explicitly pin allowed algorithms for verification to prevent
+    // algorithm confusion attacks. MCP tokens are signed with HS256.
+    return jwt.verify(token, secret, {
+      algorithms: ["HS256"],
+    }) as McpAccessTokenPayload;
   }
 }
