@@ -201,10 +201,16 @@ export class ThreadsController {
     @Param("id") threadId: string,
     @Body() messageDto: MessageRequest,
   ) {
+    // Log only non-sensitive identifiers. Do not log message content or payloads.
     if (!["user", "tool"].includes(messageDto.role)) {
-      console.warn(`Received message with role ${messageDto.role}`, messageDto);
+      this.logger.warn(
+        `Received message with non-standard role: ${messageDto.role}`,
+      );
     }
-    return await this.threadsService.addMessage(threadId, messageDto);
+    const saved = await this.threadsService.addMessage(threadId, messageDto);
+    // Minimal diagnostic logging – include at most role and message id
+    this.logger.log(`Added message id=${saved.id} role=${messageDto.role}`);
+    return saved;
   }
 
   @UseGuards(ThreadInProjectGuard)
