@@ -835,6 +835,15 @@ export function ProviderKeySection({
                           Base URL is required
                         </p>
                       )}
+                      <p className="text-xs text-foreground">
+                        Requests will be sent to{" "}
+                        <span className="inline-flex rounded-md bg-muted px-2 py-0.5 font-mono">
+                          {baseUrl.trim()
+                            ? baseUrl.trim().replace(/\/$/, "")
+                            : "<baseurl>"}
+                          /chat/completions
+                        </span>
+                      </p>
                     </div>
                   )}
 
