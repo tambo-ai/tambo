@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.97.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.96.0...repo-v0.97.0) (2025-08-13)
+
+
+### Features
+
+* show complete endpoint for openai-compatible ([#1519](https://github.com/tambo-ai/tambo-cloud/issues/1519)) ([cba3c8a](https://github.com/tambo-ai/tambo-cloud/commit/cba3c8a6fd44793bc126a61bb70eb79c56c27a53))
+
+
+### Documentation
+
+* update selfhosting instructions in docker readme ([#1517](https://github.com/tambo-ai/tambo-cloud/issues/1517)) ([176b19e](https://github.com/tambo-ai/tambo-cloud/commit/176b19e141170eebdbc1cee7c690590fa4026ca5))
+
 ## [0.96.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.95.1...repo-v0.96.0) (2025-08-12)
 
 
