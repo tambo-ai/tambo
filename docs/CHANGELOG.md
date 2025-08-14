@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.2](https://github.com/tambo-ai/tambo/compare/docs-v1.2.1...docs-v1.2.2) (2025-08-14)
+
+
+### Miscellaneous
+
+* **deps:** bump fumadocs-core from 15.6.6 to 15.6.9 ([#821](https://github.com/tambo-ai/tambo/issues/821)) ([2423953](https://github.com/tambo-ai/tambo/commit/24239533114148903d0195ddce8e8b1c57602c64))
+* **deps:** bump fumadocs-mdx from 11.7.3 to 11.7.4 ([#824](https://github.com/tambo-ai/tambo/issues/824)) ([8eef4cf](https://github.com/tambo-ai/tambo/commit/8eef4cf44339772709cd690657f46fcd83d063e8))
+* **deps:** bump lucide-react from 0.536.0 to 0.539.0 ([#830](https://github.com/tambo-ai/tambo/issues/830)) ([1dfe483](https://github.com/tambo-ai/tambo/commit/1dfe483dc92ec6a3e043f9d15f958d183f87e557))
+* **deps:** bump next from 15.4.4 to 15.4.6 ([#828](https://github.com/tambo-ai/tambo/issues/828)) ([a073604](https://github.com/tambo-ai/tambo/commit/a0736041c951d21c84c23979b617dc47d62648bd))
+
+
+### Documentation
+
+* add tambo mcp doc page ([#835](https://github.com/tambo-ai/tambo/issues/835)) ([69d9777](https://github.com/tambo-ai/tambo/commit/69d977735ac734d83f6f1ebd321011c3559d66df))
+
 ## [1.2.1](https://github.com/tambo-ai/tambo/compare/docs-v1.2.0...docs-v1.2.1) (2025-08-08)
 
 
