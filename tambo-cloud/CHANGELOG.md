@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.99.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.98.0...repo-v0.99.0) (2025-08-14)
+
+
+### Features
+
+* add TamboHackBanner into dashboard header and main page layout ([#1524](https://github.com/tambo-ai/tambo-cloud/issues/1524)) ([2a5200a](https://github.com/tambo-ai/tambo-cloud/commit/2a5200af6db468586353087c3fde6d1ee3e20c94))
+
+
+### Bug Fixes
+
+* add project setting to require bearer token  ([#1529](https://github.com/tambo-ai/tambo-cloud/issues/1529)) ([ce58acd](https://github.com/tambo-ai/tambo-cloud/commit/ce58acda7c0efffc4852d84d5750da17a1d700ab))
+* update redirect URL in HackPage to use environment variable ([#1528](https://github.com/tambo-ai/tambo-cloud/issues/1528)) ([86d213c](https://github.com/tambo-ai/tambo-cloud/commit/86d213cd2c97b192266de548bc276435d7cd7525))
+
+
+### Code Refactoring
+
+* **hero, pricing:** update hero title and pricing info ([#1522](https://github.com/tambo-ai/tambo-cloud/issues/1522)) ([747fd0f](https://github.com/tambo-ai/tambo-cloud/commit/747fd0ff013bfcf2175346a44e403da2911bd408))
+
 ## [0.98.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.97.0...repo-v0.98.0) (2025-08-14)
 
 
