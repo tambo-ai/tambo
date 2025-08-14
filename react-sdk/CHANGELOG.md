@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.44.0](https://github.com/tambo-ai/tambo/compare/react-v0.43.1...react-v0.44.0) (2025-08-14)
+
+
+### Features
+
+* **duplicate-hooks:** useTamboMessageContext was identical to useTamboCurrentMessage, so removed old one ([#833](https://github.com/tambo-ai/tambo/issues/833)) ([33427ab](https://github.com/tambo-ai/tambo/commit/33427ab041bc570ded3c5bb809d6ba3657f2dc06))
+
+
+### Bug Fixes
+
+* split out provider values to prevent re-renders ([#816](https://github.com/tambo-ai/tambo/issues/816)) ([3360e9a](https://github.com/tambo-ai/tambo/commit/3360e9ab491c03a1a1da7101679ad88764dd6205))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump lint-staged from 16.1.4 to 16.1.5 ([#827](https://github.com/tambo-ai/tambo/issues/827)) ([e7e0633](https://github.com/tambo-ai/tambo/commit/e7e0633feadedd6a2cc850464b9ecd89e2af4133))
+* **deps-dev:** bump the eslint group with 5 updates ([#826](https://github.com/tambo-ai/tambo/issues/826)) ([342097e](https://github.com/tambo-ai/tambo/commit/342097e15ae1503c3d3df5cffb0d96a829fd7f5f))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.1 to 1.17.2 ([#823](https://github.com/tambo-ai/tambo/issues/823)) ([d2ec114](https://github.com/tambo-ai/tambo/commit/d2ec1141a80c2e636918b38f3cb6ac405aa9a510))
+* **deps:** bump @tanstack/react-query from 5.83.0 to 5.84.2 ([#831](https://github.com/tambo-ai/tambo/issues/831)) ([5640d58](https://github.com/tambo-ai/tambo/commit/5640d58167998dad63660aefbea7f6b41198b215))
+
+
+### Code Refactoring
+
+* update useGenerationStage to useTamboGenerationStage ([#820](https://github.com/tambo-ai/tambo/issues/820)) ([23ab48f](https://github.com/tambo-ai/tambo/commit/23ab48ffd464050c05855a79ce3b050bc4d5c781))
+
 ## [0.43.1](https://github.com/tambo-ai/tambo/compare/react-v0.43.0...react-v0.43.1) (2025-08-08)
 
 
