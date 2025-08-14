@@ -1,0 +1,116 @@
+---
+title: Tambo MCP Server
+description: Learn how to set up the Tambo MCP server in various development environments.
+---
+
+import { Tabs, Tab } from "fumadocs-ui/components/tabs";
+
+Tambo has an MCP server with tools to retrieve information from our documentation about how to use Tambo. Add our MCP server to your IDE to give your coding assistant knowledge of how to use Tambo.
+
+## Quick Setup
+
+The fastest way to add tambo MCP to Cursor or VS Code is by clicking the "Add to IDE" button on our homepage and selecting your preferred IDE. For other IDEs or manual setup, follow the instructions below.
+
+## Setup Instructions
+
+<Tabs items={['Claude', 'Cursor', 'VSCode', 'Windsurf', 'Zed']}>
+  <Tab id="tab-claude" value="Claude">
+
+**Claude Desktop**
+
+1. Open Claude Desktop
+2. Go to Settings (from the Claude menu) → Developer → Edit Config
+3. Add the following configuration:
+
+```bash
+"mcpServers": {
+  "tambo": {
+    "url": "https://mcp.tambo.co"
+  },
+}
+```
+
+    4. Save the file
+    5. Restart Claude Desktop
+
+**Claude Code**
+
+```bash
+claude mcp add --transport sse tambo-server https://mcp.tambo.co
+```
+
+  </Tab>
+
+<Tab id="tab-cursor" value="Cursor">
+  1. Click the install button above and follow the flow, or go directly to your global MCP configuration file at `~/.cursor/mcp.json`.
+  2. Add the following configuration: 
+  ```bash 
+  "mcpServers": {
+    "tambo": {
+      "url": "https://mcp.tambo.co"
+    },
+  }
+  ``` 
+  4. Save the file
+  5. Restart Cursor
+</Tab>
+
+<Tab id="tab-vscode" value="VSCode">
+  1. Click the install button above and follow the flow, or go directly to your global MCP configuration file at `.vscode/mcp.json`.
+  2. Add the following configuration:
+  ```bash 
+  "servers": {
+    "tambo": {
+      "type": "http",
+      "url": "https://mcp.tambo.co"
+    }
+  }
+  ``` 
+  4. Save the file
+  5. Restart VSCode
+  6. Alternatively, run the **MCP: Add Server** command from the Command Palette, choose the type of MCP server to add and provide the server information. Next, select Workspace Settings to create the `.vscode/mcp.json` file in your workspace if it doesn't already exist
+</Tab>
+
+<Tab id="tab-windsurf" value="Windsurf">
+  1. Click the hammer icon (🔨) in Cascade
+  2. Click Configure to open ~/.codeium/windsurf/mcp_config.json
+  3. Add the following configuration: 
+  ```bash 
+  "mcpServers": {
+    "tambo": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.tambo.co"]
+    },
+  }
+  ``` 
+  4. Save the file
+  5. Click Refresh (🔄) in the MCP toolbar
+</Tab>
+
+<Tab id="tab-zed" value="Zed">
+1. Open settings with `Cmd + ,`
+2. Add the following configuration:
+```json
+{
+    "context_servers": {
+    "tambo": {
+        "command": {
+        "path": "npx",
+        "args": ["-y", "mcp-remote", "https://mcp.tambo.co"],
+        "env": {}
+        },
+        "settings": {}
+    }
+    }
+}
+```
+</Tab>
+</Tabs>
+
+## Verification
+
+After setting up the MCP server, you can verify it's working:
+
+1. Open a new chat or file
+2. Try asking the AI assistant about tambo
+3. Check the IDE's output/console for any error messages
