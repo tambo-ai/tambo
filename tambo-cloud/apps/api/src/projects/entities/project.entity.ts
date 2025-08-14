@@ -6,6 +6,7 @@ export class Project {
   id!: string;
   name!: string;
   userId!: string;
+  isTokenRequired!: boolean;
   apiKeys?: APIKey[];
   providerKeys: ProviderKey[] = [];
 

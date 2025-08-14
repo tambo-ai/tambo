@@ -12,6 +12,9 @@ export const ProjectInfoSchema = z.object({
   name: z.string().describe("The human-readable name of the project."),
   userId: z.string().describe("The user ID of the project owner."),
   createdAt: z.string().describe("The creation date of the project."),
+  isTokenRequired: z
+    .boolean()
+    .describe("Whether authentication tokens are required for this project."),
 });
 
 export const ProjectInfoProps = z.object({

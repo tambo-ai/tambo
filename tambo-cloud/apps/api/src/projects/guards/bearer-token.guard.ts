@@ -4,9 +4,9 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
-import { Request } from "express";
-import { getDb, operations } from "@tambo-ai-cloud/db";
 import type { HydraDb } from "@tambo-ai-cloud/db";
+import { getDb, operations } from "@tambo-ai-cloud/db";
+import { Request } from "express";
 import { decodeJwt, jwtVerify } from "jose";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { generateContextKey } from "../../common/utils/generate-context-key";
@@ -26,7 +26,10 @@ declare module "express" {
 
 /**
  * This guard validates OAuth bearer tokens and extracts the projectId and contextKey.
- * If no Authorization header is present, it does nothing (allows the request to continue).
+ * Expects APIKeyGuard to have already run and set the projectId on the request.
+ * If no Authorization header is present, it checks if the project requires tokens:
+ * - If project.isTokenRequired is true, the request is rejected
+ * - If project.isTokenRequired is false, the request continues
  * If a bearer token is present, it validates the token and extracts:
  * - projectId from the 'iss' claim
  * - contextKey from the 'sub' claim (formatted as 'oauth:user:${sub}')
@@ -48,8 +51,27 @@ export class BearerTokenGuard implements CanActivate {
     const request: Request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
-    // If no Authorization header, allow the request to continue
+    // If no Authorization header, check if token is required for this project
     if (!authHeader) {
+      // First check if projectId was already set by the API key guard (which runs before this)
+      const projectId = request[ProjectId];
+
+      if (!projectId) {
+        throw new UnauthorizedException("No project ID provided");
+      }
+
+      if (projectId) {
+        const db = this.getDbInstance();
+        const project = await operations.getProject(db, projectId);
+
+        if (project?.isTokenRequired) {
+          this.logger.error(
+            `Token required for project ${projectId} but no Authorization header provided`,
+          );
+          throw new UnauthorizedException("Bearer token required");
+        }
+      }
+
       return true;
     }
 

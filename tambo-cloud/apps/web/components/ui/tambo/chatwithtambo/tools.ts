@@ -58,6 +58,7 @@ export const fetchProjectByIdSchema = z
       customLlmBaseURL: z.string().nullable(),
       maxInputTokens: z.number().nullable(),
       maxToolCallLimit: z.number(),
+      isTokenRequired: z.boolean(),
     }),
   );
 
@@ -109,6 +110,7 @@ export const updateProjectSchema = z
       customLlmBaseURL: z.string().nullable(),
       maxInputTokens: z.number().nullable(),
       maxToolCallLimit: z.number(),
+      isTokenRequired: z.boolean(),
     }),
   );
 

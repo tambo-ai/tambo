@@ -32,6 +32,9 @@ export const ProjectTableSchema = z
       .describe(
         "Timestamp of the most recently updated thread in the project.",
       ),
+    isTokenRequired: z
+      .boolean()
+      .describe("Whether authentication tokens are required for this project."),
   })
   .describe(
     "Defines the structure of a project object, including its ID, name, and creation date.",

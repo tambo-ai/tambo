@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "is_token_required" boolean DEFAULT false NOT NULL;

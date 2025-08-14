@@ -171,6 +171,7 @@ export const projects = pgTable(
     bearerTokenSecret: text("bearer_token_secret")
       .notNull()
       .default(sql`encode(gen_random_bytes(32), 'hex')`),
+    isTokenRequired: boolean("is_token_required").default(false).notNull(),
   }),
   (table) => {
     return [

@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api, type RouterOutputs } from "@/trpc/react";
@@ -88,6 +89,7 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
   );
   const [secretKey, setSecretKey] = useState("");
   const [publicKey, setPublicKey] = useState("");
+  const [isTokenRequired, setIsTokenRequired] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // API queries and mutations
@@ -113,18 +115,35 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
     }
   }, [oauthSettings]);
 
+  // Initialize token required state from project data
+  useEffect(() => {
+    if (project) {
+      setIsTokenRequired(project.isTokenRequired ?? false);
+    }
+  }, [project]);
+
   // Track changes
   useEffect(() => {
-    if (!oauthSettings) return;
+    if (!oauthSettings || !project) return;
 
-    const hasChanges =
+    const hasOAuthChanges =
       selectedMode !== oauthSettings.mode ||
       (selectedMode === OAuthValidationMode.ASYMMETRIC_MANUAL &&
         publicKey !== (oauthSettings.publicKey || "")) ||
       (selectedMode === OAuthValidationMode.SYMMETRIC && secretKey !== "");
 
-    setHasUnsavedChanges(hasChanges);
-  }, [selectedMode, publicKey, secretKey, oauthSettings]);
+    const hasTokenRequiredChanges =
+      isTokenRequired !== (project.isTokenRequired ?? false);
+
+    setHasUnsavedChanges(hasOAuthChanges || hasTokenRequiredChanges);
+  }, [
+    selectedMode,
+    publicKey,
+    secretKey,
+    isTokenRequired,
+    oauthSettings,
+    project,
+  ]);
 
   const handleSave = useCallback(async () => {
     if (!project?.id) return;
@@ -141,6 +160,7 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
           selectedMode === OAuthValidationMode.ASYMMETRIC_MANUAL
             ? publicKey
             : undefined,
+        isTokenRequired,
       });
 
       toast({
@@ -163,6 +183,7 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
     selectedMode,
     secretKey,
     publicKey,
+    isTokenRequired,
     updateSettings,
     toast,
     refetchSettings,
@@ -206,6 +227,18 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Token Required */}
+        <div className="flex flex-col gap-2">
+          <Label className="text-base font-medium">Token Required</Label>
+          <Switch
+            checked={isTokenRequired}
+            onCheckedChange={setIsTokenRequired}
+          />
+          <p className="text-sm text-muted-foreground">
+            When enabled, all API requests must include a valid OAuth bearer
+            token. When disabled, requests can proceed without authentication.
+          </p>
+        </div>
         {/* Validation Mode Selection */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">

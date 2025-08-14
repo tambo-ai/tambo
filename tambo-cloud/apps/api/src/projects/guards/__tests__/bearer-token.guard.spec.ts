@@ -1,6 +1,6 @@
 import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
-import { SignJWT } from "jose";
 import { getDb, operations } from "@tambo-ai-cloud/db";
+import { SignJWT } from "jose";
 import { CorrelationLoggerService } from "../../../common/services/logger.service";
 import { ProjectId } from "../apikey.guard";
 import { BearerTokenGuard, ContextKey } from "../bearer-token.guard";
@@ -12,6 +12,7 @@ jest.mock("@tambo-ai-cloud/db", () => {
     operations: {
       ...(actual.operations ?? {}),
       getBearerTokenSecret: jest.fn(),
+      getProject: jest.fn(),
     },
     getDb: jest.fn(),
   };
@@ -49,6 +50,7 @@ describe("BearerTokenGuard Context Key Generation", () => {
     jest
       .mocked(operations.getBearerTokenSecret)
       .mockImplementation(async (_db, pId: string) => `secret-for-${pId}`);
+    jest.mocked(operations.getProject).mockClear();
   });
 
   const secretFor = (projectId: string) => `secret-for-${projectId}`;
@@ -229,9 +231,35 @@ describe("BearerTokenGuard Context Key Generation", () => {
     });
   });
 
-  it("should allow requests without Authorization header", async () => {
+  it("should allow requests without Authorization header when isTokenRequired is false", async () => {
+    const projectId = "test-project";
+    mockRequest[ProjectId] = projectId;
+
+    // Mock project with isTokenRequired = false
+    jest.mocked(operations.getProject).mockResolvedValue({
+      id: projectId,
+      isTokenRequired: false,
+    } as any);
+
     const result = await guard.canActivate(mockContext);
     expect(result).toBe(true);
+    expect(operations.getProject).toHaveBeenCalledWith({}, projectId);
+  });
+
+  it("should reject requests without Authorization header when isTokenRequired is true", async () => {
+    const projectId = "test-project";
+    mockRequest[ProjectId] = projectId;
+
+    // Mock project with isTokenRequired = true
+    jest.mocked(operations.getProject).mockResolvedValue({
+      id: projectId,
+      isTokenRequired: true,
+    } as any);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    expect(operations.getProject).toHaveBeenCalledWith({}, projectId);
   });
 
   it("should reject invalid Authorization header format", async () => {

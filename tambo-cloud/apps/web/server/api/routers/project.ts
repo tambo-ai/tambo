@@ -223,6 +223,7 @@ export const projectRouter = createTRPCRouter({
           customLlmModelName: project.customLlmModelName,
           customLlmBaseURL: project.customLlmBaseURL,
           maxToolCallLimit: project.maxToolCallLimit,
+          isTokenRequired: project.isTokenRequired,
           messages: stats.messages,
           users: stats.users,
           lastMessageAt: stats.lastMessageAt,
@@ -382,6 +383,7 @@ export const projectRouter = createTRPCRouter({
         customLlmBaseURL: z.string().nullable().optional(),
         maxInputTokens: z.number().nullable().optional(),
         maxToolCallLimit: z.number().optional(),
+        isTokenRequired: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -395,6 +397,7 @@ export const projectRouter = createTRPCRouter({
         customLlmBaseURL,
         maxInputTokens,
         maxToolCallLimit,
+        isTokenRequired,
       } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
 
@@ -421,6 +424,7 @@ export const projectRouter = createTRPCRouter({
         maxInputTokens:
           maxInputTokens === null ? undefined : (maxInputTokens ?? undefined),
         maxToolCallLimit,
+        isTokenRequired,
       });
 
       if (!updatedProject) {
@@ -936,10 +940,11 @@ export const projectRouter = createTRPCRouter({
         ),
         secretKey: z.string().optional(),
         publicKey: z.string().optional(),
+        isTokenRequired: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { projectId, mode, secretKey, publicKey } = input;
+      const { projectId, mode, secretKey, publicKey, isTokenRequired } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
 
       // Encrypt secret key if provided
@@ -979,6 +984,13 @@ export const projectRouter = createTRPCRouter({
         projectId,
         settings,
       );
+
+      // Update token required setting if provided
+      if (isTokenRequired !== undefined) {
+        await operations.updateProject(ctx.db, projectId, {
+          isTokenRequired,
+        });
+      }
 
       return { success: true };
     }),

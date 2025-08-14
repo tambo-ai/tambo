@@ -42,6 +42,7 @@ export class ProjectsService {
       id: project.id,
       name: project.name,
       userId: project.userId,
+      isTokenRequired: project.isTokenRequired,
     };
   }
 
@@ -51,6 +52,13 @@ export class ProjectsService {
       id: project.id,
       name: project.name,
       userId,
+      defaultLlmProviderName: project.defaultLlmProviderName ?? undefined,
+      defaultLlmModelName: project.defaultLlmModelName ?? undefined,
+      customLlmModelName: project.customLlmModelName ?? undefined,
+      customLlmBaseURL: project.customLlmBaseURL ?? undefined,
+      customInstructions: project.customInstructions ?? undefined,
+      maxInputTokens: project.maxInputTokens ?? undefined,
+      isTokenRequired: project.isTokenRequired,
     }));
   }
 
@@ -69,6 +77,7 @@ export class ProjectsService {
       customLlmBaseURL: project.customLlmBaseURL ?? undefined,
       customInstructions: project.customInstructions ?? undefined,
       maxInputTokens: project.maxInputTokens ?? undefined,
+      isTokenRequired: project.isTokenRequired,
     };
   }
 
@@ -87,6 +96,7 @@ export class ProjectsService {
     projectEntity.id = project.id;
     projectEntity.name = project.name;
     projectEntity.userId = project.members[0].userId;
+    projectEntity.isTokenRequired = project.isTokenRequired;
     projectEntity.apiKeys = project.apiKeys.map((apiKey) => ({
       id: apiKey.id,
       name: apiKey.name,
@@ -126,6 +136,13 @@ export class ProjectsService {
       id: updated.id,
       name: updated.name,
       userId: updateProjectDto.userId,
+      defaultLlmProviderName: updated.defaultLlmProviderName ?? undefined,
+      defaultLlmModelName: updated.defaultLlmModelName ?? undefined,
+      customLlmModelName: updated.customLlmModelName ?? undefined,
+      customLlmBaseURL: updated.customLlmBaseURL ?? undefined,
+      customInstructions: updated.customInstructions ?? undefined,
+      maxInputTokens: updated.maxInputTokens ?? undefined,
+      isTokenRequired: updated.isTokenRequired,
     };
   }
 
@@ -210,6 +227,13 @@ export class ProjectsService {
       id: result.id,
       name: result.name,
       userId,
+      defaultLlmProviderName: result.defaultLlmProviderName ?? undefined,
+      defaultLlmModelName: result.defaultLlmModelName ?? undefined,
+      customLlmModelName: result.customLlmModelName ?? undefined,
+      customLlmBaseURL: result.customLlmBaseURL ?? undefined,
+      customInstructions: result.customInstructions ?? undefined,
+      maxInputTokens: result.maxInputTokens ?? undefined,
+      isTokenRequired: result.isTokenRequired,
     };
   }
 
