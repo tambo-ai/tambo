@@ -55,5 +55,5 @@ echo -e "${BLUE}📋 User: $POSTGRES_USER${NC}"
 echo -e "${BLUE}📋 Host: localhost:5433${NC}"
 echo -e ""
 
-# Connect to PostgreSQL using psql
-PGPASSWORD="$POSTGRES_PASSWORD" psql -h localhost -p 5433 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@" 
+# Connect to PostgreSQL using psql in the postgres container (no host psql required)
+docker compose --env-file docker.env exec -e PGPASSWORD="$POSTGRES_PASSWORD" -T postgres psql -h localhost -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"

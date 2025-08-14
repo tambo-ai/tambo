@@ -5,8 +5,6 @@ This document describes how to run Tambo with a local PostgreSQL database using 
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Node.js and npm (for database initialization)
-- `jq` command-line tool (for health checks)
 
 ## Quick Start
 
@@ -17,7 +15,7 @@ This document describes how to run Tambo with a local PostgreSQL database using 
    ```
 
    This will:
-   - make sure the required dependencies are installed
+   - verify Docker is available
    - create a `docker.env` file with default values
 
 2. **Configure environment variables:**
@@ -44,7 +42,11 @@ This document describes how to run Tambo with a local PostgreSQL database using 
    ./scripts/init-database.sh
    ```
 
-   This will update the postgres db started in the previous step with the required schema.
+   This script automatically detects if it's running on the host or in Docker:
+   - On the host, it delegates into the `api` container and runs there.
+   - In the container, it runs migrations directly using `DATABASE_URL` from the environment.
+
+   The script applies all Drizzle migrations to the PostgreSQL instance started earlier.
 
 5. **Access your applications:**
    - Tambo Web: http://localhost:3210
@@ -192,6 +194,17 @@ Shows logs from all services or a specific service.
 
 Initializes the PostgreSQL database with the required schema using Drizzle migrations.
 
+Behavior:
+
+- If run on the host, it will exec into the `api` container and run itself there.
+- If run inside the container, it runs migrations directly using `npm run db:migrate`.
+
+You can also run it directly via docker compose if desired:
+
+```bash
+docker compose --env-file docker.env exec -T api sh -lc "./scripts/init-database.sh"
+```
+
 ### `tambo-setup.sh`
 
 Sets up the Docker environment for first-time use.
@@ -210,10 +223,10 @@ psql -h localhost -p 5433 -U postgres -d tambo
 
 ### Running Migrations
 
-The `init-database.sh` script automatically runs all migrations. To run migrations manually:
+To run migrations manually inside the API container:
 
 ```bash
-npm run db:migrate
+docker compose --env-file docker.env exec -T api sh -lc "npm run db:migrate"
 ```
 
 ### Backup and Restore

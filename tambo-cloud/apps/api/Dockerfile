@@ -1,5 +1,6 @@
 # Simple fat Docker image for API
 FROM node:22-alpine
+RUN npm install -g npm@^11
 
 # Install system dependencies (aligned with Web)
 RUN apk add --no-cache libc6-compat curl

@@ -1,86 +1,95 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 # Initialize Tambo Database
-# This script initializes the PostgreSQL database with the required schema
+# This script initializes the PostgreSQL database with the required schema.
+# It can run either on the host (using Docker to connect to Postgres)
+# or inside a running Docker container (e.g., the API container).
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Colors for output (use literal escape bytes so they work without -e)
+RED="$(printf '\033[0;31m')"
+GREEN="$(printf '\033[0;32m')"
+YELLOW="$(printf '\033[1;33m')"
+BLUE="$(printf '\033[0;34m')"
+NC="$(printf '\033[0m')" # No Color
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Get the project root directory (parent of scripts directory)
+# Determine script directory (POSIX-compatible)
+case "$0" in
+  /*) SCRIPT_PATH="$0" ;;
+  *) SCRIPT_PATH="$(pwd)/$0" ;;
+esac
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Change to project root directory
 cd "$PROJECT_ROOT"
 
-echo -e "${GREEN}🗄️  Initializing Tambo Database...${NC}"
-echo -e "${BLUE}📁 Working directory: $(pwd)${NC}"
+printf "%s\n" "${GREEN}🗄️  Initializing Tambo Database...${NC}"
+printf "%s\n" "${BLUE}📁 Working directory: $(pwd)${NC}"
 
-# Check if docker.env exists
-if [ ! -f "docker.env" ]; then
-    echo -e "${RED}❌ docker.env file not found!${NC}"
-    echo -e "${YELLOW}📝 Please copy docker.env.example to docker.env and update with your values${NC}"
-    exit 1
+# Detect if running inside a Docker container
+IS_IN_DOCKER=false
+if [ -f "/.dockerenv" ] || grep -qa docker /proc/1/cgroup 2>/dev/null; then
+  IS_IN_DOCKER=true
 fi
 
-# Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo -e "${RED}❌ Docker is not running. Please start Docker first.${NC}"
+# When running on the host, this script will delegate to the api container.
+# When running inside a container, it will run the migrations directly.
+
+if [ "$IS_IN_DOCKER" = false ]; then
+  # Host mode: delegate to Docker container
+  if [ ! -f "docker.env" ]; then
+    printf "%s\n" "${RED}❌ docker.env file not found!${NC}"
+    printf "%s\n" "${YELLOW}📝 Please copy docker.env.example to docker.env and update with your values${NC}"
     exit 1
+  fi
+  if ! command -v docker >/dev/null 2>&1; then
+    printf "%s\n" "${RED}❌ Docker is not installed. Please install Docker first.${NC}"
+    exit 1
+  fi
+  if ! docker info >/dev/null 2>&1; then
+    printf "%s\n" "${RED}❌ Docker is not running. Please start Docker first.${NC}"
+    exit 1
+  fi
+  if ! command -v docker compose >/dev/null 2>&1; then
+    printf "%s\n" "${RED}❌ Docker Compose is not available. Please install Docker Compose.${NC}"
+    exit 1
+  fi
+  if ! docker compose --env-file docker.env ps api | grep -q "Up"; then
+    printf "%s\n" "${RED}❌ API container is not running. Please start the stack first:${NC}"
+    printf "%s\n" "${YELLOW}   ./scripts/tambo-start.sh${NC}"
+    exit 1
+  fi
+
+  printf "%s\n" "${BLUE}📦 Delegating to api container...${NC}"
+  exec docker compose --env-file docker.env exec -T api sh -lc "./scripts/init-database.sh"
 fi
 
-# Check if npx is available
-if ! command -v npx &> /dev/null; then
-    echo -e "${RED}❌ npx is not available. Please install Node.js and npm first.${NC}"
+# From here on, we are inside a container
+
+# Host-only: check if npm is available (not needed in-container if image already has Node)
+if [ "$IS_IN_DOCKER" = false ]; then
+  if ! command -v npm >/dev/null 2>&1; then
+    printf "%s\n" "${RED}❌ npm is not available. Please install Node.js and npm first.${NC}"
     exit 1
+  fi
 fi
 
-# Check if npm is available
-if ! command -v npm &> /dev/null; then
-    echo -e "${RED}❌ npm is not available. Please install Node.js and npm first.${NC}"
-    exit 1
-fi
-
-# Check if PostgreSQL container is running
-if ! docker compose --env-file docker.env ps postgres | grep -q "Up"; then
-    echo -e "${RED}❌ PostgreSQL container is not running. Please start the stack first:${NC}"
-    echo -e "${YELLOW}   ./scripts/tambo-start.sh${NC}"
-    exit 1
-fi
-
-# Wait for PostgreSQL to be ready
-echo -e "${YELLOW}⏳ Waiting for PostgreSQL to be ready...${NC}"
-until docker compose --env-file docker.env exec -T postgres pg_isready -U postgres; do
-    sleep 2
-done
-
-echo -e "${GREEN}✅ PostgreSQL is ready!${NC}"
+# In-container: assume service orchestration handled readiness
 
 # Run database migrations
-echo -e "${BLUE}🔄 Running database migrations...${NC}"
+printf "%s\n" "${BLUE}🔄 Running database migrations...${NC}"
 
-# Get actual database credentials from the running container
-echo -e "${BLUE}📋 Getting database credentials from running container...${NC}"
-# Strip any trailing newlines that `printenv` may include to avoid malformed URLs
-POSTGRES_PASSWORD=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_PASSWORD 2>/dev/null | tr -d '\r\n' || echo "your-super-secret-and-long-postgres-password")
-POSTGRES_USER=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_USER 2>/dev/null | tr -d '\r\n' || echo "postgres")
-POSTGRES_DB=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_DB 2>/dev/null | tr -d '\r\n' || echo "tambo")
-
-# Create proper DATABASE_URL for local migration
-LOCAL_DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5433/${POSTGRES_DB}"
-export DATABASE_URL="$LOCAL_DATABASE_URL"
-echo -e "${BLUE}📋 Using local database URL: $DATABASE_URL${NC}"
-
-# Run the database migrations using the npm script
-echo -e "${BLUE}📊 Running database migrations...${NC}"
+# In-container mode: rely on DATABASE_URL already present in environment
+if [ -z "$DATABASE_URL" ]; then
+  printf "%s\n" "${RED}❌ DATABASE_URL is not set in the container environment.${NC}"
+  printf "%s\n" "${YELLOW}   Please ensure your service sets DATABASE_URL, or run this script from the host to auto-delegate into the container.${NC}"
+  exit 1
+fi
+printf "%s\n" "${BLUE}📋 Using container DATABASE_URL: $DATABASE_URL${NC}"
+printf "%s\n" "${BLUE}📊 Running database migrations inside container...${NC}"
 npm run db:migrate
 
-echo -e "${GREEN}✅ Database initialization completed successfully!${NC}"
-echo -e "${BLUE}📋 Database is now ready for use.${NC}" 
+printf "%s\n" "${GREEN}✅ Database initialization completed successfully!${NC}"
+printf "%s\n" "${BLUE}📋 Database is now ready for use.${NC}"
