@@ -43,7 +43,8 @@
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
     "GITHUB_TOKEN",
-    "SKIP_ENV_VALIDATION"
+    "SKIP_ENV_VALIDATION",
+    "NEXT_PUBLIC_CURSOR_MCP_DEEPLINK"
   ],
   "tasks": {
     "build": {
