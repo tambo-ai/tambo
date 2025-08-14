@@ -2,10 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useTamboClient, useTamboThread } from "../providers";
-import {
-  useTamboCurrentMessage,
-  useTamboMessageContext,
-} from "./use-current-message";
+import { useTamboCurrentMessage } from "./use-current-message";
 // Define metadata interface for better extensibility
 interface ComponentStateMeta {
   isPending: boolean;
@@ -62,10 +59,10 @@ export function useTamboComponentState<S>(
   initialValue?: S,
   debounceTime = 500,
 ): StateUpdateResult<S> {
-  const { messageId } = useTamboMessageContext();
+  const message = useTamboCurrentMessage();
   const { updateThreadMessage, thread } = useTamboThread();
   const client = useTamboClient();
-  const message = useTamboCurrentMessage();
+  const messageId = message.id;
   const threadId = thread.id;
 
   // Initial value management
