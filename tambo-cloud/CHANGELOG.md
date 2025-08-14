@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.98.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.97.0...repo-v0.98.0) (2025-08-14)
+
+
+### Features
+
+* add 'add tambo mcp to ide' button on homepage  ([#1526](https://github.com/tambo-ai/tambo-cloud/issues/1526)) ([de580a7](https://github.com/tambo-ai/tambo-cloud/commit/de580a762aa49a2da1f16acfe4aa90e87ac22009))
+
+
+### Bug Fixes
+
+* update docker setup to no longer require node ([#1525](https://github.com/tambo-ai/tambo-cloud/issues/1525)) ([684cba3](https://github.com/tambo-ai/tambo-cloud/commit/684cba3f2da652db3c701532c9caaea041c98f7e))
+
+
+### Documentation
+
+* update main readme with links to react repo and docs ([#1523](https://github.com/tambo-ai/tambo-cloud/issues/1523)) ([3addf96](https://github.com/tambo-ai/tambo-cloud/commit/3addf964f40c6c7e9320b4aabbd04c4133dfdce7))
+
+
+### Miscellaneous Chores
+
+* remove some old info ([#1520](https://github.com/tambo-ai/tambo-cloud/issues/1520)) ([5c5bdfd](https://github.com/tambo-ai/tambo-cloud/commit/5c5bdfdddf7f7cd8ab31505412d621b31be84443))
+
 ## [0.97.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.96.0...repo-v0.97.0) (2025-08-13)
 
 
