@@ -5,7 +5,6 @@ import { AnimatePresence, Easing, motion } from "framer-motion";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { FC, useEffect, useState } from "react";
-import { env } from "@/lib/env";
 
 interface TamboHackBannerProps {
   className?: string;
@@ -17,8 +16,6 @@ const STORAGE_KEY = "tambohack_banner_dismissed_session";
 export const TamboHackBanner: FC<TamboHackBannerProps> = ({ className }) => {
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-
-  const tamboHackUrl = env.NEXT_PUBLIC_TAMBOHACK_URL || "/hack";
 
   useEffect(() => {
     try {
@@ -72,7 +69,7 @@ export const TamboHackBanner: FC<TamboHackBannerProps> = ({ className }) => {
                     className="border-[#5C94F7]/40 text-[#5C94F7] hover:bg-[#5C94F7]/10"
                   >
                     <Link
-                      href={tamboHackUrl}
+                      href="/hack"
                       aria-label="Join TamboHack"
                       target="_blank"
                       rel="noopener noreferrer"

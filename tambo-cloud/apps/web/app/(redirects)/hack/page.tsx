@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
+import { env } from "@/lib/env";
 
 export default function HackPage() {
-  redirect("https://lu.ma/e5irqmfh");
+  redirect(env.NEXT_PUBLIC_TAMBOHACK_URL!);
 }
