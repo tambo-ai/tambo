@@ -60,6 +60,8 @@ export type ChatCompletionContentPartImage =
 
 export type ChatCompletionContentPartInputAudio =
   OpenAI.Chat.Completions.ChatCompletionContentPartInputAudio;
+export type ChatCompletionContentPartFile =
+  OpenAI.Chat.Completions.ChatCompletionContentPart.File;
 
 /**
  * Represents a single content part in a chat completion message
@@ -77,6 +79,10 @@ export type ChatCompletionMessageParam =
  */
 export type ChatCompletionContentPartUnion =
   CombineUnion<ChatCompletionContentPart>;
+
+export type FunctionParameters = {
+  [key: string]: unknown;
+};
 
 /**
  * Represents a single message within a thread

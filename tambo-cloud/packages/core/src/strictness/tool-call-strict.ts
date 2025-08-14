@@ -13,7 +13,7 @@ export function unstrictifyToolCallRequest(
   originalTool: OpenAI.Chat.Completions.ChatCompletionTool | undefined,
   toolCallRequest: ToolCallRequest | undefined,
 ): ToolCallRequest | undefined {
-  if (!originalTool || !toolCallRequest) {
+  if (!originalTool || !toolCallRequest || originalTool.type !== "function") {
     return toolCallRequest;
   }
 

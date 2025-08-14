@@ -8,6 +8,7 @@ import {
   ActionType,
   ContentPartType,
   GenerationStage,
+  getToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -49,7 +50,7 @@ async function getFinalDecision(
   const strictToolCallRequest = finalDecision.toolCallRequest;
   if (strictToolCallRequest) {
     const originalTool = originalTools.find(
-      (tool) => tool.function.name === strictToolCallRequest.toolName,
+      (tool) => getToolName(tool) === strictToolCallRequest.toolName,
     );
     if (!originalTool) {
       throw new Error("Original tool not found");

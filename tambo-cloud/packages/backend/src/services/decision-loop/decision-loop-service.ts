@@ -1,6 +1,7 @@
 import { objectTemplate } from "@libretto/openai";
 import {
   ChatCompletionMessageParam,
+  getToolName,
   LegacyComponentDecision,
   ThreadMessage,
   ToolCallRequest,
@@ -35,7 +36,7 @@ export async function* runDecisionLoop(
   forceToolChoice?: string,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = strictTools.filter((tool) =>
-    tool.function.name.startsWith(UI_TOOLNAME_PREFIX),
+    getToolName(tool).startsWith(UI_TOOLNAME_PREFIX),
   );
   // Add standard parameters to all tools
   const toolsWithStandardParameters = addParametersToTools(
@@ -46,7 +47,7 @@ export async function* runDecisionLoop(
   if (
     forceToolChoice &&
     !toolsWithStandardParameters.find(
-      (tool) => tool.function.name === forceToolChoice,
+      (tool) => getToolName(tool) === forceToolChoice,
     )
   ) {
     throw new Error(`Tool ${forceToolChoice} not found in provided tools`);
@@ -96,13 +97,13 @@ export async function* runDecisionLoop(
 
       // Check if this is a UI tool call
       const isUITool =
-        toolCall &&
+        toolCall?.type === "function" &&
         componentTools.some(
-          (tool) => tool.function.name === toolCall.function.name,
+          (tool) => getToolName(tool) === toolCall.function.name,
         );
 
       let toolArgs: Partial<TamboToolParameters> = {};
-      if (toolCall) {
+      if (toolCall?.type === "function") {
         try {
           //partial parse tool params to allow streaming in-progress params
           toolArgs = parse(toolCall.function.arguments);
@@ -116,7 +117,7 @@ export async function* runDecisionLoop(
 
       // Filter out Tambo parameters for both UI and non-UI tools
       let filteredToolArgs = toolArgs;
-      if (toolCall && Object.keys(toolArgs).length > 0) {
+      if (toolCall?.type === "function" && Object.keys(toolArgs).length > 0) {
         const filtered = filterOutStandardToolParameters(
           toolCall,
           strictTools,
@@ -155,7 +156,7 @@ export async function* runDecisionLoop(
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
         toolCallId:
-          toolCall?.function.name === displayMessageTool.function.name
+          toolCall && getToolName(toolCall) === getToolName(displayMessageTool)
             ? undefined
             : getLLMResponseToolCallId(chunk),
         statusMessage,
@@ -179,6 +180,10 @@ function removeTamboToolParameters(
   tools: OpenAI.Chat.Completions.ChatCompletionTool[],
   chunk: Partial<LLMResponse>,
 ) {
+  const originalRequest = getLLMResponseToolCallRequest(chunk);
+  if (toolCall.type !== "function") {
+    return originalRequest;
+  }
   const parsedToolCall = tryParseJsonObject(toolCall.function.arguments, false);
   if (parsedToolCall) {
     const filteredArgs = filterOutStandardToolParameters(
@@ -187,12 +192,11 @@ function removeTamboToolParameters(
       parsedToolCall,
     );
 
-    const originalRequest = getLLMResponseToolCallRequest(chunk);
     // Only include tool call request if it's not the displayMessageTool
     if (
       originalRequest &&
       filteredArgs &&
-      toolCall.function.name !== displayMessageTool.function.name
+      getToolName(toolCall) !== getToolName(displayMessageTool)
     ) {
       return {
         ...originalRequest,

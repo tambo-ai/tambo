@@ -71,7 +71,7 @@ export async function getThreadForProjectId(
   projectId: string,
   includeInternal: boolean = false,
   contextKey?: string,
-) {
+): Promise<schema.DBThreadWithMessages | undefined> {
   return await db.query.threads.findFirst({
     where: contextKey
       ? and(
@@ -161,7 +161,7 @@ export async function updateThread(
     statusMessage?: string;
     name?: string;
   },
-) {
+): Promise<schema.DBThreadWithMessages> {
   const [updated] = await db
     .update(schema.threads)
     .set({
@@ -181,7 +181,10 @@ export async function updateThread(
   const messagesWithCorrectedRole = fixLegacyRole(messages);
   return {
     ...updated,
-    messages: messagesWithCorrectedRole,
+    messages: messagesWithCorrectedRole.map((msg) => ({
+      ...msg,
+      suggestions: [],
+    })),
   };
 }
 

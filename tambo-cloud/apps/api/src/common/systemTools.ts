@@ -1,7 +1,7 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Logger } from "@nestjs/common";
 import { SystemTools } from "@tambo-ai-cloud/backend";
-import { LogLevel, MCPClient } from "@tambo-ai-cloud/core";
+import { getToolName, LogLevel, MCPClient } from "@tambo-ai-cloud/core";
 import {
   HydraDatabase,
   HydraDb,
@@ -22,7 +22,7 @@ export async function getSystemTools(
 ): Promise<SystemTools> {
   const { mcpTools, mcpToolSources } = await getMcpTools(db, projectId);
 
-  const mcpToolNames = mcpTools.map((tool) => tool.function.name);
+  const mcpToolNames = mcpTools.map((tool) => getToolName(tool));
   // make sure there are no name conflicts
   if (new Set(mcpToolNames).size !== mcpToolNames.length) {
     const duplicateToolNames = mcpToolNames.filter(

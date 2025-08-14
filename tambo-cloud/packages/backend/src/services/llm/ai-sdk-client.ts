@@ -4,7 +4,12 @@ import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { formatTemplate } from "@libretto/openai/lib/src/template";
-import { ChatCompletionMessageParam, tryParseJson } from "@tambo-ai-cloud/core";
+import {
+  ChatCompletionMessageParam,
+  getToolDescription,
+  getToolName,
+  tryParseJson,
+} from "@tambo-ai-cloud/core";
 import {
   convertToCoreMessages,
   CoreAssistantMessage,
@@ -17,12 +22,14 @@ import {
   Tool,
   tool,
   ToolCallPart,
+  ToolChoice,
   ToolContent,
   ToolResultPart,
   type GenerateTextResult,
   type ToolSet,
 } from "ai";
 import type OpenAI from "openai";
+import { z } from "zod";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import type { LlmProviderConfigInfo } from "../../config/llm-config-types";
 import { llmProviderConfig } from "../../config/llm.config";
@@ -239,31 +246,51 @@ export class AISdkClient implements LLMClient {
     const toolSet: ToolSet = {};
 
     tools.forEach((toolDef) => {
+      const toolName = getToolName(toolDef);
       // Create a simplified tool definition compatible with AI SDK
       // We'll use a simple z.any() for parameters since converting JSON Schema to Zod is complex
       const aiSdkTool = tool({
         type: "function",
-        description: toolDef.function.description || "",
-        parameters: jsonSchema(toolDef.function.parameters ?? {}),
+        description: getToolDescription(toolDef) || "",
+        parameters:
+          toolDef.type === "function"
+            ? jsonSchema(toolDef.function.parameters ?? {})
+            : z.any(),
       });
 
-      toolSet[toolDef.function.name] = aiSdkTool;
+      toolSet[toolName] = aiSdkTool;
     });
 
     return toolSet;
   }
 
+  /**
+   * Convert the tool choice to a format that the AI SDK can understand.
+   * @param toolChoice - The tool choice to convert.
+   * @returns The converted tool choice.
+   */
   private convertToolChoice(
     toolChoice: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption,
-  ): "auto" | "none" | "required" | { type: "tool"; toolName: string } {
+  ): ToolChoice<ToolSet> {
     if (typeof toolChoice === "string") {
       return toolChoice;
     }
-    // toolChoice is an object with type "function"
-    return {
-      type: "tool" as const,
-      toolName: toolChoice.function.name,
-    };
+    switch (toolChoice.type) {
+      case "function":
+        return {
+          type: "tool" as const,
+          toolName: toolChoice.function.name,
+        };
+      case "custom":
+        return {
+          type: "tool" as const,
+          toolName: toolChoice.custom.name,
+        };
+      case "allowed_tools":
+        return "auto";
+      default:
+        return toolChoice;
+    }
   }
 
   private extractResponseFormat(
@@ -436,8 +463,10 @@ function findToolNameById(
   const toolNames = messages
     .map((message) => {
       if (message.role === "assistant" && message.tool_calls) {
-        return message.tool_calls.find((call) => call.id === toolCallId)
-          ?.function.name;
+        const toolCall = message.tool_calls.find(
+          (call) => call.id === toolCallId,
+        );
+        return toolCall ? getToolName(toolCall) : undefined;
       }
     })
     .filter((name) => name !== undefined);
@@ -493,9 +522,12 @@ function convertOpenAIMessageToCoreMessage(
       content: message.tool_calls.map(
         (call): ToolCallPart => ({
           type: "tool-call",
-          args: tryParseJson(call.function.arguments),
+          args:
+            call.type === "function"
+              ? tryParseJson(call.function.arguments)
+              : call.custom.input,
           toolCallId: call.id,
-          toolName: call.function.name,
+          toolName: getToolName(call),
         }),
       ),
     } satisfies CoreAssistantMessage;

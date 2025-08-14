@@ -1,6 +1,7 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { SseError } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import type OpenAI from "openai";
 import { MCPClient, MCPTransport } from "./MCPClient";
 
 export enum ToolProviderType {
@@ -94,4 +95,18 @@ export async function validateMcpServer({
       requiresAuth: !!oauthProvider,
     };
   }
+}
+
+export function getToolName(
+  tool: OpenAI.Chat.Completions.ChatCompletionTool,
+): string {
+  return tool.type === "function" ? tool.function.name : tool.custom.name;
+}
+
+export function getToolDescription(
+  tool: OpenAI.Chat.Completions.ChatCompletionTool,
+): string | undefined {
+  return tool.type === "function"
+    ? tool.function.description
+    : tool.custom.description;
 }

@@ -1,9 +1,10 @@
-import { ThreadMessage, tryParseJsonObject } from "@tambo-ai-cloud/core";
-import OpenAI from "openai";
 import {
-  ChatCompletionMessageParam,
   FunctionParameters,
-} from "openai/resources";
+  getToolName,
+  ThreadMessage,
+  tryParseJsonObject,
+} from "@tambo-ai-cloud/core";
+import OpenAI from "openai";
 import zodToJsonSchema from "zod-to-json-schema";
 import { AvailableComponent } from "../../model";
 import { buildSuggestionPrompt } from "../../prompt/suggestion-generator";
@@ -49,7 +50,8 @@ export async function generateSuggestions(
 
   try {
     const response = await llmClient.complete({
-      messages: suggestionMessages as ChatCompletionMessageParam[],
+      messages:
+        suggestionMessages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
       promptTemplateName: "suggestion-generation",
       promptTemplateParams: {},
       tools: [suggestionsResponseTool],
@@ -63,7 +65,10 @@ export async function generateSuggestions(
 
     // Handle tool call in the response
     const toolCall = response.message.tool_calls?.[0];
-    if (!toolCall || toolCall.function.name !== "generate_suggestions") {
+    if (
+      toolCall?.type !== "function" ||
+      getToolName(toolCall) !== "generate_suggestions"
+    ) {
       console.warn("No valid tool call received from LLM");
       return {
         suggestions: [],

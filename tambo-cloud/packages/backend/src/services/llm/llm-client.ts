@@ -96,7 +96,7 @@ export function getLLMResponseToolCallRequest(
   response: Partial<LLMResponse>,
 ): ToolCallRequest | undefined {
   const llmToolCall = response.message?.tool_calls?.[0];
-  if (!llmToolCall) {
+  if (llmToolCall?.type !== "function") {
     return undefined;
   }
 

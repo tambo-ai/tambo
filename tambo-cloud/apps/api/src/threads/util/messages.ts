@@ -225,7 +225,7 @@ export async function findPreviousToolCallMessage(
   db: HydraDb,
   threadId: string,
   toolCallId: string,
-) {
+): Promise<schema.DBMessage | undefined> {
   return await db.query.messages.findFirst({
     where: and(
       eq(schema.messages.threadId, threadId),

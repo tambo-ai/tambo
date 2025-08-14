@@ -1,10 +1,10 @@
 import {
+  FunctionParameters,
   strictifyJSONSchemaProperties,
   strictifyJSONSchemaProperty,
 } from "@tambo-ai-cloud/core";
 import { JSONSchema7 } from "json-schema";
 import OpenAI from "openai";
-import { FunctionParameters } from "openai/resources";
 import {
   AvailableComponent,
   ComponentContextToolMetadata,
@@ -174,45 +174,43 @@ export function addParametersToTools(
   tools: OpenAI.Chat.Completions.ChatCompletionTool[],
   parameters: FunctionParameters,
 ): OpenAI.Chat.Completions.ChatCompletionTool[] {
-  return tools.map((tool) => ({
-    ...tool,
-    function: {
-      ...tool.function,
-      parameters: {
-        type: "object",
-        properties: {
-          ...(parameters.properties || {}),
-          ...(tool.function.parameters?.properties || {}),
+  return tools.map((tool) => {
+    if (tool.type !== "function") {
+      return tool;
+    }
+    return {
+      ...tool,
+      function: {
+        ...tool.function,
+        parameters: {
+          type: "object",
+          properties: {
+            ...(parameters.properties || {}),
+            ...(tool.function.parameters?.properties || {}),
+          },
+          required: Array.from(
+            new Set([
+              ...(Array.isArray(tool.function.parameters?.required)
+                ? tool.function.parameters.required
+                : []),
+              ...(Array.isArray(parameters.required)
+                ? parameters.required
+                : []),
+            ]),
+          ),
+          additionalProperties: false,
         },
-        required: Array.from(
-          new Set([
-            ...(Array.isArray(tool.function.parameters?.required)
-              ? tool.function.parameters.required
-              : []),
-            ...(Array.isArray(parameters.required) ? parameters.required : []),
-          ]),
-        ),
-        additionalProperties: false,
       },
-    },
-  }));
+    };
+  });
 }
 
 /**
  * Filters out any parameters that aren't defined in the original tool schema
  */
 export function filterOutStandardToolParameters(
-  toolCall: { function: { name: string; arguments: string } },
-  tools: {
-    function: {
-      name: string;
-      parameters?: {
-        properties?: Record<string, unknown>;
-        type?: string;
-        required?: string[];
-      };
-    };
-  }[],
+  toolCall: OpenAI.Chat.Completions.ChatCompletionMessageFunctionToolCall,
+  tools: OpenAI.Chat.Completions.ChatCompletionTool[],
   parsedArguments: Record<string, unknown> | null,
 ): { parameterName: string; parameterValue: unknown }[] | undefined {
   if (!parsedArguments) {
@@ -221,7 +219,8 @@ export function filterOutStandardToolParameters(
 
   // Find the matching tool definition
   const toolDef = tools.find(
-    (tool) => tool.function.name === toolCall.function.name,
+    (tool): tool is OpenAI.Chat.Completions.ChatCompletionFunctionTool =>
+      tool.type === "function" && tool.function.name === toolCall.function.name,
   );
 
   // Get the defined parameter names from the tool's schema. Note that the tool might not take any arguments.
@@ -262,6 +261,10 @@ export function getToolsFromSources(
   ];
   const strictTools = originalTools.map(
     (tool): OpenAI.Chat.Completions.ChatCompletionTool => {
+      if (tool.type === "custom") {
+        return tool;
+      }
+
       const parameters = (tool.function.parameters ?? {}) as Record<
         string,
         JSONSchema7

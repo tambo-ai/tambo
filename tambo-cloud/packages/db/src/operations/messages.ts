@@ -17,7 +17,10 @@ import { fixLegacyRole } from "../util/legacyMessages";
  * const messageId = 'msg_a1b2c3d4.abc123'
  * const message = await getMessageWithAccess(db, messageId)
  */
-export async function getMessageWithAccess(db: HydraDb, messageId: string) {
+export async function getMessageWithAccess(
+  db: HydraDb,
+  messageId: string,
+): Promise<schema.DBMessageWithThread | undefined> {
   const message = await db.query.messages.findFirst({
     where: eq(messages.id, messageId),
     with: {
@@ -96,7 +99,7 @@ export async function findPreviousToolCallMessage(
   db: HydraDb,
   threadId: string,
   toolCallId: string,
-) {
+): Promise<schema.DBMessage | undefined> {
   return await db.query.messages.findFirst({
     where: and(
       eq(schema.messages.threadId, threadId),

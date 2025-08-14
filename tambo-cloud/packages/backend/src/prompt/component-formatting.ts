@@ -1,6 +1,5 @@
 import { createPromptTemplate } from "@tambo-ai-cloud/core";
 import Ajv from "ajv";
-import draft7MetaSchema from "ajv/dist/refs/json-schema-draft-07.json";
 import { z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
@@ -8,13 +7,15 @@ import {
   AvailableComponents,
 } from "../model/component-metadata";
 
-const ajv = new Ajv({ strict: true });
+const ajv = new Ajv({ strict: true, allowUnionTypes: true });
+const draft7Validator = ajv.getSchema("http://json-schema.org/draft-07/schema");
+const draft7MetaSchema = draft7Validator!.schema;
 
 function isValidJSONSchema(schema: unknown) {
   if (!schema || typeof schema !== "object") {
     return false;
   }
-  return ajv.validate(draft7MetaSchema, schema);
+  return ajv.validate(draft7MetaSchema, schema) as boolean;
 }
 function replaceTemplateVariables(
   template: string,

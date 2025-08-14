@@ -1,5 +1,5 @@
-import { ThreadMessage } from "@tambo-ai-cloud/core";
-import { ChatCompletionTool, FunctionParameters } from "openai/resources/index";
+import { FunctionParameters, ThreadMessage } from "@tambo-ai-cloud/core";
+import OpenAI from "openai";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
@@ -13,7 +13,7 @@ const ThreadNameSchema = z.object({
       It should be less than ${nameLengthLimit} characters.`),
 });
 
-export const threadNameTool: ChatCompletionTool = {
+export const threadNameTool: OpenAI.Chat.Completions.ChatCompletionTool = {
   type: "function",
   function: {
     name: "generate_thread_name",
@@ -47,7 +47,11 @@ export async function generateThreadName(
 }
 
 function extractThreadName(response: LLMResponse) {
-  const extractedName = response.message.tool_calls?.[0].function.arguments;
+  const toolCall = response.message.tool_calls?.[0];
+  if (toolCall?.type !== "function") {
+    throw new Error("Thread name could not be generated (no tool call)");
+  }
+  const extractedName = toolCall.function.arguments;
   if (!extractedName) {
     throw new Error("Thread name could not be generated");
   }
