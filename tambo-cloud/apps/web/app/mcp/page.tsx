@@ -5,6 +5,7 @@ import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { FC } from "react";
 
@@ -39,13 +40,27 @@ export const McpPage: FC = () => {
                   {
                     id: "mcp",
                     label: "Create MCP App",
-                    command: "npx tambo create-app -t mcp mcp-demo",
+                    command: "npm create tambo-app@latest",
                   },
                 ]}
                 title="Create MCP App"
                 className="w-full max-w-2xl mx-auto"
                 theme="light"
               />
+            </div>
+
+            {/* Relevant docs */}
+            <div className="flex flex-col items-center">
+              <Link
+                href="https://docs.tambo.co/concepts/model-context-protocol"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "text-base flex items-center gap-2 py-3 px-6 rounded-md",
+                )}
+              >
+                <BookOpen className="w-5 h-5" />
+                Read MCP Docs
+              </Link>
             </div>
 
             {/* Discord Button */}

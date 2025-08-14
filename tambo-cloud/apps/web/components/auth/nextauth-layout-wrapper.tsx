@@ -1,7 +1,8 @@
 "use client";
 
 import { useNextAuthSession } from "@/hooks/nextauth";
-import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
+import { usePathname, useRouter } from "next/navigation";
 import { FC, useEffect } from "react";
 
 interface NextAuthLayoutWrapperProps {
@@ -15,18 +16,33 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
 }): React.ReactNode => {
   const { data: session, status } = useNextAuthSession();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Check legal acceptance status
+  const { data: legalStatus } = api.user.hasAcceptedLegal.useQuery(undefined, {
+    enabled: !!session && pathname !== "/legal-acceptance",
+  });
 
   useEffect(() => {
     if (status === "loading") return; // Still loading
 
+    // No session, redirect to login
     if (!session) {
-      // No session, redirect to login
-      router.push("/login");
+      const returnUrl = encodeURIComponent(pathname || "/dashboard");
+      router.replace(`/login?returnUrl=${returnUrl}`);
+    } else if (
+      // Check if user has accepted legal
+      legalStatus &&
+      !legalStatus.accepted &&
+      pathname !== "/legal-acceptance"
+    ) {
+      // Redirect to legal acceptance if not accepted
+      router.push("/legal-acceptance");
     }
-  }, [session, status, router]);
+  }, [session, status, router, legalStatus, pathname]);
 
   // Show loading state while checking session
-  if (status === "loading") {
+  if (status === "loading" || (session && !legalStatus)) {
     return (
       fallback || (
         <div className="flex items-center justify-center min-h-screen">
@@ -36,8 +52,8 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     );
   }
 
-  // Show children if authenticated
-  if (session) {
+  // Show children if authenticated and legal accepted
+  if (session && legalStatus?.accepted) {
     return <>{children}</>;
   }
 

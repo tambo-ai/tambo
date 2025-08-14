@@ -6,23 +6,43 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Easing, motion } from "framer-motion";
-import { Check, Github } from "lucide-react";
+import { Check, ExternalLink, Github } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { FC } from "react";
 
 // Animation configuration
 const ease: Easing = [0.16, 1, 0.3, 1];
 
+interface PricingFeature {
+  text: string;
+  link: string;
+}
+
+interface PricingTier {
+  name: string;
+  subtitle: string;
+  price: string;
+  priceSubtext?: string;
+  features: (string | PricingFeature)[];
+  cta: string;
+  popular: boolean;
+  isOpenSource: boolean;
+  isEnterprise?: boolean;
+  isSimplified?: boolean;
+}
+
 // Define pricing data directly in the component
-const pricingData = [
+const pricingData: PricingTier[] = [
   {
     name: "Starter",
     subtitle: "Perfect for getting started",
     price: "Free",
     features: [
-      "1M messages /mo",
+      "10k messages / mo (hard cap)",
       "Unlimited users (OAuth)",
       "Chat-thread history",
       "Analytics + observability",
+      "Community support",
     ],
     cta: "Signup",
     popular: false,
@@ -31,14 +51,15 @@ const pricingData = [
   {
     name: "Growth",
     subtitle: "For growing teams and projects",
-    price: "$20",
+    price: "$25",
     priceSubtext: "/mo",
     features: [
-      "10M messages /mo",
-      "$10 per extra 10M",
+      "200k messages / mo included",
+      "$8 per +100k (billed in 100k blocks)",
+      "Unlimited users",
       "Chat-thread history",
       "Analytics + observability",
-      "Early access to new features",
+      "Email support",
     ],
     cta: "Signup",
     popular: true,
@@ -47,15 +68,17 @@ const pricingData = [
   {
     name: "Enterprise",
     subtitle: "For large organizations",
-    price: "Custom",
+    price: "Annual Contract",
     features: [
-      "Advanced analytics + CSV export",
+      "Negotiated message volume",
+      "Unlimited Seats for Cloud",
+      "Enterprise Only Features",
       "SSO / SAML, SCIM, RBAC",
       "Single-tenant or on-prem",
-      "Data replication to your DB",
       "99.99% uptime SLA",
-      "SOC 2, HIPAA opt-in",
-      "24 × 7 Support",
+      "SOC 2, HIPAA opt-in, GDPR (upon request)",
+      "Early access to new features",
+      "24×7 support",
     ],
     cta: "Contact Us",
     popular: false,
@@ -69,9 +92,11 @@ const pricingData = [
     features: [
       "tambo-ai/react package",
       "ui component library",
-      "tambo-ai/server (coming soon)",
+      {
+        text: "tambo-ai/tambo-cloud",
+        link: "https://github.com/tambo-ai/tambo-cloud",
+      },
     ],
-    items: [],
     cta: "GitHub",
     popular: false,
     isOpenSource: true,
@@ -79,12 +104,53 @@ const pricingData = [
   },
 ];
 
+// Component to render feature items with optional links
+const FeatureItem: FC<{ feature: string | PricingFeature }> = ({ feature }) => {
+  const isObject = typeof feature === "object";
+  const featureText = isObject ? feature.text : feature;
+  const hasComingSoon = featureText.includes(" (coming soon)");
+  const displayText = hasComingSoon
+    ? featureText.replace(" (coming soon)", "")
+    : featureText;
+  const link = isObject ? feature.link : null;
+
+  if (link) {
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm font-medium hover:underline hover:text-muted-foreground transition-colors duration-200 flex items-center gap-1"
+        >
+          {displayText}
+          <ExternalLink className="w-3 h-3" />
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-sm font-medium">{displayText}</span>
+      {hasComingSoon && (
+        <Badge
+          variant="secondary"
+          className="bg-blue-100 text-blue-800 text-xs px-2 py-1"
+        >
+          Coming Soon
+        </Badge>
+      )}
+    </div>
+  );
+};
+
 function PricingTier({
   tier,
   className,
   index = 0,
 }: {
-  tier: (typeof pricingData)[0];
+  tier: PricingTier;
   className?: string;
   index?: number;
 }) {
@@ -92,9 +158,17 @@ function PricingTier({
 
   const handleClick = () => {
     if (tier.isOpenSource) {
-      window.open("https://github.com/tambo-ai", "_blank");
+      window.open(
+        "https://github.com/tambo-ai/tambo",
+        "_blank",
+        "noopener,noreferrer",
+      );
     } else if (tier.isEnterprise) {
-      window.open("https://cal.com/michaelmagan/chat?duration=30", "_blank");
+      window.open(
+        "https://cal.com/michaelmagan/chat?duration=30",
+        "_blank",
+        "noopener,noreferrer",
+      );
     } else {
       router.push("/dashboard");
     }
@@ -176,33 +250,12 @@ function PricingTier({
               {tier.features.length > 0 && (
                 <div className="border-t pt-4">
                   <ul className="space-y-2">
-                    {tier.features.map(
-                      (feature: string, featureIndex: number) => {
-                        const hasComingSoon = feature.includes("(coming soon)");
-                        const featureText = hasComingSoon
-                          ? feature.replace(" (coming soon)", "")
-                          : feature;
-
-                        return (
-                          <li key={featureIndex} className="flex items-start">
-                            <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-medium">
-                                {featureText}
-                              </span>
-                              {hasComingSoon && (
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1"
-                                >
-                                  Coming Soon
-                                </Badge>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      },
-                    )}
+                    {tier.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-start">
+                        <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <FeatureItem feature={feature} />
+                      </li>
+                    ))}
                   </ul>
                 </div>
               )}
@@ -211,14 +264,12 @@ function PricingTier({
             <>
               <CardContent className="flex-grow p-6 pt-5">
                 <ul className="space-y-3">
-                  {tier.features.map(
-                    (feature: string, featureIndex: number) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm font-medium">{feature}</span>
-                      </li>
-                    ),
-                  )}
+                  {tier.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-start">
+                      <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <FeatureItem feature={feature} />
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
 

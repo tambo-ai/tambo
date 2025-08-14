@@ -178,15 +178,9 @@ const templates = [
   {
     id: "standard",
     name: "Standard",
-    description: "General purpose AI app template with tools integration",
-    command: "npm create tambo-app@latest my-app --template=standard",
-    recommended: false,
-  },
-  {
-    id: "mcp",
-    name: "Tambo + MCP",
-    description: "AI agent workflows with Model Context Protocol",
-    command: "npm create tambo-app@latest my-app --template=mcp",
+    description:
+      "General purpose AI app template with tools and MCP integration",
+    command: "npx create-tambo-app@latest my-app --template=standard",
     recommended: true,
   },
   {
@@ -194,7 +188,7 @@ const templates = [
     name: "Conversational Form",
     description: "AI-powered form experiences",
     command:
-      "npm create tambo-app@latest my-app --template=conversational-form",
+      "npx create-tambo-app@latest my-app --template=conversational-form",
     recommended: false,
   },
 ];

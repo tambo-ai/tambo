@@ -38,6 +38,41 @@ export async function updateTamboUser(
 }
 
 /**
+ * Check if a user has accepted the legal terms.
+ */
+export async function hasAcceptedLegal(
+  db: HydraDb,
+  userId: string,
+): Promise<{
+  accepted: boolean;
+  acceptedAt: Date | null;
+  version: string | null;
+}> {
+  const user = await getTamboUser(db, userId);
+
+  return {
+    accepted: user?.legalAccepted ?? false,
+    acceptedAt: user?.legalAcceptedAt ?? null,
+    version: user?.legalVersion ?? null,
+  };
+}
+
+/**
+ * Record that a user has accepted the legal terms.
+ */
+export async function acceptLegalTerms(
+  db: HydraDb,
+  userId: string,
+  version: string,
+): Promise<typeof schema.tamboUsers.$inferSelect> {
+  return await updateTamboUser(db, userId, {
+    legalAccepted: true,
+    legalAcceptedAt: new Date(),
+    legalVersion: version,
+  });
+}
+
+/**
  * Track a welcome email sent to a user.
  */
 export async function trackWelcomeEmail(

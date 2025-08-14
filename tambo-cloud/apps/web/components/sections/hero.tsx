@@ -2,7 +2,7 @@
 
 import { Section } from "@/components/section";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { AnimatePresence, Easing, motion } from "framer-motion";
+import { Easing, motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
 import Image from "next/image";
 import React from "react";
@@ -72,23 +72,7 @@ function HeroPill() {
   );
 }
 
-const words = ["assistant", "copilot", "agent"];
 function HeroTitles() {
-  const [currentWordIndex, setCurrentWordIndex] = React.useState(0);
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentWordIndex((prev) => (prev + 1) % words.length);
-    }, 2000); // Change every 2 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  const wordVariants = {
-    initial: { y: 20, opacity: 0 },
-    animate: { y: 0, opacity: 1 },
-    exit: { y: -20, opacity: 0 },
-  };
-
   return (
     <div className="flex flex-col items-center lg:items-start">
       <motion.h1
@@ -101,25 +85,11 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        Add React UI components to your AI{" "}
-        <span className="inline-block relative align-baseline">
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={words[currentWordIndex]}
-              variants={wordVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{
-                duration: 0.3,
-                ease: "easeInOut",
-              }}
-              className="text-[#5C94F7]"
-            >
-              {words[currentWordIndex]}
-            </motion.span>
-          </AnimatePresence>
-        </span>
+        An{" "}
+        <span className="relative inline-block align-baseline">
+          <span className="relative text-[#5C94F7]">open-source</span>
+        </span>{" "}
+        AI orchestration framework for your React front end.
       </motion.h1>
       <motion.p
         className="text-center lg:text-left max-w-xl leading-normal text-muted-foreground text-sm sm:text-base md:text-lg lg:text-xl sm:leading-normal mt-2 sm:mt-4"
