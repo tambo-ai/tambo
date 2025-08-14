@@ -70,6 +70,10 @@ export const env = createEnv({
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional(),
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional(),
 
+    // Sentry
+    NEXT_PUBLIC_SENTRY_DSN: z.string().min(1).optional(),
+    NEXT_PUBLIC_SENTRY_ORG: z.string().min(1).optional(),
+    NEXT_PUBLIC_SENTRY_PROJECT: z.string().min(1).optional(),
     // Legal redirects
     NEXT_PUBLIC_TERMS_URL: z.string().url().optional(),
     NEXT_PUBLIC_PRIVACY_URL: z.string().url().optional(),
@@ -130,6 +134,10 @@ export const env = createEnv({
     TAMBO_WHITELABEL_ORG_LOGO: process.env.TAMBO_WHITELABEL_ORG_LOGO,
     ALLOWED_LOGIN_DOMAIN: process.env.ALLOWED_LOGIN_DOMAIN,
 
+    // Sentry
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_SENTRY_ORG: process.env.NEXT_PUBLIC_SENTRY_ORG,
+    NEXT_PUBLIC_SENTRY_PROJECT: process.env.NEXT_PUBLIC_SENTRY_PROJECT,
     // Legal redirects
     NEXT_PUBLIC_TERMS_URL: process.env.NEXT_PUBLIC_TERMS_URL,
     NEXT_PUBLIC_PRIVACY_URL: process.env.NEXT_PUBLIC_PRIVACY_URL,

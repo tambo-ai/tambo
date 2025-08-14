@@ -14,6 +14,7 @@ import { ZodError } from "zod";
 
 import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";
+import * as Sentry from "@sentry/nextjs";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
@@ -178,6 +179,17 @@ const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
   });
 });
 
+const sentryMiddleware = t.middleware(async ({ path, type, next, ctx }) => {
+  return await Sentry.startSpan(
+    {
+      name: `trpc:${type}:${path}`,
+      op: "trpc.server",
+      attributes: { userId: ctx.user?.id ?? "anon" },
+    },
+    async () => await next(),
+  );
+});
+
 /**
  * Public (unauthenticated) procedure
  *
@@ -186,6 +198,7 @@ const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure
+  .use(sentryMiddleware)
   .use(timingMiddleware)
   .use(transactionMiddleware);
 
@@ -198,6 +211,7 @@ export const publicProcedure = t.procedure
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure
+  .use(sentryMiddleware)
   .use(timingMiddleware)
   .use(transactionMiddleware)
   .use(async ({ ctx, next }) => {

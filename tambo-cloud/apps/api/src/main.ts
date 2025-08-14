@@ -1,18 +1,29 @@
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { SwaggerModule } from "@nestjs/swagger";
+import * as Sentry from "@sentry/nestjs";
 import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
+import { initializeSentry } from "./sentry";
 import { initializeOpenTelemetry, shutdownOpenTelemetry } from "./telemetry";
 import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
-  // Initialize OpenTelemetry before creating the NestJS app
+  // Initialize Sentry FIRST, before anything else
+  initializeSentry();
+
+  // Initialize OpenTelemetry (works alongside Sentry)
   const sdk = initializeOpenTelemetry();
 
   const app = await NestFactory.create(AppModule, { cors: true });
+
+  // Add Sentry error handler (must be before other exception filters)
+  app.useGlobalFilters(new HttpExceptionFilter(), new SentryExceptionFilter());
+
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   // Security headers via Helmet (applies to all responses)
   configureHelmet(app);
@@ -22,12 +33,26 @@ async function bootstrap() {
 
   // Graceful shutdown
   process.on("SIGTERM", async () => {
-    // Development environments restart when files change, so we don't need to
-    // shutdown OpenTelemetry
     if (process.env.NODE_ENV === "production") {
       console.log("SIGTERM received, shutting down...");
-      await shutdownOpenTelemetry(sdk);
+
+      // Flush Sentry and shutdown OpenTelemetry in parallel
+      await Promise.all([Sentry.close(2000), shutdownOpenTelemetry(sdk)]);
     }
+  });
+
+  // Add unhandled rejection handler
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+    Sentry.captureException(reason);
+  });
+
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
+    Sentry.captureException(error);
+    // Give Sentry time to send the error before crashing
+    // Node's default behavior is to exit on uncaught exceptions, so we manually exit to preserve that behavior
+    Sentry.close(2000).then(() => process.exit(1));
   });
 
   console.log("Starting server on port", process.env.PORT || 3000);

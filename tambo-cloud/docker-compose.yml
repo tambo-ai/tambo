@@ -74,6 +74,9 @@ services:
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - RESEND_API_KEY=${RESEND_API_KEY}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+      - NEXT_PUBLIC_SENTRY_ORG=${NEXT_PUBLIC_SENTRY_ORG}
+      - NEXT_PUBLIC_SENTRY_PROJECT=${NEXT_PUBLIC_SENTRY_PROJECT}
     depends_on:
       postgres:
         condition: service_healthy
@@ -128,6 +131,7 @@ services:
       - EMAIL_FROM_PERSONAL=${EMAIL_FROM_PERSONAL}
       - EMAIL_REPLY_TO_PERSONAL=${EMAIL_REPLY_TO_PERSONAL}
       - EMAIL_REPLY_TO_SUPPORT=${EMAIL_REPLY_TO_SUPPORT}
+      - SENTRY_DSN=${SENTRY_DSN}
     depends_on:
       postgres:
         condition: service_healthy

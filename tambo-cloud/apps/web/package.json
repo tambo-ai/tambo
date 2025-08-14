@@ -35,6 +35,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
     "@rehype-pretty/transformers": "^0.13.2",
+    "@sentry/nextjs": "^10.5.0",
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.10.44",
     "@t3-oss/env-nextjs": "^0.13.8",

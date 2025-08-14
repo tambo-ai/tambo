@@ -31,7 +31,15 @@ export class AppController {
 
   @Get("health")
   async checkHealth() {
-    return await this.appService.checkHealth();
+    const health = await this.appService.checkHealth();
+    return {
+      ...health,
+      timestamp: new Date().toISOString(),
+      sentry: {
+        enabled: !!process.env.SENTRY_DSN,
+        environment: process.env.NODE_ENV,
+      },
+    };
   }
 
   @ApiSecurity("apiKey")
