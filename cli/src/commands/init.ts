@@ -141,7 +141,7 @@ async function handleAuthentication(): Promise<boolean> {
     }
 
     // Continue with browser-based auth flow
-    const authUrl = `"https://tambo.co"/login?returnUrl=%2Fcli-auth`;
+    const authUrl = `https://tambo.co/login?returnUrl=%2Fcli-auth`;
     console.log(chalk.gray("\nOpening browser for authentication..."));
 
     try {
