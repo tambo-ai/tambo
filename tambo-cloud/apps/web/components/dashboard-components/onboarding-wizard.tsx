@@ -183,14 +183,6 @@ const templates = [
     command: "npx create-tambo-app@latest my-app --template=standard",
     recommended: true,
   },
-  {
-    id: "conversational-form",
-    name: "Conversational Form",
-    description: "AI-powered form experiences",
-    command:
-      "npx create-tambo-app@latest my-app --template=conversational-form",
-    recommended: false,
-  },
 ];
 
 export function OnboardingWizard({
