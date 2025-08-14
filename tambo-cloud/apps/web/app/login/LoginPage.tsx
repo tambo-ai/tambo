@@ -55,7 +55,7 @@ export function LoginPageBody({
   return (
     <DashboardThemeProvider defaultTheme="light">
       <motion.div
-        className="container flex flex-col min-h-screen"
+        className="flex flex-col min-h-screen w-full"
         initial="hidden"
         animate="visible"
         variants={containerVariants}

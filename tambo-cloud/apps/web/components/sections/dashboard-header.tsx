@@ -3,6 +3,7 @@
 import { Icons } from "@/components/icons";
 import { MobileDashboardNavigation } from "@/components/sections/mobile-dashboard-navigation";
 import { ProjectDropdown } from "@/components/sections/project-dropdown";
+import { TamboHackBanner } from "@/components/sections/tambohack-banner";
 import { UserProfileDropdown } from "@/components/sections/user-profile-dropdown";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -34,55 +35,58 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
   const currentProject = projects?.find((p) => p.id === projectId);
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 h-[var(--dashboard-header-height)] backdrop-blur bg-background border-b border-border/20",
-        className,
-      )}
-    >
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex h-full items-center justify-between pt-2 px-4">
-          {/* Left side - Logo/Project Dropdown */}
-          <div className="flex items-center gap-4">
-            {/* Show Tambo logo when not on a project page */}
-            {!projectId && (
-              <Link
-                href="/"
-                title="brand-logo"
-                className="relative mr-6 flex items-center"
-              >
-                <Icons.logo
-                  className="h-6 w-auto"
-                  aria-label={siteConfig.name}
-                />
+    <>
+      <TamboHackBanner />
+      <header
+        className={cn(
+          "sticky top-0 z-50 h-[var(--dashboard-header-height)] backdrop-blur bg-background border-b border-border/20",
+          className,
+        )}
+      >
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex h-full items-center justify-between pt-2 px-4">
+            {/* Left side - Logo/Project Dropdown */}
+            <div className="flex items-center gap-4">
+              {/* Show Tambo logo when not on a project page */}
+              {!projectId && (
+                <Link
+                  href="/"
+                  title="brand-logo"
+                  className="relative mr-6 flex items-center"
+                >
+                  <Icons.logo
+                    className="h-6 w-auto"
+                    aria-label={siteConfig.name}
+                  />
 
-                <WhitelabelBadge />
-              </Link>
-            )}
+                  <WhitelabelBadge />
+                </Link>
+              )}
 
-            {/* Show project dropdown when on a project page */}
-            <ProjectDropdown
-              projectId={projectId}
-              projects={projects}
-              currentProject={currentProject}
-              refetchProjects={refetchProjects}
-            />
-          </div>
-
-          {/* Right side - Desktop: Profile dropdown, Mobile: Mobile nav */}
-          <div className="flex items-center">
-            {/* Desktop Profile Dropdown */}
-            <div className="hidden md:block">
-              <UserProfileDropdown user={session?.user} />
+              {/* Show project dropdown when on a project page */}
+              <ProjectDropdown
+                projectId={projectId}
+                projects={projects}
+                currentProject={currentProject}
+                refetchProjects={refetchProjects}
+              />
             </div>
 
-            {/* Mobile Navigation */}
-            <div className="md:hidden">
-              <MobileDashboardNavigation />
+            {/* Right side - Desktop: Profile dropdown, Mobile: Mobile nav */}
+            <div className="flex items-center">
+              {/* Desktop Profile Dropdown */}
+              <div className="hidden md:block">
+                <UserProfileDropdown user={session?.user} />
+              </div>
+
+              {/* Mobile Navigation */}
+              <div className="md:hidden">
+                <MobileDashboardNavigation />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }
