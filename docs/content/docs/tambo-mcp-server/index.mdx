@@ -9,12 +9,26 @@ Tambo has an MCP server with tools to retrieve information from our documentatio
 
 ## Quick Setup
 
-The fastest way to add tambo MCP to Cursor or VS Code is by clicking the "Add to IDE" button on our homepage and selecting your preferred IDE. For other IDEs or manual setup, follow the instructions below.
+The fastest way to add tambo MCP to Cursor is by clicking the "Add to IDE" button on our homepage and selecting your preferred IDE. For other IDEs or manual setup, follow the instructions below.
 
 ## Setup Instructions
 
-<Tabs items={['Claude', 'Cursor', 'VSCode', 'Windsurf', 'Zed']}>
-  <Tab id="tab-claude" value="Claude">
+<Tabs items={['Cursor', 'Claude', 'VSCode', 'Windsurf', 'Zed']}>
+<Tab id="tab-cursor" value="Cursor">
+1. Click the install button on the homepage, or go directly to your global MCP configuration file at `~/.cursor/mcp.json`.
+2. Add the following configuration:
+```bash
+"mcpServers": {
+    "tambo": {
+    "url": "https://mcp.inkeep.com/tamboco/mcp"
+    },
+}
+```
+4. Save the file
+5. Restart Cursor
+</Tab>
+
+<Tab id="tab-claude" value="Claude">
 
 **Claude Desktop**
 
@@ -25,7 +39,7 @@ The fastest way to add tambo MCP to Cursor or VS Code is by clicking the "Add to
 ```bash
 "mcpServers": {
   "tambo": {
-    "url": "https://mcp.tambo.co"
+    "url": "https://mcp.inkeep.com/tamboco/mcp"
   },
 }
 ```
@@ -36,33 +50,19 @@ The fastest way to add tambo MCP to Cursor or VS Code is by clicking the "Add to
 **Claude Code**
 
 ```bash
-claude mcp add --transport sse tambo-server https://mcp.tambo.co
+claude mcp add --transport sse tambo-server https://mcp.inkeep.com/tamboco/mcp
 ```
 
   </Tab>
 
-<Tab id="tab-cursor" value="Cursor">
-  1. Click the install button above and follow the flow, or go directly to your global MCP configuration file at `~/.cursor/mcp.json`.
-  2. Add the following configuration: 
-  ```bash 
-  "mcpServers": {
-    "tambo": {
-      "url": "https://mcp.tambo.co"
-    },
-  }
-  ``` 
-  4. Save the file
-  5. Restart Cursor
-</Tab>
-
 <Tab id="tab-vscode" value="VSCode">
-  1. Click the install button above and follow the flow, or go directly to your global MCP configuration file at `.vscode/mcp.json`.
+  1. Go to your global MCP configuration file at `.vscode/mcp.json`.
   2. Add the following configuration:
   ```bash 
   "servers": {
     "tambo": {
       "type": "http",
-      "url": "https://mcp.tambo.co"
+      "url": "https://mcp.inkeep.com/tamboco/mcp"
     }
   }
   ``` 
@@ -79,7 +79,7 @@ claude mcp add --transport sse tambo-server https://mcp.tambo.co
   "mcpServers": {
     "tambo": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.tambo.co"]
+      "args": ["-y", "mcp-remote", "https://mcp.inkeep.com/tamboco/mcp"]
     },
   }
   ``` 
@@ -96,7 +96,7 @@ claude mcp add --transport sse tambo-server https://mcp.tambo.co
     "tambo": {
         "command": {
         "path": "npx",
-        "args": ["-y", "mcp-remote", "https://mcp.tambo.co"],
+        "args": ["-y", "mcp-remote", "https://mcp.inkeep.com/tamboco/mcp"],
         "env": {}
         },
         "settings": {}
