@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.100.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.99.0...repo-v0.100.0) (2025-08-14)
+
+
+### Features
+
+* **sentry:** integrate Sentry for error tracking and performance monitoring ([#1506](https://github.com/tambo-ai/tambo-cloud/issues/1506)) ([6a27574](https://github.com/tambo-ai/tambo-cloud/commit/6a27574c89dc46b50c2e6bbe3224e7914f8d442d))
+
+
+### Bug Fixes
+
+* update openai SDK and deal with new "custom functions" type fallout ([#1530](https://github.com/tambo-ai/tambo-cloud/issues/1530)) ([f0579aa](https://github.com/tambo-ai/tambo-cloud/commit/f0579aac5e7cc9422979796f37d590fc0094ef70))
+
+
+### Code Refactoring
+
+* **onboarding-wizard:** remove conversational form template ([#1532](https://github.com/tambo-ai/tambo-cloud/issues/1532)) ([b61ccbb](https://github.com/tambo-ai/tambo-cloud/commit/b61ccbbb209c43b648f4bdbefb1fba81c2b0397c))
+
 ## [0.99.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.98.0...repo-v0.99.0) (2025-08-14)
 
 
