@@ -9,6 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       tree={source.pageTree}
       {...baseOptions}
       sidebar={{ collapsible: false }}
+      containerProps={{ className: "[--fd-nav-height:56px]" }}
     >
       {children as React.ReactNode}
     </DocsLayout>
