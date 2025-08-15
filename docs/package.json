@@ -8,15 +8,24 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@tambo-ai/react": "^0.44.0",
+    "@tambo-ai/typescript-sdk": "^0.66.0",
+    "class-variance-authority": "^0.7.1",
+    "dompurify": "^3.2.6",
+    "framer-motion": "^12.23.12",
     "fumadocs-core": "15.6.10",
     "fumadocs-mdx": "11.7.4",
     "fumadocs-ui": "15.6.9",
+    "highlight.js": "^11.11.1",
+    "json-stringify-pretty-compact": "^4.0.0",
     "lucide-react": "^0.539.0",
     "mermaid": "^11.9.0",
     "next": "15.4.6",
     "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
@@ -24,7 +33,10 @@
     "@types/node": "24.0.15",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.21",
+    "clsx": "^2.1.1",
     "postcss": "^8.5.6",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2"
   }
