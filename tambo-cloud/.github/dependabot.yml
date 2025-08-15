@@ -86,3 +86,7 @@ updates:
           - "lint-staged"
           - "globals"
           - "lucide-react"
+      sentry:
+        patterns:
+          - "@sentry/*"
+          - sentry-*
