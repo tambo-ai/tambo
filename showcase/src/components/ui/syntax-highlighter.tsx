@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import DOMPurify from "dompurify";
 import hljs from "highlight.js";
-import "highlight.js/styles/github.css";
+import "@/styles/code-blocks.css";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -74,15 +74,16 @@ export const SyntaxHighlighter = ({
           "[&::-webkit-scrollbar:horizontal]:h-[4px]",
         )}
       >
-        <pre className="p-4 whitespace-pre">
+        <pre className="p-4 whitespace-pre font-mono">
           {highlightedCode ? (
             <code
+              className="hljs"
               dangerouslySetInnerHTML={{
                 __html: highlightedCode,
               }}
             />
           ) : (
-            <code>{code}</code>
+            <code className="hljs">{code}</code>
           )}
         </pre>
       </div>

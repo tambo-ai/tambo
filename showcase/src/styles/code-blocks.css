@@ -1,0 +1,43 @@
+@layer showcase-theme {
+  .hljs {
+    background: transparent;
+    color: hsl(var(--foreground));
+  }
+  .hljs-comment,
+  .hljs-quote {
+    color: hsl(var(--muted-foreground));
+    font-style: italic;
+  }
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-literal,
+  .hljs-section,
+  .hljs-link,
+  .hljs-function .hljs-keyword {
+    color: hsl(var(--primary));
+    font-weight: 600;
+  }
+  .hljs-string,
+  .hljs-title,
+  .hljs-name,
+  .hljs-type,
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-subst {
+    color: hsl(var(--secondary));
+  }
+  .hljs-number,
+  .hljs-deletion,
+  .hljs-addition,
+  .hljs-variable,
+  .hljs-template-variable {
+    color: hsl(var(--accent-foreground));
+  }
+  .hljs-emphasis {
+    font-style: italic;
+  }
+  .hljs-strong {
+    font-weight: 700;
+  }
+}

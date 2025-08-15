@@ -1,7 +1,7 @@
 "use client";
 
 import hljs from "highlight.js";
-import "highlight.js/styles/vs2015.css";
+import "@/styles/code-blocks.css";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -15,7 +15,7 @@ interface CLIProps {
 
 export function CLI({
   command,
-  background = "#1E1E1E",
+  background = "hsl(var(--background))",
   path,
   isCode = false,
   language = "typescript",
@@ -45,7 +45,7 @@ export function CLI({
 
   return (
     <div
-      className="p-3 md:p-4 font-mono text-xs md:text-sm rounded-lg w-full overflow-hidden"
+      className="p-3 md:p-4 font-mono text-xs md:text-sm rounded-lg w-full overflow-hidden text-foreground"
       style={{ background }}
     >
       {command && (

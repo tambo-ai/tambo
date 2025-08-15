@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { Components } from "react-markdown";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import hljs from "highlight.js";
-import "highlight.js/styles/github.css";
+import "@/styles/code-blocks.css";
 import DOMPurify from "dompurify";
 
 /**
@@ -117,9 +117,9 @@ export const createMarkdownComponents = (): Components => ({
               "[&::-webkit-scrollbar:horizontal]:h-[4px]",
             )}
           >
-            <pre className="p-4 whitespace-pre">
+            <pre className="p-4 whitespace-pre font-mono">
               <code
-                className={className}
+                className={cn("hljs", className)}
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(highlighted ?? content),
                 }}
@@ -132,7 +132,10 @@ export const createMarkdownComponents = (): Components => ({
 
     return (
       <code
-        className={cn("bg-muted px-1.5 py-0.5 rounded text-sm", className)}
+        className={cn(
+          "bg-muted px-1.5 py-0.5 rounded text-sm font-mono",
+          className,
+        )}
         {...props}
       >
         {children}
