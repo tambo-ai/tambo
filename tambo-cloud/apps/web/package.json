@@ -10,7 +10,6 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "check-types": "tsc --noEmit",
-    "postinstall": "fumadocs-mdx",
     "clean": "rm -rf dist .next coverage"
   },
   "dependencies": {
@@ -57,9 +56,6 @@
     "drizzle-orm": "^0.44.4",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.12",
-    "fumadocs-core": "^14.2.1",
-    "fumadocs-mdx": "^11.4.0",
-    "fumadocs-ui": "^14.7.7",
     "geist": "^1.4.2",
     "highlight.js": "^11.11.1",
     "jiti": "^2.5.1",

@@ -1,22 +1,13 @@
-import { createPreset } from "fumadocs-ui/tailwind-plugin";
-import path from "path";
 import * as animate from "tailwindcss-animate";
 import type { PluginAPI } from "tailwindcss/types/config";
-
-// This is a hack to get the fumadocs-ui dist path in the monorepo, where the
-// package may be installed in a different location
-const fumadocsUiPath = require.resolve("fumadocs-ui/style.css");
-const fumadocsUiDistPath = path.resolve(fumadocsUiPath, "../**/*.js");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
   safelist: ["dark"],
   prefix: "",
-  presets: [createPreset()],
 
   content: [
-    fumadocsUiDistPath,
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",

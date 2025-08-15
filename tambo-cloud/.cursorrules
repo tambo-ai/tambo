@@ -1,37 +1,3 @@
 Always read code first before making changes.
 Write functional code, with minimal abstraction.
-Ask for review before implementing changes.
 Run npm lint before completing changes.
-
-## Fumadocs MDX Component Guidelines
-
-### Callout Component
-
-Use the Callout component for highlighting important information instead of blockquotes (>). 
-
-Syntax example:
-```tsx
-<Callout type="info" title="Optional Title">
-  Content of the callout goes here.
-</Callout>
-```
-
-Available types:
-- `info` (default) - For general information and tips
-- `warn` - For warnings and potential issues
-- `error` - For critical information or errors
-
-Example usage:
-```tsx
-<Callout type="warn" title="API Key Required">
-  You need to obtain an API key before using this feature. Sign up for a free account to get your API key.
-</Callout>
-```
-
-### Other Fumadocs Components
-
-- **Card**: For creating linked cards in documentation
-- **CodeBlock**: For adding formatted code examples with highlighting
-- **Heading**: For creating customized section headers
-
-For more details on available components, refer to the Fumadocs documentation at https://fumadocs.vercel.app/docs/ui/mdx

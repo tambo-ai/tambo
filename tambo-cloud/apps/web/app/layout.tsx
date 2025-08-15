@@ -17,7 +17,6 @@ import { NextAuthProvider } from "@/providers/nextauth-provider";
 import { TamboProviderWrapper } from "@/providers/tambo-provider";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/react";
-import { RootProvider } from "fumadocs-ui/provider";
 import type { Metadata, Viewport } from "next";
 import { getServerSession } from "next-auth";
 import { Suspense } from "react";
@@ -92,9 +91,7 @@ export default async function RootLayout({
                 forcedTheme="light"
               >
                 <NextAuthProvider session={session}>
-                  <RootProvider search={{ enabled: true }}>
-                    {children}
-                  </RootProvider>
+                  {children}
                   <ComponentsThemeProvider defaultTheme="light">
                     <MessageThreadCollapsible
                       className="z-50"
