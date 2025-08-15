@@ -9,16 +9,16 @@
     "./react-internal": "./react-internal.mjs"
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
-    "@next/eslint-plugin-next": "^15.4.5",
-    "eslint": "^9.32.0",
+    "@eslint/js": "^9.33.0",
+    "@next/eslint-plugin-next": "^15.4.6",
+    "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-turbo": "^2.5.5",
     "globals": "^16.3.0",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.38.0"
+    "typescript-eslint": "^8.39.1"
   },
   "volta": {
     "extends": "../../package.json"

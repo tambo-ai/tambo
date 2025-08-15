@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.27.2",
+  "version": "0.27.3",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
@@ -75,7 +75,7 @@
     "@types/deep-equal": "^1.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^22.15.32",
-    "@types/node-fetch": "^2.6.12",
+    "@types/node-fetch": "^2.6.13",
     "@types/ora": "^3.2.0",
     "@types/recharts": "^2.0.1",
     "@types/semver": "^7.7.0",

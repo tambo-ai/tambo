@@ -8,7 +8,7 @@ import {
   type LayerProps,
   type LeafletContextInterface,
 } from "@react-leaflet/core";
-import { useTambo, useTamboMessageContext } from "@tambo-ai/react";
+import { useTambo, useTamboCurrentMessage } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import L, {
   type HeatLatLngTuple,
@@ -64,10 +64,10 @@ const ClusterGroup: React.FC<MarkerClusterGroupProps> = ({
 
         if (React.isValidElement(tooltipChild)) {
           marker.bindTooltip(tooltipChild.props.children, {
-            direction: tooltipChild.props.direction || "auto",
-            permanent: tooltipChild.props.permanent || false,
-            sticky: tooltipChild.props.sticky || false,
-            opacity: tooltipChild.props.opacity || 0.9,
+            direction: tooltipChild.props.direction ?? "auto",
+            permanent: tooltipChild.props.permanent ?? false,
+            sticky: tooltipChild.props.sticky ?? false,
+            opacity: tooltipChild.props.opacity ?? 0.9,
           });
         }
 
@@ -288,11 +288,11 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
     ref,
   ) => {
     const { thread } = useTambo();
-    const { messageId } = useTamboMessageContext();
+    const currentMessage = useTamboCurrentMessage();
 
     const message = thread?.messages[thread?.messages.length - 1];
 
-    const isLatestMessage = message?.id === messageId;
+    const isLatestMessage = message?.id === currentMessage.id;
 
     const generationStage = thread?.generationStage;
     const isGenerating =

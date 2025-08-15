@@ -32,5 +32,6 @@ export { TamboStubProvider, type TamboStubProviderProps } from "./tambo-stubs";
 export {
   TamboThreadContext,
   TamboThreadProvider,
+  useTamboGenerationStage,
   useTamboThread,
 } from "./tambo-thread-provider";

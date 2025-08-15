@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.27.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.2...tambo-v0.27.3) (2025-08-14)
+
+
+### Bug Fixes
+
+* **auth:** update authentication URL to include return path for CLI login ([#836](https://github.com/tambo-ai/tambo/issues/836)) ([4f118a6](https://github.com/tambo-ai/tambo/commit/4f118a68dd8327a876fb6da74b81826d827db194))
+* split out provider values to prevent re-renders ([#816](https://github.com/tambo-ai/tambo/issues/816)) ([3360e9a](https://github.com/tambo-ai/tambo/commit/3360e9ab491c03a1a1da7101679ad88764dd6205))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node-fetch from 2.6.12 to 2.6.13 ([#822](https://github.com/tambo-ai/tambo/issues/822)) ([f151657](https://github.com/tambo-ai/tambo/commit/f151657cf0e5a765f4968f63c37fe9d07b2bf7e6))
+
 ## [0.27.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.1...tambo-v0.27.2) (2025-08-08)
 
 

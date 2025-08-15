@@ -28,6 +28,7 @@ import {
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
 import {
+  TamboGenerationStageContextProps,
   TamboThreadContextProps,
   TamboThreadProvider,
   TamboThreadProviderProps,
@@ -95,6 +96,7 @@ export const TamboProvider: React.FC<
 
 export type TamboContextProps = TamboClientContextProps &
   TamboThreadContextProps &
+  TamboGenerationStageContextProps &
   TamboComponentContextProps &
   TamboInteractableContext &
   TamboContextHelpersContextProps;
