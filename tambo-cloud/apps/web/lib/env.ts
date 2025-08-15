@@ -3,6 +3,9 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { vercel } from "@t3-oss/env-nextjs/presets-zod";
 import { z } from "zod";
 
+function allowEmptyString(value: string) {
+  return value === "" ? undefined : value;
+}
 export const env = createEnv({
   extends: [vercel()],
   /*
@@ -30,10 +33,10 @@ export const env = createEnv({
     ALLOW_LOCAL_MCP_SERVERS: z.string().min(1).optional(),
     GITHUB_TOKEN: z.string().min(1).optional(),
     // NextAuth OAuth providers
-    GITHUB_CLIENT_ID: z.string().optional(),
-    GITHUB_CLIENT_SECRET: z.string().optional(),
-    GOOGLE_CLIENT_ID: z.string().optional(),
-    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GITHUB_CLIENT_ID: z.string().transform(allowEmptyString).optional(),
+    GITHUB_CLIENT_SECRET: z.string().transform(allowEmptyString).optional(),
+    GOOGLE_CLIENT_ID: z.string().transform(allowEmptyString).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().transform(allowEmptyString).optional(),
     /** Generate with `openssl rand -hex 32` */
     NEXTAUTH_SECRET: z.string().min(8),
     /** URL of the client app so we can redirect back to it after auth, e.g. https://tambo.co or http://localhost:3000 */
@@ -71,9 +74,12 @@ export const env = createEnv({
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional(),
 
     // Sentry
-    NEXT_PUBLIC_SENTRY_DSN: z.string().min(1).optional(),
-    NEXT_PUBLIC_SENTRY_ORG: z.string().min(1).optional(),
-    NEXT_PUBLIC_SENTRY_PROJECT: z.string().min(1).optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().transform(allowEmptyString).optional(),
+    NEXT_PUBLIC_SENTRY_ORG: z.string().transform(allowEmptyString).optional(),
+    NEXT_PUBLIC_SENTRY_PROJECT: z
+      .string()
+      .transform(allowEmptyString)
+      .optional(),
     // Legal redirects
     NEXT_PUBLIC_TERMS_URL: z.string().url().optional(),
     NEXT_PUBLIC_PRIVACY_URL: z.string().url().optional(),

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "SKIP_ENV_VALIDATION=true next build",
+    "build": "SKIP_ENV_VALIDATION=true next build --no-lint",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
