@@ -193,3 +193,7 @@ The landing page and dashboard are built with:
 - [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - [Shadcn UI](https://ui.shadcn.com/) - Beautiful UI components
+
+## Tambo Cloud — Architecture Overview
+
+![Tambo Cloud Architecture](./assets/tambo-cloud-architecture.drawio.svg)
