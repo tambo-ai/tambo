@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.100.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.0...repo-v0.100.1) (2025-08-16)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 2 updates ([#1537](https://github.com/tambo-ai/tambo-cloud/issues/1537)) ([58d04f6](https://github.com/tambo-ai/tambo-cloud/commit/58d04f639b356e2888f1a62204f30551e986fb43))
+* **deps:** bump @opentelemetry/auto-instrumentations-node from 0.62.0 to 0.62.1 ([#1542](https://github.com/tambo-ai/tambo-cloud/issues/1542)) ([12728a6](https://github.com/tambo-ai/tambo-cloud/commit/12728a6c1a44ed343da3cab0013063d125dfc328))
+* **deps:** bump @tambo-ai/react from 0.43.1 to 0.44.0 in the tambo-ai group ([#1539](https://github.com/tambo-ai/tambo-cloud/issues/1539)) ([e0ae06a](https://github.com/tambo-ai/tambo-cloud/commit/e0ae06a6bbdf2133fc4e92b1ade108f6c22de715))
+* **deps:** bump @tanstack/react-query from 5.84.2 to 5.85.3 ([#1543](https://github.com/tambo-ai/tambo-cloud/issues/1543)) ([174e9e1](https://github.com/tambo-ai/tambo-cloud/commit/174e9e1154257c8b8084d1b3a5565b05bac6635e))
+* **deps:** bump recharts from 3.1.0 to 3.1.2 ([#1548](https://github.com/tambo-ai/tambo-cloud/issues/1548)) ([0873b1d](https://github.com/tambo-ai/tambo-cloud/commit/0873b1d2857c76efe485724840f9112d9acb628a))
+* **deps:** bump the radix-ui group with 14 updates ([#1536](https://github.com/tambo-ai/tambo-cloud/issues/1536)) ([80a1bd0](https://github.com/tambo-ai/tambo-cloud/commit/80a1bd048006c41338e91ea9ae560ba34def6f02))
+* **deps:** bump the sentry group with 2 updates ([#1547](https://github.com/tambo-ai/tambo-cloud/issues/1547)) ([fa8936c](https://github.com/tambo-ai/tambo-cloud/commit/fa8936c7be2dadf45b37279aa1c8918763540999))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1540](https://github.com/tambo-ai/tambo-cloud/issues/1540)) ([c021598](https://github.com/tambo-ai/tambo-cloud/commit/c02159892e9ae4736e8b1634438a4cc35fc9a5c8))
+* **deps:** group all the sentry stuff together ([#1546](https://github.com/tambo-ai/tambo-cloud/issues/1546)) ([00b8afc](https://github.com/tambo-ai/tambo-cloud/commit/00b8afc2541603d6a0bab0f31bb2e6f404661919))
+* **docker:** fix docker startup by making vars effectively optional ([#1549](https://github.com/tambo-ai/tambo-cloud/issues/1549)) ([6732082](https://github.com/tambo-ai/tambo-cloud/commit/673208242ed5e7649cd8968f3a368eb3b23f31d9))
+* **docs:** remove old fumadocs, use next to do redirects directlyi ([#1534](https://github.com/tambo-ai/tambo-cloud/issues/1534)) ([2d79816](https://github.com/tambo-ai/tambo-cloud/commit/2d7981609fb41b7452ddd228b84416643644bcd0))
+* **hero:** update hero title to what we had before ([#1551](https://github.com/tambo-ai/tambo-cloud/issues/1551)) ([1d5e9f3](https://github.com/tambo-ai/tambo-cloud/commit/1d5e9f3df71e8ac32420b2dfcaf28f729948dcd7))
+
 ## [0.100.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.99.0...repo-v0.100.0) (2025-08-14)
 
 
