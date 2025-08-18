@@ -50,22 +50,28 @@ interface InitOptions {
  */
 async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
   try {
+    const targetEnvFile = fs.existsSync(".env.local")
+      ? ".env.local"
+      : fs.existsSync(".env")
+        ? ".env"
+        : ".env.local"; // default when neither exists
+
     const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
 
-    if (!fs.existsSync(".env.local")) {
-      fs.writeFileSync(".env.local", "# Environment Variables");
-      console.log(chalk.green("\n✔ Created new .env.local file"));
-      fs.appendFileSync(".env.local", envContent);
-      console.log(chalk.green("\n✔ API key saved to .env.local"));
+    if (!fs.existsSync(targetEnvFile)) {
+      fs.writeFileSync(targetEnvFile, "# Environment Variables\n");
+      console.log(chalk.green(`\n✔ Created new ${targetEnvFile} file`));
+      fs.appendFileSync(targetEnvFile, envContent);
+      console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
       console.log(
         chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
+          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
         ),
       );
       return true;
     }
 
-    const existingContent = fs.readFileSync(".env.local", "utf8");
+    const existingContent = fs.readFileSync(targetEnvFile, "utf8");
     const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
 
     if (keyRegex.test(existingContent)) {
@@ -73,7 +79,7 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
         type: "confirm",
         name: "confirmReplace",
         message: chalk.yellow(
-          `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`,
+          `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in ${targetEnvFile}, are you sure?`,
         ),
         default: false,
       });
@@ -87,21 +93,23 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
         keyRegex,
         `NEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}`,
       );
-      fs.writeFileSync(".env.local", updatedContent);
-      console.log(chalk.green("\n✔ Updated existing API key in .env.local"));
+      fs.writeFileSync(targetEnvFile, updatedContent);
+      console.log(
+        chalk.green(`\n✔ Updated existing API key in ${targetEnvFile}`),
+      );
       console.log(
         chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
+          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
         ),
       );
       return true;
     }
 
-    fs.appendFileSync(".env.local", envContent);
-    console.log(chalk.green("\n✔ API key saved to .env.local"));
+    fs.appendFileSync(targetEnvFile, envContent);
+    console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
     console.log(
       chalk.gray(
-        "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
+        "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
       ),
     );
     return true;
