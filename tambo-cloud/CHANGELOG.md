@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.100.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.2...repo-v0.100.3) (2025-08-18)
+
+
+### Miscellaneous Chores
+
+* **mcp:** replace button with video and add documentation link ([#1559](https://github.com/tambo-ai/tambo-cloud/issues/1559)) ([00e9bc6](https://github.com/tambo-ai/tambo-cloud/commit/00e9bc6fae8f36ab5b22300d971acb4dcda4aa08))
+
 ## [0.100.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.1...repo-v0.100.2) (2025-08-18)
 
 
