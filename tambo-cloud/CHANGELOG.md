@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.100.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.4...repo-v0.100.5) (2025-08-18)
+
+
+### Bug Fixes
+
+* temp remove filters ([#1563](https://github.com/tambo-ai/tambo-cloud/issues/1563)) ([10c600b](https://github.com/tambo-ai/tambo-cloud/commit/10c600b995b4aaf5348351dd0c97d02a47a0f532))
+
 ## [0.100.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.3...repo-v0.100.4) (2025-08-18)
 
 
