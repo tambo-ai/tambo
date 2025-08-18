@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.100.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.1...repo-v0.100.2) (2025-08-18)
+
+
+### Bug Fixes
+
+* use non-tambo graph in dashboard ([#1558](https://github.com/tambo-ai/tambo-cloud/issues/1558)) ([baedaf0](https://github.com/tambo-ai/tambo-cloud/commit/baedaf09e35a9c97ad0a28e5538b5804894549ea))
+
+
+### Documentation
+
+* add init architecture diagram ([#1550](https://github.com/tambo-ai/tambo-cloud/issues/1550)) ([dc4e463](https://github.com/tambo-ai/tambo-cloud/commit/dc4e463f2706649f1a63b946908683490441bfcb))
+
 ## [0.100.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.0...repo-v0.100.1) (2025-08-16)
 
 
