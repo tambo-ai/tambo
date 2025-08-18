@@ -1,10 +1,9 @@
 "use client";
 
 import { Section } from "@/components/section";
-import { Button } from "@/components/ui/button";
 import { Easing, motion } from "framer-motion";
-import { ExternalLink, Heart } from "lucide-react";
-import Link from "next/link";
+import { BookOpen, Heart } from "lucide-react";
+import { Button } from "../ui/button";
 
 // Animation configuration
 const ease: Easing = [0.16, 1, 0.3, 1];
@@ -36,12 +35,37 @@ export function MCP() {
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2, ease }}
         >
-          <Button asChild size="lg" className="font-medium">
-            <Link href="/mcp" className="flex items-center gap-2">
-              Learn More
-              <ExternalLink className="w-4 h-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col items-center gap-4">
+            <div className="mx-auto w-full max-w-4xl">
+              <div className="relative w-full overflow-hidden rounded-2xl border bg-black aspect-video">
+                <video
+                  className="h-full w-full object-contain"
+                  controls
+                  preload="metadata"
+                  playsInline
+                  aria-label="MCP client-side demo"
+                >
+                  <source
+                    src="/demos/tambo-mcp-client-side.mp4#t=0.1"
+                    type="video/mp4"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <Button asChild variant="outline" size="lg" className="text-base">
+                <a
+                  href="https://docs.tambo.co/concepts/model-context-protocol"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <BookOpen className="w-5 h-5 mr-2" aria-hidden="true" />
+                  Read MCP Docs
+                </a>
+              </Button>
+            </div>
+          </div>
         </motion.div>
       </div>
     </Section>
