@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.100.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.3...repo-v0.100.4) (2025-08-18)
+
+
+### Bug Fixes
+
+* put contextkey extraction into try/catch ([#1561](https://github.com/tambo-ai/tambo-cloud/issues/1561)) ([c1b2d39](https://github.com/tambo-ai/tambo-cloud/commit/c1b2d39a4e13bc4b71d136d71801b9fa8c5ad149))
+
 ## [0.100.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.2...repo-v0.100.3) (2025-08-18)
 
 
