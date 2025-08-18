@@ -23,11 +23,11 @@ async function createTamboTsFile(installPath: string): Promise<void> {
     fs.writeFileSync(tamboTsPath, tamboTsTemplate);
     console.log(
       chalk.green(
-        "✅ Created tambo.ts file with empty tool registry and components array",
+        "\n✅ Created tambo.ts file with empty tool registry and components array",
       ),
     );
   } else {
-    console.log(chalk.gray("📝 tambo.ts file already exists"));
+    console.log(chalk.gray("\n📝 tambo.ts file already exists"));
   }
 }
 
@@ -42,6 +42,117 @@ interface InitOptions {
   fullSend?: boolean;
   legacyPeerDeps?: boolean;
   yes?: boolean;
+}
+
+/**
+ * Writes the provided API key to .env.local, creating the file if necessary
+ * Handles overwrite confirmation when a key already exists
+ */
+async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
+  try {
+    const targetEnvFile = fs.existsSync(".env.local")
+      ? ".env.local"
+      : fs.existsSync(".env")
+        ? ".env"
+        : ".env.local"; // default when neither exists
+
+    const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
+
+    if (!fs.existsSync(targetEnvFile)) {
+      fs.writeFileSync(targetEnvFile, "# Environment Variables\n");
+      console.log(chalk.green(`\n✔ Created new ${targetEnvFile} file`));
+      fs.appendFileSync(targetEnvFile, envContent);
+      console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
+      console.log(
+        chalk.gray(
+          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
+        ),
+      );
+      return true;
+    }
+
+    const existingContent = fs.readFileSync(targetEnvFile, "utf8");
+    const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
+
+    if (keyRegex.test(existingContent)) {
+      const { confirmReplace } = await inquirer.prompt({
+        type: "confirm",
+        name: "confirmReplace",
+        message: chalk.yellow(
+          `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in ${targetEnvFile}, are you sure?`,
+        ),
+        default: false,
+      });
+
+      if (!confirmReplace) {
+        console.log(chalk.gray("\nKeeping existing API key."));
+        return true;
+      }
+
+      const updatedContent = existingContent.replace(
+        keyRegex,
+        `NEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}`,
+      );
+      fs.writeFileSync(targetEnvFile, updatedContent);
+      console.log(
+        chalk.green(`\n✔ Updated existing API key in ${targetEnvFile}`),
+      );
+      console.log(
+        chalk.gray(
+          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
+        ),
+      );
+      return true;
+    }
+
+    fs.appendFileSync(targetEnvFile, envContent);
+    console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
+    console.log(
+      chalk.gray(
+        "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
+      ),
+    );
+    return true;
+  } catch (error) {
+    console.error(chalk.red(`\nFailed to save API key: ${error}`));
+    return false;
+  }
+}
+
+/**
+ * Displays instructions for self-hosting the Tambo API and dashboard
+ */
+function displaySelfHostInstructions(): void {
+  console.log(chalk.cyan("\nStep 1: Self-host setup (time: 5-10 minutes)\n"));
+  console.log(
+    chalk.gray(
+      "You can run the open-source Tambo Cloud API locally or self-host it.",
+    ),
+  );
+  console.log(
+    chalk.gray("Repo:"),
+    chalk.cyan("https://github.com/tambo-ai/tambo-cloud"),
+  );
+
+  console.log(chalk.bold("\nQuick start with Docker:"));
+  console.log(chalk.gray("  1. Clone the repo"));
+  console.log(chalk.gray("  2. Run:"));
+  console.log(chalk.gray("     ./scripts/tambo-setup.sh"));
+  console.log(chalk.gray("     ./scripts/tambo-start.sh"));
+  console.log(chalk.gray("     ./scripts/init-database.sh"));
+  console.log(
+    chalk.gray(
+      "  3. Open http://localhost:3000, create a project, then generate an API key",
+    ),
+  );
+
+  console.log(chalk.bold("\nManual dev setup:"));
+  console.log(
+    chalk.gray("  1. Create .env files (see repo .env.example files)"),
+  );
+  console.log(chalk.gray("  2. Start Postgres via ./scripts/tambo-start.sh"));
+  console.log(chalk.gray("  3. Initialize DB via ./scripts/init-database.sh"));
+  console.log(chalk.gray("  4. npm run dev (web + api)\n"));
 }
 
 /**
@@ -83,9 +194,11 @@ export async function getInstallationPath(yes = false): Promise<string> {
   const hasSrcDir = fs.existsSync("src");
 
   if (hasSrcDir) {
-    console.log(chalk.gray(`Found existing ${chalk.cyan("src/")} directory\n`));
+    console.log(
+      chalk.gray(`\nFound existing ${chalk.cyan("src/")} directory\n`),
+    );
   } else {
-    console.log(chalk.gray(`No ${chalk.cyan("src/")} directory found\n`));
+    console.log(chalk.gray(`\nNo ${chalk.cyan("src/")} directory found\n`));
   }
 
   if (yes) {
@@ -94,13 +207,13 @@ export async function getInstallationPath(yes = false): Promise<string> {
     if (!hasSrcDir) {
       console.log(
         chalk.blue(
-          `ℹ Auto-creating ${chalk.cyan("src/")} directory for components`,
+          `\nℹ Auto-creating ${chalk.cyan("src/")} directory for components`,
         ),
       );
     } else {
       console.log(
         chalk.blue(
-          `ℹ Using existing ${chalk.cyan("src/")} directory for components`,
+          `\nℹ Using existing ${chalk.cyan("src/")} directory for components`,
         ),
       );
     }
@@ -131,12 +244,12 @@ export async function getInstallationPath(yes = false): Promise<string> {
 async function handleAuthentication(): Promise<boolean> {
   try {
     // 1. Browser-based auth flow
-    console.log(chalk.cyan("Step 1: Authentication"));
+    console.log(chalk.cyan("\nStep 1: Authentication"));
 
     // Check for existing API key first
     const existingKey = await checkExistingApiKey();
     if (existingKey) {
-      console.log(chalk.green("✔ Using existing API key"));
+      console.log(chalk.green("\n✔ Using existing API key"));
       return true;
     }
 
@@ -166,66 +279,8 @@ async function handleAuthentication(): Promise<boolean> {
     });
 
     // 3. Save API key to .env file
-    const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
-
-    // Check if .env.local exists, if not create it
-    if (!fs.existsSync(".env.local")) {
-      fs.writeFileSync(".env.local", "# Environment Variables");
-      console.log(chalk.green("✔ Created new .env.local file"));
-      fs.appendFileSync(".env.local", envContent);
-      console.log(chalk.green("✔ API key saved to .env.local"));
-      console.log(
-        chalk.gray(
-          "Note: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
-        ),
-      );
-    } else {
-      // Check if API key already exists in the file
-      const existingContent = fs.readFileSync(".env.local", "utf8");
-      const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
-
-      if (keyRegex.test(existingContent)) {
-        // Prompt for confirmation before replacing
-        const { confirmReplace } = await inquirer.prompt({
-          type: "confirm",
-          name: "confirmReplace",
-          message: chalk.yellow(
-            `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file, are you sure?`,
-          ),
-          default: false,
-        });
-
-        if (!confirmReplace) {
-          console.log(chalk.gray("Keeping existing API key."));
-          return true;
-        }
-
-        // Replace existing key
-        const updatedContent = existingContent.replace(
-          keyRegex,
-          `NEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}`,
-        );
-        fs.writeFileSync(".env.local", updatedContent);
-        console.log(chalk.green("✔ Updated existing API key in .env.local"));
-        console.log(
-          chalk.gray(
-            "Note: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
-          ),
-        );
-        return true;
-      } else {
-        // Only append if no existing key was found
-        fs.appendFileSync(".env.local", envContent);
-        console.log(chalk.green("✔ API key saved to .env.local"));
-        console.log(
-          chalk.gray(
-            "Note: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in .env.local",
-          ),
-        );
-      }
-    }
-
-    return true;
+    const saved = await writeApiKeyToEnv(apiKey);
+    return saved;
   } catch (error) {
     if (error instanceof AuthenticationError) {
       console.error(chalk.red(`Authentication error: ${error.message}`));
@@ -237,6 +292,84 @@ async function handleAuthentication(): Promise<boolean> {
 }
 
 /**
+ * Guides the user through choosing hosting mode and finishing auth/setup
+ */
+async function handleHostingChoiceAndAuth(): Promise<boolean> {
+  const { hostingChoice } = await inquirer.prompt({
+    type: "list",
+    name: "hostingChoice",
+    message: "Choose where to connect your app:",
+    choices: [
+      { name: "Cloud (time: 1 minute) — recommended", value: "cloud" },
+      { name: "Self-host (time: 5-10 minutes)", value: "self" },
+    ],
+    default: "cloud",
+  });
+
+  if (hostingChoice === "cloud") {
+    console.log(chalk.blue("\nInitializing tambo Cloud connection..."));
+    return await handleAuthentication();
+  }
+
+  // Self-host path
+  displaySelfHostInstructions();
+
+  // Option to open repo in browser
+  const { openRepo } = await inquirer.prompt({
+    type: "confirm",
+    name: "openRepo",
+    message: "Open the self-host repo instructions in your browser?",
+    default: true,
+  });
+  if (openRepo) {
+    try {
+      await open(
+        "https://github.com/tambo-ai/tambo-cloud/blob/main/README.md#getting-started",
+      );
+    } catch (_e) {
+      // non-fatal
+    }
+  }
+
+  // If an API key already exists, allow keeping it
+  const existingKey = await checkExistingApiKey();
+  if (existingKey) {
+    console.log(chalk.green("\n✔ Found existing API key. Using it."));
+    return true;
+  }
+
+  console.log(chalk.cyan("\nStep 2: Provide your API key\n"));
+  const { apiKeyOrCloud } = await inquirer.prompt({
+    type: "list",
+    name: "apiKeyOrCloud",
+    message: "How would you like to proceed?",
+    choices: [
+      { name: "Paste API key (default)", value: "paste" },
+      { name: "Use Cloud instead (takes < 1 minute)", value: "cloud" },
+    ],
+    default: "paste",
+  });
+
+  if (apiKeyOrCloud === "cloud") {
+    console.log(chalk.blue("\nSwitching to Cloud setup..."));
+    return await handleAuthentication();
+  }
+
+  const { apiKey } = await inquirer.prompt({
+    type: "password",
+    name: "apiKey",
+    mask: "*",
+    message: "Paste your self-hosted Tambo API key:",
+    validate: (input: string) => {
+      if (!input?.trim()) return "API key is required";
+      return true;
+    },
+  });
+
+  return await writeApiKeyToEnv(apiKey);
+}
+
+/**
  * Handles the full-send initialization process
  * Installs all required components and sets up the project
  */
@@ -245,14 +378,14 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
 
   console.log(
     chalk.blue(
-      "🚀 Initializing Tambo with full-send mode. Let's get you set up!\n",
+      "\n🚀 Initializing tambo with full-send mode. Let's get you set up!\n",
     ),
   );
 
   // Get installation path preference first
   const installPath = await getInstallationPath(options.yes);
 
-  const authSuccess = await handleAuthentication();
+  const authSuccess = await handleHostingChoiceAndAuth();
   if (!authSuccess) return;
 
   // Create tambo.ts file
@@ -412,12 +545,12 @@ ${componentInstances}
   // Copy just the TamboProvider snippet to clipboard
   try {
     clipboard.writeSync(providerSnippet);
-    console.log(chalk.cyan(providerSnippet));
+    console.log(chalk.cyan("\n" + providerSnippet + "\n"));
     console.log(
       chalk.green("\n   ✓ TamboProvider component copied to clipboard!"),
     );
   } catch (error) {
-    console.log(chalk.cyan(providerSnippet));
+    console.log(chalk.cyan("\n" + providerSnippet + "\n"));
     console.log(chalk.yellow("\n   ⚠️ Failed to copy to clipboard: " + error));
   }
 
@@ -455,9 +588,13 @@ export async function handleInit({
     }
 
     if (!validateRootPackageJson()) return;
-    console.log(chalk.blue("Initializing Tambo. Let's set up your API key."));
+    console.log(
+      chalk.blue(
+        "\nInitializing tambo. Choose hosting and let's set up your API key.\n",
+      ),
+    );
 
-    const authSuccess = await handleAuthentication();
+    const authSuccess = await handleHostingChoiceAndAuth();
     if (!authSuccess) return;
 
     console.log(chalk.green("\n✨ Basic initialization complete!"));
