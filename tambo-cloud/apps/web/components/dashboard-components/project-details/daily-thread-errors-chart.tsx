@@ -1,10 +1,10 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Graph } from "@/components/ui/tambo/graph";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { AlertCircleIcon } from "lucide-react";
+import { DashboardGraph } from "./dashboard-graph";
 
 interface DailyThreadErrorsChartProps {
   projectId: string;
@@ -111,7 +111,7 @@ export function DailyThreadErrorsChart({
           </p>
         </CardHeader>
         <CardContent>
-          <Graph
+          <DashboardGraph
             data={graphData}
             variant="default"
             size="default"

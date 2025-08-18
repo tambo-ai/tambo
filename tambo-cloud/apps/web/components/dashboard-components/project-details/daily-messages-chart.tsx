@@ -1,11 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Graph } from "@/components/ui/tambo/graph";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { MessageCircleIcon } from "lucide-react";
 import { z } from "zod";
+import { DashboardGraph } from "./dashboard-graph";
 
 export const DailyMessagesChartSchema = z.object({
   projectIds: z
@@ -145,7 +145,7 @@ export function DailyMessagesChart({
         <CardContent className="p-4 sm:p-6">
           <div className="w-full overflow-x-auto">
             <div className="min-w-[400px]">
-              <Graph
+              <DashboardGraph
                 data={graphData}
                 variant="default"
                 size="default"
