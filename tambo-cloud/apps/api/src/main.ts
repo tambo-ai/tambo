@@ -1,16 +1,14 @@
 import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { SwaggerModule } from "@nestjs/swagger";
 import * as Sentry from "@sentry/nestjs";
 import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
-import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
-import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
 import { initializeSentry } from "./sentry";
 import { initializeOpenTelemetry, shutdownOpenTelemetry } from "./telemetry";
-import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
   // Initialize Sentry FIRST, before anything else
@@ -20,9 +18,6 @@ async function bootstrap() {
   const sdk = initializeOpenTelemetry();
 
   const app = await NestFactory.create(AppModule, { cors: true });
-
-  // Add Sentry error handler (must be before other exception filters)
-  app.useGlobalFilters(new HttpExceptionFilter(), new SentryExceptionFilter());
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   // Security headers via Helmet (applies to all responses)
