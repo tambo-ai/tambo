@@ -366,16 +366,15 @@ export class ThreadsController {
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      advanceRequestDto.contextKey,
+    );
     response.setHeader("Content-Type", "text/event-stream");
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
 
     try {
-      const { projectId, contextKey } = extractContextInfo(
-        request,
-        advanceRequestDto.contextKey,
-      );
-
       const stream = await this.threadsService.advanceThread(
         projectId,
         advanceRequestDto,
@@ -424,16 +423,15 @@ export class ThreadsController {
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      advanceRequestDto.contextKey,
+    );
     response.setHeader("Content-Type", "text/event-stream");
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
 
     try {
-      const { projectId, contextKey } = extractContextInfo(
-        request,
-        advanceRequestDto.contextKey,
-      );
-
       const stream = await this.threadsService.advanceThread(
         projectId,
         advanceRequestDto,

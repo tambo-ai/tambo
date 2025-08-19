@@ -1,22 +1,21 @@
 import {
   ArgumentsHost,
   Catch,
-  ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
 } from "@nestjs/common";
+import { BaseExceptionFilter } from "@nestjs/core";
 import * as Sentry from "@sentry/nestjs";
 import { Request } from "express";
 
 @Catch()
-export class SentryExceptionFilter implements ExceptionFilter {
+export class SentryExceptionFilter extends BaseExceptionFilter {
   private readonly logger = new Logger(SentryExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
-
     // Determine the status code
     const status =
       exception instanceof HttpException
@@ -88,8 +87,7 @@ export class SentryExceptionFilter implements ExceptionFilter {
       exception.stack,
     );
 
-    // Send response (let the HttpExceptionFilter handle the actual response formatting)
-    // This filter is just for Sentry reporting
-    throw exception;
+    // let the default exception filter handle the response
+    super.catch(exception, host);
   }
 }
