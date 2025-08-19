@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.100.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.7...repo-v0.100.8) (2025-08-19)
+
+
+### Bug Fixes
+
+* ignore context key in advance for thread ([#1570](https://github.com/tambo-ai/tambo-cloud/issues/1570)) ([f6f7f8e](https://github.com/tambo-ai/tambo-cloud/commit/f6f7f8e6aca3373484205078b76c9815d6839146))
+
 ## [0.100.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.6...repo-v0.100.7) (2025-08-19)
 
 
