@@ -15,6 +15,9 @@
   <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
 </p>
 
+> [!IMPORTANT]
+> 🎉 We just open-sourced the hosted backend — check out [tambo-ai/tambo-cloud](https://github.com/tambo-ai/tambo-cloud)! Join [TamboHack](https://tambo.co/hack) — $10k in grants for builders & contributors.
+
 ## Build apps with Generative UI and MCP
 
 ![template gif](assets/template.gif)
