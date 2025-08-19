@@ -10,7 +10,10 @@ import { BadRequestException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
 import { Request, Response } from "express";
-import { extractContextInfo } from "../../common/utils/extract-context-info";
+import {
+  extractContextInfo,
+  extractProjectId,
+} from "../../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../../projects/guards/bearer-token.guard";
 import { ProjectAccessOwnGuard } from "../../projects/guards/project-access-own.guard";
@@ -21,6 +24,9 @@ import { ThreadsService } from "../threads.service";
 
 const mockExtractContextInfo = extractContextInfo as jest.MockedFunction<
   typeof extractContextInfo
+>;
+const mockExtractProjectId = extractProjectId as jest.MockedFunction<
+  typeof extractProjectId
 >;
 
 describe("ThreadsController - Stream Routes Error Propagation", () => {
@@ -75,15 +81,15 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
   });
 
   describe("POST /:id/advancestream", () => {
-    it("should propagate errors from extractContextInfo to the caller", async () => {
+    it("should propagate errors from extractProjectId to the caller", async () => {
       // Arrange
       const threadId = "test-thread-id";
       const advanceRequestDto = createValidAdvanceRequestDto();
       const testError = new BadRequestException(
-        "Any error from extractContextInfo",
+        "Any error from extractProjectId",
       );
 
-      mockExtractContextInfo.mockImplementation(() => {
+      mockExtractProjectId.mockImplementation(() => {
         throw testError;
       });
 
@@ -97,7 +103,7 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
         ),
       ).rejects.toThrow(testError);
 
-      // The service should not be called when extractContextInfo fails
+      // The service should not be called when extractProjectId fails
       expect(threadsService.advanceThread).not.toHaveBeenCalled();
     });
 
@@ -107,10 +113,7 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
       const advanceRequestDto = createValidAdvanceRequestDto();
       const internalError = new Error("Internal service error");
 
-      mockExtractContextInfo.mockReturnValue({
-        projectId: "test-project-id",
-        contextKey: "test-context-key",
-      });
+      mockExtractProjectId.mockReturnValue("test-project-id");
 
       jest
         .spyOn(threadsService, "advanceThread")

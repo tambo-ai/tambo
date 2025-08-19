@@ -31,10 +31,7 @@ export function extractContextInfo(
   request: Request,
   apiContextKey: string | undefined,
 ): ContextInfo {
-  const projectId = request[ProjectId];
-  if (!projectId) {
-    throw new BadRequestException("Project ID is required");
-  }
+  const projectId = extractProjectId(request);
 
   const bearerContextKey = request[ContextKey];
 
@@ -52,4 +49,18 @@ export function extractContextInfo(
     projectId,
     contextKey,
   };
+}
+
+/**
+ * Extracts project ID from the request.
+ * @param request - Express request object
+ * @returns Project ID
+ * @throws BadRequestException if project ID is missing
+ */
+export function extractProjectId(request: Request): string {
+  const projectId = request[ProjectId];
+  if (!projectId) {
+    throw new BadRequestException("Project ID is required");
+  }
+  return projectId;
 }

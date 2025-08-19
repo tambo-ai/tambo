@@ -22,7 +22,10 @@ import {
 } from "@nestjs/swagger";
 import { GenerationStage } from "@tambo-ai-cloud/core";
 import { Request } from "express";
-import { extractContextInfo } from "../common/utils/extract-context-info";
+import {
+  extractContextInfo,
+  extractProjectId,
+} from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import {
@@ -341,10 +344,7 @@ export class ThreadsController {
     @Req() request: Request,
     @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
-    const { projectId, contextKey } = extractContextInfo(
-      request,
-      advanceRequestDto.contextKey,
-    );
+    const projectId = extractProjectId(request);
     const result = await this.threadsService.advanceThread(
       projectId,
       advanceRequestDto,
@@ -352,10 +352,9 @@ export class ThreadsController {
       false,
       advanceRequestDto.toolCallCounts ?? {},
       undefined,
-      contextKey,
     );
     // Since stream=false, result will be AdvanceThreadResponseDto
-    return result as AdvanceThreadResponseDto;
+    return result;
   }
 
   @UseGuards(ThreadInProjectGuard)
@@ -366,10 +365,8 @@ export class ThreadsController {
     @Body() advanceRequestDto: AdvanceThreadDto,
     @Res() response,
   ): Promise<void> {
-    const { projectId, contextKey } = extractContextInfo(
-      request,
-      advanceRequestDto.contextKey,
-    );
+    const projectId = extractProjectId(request);
+
     response.setHeader("Content-Type", "text/event-stream");
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
@@ -382,7 +379,6 @@ export class ThreadsController {
         true,
         advanceRequestDto.toolCallCounts ?? {},
         undefined,
-        contextKey,
       );
 
       await this.handleAdvanceStream(response, stream);
