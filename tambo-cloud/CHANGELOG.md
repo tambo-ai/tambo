@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.100.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.6...repo-v0.100.7) (2025-08-19)
+
+
+### Bug Fixes
+
+* **sentry:** customize Sentry integrations to exclude default Http integration and adjust request body size handling ([#1569](https://github.com/tambo-ai/tambo-cloud/issues/1569)) ([3270a21](https://github.com/tambo-ai/tambo-cloud/commit/3270a214b8b04086120aaaabe84e740c4fc7ba55))
+
+
+### Miscellaneous Chores
+
+* **deps:** remove libretto dependency ([#1567](https://github.com/tambo-ai/tambo-cloud/issues/1567)) ([753d20a](https://github.com/tambo-ai/tambo-cloud/commit/753d20a2796b75619205e0a382e92dee97433812))
+
 ## [0.100.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.5...repo-v0.100.6) (2025-08-19)
 
 
