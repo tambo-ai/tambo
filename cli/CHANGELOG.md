@@ -2,132 +2,156 @@
 
 ## [0.28.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.3...tambo-v0.28.0) (2025-08-18)
 
+
 ### Features
 
-- **init:** add self-hosting instructions to init command ([#844](https://github.com/tambo-ai/tambo/issues/844)) ([28c0670](https://github.com/tambo-ai/tambo/commit/28c0670accc4fde66dd3e6ad9ee7f1f0aa249891))
+* **init:** add self-hosting instructions to init command ([#844](https://github.com/tambo-ai/tambo/issues/844)) ([28c0670](https://github.com/tambo-ai/tambo/commit/28c0670accc4fde66dd3e6ad9ee7f1f0aa249891))
 
 ## [0.27.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.2...tambo-v0.27.3) (2025-08-14)
 
+
 ### Bug Fixes
 
-- **auth:** update authentication URL to include return path for CLI login ([#836](https://github.com/tambo-ai/tambo/issues/836)) ([4f118a6](https://github.com/tambo-ai/tambo/commit/4f118a68dd8327a876fb6da74b81826d827db194))
-- split out provider values to prevent re-renders ([#816](https://github.com/tambo-ai/tambo/issues/816)) ([3360e9a](https://github.com/tambo-ai/tambo/commit/3360e9ab491c03a1a1da7101679ad88764dd6205))
+* **auth:** update authentication URL to include return path for CLI login ([#836](https://github.com/tambo-ai/tambo/issues/836)) ([4f118a6](https://github.com/tambo-ai/tambo/commit/4f118a68dd8327a876fb6da74b81826d827db194))
+* split out provider values to prevent re-renders ([#816](https://github.com/tambo-ai/tambo/issues/816)) ([3360e9a](https://github.com/tambo-ai/tambo/commit/3360e9ab491c03a1a1da7101679ad88764dd6205))
+
 
 ### Miscellaneous
 
-- **deps-dev:** bump @types/node-fetch from 2.6.12 to 2.6.13 ([#822](https://github.com/tambo-ai/tambo/issues/822)) ([f151657](https://github.com/tambo-ai/tambo/commit/f151657cf0e5a765f4968f63c37fe9d07b2bf7e6))
+* **deps-dev:** bump @types/node-fetch from 2.6.12 to 2.6.13 ([#822](https://github.com/tambo-ai/tambo/issues/822)) ([f151657](https://github.com/tambo-ai/tambo/commit/f151657cf0e5a765f4968f63c37fe9d07b2bf7e6))
 
 ## [0.27.2](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.1...tambo-v0.27.2) (2025-08-08)
 
+
 ### Miscellaneous
 
-- **packages:** pin npm to 11.5.2, rereun npm install, npm dedupe ([#810](https://github.com/tambo-ai/tambo/issues/810)) ([e657057](https://github.com/tambo-ai/tambo/commit/e657057af2f3396dfa61d30670544a480ff97a24))
+* **packages:** pin npm to 11.5.2, rereun npm install, npm dedupe ([#810](https://github.com/tambo-ai/tambo/issues/810)) ([e657057](https://github.com/tambo-ai/tambo/commit/e657057af2f3396dfa61d30670544a480ff97a24))
 
 ## [0.27.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.0...tambo-v0.27.1) (2025-08-07)
 
+
 ### Miscellaneous
 
-- **deps-dev:** bump typescript from 5.8.3 to 5.9.2 ([#790](https://github.com/tambo-ai/tambo/issues/790)) ([49b86a0](https://github.com/tambo-ai/tambo/commit/49b86a0ba3198419054b7b75af9970321224b997))
+* **deps-dev:** bump typescript from 5.8.3 to 5.9.2 ([#790](https://github.com/tambo-ai/tambo/issues/790)) ([49b86a0](https://github.com/tambo-ai/tambo/commit/49b86a0ba3198419054b7b75af9970321224b997))
 
 ## [0.27.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.26.1...tambo-v0.27.0) (2025-08-05)
 
+
 ### Features
 
-- add pre-built context helpers ([#769](https://github.com/tambo-ai/tambo/issues/769)) ([757448b](https://github.com/tambo-ai/tambo/commit/757448b949f33a89ad0bc25b56918d95748da5ab))
+* add pre-built context helpers ([#769](https://github.com/tambo-ai/tambo/issues/769)) ([757448b](https://github.com/tambo-ai/tambo/commit/757448b949f33a89ad0bc25b56918d95748da5ab))
 
 ## [0.26.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.26.0...tambo-v0.26.1) (2025-08-04)
 
+
 ### Miscellaneous
 
-- replace Server icon with custom MCPIcon in message input component ([#770](https://github.com/tambo-ai/tambo/issues/770)) ([865eaa3](https://github.com/tambo-ai/tambo/commit/865eaa3516d5e491ac27ee7c77dc13eef61e5ce0))
+* replace Server icon with custom MCPIcon in message input component ([#770](https://github.com/tambo-ai/tambo/issues/770)) ([865eaa3](https://github.com/tambo-ai/tambo/commit/865eaa3516d5e491ac27ee7c77dc13eef61e5ce0))
 
 ## [0.26.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.25.0...tambo-v0.26.0) (2025-07-31)
 
+
 ### Features
 
-- move additional context to message request ([#740](https://github.com/tambo-ai/tambo/issues/740)) ([09386ba](https://github.com/tambo-ai/tambo/commit/09386babf964ccdb3f447242ab4b042b1cd3dac6))
+* move additional context to message request ([#740](https://github.com/tambo-ai/tambo/issues/740)) ([09386ba](https://github.com/tambo-ai/tambo/commit/09386babf964ccdb3f447242ab4b042b1cd3dac6))
 
 ## [0.25.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.24.0...tambo-v0.25.0) (2025-07-29)
 
+
 ### Features
 
-- **cli:** add mcpconfigbutton in message-input and remove mcp template ([#738](https://github.com/tambo-ai/tambo/issues/738)) ([7b29a20](https://github.com/tambo-ai/tambo/commit/7b29a20de9abbd450c931f9ce0fa63b3c923757d))
+* **cli:** add mcpconfigbutton in message-input and remove mcp template ([#738](https://github.com/tambo-ai/tambo/issues/738)) ([7b29a20](https://github.com/tambo-ai/tambo/commit/7b29a20de9abbd450c931f9ce0fa63b3c923757d))
 
 ## [0.24.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.23.0...tambo-v0.24.0) (2025-07-29)
 
+
 ### Features
 
-- Add InteractiveMap component using react‑leaflet ([#678](https://github.com/tambo-ai/tambo/issues/678)) ([22b3862](https://github.com/tambo-ai/tambo/commit/22b3862cdefbe5d53425da0f7ad0167698847d09))
+* Add InteractiveMap component using react‑leaflet ([#678](https://github.com/tambo-ai/tambo/issues/678)) ([22b3862](https://github.com/tambo-ai/tambo/commit/22b3862cdefbe5d53425da0f7ad0167698847d09))
+
 
 ### Bug Fixes
 
-- update thread-history search to search for thread name ([#717](https://github.com/tambo-ai/tambo/issues/717)) ([1deeec5](https://github.com/tambo-ai/tambo/commit/1deeec567c9df8eb5d312a24072d193189756312))
+* update thread-history search to search for thread name ([#717](https://github.com/tambo-ai/tambo/issues/717)) ([1deeec5](https://github.com/tambo-ai/tambo/commit/1deeec567c9df8eb5d312a24072d193189756312))
+
 
 ### Miscellaneous
 
-- **deps-dev:** bump @types/recharts from 1.8.29 to 2.0.1 ([#729](https://github.com/tambo-ai/tambo/issues/729)) ([400dc89](https://github.com/tambo-ai/tambo/commit/400dc895653b487b3f3b0aad56145577557a8450))
-- **deps:** bump dotenv from 17.2.0 to 17.2.1 ([#734](https://github.com/tambo-ai/tambo/issues/734)) ([6436a9f](https://github.com/tambo-ai/tambo/commit/6436a9f61b21b1b6e8ee52dbe3c4cd864b84afc0))
+* **deps-dev:** bump @types/recharts from 1.8.29 to 2.0.1 ([#729](https://github.com/tambo-ai/tambo/issues/729)) ([400dc89](https://github.com/tambo-ai/tambo/commit/400dc895653b487b3f3b0aad56145577557a8450))
+* **deps:** bump dotenv from 17.2.0 to 17.2.1 ([#734](https://github.com/tambo-ai/tambo/issues/734)) ([6436a9f](https://github.com/tambo-ai/tambo/commit/6436a9f61b21b1b6e8ee52dbe3c4cd864b84afc0))
 
 ## [0.23.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.22.1...tambo-v0.23.0) (2025-07-25)
 
+
 ### Features
 
-- add additionalContext support ([#702](https://github.com/tambo-ai/tambo/issues/702)) ([f269b31](https://github.com/tambo-ai/tambo/commit/f269b313053490dc417dc18cd6ab673f07f2fb74))
+* add additionalContext support ([#702](https://github.com/tambo-ai/tambo/issues/702)) ([f269b31](https://github.com/tambo-ai/tambo/commit/f269b313053490dc417dc18cd6ab673f07f2fb74))
+
 
 ### Bug Fixes
 
-- overflow of tool info in message component ([#694](https://github.com/tambo-ai/tambo/issues/694)) ([4120efd](https://github.com/tambo-ai/tambo/commit/4120efdd02cfdcd92833b4637897614a21cddb68))
+* overflow of tool info in message component ([#694](https://github.com/tambo-ai/tambo/issues/694)) ([4120efd](https://github.com/tambo-ai/tambo/commit/4120efdd02cfdcd92833b4637897614a21cddb68))
+
 
 ### Miscellaneous
 
-- update CLI based on user feedback ([#696](https://github.com/tambo-ai/tambo/issues/696)) ([0ecda05](https://github.com/tambo-ai/tambo/commit/0ecda05ed68b059637e43a817fdecea3f4e36a6f))
-- update documentation links to new domain and update dev command filter ([#698](https://github.com/tambo-ai/tambo/issues/698)) ([23946de](https://github.com/tambo-ai/tambo/commit/23946de0d4a67919e119f7188731f83bcc2e86a0))
+* update CLI based on user feedback ([#696](https://github.com/tambo-ai/tambo/issues/696)) ([0ecda05](https://github.com/tambo-ai/tambo/commit/0ecda05ed68b059637e43a817fdecea3f4e36a6f))
+* update documentation links to new domain and update dev command filter ([#698](https://github.com/tambo-ai/tambo/issues/698)) ([23946de](https://github.com/tambo-ai/tambo/commit/23946de0d4a67919e119f7188731f83bcc2e86a0))
 
 ## [0.22.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.22.0...tambo-v0.22.1) (2025-07-18)
 
+
 ### Miscellaneous
 
-- **deps:** bump dotenv from 17.0.1 to 17.2.0 ([#660](https://github.com/tambo-ai/tambo/issues/660)) ([4dc5e6f](https://github.com/tambo-ai/tambo/commit/4dc5e6f6e3b697e87b857569799aac3662556dd2))
-- **deps:** bump open from 10.1.2 to 10.2.0 ([#667](https://github.com/tambo-ai/tambo/issues/667)) ([867f425](https://github.com/tambo-ai/tambo/commit/867f425cee3ac9c48c3fe9187976123896e4e132))
+* **deps:** bump dotenv from 17.0.1 to 17.2.0 ([#660](https://github.com/tambo-ai/tambo/issues/660)) ([4dc5e6f](https://github.com/tambo-ai/tambo/commit/4dc5e6f6e3b697e87b857569799aac3662556dd2))
+* **deps:** bump open from 10.1.2 to 10.2.0 ([#667](https://github.com/tambo-ai/tambo/issues/667)) ([867f425](https://github.com/tambo-ai/tambo/commit/867f425cee3ac9c48c3fe9187976123896e4e132))
+
 
 ### Code Refactoring
 
-- **UI:** adjust padding and gap in message and thread content components ([#676](https://github.com/tambo-ai/tambo/issues/676)) ([b10fb04](https://github.com/tambo-ai/tambo/commit/b10fb049218b4604382992de84d265bab9ca9868))
+* **UI:** adjust padding and gap in message and thread content components ([#676](https://github.com/tambo-ai/tambo/issues/676)) ([b10fb04](https://github.com/tambo-ai/tambo/commit/b10fb049218b4604382992de84d265bab9ca9868))
 
 ## [0.22.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.1...tambo-v0.22.0) (2025-07-15)
 
+
 ### Features
 
-- implement Tailwind CSS v3 and v4 support in CLI ([#653](https://github.com/tambo-ai/tambo/issues/653)) ([52664bc](https://github.com/tambo-ai/tambo/commit/52664bcda72fae2c16b9cc63c2d31b6bbf8bf072))
+* implement Tailwind CSS v3 and v4 support in CLI ([#653](https://github.com/tambo-ai/tambo/issues/653)) ([52664bc](https://github.com/tambo-ai/tambo/commit/52664bcda72fae2c16b9cc63c2d31b6bbf8bf072))
+
 
 ### Bug Fixes
 
-- with correct types, remove cast ([#652](https://github.com/tambo-ai/tambo/issues/652)) ([ccbd42e](https://github.com/tambo-ai/tambo/commit/ccbd42edd850fb79603f6ea26894b8bbc6278c63))
+* with correct types, remove cast ([#652](https://github.com/tambo-ai/tambo/issues/652)) ([ccbd42e](https://github.com/tambo-ai/tambo/commit/ccbd42edd850fb79603f6ea26894b8bbc6278c63))
+
 
 ### Miscellaneous
 
-- **deps:** bump dotenv from 17.0.0 to 17.0.1 ([#639](https://github.com/tambo-ai/tambo/issues/639)) ([81afd5f](https://github.com/tambo-ai/tambo/commit/81afd5ff8f24bff859fd80dc48b0c543b0d95efc))
+* **deps:** bump dotenv from 17.0.0 to 17.0.1 ([#639](https://github.com/tambo-ai/tambo/issues/639)) ([81afd5f](https://github.com/tambo-ai/tambo/commit/81afd5ff8f24bff859fd80dc48b0c543b0d95efc))
 
 ## [0.21.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.21.0...tambo-v0.21.1) (2025-07-05)
 
+
 ### Bug Fixes
 
-- update tool result scrolling ([#633](https://github.com/tambo-ai/tambo/issues/633)) ([941e456](https://github.com/tambo-ai/tambo/commit/941e4568c06a7596a1d2094c5078b89f70c0000a))
+* update tool result scrolling ([#633](https://github.com/tambo-ai/tambo/issues/633)) ([941e456](https://github.com/tambo-ai/tambo/commit/941e4568c06a7596a1d2094c5078b89f70c0000a))
 
 ## [0.21.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.20.0...tambo-v0.21.0) (2025-07-03)
 
+
 ### Features
 
-- support accessToken ([#624](https://github.com/tambo-ai/tambo/issues/624)) ([2134cdc](https://github.com/tambo-ai/tambo/commit/2134cdc3c26aa319d5f77bec6dd779564284edfe))
+* support accessToken ([#624](https://github.com/tambo-ai/tambo/issues/624)) ([2134cdc](https://github.com/tambo-ai/tambo/commit/2134cdc3c26aa319d5f77bec6dd779564284edfe))
+
 
 ### Bug Fixes
 
-- showcase thread renaming and component variants ([#631](https://github.com/tambo-ai/tambo/issues/631)) ([cf3638e](https://github.com/tambo-ai/tambo/commit/cf3638e848afdb9a37e068f46c877a12900c716f))
+* showcase thread renaming and component variants ([#631](https://github.com/tambo-ai/tambo/issues/631)) ([cf3638e](https://github.com/tambo-ai/tambo/commit/cf3638e848afdb9a37e068f46c877a12900c716f))
+
 
 ### Miscellaneous
 
-- update CLI init command with showcase link and add control bar to showcase ([#630](https://github.com/tambo-ai/tambo/issues/630)) ([63a381c](https://github.com/tambo-ai/tambo/commit/63a381cc9dbd9f5ba445012b71e8653c9e3d4bff))
-- update CLI with the new feedback ([#615](https://github.com/tambo-ai/tambo/issues/615)) ([66fd8d0](https://github.com/tambo-ai/tambo/commit/66fd8d0c968bb27249362d48f08bfd42047d8701))
+* update CLI init command with showcase link and add control bar to showcase ([#630](https://github.com/tambo-ai/tambo/issues/630)) ([63a381c](https://github.com/tambo-ai/tambo/commit/63a381cc9dbd9f5ba445012b71e8653c9e3d4bff))
+* update CLI with the new feedback ([#615](https://github.com/tambo-ai/tambo/issues/615)) ([66fd8d0](https://github.com/tambo-ai/tambo/commit/66fd8d0c968bb27249362d48f08bfd42047d8701))
 
 ## [0.20.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.19.0...tambo-v0.20.0) (2025-07-02)
 
