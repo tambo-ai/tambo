@@ -824,6 +824,7 @@ describe("TamboThreadProvider", () => {
 
       // Expect the error to be thrown
       await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
         await expect(
           result.current.sendThreadMessage("Hello", {
             threadId: "test-thread-1",
@@ -846,6 +847,7 @@ describe("TamboThreadProvider", () => {
 
       // Expect the error to be thrown
       await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
         await expect(
           result.current.sendThreadMessage("Hello", {
             threadId: "test-thread-1",

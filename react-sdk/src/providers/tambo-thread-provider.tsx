@@ -804,80 +804,103 @@ export const TamboThreadProvider: React.FC<
       };
 
       if (streamResponse) {
-        const advanceStreamResponse = await advanceStream(
-          client,
-          params,
-          threadId === PLACEHOLDER_THREAD.id ? undefined : threadId,
-        );
-        return await handleAdvanceStream(
-          advanceStreamResponse,
-          params,
-          threadId,
-        );
+        let advanceStreamResponse: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>;
+        try {
+          advanceStreamResponse = await advanceStream(
+            client,
+            params,
+            threadId === PLACEHOLDER_THREAD.id ? undefined : threadId,
+          );
+        } catch (error) {
+          updateThreadStatus(threadId, GenerationStage.ERROR);
+          throw error;
+        }
+        try {
+          return await handleAdvanceStream(
+            advanceStreamResponse,
+            params,
+            threadId,
+          );
+        } catch (error) {
+          updateThreadStatus(threadId, GenerationStage.ERROR);
+          throw error;
+        }
       }
-      let advanceResponse = await (threadId === PLACEHOLDER_THREAD.id
-        ? client.beta.threads.advance(params)
-        : client.beta.threads.advanceById(threadId, params));
+
+      let advanceResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse;
+      try {
+        advanceResponse = await (threadId === PLACEHOLDER_THREAD.id
+          ? client.beta.threads.advance(params)
+          : client.beta.threads.advanceById(threadId, params));
+      } catch (error) {
+        updateThreadStatus(threadId, GenerationStage.ERROR);
+        throw error;
+      }
 
       //handle tool calls
-      while (advanceResponse.responseMessageDto.toolCallRequest) {
-        // Increment tool call count for this tool
-        const toolName =
-          advanceResponse.responseMessageDto.toolCallRequest.toolName;
-        if (toolName) {
-          toolCallCounts[toolName] = (toolCallCounts[toolName] || 0) + 1;
-        }
+      try {
+        while (advanceResponse.responseMessageDto.toolCallRequest) {
+          // Increment tool call count for this tool
+          const toolName =
+            advanceResponse.responseMessageDto.toolCallRequest.toolName;
+          if (toolName) {
+            toolCallCounts[toolName] = (toolCallCounts[toolName] || 0) + 1;
+          }
 
-        updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
-        const toolCallResponse = await handleToolCall(
-          advanceResponse.responseMessageDto,
-          toolRegistry,
-        );
-        const toolResponseString =
-          typeof toolCallResponse.result === "string"
-            ? toolCallResponse.result
-            : JSON.stringify(toolCallResponse.result);
-        const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
-          {
-            ...params,
-            messageToAppend: {
-              ...params.messageToAppend,
+          updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
+          const toolCallResponse = await handleToolCall(
+            advanceResponse.responseMessageDto,
+            toolRegistry,
+          );
+          const toolResponseString =
+            typeof toolCallResponse.result === "string"
+              ? toolCallResponse.result
+              : JSON.stringify(toolCallResponse.result);
+          const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
+            {
+              ...params,
+              messageToAppend: {
+                ...params.messageToAppend,
+                content: [{ type: "text", text: toolResponseString }],
+                role: "tool",
+                actionType: "tool_response",
+                component: advanceResponse.responseMessageDto.component,
+                tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
+                error: toolCallResponse.error,
+              },
+            };
+          if (toolCallResponse.error) {
+            //update toolcall message with error
+            const toolCallMessage = {
+              ...advanceResponse.responseMessageDto,
+              error: toolCallResponse.error,
+            };
+            updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
+          }
+          updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
+          addThreadMessage(
+            {
+              threadId: threadId,
               content: [{ type: "text", text: toolResponseString }],
               role: "tool",
+              id: crypto.randomUUID(),
+              createdAt: new Date().toISOString(),
+              componentState: {},
               actionType: "tool_response",
-              component: advanceResponse.responseMessageDto.component,
               tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
               error: toolCallResponse.error,
             },
-          };
-        if (toolCallResponse.error) {
-          //update toolcall message with error
-          const toolCallMessage = {
-            ...advanceResponse.responseMessageDto,
-            error: toolCallResponse.error,
-          };
-          updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
-        }
-        updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
-        addThreadMessage(
-          {
-            threadId: threadId,
-            content: [{ type: "text", text: toolResponseString }],
-            role: "tool",
-            id: crypto.randomUUID(),
-            createdAt: new Date().toISOString(),
-            componentState: {},
-            actionType: "tool_response",
-            tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
-            error: toolCallResponse.error,
-          },
-          false,
-        );
+            false,
+          );
 
-        advanceResponse = await client.beta.threads.advanceById(
-          advanceResponse.responseMessageDto.threadId,
-          toolCallResponseParams,
-        );
+          advanceResponse = await client.beta.threads.advanceById(
+            advanceResponse.responseMessageDto.threadId,
+            toolCallResponseParams,
+          );
+        }
+      } catch (error) {
+        updateThreadStatus(threadId, GenerationStage.ERROR);
+        throw error;
       }
 
       const finalMessage = advanceResponse.responseMessageDto.component
