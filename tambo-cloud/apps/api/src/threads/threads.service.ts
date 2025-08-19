@@ -969,7 +969,7 @@ export class ThreadsService {
       // Use the shared method to create the TamboBackend instance
       const tamboBackend = await this.createHydraBackendForThread(
         thread.id,
-        `${projectId}-${thread.contextKey || TAMBO_ANON_CONTEXT_KEY}`,
+        `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
       );
 
       // Log available components
@@ -1011,7 +1011,7 @@ export class ThreadsService {
       const mcpAccessToken = await this.authService.generateMcpAccessToken(
         projectId,
         thread.id,
-        thread.contextKey || undefined,
+        contextKey,
       );
 
       if (stream) {

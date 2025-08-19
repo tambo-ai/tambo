@@ -4,10 +4,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
 import request from "supertest";
 import { SentryExceptionFilter } from "../../common/filters/sentry-exception.filter";
-import {
-  extractContextInfo,
-  extractProjectId,
-} from "../../common/utils/extract-context-info";
+import { extractContextInfo } from "../../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../../projects/guards/bearer-token.guard";
 import { ProjectAccessOwnGuard } from "../../projects/guards/project-access-own.guard";
@@ -23,13 +20,10 @@ jest.mock("../threads.service", () => ({
   })),
 }));
 
-// Mock the extract context info functions
+// Mock the extractContextInfo function
 jest.mock("../../common/utils/extract-context-info");
 const mockExtractContextInfo = extractContextInfo as jest.MockedFunction<
   typeof extractContextInfo
->;
-const mockExtractProjectId = extractProjectId as jest.MockedFunction<
-  typeof extractProjectId
 >;
 
 describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
@@ -77,8 +71,6 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
 
     // Reset mocks
     jest.clearAllMocks();
-    mockExtractContextInfo.mockClear();
-    mockExtractProjectId.mockClear();
   });
 
   afterEach(async () => {
@@ -86,12 +78,12 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
   });
 
   describe("Error Response Format", () => {
-    it("should return default NestJS JSON error format when extractProjectId throws BadRequestException", async () => {
+    it("should return default NestJS JSON error format when extractContextInfo throws BadRequestException", async () => {
       // Arrange
       const testError = new BadRequestException("Project ID is required");
       const requestBody = createValidAdvanceRequestDto();
 
-      mockExtractProjectId.mockImplementation(() => {
+      mockExtractContextInfo.mockImplementation(() => {
         throw testError;
       });
 
@@ -177,11 +169,14 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
   });
 
   describe("Successful Response Format", () => {
-    it("should successfully start stream when extractProjectId works correctly", async () => {
+    it("should successfully start stream when extractContextInfo works correctly", async () => {
       // Arrange
       const requestBody = createValidAdvanceRequestDto();
 
-      mockExtractProjectId.mockReturnValue("test-project-id");
+      mockExtractContextInfo.mockReturnValue({
+        projectId: "test-project-id",
+        contextKey: "test-context-key",
+      });
 
       // Mock a successful stream response
       const mockStream = {
