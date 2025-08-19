@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.100.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.5...repo-v0.100.6) (2025-08-19)
+
+
+### Bug Fixes
+
+* Add back in sentry exception filter ([#1566](https://github.com/tambo-ai/tambo-cloud/issues/1566)) ([ad2fdcf](https://github.com/tambo-ai/tambo-cloud/commit/ad2fdcf0f9bfd1a6ec16e7069f60298e5f22646c))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump tsx from 4.20.3 to 4.20.4 ([#1554](https://github.com/tambo-ai/tambo-cloud/issues/1554)) ([62e52e4](https://github.com/tambo-ai/tambo-cloud/commit/62e52e4cd716bcaeb1df05585d8735b7a76f9333))
+* **deps-dev:** bump turbo from 2.5.5 to 2.5.6 ([#1557](https://github.com/tambo-ai/tambo-cloud/issues/1557)) ([763539e](https://github.com/tambo-ai/tambo-cloud/commit/763539e4dc2ee6e4cf7609d717299c0526d5ba89))
+* **deps:** bump helmet from 7.2.0 to 8.1.0 ([#1556](https://github.com/tambo-ai/tambo-cloud/issues/1556)) ([7808d24](https://github.com/tambo-ai/tambo-cloud/commit/7808d24f9083c422a0df2026bee2e6f4fad92f64))
+* **deps:** bump resend from 4.8.0 to 6.0.1 ([#1555](https://github.com/tambo-ai/tambo-cloud/issues/1555)) ([42c6a21](https://github.com/tambo-ai/tambo-cloud/commit/42c6a219260e6e19dcb5825a8460db1957ac2c42))
+
 ## [0.100.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.4...repo-v0.100.5) (2025-08-18)
 
 
