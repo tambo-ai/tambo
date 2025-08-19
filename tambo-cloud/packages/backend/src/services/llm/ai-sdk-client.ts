@@ -3,7 +3,6 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
-import { formatTemplate } from "@libretto/openai/lib/src/template";
 import {
   ChatCompletionMessageParam,
   getToolDescription,
@@ -34,6 +33,7 @@ import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import type { LlmProviderConfigInfo } from "../../config/llm-config-types";
 import { llmProviderConfig } from "../../config/llm.config";
 import { Provider } from "../../model/providers";
+import { formatTemplate } from "../../util/template";
 import {
   CompleteParams,
   LLMClient,

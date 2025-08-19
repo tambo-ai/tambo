@@ -1,4 +1,3 @@
-import { objectTemplate } from "@libretto/openai";
 import {
   ChatCompletionMessageParam,
   getToolName,
@@ -11,6 +10,7 @@ import OpenAI from "openai";
 import { parse } from "partial-json";
 import { generateDecisionLoopPrompt } from "../../prompt/decision-loop-prompts";
 import { extractMessageContent } from "../../util/response-parsing";
+import { objectTemplate } from "../../util/template";
 import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import {
   getLLMResponseMessage,
