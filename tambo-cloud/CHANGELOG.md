@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.100.9](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.8...repo-v0.100.9) (2025-08-19)
+
+
+### Bug Fixes
+
+* **revert:** Revert "fix: ignore context key in advance for thread" ([#1572](https://github.com/tambo-ai/tambo-cloud/issues/1572)) ([349a300](https://github.com/tambo-ai/tambo-cloud/commit/349a30009b8c9916c1914c51bf4ee5a789a44a3e))
+* **security:** Do not leak contextKey out through our APIs ([#1574](https://github.com/tambo-ai/tambo-cloud/issues/1574)) ([2fb929a](https://github.com/tambo-ai/tambo-cloud/commit/2fb929aa5341f1d20e65c3b8d56d4780d03df701))
+
 ## [0.100.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.7...repo-v0.100.8) (2025-08-19)
 
 
