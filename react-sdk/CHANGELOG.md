@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.44.1](https://github.com/tambo-ai/tambo/compare/react-v0.44.0...react-v0.44.1) (2025-08-19)
+
+
+### Bug Fixes
+
+* set thread stage to 'error' when api request fails ([#866](https://github.com/tambo-ai/tambo/issues/866)) ([a38e668](https://github.com/tambo-ai/tambo/commit/a38e668f3be48a49f555ab43c4ba59fba501915a))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @testing-library/jest-dom from 6.6.4 to 6.7.0 ([#851](https://github.com/tambo-ai/tambo/issues/851)) ([5c7db5b](https://github.com/tambo-ai/tambo/commit/5c7db5b9eaeb9b52f86cdb13130851526945dcd2))
+* **deps-dev:** bump the eslint group with 4 updates ([#846](https://github.com/tambo-ai/tambo/issues/846)) ([8675209](https://github.com/tambo-ai/tambo/commit/867520964bd1b4ad058281712e86defaeb195fd2))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.2 to 1.17.3 ([#861](https://github.com/tambo-ai/tambo/issues/861)) ([871f7cd](https://github.com/tambo-ai/tambo/commit/871f7cd1e0adee0b1ef073a1f4cced9844d73508))
+* **deps:** bump @tanstack/react-query from 5.84.2 to 5.85.3 ([#848](https://github.com/tambo-ai/tambo/issues/848)) ([e816601](https://github.com/tambo-ai/tambo/commit/e816601d06b97599dec477fc691c8f686e80b416))
+* **deps:** Fix some duplicated/misaligned [@types](https://github.com/types) versions ([#867](https://github.com/tambo-ai/tambo/issues/867)) ([0c3fcfe](https://github.com/tambo-ai/tambo/commit/0c3fcfe4a7356966e74104b5c60397aab7eb7848))
+
 ## [0.44.0](https://github.com/tambo-ai/tambo/compare/react-v0.43.1...react-v0.44.0) (2025-08-14)
 
 
