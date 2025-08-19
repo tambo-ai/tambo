@@ -899,7 +899,10 @@ export const TamboThreadProvider: React.FC<
           );
         }
       } catch (error) {
-        updateThreadStatus(threadId, GenerationStage.ERROR);
+        updateThreadStatus(
+          advanceResponse.responseMessageDto.threadId,
+          GenerationStage.ERROR,
+        );
         throw error;
       }
 
