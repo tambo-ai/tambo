@@ -8,7 +8,7 @@ import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { Request } from "express";
 import { DATABASE } from "../../common/middleware/db-transaction-middleware";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
-import { ProjectId } from "../../projects/guards/apikey.guard";
+import { extractContextInfo } from "../../common/utils/extract-context-info";
 
 @Injectable()
 export class ThreadInProjectGuard implements CanActivate {
@@ -19,8 +19,11 @@ export class ThreadInProjectGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
+    const { projectId, contextKey } = extractContextInfo(
+      request,
+      request.params.contextKey,
+    );
     const threadId = request.params.id;
-    const projectId = request[ProjectId];
 
     if (!threadId) {
       this.logger.error("Missing thread ID in request parameters");
@@ -35,7 +38,12 @@ export class ThreadInProjectGuard implements CanActivate {
     }
 
     try {
-      await operations.ensureThreadByProjectId(this.db, threadId, projectId);
+      await operations.ensureThreadByProjectId(
+        this.db,
+        threadId,
+        projectId,
+        contextKey,
+      );
       this.logger.log(
         `Valid thread ${threadId} access for project ${projectId}`,
       );

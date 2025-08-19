@@ -32,7 +32,29 @@ export class ThreadRequest {
 }
 
 @ApiSchema({ name: "Thread" })
-export class Thread extends ThreadRequest {
+export class Thread {
+  @IsString()
+  projectId!: string;
+
+  @IsOptional()
+  @ApiProperty({
+    type: "object",
+    additionalProperties: true,
+  })
+  metadata?: Record<string, unknown>;
+
+  @IsEnum(GenerationStage)
+  @IsOptional()
+  generationStage?: GenerationStage;
+
+  @IsString()
+  @IsOptional()
+  statusMessage?: string;
+
+  @IsString()
+  @IsOptional()
+  name?: string;
+
   id!: string;
   createdAt!: Date;
   updatedAt!: Date;

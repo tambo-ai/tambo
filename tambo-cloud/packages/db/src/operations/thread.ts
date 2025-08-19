@@ -327,8 +327,15 @@ export async function ensureThreadByProjectId(
   db: HydraDb,
   threadId: string,
   projectId: string,
+  contextKey: string | undefined,
 ) {
-  const thread = await getThreadForProjectId(db, threadId, projectId);
+  const thread = await getThreadForProjectId(
+    db,
+    threadId,
+    projectId,
+    false,
+    contextKey,
+  );
   if (!thread) {
     throw new Error("Thread not found");
   }

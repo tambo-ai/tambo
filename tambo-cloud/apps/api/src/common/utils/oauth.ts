@@ -10,7 +10,7 @@ import {
   JWTPayload,
   jwtVerify,
 } from "jose";
-import { CorrelationLoggerService } from "src/common/services/logger.service";
+import { CorrelationLoggerService } from "../services/logger.service";
 
 // Security constants
 const ALLOWED_SYMMETRIC_ALGORITHMS = ["HS256", "HS384", "HS512"];

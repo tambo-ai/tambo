@@ -148,7 +148,6 @@ export class ThreadsController {
     const thread = await this.threadsService.update(threadId, updateThreadDto);
     return {
       ...thread,
-      contextKey: thread.contextKey ?? undefined,
       metadata: thread.metadata ?? undefined,
       generationStage: thread.generationStage,
       statusMessage: thread.statusMessage ?? undefined,
