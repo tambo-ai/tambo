@@ -138,7 +138,8 @@ export const useTamboThreadInput = (contextKey?: string) => {
   if (contextKey) {
     return {
       ...context,
-      submit: async (options = {}) => await context.submit({ ...options, contextKey }),
+      submit: async (options = {}) =>
+        await context.submit({ ...options, contextKey }),
     };
   }
 
