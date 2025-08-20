@@ -27,6 +27,7 @@ import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
+import { TamboThreadInputProvider } from "./tambo-thread-input-provider";
 import {
   TamboGenerationStageContextProps,
   TamboThreadContextProps,
@@ -82,11 +83,13 @@ export const TamboProvider: React.FC<
       <TamboRegistryProvider components={components} tools={tools}>
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider streaming={streaming}>
-            <TamboComponentProvider>
-              <TamboInteractableProvider>
-                <TamboCompositeProvider>{children}</TamboCompositeProvider>
-              </TamboInteractableProvider>
-            </TamboComponentProvider>
+            <TamboThreadInputProvider>
+              <TamboComponentProvider>
+                <TamboInteractableProvider>
+                  <TamboCompositeProvider>{children}</TamboCompositeProvider>
+                </TamboInteractableProvider>
+              </TamboComponentProvider>
+            </TamboThreadInputProvider>
           </TamboThreadProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>

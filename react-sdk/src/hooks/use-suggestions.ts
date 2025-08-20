@@ -6,6 +6,10 @@ import { validateInput } from "../model/validate-input";
 import { useTamboClient } from "../providers/tambo-client-provider";
 import { useTambo } from "../providers/tambo-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import {
+  INPUT_ERROR_MESSAGES,
+  useTamboThreadInput,
+} from "../providers/tambo-thread-input-provider";
 import { useTamboThread } from "../providers/tambo-thread-provider";
 import {
   CombinedMutationResult,
@@ -18,7 +22,6 @@ import {
   useTamboMutation,
   useTamboQuery,
 } from "./react-query-hooks";
-import { INPUT_ERROR_MESSAGES, useTamboThreadInput } from "./use-thread-input";
 
 /**
  * Configuration options for the useTamboSuggestions hook
