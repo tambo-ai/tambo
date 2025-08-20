@@ -124,13 +124,23 @@ export const TamboThreadInputProvider: React.FC<
 
 /**
  * Hook to access the shared thread input state
+ * @param contextKey - Optional context key that overrides the provider's contextKey for this specific usage, for backwards compatibility.
  */
-export const useTamboThreadInput = () => {
+export const useTamboThreadInput = (contextKey?: string) => {
   const context = useContext(TamboThreadInputContext);
   if (!context) {
     throw new Error(
       "useTamboThreadInput must be used within a TamboThreadInputProvider",
     );
   }
+
+  // If a contextKey is provided to the hook, create a wrapped submit function
+  if (contextKey) {
+    return {
+      ...context,
+      submit: async (options = {}) => await context.submit({ ...options, contextKey }),
+    };
+  }
+
   return context;
 };
