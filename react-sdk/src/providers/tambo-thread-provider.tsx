@@ -725,8 +725,6 @@ export const TamboThreadProvider: React.FC<
     ],
   );
 
-  const currentThreadContextKey = currentThread?.contextKey;
-
   const sendThreadMessage = useCallback(
     async (
       message: string,
@@ -743,7 +741,7 @@ export const TamboThreadProvider: React.FC<
         threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
         streamResponse = streaming,
         forceToolChoice,
-        contextKey = currentThreadContextKey,
+        contextKey,
         additionalContext,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
@@ -925,7 +923,6 @@ export const TamboThreadProvider: React.FC<
       toolRegistry,
       componentToolAssociations,
       currentThreadId,
-      currentThreadContextKey,
       switchCurrentThread,
       addThreadMessage,
       client,
