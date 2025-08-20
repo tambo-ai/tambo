@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.100.10](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.9...repo-v0.100.10) (2025-08-20)
+
+
+### Bug Fixes
+
+* avoid email component re-rendering ([#1576](https://github.com/tambo-ai/tambo-cloud/issues/1576)) ([aab04a7](https://github.com/tambo-ai/tambo-cloud/commit/aab04a73b51d3f3387306892f722da8ed72afd8f))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the react versions ([#1575](https://github.com/tambo-ai/tambo-cloud/issues/1575)) ([6d51976](https://github.com/tambo-ai/tambo-cloud/commit/6d51976d14a747eafff16988a3707c479d2be65a))
+
 ## [0.100.9](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.8...repo-v0.100.9) (2025-08-19)
 
 
