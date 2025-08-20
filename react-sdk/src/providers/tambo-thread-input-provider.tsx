@@ -124,7 +124,6 @@ export const TamboThreadInputProvider: React.FC<
 
 /**
  * Hook to access the shared thread input state
- * This replaces the original useTamboThreadInput hook
  */
 export const useTamboThreadInput = () => {
   const context = useContext(TamboThreadInputContext);

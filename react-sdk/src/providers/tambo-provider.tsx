@@ -27,7 +27,10 @@ import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
-import { TamboThreadInputProvider } from "./tambo-thread-input-provider";
+import {
+  TamboThreadInputProvider,
+  TamboThreadInputProviderProps,
+} from "./tambo-thread-input-provider";
 import {
   TamboGenerationStageContextProps,
   TamboThreadContextProps,
@@ -55,7 +58,8 @@ export const TamboProvider: React.FC<
     TamboClientProviderProps &
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
-      TamboContextHelpersProviderProps
+      TamboContextHelpersProviderProps &
+      TamboThreadInputProviderProps
   >
 > = ({
   children,
@@ -67,6 +71,7 @@ export const TamboProvider: React.FC<
   tools,
   streaming,
   contextHelpers,
+  contextKey,
 }) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
@@ -83,7 +88,7 @@ export const TamboProvider: React.FC<
       <TamboRegistryProvider components={components} tools={tools}>
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider streaming={streaming}>
-            <TamboThreadInputProvider>
+            <TamboThreadInputProvider contextKey={contextKey}>
               <TamboComponentProvider>
                 <TamboInteractableProvider>
                   <TamboCompositeProvider>{children}</TamboCompositeProvider>
