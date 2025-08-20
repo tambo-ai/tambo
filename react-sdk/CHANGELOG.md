@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.0](https://github.com/tambo-ai/tambo/compare/react-v0.44.1...react-v0.45.0) (2025-08-20)
+
+
+### Features
+
+* **api:** stop using contextKey returned from API ([#868](https://github.com/tambo-ai/tambo/issues/868)) ([75e0bbb](https://github.com/tambo-ai/tambo/commit/75e0bbba441695aa7038f242e7ec4ed62b76e91c))
+
 ## [0.44.1](https://github.com/tambo-ai/tambo/compare/react-v0.44.0...react-v0.44.1) (2025-08-19)
 
 
