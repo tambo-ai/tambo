@@ -812,4 +812,77 @@ describe("TamboThreadProvider", () => {
       expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
     });
   });
+
+  describe("error handling", () => {
+    it("should set generation stage to ERROR when non-streaming sendThreadMessage fails", async () => {
+      const testError = new Error("API call failed");
+
+      // Mock advanceById to throw an error
+      jest.mocked(mockThreadsApi.advanceById).mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Expect the error to be thrown
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+        await expect(
+          result.current.sendThreadMessage("Hello", {
+            threadId: "test-thread-1",
+            streamResponse: false,
+          }),
+        ).rejects.toThrow("API call failed");
+      });
+
+      // Verify generation stage is set to ERROR
+      expect(result.current.generationStage).toBe(GenerationStage.ERROR);
+    });
+
+    it("should set generation stage to ERROR when streaming sendThreadMessage fails", async () => {
+      const testError = new Error("Streaming API call failed");
+
+      // Mock advanceStream to throw an error
+      jest.mocked(advanceStream).mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Expect the error to be thrown
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+        await expect(
+          result.current.sendThreadMessage("Hello", {
+            threadId: "test-thread-1",
+            streamResponse: true,
+          }),
+        ).rejects.toThrow("Streaming API call failed");
+      });
+
+      // Verify generation stage is set to ERROR
+      expect(result.current.generationStage).toBe(GenerationStage.ERROR);
+    });
+
+    it("should set generation stage to ERROR when advance API call fails for placeholder thread", async () => {
+      const testError = new Error("Advance API call failed");
+
+      // Mock advance to throw an error
+      jest.mocked(mockThreadsApi.advance).mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Start with placeholder thread (which is the default state)
+      expect(result.current.thread.id).toBe("placeholder");
+
+      // Expect the error to be thrown
+      await act(async () => {
+        await expect(
+          result.current.sendThreadMessage("Hello", {
+            threadId: "placeholder",
+            streamResponse: false,
+          }),
+        ).rejects.toThrow("Advance API call failed");
+      });
+
+      // Verify generation stage is set to ERROR
+      expect(result.current.generationStage).toBe(GenerationStage.ERROR);
+    });
+  });
 });
