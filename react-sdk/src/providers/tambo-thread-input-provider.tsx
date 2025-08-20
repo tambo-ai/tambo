@@ -1,32 +1,27 @@
 "use client";
-import { UseMutationResult } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import React, {
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
+import { useTamboMutation } from "../hooks/react-query-hooks";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
-import { useTamboThread } from "../providers/tambo-thread-provider";
-import { useTamboMutation } from "./react-query-hooks";
+import { useTamboThread } from "./tambo-thread-provider";
 
 /**
  * Error messages for various input-related error scenarios
- * These messages are used to provide user-friendly error feedback
- * @readonly
  */
 export const INPUT_ERROR_MESSAGES = {
-  /** Error when attempting to submit empty input */
   EMPTY: "Message cannot be empty",
-  /** Error when network connection fails */
   NETWORK: "Network error. Please check your connection",
-  /** Error when server fails to process the request */
   SERVER: "Server error. Please try again",
-  /** Error when input format is invalid */
   VALIDATION: "Invalid message format",
 } as const;
 
-/**
- * Interface for the thread input hook return value
- * Provides all necessary functions and state for managing thread input
- */
-interface UseThreadInputInternal {
+export interface TamboThreadInputContextProps {
   /** Current value of the input field */
   value: string;
   /**
@@ -36,9 +31,7 @@ interface UseThreadInputInternal {
   setValue: (value: string) => void;
   /**
    * Function to submit the current input value
-   * Validates input, handles errors, and cleans up state after submission
-   * @throws {ThreadInputError} If submission fails
-   * @returns Promise that resolves when submission is complete
+   * @param options - Submission options
    */
   submit: (options?: {
     contextKey?: string;
@@ -46,19 +39,31 @@ interface UseThreadInputInternal {
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
   }) => Promise<void>;
+  /** Mutation state from react-query */
+  isPending: boolean;
+  error: Error | null;
+  /** Reset any errors */
+  reset: () => void;
 }
-export type UseThreadInput = UseThreadInputInternal &
-  UseMutationResult<
-    void,
-    Error,
-    { contextKey?: string; streamResponse?: boolean; forceToolChoice?: string }
-  >;
+
+export const TamboThreadInputContext = createContext<
+  TamboThreadInputContextProps | undefined
+>(undefined);
+
+export interface TamboThreadInputProviderProps {
+  contextKey?: string;
+}
 
 /**
- * Hook for managing thread message input state and submission
- * @returns Interface for managing thread input state and submission
+ * Provider that manages shared thread input state across all components
+ * This ensures that useTamboThreadInput, useTamboSuggestions, and components
+ * all share the same input state
+ * @param contextKey - Optional context key.
+ * @returns The thread input context
  */
-export function useTamboThreadInput(contextKey?: string): UseThreadInput {
+export const TamboThreadInputProvider: React.FC<
+  PropsWithChildren<TamboThreadInputProviderProps>
+> = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
 
@@ -91,20 +96,55 @@ export function useTamboThreadInput(contextKey?: string): UseThreadInput {
       });
       setInputValue(""); // Clear local state
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, setInputValue],
+    [inputValue, sendThreadMessage, thread.id, contextKey],
   );
+
   const {
     mutateAsync: submitAsync,
-    mutate: _unusedSubmit,
-    ...mutationState
+    isPending,
+    error,
+    reset,
   } = useTamboMutation({
     mutationFn: submit,
   });
 
-  return {
-    ...mutationState,
+  const value = {
     value: inputValue,
     setValue: setInputValue,
     submit: submitAsync,
-  } as UseThreadInput;
-}
+    isPending,
+    error,
+    reset,
+  };
+
+  return (
+    <TamboThreadInputContext.Provider value={value}>
+      {children}
+    </TamboThreadInputContext.Provider>
+  );
+};
+
+/**
+ * Hook to access the shared thread input state
+ * @param contextKey - Optional context key that overrides the provider's contextKey for this specific usage, for backwards compatibility.
+ * @returns The thread input context
+ */
+export const useTamboThreadInput = (contextKey?: string) => {
+  const context = useContext(TamboThreadInputContext);
+  if (!context) {
+    throw new Error(
+      "useTamboThreadInput must be used within a TamboThreadInputProvider",
+    );
+  }
+
+  // If a contextKey is provided to the hook, create a wrapped submit function
+  if (contextKey) {
+    return {
+      ...context,
+      submit: async (options = {}) =>
+        await context.submit({ ...options, contextKey }),
+    };
+  }
+
+  return context;
+};
