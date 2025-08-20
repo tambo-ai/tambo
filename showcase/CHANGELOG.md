@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.18.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.18.2...showcase-v0.18.3) (2025-08-15)
+
+
+### Bug Fixes
+
+* split out provider values to prevent re-renders ([#816](https://github.com/tambo-ai/tambo/issues/816)) ([3360e9a](https://github.com/tambo-ai/tambo/commit/3360e9ab491c03a1a1da7101679ad88764dd6205))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the eslint group with 5 updates ([#826](https://github.com/tambo-ai/tambo/issues/826)) ([342097e](https://github.com/tambo-ai/tambo/commit/342097e15ae1503c3d3df5cffb0d96a829fd7f5f))
+* **deps:** bump lucide-react from 0.536.0 to 0.539.0 ([#830](https://github.com/tambo-ai/tambo/issues/830)) ([1dfe483](https://github.com/tambo-ai/tambo/commit/1dfe483dc92ec6a3e043f9d15f958d183f87e557))
+* **deps:** bump next from 15.4.4 to 15.4.6 ([#828](https://github.com/tambo-ai/tambo/issues/828)) ([a073604](https://github.com/tambo-ai/tambo/commit/a0736041c951d21c84c23979b617dc47d62648bd))
+
 ## [0.18.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.18.1...showcase-v0.18.2) (2025-08-09)
 
 

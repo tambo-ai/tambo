@@ -1,3 +1,4 @@
+import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 import { createRelativeLink } from "fumadocs-ui/mdx";
@@ -23,6 +24,10 @@ export default async function Page(props: {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
+      <MessageThreadCollapsible
+        className="tambo-theme"
+        contextKey="tambo-docs"
+      />
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
