@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/tambo-ai/tambo/compare/docs-v1.2.3...docs-v1.2.4) (2025-08-20)
+
+
+### Miscellaneous
+
+* **deps:** bump mermaid from 11.9.0 to 11.10.0 in the npm_and_yarn group ([#871](https://github.com/tambo-ai/tambo/issues/871)) ([e4f5feb](https://github.com/tambo-ai/tambo/commit/e4f5febb7b211f9d783cf347d8909be4c0a37106))
+
 ## [1.2.3](https://github.com/tambo-ai/tambo/compare/docs-v1.2.2...docs-v1.2.3) (2025-08-20)
 
 
