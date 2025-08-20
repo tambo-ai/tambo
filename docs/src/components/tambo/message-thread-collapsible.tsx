@@ -91,8 +91,8 @@ const CollapsibleContainer = React.forwardRef<
       "transition-[width,height] duration-300 ease-in-out",
       isOpen
         ? cn(
-            // Mobile: Full screen
-            "inset-0 w-full h-full rounded-none",
+            // Mobile: Full screen below header
+            "top-14 left-0 right-0 bottom-0 w-full rounded-none",
             // Tablet and up: Floating panel
             "sm:inset-auto sm:bottom-4 sm:right-4 sm:rounded-lg",
             "sm:w-[448px] md:w-[512px] lg:w-[640px] xl:w-[768px] 2xl:w-[896px]",
@@ -250,7 +250,7 @@ export const MessageThreadCollapsible = React.forwardRef<
         config={THREAD_CONFIG}
       />
       <Collapsible.Content>
-        <div className="h-[70vh] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
+        <div className="h-[calc(100vh-8rem)] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
           {/* Message thread content */}
           <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
             {/* Conditionally render the starter message */}
