@@ -24,6 +24,7 @@ export function useTamboSessionToken(
   // we need to set this to true when the token is expired, this is effectively
   // like a dirty bit, which will trigger a new useEffect()
   const [isExpired, setIsExpired] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   useEffect(() => {
     let expireTimer: NodeJS.Timeout | null = null;
 
@@ -34,6 +35,8 @@ export function useTamboSessionToken(
       if (abortController.signal.aborted || !userToken) {
         return;
       }
+
+      setIsUpdating(true);
       const tokenRequest = {
         grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
         subject_token: subjectToken,
@@ -45,30 +48,44 @@ export function useTamboSessionToken(
       const tokenAsArrayBuffer = new TextEncoder().encode(
         tokenRequestFormEncoded,
       );
-      const tamboToken = await client.beta.auth.getToken(
-        tokenAsArrayBuffer as any,
-      );
 
-      if (abortController.signal.aborted) {
-        return;
+      try {
+        const tamboToken = await client.beta.auth.getToken(
+          tokenAsArrayBuffer as any,
+        );
+
+        if (abortController.signal.aborted) {
+          return;
+        }
+        setTamboSessionToken(tamboToken.access_token);
+        client.bearer = tamboToken.access_token;
+        setIsExpired(false);
+
+        // we need to set a timer to refresh the token when it expires
+        const refreshTime = Math.max(tamboToken.expires_in - 60, 0);
+
+        // careful with the assignment here: since this is an async function, this
+        // code is executed outside the of the scope of the useEffect() hook, so
+        // we need to use a let variable to store the timer
+        expireTimer = setTimeout(() => {
+          setIsExpired(true);
+        }, refreshTime * 1000);
+      } catch (error) {
+        if (!abortController.signal.aborted) {
+          console.error("Failed to get token:", error);
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsUpdating(false);
+        }
       }
-      setTamboSessionToken(tamboToken.access_token);
-      client.bearer = tamboToken.access_token;
-
-      // we need to set a timer to refresh the token when it expires
-      const refreshTime = Math.max(tamboToken.expires_in - 60, 0);
-
-      // careful with the assignment here: since this is an async function, this
-      // code is executed outside the of the scope of the useEffect() hook, so
-      // we need to use a let variable to store the timer
-      expireTimer = setTimeout(() => {
-        setIsExpired(true);
-      }, refreshTime * 1000);
     }
 
     const abortController = new AbortController();
     if (userToken && isExpired) {
       updateToken(userToken, abortController);
+    } else if (!userToken) {
+      setIsUpdating(false);
     }
 
     return () => {
@@ -77,8 +94,9 @@ export function useTamboSessionToken(
       if (expireTimer) {
         clearTimeout(expireTimer);
       }
+      setIsUpdating(false);
     };
   }, [client, isExpired, userToken]);
 
-  return tamboSessionToken;
+  return { tamboSessionToken, isUpdating };
 }
