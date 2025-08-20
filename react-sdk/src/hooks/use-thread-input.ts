@@ -1,3 +1,4 @@
+"use client";
 import { UseMutationResult } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { ThreadInputError } from "../model/thread-input-error";

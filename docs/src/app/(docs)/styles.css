@@ -8,7 +8,14 @@
 }
 
 #nd-toc {
-  margin-top: 40px !important;
+  /* Make TOC sticky and position it below the header */
+  position: sticky !important;
+  top: 72px !important; /* Header height (56px) + some padding (16px) */
+  max-height: calc(
+    100vh - 72px
+  ) !important; /* Ensure it doesn't exceed viewport */
+  overflow-y: auto !important; /* Allow scrolling within TOC if content is too long */
+  margin-top: 0 !important; /* Remove the previous margin-top */
 }
 
 #nd-sidebar {
