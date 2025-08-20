@@ -1,4 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
+import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { DeepPartial } from "ts-essentials";
 import { useTamboSessionToken } from "../use-tambo-session-token";
@@ -25,62 +26,77 @@ describe("useTamboSessionToken", () => {
     beta: mockBeta,
     bearer: "",
   } satisfies PartialTamboAI as unknown as TamboAI;
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
     (mockTamboAI as any).bearer = "";
+    queryClient.clear();
   });
 
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
+  afterEach(async () => {
+    await act(async () => {
+      await jest.runOnlyPendingTimersAsync();
+    });
     jest.useRealTimers();
+    jest.resetAllMocks();
   });
 
   it("should return null initially when no userToken is provided", () => {
     const { result } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, undefined),
+      useTamboSessionToken(mockTamboAI, queryClient, undefined),
     );
 
-    expect(result.current).toEqual({
-      tamboSessionToken: null,
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: false,
     });
     expect(mockAuthApi.getToken).not.toHaveBeenCalled();
   });
 
   it("should fetch and return session token when userToken is provided", async () => {
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(mockTokenResponse);
+    mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
     const { result } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, "user-token"),
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
+    );
+    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await jest.runOnlyPendingTimersAsync();
+    });
+
+    expect(result.current).toMatchObject({
+      data: mockTokenResponse,
+      isFetching: false,
+    });
+    expect(mockTamboAI.bearer).toBe(mockTokenResponse.access_token);
+    // Verify the hook was called with correct parameters
+    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(2);
+    expect(mockAuthApi.getToken).toHaveBeenCalledWith(expect.any(Object));
+  });
+
+  it("should call getToken with correct token exchange parameters", async () => {
+    mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
+
+    renderHook(() =>
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
     );
 
     await act(async () => {
       await jest.runOnlyPendingTimersAsync();
     });
 
-    expect(result.current).toEqual({
-      tamboSessionToken: "test-access-token",
-      isUpdating: false,
-    });
-    expect(mockTamboAI.bearer).toBe("test-access-token");
-    // Verify the hook was called with correct parameters
-    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(1);
-    expect(mockAuthApi.getToken).toHaveBeenCalledWith(expect.any(Object));
-  });
-
-  it("should call getToken with correct token exchange parameters", async () => {
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(mockTokenResponse);
-
-    renderHook(() => useTamboSessionToken(mockTamboAI, "user-token"));
-
-    await act(async () => {
-      await jest.runOnlyPendingTimersAsync();
-    });
-
-    const callArgs = jest.mocked(mockAuthApi.getToken).mock.calls[0][0];
+    const callArgs = mockAuthApi.getToken.mock.calls[0][0];
     const tokenRequestString = new TextDecoder().decode(callArgs);
     const tokenRequest = new URLSearchParams(tokenRequestString);
 
@@ -94,19 +110,18 @@ describe("useTamboSessionToken", () => {
   });
 
   it("should set bearer token on client", async () => {
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(mockTokenResponse);
+    mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
     const { result } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, "user-token"),
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
     );
 
     await act(async () => {
       await jest.runOnlyPendingTimersAsync();
     });
 
-    expect(result.current).toEqual({
-      tamboSessionToken: "test-access-token",
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: mockTokenResponse,
     });
     expect(mockTamboAI.bearer).toBe("test-access-token");
   });
@@ -118,42 +133,48 @@ describe("useTamboSessionToken", () => {
       token_type: "Bearer",
     };
 
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(customTokenResponse);
+    mockAuthApi.getToken.mockResolvedValue(customTokenResponse);
 
     const { result } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, "user-token"),
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
     );
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: true,
+    });
 
     await act(async () => {
       await jest.runOnlyPendingTimersAsync();
     });
 
-    expect(result.current).toEqual({
-      tamboSessionToken: "custom-access-token",
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: customTokenResponse,
+      isFetching: false,
     });
     expect(mockTamboAI.bearer).toBe("custom-access-token");
   });
 
   it("should not fetch token when userToken changes to undefined", async () => {
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(mockTokenResponse);
+    mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
     const { result, rerender } = renderHook(
-      ({ userToken }) => useTamboSessionToken(mockTamboAI, userToken),
+      ({ userToken }) =>
+        useTamboSessionToken(mockTamboAI, queryClient, userToken),
       {
         initialProps: { userToken: "user-token" as string | undefined },
       },
     );
+    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       await jest.runOnlyPendingTimersAsync();
     });
 
-    expect(result.current).toEqual({
-      tamboSessionToken: "test-access-token",
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: mockTokenResponse,
+      isFetching: false,
     });
-    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(1);
+    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(2);
 
     // Clear mock and change userToken to undefined
     jest.clearAllMocks();
@@ -166,27 +187,29 @@ describe("useTamboSessionToken", () => {
   });
 
   it("should refetch token when userToken changes", async () => {
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(mockTokenResponse);
+    mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
     const { result, rerender } = renderHook(
-      ({ userToken }) => useTamboSessionToken(mockTamboAI, userToken),
+      ({ userToken }) =>
+        useTamboSessionToken(mockTamboAI, queryClient, userToken),
       {
         initialProps: { userToken: "user-token-1" },
       },
     );
+    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       await jest.runOnlyPendingTimersAsync();
     });
 
-    expect(result.current).toEqual({
-      tamboSessionToken: "test-access-token",
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: mockTokenResponse,
+      isFetching: false,
     });
-    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(1);
+    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(2);
 
     // Mock response for new token
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue({
+    mockAuthApi.getToken.mockResolvedValue({
       ...mockTokenResponse,
       access_token: "new-access-token",
     });
@@ -200,18 +223,19 @@ describe("useTamboSessionToken", () => {
       await jest.runOnlyPendingTimersAsync();
     });
 
-    expect(result.current).toEqual({
-      tamboSessionToken: "new-access-token",
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: { access_token: "new-access-token" },
+      isFetching: false,
     });
-    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(2);
+    expect(mockAuthApi.getToken).toHaveBeenCalledTimes(4);
   });
 
   it("should reset token when userToken becomes null", async () => {
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(mockTokenResponse);
+    mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
     const { result, rerender } = renderHook(
-      ({ userToken }) => useTamboSessionToken(mockTamboAI, userToken),
+      ({ userToken }) =>
+        useTamboSessionToken(mockTamboAI, queryClient, userToken),
       {
         initialProps: { userToken: "user-token" as string | undefined },
       },
@@ -221,20 +245,21 @@ describe("useTamboSessionToken", () => {
       await jest.runOnlyPendingTimersAsync();
     });
 
-    expect(result.current).toEqual({
-      tamboSessionToken: "test-access-token",
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: mockTokenResponse,
+      isFetching: false,
     });
 
     // Change userToken to undefined
-    act(() => {
-      rerender({ userToken: undefined });
+    rerender({ userToken: undefined });
+    await act(async () => {
+      await jest.runAllTimersAsync();
     });
 
-    // Token should remain the same (hook doesn't reset it to null when userToken is undefined)
-    expect(result.current).toEqual({
-      tamboSessionToken: "test-access-token",
-      isUpdating: false,
+    // Token should reset to null (hook doesn't reset it to null when userToken is undefined)
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: false,
     });
   });
 
@@ -244,15 +269,15 @@ describe("useTamboSessionToken", () => {
       resolvePromise = resolve;
     });
 
-    jest.mocked(mockAuthApi.getToken).mockReturnValue(promise);
+    mockAuthApi.getToken.mockReturnValue(promise);
 
     const { result, unmount } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, "user-token"),
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
     );
 
-    expect(result.current).toEqual({
-      tamboSessionToken: null,
-      isUpdating: true,
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: true,
     });
 
     // Unmount before the promise resolves
@@ -264,39 +289,39 @@ describe("useTamboSessionToken", () => {
     });
 
     // Token should still be null since component was unmounted
-    expect(result.current).toEqual({
-      tamboSessionToken: null,
-      isUpdating: true,
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: true,
     });
   });
 
   it("should set isUpdating to true while fetching token", () => {
-    jest.mocked(mockAuthApi.getToken).mockImplementation(async () => {
+    mockAuthApi.getToken.mockImplementation(async () => {
       return await new Promise(() => {}); // Never resolves
     });
 
     const { result } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, "user-token"),
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
     );
 
     // Should be updating immediately when userToken is provided
-    expect(result.current).toEqual({
-      tamboSessionToken: null,
-      isUpdating: true,
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: true,
     });
   });
 
   it("should set isUpdating to false after token fetch completes", async () => {
-    jest.mocked(mockAuthApi.getToken).mockResolvedValue(mockTokenResponse);
+    mockAuthApi.getToken.mockResolvedValue(mockTokenResponse);
 
     const { result } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, "user-token"),
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
     );
 
     // Should be updating initially
-    expect(result.current).toEqual({
-      tamboSessionToken: null,
-      isUpdating: true,
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: true,
     });
 
     await act(async () => {
@@ -304,35 +329,34 @@ describe("useTamboSessionToken", () => {
     });
 
     // Should not be updating after completion
-    expect(result.current).toEqual({
-      tamboSessionToken: "test-access-token",
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: mockTokenResponse,
+      isFetching: false,
     });
   });
 
   it("should set isUpdating to false after token fetch fails", async () => {
-    jest
-      .mocked(mockAuthApi.getToken)
-      .mockRejectedValue(new Error("Token fetch failed"));
+    mockAuthApi.getToken.mockRejectedValue(new Error("Token fetch failed"));
 
     const { result } = renderHook(() =>
-      useTamboSessionToken(mockTamboAI, "user-token"),
+      useTamboSessionToken(mockTamboAI, queryClient, "user-token"),
     );
 
     // Should be updating initially
-    expect(result.current).toEqual({
-      tamboSessionToken: null,
-      isUpdating: true,
+    expect(result.current).toMatchObject({
+      data: undefined,
+      isFetching: true,
     });
 
     await act(async () => {
-      await jest.runOnlyPendingTimersAsync();
+      await jest.runAllTimersAsync();
     });
 
     // Should not be updating after failure
-    expect(result.current).toEqual({
-      tamboSessionToken: null,
-      isUpdating: false,
+    expect(result.current).toMatchObject({
+      data: undefined,
+      error: expect.any(Error),
+      isFetching: false,
     });
   });
 });

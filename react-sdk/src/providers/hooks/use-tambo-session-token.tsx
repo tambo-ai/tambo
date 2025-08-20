@@ -1,6 +1,7 @@
 "use client";
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { useEffect, useState } from "react";
+import { QueryClient, useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 /**
  * This internal hook is used to get the Tambo session token and keep it
@@ -11,91 +12,46 @@ import { useEffect, useState } from "react";
  *
  * This hook is used by the TamboClientProvider.
  * @param client - The Tambo client.
+ * @param queryClient - The query client.
  * @param userToken - The user token.
  * @returns The Tambo session token.
  */
 export function useTamboSessionToken(
   client: TamboAI,
+  queryClient: QueryClient,
   userToken: string | undefined,
 ) {
-  const [tamboSessionToken, setTamboSessionToken] = useState<string | null>(
-    null,
-  );
-  // we need to set this to true when the token is expired, this is effectively
-  // like a dirty bit, which will trigger a new useEffect()
-  const [isExpired, setIsExpired] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
-  useEffect(() => {
-    let expireTimer: NodeJS.Timeout | null = null;
-
-    async function updateToken(
-      subjectToken: string,
-      abortController: AbortController,
-    ) {
-      if (abortController.signal.aborted || !userToken) {
-        return;
-      }
-
-      setIsUpdating(true);
-      const tokenRequest = {
-        grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-        subject_token: subjectToken,
-        subject_token_type: "urn:ietf:params:oauth:token-type:access_token",
-      };
-      const tokenRequestFormEncoded = new URLSearchParams(
-        tokenRequest,
-      ).toString();
-      const tokenAsArrayBuffer = new TextEncoder().encode(
-        tokenRequestFormEncoded,
-      );
-
-      try {
-        const tamboToken = await client.beta.auth.getToken(
-          tokenAsArrayBuffer as any,
+  const result = useQuery(
+    {
+      queryKey: ["tambo-session-token", userToken],
+      queryFn: async () => {
+        const tokenRequest = {
+          grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+          // will only be undefined if the userToken is not provided, in which case the query will be disabled.
+          subject_token: userToken!,
+          subject_token_type: "urn:ietf:params:oauth:token-type:access_token",
+        };
+        const tokenRequestFormEncoded = new URLSearchParams(
+          tokenRequest,
+        ).toString();
+        const tokenAsArrayBuffer = new TextEncoder().encode(
+          tokenRequestFormEncoded,
         );
-
-        if (abortController.signal.aborted) {
-          return;
+        return await client.beta.auth.getToken(tokenAsArrayBuffer as any);
+      },
+      enabled: !!userToken,
+      refetchInterval: (result) => {
+        if (result.state.data?.expires_in) {
+          return result.state.data.expires_in * 1000;
         }
-        setTamboSessionToken(tamboToken.access_token);
-        client.bearer = tamboToken.access_token;
-        setIsExpired(false);
-
-        // we need to set a timer to refresh the token when it expires
-        const refreshTime = Math.max(tamboToken.expires_in - 60, 0);
-
-        // careful with the assignment here: since this is an async function, this
-        // code is executed outside the of the scope of the useEffect() hook, so
-        // we need to use a let variable to store the timer
-        expireTimer = setTimeout(() => {
-          setIsExpired(true);
-        }, refreshTime * 1000);
-      } catch (error) {
-        if (!abortController.signal.aborted) {
-          console.error("Failed to get token:", error);
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsUpdating(false);
-        }
-      }
-    }
-
-    const abortController = new AbortController();
-    if (userToken && isExpired) {
-      updateToken(userToken, abortController);
-    } else if (!userToken) {
-      setIsUpdating(false);
-    }
-
-    return () => {
-      // This fires when the component unmounts or the userToken changes
-      abortController.abort();
-      if (expireTimer) {
-        clearTimeout(expireTimer);
-      }
-    };
-  }, [client, isExpired, userToken]);
-
-  return { tamboSessionToken, isUpdating };
+        return false;
+      },
+    },
+    queryClient,
+  );
+  const accessToken = result.data?.access_token ?? null;
+  useEffect(() => {
+    client.bearer = accessToken;
+  }, [accessToken, client]);
+  return result;
 }

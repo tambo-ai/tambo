@@ -72,14 +72,18 @@ export const TamboClientProvider: React.FC<
   const [queryClient] = useState(() => new QueryClient());
 
   // Keep the session token updated and get the updating state
-  const { isUpdating } = useTamboSessionToken(client, userToken);
+  const { isFetching: isUpdatingToken } = useTamboSessionToken(
+    client,
+    queryClient,
+    userToken,
+  );
 
   return (
     <TamboClientContext.Provider
       value={{
         client,
         queryClient,
-        isUpdatingToken: isUpdating,
+        isUpdatingToken,
       }}
     >
       {children}
