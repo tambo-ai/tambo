@@ -61,7 +61,7 @@ export interface TamboThreadInputProviderProps {
  */
 export const TamboThreadInputProvider: React.FC<
   PropsWithChildren<TamboThreadInputProviderProps>
-> = ({ children }) => {
+> = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
 
@@ -87,14 +87,14 @@ export const TamboThreadInputProvider: React.FC<
 
       await sendThreadMessage(validation.sanitizedInput, {
         threadId: thread.id,
-        contextKey: submitContextKey ?? undefined,
+        contextKey: submitContextKey ?? contextKey ?? undefined,
         streamResponse: streamResponse,
         forceToolChoice: forceToolChoice,
         additionalContext: additionalContext,
       });
       setInputValue(""); // Clear local state
     },
-    [inputValue, sendThreadMessage, thread.id],
+    [inputValue, sendThreadMessage, thread.id, contextKey],
   );
 
   const {
