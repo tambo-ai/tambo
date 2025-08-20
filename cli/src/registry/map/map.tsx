@@ -292,7 +292,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
     const message = thread?.messages[thread?.messages.length - 1];
 
-    const isLatestMessage = message?.id === currentMessage.id;
+    const isLatestMessage = message?.id && message.id === currentMessage?.id;
 
     const generationStage = thread?.generationStage;
     const isGenerating =
