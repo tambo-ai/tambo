@@ -58,6 +58,8 @@ export interface TamboThreadInputProviderProps {
  * Provider that manages shared thread input state across all components
  * This ensures that useTamboThreadInput, useTamboSuggestions, and components
  * all share the same input state
+ * @param contextKey - Optional context key.
+ * @returns The thread input context
  */
 export const TamboThreadInputProvider: React.FC<
   PropsWithChildren<TamboThreadInputProviderProps>
@@ -125,6 +127,7 @@ export const TamboThreadInputProvider: React.FC<
 /**
  * Hook to access the shared thread input state
  * @param contextKey - Optional context key that overrides the provider's contextKey for this specific usage, for backwards compatibility.
+ * @returns The thread input context
  */
 export const useTamboThreadInput = (contextKey?: string) => {
   const context = useContext(TamboThreadInputContext);
