@@ -34,6 +34,8 @@ export interface TamboClientContextProps {
   client: TamboAI;
   /** The tambo-specific query client */
   queryClient: QueryClient;
+  /** Whether the session token is currently being updated */
+  isUpdatingToken: boolean;
 }
 
 export const TamboClientContext = createContext<
@@ -69,11 +71,17 @@ export const TamboClientProvider: React.FC<
   const [client] = useState(() => new TamboAI(tamboConfig));
   const [queryClient] = useState(() => new QueryClient());
 
-  // Keep the session token updated
-  useTamboSessionToken(client, userToken);
+  // Keep the session token updated and get the updating state
+  const { isUpdating } = useTamboSessionToken(client, userToken);
 
   return (
-    <TamboClientContext.Provider value={{ client, queryClient }}>
+    <TamboClientContext.Provider
+      value={{
+        client,
+        queryClient,
+        isUpdatingToken: isUpdating,
+      }}
+    >
       {children}
     </TamboClientContext.Provider>
   );
@@ -106,4 +114,18 @@ export const useTamboQueryClient = () => {
     );
   }
   return context.queryClient;
+};
+
+/**
+ * Hook to check if the session token is currently being updated
+ * @returns true if the token is being refreshed, false otherwise
+ */
+export const useIsTamboTokenUpdating = () => {
+  const context = React.useContext(TamboClientContext);
+  if (context === undefined) {
+    throw new Error(
+      "useIsTamboTokenUpdating must be used within a TamboClientProvider",
+    );
+  }
+  return context.isUpdatingToken;
 };
