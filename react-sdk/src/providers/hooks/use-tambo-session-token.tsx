@@ -94,7 +94,6 @@ export function useTamboSessionToken(
       if (expireTimer) {
         clearTimeout(expireTimer);
       }
-      setIsUpdating(false);
     };
   }, [client, isExpired, userToken]);
 
