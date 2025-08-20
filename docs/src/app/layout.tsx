@@ -3,6 +3,7 @@ import { TamboProvider } from "@tambo-ai/react";
 import { RootProvider } from "fumadocs-ui/provider";
 import { ThemeProvider } from "next-themes";
 import { Inter } from "next/font/google";
+import { components } from "@/lib/tambo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,6 +16,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <TamboProvider
           apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
           tamboUrl={process.env.NEXT_PUBLIC_TAMBO_URL!}
+          components={components}
         >
           <ThemeProvider
             attribute="class"
