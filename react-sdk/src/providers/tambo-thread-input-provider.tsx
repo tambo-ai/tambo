@@ -46,14 +46,9 @@ export interface TamboThreadInputContextProps {
   reset: () => void;
 }
 
-const TamboThreadInputContext = createContext<TamboThreadInputContextProps>({
-  value: "",
-  setValue: () => {},
-  submit: async () => {},
-  isPending: false,
-  error: null,
-  reset: () => {},
-});
+export const TamboThreadInputContext = createContext<
+  TamboThreadInputContextProps | undefined
+>(undefined);
 
 export interface TamboThreadInputProviderProps {
   contextKey?: string;
