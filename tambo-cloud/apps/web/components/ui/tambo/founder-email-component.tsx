@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useTamboComponentState,
-  useTamboStreamingProps,
-} from "@tambo-ai/react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "../button";
 import { Input } from "../input";
@@ -64,25 +61,32 @@ export const FounderEmailComponent = ({
   aiGeneratedBody = "",
   usersEmail = "",
 }: FounderEmailProps) => {
-  // Use Tambo's state management hook with a unique key
-  const [emailState, setEmailState] = useTamboComponentState<EmailState>(
-    "founder-email-state",
-    {
-      subject: aiGeneratedSubject || "",
-      body: aiGeneratedBody || "",
-      usersEmail: usersEmail || "",
-      isSent: false,
-      isLoading: false,
-      error: null,
-    },
-  );
-
-  // Use Tambo's streaming props hook to handle prop updates
-  useTamboStreamingProps(emailState, setEmailState, {
+  const [emailState, setEmailState] = useState<EmailState>({
     subject: aiGeneratedSubject,
     body: aiGeneratedBody,
     usersEmail: usersEmail,
+    isSent: false,
+    isLoading: false,
+    error: null,
   });
+
+  useEffect(() => {
+    setEmailState((prevState) => {
+      // Only update if not currently loading and not already sent
+      if (prevState.isLoading || prevState.isSent) {
+        return prevState;
+      }
+
+      return {
+        subject: aiGeneratedSubject,
+        body: aiGeneratedBody,
+        usersEmail: usersEmail,
+        isSent: false,
+        isLoading: false,
+        error: null,
+      };
+    });
+  }, [aiGeneratedSubject, aiGeneratedBody, usersEmail]);
 
   // Update the Tambo state when input changes
   const handleSubjectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
