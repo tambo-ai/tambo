@@ -1575,15 +1575,13 @@ export class ThreadsService {
       let lastUpdateTime = 0;
       const updateIntervalMs = 500;
 
-      const cancellationRef = { current: false };
-
       const checkCancellationStatus = async () => {
         try {
           const thread = await operations.getThread(db, threadId, projectId);
-          cancellationRef.current =
+          const isCancelled =
             thread?.generationStage === GenerationStage.CANCELLED;
 
-          if (cancellationRef.current) {
+          if (isCancelled) {
             Sentry.addBreadcrumb({
               message: "Stream cancelled during processing",
               category: "stream",
@@ -1591,6 +1589,7 @@ export class ThreadsService {
               data: { threadId, chunksProcessed: chunkCount },
             });
           }
+          return isCancelled;
         } catch (error) {
           logger.error(`Error checking thread cancellation status: ${error}`);
           Sentry.captureException(error, {
@@ -1612,10 +1611,9 @@ export class ThreadsService {
         // Update db message on interval
         const currentTime = Date.now();
         if (currentTime - lastUpdateTime >= updateIntervalMs) {
-          // Fire off cancellation check asynchronously - will update cancellationRef for future iterations
-          checkCancellationStatus();
+          const isCancelled = await checkCancellationStatus();
 
-          if (cancellationRef.current) {
+          if (isCancelled) {
             yield {
               responseMessageDto: {
                 ...threadMessage,

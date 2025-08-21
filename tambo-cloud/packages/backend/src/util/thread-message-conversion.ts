@@ -184,14 +184,11 @@ function makeAssistantMessages(
     );
   }
   const toolCallId = message.tool_call_id ?? "";
-  const componentDecisionToolCalls = makeToolCallWithFakeFallback(
-    message,
-    toolCallId,
-  );
+  const toolCalls = makeToolCallWithFakeFallback(message, toolCallId);
   const assistantMessage: OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam =
     {
       role: "assistant",
-      tool_calls: componentDecisionToolCalls,
+      tool_calls: toolCalls,
       content: message.component
         ? [
             {
@@ -206,7 +203,7 @@ function makeAssistantMessages(
           ]
         : (message.content as ChatCompletionContentPartText[]),
     };
-  if (componentDecisionToolCalls && !respondedToolIds.includes(toolCallId)) {
+  if (toolCalls && !respondedToolIds.includes(toolCallId)) {
     const userMessage: OpenAI.Chat.Completions.ChatCompletionToolMessageParam =
       {
         role: "tool",
