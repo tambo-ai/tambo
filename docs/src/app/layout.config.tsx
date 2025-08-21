@@ -5,4 +5,25 @@ export const baseOptions: BaseLayoutProps = {
   themeSwitch: {
     enabled: false,
   },
+  links: [
+    {
+      type: "icon",
+      icon: <img src="/discord-icon.svg" alt="Discord" className="h-5 w-5" />,
+      text: "Discord",
+      url: "https://tambo.co/discord",
+    },
+    {
+      type: "icon",
+      icon: (
+        <img
+          src="/logo/icon/Octo-Icon.svg"
+          alt="Dashboard"
+          className="h-5 w-5"
+        />
+      ),
+      text: "Dashboard",
+      url: "https://tambo.co/dashboard",
+    },
+  ],
+  githubUrl: "https://github.com/tambo-ai/tambo",
 };
