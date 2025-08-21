@@ -186,7 +186,7 @@ export async function addUserMessage(
         return await addMessage(tx, threadId, message);
       },
       {
-        isolationLevel: "serializable",
+        isolationLevel: "read committed",
       },
     );
 
@@ -254,14 +254,14 @@ export async function addAssistantResponse(
         };
       },
       {
-        isolationLevel: "serializable",
+        isolationLevel: "read committed",
       },
     );
 
     return result;
   } catch (error) {
     logger?.error(
-      "Transaction failed: Adding assistant response",
+      "Transaction failed: Adding assistant response.",
       (error as Error).stack,
     );
     throw error;
@@ -346,7 +346,7 @@ export async function addInProgressMessage(
         });
       },
       {
-        isolationLevel: "serializable",
+        isolationLevel: "read committed",
       },
     );
 
@@ -409,7 +409,7 @@ export async function finishInProgressMessage(
         };
       },
       {
-        isolationLevel: "serializable",
+        isolationLevel: "read committed",
       },
     );
 
