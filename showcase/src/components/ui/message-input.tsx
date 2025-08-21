@@ -123,8 +123,7 @@ export interface MessageInputProps
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
   ({ children, className, contextKey, variant, ...props }, ref) => {
-    const { value, setValue, submit, isPending, error } =
-      useTamboThreadInput(contextKey);
+    const { value, setValue, submit, isPending, error } = useTamboThreadInput();
     const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);

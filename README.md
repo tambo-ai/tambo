@@ -68,7 +68,7 @@ const components: TamboComponent[] = [
 ### 3. Submit user messages
 
 ```tsx
-const { submit } = useTamboThreadInput(contextKey);
+const { submit } = useTamboThreadInput();
 
 await submit({
   contextKey,
