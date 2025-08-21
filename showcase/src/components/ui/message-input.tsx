@@ -1,12 +1,12 @@
 "use client";
 
+import { McpConfigModal } from "@/components/ui/mcp-config-modal";
+import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Square } from "lucide-react";
 import * as React from "react";
-import { McpConfigModal } from "@/components/ui/mcp-config-modal";
-import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 
 /**
  * CSS variants for the message input container
@@ -494,7 +494,30 @@ const MessageInputToolbar = React.forwardRef<
       data-slot="message-input-toolbar"
       {...props}
     >
-      {children}
+      <div className="flex items-center gap-2">
+        {/* Left side - everything except submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return null; // Don't render submit button here
+          }
+          return child;
+        })}
+      </div>
+      <div className="flex items-center gap-2">
+        {/* Right side - only submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return child; // Only render submit button here
+          }
+          return null;
+        })}
+      </div>
     </div>
   );
 });
