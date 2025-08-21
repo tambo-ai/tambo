@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.101.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.10...repo-v0.101.0) (2025-08-21)
+
+
+### Features
+
+* **webhooks:** add authentication for signup webhook ([#1578](https://github.com/tambo-ai/tambo-cloud/issues/1578)) ([b6a7e8b](https://github.com/tambo-ai/tambo-cloud/commit/b6a7e8be62a85709a5d1c971a4aae72329093850))
+
 ## [0.100.10](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.9...repo-v0.100.10) (2025-08-20)
 
 
