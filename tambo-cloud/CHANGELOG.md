@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.101.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.0...repo-v0.101.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* relax isolation levels ([#1598](https://github.com/tambo-ai/tambo-cloud/issues/1598)) ([5eee3b4](https://github.com/tambo-ai/tambo-cloud/commit/5eee3b4252bed8562f90d18ceceaebea24068094))
+
 ## [0.101.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.100.10...repo-v0.101.0) (2025-08-21)
 
 
