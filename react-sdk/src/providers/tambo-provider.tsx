@@ -28,6 +28,10 @@ import {
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
 import {
+  TamboThreadInputProvider,
+  TamboThreadInputProviderProps,
+} from "./tambo-thread-input-provider";
+import {
   TamboGenerationStageContextProps,
   TamboThreadContextProps,
   TamboThreadProvider,
@@ -47,6 +51,8 @@ import {
  * @param props.tools - The tools to register
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
+ * @param props.contextKey - Optional context key to be used in the thread input provider.
+ * @param props.userToken - Optional user token to be used in the TamboClientProvider for requests to the Tambo API.
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -54,7 +60,8 @@ export const TamboProvider: React.FC<
     TamboClientProviderProps &
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
-      TamboContextHelpersProviderProps
+      TamboContextHelpersProviderProps &
+      TamboThreadInputProviderProps
   >
 > = ({
   children,
@@ -66,6 +73,7 @@ export const TamboProvider: React.FC<
   tools,
   streaming,
   contextHelpers,
+  contextKey,
 }) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
@@ -82,11 +90,13 @@ export const TamboProvider: React.FC<
       <TamboRegistryProvider components={components} tools={tools}>
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider streaming={streaming}>
-            <TamboComponentProvider>
-              <TamboInteractableProvider>
-                <TamboCompositeProvider>{children}</TamboCompositeProvider>
-              </TamboInteractableProvider>
-            </TamboComponentProvider>
+            <TamboThreadInputProvider contextKey={contextKey}>
+              <TamboComponentProvider>
+                <TamboInteractableProvider>
+                  <TamboCompositeProvider>{children}</TamboCompositeProvider>
+                </TamboInteractableProvider>
+              </TamboComponentProvider>
+            </TamboThreadInputProvider>
           </TamboThreadProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
