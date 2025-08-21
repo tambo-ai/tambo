@@ -79,7 +79,11 @@ export function TamboHackBanner() {
               <motion.button
                 type="button"
                 aria-label="Dismiss banner"
-                onPointerDown={handleDismiss}
+                onClick={handleDismiss}
+                onPointerDown={(e) => {
+                  if (e.pointerType === "mouse" || e.pointerType === "pen")
+                    handleDismiss();
+                }}
                 whileTap={{ scale: 0.94 }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-[#5C94F7] hover:bg-[#5C94F7]/10 transition-colors"
               >

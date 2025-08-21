@@ -8,7 +8,14 @@ export const baseOptions: BaseLayoutProps = {
   links: [
     {
       type: "icon",
-      icon: <img src="/discord-icon.svg" alt="Discord" className="h-5 w-5" />,
+      icon: (
+        <img
+          src="/discord-icon.svg"
+          alt=""
+          aria-hidden="true"
+          className="h-5 w-5"
+        />
+      ),
       text: "Discord",
       url: "https://tambo.co/discord",
     },
@@ -17,7 +24,8 @@ export const baseOptions: BaseLayoutProps = {
       icon: (
         <img
           src="/logo/icon/Octo-Icon.svg"
-          alt="Dashboard"
+          alt=""
+          aria-hidden="true"
           className="h-5 w-5"
         />
       ),
