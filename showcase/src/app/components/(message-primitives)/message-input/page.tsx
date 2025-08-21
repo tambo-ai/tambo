@@ -5,7 +5,6 @@ import {
   MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
-  MessageInputToolbar,
 } from "@/components/ui/message-input";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
@@ -132,12 +131,10 @@ export default function MessageInputPage() {
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-default" variant="default">
                 <MessageInputTextarea placeholder="Type your message..." />
-                <MessageInputToolbar>
-                  <div className="flex items-center gap-2">
-                    {/* Add any other tools here */}
-                  </div>
+                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                  {/* Add any other tools here */}
                   <MessageInputSubmitButton />
-                </MessageInputToolbar>
+                </div>
                 <MessageInputError />
               </MessageInput>
             </div>
@@ -149,12 +146,10 @@ export default function MessageInputPage() {
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-solid" variant="solid">
                 <MessageInputTextarea placeholder="Type your message..." />
-                <MessageInputToolbar>
-                  <div className="flex items-center gap-2">
-                    {/* Add any other tools here */}
-                  </div>
+                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                  {/* Add any other tools here */}
                   <MessageInputSubmitButton />
-                </MessageInputToolbar>
+                </div>
                 <MessageInputError />
               </MessageInput>
             </div>
@@ -166,12 +161,10 @@ export default function MessageInputPage() {
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-bordered" variant="bordered">
                 <MessageInputTextarea placeholder="Type your message..." />
-                <MessageInputToolbar>
-                  <div className="flex items-center gap-2">
-                    {/* Add any other tools here */}
-                  </div>
+                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                  {/* Add any other tools here */}
                   <MessageInputSubmitButton />
-                </MessageInputToolbar>
+                </div>
                 <MessageInputError />
               </MessageInput>
             </div>
@@ -185,12 +178,14 @@ export default function MessageInputPage() {
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-mcp" variant="default">
                 <MessageInputTextarea placeholder="Type your message..." />
-                <MessageInputToolbar>
+                <div className="flex justify-between items-center mt-2 p-1 gap-2">
                   <div className="flex items-center gap-2">
                     <MessageInputMcpConfigButton />
                   </div>
-                  <MessageInputSubmitButton />
-                </MessageInputToolbar>
+                  <div className="flex items-center gap-2">
+                    <MessageInputSubmitButton />
+                  </div>
+                </div>
                 <MessageInputError />
               </MessageInput>
             </div>
