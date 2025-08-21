@@ -16,6 +16,8 @@ import { useTamboThread } from "./tambo-thread-provider";
 
 /**
  * Error messages for various input-related error scenarios
+ * These messages are used to provide user-friendly error feedback
+ * @readonly
  */
 export const INPUT_ERROR_MESSAGES = {
   EMPTY: "Message cannot be empty",
