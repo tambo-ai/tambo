@@ -182,3 +182,44 @@ export async function getInactiveUsersWithProjects(
 
   return users;
 }
+
+/**
+ * Validate user for welcome email and return all necessary data in one query
+ */
+export async function validateUserForWelcomeEmail(
+  db: HydraDb,
+  userId: string,
+  expectedEmail: string,
+): Promise<{
+  isValid: boolean;
+  alreadySent: boolean;
+  error?: string;
+}> {
+  const result = await db
+    .select({
+      authEmail: schema.authUsers.email,
+      welcomeEmailSent: schema.tamboUsers.welcomeEmailSent,
+    })
+    .from(schema.authUsers)
+    .leftJoin(
+      schema.tamboUsers,
+      eq(schema.authUsers.id, schema.tamboUsers.userId),
+    )
+    .where(eq(schema.authUsers.id, userId))
+    .limit(1);
+
+  if (result.length === 0) {
+    return { isValid: false, alreadySent: false, error: "User not found" };
+  }
+
+  const [row] = result;
+
+  if (row.authEmail !== expectedEmail) {
+    return { isValid: false, alreadySent: false, error: "Email mismatch" };
+  }
+
+  return {
+    isValid: true,
+    alreadySent: row.welcomeEmailSent === true,
+  };
+}
