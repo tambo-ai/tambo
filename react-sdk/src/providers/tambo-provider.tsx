@@ -5,6 +5,7 @@ import {
   TamboClientContextProps,
   TamboClientProvider,
   TamboClientProviderProps,
+  useIsTamboTokenUpdating,
   useTamboClient,
   useTamboQueryClient,
 } from "./tambo-client-provider";
@@ -51,8 +52,8 @@ import {
  * @param props.tools - The tools to register
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
- * @param props.contextKey - Optional context key to be used in the thread input provider.
- * @param props.userToken - Optional user token to be used in the TamboClientProvider for requests to the Tambo API.
+ * @param props.userToken - The JWT id token to use to identify the user in the Tambo API. (preferred over contextKey)
+ * @param props.contextKey - Optional context key to be used in the thread input provider
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -128,6 +129,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
   const threads = useTamboThread();
   const client = useTamboClient();
   const queryClient = useTamboQueryClient();
+  const isUpdatingToken = useIsTamboTokenUpdating();
   const componentRegistry = useTamboComponent();
   const interactableComponents = useTamboInteractable();
   const contextHelpers = useTamboContextHelpers();
@@ -137,6 +139,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
       value={{
         client,
         queryClient,
+        isUpdatingToken,
         ...componentRegistry,
         ...threads,
         ...interactableComponents,
