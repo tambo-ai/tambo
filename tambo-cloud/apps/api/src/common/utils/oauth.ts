@@ -2,6 +2,7 @@ import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import {
   decryptOAuthSecretKey,
   OAuthValidationMode,
+  OidcProviderConfig,
 } from "@tambo-ai-cloud/core";
 import {
   createRemoteJWKSet,
@@ -262,7 +263,7 @@ export async function validateSubjectToken(
         );
       }
 
-      const openidConfig = await configResponse.json();
+      const openidConfig = (await configResponse.json()) as OidcProviderConfig;
       if (!openidConfig.jwks_uri || typeof openidConfig.jwks_uri !== "string") {
         throw new UnauthorizedException(
           "OAuth provider configuration missing or invalid jwks_uri",

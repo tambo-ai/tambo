@@ -26,22 +26,20 @@ export interface OAuthTokens {
   expires_in?: number;
   /** The scope of the token, depends on the client */
   scope?: string;
+  id_token?: string;
 }
 
-interface OidcProviderConfig {
+export interface OidcProviderConfig {
   issuer: string;
   token_endpoint: string;
-  // …you can add other fields if you need them (userinfo_endpoint, jwks_uri, etc.)
+  jwks_uri: string;
+  // …you can add other fields if you need them (userinfo_endpoint, etc.)
 }
 
 async function getOidcConfig(issuer: string): Promise<OidcProviderConfig> {
   const res = await fetch(`${issuer}/.well-known/openid-configuration`);
   if (!res.ok) throw new Error("Failed to fetch OIDC config");
-  const json = await res.json();
-  const config = {
-    issuer: json.issuer,
-    token_endpoint: json.token_endpoint,
-  };
+  const config = (await res.json()) as OidcProviderConfig;
   return config;
 }
 
@@ -77,14 +75,14 @@ export async function refreshOidcToken(
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString(),
   });
-  const refreshed = await res.json();
+  const refreshed = (await res.json()) as OAuthTokens;
   if (!res.ok) throw refreshed;
 
   return {
     ...token,
     accessToken: refreshed.access_token,
     idToken: refreshed.id_token,
-    accessTokenExpires: Date.now() + refreshed.expires_in * 1000,
+    accessTokenExpires: Date.now() + (refreshed.expires_in ?? 0) * 1000,
     // some providers rotate refresh tokens
     refreshToken: refreshed.refresh_token ?? token.refreshToken,
   };

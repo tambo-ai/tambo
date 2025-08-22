@@ -1,6 +1,8 @@
 {
   "extends": "@tambo-ai-cloud/typescript-config/base",
   "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2024", "ESNext.Array", "ESNext.Collection", "ESNext.Iterator"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "outDir": "./dist",
