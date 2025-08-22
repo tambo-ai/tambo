@@ -12,13 +12,16 @@ import {
 } from "../../providers/tambo-client-provider";
 import { TamboContextProps, useTambo } from "../../providers/tambo-provider";
 import {
+  TamboThreadInputContextProps,
+  useTamboThreadInput,
+} from "../../providers/tambo-thread-input-provider";
+import {
   CombinedTamboThreadContextProps,
   useTamboThread,
 } from "../../providers/tambo-thread-provider";
 import { PartialTamboAI } from "../../testing/types";
 import { useTamboMutation, useTamboQuery } from "../react-query-hooks";
 import { useTamboSuggestions } from "../use-suggestions";
-import { useTamboThreadInput, UseThreadInput } from "../use-thread-input";
 
 // Mock the required providers
 jest.mock("../../providers/tambo-client-provider", () => ({
@@ -32,7 +35,9 @@ jest.mock("../../providers/tambo-thread-provider", () => ({
   useTamboThread: jest.fn(),
 }));
 
-jest.mock("../use-thread-input", () => ({ useTamboThreadInput: jest.fn() }));
+jest.mock("../../providers/tambo-thread-input-provider", () => ({
+  useTamboThreadInput: jest.fn(),
+}));
 
 // Mock the react-query-hooks
 jest.mock("../react-query-hooks", () => ({
@@ -134,7 +139,7 @@ describe("useTamboSuggestions", () => {
       setValue: jest.fn(),
       value: "",
       submit: jest.fn(),
-    } satisfies Partial<UseThreadInput> as any);
+    } satisfies Partial<TamboThreadInputContextProps> as any);
     // Default query mock returns empty array
     jest.mocked(useTamboQuery).mockReturnValue({
       data: [],
@@ -237,7 +242,7 @@ describe("useTamboSuggestions", () => {
       setValue: mockSetValue,
       value: "",
       submit: jest.fn(),
-    } satisfies Partial<UseThreadInput> as any);
+    } satisfies Partial<TamboThreadInputContextProps> as any);
 
     const { result } = renderHook(() => useTamboSuggestions());
 

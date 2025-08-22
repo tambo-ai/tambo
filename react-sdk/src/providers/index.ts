@@ -30,6 +30,11 @@ export {
 } from "./tambo-registry-provider";
 export { TamboStubProvider, type TamboStubProviderProps } from "./tambo-stubs";
 export {
+  TamboThreadInputProvider,
+  useTamboThreadInput,
+  type TamboThreadInputContextProps,
+} from "./tambo-thread-input-provider";
+export {
   TamboThreadContext,
   TamboThreadProvider,
   useTamboGenerationStage,

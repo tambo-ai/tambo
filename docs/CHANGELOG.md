@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0](https://github.com/tambo-ai/tambo/compare/docs-v1.2.4...docs-v1.3.0) (2025-08-21)
+
+
+### Features
+
+* add tambo hack banner and update mobile layout ([#895](https://github.com/tambo-ai/tambo/issues/895)) ([bb04b1c](https://github.com/tambo-ai/tambo/commit/bb04b1cff0eccbf087a4c5d4b01b24eb64dc9014))
+* **docs:** integrate PostHog for analytics and add Web Vitals reporting ([#894](https://github.com/tambo-ai/tambo/issues/894)) ([90c5c3f](https://github.com/tambo-ai/tambo/commit/90c5c3f05702fd18c29a6caf342b013ee2788f5e))
+* useTamboThreadInput context return reactquery values ([#897](https://github.com/tambo-ai/tambo/issues/897)) ([13aeff6](https://github.com/tambo-ai/tambo/commit/13aeff669bd5760e4f8f93e9ff77dae301f4ba83))
+
 ## [1.2.4](https://github.com/tambo-ai/tambo/compare/docs-v1.2.3...docs-v1.2.4) (2025-08-20)
 
 

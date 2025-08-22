@@ -53,11 +53,20 @@ const TamboStubClientProvider: React.FC<
   PropsWithChildren<{
     client: TamboAI;
     queryClient: QueryClient;
+    isUpdatingToken: boolean;
     threads?: Partial<TamboAI.Beta.Threads.ThreadsOffsetAndLimit>;
     projectId?: string;
     contextKey?: string;
   }>
-> = ({ children, client, queryClient, threads, projectId, contextKey }) => {
+> = ({
+  children,
+  client,
+  queryClient,
+  threads,
+  projectId,
+  contextKey,
+  isUpdatingToken,
+}) => {
   // Prepopulate the query cache with threads data if provided
   useEffect(() => {
     if (threads) {
@@ -70,7 +79,9 @@ const TamboStubClientProvider: React.FC<
   }, [threads, projectId, contextKey, queryClient]);
 
   return (
-    <TamboClientContext.Provider value={{ client, queryClient }}>
+    <TamboClientContext.Provider
+      value={{ client, queryClient, isUpdatingToken }}
+    >
       {children}
     </TamboClientContext.Provider>
   );
@@ -344,6 +355,7 @@ export const TamboStubProvider: React.FC<
       threads={threads}
       projectId={resolvedProjectId}
       contextKey={contextKey}
+      isUpdatingToken={false}
     >
       <TamboStubRegistryProvider
         componentList={componentList}
