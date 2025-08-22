@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.1](https://github.com/tambo-ai/tambo/compare/react-v0.46.0...react-v0.46.1) (2025-08-22)
+
+
+### Miscellaneous Chores
+
+* export tokenupdating hook ([#901](https://github.com/tambo-ai/tambo/issues/901)) ([5fd3881](https://github.com/tambo-ai/tambo/commit/5fd38815f6a586935915709df029d109126b41a9))
+
 ## [0.46.0](https://github.com/tambo-ai/tambo/compare/react-v0.45.0...react-v0.46.0) (2025-08-22)
 
 
