@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.101.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.3...repo-v0.101.4) (2025-08-22)
+
+
+### Performance Improvements
+
+* **db:** Add missing indexes from supabases perf advisor ([#1610](https://github.com/tambo-ai/tambo-cloud/issues/1610)) ([fdc207e](https://github.com/tambo-ai/tambo-cloud/commit/fdc207ed26a1b60f71067c9d4e89b2a753172ec6))
+
+
+### Miscellaneous Chores
+
+* bump tsconfig for more modern compiled code in the nestjs project ([#1612](https://github.com/tambo-ai/tambo-cloud/issues/1612)) ([d9a17b3](https://github.com/tambo-ai/tambo-cloud/commit/d9a17b3d194fd70fd468f035e48d65c5aa8788e9))
+
 ## [0.101.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.2...repo-v0.101.3) (2025-08-22)
 
 
