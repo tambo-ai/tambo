@@ -85,6 +85,12 @@ Destination (docs site)
 
 - Primary: Docs site (MDX). Place at: docs/content/docs/release-notes/RELEASE_NOTES_YYYY-MM-DD.mdx
 
+Formatting
+
+- Use the title: Release Notes - YYYY-MM-DD
+- Use the description: {Summary of the key changes}
+- Do not have have H1 header at the top of the file (assume the title is the H1)
+
 Resuming & State Management
 
 - Check for previous run: look in .asops/release_notes/runs/ for most recent JSON file
