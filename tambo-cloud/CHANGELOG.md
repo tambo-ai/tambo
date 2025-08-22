@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.101.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.2...repo-v0.101.3) (2025-08-22)
+
+
+### Performance Improvements
+
+* **db:** Add some indexes to speed up some slow queries ([#1608](https://github.com/tambo-ai/tambo-cloud/issues/1608)) ([4a30cca](https://github.com/tambo-ai/tambo-cloud/commit/4a30cca89d8550c16e007cde68a6c5bbd8aae088))
+
+
+### Miscellaneous Chores
+
+* **observability:** Allow setting sentry environment by env var ([#1606](https://github.com/tambo-ai/tambo-cloud/issues/1606)) ([adc32ec](https://github.com/tambo-ai/tambo-cloud/commit/adc32ec79f977408b24795d55bc902a8c803cdc8))
+* **observability:** monitor SQL calls with sentry ([#1603](https://github.com/tambo-ai/tambo-cloud/issues/1603)) ([82dc68f](https://github.com/tambo-ai/tambo-cloud/commit/82dc68f30f164516b0a34f131724e00479691048))
+* **observability:** pull in different pg instrumentation, see if this works in nestjs ([#1607](https://github.com/tambo-ai/tambo-cloud/issues/1607)) ([04197da](https://github.com/tambo-ai/tambo-cloud/commit/04197da7d0be061f997e30f87850f2dbb829d320))
+
 ## [0.101.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.1...repo-v0.101.2) (2025-08-22)
 
 
