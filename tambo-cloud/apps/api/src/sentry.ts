@@ -2,7 +2,8 @@ import * as Sentry from "@sentry/nestjs";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 export function initializeSentry() {
-  const environment = process.env.NODE_ENV || "development";
+  const environment =
+    process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development";
 
   // Only initialize if DSN is provided
   if (!process.env.SENTRY_DSN) {
