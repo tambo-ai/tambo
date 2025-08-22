@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.3.0](https://github.com/tambo-ai/tambo/compare/docs-v1.2.4...docs-v1.3.0) (2025-08-21)
+
+
+### Features
+
+* add tambo hack banner and update mobile layout ([#895](https://github.com/tambo-ai/tambo/issues/895)) ([bb04b1c](https://github.com/tambo-ai/tambo/commit/bb04b1cff0eccbf087a4c5d4b01b24eb64dc9014))
+* **docs:** integrate PostHog for analytics and add Web Vitals reporting ([#894](https://github.com/tambo-ai/tambo/issues/894)) ([90c5c3f](https://github.com/tambo-ai/tambo/commit/90c5c3f05702fd18c29a6caf342b013ee2788f5e))
+* useTamboThreadInput context return reactquery values ([#897](https://github.com/tambo-ai/tambo/issues/897)) ([13aeff6](https://github.com/tambo-ai/tambo/commit/13aeff669bd5760e4f8f93e9ff77dae301f4ba83))
+
+## [1.2.4](https://github.com/tambo-ai/tambo/compare/docs-v1.2.3...docs-v1.2.4) (2025-08-20)
+
+
+### Miscellaneous
+
+* **deps:** bump mermaid from 11.9.0 to 11.10.0 in the npm_and_yarn group ([#871](https://github.com/tambo-ai/tambo/issues/871)) ([e4f5feb](https://github.com/tambo-ai/tambo/commit/e4f5febb7b211f9d783cf347d8909be4c0a37106))
+
+## [1.2.3](https://github.com/tambo-ai/tambo/compare/docs-v1.2.2...docs-v1.2.3) (2025-08-20)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @tailwindcss/postcss from 4.1.11 to 4.1.12 ([#855](https://github.com/tambo-ai/tambo/issues/855)) ([a7b5caf](https://github.com/tambo-ai/tambo/commit/a7b5caf2ef12781fe5e16033a5d8449cecea6512))
+* **deps:** bump fumadocs-core from 15.6.10 to 15.6.12 ([#850](https://github.com/tambo-ai/tambo/issues/850)) ([24644a1](https://github.com/tambo-ai/tambo/commit/24644a1358824475ed50442ee1493b66bce34c9f))
+* **deps:** bump fumadocs-mdx from 11.7.4 to 11.7.5 ([#860](https://github.com/tambo-ai/tambo/issues/860)) ([512a202](https://github.com/tambo-ai/tambo/commit/512a202b266eea819daae1d4861b7b6ff9e68aea))
+* **deps:** bump fumadocs-ui from 15.6.9 to 15.6.12 ([#854](https://github.com/tambo-ai/tambo/issues/854)) ([4f26122](https://github.com/tambo-ai/tambo/commit/4f261225de8ca869f136e714c3fd3538893e24db))
+* **deps:** bump lucide-react from 0.539.0 to 0.540.0 ([#849](https://github.com/tambo-ai/tambo/issues/849)) ([52f4804](https://github.com/tambo-ai/tambo/commit/52f48045cc051882c990b353c3ef9152717abe2a))
+* **deps:** bump next from 15.4.6 to 15.4.7 ([#862](https://github.com/tambo-ai/tambo/issues/862)) ([7abc4f9](https://github.com/tambo-ai/tambo/commit/7abc4f97337d08adc5bd132dd4e6f44dfaea6b35))
+* **deps:** Fix some duplicated/misaligned [@types](https://github.com/types) versions ([#867](https://github.com/tambo-ai/tambo/issues/867)) ([0c3fcfe](https://github.com/tambo-ai/tambo/commit/0c3fcfe4a7356966e74104b5c60397aab7eb7848))
+
+
+### Documentation
+
+* add docs header and chatwithtambo ([#838](https://github.com/tambo-ai/tambo/issues/838)) ([8509f26](https://github.com/tambo-ai/tambo/commit/8509f26180ca1f3d53333b61321c3fa6c54f263a))
+
 ## [1.2.2](https://github.com/tambo-ai/tambo/compare/docs-v1.2.1...docs-v1.2.2) (2025-08-14)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.3...tambo-v0.28.0) (2025-08-18)
+
+
+### Features
+
+* **init:** add self-hosting instructions to init command ([#844](https://github.com/tambo-ai/tambo/issues/844)) ([28c0670](https://github.com/tambo-ai/tambo/commit/28c0670accc4fde66dd3e6ad9ee7f1f0aa249891))
+
 ## [0.27.3](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.2...tambo-v0.27.3) (2025-08-14)
 
 

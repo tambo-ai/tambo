@@ -10,4 +10,3 @@ export {
   type StreamStatus,
 } from "./use-tambo-stream-status";
 export { useTamboThreadList } from "./use-tambo-threads";
-export { useTamboThreadInput } from "./use-thread-input";

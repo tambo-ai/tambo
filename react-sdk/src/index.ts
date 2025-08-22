@@ -12,7 +12,6 @@ export {
   type PropStatus,
   type StreamStatus,
 } from "./hooks/use-tambo-stream-status";
-export { useTamboThreadInput } from "./hooks/use-thread-input";
 
 // Re-export provider components
 export {
@@ -22,6 +21,7 @@ export {
   TamboPropStreamProvider,
   TamboProvider,
   TamboStubProvider,
+  TamboThreadInputProvider,
   TamboThreadProvider,
   useTambo,
   useTamboClient,
@@ -29,11 +29,13 @@ export {
   useTamboGenerationStage,
   useTamboStream,
   useTamboThread,
+  useTamboThreadInput,
   type TamboComponent,
   type TamboContextHelpersContextProps,
   type TamboContextHelpersProviderProps,
   type TamboRegistryContext,
   type TamboStubProviderProps,
+  type TamboThreadInputContextProps,
 } from "./providers";
 
 // Re-export types from Tambo Node SDK
