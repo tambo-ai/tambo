@@ -463,6 +463,20 @@
       "when": 1755199234636,
       "tag": "0065_nifty_victor_mancha",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1755895466233,
+      "tag": "0066_classy_sumo",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1755895861615,
+      "tag": "0067_great_pestilence",
+      "breakpoints": true
     }
   ]
 }
