@@ -175,6 +175,7 @@ export const projects = pgTable(
   }),
   (table) => {
     return [
+      index("projects_creator_id_idx").on(table.creatorId),
       pgPolicy("project_user_select_policy", {
         to: authenticatedRole,
         for: "select",
@@ -260,29 +261,36 @@ export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
   }),
 }));
 
-export const apiKeys = pgTable("api_keys", ({ text, timestamp, uuid }) => ({
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .unique()
-    .default(sql`generate_custom_id('hk_')`),
-  name: text("name").notNull(),
-  hashedKey: text("hashed_key").notNull(),
-  partiallyHiddenKey: text("partially_hidden_key"),
-  projectId: text("project_id")
-    .references(() => projects.id)
-    .notNull(),
-  createdByUserId: uuid("created_by_user_id")
-    .references(() => authUsers.id)
-    .notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
-}));
+export const apiKeys = pgTable(
+  "api_keys",
+  ({ text, timestamp, uuid }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('hk_')`),
+    name: text("name").notNull(),
+    hashedKey: text("hashed_key").notNull(),
+    partiallyHiddenKey: text("partially_hidden_key"),
+    projectId: text("project_id")
+      .references(() => projects.id)
+      .notNull(),
+    createdByUserId: uuid("created_by_user_id")
+      .references(() => authUsers.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  }),
+  (table) => [
+    index("api_keys_project_id_idx").on(table.projectId),
+    index("api_keys_created_by_user_id_idx").on(table.createdByUserId),
+  ],
+);
 export type DBApiKey = typeof apiKeys.$inferSelect;
 export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
   createdBy: one(authUsers, {
@@ -295,26 +303,30 @@ export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
   }),
 }));
 
-export const providerKeys = pgTable("provider_keys", ({ text, timestamp }) => ({
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .unique()
-    .default(sql`generate_custom_id('pvk_')`),
-  projectId: text("project_id")
-    .references(() => projects.id)
-    .notNull(),
-  providerName: text("provider_name").notNull(),
-  providerKeyEncrypted: text("provider_key_encrypted").notNull(),
-  partiallyHiddenKey: text("partially_hidden_key"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
-}));
+export const providerKeys = pgTable(
+  "provider_keys",
+  ({ text, timestamp }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('pvk_')`),
+    projectId: text("project_id")
+      .references(() => projects.id)
+      .notNull(),
+    providerName: text("provider_name").notNull(),
+    providerKeyEncrypted: text("provider_key_encrypted").notNull(),
+    partiallyHiddenKey: text("partially_hidden_key"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  }),
+  (table) => [index("provider_keys_project_id_idx").on(table.projectId)],
+);
 
 export const providerKeyRelations = relations(providerKeys, ({ one }) => ({
   project: one(projects, {
@@ -545,6 +557,7 @@ export const toolProviders = pgTable(
       .default(MCPTransport.SSE),
     mcpRequiresAuth: boolean("mcp_requires_auth").notNull().default(false),
   }),
+  (table) => [index("tool_providers_project_id_idx").on(table.projectId)],
 );
 
 export const toolProviderRelations = relations(
@@ -610,6 +623,9 @@ export const toolProviderUserContexts = pgTable(
   (table) => {
     return [
       index("context_tool_providers_context_key_idx").on(table.contextKey),
+      index("tool_provider_user_contexts_tool_provider_id_idx").on(
+        table.toolProviderId,
+      ),
       unique("context_tool_providers_context_key_tool_provider_idx").on(
         table.contextKey,
         table.toolProviderId,
@@ -650,6 +666,11 @@ export const mcpOauthClients = pgTable(
     sessionId: uuid("session_id").notNull(),
     codeVerifier: text("code_verifier"),
   }),
+  (table) => [
+    index("mcp_oauth_clients_tool_provider_user_context_id_idx").on(
+      table.toolProviderUserContextId,
+    ),
+  ],
 );
 export const mcpOauthClientRelations = relations(
   mcpOauthClients,
@@ -756,6 +777,7 @@ export const projectLogs = pgTable(
   }),
   (table) => [
     index("project_logs_project_idx").on(table.projectId),
+    index("project_logs_thread_idx").on(table.threadId),
     index("project_logs_timestamp_idx").on(table.timestamp),
   ],
 );
