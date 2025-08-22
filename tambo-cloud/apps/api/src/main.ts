@@ -1,3 +1,6 @@
+// Initialize Sentry FIRST, before anything else
+import "./sentry";
+
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { HttpAdapterHost, NestFactory } from "@nestjs/core";
@@ -8,13 +11,9 @@ import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
-import { initializeSentry } from "./sentry";
 import { initializeOpenTelemetry, shutdownOpenTelemetry } from "./telemetry";
 
 async function bootstrap() {
-  // Initialize Sentry FIRST, before anything else
-  initializeSentry();
-
   // Initialize OpenTelemetry (works alongside Sentry)
   const sdk = initializeOpenTelemetry();
 
