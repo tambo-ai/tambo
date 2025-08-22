@@ -360,9 +360,9 @@ export function OnboardingWizard({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            copyCommand(template.command);
+                            await copyCommand(template.command);
                           }}
                         >
                           {copiedCommand === template.command ? (

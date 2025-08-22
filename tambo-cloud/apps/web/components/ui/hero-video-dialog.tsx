@@ -112,13 +112,13 @@ export default function HeroVideoDialog({
     }
   };
 
-  const handleVideoClick = () => {
+  const handleVideoClick = async () => {
     if (!videoRef.current) return;
 
     if (isPlaying) {
       setShowControls(!showControls);
     } else {
-      handlePlayClick();
+      await handlePlayClick();
     }
   };
 

@@ -64,8 +64,8 @@ export async function startMCPServer(
       sessionIdGenerator: undefined,
     });
 
-    app.post("/mcp", (req, res) => {
-      transport.handleRequest(req, res);
+    app.post("/mcp", async (req, res) => {
+      await transport.handleRequest(req, res);
     });
 
     await mcpServer.connect(transport);

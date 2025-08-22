@@ -236,11 +236,11 @@ const MessageInputTextarea = ({
     setValue(e.target.value);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (value.trim()) {
-        handleSubmit(e as unknown as React.FormEvent);
+        await handleSubmit(e as unknown as React.FormEvent);
       }
     }
   };
@@ -296,10 +296,10 @@ const MessageInputSubmitButton = React.forwardRef<
   const { isPending } = useMessageInputContext();
   const { cancel } = useTamboThread();
 
-  const handleCancel = (e: React.MouseEvent) => {
+  const handleCancel = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    cancel();
+    await cancel();
   };
 
   const buttonClasses = cn(
@@ -403,10 +403,10 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 
 // --- Exports ---
 export {
-  messageInputVariants,
   MessageInput,
-  MessageInputTextarea,
-  MessageInputSubmitButton,
-  MessageInputToolbar,
   MessageInputError,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
+  messageInputVariants,
 };

@@ -48,9 +48,9 @@ export function CLI({
   const hasTabs = items.length > 1;
   const isLightMode = theme === "light";
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (activeItem.command) {
-      navigator.clipboard.writeText(activeItem.command);
+      await navigator.clipboard.writeText(activeItem.command);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }

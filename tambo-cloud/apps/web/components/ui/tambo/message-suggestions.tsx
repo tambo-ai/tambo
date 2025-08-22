@@ -170,7 +170,7 @@ const MessageSuggestions = React.forwardRef<
     useEffect(() => {
       if (!suggestions || suggestions.length === 0) return;
 
-      const handleKeyDown = (event: KeyboardEvent) => {
+      const handleKeyDown = async (event: KeyboardEvent) => {
         const modifierPressed = isMac
           ? event.metaKey && event.altKey
           : event.ctrlKey && event.altKey;
@@ -180,7 +180,7 @@ const MessageSuggestions = React.forwardRef<
           if (!isNaN(keyNum) && keyNum > 0 && keyNum <= suggestions.length) {
             event.preventDefault();
             const suggestionIndex = keyNum - 1;
-            accept({ suggestion: suggestions[suggestionIndex] });
+            await accept({ suggestion: suggestions[suggestionIndex] });
           }
         }
       };

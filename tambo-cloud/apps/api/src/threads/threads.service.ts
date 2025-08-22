@@ -56,7 +56,7 @@ import {
 import { mapSuggestionToDto } from "./util/suggestions";
 import {
   addAssistantResponse,
-  addInProgressMessage,
+  addInitialMessage,
   addUserMessage,
   convertDecisionStreamToMessageStream,
   finishInProgressMessage,
@@ -1560,7 +1560,7 @@ export class ThreadsService {
         `Streaming response...`,
       );
 
-      const inProgressMessage = await addInProgressMessage(
+      const initialMessage = await addInitialMessage(
         db,
         threadId,
         userMessage,
@@ -1600,7 +1600,7 @@ export class ThreadsService {
 
       for await (const threadMessage of convertDecisionStreamToMessageStream(
         stream,
-        inProgressMessage,
+        initialMessage,
       )) {
         chunkCount++;
         if (!ttfbEnded) {
@@ -1627,7 +1627,7 @@ export class ThreadsService {
             return;
           }
 
-          await updateMessage(db, inProgressMessage.id, {
+          await updateMessage(db, initialMessage.id, {
             ...threadMessage,
             content: convertContentPartToDto(threadMessage.content),
           });
@@ -1715,7 +1715,7 @@ export class ThreadsService {
           const errorMessage = await this.handleToolCallLimitViolation(
             validationResult,
             threadId,
-            inProgressMessage.id,
+            initialMessage.id,
           );
           yield {
             responseMessageDto: errorMessage,
@@ -1732,7 +1732,7 @@ export class ThreadsService {
           db,
           threadId,
           userMessage,
-          inProgressMessage.id,
+          initialMessage.id,
           finalThreadMessage,
           logger,
         );

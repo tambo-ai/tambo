@@ -186,12 +186,12 @@ export function CLIAuthPage() {
   }, [selectedProjectId, generateApiKeyMutation, isGenerating, startTimer]);
 
   const handleProjectSelect = useCallback(
-    (projectId: string, projectName: string) => {
+    async (projectId: string, projectName: string) => {
       setSelectedProjectId(projectId);
       setSelectedProjectName(projectName);
       setStep("key");
       // Generate API key immediately when switching to the key step
-      handleGenerate();
+      await handleGenerate();
     },
     [handleGenerate],
   );
@@ -218,7 +218,7 @@ export function CLIAuthPage() {
         setIsCreateDialogOpen(false);
 
         // Select the new project and move to key step
-        handleProjectSelect(project.id, project.name);
+        await handleProjectSelect(project.id, project.name);
 
         return { id: project.id };
       } catch (error) {

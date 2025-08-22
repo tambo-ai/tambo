@@ -280,7 +280,12 @@ describe("messages utilities", () => {
         .mockResolvedValue([mockMessage]);
       jest.mocked(operations.updateMessage).mockResolvedValue(mockMessage);
 
-      await verifyLatestMessageConsistency(mockDb, "thread1", newMessage);
+      await verifyLatestMessageConsistency(
+        mockDb,
+        "thread1",
+        newMessage.id,
+        false,
+      );
 
       expect(mockDb.query.messages.findMany).toHaveBeenCalled();
     });
@@ -322,7 +327,8 @@ describe("messages utilities", () => {
         verifyLatestMessageConsistency(
           mockTransaction,
           "thread1",
-          addedUserMessage,
+          addedUserMessage.id,
+          false,
         ),
       ).rejects.toThrow(
         "Latest message before write is not the same as the added user message",

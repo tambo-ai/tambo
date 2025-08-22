@@ -39,8 +39,8 @@ export function ThreadMessages({
 }: Readonly<ThreadMessagesProps>) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleCopyId = useCallback((id: string) => {
-    navigator.clipboard.writeText(id);
+  const handleCopyId = useCallback(async (id: string) => {
+    await navigator.clipboard.writeText(id);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   }, []);

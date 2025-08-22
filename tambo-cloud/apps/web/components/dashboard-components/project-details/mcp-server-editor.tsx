@@ -147,31 +147,35 @@ export function McpServerEditor({
     }
   }, 500);
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUrlChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrl(e.target.value);
     if (hideEditButtons && isEditing) {
-      debouncedSave();
+      await debouncedSave();
     }
   };
 
-  const handleTransportChange = (value: string) => {
+  const handleTransportChange = async (value: string) => {
     setMcpTransport(value as MCPTransport);
     if (hideEditButtons && isEditing) {
-      debouncedSave();
+      await debouncedSave();
     }
   };
 
-  const handleHeaderNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeaderNameChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setHeaderName(e.target.value);
     if (hideEditButtons && isEditing) {
-      debouncedSave();
+      await debouncedSave();
     }
   };
 
-  const handleHeaderValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeaderValueChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setHeaderValue(e.target.value);
     if (hideEditButtons && isEditing) {
-      debouncedSave();
+      await debouncedSave();
     }
   };
   const mcpRequiresAuth = saveResult?.mcpRequiresAuth || server.mcpRequiresAuth;

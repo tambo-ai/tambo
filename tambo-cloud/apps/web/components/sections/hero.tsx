@@ -26,7 +26,7 @@ function HeroPill() {
       }
     };
 
-    fetchStars();
+    fetchStars().catch(console.error);
   }, []);
 
   return (

@@ -177,29 +177,24 @@ export async function addAssistantMessageToThread(
 export async function verifyLatestMessageConsistency(
   db: HydraTransaction,
   threadId: string,
-  addedUserMessage: ThreadMessage,
-  inProgressMessageId?: string | undefined,
+  newestMessageId: string,
+  hasNewMessageId: boolean,
 ) {
   const latestMessages = await db.query.messages.findMany({
     where: eq(schema.messages.threadId, threadId),
     orderBy: (messages, { desc }) => [desc(messages.createdAt)],
+    limit: 2,
   });
 
   // If we have an in-progress message (streaming), we need to check the message before it
   // Otherwise, we check the latest message
-  const messageToCheck = inProgressMessageId
+  const messageToCheck = hasNewMessageId
     ? latestMessages[1] // Check message before our in-progress message
     : latestMessages[0]; // Check latest message directly
 
-  if (
-    !(
-      messageToCheck.id === addedUserMessage.id &&
-      messageToCheck.createdAt.toISOString() ===
-        addedUserMessage.createdAt.toISOString()
-    )
-  ) {
+  if (!(messageToCheck.id === newestMessageId)) {
     throw new Error(
-      `Latest message before write is not the same as the added user message: ${messageToCheck.id} !== ${addedUserMessage.id}`,
+      `Latest message before write is not the same as the added user message: ${messageToCheck.id} !== ${newestMessageId}`,
     );
   }
 }

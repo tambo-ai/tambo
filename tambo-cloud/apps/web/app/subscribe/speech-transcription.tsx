@@ -41,7 +41,7 @@ export function SpeechTranscription({
     if (!browserSupportsSpeechRecognition) return;
 
     return () => {
-      SpeechRecognition.stopListening();
+      SpeechRecognition.stopListening().catch(console.error);
     };
   }, [browserSupportsSpeechRecognition]);
 
@@ -93,7 +93,7 @@ export function SpeechTranscription({
   const stopListening = useCallback(async () => {
     try {
       // Always stop listening first
-      SpeechRecognition.stopListening();
+      await SpeechRecognition.stopListening();
 
       // Only proceed with submission if we have content and context
       if (transcript && contextKey && !isPending) {
@@ -117,7 +117,7 @@ export function SpeechTranscription({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to stop recording");
       // Ensure speech recognition is stopped even if there's an error
-      SpeechRecognition.stopListening();
+      await SpeechRecognition.stopListening();
     }
   }, [transcript, contextKey, setValue, submit, resetTranscript, isPending]);
 

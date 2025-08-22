@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { DropdownMenu } from "radix-ui";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
+import { DropdownMenu } from "radix-ui";
 import * as React from "react";
 import { useCallback } from "react";
 
@@ -54,7 +54,7 @@ export const ThreadDropdown = React.forwardRef<
       }
 
       try {
-        await startNewThread();
+        startNewThread();
         await refetch();
         onThreadChange?.();
       } catch (error) {
@@ -65,10 +65,10 @@ export const ThreadDropdown = React.forwardRef<
   );
 
   React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
       if (event.altKey && event.shiftKey && event.key === "n") {
         event.preventDefault();
-        handleNewThread();
+        await handleNewThread();
       }
     };
 
@@ -114,9 +114,9 @@ export const ThreadDropdown = React.forwardRef<
           >
             <DropdownMenu.Item
               className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-              onSelect={(e: Event) => {
+              onSelect={async (e: Event) => {
                 e.preventDefault();
-                handleNewThread();
+                await handleNewThread();
               }}
             >
               <div className="flex items-center">
@@ -159,9 +159,9 @@ export const ThreadDropdown = React.forwardRef<
                 <DropdownMenu.Item
                   key={thread.id}
                   className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                  onSelect={(e: Event) => {
+                  onSelect={async (e: Event) => {
                     e.preventDefault();
-                    handleSwitchThread(thread.id);
+                    await handleSwitchThread(thread.id);
                   }}
                 >
                   <span className="truncate max-w-[180px]">

@@ -225,7 +225,12 @@ export async function addAssistantResponse(
   try {
     const result = await db.transaction(
       async (tx) => {
-        await verifyLatestMessageConsistency(tx, threadId, addedUserMessage);
+        await verifyLatestMessageConsistency(
+          tx,
+          threadId,
+          addedUserMessage.id,
+          false,
+        );
 
         const responseMessageDto = await addAssistantMessageToThread(
           tx,
@@ -269,27 +274,28 @@ export async function addAssistantResponse(
 }
 
 /**
- * Convert a stream of component decisions to a stream of serialized thread messages
+ * Convert a stream of component decisions to a stream of serialized thread
+ * messages, by filling the initialMessage
  */
 export async function* convertDecisionStreamToMessageStream(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
-  inProgressMessage: ThreadMessage,
+  initialMessage: ThreadMessage,
 ): AsyncIterableIterator<ThreadMessage> {
   let finalThreadMessage: ThreadMessage = {
-    // Only bring in the bare minimum fields from the inProgressMessage
-    componentState: inProgressMessage.componentState ?? {},
-    content: inProgressMessage.content,
-    createdAt: inProgressMessage.createdAt,
-    id: inProgressMessage.id,
-    role: inProgressMessage.role,
-    threadId: inProgressMessage.threadId,
+    // Only bring in the bare minimum fields from the initialMessage
+    componentState: initialMessage.componentState ?? {},
+    content: initialMessage.content,
+    createdAt: initialMessage.createdAt,
+    id: initialMessage.id,
+    role: initialMessage.role,
+    threadId: initialMessage.threadId,
   };
   let finalToolCallRequest: ToolCallRequest | undefined;
   let finalToolCallId: string | undefined;
 
   for await (const chunk of stream) {
     finalThreadMessage = {
-      ...inProgressMessage,
+      ...initialMessage,
       componentState: chunk.componentState ?? {},
       content: [
         {
@@ -324,7 +330,7 @@ export async function* convertDecisionStreamToMessageStream(
  * Add a placeholder for an in-progress message to a thread, that will be updated later
  * with the final response.
  */
-export async function addInProgressMessage(
+export async function addInitialMessage(
   db: HydraDb,
   threadId: string,
   addedUserMessage: ThreadMessage,
@@ -333,7 +339,12 @@ export async function addInProgressMessage(
   try {
     const message = await db.transaction(
       async (tx) => {
-        await verifyLatestMessageConsistency(tx, threadId, addedUserMessage);
+        await verifyLatestMessageConsistency(
+          tx,
+          threadId,
+          addedUserMessage.id,
+          false,
+        );
 
         return await addMessage(tx, threadId, {
           role: MessageRole.Assistant,
@@ -380,8 +391,8 @@ export async function finishInProgressMessage(
         await verifyLatestMessageConsistency(
           tx,
           threadId,
-          addedUserMessage,
-          inProgressMessageId,
+          addedUserMessage.id,
+          true,
         );
 
         await updateMessage(tx, inProgressMessageId, {

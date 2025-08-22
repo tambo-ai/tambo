@@ -34,7 +34,7 @@ export function AuthedLayoutWrapper({
       }
     }
 
-    handleAuth();
+    handleAuth().catch(console.error);
   }, [hasValidSession, pathname, router, isSessionLoading, loginParams]);
 
   // Show loading state while checking authentication

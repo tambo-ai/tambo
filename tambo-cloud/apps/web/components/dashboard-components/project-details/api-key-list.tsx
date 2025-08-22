@@ -180,7 +180,7 @@ export function APIKeyList({
   // Auto-create first key if none exist
   useEffect(() => {
     if (!apiKeysLoading && apiKeys?.length === 0) {
-      handleCreateApiKey("first-tambo-key");
+      handleCreateApiKey("first-tambo-key").catch(console.error);
     }
   }, [apiKeysLoading, apiKeys, handleCreateApiKey]);
 
@@ -202,14 +202,14 @@ export function APIKeyList({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = async (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      handleCreateApiKey();
+      await handleCreateApiKey();
     }
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text: string, id: string) => {
+    await navigator.clipboard.writeText(text);
     setCopyState({ id, copied: true });
     setTimeout(() => {
       setCopyState({ id: "", copied: false });
@@ -392,8 +392,8 @@ export function APIKeyList({
                     <Button
                       size="sm"
                       className="font-sans flex-1 sm:flex-initial"
-                      onClick={() => {
-                        copyToClipboard(newGeneratedKey, "new");
+                      onClick={async () => {
+                        await copyToClipboard(newGeneratedKey, "new");
                       }}
                     >
                       {copyState.id === "new" && copyState.copied ? (

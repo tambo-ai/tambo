@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import type { Components } from "react-markdown";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import DOMPurify from "dompurify";
+import { Check, Copy, ExternalLink } from "lucide-react";
+import * as React from "react";
+import type { Components } from "react-markdown";
 
 /**
  * Markdown Components for React-Markdown
@@ -60,9 +60,9 @@ const CodeHeader = ({
 }) => {
   const [copied, setCopied] = React.useState(false);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (!code) return;
-    navigator.clipboard.writeText(code);
+    await navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

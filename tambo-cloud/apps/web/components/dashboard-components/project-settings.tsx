@@ -205,9 +205,9 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
               className="text-2xl sm:text-4xl font-semibold py-2 px-3 border-2 w-full sm:max-w-md placeholder:text-muted placeholder:font-normal min-h-[2.5rem] sm:min-h-[3.5rem]"
               placeholder="Project name"
               disabled={isUpdatingProject}
-              onKeyDown={(e) => {
+              onKeyDown={async (e) => {
                 if (e.key === "Enter") {
-                  handleSaveName();
+                  await handleSaveName();
                 } else if (e.key === "Escape") {
                   handleCancelEdit();
                 }

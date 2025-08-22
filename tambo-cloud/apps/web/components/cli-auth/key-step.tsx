@@ -48,7 +48,7 @@ export function KeyStep({
   // Automatically generate API key on first render if not already generating
   useEffect(() => {
     if (!apiKey && !isGenerating && !error) {
-      onGenerate();
+      onGenerate().catch(console.error);
     }
   }, [apiKey, isGenerating, error, onGenerate]); // Include all dependencies used inside the effect
 

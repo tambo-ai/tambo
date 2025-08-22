@@ -46,12 +46,12 @@ async function bootstrap() {
     Sentry.captureException(reason);
   });
 
-  process.on("uncaughtException", (error) => {
+  process.on("uncaughtException", async (error) => {
     console.error("Uncaught Exception:", error);
     Sentry.captureException(error);
     // Give Sentry time to send the error before crashing
     // Node's default behavior is to exit on uncaught exceptions, so we manually exit to preserve that behavior
-    Sentry.close(2000).then(() => process.exit(1));
+    await Sentry.close(2000).then(() => process.exit(1));
   });
 
   console.log("Starting server on port", process.env.PORT || 3000);
@@ -175,4 +175,4 @@ function buildCspDirectives({
     "frame-ancestors": getList("CSP_FRAME_ANCESTORS", ["'none'"]),
   };
 }
-bootstrap();
+bootstrap().catch(console.error);

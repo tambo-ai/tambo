@@ -45,6 +45,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unnecessary-parameter-property-assignment":
         "error",
       "@typescript-eslint/no-unnecessary-condition": "error",
+      "@typescript-eslint/no-floating-promises": "error",
     },
   },
   {

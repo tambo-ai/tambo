@@ -23,8 +23,8 @@ export function APIKeyDialog({
 }: APIKeyDialogProps) {
   const [copied, setCopied] = useState(false);
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => {
       setCopied(false);
@@ -52,7 +52,9 @@ export function APIKeyDialog({
         <DialogFooter className="mt-4">
           <Button
             className="w-full font-sans"
-            onClick={() => copyToClipboard(apiKey)}
+            onClick={async () => {
+              await copyToClipboard(apiKey);
+            }}
           >
             {copied ? (
               <span className="flex items-center gap-1">

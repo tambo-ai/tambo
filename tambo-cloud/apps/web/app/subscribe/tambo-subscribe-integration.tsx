@@ -10,20 +10,20 @@ import {
 } from "@/components/ui/dialog";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputSubmitButton,
   MessageInputError,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
   MessageInputToolbar,
 } from "@/components/ui/tambo/message-input";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/tambo/thread-content";
+import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { useTambo, useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { SubscribeForm, SubscribeFormProps } from "./subscribe-form";
-import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 
 export function TamboSubscribeIntegration() {
   const { registerComponent, thread } = useTambo();
@@ -55,10 +55,10 @@ export function TamboSubscribeIntegration() {
   }, [registerComponent]);
 
   // Send initial message when dialog is closed
-  const handleWelcomeDialogClose = () => {
+  const handleWelcomeDialogClose = async () => {
     setShowWelcomeDialog(false);
     if (!hasMessageBeenSent.current) {
-      sendThreadMessage("subscribe me pls.", { streamResponse: true });
+      await sendThreadMessage("subscribe me pls.", { streamResponse: true });
       hasMessageBeenSent.current = true;
     }
   };
