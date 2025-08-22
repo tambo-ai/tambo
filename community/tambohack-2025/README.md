@@ -2,15 +2,15 @@
 
 We are giving away $10K in grants and prizes to the best templates and contributions to tambo-ai!
 
-If you haven't already signup at: [tambo.co/hack](https://tambo.co/hack) to join the event, we'll be updating this page with the details as we get them.
+If you haven't already, sign up at [tambo.co/hack](https://tambo.co/hack) to join the event. We'll update this page with details as we get them.
 
 ## Details
 
-- Dates: Friday, September 5 12:00 PM - September 11, 1:00 PM PDT
+- Dates: Friday, September 5, 2025, 12:00 PM PDT – Thursday, September 11, 2025, 1:00 PM PDT
 
 ### Important Links:
 
-- Submission link: Coming Soon
+- Submission link: coming soon
 
 ### Resources:
 
