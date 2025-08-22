@@ -1,0 +1,41 @@
+{
+  "run_date": "2025-08-22",
+  "run_timestamp": "2025-08-22T21:15:35Z",
+  "period": {
+    "since": "2025-08-20",
+    "until": "2025-08-22"
+  },
+  "repos": {
+    "tambo": {
+      "last_commit_sha": "f1119e5ffb2085957ba137ef9e1abffca9572676",
+      "last_commit_short": "f1119e5",
+      "last_commit_date": "2025-08-22T02:02:59Z",
+      "commits_processed": 17
+    },
+    "tambo-cloud": {
+      "last_commit_sha": "7dda042027b4731297a97dd8c119eb6c9b48c599",
+      "last_commit_short": "7dda042",
+      "last_commit_date": "2025-08-22T21:15:35Z",
+      "commits_processed": 16
+    },
+    "tambo-template": {
+      "last_commit_sha": null,
+      "last_commit_short": null,
+      "last_commit_date": null,
+      "commits_processed": 0
+    },
+    "typescript-sdk": {
+      "last_commit_sha": null,
+      "last_commit_short": null,
+      "last_commit_date": null,
+      "commits_processed": 0
+    }
+  },
+  "total_commits": 33,
+  "output_file": "docs/content/docs/release-notes/RELEASE_NOTES_2025-08-22.mdx",
+  "breaking_changes": 2,
+  "new_features": 2,
+  "critical_fixes": 2,
+  "security_fixes": 0,
+  "status": "completed"
+}

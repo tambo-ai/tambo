@@ -12,3 +12,6 @@ coverage
 .idea
 #claude local settings
 .claude/settings.local.json
+
+#asop local files
+.asops/local/

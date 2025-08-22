@@ -1,0 +1,42 @@
+---
+title: Release Notes - August 22, 2025
+description: Latest updates and improvements to Tambo AI platform
+---
+
+# Release Notes - August 22, 2025
+
+## Breaking Changes
+
+⚠️ **Thread Input & Session Token Refactor**
+
+- `useTamboSessionToken` now returns react-query result object instead of raw token
+- `useTamboThreadInput` moved to provider pattern and removed contextKey parameter
+- **Migration**: Access `result.data.access_token`, update imports, set contextKey at provider level
+- [Commits a4631fe](https://github.com/tambo-ai/tambo/commit/a4631feb112903b8a46611b67a0fb14a5b4c5dd5), [da5d3d3](https://github.com/tambo-ai/tambo/commit/da5d3d311d8cf3e0a4052ef8a1348a34c4158a53), [13aeff6](https://github.com/tambo-ai/tambo/commit/13aeff669bd5760e4f8f93e9ff77dae301f4ba83)
+
+## New Features
+
+**PostHog Analytics Integration**
+
+- Added comprehensive analytics and Web Vitals monitoring to docs site
+- Captures pageviews and Core Web Vitals metrics (LCP, FID, CLS)
+- [Commit 90c5c3f](https://github.com/tambo-ai/tambo/commit/90c5c3f05702fd18c29a6caf342b013ee2788f5e)
+
+**Enhanced Session Management**
+
+- New `useIsTamboTokenUpdating()` hook with automatic token refresh
+- Improved React Query integration with proper retry logic and error handling
+
+## Critical Fixes
+
+**Thread Cancellation Race Conditions**
+
+- Fixed critical race conditions causing non-deterministic transaction behavior
+- Changed from fire-and-forget async calls to proper awaited execution
+- [Commit 6c9a6b3](https://github.com/tambo-ai/tambo-cloud/commit/6c9a6b35d2468eb39557d48a721e228601310d9a)
+
+**Database Performance**
+
+- Added essential indexes for project members, messages, and suggestions tables
+- Significantly improved query performance across the platform
+- [Commit 4a30cca](https://github.com/tambo-ai/tambo-cloud/commit/4a30cca89d8550c16e007cde68a6c5bbd8aae088)
