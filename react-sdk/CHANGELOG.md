@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.46.0](https://github.com/tambo-ai/tambo/compare/react-v0.45.0...react-v0.46.0) (2025-08-22)
+
+
+### Features
+
+* expose isUpdating from useTamboSessionToken ([#875](https://github.com/tambo-ai/tambo/issues/875)) ([a4631fe](https://github.com/tambo-ai/tambo/commit/a4631feb112903b8a46611b67a0fb14a5b4c5dd5))
+* useTamboThreadInput context return reactquery values ([#897](https://github.com/tambo-ai/tambo/issues/897)) ([13aeff6](https://github.com/tambo-ai/tambo/commit/13aeff669bd5760e4f8f93e9ff77dae301f4ba83))
+
+
+### Bug Fixes
+
+* create context/provider for threadInput so all consumers share state ([#876](https://github.com/tambo-ai/tambo/issues/876)) ([da5d3d3](https://github.com/tambo-ai/tambo/commit/da5d3d311d8cf3e0a4052ef8a1348a34c4158a53))
+
+
+### Documentation
+
+* add docs header and chatwithtambo ([#838](https://github.com/tambo-ai/tambo/issues/838)) ([8509f26](https://github.com/tambo-ai/tambo/commit/8509f26180ca1f3d53333b61321c3fa6c54f263a))
+
 ## [0.45.0](https://github.com/tambo-ai/tambo/compare/react-v0.44.1...react-v0.45.0) (2025-08-20)
 
 ### Features
