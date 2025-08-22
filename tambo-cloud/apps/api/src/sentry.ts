@@ -31,6 +31,7 @@ export function initializeSentry() {
       ...defaults.filter(
         (integration) => (integration as { name?: string }).name !== "Http",
       ),
+      Sentry.postgresIntegration(),
       // Profiling
       nodeProfilingIntegration(),
       // NestJS integrations are auto-configured by @sentry/nestjs
