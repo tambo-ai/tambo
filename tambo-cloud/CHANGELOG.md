@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.101.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.1...repo-v0.101.2) (2025-08-22)
+
+
+### Bug Fixes
+
+* **cancellation:** get rid of unawaited verification task, made transactions non-deterministic ([#1600](https://github.com/tambo-ai/tambo-cloud/issues/1600)) ([6c9a6b3](https://github.com/tambo-ai/tambo-cloud/commit/6c9a6b35d2468eb39557d48a721e228601310d9a))
+
+
+### Miscellaneous Chores
+
+* **eslint:** Add rule for no-floating-promises and fix occurrances ([#1601](https://github.com/tambo-ai/tambo-cloud/issues/1601)) ([75f9bc9](https://github.com/tambo-ai/tambo-cloud/commit/75f9bc9c74c55e8c2ad2abafe38a6c384fb0c096))
+* update seo metadata ([#1597](https://github.com/tambo-ai/tambo-cloud/issues/1597)) ([e18b55a](https://github.com/tambo-ai/tambo-cloud/commit/e18b55a471b69bc7d1c66a4f8fd5aebc4b06f55c))
+
 ## [0.101.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.0...repo-v0.101.1) (2025-08-21)
 
 
