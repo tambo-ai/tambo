@@ -6,7 +6,7 @@ export const BLUR_FADE_DELAY = 0.15;
 export const siteConfig = {
   name: "tambo-ai",
   description:
-    "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
+    "An open-source AI orchestration framework for your React front end.",
   url: env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   keywords: [
     "AI-Powered React Components",
@@ -25,6 +25,14 @@ export const siteConfig = {
     "UI Co-Agent Framework",
     "Developer Co-Pilot",
     "Automated UI Assistant",
+    "Client Side MCP Integration",
+    "Server Side MCP Integration",
+    "React AI Agent Framework",
+    "Generative UI Components",
+    "MCP OAuth Integration",
+    "Model Context Protocol",
+    "AI Component Streaming",
+    "MCP Client Server",
   ],
   links: {
     email: "support@tambo.co",
@@ -33,16 +41,16 @@ export const siteConfig = {
     github: "https://github.com/tambo-ai/tambo",
   },
   metadata: {
-    title: "An AI-Powered Interface in a Few Lines of Code | tambo-ai",
+    title: "Add React UI to your AI agent/copilot | tambo-ai",
     description:
-      "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
+      "An open-source AI orchestration framework for your React front end.",
     icons: {
       icon: "/favicon.ico",
     },
     openGraph: {
-      title: "tambo-ai - An AI-Powered Interface in a Few Lines of Code",
+      title: "Add React UI to your AI agent/copilot | tambo-ai",
       description:
-        "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
+        "An open-source AI orchestration framework for your React front end.",
       images: [
         {
           url: "/opengraph-image.png",
@@ -54,9 +62,9 @@ export const siteConfig = {
     },
     twitter: {
       card: "summary_large_image",
-      title: "An AI-Powered Interface in a Few Lines of Code | tambo-ai",
+      title: "Add React UI to your AI agent/copilot | tambo-ai",
       description:
-        "Build AI-powered React components that intelligently adapt to user context. Create dynamic interfaces that respond to natural language, driving more engaging and intuitive user experiences with minimal code.",
+        "An open-source AI orchestration framework for your React front end.",
       images: [
         {
           url: "/twitter-image.png",
