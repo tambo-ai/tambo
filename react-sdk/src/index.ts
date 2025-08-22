@@ -23,6 +23,7 @@ export {
   TamboStubProvider,
   TamboThreadInputProvider,
   TamboThreadProvider,
+  useIsTamboTokenUpdating,
   useTambo,
   useTamboClient,
   useTamboContextHelpers,
