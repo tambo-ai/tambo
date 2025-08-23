@@ -23,7 +23,7 @@ export function SpeechTranscription({
   const [showTranscript, setShowTranscript] = useState(false);
   const [audioDetected, setAudioDetected] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const { setValue, submit, isPending } = useTamboThreadInput(contextKey);
+  const { setValue, submit, isPending } = useTamboThreadInput();
 
   const {
     transcript,
@@ -106,7 +106,7 @@ export function SpeechTranscription({
           Transcript: "${transcript}"`,
         );
 
-        await submit({ streamResponse: true });
+        await submit({ streamResponse: true, contextKey });
       } else if (!transcript) {
         // Provide feedback if no transcript was detected
         setError("No speech detected. Please try recording again.");

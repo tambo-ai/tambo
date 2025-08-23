@@ -1,7 +1,11 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import {
+  useIsTamboTokenUpdating,
+  useTamboThread,
+  useTamboThreadInput,
+} from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Square } from "lucide-react";
 import * as React from "react";
@@ -18,10 +22,20 @@ const messageInputVariants = cva("w-full", {
     variant: {
       default: "",
       solid: [
-        "shadow shadow-zinc-900/10 dark:shadow-zinc-900/20",
-        "[&_input]:bg-muted [&_input]:dark:bg-muted",
+        "[&>div]:bg-background",
+        "[&>div]:border-0",
+        "[&>div]:shadow-xl [&>div]:shadow-black/5 [&>div]:dark:shadow-black/20",
+        "[&>div]:ring-1 [&>div]:ring-black/5 [&>div]:dark:ring-white/10",
+        "[&_textarea]:bg-transparent",
+        "[&_textarea]:rounded-lg",
       ].join(" "),
-      bordered: ["[&_input]:border-2", "[&_input]:border-border"].join(" "),
+      bordered: [
+        "[&>div]:bg-transparent",
+        "[&>div]:border-2 [&>div]:border-gray-300 [&>div]:dark:border-zinc-600",
+        "[&>div]:shadow-none",
+        "[&_textarea]:bg-transparent",
+        "[&_textarea]:border-0",
+      ].join(" "),
     },
   },
   defaultVariants: {
@@ -111,10 +125,11 @@ export interface MessageInputProps
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
   ({ children, className, contextKey, variant, ...props }, ref) => {
-    const { value, setValue, submit, isPending, error } =
-      useTamboThreadInput(contextKey);
+    const { value, setValue, submit, isPending, error } = useTamboThreadInput();
+    const { cancel } = useTamboThread();
     const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     React.useEffect(() => {
@@ -127,10 +142,12 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
     const handleSubmit = React.useCallback(
       async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!value.trim()) return;
+        if (!value.trim() || isSubmitting) return;
 
         setSubmitError(null);
         setDisplayValue("");
+        setIsSubmitting(true);
+
         try {
           await submit({
             contextKey,
@@ -148,9 +165,23 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
               ? error.message
               : "Failed to send message. Please try again.",
           );
+
+          // Cancel the thread to reset loading state
+          await cancel();
+        } finally {
+          setIsSubmitting(false);
         }
       },
-      [value, submit, contextKey, setValue, setDisplayValue, setSubmitError],
+      [
+        value,
+        submit,
+        contextKey,
+        setValue,
+        setDisplayValue,
+        setSubmitError,
+        cancel,
+        isSubmitting,
+      ],
     );
 
     const contextValue = React.useMemo(
@@ -162,7 +193,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         },
         submit,
         handleSubmit,
-        isPending,
+        isPending: isPending || isSubmitting, // Combine both loading states
         error,
         contextKey,
         textareaRef,
@@ -175,6 +206,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         submit,
         handleSubmit,
         isPending,
+        isSubmitting, // Add to dependencies
         error,
         contextKey,
         submitError,
@@ -230,6 +262,7 @@ const MessageInputTextarea = ({
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
+  const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -252,10 +285,10 @@ const MessageInputTextarea = ({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       className={cn(
-        "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[24px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
+        "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
         className,
       )}
-      disabled={isPending}
+      disabled={isPending || isUpdatingToken}
       placeholder={placeholder}
       aria-label="Chat Message Input"
       data-slot="message-input-textarea"
@@ -295,6 +328,7 @@ const MessageInputSubmitButton = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   const { isPending } = useMessageInputContext();
   const { cancel } = useTamboThread();
+  const isUpdatingToken = useIsTamboTokenUpdating();
 
   const handleCancel = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -303,7 +337,7 @@ const MessageInputSubmitButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
     className,
   );
 
@@ -311,6 +345,7 @@ const MessageInputSubmitButton = React.forwardRef<
     <button
       ref={ref}
       type={isPending ? "button" : "submit"}
+      disabled={isUpdatingToken}
       onClick={isPending ? handleCancel : undefined}
       className={buttonClasses}
       aria-label={isPending ? "Cancel message" : "Send message"}
@@ -360,7 +395,7 @@ const MessageInputError = React.forwardRef<
   return (
     <p
       ref={ref}
-      className={cn("text-sm text-[hsl(var(--destructive))] mt-2", className)}
+      className={cn("text-sm text-destructive mt-2", className)}
       data-slot="message-input-error"
       {...props}
     >
@@ -371,7 +406,7 @@ const MessageInputError = React.forwardRef<
 MessageInputError.displayName = "MessageInput.Error";
 
 /**
- * Container for the toolbar components (like submit button).
+ * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
  * @example
@@ -379,9 +414,9 @@ MessageInputError.displayName = "MessageInput.Error";
  * <MessageInput>
  *   <MessageInput.Textarea />
  *   <MessageInput.Toolbar>
+ *     <MessageInput.McpConfigButton />
  *     <MessageInput.SubmitButton />
  *   </MessageInput.Toolbar>
- * </MessageInput>
  * ```
  */
 const MessageInputToolbar = React.forwardRef<
@@ -391,11 +426,37 @@ const MessageInputToolbar = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex justify-end mt-2 p-1", className)}
+      className={cn(
+        "flex justify-between items-center mt-2 p-1 gap-2",
+        className,
+      )}
       data-slot="message-input-toolbar"
       {...props}
     >
-      {children}
+      <div className="flex items-center gap-2">
+        {/* Left side - everything except submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return null; // Don't render submit button here
+          }
+          return child;
+        })}
+      </div>
+      <div className="flex items-center gap-2">
+        {/* Right side - only submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return child; // Only render submit button here
+          }
+          return null;
+        })}
+      </div>
     </div>
   );
 });

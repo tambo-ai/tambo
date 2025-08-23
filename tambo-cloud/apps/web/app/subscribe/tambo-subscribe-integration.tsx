@@ -31,7 +31,7 @@ export function TamboSubscribeIntegration() {
   // This hook is still necessary even though we don't use its return values directly.
   // It registers the thread input context with the Tambo system, which is required
   // for the MessageInput component below to function properly with the same contextKey.
-  useTamboThreadInput(contextKey);
+  useTamboThreadInput();
   const { sendThreadMessage } = useTamboThread();
   const isRegistered = useRef(false);
   const hasMessageBeenSent = useRef(false);
