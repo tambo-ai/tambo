@@ -195,7 +195,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         },
         submit,
         handleSubmit,
-        isPending: isPending || isSubmitting,
+        isPending: isPending ?? isSubmitting,
         error,
         contextKey,
         textareaRef,
