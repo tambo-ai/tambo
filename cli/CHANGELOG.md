@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.29.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.28.0...tambo-v0.29.0) (2025-08-23)
+
+
+### Features
+
+* **api:** stop using contextKey returned from API ([#868](https://github.com/tambo-ai/tambo/issues/868)) ([75e0bbb](https://github.com/tambo-ai/tambo/commit/75e0bbba441695aa7038f242e7ec4ed62b76e91c))
+* useTamboThreadInput context return reactquery values ([#897](https://github.com/tambo-ai/tambo/issues/897)) ([13aeff6](https://github.com/tambo-ai/tambo/commit/13aeff669bd5760e4f8f93e9ff77dae301f4ba83))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump chalk from 5.5.0 to 5.6.0 ([#853](https://github.com/tambo-ai/tambo/issues/853)) ([7f2d0d7](https://github.com/tambo-ai/tambo/commit/7f2d0d7c993dc2b86323bf5ffc7e97e4e2bb7a52))
+* update dependencies and update message input handling ([#905](https://github.com/tambo-ai/tambo/issues/905)) ([8015195](https://github.com/tambo-ai/tambo/commit/80151952ea321f8cf65a5e9b447b84ea6986125e))
+
 ## [0.28.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.27.3...tambo-v0.28.0) (2025-08-18)
 
 
