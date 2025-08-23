@@ -8,8 +8,8 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@tambo-ai/react": "^0.44.0",
-    "@tambo-ai/typescript-sdk": "^0.66.0",
+    "@tambo-ai/react": "^0.46.2",
+    "@tambo-ai/typescript-sdk": "^0.68.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
     "framer-motion": "^12.23.12",
