@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/tambo-ai/tambo/compare/docs-v1.3.0...docs-v1.3.1) (2025-08-23)
+
+
+### Miscellaneous Chores
+
+* update dependencies and update message input handling ([#905](https://github.com/tambo-ai/tambo/issues/905)) ([8015195](https://github.com/tambo-ai/tambo/commit/80151952ea321f8cf65a5e9b447b84ea6986125e))
+
 ## [1.3.0](https://github.com/tambo-ai/tambo/compare/docs-v1.2.4...docs-v1.3.0) (2025-08-21)
 
 
