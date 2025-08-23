@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.101.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.4...repo-v0.101.5) (2025-08-23)
+
+
+### Bug Fixes
+
+* bump tambo-ai/react version and message-input to allow suggestions application ([#1613](https://github.com/tambo-ai/tambo-cloud/issues/1613)) ([980b243](https://github.com/tambo-ai/tambo-cloud/commit/980b2431e925311653eba3cccd301066893c9837))
+
 ## [0.101.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.3...repo-v0.101.4) (2025-08-22)
 
 
