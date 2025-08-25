@@ -554,6 +554,13 @@ export const projectRouter = createTRPCRouter({
       if (Object.keys(updateData).length === 0) {
         const currentProject = await ctx.db.query.projects.findFirst({
           where: eq(schema.projects.id, projectId),
+          columns: {
+            defaultLlmProviderName: true,
+            defaultLlmModelName: true,
+            customLlmModelName: true,
+            customLlmBaseURL: true,
+            maxInputTokens: true,
+          },
         });
         if (!currentProject)
           throw new TRPCError({

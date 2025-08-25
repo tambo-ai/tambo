@@ -17,6 +17,9 @@ export async function generateMetadata({
   const db = getDb(env.DATABASE_URL);
   const project = await db.query.projects.findFirst({
     where: eq(schema.projects.id, projectId),
+    columns: {
+      name: true,
+    },
   });
   return {
     title: `${project?.name} | Project Dashboard`,

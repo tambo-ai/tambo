@@ -460,7 +460,14 @@ export class ThreadsService {
         );
 
         // Check for first message email with the newly created usage
-        await this.checkAndSendFirstMessageEmail(projectId, newUsage);
+        await Sentry.startSpan(
+          {
+            name: "threads.checkAndSendFirstMessageEmail",
+            attributes: { projectId },
+          },
+          async () =>
+            await this.checkAndSendFirstMessageEmail(projectId, newUsage),
+        );
         return;
       }
 
@@ -1577,9 +1584,12 @@ export class ThreadsService {
 
       const checkCancellationStatus = async () => {
         try {
-          const thread = await operations.getThread(db, threadId, projectId);
-          const isCancelled =
-            thread?.generationStage === GenerationStage.CANCELLED;
+          const generationStage = await operations.getThreadGenerationStage(
+            db,
+            threadId,
+            projectId,
+          );
+          const isCancelled = generationStage === GenerationStage.CANCELLED;
 
           if (isCancelled) {
             Sentry.addBreadcrumb({

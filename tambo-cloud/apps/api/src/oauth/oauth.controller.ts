@@ -15,6 +15,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import * as Sentry from "@sentry/nestjs";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";
 import { Request } from "express";
@@ -99,12 +100,24 @@ export class OAuthController {
 
       const validationMode = oauthSettings?.mode || OAuthValidationMode.NONE;
 
-      // Validate the subject token based on the configured mode
-      const verifiedPayload = await validateSubjectToken(
-        subject_token,
-        validationMode,
-        oauthSettings,
-        this.logger,
+      const verifiedPayload = await Sentry.startSpan(
+        {
+          name: "oauth.validateSubjectToken",
+          attributes: {
+            projectId,
+            validationMode,
+          },
+        },
+        async () => {
+          // Validate the subject token based on the configured mode
+          const verifiedPayload = await validateSubjectToken(
+            subject_token,
+            validationMode,
+            oauthSettings,
+            this.logger,
+          );
+          return verifiedPayload;
+        },
       );
 
       if (!verifiedPayload.sub) {

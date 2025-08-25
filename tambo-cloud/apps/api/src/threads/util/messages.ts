@@ -184,6 +184,9 @@ export async function verifyLatestMessageConsistency(
     where: eq(schema.messages.threadId, threadId),
     orderBy: (messages, { desc }) => [desc(messages.createdAt)],
     limit: 2,
+    columns: {
+      id: true,
+    },
   });
 
   // If we have an in-progress message (streaming), we need to check the message before it

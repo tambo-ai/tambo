@@ -45,13 +45,13 @@ export async function createThread(
   return thread;
 }
 
-export async function getThread(
+export async function getThreadGenerationStage(
   db: HydraDb,
   threadId: string,
   projectId: string,
   contextKey?: string,
 ) {
-  return await db.query.threads.findFirst({
+  const thread = await db.query.threads.findFirst({
     where: contextKey
       ? and(
           eq(schema.threads.id, threadId),
@@ -62,7 +62,12 @@ export async function getThread(
           eq(schema.threads.id, threadId),
           eq(schema.threads.projectId, projectId),
         ),
+    columns: {
+      generationStage: true,
+    },
   });
+
+  return thread?.generationStage;
 }
 
 export async function getThreadForProjectId(
