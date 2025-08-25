@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbo",

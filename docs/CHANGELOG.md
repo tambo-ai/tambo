@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/tambo-ai/tambo/compare/docs-v1.3.1...docs-v1.3.2) (2025-08-25)
+
+
+### Miscellaneous Chores
+
+* remove conversational-form template from CLI and documentation ([#908](https://github.com/tambo-ai/tambo/issues/908)) ([3f24f2b](https://github.com/tambo-ai/tambo/commit/3f24f2be17819e338df031ea26d3c27f4caf9637))
+
 ## [1.3.1](https://github.com/tambo-ai/tambo/compare/docs-v1.3.0...docs-v1.3.1) (2025-08-23)
 
 
