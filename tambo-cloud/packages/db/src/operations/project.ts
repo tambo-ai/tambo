@@ -82,11 +82,7 @@ export async function getProjectsForUser(db: HydraDb, userId: string) {
 
 export async function getProject(db: HydraDb, id: string) {
   return await db.query.projects.findFirst({
-    where: (projects, { eq, or, and, isNotNull }) =>
-      or(
-        eq(projects.id, id),
-        and(isNotNull(projects.legacyId), eq(projects.legacyId, id)),
-      ),
+    where: (projects, { eq }) => eq(projects.id, id),
     with: {
       members: true,
     },
@@ -95,11 +91,7 @@ export async function getProject(db: HydraDb, id: string) {
 
 export async function getProjectWithKeys(db: HydraDb, id: string) {
   return await db.query.projects.findFirst({
-    where: (projects, { eq, or, and, isNotNull }) =>
-      or(
-        eq(projects.id, id),
-        and(isNotNull(projects.legacyId), eq(projects.legacyId, id)),
-      ),
+    where: (projects, { eq }) => eq(projects.id, id),
     with: {
       members: true,
       apiKeys: true,
@@ -582,11 +574,7 @@ export async function updateOAuthValidationSettings(
 
 export async function getProjectMembers(db: HydraDb, id: string) {
   return await db.query.projects.findFirst({
-    where: (projects, { eq, or, and, isNotNull }) =>
-      or(
-        eq(projects.id, id),
-        and(isNotNull(projects.legacyId), eq(projects.legacyId, id)),
-      ),
+    where: (projects, { eq }) => eq(projects.id, id),
     with: {
       members: {
         with: {

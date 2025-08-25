@@ -484,6 +484,13 @@
       "when": 1755903021697,
       "tag": "0068_shallow_puma",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1756144133242,
+      "tag": "0069_overjoyed_gauntlet",
+      "breakpoints": true
     }
   ]
 }

@@ -125,13 +125,11 @@ export class SchedulerService {
           .set({
             lastActivityAt: new Date(),
             hasSetupProject: tracking.hasSetupProject || !!projectId,
-            projectId: projectId || tracking.projectId,
           })
           .where(eq(schema.tamboUsers.id, tracking.id));
       } else {
         await this.db.insert(schema.tamboUsers).values({
           userId,
-          projectId,
           hasSetupProject: !!projectId,
           lastActivityAt: new Date(),
         });
