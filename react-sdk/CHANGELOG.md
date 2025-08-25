@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.3](https://github.com/tambo-ai/tambo/compare/react-v0.46.2...react-v0.46.3) (2025-08-25)
+
+
+### Miscellaneous Chores
+
+* remove conversational-form template from CLI and documentation ([#908](https://github.com/tambo-ai/tambo/issues/908)) ([3f24f2b](https://github.com/tambo-ai/tambo/commit/3f24f2be17819e338df031ea26d3c27f4caf9637))
+
 ## [0.46.2](https://github.com/tambo-ai/tambo/compare/react-v0.46.1...react-v0.46.2) (2025-08-22)
 
 
