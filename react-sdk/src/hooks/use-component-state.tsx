@@ -61,9 +61,8 @@ export function useTamboComponentState<S>(
   const [localState, setLocalState] = useState<S | undefined>(
     (messageState as S) ?? initialValue,
   );
-  const [hasSetFromMessage, setHasSetFromMessage] = useState(
-    messageState ? true : false,
-  );
+  const [initializedFromThreadMessage, setInitializedFromThreadMessage] =
+    useState(messageState ? true : false);
 
   // Optimistically update the local thread message's componentState
   const updateLocalThreadMessage = useCallback(
@@ -109,7 +108,7 @@ export function useTamboComponentState<S>(
     if (!messageState) {
       return;
     }
-    setHasSetFromMessage(true);
+    setInitializedFromThreadMessage(true);
     setLocalState(message.componentState?.[keyName] as S);
     updateLocalThreadMessage(message.componentState?.[keyName] as S, message);
   }, [
@@ -122,11 +121,11 @@ export function useTamboComponentState<S>(
   // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
   useEffect(() => {
     if (setFromProp) {
-      if (!hasSetFromMessage) {
+      if (!initializedFromThreadMessage) {
         setLocalState(setFromProp);
       }
     }
-  }, [setFromProp, setValue, hasSetFromMessage]);
+  }, [setFromProp, setValue, initializedFromThreadMessage]);
 
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
