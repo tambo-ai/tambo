@@ -319,27 +319,7 @@ describe("useTamboComponentState", () => {
       expect(result2.current[0]).toBe("value2"); // Should remain unchanged
     });
 
-    it("should handle multiple hooks with same keyName sharing state", () => {
-      const message = createMockMessage({
-        componentState: { sharedKey: "shared" },
-      });
-      jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
-
-      const { result: result1 } = renderHook(() =>
-        useTamboComponentState("sharedKey", "default"),
-      );
-      const { result: result2 } = renderHook(() =>
-        useTamboComponentState("sharedKey", "default"),
-      );
-
-      expect(result1.current[0]).toBe("shared");
-      expect(result2.current[0]).toBe("shared");
-
-      // When we update via one hook, both should reflect the change in the next render
-      // Note: In real usage, this would happen through the message update mechanism
-    });
-
-    it("should preserve existing componentState when updating", () => {
+    it("should preserve existing componentState when updating another key", () => {
       const message = createMockMessage({
         componentState: {
           existingKey: "existing",
@@ -378,7 +358,7 @@ describe("useTamboComponentState", () => {
 
       const propValue = "from-prop";
       const { result } = renderHook(() =>
-        useTamboComponentState("testKey", "initial", 500, propValue),
+        useTamboComponentState("testKey", "initial", propValue),
       );
 
       // Initially, hasSetFromMessage should be false, so prop value should be used
@@ -395,7 +375,7 @@ describe("useTamboComponentState", () => {
 
       const propValue = "from-prop";
       const { result } = renderHook(() =>
-        useTamboComponentState("testKey", "initial", 500, propValue),
+        useTamboComponentState("testKey", "initial", propValue),
       );
 
       // Should use existing value from message, not prop value
@@ -413,7 +393,7 @@ describe("useTamboComponentState", () => {
 
       const { result, rerender } = renderHook(
         ({ propValue }) =>
-          useTamboComponentState("testKey", "initial", 500, propValue),
+          useTamboComponentState("testKey", "initial", propValue),
         { initialProps: { propValue: "prop1" } },
       );
 
@@ -433,7 +413,7 @@ describe("useTamboComponentState", () => {
         .mockReturnValue(createMockMessage({ componentState: {} }));
 
       const { result } = renderHook(() =>
-        useTamboComponentState("testKey", "initial", 500, undefined),
+        useTamboComponentState("testKey", "initial", undefined),
       );
 
       expect(result.current[0]).toBe("initial");

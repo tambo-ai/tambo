@@ -7,18 +7,17 @@ import { useTamboCurrentMessage } from "./use-current-message";
 type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 
 /**
- * A React hook that provides state management and passes user updates to Tambo.
+ * A React hook that acts like useState, but also automatically updates the thread message's componentState.
  * Benefits: Passes user changes to AI, and when threads are returned, state is preserved.
- * @param keyName - The unique key to identify this state within the message's componentState object
- * @param initialValue - Optional initial value for the state, used if no value exists in the message
- * @param debounceTime - Optional debounce time in milliseconds (default: 300ms) to limit API calls
+ * @param keyName - The unique key to identify this state value within the message's componentState object
+ * @param initialValue - Optional initial value for the state, used if no componentState value exists in the Tambo message containing this hook usage.
+ * @param setFromProp - Optional value used to set the state value, only while no componentState value exists in the Tambo message containing this hook usage. Use this to allow streaming updates from a prop to the state value.
+ * @param debounceTime - Optional debounce time in milliseconds (default: 500ms) to limit API calls.
  * @returns A tuple containing:
  *   - The current state value
  *   - A setter function to update the state (updates UI immediately, debounces server sync)
- *   - A metadata object with properties like isPending to track sync status
  * @example
- * // Basic usage
- * const [count, setCount, { isPending }] = useTamboComponentState("counter", 0);
+ * const [count, setCount] = useTamboComponentState("counter", 0);
  *
  * // Usage with object state
  * const [formState, setFormState] = useTamboComponentState("myForm", {
@@ -38,21 +37,21 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 export function useTamboComponentState<S = undefined>(
   keyName: string,
   initialValue?: S,
-  debounceTime?: number,
   setFromProp?: any,
+  debounceTime?: number,
 ): StateUpdateResult<S | undefined>;
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue: S,
-  debounceTime?: number,
   setFromProp?: any,
+  debounceTime?: number,
 ): StateUpdateResult<S>;
 
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,
-  debounceTime = 500,
   setFromProp?: any,
+  debounceTime = 500,
 ): StateUpdateResult<S> {
   const message = useTamboCurrentMessage();
   const { updateThreadMessage } = useTamboThread();
