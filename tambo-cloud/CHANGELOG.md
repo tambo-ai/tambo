@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.101.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.6...repo-v0.101.7) (2025-08-25)
+
+
+### Performance Improvements
+
+* **db:** Minor query improvements, span naming ([#1638](https://github.com/tambo-ai/tambo-cloud/issues/1638)) ([5b038bd](https://github.com/tambo-ai/tambo-cloud/commit/5b038bd1551d3704f0f3f2b3b546552a460da380))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-loader from 9.5.2 to 9.5.4 ([#1636](https://github.com/tambo-ai/tambo-cloud/issues/1636)) ([f1be9dc](https://github.com/tambo-ai/tambo-cloud/commit/f1be9dc3f6cbac6124d57d4847f02c8008463643))
+* **deps:** bump @tambo-ai/react from 0.46.2 to 0.46.3 in the tambo-ai group ([#1635](https://github.com/tambo-ai/tambo-cloud/issues/1635)) ([18313f1](https://github.com/tambo-ai/tambo-cloud/commit/18313f1715c4a0c807f4eaa5322a840e4253cf29))
+* **deps:** bump drizzle-orm from 0.44.4 to 0.44.5 in the drizzle group ([#1632](https://github.com/tambo-ai/tambo-cloud/issues/1632)) ([1ae3bfc](https://github.com/tambo-ai/tambo-cloud/commit/1ae3bfc366c85d5ec8736cefcf7efb819d1b4e2d))
+
 ## [0.101.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.5...repo-v0.101.6) (2025-08-25)
 
 
