@@ -47,23 +47,30 @@ export function useTamboComponentState<S = undefined>(
   keyName: string,
   initialValue?: S,
   debounceTime?: number,
+  setFromProp?: any,
 ): StateUpdateResult<S | undefined>;
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue: S,
   debounceTime?: number,
+  setFromProp?: any,
 ): StateUpdateResult<S>;
 
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,
   debounceTime = 500,
+  setFromProp?: any,
 ): StateUpdateResult<S> {
   const message = useTamboCurrentMessage();
   const { updateThreadMessage } = useTamboThread();
   const client = useTamboClient();
+  const messageState = message?.componentState?.[keyName];
   const [localState, setLocalState] = useState<S | undefined>(
-    (message.componentState?.[keyName] as S) ?? initialValue,
+    (messageState as S) ?? initialValue,
+  );
+  const [hasSetFromMessage, setHasSetFromMessage] = useState(
+    messageState ? true : false,
   );
   const isPending = false;
 
@@ -105,6 +112,11 @@ export function useTamboComponentState<S>(
   );
 
   useEffect(() => {
+    const messageState = message?.componentState?.[keyName];
+    if (!messageState) {
+      return;
+    }
+    setHasSetFromMessage(true);
     setLocalState(message.componentState?.[keyName] as S);
     updateLocalThreadMessage(message.componentState?.[keyName] as S, message);
   }, [
@@ -113,164 +125,15 @@ export function useTamboComponentState<S>(
     message,
     keyName,
   ]);
-  // const { updateThreadMessage, thread } = useTamboThread();
-  // const client = useTamboClient();
-  // const messageId = message.id;
-  // const threadId = thread.id;
 
-  // console.log("message", message);
-  // // Initial value management
-  // const [cachedInitialValue] = useState(() => initialValue);
-  // // UI state management
-  // const [localState, setLocalState] = useState<S | undefined>(
-  //   cachedInitialValue,
-  // );
-  // // Synchronization state
-  // const [isPending, setIsPending] = useState(false);
-  // // Track the last user-initiated value instead of a simple boolean flag
-  // const [lastUserValue, setLastUserValue] = useState<S | null>(null);
-  // const [haveInitialized, setHaveInitialized] = useState(false);
-
-  // // Determine if we need to initialize state
-  // const shouldInitialize =
-  //   !haveInitialized &&
-  //   message &&
-  //   cachedInitialValue !== undefined &&
-  //   (!message.componentState || !(keyName in message.componentState));
-
-  // // Sync local state with message state on initial load and when message changes
-  // useEffect(() => {
-  //   if (message?.componentState && keyName in message.componentState) {
-  //     const messageState = message.componentState[keyName] as S;
-
-  //     // Only update local state if we haven't had any user changes yet
-  //     if (lastUserValue === null) {
-  //       setLocalState(messageState);
-  //     }
-  //   }
-  //   // Otherwise fall back to initial value if we have one and no user changes
-  //   else if (
-  //     cachedInitialValue !== undefined &&
-  //     !localState &&
-  //     lastUserValue === null
-  //   ) {
-  //     setLocalState(cachedInitialValue);
-  //   }
-  // }, [
-  //   keyName,
-  //   message?.componentState,
-  //   cachedInitialValue,
-  //   lastUserValue,
-  //   localState,
-  // ]);
-
-  // // Create debounced save function for efficient server synchronization
-  // const debouncedServerWrite = useDebouncedCallback(async (newValue: S) => {
-  //   setIsPending(true);
-  //   try {
-  //     const componentStateUpdate = {
-  //       state: { [keyName]: newValue },
-  //     };
-
-  //     await client.beta.threads.messages.updateComponentState(
-  //       threadId,
-  //       messageId,
-  //       componentStateUpdate,
-  //     );
-  //   } catch (err) {
-  //     console.error(
-  //       `Failed to save component state for key "${keyName}":`,
-  //       err,
-  //     );
-  //   } finally {
-  //     setIsPending(false);
-  //   }
-  // }, debounceTime);
-
-  // // Initialize state on first render if needed
-  // const initializeState = useCallback(async () => {
-  //   if (!message) {
-  //     console.warn(
-  //       `Cannot initialize state for missing message ${messageId} with key "${keyName}"`,
-  //     );
-  //     return;
-  //   }
-
-  //   try {
-  //     const messageUpdate = {
-  //       ...message,
-  //       componentState: {
-  //         ...message.componentState,
-  //         [keyName]: cachedInitialValue,
-  //       },
-  //     };
-
-  //     const componentStateUpdate = {
-  //       state: { [keyName]: cachedInitialValue },
-  //     };
-
-  //     await Promise.all([
-  //       updateThreadMessage(messageId, messageUpdate, false),
-  //       client.beta.threads.messages.updateComponentState(
-  //         threadId,
-  //         messageId,
-  //         componentStateUpdate,
-  //       ),
-  //     ]);
-  //   } catch (err) {
-  //     console.warn(
-  //       `Failed to initialize component state for key "${keyName}":`,
-  //       err,
-  //     );
-  //   }
-  // }, [
-  //   cachedInitialValue,
-  //   client.beta.threads.messages,
-  //   keyName,
-  //   message,
-  //   messageId,
-  //   threadId,
-  //   updateThreadMessage,
-  // ]);
-
-  // Send initial state when component mounts
-  // useEffect(() => {
-  //   if (shouldInitialize) {
-  //     initializeState();
-  //     setHaveInitialized(true);
-  //   }
-  // }, [initializeState, shouldInitialize]);
-
-  // setValue function for updating state
-  // Updates local state immediately and schedules debounced server sync
-  // const setValue = useCallback(
-  //   (newValue: S) => {
-  //     // Track this as a user-initiated update
-  //     setLastUserValue(newValue);
-  //     setLocalState(newValue);
-
-  //     // Only trigger server updates if we have a message
-  //     if (message) {
-  //       console.log("updating server", newValue);
-  //       debouncedServerWrite(newValue);
-  //       const messageUpdate = {
-  //         threadId: message.threadId,
-  //         componentState: {
-  //           ...message.componentState,
-  //           [keyName]: newValue,
-  //         },
-  //       };
-
-  //       console.log("updating thread message with:", messageUpdate);
-  //       updateThreadMessage(messageId, messageUpdate, false);
-  //     } else {
-  //       console.warn(
-  //         `Cannot update server for missing message ${messageId} with key "${keyName}"`,
-  //       );
-  //     }
-  //   },
-  //   [message, debouncedServerWrite, keyName, updateThreadMessage, messageId],
-  // );
+  // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
+  useEffect(() => {
+    if (setFromProp) {
+      if (!hasSetFromMessage) {
+        setLocalState(setFromProp);
+      }
+    }
+  }, [setFromProp, setValue, hasSetFromMessage]);
 
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
@@ -279,6 +142,5 @@ export function useTamboComponentState<S>(
     };
   }, [updateRemoteThreadMessage]);
 
-  // Return the local state for immediate UI rendering
   return [localState as S, setValue, { isPending }];
 }

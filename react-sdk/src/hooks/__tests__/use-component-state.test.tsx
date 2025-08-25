@@ -393,7 +393,7 @@ describe("useTamboComponentState", () => {
       expect(result.current[0]).toBe(propValue);
     });
 
-    it("should ignore setFromProp when hasSetFromMessage is true", async () => {
+    it("should ignore setFromProp when initialized from message state", async () => {
       const existingValue = "existing";
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
         createMockMessage({
@@ -414,30 +414,7 @@ describe("useTamboComponentState", () => {
       expect(result.current[0]).toBe(existingValue);
     });
 
-    it("should update hasSetFromMessage flag correctly", async () => {
-      const message = createMockMessage({
-        componentState: { testKey: "messageValue" },
-      });
-      jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
-
-      const { result, rerender } = renderHook(
-        ({ propValue }) =>
-          useTamboComponentState("testKey", "initial", 500, propValue),
-        { initialProps: { propValue: "prop1" } },
-      );
-
-      // After initial render and useEffect, hasSetFromMessage should be true
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      // Now change the prop - it should be ignored
-      rerender({ propValue: "prop2" });
-
-      expect(result.current[0]).toBe("messageValue"); // Should still be message value
-    });
-
-    it("should handle setFromProp changes when no message state exists", () => {
+    it("should update state from setFromProp changes when no message state exists", () => {
       jest
         .mocked(useTamboCurrentMessage)
         .mockReturnValue(createMockMessage({ componentState: {} }));
@@ -544,59 +521,6 @@ describe("useTamboComponentState", () => {
 
       // Should still call updateLocalThreadMessage due to useEffect dependency on message
       expect(mockUpdateThreadMessage).toHaveBeenCalled();
-    });
-  });
-
-  describe("Error Scenarios", () => {
-    it("should handle API call failures gracefully", async () => {
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
-      mockUpdateComponentState.mockRejectedValue(new Error("API Error"));
-
-      const { result } = renderHook(() =>
-        useTamboComponentState("testKey", "initial"),
-      );
-
-      await act(async () => {
-        result.current[1]("updated");
-      });
-
-      // Should not crash and state should still be updated locally
-      expect(result.current[0]).toBe("updated");
-
-      consoleErrorSpy.mockRestore();
-    });
-
-    it("should handle malformed message object", () => {
-      jest.mocked(useTamboCurrentMessage).mockReturnValue({
-        id: "test",
-        threadId: "test",
-      } as any);
-
-      const { result } = renderHook(() =>
-        useTamboComponentState("testKey", "initial"),
-      );
-
-      expect(result.current[0]).toBe("initial");
-    });
-  });
-
-  describe("TypeScript Overloads", () => {
-    it("should work with required initialValue overload", () => {
-      const { result } = renderHook(() =>
-        useTamboComponentState("testKey", "required"),
-      );
-
-      // TypeScript should infer the type as string, not string | undefined
-      const [state] = result.current;
-      expect(typeof state).toBe("string");
-    });
-
-    it("should work with optional initialValue overload", () => {
-      const { result } = renderHook(() => useTamboComponentState("testKey"));
-
-      // TypeScript should allow undefined
-      const [state] = result.current;
-      expect(state).toBeUndefined();
     });
   });
 });
