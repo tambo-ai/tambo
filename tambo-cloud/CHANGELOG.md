@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.101.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.5...repo-v0.101.6) (2025-08-25)
+
+
+### Performance Improvements
+
+* **db:** remove support for projects' legacy_id, it isn't used and is slowing down our queries ([#1630](https://github.com/tambo-ai/tambo-cloud/issues/1630)) ([7b2177e](https://github.com/tambo-ai/tambo-cloud/commit/7b2177eb14f68190e6e21dbe4380e4ad61d8bdbd))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump tsx from 4.20.4 to 4.20.5 ([#1626](https://github.com/tambo-ai/tambo-cloud/issues/1626)) ([c62746b](https://github.com/tambo-ai/tambo-cloud/commit/c62746bfa00e086b18b3f8f69221d38d3abdddc4))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.3 to 1.17.4 ([#1625](https://github.com/tambo-ai/tambo-cloud/issues/1625)) ([9b90f34](https://github.com/tambo-ai/tambo-cloud/commit/9b90f340babee19a297a94c522893ce0fa3a46ad))
+* **deps:** bump @tanstack/react-query from 5.85.3 to 5.85.5 ([#1627](https://github.com/tambo-ai/tambo-cloud/issues/1627)) ([d9c971c](https://github.com/tambo-ai/tambo-cloud/commit/d9c971ccfe358fdb5808c55eb7e8bf4b7099af59))
+* **deps:** bump the next group with 2 updates ([#1620](https://github.com/tambo-ai/tambo-cloud/issues/1620)) ([8745dae](https://github.com/tambo-ai/tambo-cloud/commit/8745daeb2e749822cef4077b0e96335d42ec5b52))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1624](https://github.com/tambo-ai/tambo-cloud/issues/1624)) ([db7febb](https://github.com/tambo-ai/tambo-cloud/commit/db7febb83493b66cf3f2c7e16426895f9aa1dc0a))
+* **deps:** bump the trpc group with 3 updates ([#1618](https://github.com/tambo-ai/tambo-cloud/issues/1618)) ([fc326f6](https://github.com/tambo-ai/tambo-cloud/commit/fc326f66537babcb80e9d83a2e39f0ac95666673))
+* **deps:** bump tldts from 7.0.11 to 7.0.12 ([#1623](https://github.com/tambo-ai/tambo-cloud/issues/1623)) ([4852bfd](https://github.com/tambo-ai/tambo-cloud/commit/4852bfdab826a303c29ae8ed17fe43e70e24a09d))
+* update tambohack banner and chatwithtambo to be responsive ([#1629](https://github.com/tambo-ai/tambo-cloud/issues/1629)) ([38aa313](https://github.com/tambo-ai/tambo-cloud/commit/38aa3137a01229d0d271ac4a72754e25f23ceb81))
+
 ## [0.101.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.4...repo-v0.101.5) (2025-08-23)
 
 
