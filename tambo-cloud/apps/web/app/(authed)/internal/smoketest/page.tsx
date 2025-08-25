@@ -298,7 +298,7 @@ export default function SmokePage() {
     isThreadInfoLoading;
 
   return (
-    <div className="container max-w-7xl py-8 space-y-4">
+    <div className="tambo-theme container max-w-7xl py-8 space-y-4">
       <div className="flex gap-4">
         <Card className="p-4 flex flex-col flex-1">
           <div className="flex justify-between items-center mb-4 gap-2">

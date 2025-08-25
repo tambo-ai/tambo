@@ -39,7 +39,6 @@ function getProviders(): Provider[] {
     providers.push(GitHub(ProviderConfig.github));
   }
   if (env.GOOGLE_CLIENT_ID) {
-    console.log(`Got Google client ID: '${env.GOOGLE_CLIENT_ID}'`);
     providers.push(Google(ProviderConfig.google));
   }
   if (!providers.length) {

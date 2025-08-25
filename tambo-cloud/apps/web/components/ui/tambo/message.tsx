@@ -1,5 +1,6 @@
 "use client";
 
+import { createMarkdownComponents } from "@/components/ui/tambo/markdown-components";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
@@ -11,7 +12,6 @@ import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { createMarkdownComponents } from "./markdown-components";
 
 /**
  * CSS variants for the message container

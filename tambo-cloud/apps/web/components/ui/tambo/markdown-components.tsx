@@ -1,12 +1,12 @@
 "use client";
 
+import * as React from "react";
 import { cn } from "@/lib/utils";
-import DOMPurify from "dompurify";
+import type { Components } from "react-markdown";
+import { Copy, Check, ExternalLink } from "lucide-react";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import { Check, Copy, ExternalLink } from "lucide-react";
-import * as React from "react";
-import type { Components } from "react-markdown";
+import DOMPurify from "dompurify";
 
 /**
  * Markdown Components for React-Markdown
