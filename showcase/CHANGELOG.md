@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.19.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.19.0...showcase-v0.19.1) (2025-08-23)
+
+
+### Miscellaneous Chores
+
+* update dependencies and update message input handling ([#905](https://github.com/tambo-ai/tambo/issues/905)) ([8015195](https://github.com/tambo-ai/tambo/commit/80151952ea321f8cf65a5e9b447b84ea6986125e))
+
+## [0.19.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.18.3...showcase-v0.19.0) (2025-08-22)
+
+
+### Features
+
+* **api:** stop using contextKey returned from API ([#868](https://github.com/tambo-ai/tambo/issues/868)) ([75e0bbb](https://github.com/tambo-ai/tambo/commit/75e0bbba441695aa7038f242e7ec4ed62b76e91c))
+* useTamboThreadInput context return reactquery values ([#897](https://github.com/tambo-ai/tambo/issues/897)) ([13aeff6](https://github.com/tambo-ai/tambo/commit/13aeff669bd5760e4f8f93e9ff77dae301f4ba83))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#846](https://github.com/tambo-ai/tambo/issues/846)) ([8675209](https://github.com/tambo-ai/tambo/commit/867520964bd1b4ad058281712e86defaeb195fd2))
+* **deps:** bump lucide-react from 0.539.0 to 0.540.0 ([#849](https://github.com/tambo-ai/tambo/issues/849)) ([52f4804](https://github.com/tambo-ai/tambo/commit/52f48045cc051882c990b353c3ef9152717abe2a))
+* **deps:** bump next from 15.4.6 to 15.4.7 ([#862](https://github.com/tambo-ai/tambo/issues/862)) ([7abc4f9](https://github.com/tambo-ai/tambo/commit/7abc4f97337d08adc5bd132dd4e6f44dfaea6b35))
+* **deps:** bump recharts from 3.1.0 to 3.1.2 ([#864](https://github.com/tambo-ai/tambo/issues/864)) ([5cae69c](https://github.com/tambo-ai/tambo/commit/5cae69c5f8ce81809199d5c6a4671f257dc233a3))
+* **deps:** bump the radix-ui group with 2 updates ([#847](https://github.com/tambo-ai/tambo/issues/847)) ([e8a3304](https://github.com/tambo-ai/tambo/commit/e8a3304bba7e8602c4a552b032cc3c7c29620545))
+* **deps:** Fix some duplicated/misaligned [@types](https://github.com/types) versions ([#867](https://github.com/tambo-ai/tambo/issues/867)) ([0c3fcfe](https://github.com/tambo-ai/tambo/commit/0c3fcfe4a7356966e74104b5c60397aab7eb7848))
+* fix message input demo in showcase ([#893](https://github.com/tambo-ai/tambo/issues/893)) ([3521d44](https://github.com/tambo-ai/tambo/commit/3521d44bf4ae2f9323597e9a0b2b29975ea439c7))
+
 ## [0.18.3](https://github.com/tambo-ai/tambo/compare/showcase-v0.18.2...showcase-v0.18.3) (2025-08-15)
 
 

@@ -1,5 +1,9 @@
 export type { TamboComponent, TamboTool } from "../model/component-metadata";
-export { TamboClientProvider, useTamboClient } from "./tambo-client-provider";
+export {
+  TamboClientProvider,
+  useIsTamboTokenUpdating,
+  useTamboClient,
+} from "./tambo-client-provider";
 export {
   TamboComponentProvider,
   useTamboComponent,
