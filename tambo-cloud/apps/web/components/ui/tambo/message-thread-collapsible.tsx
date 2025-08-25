@@ -259,7 +259,7 @@ export const MessageThreadCollapsible = React.forwardRef<
         config={THREAD_CONFIG}
       />
       <Collapsible.Content>
-        <div className="h-[70vh] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
+        <div className="h-[calc(100vh-6rem)] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
           {/* Message thread content */}
           <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
             {/* Conditionally render the starter message */}
