@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
-    "drizzle-orm": "^0.44.4",
+    "drizzle-orm": "^0.44.5",
     "jsonwebtoken": "^9.0.2",
     "openai": "^5.12.2",
     "pg": "^8.16.3",
