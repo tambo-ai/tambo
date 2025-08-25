@@ -76,7 +76,7 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
     "ts-loader": "^9.4.3",
-    "tsx": "^4.20.4",
+    "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   },
   "engines": {
