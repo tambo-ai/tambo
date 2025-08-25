@@ -247,14 +247,6 @@ describe("useTamboComponentState", () => {
         false,
       );
     });
-
-    it("should return correct meta object with isPending status", () => {
-      const { result } = renderHook(() =>
-        useTamboComponentState("testKey", "initial"),
-      );
-
-      expect(result.current[2]).toEqual({ isPending: false });
-    });
   });
 
   describe("Debouncing Behavior", () => {

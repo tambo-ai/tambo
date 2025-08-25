@@ -3,16 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
 import { useTamboCurrentMessage } from "./use-current-message";
-// Define metadata interface for better extensibility
-interface ComponentStateMeta {
-  isPending: boolean;
-}
 
-type StateUpdateResult<T> = [
-  currentState: T,
-  setState: (newState: T) => void,
-  meta: ComponentStateMeta,
-];
+type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 
 /**
  * A React hook that provides state management and passes user updates to Tambo.
@@ -72,8 +64,8 @@ export function useTamboComponentState<S>(
   const [hasSetFromMessage, setHasSetFromMessage] = useState(
     messageState ? true : false,
   );
-  const isPending = false;
 
+  // Optimistically update the local thread message's componentState
   const updateLocalThreadMessage = useCallback(
     (newState: S, existingMessage: TamboThreadMessage) => {
       const updatedMessage = {
@@ -88,6 +80,7 @@ export function useTamboComponentState<S>(
     [updateThreadMessage, keyName],
   );
 
+  // Debounced callback to update the remote thread message's componentState
   const updateRemoteThreadMessage = useDebouncedCallback(
     async (newState: S, existingMessage: TamboThreadMessage) => {
       const componentStateUpdate = {
@@ -142,5 +135,5 @@ export function useTamboComponentState<S>(
     };
   }, [updateRemoteThreadMessage]);
 
-  return [localState as S, setValue, { isPending }];
+  return [localState as S, setValue];
 }
