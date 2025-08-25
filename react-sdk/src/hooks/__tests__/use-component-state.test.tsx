@@ -1,5 +1,4 @@
 import { act, renderHook } from "@testing-library/react";
-import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage } from "../../model/generate-component-response";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboThread } from "../../providers/tambo-thread-provider";
@@ -20,14 +19,26 @@ jest.mock("../use-current-message", () => ({
   useTamboCurrentMessage: jest.fn(),
 }));
 
+// Create a mock debounced function with flush method
+const createMockDebouncedFunction = (fn: any) => {
+  const debouncedFn = jest.fn((...args: any[]) => fn(...args)) as jest.Mock & {
+    flush: jest.Mock;
+    cancel: jest.Mock;
+    isPending: () => boolean;
+  };
+  debouncedFn.flush = jest.fn();
+  debouncedFn.cancel = jest.fn();
+  debouncedFn.isPending = jest.fn(() => false);
+  return debouncedFn;
+};
+
 // Mock use-debounce
 jest.mock("use-debounce", () => ({
-  useDebouncedCallback: jest.fn((_fn, _delay) => {
-    const debouncedFn = jest.fn((...args: any[]) => _fn(...args));
-    (debouncedFn as any).flush = jest.fn();
-    return debouncedFn;
-  }),
+  useDebouncedCallback: jest.fn(),
 }));
+
+// Import the mocked useDebouncedCallback
+import { useDebouncedCallback } from "use-debounce";
 
 describe("useTamboComponentState", () => {
   // Helper function to create mock TamboThreadMessage
@@ -48,6 +59,11 @@ describe("useTamboComponentState", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Setup default mock for useDebouncedCallback
+    jest
+      .mocked(useDebouncedCallback)
+      .mockImplementation((fn) => createMockDebouncedFunction(fn));
 
     // Setup default mocks
     jest.mocked(useTamboClient).mockReturnValue({
@@ -264,22 +280,22 @@ describe("useTamboComponentState", () => {
       );
     });
 
-    // it("should flush debounced callback on unmount", () => {
-    //   const mockFlush = jest.fn();
+    it("should flush debounced callback on unmount", () => {
+      const mockFlush = jest.fn();
+      const mockDebouncedFn = createMockDebouncedFunction(jest.fn());
+      mockDebouncedFn.flush = mockFlush;
 
-    //   // Mock the debounced callback to return our mock flush function
-    //   jest
-    //     .mocked(useDebouncedCallback)
-    //     .mockReturnValue(Object.assign(jest.fn(), { flush: mockFlush }));
+      // Mock the debounced callback to return our specific mock
+      jest.mocked(useDebouncedCallback).mockReturnValue(mockDebouncedFn);
 
-    //   const { unmount } = renderHook(() =>
-    //     useTamboComponentState("testKey", "initial"),
-    //   );
+      const { unmount } = renderHook(() =>
+        useTamboComponentState("testKey", "initial"),
+      );
 
-    //   unmount();
+      unmount();
 
-    //   expect(mockFlush).toHaveBeenCalled();
-    // });
+      expect(mockFlush).toHaveBeenCalled();
+    });
   });
 
   describe("Multi-Hook Scenarios", () => {
