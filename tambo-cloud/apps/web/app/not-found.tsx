@@ -68,7 +68,9 @@ export default function NotFound() {
             size="lg"
             className="px-8 py-6 text-base"
           >
-            <Link href="/docs">View Documentation</Link>
+            <a href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}>
+              View Documentation
+            </a>
           </Button>
         </div>
       </div>

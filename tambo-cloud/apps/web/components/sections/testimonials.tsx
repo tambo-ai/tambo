@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
 
 // Testimonial data moved in-house
 const testimonials = [
@@ -252,7 +251,7 @@ export function Testimonials({ count = 3 }: TestimonialsProps) {
         </div>
 
         <div className="mt-6 flex justify-center">
-          <Link
+          <a
             href="https://discord.gg/dJNvPEHth6"
             target="_blank"
             rel="noopener noreferrer"
@@ -260,7 +259,7 @@ export function Testimonials({ count = 3 }: TestimonialsProps) {
             <Button variant="default" className="px-6">
               Join our Discord
             </Button>
-          </Link>
+          </a>
         </div>
       </div>
     </Section>

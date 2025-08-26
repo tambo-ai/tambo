@@ -14,7 +14,6 @@ import { siteConfig } from "@/lib/config";
 import { track } from "@vercel/analytics";
 import { BookOpen, Bug, Calendar, LogOut, MessageSquare } from "lucide-react";
 import { signOut } from "next-auth/react";
-import Link from "next/link";
 
 interface UserProfileDropdownProps {
   user:
@@ -76,14 +75,17 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <Link href="/docs" className="flex items-center cursor-pointer">
+          <a
+            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
+            className="flex items-center cursor-pointer"
+          >
             <BookOpen className="mr-2 h-4 w-4" />
             Docs
-          </Link>
+          </a>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link
+          <a
             href={siteConfig.links.discord}
             target="_blank"
             rel="noopener noreferrer"
@@ -91,11 +93,11 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
           >
             <MessageSquare className="mr-2 h-4 w-4" />
             Discord
-          </Link>
+          </a>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link
+          <a
             href={`${siteConfig.links.github}/issues/new`}
             target="_blank"
             rel="noopener noreferrer"
@@ -103,17 +105,17 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
           >
             <Bug className="mr-2 h-4 w-4" />
             Create Issue
-          </Link>
+          </a>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link
+          <a
             href={`mailto:${siteConfig.links.email}?subject=Meeting Request`}
             className="flex items-center cursor-pointer"
           >
             <Calendar className="mr-2 h-4 w-4" />
             Meet with Founder
-          </Link>
+          </a>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

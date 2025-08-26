@@ -30,7 +30,7 @@ export function HeaderActions({
       >
         Pricing
       </Link>
-      <Link
+      <a
         href={process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co"}
         className={cn(
           buttonVariants({ variant: "link" }),
@@ -38,7 +38,7 @@ export function HeaderActions({
         )}
       >
         Docs
-      </Link>
+      </a>
       <Link
         href="/#mcp"
         className={cn(

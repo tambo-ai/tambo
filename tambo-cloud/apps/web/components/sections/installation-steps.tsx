@@ -2,7 +2,6 @@
 
 import { CLI } from "@/components/cli";
 import { Easing, motion } from "framer-motion";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 type TabType = "template" | "existing";
@@ -76,14 +75,14 @@ export function InstallationSteps() {
             animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.2, ease }}
           >
-            <Link
-              href={`/docs/getting-started/quickstart${
+            <a
+              href={`${process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}/getting-started/quickstart${
                 activeTab === "template" ? "#template" : "#existing-app"
               }`}
               className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/80 text-black rounded-lg font-sans text-sm font-medium transition-colors"
             >
               view full installation guide
-            </Link>
+            </a>
           </motion.div>
         </div>
       </div>

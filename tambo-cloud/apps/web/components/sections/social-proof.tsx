@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 interface Tweet {
@@ -206,7 +205,7 @@ export function SocialProof() {
         viewport={{ once: true }}
         transition={{ duration: 0.8, delay: 0.4 }}
       >
-        <Link
+        <a
           href="https://discord.gg/dJNvPEHth6"
           className={cn(
             buttonVariants({ variant: "outline" }),
@@ -215,8 +214,8 @@ export function SocialProof() {
         >
           <Icons.discord className="h-4 w-4 sm:h-5 sm:w-5" />
           Join our Discord
-        </Link>
-        <Link
+        </a>
+        <a
           href="https://github.com/tambo-ai/tambo"
           target="_blank"
           rel="noopener noreferrer"
@@ -227,7 +226,7 @@ export function SocialProof() {
         >
           <Icons.github className="h-4 w-4 sm:h-5 sm:w-5" />
           Star our repo
-        </Link>
+        </a>
       </motion.div>
     </Section>
   );

@@ -95,15 +95,15 @@ export function MobileDrawer({
           )}
         </div>
         <DrawerFooter>
-          <Link
-            href="/docs"
+          <a
+            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
             className={cn(
               buttonVariants({ variant: "default" }),
               "text-white rounded-full group",
             )}
           >
             Docs
-          </Link>
+          </a>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

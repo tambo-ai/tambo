@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import Link from "next/link";
 import { FC, useEffect, useState } from "react";
 
 const STORAGE_KEY = "tambohack_banner_dismissed_session";
@@ -62,7 +61,7 @@ export const TamboHackBanner: FC = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Link
+                  <a
                     href="/hack"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -70,7 +69,7 @@ export const TamboHackBanner: FC = () => {
                     className="inline-flex items-center rounded-md border border-[#5C94F7]/40 text-[#5C94F7] px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium hover:bg-[#5C94F7]/10 transition-colors whitespace-nowrap"
                   >
                     Join Now
-                  </Link>
+                  </a>
                 </motion.div>
               </div>
 

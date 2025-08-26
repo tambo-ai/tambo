@@ -30,7 +30,6 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 export function MobileDashboardNavigation() {
@@ -121,15 +120,15 @@ export function MobileDashboardNavigation() {
         </DrawerHeader>
 
         <div className="px-6 flex flex-col gap-2">
-          <Link
-            href="/docs"
+          <a
+            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
             className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
           >
             <BookOpen className="h-4 w-4" />
             Docs
-          </Link>
+          </a>
 
-          <Link
+          <a
             href={siteConfig.links.discord}
             target="_blank"
             rel="noopener noreferrer"
@@ -137,9 +136,9 @@ export function MobileDashboardNavigation() {
           >
             <MessageSquare className="h-4 w-4" />
             Discord
-          </Link>
+          </a>
 
-          <Link
+          <a
             href={`${siteConfig.links.github}/issues/new`}
             target="_blank"
             rel="noopener noreferrer"
@@ -147,15 +146,15 @@ export function MobileDashboardNavigation() {
           >
             <Bug className="h-4 w-4" />
             Create Issue
-          </Link>
+          </a>
 
-          <Link
+          <a
             href={`mailto:${siteConfig.links.email}?subject=Meeting Request`}
             className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
           >
             <Calendar className="h-4 w-4" />
             Meet with Founder
-          </Link>
+          </a>
         </div>
 
         <DrawerFooter>
