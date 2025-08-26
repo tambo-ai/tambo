@@ -13,6 +13,7 @@ module.exports = {
     "./src/**/*.{ts,tsx}",
     "./content/**/*.mdx",
     "./mdx-components.tsx",
+    "./lib/blog/constants.ts",
   ],
 
   theme: {

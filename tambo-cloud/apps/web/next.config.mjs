@@ -1,8 +1,12 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import { createJiti } from "jiti";
+import nextra from "nextra";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import rehypeKatex from "rehype-katex";
+import rehypePrettyCode from "rehype-pretty-code";
+import remarkGfm from "remark-gfm";
 
 const jiti = createJiti(fileURLToPath(import.meta.url));
 
@@ -26,16 +30,9 @@ const config = {
         permanent: true,
       },
       {
-        /** Got rid of the blog for now, but keeping this redirect in case we want to add it back */
-        source: "/blog",
-        destination:
-          process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co",
-        permanent: false,
-      },
-      {
-        source: "/blog/:path*",
-        destination: `${process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co"}/blog/:path*`,
-        permanent: false,
+        source: "/blog/posts",
+        destination: "/blog",
+        permanent: true,
       },
       {
         source: "/book",
@@ -144,7 +141,30 @@ const config = {
   },
 };
 
-export default withSentryConfig(config, {
+// Nextra configuration for MDX support
+const withNextra = nextra({
+  defaultShowCopyCode: true,
+  readingTime: true,
+  mdxOptions: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [
+      rehypeKatex,
+      [
+        rehypePrettyCode,
+        {
+          theme: {
+            light: "github-light",
+            dark: "github-dark",
+          },
+          keepBackground: false,
+          defaultLang: "ts",
+        },
+      ],
+    ],
+  },
+});
+
+export default withSentryConfig(withNextra(config), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
