@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.102.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.9...repo-v0.102.0) (2025-08-26)
+
+
+### Features
+
+* add blog with nextra ([#1647](https://github.com/tambo-ai/tambo-cloud/issues/1647)) ([9102fa4](https://github.com/tambo-ai/tambo-cloud/commit/9102fa45af04186111e3b0e2819f622708d8ec49))
+
+
+### Miscellaneous Chores
+
+* fix dashboard demo layout ([#1651](https://github.com/tambo-ai/tambo-cloud/issues/1651)) ([86e3004](https://github.com/tambo-ai/tambo-cloud/commit/86e3004d2a0576aabeca4e292a068c782be020c2))
+
 ## [0.101.9](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.8...repo-v0.101.9) (2025-08-26)
 
 
