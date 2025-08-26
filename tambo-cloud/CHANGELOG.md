@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.102.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.102.0...repo-v0.102.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* tambohack banner closing issue ([#1653](https://github.com/tambo-ai/tambo-cloud/issues/1653)) ([49c7f09](https://github.com/tambo-ai/tambo-cloud/commit/49c7f09eb9b91a6fcb03414738fa74b982822a1a))
+
 ## [0.102.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.9...repo-v0.102.0) (2025-08-26)
 
 
