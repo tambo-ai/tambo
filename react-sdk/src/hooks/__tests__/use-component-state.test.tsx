@@ -263,7 +263,12 @@ describe("useTamboComponentState", () => {
       const customDebounceTime = 1000;
 
       renderHook(() =>
-        useTamboComponentState("testKey", "initial", customDebounceTime),
+        useTamboComponentState(
+          "testKey",
+          "initial",
+          undefined,
+          customDebounceTime,
+        ),
       );
 
       expect(useDebouncedCallback).toHaveBeenCalledWith(
