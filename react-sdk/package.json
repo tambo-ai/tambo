@@ -69,7 +69,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
     "@tambo-ai/typescript-sdk": "^0.68.0",
-    "@tanstack/react-query": "^5.85.3",
+    "@tanstack/react-query": "^5.85.5",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",
     "ts-essentials": "^10.1.1",
