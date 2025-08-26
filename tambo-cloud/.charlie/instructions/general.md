@@ -7,6 +7,8 @@ Keep PRs focused, well-documented, and easy for reviewers to verify.
 
 ## 1. Dependency, Lint, and Format Rules
 
+Charlie may not do the following: (but humans can)
+
 - **Do NOT** add, upgrade, or remove dependencies unless the task explicitly says so.
 - **Do NOT** change the configuration of tools such as Prettier, ESLint, or TypeScript unless the task explicitly says so.
 - Always run the Charlie quick-fix command before pushing:
@@ -43,9 +45,16 @@ Use the conventional-commits style in every commit message:
 When a PR closes or fixes a GitHub issue, reference it in the description using the exact wording **`Fixes #<number>`**.  
 Example:
 
-```md
+````md
 Fixes #217
+
+When a PR closes or fixes a Linear issue, reference it in the description using the exact wording **`Fixes TAM-<issue-key>`**.
+Example:
+
+```md
+Fixes TAM-123
 ```
+````
 
 ---
 
@@ -85,6 +94,8 @@ The migrations output directory **must remain exactly**
   npm run db:generate   # shorthand for `drizzle-kit generate`
   ```
 
-- Prisma is **not** used anywhere in this repository—avoid creating `.prisma` files, running Prisma CLI commands, or installing Prisma-related packages.
+- _Never_ generate migrations by hand, always use the above command.
+
+- Prisma is **not** used anywhere in this repository, so never create `.prisma` files, never run Prisma CLI commands, and never install Prisma-related packages.
 
 Following these guidelines keeps the Drizzle schema, generated SQL migrations, and application types in perfect sync.

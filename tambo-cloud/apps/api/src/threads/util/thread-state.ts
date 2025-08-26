@@ -274,56 +274,86 @@ export async function addAssistantResponse(
 }
 
 /**
- * Convert a stream of component decisions to a stream of serialized thread
- * messages, by filling the initialMessage
+ * The purpose if this function is to make sure that we do not stream
+ * intermediate tool calls and instead withhold the toolCallRequest and
+ * toolCallId until the final message.
+ *
+ * Messages will come in from the LLM or agent as a stream of component
+ * decisions, as a flat stream or messages, even though there may be more than
+ * one actual message, and each iteration of the message may contain an
+ * incomplete tool call.
+ *
+ * For LLMs, this mostly just looks like a stream of messages that ultimately
+ * results in a single final message, so just the last message in the resulting
+ * stream has a tool call in it.
+ *
+ * For agents, this may be a stream of multiple distinct messages, (like a user
+ * message, then two asisstant messages, then another user message, etc) and we
+ * distinguish between them because the `id` of the LegacyComponentDecision will
+ * change with each message.
  */
-export async function* convertDecisionStreamToMessageStream(
+export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
-  initialMessage: ThreadMessage,
-): AsyncIterableIterator<ThreadMessage> {
-  let finalThreadMessage: ThreadMessage = {
-    // Only bring in the bare minimum fields from the initialMessage
-    componentState: initialMessage.componentState ?? {},
-    content: initialMessage.content,
-    createdAt: initialMessage.createdAt,
-    id: initialMessage.id,
-    role: initialMessage.role,
-    threadId: initialMessage.threadId,
-  };
-  let finalToolCallRequest: ToolCallRequest | undefined;
-  let finalToolCallId: string | undefined;
+): AsyncIterableIterator<LegacyComponentDecision> {
+  let currentDecisionId: string | undefined = undefined;
+
+  let currentToolCallRequest: ToolCallRequest | undefined = undefined;
+  let currentToolCallId: string | undefined = undefined;
+  let currentDecision: LegacyComponentDecision | undefined = undefined;
 
   for await (const chunk of stream) {
-    finalThreadMessage = {
-      ...initialMessage,
-      componentState: chunk.componentState ?? {},
-      content: [
-        {
-          type: ContentPartType.Text,
-          text: chunk.message,
-        },
-      ],
-      component: chunk,
-      // do NOT set the toolCallRequest or tool_call_id here, we will set them in the final response
-    };
-    if (chunk.toolCallRequest) {
-      finalToolCallRequest = chunk.toolCallRequest;
-      // toolCallId is set when streaming the response to a tool response
-      // chunk.toolCallId is set when streaming the response to a component
-      finalToolCallId = chunk.toolCallId;
+    if (currentDecision?.id && currentDecisionId !== chunk.id) {
+      // we're on to a new chunk, so if we have a previous tool call request, emit it
+      if (currentToolCallRequest) {
+        yield {
+          ...currentDecision,
+          toolCallRequest: currentToolCallRequest,
+          toolCallId: currentToolCallId,
+        };
+      }
     }
-
-    yield finalThreadMessage;
+    const { toolCallId, toolCallRequest, ...incompleteChunk } = chunk;
+    currentDecision = incompleteChunk;
+    currentDecisionId = chunk.id;
+    currentToolCallId = toolCallId;
+    currentToolCallRequest = toolCallRequest;
+    yield incompleteChunk;
   }
 
-  // now that we're done streaming, add the tool call request and tool call id to the response
-  finalThreadMessage = {
-    ...finalThreadMessage,
-    toolCallRequest: finalToolCallRequest,
-    tool_call_id: finalToolCallId,
-    actionType: finalToolCallRequest ? ActionType.ToolCall : undefined,
+  // account for the last iteration
+  if (currentDecision && currentToolCallRequest) {
+    yield {
+      ...currentDecision,
+      toolCallRequest: currentToolCallRequest,
+      toolCallId: currentToolCallId,
+    };
+  }
+}
+
+export function updateThreadMessageFromLegacyDecision(
+  initialMessage: ThreadMessage,
+  chunk: LegacyComponentDecision,
+): ThreadMessage {
+  const currentThreadMessage: ThreadMessage = {
+    ...initialMessage,
+    componentState: chunk.componentState ?? {},
+    content: [
+      {
+        type: ContentPartType.Text,
+        text: chunk.message,
+      },
+    ],
+    component: chunk,
+    // If the chunk includes a tool call, propagate it onto the thread message.
+    // Intermediate chunks from fixStreamedToolCalls will not include tool calls; only
+    // final/synthesized chunks carry tool call metadata.
   };
-  yield finalThreadMessage;
+  if (chunk.toolCallRequest) {
+    currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+    currentThreadMessage.tool_call_id = chunk.toolCallId;
+    currentThreadMessage.actionType = ActionType.ToolCall;
+  }
+  return currentThreadMessage;
 }
 
 /**

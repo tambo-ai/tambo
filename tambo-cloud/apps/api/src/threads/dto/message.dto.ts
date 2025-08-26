@@ -83,6 +83,11 @@ export class ThreadMessageDto {
   tool_call_id?: string;
 
   @IsEnum(ActionType)
+  @ApiProperty({
+    deprecated: true,
+    description:
+      "Deprecated: use the role and the presence of tool calls to determine the action type",
+  })
   actionType?: ActionType;
 
   @ApiProperty({ required: false, type: String })
@@ -133,6 +138,11 @@ export class MessageRequest implements InternalThreadMessage {
   tool_call_id?: string;
   @IsOptional()
   @IsEnum(ActionType)
+  @ApiProperty({
+    deprecated: true,
+    description:
+      "No longer used - instead set role and the tool call information",
+  })
   actionType?: ActionType;
 
   @IsOptional()

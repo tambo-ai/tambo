@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Sentry from "@sentry/nestjs";
 import {
@@ -22,7 +22,7 @@ import {
   ToolCallRequest,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
-import type { HydraDatabase } from "@tambo-ai-cloud/db";
+import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
@@ -58,10 +58,11 @@ import {
   addAssistantResponse,
   addInitialMessage,
   addUserMessage,
-  convertDecisionStreamToMessageStream,
   finishInProgressMessage,
+  fixStreamedToolCalls,
   processThreadMessage,
   updateGenerationStage,
+  updateThreadMessageFromLegacyDecision,
 } from "./util/thread-state";
 import {
   callSystemTool,
@@ -1573,6 +1574,7 @@ export class ThreadsService {
         userMessage,
         logger,
       );
+      let currentThreadMessage: ThreadMessage = initialMessage;
 
       // Track streaming metrics
       let chunkCount = 0;
@@ -1582,36 +1584,12 @@ export class ThreadsService {
       let lastUpdateTime = 0;
       const updateIntervalMs = 500;
 
-      const checkCancellationStatus = async () => {
-        try {
-          const generationStage = await operations.getThreadGenerationStage(
-            db,
-            threadId,
-            projectId,
-          );
-          const isCancelled = generationStage === GenerationStage.CANCELLED;
-
-          if (isCancelled) {
-            Sentry.addBreadcrumb({
-              message: "Stream cancelled during processing",
-              category: "stream",
-              level: "warning",
-              data: { threadId, chunksProcessed: chunkCount },
-            });
-          }
-          return isCancelled;
-        } catch (error) {
-          logger.error(`Error checking thread cancellation status: ${error}`);
-          Sentry.captureException(error, {
-            tags: { operation: "checkCancellation", threadId },
-          });
-        }
-      };
-
-      for await (const threadMessage of convertDecisionStreamToMessageStream(
-        stream,
-        initialMessage,
-      )) {
+      for await (const legacyDecision of fixStreamedToolCalls(stream)) {
+        // update in memory - we'll write to the db periodically
+        currentThreadMessage = updateThreadMessageFromLegacyDecision(
+          currentThreadMessage,
+          legacyDecision,
+        );
         chunkCount++;
         if (!ttfbEnded) {
           ttfbSpan.end();
@@ -1621,14 +1599,20 @@ export class ThreadsService {
         // Update db message on interval
         const currentTime = Date.now();
         if (currentTime - lastUpdateTime >= updateIntervalMs) {
-          const isCancelled = await checkCancellationStatus();
+          const isCancelled = await checkCancellationStatus(
+            db,
+            threadId,
+            projectId,
+            chunkCount,
+            logger,
+          );
 
           if (isCancelled) {
             yield {
               responseMessageDto: {
-                ...threadMessage,
-                content: convertContentPartToDto(threadMessage.content),
-                componentState: threadMessage.componentState ?? {},
+                ...currentThreadMessage,
+                content: convertContentPartToDto(currentThreadMessage.content),
+                componentState: currentThreadMessage.componentState ?? {},
               },
               generationStage: GenerationStage.CANCELLED,
               statusMessage: "cancelled",
@@ -1638,27 +1622,27 @@ export class ThreadsService {
           }
 
           await updateMessage(db, initialMessage.id, {
-            ...threadMessage,
-            content: convertContentPartToDto(threadMessage.content),
+            ...currentThreadMessage,
+            content: convertContentPartToDto(currentThreadMessage.content),
           });
           lastUpdateTime = currentTime;
         }
 
         // do not yield the final thread message if it is a tool call
         // might have to switch to an internal tool call
-        if (!threadMessage.toolCallRequest) {
+        if (!currentThreadMessage.toolCallRequest) {
           yield {
             responseMessageDto: {
-              ...threadMessage,
-              content: convertContentPartToDto(threadMessage.content),
-              componentState: threadMessage.componentState ?? {},
+              ...currentThreadMessage,
+              content: convertContentPartToDto(currentThreadMessage.content),
+              componentState: currentThreadMessage.componentState ?? {},
             },
             generationStage: GenerationStage.STREAMING_RESPONSE,
             statusMessage: `Streaming response...`,
             mcpAccessToken,
           };
         }
-        finalThreadMessage = threadMessage;
+        finalThreadMessage = currentThreadMessage;
       }
 
       if (!finalThreadMessage) {
@@ -2019,3 +2003,37 @@ export class ThreadsService {
     return false;
   }
 }
+
+const checkCancellationStatus = async (
+  db: HydraDb,
+  threadId: string,
+  projectId: string,
+  chunkCount: number,
+  logger?: Logger,
+) => {
+  try {
+    const generationStage = await operations.getThreadGenerationStage(
+      db,
+      threadId,
+      projectId,
+    );
+    const isCancelled = generationStage === GenerationStage.CANCELLED;
+
+    if (isCancelled) {
+      Sentry.addBreadcrumb({
+        message: "Stream cancelled during processing",
+        category: "stream",
+        level: "warning",
+        data: { threadId, chunksProcessed: chunkCount },
+      });
+    }
+    return isCancelled;
+  } catch (error) {
+    logger?.error(`Error checking thread cancellation status: ${error}`);
+    Sentry.captureException(error, {
+      tags: { operation: "checkCancellation", threadId },
+    });
+    // we assume that the thread is not cancelled if we cannot check the status
+    return false;
+  }
+};

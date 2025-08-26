@@ -1,4 +1,5 @@
 export interface LegacyComponentDecision {
+  id?: string;
   componentName: string | null;
   props: any | null;
   message: string;

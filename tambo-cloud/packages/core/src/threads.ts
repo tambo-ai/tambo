@@ -103,7 +103,10 @@ export interface ThreadMessage {
   /** Additional context for the message */
   additionalContext?: Record<string, any>;
 
-  /** Type of action performed */
+  /**
+   * Type of action performed
+   * @deprecated - use the role and the presence of tool calls to determine the action type
+   */
   actionType?: ActionType;
 
   /** Error message for the message */
@@ -130,6 +133,9 @@ export interface InternalThreadMessage {
   content: ChatCompletionContentPartUnion[];
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2;
+  /**
+   * @deprecated - use the role and the presence of tool calls to determine the action type
+   */
   actionType?: ActionType;
   toolCallRequest?: Partial<ToolCallRequest>;
   tool_call_id?: string;
