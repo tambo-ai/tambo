@@ -1,32 +1,23 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { useTamboClient, useTamboThread } from "../providers";
+import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
 import { useTamboCurrentMessage } from "./use-current-message";
-// Define metadata interface for better extensibility
-interface ComponentStateMeta {
-  isPending: boolean;
-}
 
-type StateUpdateResult<T> = [
-  currentState: T,
-  setState: (newState: T) => void,
-  meta: ComponentStateMeta,
-];
+type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 
 /**
- * A React hook that provides state management and passes user updates to Tambo.
+ * A React hook that acts like useState, but also automatically updates the thread message's componentState.
  * Benefits: Passes user changes to AI, and when threads are returned, state is preserved.
- * @param keyName - The unique key to identify this state within the message's componentState object
- * @param initialValue - Optional initial value for the state, used if no value exists in the message
- * @param debounceTime - Optional debounce time in milliseconds (default: 300ms) to limit API calls
+ * @param keyName - The unique key to identify this state value within the message's componentState object
+ * @param initialValue - Optional initial value for the state, used if no componentState value exists in the Tambo message containing this hook usage.
+ * @param setFromProp - Optional value used to set the state value, only while no componentState value exists in the Tambo message containing this hook usage. Use this to allow streaming updates from a prop to the state value.
+ * @param debounceTime - Optional debounce time in milliseconds (default: 500ms) to limit API calls.
  * @returns A tuple containing:
  *   - The current state value
  *   - A setter function to update the state (updates UI immediately, debounces server sync)
- *   - A metadata object with properties like isPending to track sync status
  * @example
- * // Basic usage
- * const [count, setCount, { isPending }] = useTamboComponentState("counter", 0);
+ * const [count, setCount] = useTamboComponentState("counter", 0);
  *
  * // Usage with object state
  * const [formState, setFormState] = useTamboComponentState("myForm", {
@@ -46,183 +37,93 @@ type StateUpdateResult<T> = [
 export function useTamboComponentState<S = undefined>(
   keyName: string,
   initialValue?: S,
+  setFromProp?: S,
   debounceTime?: number,
 ): StateUpdateResult<S | undefined>;
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue: S,
+  setFromProp?: S,
   debounceTime?: number,
 ): StateUpdateResult<S>;
-
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,
+  setFromProp?: S,
   debounceTime = 500,
 ): StateUpdateResult<S> {
   const message = useTamboCurrentMessage();
-  const { updateThreadMessage, thread } = useTamboThread();
+  const { updateThreadMessage } = useTamboThread();
   const client = useTamboClient();
-  const messageId = message.id;
-  const threadId = thread.id;
-
-  // Initial value management
-  const [cachedInitialValue] = useState(() => initialValue);
-  // UI state management
+  const messageState = message?.componentState?.[keyName];
   const [localState, setLocalState] = useState<S | undefined>(
-    cachedInitialValue,
+    (messageState as S) ?? initialValue,
   );
-  // Synchronization state
-  const [isPending, setIsPending] = useState(false);
-  // Track the last user-initiated value instead of a simple boolean flag
-  const [lastUserValue, setLastUserValue] = useState<S | null>(null);
-  const [haveInitialized, setHaveInitialized] = useState(false);
+  const [initializedFromThreadMessage, setInitializedFromThreadMessage] =
+    useState(messageState ? true : false);
 
-  // Determine if we need to initialize state
-  const shouldInitialize =
-    !haveInitialized &&
-    message &&
-    cachedInitialValue !== undefined &&
-    (!message.componentState || !(keyName in message.componentState));
-
-  // Sync local state with message state on initial load and when message changes
-  useEffect(() => {
-    if (message?.componentState && keyName in message.componentState) {
-      const messageState = message.componentState[keyName] as S;
-
-      // Only update local state if we haven't had any user changes yet
-      if (lastUserValue === null) {
-        setLocalState(messageState);
-      }
-    }
-    // Otherwise fall back to initial value if we have one and no user changes
-    else if (
-      cachedInitialValue !== undefined &&
-      !localState &&
-      lastUserValue === null
-    ) {
-      setLocalState(cachedInitialValue);
-    }
-  }, [
-    keyName,
-    message?.componentState,
-    cachedInitialValue,
-    lastUserValue,
-    localState,
-  ]);
-
-  // Create debounced save function for efficient server synchronization
-  const debouncedServerWrite = useDebouncedCallback(async (newValue: S) => {
-    setIsPending(true);
-    try {
-      const componentStateUpdate = {
-        state: { [keyName]: newValue },
-      };
-
-      await client.beta.threads.messages.updateComponentState(
-        threadId,
-        messageId,
-        componentStateUpdate,
-      );
-    } catch (err) {
-      console.error(
-        `Failed to save component state for key "${keyName}":`,
-        err,
-      );
-    } finally {
-      setIsPending(false);
-    }
-  }, debounceTime);
-
-  // Initialize state on first render if needed
-  const initializeState = useCallback(async () => {
-    if (!message) {
-      console.warn(
-        `Cannot initialize state for missing message ${messageId} with key "${keyName}"`,
-      );
-      return;
-    }
-
-    try {
-      const messageUpdate = {
-        ...message,
+  // Optimistically update the local thread message's componentState
+  const updateLocalThreadMessage = useCallback(
+    (newState: S, existingMessage: TamboThreadMessage) => {
+      const updatedMessage = {
+        threadId: existingMessage.threadId,
         componentState: {
-          ...message.componentState,
-          [keyName]: cachedInitialValue,
+          ...existingMessage.componentState,
+          [keyName]: newState,
         },
       };
-
-      const componentStateUpdate = {
-        state: { [keyName]: cachedInitialValue },
-      };
-
-      await Promise.all([
-        updateThreadMessage(messageId, messageUpdate, false),
-        client.beta.threads.messages.updateComponentState(
-          threadId,
-          messageId,
-          componentStateUpdate,
-        ),
-      ]);
-    } catch (err) {
-      console.warn(
-        `Failed to initialize component state for key "${keyName}":`,
-        err,
-      );
-    }
-  }, [
-    cachedInitialValue,
-    client.beta.threads.messages,
-    keyName,
-    message,
-    messageId,
-    threadId,
-    updateThreadMessage,
-  ]);
-
-  // Send initial state when component mounts
-  useEffect(() => {
-    if (shouldInitialize) {
-      initializeState();
-      setHaveInitialized(true);
-    }
-  }, [initializeState, shouldInitialize]);
-
-  // setValue function for updating state
-  // Updates local state immediately and schedules debounced server sync
-  const setValue = useCallback(
-    (newValue: S) => {
-      // Track this as a user-initiated update
-      setLastUserValue(newValue);
-      setLocalState(newValue);
-
-      // Only trigger server updates if we have a message
-      if (message) {
-        debouncedServerWrite(newValue);
-        const messageUpdate = {
-          ...message,
-          componentState: {
-            ...message.componentState,
-            [keyName]: newValue,
-          },
-        };
-
-        updateThreadMessage(messageId, messageUpdate, false);
-      } else {
-        console.warn(
-          `Cannot update server for missing message ${messageId} with key "${keyName}"`,
-        );
-      }
+      updateThreadMessage(existingMessage.id, updatedMessage, false);
     },
-    [message, debouncedServerWrite, keyName, updateThreadMessage, messageId],
+    [updateThreadMessage, keyName],
   );
+
+  // Debounced callback to update the remote thread message's componentState
+  const updateRemoteThreadMessage = useDebouncedCallback(
+    async (newState: S, existingMessage: TamboThreadMessage) => {
+      const componentStateUpdate = {
+        state: { [keyName]: newState },
+      };
+      await client.beta.threads.messages.updateComponentState(
+        existingMessage.threadId,
+        existingMessage.id,
+        componentStateUpdate,
+      );
+    },
+    debounceTime,
+  );
+
+  const setValue = useCallback(
+    (newState: S) => {
+      setLocalState(newState);
+      updateLocalThreadMessage(newState, message);
+      updateRemoteThreadMessage(newState, message);
+    },
+    [message, updateLocalThreadMessage, updateRemoteThreadMessage],
+  );
+
+  // Mirror the thread message's componentState value to the local state
+  useEffect(() => {
+    const messageState = message?.componentState?.[keyName];
+    if (!messageState) {
+      return;
+    }
+    setInitializedFromThreadMessage(true);
+    setLocalState(message.componentState?.[keyName] as S);
+  }, [message?.componentState?.[keyName], message, keyName]);
+
+  // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
+  useEffect(() => {
+    if (setFromProp !== undefined && !initializedFromThreadMessage) {
+      setLocalState(setFromProp as S);
+    }
+  }, [setFromProp, initializedFromThreadMessage]);
 
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
     return () => {
-      debouncedServerWrite.flush();
+      updateRemoteThreadMessage.flush();
     };
-  }, [debouncedServerWrite]);
+  }, [updateRemoteThreadMessage]);
 
-  // Return the local state for immediate UI rendering
-  return [localState as S, setValue, { isPending }];
+  return [localState as S, setValue];
 }
