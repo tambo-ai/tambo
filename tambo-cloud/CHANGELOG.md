@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.103.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.102.1...repo-v0.103.0) (2025-08-26)
+
+
+### Features
+
+* **agents:** add types and db schema for agent support ([#1656](https://github.com/tambo-ai/tambo-cloud/issues/1656)) ([df2dd00](https://github.com/tambo-ai/tambo-cloud/commit/df2dd0021ec1e83b4df79b26bb41b3ad17faba88))
+
+
+### Code Refactoring
+
+* **agents:** Start to generalize thread updating, by separating concerns ([#1646](https://github.com/tambo-ai/tambo-cloud/issues/1646)) ([8f670a8](https://github.com/tambo-ai/tambo-cloud/commit/8f670a8bfb225201041977031cd5f0a20f3a570b))
+
 ## [0.102.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.102.0...repo-v0.102.1) (2025-08-26)
 
 
