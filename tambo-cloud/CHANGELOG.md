@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.103.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.103.0...repo-v0.103.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* avoid prefetching errors ([#1659](https://github.com/tambo-ai/tambo-cloud/issues/1659)) ([8976b88](https://github.com/tambo-ai/tambo-cloud/commit/8976b8843f967b84ba9244049910f0dcf700619e))
+
+
+### Miscellaneous Chores
+
+* Update header link and redirect to mcp section ([#1652](https://github.com/tambo-ai/tambo-cloud/issues/1652)) ([0295929](https://github.com/tambo-ai/tambo-cloud/commit/02959299b230c53c610fb13486a1a546184f228c))
+
 ## [0.103.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.102.1...repo-v0.103.0) (2025-08-26)
 
 
