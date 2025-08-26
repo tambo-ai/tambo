@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.101.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.7...repo-v0.101.8) (2025-08-26)
+
+
+### Bug Fixes
+
+* **smoketest:** Fix colors + layout on smoketest ([#1641](https://github.com/tambo-ai/tambo-cloud/issues/1641)) ([4b888d3](https://github.com/tambo-ai/tambo-cloud/commit/4b888d34482463cd7656272c101f776e893049c6))
+
+
+### Performance Improvements
+
+* **auth:** Speed up ApiKeyGuard by simplifying API key lookup ([#1644](https://github.com/tambo-ai/tambo-cloud/issues/1644)) ([5cf5248](https://github.com/tambo-ai/tambo-cloud/commit/5cf5248259732bc15304331fa6e14451120430c7))
+
+
+### Miscellaneous Chores
+
+* **ci:** add commit depth to let sentry find history ([#1645](https://github.com/tambo-ai/tambo-cloud/issues/1645)) ([ece043f](https://github.com/tambo-ai/tambo-cloud/commit/ece043f3ed51cc645ad295c9778a76a68ab5bd09))
+* **ci:** Add sentry release to github actions ([#1642](https://github.com/tambo-ai/tambo-cloud/issues/1642)) ([f258fd4](https://github.com/tambo-ai/tambo-cloud/commit/f258fd4054bfa5cf85b705f64313e2f50b804336))
+* **ci:** fix sentry release action to pull the branch too ([#1643](https://github.com/tambo-ai/tambo-cloud/issues/1643)) ([5703ed7](https://github.com/tambo-ai/tambo-cloud/commit/5703ed7e602802e7ec35ba670c6ba8f0ef5786fd))
+* **deps:** npm dedupe && npm audit fix to clean up packages before agent branch lands ([#1639](https://github.com/tambo-ai/tambo-cloud/issues/1639)) ([4c34001](https://github.com/tambo-ai/tambo-cloud/commit/4c34001347cc9a65a33a20caa6efc4e8180ea08f))
+
 ## [0.101.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.6...repo-v0.101.7) (2025-08-25)
 
 
