@@ -491,6 +491,13 @@
       "when": 1756144133242,
       "tag": "0069_overjoyed_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1756239711441,
+      "tag": "0070_real_white_tiger",
+      "breakpoints": true
     }
   ]
 }

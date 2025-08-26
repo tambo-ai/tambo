@@ -1,5 +1,7 @@
 import {
   ActionType,
+  AgentProviderType,
+  AiProviderType,
   ComponentDecisionV2,
   DeprecatedComposioAuthMode,
   GenerationStage,
@@ -173,6 +175,18 @@ export const projects = pgTable(
       .notNull()
       .default(sql`encode(gen_random_bytes(32), 'hex')`),
     isTokenRequired: boolean("is_token_required").default(false).notNull(),
+    providerType: text("provider_type", {
+      enum: Object.values<string>(AiProviderType) as [AiProviderType],
+    })
+      .default(AiProviderType.LLM)
+      .notNull(),
+    agentProviderType: text("agent_provider_type", {
+      enum: Object.values<string>(AgentProviderType) as [AgentProviderType],
+    })
+      .default(AgentProviderType.AGUI)
+      .notNull(),
+    agentUrl: text("agent_url"),
+    agentName: text("agent_name"),
   }),
   (table) => {
     return [

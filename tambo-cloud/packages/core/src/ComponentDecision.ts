@@ -1,5 +1,9 @@
+import { MessageRole } from "./threads";
+
 export interface LegacyComponentDecision {
+  /** This is an internal id for noticing when multiple messages come out of a stream */
   id?: string;
+  role?: MessageRole;
   componentName: string | null;
   props: any | null;
   message: string;
@@ -12,6 +16,9 @@ export interface LegacyComponentDecision {
 }
 
 export interface ComponentDecisionV2 {
+  /** This is an internal id for noticing when multiple messages come out of a stream */
+  id?: string;
+  role?: MessageRole;
   componentName: string | null;
   props: Record<string, unknown>;
   message: string;
