@@ -37,20 +37,20 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 export function useTamboComponentState<S = undefined>(
   keyName: string,
   initialValue?: S,
-  setFromProp?: any,
+  setFromProp?: S,
   debounceTime?: number,
 ): StateUpdateResult<S | undefined>;
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue: S,
-  setFromProp?: any,
+  setFromProp?: S,
   debounceTime?: number,
 ): StateUpdateResult<S>;
 
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,
-  setFromProp?: any,
+  setFromProp?: S,
   debounceTime = 500,
 ): StateUpdateResult<S> {
   const message = useTamboCurrentMessage();
@@ -119,12 +119,10 @@ export function useTamboComponentState<S>(
 
   // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
   useEffect(() => {
-    if (setFromProp) {
-      if (!initializedFromThreadMessage) {
-        setLocalState(setFromProp);
-      }
+    if (setFromProp !== undefined && !initializedFromThreadMessage) {
+      setLocalState(setFromProp as S);
     }
-  }, [setFromProp, setValue, initializedFromThreadMessage]);
+  }, [setFromProp, initializedFromThreadMessage]);
 
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
