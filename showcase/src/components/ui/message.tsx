@@ -11,7 +11,7 @@ import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
+import { Streamdown } from "streamdown";
 
 /**
  * CSS variants for the message container
@@ -226,9 +226,9 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <ReactMarkdown components={createMarkdownComponents()}>
+              <Streamdown components={createMarkdownComponents()}>
                 {typeof safeContent === "string" ? safeContent : ""}
-              </ReactMarkdown>
+              </Streamdown>
             ) : (
               safeContent
             )}
@@ -369,14 +369,14 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
                   ) : React.isValidElement(associatedToolResponse.content) ? (
                     associatedToolResponse.content
                   ) : markdown ? (
-                    <ReactMarkdown components={createMarkdownComponents()}>
+                    <Streamdown components={createMarkdownComponents()}>
                       {typeof getSafeContent(associatedToolResponse.content) ===
                       "string"
                         ? (getSafeContent(
                             associatedToolResponse.content,
                           ) as string)
                         : ""}
-                    </ReactMarkdown>
+                    </Streamdown>
                   ) : (
                     getSafeContent(associatedToolResponse.content)
                   )}

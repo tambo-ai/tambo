@@ -9,7 +9,7 @@
     "radix-ui",
     "react-dom",
     "framer-motion",
-    "react-markdown"
+    "streamdown"
   ],
   "devDependencies": [],
   "requires": [],

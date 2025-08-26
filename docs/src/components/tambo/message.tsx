@@ -10,7 +10,7 @@ import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
+import { Streamdown } from "streamdown";
 import { createMarkdownComponents } from "@/components/tambo/markdown-components";
 
 /**
@@ -225,9 +225,9 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <ReactMarkdown components={createMarkdownComponents()}>
+              <Streamdown components={createMarkdownComponents()}>
                 {typeof safeContent === "string" ? safeContent : ""}
-              </ReactMarkdown>
+              </Streamdown>
             ) : (
               safeContent
             )}

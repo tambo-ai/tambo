@@ -5,7 +5,7 @@
  *
  * This file provides type definitions for:
  * - Internal utility functions (@/lib/utils) - created during component installation, declared here to avoid creating lib folder in CLI
- * - React Markdown components
+ * - Streamdown components
  * - Highlight.js
  * - Dompurify
  * - Json-stringify-pretty-compact
@@ -20,18 +20,17 @@ declare module "@/lib/utils" {
   export function cn(...inputs: ClassValue[]): string;
 }
 
-declare module "react-markdown" {
+declare module "streamdown" {
   import type * as React from "react";
-  interface ReactMarkdownProps {
+  interface StreamdownProps {
     children: string;
     className?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     components?: Record<string, React.ComponentType<any>>;
   }
-  const ReactMarkdown: React.ComponentType<ReactMarkdownProps>;
+  export const Streamdown: React.ComponentType<StreamdownProps>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export type Components = Record<string, React.ComponentType<any>>;
-  export default ReactMarkdown;
 }
 
 declare module "highlight.js" {
