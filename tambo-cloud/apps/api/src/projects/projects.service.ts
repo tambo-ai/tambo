@@ -184,14 +184,9 @@ export class ProjectsService {
     }));
   }
 
-  async updateApiKeyLastUsed(
-    projectId: string,
-    hashedKey: string,
-    lastUsed: Date,
-  ): Promise<void> {
+  async updateApiKeyLastUsed(apiKeyId: string, lastUsed: Date): Promise<void> {
     await operations.updateApiKeyLastUsed(this.getDb(), {
-      projectId,
-      hashedKey,
+      apiKeyId,
       lastUsed,
     });
   }

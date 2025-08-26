@@ -267,24 +267,17 @@ export async function getApiKeys(db: HydraDb, projectId: string) {
 export async function updateApiKeyLastUsed(
   db: HydraDb,
   {
-    projectId,
-    hashedKey,
+    apiKeyId,
     lastUsed,
   }: {
-    projectId: string;
-    hashedKey: string;
+    apiKeyId: string;
     lastUsed: Date;
   },
 ) {
   const updated = await db
     .update(schema.apiKeys)
     .set({ lastUsedAt: lastUsed })
-    .where(
-      and(
-        eq(schema.apiKeys.hashedKey, hashedKey),
-        eq(schema.apiKeys.projectId, projectId),
-      ),
-    )
+    .where(and(eq(schema.apiKeys.id, apiKeyId)))
     .returning();
 
   if (!updated.length) {

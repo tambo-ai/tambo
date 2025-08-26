@@ -89,7 +89,7 @@ export class ApiKeyGuard implements CanActivate {
         return null;
       }
 
-      await this.updateApiKeyLastUsed(apiKeyId, hashedKey);
+      await this.projectsService.updateApiKeyLastUsed(apiKeyId, new Date());
 
       return apiKeyId;
     } catch (error: any) {
@@ -99,16 +99,5 @@ export class ApiKeyGuard implements CanActivate {
       );
       return null;
     }
-  }
-
-  private async updateApiKeyLastUsed(
-    projectId: string,
-    hashedKey: string,
-  ): Promise<void> {
-    await this.projectsService.updateApiKeyLastUsed(
-      projectId,
-      hashedKey,
-      new Date(),
-    );
   }
 }
