@@ -14,7 +14,7 @@
     "dompurify": "^3.2.6",
     "framer-motion": "^12.23.12",
     "fumadocs-core": "15.6.12",
-    "fumadocs-mdx": "11.7.5",
+    "fumadocs-mdx": "11.8.0",
     "fumadocs-ui": "15.6.12",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
