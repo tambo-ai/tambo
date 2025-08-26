@@ -96,6 +96,11 @@ const config = {
         destination: "https://x.com/tambo_ai",
         permanent: false,
       },
+      {
+        source: "/mcp",
+        destination: "/#mcp",
+        permanent: true,
+      },
     ];
   },
   reactStrictMode: true,
