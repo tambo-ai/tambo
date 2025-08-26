@@ -81,6 +81,14 @@ export class ProjectsService {
     };
   }
 
+  async getProjectApiKeyId(projectId: string, hashedApiKey: string) {
+    const apiKeyId = await operations.getProjectApiKeyId(
+      this.getDb(),
+      projectId,
+      hashedApiKey,
+    );
+    return apiKeyId;
+  }
   async findOneWithKeys(id: string): Promise<Project | null> {
     const project = await operations.getProjectWithKeys(this.getDb(), id);
     if (!project || !project.members[0]) {

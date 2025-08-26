@@ -100,6 +100,23 @@ export async function getProjectWithKeys(db: HydraDb, id: string) {
   });
 }
 
+export async function getProjectApiKeyId(
+  db: HydraDb,
+  projectId: string,
+  hashedApiKey: string,
+) {
+  const apiKey = await db.query.apiKeys.findFirst({
+    where: and(
+      eq(schema.apiKeys.projectId, projectId),
+      eq(schema.apiKeys.hashedKey, hashedApiKey),
+    ),
+    columns: {
+      id: true,
+    },
+  });
+  return apiKey?.id ?? null;
+}
+
 export async function updateProject(
   db: HydraDb,
   id: string,

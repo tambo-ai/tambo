@@ -50,17 +50,11 @@ export class ApiKeyGuard implements CanActivate {
         throw new Error("API_KEY_SECRET is not configured");
       }
 
-      const { storedString: projectIdOrLegacyId } = decryptApiKey(
-        apiKey,
-        apiKeySecret,
-      );
+      const { storedString: projectId } = decryptApiKey(apiKey, apiKeySecret);
 
-      const projectId = await this.validateApiKeyWithProject(
-        apiKey,
-        projectIdOrLegacyId,
-      );
+      await this.validateApiKeyWithProject(apiKey, projectId);
       if (!projectId) {
-        this.logger.error(`Invalid API key for project ${projectIdOrLegacyId}`);
+        this.logger.error(`Invalid API key for project ${projectId}`);
         return false;
       }
       request[ProjectId] = projectId;
@@ -78,12 +72,16 @@ export class ApiKeyGuard implements CanActivate {
 
   private async validateApiKeyWithProject(
     encryptedKey: string,
-    projectIdOrLegacyId: string,
+    projectId: string,
   ): Promise<string | null> {
     try {
-      const project =
-        await this.projectsService.findOneWithKeys(projectIdOrLegacyId);
-      if (!project?.id) {
+      const hashedKey = hashKey(encryptedKey);
+
+      const apiKeyId = await this.projectsService.getProjectApiKeyId(
+        projectId,
+        hashedKey,
+      );
+      if (!apiKeyId) {
         // Do not log raw API keys. Log only a masked, non-sensitive identifier.
         this.logger.error(
           `Project not found for API key (masked: ${hideApiKey(encryptedKey, 4)})`,
@@ -91,16 +89,9 @@ export class ApiKeyGuard implements CanActivate {
         return null;
       }
 
-      const hashedKey = hashKey(encryptedKey);
-      const isValid = project
-        .getApiKeys()
-        .some((key) => key.hashedKey === hashedKey);
+      await this.updateApiKeyLastUsed(apiKeyId, hashedKey);
 
-      if (isValid) {
-        await this.updateApiKeyLastUsed(project.id, hashedKey);
-      }
-
-      return project.id;
+      return apiKeyId;
     } catch (error: any) {
       this.logger.error(
         `Error validating API key: ${error.message}`,
