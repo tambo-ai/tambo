@@ -46,7 +46,6 @@ export function useTamboComponentState<S>(
   setFromProp?: S,
   debounceTime?: number,
 ): StateUpdateResult<S>;
-
 export function useTamboComponentState<S>(
   keyName: string,
   initialValue?: S,
@@ -102,6 +101,7 @@ export function useTamboComponentState<S>(
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );
 
+  // Mirror the thread message's componentState value to the local state
   useEffect(() => {
     const messageState = message?.componentState?.[keyName];
     if (!messageState) {
@@ -109,13 +109,7 @@ export function useTamboComponentState<S>(
     }
     setInitializedFromThreadMessage(true);
     setLocalState(message.componentState?.[keyName] as S);
-    updateLocalThreadMessage(message.componentState?.[keyName] as S, message);
-  }, [
-    message.componentState?.[keyName],
-    updateLocalThreadMessage,
-    message,
-    keyName,
-  ]);
+  }, [message?.componentState?.[keyName], message, keyName]);
 
   // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
   useEffect(() => {

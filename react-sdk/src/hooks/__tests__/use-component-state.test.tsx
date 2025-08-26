@@ -427,7 +427,7 @@ describe("useTamboComponentState", () => {
 
   describe("Message State Sync", () => {
     it("should sync with message.componentState changes", () => {
-      const { rerender } = renderHook(
+      const { result, rerender } = renderHook(
         ({ message }) => {
           jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
           return useTamboComponentState("testKey", "initial");
@@ -449,13 +449,8 @@ describe("useTamboComponentState", () => {
       rerender({ message: newMessage });
 
       // The hook should sync with the new message state
-      expect(mockUpdateThreadMessage).toHaveBeenCalledWith(
-        newMessage.id,
-        expect.objectContaining({
-          componentState: { testKey: "value2" },
-        }),
-        false,
-      );
+      expect(result.current[0]).toBe("value2");
+      expect(mockUpdateThreadMessage).not.toHaveBeenCalled();
     });
 
     it("should handle message without componentState gracefully", () => {
@@ -482,7 +477,7 @@ describe("useTamboComponentState", () => {
         componentState: { testKey: "unchanged" },
       });
 
-      const { rerender } = renderHook(
+      const { result, rerender } = renderHook(
         ({ message }) => {
           jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
           return useTamboComponentState("testKey", "initial");
@@ -496,8 +491,8 @@ describe("useTamboComponentState", () => {
       // Change message but keep same componentState value
       rerender({ message: message2 });
 
-      // Should still call updateLocalThreadMessage due to useEffect dependency on message
-      expect(mockUpdateThreadMessage).toHaveBeenCalled();
+      // Should preserve the "unchanged" value
+      expect(result.current[0]).toBe("unchanged");
     });
   });
 });
