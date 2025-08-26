@@ -78,6 +78,7 @@ jobs:
           # The following steps run only if a release was created
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 100
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - name: Create Sentry Release
