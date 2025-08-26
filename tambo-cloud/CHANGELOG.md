@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.101.9](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.8...repo-v0.101.9) (2025-08-26)
+
+
+### Bug Fixes
+
+* **api-keys:** Fix updating when an API key was last updated ([#1649](https://github.com/tambo-ai/tambo-cloud/issues/1649)) ([0282c55](https://github.com/tambo-ai/tambo-cloud/commit/0282c5533475ca2a477d481c687d851629e02bc7))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 3 updates ([#1619](https://github.com/tambo-ai/tambo-cloud/issues/1619)) ([464c085](https://github.com/tambo-ai/tambo-cloud/commit/464c085ee8870b84010cba95074f34d76cfba7e7))
+
 ## [0.101.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.101.7...repo-v0.101.8) (2025-08-26)
 
 
