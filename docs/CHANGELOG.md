@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.2](https://github.com/tambo-ai/tambo/compare/docs-v1.3.1...docs-v1.3.2) (2025-08-27)
+
+
+### Miscellaneous Chores
+
+* **build:** fix docs build ([#923](https://github.com/tambo-ai/tambo/issues/923)) ([b65f0d3](https://github.com/tambo-ai/tambo/commit/b65f0d371e05285460cf88cb9d51c2141d9747d0))
+* **deps:** bump @tambo-ai/typescript-sdk to get deprecated ActionType ([#928](https://github.com/tambo-ai/tambo/issues/928)) ([0b316e6](https://github.com/tambo-ai/tambo/commit/0b316e6d842241069e8b17d5823b8b8df60cbaf8))
+* **deps:** bump fumadocs-mdx from 11.7.5 to 11.8.0 ([#918](https://github.com/tambo-ai/tambo/issues/918)) ([2604122](https://github.com/tambo-ai/tambo/commit/26041226db95e8cfeff7882a2a546c44418d7e83))
+* **deps:** bump lucide-react from 0.540.0 to 0.541.0 ([#916](https://github.com/tambo-ai/tambo/issues/916)) ([50da283](https://github.com/tambo-ai/tambo/commit/50da2833e2e451211377cde13abd28d5835e2b7c))
+* **deps:** bump next from 15.4.7 to 15.5.0 ([#914](https://github.com/tambo-ai/tambo/issues/914)) ([4c4ff85](https://github.com/tambo-ai/tambo/commit/4c4ff85c219e8018f743d5fbe32d8a2b111819dc))
+* **deps:** bump posthog-js from 1.260.1 to 1.260.2 ([#921](https://github.com/tambo-ai/tambo/issues/921)) ([f14e759](https://github.com/tambo-ai/tambo/commit/f14e7590129c2d4d32ee551c840b8a7773692a22))
+* remove conversational-form template from CLI and documentation ([#908](https://github.com/tambo-ai/tambo/issues/908)) ([3f24f2b](https://github.com/tambo-ai/tambo/commit/3f24f2be17819e338df031ea26d3c27f4caf9637))
+
+
+### Documentation
+
+* update component-state docs ([#936](https://github.com/tambo-ai/tambo/issues/936)) ([102227b](https://github.com/tambo-ai/tambo/commit/102227bde99ebf94e1bbb708e45683f43027184a))
+
 ## [1.3.1](https://github.com/tambo-ai/tambo/compare/docs-v1.3.0...docs-v1.3.1) (2025-08-23)
 
 
