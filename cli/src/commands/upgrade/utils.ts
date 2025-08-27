@@ -28,10 +28,6 @@ export async function detectTemplate(): Promise<string | null> {
     const readmeContent = fs.readFileSync(readmePath, "utf-8");
 
     // Check for template-specific names in the README
-    if (readmeContent.includes("Tambo Conversational Form Template")) {
-      return "conversational-form";
-    }
-
     if (readmeContent.includes("Tambo Template")) {
       return "standard";
     }
@@ -55,10 +51,6 @@ export function generateAiUpgradePrompts(template: string | null): string[] {
   ];
 
   const templateSpecificPrompts: Record<string, string[]> = {
-    "conversational-form": [
-      "How can I make my conversational interfaces more intuitive?",
-      "What are recommended patterns for handling complex conversational flows?",
-    ],
     standard: [
       "How can I optimize the state management in my tambo application?",
       "What are the latest patterns for error handling in tambo components?",

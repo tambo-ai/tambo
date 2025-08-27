@@ -17,7 +17,8 @@
     "incremental": true,
     "paths": {
       "@/.source": ["./.source/index.ts"],
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tambo-ai/react": ["./react-sdk/src"]
     },
     "plugins": [
       {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.19.0...showcase-v0.19.1) (2025-08-23)
+
+
+### Miscellaneous Chores
+
+* update dependencies and update message input handling ([#905](https://github.com/tambo-ai/tambo/issues/905)) ([8015195](https://github.com/tambo-ai/tambo/commit/80151952ea321f8cf65a5e9b447b84ea6986125e))
+
 ## [0.19.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.18.3...showcase-v0.19.0) (2025-08-22)
 
 
