@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.103.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.103.1...repo-v0.103.2) (2025-08-27)
+
+
+### Bug Fixes
+
+* **sentry:** add nested options for llm.model, etc ([#1664](https://github.com/tambo-ai/tambo-cloud/issues/1664)) ([0250d5f](https://github.com/tambo-ai/tambo-cloud/commit/0250d5fe193e0eea09a345197d84a8d3e157c676))
+
+
+### Miscellaneous Chores
+
+* create tambo getting started and contributing guides ([#1661](https://github.com/tambo-ai/tambo-cloud/issues/1661)) ([d990738](https://github.com/tambo-ai/tambo-cloud/commit/d990738c3784d7b26b501849fbcc45b910aa6249))
+
+
+### Code Refactoring
+
+* **threads:** Cleanup/generalize some thread handling to make agent integration smoother ([#1662](https://github.com/tambo-ai/tambo-cloud/issues/1662)) ([017bf8c](https://github.com/tambo-ai/tambo-cloud/commit/017bf8c3dfad7985f0c73c93fe3738678d27fa12))
+
 ## [0.103.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.103.0...repo-v0.103.1) (2025-08-26)
 
 
