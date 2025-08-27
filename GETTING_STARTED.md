@@ -102,4 +102,3 @@ Need help? Join our Discord: https://discord.gg/dJNvPEHth6
 ### Next steps
 
 Review the Contributing guide for PR requirements, semantic versioning in PR titles, documentation expectations, and cross-repo coordination with [tambo-cloud](https://github.com/tambo-ai/tambo-cloud).
-

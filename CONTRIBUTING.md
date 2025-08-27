@@ -111,4 +111,3 @@ Link the docs PR or commit in your PR description.
 - Internal AI guidelines: link to internal policy
 
 Thanks for helping improve tambo!
-
