@@ -1529,8 +1529,8 @@ export class ThreadsService {
       attributes: {
         projectId,
         threadId,
-        model: modelOptions.model,
-        provider: modelOptions.provider,
+        "llm.model": modelOptions.model,
+        "llm.provider": modelOptions.provider,
       },
     });
     let ttfbEnded = false;
