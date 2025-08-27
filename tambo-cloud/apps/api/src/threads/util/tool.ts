@@ -3,18 +3,13 @@ import {
   ActionType,
   LegacyComponentDecision,
   MessageRole,
+  ThreadMessage,
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
-import { MessageRequest } from "../dto/message.dto";
 import { tryParseJson } from "./content";
 
-export function extractToolResponse(message: MessageRequest): any {
-  // need to prioritize toolResponse over content, because that is where the API started.
-  if (message.toolResponse) {
-    console.warn("Legacy tool response found");
-    return message.toolResponse;
-  }
+export function extractToolResponse(message: ThreadMessage): any {
   // TODO: we get back "resource" from MCP servers, but it is not supported yet
   const nonResourceContent = message.content.filter(
     (part) => (part.type as string) !== "resource",

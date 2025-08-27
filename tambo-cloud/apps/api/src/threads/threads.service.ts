@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nestjs";
 import {
   generateChainId,
   getToolsFromSources,
+  ModelOptions,
   Provider,
   SystemTools,
   TamboBackend,
@@ -19,6 +20,7 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
+  throttle,
   ToolCallRequest,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
@@ -936,7 +938,7 @@ export class ThreadsService {
 
       // Check if we should ignore this request due to cancellation
       const shouldIgnore = await this.shouldIgnoreCancelledToolResponse(
-        advanceRequestDto,
+        advanceRequestDto.messageToAppend,
         thread,
       );
       if (shouldIgnore) {
@@ -1035,6 +1037,7 @@ export class ThreadsService {
         db,
         thread.id,
         threadMessageDtoToThreadMessage(messages),
+        userMessage,
         advanceRequestDto,
         tamboBackend,
         systemTools,
@@ -1228,6 +1231,7 @@ export class ThreadsService {
         toolCallRequest,
       );
 
+      // This effectively recurses back into the decision loop with the tool response
       return await this.advanceThread(
         projectId,
         messageWithToolResponse,
@@ -1342,9 +1346,7 @@ export class ThreadsService {
         });
 
         // Since we don't store tool responses in the db, assumes that the tool response is the messageToAppend
-        const toolResponse = extractToolResponse(
-          advanceRequestDto.messageToAppend,
-        );
+        const toolResponse = extractToolResponse(userMessage);
         if (!toolResponse) {
           const error = new Error("No tool response found");
           Sentry.captureException(error, {
@@ -1371,7 +1373,7 @@ export class ThreadsService {
           },
         });
 
-        const streamedResponseMessage = await tamboBackend.runDecisionLoop({
+        const messageStream = await tamboBackend.runDecisionLoop({
           messages,
           strictTools,
           customInstructions,
@@ -1382,7 +1384,7 @@ export class ThreadsService {
         return this.handleAdvanceThreadStream(
           projectId,
           threadId,
-          streamedResponseMessage,
+          messageStream,
           messages,
           userMessage,
           systemTools,
@@ -1391,6 +1393,7 @@ export class ThreadsService {
           toolCallCounts,
           mcpAccessToken,
           maxToolCallLimit,
+          tamboBackend.modelOptions,
         );
       }
 
@@ -1469,6 +1472,7 @@ export class ThreadsService {
         toolCallCounts,
         mcpAccessToken,
         maxToolCallLimit,
+        tamboBackend.modelOptions,
       );
     } catch (error) {
       // Capture streaming generation errors with context
@@ -1502,6 +1506,7 @@ export class ThreadsService {
     toolCallCounts: Record<string, number>,
     mcpAccessToken: string,
     maxToolCallLimit: number,
+    modelOptions: ModelOptions,
   ): AsyncIterableIterator<AdvanceThreadResponseDto> {
     const db = this.getDb();
     const logger = this.logger;
@@ -1521,7 +1526,12 @@ export class ThreadsService {
     const ttfbSpan = Sentry.startInactiveSpan({
       name: "tambo.time_to_first_token",
       op: "stream.ttfb",
-      attributes: { projectId, threadId },
+      attributes: {
+        projectId,
+        threadId,
+        model: modelOptions.model,
+        provider: modelOptions.provider,
+      },
     });
     let ttfbEnded = false;
 
@@ -1581,8 +1591,12 @@ export class ThreadsService {
       const streamStartTime = Date.now();
       // we hold on to the final thread message, in case we have to switch to a tool call
       let finalThreadMessage: ThreadMessage | undefined;
-      let lastUpdateTime = 0;
+
       const updateIntervalMs = 500;
+      const throttledSyncThreadStatus = throttle(
+        syncThreadStatus,
+        updateIntervalMs,
+      );
 
       for await (const legacyDecision of fixStreamedToolCalls(stream)) {
         // update in memory - we'll write to the db periodically
@@ -1596,36 +1610,19 @@ export class ThreadsService {
           ttfbEnded = true;
         }
 
-        // Update db message on interval
-        const currentTime = Date.now();
-        if (currentTime - lastUpdateTime >= updateIntervalMs) {
-          const isCancelled = await checkCancellationStatus(
-            db,
-            threadId,
-            projectId,
-            chunkCount,
-            logger,
-          );
-
-          if (isCancelled) {
-            yield {
-              responseMessageDto: {
-                ...currentThreadMessage,
-                content: convertContentPartToDto(currentThreadMessage.content),
-                componentState: currentThreadMessage.componentState ?? {},
-              },
-              generationStage: GenerationStage.CANCELLED,
-              statusMessage: "cancelled",
-              mcpAccessToken,
-            };
-            return;
-          }
-
-          await updateMessage(db, initialMessage.id, {
-            ...currentThreadMessage,
-            content: convertContentPartToDto(currentThreadMessage.content),
-          });
-          lastUpdateTime = currentTime;
+        const cancelledMessage = await throttledSyncThreadStatus(
+          db,
+          threadId,
+          initialMessage.id,
+          projectId,
+          chunkCount,
+          currentThreadMessage,
+          mcpAccessToken,
+          logger,
+        );
+        if (cancelledMessage) {
+          yield cancelledMessage;
+          return;
         }
 
         // do not yield the final thread message if it is a tool call
@@ -1990,12 +1987,11 @@ export class ThreadsService {
   }
 
   private async shouldIgnoreCancelledToolResponse(
-    advanceRequestDto: AdvanceThreadDto,
+    userMessage: MessageRequest,
     thread: Thread,
   ): Promise<boolean> {
     if (
-      advanceRequestDto.messageToAppend.actionType ===
-        ActionType.ToolResponse &&
+      userMessage.actionType === ActionType.ToolResponse &&
       thread.generationStage === GenerationStage.CANCELLED
     ) {
       return true;
@@ -2019,14 +2015,15 @@ const checkCancellationStatus = async (
     );
     const isCancelled = generationStage === GenerationStage.CANCELLED;
 
-    if (isCancelled) {
-      Sentry.addBreadcrumb({
-        message: "Stream cancelled during processing",
-        category: "stream",
-        level: "warning",
-        data: { threadId, chunksProcessed: chunkCount },
-      });
+    if (!isCancelled) {
+      return null;
     }
+    Sentry.addBreadcrumb({
+      message: "Stream cancelled during processing",
+      category: "stream",
+      level: "warning",
+      data: { threadId, chunksProcessed: chunkCount },
+    });
     return isCancelled;
   } catch (error) {
     logger?.error(`Error checking thread cancellation status: ${error}`);
@@ -2037,3 +2034,52 @@ const checkCancellationStatus = async (
     return false;
   }
 };
+
+async function syncThreadStatus(
+  db: HydraDatabase,
+  threadId: string,
+  messageId: string,
+  projectId: string,
+  chunkCount: number,
+  currentThreadMessage: ThreadMessage,
+  mcpAccessToken: string,
+  logger?: Logger,
+): Promise<AdvanceThreadResponseDto | undefined> {
+  return await Sentry.startSpan(
+    {
+      name: "syncThreadStatus",
+      op: "stream.syncThreadStatus",
+      attributes: {
+        threadId,
+      },
+    },
+    async () => {
+      // Update db message on interval
+      const isCancelled = await checkCancellationStatus(
+        db,
+        threadId,
+        projectId,
+        chunkCount,
+        logger,
+      );
+
+      if (isCancelled) {
+        return {
+          responseMessageDto: {
+            ...currentThreadMessage,
+            content: convertContentPartToDto(currentThreadMessage.content),
+            componentState: currentThreadMessage.componentState ?? {},
+          },
+          generationStage: GenerationStage.CANCELLED,
+          statusMessage: "cancelled",
+          mcpAccessToken,
+        };
+      }
+
+      await updateMessage(db, messageId, {
+        ...currentThreadMessage,
+        content: convertContentPartToDto(currentThreadMessage.content),
+      });
+    },
+  );
+}

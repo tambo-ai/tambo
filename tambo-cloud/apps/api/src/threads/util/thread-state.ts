@@ -102,6 +102,7 @@ export async function processThreadMessage(
   db: HydraDatabase,
   threadId: string,
   messages: ThreadMessage[],
+  userMessage: ThreadMessage,
   advanceRequestDto: AdvanceThreadDto,
   tamboBackend: TamboBackend,
   systemTools: SystemTools,
@@ -117,7 +118,7 @@ export async function processThreadMessage(
       `Hydrating ${latestMessage.component?.componentName}...`,
     );
 
-    const toolResponse = extractToolResponse(advanceRequestDto.messageToAppend);
+    const toolResponse = extractToolResponse(userMessage);
     if (!toolResponse) {
       throw new Error("No tool response found");
     }

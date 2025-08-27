@@ -20,6 +20,14 @@ interface TamboBackendOptions {
   maxInputTokens?: number | null;
 }
 
+/** The current model options for the TamboBackend, filled in with defaults */
+export interface ModelOptions {
+  readonly model: string;
+  readonly provider: Provider;
+  readonly baseURL?: string;
+  readonly maxInputTokens?: number | null;
+}
+
 interface RunDecisionLoopParams {
   messages: ThreadMessage[];
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
@@ -29,6 +37,8 @@ interface RunDecisionLoopParams {
 
 export default class TamboBackend {
   private llmClient: LLMClient;
+  /** The current model options for the TamboBackend, filled in with defaults */
+  public readonly modelOptions: ModelOptions;
   constructor(
     apiKey: string | undefined,
     chainId: string,
@@ -41,6 +51,12 @@ export default class TamboBackend {
       baseURL,
       maxInputTokens,
     } = options;
+    this.modelOptions = {
+      model,
+      provider,
+      baseURL,
+      maxInputTokens,
+    };
     this.llmClient = new AISdkClient(
       apiKey,
       model,

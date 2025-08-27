@@ -1,22 +1,20 @@
 import { SystemTools } from "@tambo-ai-cloud/backend";
-import { ActionType, ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
+import {
+  ActionType,
+  ContentPartType,
+  MessageRole,
+  ThreadMessage,
+} from "@tambo-ai-cloud/core";
 import { callSystemTool, extractToolResponse } from "../tool";
 
 describe("tool utilities", () => {
   describe("extractToolResponse", () => {
-    it("should extract tool response from message", () => {
-      const response = { key: "value" };
-      const message = {
-        toolResponse: response,
-        content: [],
-        role: MessageRole.Tool,
-      };
-      expect(extractToolResponse(message)).toEqual(response);
-    });
-
     it("should parse JSON from text content", () => {
       const response = { key: "value" };
-      const message = {
+      const message: ThreadMessage = {
+        id: "1",
+        threadId: "1",
+        createdAt: new Date(),
         content: [
           {
             type: ContentPartType.Text,
@@ -30,7 +28,10 @@ describe("tool utilities", () => {
 
     it("should return text content if not JSON", () => {
       const text = "plain text response";
-      const message = {
+      const message: ThreadMessage = {
+        id: "1",
+        threadId: "1",
+        createdAt: new Date(),
         content: [
           {
             type: ContentPartType.Text,
@@ -44,10 +45,13 @@ describe("tool utilities", () => {
 
     it("should filter out resource content parts", () => {
       const text = "text response";
-      const message = {
+      const message: ThreadMessage = {
+        id: "1",
+        threadId: "1",
+        createdAt: new Date(),
         content: [
           {
-            type: "resource" as ContentPartType,
+            type: "resource" as any,
             text: "resource",
           },
           {
@@ -61,7 +65,10 @@ describe("tool utilities", () => {
     });
 
     it("should return null for non-text content", () => {
-      const message = {
+      const message: ThreadMessage = {
+        id: "1",
+        threadId: "1",
+        createdAt: new Date(),
         content: [
           {
             type: ContentPartType.ImageUrl,
