@@ -56,7 +56,7 @@ When using `useState` this can be done by adding a `useEffect` that updates the 
 
 ```tsx title="Simple email component"
 
-export const EmailSender = ( initialEmailBody: string ) => {
+export const EmailSender = ({ initialEmailBody }: { initialEmailBody: string }) => {
   ...
   const [emailBody, setEmailBody] = useState("") // tracks the message being typed
   const [isSent, setIsSent] = useState(false) // tracks whether the 'send' button has been clicked
@@ -74,9 +74,9 @@ Instead, use the `setFromProp` parameter of `useTamboComponentState` to specify 
 
 ```tsx title="Simple email component"
 
-export const EmailSender = ( initialEmailBody: string ) => {
+export const EmailSender = ({ initialEmailBody }: { initialEmailBody: string }) => {
   ...
-  const [emailBody, setEmailBody] = useState("emailBody", "", initialEmailBody) // tracks the message being typed, and sets initial value from the prop
+  const [emailBody, setEmailBody] = useTamboComponentState("emailBody", "", initialEmailBody) // tracks the message being typed, and sets initial value from the prop
   const [isSent, setIsSent] = useTamboComponentState("isSent", false) // tracks whether the 'send' button has been clicked
   ...
 }
