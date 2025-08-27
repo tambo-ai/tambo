@@ -82,7 +82,22 @@ export const TamboThreadInputProvider: React.FC<
   PropsWithChildren<TamboThreadInputProviderProps>
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
-  const [inputValue, setInputValue] = useState("");
+  const { saveDraft, clearDraft, getDraft } = useMessageDraft(
+    thread?.id ?? "null_thread",
+  );
+  const [inputValue, setInputValue] = useState(getDraft());
+
+  React.useEffect(() => {
+    setInputValue(getDraft());
+  }, [getDraft]);
+
+  const handleSetInputValue = useCallback(
+    (value: string) => {
+      setInputValue(value);
+      saveDraft(value);
+    },
+    [saveDraft],
+  );
 
   const submit = useCallback(
     async ({
@@ -112,8 +127,9 @@ export const TamboThreadInputProvider: React.FC<
         additionalContext: additionalContext,
       });
       setInputValue(""); // Clear local state
+      clearDraft();
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey],
+    [inputValue, sendThreadMessage, thread.id, contextKey, clearDraft],
   );
 
   const {
@@ -127,7 +143,7 @@ export const TamboThreadInputProvider: React.FC<
   const value = {
     ...mutationState,
     value: inputValue,
-    setValue: setInputValue,
+    setValue: handleSetInputValue,
     submit: submitAsync,
   };
 
@@ -153,3 +169,68 @@ export const useTamboThreadInput = () => {
 
   return context;
 };
+
+const DRAFT_KEY = "tambo-user-input";
+
+interface Draft {
+  id: string;
+  content: string;
+  timestamp: number;
+}
+
+/**
+ * Custom hook to manage the draft of a message input for a thread.
+ * Persists the draft to localStorage.
+ * @param threadId The ID of the thread for this draft
+ * @returns An object with `saveDraft`, `clearDraft`, and `getDraft` functions
+ */
+function useMessageDraft(threadId: string | null) {
+  const getDrafts = React.useCallback((): Draft[] => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+    const drafts = localStorage.getItem(DRAFT_KEY);
+    return drafts ? JSON.parse(drafts) : [];
+  }, []);
+
+  const getDraft = React.useCallback(() => {
+    if (typeof window === "undefined" || !threadId) {
+      return "";
+    }
+    const drafts = getDrafts();
+    const draft = drafts.find((d) => d.id === threadId);
+    return draft ? draft.content : "";
+  }, [getDrafts, threadId]);
+
+  const clearDraft = React.useCallback(() => {
+    if (typeof window === "undefined" || !threadId) {
+      return;
+    }
+    const drafts = getDrafts();
+    const otherDrafts = drafts.filter((d) => d.id !== threadId);
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(otherDrafts));
+  }, [getDrafts, threadId]);
+
+  const saveDraft = React.useCallback(
+    (content: string) => {
+      if (typeof window === "undefined" || !threadId) {
+        return;
+      }
+
+      if (content === "") {
+        clearDraft();
+        return;
+      }
+
+      const drafts = getDrafts();
+      const now = Date.now();
+      const newDraft: Draft = { id: threadId, content, timestamp: now };
+      const otherDrafts = drafts.filter((d) => d.id !== threadId);
+      const updatedDrafts = [...otherDrafts, newDraft];
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(updatedDrafts));
+    },
+    [getDrafts, threadId, clearDraft],
+  );
+
+  return { saveDraft, clearDraft, getDraft };
+}
