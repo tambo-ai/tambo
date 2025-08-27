@@ -34,9 +34,7 @@ export default function Template({
                 </div>
               ) : (
                 <TamboProvider
-                  apiKey={
-                    "tambo_yTCCjW7JbFx6O7LkjkqVWAKbFPt5+oHqQ1EuNzub8V7TCSWwsXsANIsnRGM6qZUGEMjQxKzQGAVtlUVRvNxxfziERBy9DdVJcMl8RBXXELs="
-                  }
+                  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
                   tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
                 >
                   <div className="container mx-auto px-4 md:px-6 pt-6">
