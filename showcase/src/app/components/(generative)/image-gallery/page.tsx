@@ -4,25 +4,13 @@ import { CLI } from "@/components/cli";
 import { CopyablePrompt, Section } from "@/components/ui/doc-components";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
+import { TamboStubProvider } from "@tambo-ai/react";
 import { DemoWrapper } from "../../demo-wrapper";
-import dynamic from "next/dynamic";
 import * as React from "react";
 
-// Dynamically import ImageGallery with SSR disabled
-const ImageGallery = dynamic(
-  async () => {
-    const mod = await import("@/components/ui/image-gallery");
-    return { default: mod.ImageGallery };
-  },
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-96 w-full flex items-center justify-center">
-        Loading gallery...
-      </div>
-    ),
-  },
-);
+// Import ImageGallery directly
+import { ImageGallery } from "@/components/ui/image-gallery";
+import { TamboMessageProvider } from "@tambo-ai/react";
 
 const sampleImages = [
   {
@@ -52,6 +40,43 @@ const sampleImages = [
   },
 ];
 
+// Mock thread for TamboStubProvider
+const mockThread = {
+  id: "mock-gallery-thread",
+  name: "Image Gallery Demo",
+  messages: [
+    {
+      id: "mock-gallery-msg",
+      role: "assistant" as const,
+      threadId: "mock-gallery-thread",
+      createdAt: new Date().toISOString(),
+      componentState: {},
+      content: [{ type: "text" as const, text: "Image Gallery Component" }],
+    },
+  ],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  projectId: "mock-project",
+  metadata: {},
+};
+
+// Wrapper component to handle Tambo context
+const ImageGalleryWrapper = ({
+  sources,
+  className,
+}: {
+  sources: Array<{ src: string; alt: string; caption?: string }>;
+  className?: string;
+}) => {
+  return (
+    <TamboStubProvider thread={mockThread}>
+      <TamboMessageProvider message={mockThread.messages[0]}>
+        <ImageGallery sources={sources} className={className} />
+      </TamboMessageProvider>
+    </TamboStubProvider>
+  );
+};
+
 export default function ImageGalleryPage() {
   return (
     <ShowcaseThemeProvider>
@@ -59,31 +84,23 @@ export default function ImageGalleryPage() {
         <div className="space-y-4">
           <h1 className="text-4xl font-bold">Image Gallery</h1>
           <p className="text-lg text-muted-foreground">
-            A responsive image gallery component with zoom, rotation,
-            navigation, and lazy loading support.
+            A responsive image gallery component built with carousel navigation,
+            thumbnail strip, and lazy loading support.
           </p>
         </div>
 
         <Section title="Basic Usage">
           <DemoWrapper title="Basic Image Gallery" className="p-6">
             <div className="h-96 w-full">
-              <ImageGallery
-                sources={sampleImages}
-                initialIndex={0}
-                fit="contain"
-              />
+              <ImageGalleryWrapper sources={sampleImages} />
             </div>
           </DemoWrapper>
         </Section>
 
-        <Section title="Cover Fit Mode">
-          <DemoWrapper title="Cover Fit Mode" className="p-6">
+        <Section title="Subset of Images">
+          <DemoWrapper title="Subset of Images" className="p-6">
             <div className="h-64 w-full">
-              <ImageGallery
-                sources={sampleImages.slice(0, 3)}
-                initialIndex={1}
-                fit="cover"
-              />
+              <ImageGalleryWrapper sources={sampleImages.slice(0, 3)} />
             </div>
           </DemoWrapper>
         </Section>
@@ -91,11 +108,7 @@ export default function ImageGalleryPage() {
         <Section title="Mixed Aspect Ratios">
           <DemoWrapper title="Mixed Aspect Ratios" className="p-6">
             <div className="h-80 w-full">
-              <ImageGallery
-                sources={sampleImages}
-                initialIndex={2}
-                fit="contain"
-              />
+              <ImageGalleryWrapper sources={sampleImages} />
             </div>
           </DemoWrapper>
         </Section>
@@ -122,8 +135,8 @@ const images = [
 
 <ImageGallery
   sources={images}
-  initialIndex={0}
-  fit="contain"
+  autoplay={false}
+  autoplayDelay={3000}
 />`}
             language="tsx"
           />
@@ -139,16 +152,15 @@ const images = [
                 </p>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold">initialIndex</h4>
+                <h4 className="font-semibold">autoplay</h4>
                 <p className="text-sm text-muted-foreground">
-                  Starting image index (default: 0)
+                  Enable automatic slideshow (default: false)
                 </p>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold">fit</h4>
+                <h4 className="font-semibold">autoplayDelay</h4>
                 <p className="text-sm text-muted-foreground">
-                  Image fit mode: &apos;contain&apos; or &apos;cover&apos;
-                  (default: &apos;contain&apos;)
+                  Delay between slides in milliseconds (default: 3000)
                 </p>
               </div>
             </div>
@@ -156,44 +168,74 @@ const images = [
         </Section>
 
         <Section title="Features">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <h4 className="font-semibold">Navigation</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Keyboard arrows (&larr; &rarr;)</li>
-                <li>• Click navigation buttons</li>
-                <li>• Touch/swipe gestures</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-semibold">Zoom & Rotation</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Keyboard zoom (+/-)</li>
-                <li>• Pinch-to-zoom support</li>
-                <li>• Image rotation controls</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-semibold">Performance</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Lazy loading for large galleries</li>
-                <li>• High-DPI display support</li>
-                <li>• EXIF orientation handling</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-semibold">Accessibility</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Full keyboard navigation</li>
-                <li>• Screen reader support</li>
-                <li>• Focus management</li>
-              </ul>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-border rounded-lg">
+              <thead>
+                <tr className="bg-muted/50">
+                  <th className="border border-border px-4 py-3 text-left font-semibold">
+                    Category
+                  </th>
+                  <th className="border border-border px-4 py-3 text-left font-semibold">
+                    Features
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="hover:bg-muted/30 transition-colors">
+                  <td className="border border-border px-4 py-3 font-medium">
+                    Navigation
+                  </td>
+                  <td className="border border-border px-4 py-3">
+                    <ul className="space-y-1 text-sm">
+                      <li>• Keyboard arrows (← →)</li>
+                      <li>• Click navigation buttons</li>
+                      <li>• Touch/swipe gestures</li>
+                    </ul>
+                  </td>
+                </tr>
+                <tr className="hover:bg-muted/30 transition-colors">
+                  <td className="border border-border px-4 py-3 font-medium">
+                    Zoom & Rotation
+                  </td>
+                  <td className="border border-border px-4 py-3">
+                    <ul className="space-y-1 text-sm">
+                      <li>• Keyboard zoom (+/-)</li>
+                      <li>• Pinch-to-zoom support</li>
+                      <li>• Image rotation controls</li>
+                    </ul>
+                  </td>
+                </tr>
+                <tr className="hover:bg-muted/30 transition-colors">
+                  <td className="border border-border px-4 py-3 font-medium">
+                    Performance
+                  </td>
+                  <td className="border border-border px-4 py-3">
+                    <ul className="space-y-1 text-sm">
+                      <li>• Lazy loading for large galleries</li>
+                      <li>• High-DPI display support</li>
+                      <li>• EXIF orientation handling</li>
+                    </ul>
+                  </td>
+                </tr>
+                <tr className="hover:bg-muted/30 transition-colors">
+                  <td className="border border-border px-4 py-3 font-medium">
+                    Accessibility
+                  </td>
+                  <td className="border border-border px-4 py-3">
+                    <ul className="space-y-1 text-sm">
+                      <li>• Full keyboard navigation</li>
+                      <li>• Screen reader support</li>
+                      <li>• Focus management</li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </Section>
 
         <Section title="Prompts to Try">
-          <div className="space-y-2">
+          <div className="space-y-3 p-4 bg-muted/20 rounded-lg border">
             <CopyablePrompt prompt="Create an image gallery showing my vacation photos with zoom and navigation" />
             <CopyablePrompt prompt="Display a product gallery with thumbnails and full-size preview" />
             <CopyablePrompt prompt="Show me a portfolio gallery with mixed aspect ratio images" />

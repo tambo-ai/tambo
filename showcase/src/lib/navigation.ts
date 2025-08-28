@@ -74,6 +74,10 @@ export const navigation: NavigationItem[] = [
             href: "/components/graph",
           },
           {
+            title: "Image Gallery",
+            href: "/components/image-gallery",
+          },
+          {
             title: "Map",
             href: "/components/map",
           },
