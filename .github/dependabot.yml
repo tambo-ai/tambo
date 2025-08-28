@@ -51,3 +51,8 @@ updates:
       fumadocs:
         patterns:
           - "fumadocs-*"
+      next:
+        patterns:
+          - "next"
+          - "next-*"
+          - "@next/*"
