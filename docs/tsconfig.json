@@ -18,7 +18,8 @@
     "paths": {
       "@/.source": ["./.source/index.ts"],
       "@/*": ["./src/*"],
-      "@tambo-ai/react": ["../react-sdk/src"]
+      "@tambo-ai/react": ["../react-sdk/src"],
+      "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]
     },
     "plugins": [
       {
