@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const DISMISS_KEY = "tambohack-banner-dismissed-v1";
 
@@ -20,6 +20,28 @@ export function TamboHackBanner() {
       console.warn("Unable to read dismissal state from sessionStorage", error);
     }
   }, []);
+
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const update = () => {
+      const h = isVisible ? (bannerRef.current?.offsetHeight ?? 48) : 0;
+      root.style.setProperty("--banner-height", `${h}px`);
+    };
+
+    update();
+
+    const ro = bannerRef.current ? new ResizeObserver(update) : undefined;
+    if (bannerRef.current && ro) ro.observe(bannerRef.current);
+    window.addEventListener("resize", update);
+
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", update);
+      root.style.setProperty("--banner-height", "0px");
+    };
+  }, [isVisible]);
 
   const handleDismiss = () => {
     try {
