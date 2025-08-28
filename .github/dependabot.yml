@@ -56,3 +56,15 @@ updates:
           - "next"
           - "next-*"
           - "@next/*"
+      testing:
+        patterns:
+          - "jest"
+          - "jest-*"
+          - "@testing-library/*"
+          - "ts-jest"
+          - "@types/jest"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "tailwind-*"
+          - "@tailwindcss/*"
