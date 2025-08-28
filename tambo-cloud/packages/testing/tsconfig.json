@@ -1,13 +1,12 @@
 {
   "extends": "@tambo-ai-cloud/typescript-config/base",
   "compilerOptions": {
-    "rootDir": "./src",
-    "declaration": true,
     "outDir": "./dist",
-    "moduleResolution": "node",
-    "module": "CommonJS",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "paths": {
-      "@tambo-ai-cloud/testing": ["../testing/src"]
+      "@tambo-ai-cloud/core": ["../core/src"],
+      "@tambo-ai-cloud/db": ["../db/src"]
     }
   },
   "include": ["src/**/*.ts"],

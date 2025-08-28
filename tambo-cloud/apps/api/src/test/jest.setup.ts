@@ -15,3 +15,25 @@ jest.mock("superjson", () => ({
     }),
   },
 }));
+
+// Global no-op mock for Sentry NestJS SDK
+jest.mock("@sentry/nestjs", () => ({
+  init: jest.fn(),
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+  setTag: jest.fn(),
+  setUser: jest.fn(),
+  withScope: (callback: any) =>
+    callback({
+      setTag: jest.fn(),
+      setUser: jest.fn(),
+      setContext: jest.fn(),
+      setFingerprint: jest.fn(),
+    }),
+  startSpan: (_cfg: any, fn: any) =>
+    typeof fn === "function" ? fn() : undefined,
+  httpIntegration: jest.fn(() => ({})),
+  flush: jest.fn(async () => undefined),
+  addBreadcrumb: jest.fn(),
+  setContext: jest.fn(),
+}));

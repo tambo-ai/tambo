@@ -8,7 +8,8 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@tambo-ai-cloud/backend": ["../../packages/backend/src"]
+      "@tambo-ai-cloud/backend": ["../../packages/backend/src"],
+      "@tambo-ai-cloud/testing": ["../../packages/testing/src"]
     }
   },
   "include": [

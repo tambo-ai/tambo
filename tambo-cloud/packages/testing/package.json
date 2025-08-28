@@ -1,0 +1,39 @@
+{
+  "name": "@tambo-ai-cloud/testing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared testing utilities for the Tambo AI monorepo",
+  "exports": {
+    "import": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "devDependencies": {
+    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai-cloud/typescript-config": "*",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.15.32",
+    "jest": "^30.0.5",
+    "prettier-2": "npm:prettier@^2",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@tambo-ai-cloud/core": "*",
+    "@tambo-ai-cloud/db": "*",
+    "openai": "^5.12.2"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "license": "Apache-2.0"
+}

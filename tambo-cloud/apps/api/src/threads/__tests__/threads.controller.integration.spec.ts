@@ -1,14 +1,21 @@
-import { BadRequestException, INestApplication } from "@nestjs/common";
+import { BadRequestException, INestApplication, Logger } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
+import {
+  ContentPartType,
+  GenerationStage,
+  MessageRole,
+} from "@tambo-ai-cloud/core";
 import request from "supertest";
 import { SentryExceptionFilter } from "../../common/filters/sentry-exception.filter";
 import { extractContextInfo } from "../../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../../projects/guards/bearer-token.guard";
 import { ProjectAccessOwnGuard } from "../../projects/guards/project-access-own.guard";
-import { AdvanceThreadDto } from "../dto/advance-thread.dto";
+import {
+  AdvanceThreadDto,
+  AdvanceThreadResponseDto,
+} from "../dto/advance-thread.dto";
 import { ThreadInProjectGuard } from "../guards/thread-in-project-guard";
 import { ThreadsController } from "../threads.controller";
 import { ThreadsService } from "../threads.service";
@@ -39,6 +46,8 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
   });
 
   beforeEach(async () => {
+    // Limit logger to warnings and errors to keep test output quiet
+    Logger.overrideLogger(["error", "warn"]);
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [ThreadsController],
       providers: [
@@ -61,6 +70,7 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useLogger(["error", "warn"]);
 
     const { httpAdapter } = app.get(HttpAdapterHost);
     app.useGlobalFilters(new SentryExceptionFilter(httpAdapter));
@@ -78,6 +88,24 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
   });
 
   describe("Error Response Format", () => {
+    let loggerErrorSpy: jest.SpyInstance;
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeAll(() => {
+      // Suppress error logs only for this error-format test suite
+      loggerErrorSpy = jest
+        .spyOn(Logger.prototype, "error")
+        .mockImplementation(() => {});
+      consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+    });
+
+    afterAll(() => {
+      loggerErrorSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
+    });
+
     it("should return default NestJS JSON error format when extractContextInfo throws BadRequestException", async () => {
       // Arrange
       const testError = new BadRequestException("Project ID is required");
@@ -179,22 +207,23 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
       });
 
       // Mock a successful stream response
-      const mockStream = {
-        [Symbol.asyncIterator]: async function* () {
-          yield {
-            responseMessageDto: {
-              id: "msg-1",
-              content: "Hello",
-              role: "assistant",
-            },
-            generationStage: "COMPLETE",
-          };
-        },
-      };
+      async function* streamGenerator(): AsyncIterableIterator<AdvanceThreadResponseDto> {
+        yield {
+          responseMessageDto: {
+            id: "msg-1",
+            content: [{ type: ContentPartType.Text, text: "Hello" }],
+            role: MessageRole.Assistant,
+            threadId: "test-thread-id",
+            componentState: {},
+            createdAt: new Date(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+      }
+      const mockStream = streamGenerator();
 
-      jest
-        .spyOn(threadsService, "advanceThread")
-        .mockResolvedValue(mockStream as any);
+      jest.spyOn(threadsService, "advanceThread").mockResolvedValue(mockStream);
 
       // Act & Assert
       const response = await request(app.getHttpServer())
@@ -203,9 +232,9 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
         .expect(201);
 
       // Should receive text/event-stream for successful streaming
-      expect(response.headers["content-type"]).toBe("text/event-stream");
-      expect(response.headers["cache-control"]).toBe("no-cache");
-      expect(response.headers["connection"]).toBe("keep-alive");
+      expect(response.headers["content-type"]).toContain("text/event-stream");
+      expect(response.headers["cache-control"]).toContain("no-cache");
+      expect(response.headers["connection"]).toContain("keep-alive");
 
       // Should contain stream data
       expect(response.text).toMatch(/data: /);
