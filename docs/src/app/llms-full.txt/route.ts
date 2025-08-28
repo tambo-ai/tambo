@@ -1,12 +1,13 @@
 import { getLLMText } from "@/lib/get-llm-text";
 import { source } from "@/lib/source";
+import { makeReadableStream } from "@/lib/stream";
+import { NextResponse } from "next/server";
 
-// cached forever
-export const revalidate = false;
+export const revalidate = 3600;
 
 export async function GET() {
   const scan = source.getPages().map(getLLMText);
   const scanned = await Promise.all(scan);
 
-  return new Response(scanned.join("\n\n"));
+  return new NextResponse(makeReadableStream(scanned));
 }

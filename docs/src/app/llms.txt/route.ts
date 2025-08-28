@@ -1,6 +1,6 @@
 import { source } from "@/lib/source";
 
-export const revalidate = false;
+export const revalidate = 3600;
 
 export async function GET() {
   const scanned: string[] = [];

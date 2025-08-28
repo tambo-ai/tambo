@@ -3,7 +3,7 @@ import { source } from "@/lib/source";
 import { notFound } from "next/navigation";
 import { type NextRequest, NextResponse } from "next/server";
 
-export const revalidate = false;
+export const revalidate = 3600;
 
 export async function GET(
   _req: NextRequest,
