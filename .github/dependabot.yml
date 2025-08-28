@@ -48,3 +48,23 @@ updates:
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
+      fumadocs:
+        patterns:
+          - "fumadocs-*"
+      next:
+        patterns:
+          - "next"
+          - "next-*"
+          - "@next/*"
+      testing:
+        patterns:
+          - "jest"
+          - "jest-*"
+          - "@testing-library/*"
+          - "ts-jest"
+          - "@types/jest"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "tailwind-*"
+          - "@tailwindcss/*"
