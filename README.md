@@ -34,6 +34,12 @@ For detailed information about what Tambo is and how it works, check out our [do
 
 For a quick walkthrough of using the fundamental features of Tambo, check out [this page.](https://docs.tambo.co/getting-started/quickstart)
 
+Further reading:
+
+- Getting started with this repo: [GETTING_STARTED.md](./GETTING_STARTED.md)
+- Contributing guidelines: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Join our community: https://discord.gg/dJNvPEHth6
+
 ## How does tambo-ai work?
 
 tambo-ai is a client-side registry of React components that can be used by an LLM.

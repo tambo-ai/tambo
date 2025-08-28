@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/showcase",
-  "version": "0.19.1",
+  "version": "0.20.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -32,6 +32,7 @@
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0",
+    "streamdown": "^1.1.5",
     "recharts": "^3.1.2",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -50,7 +51,7 @@
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
     "eslint": "^9",
-    "eslint-config-next": "15.5.0",
+    "eslint-config-next": "15.5.2",
     "postcss": "^8.5.6",
     "rimraf": "^6.0.1",
     "tailwind-merge": "^3.3.1",
