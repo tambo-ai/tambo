@@ -52,7 +52,7 @@ If your change affects UI or DX visually (new component, component update, dashb
 
 All functional changes must include documentation.
 
-- Add or update pages in the docs site at `https://docs.tambo.co`. For repo-local developer docs, update root `.md` files or files under `devdocs/`.
+- Public docs are maintained in the `tambo-ai/tambo` repository under the `docs/` directory: [`https://github.com/tambo-ai/tambo/tree/main/docs`](https://github.com/tambo-ai/tambo/tree/main/docs). Submit documentation edits there. For repo-local developer docs, update root `.md` files or files under `devdocs/` in this repo.
 - Follow our documentation style guidance (progressive examples, clear benefits, integration notes).
 - Link related concepts and features. Keep examples accurate and minimal.
 

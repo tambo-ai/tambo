@@ -1,12 +1,12 @@
-# Hydra AI React Naming Conventions
+# Tambo React Naming Conventions
 
 ### Naming Prefixes
 
-- Components: `Hydra`
-- Hooks: `useHydra`
-- Types: `Hydra`
-- Props Interface: `HydraNameProps`
-- Context: `HydraNameContext`
+- Components: `Tambo`
+- Hooks: `useTambo`
+- Types: `Tambo`
+- Props Interface: `TamboNameProps`
+- Context: `TamboNameContext`
 - Boolean props:
   - `is` → Current state/condition (isLoading, isActive)
   - `can` → Permissions/abilities (canEdit, canSubmit)
@@ -18,35 +18,44 @@
 - Use `Readonly<T>` for props
 
 ```typescript
-export const HydraMessage: React.FC<Readonly<HydraMessageProps>> = () => { ... }
+export const TamboMessage: React.FC<Readonly<TamboMessageProps>> = () => {
+  /* ... */
+};
 ```
 
 ## Hooks
 
-- Prefix: `useHydra` + Feature
+- Prefix: `useTambo` + Feature
 - Specific action last
 - Keep single responsibility
 
 ```typescript
-useHydraMessage(); // ✓ Core hook
-useHydraMessageState(); // ✓ State management
-useMessageHydra(); // ✗ Wrong prefix order
+useTamboMessage(); // ✓ Core hook
+useTamboMessageState(); // ✓ State management
+useMessageTambo(); // ✗ Wrong prefix order
 ```
 
 ## Props & Types
 
 ```typescript
 // Props - Always Readonly
-interface HydraMessageProps extends Readonly<{
-  id: string;                                    // Required props first
-  onUpdate: (message: HydraMessage) => void;     // Callbacks use 'on' prefix
-  isLoading?: boolean;                          // Optional props last
-}> {}
+interface TamboMessageProps
+  extends Readonly<{
+    id: string; // Required props first
+    onUpdate: (message: TamboMessage) => void; // Callbacks use 'on' prefix
+    isLoading?: boolean; // Optional props last
+  }> {}
 
 // Types - Clear hierarchy
-type HydraMessage = { ... }                     // Core type
-type HydraMessageState = { ... }                // State type
-type HydraMessageConfig = { ... }               // Config type
+type TamboMessage = {
+  /* ... */
+}; // Core type
+type TamboMessageState = {
+  /* ... */
+}; // State type
+type TamboMessageConfig = {
+  /* ... */
+}; // Config type
 ```
 
 ## Event Handlers

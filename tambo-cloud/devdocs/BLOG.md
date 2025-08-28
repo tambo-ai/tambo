@@ -4,7 +4,7 @@ A comprehensive guide for developers adding blog posts to the Tambo website.
 
 ## How Does It Work?
 
-The blog system uses **Nextra** with **MDX** to process blog posts at build time. Each blog post is an MDX file with frontmatter metadata that gets processed into React components.
+The blog system uses **[Nextra](https://nextra.site)** with **[MDX](https://mdxjs.com/)** to process blog posts at build time. Each blog post is an MDX file with frontmatter metadata that gets processed into React components.
 
 ```mdx title="example-blog-post.mdx"
 ---
@@ -89,7 +89,7 @@ The following components are available in your MDX files:
 
 ### Creating a New Blog Post
 
-1. **Create a new directory** in `apps/web/app/blog/posts/`
+1. **Create a new directory** in `apps/web/app/blog/posts/` (see it on GitHub: [`apps/web/app/blog/posts/`](https://github.com/tambo-ai/tambo-cloud/tree/main/apps/web/app/blog/posts))
 2. **Name it with a slug** (e.g., `my-new-feature`)
 3. **Add a `page.mdx` file** inside that directory
 
@@ -111,7 +111,7 @@ apps/web/app/blog/posts/
 
 ### Images and Media
 
-- **Store images** in `apps/web/public/`
+- **Store images** in `apps/web/public/` (GitHub: [`apps/web/public/`](https://github.com/tambo-ai/tambo-cloud/tree/main/apps/web/public))
 - **Use relative paths** starting with `/` (e.g., `/my-image.png`)
 - **Optimize images** for web (compress, appropriate dimensions)
 - **Include alt text** for accessibility
@@ -192,8 +192,8 @@ import { MyCustomComponent } from "@/components/MyCustomComponent";
 ### Getting Help
 
 - **Check existing posts** for examples
-- **Review the types** in `apps/web/lib/blog/types.ts`
-- **Look at components** in `apps/web/components/blog/`
+- **Review the types** in `apps/web/lib/blog/types.ts` (GitHub: [`apps/web/lib/blog/types.ts`](https://github.com/tambo-ai/tambo-cloud/blob/main/apps/web/lib/blog/types.ts))
+- **Look at components** in `apps/web/components/blog/` (GitHub: [`apps/web/components/blog/`](https://github.com/tambo-ai/tambo-cloud/tree/main/apps/web/components/blog))
 - **Ask the team** for complex issues
 
 ## Examples
