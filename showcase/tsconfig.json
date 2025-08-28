@@ -21,7 +21,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@tambo-ai/react": ["./react-sdk/src"]
+      "@tambo-ai/react": ["../react-sdk/src"]
     }
   },
   "include": [
