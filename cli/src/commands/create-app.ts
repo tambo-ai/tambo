@@ -18,11 +18,6 @@ const templates: Record<string, Template> = {
     description: "Tambo + Tools + MCP (recommended)",
     repository: "https://github.com/tambo-ai/tambo-template.git",
   },
-  "conversational-form": {
-    name: "conversational-form",
-    description: "Tambo + Conversational Form",
-    repository: "https://github.com/tambo-ai/conversational-form.git",
-  },
 };
 
 interface CreateAppOptions {

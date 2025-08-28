@@ -73,6 +73,11 @@ export const TamboGenerationStageProvider: React.FC<
   );
 };
 
+// Type for partial message updates that requires threadId
+type PartialTamboThreadMessageWithThreadId = Partial<TamboThreadMessage> & {
+  threadId: string;
+};
+
 export interface TamboThreadContextProps {
   /** The current thread */
   thread: TamboThread;
@@ -92,7 +97,7 @@ export interface TamboThreadContextProps {
   /** Update a message in the current thread */
   updateThreadMessage: (
     id: string,
-    message: TamboThreadMessage,
+    message: PartialTamboThreadMessageWithThreadId,
     sendToServer: boolean,
   ) => Promise<void>;
   /** Cancel a thread */
@@ -343,23 +348,22 @@ export const TamboThreadProvider: React.FC<
   const updateThreadMessage = useCallback(
     async (
       id: string,
-      message: TamboThreadMessage,
+      message: PartialTamboThreadMessageWithThreadId,
       sendToServer = true,
       createdAt: string = new Date().toISOString(),
     ) => {
-      const chatMessage: TamboThreadMessage = {
-        ...message,
-        createdAt,
-      };
-
       setThreadMap((prevMap) => {
-        if (!message.threadId) {
-          return prevMap;
-        }
         const prevMessages = prevMap[message.threadId]?.messages || [];
         const updatedMessages = prevMessages.map((msg) => {
           if (msg.id === id) {
-            return chatMessage;
+            // Merge the partial update with the existing message
+            const updatedMessage: TamboThreadMessage = {
+              ...msg,
+              ...message,
+              id: msg.id,
+              createdAt: message.createdAt ?? msg.createdAt ?? createdAt,
+            };
+            return updatedMessage;
           }
           return msg;
         });
@@ -371,12 +375,13 @@ export const TamboThreadProvider: React.FC<
           },
         };
       });
-      if (sendToServer) {
+
+      if (sendToServer && message.content && message.role) {
         // TODO: if this fails, we need to revert the local state update
         await client.beta.threads.messages.create(message.threadId, {
           content: message.content,
           role: message.role,
-          additionalContext: chatMessage.additionalContext,
+          additionalContext: message.additionalContext,
         });
       }
     },
