@@ -66,8 +66,10 @@
     "meow": "^13.2.0",
     "open": "^10.2.0",
     "ora": "^8.1.0",
+    "react-markdown": "^10.1.0",
     "sanitize-html": "^2.17.0",
     "semver": "^7.7.2",
+    "streamdown": "^1.1.3",
     "ts-morph": "^26.0.0"
   },
   "devDependencies": {

@@ -10,7 +10,7 @@ import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
+import { Streamdown } from "streamdown";
 import { createMarkdownComponents } from "@/components/ui/markdown-components";
 
 /**
@@ -200,7 +200,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div
         ref={ref}
         className={cn(
-          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_ul]:py-4 [&_ol]:py-4 [&_li]:list-item",
+          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
           className,
         )}
         data-slot="message-content"
@@ -225,9 +225,9 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <ReactMarkdown components={createMarkdownComponents()}>
+              <Streamdown components={createMarkdownComponents()}>
                 {typeof safeContent === "string" ? safeContent : ""}
-              </ReactMarkdown>
+              </Streamdown>
             ) : (
               safeContent
             )}
