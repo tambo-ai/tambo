@@ -4,8 +4,8 @@ Thanks for contributing. This guide covers workflow, review requirements, and do
 
 ## Quick Links
 
-- API changes live here in this repo: `tambo-cloud`
-- React SDK and UI components repo: `https://github.com/tambo-ai/tambo`
+- API changes live here in this repo: [`tambo-cloud`](https://github.com/tambo-ai/tambo-cloud)
+- React SDK and UI components: [`tambo-ai/tambo`](https://github.com/tambo-ai/tambo)
 - Getting started with local dev: [`GETTING_STARTED.md`](./GETTING_STARTED.md)
 - Release and SDK process: [`RELEASING.md`](./RELEASING.md)
 
@@ -52,7 +52,7 @@ If your change affects UI or DX visually (new component, component update, dashb
 
 All functional changes must include documentation.
 
-- Add or update pages in the docs site. If contributing to this repo's docs, use `apps/web/content/docs` (preferred) and include a `meta.json` per the meta rules.
+- Add or update pages in the docs site at `https://docs.tambo.co`. For repo-local developer docs, update root `.md` files or files under `devdocs/`.
 - Follow our documentation style guidance (progressive examples, clear benefits, integration notes).
 - Link related concepts and features. Keep examples accurate and minimal.
 
