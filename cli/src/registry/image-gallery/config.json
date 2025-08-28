@@ -1,0 +1,25 @@
+{
+  "name": "image-gallery",
+  "description": "Image gallery/preview with zoom, rotate, lazy-loading, and keyboard/pinch support",
+  "componentName": "ImageGallery",
+  "dependencies": [
+    "@tambo-ai/react",
+    "@tambo-ai/typescript-sdk",
+    "zod",
+    "lucide-react",
+    "class-variance-authority",
+    "react"
+  ],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "image-gallery.tsx",
+      "content": "src/registry/image-gallery/image-gallery.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/registry/lib/thread-hooks.ts"
+    }
+  ]
+}
