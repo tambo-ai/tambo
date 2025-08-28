@@ -8,9 +8,9 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
-import { Github } from "lucide-react";
-import Link from "next/link";
+
 import { notFound } from "next/navigation";
+import { LLMCopyButton, OpenDropdown } from "@/components/ai-actions";
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -20,7 +20,6 @@ export default async function Page(props: {
   if (!page) notFound();
 
   const MDXContent = page.data.body;
-  const path = `docs/content/docs/${page.path}`;
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
@@ -30,6 +29,12 @@ export default async function Page(props: {
       />
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
+
+      <div className="flex items-center gap-2 mb-6 pb-4 border-b border-fd-border">
+        <LLMCopyButton markdownUrl={`/api/mdx${page.url}`} />
+        <OpenDropdown pageUrl={page.url} />
+      </div>
+
       <DocsBody>
         <MDXContent
           components={getMDXComponents({
@@ -38,17 +43,6 @@ export default async function Page(props: {
           })}
         />
       </DocsBody>
-
-      <div className="flex flex-col gap-2">
-        <Link
-          href={`https://github.com/tambo-ai/tambo/blob/main/${path}`}
-          target="_blank"
-          className="w-fit border rounded-lg p-2 font-medium text-sm text-fd-secondary-foreground bg-fd-secondary transition-colors hover:text-fd-accent-foreground hover:bg-fd-accent flex items-center gap-2"
-        >
-          <Github className="h-4 w-4" />
-          Edit this page on GitHub
-        </Link>
-      </div>
     </DocsPage>
   );
 }

@@ -27,7 +27,10 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
-    "streamdown": "^1.0.0"
+    "streamdown": "^1.0.0",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-mdx": "^3.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.12",

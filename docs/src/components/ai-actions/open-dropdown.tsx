@@ -1,0 +1,108 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import {
+  GithubLogo,
+  ChatGPTLogo,
+  T3Logo,
+  ClaudeLogo,
+  SciraLogo,
+} from "./logos";
+
+interface OpenDropdownProps {
+  pageUrl: string;
+}
+
+export function OpenDropdown({ pageUrl }: OpenDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const baseUrl = "https://docs.tambo.co";
+  const fullUrl = `${baseUrl}${pageUrl}`;
+  const encodedUrl = encodeURIComponent(fullUrl);
+
+  const links = [
+    {
+      name: "GitHub",
+      url: `https://github.com/tambo-ai/tambo/blob/main/docs/content/docs${pageUrl}.mdx`,
+      icon: GithubLogo,
+      description: "View source on GitHub",
+    },
+    {
+      name: "ChatGPT",
+      url: `https://chatgpt.com/?hints=search&q=Read+${encodedUrl}%2C+I+want+to+ask+questions+about+it.`,
+      icon: ChatGPTLogo,
+      description: "Ask questions with ChatGPT",
+    },
+    {
+      name: "Claude",
+      url: `https://claude.ai/new?q=Read+${encodedUrl}%2C+I+want+to+ask+questions+about+it.`,
+      icon: ClaudeLogo,
+      description: "Ask questions with Claude",
+    },
+    {
+      name: "Scira AI",
+      url: `https://scira.ai/?q=Read+${encodedUrl}%2C+I+want+to+ask+questions+about+it.`,
+      icon: SciraLogo,
+      description: "Ask questions with Scira AI",
+    },
+    {
+      name: "T3 Chat",
+      url: `https://t3.chat/new?q=Read+${encodedUrl}%2C+I+want+to+ask+questions+about+it.`,
+      icon: T3Logo,
+      description: "Ask questions with T3 Chat",
+    },
+  ];
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-fd-foreground hover:text-fd-foreground transition-colors cursor-pointer border border-fd-border rounded-md hover:bg-fd-muted"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        aria-label="Open page in external services"
+      >
+        Open
+        <ChevronDown
+          className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute left-10 top-full mt-1 w-64 bg-fd-background border border-fd-border rounded-md shadow-lg z-50">
+            <div>
+              {links.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-fd-muted-foreground hover:text-fd-foreground hover:bg-neutral-200/70 transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Icon />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium">{link.name}</div>
+                      <div className="text-xs text-fd-muted-foreground truncate">
+                        {link.description}
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
