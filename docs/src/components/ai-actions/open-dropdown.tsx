@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import {
-  GithubLogo,
-  ChatGPTLogo,
-  T3Logo,
-  ClaudeLogo,
-  SciraLogo,
-} from "./logos";
+import { GithubLogo, ChatGPTLogo, T3Logo, ClaudeLogo } from "./logos";
 
 interface OpenDropdownProps {
   pageUrl: string;
@@ -39,12 +33,6 @@ export function OpenDropdown({ pageUrl }: OpenDropdownProps) {
       url: `https://claude.ai/new?q=Read+${encodedUrl}%2C+I+want+to+ask+questions+about+it.`,
       icon: ClaudeLogo,
       description: "Ask questions with Claude",
-    },
-    {
-      name: "Scira AI",
-      url: `https://scira.ai/?q=Read+${encodedUrl}%2C+I+want+to+ask+questions+about+it.`,
-      icon: SciraLogo,
-      description: "Ask questions with Scira AI",
     },
     {
       name: "T3 Chat",
@@ -86,13 +74,17 @@ export function OpenDropdown({ pageUrl }: OpenDropdownProps) {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-fd-muted-foreground hover:text-fd-foreground hover:bg-neutral-200/70 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-fd-foreground hover:bg-neutral-200/70 hover:text-neutral-900 transition-all duration-200 group"
                     onClick={() => setIsOpen(false)}
                   >
-                    <Icon />
+                    <div className="text-gray-600 group-hover:text-neutral-900 transition-colors duration-200">
+                      <Icon />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium">{link.name}</div>
-                      <div className="text-xs text-fd-muted-foreground truncate">
+                      <div className="font-medium group-hover:text-neutral-900 transition-colors duration-200">
+                        {link.name}
+                      </div>
+                      <div className="text-xs text-fd-muted-foreground truncate transition-colors duration-200">
                         {link.description}
                       </div>
                     </div>
