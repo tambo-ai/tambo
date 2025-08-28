@@ -21,6 +21,16 @@ export function TamboHackBanner() {
     }
   }, []);
 
+  // Update CSS custom properties when banner visibility changes
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isVisible) {
+      root.style.setProperty("--banner-height", "48px");
+    } else {
+      root.style.setProperty("--banner-height", "0px");
+    }
+  }, [isVisible]);
+
   const handleDismiss = () => {
     try {
       sessionStorage.setItem(DISMISS_KEY, "true");
