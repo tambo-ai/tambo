@@ -13,9 +13,7 @@ export async function GET(
   const page = source.getPage(slug);
   if (!page) notFound();
 
-  return new NextResponse(await getLLMText(page), {
-    headers: { "Content-Type": "text/plain" },
-  });
+  return new NextResponse(await getLLMText(page));
 }
 
 export function generateStaticParams() {

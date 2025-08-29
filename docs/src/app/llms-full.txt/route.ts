@@ -10,6 +10,6 @@ export async function GET() {
   const scanned = await Promise.all(scan);
 
   return new NextResponse(makeReadableStream(scanned), {
-    headers: { "Content-Type": "text/plain" },
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
   });
 }
