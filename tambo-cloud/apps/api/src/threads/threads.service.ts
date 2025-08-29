@@ -1991,7 +1991,7 @@ export class ThreadsService {
     thread: Thread,
   ): Promise<boolean> {
     if (
-      userMessage.actionType === ActionType.ToolResponse &&
+      userMessage.role === MessageRole.Tool &&
       thread.generationStage === GenerationStage.CANCELLED
     ) {
       return true;

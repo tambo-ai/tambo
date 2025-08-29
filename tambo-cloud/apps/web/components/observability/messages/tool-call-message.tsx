@@ -47,7 +47,7 @@ export const ToolCallMessage = memo(
     // Check for errors
     const hasToolCallError = message.error;
     const hasToolResponseError =
-      toolResponse?.actionType === "tool_response" && toolResponse?.error;
+      toolResponse?.role === "tool" && toolResponse?.error;
     const hasAnyError = hasToolCallError || hasToolResponseError;
 
     return (

@@ -1,4 +1,4 @@
-import { ActionType, GenerationStage } from "@tambo-ai-cloud/core";
+import { GenerationStage, MessageRole } from "@tambo-ai-cloud/core";
 import {
   and,
   count,
@@ -7,6 +7,7 @@ import {
   ilike,
   inArray,
   isNull,
+  ne,
   or,
   sql,
 } from "drizzle-orm";
@@ -93,8 +94,8 @@ export async function getThreadForProjectId(
         where: includeInternal
           ? undefined
           : or(
-              isNull(schema.messages.actionType),
-              eq(schema.messages.actionType, ActionType.ToolCall),
+              ne(schema.messages.role, MessageRole.Assistant),
+              isNull(schema.messages.toolCallRequest),
             ),
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
         with: {
@@ -253,10 +254,7 @@ export async function getMessages(
       ? eq(schema.messages.threadId, threadId)
       : and(
           eq(schema.messages.threadId, threadId),
-          or(
-            isNull(schema.messages.actionType),
-            eq(schema.messages.actionType, ActionType.ToolCall),
-          ),
+          ne(schema.messages.role, MessageRole.Tool),
         ),
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });

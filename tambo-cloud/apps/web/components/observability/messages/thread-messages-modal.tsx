@@ -88,7 +88,7 @@ function findAllMatches(thread: ThreadType, query: string): SearchMatch[] {
 
   messages.forEach((message) => {
     // Skip tool responses that are handled with their requests
-    if (message.actionType === "tool_response") return;
+    if (message.role === "tool") return;
 
     // Check message content
     if (searchInMessage(message, query)) {
@@ -130,9 +130,7 @@ function findAllMatches(thread: ThreadType, query: string): SearchMatch[] {
 
       // Check tool response
       const toolResponse = messages.find(
-        (msg) =>
-          msg.actionType === "tool_response" &&
-          msg.toolCallId === message.toolCallId,
+        (msg) => msg.role === "tool" && msg.toolCallId === message.toolCallId,
       );
 
       if (toolResponse) {

@@ -13,6 +13,7 @@ export enum MessageRole {
   User = "user",
   Assistant = "assistant",
   System = "system",
+  /** A tool call response - generally from the user, often JSON */
   Tool = "tool",
   /**
    * Hydra is a new role that is used to represent a message from the Hydra assistant.
@@ -30,6 +31,7 @@ export type OpenAIRole =
 
 /**
  * Defines the types of actions that can occur in a thread
+ * @deprecated - use the role and the presence of tool calls to determine the action type
  */
 export enum ActionType {
   ToolCall = "tool_call",

@@ -1,5 +1,5 @@
-import { ActionType } from "@tambo-ai-cloud/core";
-import { and, eq } from "drizzle-orm";
+import { MessageRole } from "@tambo-ai-cloud/core";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { schema } from "..";
 import { messages, projectMembers } from "../schema";
 import type { HydraDb } from "../types";
@@ -104,7 +104,8 @@ export async function findPreviousToolCallMessage(
     where: and(
       eq(schema.messages.threadId, threadId),
       eq(schema.messages.toolCallId, toolCallId),
-      eq(schema.messages.actionType, ActionType.ToolCall),
+      eq(schema.messages.role, MessageRole.Assistant),
+      isNotNull(schema.messages.toolCallRequest),
     ),
   });
 }

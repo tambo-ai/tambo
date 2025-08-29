@@ -65,7 +65,7 @@ export function ThreadMessages({
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
 
-      if (message.actionType === "tool_response") {
+      if (message.role === "tool") {
         continue;
       }
 
@@ -81,7 +81,7 @@ export function ThreadMessages({
         const toolResponse = messages.find(
           (msg, idx) =>
             idx > i &&
-            msg.actionType === "tool_response" &&
+            msg.role === "tool" &&
             msg.toolCallId === message.toolCallId,
         );
 
