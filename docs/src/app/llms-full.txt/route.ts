@@ -9,5 +9,7 @@ export async function GET() {
   const scan = source.getPages().map(getLLMText);
   const scanned = await Promise.all(scan);
 
-  return new NextResponse(makeReadableStream(scanned));
+  return new NextResponse(makeReadableStream(scanned), {
+    headers: { "Content-Type": "text/plain" },
+  });
 }
