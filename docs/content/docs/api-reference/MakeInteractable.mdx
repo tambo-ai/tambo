@@ -1,0 +1,39 @@
+---
+title: "MakeInteractable"
+description: "A JSX wrapper to make any component interactable by Tambo."
+---
+
+The `<MakeInteractable>` component is a wrapper that makes its child component "interactable" within the Tambo framework. It serves as a more modern and readable alternative to the `withInteractable()` Higher-Order Component.
+
+It automatically registers its child with the nearest `InteractableProvider` when it mounts.
+
+## Usage
+
+The component takes a `name`, `description`, and a Zod `propsSchema` and must wrap a single child component.
+
+```jsx
+import { MakeInteractable } from "@tambo-ai/react";
+import { z } from "zod";
+
+// 1. Define your component
+const Note = ({ title, text }) => (
+  <div className="note">
+    <h3>{title}</h3>
+    <p>{text}</p>
+  </div>
+);
+
+// 2. Wrap your component to make it interactable
+const InteractableNote = () => (
+  <MakeInteractable
+    name="Note"
+    description="A component for displaying a note with a title and text."
+    propsSchema={z.object({
+      title: z.string().describe("The title of the note"),
+      text: z.string().describe("The body content of the note"),
+    })}
+  >
+    <Note title="Buy groceries" text="milk, bread, eggs" />
+  </MakeInteractable>
+);
+```
