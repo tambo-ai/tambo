@@ -1,10 +1,8 @@
 "use client";
 
 import { Copy, Check, AlertCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-const cache = new Map<string, string>();
 
 function useCopyButton(copyFn: () => Promise<void>) {
   const [copied, setCopied] = useState(false);
@@ -29,51 +27,19 @@ function useCopyButton(copyFn: () => Promise<void>) {
 }
 
 interface LLMCopyButtonProps {
-  markdownUrl: string;
+  content: string;
   className?: string;
 }
 
-export function LLMCopyButton({ markdownUrl, className }: LLMCopyButtonProps) {
-  const [isLoading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const preloadContent = async () => {
-      if (!cache.has(markdownUrl)) {
-        const response = await fetch(markdownUrl);
-        if (response.ok) {
-          const content = await response.text();
-          cache.set(markdownUrl, content);
-        }
-      }
-    };
-
-    const timeoutId = setTimeout(preloadContent, 100);
-    return () => clearTimeout(timeoutId);
-  }, [markdownUrl]);
+export function LLMCopyButton({ content, className }: LLMCopyButtonProps) {
+  // No need for loading state or preloading since content is passed directly
 
   const copyContent = async (): Promise<void> => {
-    const cached = cache.get(markdownUrl);
-    if (cached) {
-      await navigator.clipboard.writeText(cached);
-      return;
-    }
-
-    setLoading(true);
     try {
-      const response = await fetch(markdownUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status}`);
-      }
-
-      const content = await response.text();
-      cache.set(markdownUrl, content);
-
       await navigator.clipboard.writeText(content);
     } catch (error) {
       console.error("Failed to copy content:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -81,7 +47,6 @@ export function LLMCopyButton({ markdownUrl, className }: LLMCopyButtonProps) {
 
   return (
     <button
-      disabled={isLoading}
       onClick={onClick}
       aria-label={
         error

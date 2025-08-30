@@ -1,5 +1,6 @@
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { source } from "@/lib/source";
+import { getLLMText } from "@/lib/llm";
 import { getMDXComponents } from "@/mdx-components";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import {
@@ -20,6 +21,7 @@ export default async function Page(props: {
   if (!page) notFound();
 
   const MDXContent = page.data.body;
+  const llmContent = await getLLMText(page);
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
@@ -31,7 +33,7 @@ export default async function Page(props: {
       <DocsDescription>{page.data.description}</DocsDescription>
 
       <div className="flex items-center gap-2 mb-6 pb-4 border-b border-fd-border">
-        <LLMCopyButton markdownUrl={`/api/mdx${page.url}`} />
+        <LLMCopyButton content={llmContent} />
         <OpenDropdown pageUrl={page.url} />
       </div>
 
