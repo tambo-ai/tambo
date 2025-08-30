@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.0](https://github.com/tambo-ai/tambo/compare/docs-v1.4.0...docs-v1.5.0) (2025-08-30)
+
+
+### Features
+
+* **docs:** add sitemap and robots.txt ([#940](https://github.com/tambo-ai/tambo/issues/940)) ([99114d7](https://github.com/tambo-ai/tambo/commit/99114d7f54c2ef71cf4cdea1baa94fe2008ef781))
+* **docs:** added support for llms.txt/llm-full.txt along with .mdx support for individual routes ([#935](https://github.com/tambo-ai/tambo/issues/935)) ([9c3bb5c](https://github.com/tambo-ai/tambo/commit/9c3bb5c8d5ddf8b22a547ea8f705ca7308e1500c))
+
+
+### Bug Fixes
+
+* sidebar overlaps with header [#942](https://github.com/tambo-ai/tambo/issues/942) ([#944](https://github.com/tambo-ai/tambo/issues/944)) ([9467132](https://github.com/tambo-ai/tambo/commit/94671328260e01e5c4aabae77865da1120d6f6fa))
+
 ## [1.4.0](https://github.com/tambo-ai/tambo/compare/docs-v1.3.2...docs-v1.4.0) (2025-08-28)
 
 
