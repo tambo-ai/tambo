@@ -18,6 +18,13 @@ export async function GET(
   }
 
   try {
+    console.log("API /mdx called with slug:", slug);
+    console.log("Found page:", {
+      url: page.url,
+      title: page.data.title,
+      hasContent: !!page.data.content,
+    });
+
     const llmText = await getLLMText(page);
 
     return new NextResponse(llmText, {
@@ -27,7 +34,17 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("Error generating LLM text:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("Error generating LLM text for slug:", slug, error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      pageUrl: page?.url,
+      pageTitle: page?.data?.title,
+    });
+
+    return new NextResponse(
+      `Internal Server Error: ${error instanceof Error ? error.message : String(error)}`,
+      { status: 500 },
+    );
   }
 }
