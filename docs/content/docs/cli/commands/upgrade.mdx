@@ -4,12 +4,12 @@ title: upgrade
 
 `npx tambo upgrade`
 
-Upgrades your entire Tambo project including npm packages, components, and cursor rules to the latest versions.
+Upgrades your entire tambo project including npm packages, components, and cursor rules to the latest versions.
 
 **What it upgrades:**
 
-1. **NPM Packages**: Updates `@tambo-ai/react` and related dependencies
-2. **Components**: Updates all installed Tambo components to latest versions
+1. **NPM Packages**: Updates known safe packages (UI components, utilities, and tambo dependencies)
+2. **Components**: Updates all installed tambo components to latest versions
 3. **Cursor Rules**: Updates AI coding assistant rules for better development experience
 4. **Configuration**: Updates CSS variables and Tailwind configuration as needed
 
@@ -29,13 +29,30 @@ npx tambo upgrade --prefix=src/components/ui
 npx tambo upgrade --legacy-peer-deps
 ```
 
+## Safe Package Updates
+
+The upgrade command only updates packages that are known to be safe for automatic updates:
+
+<Callout type="info" title="Smart Package Filtering">
+  The CLI automatically filters to only show updates for UI components,
+  utilities, and tambo-specific packages. Core framework packages (like React,
+  Next.js, TypeScript) are excluded to prevent breaking changes.
+</Callout>
+
+**Safe packages include:**
+
+- tambo packages (`@tambo-ai/react`, `@tambo-ai/typescript-sdk`)
+- UI components (`@radix-ui/*`, `framer-motion`, `lucide-react`)
+- Styling utilities (`tailwindcss`, `clsx`, `tailwind-merge`)
+- Development tools (`eslint-config-next`, `@types/*`)
+
 ## Configuration Updates
 
 The upgrade command performs comprehensive updates to your project configuration:
 
 ### CSS & Tailwind Updates
 
-The CLI will update your `globals.css` and `tailwind.config.ts` files to ensure they're compatible with the latest Tambo components and your current Tailwind CSS version.
+The CLI will update your `globals.css` and `tailwind.config.ts` files to ensure they're compatible with the latest tambo components and your current Tailwind CSS version.
 
 <Callout type="info" title="Safe Configuration Updates">
   The upgrade process preserves your existing styles and configuration while
@@ -47,7 +64,7 @@ The CLI will update your `globals.css` and `tailwind.config.ts` files to ensure 
 - **CSS Variables**: New variables required by component updates
 - **Tailwind Configuration**: Basic configuration for v3 projects
 - **Component Dependencies**: Latest versions of all component dependencies
-- **Package Versions**: Updates to `@tambo-ai/react` and related packages
+- **Package Versions**: Updates to known safe packages only
 
 <Callout type="warn" title="Backup Recommendation">
   While the CLI creates automatic backups, consider committing your changes to
