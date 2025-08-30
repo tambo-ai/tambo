@@ -2,6 +2,7 @@ import { execSync } from "child_process";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
+import { KNOWN_SAFE_PACKAGES } from "../../constants/packages.js";
 import type { UpgradeOptions } from "./index.js";
 
 /**
@@ -29,8 +30,24 @@ export async function upgradeNpmPackages(
       return false;
     }
 
-    // Use npm-check-updates in interactive mode to let users choose updates
-    spinner.text = "Checking for package updates...";
+    // Read the current package.json to see what's actually installed
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+    const allDeps = {
+      ...(packageJson.dependencies ?? {}),
+      ...(packageJson.devDependencies ?? {}),
+    };
+
+    // Filter to only show updates for known safe packages that are actually installed
+    const installedSafePackages = KNOWN_SAFE_PACKAGES.filter(
+      (pkg) => allDeps[pkg],
+    );
+
+    if (installedSafePackages.length === 0) {
+      spinner.info(
+        "No packages found to update. Skipping npm package updates.",
+      );
+      return true;
+    }
     spinner.stop();
 
     const ncuFlags = [
@@ -40,6 +57,8 @@ export async function upgradeNpmPackages(
       "--interactive",
       "--timeout",
       "60000",
+      "--filter",
+      installedSafePackages.join(","),
     ];
 
     execSync(`npx npm-check-updates ${ncuFlags.join(" ")}`, {
