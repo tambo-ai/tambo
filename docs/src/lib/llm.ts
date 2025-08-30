@@ -8,13 +8,19 @@ import type { InferPageType } from "fumadocs-core/source";
 const processor = remark().use(remarkMdx).use(remarkInclude).use(remarkGfm);
 
 export async function getLLMText(page: InferPageType<typeof source>) {
-  const processed = await processor.process({
-    path: page.data._file?.absolutePath || "unknown",
-    value: page.data.content,
-  });
+  try {
+    const processed = await processor.process({
+      path: page.url || "unknown",
+      value: page.data.content,
+    });
 
-  return `# ${page.data.title}
-URL: ${page.url}
-
-${processed.value}`;
+    return `# ${page.data.title}
+    URL: ${page.url}
+    ${processed.value}`;
+  } catch (error) {
+    console.error("Error processing markdown:", error);
+    return `# ${page.data.title}
+    URL: ${page.url}
+    ${page.data.content}`;
+  }
 }
