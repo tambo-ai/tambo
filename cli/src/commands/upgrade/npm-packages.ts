@@ -33,8 +33,8 @@ export async function upgradeNpmPackages(
     // Read the current package.json to see what's actually installed
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
     const allDeps = {
-      ...packageJson.dependencies,
-      ...packageJson.devDependencies,
+      ...(packageJson.dependencies ?? {}),
+      ...(packageJson.devDependencies ?? {}),
     };
 
     // Filter to only show updates for known safe packages that are actually installed
