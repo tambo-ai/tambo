@@ -4,7 +4,6 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
-  useState,
 } from "react";
 import {
   useTamboMutation,
@@ -12,6 +11,7 @@ import {
 } from "../hooks/react-query-hooks";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
+import { useTamboMessageDrafts } from "./hooks/use-tambo-message-drafts";
 import { useTamboThread } from "./tambo-thread-provider";
 
 /**
@@ -82,7 +82,9 @@ export const TamboThreadInputProvider: React.FC<
   PropsWithChildren<TamboThreadInputProviderProps>
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
-  const [inputValue, setInputValue] = useState("");
+  const { currentDraft, saveDraft } = useTamboMessageDrafts(
+    thread?.id ?? "null_thread",
+  );
 
   const submit = useCallback(
     async ({
@@ -96,7 +98,7 @@ export const TamboThreadInputProvider: React.FC<
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
     } = {}) => {
-      const validation = validateInput(inputValue);
+      const validation = validateInput(currentDraft);
       if (!validation.isValid) {
         throw new ThreadInputError(
           `Cannot submit message: ${validation.error ?? INPUT_ERROR_MESSAGES.VALIDATION}`,
@@ -111,9 +113,9 @@ export const TamboThreadInputProvider: React.FC<
         forceToolChoice: forceToolChoice,
         additionalContext: additionalContext,
       });
-      setInputValue(""); // Clear local state
+      saveDraft("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey],
+    [sendThreadMessage, thread.id, contextKey, currentDraft, saveDraft],
   );
 
   const {
@@ -126,8 +128,8 @@ export const TamboThreadInputProvider: React.FC<
 
   const value = {
     ...mutationState,
-    value: inputValue,
-    setValue: setInputValue,
+    value: currentDraft,
+    setValue: saveDraft,
     submit: submitAsync,
   };
 
