@@ -1,5 +1,5 @@
 :root {
-  --fd-layout-width: 1400px !important;
+  --fd-layout-width: 100% !important;
   --banner-height: 0px;
   --header-height: 56px;
   --toc-top-offset: calc(var(--banner-height) + var(--header-height) + 16px);
@@ -11,13 +11,14 @@
   border-right: none !important;
 }
 
+
 #nd-toc {
-  /* Make TOC sticky and position it below the header */
-  position: sticky !important;
+  position: fixed !important;
+  right: 2rem !important;   /* distance from right edge */
   top: var(--toc-top-offset) !important;
+  width: 250px !important;  /* control width */
   max-height: calc(100vh - var(--toc-top-offset)) !important;
-  overflow-y: auto !important; /* Allow scrolling within TOC if content is too long */
-  margin-top: 0 !important; /* Remove the previous margin-top */
+  overflow-y: auto !important;
 }
 
 #nd-sidebar {
