@@ -7,6 +7,7 @@ const config: Config = {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "../react-sdk/src/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
