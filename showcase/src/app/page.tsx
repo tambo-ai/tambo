@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { DateTimePicker } from "@tambo-ai/react";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import Link from "next/link";
@@ -40,6 +41,21 @@ export default function DocsPage() {
         <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
           <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
             <MessageThreadFull contextKey={userContextKey} />
+          </div>
+        </DemoWrapper>
+      </ShowcaseThemeProvider>
+
+      {/* Demo DateTimePicker Component */}
+      <ShowcaseThemeProvider defaultTheme="light">
+        <DemoWrapper title="DateTime Picker" height={400}>
+          <div className="h-full relative flex flex-col items-center justify-center rounded-lg overflow-hidden p-6">
+            <DateTimePicker
+              value={null}
+              hourCycle="h12"
+              onChange={(val) => console.log("Selected DateTime:", val)}
+              timezone="UTC"
+              stepMinutes={15}
+            />
           </div>
         </DemoWrapper>
       </ShowcaseThemeProvider>

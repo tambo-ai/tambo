@@ -33,6 +33,7 @@ export const navigation: NavigationItem[] = [
             title: "Message Thread Panel",
             href: "/components/message-thread-panel",
           },
+         
           {
             title: "Control Bar",
             href: "/components/control-bar",
@@ -72,6 +73,10 @@ export const navigation: NavigationItem[] = [
           {
             title: "Graph",
             href: "/components/graph",
+          },
+           {
+            title: "Date Time",
+            href: "/components/date-time-picker",
           },
           {
             title: "Map",
