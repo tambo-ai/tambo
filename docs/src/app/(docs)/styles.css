@@ -1,5 +1,5 @@
 :root {
-  --fd-layout-width:1400px !important;
+  --fd-layout-width: 1400px !important;
   --banner-height: 0px;
   --header-height: 56px;
   --toc-top-offset: calc(var(--banner-height) + var(--header-height) + 16px);
@@ -10,7 +10,6 @@
 #nd-sidebar [class*="border-e"] {
   border-right: none !important;
 }
-
 
 #nd-toc {
   top: var(--toc-top-offset) !important;
