@@ -12,12 +12,9 @@
 }
 
 #nd-toc {
-  /* Make TOC sticky and position it below the header */
-  position: sticky !important;
   top: var(--toc-top-offset) !important;
   max-height: calc(100vh - var(--toc-top-offset)) !important;
-  overflow-y: auto !important; /* Allow scrolling within TOC if content is too long */
-  margin-top: 0 !important; /* Remove the previous margin-top */
+  overflow-y: auto !important;
 }
 
 #nd-sidebar {
