@@ -17,6 +17,10 @@ import {
   removeHelper as removeGlobalHelper,
   resolveAdditionalContext,
 } from "../context-helpers/registry";
+import {
+  DEFAULT_INTERACTABLES_CONTEXT_KEY,
+  getCurrentInteractablesSnapshot,
+} from "./tambo-interactable-provider";
 
 export interface TamboContextHelpersProviderProps {
   /**
@@ -62,6 +66,34 @@ export const TamboContextHelpersProvider: React.FC<
         addHelper(name, fn);
         addedEntries.push([name, fn]);
       }
+    }
+
+    // Ensure a default interactables helper exists if not overridden
+    const helpers = getHelpers();
+    const current = helpers[DEFAULT_INTERACTABLES_CONTEXT_KEY];
+    const isOurHelper =
+      typeof current === "function" &&
+      (current as any).__tambo_default_interactables_helper__ === true;
+    const hadExisting = Boolean(current && !isOurHelper);
+
+    if (!current || isOurHelper) {
+      const helperFn: ContextHelperFn = () => {
+        const components = getCurrentInteractablesSnapshot();
+        if (!components.length) return null;
+        return {
+          description:
+            "These are interactable components currently available on the page. You can interact with them (e.g., by updating their props) if tools are available.",
+          components: components.map((c) => ({
+            id: c.id,
+            componentName: c.name,
+            description: c.description,
+            props: c.props,
+          })),
+        };
+      };
+      (helperFn as any).__tambo_default_interactables_helper__ = true;
+      addHelper(DEFAULT_INTERACTABLES_CONTEXT_KEY, helperFn);
+      addedEntries.push([DEFAULT_INTERACTABLES_CONTEXT_KEY, helperFn]);
     }
 
     return () => {

@@ -14,17 +14,16 @@ import {
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
 import { useTamboComponent } from "./tambo-component-provider";
-import {
-  addHelper as addAdditionalContextHelper,
-  getHelpers as getAdditionalContextHelpers,
-  removeHelper as removeAdditionalContextHelper,
-} from "../context-helpers/registry";
-
 /**
  * Default AdditionalContext key used for publishing interactables.
  * Apps can override this helper at runtime via useTamboContextHelpers.
  */
 export const DEFAULT_INTERACTABLES_CONTEXT_KEY = "interactables";
+
+// Module-level snapshot of interactables to support context helper access
+let __tambo_latestInteractableComponents: TamboInteractableComponent[] = [];
+export const getCurrentInteractablesSnapshot = () =>
+  __tambo_latestInteractableComponents;
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -244,6 +243,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           return prev;
         }
 
+        __tambo_latestInteractableComponents = updatedComponents;
         return updatedComponents;
       });
 
@@ -295,7 +295,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       registerInteractableComponentUpdateTool(newComponent);
 
       setInteractableComponents((prev) => {
-        return [...prev, newComponent];
+        const next = [...prev, newComponent];
+        __tambo_latestInteractableComponents = next;
+        return next;
       });
 
       return id;
@@ -304,7 +306,11 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const removeInteractableComponent = useCallback((id: string) => {
-    setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
+    setInteractableComponents((prev) => {
+      const next = prev.filter((c) => c.id !== id);
+      __tambo_latestInteractableComponents = next;
+      return next;
+    });
   }, []);
 
   const getInteractableComponent = useCallback(
@@ -322,6 +328,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const clearAllInteractableComponents = useCallback(() => {
+    __tambo_latestInteractableComponents = [];
     setInteractableComponents([]);
   }, []);
 
