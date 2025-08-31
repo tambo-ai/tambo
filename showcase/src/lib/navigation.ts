@@ -81,6 +81,10 @@ export const navigation: NavigationItem[] = [
             title: "Map",
             href: "/components/map",
           },
+          {
+            title: "Selection Card",
+            href: "/components/selection-card",
+          },
         ],
       },
       {
