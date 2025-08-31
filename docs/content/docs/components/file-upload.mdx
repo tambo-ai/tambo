@@ -1,0 +1,184 @@
+---
+title: FileUpload
+description: Accessible file uploader with drag-drop, validation, and progress tracking
+---
+
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs'
+import { Callout } from 'fumadocs-ui/components/callout'
+
+# FileUpload
+
+<Callout type="info">
+  Accessible file uploader with drag-drop, validation, progress tracking, and cancel/retry functionality.
+</Callout>
+
+## Installation
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+    ```
+    npm install @tambo-ai/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```
+    yarn add @tambo-ai/react
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```
+    pnpm add @tambo-ai/react
+    ```
+  </Tab>
+</Tabs>
+
+## Import
+
+```
+import { FileUpload } from "@tambo-ai/react";
+```
+
+## Usage
+
+### Basic File Upload
+
+```
+const mockUploader = async (files, onProgress) => {
+  // Simulate upload progress
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += 10;
+    files.forEach((file) => {
+      onProgress(file.name, progress);
+    });
+    
+    if (progress >= 100) {
+      clearInterval(interval);
+    }
+  }, 200);
+  
+  return files.map(file => `https://example.com/uploaded/${file.name}`);
+};
+
+function BasicExample() {
+  return (
+    <FileUpload 
+      uploader={mockUploader}
+      maxSizeMB={5}
+    />
+  );
+}
+```
+
+### Multiple Images Only
+
+```
+function MultipleImagesExample() {
+  return (
+    <FileUpload 
+      uploader={mockUploader}
+      accept="image/*"
+      multiple={true}
+      maxSizeMB={2}
+    />
+  );
+}
+```
+
+### Document Upload
+
+```
+function DocumentUploadExample() {
+  return (
+    <FileUpload 
+      uploader={mockUploader}
+      accept=".pdf,.doc,.docx,.txt"
+      maxSizeMB={10}
+    />
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `uploader` | `(files: File[], onProgress: (id: string, progress: number) => void) => Promise<string[]>` | **required** | Function to handle file uploads with progress callback |
+| `accept` | `string` | `undefined` | Accepted file types (e.g., '.jpg,.png' or 'image/*') |
+| `multiple` | `boolean` | `false` | Allow multiple file selection |
+| `maxSizeMB` | `number` | `undefined` | Maximum file size in megabytes |
+| `disabled` | `boolean` | `false` | Disable the component |
+| `className` | `string` | `undefined` | Additional CSS classes |
+| `children` | `ReactNode` | `undefined` | Custom content for drop zone |
+
+## Features
+
+- ✅ **Drag & Drop**: Intuitive file selection via drag and drop
+- ✅ **File Validation**: Type and size validation before upload
+- ✅ **Progress Tracking**: Real-time upload progress with visual indicators
+- ✅ **Cancel/Retry**: Users can cancel ongoing uploads or retry failed ones
+- ✅ **Multiple Files**: Support for single or multiple file selection
+- ✅ **Accessibility**: Full keyboard navigation and screen reader support
+- ✅ **Responsive**: Works seamlessly across all device sizes
+
+## Accessibility
+
+The FileUpload component includes comprehensive accessibility features:
+
+- **ARIA Labels**: Proper labeling for screen readers
+- **Keyboard Navigation**: Full keyboard support with focus management
+- **Progress Announcements**: Upload progress is announced to assistive technologies
+- **Error Communication**: Clear error states and messaging
+- **Focus Management**: Logical tab order and focus indicators
+
+## Examples
+
+### Custom Drop Zone Content
+
+```
+function CustomDropZoneExample() {
+  return (
+    <FileUpload uploader={mockUploader}>
+      <div className="flex flex-col items-center space-y-2">
+        <FileIcon className="h-12 w-12 text-gray-400" />
+        <p className="text-lg font-medium">Drop your files here</p>
+        <p className="text-sm text-gray-500">or click to browse</p>
+      </div>
+    </FileUpload>
+  );
+}
+```
+
+### With Error Handling
+
+```
+function ErrorHandlingExample() {
+  const uploaderWithError = async (files, onProgress) => {
+    // Simulate upload with potential failure
+    if (Math.random() > 0.5) {
+      throw new Error("Upload failed - please try again");
+    }
+    return ["success-url"];
+  };
+
+  return (
+    <FileUpload 
+      uploader={uploaderWithError}
+      maxSizeMB={1}
+      accept=".pdf,.doc"
+    />
+  );
+}
+```
+
+## AI Integration
+
+You can ask Tambo AI to create file upload components with specific requirements:
+
+- *"Create a file upload component"*
+- *"Show me a file uploader with a 5MB size limit"*  
+- *"Create a file upload that accepts only images"*
+- *"Make a multi-file uploader with drag and drop"*
+
+The AI will automatically render your FileUpload component with the appropriate props based on your request.
+```
