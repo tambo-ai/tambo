@@ -1,5 +1,5 @@
 :root {
-  --fd-layout-width: 100% !important;
+  --fd-layout-width:1400px !important;
   --banner-height: 0px;
   --header-height: 56px;
   --toc-top-offset: calc(var(--banner-height) + var(--header-height) + 16px);
@@ -13,10 +13,7 @@
 
 
 #nd-toc {
-  position: fixed !important;
-  right: 2rem !important;   /* distance from right edge */
   top: var(--toc-top-offset) !important;
-  width: 250px !important;  /* control width */
   max-height: calc(100vh - var(--toc-top-offset)) !important;
   overflow-y: auto !important;
 }

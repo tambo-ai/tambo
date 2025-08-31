@@ -20,7 +20,7 @@ export default function HeaderBar() {
 
   return (
     <div className="sticky top-0 z-[60] w-full border-b border-neutral-100 bg-transparent backdrop-blur hidden md:block">
-      <div className="mx-auto flex h-14 max-w-100% items-center px-4">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center px-4">
         {/* Desktop Layout */}
         <div className="flex w-full items-center">
           {/* Left section - Logo */}
