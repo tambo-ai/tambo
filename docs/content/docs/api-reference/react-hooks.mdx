@@ -319,3 +319,40 @@ Adds or replaces a helper at the given key.
 `const { removeContextHelper } = useTamboContextHelpers()`
 
 Removes a helper by key so it is no longer included in outgoing messages.
+
+#### Default: `interactables` helper
+
+When using the default component library with interactable components, a helper named `interactables` is registered for you. It returns an object describing interactables currently available on the page:
+
+```tsx
+{
+  description:
+    "These are interactable components currently available on the page. You can interact with them (e.g., by updating their props) if tools are available.",
+  components: [
+    { id, componentName, description, props },
+    // ...
+  ]
+}
+```
+
+Disable or override it at runtime:
+
+```tsx
+const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+// disable
+addContextHelper("interactables", () => null);
+
+// or remove
+removeContextHelper("interactables");
+```
+
+IDs-only example (not default):
+
+```tsx
+addContextHelper("interactables", () => ({
+  description:
+    "These are interactable components currently available on the page. You can interact with them by ID if tools are available.",
+  interactableIds: [/* ids */],
+}));
+```

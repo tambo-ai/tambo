@@ -117,3 +117,67 @@ function App() {
 ```
 
 This creates a truly conversational interface where users can modify your UI through natural language, making your applications more accessible and user-friendly.
+
+## AdditionalContext: Interactables (enabled by default)
+
+When you use interactable components with our default component library, an AdditionalContext helper named `interactables` is registered for you automatically. It adds a concise JSON payload to each message so the model knows which components on the page are interactable.
+
+What it sends by default:
+
+```tsx
+{
+  description:
+    "These are interactable components currently available on the page. You can interact with them (e.g., by updating their props) if tools are available.",
+  components: interactableComponents.map(c => ({
+    id: c.id,
+    componentName: c.name,
+    description: c.description,
+    props: c.props,
+  }))
+}
+```
+
+### Disabling the default helper
+
+If you prefer not to send interactables, override the helper to return `null` (or remove it) anywhere in your app:
+
+```tsx
+import { useEffect } from "react";
+import { useTamboContextHelpers } from "@tambo-ai/react";
+
+export function DisableInteractablesAdditionalContext() {
+  const { addContextHelper } = useTamboContextHelpers();
+  useEffect(() => {
+    addContextHelper("interactables", () => null);
+  }, [addContextHelper]);
+  return null;
+}
+```
+
+### Example: send only IDs (not the default)
+
+To minimize payload size but retain the explanatory context:
+
+```tsx
+import { useEffect } from "react";
+import { useTamboContextHelpers, useTamboInteractable } from "@tambo-ai/react";
+
+export function InteractablesIdsOnlyContext() {
+  const { interactableComponents } = useTamboInteractable();
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  useEffect(() => {
+    addContextHelper("interactables", () => {
+      if (!interactableComponents.length) return null;
+      return {
+        description:
+          "These are interactable components currently available on the page. You can interact with them by ID if tools are available.",
+        interactableIds: interactableComponents.map(c => c.id),
+      };
+    });
+    return () => removeContextHelper("interactables");
+  }, [addContextHelper, removeContextHelper, interactableComponents]);
+
+  return null;
+}
+```
