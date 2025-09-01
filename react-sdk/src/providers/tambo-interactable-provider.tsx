@@ -17,6 +17,7 @@ import { useTamboComponent } from "./tambo-component-provider";
 /**
  * Default AdditionalContext key used for publishing interactables.
  * Apps can override this helper at runtime via useTamboContextHelpers.
+ * @returns The key string used for the default interactables helper.
  */
 export const DEFAULT_INTERACTABLES_CONTEXT_KEY = "interactables";
 
