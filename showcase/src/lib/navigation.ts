@@ -66,6 +66,10 @@ export const navigation: NavigationItem[] = [
         href: "#",
         children: [
           {
+            title: "Carousel",
+            href: "/components/carousel",
+          },
+          {
             title: "Form",
             href: "/components/form",
           },
@@ -86,6 +90,16 @@ export const navigation: NavigationItem[] = [
           {
             title: "Canvas Space",
             href: "/components/canvas-space",
+          },
+        ],
+      },
+      {
+        title: "Interactive",
+        href: "#",
+        children: [
+          {
+            title: "Carousel View",
+            href: "/components/carousel-view",
           },
         ],
       },

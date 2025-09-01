@@ -1,0 +1,40 @@
+{
+  "name": "carousel-view",
+  "description": "Accessible carousel component with swipe/drag, looping, and responsive cards",
+  "componentName": "CarouselView",
+  "dependencies": [
+    "@tambo-ai/react",
+    "embla-carousel-react",
+    "class-variance-authority",
+    "clsx",
+    "tailwind-merge",
+    "lucide-react",
+    "@radix-ui/react-slot",
+    "zod"
+  ],
+  "devDependencies": ["@types/react", "@types/react-dom"],
+  "requires": [],
+  "files": [
+    {
+      "name": "carousel-view.tsx",
+      "content": "src/registry/carousel-view/carousel-view.tsx"
+    },
+    {
+      "name": "lib/utils.ts",
+      "content": "src/registry/carousel-view/lib/utils.ts"
+    },
+    {
+      "name": "components/ui/card.tsx",
+      "content": "src/registry/carousel-view/components/ui/card.tsx"
+    },
+    {
+      "name": "components/ui/carousel.tsx",
+      "content": "src/registry/carousel-view/components/ui/carousel.tsx"
+    },
+    {
+      "name": "components/ui/button.tsx",
+      "content": "src/registry/carousel-view/components/ui/button.tsx"
+    }
+  ],
+  "type": "components:ui"
+}
