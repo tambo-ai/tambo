@@ -22,6 +22,9 @@ export const DEFAULT_INTERACTABLES_CONTEXT_KEY = "interactables";
 
 // Module-level snapshot of interactables to support context helper access
 let __tambo_latestInteractableComponents: TamboInteractableComponent[] = [];
+/**
+ *
+ */
 export const getCurrentInteractablesSnapshot = () =>
   __tambo_latestInteractableComponents;
 
@@ -164,49 +167,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     });
   }, [interactableComponents, registerTool]);
 
-  useEffect(() => {
-    // Only register or update if not overridden by the app
-    const helpers = getAdditionalContextHelpers();
-    const current = helpers[DEFAULT_INTERACTABLES_CONTEXT_KEY];
-
-    const isOurHelper =
-      typeof current === "function" &&
-      (current as any).__tambo_default_interactables_helper__ === true;
-
-    if (!current || isOurHelper) {
-      const helperFn = () => {
-        if (!interactableComponents.length) return null;
-        return {
-          description:
-            "These are interactable components currently available on the page. You can interact with them (e.g., by updating their props) if tools are available.",
-          components: interactableComponents.map((c) => ({
-            id: c.id,
-            componentName: c.name,
-            description: c.description,
-            props: c.props,
-          })),
-        };
-      };
-      (helperFn as any).__tambo_default_interactables_helper__ = true;
-
-      addAdditionalContextHelper(DEFAULT_INTERACTABLES_CONTEXT_KEY, helperFn);
-
-      return () => {
-        const now = getAdditionalContextHelpers()[
-          DEFAULT_INTERACTABLES_CONTEXT_KEY
-        ];
-        const ours =
-          typeof now === "function" &&
-          (now as any).__tambo_default_interactables_helper__ === true;
-        if (ours) {
-          removeAdditionalContextHelper(DEFAULT_INTERACTABLES_CONTEXT_KEY);
-        }
-      };
-    }
-
-    // If overridden by app, do nothing and do not clean up
-    return;
-  }, [interactableComponents]);
+  // Default AdditionalContext helper is registered by TamboContextHelpersProvider.
 
   const updateInteractableComponentProps = useCallback(
     (id: string, newProps: Record<string, any>) => {

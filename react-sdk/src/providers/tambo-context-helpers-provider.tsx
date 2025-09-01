@@ -74,7 +74,6 @@ export const TamboContextHelpersProvider: React.FC<
     const isOurHelper =
       typeof current === "function" &&
       (current as any).__tambo_default_interactables_helper__ === true;
-    const hadExisting = Boolean(current && !isOurHelper);
 
     if (!current || isOurHelper) {
       const helperFn: ContextHelperFn = () => {
