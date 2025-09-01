@@ -1,5 +1,9 @@
 :root {
   --fd-layout-width: 1400px !important;
+  --banner-height: 0px;
+  --header-height: 56px;
+  --toc-top-offset: calc(var(--banner-height) + var(--header-height) + 16px);
+  --sidebar-top-offset: calc(var(--banner-height) + 40px);
 }
 
 /* Remove sidebar border */
@@ -8,18 +12,13 @@
 }
 
 #nd-toc {
-  /* Make TOC sticky and position it below the header */
-  position: sticky !important;
-  top: 72px !important; /* Header height (56px) + some padding (16px) */
-  max-height: calc(
-    100vh - 72px
-  ) !important; /* Ensure it doesn't exceed viewport */
-  overflow-y: auto !important; /* Allow scrolling within TOC if content is too long */
-  margin-top: 0 !important; /* Remove the previous margin-top */
+  top: var(--toc-top-offset) !important;
+  max-height: calc(100vh - var(--toc-top-offset)) !important;
+  overflow-y: auto !important;
 }
 
 #nd-sidebar {
-  margin-top: 40px !important;
+  margin-top: var(--sidebar-top-offset) !important;
   background-color: transparent !important;
   border: none !important;
 }

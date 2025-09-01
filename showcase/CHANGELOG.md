@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.20.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.19.1...showcase-v0.20.0) (2025-08-28)
+
+
+### Features
+
+* migrate from react-markdown to streamdown ([#927](https://github.com/tambo-ai/tambo/issues/927)) ([fe5648e](https://github.com/tambo-ai/tambo/commit/fe5648e1e15d0181bc3bfc48bebdc556bb4be6b9))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-config-next from 15.5.0 to 15.5.2 in the eslint group ([#949](https://github.com/tambo-ai/tambo/issues/949)) ([61eba78](https://github.com/tambo-ai/tambo/commit/61eba784bac5c1b84eb7f7ba0acb4a0a8ab908fd))
+* **deps-dev:** bump the eslint group with 5 updates ([#917](https://github.com/tambo-ai/tambo/issues/917)) ([ee0ee2e](https://github.com/tambo-ai/tambo/commit/ee0ee2e541d6a37322131a15cc02f6694436ceb3))
+* **deps:** bump @tambo-ai/typescript-sdk to get deprecated ActionType ([#928](https://github.com/tambo-ai/tambo/issues/928)) ([0b316e6](https://github.com/tambo-ai/tambo/commit/0b316e6d842241069e8b17d5823b8b8df60cbaf8))
+* **deps:** bump lucide-react from 0.540.0 to 0.541.0 ([#916](https://github.com/tambo-ai/tambo/issues/916)) ([50da283](https://github.com/tambo-ai/tambo/commit/50da2833e2e451211377cde13abd28d5835e2b7c))
+* **deps:** bump next from 15.4.7 to 15.5.0 ([#914](https://github.com/tambo-ai/tambo/issues/914)) ([4c4ff85](https://github.com/tambo-ai/tambo/commit/4c4ff85c219e8018f743d5fbe32d8a2b111819dc))
+* **deps:** bump streamdown from 1.1.3 to 1.1.5 ([#950](https://github.com/tambo-ai/tambo/issues/950)) ([5aff96d](https://github.com/tambo-ai/tambo/commit/5aff96daf6685b7b9198819aba3cb1576d9622a0))
+* Fix react/mcp subpackage path ([#946](https://github.com/tambo-ai/tambo/issues/946)) ([180ed1b](https://github.com/tambo-ai/tambo/commit/180ed1be9c04dc58c256d1183cdfc812fb3b961b))
+* fix tsconfig paths for react-sdk ([#945](https://github.com/tambo-ai/tambo/issues/945)) ([14dab2f](https://github.com/tambo-ai/tambo/commit/14dab2f4ae96e1a3c7b24cc84b0d15d74106f9a5))
+
 ## [0.19.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.19.0...showcase-v0.19.1) (2025-08-23)
 
 
