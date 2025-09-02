@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.104.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.103.2...repo-v0.104.0) (2025-09-02)
+
+
+### Features
+
+* add docs MCP to mcp.tambo.co (TAM-214) ([#1657](https://github.com/tambo-ai/tambo-cloud/issues/1657)) ([3f1d405](https://github.com/tambo-ai/tambo-cloud/commit/3f1d4057cb4d930fbd8953fecd20838505e76e39))
+
+
+### Documentation
+
+* a few more hydra-&gt;tambo things I missed ([#1668](https://github.com/tambo-ai/tambo-cloud/issues/1668)) ([c53fc05](https://github.com/tambo-ai/tambo-cloud/commit/c53fc05efc6ca1e683815ac5c7d85909b6238ed2))
+* Do some really basic formatting and linking alignment ([#1667](https://github.com/tambo-ai/tambo-cloud/issues/1667)) ([1a735e7](https://github.com/tambo-ai/tambo-cloud/commit/1a735e73bf191567235a3659b5989859cf939ce9))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump jest from 30.0.5 to 30.1.2 in the testing group ([#1674](https://github.com/tambo-ai/tambo-cloud/issues/1674)) ([54e172d](https://github.com/tambo-ai/tambo-cloud/commit/54e172d6e42b8f76a486184fa7357ecb8e0a63ca))
+* **deps:** bump @tanstack/react-query from 5.85.5 to 5.85.6 ([#1681](https://github.com/tambo-ai/tambo-cloud/issues/1681)) ([62cde47](https://github.com/tambo-ai/tambo-cloud/commit/62cde47f64b86f1c1cd8a50606aa7e691961e985))
+* **deps:** bump langfuse-vercel from 3.38.4 to 3.38.5 ([#1682](https://github.com/tambo-ai/tambo-cloud/issues/1682)) ([221762c](https://github.com/tambo-ai/tambo-cloud/commit/221762c55b4c8c4dd84bccf30effb48c68ca8fb7))
+* **deps:** bump openai from 5.15.0 to 5.16.0 ([#1683](https://github.com/tambo-ai/tambo-cloud/issues/1683)) ([f45f412](https://github.com/tambo-ai/tambo-cloud/commit/f45f412ab4db3f210bd28ab007ecd5656f44bcb7))
+* **deps:** bump the next group with 2 updates ([#1676](https://github.com/tambo-ai/tambo-cloud/issues/1676)) ([4fb7925](https://github.com/tambo-ai/tambo-cloud/commit/4fb792587f458319abd6058e1b6221b0715c4804))
+* **deps:** bump the sentry group with 3 updates ([#1679](https://github.com/tambo-ai/tambo-cloud/issues/1679)) ([946155f](https://github.com/tambo-ai/tambo-cloud/commit/946155fe2125d357c64d643827154a6269c0539e))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1680](https://github.com/tambo-ai/tambo-cloud/issues/1680)) ([c198942](https://github.com/tambo-ai/tambo-cloud/commit/c198942a1c538e6974f7d00bbd6861edc97cf91e))
+* **deps:** bump the tambo-ai group with 2 updates ([#1678](https://github.com/tambo-ai/tambo-cloud/issues/1678)) ([663b3c8](https://github.com/tambo-ai/tambo-cloud/commit/663b3c86675bfebb97db1a7e1de65b2d9d10a94a))
+
+
+### Code Refactoring
+
+* deprecate actionType for consistency ([#1670](https://github.com/tambo-ai/tambo-cloud/issues/1670)) ([3fbb9f7](https://github.com/tambo-ai/tambo-cloud/commit/3fbb9f72ce3fe3c838bb8318c54f893b7ca97104))
+
+
+### Tests
+
+* **api:** Add thread service test and mock object factories for generalized testing ([#1665](https://github.com/tambo-ai/tambo-cloud/issues/1665)) ([4b9335c](https://github.com/tambo-ai/tambo-cloud/commit/4b9335c0990161027456ba072812dba49a392f00))
+
 ## [0.103.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.103.1...repo-v0.103.2) (2025-08-27)
 
 
