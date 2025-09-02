@@ -51,7 +51,7 @@
     "jose": "^5.10.0",
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.2",
-    "langfuse-vercel": "^3.38.4",
+    "langfuse-vercel": "^3.38.5",
     "openai": "^5.16.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
