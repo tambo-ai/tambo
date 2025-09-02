@@ -20,7 +20,8 @@
     "db:check": "cd packages/db && npm run db:check",
     "db:studio": "cd packages/db && npm run db:studio",
     "rename-to-tambo": "tsx scripts/update-content.ts && tsx scripts/rename-files.ts",
-    "rename-vnext": "tsx scripts/rename-vnext.ts"
+    "rename-vnext": "tsx scripts/rename-vnext.ts",
+    "smoke:mcp": "bash scripts/smoke-mcp.sh"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",

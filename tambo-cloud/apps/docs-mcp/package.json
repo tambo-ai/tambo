@@ -1,0 +1,36 @@
+{
+  "name": "docs-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3002",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf .next dist coverage"
+  },
+  "dependencies": {
+    "@sentry/nextjs": "^10.5.0",
+    "@inkeep/inkeep-analytics": "0.2.4-alpha.27",
+    "mcp-handler": "^1.0.2",
+    "next": "^15.5.0",
+    "openai": "^5.11.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai-cloud/typescript-config": "*",
+    "@types/node": "^22.15.32",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "license": "Apache-2.0"
+}

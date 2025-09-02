@@ -795,3 +795,29 @@ export const projectLogs = pgTable(
 );
 
 export type DBProjectLog = typeof projectLogs.$inferSelect;
+
+// MCP usage events (anonymous)
+export const mcpUsage = pgTable(
+  "mcp_usage",
+  ({ text, timestamp }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('mu_')`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    transport: text("transport"),
+    toolName: text("tool_name"),
+    query: text("query"),
+    response: text("response"),
+    metadata: customJsonb<Record<string, unknown>>("metadata"),
+  }),
+  (table) => [
+    index("mcp_usage_created_at_idx").on(table.createdAt),
+    index("mcp_usage_tool_name_idx").on(table.toolName),
+  ],
+);
+
+export type DBMcpUsage = typeof mcpUsage.$inferSelect;
