@@ -254,8 +254,13 @@ describe("Interactables AdditionalContext – multi-provider + snapshot lifecycl
   });
 
   test("snapshot accessor returns items/props that cannot affect internal state", async () => {
-    const Note: React.FC<{ title: string; count: number }> = ({ title, count }) => (
-      <div>{title}: {count}</div>
+    const Note: React.FC<{ title: string; count: number }> = ({
+      title,
+      count,
+    }) => (
+      <div>
+        {title}: {count}
+      </div>
     );
     const InteractableNote = withTamboInteractable(Note, {
       componentName: "Note",
@@ -271,11 +276,13 @@ describe("Interactables AdditionalContext – multi-provider + snapshot lifecycl
       ),
     );
 
-    await waitFor(() => expect(getCurrentInteractablesSnapshot().length).toBe(1));
+    await waitFor(() =>
+      expect(getCurrentInteractablesSnapshot().length).toBe(1),
+    );
 
     const before = getCurrentInteractablesSnapshot();
     const originalProps = { ...before[0].props };
-    
+
     // Try mutating nested fields
     (before[0].props as any).title = "MUTATED";
     (before[0].props as any).count = 999;
@@ -303,7 +310,9 @@ describe("Interactables AdditionalContext – multi-provider + snapshot lifecycl
       ),
     );
 
-    await waitFor(() => expect(getCurrentInteractablesSnapshot().length).toBe(1));
+    await waitFor(() =>
+      expect(getCurrentInteractablesSnapshot().length).toBe(1),
+    );
     expect(getCurrentInteractablesSnapshot()[0].props.title).toBe("from_A");
 
     // Mount provider B with a different interactable (becomes top-of-stack)
@@ -315,7 +324,9 @@ describe("Interactables AdditionalContext – multi-provider + snapshot lifecycl
       ),
     );
 
-    await waitFor(() => expect(getCurrentInteractablesSnapshot().length).toBe(1));
+    await waitFor(() =>
+      expect(getCurrentInteractablesSnapshot().length).toBe(1),
+    );
     expect(getCurrentInteractablesSnapshot()[0].props.title).toBe("from_B");
 
     // Unmount provider B; snapshot should restore to provider A's state

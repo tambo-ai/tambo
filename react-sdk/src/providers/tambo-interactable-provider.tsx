@@ -23,8 +23,11 @@ export const DEFAULT_INTERACTABLES_CONTEXT_KEY = "interactables";
 
 // Module-level snapshot stack to support multi-provider scenarios safely.
 // Each provider pushes its snapshot entry and we always expose the top-of-stack.
-type SnapshotEntry = { owner: symbol; components: TamboInteractableComponent[] };
-let __tambo_snapshotStack: SnapshotEntry[] = [];
+interface SnapshotEntry {
+  owner: symbol;
+  components: TamboInteractableComponent[];
+}
+const __tambo_snapshotStack: SnapshotEntry[] = [];
 
 /**
  * Get a deeply-cloned snapshot of the current interactables.
@@ -35,13 +38,13 @@ let __tambo_snapshotStack: SnapshotEntry[] = [];
 export const getCurrentInteractablesSnapshot = () => {
   const top = __tambo_snapshotStack[__tambo_snapshotStack.length - 1];
   const arr = top ? top.components : [];
-  
+
   // Clone the array and each item/props to prevent mutation
   const copy = arr.map((c) => ({
     ...c,
     props: { ...c.props },
   }));
-  
+
   // In development, freeze the result to catch accidental mutations
   if (process.env.NODE_ENV !== "production") {
     for (const item of copy) {
@@ -50,7 +53,7 @@ export const getCurrentInteractablesSnapshot = () => {
     }
     return Object.freeze(copy);
   }
-  
+
   return copy;
 };
 
@@ -88,7 +91,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   useEffect(() => {
     const owner = snapshotOwner.current;
     __tambo_snapshotStack.push({ owner, components: [] });
-    
+
     return () => {
       const idx = __tambo_snapshotStack.findIndex((e) => e.owner === owner);
       if (idx !== -1) {
@@ -99,7 +102,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
   // Sync this provider's snapshot entry with our state.
   useEffect(() => {
-    const entry = __tambo_snapshotStack.find((e) => e.owner === snapshotOwner.current);
+    const entry = __tambo_snapshotStack.find(
+      (e) => e.owner === snapshotOwner.current,
+    );
     if (entry) {
       entry.components = interactableComponents;
     }
