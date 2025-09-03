@@ -1,4 +1,4 @@
-import { ListViewCard } from "@/components/ui/list-view-card";
+import { ListViewCard, ListViewCardPropsSchema } from "@/components/ui/list-view-card";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
@@ -41,94 +41,9 @@ export const ListChatInterface = () => {
       5. Use selection modes based on your interaction needs
       6. Implement onLoadMore for infinite scrolling`,
       component: ListViewCard,
-      propsDefinition: {
-        type: "object",
-        properties: {
-          items: {
-            type: "array",
-            description: "Array of items to display in the list.",
-            items: {
-              type: "object",
-              properties: {
-                id: {
-                  type: "string",
-                  description: "Unique identifier for the item.",
-                },
-                title: {
-                  type: "string",
-                  description: "Primary text displayed for the item.",
-                },
-                subtitle: {
-                  type: "string",
-                  description: "Secondary text displayed below the title.",
-                },
-                media: {
-                  type: "object",
-                  description: "Optional media to display with the item.",
-                  properties: {
-                    type: {
-                      type: "string",
-                      enum: ["avatar", "thumbnail", "icon"],
-                      description: "Type of media to display.",
-                    },
-                    src: {
-                      type: "string",
-                      description: "Source for the media (URL for images, emoji/character for icons).",
-                    },
-                    alt: {
-                      type: "string",
-                      description: "Alternative text for accessibility.",
-                    },
-                  },
-                  required: ["type", "src"],
-                },
-              },
-              required: ["id", "title"],
-            },
-          },
-          selectionMode: {
-            type: "string",
-            enum: ["none", "single", "multi"],
-            description: "Selection behavior for list items.",
-            default: "none",
-          },
-          height: {
-            oneOf: [
-              { type: "number" },
-              { type: "string" }
-            ],
-            description: "Height of the list container in pixels or CSS value.",
-            default: 400,
-          },
-          itemHeight: {
-            type: "number",
-            description: "Height of each list item in pixels.",
-            default: 60,
-          },
-          showCheckboxes: {
-            type: "boolean",
-            description: "Whether to show checkboxes for multi-selection mode.",
-            default: false,
-          },
-          variant: {
-            type: "string",
-            enum: ["default", "bordered", "elevated"],
-            description: "Visual style variant of the list container.",
-            default: "default",
-          },
-          size: {
-            type: "string",
-            enum: ["sm", "md", "lg"],
-            description: "Size variant affecting padding and text size.",
-            default: "md",
-          },
-          className: {
-            type: "string",
-            description: "Additional CSS classes for styling.",
-          },
-        },
-        required: ["items"],
-        example: [
+      propsSchema: ListViewCardPropsSchema,
+      propsDefinition: undefined,
+      example: [
           {
             description: "Basic list with icons",
             data: {
@@ -211,7 +126,6 @@ export const ListChatInterface = () => {
             },
           },
         ],
-      },
     });
   }, [registerComponent, thread.id]);
 

@@ -1,0 +1,19 @@
+{
+  "name": "list-view-card",
+  "description": "Virtualized list with selection, keyboard navigation, and ARIA support.",
+  "componentName": "ListViewCard",
+  "dependencies": [
+    "@tambo-ai/react",
+    "zod"
+  ],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "list-view-card.tsx",
+      "content": "src/registry/list-view-card/list-view-card.tsx"
+    }
+  ]
+}
+
+

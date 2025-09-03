@@ -1,14 +1,15 @@
 "use client";
 
 import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  forwardRef,
-  useImperativeHandle,
+    forwardRef,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
+import { z } from "zod";
 import { cn } from "../../lib/utils";
 
 // Virtualization hook for efficient rendering of large lists
@@ -44,31 +45,40 @@ function useVirtualization<T>(
   };
 }
 
-// Types for the component
-export interface ListViewCardItem {
-  id: string;
-  title: string;
-  subtitle?: string;
-  media?: {
-    type: "avatar" | "thumbnail" | "icon";
-    src: string;
-    alt?: string;
-  };
-}
+// Zod schemas and derived types (aligns with CLI registry)
+const MediaSchema = z.object({
+  type: z.enum(["avatar", "thumbnail", "icon"]),
+  src: z.string(),
+  alt: z.string().optional(),
+});
 
-export interface ListViewCardProps {
-  items: ListViewCardItem[];
-  selectionMode?: "none" | "single" | "multi";
-  height?: number | string;
-  itemHeight?: number;
-  showCheckboxes?: boolean;
-  onSelect?: (ids: string[]) => void;
-  onActivate?: (id: string) => void;
-  onLoadMore?: ({ cursor }: { cursor?: string }) => Promise<{ items: ListViewCardItem[]; cursor?: string }>;
-  className?: string;
-  variant?: "default" | "bordered" | "elevated";
-  size?: "sm" | "md" | "lg";
-}
+const ItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  subtitle: z.string().optional(),
+  media: MediaSchema.optional(),
+});
+
+export const ListViewCardPropsSchema = z.object({
+  items: z.array(ItemSchema).default([]),
+  selectionMode: z.enum(["none", "single", "multi"]).default("none"),
+  height: z.union([z.number(), z.string()]).default(400),
+  itemHeight: z.number().default(60),
+  showCheckboxes: z.boolean().default(false),
+  onSelect: z.function().args(z.array(z.string())).returns(z.void()).optional(),
+  onActivate: z.function().args(z.string()).returns(z.void()).optional(),
+  onLoadMore: z
+    .function()
+    .args(z.object({ cursor: z.string().optional() }))
+    .returns(z.promise(z.object({ items: z.array(ItemSchema), cursor: z.string().optional() })))
+    .optional(),
+  className: z.string().optional(),
+  variant: z.enum(["default", "bordered", "elevated"]).default("default"),
+  size: z.enum(["sm", "md", "lg"]).default("md"),
+});
+
+export type ListViewCardProps = z.infer<typeof ListViewCardPropsSchema>;
+export type ListViewCardItem = z.infer<typeof ItemSchema>;
 
 export interface ListViewCardRef {
   focusItem: (index: number) => void;
