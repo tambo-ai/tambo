@@ -1,10 +1,10 @@
 ### Docs MCP local server
 
-We recommend using our managed MCP endpoint at `mcp.tambo.co`. If you prefer to run an MCP server locally for development, follow these steps below.
+We recommend using our managed MCP endpoint at `mcp.tambo.co/mcp`. If you prefer to run an MCP server locally for development, follow these steps below.
 
 The server runs without analytics/error logging when the relevant env vars are not set.
 
-### Self-hosting the MCP server locally (recommended default: use `mcp.tambo.co`)
+### Self-hosting the MCP server locally (recommended default: use `mcp.tambo.co/mcp`)
 
 Code in this repo (vendored from the Inkeep template) lives at: `apps/docs-mcp`.
 
@@ -40,7 +40,7 @@ npm install
 npm run dev --filter=docs-mcp
 ```
 
-This starts a local Next.js server that exposes the MCP transport route at `/[transport]`.
+This starts a local Next.js server that exposes the MCP transport route at `/mcp`.
 
 ## 4) Test locally
 
