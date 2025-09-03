@@ -6,8 +6,6 @@ export {
   useTamboCurrentMessage,
 } from "./hooks/use-current-message";
 
-// Component exports
-export * from "./components";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";
 export {
