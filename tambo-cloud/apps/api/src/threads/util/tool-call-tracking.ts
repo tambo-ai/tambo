@@ -1,4 +1,15 @@
-import { ThreadMessage, ToolCallRequest } from "@tambo-ai-cloud/core";
+import * as Sentry from "@sentry/nestjs";
+import {
+  ContentPartType,
+  GenerationStage,
+  MessageRole,
+  ThreadMessage,
+  ToolCallRequest,
+} from "@tambo-ai-cloud/core";
+import { HydraDb, operations } from "@tambo-ai-cloud/db";
+import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
+import { MessageRequest, ThreadMessageDto } from "../dto/message.dto";
+import { updateMessage } from "./messages";
 
 /**
  * The maximum number of identical tool calls we will make. This is to prevent
@@ -129,4 +140,101 @@ function isIdenticalToolLoop(
     }
   }
   return false;
+}
+/**
+ * Handles a tool call limit violation by creating an error message.
+ * @param errorMessage - The error message to display
+ * @param messageId - The message ID to update
+ * @returns A message to return to the client in place of the tool call request message.
+ */
+
+async function handleToolCallLimitViolation(
+  db: HydraDb,
+  errorMessage: string,
+  threadId: string,
+  messageId: string,
+): Promise<ThreadMessageDto> {
+  const updatedMessage: MessageRequest = {
+    role: MessageRole.Assistant,
+    content: [
+      {
+        type: ContentPartType.Text,
+        text: errorMessage,
+      },
+    ],
+    componentState: {},
+    // Remove any tool call request to break the loop
+    toolCallRequest: undefined,
+    tool_call_id: undefined,
+    actionType: undefined,
+  };
+  // Perform both operations in a single transaction
+  return await db.transaction(async (tx) => {
+    // Update thread generation status
+    await operations.updateThreadGenerationStatus(
+      tx,
+      threadId,
+      GenerationStage.COMPLETE,
+      "Tool call limit reached",
+    );
+
+    // Update the message and return the result
+    return await updateMessage(tx, messageId, updatedMessage);
+  });
+}
+/**
+ * Validate a pending tool call against loop and limit protections.
+ * Returns undefined when validation passes. If validation fails, it
+ * updates the message/thread state and returns a ready response DTO
+ * to be sent to the client.
+ */
+export async function checkToolCallLimitViolation(
+  db: HydraDb,
+  threadId: string,
+  messageId: string,
+  finalThreadMessage: ThreadMessage,
+  messages: ThreadMessage[],
+  currentToolCounts: Record<string, number>,
+  newToolCallRequest: ToolCallRequest | undefined,
+  maxToolCallLimit: number,
+  mcpAccessToken: string,
+): Promise<AdvanceThreadResponseDto | undefined> {
+  if (!newToolCallRequest) {
+    // not a tool call
+    return;
+  }
+  Sentry.addBreadcrumb({
+    message: `Processing tool call: ${newToolCallRequest.toolName}`,
+    category: "tools",
+    level: "info",
+    data: { threadId, toolName: newToolCallRequest.toolName },
+  });
+
+  const errorMessage = validateToolCallLimits(
+    finalThreadMessage,
+    messages,
+    currentToolCounts,
+    newToolCallRequest,
+    maxToolCallLimit,
+  );
+
+  if (!errorMessage) {
+    // tool call is fine
+    return;
+  }
+
+  const errorThreadMessage = await handleToolCallLimitViolation(
+    db,
+    errorMessage,
+    threadId,
+    messageId,
+  );
+  Sentry.captureMessage("Tool call limit reached", "warning");
+
+  return {
+    responseMessageDto: errorThreadMessage,
+    generationStage: GenerationStage.COMPLETE,
+    statusMessage: "Tool call limit reached",
+    mcpAccessToken,
+  };
 }
