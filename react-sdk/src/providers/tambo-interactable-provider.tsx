@@ -30,10 +30,10 @@ interface SnapshotEntry {
 const __tambo_snapshotStack: SnapshotEntry[] = [];
 
 /**
- * Get a deeply-cloned snapshot of the current interactables.
+ * Get a cloned snapshot of the current interactables.
  * Returns a shallow copy of the array with cloned items and props to prevent
  * external mutation from affecting internal state.
- * @returns The current interactables snapshot (deeply-cloned).
+ * @returns The current interactables snapshot (cloned).
  */
 export const getCurrentInteractablesSnapshot = () => {
   const top = __tambo_snapshotStack[__tambo_snapshotStack.length - 1];
@@ -44,15 +44,6 @@ export const getCurrentInteractablesSnapshot = () => {
     ...c,
     props: { ...c.props },
   }));
-
-  // In development, freeze the result to catch accidental mutations
-  if (process.env.NODE_ENV !== "production") {
-    for (const item of copy) {
-      Object.freeze(item.props);
-      Object.freeze(item);
-    }
-    return Object.freeze(copy);
-  }
 
   return copy;
 };

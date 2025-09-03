@@ -1,17 +1,17 @@
+import { act, render, renderHook, waitFor } from "@testing-library/react";
 import React from "react";
-import { renderHook, act, render, waitFor } from "@testing-library/react";
 import { z } from "zod";
 import {
+  getHelpers,
   resolveAdditionalContext,
   setHelpers,
-  getHelpers,
 } from "../../context-helpers/registry";
-import { TamboStubProvider } from "../../providers/tambo-stubs";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import {
   TamboInteractableProvider,
   getCurrentInteractablesSnapshot,
 } from "../../providers/tambo-interactable-provider";
+import { TamboStubProvider } from "../../providers/tambo-stubs";
 import { withTamboInteractable } from "../hoc/with-tambo-interactable";
 
 function wrapperWithProviders(children: React.ReactNode) {
@@ -246,6 +246,7 @@ describe("Interactables AdditionalContext – multi-provider + snapshot lifecycl
       component: () => null,
       props: {},
     } as any);
+
     snap.length = 0;
 
     // Internal state should be unaffected
