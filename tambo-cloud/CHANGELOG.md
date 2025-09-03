@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.104.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.104.0...repo-v0.104.1) (2025-09-03)
+
+
+### Bug Fixes
+
+* **build:** try upping target to 2023 to fix iterators? ([#1689](https://github.com/tambo-ai/tambo-cloud/issues/1689)) ([506f9d8](https://github.com/tambo-ai/tambo-cloud/commit/506f9d892f25b630666132351423470a2f3eee30))
+* **iterators:** add an await as an experiment ([#1690](https://github.com/tambo-ai/tambo-cloud/issues/1690)) ([ed54830](https://github.com/tambo-ai/tambo-cloud/commit/ed54830af197cc2ee0b6ba4ebb1a9effa49390f8))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump both openai and @ai-sdk/openai ([#1687](https://github.com/tambo-ai/tambo-cloud/issues/1687)) ([8c312ec](https://github.com/tambo-ai/tambo-cloud/commit/8c312ec5551b65beb66aa4180b106f1cc46133d0))
+
 ## [0.104.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.103.2...repo-v0.104.0) (2025-09-02)
 
 
