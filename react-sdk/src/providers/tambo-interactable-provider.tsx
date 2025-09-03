@@ -21,18 +21,38 @@ import { useTamboComponent } from "./tambo-component-provider";
  */
 export const DEFAULT_INTERACTABLES_CONTEXT_KEY = "interactables";
 
-// Module-level snapshot of interactables to support context helper access.
-// Ownership is tracked so cleanup happens only when the owning provider unmounts.
-let __tambo_latestInteractableComponents: TamboInteractableComponent[] = [];
-let __tambo_snapshotOwner: symbol | null = null;
+// Module-level snapshot stack to support multi-provider scenarios safely.
+// Each provider pushes its snapshot entry and we always expose the top-of-stack.
+type SnapshotEntry = { owner: symbol; components: TamboInteractableComponent[] };
+let __tambo_snapshotStack: SnapshotEntry[] = [];
+
 /**
- * Get a shallow copy of the current interactables snapshot.
- * Returning a copy prevents callers from mutating internal state by reference.
- * @returns The current interactables snapshot (shallow-copied).
+ * Get a deeply-cloned snapshot of the current interactables.
+ * Returns a shallow copy of the array with cloned items and props to prevent
+ * external mutation from affecting internal state.
+ * @returns The current interactables snapshot (deeply-cloned).
  */
-export const getCurrentInteractablesSnapshot = () => [
-  ...__tambo_latestInteractableComponents,
-];
+export const getCurrentInteractablesSnapshot = () => {
+  const top = __tambo_snapshotStack[__tambo_snapshotStack.length - 1];
+  const arr = top ? top.components : [];
+  
+  // Clone the array and each item/props to prevent mutation
+  const copy = arr.map((c) => ({
+    ...c,
+    props: { ...c.props },
+  }));
+  
+  // In development, freeze the result to catch accidental mutations
+  if (process.env.NODE_ENV !== "production") {
+    for (const item of copy) {
+      Object.freeze(item.props);
+      Object.freeze(item);
+    }
+    return Object.freeze(copy);
+  }
+  
+  return copy;
+};
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -63,22 +83,25 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   // Unique owner token for this provider instance
   const snapshotOwner = React.useRef(Symbol("tambo-interactables-owner"));
 
-  // Establish ownership for the lifetime of this provider.
+  // Push this provider's snapshot entry on mount and remove it on unmount.
+  // This ensures multi-provider support with restoration when the top owner unmounts.
   useEffect(() => {
     const owner = snapshotOwner.current;
-    __tambo_snapshotOwner = owner;
+    __tambo_snapshotStack.push({ owner, components: [] });
+    
     return () => {
-      if (__tambo_snapshotOwner === owner) {
-        __tambo_latestInteractableComponents = [];
-        __tambo_snapshotOwner = null;
+      const idx = __tambo_snapshotStack.findIndex((e) => e.owner === owner);
+      if (idx !== -1) {
+        __tambo_snapshotStack.splice(idx, 1);
       }
     };
   }, []);
 
-  // Sync snapshot with our state when we are the owner; no cleanup needed here.
+  // Sync this provider's snapshot entry with our state.
   useEffect(() => {
-    if (__tambo_snapshotOwner === snapshotOwner.current) {
-      __tambo_latestInteractableComponents = interactableComponents;
+    const entry = __tambo_snapshotStack.find((e) => e.owner === snapshotOwner.current);
+    if (entry) {
+      entry.components = interactableComponents;
     }
   }, [interactableComponents]);
 

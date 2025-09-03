@@ -252,4 +252,82 @@ describe("Interactables AdditionalContext – multi-provider + snapshot lifecycl
     const next = getCurrentInteractablesSnapshot();
     expect(next.length).toBe(originalLength);
   });
+
+  test("snapshot accessor returns items/props that cannot affect internal state", async () => {
+    const Note: React.FC<{ title: string; count: number }> = ({ title, count }) => (
+      <div>{title}: {count}</div>
+    );
+    const InteractableNote = withTamboInteractable(Note, {
+      componentName: "Note",
+      description: "A note with props",
+      propsSchema: z.object({ title: z.string(), count: z.number() }),
+    });
+
+    render(
+      wrapperWithProviders(
+        <TamboInteractableProvider>
+          <InteractableNote title="original" count={42} />
+        </TamboInteractableProvider>,
+      ),
+    );
+
+    await waitFor(() => expect(getCurrentInteractablesSnapshot().length).toBe(1));
+
+    const before = getCurrentInteractablesSnapshot();
+    const originalProps = { ...before[0].props };
+    
+    // Try mutating nested fields
+    (before[0].props as any).title = "MUTATED";
+    (before[0].props as any).count = 999;
+    (before[0] as any).name = "MUTATED_NAME";
+
+    const after = getCurrentInteractablesSnapshot();
+    expect(after[0].props).toEqual(originalProps);
+    expect(after[0].name).toBe("Note"); // not mutated
+  });
+
+  test("concurrent providers with snapshot restoration on top-owner unmount", async () => {
+    const Note: React.FC<{ title: string }> = ({ title }) => <div>{title}</div>;
+    const InteractableNote = withTamboInteractable(Note, {
+      componentName: "Note",
+      description: "A note",
+      propsSchema: z.object({ title: z.string() }),
+    });
+
+    // Mount provider A with an interactable
+    const uiA = render(
+      wrapperWithProviders(
+        <TamboInteractableProvider>
+          <InteractableNote title="from_A" />
+        </TamboInteractableProvider>,
+      ),
+    );
+
+    await waitFor(() => expect(getCurrentInteractablesSnapshot().length).toBe(1));
+    expect(getCurrentInteractablesSnapshot()[0].props.title).toBe("from_A");
+
+    // Mount provider B with a different interactable (becomes top-of-stack)
+    const uiB = render(
+      wrapperWithProviders(
+        <TamboInteractableProvider>
+          <InteractableNote title="from_B" />
+        </TamboInteractableProvider>,
+      ),
+    );
+
+    await waitFor(() => expect(getCurrentInteractablesSnapshot().length).toBe(1));
+    expect(getCurrentInteractablesSnapshot()[0].props.title).toBe("from_B");
+
+    // Unmount provider B; snapshot should restore to provider A's state
+    uiB.unmount();
+
+    await waitFor(() => {
+      const snapshot = getCurrentInteractablesSnapshot();
+      expect(snapshot.length).toBe(1);
+      expect(snapshot[0].props.title).toBe("from_A");
+    });
+
+    // Clean up
+    uiA.unmount();
+  });
 });
