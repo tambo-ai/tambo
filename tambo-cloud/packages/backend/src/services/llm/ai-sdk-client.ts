@@ -215,7 +215,8 @@ export class AISdkClient implements LLMClient {
     };
 
     if (params.stream) {
-      const result = streamText(baseConfig);
+      // added explicit await even though types say it isn't necessary
+      const result = await streamText(baseConfig);
       return this.handleStreamingResponse(result);
     } else {
       const result = await generateText(baseConfig);
