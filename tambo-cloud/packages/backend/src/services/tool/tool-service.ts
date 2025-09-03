@@ -9,7 +9,7 @@ import {
   AvailableComponent,
   ComponentContextToolMetadata,
 } from "../../model/component-metadata";
-import { SystemTools } from "../../systemTools";
+import { ToolRegistry } from "../../systemTools";
 
 export interface TamboToolParameters {
   _tambo_statusMessage: string;
@@ -240,24 +240,18 @@ export function filterOutStandardToolParameters(
 export const UI_TOOLNAME_PREFIX = "show_component_";
 
 export function getToolsFromSources(
+  allTools: ToolRegistry,
   availableComponents: AvailableComponent[],
-  clientTools: ComponentContextToolMetadata[],
-  systemTools: SystemTools | undefined,
 ) {
   const componentTools = convertComponentsToUITools(
     availableComponents,
     UI_TOOLNAME_PREFIX,
   );
-  const clientToolsConverted = convertMetadataToTools(clientTools);
-  const contextTools = convertMetadataToTools(
-    availableComponents.flatMap((component) => component.contextTools),
-  );
   const originalTools = [
     ...componentTools,
-    ...contextTools,
-    ...clientToolsConverted,
+    ...allTools.clientToolsSchema,
     displayMessageTool,
-    ...(systemTools?.tools ?? []),
+    ...allTools.mcpToolsSchema,
   ];
   const strictTools = originalTools.map(
     (tool): OpenAI.Chat.Completions.ChatCompletionTool => {

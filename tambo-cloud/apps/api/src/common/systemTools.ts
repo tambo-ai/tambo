@@ -1,6 +1,6 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Logger } from "@nestjs/common";
-import { SystemTools } from "@tambo-ai-cloud/backend";
+import { McpToolRegistry } from "@tambo-ai-cloud/backend";
 import { getToolName, LogLevel, MCPClient } from "@tambo-ai-cloud/core";
 import {
   HydraDatabase,
@@ -15,14 +15,14 @@ import { env } from "process";
 
 const logger = new Logger("systemTools");
 
-/** Get the tools available for the project */
+/** Get the available MCP tools for the project, checking for duplicate tool names */
 export async function getSystemTools(
   db: HydraDatabase,
   projectId: string,
-): Promise<SystemTools> {
-  const { mcpTools, mcpToolSources } = await getMcpTools(db, projectId);
+): Promise<McpToolRegistry> {
+  const { mcpToolsSchema, mcpToolSources } = await getMcpTools(db, projectId);
 
-  const mcpToolNames = mcpTools.map((tool) => getToolName(tool));
+  const mcpToolNames = mcpToolsSchema.map((tool) => getToolName(tool));
   // make sure there are no name conflicts
   if (new Set(mcpToolNames).size !== mcpToolNames.length) {
     const duplicateToolNames = mcpToolNames.filter(
@@ -35,18 +35,16 @@ export async function getSystemTools(
     );
   }
   return {
-    tools: mcpTools,
+    mcpToolsSchema,
     mcpToolSources,
   };
 }
 
+/** Get the raw MCP servers from the database, query the MCP servers, and convert them to OpenAI tool schemas */
 async function getMcpTools(
   db: HydraDatabase,
   projectId: string,
-): Promise<{
-  mcpTools: OpenAI.Chat.Completions.ChatCompletionTool[];
-  mcpToolSources: Record<string, MCPClient>;
-}> {
+): Promise<McpToolRegistry> {
   const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
 
   const mcpTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
@@ -128,7 +126,7 @@ async function getMcpTools(
     }
   }
 
-  return { mcpTools, mcpToolSources };
+  return { mcpToolsSchema: mcpTools, mcpToolSources };
 }
 
 function hasAuthInfo(mcpServer: McpServer): boolean {

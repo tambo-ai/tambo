@@ -1,8 +1,8 @@
 import { Logger } from "@nestjs/common";
 import {
   getToolsFromSources,
-  SystemTools,
   TamboBackend,
+  ToolRegistry,
 } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
@@ -94,7 +94,7 @@ export async function updateGenerationStage(
  * @param messages
  * @param advanceRequestDto
  * @param tamboBackend
- * @param systemTools
+ * @param allTools
  * @param availableComponentMap
  * @returns
  */
@@ -105,7 +105,7 @@ export async function processThreadMessage(
   userMessage: ThreadMessage,
   advanceRequestDto: AdvanceThreadDto,
   tamboBackend: TamboBackend,
-  systemTools: SystemTools,
+  allTools: ToolRegistry,
   customInstructions: string | undefined,
 ): Promise<LegacyComponentDecision> {
   const latestMessage = messages[messages.length - 1];
@@ -132,9 +132,8 @@ export async function processThreadMessage(
     );
   }
   const { strictTools, originalTools } = getToolsFromSources(
+    allTools,
     advanceRequestDto.availableComponents ?? [],
-    advanceRequestDto.clientTools ?? [],
-    systemTools,
   );
 
   const decisionStream = await tamboBackend.runDecisionLoop({

@@ -61,7 +61,7 @@ describe("getSystemTools", () => {
     const tools = await getSystemTools(mockDb, "project123");
     expect(tools).toEqual({
       mcpToolSources: {},
-      tools: [],
+      mcpToolsSchema: [],
     });
   });
 
@@ -117,7 +117,7 @@ describe("getSystemTools", () => {
         mcpToolSources: {
           mockMcpTool: expect.any(Object),
         },
-        tools: [
+        mcpToolsSchema: [
           {
             function: {
               description: "A mock MCP tool",

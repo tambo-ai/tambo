@@ -1,4 +1,4 @@
-import { SystemTools } from "@tambo-ai-cloud/backend";
+import { McpToolRegistry } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   LegacyComponentDecision,
@@ -26,7 +26,7 @@ export function extractToolResponse(message: ThreadMessage): any {
 }
 
 export async function callSystemTool(
-  systemTools: SystemTools,
+  systemTools: McpToolRegistry,
   toolCallRequest: ToolCallRequest,
   toolCallId: string,
   componentDecision: LegacyComponentDecision,
@@ -82,7 +82,7 @@ export async function callSystemTool(
  */
 export function isSystemToolCall(
   toolCallRequest: ToolCallRequest | undefined,
-  systemTools: SystemTools,
+  systemTools: McpToolRegistry,
 ): toolCallRequest is ToolCallRequest {
   return (
     !!toolCallRequest && toolCallRequest.toolName in systemTools.mcpToolSources

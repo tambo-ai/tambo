@@ -1,7 +1,8 @@
-import { SystemTools } from "@tambo-ai-cloud/backend";
+import { McpToolRegistry } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ContentPartType,
+  MCPClient,
   MessageRole,
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
@@ -82,13 +83,14 @@ describe("tool utilities", () => {
   });
 
   describe("callSystemTool", () => {
-    const mockSystemTools: SystemTools = {
+    const mockSystemTools: McpToolRegistry = {
       mcpToolSources: {
         testTool: {
           callTool: jest.fn(),
-        },
+        } as unknown as MCPClient,
       },
-    } as unknown as SystemTools;
+      mcpToolsSchema: [],
+    } as McpToolRegistry;
 
     const toolCallRequest = {
       toolName: "testTool",
