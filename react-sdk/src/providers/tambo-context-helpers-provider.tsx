@@ -22,6 +22,12 @@ import {
   getCurrentInteractablesSnapshot,
 } from "./tambo-interactable-provider";
 
+// Module-level ownership tracking for the default "interactables" helper.
+// This allows multiple providers to safely participate without overwriting
+// each other and ensures correct teardown semantics on unmount.
+let __tambo_defaultHelperUsers = 0;
+let __tambo_defaultHelperFn: ContextHelperFn | null = null;
+
 export interface TamboContextHelpersProviderProps {
   /**
    * A dictionary of context helper functions.
@@ -60,6 +66,9 @@ export const TamboContextHelpersProvider: React.FC<
   // Hydrate the global registry with initial helpers (runs on prop changes)
   React.useEffect(() => {
     const addedEntries: [string, ContextHelperFn][] = [];
+    // Track whether this provider instance is participating in the default
+    // interactables helper so we can manage ownership/teardown safely.
+    let usedDefaultHelper = false;
 
     if (contextHelpers) {
       for (const [name, fn] of Object.entries(contextHelpers)) {
@@ -68,14 +77,16 @@ export const TamboContextHelpersProvider: React.FC<
       }
     }
 
-    // Ensure a default interactables helper exists if not overridden
+    // Ensure a default interactables helper exists only when none exists.
+    // In multi-provider scenarios, we must not overwrite an existing helper
+    // (default or custom). We also track ownership so an unmount doesn't
+    // remove a helper that other providers still rely on.
     const helpers = getHelpers();
     const current = helpers[DEFAULT_INTERACTABLES_CONTEXT_KEY];
-    const isOurHelper =
-      typeof current === "function" &&
-      (current as any).__tambo_default_interactables_helper__ === true;
 
-    if (!current || isOurHelper) {
+    // Module-scoped ownership state
+    // (defined below the component for hoisting clarity)
+    if (!current) {
       const helperFn: ContextHelperFn = () => {
         const components = getCurrentInteractablesSnapshot();
         if (!components.length) return null;
@@ -92,15 +103,44 @@ export const TamboContextHelpersProvider: React.FC<
       };
       (helperFn as any).__tambo_default_interactables_helper__ = true;
       addHelper(DEFAULT_INTERACTABLES_CONTEXT_KEY, helperFn);
-      addedEntries.push([DEFAULT_INTERACTABLES_CONTEXT_KEY, helperFn]);
+      // Record ownership details locally; default helper is managed via ref-count
+      usedDefaultHelper = true;
+      __tambo_defaultHelperUsers += 1;
+      __tambo_defaultHelperFn = helperFn;
+    } else if (
+      typeof current === "function" &&
+      (current as any).__tambo_default_interactables_helper__ === true
+    ) {
+      // An existing default helper is already present; don't replace it but
+      // join ownership so teardown is safe.
+      usedDefaultHelper = true;
+      __tambo_defaultHelperUsers += 1;
+      __tambo_defaultHelperFn = current as ContextHelperFn;
     }
 
     return () => {
-      const current = getHelpers();
+      const currentMap = getHelpers();
       for (const [name, fn] of addedEntries) {
         // Only remove if the registry still points to the same function
-        if (current[name] === fn) {
+        if (currentMap[name] === fn) {
           removeGlobalHelper(name);
+        }
+      }
+
+      // Default helper teardown: decrement usage and remove only if this was
+      // the last participant and the registry still points to the same fn we
+      // consider the default helper instance.
+      if (usedDefaultHelper) {
+        __tambo_defaultHelperUsers = Math.max(
+          0,
+          __tambo_defaultHelperUsers - 1,
+        );
+        if (__tambo_defaultHelperUsers === 0) {
+          const fn = __tambo_defaultHelperFn;
+          if (fn && currentMap[DEFAULT_INTERACTABLES_CONTEXT_KEY] === fn) {
+            removeGlobalHelper(DEFAULT_INTERACTABLES_CONTEXT_KEY);
+          }
+          __tambo_defaultHelperFn = null;
         }
       }
     };

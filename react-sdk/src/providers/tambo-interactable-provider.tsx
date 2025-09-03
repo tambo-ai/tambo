@@ -21,13 +21,18 @@ import { useTamboComponent } from "./tambo-component-provider";
  */
 export const DEFAULT_INTERACTABLES_CONTEXT_KEY = "interactables";
 
-// Module-level snapshot of interactables to support context helper access
+// Module-level snapshot of interactables to support context helper access.
+// Ownership is tracked so cleanup happens only when the owning provider unmounts.
 let __tambo_latestInteractableComponents: TamboInteractableComponent[] = [];
+let __tambo_snapshotOwner: symbol | null = null;
 /**
- *
+ * Get a shallow copy of the current interactables snapshot.
+ * Returning a copy prevents callers from mutating internal state by reference.
+ * @returns The current interactables snapshot (shallow-copied).
  */
-export const getCurrentInteractablesSnapshot = () =>
-  __tambo_latestInteractableComponents;
+export const getCurrentInteractablesSnapshot = () => [
+  ...__tambo_latestInteractableComponents,
+];
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -54,6 +59,28 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     TamboInteractableComponent[]
   >([]);
   const { registerTool } = useTamboComponent();
+
+  // Unique owner token for this provider instance
+  const snapshotOwner = React.useRef(Symbol("tambo-interactables-owner"));
+
+  // Establish ownership for the lifetime of this provider.
+  useEffect(() => {
+    const owner = snapshotOwner.current;
+    __tambo_snapshotOwner = owner;
+    return () => {
+      if (__tambo_snapshotOwner === owner) {
+        __tambo_latestInteractableComponents = [];
+        __tambo_snapshotOwner = null;
+      }
+    };
+  }, []);
+
+  // Sync snapshot with our state when we are the owner; no cleanup needed here.
+  useEffect(() => {
+    if (__tambo_snapshotOwner === snapshotOwner.current) {
+      __tambo_latestInteractableComponents = interactableComponents;
+    }
+  }, [interactableComponents]);
 
   useEffect(() => {
     registerTool({
@@ -205,7 +232,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           return prev;
         }
 
-        __tambo_latestInteractableComponents = updatedComponents;
         return updatedComponents;
       });
 
@@ -256,11 +282,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
       registerInteractableComponentUpdateTool(newComponent);
 
-      setInteractableComponents((prev) => {
-        const next = [...prev, newComponent];
-        __tambo_latestInteractableComponents = next;
-        return next;
-      });
+      setInteractableComponents((prev) => [...prev, newComponent]);
 
       return id;
     },
@@ -268,11 +290,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const removeInteractableComponent = useCallback((id: string) => {
-    setInteractableComponents((prev) => {
-      const next = prev.filter((c) => c.id !== id);
-      __tambo_latestInteractableComponents = next;
-      return next;
-    });
+    setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
   const getInteractableComponent = useCallback(
@@ -290,7 +308,6 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const clearAllInteractableComponents = useCallback(() => {
-    __tambo_latestInteractableComponents = [];
     setInteractableComponents([]);
   }, []);
 
