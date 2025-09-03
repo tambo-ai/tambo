@@ -1,0 +1,262 @@
+name: Template Maintenance
+
+on:
+  workflow_run:
+    workflows: ["Release Please"]
+    types:
+      - completed
+    branches:
+      - main
+
+# Prevent multiple simultaneous runs
+concurrency:
+  group: template-maintenance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  detect-release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      should-upgrade: ${{ steps.check-release.outputs.should-upgrade }}
+      release-tag: ${{ steps.check-release.outputs.release-tag }}
+      release-type: ${{ steps.check-release.outputs.release-type }}
+      release-url: ${{ steps.check-release.outputs.release-url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Make detection script executable
+        run: chmod +x .github/scripts/detect-release.sh
+
+      - name: Check for relevant release
+        id: check-release
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: .github/scripts/detect-release.sh
+
+  upgrade-templates:
+    needs: detect-release
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-release.outputs.should-upgrade == 'true' }}
+    strategy:
+      matrix:
+        template-repo: ['tambo-ai/tambo-template']
+      fail-fast: false
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Verify GitHub CLI
+        run: |
+          gh --version
+          echo "GitHub CLI is available"
+
+      - name: Install Tambo CLI
+        run: npm install -g tambo@latest
+
+      - name: Clone template repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          git clone https://x-access-token:$GITHUB_TOKEN@github.com/${{ matrix.template-repo }}.git template-repo
+          cd template-repo
+          git config user.name "Tambo Bot"
+          git config user.email "bot@tambo.ai"
+
+      - name: Create upgrade branch
+        working-directory: template-repo
+        run: |
+          BRANCH_NAME="tambo-upgrade-${{ needs.detect-release.outputs.release-tag }}"
+          git checkout -b "$BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Capture pre-upgrade state
+        working-directory: template-repo
+        run: |
+          # Capture package.json before upgrade
+          if [ -f package.json ]; then
+            cp package.json package.json.before
+          fi
+          
+          # List tambo components before upgrade
+          if [ -d src/components/tambo ]; then
+            find src/components/tambo -name "*.tsx" -o -name "*.ts" | sort > components.before
+          else
+            touch components.before
+          fi
+
+      - name: Run Tambo upgrade
+        working-directory: template-repo
+        run: |
+          echo "Running tambo upgrade..."
+          npx tambo@latest upgrade --accept-all --silent || {
+            echo "Upgrade failed, capturing logs..."
+            echo "UPGRADE_FAILED=true" >> $GITHUB_ENV
+            exit 1
+          }
+
+      - name: Capture post-upgrade state and generate diff
+        working-directory: template-repo
+        run: |
+          # Check if there are any changes
+          if git diff --quiet; then
+            echo "NO_CHANGES=true" >> $GITHUB_ENV
+            echo "No changes detected after upgrade"
+            exit 0
+          fi
+          
+          # Capture package.json changes
+          if [ -f package.json ] && [ -f package.json.before ]; then
+            echo "## Package Updates" > upgrade-summary.md
+            echo "" >> upgrade-summary.md
+            
+            # Extract version changes
+            node -e "
+              const before = JSON.parse(require('fs').readFileSync('package.json.before', 'utf8'));
+              const after = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
+              
+              const deps = {...(before.dependencies || {}), ...(before.devDependencies || {})};
+              const newDeps = {...(after.dependencies || {}), ...(after.devDependencies || {})};
+              
+              Object.keys(newDeps).forEach(pkg => {
+                if (deps[pkg] && deps[pkg] !== newDeps[pkg]) {
+                  console.log('- ' + pkg + ': ' + deps[pkg] + ' → ' + newDeps[pkg]);
+                }
+              });
+            " >> upgrade-summary.md
+          fi
+          
+          # Capture component changes
+          echo "" >> upgrade-summary.md
+          echo "## Component Updates" >> upgrade-summary.md
+          echo "" >> upgrade-summary.md
+          echo "Components upgraded in \`src/components/tambo/\`:" >> upgrade-summary.md
+          
+          if [ -d src/components/tambo ]; then
+            find src/components/tambo -name "*.tsx" -o -name "*.ts" | sort > components.after
+            
+            # List changed/new components
+            git diff --name-only src/components/tambo/ | while read file; do
+              if [ -f "$file" ]; then
+                component_name=$(basename "$file" .tsx)
+                component_name=$(basename "$component_name" .ts)
+                echo "- $component_name: Updated" >> upgrade-summary.md
+              fi
+            done
+            
+            # Check for new components
+            if [ -f components.before ]; then
+              comm -13 components.before components.after | while read file; do
+                if [ -f "$file" ]; then
+                  component_name=$(basename "$file" .tsx)
+                  component_name=$(basename "$component_name" .ts)
+                  echo "- $component_name: Added" >> upgrade-summary.md
+                fi
+              done
+            fi
+          else
+            echo "- No tambo components directory found" >> upgrade-summary.md
+          fi
+          
+          # Add release information
+          echo "" >> upgrade-summary.md
+          echo "## Release Information" >> upgrade-summary.md
+          echo "" >> upgrade-summary.md
+          echo "- Release: [${{ needs.detect-release.outputs.release-tag }}](${{ needs.detect-release.outputs.release-url }})" >> upgrade-summary.md
+          echo "- Full Changelog: [${{ needs.detect-release.outputs.release-url }}](${{ needs.detect-release.outputs.release-url }})" >> upgrade-summary.md
+          echo "- Breaking Changes: None identified" >> upgrade-summary.md
+
+      - name: Create Pull Request
+        if: env.NO_CHANGES != 'true' && env.UPGRADE_FAILED != 'true'
+        working-directory: template-repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          # Push the branch
+          git add .
+          git commit -m "chore: upgrade to ${{ needs.detect-release.outputs.release-tag }}"
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR body
+          cat > pr-body.md << 'EOF'
+          # Tambo Upgrade - ${{ needs.detect-release.outputs.release-tag }}
+          
+          This PR updates your template to the latest Tambo release.
+          
+          EOF
+          
+          # Append the upgrade summary
+          cat upgrade-summary.md >> pr-body.md
+          
+          # Add testing checklist
+          cat >> pr-body.md << 'EOF'
+          
+          ## Testing Required
+          
+          - [ ] App builds (`npm run build`)
+          - [ ] Core chat works
+          - [ ] Components render in `/interactables`
+          - [ ] No TypeScript errors (`npm run lint`)
+          
+          _Upgrade PR auto-generated by Tambo bot._
+          EOF
+          
+          # Create the PR using GitHub CLI
+          gh pr create \
+            --title "Tambo Upgrade - ${{ needs.detect-release.outputs.release-tag }}" \
+            --body-file pr-body.md \
+            --label "dependencies,tambo-upgrade" \
+            --repo "${{ matrix.template-repo }}"
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upgrade-logs-${{ matrix.template-repo }}-${{ needs.detect-release.outputs.release-tag }}
+          path: |
+            template-repo/upgrade-summary.md
+            template-repo/package.json.before
+            template-repo/package.json
+          retention-days: 30
+
+      - name: Log results
+        run: |
+          if [ "$NO_CHANGES" = "true" ]; then
+            echo "✅ No changes needed for ${{ matrix.template-repo }}"
+          elif [ "$UPGRADE_FAILED" = "true" ]; then
+            echo "❌ Upgrade failed for ${{ matrix.template-repo }}"
+          else
+            echo "✅ Successfully created upgrade PR for ${{ matrix.template-repo }}"
+          fi
+
+  summary:
+    needs: [detect-release, upgrade-templates]
+    runs-on: ubuntu-latest
+    if: always() && needs.detect-release.outputs.should-upgrade == 'true'
+    steps:
+      - name: Summary
+        run: |
+          echo "## Template Maintenance Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Release:** ${{ needs.detect-release.outputs.release-tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ needs.detect-release.outputs.release-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ needs.upgrade-templates.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.upgrade-templates.result }}" = "success" ]; then
+            echo "✅ Template maintenance completed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some template upgrades failed. Check logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
