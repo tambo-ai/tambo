@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/tambo-ai/tambo/compare/docs-v1.5.0...docs-v1.5.1) (2025-09-04)
+
+
+### Miscellaneous Chores
+
+* update tambo mcp url ([#970](https://github.com/tambo-ai/tambo/issues/970)) ([613f3f6](https://github.com/tambo-ai/tambo/commit/613f3f60b832a3306edb66532bab66d73e56a193))
+
 ## [1.5.0](https://github.com/tambo-ai/tambo/compare/docs-v1.4.0...docs-v1.5.0) (2025-09-02)
 
 

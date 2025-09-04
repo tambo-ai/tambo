@@ -117,7 +117,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex flex-col flex-grow">{sidebarContent}</div>
       <div className="pt-4 mt-auto border-t border-border/40">
         <p className="text-sm text-muted-foreground px-3">
-          Fractal Dynamics Inc © 2025
+          Fractal Dynamics Inc © {new Date().getFullYear()}
         </p>
       </div>
     </div>
