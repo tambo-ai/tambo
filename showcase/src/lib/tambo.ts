@@ -5,7 +5,6 @@
 
 import { TamboComponent, TamboTool } from "@tambo-ai/react";
 import { z } from "zod";
-import { fileUploadComponent } from "../../../react-sdk/src/components/FileUpload/FileUpload.tambo";
 
 // Tambo tools registered for AI use
 export const tools: TamboTool[] = [
@@ -52,4 +51,4 @@ export const tools: TamboTool[] = [
 ];
 
 // Tambo components registered for AI use
-export const components: TamboComponent[] = [fileUploadComponent];
+export const components: TamboComponent[] = [];
