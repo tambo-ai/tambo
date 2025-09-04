@@ -4,7 +4,6 @@ import {
   currentPageContextHelper,
   currentTimeContextHelper,
 } from "../../context-helpers";
-import { setHelpers } from "../../context-helpers/registry";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
@@ -25,7 +24,6 @@ import {
 describe("TamboContextHelpersProvider", () => {
   // Ensure registry is clean for each test to avoid cross-test contamination
   beforeEach(() => {
-    setHelpers({});
     jest.clearAllMocks();
   });
 
@@ -170,7 +168,6 @@ describe("TamboContextHelpersProvider", () => {
  */
 describe("Custom Context Helpers via contextHelpers config", () => {
   beforeEach(() => {
-    setHelpers({});
     jest.clearAllMocks();
   });
 
