@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.30.0...tambo-v0.30.1) (2025-09-04)
+
+
+### Miscellaneous Chores
+
+* update upgrade command to filter known safe packages ([#959](https://github.com/tambo-ai/tambo/issues/959)) ([3e57bd5](https://github.com/tambo-ai/tambo/commit/3e57bd593e78991664cf66eed2367a47168c65b3))
+
 ## [0.30.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.29.0...tambo-v0.30.0) (2025-08-30)
 
 
