@@ -34,8 +34,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
 
-      - name: Make detection script executable
-        run: chmod +x .github/scripts/detect-release.sh
+      # Script is now executable in the repository
 
       - name: Check for relevant release
         id: check-release
@@ -84,18 +83,7 @@ jobs:
 
       - name: Capture pre-upgrade state
         working-directory: template-repo
-        run: |
-          # Capture package.json before upgrade
-          if [ -f package.json ]; then
-            cp package.json package.json.before
-          fi
-          
-          # List tambo components before upgrade
-          if [ -d src/components/tambo ]; then
-            find src/components/tambo -name "*.tsx" -o -name "*.ts" | sort > components.before
-          else
-            touch components.before
-          fi
+        run: ../../.github/scripts/capture-pre-upgrade.sh
 
       - name: Run Tambo upgrade
         working-directory: template-repo
@@ -109,116 +97,20 @@ jobs:
 
       - name: Capture post-upgrade state and generate diff
         working-directory: template-repo
-        run: |
-          # Check if there are any changes
-          if git diff --quiet; then
-            echo "NO_CHANGES=true" >> $GITHUB_ENV
-            echo "No changes detected after upgrade"
-            exit 0
-          fi
-          
-          # Capture package.json changes
-          if [ -f package.json ] && [ -f package.json.before ]; then
-            echo "## Package Updates" > upgrade-summary.md
-            echo "" >> upgrade-summary.md
-            
-            # Extract version changes
-            node -e "
-              const before = JSON.parse(require('fs').readFileSync('package.json.before', 'utf8'));
-              const after = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
-              
-              const deps = {...(before.dependencies || {}), ...(before.devDependencies || {})};
-              const newDeps = {...(after.dependencies || {}), ...(after.devDependencies || {})};
-              
-              Object.keys(newDeps).forEach(pkg => {
-                if (deps[pkg] && deps[pkg] !== newDeps[pkg]) {
-                  console.log('- ' + pkg + ': ' + deps[pkg] + ' → ' + newDeps[pkg]);
-                }
-              });
-            " >> upgrade-summary.md
-          fi
-          
-          # Capture component changes
-          echo "" >> upgrade-summary.md
-          echo "## Component Updates" >> upgrade-summary.md
-          echo "" >> upgrade-summary.md
-          echo "Components upgraded in \`src/components/tambo/\`:" >> upgrade-summary.md
-          
-          if [ -d src/components/tambo ]; then
-            find src/components/tambo -name "*.tsx" -o -name "*.ts" | sort > components.after
-            
-            # List changed/new components
-            git diff --name-only src/components/tambo/ | while read file; do
-              if [ -f "$file" ]; then
-                component_name=$(basename "$file" .tsx)
-                component_name=$(basename "$component_name" .ts)
-                echo "- $component_name: Updated" >> upgrade-summary.md
-              fi
-            done
-            
-            # Check for new components
-            if [ -f components.before ]; then
-              comm -13 components.before components.after | while read file; do
-                if [ -f "$file" ]; then
-                  component_name=$(basename "$file" .tsx)
-                  component_name=$(basename "$component_name" .ts)
-                  echo "- $component_name: Added" >> upgrade-summary.md
-                fi
-              done
-            fi
-          else
-            echo "- No tambo components directory found" >> upgrade-summary.md
-          fi
-          
-          # Add release information
-          echo "" >> upgrade-summary.md
-          echo "## Release Information" >> upgrade-summary.md
-          echo "" >> upgrade-summary.md
-          echo "- Release: [${{ needs.detect-release.outputs.release-tag }}](${{ needs.detect-release.outputs.release-url }})" >> upgrade-summary.md
-          echo "- Full Changelog: [${{ needs.detect-release.outputs.release-url }}](${{ needs.detect-release.outputs.release-url }})" >> upgrade-summary.md
-          echo "- Breaking Changes: None identified" >> upgrade-summary.md
+        env:
+          RELEASE_TAG: ${{ needs.detect-release.outputs.release-tag }}
+          RELEASE_URL: ${{ needs.detect-release.outputs.release-url }}
+        run: ../../.github/scripts/capture-post-upgrade.sh
 
       - name: Create Pull Request
         if: env.NO_CHANGES != 'true' && env.UPGRADE_FAILED != 'true'
         working-directory: template-repo
         env:
           GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
-        run: |
-          # Push the branch
-          git add .
-          git commit -m "chore: upgrade to ${{ needs.detect-release.outputs.release-tag }}"
-          git push origin "$BRANCH_NAME"
-          
-          # Create PR body
-          cat > pr-body.md << 'EOF'
-          # Tambo Upgrade - ${{ needs.detect-release.outputs.release-tag }}
-          
-          This PR updates your template to the latest Tambo release.
-          
-          EOF
-          
-          # Append the upgrade summary
-          cat upgrade-summary.md >> pr-body.md
-          
-          # Add testing checklist
-          cat >> pr-body.md << 'EOF'
-          
-          ## Testing Required
-          
-          - [ ] App builds (`npm run build`)
-          - [ ] Core chat works
-          - [ ] Components render in `/interactables`
-          - [ ] No TypeScript errors (`npm run lint`)
-          
-          _Upgrade PR auto-generated by Tambo bot._
-          EOF
-          
-          # Create the PR using GitHub CLI
-          gh pr create \
-            --title "Tambo Upgrade - ${{ needs.detect-release.outputs.release-tag }}" \
-            --body-file pr-body.md \
-            --label "dependencies,tambo-upgrade" \
-            --repo "${{ matrix.template-repo }}"
+          RELEASE_TAG: ${{ needs.detect-release.outputs.release-tag }}
+          BRANCH_NAME: ${{ env.BRANCH_NAME }}
+          TEMPLATE_REPO: ${{ matrix.template-repo }}
+        run: ../../.github/scripts/create-pr.sh
 
       - name: Upload logs on failure
         if: failure()
