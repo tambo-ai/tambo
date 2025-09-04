@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { useTamboThreadInput } from "@tambo-ai/react";
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
 import { useCallback, useEffect, useState } from "react";
 
 export const TamboEmailButton = () => {
   const { setValue } = useTamboThreadInput();
+  const { thread } = useTambo();
   const [hasPressedButton, setHasPressedButton] = useState(false);
 
   const handleInteraction = useCallback(() => {
@@ -24,7 +25,12 @@ export const TamboEmailButton = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleInteraction]);
 
-  if (hasPressedButton) return null;
+  // Hide button if:
+  // 1. Button has been pressed
+  // 2. Thread has messages
+  if (hasPressedButton || (thread?.messages && thread.messages.length > 0)) {
+    return null;
+  }
 
   return (
     <div className="z-10" data-tambo-email-button>
