@@ -4,19 +4,16 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
 } from "react";
 import {
   AdditionalContext,
-  ContextHelpers,
   ContextHelperFn,
+  ContextHelpers,
 } from "../context-helpers";
-import {
-  addHelper,
-  getHelpers,
-  removeHelper as removeGlobalHelper,
-  resolveAdditionalContext,
-} from "../context-helpers/registry";
+import { resolveAdditionalContext } from "../context-helpers/registry";
 
 export interface TamboContextHelpersProviderProps {
   /**
@@ -53,47 +50,49 @@ const TamboContextHelpersContext =
 export const TamboContextHelpersProvider: React.FC<
   PropsWithChildren<TamboContextHelpersProviderProps>
 > = ({ children, contextHelpers }) => {
+  const [helpers, setHelpers] = useState<Record<string, ContextHelperFn>>({});
+  const addContextHelper = useCallback((name: string, fn: ContextHelperFn) => {
+    setHelpers((prev) => ({ ...prev, [name]: fn }));
+  }, []);
+  const removeContextHelper = useCallback(
+    (name: string, fn?: ContextHelperFn) => {
+      setHelpers((prev) => {
+        const { [name]: registeredFn, ...rest } = prev;
+        if (fn === undefined || registeredFn === fn) {
+          return rest;
+        }
+        return prev;
+      });
+    },
+    [],
+  );
   // Hydrate the global registry with initial helpers (runs on prop changes)
-  React.useEffect(() => {
+  useEffect(() => {
     const addedEntries: [string, ContextHelperFn][] = [];
 
     if (contextHelpers) {
       for (const [name, fn] of Object.entries(contextHelpers)) {
-        addHelper(name, fn);
+        addContextHelper(name, fn);
         addedEntries.push([name, fn]);
       }
     }
 
     return () => {
-      const current = getHelpers();
       for (const [name, fn] of addedEntries) {
         // Only remove if the registry still points to the same function
-        if (current[name] === fn) {
-          removeGlobalHelper(name);
-        }
+        removeContextHelper(name, fn);
       }
     };
-  }, [contextHelpers]);
+  }, [addContextHelper, contextHelpers, removeContextHelper]);
 
   const getAdditionalContext = useCallback(async () => {
-    const contexts = await resolveAdditionalContext();
+    const contexts = await resolveAdditionalContext(helpers);
     return contexts as AdditionalContext[];
-  }, []);
+  }, [helpers]);
 
   const getContextHelpers = useCallback(() => {
-    return getHelpers() as ContextHelpers;
-  }, []);
-
-  const addContextHelper = useCallback(
-    (name: string, helper: ContextHelperFn) => {
-      addHelper(name, helper);
-    },
-    [],
-  );
-
-  const removeContextHelper = useCallback((name: string) => {
-    removeGlobalHelper(name);
-  }, []);
+    return helpers as ContextHelpers;
+  }, [helpers]);
 
   const value = useMemo(
     () => ({
@@ -128,11 +127,17 @@ export const useTamboContextHelpers = () => {
 
   // Fallback to global registry so the API is standalone outside any provider
   return {
-    getAdditionalContext: async () =>
-      (await resolveAdditionalContext()) as AdditionalContext[],
-    getContextHelpers: () => getHelpers() as ContextHelpers,
-    addContextHelper: (name: string, helper: ContextHelperFn) =>
-      addHelper(name, helper),
-    removeContextHelper: (name: string) => removeGlobalHelper(name),
+    getAdditionalContext: async () => {
+      throw new Error("No provider found");
+    },
+    getContextHelpers: () => {
+      throw new Error("No provider found");
+    },
+    addContextHelper: (_name: string, _helper: ContextHelperFn) => {
+      throw new Error("No provider found");
+    },
+    removeContextHelper: (_name: string) => {
+      throw new Error("No provider found");
+    },
   } as TamboContextHelpersContextProps;
 };
