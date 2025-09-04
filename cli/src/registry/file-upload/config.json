@@ -1,0 +1,12 @@
+{
+  "name": "file-upload",
+  "type": "components:ui",
+  "files": [
+    {
+      "path": "index.tsx"
+    },
+    {
+      "path": "file-upload.tsx"
+    }
+  ]
+}

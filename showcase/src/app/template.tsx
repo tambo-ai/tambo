@@ -6,6 +6,7 @@ import { MobileProvider } from "@/providers/mobile-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
 import { usePathname } from "next/navigation";
+import { components, tools } from "@/lib/tambo";
 
 export default function Template({
   children,
@@ -36,6 +37,8 @@ export default function Template({
                 <TamboProvider
                   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
                   tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
+                  components={components} // Add this prop
+                  tools={tools}
                 >
                   <div className="container mx-auto px-4 md:px-6 pt-6">
                     {children}
