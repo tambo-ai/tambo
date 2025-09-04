@@ -10,39 +10,77 @@ import { z } from "zod";
  */
 export const selectionCardPropsSchema = z.object({
   /** Selection mode - single or multi */
-  mode: z.enum(["single", "multi"]).optional(),
-  /** Array of currently selected item IDs */
-  selectedIds: z.array(z.string()).optional(),
-  /** Total count of items available for selection */
-  totalCount: z.number().min(0).optional(),
+  mode: z
+    .enum(["single", "multi"])
+    .optional()
+    .describe(
+      "Selection mode - single allows one selection, multi allows multiple selections",
+    ),
+  /** Array of currently selected item IDs (controlled mode) */
+  selectedIds: z
+    .array(z.string())
+    .optional()
+    .describe("Array of currently selected item IDs (controlled mode)"),
+  /** Default selected item IDs (uncontrolled mode) */
+  defaultSelectedIds: z
+    .array(z.string())
+    .optional()
+    .describe("Default selected item IDs for uncontrolled mode"),
+  /** Total count of items available (defaults to items.length, useful for pagination) */
+  totalCount: z
+    .number()
+    .min(0)
+    .optional()
+    .describe(
+      "Total count of items available (defaults to items.length, useful for pagination)",
+    ),
   /** Array of item IDs that should be disabled */
-  disabledIds: z.array(z.string()).optional(),
+  disabledIds: z
+    .array(z.string())
+    .optional()
+    .describe("Array of item IDs that should be disabled and non-selectable"),
   /** Items to display - can be strings or objects with id and label */
   items: z
     .array(
       z.union([
         z.string(),
         z.object({
-          id: z.string(),
-          label: z.string(),
-          disabled: z.boolean().optional(),
+          id: z.string().describe("Unique identifier for the item"),
+          label: z.string().describe("Display text for the item"),
+          disabled: z
+            .boolean()
+            .optional()
+            .describe("Whether this specific item is disabled"),
         }),
       ]),
     )
-    .optional(),
-  /** Selection change handler */
-  onChange: z.function().args(z.array(z.string())).returns(z.void()).optional(),
+    .optional()
+    .describe(
+      "Items to display - can be simple strings or objects with id, label, and disabled properties",
+    ),
+  /** Selection change handler (optional - component works independently without it) */
+  onChange: z
+    .function()
+    .args(z.array(z.string()))
+    .returns(z.void())
+    .optional()
+    .describe("Callback function called when selection changes"),
   /** Custom class name */
-  className: z.string().optional(),
+  className: z
+    .string()
+    .optional()
+    .describe("Additional CSS classes for custom styling"),
 });
 
 export interface SelectionCardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {
   /** Selection mode - single or multi */
   mode?: "single" | "multi";
-  /** Array of currently selected item IDs */
+  /** Array of currently selected item IDs (controlled mode) */
   selectedIds?: string[];
-  /** Total count of items available for selection */
+  /** Default selected item IDs (uncontrolled mode) */
+  defaultSelectedIds?: string[];
+  /** Total count of items available (defaults to items.length, useful for pagination) */
   totalCount?: number;
   /** Array of item IDs that should be disabled */
   disabledIds?: string[];
@@ -55,7 +93,7 @@ export interface SelectionCardProps
         disabled?: boolean;
       }
   )[];
-  /** Selection change handler */
+  /** Selection change handler (optional - component works independently without it) */
   onChange?: (selectedIds: string[]) => void;
 }
 
@@ -74,16 +112,36 @@ export interface SelectionIntents {
 }
 
 /**
- * A generic selection controller component for handling single and multi-select scenarios
+ * A generic selection controller component for handling single and multi-select scenarios.
+ * Flexible selection component that works independently or with external state management.
  * @component
  * @example
  * ```tsx
+ * // Works without external state management
  * <SelectionCard
  *   mode="multi"
- *   selectedIds={["item1", "item3"]}
- *   totalCount={5}
+ *   items={["Apple", "Banana", "Cherry", "Date", "Elderberry"]}
+ * />
+ *
+ * // Single selection mode
+ * <SelectionCard
+ *   mode="single"
+ *   items={["Small", "Medium", "Large", "Extra Large"]}
+ * />
+ *
+ * // With default selections
+ * <SelectionCard
+ *   mode="multi"
+ *   defaultSelectedIds={["item1", "item3"]}
  *   items={["item1", "item2", "item3", "item4", "item5"]}
- *   onChange={(selectedIds) => console.log(selectedIds)}
+ * />
+ *
+ * // Controlled mode (advanced usage)
+ * <SelectionCard
+ *   mode="multi"
+ *   selectedIds={selectedItems}
+ *   items={["item1", "item2", "item3"]}
+ *   onChange={(selectedIds) => setSelectedItems(selectedIds)}
  * />
  * ```
  */
@@ -94,8 +152,9 @@ export const SelectionCard = React.forwardRef<
   (
     {
       mode = "single",
-      selectedIds = [],
-      totalCount = 0,
+      selectedIds,
+      defaultSelectedIds = [],
+      totalCount,
       disabledIds = [],
       items = [],
       onChange,
@@ -104,6 +163,33 @@ export const SelectionCard = React.forwardRef<
     },
     ref,
   ) => {
+    // Determine mode: controlled (selectedIds + onChange), semi-controlled (selectedIds only), or independent
+    const isControlled = selectedIds !== undefined && onChange !== undefined;
+
+    // Internal state for independent and semi-controlled modes
+    const [internalSelectedIds, setInternalSelectedIds] = React.useState<
+      string[]
+    >(selectedIds ?? defaultSelectedIds);
+
+    // State for collapsed/expanded view (show only 5 items initially)
+    const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
+
+    // Use controlled value or internal state
+    const currentSelectedIds = isControlled ? selectedIds : internalSelectedIds;
+
+    // Handler that works for all modes
+    const handleSelectionChange = React.useCallback(
+      (newSelectedIds: string[]) => {
+        // Always update internal state for independent/semi-controlled modes
+        if (!isControlled) {
+          setInternalSelectedIds(newSelectedIds);
+        }
+
+        // Only call onChange if provided (for controlled and semi-controlled modes)
+        onChange?.(newSelectedIds);
+      },
+      [isControlled, onChange],
+    );
     // Convert items to normalized format
     const normalizedItems = React.useMemo(() => {
       return items.map((item) => {
@@ -121,20 +207,32 @@ export const SelectionCard = React.forwardRef<
       });
     }, [items, disabledIds]);
 
+    // Determine items to display (limit to 5 unless expanded)
+    const ITEMS_LIMIT = 5;
+    const hasMoreItems = normalizedItems.length > ITEMS_LIMIT;
+    const displayedItems = React.useMemo(() => {
+      if (!hasMoreItems || isExpanded) {
+        return normalizedItems;
+      }
+      return normalizedItems.slice(0, ITEMS_LIMIT);
+    }, [normalizedItems, isExpanded, hasMoreItems]);
+
+    // Calculate actual total count (inferred from items.length unless explicitly provided)
+    const actualTotalCount = totalCount ?? normalizedItems.length;
+
     // Calculate selection state
     const selectionState = React.useMemo(() => {
-      const selectedCount = selectedIds.length;
-      const totalSelectableCount = Math.max(totalCount, normalizedItems.length);
+      const selectedCount = currentSelectedIds.length;
       const enabledCount = normalizedItems.filter(
         (item) => !item.disabled,
       ).length;
-      const actualTotal =
-        totalSelectableCount > 0 ? totalSelectableCount : enabledCount;
+      const selectableTotal =
+        actualTotalCount > 0 ? actualTotalCount : enabledCount;
 
       if (selectedCount === 0) return "none";
-      if (selectedCount === actualTotal) return "all";
+      if (selectedCount === selectableTotal) return "all";
       return "some";
-    }, [selectedIds.length, totalCount, normalizedItems]);
+    }, [currentSelectedIds.length, actualTotalCount, normalizedItems]);
 
     // Handle item selection/deselection
     const handleItemToggle = React.useCallback(
@@ -144,16 +242,16 @@ export const SelectionCard = React.forwardRef<
         let newSelectedIds: string[];
 
         if (mode === "single") {
-          newSelectedIds = selectedIds.includes(itemId) ? [] : [itemId];
+          newSelectedIds = currentSelectedIds.includes(itemId) ? [] : [itemId];
         } else {
-          newSelectedIds = selectedIds.includes(itemId)
-            ? selectedIds.filter((id) => id !== itemId)
-            : [...selectedIds, itemId];
+          newSelectedIds = currentSelectedIds.includes(itemId)
+            ? currentSelectedIds.filter((id) => id !== itemId)
+            : [...currentSelectedIds, itemId];
         }
 
-        onChange?.(newSelectedIds);
+        handleSelectionChange(newSelectedIds);
       },
-      [mode, selectedIds, disabledIds, onChange],
+      [mode, currentSelectedIds, disabledIds, handleSelectionChange],
     );
 
     // Selection intents for programmatic control
@@ -162,29 +260,35 @@ export const SelectionCard = React.forwardRef<
         select: (ids: string[]) => {
           const validIds = ids.filter((id) => !disabledIds.includes(id));
           if (mode === "single") {
-            onChange?.(validIds.slice(0, 1));
+            handleSelectionChange(validIds.slice(0, 1));
           } else {
-            const newIds = [...new Set([...selectedIds, ...validIds])];
-            onChange?.(newIds);
+            const newIds = [...new Set([...currentSelectedIds, ...validIds])];
+            handleSelectionChange(newIds);
           }
         },
         deselect: (ids: string[]) => {
-          const newIds = selectedIds.filter((id) => !ids.includes(id));
-          onChange?.(newIds);
+          const newIds = currentSelectedIds.filter((id) => !ids.includes(id));
+          handleSelectionChange(newIds);
         },
         selectAll: () => {
           if (mode === "multi") {
             const allEnabledIds = normalizedItems
               .filter((item) => !item.disabled)
               .map((item) => item.id);
-            onChange?.(allEnabledIds);
+            handleSelectionChange(allEnabledIds);
           }
         },
         clear: () => {
-          onChange?.([]);
+          handleSelectionChange([]);
         },
       }),
-      [mode, selectedIds, disabledIds, normalizedItems, onChange],
+      [
+        mode,
+        currentSelectedIds,
+        disabledIds,
+        normalizedItems,
+        handleSelectionChange,
+      ],
     );
 
     // Keyboard event handler
@@ -241,9 +345,9 @@ export const SelectionCard = React.forwardRef<
             )}
           </div>
           <span className="text-sm font-medium">
-            Select all ({selectedIds.length}/
+            Select all ({currentSelectedIds.length}/
             {Math.max(
-              totalCount,
+              actualTotalCount,
               normalizedItems.filter((item) => !item.disabled).length,
             )}
             )
@@ -266,64 +370,82 @@ export const SelectionCard = React.forwardRef<
         {renderHeaderControl()}
 
         {normalizedItems.length > 0 ? (
-          <div className="divide-y">
-            {normalizedItems.map((item) => {
-              const isSelected = selectedIds.includes(item.id);
-              const isDisabled = item.disabled;
+          <div>
+            <div className="divide-y">
+              {displayedItems.map((item) => {
+                const isSelected = currentSelectedIds.includes(item.id);
+                const isDisabled = item.disabled;
 
-              return (
-                <div
-                  key={item.id}
-                  className={cn(
-                    "flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors",
-                    isSelected && "bg-blue-50",
-                    isDisabled &&
-                      "opacity-50 cursor-not-allowed hover:bg-transparent",
-                  )}
-                  onClick={() => !isDisabled && handleItemToggle(item.id)}
-                  role={mode === "multi" ? "option" : "radio"}
-                  aria-selected={isSelected}
-                  aria-disabled={isDisabled}
-                  tabIndex={isDisabled ? -1 : 0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      if (!isDisabled) handleItemToggle(item.id);
-                    }
-                  }}
-                >
-                  <div className="flex items-center justify-center w-4 h-4">
-                    {mode === "multi" ? (
-                      isSelected ? (
-                        <CheckSquare className="w-4 h-4 text-blue-600" />
-                      ) : (
-                        <Square className="w-4 h-4 text-gray-400" />
-                      )
-                    ) : (
-                      <div
-                        className={cn(
-                          "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                          isSelected
-                            ? "border-blue-600 bg-blue-600"
-                            : "border-gray-300",
-                        )}
-                      >
-                        {isSelected && (
-                          <Check className="w-2.5 h-2.5 text-white" />
-                        )}
-                      </div>
+                return (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      "flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors",
+                      isSelected && "bg-blue-50",
+                      isDisabled &&
+                        "opacity-50 cursor-not-allowed hover:bg-transparent",
                     )}
+                    onClick={() => !isDisabled && handleItemToggle(item.id)}
+                    role={mode === "multi" ? "option" : "radio"}
+                    aria-selected={isSelected}
+                    aria-disabled={isDisabled}
+                    tabIndex={isDisabled ? -1 : 0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        if (!isDisabled) handleItemToggle(item.id);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-center w-4 h-4">
+                      {mode === "multi" ? (
+                        isSelected ? (
+                          <CheckSquare className="w-4 h-4 text-blue-600" />
+                        ) : (
+                          <Square className="w-4 h-4 text-gray-400" />
+                        )
+                      ) : (
+                        <div
+                          className={cn(
+                            "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                            isSelected
+                              ? "border-blue-600 bg-blue-600"
+                              : "border-gray-300",
+                          )}
+                        >
+                          {isSelected && (
+                            <Check className="w-2.5 h-2.5 text-white" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm">{item.label}</span>
                   </div>
-                  <span className="text-sm">{item.label}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {hasMoreItems && (
+              <div className="border-t p-3">
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  type="button"
+                >
+                  {isExpanded
+                    ? `Show less (${displayedItems.length}/${normalizedItems.length})`
+                    : `Show ${normalizedItems.length - ITEMS_LIMIT} more items`}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="p-8 text-center text-gray-500">
             <p>No items to display</p>
-            {totalCount > 0 && (
-              <p className="text-xs mt-1">Total count: {totalCount}</p>
+            {actualTotalCount > normalizedItems.length && (
+              <p className="text-xs mt-1">
+                Total available: {actualTotalCount}
+              </p>
             )}
           </div>
         )}
