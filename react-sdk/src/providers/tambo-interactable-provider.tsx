@@ -42,116 +42,118 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const { registerTool } = useTamboComponent();
 
   useEffect(() => {
-    registerTool({
-      name: "get_all_interactable_components",
-      description:
-        "Only use this tool if the user is asking about interactable components.Get all currently interactable components with their details including their current props. These are components that you can interact with on behalf of the user.",
-      tool: () => {
-        return {
-          components: interactableComponents,
-        };
-      },
-      toolSchema: z.function().returns(
-        z.object({
-          components: z.array(
-            z.object({
-              id: z.string(),
-              componentName: z.string(),
-              props: z.record(z.any()),
-              propsSchema: z.object({}).optional(),
-            }),
-          ),
-        }),
-      ),
-    });
-
-    registerTool({
-      name: "get_interactable_component_by_id",
-      description: "Get a specific interactable component by its ID",
-      tool: (componentId: string) => {
-        const component = interactableComponents.find(
-          (c) => c.id === componentId,
-        );
-
-        if (!component) {
+    if (interactableComponents.length > 0) {
+      registerTool({
+        name: "get_all_interactable_components",
+        description:
+          "Only use this tool if the user is asking about interactable components.Get all currently interactable components with their details including their current props. These are components that you can interact with on behalf of the user.",
+        tool: () => {
           return {
-            success: false,
-            error: `Component with ID ${componentId} not found`,
+            components: interactableComponents,
           };
-        }
-
-        return {
-          success: true,
-          component: {
-            id: component.id,
-            componentName: component.name,
-            props: component.props,
-          },
-        };
-      },
-      toolSchema: z
-        .function()
-        .args(z.string())
-        .returns(
+        },
+        toolSchema: z.function().returns(
           z.object({
-            success: z.boolean(),
-            component: z
-              .object({
+            components: z.array(
+              z.object({
                 id: z.string(),
                 componentName: z.string(),
                 props: z.record(z.any()),
-              })
-              .optional(),
-            error: z.string().optional(),
+                propsSchema: z.object({}).optional(),
+              }),
+            ),
           }),
         ),
-    });
+      });
 
-    registerTool({
-      name: "remove_interactable_component",
-      description: "Remove an interactable component from the system",
-      tool: (componentId: string) => {
-        const component = interactableComponents.find(
-          (c) => c.id === componentId,
-        );
+      registerTool({
+        name: "get_interactable_component_by_id",
+        description: "Get a specific interactable component by its ID",
+        tool: (componentId: string) => {
+          const component = interactableComponents.find(
+            (c) => c.id === componentId,
+          );
 
-        if (!component) {
+          if (!component) {
+            return {
+              success: false,
+              error: `Component with ID ${componentId} not found`,
+            };
+          }
+
           return {
-            success: false,
-            error: `Component with ID ${componentId} not found`,
+            success: true,
+            component: {
+              id: component.id,
+              componentName: component.name,
+              props: component.props,
+            },
           };
-        }
-
-        setInteractableComponents((prev) =>
-          prev.filter((c) => c.id !== componentId),
-        );
-
-        return {
-          success: true,
-          componentId,
-          removedComponent: {
-            id: component.id,
-            componentName: component.name,
-            props: component.props,
-          },
-        };
-      },
-      toolSchema: z
-        .function()
-        .args(z.string())
-        .returns(
-          z.object({
-            success: z.boolean(),
-            componentId: z.string(),
-            removedComponent: z.object({
-              id: z.string(),
-              componentName: z.string(),
-              props: z.record(z.any()),
+        },
+        toolSchema: z
+          .function()
+          .args(z.string())
+          .returns(
+            z.object({
+              success: z.boolean(),
+              component: z
+                .object({
+                  id: z.string(),
+                  componentName: z.string(),
+                  props: z.record(z.any()),
+                })
+                .optional(),
+              error: z.string().optional(),
             }),
-            error: z.string().optional(),
-          }),
-        ),
-    });
+          ),
+      });
+
+      registerTool({
+        name: "remove_interactable_component",
+        description: "Remove an interactable component from the system",
+        tool: (componentId: string) => {
+          const component = interactableComponents.find(
+            (c) => c.id === componentId,
+          );
+
+          if (!component) {
+            return {
+              success: false,
+              error: `Component with ID ${componentId} not found`,
+            };
+          }
+
+          setInteractableComponents((prev) =>
+            prev.filter((c) => c.id !== componentId),
+          );
+
+          return {
+            success: true,
+            componentId,
+            removedComponent: {
+              id: component.id,
+              componentName: component.name,
+              props: component.props,
+            },
+          };
+        },
+        toolSchema: z
+          .function()
+          .args(z.string())
+          .returns(
+            z.object({
+              success: z.boolean(),
+              componentId: z.string(),
+              removedComponent: z.object({
+                id: z.string(),
+                componentName: z.string(),
+                props: z.record(z.any()),
+              }),
+              error: z.string().optional(),
+            }),
+          ),
+      });
+    }
   }, [interactableComponents, registerTool]);
 
   const updateInteractableComponentProps = useCallback(
