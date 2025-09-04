@@ -1,4 +1,7 @@
-import { ListViewCard, ListViewCardPropsSchema } from "@/components/ui/list-view-card";
+import {
+  ListViewCard,
+  ListViewCardPropsSchema,
+} from "@/components/ui/list-view-card";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
@@ -44,88 +47,88 @@ export const ListChatInterface = () => {
       propsSchema: ListViewCardPropsSchema,
       propsDefinition: undefined,
       example: [
-          {
-            description: "Basic list with icons",
-            data: {
-              items: [
-                {
-                  id: "1",
-                  title: "Document 1",
-                  subtitle: "Last modified: 2 hours ago",
-                  media: {
-                    type: "icon",
-                    src: "📄",
-                    alt: "Document icon",
-                  },
+        {
+          description: "Basic list with icons",
+          data: {
+            items: [
+              {
+                id: "1",
+                title: "Document 1",
+                subtitle: "Last modified: 2 hours ago",
+                media: {
+                  type: "icon",
+                  src: "📄",
+                  alt: "Document icon",
                 },
-                {
-                  id: "2",
-                  title: "Image 1",
-                  subtitle: "Size: 2.4 MB",
-                  media: {
-                    type: "icon",
-                    src: "🖼️",
-                    alt: "Image icon",
-                  },
+              },
+              {
+                id: "2",
+                title: "Image 1",
+                subtitle: "Size: 2.4 MB",
+                media: {
+                  type: "icon",
+                  src: "🖼️",
+                  alt: "Image icon",
                 },
-                {
-                  id: "3",
-                  title: "Video 1",
-                  subtitle: "Duration: 3:45",
-                  media: {
-                    type: "icon",
-                    src: "🎥",
-                    alt: "Video icon",
-                  },
+              },
+              {
+                id: "3",
+                title: "Video 1",
+                subtitle: "Duration: 3:45",
+                media: {
+                  type: "icon",
+                  src: "🎥",
+                  alt: "Video icon",
                 },
-              ],
-              selectionMode: "single",
-              variant: "bordered",
-              size: "md",
-            },
+              },
+            ],
+            selectionMode: "single",
+            variant: "bordered",
+            size: "md",
           },
-          {
-            description: "Multi-selection list with checkboxes",
-            data: {
-              items: [
-                {
-                  id: "user1",
-                  title: "John Doe",
-                  subtitle: "Software Engineer",
-                  media: {
-                    type: "icon",
-                    src: "👨‍💻",
-                    alt: "Developer icon",
-                  },
+        },
+        {
+          description: "Multi-selection list with checkboxes",
+          data: {
+            items: [
+              {
+                id: "user1",
+                title: "John Doe",
+                subtitle: "Software Engineer",
+                media: {
+                  type: "icon",
+                  src: "👨‍💻",
+                  alt: "Developer icon",
                 },
-                {
-                  id: "user2",
-                  title: "Jane Smith",
-                  subtitle: "Product Manager",
-                  media: {
-                    type: "icon",
-                    src: "👩‍💼",
-                    alt: "Manager icon",
-                  },
+              },
+              {
+                id: "user2",
+                title: "Jane Smith",
+                subtitle: "Product Manager",
+                media: {
+                  type: "icon",
+                  src: "👩‍💼",
+                  alt: "Manager icon",
                 },
-                {
-                  id: "user3",
-                  title: "Bob Johnson",
-                  subtitle: "Designer",
-                  media: {
-                    type: "icon",
-                    src: "🎨",
-                    alt: "Designer icon",
-                  },
+              },
+              {
+                id: "user3",
+                title: "Bob Johnson",
+                subtitle: "Designer",
+                media: {
+                  type: "icon",
+                  src: "🎨",
+                  alt: "Designer icon",
                 },
-              ],
-              selectionMode: "multi",
-              showCheckboxes: true,
-              variant: "elevated",
-              size: "lg",
-            },
+              },
+            ],
+            selectionMode: "multi",
+            showCheckboxes: true,
+            variant: "elevated",
+            size: "lg",
           },
-        ],
+        },
+      ],
     });
   }, [registerComponent, thread.id]);
 
@@ -138,4 +141,3 @@ export const ListChatInterface = () => {
     </div>
   );
 };
-

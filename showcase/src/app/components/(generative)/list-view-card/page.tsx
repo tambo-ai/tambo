@@ -4,7 +4,6 @@ import { CLI } from "@/components/cli";
 import { ListChatInterface } from "@/components/generative/ListChatInterface";
 import { CopyablePrompt, Section } from "@/components/ui/doc-components";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
-import { TamboProvider } from "@tambo-ai/react";
 import { DemoWrapper } from "../../demo-wrapper";
 
 export default function ListViewCardComponentPage() {
@@ -23,7 +22,8 @@ Make it use the bordered variant with medium size and single selection mode.`;
           <div>
             <h1 className="text-3xl font-bold mb-4">ListViewCard</h1>
             <p className="text-lg text-secondary">
-              A high-performance, virtualized list component with selection modes, keyboard navigation, and ARIA support.
+              A high-performance, virtualized list component with selection
+              modes, keyboard navigation, and ARIA support.
             </p>
           </div>
 
@@ -39,16 +39,10 @@ Make it use the bordered variant with medium size and single selection mode.`;
           </Section>
 
           <DemoWrapper title="ListViewCard" height={800}>
-            <TamboProvider
-              apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-              tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
-            >
-              <ListChatInterface />
-            </TamboProvider>
+            <ListChatInterface />
           </DemoWrapper>
         </div>
       </ShowcaseThemeProvider>
     </div>
   );
 }
-

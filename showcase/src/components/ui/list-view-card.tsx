@@ -1,13 +1,13 @@
 "use client";
 
 import React, {
-    forwardRef,
-    useCallback,
-    useEffect,
-    useImperativeHandle,
-    useMemo,
-    useRef,
-    useState,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 import { z } from "zod";
 import { cn } from "../../lib/utils";
@@ -17,7 +17,7 @@ function useVirtualization<T>(
   items: T[],
   itemHeight: number,
   containerHeight: number,
-  overscan: number = 5
+  overscan: number = 5,
 ) {
   const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,7 +26,7 @@ function useVirtualization<T>(
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
   const endIndex = Math.min(
     items.length,
-    Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
+    Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan,
   );
 
   const visibleItems = items.slice(startIndex, endIndex);
@@ -70,7 +70,11 @@ export const ListViewCardPropsSchema = z.object({
   onLoadMore: z
     .function()
     .args(z.object({ cursor: z.string().optional() }))
-    .returns(z.promise(z.object({ items: z.array(ItemSchema), cursor: z.string().optional() })))
+    .returns(
+      z.promise(
+        z.object({ items: z.array(ItemSchema), cursor: z.string().optional() }),
+      ),
+    )
     .optional(),
   className: z.string().optional(),
   variant: z.enum(["default", "bordered", "elevated"]).default("default"),
@@ -133,18 +137,22 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
       variant = "default",
       size = "md",
     },
-    ref
+    ref,
   ) => {
     // Validate size prop and provide fallback
     const validSize = size && sizeConfigs[size] ? size : "md";
-    
+
     // Local state management
     const [state, setState] = useState<ListViewCardState>(defaultState);
     const { selectedIds, focusedIndex, searchQuery, isLoading, cursor } = state;
 
     // Virtualization setup
     const { visibleItems, offsetY, totalHeight, handleScroll, containerRef } =
-      useVirtualization(items, itemHeight, typeof height === "number" ? height : 400);
+      useVirtualization(
+        items,
+        itemHeight,
+        typeof height === "number" ? height : 400,
+      );
 
     // Refs for imperative methods
     const listRef = useRef<HTMLDivElement>(null);
@@ -157,7 +165,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
       return items.filter(
         (item) =>
           item.title.toLowerCase().includes(query) ||
-          (item.subtitle && item.subtitle.toLowerCase().includes(query))
+          (item.subtitle && item.subtitle.toLowerCase().includes(query)),
       );
     }, [items, searchQuery]);
 
@@ -178,14 +186,14 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
           }
         }
 
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           selectedIds: newSelectedIds,
         }));
 
         onSelect?.(newSelectedIds);
       },
-      [selectionMode, selectedIds, onSelect]
+      [selectionMode, selectedIds, onSelect],
     );
 
     // Handle item activation
@@ -193,7 +201,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
       (itemId: string) => {
         onActivate?.(itemId);
       },
-      [onActivate]
+      [onActivate],
     );
 
     // Handle keyboard navigation
@@ -204,28 +212,31 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
         switch (e.key) {
           case "ArrowDown":
             e.preventDefault();
-            setState(prev => ({
+            setState((prev) => ({
               ...prev,
-              focusedIndex: Math.min(focusedIndex + 1, filteredItems.length - 1),
+              focusedIndex: Math.min(
+                focusedIndex + 1,
+                filteredItems.length - 1,
+              ),
             }));
             break;
           case "ArrowUp":
             e.preventDefault();
-            setState(prev => ({
+            setState((prev) => ({
               ...prev,
               focusedIndex: Math.max(focusedIndex - 1, 0),
             }));
             break;
           case "Home":
             e.preventDefault();
-            setState(prev => ({
+            setState((prev) => ({
               ...prev,
               focusedIndex: 0,
             }));
             break;
           case "End":
             e.preventDefault();
-            setState(prev => ({
+            setState((prev) => ({
               ...prev,
               focusedIndex: filteredItems.length - 1,
             }));
@@ -247,7 +258,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
             // Type-ahead search
             if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
               const newQuery = searchQuery + e.key.toLowerCase();
-              setState(prev => ({
+              setState((prev) => ({
                 ...prev,
                 searchQuery: newQuery,
               }));
@@ -255,27 +266,27 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
             break;
         }
       },
-      [filteredItems, focusedIndex, searchQuery, handleItemActivate]
+      [filteredItems, focusedIndex, searchQuery, handleItemActivate],
     );
 
     // Handle load more
     const handleLoadMore = useCallback(async () => {
       if (!onLoadMore || isLoading) return;
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: true,
       }));
 
       try {
         const result = await onLoadMore({ cursor });
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           isLoading: false,
           cursor: result.cursor,
         }));
       } catch (error) {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           isLoading: false,
         }));
@@ -291,7 +302,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
           const item = itemRefs.current.get(index);
           if (item) {
             item.focus();
-            setState(prev => ({
+            setState((prev) => ({
               ...prev,
               focusedIndex: index,
             }));
@@ -304,7 +315,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
           }
         },
         clearSelection: () => {
-          setState(prev => ({
+          setState((prev) => ({
             ...prev,
             selectedIds: [],
           }));
@@ -312,13 +323,13 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
         },
         getSelectedItems: () => selectedIds,
       }),
-      [itemHeight, onSelect, selectedIds]
+      [itemHeight, onSelect, selectedIds],
     );
 
     // Auto-focus first item on mount
     useEffect(() => {
       if (filteredItems.length > 0 && focusedIndex >= filteredItems.length) {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           focusedIndex: 0,
         }));
@@ -344,7 +355,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
     // Render media item
     const renderMedia = (media: ListViewCardItem["media"]) => {
       if (!media) return null;
-      
+
       switch (media.type) {
         case "avatar":
           return (
@@ -414,9 +425,11 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
             "flex items-center justify-center p-8 text-gray-500",
             variantConfigs[variant],
             "rounded-lg",
-            className
+            className,
           )}
-          style={{ height: typeof height === "number" ? `${height}px` : height }}
+          style={{
+            height: typeof height === "number" ? `${height}px` : height,
+          }}
         >
           {searchQuery ? "No items match your search." : "No items to display."}
         </div>
@@ -430,7 +443,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
           "relative",
           variantConfigs[variant],
           "rounded-lg overflow-hidden",
-          className
+          className,
         )}
         style={{ height: typeof height === "number" ? `${height}px` : height }}
       >
@@ -447,8 +460,10 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
         >
           <div style={{ height: totalHeight, position: "relative" }}>
             <div style={{ transform: `translateY(${offsetY}px)` }}>
-              {visibleItems.map((item, index) => {
-                const actualIndex = filteredItems.findIndex((i) => i.id === item.id);
+              {visibleItems.map((item) => {
+                const actualIndex = filteredItems.findIndex(
+                  (i) => i.id === item.id,
+                );
                 const isFocused = actualIndex === focusedIndex;
                 const isSelected = selectedIds.includes(item.id);
 
@@ -466,7 +481,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
                       isFocused && "bg-blue-50",
                       isSelected && "bg-blue-100",
                       "hover:bg-gray-50",
-                      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
                     )}
                     tabIndex={-1}
                     role="option"
@@ -480,7 +495,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
                       }
                     }}
                     onFocus={() =>
-                      setState(prev => ({
+                      setState((prev) => ({
                         ...prev,
                         focusedIndex: actualIndex,
                       }))
@@ -511,8 +526,7 @@ export const ListViewCard = forwardRef<ListViewCardRef, ListViewCardProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 ListViewCard.displayName = "ListViewCard";
-
