@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.5](https://github.com/tambo-ai/tambo/compare/react-v0.46.4...react-v0.46.5) (2025-09-04)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 2 updates ([#948](https://github.com/tambo-ai/tambo/issues/948)) ([e92b501](https://github.com/tambo-ai/tambo/commit/e92b501faa45552861ed7c3d6d791c139da55c1e))
+
 ## [0.46.4](https://github.com/tambo-ai/tambo/compare/react-v0.46.3...react-v0.46.4) (2025-08-27)
 
 

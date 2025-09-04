@@ -1,0 +1,32 @@
+/**
+ * Known safe packages that can be safely updated when using the upgrade command
+ */
+export const KNOWN_SAFE_PACKAGES = [
+  "@tambo-ai/react",
+  "@tambo-ai/typescript-sdk",
+  "tailwindcss",
+  "postcss",
+  "autoprefixer",
+  "tailwind-merge",
+  "clsx",
+  "class-variance-authority",
+  "framer-motion",
+  "lucide-react",
+  "radix-ui",
+  "@radix-ui/react-dialog",
+  "@radix-ui/react-slot",
+  "@radix-ui/react-dropdown-menu",
+  "recharts",
+  "react-markdown",
+  "dompurify",
+  "highlight.js",
+  "json-stringify-pretty-compact",
+  "streamdown",
+  "next-themes",
+  "tailwindcss-animate",
+  "@tailwindcss/oxide",
+  "@tailwindcss/postcss",
+  "@types/dompurify",
+  "@eslint/eslintrc",
+  "eslint-config-next",
+];

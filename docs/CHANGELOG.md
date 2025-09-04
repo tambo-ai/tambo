@@ -1,5 +1,49 @@
 # Changelog
 
+## [1.5.1](https://github.com/tambo-ai/tambo/compare/docs-v1.5.0...docs-v1.5.1) (2025-09-04)
+
+
+### Miscellaneous Chores
+
+* update tambo mcp url ([#970](https://github.com/tambo-ai/tambo/issues/970)) ([613f3f6](https://github.com/tambo-ai/tambo/commit/613f3f60b832a3306edb66532bab66d73e56a193))
+
+## [1.5.0](https://github.com/tambo-ai/tambo/compare/docs-v1.4.0...docs-v1.5.0) (2025-09-02)
+
+
+### Features
+
+* **docs:** add sitemap and robots.txt ([#940](https://github.com/tambo-ai/tambo/issues/940)) ([99114d7](https://github.com/tambo-ai/tambo/commit/99114d7f54c2ef71cf4cdea1baa94fe2008ef781))
+* **docs:** added support for llms.txt/llm-full.txt along with .mdx support for individual routes ([#935](https://github.com/tambo-ai/tambo/issues/935)) ([9c3bb5c](https://github.com/tambo-ai/tambo/commit/9c3bb5c8d5ddf8b22a547ea8f705ca7308e1500c))
+
+
+### Bug Fixes
+
+* **docs:** fixed document alignment issue ([#962](https://github.com/tambo-ai/tambo/issues/962)) ([26bc5ad](https://github.com/tambo-ai/tambo/commit/26bc5adc0495ef25e2ef4bd56db602be52a2f72a))
+* sidebar overlaps with header [#942](https://github.com/tambo-ai/tambo/issues/942) ([#944](https://github.com/tambo-ai/tambo/issues/944)) ([9467132](https://github.com/tambo-ai/tambo/commit/94671328260e01e5c4aabae77865da1120d6f6fa))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump next from 15.5.1 to 15.5.2 in the next group across 1 directory ([#955](https://github.com/tambo-ai/tambo/issues/955)) ([c1b99f4](https://github.com/tambo-ai/tambo/commit/c1b99f4eb19edcd18456d1d2cf43df724129d6e9))
+* update upgrade command to filter known safe packages ([#959](https://github.com/tambo-ai/tambo/issues/959)) ([3e57bd5](https://github.com/tambo-ai/tambo/commit/3e57bd593e78991664cf66eed2367a47168c65b3))
+
+## [1.4.0](https://github.com/tambo-ai/tambo/compare/docs-v1.3.2...docs-v1.4.0) (2025-08-28)
+
+
+### Features
+
+* migrate from react-markdown to streamdown ([#927](https://github.com/tambo-ai/tambo/issues/927)) ([fe5648e](https://github.com/tambo-ai/tambo/commit/fe5648e1e15d0181bc3bfc48bebdc556bb4be6b9))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump mermaid from 11.10.0 to 11.10.1 ([#930](https://github.com/tambo-ai/tambo/issues/930)) ([1de614a](https://github.com/tambo-ai/tambo/commit/1de614af1c04c77bbf2431d347efb6f519a60de2))
+* **deps:** bump posthog-js from 1.260.3 to 1.261.0 ([#953](https://github.com/tambo-ai/tambo/issues/953)) ([26e9507](https://github.com/tambo-ai/tambo/commit/26e9507d5976423cdc572757c1c9be40fcfc8789))
+* **deps:** bump streamdown from 1.1.3 to 1.1.5 ([#950](https://github.com/tambo-ai/tambo/issues/950)) ([5aff96d](https://github.com/tambo-ai/tambo/commit/5aff96daf6685b7b9198819aba3cb1576d9622a0))
+* **deps:** bump the fumadocs group with 3 updates ([#952](https://github.com/tambo-ai/tambo/issues/952)) ([d7e2a72](https://github.com/tambo-ai/tambo/commit/d7e2a7244f2383a2195da67c1a79422b6506b0a7))
+* Fix react/mcp subpackage path ([#946](https://github.com/tambo-ai/tambo/issues/946)) ([180ed1b](https://github.com/tambo-ai/tambo/commit/180ed1be9c04dc58c256d1183cdfc812fb3b961b))
+* fix tsconfig paths for react-sdk ([#945](https://github.com/tambo-ai/tambo/issues/945)) ([14dab2f](https://github.com/tambo-ai/tambo/commit/14dab2f4ae96e1a3c7b24cc84b0d15d74106f9a5))
+
 ## [1.3.2](https://github.com/tambo-ai/tambo/compare/docs-v1.3.1...docs-v1.3.2) (2025-08-27)
 
 
