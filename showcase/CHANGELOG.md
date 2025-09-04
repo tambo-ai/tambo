@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.20.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.20.0...showcase-v0.20.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* fixed the year on the sidebar ([#973](https://github.com/tambo-ai/tambo/issues/973)) ([e89127a](https://github.com/tambo-ai/tambo/commit/e89127a9782e563e46be153a65c618eaa8f443ae))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump next from 15.5.1 to 15.5.2 in the next group across 1 directory ([#955](https://github.com/tambo-ai/tambo/issues/955)) ([c1b99f4](https://github.com/tambo-ai/tambo/commit/c1b99f4eb19edcd18456d1d2cf43df724129d6e9))
+
 ## [0.20.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.19.1...showcase-v0.20.0) (2025-08-28)
 
 
