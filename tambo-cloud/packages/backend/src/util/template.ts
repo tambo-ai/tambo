@@ -1,6 +1,8 @@
 /** Migrated from libretto: https://github.com/libretto-ai/openai-ts/blob/main/src/template.ts  */
 // we only support the simplest of template expressions
 
+import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
+
 /** Match a full template expression, e.g. '{foo}' in 'replace {foo} now' */
 const templateExpression = /({[a-zA-Z0-9_[\].]+})/g;
 /** Match the variable inside a template expression, e.g. the 'foo' in 'replace {foo} now' */
@@ -12,6 +14,7 @@ const unescapeVariableExpression = /\\{([a-zA-Z0-9_[\].]+)\\}/g;
 const CHAT_HISTORY = "chat_history";
 const ROLE_KEY = "role";
 
+type primitive = string | number | boolean | null | undefined;
 /**
  * An alternative to template literals that allows for capturing the name of the
  * variables involved, and doing variable substitution at a later time.
@@ -39,7 +42,7 @@ const ROLE_KEY = "role";
  */
 export function f(
   strings: TemplateStringsArray | string,
-  ...inlineVariables: any[]
+  ...inlineVariables: primitive[]
 ) {
   if (inlineVariables.length > 0) {
     throw new Error("No inline variables: Use {} syntax, instead of ${}");
@@ -60,7 +63,12 @@ export function f(
     ),
   );
   return {
-    [formatProp]: (parameters: Record<string, any>) => {
+    [formatProp]: (
+      parameters: Record<
+        string,
+        string | ChatCompletionMessageParam[] | undefined
+      >,
+    ) => {
       return str
         .replace(templateExpressionVarName, (match, variableName) => {
           if (parameters[variableName] === undefined) {
@@ -68,7 +76,7 @@ export function f(
               `Can't format template, missing variable: ${variableName}`,
             );
           }
-          return parameters[variableName];
+          return parameters[variableName] as string;
         })
         .replace(
           unescapeVariableExpression,
@@ -88,7 +96,7 @@ const variablesProp = Symbol("variables");
 
 export function formatTemplate<T>(
   o: ObjectTemplate<T>,
-  parameters: Record<string, any>,
+  parameters: Record<string, string | ChatCompletionMessageParam[]>,
 ): T {
   const format = o[formatProp];
   return format(parameters);
@@ -111,7 +119,9 @@ export interface ObjectTemplate_<T> {
   /**
    * A function that takes a dictionary of variable names to values, and returns the formatted object
    */
-  [formatProp]: (parameters: Record<string, any>) => T;
+  [formatProp]: (
+    parameters: Record<string, string | ChatCompletionMessageParam[]>,
+  ) => T;
   /**
    * The names of the variables used in the template
    */
@@ -152,7 +162,9 @@ export type ObjectTemplate<T> = T extends string
 export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
   const variables = objTemplateVariables(objs);
 
-  function format(parameters: Record<string, any>): T {
+  function format(
+    parameters: Record<string, string | ChatCompletionMessageParam[]>,
+  ): T {
     if (objs === undefined || objs === null || typeof objs == "number") {
       return objs;
     }
@@ -200,11 +212,7 @@ export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
   return result;
 }
 
-export function isObjectTemplate<T>(obj: any): obj is ObjectTemplate<T> {
-  return formatProp in obj && variablesProp in obj && templateProp in obj;
-}
-
-function objTemplateVariables(objs: any): readonly string[] {
+function objTemplateVariables(objs: unknown): readonly string[] {
   if (objs === undefined || objs === null || typeof objs == "number") {
     return [];
   }
@@ -230,7 +238,7 @@ function objTemplateVariables(objs: any): readonly string[] {
  * @param obj
  * @returns true if it's the Libretto chat history setup
  */
-function isLibrettoChatHistory(objs: any): boolean {
+function isLibrettoChatHistory(objs: unknown): boolean {
   if (objs === undefined || objs === null || typeof objs == "number") {
     return false;
   }
@@ -243,7 +251,7 @@ function isLibrettoChatHistory(objs: any): boolean {
   }
 
   // An object, check role being chat_history
-  if (ROLE_KEY in objs) {
+  if (typeof objs === "object" && ROLE_KEY in objs) {
     return objs[ROLE_KEY] === CHAT_HISTORY;
   }
 

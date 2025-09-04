@@ -33,7 +33,7 @@ import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import type { LlmProviderConfigInfo } from "../../config/llm-config-types";
 import { llmProviderConfig } from "../../config/llm.config";
 import { Provider } from "../../model/providers";
-import { formatTemplate } from "../../util/template";
+import { formatTemplate, ObjectTemplate } from "../../util/template";
 import {
   CompleteParams,
   LLMClient,
@@ -448,10 +448,13 @@ export class AISdkClient implements LLMClient {
 /** We have to manually format this because objectTemplate doesn't seem to support chat_history */
 function tryFormatTemplate(
   messages: ChatCompletionMessageParam[],
-  promptTemplateParams: Record<string, unknown>,
+  promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>,
 ): ChatCompletionMessageParam[] {
   try {
-    return formatTemplate(messages as any, promptTemplateParams);
+    return formatTemplate(
+      messages as ObjectTemplate<ChatCompletionMessageParam[]>,
+      promptTemplateParams,
+    );
   } catch (_e) {
     return messages;
   }

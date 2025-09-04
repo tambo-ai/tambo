@@ -172,7 +172,7 @@ export async function addAssistantMessageToThread(
 }
 
 /**
- * Verify the latest message in a thread is the latest user message in the thread
+ * Verify the latest message in a thread is the specified message
  */
 export async function verifyLatestMessageConsistency(
   db: HydraTransaction,

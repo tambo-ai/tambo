@@ -32,6 +32,7 @@ jest.mock("@sentry/nestjs", () => ({
     }),
   startSpan: (_cfg: any, fn: any) =>
     typeof fn === "function" ? fn() : undefined,
+  startInactiveSpan: (_cfg: any) => ({ end: jest.fn() }),
   httpIntegration: jest.fn(() => ({})),
   flush: jest.fn(async () => undefined),
   addBreadcrumb: jest.fn(),

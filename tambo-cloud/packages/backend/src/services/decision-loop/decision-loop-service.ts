@@ -2,6 +2,7 @@ import {
   ChatCompletionMessageParam,
   getToolName,
   LegacyComponentDecision,
+  MessageRole,
   ThreadMessage,
   ToolCallRequest,
   tryParseJsonObject,
@@ -149,6 +150,8 @@ export async function* runDecisionLoop(
       );
 
       const parsedChunk: Partial<LegacyComponentDecision> = {
+        // For LLM responses, we can always assume the role is assistant
+        role: MessageRole.Assistant,
         message: displayMessage,
         componentName: isUITool
           ? toolCall.function.name.slice(UI_TOOLNAME_PREFIX.length)
