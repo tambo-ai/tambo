@@ -1627,20 +1627,28 @@ export class ThreadsService {
           return;
         }
 
-        // do not yield the final thread message if it is a tool call
-        // might have to switch to an internal tool call
-        if (!currentThreadMessage.toolCallRequest) {
-          yield {
-            responseMessageDto: {
-              ...currentThreadMessage,
-              content: convertContentPartToDto(currentThreadMessage.content),
-              componentState: currentThreadMessage.componentState ?? {},
-            },
-            generationStage: GenerationStage.STREAMING_RESPONSE,
-            statusMessage: `Streaming response...`,
-            mcpAccessToken,
-          };
-        }
+        // This is kind of a hack: when we have a tool call, but we might not want to
+        // emit it all the way to the frontend, because that is how the frontend
+        // knows to actually call a tool.. but the tool here might be an
+        // internal (MCP or agent) tool call. So we emit the message without the
+        // toplevel tool call request and tool call id, but both are still set
+        // inside `currentThreadMessage.component`.
+        const {
+          toolCallRequest: _toolCallRequest, // may be undefined
+          tool_call_id: _tool_call_id, // may be undefined
+          ...messageWithoutToolCall
+        } = currentThreadMessage;
+        yield {
+          responseMessageDto: {
+            ...messageWithoutToolCall,
+            content: convertContentPartToDto(messageWithoutToolCall.content),
+            componentState: messageWithoutToolCall.componentState ?? {},
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          statusMessage: `Streaming response...`,
+          mcpAccessToken,
+        };
+
         finalThreadMessage = currentThreadMessage;
       }
 
