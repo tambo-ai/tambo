@@ -10,18 +10,7 @@ import {
   TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
-  TamboComponent,
 } from "../model/component-metadata";
-import { DateTimePicker, dateTimePickerPropsSchema } from "../components/DateTimePicker";
-
-export const componentRegistry: Record<string, TamboComponent> = {};
-
-componentRegistry["DateTimePicker"] = {
-  name: "DateTimePicker",
-  description: "Date/time picker with timezone support and keyboard navigation",
-  component: DateTimePicker,
-  propsSchema: dateTimePickerPropsSchema,
-};
 
 /**
  * Get all the available components from the component registry
@@ -103,7 +92,9 @@ export const getComponentFromRegistry = (
 ): RegisteredComponent => {
   const componentEntry = componentRegistry[componentName];
   if (!componentEntry) {
-    throw new Error(`Tambo tried to use Component ${componentName}, but it was not found.`);
+    throw new Error(
+      `Tambo tried to use Component ${componentName}, but it was not found.`,
+    );
   }
   return componentEntry;
 };
@@ -124,7 +115,9 @@ export const mapTamboToolToContextTool = (
   };
 };
 
-function isJsonSchema(schema: unknown): schema is ReturnType<typeof zodToJsonSchema> {
+function isJsonSchema(
+  schema: unknown,
+): schema is ReturnType<typeof zodToJsonSchema> {
   return (
     typeof schema === "object" &&
     schema !== null &&
@@ -150,26 +143,35 @@ const getParametersFromZodFunction = (
   }
 
   const parameters: z.ZodTuple<any, any> = schema.parameters();
-  return parameters.items.map((param: z.ZodTypeAny, index: number): ParameterSpec => {
-    const name = `param${index + 1}`;
-    const type = getZodBaseType(param);
-    const description = param.description ?? "";
-    const isRequired = !param.isOptional();
-    const schema = zodToJsonSchema(param);
-    return { name, type, description, isRequired, schema };
-  });
+  return parameters.items.map(
+    (param: z.ZodTypeAny, index: number): ParameterSpec => {
+      const name = `param${index + 1}`;
+      const type = getZodBaseType(param);
+      const description = param.description ?? "";
+      const isRequired = !param.isOptional();
+      const schema = zodToJsonSchema(param);
+      return { name, type, description, isRequired, schema };
+    },
+  );
 };
 
 const getZodBaseType = (schema: z.ZodTypeAny): string => {
   const typeName = schema._def.typeName;
   switch (typeName) {
-    case "ZodString": return "string";
-    case "ZodNumber": return "number";
-    case "ZodBoolean": return "boolean";
-    case "ZodArray": return "array";
-    case "ZodEnum": return "enum";
-    case "ZodDate": return "date";
-    case "ZodObject": return "object";
+    case "ZodString":
+      return "string";
+    case "ZodNumber":
+      return "number";
+    case "ZodBoolean":
+      return "boolean";
+    case "ZodArray":
+      return "array";
+    case "ZodEnum":
+      return "enum";
+    case "ZodDate":
+      return "date";
+    case "ZodObject":
+      return "object";
     default:
       console.warn("falling back to string for", typeName);
       return "string";

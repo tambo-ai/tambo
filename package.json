@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
-    "date-fns-tz": "^3.2.0"
+    "date-fns-tz": "^3.2.0",
+    "react-day-picker": "^9.9.0"
   }
 }
