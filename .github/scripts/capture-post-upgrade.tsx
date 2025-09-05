@@ -4,7 +4,7 @@ import { execSync } from "child_process";
 interface PackageJson {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface PreUpgradeState {

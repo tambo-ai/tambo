@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 interface PackageJson {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface PreUpgradeState {
@@ -63,4 +63,4 @@ async function capturePreUpgrade(): Promise<void> {
   }
 }
 
-capturePreUpgrade().catch(e => console.error(e));
+capturePreUpgrade().catch((e) => console.error(e));

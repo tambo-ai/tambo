@@ -1,10 +1,17 @@
 import { readFileSync, existsSync } from "fs";
 import { execSync } from "child_process";
 
+interface ReleaseInfo {
+  tag_name?: string;
+  html_url?: string;
+  body?: string;
+  [key: string]: unknown;
+}
+
 function validateEnvironment(): {
   releaseTag: string;
   branchName: string;
-  releaseInfo: any;
+  releaseInfo: ReleaseInfo | null;
 } {
   const releaseTag = process.env.RELEASE_TAG;
   const branchName = process.env.BRANCH_NAME;
@@ -53,7 +60,10 @@ function executeGitCommand(command: string): void {
   }
 }
 
-function createPullRequestBody(summary: string, releaseInfo: any): string {
+function createPullRequestBody(
+  summary: string,
+  releaseInfo: ReleaseInfo | null,
+): string {
   let body = `## 🚀 Automated Tambo Upgrade\n\n${summary}`;
 
   if (releaseInfo) {
