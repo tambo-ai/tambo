@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/tambo-ai/tambo/compare/docs-v1.5.1...docs-v1.6.0) (2025-09-05)
+
+
+### Features
+
+* **docs:** setup ai page actions ([#943](https://github.com/tambo-ai/tambo/issues/943)) ([836d7a3](https://github.com/tambo-ai/tambo/commit/836d7a3c88edea65fc6441519cc574f53372e01b))
+
 ## [1.5.1](https://github.com/tambo-ai/tambo/compare/docs-v1.5.0...docs-v1.5.1) (2025-09-04)
 
 
