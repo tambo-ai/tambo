@@ -74,8 +74,6 @@ jobs:
       - name: Verify GitHub CLI
         run: gh --version
 
-
-
       - name: Clone template repository
         env:
           GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
