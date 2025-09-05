@@ -2,7 +2,7 @@ node_modules
 .turbo
 showcase/.next/
 .env
-.env.*
+.env.local
 dist
 build
 coverage

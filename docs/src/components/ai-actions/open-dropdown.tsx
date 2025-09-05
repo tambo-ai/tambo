@@ -11,7 +11,7 @@ interface OpenDropdownProps {
 export function OpenDropdown({ pageUrl }: OpenDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const baseUrl = "https://docs.tambo.co";
+  const baseUrl = process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co";
   const fullUrl = `${baseUrl}${pageUrl}`;
   const encodedUrl = encodeURIComponent(fullUrl);
 
