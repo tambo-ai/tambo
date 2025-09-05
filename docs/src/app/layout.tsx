@@ -2,7 +2,10 @@ import "@/app/global.css";
 import { RootProvider } from "fumadocs-ui/provider";
 import { ThemeProvider } from "next-themes";
 import { Inter } from "next/font/google";
-import { PostHogPageview, PHProvider } from "@/providers/php-provider";
+import {
+  PostHogPageview,
+  PostHogRootProvider,
+} from "@/providers/posthog-provider";
 import { Suspense } from "react";
 import { WebVitalsReporter } from "@/components/web-vitals";
 import type { Metadata } from "next";
@@ -60,7 +63,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Suspense>
             <WebVitalsReporter />
           </Suspense>
-          <PHProvider>
+          <PostHogRootProvider>
             <ThemeProvider
               attribute="class"
               defaultTheme="light"
@@ -68,7 +71,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             >
               <RootProvider>{children as React.ReactNode}</RootProvider>
             </ThemeProvider>
-          </PHProvider>
+          </PostHogRootProvider>
         </TamboProvider>
       </body>
     </html>
