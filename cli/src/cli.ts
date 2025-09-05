@@ -114,7 +114,7 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app")}                     # Create in new directory
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app .")}                   # Create in current directory
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=standard")} # Use standard template
-    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=analytics")}# Use analytics template
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=analytics")} # Use analytics template
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --init-git")}          # Initialize git repo
 
     ${chalk.dim("Upgrading & Migration")}
