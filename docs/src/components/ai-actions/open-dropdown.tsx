@@ -10,6 +10,14 @@ interface OpenDropdownProps {
   githubUrl: string;
 }
 
+type LinkItem = {
+  name: string;
+  url: string;
+  icon: React.ComponentType;
+  description: string;
+  internal?: boolean;
+};
+
 const TamboLogo = () => (
   <Image
     src="/logo/icon/Octo-Icon.png"
@@ -28,7 +36,7 @@ export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
     "I want to ask questions about this page.",
   );
 
-  const links = [
+  const links: LinkItem[] = [
     {
       name: "GitHub",
       url: githubUrl,
@@ -40,6 +48,7 @@ export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
       url: `${markdownUrl}?q=${encodedTamboQuery}`,
       icon: TamboLogo,
       description: "Ask questions to tambo",
+      internal: true,
     },
     {
       name: "ChatGPT",
@@ -91,10 +100,8 @@ export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
                   <a
                     key={link.name}
                     href={link.url}
-                    target={link.name === "tambo" ? "_self" : "_blank"}
-                    rel={
-                      link.name === "tambo" ? undefined : "noopener noreferrer"
-                    }
+                    target={link.internal ? undefined : "_blank"}
+                    rel={link.internal ? undefined : "noopener noreferrer"}
                     className="flex items-center gap-3 px-4 py-2 text-sm text-fd-foreground hover:bg-neutral-200/70 hover:text-neutral-900 transition-all duration-200 group"
                     onClick={() => setIsOpen(false)}
                   >
