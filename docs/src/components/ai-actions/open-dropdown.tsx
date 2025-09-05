@@ -3,11 +3,22 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { GithubLogo, ChatGPTLogo, T3Logo, ClaudeLogo } from "./logos";
+import Image from "next/image";
 
 interface OpenDropdownProps {
   markdownUrl: string;
   githubUrl: string;
 }
+
+const TamboLogo = () => (
+  <Image
+    src="/logo/icon/Octo-Icon.png"
+    alt="Tambo"
+    width={24}
+    height={24}
+    className="w-6 h-6"
+  />
+);
 
 export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +31,12 @@ export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
       url: githubUrl,
       icon: GithubLogo,
       description: "View source on GitHub",
+    },
+    {
+      name: "tambo",
+      url: `${markdownUrl}?q=I want to ask questions about this page.`,
+      icon: TamboLogo,
+      description: "Ask questions to tambo",
     },
     {
       name: "ChatGPT",
@@ -71,8 +88,10 @@ export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
                   <a
                     key={link.name}
                     href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target={link.name === "tambo" ? "_self" : "_blank"}
+                    rel={
+                      link.name === "tambo" ? undefined : "noopener noreferrer"
+                    }
                     className="flex items-center gap-3 px-4 py-2 text-sm text-fd-foreground hover:bg-neutral-200/70 hover:text-neutral-900 transition-all duration-200 group"
                     onClick={() => setIsOpen(false)}
                   >
