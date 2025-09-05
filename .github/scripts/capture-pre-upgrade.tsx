@@ -63,4 +63,4 @@ async function capturePreUpgrade(): Promise<void> {
   }
 }
 
-capturePreUpgrade();
+capturePreUpgrade().catch(e => console.error(e));
