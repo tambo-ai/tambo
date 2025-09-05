@@ -113,7 +113,9 @@ All three methods can be used together—context from helpers and manual context
 | Custom Helpers   | You have app-wide context that should always be included | User profile, app settings, feature flags              |
 | Manual Context   | Context is specific to a particular interaction          | Search filters, form data, temporary state             |
 
-## Available Prebuilt Context Helpers
+## Available Prebuilt Context Helpers (On by Default)
+
+These helpers are automatically enabled when using the corresponding provider. You can disable them by overriding them with a function that returns null.
 
 ### currentTimeContextHelper
 
@@ -139,6 +141,31 @@ Example result:
   "title": "Analytics Dashboard"
 }
 ```
+
+### currentInteractablesContextHelper
+
+**Automatically enabled** when using `TamboInteractableProvider`. Provides information about all interactable components currently on the page that the AI can read and modify.
+
+We found this to be the most effective way to provide the AI with information about the current page and the components on the page. It's easy to disable or customize as needed.
+
+Example result:
+
+```json
+{
+  "description": "These are the interactable components currently visible on the page...",
+  "components": [
+    {
+      "id": "Note-abc123",
+      "componentName": "Note",
+      "description": "A simple note",
+      "props": { "title": "My Note", "content": "Hello world" },
+      "propsSchema": "Available - use component-specific update tools"
+    }
+  ]
+}
+```
+
+See [Interactable Components](/concepts/components/interactable-components) for details on customizing or disabling this helper.
 
 **Notes:**
 

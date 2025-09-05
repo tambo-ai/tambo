@@ -14,6 +14,8 @@ import {
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
 import { useTamboComponent } from "./tambo-component-provider";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -40,6 +42,21 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     TamboInteractableComponent[]
   >([]);
   const { registerTool } = useTamboComponent();
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  // Create a stable context helper function
+  const contextHelper = useCallback(() => {
+    return createInteractablesContextHelper(() => interactableComponents)();
+  }, [interactableComponents]);
+
+  // Register the default interactables context helper
+  useEffect(() => {
+    addContextHelper("interactables", contextHelper);
+
+    return () => {
+      removeContextHelper("interactables");
+    };
+  }, [contextHelper, addContextHelper, removeContextHelper]);
 
   useEffect(() => {
     if (interactableComponents.length > 0) {
@@ -233,7 +250,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     (
       component: Omit<TamboInteractableComponent, "id" | "createdAt">,
     ): string => {
-      const id = `${component.name}-${Math.random().toString(36).substr(2, 9)}`;
+      const id = `${component.name}-${Math.random().toString(36).slice(2, 11)}`;
       const newComponent: TamboInteractableComponent = {
         ...component,
         id,
@@ -296,4 +313,22 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
  */
 export const useTamboInteractable = () => {
   return useContext(TamboInteractableContext);
+};
+
+/**
+ * Hook to get a cloned snapshot of the current interactables.
+ * Returns a shallow copy of the array with cloned items and props to prevent
+ * external mutation from affecting internal state.
+ * @returns The current interactables snapshot (cloned).
+ */
+export const useCurrentInteractablesSnapshot = () => {
+  const { interactableComponents } = useTamboInteractable();
+
+  // Clone the array and each item/props to prevent mutation
+  const copy = interactableComponents.map((c) => ({
+    ...c,
+    props: { ...c.props },
+  }));
+
+  return copy;
 };
