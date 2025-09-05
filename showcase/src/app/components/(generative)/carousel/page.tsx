@@ -21,7 +21,7 @@ export default function MapPage() {
       <ShowcaseThemeProvider defaultTheme="light">
         <div className="flex flex-col gap-8">
           <div>
-            <h1 className="text-3xl font-bold mb-4">Map</h1>
+            <h1 className="text-3xl font-bold mb-4">Carousel</h1>
             <p className="text-lg text-secondary">
               An interactive Carousel component with swipe/drag, keyboard
               navigation, looping, autoplay, and lazy-loading slides.

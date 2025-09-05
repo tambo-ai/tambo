@@ -49,7 +49,7 @@ export const carouselSchema = z.object({
       "xxl",
     ])
     .optional(),
-  width: z.enum(["default", "sm", "md", "lg"]).optional(),
+  width: z.enum(["default", "sm", "md", "lg", "xl", "xxl"]).optional(),
 });
 
 export type CarouselDataType = z.infer<typeof carouselDataSchema>;
@@ -97,6 +97,8 @@ const carouselVariants = cva(
         sm: "max-w-sm",
         md: "max-w-md",
         lg: "max-w-lg",
+        xl: "max-w-xl",
+        xxl: "max-w-7xl",
       },
     },
     defaultVariants: {
