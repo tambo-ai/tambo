@@ -23,6 +23,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ag-ui/crewai": "^0.0.2",
     "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
@@ -55,7 +56,7 @@
     "openai": "^5.16.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.2",
+    "rxjs": "7.8.1",
     "superjson": "^2.2.2",
     "uuid": "^11.1.0"
   },

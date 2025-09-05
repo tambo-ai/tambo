@@ -1,3 +1,5 @@
+import { AgentProviderType, AiProviderType } from "@tambo-ai-cloud/core";
+
 export class ProjectCreateRequest {
   projectName!: string;
 }
@@ -17,6 +19,12 @@ export class ProjectResponse {
   customInstructions?: string;
   maxInputTokens?: number | null;
   isTokenRequired!: boolean;
+  providerType!: AiProviderType;
+  agentProviderType?: AgentProviderType;
+  // TODO: This should not be exposed in the public API
+  agentName?: string;
+  // TODO: This should not be exposed in the public API
+  agentUrl?: string;
 }
 
 export class SimpleProjectResponse {

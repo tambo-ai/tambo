@@ -43,6 +43,7 @@ export class ProjectsService {
       name: project.name,
       userId: project.userId,
       isTokenRequired: project.isTokenRequired,
+      providerType: project.providerType,
     };
   }
 
@@ -59,6 +60,10 @@ export class ProjectsService {
       customInstructions: project.customInstructions ?? undefined,
       maxInputTokens: project.maxInputTokens ?? undefined,
       isTokenRequired: project.isTokenRequired,
+      providerType: project.providerType,
+      agentProviderType: project.agentProviderType,
+      agentName: project.agentName ?? undefined,
+      agentUrl: project.agentUrl ?? undefined,
     }));
   }
 
@@ -78,6 +83,10 @@ export class ProjectsService {
       customInstructions: project.customInstructions ?? undefined,
       maxInputTokens: project.maxInputTokens ?? undefined,
       isTokenRequired: project.isTokenRequired,
+      providerType: project.providerType,
+      agentProviderType: project.agentProviderType,
+      agentName: project.agentName ?? undefined,
+      agentUrl: project.agentUrl ?? undefined,
     };
   }
 
@@ -151,6 +160,10 @@ export class ProjectsService {
       customInstructions: updated.customInstructions ?? undefined,
       maxInputTokens: updated.maxInputTokens ?? undefined,
       isTokenRequired: updated.isTokenRequired,
+      providerType: updated.providerType,
+      agentProviderType: updated.agentProviderType,
+      agentName: updated.agentName ?? undefined,
+      agentUrl: updated.agentUrl ?? undefined,
     };
   }
 
@@ -237,6 +250,10 @@ export class ProjectsService {
       customInstructions: result.customInstructions ?? undefined,
       maxInputTokens: result.maxInputTokens ?? undefined,
       isTokenRequired: result.isTokenRequired,
+      providerType: result.providerType,
+      agentProviderType: result.agentProviderType,
+      agentName: result.agentName ?? undefined,
+      agentUrl: result.agentUrl ?? undefined,
     };
   }
 
