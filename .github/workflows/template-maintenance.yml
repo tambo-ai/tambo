@@ -32,9 +32,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: '.github/scripts/package.json'
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ".github/scripts/package.json"
 
       - name: Install script dependencies
         working-directory: .github/scripts
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        template-repo: ['tambo-ai/tambo-template']
+        template-repo: ["tambo-ai/tambo-template"]
       fail-fast: false
     steps:
       - name: Checkout repository
@@ -63,9 +63,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: '.github/scripts/package.json'
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ".github/scripts/package.json"
 
       - name: Install script dependencies
         working-directory: .github/scripts
@@ -136,8 +136,6 @@ jobs:
             template-repo/package.json.before
             template-repo/package.json
           retention-days: 30
-
-
 
   summary:
     needs: [check-releases, upgrade-templates]
