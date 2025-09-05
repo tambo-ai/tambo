@@ -19,33 +19,67 @@ permissions:
   actions: read
 
 jobs:
-  detect-release:
+  check-releases:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: github.event.workflow_run.conclusion == 'success'
     outputs:
-      should-upgrade: ${{ steps.check-release.outputs.should-upgrade }}
-      release-tag: ${{ steps.check-release.outputs.release-tag }}
-      release-type: ${{ steps.check-release.outputs.release-type }}
-      release-url: ${{ steps.check-release.outputs.release-url }}
+      has-release: ${{ steps.check.outputs.has-release }}
+      release-info: ${{ steps.check.outputs.release-info }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - name: Check for releases
+        id: check
+        uses: actions/github-script@v7
         with:
-          fetch-depth: 0
-          token: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
-
-      # Script is now executable in the repository
-
-      - name: Check for relevant release
-        id: check-release
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: .github/scripts/detect-release.sh
+          script: |
+            const runId = context.payload.workflow_run.id;
+            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId
+            });
+            
+            // Check if any release was created by looking at the workflow run
+            const releaseJob = jobs.jobs.find(job => job.name === 'release-please');
+            if (!releaseJob) {
+              core.setOutput('has-release', 'false');
+              return;
+            }
+            
+            // Get the workflow run to check outputs
+            const { data: workflowRun } = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId
+            });
+            
+            // Check recent releases to see if any were just created
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 5
+            });
+            
+            const recentRelease = releases.find(release => {
+              const releaseTime = new Date(release.created_at);
+              const workflowTime = new Date(workflowRun.created_at);
+              return Math.abs(releaseTime - workflowTime) < 5 * 60 * 1000; // Within 5 minutes
+            });
+            
+            if (recentRelease) {
+              core.setOutput('has-release', 'true');
+              core.setOutput('release-info', JSON.stringify({
+                tag: recentRelease.tag_name,
+                url: recentRelease.html_url,
+                name: recentRelease.name
+              }));
+            } else {
+              core.setOutput('has-release', 'false');
+            }
 
   upgrade-templates:
-    needs: detect-release
+    needs: check-releases
+    if: needs.check-releases.outputs.has-release == 'true'
     runs-on: ubuntu-latest
-    if: ${{ needs.detect-release.outputs.should-upgrade == 'true' }}
     strategy:
       matrix:
         template-repo: ['tambo-ai/tambo-template']
@@ -77,13 +111,25 @@ jobs:
       - name: Create upgrade branch
         working-directory: template-repo
         run: |
-          BRANCH_NAME="tambo-upgrade-${{ needs.detect-release.outputs.release-tag }}"
+          RELEASE_INFO='${{ needs.check-releases.outputs.release-info }}'
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag')
+          BRANCH_NAME="tambo-upgrade-$RELEASE_TAG"
           git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
 
       - name: Capture pre-upgrade state
         working-directory: template-repo
-        run: ../../.github/scripts/capture-pre-upgrade.sh
+        run: |
+          echo "# Pre-upgrade State" > upgrade-summary.md
+          echo "" >> upgrade-summary.md
+          echo "## Package Versions Before Upgrade" >> upgrade-summary.md
+          echo "" >> upgrade-summary.md
+          if [ -f package.json ]; then
+            echo '```json' >> upgrade-summary.md
+            jq '.dependencies // {} + .devDependencies // {}' package.json >> upgrade-summary.md
+            echo '```' >> upgrade-summary.md
+          fi
 
       - name: Run Tambo upgrade
         working-directory: template-repo
@@ -97,26 +143,78 @@ jobs:
 
       - name: Capture post-upgrade state and generate diff
         working-directory: template-repo
-        env:
-          RELEASE_TAG: ${{ needs.detect-release.outputs.release-tag }}
-          RELEASE_URL: ${{ needs.detect-release.outputs.release-url }}
-        run: ../../.github/scripts/capture-post-upgrade.sh
+        run: |
+          # Check if there are any changes
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "NO_CHANGES=true" >> $GITHUB_ENV
+            echo "No changes detected after upgrade"
+            exit 0
+          fi
+          
+          # Append post-upgrade information
+          echo "" >> upgrade-summary.md
+          echo "## Package Versions After Upgrade" >> upgrade-summary.md
+          echo "" >> upgrade-summary.md
+          if [ -f package.json ]; then
+            echo '```json' >> upgrade-summary.md
+            jq '.dependencies // {} + .devDependencies // {}' package.json >> upgrade-summary.md
+            echo '```' >> upgrade-summary.md
+          fi
+          
+          echo "" >> upgrade-summary.md
+          echo "## Changes Made" >> upgrade-summary.md
+          echo "" >> upgrade-summary.md
+          echo '```diff' >> upgrade-summary.md
+          git diff >> upgrade-summary.md
+          echo '```' >> upgrade-summary.md
 
       - name: Create Pull Request
         if: env.NO_CHANGES != 'true' && env.UPGRADE_FAILED != 'true'
         working-directory: template-repo
         env:
           GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ needs.detect-release.outputs.release-tag }}
-          BRANCH_NAME: ${{ env.BRANCH_NAME }}
-          TEMPLATE_REPO: ${{ matrix.template-repo }}
-        run: ../../.github/scripts/create-pr.sh
+        run: |
+          RELEASE_INFO='${{ needs.check-releases.outputs.release-info }}'
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag')
+          RELEASE_URL=$(echo "$RELEASE_INFO" | jq -r '.url')
+          RELEASE_NAME=$(echo "$RELEASE_INFO" | jq -r '.name')
+          
+          # Commit changes
+          git add .
+          git commit -m "chore: upgrade to Tambo $RELEASE_TAG"
+          
+          # Push branch
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR body
+          cat > pr_body.md << EOF
+          # 🚀 Tambo Template Upgrade
+          
+          This PR upgrades the template to use the latest Tambo release: **$RELEASE_NAME**
+          
+          ## Release Information
+          - **Tag**: $RELEASE_TAG
+          - **Release**: [$RELEASE_NAME]($RELEASE_URL)
+          
+          ## Summary
+          $(cat upgrade-summary.md)
+          
+          ---
+          *This PR was automatically created by the Tambo template maintenance workflow.*
+          EOF
+          
+          # Create pull request
+          gh pr create \
+            --title "chore: upgrade to Tambo $RELEASE_TAG" \
+            --body-file pr_body.md \
+            --head "$BRANCH_NAME" \
+            --base main
 
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: upgrade-logs-${{ matrix.template-repo }}-${{ needs.detect-release.outputs.release-tag }}
+          name: upgrade-logs-${{ matrix.template-repo }}-${{ env.RELEASE_TAG }}
           path: |
             template-repo/upgrade-summary.md
             template-repo/package.json.before
@@ -134,16 +232,18 @@ jobs:
           fi
 
   summary:
-    needs: [detect-release, upgrade-templates]
+    needs: [check-releases, upgrade-templates]
     runs-on: ubuntu-latest
-    if: always() && needs.detect-release.outputs.should-upgrade == 'true'
+    if: always() && needs.check-releases.outputs.has-release == 'true'
     steps:
       - name: Summary
         run: |
+          RELEASE_INFO='${{ needs.check-releases.outputs.release-info }}'
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag')
+          echo "Template maintenance workflow completed for release: $RELEASE_TAG"
           echo "## Template Maintenance Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Release:** ${{ needs.detect-release.outputs.release-tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Type:** ${{ needs.detect-release.outputs.release-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release:** $RELEASE_TAG" >> $GITHUB_STEP_SUMMARY
           echo "**Status:** ${{ needs.upgrade-templates.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
