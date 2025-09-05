@@ -12,9 +12,8 @@
  *  - The provider aggregates helpers passed in its props and returns AdditionalContext[].
  */
 
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import React, { PropsWithChildren } from "react";
-import { setHelpers } from "../../context-helpers/registry";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
@@ -46,7 +45,6 @@ function wrapper(helpers?: Record<string, ContextHelperFn>) {
 describe("Context Helpers API", () => {
   // Ensure the global registry doesn't leak state between tests
   beforeEach(() => {
-    setHelpers({});
     jest.clearAllMocks();
   });
 
@@ -133,7 +131,10 @@ describe("Context Helpers API", () => {
     expect(await result.current.getAdditionalContext()).toHaveLength(0);
 
     // Add
-    result.current.addContextHelper("dyn", () => ({ x: 10 }));
+    act(() => {
+      result.current.addContextHelper("dyn", () => ({ x: 10 }));
+    });
+
     let contexts = await result.current.getAdditionalContext();
     expect(contexts).toHaveLength(1);
     expect(contexts[0]).toEqual<AdditionalContext>({
@@ -142,7 +143,9 @@ describe("Context Helpers API", () => {
     });
 
     // Update
-    result.current.addContextHelper("dyn", () => ({ x: 20 }));
+    act(() => {
+      result.current.addContextHelper("dyn", () => ({ x: 20 }));
+    });
     contexts = await result.current.getAdditionalContext();
     expect(contexts).toHaveLength(1);
     expect(contexts[0]).toEqual<AdditionalContext>({
@@ -151,7 +154,9 @@ describe("Context Helpers API", () => {
     });
 
     // Remove
-    result.current.removeContextHelper("dyn");
+    act(() => {
+      result.current.removeContextHelper("dyn");
+    });
     contexts = await result.current.getAdditionalContext();
     expect(contexts).toHaveLength(0);
   });
