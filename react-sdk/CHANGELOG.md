@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.47.0](https://github.com/tambo-ai/tambo/compare/react-v0.46.5...react-v0.47.0) (2025-09-05)
+
+
+### Features
+
+* **context-helpers:** remove global context helper registry ([#975](https://github.com/tambo-ai/tambo/issues/975)) ([b643495](https://github.com/tambo-ai/tambo/commit/b6434956ad1f3e4e34e658e569014799a77cb73a))
+
+
+### Bug Fixes
+
+* register interactable components tools only when there is any interactable component ([#974](https://github.com/tambo-ai/tambo/issues/974)) ([864f76c](https://github.com/tambo-ai/tambo/commit/864f76c91140a9f0ac4915aaed37d2904e1e8bc8))
+
 ## [0.46.5](https://github.com/tambo-ai/tambo/compare/react-v0.46.4...react-v0.46.5) (2025-09-04)
 
 

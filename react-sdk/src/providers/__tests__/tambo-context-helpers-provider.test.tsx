@@ -4,7 +4,6 @@ import {
   currentPageContextHelper,
   currentTimeContextHelper,
 } from "../../context-helpers";
-import { setHelpers } from "../../context-helpers/registry";
 import {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
@@ -25,7 +24,6 @@ import {
 describe("TamboContextHelpersProvider", () => {
   // Ensure registry is clean for each test to avoid cross-test contamination
   beforeEach(() => {
-    setHelpers({});
     jest.clearAllMocks();
   });
 
@@ -35,43 +33,6 @@ describe("TamboContextHelpersProvider", () => {
   );
 
   describe("useTamboContextHelpers", () => {
-    /**
-     * NOTE: The hook is registry-backed and safe outside provider. It should not throw.
-     * This replaces the previous behavior that threw without a provider.
-     */
-    it("should be safe outside provider (registry-backed no provider)", async () => {
-      const consoleSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-      const { result } = renderHook(() => useTamboContextHelpers());
-
-      // Should return callable functions
-      expect(typeof result.current.getAdditionalContext).toBe("function");
-      expect(typeof result.current.getContextHelpers).toBe("function");
-      expect(typeof result.current.addContextHelper).toBe("function");
-      expect(typeof result.current.removeContextHelper).toBe("function");
-
-      // Starts empty
-      expect(await result.current.getAdditionalContext()).toHaveLength(0);
-
-      // Add a helper and verify
-      act(() => {
-        result.current.addContextHelper("outsideHelper", () => ({ ok: true }));
-      });
-
-      const contexts = await result.current.getAdditionalContext();
-      expect(contexts).toContainEqual({
-        name: "outsideHelper",
-        context: { ok: true },
-      });
-
-      // Cleanup
-      act(() => {
-        result.current.removeContextHelper("outsideHelper");
-      });
-      consoleSpy.mockRestore();
-    });
-
     /**
      * Verifies that the hook returns the expected API functions when used within a provider.
      */
@@ -170,7 +131,6 @@ describe("TamboContextHelpersProvider", () => {
  */
 describe("Custom Context Helpers via contextHelpers config", () => {
   beforeEach(() => {
-    setHelpers({});
     jest.clearAllMocks();
   });
 
