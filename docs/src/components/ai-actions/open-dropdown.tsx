@@ -24,6 +24,9 @@ export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const encodedUrl = encodeURIComponent(markdownUrl);
+  const encodedTamboQuery = encodeURIComponent(
+    "I want to ask questions about this page.",
+  );
 
   const links = [
     {
@@ -34,7 +37,7 @@ export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
     },
     {
       name: "tambo",
-      url: `${markdownUrl}?q=I want to ask questions about this page.`,
+      url: `${markdownUrl}?q=${encodedTamboQuery}`,
       icon: TamboLogo,
       description: "Ask questions to tambo",
     },
