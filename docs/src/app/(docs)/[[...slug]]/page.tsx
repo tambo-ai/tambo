@@ -1,6 +1,6 @@
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { source } from "@/lib/source";
-import { getLLMText } from "@/lib/llm";
+import { getLLMText } from "@/lib/get-llm-text";
 import { getMDXComponents } from "@/mdx-components";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import {
