@@ -5,15 +5,20 @@ import { useTamboThread } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";
 import * as React from "react";
 import type { TamboThreadMessage } from "@tambo-ai/react";
+import { z } from "zod";
+
+/**
+ * Zod schema for CanvasSpace
+ */
+export const CanvasSpacePropsSchema = z.object({
+  /** Optional CSS class name for custom styling */
+  className: z.string().optional(),
+});
 
 /**
  * Props for the CanvasSpace component
- * @interface
  */
-interface CanvasSpaceProps {
-  /** Optional CSS class name for custom styling */
-  className?: string;
-}
+export type CanvasSpaceProps = z.infer<typeof CanvasSpacePropsSchema>;
 
 /**
  * A canvas space component that displays rendered components from chat messages.
@@ -126,7 +131,7 @@ export function CanvasSpace({ className }: CanvasSpaceProps) {
   return (
     <div
       className={cn(
-        "h-screen flex-1 flex flex-col bg-white/50 backdrop-blur-sm overflow-hidden border-l border-flat",
+        "h-full flex-1 flex flex-col bg-white/50 backdrop-blur-sm overflow-hidden border-l border-flat",
         className,
       )}
       data-canvas-space="true"
