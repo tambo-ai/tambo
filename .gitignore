@@ -1,6 +1,7 @@
 node_modules
 .turbo
 showcase/.next/
+.env
 .env.*
 !.env.example
 dist
