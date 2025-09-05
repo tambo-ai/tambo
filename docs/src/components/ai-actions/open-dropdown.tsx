@@ -64,7 +64,7 @@ export function OpenDropdown({ pageUrl }: OpenDropdownProps) {
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute left-10 top-full mt-1 w-64 bg-fd-background border border-fd-border rounded-md shadow-lg z-50">
+          <div className="absolute right-0 sm:left-0 top-full mt-1 w-64 sm:w-72 bg-fd-background border border-fd-border rounded-md shadow-lg z-50">
             <div>
               {links.map((link) => {
                 const Icon = link.icon;
