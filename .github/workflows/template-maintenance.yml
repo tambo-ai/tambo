@@ -46,7 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
-        run: node detect-releases.js
+        run: npx tsx detect-releases.tsx
 
   upgrade-templates:
     needs: check-releases
@@ -74,8 +74,7 @@ jobs:
       - name: Verify GitHub CLI
         run: gh --version
 
-      - name: Install Tambo CLI
-        run: npm install -g tambo@latest
+
 
       - name: Clone template repository
         env:
@@ -100,31 +99,27 @@ jobs:
         working-directory: template-repo
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
-        run: node ../.github/scripts/capture-pre-upgrade.js
+        run: npx tsx ../.github/scripts/capture-pre-upgrade.tsx
 
       - name: Run Tambo upgrade
         working-directory: template-repo
-        run: |
-          npx tambo@latest upgrade --accept-all --silent || {
-            echo "UPGRADE_FAILED=true" >> $GITHUB_ENV
-            exit 1
-          }
+        run: npx -y tambo@latest upgrade --accept-all --silent
 
       - name: Capture post-upgrade state and generate diff
         working-directory: template-repo
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
-        run: node ../.github/scripts/capture-post-upgrade.js
+        run: npx tsx ../.github/scripts/capture-post-upgrade.tsx
 
       - name: Create Pull Request
-        if: env.NO_CHANGES != 'true' && env.UPGRADE_FAILED != 'true'
+        if: env.NO_CHANGES != 'true'
         working-directory: template-repo
         env:
           GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
           RELEASE_INFO: ${{ needs.check-releases.outputs.release-info }}
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           BRANCH_NAME: ${{ env.BRANCH_NAME }}
-        run: node ../.github/scripts/create-pr.js
+        run: npx tsx ../.github/scripts/create-pr.tsx
 
       - name: Upload logs on failure
         if: failure()
