@@ -34,7 +34,10 @@ export default async function Page(props: {
 
       <div className="flex items-center gap-2 mb-6 pb-4 border-b border-fd-border">
         <LLMCopyButton content={llmContent} />
-        <OpenDropdown pageUrl={page.url} />
+        <OpenDropdown
+          markdownUrl={`${process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co"}${page.url}`}
+          githubUrl={`https://github.com/tambo-ai/tambo/blob/main/docs/content/docs/${page.path}`}
+        />
       </div>
 
       <DocsBody>

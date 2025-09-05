@@ -5,20 +5,19 @@ import { ChevronDown } from "lucide-react";
 import { GithubLogo, ChatGPTLogo, T3Logo, ClaudeLogo } from "./logos";
 
 interface OpenDropdownProps {
-  pageUrl: string;
+  markdownUrl: string;
+  githubUrl: string;
 }
 
-export function OpenDropdown({ pageUrl }: OpenDropdownProps) {
+export function OpenDropdown({ markdownUrl, githubUrl }: OpenDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const baseUrl = process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co";
-  const fullUrl = `${baseUrl}${pageUrl}`;
-  const encodedUrl = encodeURIComponent(fullUrl);
+  const encodedUrl = encodeURIComponent(markdownUrl);
 
   const links = [
     {
       name: "GitHub",
-      url: `https://github.com/tambo-ai/tambo/blob/main/docs/content/docs${pageUrl}.mdx`,
+      url: githubUrl,
       icon: GithubLogo,
       description: "View source on GitHub",
     },
