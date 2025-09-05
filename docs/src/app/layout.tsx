@@ -9,7 +9,7 @@ import {
 import { Suspense } from "react";
 import { WebVitalsReporter } from "@/components/web-vitals";
 import type { Metadata } from "next";
-import { TamboProvider } from "@/providers/tambo-provider";
+import { TamboRootProvider } from "@/providers/tambo-provider";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.ai";
 
@@ -56,7 +56,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
-        <TamboProvider>
+        <TamboRootProvider>
           <Suspense>
             <PostHogPageview />
           </Suspense>
@@ -72,7 +72,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <RootProvider>{children as React.ReactNode}</RootProvider>
             </ThemeProvider>
           </PostHogRootProvider>
-        </TamboProvider>
+        </TamboRootProvider>
       </body>
     </html>
   );
