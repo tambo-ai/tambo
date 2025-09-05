@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.104.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.104.1...repo-v0.104.2) (2025-09-04)
+
+
+### Bug Fixes
+
+* emit informational tool call message ([#1696](https://github.com/tambo-ai/tambo-cloud/issues/1696)) ([45bd767](https://github.com/tambo-ai/tambo-cloud/commit/45bd7676846a5d086a7812fac116f776c63eef02))
+* Update TamboEmailButton to hide when thread has messages and fix text color on dashboard ([#1695](https://github.com/tambo-ai/tambo-cloud/issues/1695)) ([32b1fe7](https://github.com/tambo-ai/tambo-cloud/commit/32b1fe710290ceab995bc97ce55a2a5a2a9e2eba))
+
+
+### Documentation
+
+* update README for MCP endpoint path ([#1692](https://github.com/tambo-ai/tambo-cloud/issues/1692)) ([e9b2fbf](https://github.com/tambo-ai/tambo-cloud/commit/e9b2fbf1380ec3fa130afbeb09b1dbbad49a3640))
+
+
+### Miscellaneous Chores
+
+* **tools:** Create a simple tool for doing SSE debugging ([#1694](https://github.com/tambo-ai/tambo-cloud/issues/1694)) ([32b9103](https://github.com/tambo-ai/tambo-cloud/commit/32b9103f20d3e6fda09b34fdb5fa8b12d2ef62b4))
+
+
+### Code Refactoring
+
+* **agents:** A bunch of minor code improvements found during agent work ([#1697](https://github.com/tambo-ai/tambo-cloud/issues/1697)) ([7ac2877](https://github.com/tambo-ai/tambo-cloud/commit/7ac28771ab206870046acd127810a43a8f8850e0))
+* **decision-loop:** Consolidate tool-limit logic ([#1685](https://github.com/tambo-ai/tambo-cloud/issues/1685)) ([aa05b07](https://github.com/tambo-ai/tambo-cloud/commit/aa05b07386e0e0ccdf2ec8723648d8ae9c06a606))
+* **tools:** consolidate client + server tools into known types ([#1686](https://github.com/tambo-ai/tambo-cloud/issues/1686)) ([2d14920](https://github.com/tambo-ai/tambo-cloud/commit/2d149201b781defd35ce5356d8141a84effa784c))
+
 ## [0.104.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.104.0...repo-v0.104.1) (2025-09-03)
 
 
