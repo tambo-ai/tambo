@@ -1,0 +1,27 @@
+{
+  "name": "tambo-github-scripts",
+  "version": "1.0.0",
+  "description": "GitHub Actions scripts for Tambo template maintenance",
+  "private": true,
+  "scripts": {
+    "detect-releases": "node detect-releases.js",
+    "capture-pre-upgrade": "node capture-pre-upgrade.js",
+    "capture-post-upgrade": "node capture-post-upgrade.js",
+    "create-pr": "node create-pr.js"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@octokit/rest": "^20.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "github-actions",
+    "automation",
+    "tambo",
+    "template-maintenance"
+  ],
+  "author": "Tambo Team",
+  "license": "MIT"
+}
