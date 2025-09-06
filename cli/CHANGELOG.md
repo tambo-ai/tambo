@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.30.1...tambo-v0.31.0) (2025-09-06)
+
+
+### Features
+
+* **cli:** add analytics template and update related commands and docs ([#978](https://github.com/tambo-ai/tambo/issues/978)) ([5431386](https://github.com/tambo-ai/tambo/commit/5431386a79d3933725c4d395bcf4548869a7c23f))
+
 ## [0.30.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.30.0...tambo-v0.30.1) (2025-09-04)
 
 
