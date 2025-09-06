@@ -52,12 +52,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the transcription result
-    const result = await response.json();
+    // Get the transcription result - OpenAI returns plain text when response_format is "text"
+    const transcribedText = await response.text();
 
     // Return the transcribed text
     return NextResponse.json({
-      text: result.text || "",
+      text: transcribedText.trim(),
     });
   } catch (error) {
     console.error("Transcription error:", error);

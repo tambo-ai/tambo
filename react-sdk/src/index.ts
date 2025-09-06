@@ -60,6 +60,7 @@ export {
   useVoiceInput,
   type UseVoiceInputResult,
   type VoiceInputState,
+  type PermissionState,
 } from "./hooks/use-voice-input";
 export {
   type ComponentContextToolMetadata,

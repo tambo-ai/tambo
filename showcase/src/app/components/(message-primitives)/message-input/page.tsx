@@ -1,3 +1,5 @@
+"use client";
+
 import { CLI } from "@/components/cli";
 import {
   MessageInput,
@@ -31,8 +33,8 @@ export default function MessageInputPage() {
   <MessageInputError />
 </MessageInput>
 
-// With voice input (requires voiceInputEnabled prop)
-<TamboProvider apiKey="your-api-key" voiceInputEnabled={true}>
+// With voice input
+<TamboProvider apiKey="your-api-key">
   <MessageInput contextKey="my-thread" variant="default">
     <MessageInputTextarea placeholder="Type or speak your message..." />
     <MessageInputToolbar>
@@ -44,7 +46,7 @@ export default function MessageInputPage() {
 </TamboProvider>
 
 // With MCP configuration and voice input
-<TamboProvider apiKey="your-api-key" voiceInputEnabled={true}>
+<TamboProvider apiKey="your-api-key">
   <MessageInput contextKey="my-thread" variant="default">
     <MessageInputTextarea />
     <MessageInputToolbar>
@@ -116,10 +118,9 @@ export default function MessageInputPage() {
                     <code>&lt;MessageInputVoiceButton /&gt;</code> -
                   </strong>{" "}
                   Button for voice input functionality. Allows users to record
-                  audio and automatically transcribe it to text. Only appears
-                  when voice input is enabled via <code>voiceInputEnabled</code>{" "}
-                  prop on TamboProvider and the browser supports the necessary
-                  APIs.
+                  audio and automatically transcribe it to text. Automatically
+                  detects browser support and only renders when the necessary
+                  APIs are available.
                 </li>
                 <li>
                   <strong>
@@ -194,7 +195,7 @@ export default function MessageInputPage() {
           <div>
             <h3 className="text-lg font-medium mb-3">With Voice Input</h3>
             <div className="p-4 border rounded-lg bg-white">
-              <TamboProvider apiKey="demo-key" voiceInputEnabled={true}>
+              <TamboProvider apiKey="demo-key">
                 <MessageInput contextKey="demo-voice" variant="default">
                   <MessageInputTextarea placeholder="Type or speak your message..." />
                   <div className="flex justify-end items-center mt-2 p-1 gap-2">
@@ -238,7 +239,7 @@ export default function MessageInputPage() {
               Full Featured (MCP + Voice Input)
             </h3>
             <div className="p-4 border rounded-lg bg-white">
-              <TamboProvider apiKey="demo-key" voiceInputEnabled={true}>
+              <TamboProvider apiKey="demo-key">
                 <MessageInput contextKey="demo-full" variant="default">
                   <MessageInputTextarea placeholder="Type or speak your message..." />
                   <div className="flex justify-between items-center mt-2 p-1 gap-2">

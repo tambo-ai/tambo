@@ -39,10 +39,7 @@ import {
   TamboThreadProviderProps,
   useTamboThread,
 } from "./tambo-thread-provider";
-import {
-  TamboVoiceInputProvider,
-  TamboVoiceInputProviderProps,
-} from "./tambo-voice-input-provider";
+import { TamboVoiceInputProvider } from "./tambo-voice-input-provider";
 
 /**
  * The TamboProvider gives full access to the whole Tambo API. This includes the
@@ -58,7 +55,6 @@ import {
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
  * @param props.userToken - The JWT id token to use to identify the user in the Tambo API. (preferred over contextKey)
  * @param props.contextKey - Optional context key to be used in the thread input provider
- * @param props.voiceInputEnabled - Whether voice input functionality is enabled. Defaults to false.
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -67,8 +63,7 @@ export const TamboProvider: React.FC<
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
       TamboContextHelpersProviderProps &
-      TamboThreadInputProviderProps &
-      TamboVoiceInputProviderProps
+      TamboThreadInputProviderProps
   >
 > = ({
   children,
@@ -81,7 +76,6 @@ export const TamboProvider: React.FC<
   streaming,
   contextHelpers,
   contextKey,
-  voiceInputEnabled,
 }) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
@@ -99,7 +93,7 @@ export const TamboProvider: React.FC<
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider streaming={streaming}>
             <TamboThreadInputProvider contextKey={contextKey}>
-              <TamboVoiceInputProvider voiceInputEnabled={voiceInputEnabled}>
+              <TamboVoiceInputProvider>
                 <TamboComponentProvider>
                   <TamboInteractableProvider>
                     <TamboCompositeProvider>{children}</TamboCompositeProvider>

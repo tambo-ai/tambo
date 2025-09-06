@@ -11,29 +11,28 @@ export const TamboVoiceInputContext = createContext<
 >(undefined);
 
 export interface TamboVoiceInputProviderProps {
-  /** Whether voice input functionality is enabled. Defaults to true. */
+  /** Deprecated: Voice input is now always enabled when the component is present */
   voiceInputEnabled?: boolean;
 }
 
 /**
  * Provider for managing voice input configuration across the application.
- * This provider controls whether voice input features are available to users.
+ * Voice input is now automatically enabled when the MessageInputVoiceButton component is used.
  * @param props - The props for the TamboVoiceInputProvider
  * @param props.children - The children to render
- * @param props.voiceInputEnabled - Whether voice input is enabled (default: false)
  * @returns The provider component
  * @example
  * ```tsx
- * <TamboVoiceInputProvider voiceInputEnabled={false}>
+ * <TamboVoiceInputProvider>
  *   <App />
  * </TamboVoiceInputProvider>
  * ```
  */
 export const TamboVoiceInputProvider: React.FC<
   PropsWithChildren<TamboVoiceInputProviderProps>
-> = ({ children, voiceInputEnabled = false }) => {
+> = ({ children }) => {
   const contextValue: TamboVoiceInputContextProps = {
-    isEnabled: voiceInputEnabled,
+    isEnabled: true,
   };
 
   return (

@@ -7,11 +7,10 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  useTamboVoiceInput,
   useVoiceInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Mic, Square } from "lucide-react";
+import { ArrowUp, Loader2, Mic, Square } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -466,23 +465,25 @@ const MessageInputVoiceButton = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => {
-  const { isEnabled } = useTamboVoiceInput();
   const [isClient, setIsClient] = React.useState(false);
   const {
     startRecording,
     stopRecording,
+    clearError,
     isRecording,
     isTranscribing,
     error,
     isSupported,
+    state,
+    canRetryPermission,
   } = useVoiceInput();
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Don't render during SSR or if voice input is disabled or not supported
-  if (!isClient || !isEnabled || !isSupported) {
+  // Don't render during SSR or if browser doesn't support voice input
+  if (!isClient || !isSupported) {
     return null;
   }
 
@@ -493,15 +494,25 @@ const MessageInputVoiceButton = React.forwardRef<
     if (isRecording) {
       stopRecording();
     } else {
+      // Clear any previous errors before attempting to start
+      if (state === "permission_denied" || error) {
+        clearError();
+        // Small delay to ensure state is cleared before requesting permission
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
       await startRecording();
     }
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer transition-colors",
+    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
     isRecording
-      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-      : "bg-muted text-primary hover:bg-muted/80",
+      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse cursor-pointer"
+      : state === "permission_denied" && canRetryPermission
+        ? "bg-orange-100 hover:bg-orange-200 text-orange-600 border-2 border-orange-300 cursor-pointer"
+        : state === "permission_denied"
+          ? "bg-red-100 text-red-500 border-2 border-red-300 cursor-not-allowed"
+          : "bg-muted text-primary hover:bg-muted/80 cursor-pointer",
     isTranscribing && "opacity-50 cursor-wait",
     className,
   );
@@ -509,7 +520,15 @@ const MessageInputVoiceButton = React.forwardRef<
   const getTooltipContent = () => {
     if (isTranscribing) return "Transcribing...";
     if (isRecording) return "Stop recording";
-    if (error) return "Voice input error";
+    if (state === "permission_denied") {
+      if (error?.message.includes("🔒")) {
+        return error.message; // Show detailed browser settings guidance
+      }
+      return canRetryPermission
+        ? "Microphone permission denied. Click to try again."
+        : "Microphone blocked. Click the lock icon (🔒) in your address bar to enable.";
+    }
+    if (error) return error.message;
     return "Start voice input";
   };
 
@@ -524,13 +543,24 @@ const MessageInputVoiceButton = React.forwardRef<
           ref={ref}
           type="button"
           onClick={handleClick}
-          disabled={isTranscribing}
+          disabled={
+            isTranscribing ||
+            (state === "permission_denied" && !canRetryPermission)
+          }
           className={buttonClasses}
-          aria-label={isRecording ? "Stop recording" : "Start voice input"}
+          aria-label={
+            isRecording
+              ? "Stop recording"
+              : state === "permission_denied"
+                ? "Permission denied"
+                : "Start voice input"
+          }
           data-slot="message-input-voice"
           {...props}
         >
-          {isRecording ? (
+          {isTranscribing ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : isRecording ? (
             <Square className="w-4 h-4" fill="currentColor" />
           ) : (
             <Mic className="w-5 h-5" />

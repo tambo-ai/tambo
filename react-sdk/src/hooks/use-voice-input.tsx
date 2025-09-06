@@ -6,18 +6,24 @@ import { useTamboVoiceInput } from "../providers/tambo-voice-input-provider";
 export type VoiceInputState =
   | "idle"
   | "requesting_permission"
+  | "permission_denied"
   | "recording"
   | "transcribing"
   | "error";
 
+export type PermissionState = "unknown" | "granted" | "denied";
+
 export interface UseVoiceInputResult {
   startRecording: () => Promise<void>;
   stopRecording: () => void;
+  clearError: () => void;
   isRecording: boolean;
   isTranscribing: boolean;
   state: VoiceInputState;
   error: Error | null;
   isSupported: boolean;
+  permissionState: PermissionState;
+  canRetryPermission: boolean;
 }
 
 /**
@@ -41,6 +47,9 @@ export const useVoiceInput = (): UseVoiceInputResult => {
 
   const [state, setState] = useState<VoiceInputState>("idle");
   const [error, setError] = useState<Error | null>(null);
+  const [permissionState, setPermissionState] =
+    useState<PermissionState>("unknown");
+  const [permissionRequestCount, setPermissionRequestCount] = useState(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -133,11 +142,17 @@ export const useVoiceInput = (): UseVoiceInputResult => {
       return; // Already recording or processing
     }
 
+    // Clear previous error states and always try to request permission
     setState("requesting_permission");
     setError(null);
+    setPermissionRequestCount((prev) => prev + 1);
+
+    // Reset permission state to unknown before each attempt
+    setPermissionState("unknown");
 
     try {
-      // Request microphone permission
+      // Always try to request microphone permission directly without pre-checking
+      // This allows for fresh prompts in incognito mode and after permission resets
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -146,6 +161,8 @@ export const useVoiceInput = (): UseVoiceInputResult => {
         },
       });
 
+      // Permission granted successfully
+      setPermissionState("granted");
       streamRef.current = stream;
 
       // Check for webm support, fallback to other formats
@@ -195,20 +212,41 @@ export const useVoiceInput = (): UseVoiceInputResult => {
         errorMessage.name === "NotAllowedError" ||
         errorMessage.name === "PermissionDeniedError"
       ) {
-        setError(new Error("Microphone permission denied"));
+        setPermissionState("denied");
+        setState("permission_denied");
+        // Only show browser settings guidance after several attempts
+        if (permissionRequestCount > 3) {
+          setError(
+            new Error(
+              "Microphone access blocked. Click the 🔒 icon in your address bar to enable microphone access.",
+            ),
+          );
+        } else {
+          setError(
+            new Error("Microphone permission denied. Click to try again."),
+          );
+        }
       } else if (
         errorMessage.name === "NotFoundError" ||
         errorMessage.name === "DevicesNotFoundError"
       ) {
         setError(new Error("No microphone found"));
+        setState("error");
       } else {
         setError(errorMessage);
+        setState("error");
       }
 
-      setState("error");
       cleanup();
     }
-  }, [isSupported, isEnabled, state, cleanup, transcribeAudio]);
+  }, [
+    isSupported,
+    isEnabled,
+    state,
+    cleanup,
+    transcribeAudio,
+    permissionRequestCount,
+  ]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && state === "recording") {
@@ -217,13 +255,28 @@ export const useVoiceInput = (): UseVoiceInputResult => {
     }
   }, [state]);
 
+  const clearError = useCallback(() => {
+    setError(null);
+    setState("idle");
+    setPermissionState("unknown");
+    // Reset the permission request count to allow fresh attempts
+    setPermissionRequestCount(0);
+  }, []);
+
+  // Always allow retry for permission denied state (up to reasonable limit)
+  const canRetryPermission =
+    state === "permission_denied" && permissionRequestCount < 10;
+
   return {
     startRecording,
     stopRecording,
+    clearError,
     isRecording: state === "recording",
     isTranscribing: state === "transcribing",
     state,
     error,
     isSupported,
+    permissionState,
+    canRetryPermission,
   };
 };
