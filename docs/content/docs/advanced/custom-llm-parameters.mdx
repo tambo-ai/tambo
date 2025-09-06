@@ -39,17 +39,17 @@ await sendThreadMessage("Explain quantum computing", {
 
 These parameters are extracted and passed as standard model options:
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `temperature` | number | Controls randomness (0.0 to 2.0) |
-| `top_p` | number | Nucleus sampling parameter (0.0 to 1.0) |
-| `max_tokens` | number | Maximum tokens in response |
-| `frequency_penalty` | number | Reduces repetition (-2.0 to 2.0) |
-| `presence_penalty` | number | Encourages new topics (-2.0 to 2.0) |
-| `top_k` | number | Top-k sampling parameter |
-| `repetition_penalty` | number | Alternative repetition control |
-| `min_p` | number | Minimum probability threshold |
-| `seed` | number | Deterministic sampling seed |
+| Parameter            | Type   | Description                             |
+| -------------------- | ------ | --------------------------------------- |
+| `temperature`        | number | Controls randomness (0.0 to 2.0)        |
+| `top_p`              | number | Nucleus sampling parameter (0.0 to 1.0) |
+| `max_tokens`         | number | Maximum tokens in response              |
+| `frequency_penalty`  | number | Reduces repetition (-2.0 to 2.0)        |
+| `presence_penalty`   | number | Encourages new topics (-2.0 to 2.0)     |
+| `top_k`              | number | Top-k sampling parameter                |
+| `repetition_penalty` | number | Alternative repetition control          |
+| `min_p`              | number | Minimum probability threshold           |
+| `seed`               | number | Deterministic sampling seed             |
 
 ## Provider-Specific Parameters
 
@@ -213,17 +213,17 @@ const requestOverrides = {
 Use the validation utility to check parameters before storing them:
 
 ```typescript
-import { validateCustomParams } from '@tambo-ai/react';
+import { validateCustomParams } from "@tambo-ai/react";
 
 const params = {
   temperature: 0.8,
-  custom_param: 'value',
-  model: 'gpt-4', // This will cause validation to fail
+  custom_param: "value",
+  model: "gpt-4", // This will cause validation to fail
 };
 
 const validation = validateCustomParams(params);
 if (!validation.isValid) {
-  console.error('Invalid parameters:', validation.errors);
+  console.error("Invalid parameters:", validation.errors);
   // ["Parameter 'model' is reserved and cannot be customized"]
 }
 ```
@@ -234,9 +234,9 @@ Custom parameters are logged to the console in debug mode:
 
 ```typescript
 // Enable debug logging
-console.debug('Custom LLM parameters ready for backend:', {
+console.debug("Custom LLM parameters ready for backend:", {
   standardParams: { temperature: 0.8, max_tokens: 1500 },
-  providerOptions: { reasoning: { effort: 'high' } },
+  providerOptions: { reasoning: { effort: "high" } },
 });
 ```
 
@@ -311,9 +311,9 @@ const params = {
 ```typescript
 // Common validation issues
 const problematicParams = {
-  model: 'gpt-4', // Reserved - use project settings instead
+  model: "gpt-4", // Reserved - use project settings instead
   messages: [], // Reserved - managed by Tambo
-  temperature: 'high', // Wrong type - should be number
+  temperature: "high", // Wrong type - should be number
 };
 ```
 
@@ -361,7 +361,7 @@ If you were using environment variables for model configuration:
 
 ```typescript
 // Before: Environment variables
-const temperature = parseFloat(process.env.MODEL_TEMPERATURE || '0.7');
+const temperature = parseFloat(process.env.MODEL_TEMPERATURE || "0.7");
 
 // After: Custom parameters
 const defaultParams = {
