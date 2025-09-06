@@ -11,7 +11,7 @@ export const TamboVoiceInputContext = createContext<
 >(undefined);
 
 export interface TamboVoiceInputProviderProps {
-  /** Whether voice input functionality is enabled. Defaults to true. */
+  /** Whether voice input functionality is enabled. Defaults to false. */
   voiceInputEnabled?: boolean;
 }
 
@@ -21,7 +21,7 @@ export interface TamboVoiceInputProviderProps {
  *
  * @param props - The props for the TamboVoiceInputProvider
  * @param props.children - The children to render
- * @param props.voiceInputEnabled - Whether voice input is enabled (default: true)
+ * @param props.voiceInputEnabled - Whether voice input is enabled (default: false)
  * @returns The provider component
  *
  * @example

@@ -39,10 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <TamboProvider 
-      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
-      voiceInputEnabled={true} // Enable voice input (default: true)
-    >
+    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
       {children}
     </TamboProvider>
   );
@@ -65,12 +62,12 @@ rendered in the browser.
 
 The `TamboProvider` supports voice input functionality out of the box. Users can click the microphone button in the message input to record their message instead of typing. The audio is transcribed using OpenAI's Whisper model through your backend.
 
-To disable voice input:
+To enable voice input:
 
 ```tsx
 <TamboProvider 
   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
-  voiceInputEnabled={false}
+  voiceInputEnabled={true}
 >
   {children}
 </TamboProvider>
