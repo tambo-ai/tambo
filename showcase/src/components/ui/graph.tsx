@@ -1,18 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
 import { z } from "zod";
 
 /**
- * Represents a graph data object
- * @property {string} type - Type of graph to render
- * @property {string[]} labels - Labels for the graph
- * @property {Object[]} datasets - Data for the graph
+ * Zod schema for GraphData
  */
-
 export const graphDataSchema = z.object({
   type: z.enum(["bar", "line", "pie"]).describe("Type of graph to render"),
   labels: z.array(z.string()).describe("Labels for the graph"),
@@ -27,6 +23,9 @@ export const graphDataSchema = z.object({
     .describe("Data for the graph"),
 });
 
+/**
+ * Zod schema for Graph
+ */
 export const graphSchema = z.object({
   data: graphDataSchema.describe(
     "Data object containing chart configuration and values",
@@ -44,28 +43,26 @@ export const graphSchema = z.object({
     .enum(["default", "sm", "lg"])
     .optional()
     .describe("Size of the graph"),
+  className: z
+    .string()
+    .optional()
+    .describe("Additional CSS classes for styling"),
 });
 
-// Define the base type from the Zod schema
+/**
+ * TypeScript type inferred from the Zod schema
+ */
+export type GraphProps = z.infer<typeof graphSchema>;
+
+/**
+ * TypeScript type inferred from the Zod schema
+ */
 export type GraphDataType = z.infer<typeof graphDataSchema>;
 
-// Extend the GraphProps with additional tambo properties
-export interface GraphProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "data" | "title" | "size">,
-    Omit<VariantProps<typeof graphVariants>, "size" | "variant"> {
-  /** Data object containing chart configuration and values */
-  data?: GraphDataType;
-  /** Optional title for the chart */
-  title?: string;
-  /** Whether to show the legend (default: true) */
-  showLegend?: boolean;
-  /** Visual style variant of the graph */
-  variant?: "default" | "solid" | "bordered";
-  /** Size of the graph */
-  size?: "default" | "sm" | "lg";
-}
-
-const graphVariants = cva(
+/**
+ * Variants for the Graph component
+ */
+export const graphVariants = cva(
   "w-full rounded-lg overflow-hidden transition-all duration-200",
   {
     variants: {
@@ -90,6 +87,9 @@ const graphVariants = cva(
   },
 );
 
+/**
+ * Default colors for the Graph component
+ */
 const defaultColors = [
   "hsl(220, 100%, 62%)", // Blue
   "hsl(160, 82%, 47%)", // Green

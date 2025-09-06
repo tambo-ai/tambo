@@ -29,12 +29,23 @@ import {
 } from "react-leaflet";
 import { z } from "zod";
 
-// --- MarkerClusterGroup ---
+/**
+ * Props interface for MarkerClusterGroup component
+ * @interface MarkerClusterGroupProps
+ * @extends {MarkerClusterGroupOptions}
+ */
 interface MarkerClusterGroupProps extends MarkerClusterGroupOptions {
+  /** React children elements to be rendered within the cluster group */
   children?: React.ReactNode;
+  /** Optional function to create custom cluster icons */
   iconCreateFunction?: (cluster: L.MarkerCluster) => L.DivIcon;
 }
 
+/**
+ * ClusterGroup component for grouping markers on the map
+ * @param {MarkerClusterGroupProps} props - The component props
+ * @returns {null} - This component doesn't render anything directly
+ */
 const ClusterGroup: React.FC<MarkerClusterGroupProps> = ({
   children,
   iconCreateFunction,
@@ -83,10 +94,23 @@ const ClusterGroup: React.FC<MarkerClusterGroupProps> = ({
   return null;
 };
 
-// --- HeatLayer ---
+/**
+ * Props interface for HeatLayer component
+ * @interface HeatLayerProps
+ * @extends {LayerProps}
+ * @extends {L.HeatMapOptions}
+ */
 interface HeatLayerProps extends LayerProps, L.HeatMapOptions {
+  /** Array of latitude/longitude coordinates with optional intensity values for heatmap */
   latlngs: (LatLng | HeatLatLngTuple)[];
 }
+
+/**
+ * Creates a heat layer for the map
+ * @param {HeatLayerProps} props - Heat layer properties including coordinates and options
+ * @param {LeafletContextInterface} context - Leaflet context interface
+ * @returns {Object} - Element object for the heat layer
+ */
 const createHeatLayer = (
   { latlngs, ...options }: HeatLayerProps,
   context: LeafletContextInterface,
@@ -94,6 +118,13 @@ const createHeatLayer = (
   const layer = L.heatLayer(latlngs, options);
   return createElementObject(layer, context);
 };
+
+/**
+ * Updates an existing heat layer with new data
+ * @param {L.HeatLayer} layer - The heat layer instance to update
+ * @param {HeatLayerProps} props - New properties for the heat layer
+ * @param {HeatLayerProps} prevProps - Previous properties for comparison
+ */
 const updateHeatLayer = (
   layer: L.HeatLayer,
   { latlngs, ...options }: HeatLayerProps,
@@ -103,12 +134,19 @@ const updateHeatLayer = (
   layer.setOptions(options);
   updateGridLayer(layer, options, prevProps);
 };
+
+/**
+ * HeatLayer component for displaying heatmap data on the map
+ */
 const HeatLayer = createLayerComponent<L.HeatLayer, HeatLayerProps>(
   createHeatLayer,
   updateHeatLayer,
 );
 
-// --- Leaflet marker icon fix (only SSR/Next.js) ---
+/**
+ * Fix for Leaflet marker icons in SSR/Next.js environments
+ * Loads marker icons from CDN to prevent missing icon issues
+ */
 if (typeof window !== "undefined") {
   import("leaflet").then((L) => {
     delete (L.Icon.Default.prototype as { _getIconUrl?: () => string })
@@ -125,7 +163,10 @@ if (typeof window !== "undefined") {
   });
 }
 
-// --- Map Variants ---
+/**
+ * Variants for the map component
+ * Defines different size, theme, and rounded corner options for the map
+ */
 export const mapVariants = cva("w-full transition-all duration-200", {
   variants: {
     size: {
@@ -157,53 +198,77 @@ export const mapVariants = cva("w-full transition-all duration-200", {
 });
 
 /**
- * MapProps - Interface for the Map component
- * @property center - Center coordinates of the map (required)
- * @property zoom - Initial zoom level (default: 10)
- * @property markers - Array of marker objects (lat, lng, label, id?)
- * @property heatData - Optional array of heatmap points (lat, lng, intensity)
- * @property zoomControl - Show zoom controls (default: true)
- * @property className - Optional className for container
- * @property size - Variant de tamanho (sm, md, lg, full)
- * @property theme - Variant de tema (default, dark, light, satellite, bordered, shadow)
- * @property rounded - Variant de borda (none, sm, md, full)
+ * Zod schema for validating marker data
+ * Ensures latitude is between -90 and 90, longitude between -180 and 180
  */
-
-// --- Zod Schemas ---
 export const markerSchema = z.object({
+  /** Latitude coordinate (must be between -90 and 90) */
   lat: z.number().min(-90).max(90),
+  /** Longitude coordinate (must be between -180 and 180) */
   lng: z.number().min(-180).max(180),
+  /** Display label for the marker */
   label: z.string(),
+  /** Optional unique identifier for the marker */
   id: z.string().optional(),
 });
+
+/**
+ * Zod schema for validating heatmap data points
+ * Includes intensity value between 0 and 1 for heat visualization
+ */
 export const heatDataSchema = z.object({
+  /** Latitude coordinate (must be between -90 and 90) */
   lat: z.number().min(-90).max(90),
+  /** Longitude coordinate (must be between -180 and 180) */
   lng: z.number().min(-180).max(180),
+  /** Intensity value for heatmap (must be between 0 and 1) */
   intensity: z.number().min(0).max(1),
 });
+
+/**
+ * Zod schema for validating map component props
+ * Defines all configurable options for the map component
+ */
 export const mapSchema = z.object({
+  /** Center coordinates of the map */
   center: z.object({ lat: z.number(), lng: z.number() }),
+  /** Initial zoom level (1-20, default: 10) */
   zoom: z.number().min(1).max(20).default(10),
+  /** Array of marker objects to display on the map */
   markers: z.array(markerSchema).default([]),
+  /** Optional array of heatmap data points */
   heatData: z.array(heatDataSchema).optional().nullable(),
+  /** Whether to show zoom controls (default: true) */
   zoomControl: z.boolean().optional().default(true),
+  /** Optional Tailwind CSS classes for the map container */
   className: z
     .string()
     .optional()
     .describe("Optional tailwind className for the map container"),
+  /** Size variant for the map */
   size: z.enum(["sm", "md", "lg", "full"]).optional(),
+  /** Theme variant for the map styling */
   theme: z
     .enum(["default", "dark", "light", "satellite", "bordered", "shadow"])
     .optional(),
+  /** Border radius variant */
   rounded: z.enum(["none", "sm", "md", "full"]).optional(),
 });
 
+/** Type definition for marker data based on the marker schema */
 export type MarkerData = z.infer<typeof markerSchema>;
+/** Type definition for heatmap data based on the heat data schema */
 export type HeatData = z.infer<typeof heatDataSchema>;
+/** Type definition for map props combining schema and variant props */
 export type MapProps = z.infer<typeof mapSchema> &
   VariantProps<typeof mapVariants>;
 
-// --- Hooks ---
+/**
+ * Hook to filter and validate marker data
+ * Removes invalid markers that don't meet coordinate or label requirements
+ * @param {MarkerData[]} markers - Array of marker objects to validate
+ * @returns {MarkerData[]} - Array of valid marker objects
+ */
 function useValidMarkers(markers: MarkerData[] = []) {
   return React.useMemo(
     () =>
@@ -222,6 +287,12 @@ function useValidMarkers(markers: MarkerData[] = []) {
   );
 }
 
+/**
+ * Hook to filter and validate heatmap data
+ * Converts valid heat data to the format expected by Leaflet heatLayer
+ * @param {HeatData[] | null} heatData - Array of heatmap data points
+ * @returns {HeatLatLngTuple[]} - Array of validated heat data tuples
+ */
 function useValidHeatData(heatData?: HeatData[] | null) {
   return React.useMemo(() => {
     if (!Array.isArray(heatData)) return [];
@@ -242,7 +313,11 @@ function useValidHeatData(heatData?: HeatData[] | null) {
   }, [heatData]);
 }
 
-// --- Loading Spinner ---
+/**
+ * Loading spinner component displayed while map is generating or loading
+ * Shows animated dots with "Loading map..." text
+ * @returns {JSX.Element} - Loading spinner component
+ */
 function LoadingSpinner() {
   return (
     <div className="h-full w-full flex items-center justify-center">
@@ -258,7 +333,11 @@ function LoadingSpinner() {
   );
 }
 
-// --- Handlers ---
+/**
+ * Map click handler component that centers the map on clicked location
+ * Uses useMapEvents hook to listen for click events on the map
+ * @returns {null} - This component doesn't render anything
+ */
 function MapClickHandler() {
   const animateRef = React.useRef(true);
   useMapEvents({
@@ -270,7 +349,33 @@ function MapClickHandler() {
   return null;
 }
 
-// --- Map Component ---
+/**
+ * Interactive map component with support for markers, heatmaps, and clustering
+ *
+ * Features:
+ * - Multiple tile layer themes (default, dark, light, satellite)
+ * - Marker clustering with custom icons
+ * - Heatmap visualization
+ * - Responsive sizing variants
+ * - Loading states during generation
+ * - Click-to-center functionality
+ * - Zoom controls
+ * - Tooltip support for markers
+ *
+ * @example
+ * ```
+ * <Map
+ *   center={{ lat: 0, lng: 0 }}
+ *   zoom={10}
+ *   markers={[{ lat: 0, lng: 0, label: "Marker 1" }]}
+ *   heatData={[{ lat: 0, lng: 0, intensity: 0.5 }]}
+ * />
+ * ```
+ *
+ * @param {MapProps} props - Map component properties
+ * @param {React.Ref<HTMLDivElement>} ref - Forward ref for the container element
+ * @returns {JSX.Element} - The rendered map component
+ */
 export const Map = React.forwardRef<HTMLDivElement, MapProps>(
   (
     {
@@ -292,7 +397,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
 
     const message = thread?.messages[thread?.messages.length - 1];
 
-    const isLatestMessage = message?.id === currentMessage.id;
+    const isLatestMessage = message?.id && message.id === currentMessage?.id;
 
     const generationStage = thread?.generationStage;
     const isGenerating =
@@ -303,7 +408,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const validMarkers = useValidMarkers(markers);
     const validHeatData = useValidHeatData(heatData);
 
-    // Loading/generation State
+    // Show loading state during generation
     if (isLatestMessage && isGenerating) {
       return (
         <div
@@ -315,6 +420,8 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
         </div>
       );
     }
+
+    // Show error state if center coordinates are missing
     if (!center) {
       return (
         <div

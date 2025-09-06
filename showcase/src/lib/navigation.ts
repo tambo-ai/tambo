@@ -70,6 +70,10 @@ export const navigation: NavigationItem[] = [
             href: "/components/form",
           },
           {
+            title: "Input Fields",
+            href: "/components/input-fields",
+          },
+          {
             title: "Graph",
             href: "/components/graph",
           },

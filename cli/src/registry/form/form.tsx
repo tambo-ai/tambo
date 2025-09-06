@@ -2,106 +2,123 @@
 
 import { cn } from "@/lib/utils";
 import { useTambo, useTamboComponentState } from "@tambo-ai/react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
+import { z } from "zod";
 
-const formVariants = cva("w-full rounded-lg transition-all duration-200", {
-  variants: {
-    variant: {
-      default: "bg-background border border-border",
-      solid: [
-        "shadow-lg shadow-zinc-900/10 dark:shadow-zinc-900/20",
-        "bg-background border border-border",
-      ].join(" "),
-      bordered: ["border-2", "border-border"].join(" "),
-    },
-    layout: {
-      default: "space-y-4",
-      compact: "space-y-2",
-      relaxed: "space-y-6",
-    },
-  },
-  defaultVariants: {
-    variant: "default",
-    layout: "default",
-  },
+/**
+ * Zod schema for FormField
+ */
+export const formFieldSchema = z.object({
+  id: z.string().describe("Unique identifier for the field"),
+  type: z
+    .enum([
+      "text",
+      "number",
+      "select",
+      "textarea",
+      "radio",
+      "checkbox",
+      "slider",
+      "yes-no",
+    ])
+    .describe("Type of form field"),
+  label: z.string().describe("Display label for the field"),
+  placeholder: z.string().optional().describe("Optional placeholder text"),
+  options: z.array(z.string()).optional().describe("Options for select fields"),
+  required: z.boolean().optional().describe("Whether the field is required"),
+  description: z
+    .string()
+    .optional()
+    .describe("Additional description text for the field"),
+  sliderMin: z
+    .number()
+    .optional()
+    .describe("The minimum value for slider fields"),
+  sliderMax: z
+    .number()
+    .optional()
+    .describe("The maximum value for slider fields"),
+  sliderStep: z
+    .number()
+    .optional()
+    .describe("The step value for slider fields"),
+  sliderDefault: z
+    .number()
+    .optional()
+    .describe("Default value for slider fields"),
+  sliderLabels: z
+    .array(z.string())
+    .optional()
+    .describe("Labels to display under slider"),
 });
 
 /**
- * Represents a field in a form component
- * @property {string} id - Unique identifier for the field
- * @property {'text' | 'number' | 'select' | 'textarea' | 'radio' | 'checkbox' | 'slider' | 'yes-no'} type - Type of form field
- * @property {string} label - Display label for the field
- * @property {string} [placeholder] - Optional placeholder text
- * @property {string[]} [options] - Options for select fields
- * @property {boolean} [required] - Whether the field is required
- * @property {string} [description] - Additional description text for the field
- * @property {number} [sliderMin] - The minimum value for slider fields
- * @property {number} [sliderMax] - The maximum value for slider fields
- * @property {number} [sliderStep] - The step value for slider fields
- * @property {number} [sliderDefault] - Default value for slider fields
- * @property {string[]} [sliderLabels] - Labels to display under slider (typically at min, middle, max positions)
+ * Zod schema for Form component props
  */
-export interface FormField {
-  /**
-   * The unique identifier for the field
-   */
-  id: string;
-  /**
-   * The type of form field
-   */
-  type:
-    | "text"
-    | "number"
-    | "select"
-    | "textarea"
-    | "radio"
-    | "checkbox"
-    | "slider"
-    | "yes-no";
-  /**
-   * The display label for the field
-   */
-  label: string;
-  /**
-   * The placeholder text for the field
-   */
-  placeholder?: string;
-  /**
-   * The options for select fields
-   */
-  options?: string[];
-  /**
-   * Whether the field is required
-   */
-  required?: boolean;
-  /**
-   * The description text for the field
-   */
-  description?: string;
-  /**
-   * The minimum value for slider fields
-   */
-  sliderMin?: number;
-  /**
-   * The maximum value for slider fields
-   */
-  sliderMax?: number;
-  /**
-   * The step value for slider fields
-   */
-  sliderStep?: number;
-  /**
-   * Default value for slider fields
-   */
-  sliderDefault?: number;
-  /**
-   * Labels to display under slider (typically at min, middle, max positions)
-   */
-  sliderLabels?: string[];
-}
+export const formSchema = z.object({
+  fields: z.array(formFieldSchema).describe("Array of form fields to display"),
+  onSubmit: z
+    .function()
+    .args(z.record(z.string()))
+    .returns(z.void())
+    .describe("Callback function called when the form is submitted"),
+  onError: z.string().optional().describe("Optional error message to display"),
+  submitText: z
+    .string()
+    .optional()
+    .describe("Text to display on the submit button (default: 'Submit')"),
+  variant: z
+    .enum(["default", "solid", "bordered"])
+    .optional()
+    .describe("Visual style variant of the form"),
+  layout: z
+    .enum(["default", "compact", "relaxed"])
+    .optional()
+    .describe("Spacing layout of the form fields"),
+  className: z
+    .string()
+    .optional()
+    .describe("Additional CSS classes for styling"),
+});
 
+/**
+ * Variants for the Form component
+ */
+export const formVariants = cva(
+  "w-full rounded-lg transition-all duration-200",
+  {
+    variants: {
+      variant: {
+        default: "bg-background border border-border",
+        solid: [
+          "shadow-lg shadow-zinc-900/10 dark:shadow-zinc-900/20",
+          "bg-background border border-border",
+        ].join(" "),
+        bordered: ["border-2", "border-border"].join(" "),
+      },
+      layout: {
+        default: "space-y-4",
+        compact: "space-y-2",
+        relaxed: "space-y-6",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      layout: "default",
+    },
+  },
+);
+
+/**
+ * TypeScript type inferred from the Zod schema
+ */
+export type FormField = z.infer<typeof formFieldSchema>;
+
+/**
+ * Interface representing the state of the form component
+ */
 export interface FormState {
   values: Record<string, string>;
   openDropdowns: Record<string, boolean>;
@@ -112,20 +129,8 @@ export interface FormState {
 
 /**
  * Props for the Form component
- * @interface
  */
-export interface FormProps
-  extends Omit<React.HTMLAttributes<HTMLFormElement>, "onSubmit" | "onError">,
-    VariantProps<typeof formVariants> {
-  /** Array of form fields to display */
-  fields: FormField[];
-  /** Callback function called when the form is submitted */
-  onSubmit: (data: Record<string, string>) => void;
-  /** Optional error message to display */
-  onError?: string;
-  /** Text to display on the submit button (default: "Submit") */
-  submitText?: string;
-}
+export type FormProps = z.infer<typeof formSchema>;
 
 /**
  * A flexible form component that supports various field types and layouts
@@ -726,5 +731,3 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
 );
 
 FormComponent.displayName = "Form";
-
-export { formVariants };
