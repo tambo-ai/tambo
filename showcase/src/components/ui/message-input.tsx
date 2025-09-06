@@ -475,7 +475,6 @@ const MessageInputVoiceButton = React.forwardRef<
     error,
     isSupported,
     state,
-    canRetryPermission,
   } = useVoiceInput();
 
   React.useEffect(() => {
@@ -508,9 +507,9 @@ const MessageInputVoiceButton = React.forwardRef<
     "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
     isRecording
       ? "bg-red-500 hover:bg-red-600 text-white animate-pulse cursor-pointer"
-      : state === "permission_denied" && canRetryPermission
+      : state === "permission_denied"
         ? "bg-orange-100 hover:bg-orange-200 text-orange-600 border-2 border-orange-300 cursor-pointer"
-        : state === "permission_denied"
+        : state === "error"
           ? "bg-red-100 text-red-500 border-2 border-red-300 cursor-not-allowed"
           : "bg-muted text-primary hover:bg-muted/80 cursor-pointer",
     isTranscribing && "opacity-50 cursor-wait",
@@ -524,9 +523,7 @@ const MessageInputVoiceButton = React.forwardRef<
       if (error?.message.includes("🔒")) {
         return error.message; // Show detailed browser settings guidance
       }
-      return canRetryPermission
-        ? "Microphone permission denied. Click to try again."
-        : "Microphone blocked. Click the lock icon (🔒) in your address bar to enable.";
+      return "Microphone permission denied. Please update your microphone permissions to use voice input.";
     }
     if (error) return error.message;
     return "Start voice input";
@@ -543,10 +540,7 @@ const MessageInputVoiceButton = React.forwardRef<
           ref={ref}
           type="button"
           onClick={handleClick}
-          disabled={
-            isTranscribing ||
-            (state === "permission_denied" && !canRetryPermission)
-          }
+          disabled={isTranscribing || state === "permission_denied"}
           className={buttonClasses}
           aria-label={
             isRecording
@@ -689,6 +683,6 @@ export {
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputVoiceButton,
   messageInputVariants,
+  MessageInputVoiceButton,
 };

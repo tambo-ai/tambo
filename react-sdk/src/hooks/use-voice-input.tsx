@@ -23,7 +23,6 @@ export interface UseVoiceInputResult {
   error: Error | null;
   isSupported: boolean;
   permissionState: PermissionState;
-  canRetryPermission: boolean;
 }
 
 /**
@@ -263,10 +262,6 @@ export const useVoiceInput = (): UseVoiceInputResult => {
     setPermissionRequestCount(0);
   }, []);
 
-  // Always allow retry for permission denied state (up to reasonable limit)
-  const canRetryPermission =
-    state === "permission_denied" && permissionRequestCount < 10;
-
   return {
     startRecording,
     stopRecording,
@@ -277,6 +272,5 @@ export const useVoiceInput = (): UseVoiceInputResult => {
     error,
     isSupported,
     permissionState,
-    canRetryPermission,
   };
 };
