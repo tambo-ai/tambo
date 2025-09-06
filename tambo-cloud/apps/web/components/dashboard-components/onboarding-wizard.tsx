@@ -183,6 +183,14 @@ const templates = [
     command: "npx create-tambo-app@latest my-app --template=standard",
     recommended: true,
   },
+  {
+    id: "analytics",
+    name: "Analytics",
+    description:
+      "Generative UI analytics template with drag-and-drop canvas and data visualization",
+    command: "npx create-tambo-app@latest my-app --template=analytics",
+    recommended: false,
+  },
 ];
 
 export function OnboardingWizard({
