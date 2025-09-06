@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
 const DRAFT_KEY = "tambo-message-drafts";
@@ -11,13 +11,13 @@ interface Draft {
   timestamp: number;
 }
 
-const getDrafts = (): Draft[] => {
+const getDrafts = (storageKey: string): Draft[] => {
   if (typeof window === "undefined") {
     return [];
   }
 
   try {
-    const existingDrafts = localStorage.getItem(DRAFT_KEY);
+    const existingDrafts = localStorage.getItem(storageKey);
     return existingDrafts ? JSON.parse(existingDrafts) : [];
   } catch {
     return [];
@@ -33,74 +33,53 @@ const getDrafts = (): Draft[] => {
  * @param threadId The ID of the thread for this draft
  * @returns An object with `currentDraft` and `saveDraft`
  */
-export function useTamboMessageDrafts(threadId: string | null) {
-  const [currentDraft, setCurrentDraft] = useState<string>("");
-  const isInitialLoad = useRef(true);
+export function useTamboMessageDrafts({
+  storageKey = DRAFT_KEY,
+  threadId,
+}: {
+  storageKey?: string;
+  threadId?: string;
+}) {
+  const [currentDraft, setCurrentDraft] = useState<string>(
+    getDrafts(storageKey).find((d) => d.id === threadId)?.content ?? "",
+  );
 
-  // Load initial draft for the thread
-  useEffect(() => {
-    isInitialLoad.current = true; // Set flag on threadId change
+  const persistDraft = useDebouncedCallback((content: string) => {
     if (typeof window === "undefined" || !threadId) {
-      setCurrentDraft("");
       return;
     }
 
-    const drafts = getDrafts();
-    const draft = drafts.find((d) => d.id === threadId);
-    setCurrentDraft(draft ? draft.content : "");
-  }, [threadId]);
+    const drafts = getDrafts(storageKey);
+    const otherDrafts = drafts.filter((d) => d.id !== threadId);
 
-  const persistDraft = useDebouncedCallback(
-    (threadId: string, content: string) => {
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      const drafts = getDrafts();
-      const otherDrafts = drafts.filter((d) => d.id !== threadId);
-
-      if (content === "") {
-        try {
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(otherDrafts));
-        } catch (e) {
-          console.error("Failed to clear draft", e);
-        }
-        return;
-      }
-
-      const now = Date.now();
-      const newDraft: Draft = {
-        id: threadId,
-        content,
-        timestamp: now,
-      };
-      const updatedDrafts = [...otherDrafts, newDraft];
-
+    if (content === "") {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(updatedDrafts));
+        localStorage.setItem(storageKey, JSON.stringify(otherDrafts));
       } catch (e) {
-        console.error("Failed to persist draft", e);
+        console.error("Failed to clear draft", e);
       }
-    },
-    300,
-  );
+      return;
+    }
+
+    const now = Date.now();
+    const newDraft: Draft = {
+      id: threadId,
+      content,
+      timestamp: now,
+    };
+    const updatedDrafts = [...otherDrafts, newDraft];
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(updatedDrafts));
+    } catch (e) {
+      console.error("Failed to persist draft", e);
+    }
+  }, 300);
 
   // Persist draft to local storage on change
   useEffect(() => {
-    // Do not persist on initial load or when threadId changes
-    if (isInitialLoad.current) {
-      isInitialLoad.current = false;
-      return;
-    }
+    persistDraft(currentDraft);
+  }, [persistDraft, currentDraft]);
 
-    if (threadId) {
-      persistDraft(threadId, currentDraft);
-    }
-  }, [threadId, currentDraft, persistDraft]);
-
-  const saveDraft = useCallback((content: string) => {
-    setCurrentDraft(content);
-  }, []);
-
-  return { currentDraft, saveDraft };
+  return { currentDraft, saveDraft: setCurrentDraft };
 }
