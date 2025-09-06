@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/tambo-ai/tambo/compare/docs-v1.6.0...docs-v1.7.0) (2025-09-06)
+
+
+### Features
+
+* **cli:** add analytics template and update related commands and docs ([#978](https://github.com/tambo-ai/tambo/issues/978)) ([5431386](https://github.com/tambo-ai/tambo/commit/5431386a79d3933725c4d395bcf4548869a7c23f))
+* **interactables:** Add automatic context injection for interactable components that sends their current state to the AI by default. ([#977](https://github.com/tambo-ai/tambo/issues/977)) ([bdec8f9](https://github.com/tambo-ai/tambo/commit/bdec8f9a3097d7bae52086b6ff0699e0e6759e12))
+
 ## [1.6.0](https://github.com/tambo-ai/tambo/compare/docs-v1.5.1...docs-v1.6.0) (2025-09-05)
 
 
