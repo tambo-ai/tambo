@@ -37,12 +37,7 @@ function validateRequiredFiles(): void {
 }
 
 function readJsonFile<T>(filePath: string): T {
-  try {
-    return JSON.parse(readFileSync(filePath, "utf8"));
-  } catch (error) {
-    console.error(`Error reading ${filePath}:`, error);
-    process.exit(1);
-  }
+  return JSON.parse(readFileSync(filePath, "utf8"));
 }
 
 function detectDependencyChanges(
@@ -98,70 +93,65 @@ function setNoChangesEnv(): void {
 }
 
 async function capturePostUpgrade(): Promise<void> {
-  try {
-    validateRequiredFiles();
+  validateRequiredFiles();
 
-    const preState = readJsonFile<PreUpgradeState>("pre-upgrade-state.json");
-    const currentPackage = readJsonFile<PackageJson>("package.json");
+  const preState = readJsonFile<PreUpgradeState>("pre-upgrade-state.json");
+  const currentPackage = readJsonFile<PackageJson>("package.json");
 
-    const dependencyChanges = detectDependencyChanges(preState, currentPackage);
-    const gitChanges = detectGitChanges();
+  const dependencyChanges = detectDependencyChanges(preState, currentPackage);
+  const gitChanges = detectGitChanges();
 
-    const summary: UpgradeSummary = {
-      dependencyChanges,
-      gitChanges,
-      timestamp: new Date().toISOString(),
-    };
+  const summary: UpgradeSummary = {
+    dependencyChanges,
+    gitChanges,
+    timestamp: new Date().toISOString(),
+  };
 
-    // Generate markdown summary
-    let markdown = "# Tambo Upgrade Summary\n\n";
+  // Generate markdown summary
+  let markdown = "# Tambo Upgrade Summary\n\n";
 
-    if (dependencyChanges.length > 0) {
-      markdown += "## Package Updates\n\n";
-      dependencyChanges.forEach((change) => {
-        const action =
-          change.type === "added"
-            ? "Added"
-            : change.type === "removed"
-              ? "Removed"
-              : "Updated";
-        if (change.type === "updated") {
-          markdown += `- **${change.name}**: ${change.before} → ${change.after}\n`;
-        } else {
-          const version =
-            change.type === "removed" ? change.before : change.after;
-          markdown += `- **${action}**: ${change.name} ${version}\n`;
-        }
-      });
-    }
-
-    if (gitChanges.length > 0) {
-      markdown += "\n## Modified Files\n\n";
-      gitChanges.forEach((file) => (markdown += `- ${file}\n`));
-    }
-
-    if (dependencyChanges.length === 0 && gitChanges.length === 0) {
-      markdown += "No changes detected in this upgrade.\n";
-    }
-
-    writeFileSync("upgrade-summary.md", markdown);
-    writeFileSync("upgrade-summary.json", JSON.stringify(summary, null, 2));
-
-    // Set NO_CHANGES environment variable for workflow
-    const hasChanges = dependencyChanges.length > 0 || gitChanges.length > 0;
-    if (!hasChanges) {
-      setNoChangesEnv();
-    } else {
-      console.log(
-        `Detected ${dependencyChanges.length} dependency changes and ${gitChanges.length} file changes`,
-      );
-    }
-
-    console.log("Post-upgrade analysis complete");
-  } catch (error) {
-    console.error("Error in post-upgrade capture:", error);
-    process.exit(1);
+  if (dependencyChanges.length > 0) {
+    markdown += "## Package Updates\n\n";
+    dependencyChanges.forEach((change) => {
+      const action =
+        change.type === "added"
+          ? "Added"
+          : change.type === "removed"
+            ? "Removed"
+            : "Updated";
+      if (change.type === "updated") {
+        markdown += `- **${change.name}**: ${change.before} → ${change.after}\n`;
+      } else {
+        const version =
+          change.type === "removed" ? change.before : change.after;
+        markdown += `- **${action}**: ${change.name} ${version}\n`;
+      }
+    });
   }
+
+  if (gitChanges.length > 0) {
+    markdown += "\n## Modified Files\n\n";
+    gitChanges.forEach((file) => (markdown += `- ${file}\n`));
+  }
+
+  if (dependencyChanges.length === 0 && gitChanges.length === 0) {
+    markdown += "No changes detected in this upgrade.\n";
+  }
+
+  writeFileSync("upgrade-summary.md", markdown);
+  writeFileSync("upgrade-summary.json", JSON.stringify(summary, null, 2));
+
+  // Set NO_CHANGES environment variable for workflow
+  const hasChanges = dependencyChanges.length > 0 || gitChanges.length > 0;
+  if (!hasChanges) {
+    setNoChangesEnv();
+  } else {
+    console.log(
+      `Detected ${dependencyChanges.length} dependency changes and ${gitChanges.length} file changes`,
+    );
+  }
+
+  console.log("Post-upgrade analysis complete");
 }
 
-capturePostUpgrade();
+capturePostUpgrade().catch((e) => console.error(e));

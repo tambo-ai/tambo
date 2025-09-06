@@ -20,47 +20,32 @@ function validatePackageJson(): void {
 }
 
 function readPackageJson(): PackageJson {
-  try {
-    return JSON.parse(readFileSync("package.json", "utf8"));
-  } catch (error) {
-    console.error("❌ Error reading package.json:", error);
-    process.exit(1);
-  }
+  return JSON.parse(readFileSync("package.json", "utf8"));
 }
 
 function savePreUpgradeState(state: PreUpgradeState): void {
-  try {
-    writeFileSync("pre-upgrade-state.json", JSON.stringify(state, null, 2));
-    writeFileSync("package.json.before", readFileSync("package.json", "utf8"));
-  } catch (error) {
-    console.error("❌ Error saving pre-upgrade state:", error);
-    process.exit(1);
-  }
+  writeFileSync("pre-upgrade-state.json", JSON.stringify(state, null, 2));
+  writeFileSync("package.json.before", readFileSync("package.json", "utf8"));
 }
 
 async function capturePreUpgrade(): Promise<void> {
-  try {
-    console.log("📦 Capturing pre-upgrade state...");
+  console.log("📦 Capturing pre-upgrade state...");
 
-    validatePackageJson();
-    const packageJson = readPackageJson();
+  validatePackageJson();
+  const packageJson = readPackageJson();
 
-    const state: PreUpgradeState = {
-      dependencies: packageJson.dependencies || {},
-      devDependencies: packageJson.devDependencies || {},
-      timestamp: new Date().toISOString(),
-    };
+  const state: PreUpgradeState = {
+    dependencies: packageJson.dependencies || {},
+    devDependencies: packageJson.devDependencies || {},
+    timestamp: new Date().toISOString(),
+  };
 
-    savePreUpgradeState(state);
+  savePreUpgradeState(state);
 
-    const totalDeps =
-      Object.keys(state.dependencies).length +
-      Object.keys(state.devDependencies).length;
-    console.log(`✅ Pre-upgrade state captured (${totalDeps} dependencies)`);
-  } catch (error) {
-    console.error("❌ Error capturing pre-upgrade state:", error);
-    process.exit(1);
-  }
+  const totalDeps =
+    Object.keys(state.dependencies).length +
+    Object.keys(state.devDependencies).length;
+  console.log(`✅ Pre-upgrade state captured (${totalDeps} dependencies)`);
 }
 
 capturePreUpgrade().catch((e) => console.error(e));

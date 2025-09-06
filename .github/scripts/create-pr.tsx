@@ -45,9 +45,9 @@ function validateRequiredFiles(): void {
 function hasGitChanges(): boolean {
   try {
     execSync("git diff --quiet", { stdio: "ignore" });
-    return false; // No changes
+    return false;
   } catch {
-    return true; // Changes exist
+    return true;
   }
 }
 
@@ -86,38 +86,33 @@ function createPullRequestBody(
 }
 
 async function createPR(): Promise<void> {
-  try {
-    validateRequiredFiles();
-    const { releaseTag, branchName, releaseInfo } = validateEnvironment();
+  validateRequiredFiles();
+  const { releaseTag, branchName, releaseInfo } = validateEnvironment();
 
-    if (!hasGitChanges()) {
-      console.log("No changes to commit, skipping PR creation");
-      return;
-    }
-
-    const summary = readFileSync("upgrade-summary.md", "utf8");
-
-    console.log(`Creating PR for branch: ${branchName}`);
-
-    // Add all changes and commit
-    executeGitCommand("git add .");
-    executeGitCommand(
-      `git commit -m "chore: upgrade to ${releaseTag}\n\nAutomated upgrade via template maintenance workflow"`,
-    );
-    executeGitCommand(`git push origin ${branchName}`);
-
-    // Create PR
-    const title = `chore: upgrade to ${releaseTag}`;
-    const body = createPullRequestBody(summary, releaseInfo);
-
-    executeGitCommand(
-      `gh pr create --title "${title}" --body "${body}" --head ${branchName} --base main`,
-    );
-    console.log(`✅ Pull request created successfully for ${releaseTag}`);
-  } catch (error) {
-    console.error("❌ Error creating PR:", error);
-    process.exit(1);
+  if (!hasGitChanges()) {
+    console.log("No changes to commit, skipping PR creation");
+    return;
   }
+
+  const summary = readFileSync("upgrade-summary.md", "utf8");
+
+  console.log(`Creating PR for branch: ${branchName}`);
+
+  // Add all changes and commit
+  executeGitCommand("git add .");
+  executeGitCommand(
+    `git commit -m "chore: upgrade to ${releaseTag}\n\nAutomated upgrade via template maintenance workflow"`,
+  );
+  executeGitCommand(`git push origin ${branchName}`);
+
+  // Create PR
+  const title = `chore: upgrade to ${releaseTag}`;
+  const body = createPullRequestBody(summary, releaseInfo);
+
+  executeGitCommand(
+    `gh pr create --title "${title}" --body "${body}" --head ${branchName} --base main`,
+  );
+  console.log(`✅ Pull request created successfully for ${releaseTag}`);
 }
 
-createPR();
+createPR().catch((e) => console.error(e));
