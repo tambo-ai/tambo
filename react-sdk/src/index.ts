@@ -64,6 +64,16 @@ export {
   type TamboThreadMessage,
 } from "./model/generate-component-response";
 export { type TamboThread } from "./model/tambo-thread";
+export {
+  type CustomLlmParams,
+  type StandardModelParams,
+  type MergeModelParamsInput,
+  type MergedModelParams,
+  mergeModelParams,
+  validateCustomParams,
+  RESERVED_PARAM_KEYS,
+  STANDARD_PARAM_KEYS,
+} from "./model/custom-llm-params";
 
 export type {
   TamboInteractableComponent as InteractableComponent,

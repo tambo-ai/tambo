@@ -17,6 +17,11 @@ import {
   TamboThreadMessage,
 } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
+import {
+  CustomLlmParams,
+  mergeModelParams,
+  MergedModelParams,
+} from "../model/custom-llm-params";
 import { renderComponentIntoMessage } from "../util/generate-component";
 import {
   getAvailableComponents,
@@ -113,6 +118,7 @@ export interface TamboThreadContextProps {
       contextKey?: string;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
+      customLlmParams?: CustomLlmParams;
     },
   ) => Promise<TamboThreadMessage>;
 }
@@ -739,6 +745,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice?: string;
         contextKey?: string;
         additionalContext?: Record<string, any>;
+        customLlmParams?: CustomLlmParams;
       } = {},
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);
@@ -748,6 +755,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice,
         contextKey,
         additionalContext,
+        customLlmParams,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
@@ -791,6 +799,14 @@ export const TamboThreadProvider: React.FC<
       // Track tool call counts for this message processing
       const toolCallCounts: Record<string, number> = {};
 
+      // Merge custom LLM parameters with proper precedence
+      // TODO: Add project-level custom parameters when backend support is added
+      const mergedParams: MergedModelParams = mergeModelParams({
+        defaults: {}, // TODO: Add Tambo default parameters
+        projectParams: {}, // TODO: Fetch from project settings
+        requestOverrides: customLlmParams ?? {},
+      });
+
       const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
         messageToAppend: {
           content: [{ type: "text", text: message }],
@@ -804,7 +820,21 @@ export const TamboThreadProvider: React.FC<
         ),
         forceToolChoice: forceToolChoice,
         toolCallCounts,
+        // TODO: Add custom LLM parameters once backend API supports them
+        // modelOptions: mergedParams.standardParams,
+        // providerOptions: mergedParams.providerOptions,
       };
+
+      // Log merged parameters for debugging (will be sent to backend once API supports it)
+      if (
+        Object.keys(mergedParams.standardParams).length > 0 ||
+        Object.keys(mergedParams.providerOptions).length > 0
+      ) {
+        // console.debug('Custom LLM parameters ready for backend:', {
+        //   standardParams: mergedParams.standardParams,
+        //   providerOptions: mergedParams.providerOptions,
+        // });
+      }
 
       if (streamResponse) {
         let advanceStreamResponse: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>;

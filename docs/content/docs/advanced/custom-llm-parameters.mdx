@@ -1,0 +1,384 @@
+---
+title: Custom LLM Parameters
+description: Learn how to customize model parameters for fine-tuned control over AI responses
+---
+
+# Custom LLM Parameters
+
+Tambo allows you to customize the parameters sent to your chosen language model, giving you fine-grained control over AI behavior and responses. This feature supports both standard model parameters and provider-specific options.
+
+## Overview
+
+Custom LLM parameters enable you to:
+
+- **Override default model settings** like temperature, top_p, and max_tokens
+- **Add provider-specific parameters** for advanced model features
+- **Set project-level defaults** that apply to all requests
+- **Override parameters per request** for specific use cases
+
+## Parameter Precedence
+
+Parameters are merged with the following precedence (last wins):
+
+1. **Tambo defaults** - Base parameters set by Tambo
+2. **Project custom parameters** - Set in project settings (coming soon)
+3. **Request overrides** - Passed with individual requests
+
+```typescript
+// Example: Request overrides take highest precedence
+const { sendThreadMessage } = useTamboThreadInput();
+
+await sendThreadMessage("Explain quantum computing", {
+  customLlmParams: {
+    temperature: 0.9, // Overrides project and default settings
+    max_tokens: 2000,
+    reasoning: { effort: "high" }, // Provider-specific parameter
+  },
+});
+```
+
+## Standard Parameters
+
+These parameters are extracted and passed as standard model options:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `temperature` | number | Controls randomness (0.0 to 2.0) |
+| `top_p` | number | Nucleus sampling parameter (0.0 to 1.0) |
+| `max_tokens` | number | Maximum tokens in response |
+| `frequency_penalty` | number | Reduces repetition (-2.0 to 2.0) |
+| `presence_penalty` | number | Encourages new topics (-2.0 to 2.0) |
+| `top_k` | number | Top-k sampling parameter |
+| `repetition_penalty` | number | Alternative repetition control |
+| `min_p` | number | Minimum probability threshold |
+| `seed` | number | Deterministic sampling seed |
+
+## Provider-Specific Parameters
+
+Any parameters not in the standard list are passed as `providerOptions` to the AI SDK, allowing you to use provider-specific features.
+
+### OpenAI-Compatible Providers
+
+```typescript
+// Example with reasoning parameters (o1 models)
+const customParams = {
+  temperature: 0.8,
+  reasoning: {
+    effort: "high",
+    max_reasoning_tokens: 10000,
+  },
+};
+```
+
+### Anthropic Claude
+
+```typescript
+// Example with Claude-specific parameters
+const customParams = {
+  temperature: 0.7,
+  anthropic: {
+    beta: ["computer-use-2024-10-22"],
+  },
+};
+```
+
+### Custom Headers
+
+```typescript
+// Provider-specific headers
+const customParams = {
+  temperature: 0.8,
+  custom_headers: {
+    "X-Custom-Model-Config": "advanced",
+  },
+};
+```
+
+## Reserved Parameters
+
+The following parameters are reserved for Tambo's core functionality and cannot be overridden:
+
+- `model` - Model selection is handled by project settings
+- `messages` - Message history is managed by Tambo
+- `tools` - Tool definitions are managed by component registry
+- `tool_choice` - Tool selection is handled by Tambo's logic
+- `stream` - Streaming is controlled by the `streamResponse` option
+- `response_format` - Response formatting is managed internally
+- `user` - User identification is handled by authentication
+- `logit_bias`, `logprobs`, `top_logprobs` - Advanced logging parameters
+- `n`, `stop`, `suffix`, `echo`, `best_of` - Legacy completion parameters
+- `completion_config`, `prompt` - Internal configuration
+- `max_completion_tokens` - Managed by max_tokens
+
+Attempting to set reserved parameters will result in a warning and the parameter being ignored.
+
+## Usage Examples
+
+### Basic Parameter Override
+
+```typescript
+import { useTamboThreadInput } from '@tambo-ai/react';
+
+function ChatInterface() {
+  const { sendThreadMessage } = useTamboThreadInput();
+
+  const handleCreativeRequest = async () => {
+    await sendThreadMessage("Write a creative story", {
+      customLlmParams: {
+        temperature: 1.2, // High creativity
+        top_p: 0.9,
+        max_tokens: 1500,
+      },
+    });
+  };
+
+  const handleAnalyticalRequest = async () => {
+    await sendThreadMessage("Analyze this data", {
+      customLlmParams: {
+        temperature: 0.1, // Low randomness for consistency
+        frequency_penalty: 0.5, // Reduce repetition
+      },
+    });
+  };
+
+  return (
+    <div>
+      <button onClick={handleCreativeRequest}>
+        Creative Writing
+      </button>
+      <button onClick={handleAnalyticalRequest}>
+        Data Analysis
+      </button>
+    </div>
+  );
+}
+```
+
+### Advanced Provider Features
+
+```typescript
+// Using reasoning parameters for complex problems
+const handleComplexProblem = async () => {
+  await sendThreadMessage("Solve this complex math problem", {
+    customLlmParams: {
+      temperature: 0.3,
+      reasoning: {
+        effort: "high",
+        style: "step_by_step",
+        max_reasoning_tokens: 15000,
+      },
+    },
+  });
+};
+
+// Using custom model configurations
+const handleSpecializedTask = async () => {
+  await sendThreadMessage("Generate code with specific style", {
+    customLlmParams: {
+      temperature: 0.5,
+      max_tokens: 2000,
+      custom_config: {
+        code_style: "functional",
+        include_comments: true,
+        optimization_level: "high",
+      },
+    },
+  });
+};
+```
+
+### Nested Parameter Merging
+
+```typescript
+// Project-level defaults (when backend support is added)
+const projectDefaults = {
+  temperature: 0.7,
+  reasoning: {
+    effort: "medium",
+    style: "analytical",
+  },
+};
+
+// Request-specific overrides
+const requestOverrides = {
+  reasoning: {
+    effort: "high", // Only overrides effort, preserves style
+  },
+  max_tokens: 1500,
+};
+
+// Result: { temperature: 0.7, max_tokens: 1500, reasoning: { effort: "high", style: "analytical" } }
+```
+
+## Validation
+
+Use the validation utility to check parameters before storing them:
+
+```typescript
+import { validateCustomParams } from '@tambo-ai/react';
+
+const params = {
+  temperature: 0.8,
+  custom_param: 'value',
+  model: 'gpt-4', // This will cause validation to fail
+};
+
+const validation = validateCustomParams(params);
+if (!validation.isValid) {
+  console.error('Invalid parameters:', validation.errors);
+  // ["Parameter 'model' is reserved and cannot be customized"]
+}
+```
+
+## Debugging
+
+Custom parameters are logged to the console in debug mode:
+
+```typescript
+// Enable debug logging
+console.debug('Custom LLM parameters ready for backend:', {
+  standardParams: { temperature: 0.8, max_tokens: 1500 },
+  providerOptions: { reasoning: { effort: 'high' } },
+});
+```
+
+## Best Practices
+
+### 1. Start with Standard Parameters
+
+Use standard parameters for common adjustments:
+
+```typescript
+// Good: Use standard parameters first
+const params = {
+  temperature: 0.8,
+  max_tokens: 1500,
+  top_p: 0.9,
+};
+```
+
+### 2. Provider-Specific Features
+
+Only use provider-specific parameters when you need advanced features:
+
+```typescript
+// Good: Provider-specific for advanced features
+const params = {
+  temperature: 0.7,
+  reasoning: { effort: "high" }, // o1-specific
+};
+```
+
+### 3. Validate Before Storing
+
+Always validate parameters before saving them:
+
+```typescript
+// Good: Validate before storing
+const validation = validateCustomParams(userParams);
+if (validation.isValid) {
+  // Save to project settings
+} else {
+  // Show validation errors to user
+}
+```
+
+### 4. Document Custom Parameters
+
+Document any custom parameters you use:
+
+```typescript
+// Good: Document custom parameters
+const params = {
+  temperature: 0.8,
+  // Custom reasoning configuration for complex analysis tasks
+  reasoning: {
+    effort: "high", // Use maximum reasoning capability
+    style: "step_by_step", // Break down complex problems
+  },
+};
+```
+
+## Troubleshooting
+
+### Parameters Not Taking Effect
+
+1. **Check for reserved keys**: Reserved parameters are ignored with warnings
+2. **Verify parameter names**: Ensure correct spelling and casing
+3. **Check precedence**: Request overrides take highest precedence
+4. **Backend support**: Some parameters require backend API updates
+
+### Validation Errors
+
+```typescript
+// Common validation issues
+const problematicParams = {
+  model: 'gpt-4', // Reserved - use project settings instead
+  messages: [], // Reserved - managed by Tambo
+  temperature: 'high', // Wrong type - should be number
+};
+```
+
+### Provider Compatibility
+
+Not all providers support all parameters:
+
+```typescript
+// Check provider documentation for supported parameters
+const params = {
+  temperature: 0.8, // Supported by most providers
+  top_k: 40, // Not supported by OpenAI, but works with others
+  reasoning: { effort: "high" }, // Only supported by o1 models
+};
+```
+
+## Migration Guide
+
+### From Direct API Calls
+
+If you were previously making direct API calls with custom parameters:
+
+```typescript
+// Before: Direct API call
+const response = await openai.chat.completions.create({
+  model: 'gpt-4',
+  messages: [...],
+  temperature: 0.8,
+  max_tokens: 1500,
+});
+
+// After: Using Tambo with custom parameters
+const { sendThreadMessage } = useTamboThreadInput();
+await sendThreadMessage("Your message", {
+  customLlmParams: {
+    temperature: 0.8,
+    max_tokens: 1500,
+  },
+});
+```
+
+### From Environment Variables
+
+If you were using environment variables for model configuration:
+
+```typescript
+// Before: Environment variables
+const temperature = parseFloat(process.env.MODEL_TEMPERATURE || '0.7');
+
+// After: Custom parameters
+const defaultParams = {
+  temperature: 0.7,
+  max_tokens: 2000,
+};
+```
+
+## Future Enhancements
+
+- **Project-level parameter storage** - Set default parameters in project settings
+- **Parameter templates** - Predefined parameter sets for common use cases
+- **A/B testing** - Compare different parameter configurations
+- **Parameter analytics** - Track which parameters work best for your use cases
+
+---
+
+**Note**: This feature is currently in development. The frontend implementation is complete, but backend API support for storing and retrieving project-level parameters is coming soon.
