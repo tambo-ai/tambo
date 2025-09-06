@@ -467,6 +467,7 @@ const MessageInputVoiceButton = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => {
   const { isEnabled } = useTamboVoiceInput();
+  const [isClient, setIsClient] = React.useState(false);
   const {
     startRecording,
     stopRecording,
@@ -476,8 +477,12 @@ const MessageInputVoiceButton = React.forwardRef<
     isSupported,
   } = useVoiceInput();
 
-  // Don't render if voice input is disabled or not supported
-  if (!isEnabled || !isSupported) {
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Don't render during SSR or if voice input is disabled or not supported
+  if (!isClient || !isEnabled || !isSupported) {
     return null;
   }
 
@@ -608,25 +613,35 @@ const MessageInputToolbar = React.forwardRef<
       {...props}
     >
       <div className="flex items-center gap-2">
-        {/* Left side - everything except submit button */}
+        {/* Left side - everything except voice button and submit button */}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
             React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
+            (child.type === MessageInputSubmitButton ||
+              child.type === MessageInputVoiceButton)
           ) {
-            return null; // Don't render submit button here
+            return null; // Don't render voice button or submit button here
           }
           return child;
         })}
       </div>
       <div className="flex items-center gap-2">
-        {/* Right side - only submit button */}
+        {/* Right side - voice button first, then submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputVoiceButton
+          ) {
+            return child; // Render voice button first
+          }
+          return null;
+        })}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
             React.isValidElement(child) &&
             child.type === MessageInputSubmitButton
           ) {
-            return child; // Only render submit button here
+            return child; // Render submit button second
           }
           return null;
         })}

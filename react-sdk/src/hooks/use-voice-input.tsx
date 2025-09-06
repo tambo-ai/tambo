@@ -1,3 +1,4 @@
+"use client";
 import { useCallback, useRef, useState } from "react";
 import { useTamboThreadInput } from "../providers/tambo-thread-input-provider";
 import { useTamboVoiceInput } from "../providers/tambo-voice-input-provider";
