@@ -1,0 +1,14 @@
+{
+  "name": "selection-card",
+  "description": "A generic selection controller for handling single and multi-select scenarios with advanced features",
+  "componentName": "SelectionCard",
+  "dependencies": ["zod", "lucide-react", "class-variance-authority"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "selection-card.tsx",
+      "content": "src/registry/selection-card/selection-card.tsx"
+    }
+  ]
+}
