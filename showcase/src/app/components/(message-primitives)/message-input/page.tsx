@@ -1,3 +1,5 @@
+"use client";
+
 import { CLI } from "@/components/cli";
 import {
   MessageInput,
@@ -5,9 +7,11 @@ import {
   MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
+  MessageInputVoiceButton,
 } from "@/components/ui/message-input";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
+import { TamboProvider } from "@tambo-ai/react";
 
 export default function MessageInputPage() {
   const usageCode = `import { 
@@ -16,6 +20,7 @@ export default function MessageInputPage() {
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputMcpConfigButton,
+  MessageInputVoiceButton,
   MessageInputError 
 } from "@/components/ui/message-input";
 
@@ -28,23 +33,30 @@ export default function MessageInputPage() {
   <MessageInputError />
 </MessageInput>
 
-// With solid variant
-<MessageInput contextKey="my-thread" variant="solid">
-  <MessageInputTextarea placeholder="Type your message..." />
-  <MessageInputToolbar>
-    <MessageInputSubmitButton />
-  </MessageInputToolbar>
-</MessageInput>
+// With voice input
+<TamboProvider apiKey="your-api-key">
+  <MessageInput contextKey="my-thread" variant="default">
+    <MessageInputTextarea placeholder="Type or speak your message..." />
+    <MessageInputToolbar>
+      <MessageInputVoiceButton />
+      <MessageInputSubmitButton />
+    </MessageInputToolbar>
+    <MessageInputError />
+  </MessageInput>
+</TamboProvider>
 
-// With MCP configuration button
-<MessageInput contextKey="my-thread" variant="default">
-  <MessageInputTextarea />
-  <MessageInputToolbar>
-    <MessageInputMcpConfigButton />
-    <MessageInputSubmitButton />
-  </MessageInputToolbar>
-  <MessageInputError />
-</MessageInput>`;
+// With MCP configuration and voice input
+<TamboProvider apiKey="your-api-key">
+  <MessageInput contextKey="my-thread" variant="default">
+    <MessageInputTextarea />
+    <MessageInputToolbar>
+      <MessageInputMcpConfigButton />
+      <MessageInputVoiceButton />
+      <MessageInputSubmitButton />
+    </MessageInputToolbar>
+    <MessageInputError />
+  </MessageInput>
+</TamboProvider>`;
 
   const installCommand = "npx tambo add message-input";
 
@@ -100,6 +112,15 @@ export default function MessageInputPage() {
                   Button to open the MCP configuration modal which allows you to
                   configure client-side MCP servers. You can add or remove this
                   button from the toolbar.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;MessageInputVoiceButton /&gt;</code> -
+                  </strong>{" "}
+                  Button for voice input functionality. Allows users to record
+                  audio and automatically transcribe it to text. Automatically
+                  detects browser support and only renders when the necessary
+                  APIs are available.
                 </li>
                 <li>
                   <strong>
@@ -170,6 +191,27 @@ export default function MessageInputPage() {
             </div>
           </div>
 
+          {/* With Voice Input Example */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">With Voice Input</h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <TamboProvider apiKey="demo-key">
+                <MessageInput contextKey="demo-voice" variant="default">
+                  <MessageInputTextarea placeholder="Type or speak your message..." />
+                  <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                    <MessageInputVoiceButton />
+                    <MessageInputSubmitButton />
+                  </div>
+                  <MessageInputError />
+                </MessageInput>
+              </TamboProvider>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Voice input requires HTTPS (or localhost), microphone permissions,
+              and an OpenAI API key configured in your backend.
+            </p>
+          </div>
+
           {/* With MCP configuration button */}
           <div>
             <h3 className="text-lg font-medium mb-3">
@@ -189,6 +231,32 @@ export default function MessageInputPage() {
                 <MessageInputError />
               </MessageInput>
             </div>
+          </div>
+
+          {/* Full Featured Example */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">
+              Full Featured (MCP + Voice Input)
+            </h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <TamboProvider apiKey="demo-key">
+                <MessageInput contextKey="demo-full" variant="default">
+                  <MessageInputTextarea placeholder="Type or speak your message..." />
+                  <div className="flex justify-between items-center mt-2 p-1 gap-2">
+                    <MessageInputMcpConfigButton />
+                    <div className="flex items-center gap-2">
+                      <MessageInputVoiceButton />
+                      <MessageInputSubmitButton />
+                    </div>
+                  </div>
+                  <MessageInputError />
+                </MessageInput>
+              </TamboProvider>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              This example shows all available toolbar components: MCP
+              configuration (left), voice input and submit button (right).
+            </p>
           </div>
 
           {/* Minimal Example */}

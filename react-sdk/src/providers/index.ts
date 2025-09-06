@@ -44,3 +44,9 @@ export {
   useTamboGenerationStage,
   useTamboThread,
 } from "./tambo-thread-provider";
+export {
+  TamboVoiceInputProvider,
+  useTamboVoiceInput,
+  type TamboVoiceInputContextProps,
+  type TamboVoiceInputProviderProps,
+} from "./tambo-voice-input-provider";
