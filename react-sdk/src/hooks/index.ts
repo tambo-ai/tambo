@@ -10,3 +10,8 @@ export {
   type StreamStatus,
 } from "./use-tambo-stream-status";
 export { useTamboThreadList } from "./use-tambo-threads";
+export {
+  useVoiceInput,
+  type UseVoiceInputResult,
+  type VoiceInputState,
+} from "./use-voice-input";

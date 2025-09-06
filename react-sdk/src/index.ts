@@ -23,6 +23,7 @@ export {
   TamboStubProvider,
   TamboThreadInputProvider,
   TamboThreadProvider,
+  TamboVoiceInputProvider,
   useIsTamboTokenUpdating,
   useTambo,
   useTamboClient,
@@ -31,12 +32,15 @@ export {
   useTamboStream,
   useTamboThread,
   useTamboThreadInput,
+  useTamboVoiceInput,
   type TamboComponent,
   type TamboContextHelpersContextProps,
   type TamboContextHelpersProviderProps,
   type TamboRegistryContext,
   type TamboStubProviderProps,
   type TamboThreadInputContextProps,
+  type TamboVoiceInputContextProps,
+  type TamboVoiceInputProviderProps,
 } from "./providers";
 
 // Re-export types from Tambo Node SDK
@@ -52,6 +56,11 @@ export type {
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 export { useTamboThreadList } from "./hooks/use-tambo-threads";
+export {
+  useVoiceInput,
+  type UseVoiceInputResult,
+  type VoiceInputState,
+} from "./hooks/use-voice-input";
 export {
   type ComponentContextToolMetadata,
   type ComponentRegistry,

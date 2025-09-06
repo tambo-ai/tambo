@@ -6,6 +6,52 @@ The `@tambo-ai/react` npm package provides hooks that expose state values and fu
 
 Here you'll find a description of each state value and function, organized by hook.
 
+### useVoiceInput
+
+This hook provides voice input functionality, allowing users to record audio and have it transcribed to text.
+
+#### startRecording
+
+`const { startRecording } = useVoiceInput()`
+
+Starts audio recording from the user's microphone. Requests permission if not already granted.
+
+#### stopRecording  
+
+`const { stopRecording } = useVoiceInput()`
+
+Stops the current audio recording and triggers transcription.
+
+#### isRecording
+
+`const { isRecording } = useVoiceInput()`
+
+Boolean indicating whether audio is currently being recorded.
+
+#### isTranscribing
+
+`const { isTranscribing } = useVoiceInput()`
+
+Boolean indicating whether recorded audio is being transcribed.
+
+#### state
+
+`const { state } = useVoiceInput()`
+
+Current state of the voice input: `"idle"`, `"requesting_permission"`, `"recording"`, `"transcribing"`, or `"error"`.
+
+#### error
+
+`const { error } = useVoiceInput()`
+
+Any error that occurred during recording or transcription.
+
+#### isSupported
+
+`const { isSupported } = useVoiceInput()`
+
+Boolean indicating whether voice input is supported in the current browser.
+
 ### useTamboRegistry
 
 This hook provides helpers for component and tool registration.

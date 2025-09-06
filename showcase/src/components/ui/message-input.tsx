@@ -7,9 +7,11 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  useTamboVoiceInput,
+  useVoiceInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp, Mic, Square } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -195,7 +197,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         },
         submit,
         handleSubmit,
-        isPending: isPending || isSubmitting,
+        isPending: isPending ?? isSubmitting,
         error,
         contextKey,
         textareaRef,
@@ -381,9 +383,7 @@ MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
  */
 const MessageInputMcpConfigButton = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    className?: string;
-  }
+  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
@@ -442,12 +442,100 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <McpConfigModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        className="showcase-theme"
       />
     </TooltipProvider>
   );
 });
 MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
+
+/**
+ * Voice Input Button component for recording and transcribing audio.
+ * @component MessageInput.VoiceButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.VoiceButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputVoiceButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, ...props }, ref) => {
+  const { isEnabled } = useTamboVoiceInput();
+  const {
+    startRecording,
+    stopRecording,
+    isRecording,
+    isTranscribing,
+    error,
+    isSupported,
+  } = useVoiceInput();
+
+  // Don't render if voice input is disabled or not supported
+  if (!isEnabled || !isSupported) {
+    return null;
+  }
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isRecording) {
+      stopRecording();
+    } else {
+      await startRecording();
+    }
+  };
+
+  const buttonClasses = cn(
+    "w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer transition-colors",
+    isRecording
+      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+      : "bg-muted text-primary hover:bg-muted/80",
+    isTranscribing && "opacity-50 cursor-wait",
+    className,
+  );
+
+  const getTooltipContent = () => {
+    if (isTranscribing) return "Transcribing...";
+    if (isRecording) return "Stop recording";
+    if (error) return "Voice input error";
+    return "Start voice input";
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content={getTooltipContent()}
+        side="top"
+        className="bg-muted text-primary"
+      >
+        <button
+          ref={ref}
+          type="button"
+          onClick={handleClick}
+          disabled={isTranscribing}
+          className={buttonClasses}
+          aria-label={isRecording ? "Stop recording" : "Start voice input"}
+          data-slot="message-input-voice"
+          {...props}
+        >
+          {isRecording ? (
+            <Square className="w-4 h-4" fill="currentColor" />
+          ) : (
+            <Mic className="w-5 h-5" />
+          )}
+        </button>
+      </Tooltip>
+    </TooltipProvider>
+  );
+});
+MessageInputVoiceButton.displayName = "MessageInput.VoiceButton";
 
 /**
  * Props for the MessageInputError component.
@@ -556,5 +644,6 @@ export {
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputVoiceButton,
   messageInputVariants,
 };

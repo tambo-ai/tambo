@@ -39,7 +39,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
+    <TamboProvider 
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      voiceInputEnabled={true} // Enable voice input (default: true)
+    >
       {children}
     </TamboProvider>
   );
@@ -57,6 +60,28 @@ export default function RootLayout({
 Note that the `TamboProvider` only works in the browser. On Next.js, specify
 `"use client"` at the top of your file to ensure that the `TamboProvider` is
 rendered in the browser.
+
+#### Voice Input Configuration
+
+The `TamboProvider` supports voice input functionality out of the box. Users can click the microphone button in the message input to record their message instead of typing. The audio is transcribed using OpenAI's Whisper model through your backend.
+
+To disable voice input:
+
+```tsx
+<TamboProvider 
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  voiceInputEnabled={false}
+>
+  {children}
+</TamboProvider>
+```
+
+<Callout type="info" title="Voice Input Requirements">
+  Voice input requires:
+  - HTTPS connection (or localhost for development)
+  - Browser support for MediaRecorder API
+  - User permission to access the microphone
+</Callout>
 
 ### Step 3: Add the MessageThreadCollapsible component
 
