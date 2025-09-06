@@ -55,6 +55,11 @@ export const graphSchema = z.object({
 export type GraphProps = z.infer<typeof graphSchema>;
 
 /**
+ * TypeScript type inferred from the Zod schema
+ */
+export type GraphDataType = z.infer<typeof graphDataSchema>;
+
+/**
  * Variants for the Graph component
  */
 export const graphVariants = cva(
