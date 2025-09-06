@@ -1,0 +1,21 @@
+{
+  "name": "date-time-picker",
+  "description": "A customizable and accessible datetime picker with keyboard navigation, locales, 12/24h cycle, and ISO output.",
+  "dependencies": {
+    "date-fns": "^2.30.0",
+    "clsx": "^2.0.0",
+    "zod": "^3.22.0",
+    "react-day-picker": "^9.9.0"
+  },
+  "devDependencies": {},
+  "files": [
+    {
+      "name": "DateTimePicker.tsx",
+      "content": "./DateTimePicker.tsx"
+    },
+    {
+      "name": "index.tsx",
+      "content": "./index.tsx"
+    }
+  ]
+}
