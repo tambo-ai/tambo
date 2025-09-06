@@ -31,15 +31,13 @@ const getDrafts = (storageKey: string): Draft[] => {
  *
  * This hook is used by the TamboThreadInputProvider.
  * @param threadId The ID of the thread for this draft
+ * @param storageKey The storage key for drafts (optional)
  * @returns An object with `currentDraft` and `saveDraft`
  */
-export function useTamboMessageDrafts({
+export function useTamboMessageDrafts(
+  threadId?: string,
   storageKey = DRAFT_KEY,
-  threadId,
-}: {
-  storageKey?: string;
-  threadId?: string;
-}) {
+) {
   const [currentDraft, setCurrentDraft] = useState<string>(
     getDrafts(storageKey).find((d) => d.id === threadId)?.content ?? "",
   );
