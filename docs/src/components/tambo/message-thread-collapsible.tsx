@@ -42,6 +42,8 @@ export interface MessageThreadCollapsibleProps
   contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
   defaultOpen?: boolean;
+  /** Initial query to pre-fill the message input */
+  initialQuery?: string;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -184,110 +186,122 @@ CollapsibleTrigger.displayName = "CollapsibleTrigger";
 export const MessageThreadCollapsible = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleProps
->(({ className, contextKey, defaultOpen = false, variant, ...props }, ref) => {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen);
-
-  const handleThreadChange = React.useCallback(() => {
-    setIsOpen(true);
-  }, [setIsOpen]);
-
-  /**
-   * Configuration for the MessageThreadCollapsible component
-   */
-  const THREAD_CONFIG = {
-    labels: {
-      openState: "ask tambo",
-    },
-  };
-
-  const { thread } = useTambo();
-
-  // Starter message for when the thread is empty
-  const starterMessage: TamboThreadMessage = {
-    id: "starter-login-prompt",
-    role: "assistant",
-    content: [{ type: "text", text: "Ask me anything about tambo." }],
-    createdAt: new Date().toISOString(),
-    actionType: undefined,
-    componentState: {},
-    threadId: "",
-  };
-
-  const defaultSuggestions: Suggestion[] = [
+>(
+  (
     {
-      id: "suggestion-1",
-      title: "Create an account",
-      detailedSuggestion: "How do I create an account?",
-      messageId: "create-account-query",
+      className,
+      contextKey,
+      defaultOpen = false,
+      initialQuery,
+      variant,
+      ...props
     },
-    {
-      id: "suggestion-2",
-      title: "Join the Discord",
-      detailedSuggestion: "How do I join the tambo Discord?",
-      messageId: "join-discord-query",
-    },
-    {
-      id: "suggestion-3",
-      title: "Open an issue on GitHub",
-      detailedSuggestion: "How do I open an issue on GitHub?",
-      messageId: "open-issue-query",
-    },
-  ];
+    ref,
+  ) => {
+    const [isOpen, setIsOpen] = React.useState(defaultOpen || !!initialQuery);
 
-  return (
-    <CollapsibleContainer
-      ref={ref}
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      className={className}
-      {...props}
-    >
-      <CollapsibleTrigger
+    const handleThreadChange = React.useCallback(() => {
+      setIsOpen(true);
+    }, [setIsOpen]);
+
+    /**
+     * Configuration for the MessageThreadCollapsible component
+     */
+    const THREAD_CONFIG = {
+      labels: {
+        openState: "ask tambo",
+      },
+    };
+
+    const { thread } = useTambo();
+
+    // Starter message for when the thread is empty
+    const starterMessage: TamboThreadMessage = {
+      id: "starter-login-prompt",
+      role: "assistant",
+      content: [{ type: "text", text: "Ask me anything about tambo." }],
+      createdAt: new Date().toISOString(),
+      actionType: undefined,
+      componentState: {},
+      threadId: "",
+    };
+
+    const defaultSuggestions: Suggestion[] = [
+      {
+        id: "suggestion-1",
+        title: "Create an account",
+        detailedSuggestion: "How do I create an account?",
+        messageId: "create-account-query",
+      },
+      {
+        id: "suggestion-2",
+        title: "Join the Discord",
+        detailedSuggestion: "How do I join the tambo Discord?",
+        messageId: "join-discord-query",
+      },
+      {
+        id: "suggestion-3",
+        title: "Open an issue on GitHub",
+        detailedSuggestion: "How do I open an issue on GitHub?",
+        messageId: "open-issue-query",
+      },
+    ];
+
+    return (
+      <CollapsibleContainer
+        ref={ref}
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        contextKey={contextKey}
-        onThreadChange={handleThreadChange}
-        config={THREAD_CONFIG}
-      />
-      <Collapsible.Content>
-        <div className="h-[calc(100vh-8rem)] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
-          {/* Message thread content */}
-          <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
-            {/* Conditionally render the starter message */}
-            {thread.messages.length === 0 && (
-              <Message role="assistant" message={starterMessage}>
-                <MessageContent />
-              </Message>
-            )}
+        onOpenChange={setIsOpen}
+        className={className}
+        {...props}
+      >
+        <CollapsibleTrigger
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          contextKey={contextKey}
+          onThreadChange={handleThreadChange}
+          config={THREAD_CONFIG}
+        />
+        <Collapsible.Content>
+          <div className="h-[calc(100vh-8rem)] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
+            {/* Message thread content */}
+            <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
+              {/* Conditionally render the starter message */}
+              {thread.messages.length === 0 && (
+                <Message role="assistant" message={starterMessage}>
+                  <MessageContent />
+                </Message>
+              )}
 
-            <ThreadContent variant={variant}>
-              <ThreadContentMessages />
-            </ThreadContent>
-          </ScrollableMessageContainer>
+              <ThreadContent variant={variant}>
+                <ThreadContentMessages />
+              </ThreadContent>
+            </ScrollableMessageContainer>
 
-          {/* Message Suggestions Status */}
-          <MessageSuggestions>
-            <MessageSuggestionsStatus />
-          </MessageSuggestions>
+            {/* Message Suggestions Status */}
+            <MessageSuggestions>
+              <MessageSuggestionsStatus />
+            </MessageSuggestions>
 
-          {/* Message input */}
-          <div className="p-2 sm:p-3 md:p-4">
-            <MessageInput contextKey={contextKey}>
-              <MessageInputTextarea />
-              <MessageInputToolbar>
-                <MessageInputSubmitButton />
-              </MessageInputToolbar>
-              <MessageInputError />
-            </MessageInput>
+            {/* Message input */}
+            <div className="p-2 sm:p-3 md:p-4">
+              <MessageInput contextKey={contextKey} initialQuery={initialQuery}>
+                <MessageInputTextarea />
+                <MessageInputToolbar>
+                  <MessageInputSubmitButton />
+                </MessageInputToolbar>
+                <MessageInputError />
+              </MessageInput>
+            </div>
+
+            {/* Message suggestions */}
+            <MessageSuggestions initialSuggestions={defaultSuggestions}>
+              <MessageSuggestionsList />
+            </MessageSuggestions>
           </div>
-
-          {/* Message suggestions */}
-          <MessageSuggestions initialSuggestions={defaultSuggestions}>
-            <MessageSuggestionsList />
-          </MessageSuggestions>
-        </div>
-      </Collapsible.Content>
-    </CollapsibleContainer>
-  );
-});
+        </Collapsible.Content>
+      </CollapsibleContainer>
+    );
+  },
+);
 MessageThreadCollapsible.displayName = "MessageThreadCollapsible";
