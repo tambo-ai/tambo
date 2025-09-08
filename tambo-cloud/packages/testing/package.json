@@ -26,7 +26,7 @@
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
-    "openai": "^5.16.0"
+    "openai": "^5.19.1"
   },
   "engines": {
     "node": ">=22",
