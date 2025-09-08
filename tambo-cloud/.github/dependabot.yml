@@ -86,7 +86,11 @@ updates:
           - "lint-staged"
           - "globals"
           - "lucide-react"
+          - "@opentelemetry/*"
       sentry:
         patterns:
           - "@sentry/*"
           - sentry-*
+      ag-ui:
+        patterns:
+          - "@ag-ui/*"
