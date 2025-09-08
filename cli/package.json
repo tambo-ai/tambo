@@ -70,7 +70,7 @@
     "sanitize-html": "^2.17.0",
     "semver": "^7.7.2",
     "streamdown": "^1.1.5",
-    "ts-morph": "^26.0.0"
+    "ts-morph": "^27.0.0"
   },
   "devDependencies": {
     "@types/chalk": "^2.2.4",
