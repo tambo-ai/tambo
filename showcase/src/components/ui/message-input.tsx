@@ -312,19 +312,17 @@ const MessageInputInternal = React.forwardRef<
       >
         <div
           className={cn(
-            "relative flex flex-col border rounded-xl bg-background shadow-md p-2 px-3 transition-all duration-200",
+            "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
             isDragging
-              ? "border-blue-500 border-2 bg-blue-50 dark:bg-blue-950/20"
-              : "border-gray-200",
+              ? "border border-dashed border-emerald-400"
+              : "border border-gray-200",
           )}
         >
           {isDragging && (
-            <div className="absolute inset-0 rounded-xl bg-blue-500/10 flex items-center justify-center pointer-events-none z-20">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 border-2 border-blue-500">
-                <p className="text-blue-600 dark:text-blue-400 font-medium">
-                  Drop images here
-                </p>
-              </div>
+            <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 flex items-center justify-center pointer-events-none z-20">
+              <p className="text-emerald-700 dark:text-emerald-300 font-medium">
+                Drop files here to add to conversation
+              </p>
             </div>
           )}
           <MessageInputStagedImages />
