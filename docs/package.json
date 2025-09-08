@@ -33,7 +33,7 @@
     "streamdown": "^1.1.5"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.12",
+    "@tailwindcss/postcss": "^4.1.13",
     "@types/mdx": "^2.0.13",
     "@types/node": "24.0.15",
     "@types/react": "^18.3.23",
