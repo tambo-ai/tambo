@@ -11,6 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { RegisteredComponent } from "../model/component-metadata";
 import {
   GenerationStage,
   isIdleStage,
@@ -20,6 +21,7 @@ import { TamboThread } from "../model/tambo-thread";
 import { renderComponentIntoMessage } from "../util/generate-component";
 import {
   getAvailableComponents,
+  getComponentFromRegistry,
   getUnassociatedTools,
   mapTamboToolToContextTool,
 } from "../util/registry";
@@ -246,13 +248,11 @@ export const TamboThreadProvider: React.FC<
 
   // Callback to handle automatic interactables
   const handleComponentRendered = useCallback(
-    (componentName: string, props: any, registeredComponent: any) => {
-      console.warn(
-        `Adding interactable component: ${componentName} with props: ${JSON.stringify(
-          props,
-        )}`,
-      );
-
+    (
+      componentName: string,
+      props: any,
+      registeredComponent: RegisteredComponent,
+    ) => {
       if (!autoInteractables) return false;
 
       addInteractableComponent({
@@ -262,7 +262,7 @@ export const TamboThreadProvider: React.FC<
           `Auto-generated ${componentName} component`,
         component: registeredComponent.component,
         props: props ?? {},
-        propsSchema: registeredComponent.propsSchema,
+        propsSchema: registeredComponent.props,
       });
     },
     [autoInteractables, addInteractableComponent],
@@ -712,7 +712,6 @@ export const TamboThreadProvider: React.FC<
               ? renderComponentIntoMessage(
                   chunk.responseMessageDto,
                   componentList,
-                  handleComponentRendered,
                 )
               : chunk.responseMessageDto;
             await addThreadMessage(finalMessage, false);
@@ -725,7 +724,6 @@ export const TamboThreadProvider: React.FC<
               ? renderComponentIntoMessage(
                   chunk.responseMessageDto,
                   componentList,
-                  handleComponentRendered,
                 )
               : chunk.responseMessageDto;
 
@@ -736,6 +734,19 @@ export const TamboThreadProvider: React.FC<
             }
           }
         }
+      }
+
+      if (finalMessage?.component?.componentName) {
+        const registeredComponent = getComponentFromRegistry(
+          finalMessage.component.componentName,
+          componentList,
+        );
+
+        handleComponentRendered(
+          finalMessage.component.componentName,
+          finalMessage.component.props,
+          registeredComponent,
+        );
       }
 
       updateThreadStatus(

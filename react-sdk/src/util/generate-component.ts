@@ -3,7 +3,10 @@ import { parse } from "partial-json";
 import React from "react";
 import { z } from "zod";
 import { wrapWithTamboMessageProvider } from "../hooks/use-current-message";
-import { ComponentRegistry } from "../model/component-metadata";
+import {
+  ComponentRegistry,
+  RegisteredComponent,
+} from "../model/component-metadata";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { getComponentFromRegistry } from "../util/registry";
 
@@ -21,7 +24,7 @@ export function renderComponentIntoMessage(
   onComponentRendered?: (
     componentName: string,
     props: any,
-    component: any,
+    component: RegisteredComponent,
   ) => void,
 ): TamboThreadMessage {
   if (!message.component?.componentName) {
