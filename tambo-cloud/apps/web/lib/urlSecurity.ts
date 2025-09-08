@@ -43,6 +43,19 @@ export const validateSafeURL = async (
     return { safe: true };
   }
 
+  // Enforce HTTPS-only URLs when a protocol is provided
+  try {
+    const maybeUrl = new URL(urlOrFragment);
+    if (maybeUrl.protocol.toLowerCase() !== "https:") {
+      return {
+        safe: false,
+        reason: "Only HTTPS protocol is allowed",
+      };
+    }
+  } catch {
+    // Not a fully-qualified URL; continue and validate as a hostname/fragment
+  }
+
   // use tldts to check for host safety
   const tld = parseTld(urlOrFragment);
 

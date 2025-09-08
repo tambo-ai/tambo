@@ -1,5 +1,6 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { customHeadersSchema } from "@/lib/headerValidation";
+import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import {
@@ -17,7 +18,6 @@ import {
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
-import { validateSafeURL, validateServerUrl } from "../../../lib/urlSecurity";
 
 type McpServer = Awaited<
   ReturnType<typeof operations.getProjectMcpServers>

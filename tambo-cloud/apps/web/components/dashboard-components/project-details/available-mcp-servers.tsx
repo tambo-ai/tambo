@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
-import { MCPTransport } from "@tambo-ai-cloud/core";
+import { AiProviderType, MCPTransport } from "@tambo-ai-cloud/core";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { z } from "zod";
@@ -32,6 +32,7 @@ export const AvailableMcpServersProps = z.object({
     .object({
       id: z.string().describe("The unique identifier for the project."),
       name: z.string().describe("The name of the project."),
+      providerType: z.nativeEnum(AiProviderType).optional(),
     })
     .describe("The project to fetch MCP servers for."),
   onEdited: z
@@ -52,6 +53,8 @@ export function AvailableMcpServers({
 }: AvailableMcpServersProps) {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const router = useRouter();
+
+  const isAgentMode = project?.providerType === AiProviderType.AGENT;
 
   const { data: mcpServers, refetch } = api.tools.listMcpServers.useQuery(
     { projectId: project?.id || "" },
@@ -117,6 +120,24 @@ export function AvailableMcpServers({
                 </div>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Disable panel in Agent mode
+  if (isAgentMode) {
+    return (
+      <Card className="border rounded-md overflow-hidden opacity-60">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">MCP Servers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">
+            MCP Servers are disabled while Agent mode is enabled.
+            <br />
+            MCP + Agent support is coming soon.
           </div>
         </CardContent>
       </Card>

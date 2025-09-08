@@ -282,12 +282,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           <span>
-            Navigate to:{" "}
-            {activeSection
-              .replace("-", " ")
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")}
+            Navigate to: {activeSection.replace("-", " ").split(" ").join(" ")}
           </span>
           <ChevronDown
             className={`h-4 w-4 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
@@ -465,7 +460,10 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
             </div>
 
             <div ref={llmProvidersRef} className="p-2">
-              <ProviderKeySection project={project} />
+              <ProviderKeySection
+                project={project}
+                onEdited={handleRefreshProject}
+              />
             </div>
 
             <div ref={customInstructionsRef} className="p-2">

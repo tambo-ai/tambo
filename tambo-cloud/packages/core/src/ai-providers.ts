@@ -10,4 +10,10 @@ export enum AgentProviderType {
   MASTRA = "mastra",
   /** CrewAI provider */
   CREWAI = "crewai",
+  /** LlamaIndex provider */
+  LLAMAINDEX = "llamaindex",
+  /** LangGraph provider */
+  LANGGRAPH = "langgraph",
+  /** Pydantic provider */
+  PYDANTICAI = "pydanticai",
 }
