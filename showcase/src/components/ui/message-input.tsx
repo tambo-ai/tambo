@@ -739,7 +739,7 @@ const MessageInputStagedImages = React.forwardRef<
     >
       {images.map((image) => (
         <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
-          <div className="w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+          <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
             <Image
               src={image.dataUrl}
               alt={image.name}

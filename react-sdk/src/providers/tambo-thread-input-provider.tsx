@@ -130,16 +130,70 @@ export const TamboThreadInputProvider: React.FC<
       // Build message content with text and images
       const messageContent = buildMessageContent(inputValue, imageState.images);
 
-      // Built message content with text and images
+      try {
+        await sendThreadMessage(inputValue || "Image message", {
+          threadId: thread.id,
+          contextKey: submitContextKey ?? contextKey ?? undefined,
+          streamResponse: streamResponse,
+          forceToolChoice: forceToolChoice,
+          additionalContext: additionalContext,
+          content: messageContent,
+        });
+      } catch (error: any) {
+        // Handle image-related errors with friendly messages
+        if (imageState.images.length > 0) {
+          const errorMessage = error?.message?.toLowerCase() ?? "";
 
-      await sendThreadMessage(inputValue || "Image message", {
-        threadId: thread.id,
-        contextKey: submitContextKey ?? contextKey ?? undefined,
-        streamResponse: streamResponse,
-        forceToolChoice: forceToolChoice,
-        additionalContext: additionalContext,
-        content: messageContent,
-      });
+          // Backend not yet supporting image content type
+          if (errorMessage.includes("unknown content part type: image")) {
+            throw new ThreadInputError(
+              "Image attachments are not yet supported by the backend. This feature is coming soon.",
+              { cause: error },
+            );
+          }
+
+          // Handle specific model vision support errors
+          // OpenAI errors
+          if (
+            errorMessage.includes(
+              "does not support image message content types",
+            ) ||
+            (errorMessage.includes("invalid model") &&
+              errorMessage.includes(
+                "image_url is only supported by certain models",
+              ))
+          ) {
+            throw new ThreadInputError(
+              "This model doesn't support images. Please use GPT-4o, GPT-4 Turbo, or other vision-capable models.",
+              { cause: error },
+            );
+          }
+
+          // Anthropic Claude errors
+          if (
+            errorMessage.includes("does not support image") ||
+            errorMessage.includes("vision not supported")
+          ) {
+            throw new ThreadInputError(
+              "This Claude model doesn't support images. Please use Claude 3.5 Sonnet, Claude 3 Opus, or other vision-capable models.",
+              { cause: error },
+            );
+          }
+
+          // Generic image/vision errors
+          if (
+            errorMessage.includes("image") ||
+            errorMessage.includes("vision")
+          ) {
+            throw new ThreadInputError(
+              "This model doesn't support image attachments. Please use a vision-capable model.",
+              { cause: error },
+            );
+          }
+        }
+
+        throw error;
+      }
 
       // Clear both text and images after successful submission
       setInputValue("");
