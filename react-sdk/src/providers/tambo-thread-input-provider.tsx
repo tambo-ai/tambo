@@ -10,8 +10,10 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
+import { useMessageImages, StagedImage } from "../hooks/use-message-images";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
+import { buildMessageContent } from "../util/message-builder";
 import { useTamboThread } from "./tambo-thread-provider";
 
 /**
@@ -59,6 +61,16 @@ export interface TamboThreadInputContextProps
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
   }) => Promise<void>;
+  /** Currently staged images */
+  images: StagedImage[];
+  /** Add a single image */
+  addImage: (file: File) => Promise<void>;
+  /** Add multiple images */
+  addImages: (files: File[]) => Promise<void>;
+  /** Remove an image by id */
+  removeImage: (id: string) => void;
+  /** Clear all staged images */
+  clearImages: () => void;
 }
 
 export const TamboThreadInputContext = createContext<
@@ -83,6 +95,7 @@ export const TamboThreadInputProvider: React.FC<
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
+  const imageState = useMessageImages();
 
   const submit = useCallback(
     async ({
@@ -96,24 +109,43 @@ export const TamboThreadInputProvider: React.FC<
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
     } = {}) => {
-      const validation = validateInput(inputValue);
-      if (!validation.isValid) {
-        throw new ThreadInputError(
-          `Cannot submit message: ${validation.error ?? INPUT_ERROR_MESSAGES.VALIDATION}`,
-          { cause: validation.error },
-        );
+      // Validate text input if present
+      if (inputValue?.trim()) {
+        const validation = validateInput(inputValue);
+        if (!validation.isValid) {
+          throw new ThreadInputError(
+            `Cannot submit message: ${validation.error ?? INPUT_ERROR_MESSAGES.VALIDATION}`,
+            { cause: validation.error },
+          );
+        }
       }
 
-      await sendThreadMessage(validation.sanitizedInput, {
+      // Check if we have content to send
+      if (!inputValue.trim() && imageState.images.length === 0) {
+        throw new ThreadInputError(INPUT_ERROR_MESSAGES.EMPTY, {
+          cause: "No text or images to send",
+        });
+      }
+
+      // Build message content with text and images
+      const messageContent = buildMessageContent(inputValue, imageState.images);
+
+      // Built message content with text and images
+
+      await sendThreadMessage(inputValue || "Image message", {
         threadId: thread.id,
         contextKey: submitContextKey ?? contextKey ?? undefined,
         streamResponse: streamResponse,
         forceToolChoice: forceToolChoice,
         additionalContext: additionalContext,
+        content: messageContent,
       });
-      setInputValue(""); // Clear local state
+
+      // Clear both text and images after successful submission
+      setInputValue("");
+      imageState.clearImages();
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey],
+    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
   );
 
   const {
@@ -129,6 +161,11 @@ export const TamboThreadInputProvider: React.FC<
     value: inputValue,
     setValue: setInputValue,
     submit: submitAsync,
+    images: imageState.images,
+    addImage: imageState.addImage,
+    addImages: imageState.addImages,
+    removeImage: imageState.removeImage,
+    clearImages: imageState.clearImages,
   };
 
   return (
