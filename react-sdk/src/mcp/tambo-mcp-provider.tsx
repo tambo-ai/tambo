@@ -70,8 +70,14 @@ export const TamboMcpProvider: FC<{
             }
             const result = await mcpServer.callTool(tool.name, args);
             if (result.isError) {
-              // TODO: is there a better way to handle this?
-              throw new Error(`${result.content}`);
+              // Extract error message from content array
+              const errorMessage = Array.isArray(result.content)
+                ? result.content
+                    .filter((item) => item.type === "text")
+                    .map((item) => item.text)
+                    .join(" ")
+                : result.content;
+              throw new Error(errorMessage);
             }
             return result.content;
           },
