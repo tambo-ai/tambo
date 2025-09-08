@@ -31,4 +31,6 @@ export interface TamboInteractableContext {
   ) => TamboInteractableComponent[];
   /** Clear all interactable components */
   clearAllInteractableComponents: () => void;
+  /** Whether automatic interactables is enabled */
+  autoInteractables: boolean;
 }

@@ -12,11 +12,17 @@ import { getComponentFromRegistry } from "../util/registry";
  * came with one.
  * @param message - The message that may contain a component
  * @param componentList - the list of available components
+ * @param onComponentRendered - Optional callback to handle when a component is rendered. Returns true to skip rendering the component.
  * @returns The updated message with the component rendered into it
  */
 export function renderComponentIntoMessage(
   message: TamboAI.Beta.Threads.ThreadMessage,
   componentList: ComponentRegistry,
+  onComponentRendered?: (
+    componentName: string,
+    props: any,
+    component: any,
+  ) => void,
 ): TamboThreadMessage {
   if (!message.component?.componentName) {
     throw new Error("Component not found");
@@ -50,6 +56,14 @@ export function renderComponentIntoMessage(
     renderedComponent,
     fullMessage,
   );
+
+  if (onComponentRendered) {
+    onComponentRendered(
+      message.component.componentName,
+      validatedProps,
+      registeredComponent,
+    );
+  }
 
   return {
     ...fullMessage,

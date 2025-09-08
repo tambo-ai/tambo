@@ -26,6 +26,7 @@ import {
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+import { useTamboInteractable } from "./tambo-interactable-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 // Generation Stage Context - separate from thread context to prevent re-renders
@@ -214,6 +215,8 @@ export const TamboThreadProvider: React.FC<
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
+  const { addInteractableComponent, autoInteractables } =
+    useTamboInteractable();
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
@@ -241,6 +244,30 @@ export const TamboThreadProvider: React.FC<
     ignoreResponseRef.current = ignoreResponse;
   }, [ignoreResponse]);
 
+  // Callback to handle automatic interactables
+  const handleComponentRendered = useCallback(
+    (componentName: string, props: any, registeredComponent: any) => {
+      console.warn(
+        `Adding interactable component: ${componentName} with props: ${JSON.stringify(
+          props,
+        )}`,
+      );
+
+      if (!autoInteractables) return false;
+
+      addInteractableComponent({
+        name: componentName,
+        description:
+          registeredComponent.description ??
+          `Auto-generated ${componentName} component`,
+        component: registeredComponent.component,
+        props: props ?? {},
+        propsSchema: registeredComponent.propsSchema,
+      });
+    },
+    [autoInteractables, addInteractableComponent],
+  );
+
   const fetchThread = useCallback(
     async (threadId: string, includeInternalMessages = true) => {
       const thread = await client.beta.threads.retrieve(threadId, {
@@ -260,6 +287,7 @@ export const TamboThreadProvider: React.FC<
             const messageWithComponent = renderComponentIntoMessage(
               message,
               componentList,
+              handleComponentRendered,
             );
             return messageWithComponent;
           }
@@ -275,7 +303,12 @@ export const TamboThreadProvider: React.FC<
         return updatedThreadMap;
       });
     },
-    [client.beta.threads, componentList, currentMessageCache],
+    [
+      client.beta.threads,
+      componentList,
+      currentMessageCache,
+      handleComponentRendered,
+    ],
   );
 
   useEffect(() => {
@@ -679,6 +712,7 @@ export const TamboThreadProvider: React.FC<
               ? renderComponentIntoMessage(
                   chunk.responseMessageDto,
                   componentList,
+                  handleComponentRendered,
                 )
               : chunk.responseMessageDto;
             await addThreadMessage(finalMessage, false);
@@ -691,6 +725,7 @@ export const TamboThreadProvider: React.FC<
               ? renderComponentIntoMessage(
                   chunk.responseMessageDto,
                   componentList,
+                  handleComponentRendered,
                 )
               : chunk.responseMessageDto;
 
@@ -727,6 +762,7 @@ export const TamboThreadProvider: React.FC<
       toolRegistry,
       updateThreadMessage,
       updateThreadStatus,
+      handleComponentRendered,
     ],
   );
 
@@ -914,6 +950,7 @@ export const TamboThreadProvider: React.FC<
         ? renderComponentIntoMessage(
             advanceResponse.responseMessageDto,
             componentList,
+            handleComponentRendered,
           )
         : advanceResponse.responseMessageDto;
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
@@ -933,9 +970,10 @@ export const TamboThreadProvider: React.FC<
       client,
       updateThreadMessage,
       updateThreadStatus,
-      handleAdvanceStream,
       streaming,
       getAdditionalContext,
+      handleComponentRendered,
+      handleAdvanceStream,
     ],
   );
 
