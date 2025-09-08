@@ -22,6 +22,7 @@ import {
 } from "./tambo-context-helpers-provider";
 import {
   TamboInteractableProvider,
+  TamboInteractableProviderProps,
   useTamboInteractable,
 } from "./tambo-interactable-provider";
 import {
@@ -63,10 +64,8 @@ export const TamboProvider: React.FC<
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
       TamboContextHelpersProviderProps &
-      TamboThreadInputProviderProps & {
-        /** Whether to automatically make all generated components interactable */
-        autoInteractables?: boolean;
-      }
+      TamboThreadInputProviderProps &
+      TamboInteractableProviderProps
   >
 > = ({
   children,
