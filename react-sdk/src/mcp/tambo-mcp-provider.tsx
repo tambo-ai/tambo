@@ -3,6 +3,20 @@ import { TamboTool } from "../model/component-metadata";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
+/**
+ * Extracts error message from MCP tool result content.
+ * Handles both array and non-array content formats.
+ */
+export function extractErrorMessage(content: any): string {
+  if (Array.isArray(content)) {
+    return content
+      .filter((item) => item.type === "text")
+      .map((item) => item.text)
+      .join(" ");
+  }
+  return content;
+}
+
 export interface McpServerInfo {
   name?: string;
   url: string;
@@ -70,13 +84,7 @@ export const TamboMcpProvider: FC<{
             }
             const result = await mcpServer.callTool(tool.name, args);
             if (result.isError) {
-              // Extract error message from content array
-              const errorMessage = Array.isArray(result.content)
-                ? result.content
-                    .filter((item) => item.type === "text")
-                    .map((item) => item.text)
-                    .join(" ")
-                : result.content;
+              const errorMessage = extractErrorMessage(result.content);
               throw new Error(errorMessage);
             }
             return result.content;
