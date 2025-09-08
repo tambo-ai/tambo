@@ -54,6 +54,7 @@ import {
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
  * @param props.userToken - The JWT id token to use to identify the user in the Tambo API. (preferred over contextKey)
  * @param props.contextKey - Optional context key to be used in the thread input provider
+ * @param props.initialMessages - Initial messages to be included in new threads
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -75,6 +76,7 @@ export const TamboProvider: React.FC<
   streaming,
   contextHelpers,
   contextKey,
+  initialMessages,
 }) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
@@ -90,7 +92,10 @@ export const TamboProvider: React.FC<
     >
       <TamboRegistryProvider components={components} tools={tools}>
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboThreadProvider streaming={streaming}>
+          <TamboThreadProvider
+            streaming={streaming}
+            initialMessages={initialMessages}
+          >
             <TamboThreadInputProvider contextKey={contextKey}>
               <TamboComponentProvider>
                 <TamboInteractableProvider>
