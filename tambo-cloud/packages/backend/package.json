@@ -21,8 +21,8 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@ag-ui/client": "^0.0.36",
-    "@ag-ui/core": "^0.0.36",
+    "@ag-ui/client": "^0.0.37",
+    "@ag-ui/core": "^0.0.37",
     "@ag-ui/crewai": "^0.0.2",
     "@ai-sdk/anthropic": "^1.2.12",
     "@ai-sdk/google": "^1.2.22",
