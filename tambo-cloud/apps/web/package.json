@@ -39,7 +39,7 @@
     "@splinetool/runtime": "^1.10.53",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tambo-ai-cloud/db": "*",
-    "@tambo-ai/react": "^0.46.4",
+    "@tambo-ai/react": "^0.47.0",
     "@tambo-ai/typescript-sdk": "^0.69.0",
     "@tanstack/react-query": "^5.85.6",
     "@theguild/remark-mermaid": "^0.3.0",
