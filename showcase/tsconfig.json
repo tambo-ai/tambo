@@ -1,5 +1,5 @@
 {
-  "extends": "@tambo-ai/typescript-config/nextjs.json",
+  "extends": "../packages/typescript-config/nextjs.json",
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
