@@ -75,6 +75,7 @@ export const TamboProvider: React.FC<
   streaming,
   contextHelpers,
   contextKey,
+  onCallUnknownTool,
 }) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
@@ -88,7 +89,11 @@ export const TamboProvider: React.FC<
       environment={environment}
       userToken={userToken}
     >
-      <TamboRegistryProvider components={components} tools={tools}>
+      <TamboRegistryProvider
+        components={components}
+        tools={tools}
+        onCallUnknownTool={onCallUnknownTool}
+      >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider streaming={streaming}>
             <TamboThreadInputProvider contextKey={contextKey}>

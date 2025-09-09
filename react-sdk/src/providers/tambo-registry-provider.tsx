@@ -1,4 +1,5 @@
 "use client";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import React, {
   createContext,
   PropsWithChildren,
@@ -24,6 +25,10 @@ export interface TamboRegistryContext {
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
+  onCallUnknownTool?: (
+    toolName: string,
+    args: TamboAI.ToolCallRequest["parameters"],
+  ) => Promise<string>;
 }
 
 export const TamboRegistryContext = createContext<TamboRegistryContext>({
@@ -53,6 +58,11 @@ export interface TamboRegistryProviderProps {
   components?: TamboComponent[];
   /** The tools to register */
   tools?: TamboTool[];
+
+  onCallUnknownTool?: (
+    toolName: string,
+    args: TamboAI.ToolCallRequest["parameters"],
+  ) => void;
 }
 
 /**

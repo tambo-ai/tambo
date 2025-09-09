@@ -14,6 +14,10 @@ import { mapTamboToolToContextTool } from "./registry";
 export const handleToolCall = async (
   message: TamboAI.Beta.Threads.ThreadMessage,
   toolRegistry: TamboToolRegistry,
+  onCallUnknownTool?: (
+    toolName: string,
+    args: TamboAI.ToolCallRequest["parameters"],
+  ) => Promise<string>,
 ): Promise<{
   result: string;
   error?: string;
@@ -24,6 +28,17 @@ export const handleToolCall = async (
 
   try {
     const tool = findTool(message.toolCallRequest.toolName, toolRegistry);
+    if (!tool) {
+      if (onCallUnknownTool) {
+        onCallUnknownTool(
+          message.toolCallRequest.toolName,
+          message.toolCallRequest.parameters,
+        );
+      }
+      throw new Error(
+        `Tool ${message.toolCallRequest.toolName} not found in registry`,
+      );
+    }
     return {
       result: await runToolChoice(message.toolCallRequest, tool),
     };
@@ -40,7 +55,7 @@ const findTool = (toolName: string, toolRegistry: TamboToolRegistry) => {
   const registryTool = toolRegistry[toolName];
 
   if (!registryTool) {
-    throw new Error(`Tool ${toolName} not found in registry`);
+    return null;
   }
 
   const contextTool = mapTamboToolToContextTool(registryTool);
