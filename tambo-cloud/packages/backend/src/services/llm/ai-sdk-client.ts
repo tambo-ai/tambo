@@ -14,6 +14,7 @@ import {
   CoreAssistantMessage,
   CoreMessage,
   CoreToolMessage,
+  CoreUserMessage,
   generateText,
   jsonSchema,
   LanguageModel,
@@ -535,6 +536,37 @@ function convertOpenAIMessageToCoreMessage(
         }),
       ),
     } satisfies CoreAssistantMessage;
+  }
+  if (message.role === "user") {
+    if (typeof message.content === "string") {
+      return {
+        role: "user",
+        content: message.content,
+      } satisfies CoreUserMessage;
+    } else if (Array.isArray(message.content)) {
+      const processedContent = message.content
+        .map((part) => {
+          if (part.type === "text") {
+            return {
+              type: "text" as const,
+              text: part.text,
+            };
+          } else if (part.type === "image_url" && part.image_url.url) {
+            // Convert image_url to AI SDK's expected image format
+            return {
+              type: "image" as const,
+              image: part.image_url.url,
+            };
+          }
+          return null;
+        })
+        .filter((part) => part !== null);
+
+      return {
+        role: "user",
+        content: processedContent,
+      } satisfies CoreUserMessage;
+    }
   }
   return convertToCoreMessages([message as any])[0];
 }
