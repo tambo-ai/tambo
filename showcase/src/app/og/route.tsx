@@ -4,7 +4,7 @@ export const runtime = "edge";
 
 // Example: /og?title=Custom%20Title&tagline=Your%20tagline
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+  const { searchParams, origin } = new URL(request.url);
 
   const title =
     searchParams.get("title") ??
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {/* Octo icon */}
           <img
-            src="/logo/icon/Octo-Icon.svg"
+            src={`${origin}/logo/icon/Octo-Icon.svg`}
             width={48}
             height={48}
             style={{ display: "block" }}
