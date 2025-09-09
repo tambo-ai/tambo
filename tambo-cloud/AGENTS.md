@@ -15,10 +15,23 @@
 - Keep solutions small and simple; favor functions over classes; avoid unnecessary abstractions.
 - Prefer immutability. Don’t mutate inputs; return new values. Use const, toSorted, object/array spreads.
 - Handle errors up-front with guard clauses and early returns.
-- Strict TypeScript: no any, no type assertions unless unavoidable; define precise types.
 - Use English; meaningful names with widely-recognized standard abbreviations only (API, URL, ctx, req, res, next). Booleans start with is/has/can/should.
 - File/dir naming: kebab-case. Classes: PascalCase. Vars/functions/methods: camelCase. ENV vars: UPPER_SNAKE_CASE.
 - Exports: prefer named exports; allow multiple exports when they belong together (e.g., component + related types); avoid default exports.
+
+### TypeScript
+
+- Generally use strict TypeScript: no any, no type assertions unless unavoidable; define precise types.
+- Do not add unnecessary type annotations when the value is easily inferred, such as:
+  - arguments to functions that are well defined, such as event handlers or callback functions
+  - return values of functions that have an obvious return type
+  - local variables that are well defined
+- do not use unnecessary constructors/casts like `String()` or `Number()` or `Boolean()` unless absolutely necessary when types really do not line up:
+  - if a string conversion is really necessary, use \`${value}\`
+  - if a boolean conversion is really necessary, use !!value
+  - if a number conversion is really necessary, use +value
+- prefer `unknown` over `any` when possible
+- prefer `Record<string, unknown>` over `object` or `{ [key: string]: unknown }` when possible.
 
 ## 2) Workspace commands and verification
 
@@ -26,7 +39,7 @@ Run locally before opening/updating a PR:
 
 ```bash
 npm run check-types   # TS across workspace
-npm run lint -- --fix # ESLint autofix
+npm run lint:fix # ESLint autofix
 npm run format        # Prettier write
 npm test              # Unit/integration tests
 ```
@@ -43,22 +56,31 @@ npm run db:check
 npm run db:studio
 ```
 
-Conventional commits (PR titles too):
+Conventional commits:
+
+All PR titles MUST follow the following format:
 
 ```
-<type>[scope]: <description>
+<type>(scope):<description>
+```
 
+Examples:
+
+```
 feat(api): add transcript export
 fix(web): prevent duplicate project creation
 chore(db): reorganize migration files
 ```
 
-Common scopes: api, web, core, db, deps, ci, config, docs, test
+See .github/workflows/conventional-commits.yml for a list of types such as feat, fix, perf, deps, revert, docs, style, chore, refactor, test, build, ci.
 
-Closing issues: use “Fixes #123” (GitHub) or “Fixes TAM-123” (Linear) in PR body.
+Common scopes: api, web, core, db, deps, ci, config
+
+PR Summaries should include "Fixes #123" (GitHub) or "Fixes TAM-123" (Linear) in PR body when applicable.
 
 Dependencies and tooling: Agents do not add/upgrade/remove deps or change tool
-configs unless explicitly asked, but humans are allowed to do so.
+configs, eslint config, tsconfig, etc. unless explicitly asked, but humans are
+allowed to do so.
 
 ## 3) Frontend (React + Next.js)
 

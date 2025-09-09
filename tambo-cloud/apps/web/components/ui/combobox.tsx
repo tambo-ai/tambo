@@ -19,32 +19,41 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
+export type ComboboxOption<T extends string> = {
+  value: T;
+  label: string;
+  disabled?: boolean;
+};
 
-export function ComboboxDemo() {
+interface ComboboxProps<T extends string> {
+  items: Array<ComboboxOption<T>>;
+  value?: T;
+  onChange: (value: T) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  buttonClassName?: string;
+  contentClassName?: string;
+  renderRight?: (option: ComboboxOption<T>) => React.ReactNode;
+}
+
+export function Combobox<T extends string>({
+  items,
+  value,
+  onChange,
+  placeholder = "Select...",
+  searchPlaceholder = "Search...",
+  emptyText = "No results found.",
+  buttonClassName,
+  contentClassName,
+  renderRight,
+}: ComboboxProps<T>) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+
+  const selectedItem = React.useMemo(
+    () => items.find((i) => i.value === value),
+    [items, value],
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,38 +62,62 @@ export function ComboboxDemo() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={cn(
+            "w-full justify-between h-10 font-normal",
+            buttonClassName,
+          )}
         >
-          {value
-            ? frameworks.find((framework) => framework.value === value)?.label
-            : "Select framework..."}
+          <span
+            className={cn("truncate", !selectedItem && "text-muted-foreground")}
+          >
+            {selectedItem ? selectedItem.label : placeholder}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent
+        className={cn(
+          "w-[--radix-popover-trigger-width] p-0",
+          contentClassName,
+        )}
+        align="start"
+      >
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
-              {frameworks.map((framework) => (
-                <CommandItem
-                  key={framework.value}
-                  value={framework.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
+              {items.map((option) => {
+                const isSelected = option.value === value;
+                return (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.disabled}
                     className={cn(
-                      "mr-2 h-4 w-4",
-                      value === framework.value ? "opacity-100" : "opacity-0",
+                      renderRight && "flex items-center justify-between",
                     )}
-                  />
-                  {framework.label}
-                </CommandItem>
-              ))}
+                    onSelect={(currentValue) => {
+                      const found = items.find((o) => o.value === currentValue);
+                      if (found && !found.disabled) {
+                        onChange(found.value);
+                        setOpen(false);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center min-w-0">
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          isSelected ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                      <span className="truncate">{option.label}</span>
+                    </div>
+                    {renderRight ? renderRight(option) : null}
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
