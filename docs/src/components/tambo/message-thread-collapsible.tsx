@@ -209,6 +209,11 @@ export const MessageThreadCollapsible = React.forwardRef<
       defaultOpen || !!finalInitialQuery,
     );
 
+    // Open the collapsible when the initial query is set
+    React.useEffect(() => {
+      if (finalInitialQuery) setIsOpen(true);
+    }, [finalInitialQuery]);
+
     const handleThreadChange = React.useCallback(() => {
       setIsOpen(true);
     }, [setIsOpen]);
