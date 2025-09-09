@@ -49,9 +49,11 @@ export class AgentClient {
   }: {
     agentProviderType: AgentProviderType;
     agentUrl: string;
-    agentName: string;
+    agentName?: string | null;
     chainId: string;
   }) {
+    const normalizedAgentName: string | undefined =
+      agentName && agentName.trim() ? agentName.trim() : undefined;
     switch (agentProviderType) {
       case AgentProviderType.MASTRA: {
         throw new Error("Mastra support is not implemented");
@@ -70,7 +72,7 @@ export class AgentClient {
       case AgentProviderType.CREWAI: {
         const agent = new CrewAIAgent({
           url: agentUrl,
-          agentId: agentName,
+          agentId: normalizedAgentName,
         });
         return new AgentClient(chainId, agent as unknown as AbstractAgent);
       }

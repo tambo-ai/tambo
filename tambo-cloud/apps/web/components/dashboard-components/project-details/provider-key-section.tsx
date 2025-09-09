@@ -453,10 +453,10 @@ export function ProviderKeySection({
     if (mode === AiProviderType.AGENT) {
       const localAgentUrl = agentUrl.trim();
       const localAgentName = agentName.trim();
-      if (!localAgentUrl || !localAgentName) {
+      if (!localAgentUrl) {
         toast({
           title: "Error",
-          description: "Agent URL and Agent Name are required.",
+          description: "Agent URL is required.",
           variant: "destructive",
         });
         return;
@@ -480,7 +480,7 @@ export function ProviderKeySection({
         providerType: AiProviderType.AGENT,
         agentProviderType: agentProvider,
         agentUrl: localAgentUrl,
-        agentName: localAgentName,
+        agentName: localAgentName || null,
       });
       return;
     }
@@ -1278,11 +1278,6 @@ export function ProviderKeySection({
                   Optional. Some agent providers require an agent name to route
                   requests correctly.
                 </p>
-                {showValidationErrors && !agentName.trim() && (
-                  <p className="text-sm text-destructive">
-                    Agent name is required
-                  </p>
-                )}
               </div>
             </motion.div>
           )}

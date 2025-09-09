@@ -127,15 +127,18 @@ class AgenticTamboBackend implements TamboBackend {
         return new AgenticTamboBackend(modelOptions, llmClient);
       }
       case AiProviderType.AGENT: {
-        if (!agentType || !agentUrl || !agentName) {
+        // Normalize and validate required fields for the Agent provider.
+        // Trim whitespace from the URL to avoid accepting whitespace-only values.
+        const normalizedAgentUrl: string = (agentUrl ?? "").trim();
+        if (!agentType || !normalizedAgentUrl) {
           console.error(
-            `Got agent type ${agentType}, agentUrl ${agentUrl}, and agentName ${agentName}`,
+            `Got agent type ${agentType} and agentUrl ${normalizedAgentUrl}`,
           );
-          throw new Error("Agent type, URL, and name are required");
+          throw new Error("Agent type and URL are required");
         }
         const agentClient = await AgentClient.create({
           agentProviderType: agentType,
-          agentUrl,
+          agentUrl: normalizedAgentUrl,
           agentName,
           chainId,
         });
