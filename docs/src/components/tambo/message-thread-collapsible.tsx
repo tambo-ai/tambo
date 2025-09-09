@@ -28,6 +28,7 @@ import {
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { Collapsible } from "radix-ui";
 import * as React from "react";
 
@@ -198,7 +199,15 @@ export const MessageThreadCollapsible = React.forwardRef<
     },
     ref,
   ) => {
-    const [isOpen, setIsOpen] = React.useState(defaultOpen || !!initialQuery);
+    const searchParams = useSearchParams();
+
+    // Use initialQuery prop if provided, otherwise check search params
+    const queryFromUrl = searchParams.get("q") || undefined;
+    const finalInitialQuery = initialQuery || queryFromUrl;
+
+    const [isOpen, setIsOpen] = React.useState(
+      defaultOpen || !!finalInitialQuery,
+    );
 
     const handleThreadChange = React.useCallback(() => {
       setIsOpen(true);
@@ -285,7 +294,10 @@ export const MessageThreadCollapsible = React.forwardRef<
 
             {/* Message input */}
             <div className="p-2 sm:p-3 md:p-4">
-              <MessageInput contextKey={contextKey} initialQuery={initialQuery}>
+              <MessageInput
+                contextKey={contextKey}
+                initialQuery={finalInitialQuery}
+              >
                 <MessageInputTextarea />
                 <MessageInputToolbar>
                   <MessageInputSubmitButton />
