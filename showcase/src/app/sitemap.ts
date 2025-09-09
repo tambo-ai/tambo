@@ -1,5 +1,7 @@
+import { getBaseUrl } from "@/lib/site";
+
 export default function sitemap() {
-  const baseUrl = "https://ui.tambo.co";
+  const baseUrl = getBaseUrl();
   return [
     {
       url: `${baseUrl}/`,
@@ -15,4 +17,3 @@ export default function sitemap() {
     },
   ];
 }
-

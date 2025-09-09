@@ -1,10 +1,21 @@
+import { getBaseUrl, isProduction } from "@/lib/site";
+
 export default function robots() {
+  const baseUrl = getBaseUrl();
+  const allowIndexing = isProduction();
+
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-    },
-    sitemap: "https://ui.tambo.co/sitemap.xml",
+    rules: allowIndexing
+      ? {
+          userAgent: "*",
+          allow: "/",
+        }
+      : [
+          {
+            userAgent: "*",
+            disallow: "/",
+          },
+        ],
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
-
