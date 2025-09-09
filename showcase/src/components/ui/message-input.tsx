@@ -7,9 +7,10 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  useVoiceInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp, Loader2, Mic, Square } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -195,7 +196,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         },
         submit,
         handleSubmit,
-        isPending: isPending || isSubmitting,
+        isPending: isPending ?? isSubmitting,
         error,
         contextKey,
         textareaRef,
@@ -381,9 +382,7 @@ MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
  */
 const MessageInputMcpConfigButton = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    className?: string;
-  }
+  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
@@ -442,12 +441,130 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <McpConfigModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        className="showcase-theme"
       />
     </TooltipProvider>
   );
 });
 MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
+
+/**
+ * Voice Input Button component for recording and transcribing audio.
+ * @component MessageInput.VoiceButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.VoiceButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputVoiceButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, ...props }, ref) => {
+  const [isClient, setIsClient] = React.useState(false);
+  const {
+    startRecording,
+    stopRecording,
+    clearError,
+    isRecording,
+    isTranscribing,
+    error,
+    isSupported,
+    state,
+  } = useVoiceInput();
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Don't render during SSR or if browser doesn't support voice input
+  if (!isClient || !isSupported) {
+    return null;
+  }
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isRecording) {
+      stopRecording();
+    } else {
+      // Clear any previous errors before attempting to start
+      if (state === "permission_denied" || error) {
+        clearError();
+        // Small delay to ensure state is cleared before requesting permission
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      await startRecording();
+    }
+  };
+
+  const buttonClasses = cn(
+    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+    isRecording
+      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse cursor-pointer"
+      : state === "permission_denied"
+        ? "bg-orange-100 hover:bg-orange-200 text-orange-600 border-2 border-orange-300 cursor-pointer"
+        : state === "error"
+          ? "bg-red-100 text-red-500 border-2 border-red-300 cursor-not-allowed"
+          : "bg-muted text-primary hover:bg-muted/80 cursor-pointer",
+    isTranscribing && "opacity-50 cursor-wait",
+    className,
+  );
+
+  const getTooltipContent = () => {
+    if (isTranscribing) return "Transcribing...";
+    if (isRecording) return "Stop recording";
+    if (state === "permission_denied") {
+      if (error?.message.includes("🔒")) {
+        return error.message; // Show detailed browser settings guidance
+      }
+      return "Microphone permission denied. Please update your microphone permissions to use voice input.";
+    }
+    if (error) return error.message;
+    return "Start voice input";
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content={getTooltipContent()}
+        side="top"
+        className="bg-muted text-primary"
+      >
+        <button
+          ref={ref}
+          type="button"
+          onClick={handleClick}
+          disabled={isTranscribing || state === "permission_denied"}
+          className={buttonClasses}
+          aria-label={
+            isRecording
+              ? "Stop recording"
+              : state === "permission_denied"
+                ? "Permission denied"
+                : "Start voice input"
+          }
+          data-slot="message-input-voice"
+          {...props}
+        >
+          {isTranscribing ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : isRecording ? (
+            <Square className="w-4 h-4" fill="currentColor" />
+          ) : (
+            <Mic className="w-5 h-5" />
+          )}
+        </button>
+      </Tooltip>
+    </TooltipProvider>
+  );
+});
+MessageInputVoiceButton.displayName = "MessageInput.VoiceButton";
 
 /**
  * Props for the MessageInputError component.
@@ -520,25 +637,35 @@ const MessageInputToolbar = React.forwardRef<
       {...props}
     >
       <div className="flex items-center gap-2">
-        {/* Left side - everything except submit button */}
+        {/* Left side - everything except voice button and submit button */}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
             React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
+            (child.type === MessageInputSubmitButton ||
+              child.type === MessageInputVoiceButton)
           ) {
-            return null; // Don't render submit button here
+            return null; // Don't render voice button or submit button here
           }
           return child;
         })}
       </div>
       <div className="flex items-center gap-2">
-        {/* Right side - only submit button */}
+        {/* Right side - voice button first, then submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputVoiceButton
+          ) {
+            return child; // Render voice button first
+          }
+          return null;
+        })}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
             React.isValidElement(child) &&
             child.type === MessageInputSubmitButton
           ) {
-            return child; // Only render submit button here
+            return child; // Render submit button second
           }
           return null;
         })}
@@ -557,4 +684,5 @@ export {
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,
+  MessageInputVoiceButton,
 };
