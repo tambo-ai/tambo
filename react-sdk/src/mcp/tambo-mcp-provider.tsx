@@ -9,7 +9,7 @@ import { MCPClient, MCPTransport } from "./mcp-client";
  * Always returns a string, even for invalid/null inputs.
  */
 export function extractErrorMessage(content: unknown): string {
-  if (!content) {
+  if (content === undefined || content === null) {
     return "Unknown error occurred";
   }
 
@@ -29,7 +29,7 @@ export function extractErrorMessage(content: unknown): string {
     return JSON.stringify(content);
   }
 
-  return `error content: ${content}`;
+  return `${content}`;
 }
 
 export interface McpServerInfo {

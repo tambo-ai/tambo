@@ -114,7 +114,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe("error content: 42");
+      expect(result).toBe("42");
     });
 
     it("should handle boolean content", () => {
@@ -122,7 +122,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe("error content: false");
+      expect(result).toBe("false");
     });
 
     it("should handle object content", () => {
