@@ -6,7 +6,7 @@ import path from "path";
 export const revalidate = 60 * 60 * 24; // 24 hours
 
 function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL || "https://tambo.co";
+  return process.env.NEXT_PUBLIC_SITE_URL || "https://ui.tambo.co";
 }
 
 function isGroupSegment(segment: string): boolean {

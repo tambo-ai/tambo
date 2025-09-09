@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   },
   description: "Build AI-powered apps with just one line of code",
   keywords: ["Tambo", "Showcase", "Components", "AI", "App Development"],
-  metadataBase: new URL("https://tambo.co"),
+  metadataBase: new URL("https://ui.tambo.co"),
   authors: [
     {
       name: "tambo",
