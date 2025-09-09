@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.105.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.104.2...repo-v0.105.0) (2025-09-09)
+
+
+### Features
+
+* add useTamboComponentState back into landing demo component ([#1669](https://github.com/tambo-ai/tambo-cloud/issues/1669)) ([e5c2d6f](https://github.com/tambo-ai/tambo-cloud/commit/e5c2d6f9155e99a1d2dd8cca4ac7eb725d08b8d2))
+* **agents:** add "beta" UI for agent configuration ([#1731](https://github.com/tambo-ai/tambo-cloud/issues/1731)) ([40eeb25](https://github.com/tambo-ai/tambo-cloud/commit/40eeb253fa901960b162d2896232a819b6d93fe5))
+* **agents:** Agents support without mastra ([#1701](https://github.com/tambo-ai/tambo-cloud/issues/1701)) ([4269852](https://github.com/tambo-ai/tambo-cloud/commit/4269852377ea61574046f0e830e2b7666675d599))
+* convert image part correctly to ai sdk format ([#1729](https://github.com/tambo-ai/tambo-cloud/issues/1729)) ([b61b893](https://github.com/tambo-ai/tambo-cloud/commit/b61b89310d9351883cded411483738c1d9b68a00))
+
+
+### Bug Fixes
+
+* **agents:** Agent name is not required ([#1734](https://github.com/tambo-ai/tambo-cloud/issues/1734)) ([58afd73](https://github.com/tambo-ai/tambo-cloud/commit/58afd73a67ae6af208e05b4f96dbf0c4133cf5c9))
+
+
+### Documentation
+
+* add unified AGENTS.md and update CLAUDE.md ([#1730](https://github.com/tambo-ai/tambo-cloud/issues/1730)) ([ade0ddc](https://github.com/tambo-ai/tambo-cloud/commit/ade0ddc84d5151256e08a4a531d5d1eafa2421ba))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump jest from 30.1.2 to 30.1.3 in the testing group ([#1707](https://github.com/tambo-ai/tambo-cloud/issues/1707)) ([ed355dc](https://github.com/tambo-ai/tambo-cloud/commit/ed355dc3c890e4f576fcfba8ae5cb378275c2528))
+* **deps-dev:** bump the eslint group with 3 updates ([#1706](https://github.com/tambo-ai/tambo-cloud/issues/1706)) ([1bcb68b](https://github.com/tambo-ai/tambo-cloud/commit/1bcb68b1c0dd018a62fa3ebe2d43f366565901b0))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.4 to 1.17.5 ([#1726](https://github.com/tambo-ai/tambo-cloud/issues/1726)) ([15aa749](https://github.com/tambo-ai/tambo-cloud/commit/15aa749cdda0f3595a6456d880f88ab32af2f6c8))
+* **deps:** bump @tambo-ai/react from 0.46.4 to 0.47.0 in the tambo-ai group ([#1710](https://github.com/tambo-ai/tambo-cloud/issues/1710)) ([c4e0d2b](https://github.com/tambo-ai/tambo-cloud/commit/c4e0d2b5a9629abb7dd7cb5c6361cedf32defda0))
+* **deps:** bump @tanstack/react-query from 5.85.6 to 5.87.1 ([#1725](https://github.com/tambo-ai/tambo-cloud/issues/1725)) ([358d351](https://github.com/tambo-ai/tambo-cloud/commit/358d351dbd3c99e122fa3ba2d3272928ec07ff4f))
+* **deps:** bump geist from 1.4.2 to 1.5.1 ([#1714](https://github.com/tambo-ai/tambo-cloud/issues/1714)) ([6cdde53](https://github.com/tambo-ai/tambo-cloud/commit/6cdde534ad2473f95c8a0b8aeb19f33edbbbc9ad))
+* **deps:** bump openai from 5.18.1 to 5.19.1 ([#1724](https://github.com/tambo-ai/tambo-cloud/issues/1724)) ([6831758](https://github.com/tambo-ai/tambo-cloud/commit/68317586f816ad7cae971d8fc204183142ee3cbf))
+* **deps:** bump resend from 6.0.1 to 6.0.3 ([#1721](https://github.com/tambo-ai/tambo-cloud/issues/1721)) ([64accf7](https://github.com/tambo-ai/tambo-cloud/commit/64accf7c854fe12bde442664406bb05e5eb16a45))
+* **deps:** bump rxjs from 7.8.1 to 7.8.2 ([#1727](https://github.com/tambo-ai/tambo-cloud/issues/1727)) ([a65dc02](https://github.com/tambo-ai/tambo-cloud/commit/a65dc0242f994cc88b04648d1bd18fb476c3afd0))
+* **deps:** bump the ag-ui group with 2 updates ([#1720](https://github.com/tambo-ai/tambo-cloud/issues/1720)) ([33d3b58](https://github.com/tambo-ai/tambo-cloud/commit/33d3b5896e8105fef459461ed7108ad42eaa4d23))
+* **deps:** bump the sentry group with 3 updates ([#1712](https://github.com/tambo-ai/tambo-cloud/issues/1712)) ([6884cf2](https://github.com/tambo-ai/tambo-cloud/commit/6884cf28828c5e0005b530c91b32c059c2172954))
+* **deps:** bump the small-safe-packages group across 1 directory with 8 updates ([#1732](https://github.com/tambo-ai/tambo-cloud/issues/1732)) ([cad2c4c](https://github.com/tambo-ai/tambo-cloud/commit/cad2c4c06841a01fba14371c99bcee8f51fe4771))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1711](https://github.com/tambo-ai/tambo-cloud/issues/1711)) ([cd4d236](https://github.com/tambo-ai/tambo-cloud/commit/cd4d236822a7729e1833f6855b027035bde2b0c6))
+* **deps:** bump the trpc group with 3 updates ([#1705](https://github.com/tambo-ai/tambo-cloud/issues/1705)) ([5791740](https://github.com/tambo-ai/tambo-cloud/commit/5791740d3f08d1a346e5167d1c612af4a50bfdc5))
+* **deps:** bump use-debounce from 10.0.5 to 10.0.6 ([#1722](https://github.com/tambo-ai/tambo-cloud/issues/1722)) ([4074e88](https://github.com/tambo-ai/tambo-cloud/commit/4074e88cf6f01e9a83b335cbc59a761104bc31b4))
+* **deps:** bump uuid from 11.1.0 to 12.0.0 ([#1713](https://github.com/tambo-ai/tambo-cloud/issues/1713)) ([829426c](https://github.com/tambo-ai/tambo-cloud/commit/829426ce89fb2a6615fcb1b6967eb7f2df58d080))
+* **deps:** npm audit fix plus dependabot updates for ag-ui ([#1717](https://github.com/tambo-ai/tambo-cloud/issues/1717)) ([eb14300](https://github.com/tambo-ai/tambo-cloud/commit/eb14300b068ba02e72dac28df2e73b985ede29ea))
+* **onboarding:** add analytics template to onboarding wizard ([#1698](https://github.com/tambo-ai/tambo-cloud/issues/1698)) ([2765a1c](https://github.com/tambo-ai/tambo-cloud/commit/2765a1c9ca5a0a241b7848566310f737401c4099))
+
+
+### Code Refactoring
+
+* **ui:** Use combined combobox rather that duplicating code ([#1735](https://github.com/tambo-ai/tambo-cloud/issues/1735)) ([1ab614f](https://github.com/tambo-ai/tambo-cloud/commit/1ab614fe2f2d79f73484b5bbeadf4bc15511f20a))
+
 ## [0.104.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.104.1...repo-v0.104.2) (2025-09-04)
 
 
