@@ -16,32 +16,32 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.ai";
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Tambo AI Documentation",
-    template: "%s | Tambo AI Docs",
+    default: "tambo-ui | A component library for Generative Interfaces",
+    template: "%s | tambo-ui",
   },
   description:
-    "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+    "Build natural language interfaces with React. Use our component library to build your app in a weekend.",
   openGraph: {
-    title: "Tambo AI Documentation",
+    title: "tambo-ui | A component library for Generative Interfaces",
     description:
-      "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+      "Build natural language interfaces with React. Use our component library to build your app in a weekend.",
     url: baseUrl,
-    siteName: "Tambo AI Docs",
+    siteName: "tambo-ui",
     type: "website",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Tambo AI Documentation"
+        alt: "tambo-ui"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tambo AI Documentation",
+    title: "tambo-ui | A component library for Generative Interfaces",
     description:
-      "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+      "Build natural language interfaces with React. Use our component library to build your app in a weekend.",
     images: "/twitter-image",
   },
   robots: {

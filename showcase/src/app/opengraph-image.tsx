@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-export const alt = "tambo";
+export const alt = "tambo-ui | A component library for Generative Interfaces";
 export const size = {
   width: 1200,
   height: 630,
@@ -10,8 +10,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default function Image() {
-  const title = "tambo";
-  const tagline = "Build AI-powered apps with just one line of code";
+  const title = "tambo-ui | A component library for Generative Interfaces";
+  const tagline = "Build natural language interfaces with React. Use our component library to build your app in a weekend.";
 
   return new ImageResponse(
     (
@@ -31,7 +31,7 @@ export default function Image() {
       >
         <div
           style={{
-            fontSize: 96,
+            fontSize: 72,
             fontWeight: 800,
             marginBottom: 24,
             letterSpacing: -2,
