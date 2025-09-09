@@ -32,6 +32,10 @@ export async function detectTemplate(): Promise<string | null> {
       return "standard";
     }
 
+    if (readmeContent.includes("Analytics Template")) {
+      return "analytics";
+    }
+
     console.log(chalk.yellow("Template type not identified in README.md."));
     return null;
   } catch (error) {
@@ -54,6 +58,10 @@ export function generateAiUpgradePrompts(template: string | null): string[] {
     standard: [
       "How can I optimize the state management in my tambo application?",
       "What are the latest patterns for error handling in tambo components?",
+    ],
+    analytics: [
+      "How can I optimize my tambo canvas drag-and-drop interactions for better user experience?",
+      "What are the best practices for integrating MCP servers with tambo components?",
     ],
   };
 

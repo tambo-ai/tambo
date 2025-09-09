@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.30.1",
+  "version": "0.31.0",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
@@ -61,7 +61,7 @@
     "deep-equal": "^2.2.3",
     "deepmerge": "^4.3.1",
     "diff": "^8.0.2",
-    "dotenv": "^17.2.1",
+    "dotenv": "^17.2.2",
     "inquirer": "^10.2.2",
     "meow": "^13.2.0",
     "open": "^10.2.0",
@@ -70,7 +70,7 @@
     "sanitize-html": "^2.17.0",
     "semver": "^7.7.2",
     "streamdown": "^1.1.5",
-    "ts-morph": "^26.0.0"
+    "ts-morph": "^27.0.0"
   },
   "devDependencies": {
     "@types/chalk": "^2.2.4",
@@ -80,7 +80,7 @@
     "@types/node-fetch": "^2.6.13",
     "@types/ora": "^3.2.0",
     "@types/recharts": "^2.0.1",
-    "@types/semver": "^7.7.0",
+    "@types/semver": "^7.7.1",
     "typescript": "^5.9.2"
   }
 }

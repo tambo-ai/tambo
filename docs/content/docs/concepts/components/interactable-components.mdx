@@ -117,3 +117,167 @@ function App() {
 ```
 
 This creates a truly conversational interface where users can modify your UI through natural language, making your applications more accessible and user-friendly.
+
+## Automatic Context Awareness
+
+When you use `TamboInteractableProvider`, your interactable components are automatically included in the AI's context. This means:
+
+- The AI knows what components are currently on the page
+- Users can ask "What's on this page?" and get a comprehensive answer
+- The AI can see the current state (props) of all interactable components
+- Component changes are reflected in real-time
+
+**No additional setup required** - this context is provided automatically and can be customized or disabled if needed.
+
+### Example Interactions
+
+With interactable components on the page, users can ask:
+
+- "What components are available?"
+- "Change the note title to 'Important Reminder'"
+- "Show me the current state of all my components"
+- "Make the counter red and set it to 100"
+
+## Customizing Automatic Context
+
+The automatic context can be disabled, enabled selectively, or customized to show only specific information.
+
+### Disable Globally
+
+To disable interactables context across your entire app:
+
+```tsx
+<TamboProvider
+  apiKey={apiKey}
+  contextHelpers={{
+    // Disable interactables context globally
+    interactables: () => null,
+  }}
+>
+  <TamboInteractableProvider>
+    {/* Interactables context is disabled, but components still work */}
+    <InteractableNote title="Hidden from AI" />
+  </TamboInteractableProvider>
+</TamboProvider>
+```
+
+### Enable Locally (Override Global Disable)
+
+If you've disabled it globally but want to enable it for a specific page or section:
+
+```tsx
+function SpecificPage() {
+  const { addContextHelper } = useTamboContextHelpers();
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  React.useEffect(() => {
+    // Re-enable interactables context for this page only
+    const helper = () => {
+      if (snapshot.length === 0) return null;
+
+      return {
+        description: "Interactable components on this page that you can modify",
+        components: snapshot.map((component) => ({
+          id: component.id,
+          componentName: component.name,
+          description: component.description,
+          props: component.props,
+          propsSchema: component.propsSchema ? "Available" : "Not specified",
+        })),
+      };
+    };
+
+    addContextHelper("interactables", helper);
+  }, [addContextHelper, snapshot]);
+
+  return (
+    <TamboInteractableProvider>
+      {/* Context is now enabled for this page */}
+      <InteractableNote title="Visible to AI" />
+    </TamboInteractableProvider>
+  );
+}
+```
+
+### Custom Context (IDs Only Example)
+
+Sometimes you might want to share summary information and have the AI request the full context when needed.
+
+This is an example of how to only IDs and names with every message:
+
+```tsx
+import {
+  useCurrentInteractablesSnapshot,
+  useTamboContextHelpers,
+} from "@tambo-ai/react";
+
+function IdsOnlyInteractables() {
+  const { addContextHelper } = useTamboContextHelpers();
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  React.useEffect(() => {
+    const idsOnlyHelper = () => {
+      if (snapshot.length === 0) return null;
+
+      return {
+        description: "Available interactable component ids.",
+        components: snapshot.map((component) => ({
+          id: component.id,
+          componentName: component.name,
+          // Deliberately omit props.
+        })),
+      };
+    };
+
+    // Override the default helper with our ids only version
+    addContextHelper("interactables", idsOnlyHelper);
+  }, [addContextHelper, snapshot]);
+
+  return null; // This component just sets up the context helper
+}
+
+// Usage
+<TamboInteractableProvider>
+  <PrivacyFriendlyInteractables />
+  <InteractableNote title="Not visible unless requested." />
+  <InteractableCounter count={42} />
+</TamboInteractableProvider>;
+```
+
+### Filter by Component Type
+
+Maybe you only want to show certain types of components.
+
+Here is an example of how you could filter by component type:
+
+```tsx
+function FilteredInteractablesContext() {
+  const { addContextHelper } = useTamboContextHelpers();
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  React.useEffect(() => {
+    const filteredHelper = () => {
+      // Only show Notes and Counters, hide other component types
+      const allowedTypes = ["Note", "Counter"];
+      const filteredComponents = snapshot.filter((component) =>
+        allowedTypes.includes(component.name),
+      );
+
+      if (filteredComponents.length === 0) return null;
+
+      return {
+        description: "Available interactable components (filtered)",
+        components: filteredComponents.map((component) => ({
+          id: component.id,
+          componentName: component.name,
+          props: component.props,
+        })),
+      };
+    };
+
+    addContextHelper("interactables", filteredHelper);
+  }, [addContextHelper, snapshot]);
+
+  return null;
+}
+```

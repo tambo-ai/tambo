@@ -35,6 +35,10 @@ export async function upgradeLlmRules(
         repoRulesPath =
           "https://api.github.com/repos/tambo-ai/tambo-template/contents/.cursor/rules";
         break;
+      case "analytics":
+        repoRulesPath =
+          "https://api.github.com/repos/tambo-ai/analytics-template/contents/.cursor/rules";
+        break;
       default:
         spinner.warn(
           `Unknown template type: ${template}. Skipping rules upgrade.`,

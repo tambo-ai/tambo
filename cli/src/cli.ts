@@ -82,7 +82,7 @@ const cli = meow(
     ${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts
     ${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install
     ${chalk.yellow("--accept-all")}         Accept all upgrades without prompting ${chalk.red("(upgrade only)")}
-    ${chalk.yellow("--template, -t <name>")} Template to use: standard ${chalk.red("(create-app only)")}
+    ${chalk.yellow("--template, -t <name>")} Template to use: standard, analytics ${chalk.red("(create-app only)")}
     ${chalk.yellow("--init-git")}           Initialize git repository ${chalk.red("(create-app only)")}
     ${chalk.yellow("--dry-run")}            Preview changes without applying ${chalk.red("(migrate only)")}
 
@@ -114,6 +114,7 @@ const cli = meow(
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app")}                     # Create in new directory
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app .")}                   # Create in current directory
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=standard")} # Use standard template
+    $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --template=analytics")} # Use analytics template
     $ ${chalk.cyan("tambo")} ${chalk.yellow("create-app --init-git")}          # Initialize git repo
 
     ${chalk.dim("Upgrading & Migration")}
@@ -142,7 +143,7 @@ const cli = meow(
       },
       template: {
         type: "string",
-        description: "Specify template to use (standard)",
+        description: "Specify template to use (standard, analytics)",
         shortFlag: "t",
       },
       acceptAll: {
@@ -276,7 +277,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     if (!flags.template) {
       helpText += `\nAdd ${chalk.yellow("--template <name>")} or ${chalk.yellow(
         "-t <name>",
-      )} to specify a template (standard)`;
+      )} to specify a template (standard, analytics)`;
     }
 
     if (helpText) {

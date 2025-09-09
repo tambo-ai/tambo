@@ -1,0 +1,144 @@
+name: Template Maintenance
+
+on:
+  workflow_run:
+    workflows: ["Release Please"]
+    types:
+      - completed
+    branches:
+      - main
+
+# Prevent multiple simultaneous runs
+concurrency:
+  group: template-maintenance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  check-releases:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      has-release: ${{ steps.detect.outputs.has-release }}
+      release-info: ${{ steps.detect.outputs.release-info }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ".github/scripts/package.json"
+
+      - name: Install script dependencies
+        working-directory: .github/scripts
+        run: npm ci
+
+      - name: Detect releases
+        id: detect
+        working-directory: .github/scripts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: npx tsx detect-releases.tsx
+
+  upgrade-templates:
+    needs: check-releases
+    if: needs.check-releases.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        template-repo: ["tambo-ai/tambo-template"]
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: ".github/scripts/package.json"
+
+      - name: Install script dependencies
+        working-directory: .github/scripts
+        run: npm ci
+
+      - name: Verify GitHub CLI
+        run: gh --version
+
+      - name: Clone template repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          git clone https://x-access-token:$GITHUB_TOKEN@github.com/${{ matrix.template-repo }}.git template-repo
+          cd template-repo
+          git config user.name "Tambo Bot"
+          git config user.email "bot@tambo.ai"
+
+      - name: Create upgrade branch
+        working-directory: template-repo
+        run: |
+          RELEASE_INFO='${{ needs.check-releases.outputs.release-info }}'
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag')
+          BRANCH_NAME="tambo-upgrade-$RELEASE_TAG"
+          git checkout -b "$BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+
+      - name: Capture pre-upgrade state
+        working-directory: template-repo
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: npx tsx ../.github/scripts/capture-pre-upgrade.tsx
+
+      - name: Run Tambo upgrade
+        working-directory: template-repo
+        run: npx -y tambo@latest upgrade --accept-all --silent
+
+      - name: Capture post-upgrade state and generate diff
+        working-directory: template-repo
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: npx tsx ../.github/scripts/capture-post-upgrade.tsx
+
+      - name: Create Pull Request
+        if: env.NO_CHANGES != 'true'
+        working-directory: template-repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.TAMBO_UPGRADE_PAT || secrets.GITHUB_TOKEN }}
+          RELEASE_INFO: ${{ needs.check-releases.outputs.release-info }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          BRANCH_NAME: ${{ env.BRANCH_NAME }}
+        run: npx tsx ../.github/scripts/create-pr.tsx
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upgrade-logs-${{ matrix.template-repo }}-${{ env.RELEASE_TAG }}
+          path: |
+            template-repo/upgrade-summary.md
+            template-repo/package.json.before
+            template-repo/package.json
+          retention-days: 30
+
+  summary:
+    needs: [check-releases, upgrade-templates]
+    runs-on: ubuntu-latest
+    if: always() && needs.check-releases.outputs.has-release == 'true'
+    steps:
+      - name: Summary
+        run: |
+          RELEASE_INFO='${{ needs.check-releases.outputs.release-info }}'
+          RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag')
+          echo "## Template Maintenance Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Release:** $RELEASE_TAG" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ needs.upgrade-templates.result }}" >> $GITHUB_STEP_SUMMARY

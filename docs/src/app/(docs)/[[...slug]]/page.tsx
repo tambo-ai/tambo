@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { source } from "@/lib/source";
 import { getLLMText } from "@/lib/get-llm-text";
@@ -25,10 +26,12 @@ export default async function Page(props: {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <MessageThreadCollapsible
-        className="tambo-theme"
-        contextKey="tambo-docs"
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <MessageThreadCollapsible
+          className="tambo-theme"
+          contextKey="tambo-docs"
+        />
+      </Suspense>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
 
