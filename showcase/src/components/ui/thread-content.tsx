@@ -3,6 +3,7 @@
 import {
   Message,
   MessageContent,
+  MessageImages,
   MessageRenderedComponentArea,
   ToolcallInfo,
   type messageVariants,
@@ -156,10 +157,11 @@ const ThreadContentMessages = React.forwardRef<
             >
               <div
                 className={cn(
-                  "flex flex-col",
+                  "flex flex-col gap-2",
                   message.role === "assistant" ? "w-full" : "max-w-3xl",
                 )}
               >
+                <MessageImages />
                 <MessageContent
                   className={
                     message.role === "assistant"

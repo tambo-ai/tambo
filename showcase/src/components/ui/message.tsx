@@ -1,7 +1,11 @@
 "use client";
 
 import { createMarkdownComponents } from "@/components/ui/markdown-components";
-import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
+import {
+  checkHasContent,
+  getMessageImages,
+  getSafeContent,
+} from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -9,6 +13,7 @@ import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
@@ -160,6 +165,52 @@ const LoadingIndicator: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   );
 };
 LoadingIndicator.displayName = "LoadingIndicator";
+
+/**
+ * Props for the MessageImages component.
+ */
+export type MessageImagesProps = React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Displays images from message content horizontally.
+ * @component MessageImages
+ */
+const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
+  ({ className, ...props }, ref) => {
+    const { message } = useMessageContext();
+    const images = getMessageImages(message.content);
+
+    if (images.length === 0) {
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn("flex flex-wrap gap-2 mb-2", className)}
+        data-slot="message-images"
+        {...props}
+      >
+        {images.map((imageUrl, index) => (
+          <div
+            key={index}
+            className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+          >
+            <Image
+              src={imageUrl}
+              alt={`Image ${index + 1}`}
+              width={128}
+              height={128}
+              className="w-full h-full object-cover"
+              unoptimized
+            />
+          </div>
+        ))}
+      </div>
+    );
+  },
+);
+MessageImages.displayName = "MessageImages";
 
 /**
  * Props for the MessageContent component.
@@ -491,6 +542,7 @@ export {
   LoadingIndicator,
   Message,
   MessageContent,
+  MessageImages,
   MessageRenderedComponentArea,
   messageVariants,
   ToolcallInfo,
