@@ -1,6 +1,11 @@
 "use client";
 
-import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
+import { createMarkdownComponents } from "./markdown-components";
+import {
+  checkHasContent,
+  getMessageImages,
+  getSafeContent,
+} from "../lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -8,10 +13,10 @@ import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
-import { createMarkdownComponents } from "@/components/ui/markdown-components";
 
 /**
  * CSS variants for the message container
@@ -118,6 +123,7 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
     if (message.actionType === "tool_response") {
       return null;
     }
+
     return (
       <MessageContext.Provider value={contextValue}>
         <div
@@ -159,6 +165,52 @@ const LoadingIndicator: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   );
 };
 LoadingIndicator.displayName = "LoadingIndicator";
+
+/**
+ * Props for the MessageImages component.
+ */
+export type MessageImagesProps = React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Displays images from message content horizontally.
+ * @component MessageImages
+ */
+const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
+  ({ className, ...props }, ref) => {
+    const { message } = useMessageContext();
+    const images = getMessageImages(message.content);
+
+    if (images.length === 0) {
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn("flex flex-wrap gap-2 mb-2", className)}
+        data-slot="message-images"
+        {...props}
+      >
+        {images.map((imageUrl, index) => (
+          <div
+            key={index}
+            className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+          >
+            <Image
+              src={imageUrl}
+              alt={`Image ${index + 1}`}
+              width={128}
+              height={128}
+              className="w-full h-full object-cover"
+              unoptimized
+            />
+          </div>
+        ))}
+      </div>
+    );
+  },
+);
+MessageImages.displayName = "MessageImages";
 
 /**
  * Props for the MessageContent component.
@@ -274,7 +326,7 @@ function getToolStatusMessage(
  * @component ToolcallInfo
  */
 const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, markdown = true, ...props }, ref) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { message, isLoading } = useMessageContext();
     const { thread } = useTambo();
@@ -312,13 +364,13 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col items-start text-xs opacity-50",
+          "flex flex-col items-start text-xs opacity-50 pt-2",
           className,
         )}
         data-slot="toolcall-info"
         {...props}
       >
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col gap-2">
           <button
             type="button"
             aria-expanded={isExpanded}
@@ -346,8 +398,8 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
-              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
+              "flex flex-col gap-1 pl-4 overflow-hidden transition-[max-height,opacity] duration-300",
+              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
             )}
           >
             <span className="whitespace-pre-wrap">
@@ -359,14 +411,25 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             </span>
             {associatedToolResponse && (
               <>
-                <span className="whitespace-pre-wrap">result:</span>
-                <div>
+                <span className="whitespace-pre-wrap font-medium">result:</span>
+                <div className="whitespace-pre-wrap">
                   {!associatedToolResponse.content ? (
                     <span className="text-muted-foreground italic">
                       Empty response
                     </span>
+                  ) : React.isValidElement(associatedToolResponse.content) ? (
+                    associatedToolResponse.content
+                  ) : markdown ? (
+                    <Streamdown components={createMarkdownComponents()}>
+                      {typeof getSafeContent(associatedToolResponse.content) ===
+                      "string"
+                        ? (getSafeContent(
+                            associatedToolResponse.content,
+                          ) as string)
+                        : ""}
+                    </Streamdown>
                   ) : (
-                    formatToolResult(associatedToolResponse.content)
+                    getSafeContent(associatedToolResponse.content)
                   )}
                 </div>
               </>
@@ -387,34 +450,6 @@ function keyifyParameters(
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),
   );
-}
-
-/**
- * Helper function to detect if content is JSON and format it nicely
- * @param content - The content to check and format
- * @returns Formatted content or original content if not JSON
- */
-function formatToolResult(
-  content: TamboThreadMessage["content"],
-): React.ReactNode {
-  if (!content) return content;
-
-  const safeContent = getSafeContent(content);
-  if (typeof safeContent !== "string") return safeContent;
-
-  // Try to parse as JSON
-  try {
-    const parsed = JSON.parse(safeContent);
-    return (
-      <pre className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64">
-        <code className="font-mono break-words whitespace-pre-wrap">
-          {JSON.stringify(parsed, null, 2)}
-        </code>
-      </pre>
-    );
-  } catch {
-    return safeContent;
-  }
 }
 
 /**
@@ -467,7 +502,7 @@ const MessageRenderedComponentArea = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn(className)}
+      className={cn("pt-2", className)}
       data-slot="message-rendered-component-area"
       {...props}
     >
@@ -495,7 +530,7 @@ const MessageRenderedComponentArea = React.forwardRef<
             </button>
           </div>
         ) : (
-          <div className="w-full pt-2 px-2">{message.renderedComponent}</div>
+          <div className="w-full pt-4 px-2">{message.renderedComponent}</div>
         ))}
     </div>
   );
@@ -507,6 +542,7 @@ export {
   LoadingIndicator,
   Message,
   MessageContent,
+  MessageImages,
   MessageRenderedComponentArea,
   messageVariants,
   ToolcallInfo,
