@@ -1,11 +1,5 @@
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { StagedImage } from "../hooks/use-message-images";
-
-// Match Vercel AI SDK CoreMessage format
-export interface MessageContentPart {
-  type: "text" | "image";
-  image?: string | URL;
-  text?: string;
-}
 
 /**
  * Builds message content with text and images
@@ -16,8 +10,8 @@ export interface MessageContentPart {
 export function buildMessageContent(
   text: string,
   images: StagedImage[],
-): MessageContentPart[] {
-  const content: MessageContentPart[] = [];
+): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+  const content: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
   if (text.trim()) {
     content.push({
@@ -28,8 +22,10 @@ export function buildMessageContent(
 
   for (const image of images) {
     content.push({
-      type: "image",
-      image: image.dataUrl,
+      type: "image_url",
+      image_url: {
+        url: image.dataUrl,
+      },
     });
   }
 

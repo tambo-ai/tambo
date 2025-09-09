@@ -113,11 +113,7 @@ export interface TamboThreadContextProps {
       contextKey?: string;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
-      content?: {
-        type: "text" | "image";
-        image?: string | URL;
-        text?: string;
-      }[];
+      content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
     },
   ) => Promise<TamboThreadMessage>;
 }
@@ -744,11 +740,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice?: string;
         contextKey?: string;
         additionalContext?: Record<string, any>;
-        content?: {
-          type: "text" | "image";
-          image?: string | URL;
-          text?: string;
-        }[];
+        content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
       } = {},
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);

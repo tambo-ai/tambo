@@ -1,5 +1,6 @@
-import { buildMessageContent, MessageContentPart } from "../message-builder";
+import { buildMessageContent } from "../message-builder";
 import { StagedImage } from "../../hooks/use-message-images";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 
 describe("buildMessageContent", () => {
   const createMockStagedImage = (
@@ -34,8 +35,10 @@ describe("buildMessageContent", () => {
 
     expect(result).toEqual([
       {
-        type: "image",
-        image: "data:image/png;base64,abc123",
+        type: "image_url",
+        image_url: {
+          url: "data:image/png;base64,abc123",
+        },
       },
     ]);
   });
@@ -60,12 +63,16 @@ describe("buildMessageContent", () => {
         text: "Check these images:",
       },
       {
-        type: "image",
-        image: "data:image/png;base64,abc123",
+        type: "image_url",
+        image_url: {
+          url: "data:image/png;base64,abc123",
+        },
       },
       {
-        type: "image",
-        image: "data:image/jpeg;base64,def456",
+        type: "image_url",
+        image_url: {
+          url: "data:image/jpeg;base64,def456",
+        },
       },
     ]);
   });
@@ -87,8 +94,10 @@ describe("buildMessageContent", () => {
 
     expect(result).toEqual([
       {
-        type: "image",
-        image: "data:image/png;base64,mock-data",
+        type: "image_url",
+        image_url: {
+          url: "data:image/png;base64,mock-data",
+        },
       },
     ]);
   });
@@ -120,16 +129,22 @@ describe("buildMessageContent", () => {
       text: "Multiple images:",
     });
     expect(result[1]).toEqual({
-      type: "image",
-      image: "data:image/jpeg;base64,photo1data",
+      type: "image_url",
+      image_url: {
+        url: "data:image/jpeg;base64,photo1data",
+      },
     });
     expect(result[2]).toEqual({
-      type: "image",
-      image: "data:image/png;base64,photo2data",
+      type: "image_url",
+      image_url: {
+        url: "data:image/png;base64,photo2data",
+      },
     });
     expect(result[3]).toEqual({
-      type: "image",
-      image: "data:image/gif;base64,photo3data",
+      type: "image_url",
+      image_url: {
+        url: "data:image/gif;base64,photo3data",
+      },
     });
   });
 
@@ -149,19 +164,20 @@ describe("buildMessageContent", () => {
     const image = createMockStagedImage();
     const result = buildMessageContent("Test", [image]);
 
-    // Verify the structure matches MessageContentPart interface
-    result.forEach((part: MessageContentPart) => {
+    // Verify the structure matches ChatCompletionContentPart interface
+    result.forEach((part: TamboAI.Beta.Threads.ChatCompletionContentPart) => {
       expect(part).toHaveProperty("type");
-      expect(["text", "image"]).toContain(part.type);
+      expect(["text", "image_url", "input_audio"]).toContain(part.type);
 
       if (part.type === "text") {
         expect(part).toHaveProperty("text");
         expect(typeof part.text).toBe("string");
       }
 
-      if (part.type === "image") {
-        expect(part).toHaveProperty("image");
-        expect(typeof part.image).toBe("string");
+      if (part.type === "image_url") {
+        expect(part).toHaveProperty("image_url");
+        expect(part.image_url).toHaveProperty("url");
+        expect(typeof part.image_url?.url).toBe("string");
       }
     });
   });
@@ -191,14 +207,14 @@ describe("buildMessageContent", () => {
     const result = buildMessageContent("Text content", images);
 
     expect(result[0].type).toBe("text");
-    expect(result[1].type).toBe("image");
-    expect(result[2].type).toBe("image");
+    expect(result[1].type).toBe("image_url");
+    expect(result[2].type).toBe("image_url");
 
-    if (result[1].type === "image") {
-      expect(result[1].image).toBe("data:image/png;base64,first");
+    if (result[1].type === "image_url") {
+      expect(result[1].image_url?.url).toBe("data:image/png;base64,first");
     }
-    if (result[2].type === "image") {
-      expect(result[2].image).toBe("data:image/png;base64,second");
+    if (result[2].type === "image_url") {
+      expect(result[2].image_url?.url).toBe("data:image/png;base64,second");
     }
   });
 });
