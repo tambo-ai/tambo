@@ -6,6 +6,12 @@ const withMDX = createMDX();
 const config = {
   reactStrictMode: true,
   trailingSlash: false,
+  experimental: {
+    // Ensure MDX content files are included in serverless output file tracing
+    outputFileTracingIncludes: {
+      "/": ["./content/docs/**/*"],
+    },
+  },
   async rewrites() {
     return [
       {

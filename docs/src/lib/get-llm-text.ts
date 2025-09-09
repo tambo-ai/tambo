@@ -1,22 +1,16 @@
 import { source } from "@/lib/source";
 import type { InferPageType } from "fumadocs-core/source";
-import { remark } from "remark";
-import remarkGfm from "remark-gfm";
-import remarkMdx from "remark-mdx";
-
-const processor = remark()
-  .use(remarkMdx)
-  .use(remarkGfm);
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 export async function getLLMText(page: InferPageType<typeof source>) {
-  const processed = await processor.process({
-    path: page.data._file.absolutePath,
-    value: page.data.content,
-  });
+  const MDXContent = page.data.body as React.ComponentType<any>;
+  const html = renderToStaticMarkup(
+    React.createElement(MDXContent, { components: {} }),
+  );
 
-  // note: it doesn't escape frontmatter, it's up to you.
   return `# ${page.data.title}
 URL: ${page.url}
 
-${processed.value}`;
+${html}`;
 }
