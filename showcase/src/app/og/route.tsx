@@ -33,7 +33,7 @@ export async function GET(request: Request) {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {/* Octo icon */}
           <img
-            src={`${origin}/logo/icon/Octo-Icon.png`}
+            src={`${origin}/logo/icon/Octo-Icon.svg`}
             width={48}
             height={48}
             style={{ display: "block" }}
