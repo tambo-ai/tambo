@@ -1,7 +1,7 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://ui.tambo.co',
-  generateRobotsTxt: true,
+  generateRobotsTxt: false,
   // Only include / and /components/**
   include: [
     '/',

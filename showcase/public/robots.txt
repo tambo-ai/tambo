@@ -1,9 +1,0 @@
-# *
-User-agent: *
-Allow: /
-
-# Host
-Host: https://ui.tambo.co
-
-# Sitemaps
-Sitemap: https://ui.tambo.co/sitemap.xml
