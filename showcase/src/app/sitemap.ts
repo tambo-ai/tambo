@@ -31,7 +31,10 @@ function getComponentRoutes(): string[] {
         walk(fullPath);
       } else if (
         entry.isFile() &&
-        (entry.name === "page.tsx" || entry.name === "page.ts" || entry.name === "page.jsx" || entry.name === "page.js")
+        (entry.name === "page.tsx" ||
+          entry.name === "page.ts" ||
+          entry.name === "page.jsx" ||
+          entry.name === "page.js")
       ) {
         pageFiles.push(fullPath);
       }
@@ -86,4 +89,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return entries;
 }
-
