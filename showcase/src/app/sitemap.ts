@@ -1,7 +1,12 @@
-// @ts-nocheck
 import fs from "fs";
-import type { MetadataRoute } from "next";
 import path from "path";
+
+type SitemapEntry = {
+  url: string;
+  lastModified?: Date | string;
+  changeFrequency?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+  priority?: number;
+};
 
 export const revalidate = 60 * 60 * 24; // 24 hours
 
@@ -14,7 +19,7 @@ function isGroupSegment(segment: string): boolean {
 }
 
 function getComponentRoutes(): string[] {
-  const appDir = path.join(process.cwd(), "src", "app");
+  const appDir = path.resolve("src", "app");
   const componentsDir = path.join(appDir, "components");
 
   if (!fs.existsSync(componentsDir)) {
@@ -63,10 +68,10 @@ function getComponentRoutes(): string[] {
   return Array.from(routes).sort();
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default function sitemap(): SitemapEntry[] {
   const baseUrl = getBaseUrl().replace(/\/$/, "");
 
-  const entries: MetadataRoute.Sitemap = [];
+  const entries: SitemapEntry[] = [];
 
   // Root page
   entries.push({
