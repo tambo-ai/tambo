@@ -23,32 +23,22 @@ export async function GET(request: Request) {
           flexDirection: "column",
           alignItems: "flex-start",
           justifyContent: "center",
-          background: "#0b0b0b",
-          color: "#ffffff",
+          background: "#ffffff",
+          color: "#0b0b0b",
           padding: "72px",
           backgroundImage:
-            "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08) 0, transparent 40%), radial-gradient(circle at 80% 30%, rgba(255,255,255,0.06) 0, transparent 45%)",
+            "radial-gradient(circle at 20% 20%, rgba(0,0,0,0.05) 0, transparent 40%), radial-gradient(circle at 80% 30%, rgba(0,0,0,0.04) 0, transparent 45%)",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            fontSize: 28,
-            opacity: 0.8,
-          }}
-        >
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: "linear-gradient(135deg, #5de4c7 0%, #7fb3ff 100%)",
-              marginRight: 8,
-            }}
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/* Octo icon */}
+          <img
+            src="/logo/icon/Octo-Icon.svg"
+            width={48}
+            height={48}
+            style={{ display: "block" }}
           />
-          tambo-ui
+          <div style={{ fontSize: 28, opacity: 0.9 }}>tambo-ui</div>
         </div>
         <div
           style={{
