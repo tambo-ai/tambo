@@ -1,15 +1,20 @@
 import "@/app/global.css";
-import { RootProvider } from "fumadocs-ui/provider";
-import { ThemeProvider } from "next-themes";
-import { Inter } from "next/font/google";
+import { WebVitalsReporter } from "@/components/web-vitals";
 import {
   PostHogPageview,
   PostHogRootProvider,
 } from "@/providers/posthog-provider";
-import { Suspense } from "react";
-import { WebVitalsReporter } from "@/components/web-vitals";
+import { RootProvider } from "fumadocs-ui/provider";
 import type { Metadata } from "next";
-import { TamboRootProvider } from "@/providers/tambo-provider";
+import { ThemeProvider } from "next-themes";
+import dynamic from "next/dynamic";
+import { Inter } from "next/font/google";
+import { Suspense } from "react";
+
+const TamboRootProvider = dynamic(
+  () => import("@/providers/tambo-provider").then((m) => m.TamboRootProvider),
+  { ssr: false },
+);
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.ai";
 
