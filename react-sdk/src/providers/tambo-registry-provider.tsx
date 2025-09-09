@@ -59,6 +59,14 @@ export interface TamboRegistryProviderProps {
   /** The tools to register */
   tools?: TamboTool[];
 
+  /**
+   * A function to call when an unknown tool is called. If this function is not
+   * provided, an error will be thrown when a tool call is requested by the
+   * server.
+   *
+   * Note that this is generally only for agents, where the agent code may
+   * request tool calls that are not registered in the tool registry.
+   */
   onCallUnknownTool?: (
     toolName: string,
     args: TamboAI.ToolCallRequest["parameters"],
