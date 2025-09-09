@@ -7,16 +7,17 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | tambo",
-    default: "tambo | Build AI-powered apps with just one line of code",
+    template: "%s | tambo-ui",
+    default: "tambo-ui | A component library for Generative Interfaces",
   },
-  description: "Build AI-powered apps with just one line of code",
+  description:
+    "Build natural language interfaces with React. Use our component library to build your app in a weekend.",
   keywords: ["Tambo", "Showcase", "Components", "AI", "App Development"],
-  metadataBase: new URL("https://tambo.co"),
+  metadataBase: new URL("https://ui.tambo.co"),
   authors: [
     {
       name: "tambo",
-      url: "https://tambo.co",
+      url: "https://ui.tambo.co",
     },
   ],
   alternates: {
