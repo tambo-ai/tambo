@@ -5,16 +5,31 @@ import { MCPClient, MCPTransport } from "./mcp-client";
 
 /**
  * Extracts error message from MCP tool result content.
- * Handles both array and non-array content formats.
+ * Handles both array and string content formats.
+ * Always returns a string, even for invalid/null inputs.
  */
-export function extractErrorMessage(content: any): string {
-  if (Array.isArray(content)) {
-    return content
-      .filter((item) => item.type === "text")
-      .map((item) => item.text)
-      .join(" ");
+export function extractErrorMessage(content: unknown): string {
+  if (!content) {
+    return "Unknown error occurred";
   }
-  return content;
+
+  if (Array.isArray(content)) {
+    const textItems = content
+      .filter(
+        (item) => item && item.type === "text" && typeof item.text === "string",
+      )
+      .map((item) => item.text);
+
+    return textItems.length > 0
+      ? textItems.join(" ")
+      : "Error occurred but no details provided";
+  }
+
+  if (typeof content === "string") {
+    return content;
+  }
+
+  return "Invalid error content format";
 }
 
 export interface McpServerInfo {

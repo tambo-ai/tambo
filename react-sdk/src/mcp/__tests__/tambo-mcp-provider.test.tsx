@@ -36,7 +36,7 @@ describe("extractErrorMessage", () => {
       expect(result).toBe("Simple error message");
     });
 
-    it("should return empty string for array content with no text items", () => {
+    it("should return fallback message for array content with no text items", () => {
       const content = [
         { type: "image", url: "http://example.com/error.png" },
         { type: "resource", uri: "file://error.log" },
@@ -44,15 +44,15 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe("");
+      expect(result).toBe("Error occurred but no details provided");
     });
 
-    it("should return empty string for empty array content", () => {
+    it("should return fallback message for empty array content", () => {
       const content: any[] = [];
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe("");
+      expect(result).toBe("Error occurred but no details provided");
     });
 
     it("should handle array content with mixed types correctly", () => {
@@ -67,6 +67,20 @@ describe("extractErrorMessage", () => {
       const result = extractErrorMessage(content);
 
       expect(result).toBe("First error Second error");
+    });
+
+    it("should handle array content with malformed items", () => {
+      const content = [
+        null,
+        { type: "text", text: "Valid error" },
+        { type: "text" }, // Missing text property
+        { type: "text", text: null }, // Invalid text type
+        { type: "text", text: "Another valid error" },
+      ];
+
+      const result = extractErrorMessage(content);
+
+      expect(result).toBe("Valid error Another valid error");
     });
   });
 
@@ -84,7 +98,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe(null);
+      expect(result).toBe("Unknown error occurred");
     });
 
     it("should handle undefined content", () => {
@@ -92,7 +106,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe(undefined);
+      expect(result).toBe("Unknown error occurred");
     });
 
     it("should handle number content", () => {
@@ -100,7 +114,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe(42);
+      expect(result).toBe("Invalid error content format");
     });
 
     it("should handle boolean content", () => {
@@ -108,7 +122,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe(false);
+      expect(result).toBe("Unknown error occurred");
     });
 
     it("should handle object content", () => {
@@ -116,7 +130,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toEqual({ error: "Something went wrong" });
+      expect(result).toBe("Invalid error content format");
     });
   });
 });
