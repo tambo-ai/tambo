@@ -19,6 +19,7 @@ export default function GetStartedPage() {
         </TabsList>
 
         <TabsContent value="new-project" className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">New Project</h2>
           {newProjectSteps.map((step) => (
             <div
               key={step.number}
@@ -43,6 +44,7 @@ export default function GetStartedPage() {
         </TabsContent>
 
         <TabsContent value="existing-project" className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Existing Project</h2>
           {existingProjectSteps.map((step) => (
             <div
               key={step.number}
@@ -66,6 +68,18 @@ export default function GetStartedPage() {
           ))}
         </TabsContent>
       </Tabs>
+
+      <div className="mt-12 space-y-4">
+        <h2 className="text-xl font-semibold">FAQs</h2>
+        <div>
+          <h3 className="text-lg font-medium">Do I need an API key?</h3>
+          <p className="text-muted-foreground">Yes, set NEXT_PUBLIC_TAMBO_API_KEY.</p>
+        </div>
+        <div>
+          <h3 className="text-lg font-medium">What frameworks are supported?</h3>
+          <p className="text-muted-foreground">React/Next.js officially; others via web components soon.</p>
+        </div>
+      </div>
     </div>
   );
 }

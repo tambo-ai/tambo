@@ -35,18 +35,24 @@ const NavSection = memo(
       return (
         <div className="space-y-3">
           {level === 0 && (
-            <h3 className="px-3 text-sm font-bold text-muted-foreground tracking-wider">
+            <div
+              className="px-3 text-sm font-bold text-muted-foreground tracking-wider"
+              aria-hidden
+            >
               {item.title}
-            </h3>
+            </div>
           )}
           <div className={cn("space-y-2", level > 0 && "pl-2")}>
             {item.children.map((child) => {
               if (child.href === "#" && child.children) {
                 return (
                   <div key={child.title} className="space-y-1">
-                    <h4 className="px-3 text-sm font-semibold text-muted-foreground tracking-wider">
+                    <div
+                      className="px-3 text-sm font-semibold text-muted-foreground tracking-wider"
+                      aria-hidden
+                    >
                       {child.title}
-                    </h4>
+                    </div>
                     {child.children.map((grandchild) => (
                       <NavSection
                         key={grandchild.title}

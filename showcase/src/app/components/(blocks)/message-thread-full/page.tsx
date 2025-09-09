@@ -28,7 +28,9 @@ export default function MessageThreadFullPage() {
             </div>
           </div>
 
-          <DemoWrapper title="Message Thread Full">
+          <h2 className="text-xl font-semibold">Examples</h2>
+          <h3 className="text-lg font-medium mb-3">Live Demo</h3>
+          <DemoWrapper title="Message Thread Full" hidePreviewHeading>
             <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
               <MessageThreadFull
                 contextKey={userContextKey}

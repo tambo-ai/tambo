@@ -30,10 +30,12 @@ export default function ControlBarPage() {
             </div>
           </div>
 
-          <DemoWrapper title="Control Bar Demo">
+          <h2 className="text-xl font-semibold">Examples</h2>
+          <h3 className="text-lg font-medium mb-3">Live Demo</h3>
+          <DemoWrapper title="Control Bar Demo" hidePreviewHeading>
             <div className="h-full relative bg-muted/20 flex flex-col items-center justify-center p-8">
               <div className="text-center space-y-4 mb-8">
-                <h3 className="text-xl font-semibold">Interactive Demo</h3>
+                <div className="text-xl font-semibold">Interactive Demo</div>
                 <p className="text-muted-foreground max-w-md">
                   The control bar appears as a floating button in the
                   bottom-right corner. Click the button or press{" "}

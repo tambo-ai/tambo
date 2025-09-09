@@ -6,13 +6,16 @@ import { ReactNode, useState } from "react";
 export function Section({
   title,
   children,
+  as = "h2",
 }: {
   title: string;
   children: ReactNode;
+  as?: "h2" | "h3";
 }) {
+  const Heading = as;
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <Heading className="text-xl font-semibold">{title}</Heading>
       {children}
     </div>
   );

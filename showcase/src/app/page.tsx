@@ -37,12 +37,47 @@ export default function DocsPage() {
 
       {/* Demo Chat Component */}
       <ShowcaseThemeProvider defaultTheme="light">
+        <h2 className="text-2xl font-semibold mb-4">Overview</h2>
+        <p className="text-muted-foreground mb-8">
+          Explore production-ready AI components and blocks you can drop into your app.
+        </p>
+
+        <h2 className="text-2xl font-semibold mb-2">Features</h2>
+        <ul className="list-disc pl-6 mb-8 text-muted-foreground">
+          <li>Composable UI building blocks for chat and generative interfaces</li>
+          <li>Accessible by default, themable, and framework-friendly</li>
+          <li>Fast iteration with copyable prompts and live demos</li>
+        </ul>
+
+        <h2 className="text-2xl font-semibold mb-3">Live Demo</h2>
         <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
           <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
             <MessageThreadFull contextKey={userContextKey} />
           </div>
         </DemoWrapper>
       </ShowcaseThemeProvider>
+
+      <div className="mt-12 space-y-6">
+        <h2 className="text-2xl font-semibold">Get Started</h2>
+        <p className="text-muted-foreground">
+          Head to the setup guide to install components and configure your provider.
+        </p>
+        <Link href="/get-started" className="underline">
+          Read the guide
+        </Link>
+      </div>
+
+      <div className="mt-12 space-y-4">
+        <h2 className="text-2xl font-semibold">FAQs</h2>
+        <div>
+          <h3 className="text-lg font-medium">Is there only one H1 per page?</h3>
+          <p className="text-muted-foreground">Yes. Supporting sections use H2/H3.</p>
+        </div>
+        <div>
+          <h3 className="text-lg font-medium">Can I theme the components?</h3>
+          <p className="text-muted-foreground">Yes, via CSS variables and provider props.</p>
+        </div>
+      </div>
     </div>
   );
 }

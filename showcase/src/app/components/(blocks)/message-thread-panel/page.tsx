@@ -29,7 +29,9 @@ export default function MessageThreadPanelPage() {
             </div>
           </div>
 
-          <DemoWrapper title="Message Thread Panel">
+          <h2 className="text-xl font-semibold">Examples</h2>
+          <h3 className="text-lg font-medium mb-3">Live Demo</h3>
+          <DemoWrapper title="Message Thread Panel" hidePreviewHeading>
             <div className="h-full relative flex rounded-lg overflow-hidden">
               <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 min-w-0">
                 <div className="h-8 w-[200px] bg-muted/80 rounded-md" />

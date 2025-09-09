@@ -40,7 +40,9 @@ export default function CanvasSpacePage() {
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
 
-          <DemoWrapper title="Canvas Space" height={800}>
+          <h2 className="text-xl font-semibold">Examples</h2>
+          <h3 className="text-lg font-medium mb-3">Live Demo</h3>
+          <DemoWrapper title="Canvas Space" height={800} hidePreviewHeading>
             <CanvasChatInterface />
           </DemoWrapper>
         </div>

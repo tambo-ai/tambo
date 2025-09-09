@@ -31,7 +31,9 @@ export default function MessageThreadCollapsiblePage() {
             </div>
           </div>
 
-          <DemoWrapper title="Message Thread Collapsible">
+          <h2 className="text-xl font-semibold">Examples</h2>
+          <h3 className="text-lg font-medium mb-3">Live Demo</h3>
+          <DemoWrapper title="Message Thread Collapsible" hidePreviewHeading>
             <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full relative">
               <div className="h-8 w-[200px] bg-muted/80 rounded-md" />
               <div className="h-4 w-[300px] bg-muted/80 rounded-md" />

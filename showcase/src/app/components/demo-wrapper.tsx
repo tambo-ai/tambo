@@ -39,7 +39,7 @@ export function DemoWrapper({
         )}
       >
         {!hidePreviewHeading && (
-          <h2 className="text-xl font-semibold">Preview</h2>
+          <h2 className="text-xl font-semibold">Live Demo</h2>
         )}
         <Dialog>
           <DialogTrigger asChild>

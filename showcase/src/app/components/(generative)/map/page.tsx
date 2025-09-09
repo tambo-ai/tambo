@@ -41,11 +41,13 @@ export default function MapPage() {
             </div>
           </div>
 
-          <Section title="Example Prompt">
+          <h2 className="text-xl font-semibold">Examples</h2>
+          <Section title="Example Prompt" as="h3">
             <CopyablePrompt prompt={examplePrompt} />
           </Section>
 
-          <DemoWrapper title="Interactive Map" height={800}>
+          <h3 className="text-lg font-medium mb-3">Live Demo</h3>
+          <DemoWrapper title="Interactive Map" height={800} hidePreviewHeading>
             <TamboProvider
               apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
               tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
