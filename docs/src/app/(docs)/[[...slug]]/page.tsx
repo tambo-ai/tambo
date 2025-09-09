@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { source } from "@/lib/source";
 import { getLLMText } from "@/lib/get-llm-text";
@@ -15,27 +16,22 @@ import { LLMCopyButton, OpenDropdown } from "@/components/ai-actions";
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await props.params;
-  const searchParams = await props.searchParams;
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
   const MDXContent = page.data.body;
   const llmContent = await getLLMText(page);
 
-  // Extract the query parameter for pre-filling the message input
-  const prefilledQuery =
-    typeof searchParams.q === "string" ? searchParams.q : undefined;
-
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <MessageThreadCollapsible
-        className="tambo-theme"
-        contextKey="tambo-docs"
-        initialQuery={prefilledQuery}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <MessageThreadCollapsible
+          className="tambo-theme"
+          contextKey="tambo-docs"
+        />
+      </Suspense>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
 
