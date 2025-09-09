@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.21.0...showcase-v0.22.0) (2025-09-09)
+
+
+### Features
+
+* streamline type definition across all generative components ([#996](https://github.com/tambo-ai/tambo/issues/996)) ([896306f](https://github.com/tambo-ai/tambo/commit/896306f1a5544d0cd88f8f88bdf9285ca6e9b6a8))
+
 ## [0.21.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.20.1...showcase-v0.21.0) (2025-09-05)
 
 
