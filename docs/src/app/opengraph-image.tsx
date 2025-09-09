@@ -1,0 +1,57 @@
+import { ImageResponse } from "next/og";
+
+export const runtime = "edge";
+
+export const alt = "Tambo AI Documentation";
+export const size = {
+  width: 1200,
+  height: 630,
+};
+export const contentType = "image/png";
+
+export default function Image() {
+  const title = "Tambo AI";
+  const tagline =
+    "Build AI-powered applications with React components and streaming.";
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          background: "#0B0B0B",
+          color: "white",
+          padding: "72px",
+          fontFamily: "Inter, Arial, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 72,
+            fontWeight: 800,
+            marginBottom: 24,
+          }}
+        >
+          {title}
+        </div>
+        <div
+          style={{
+            fontSize: 36,
+            opacity: 0.9,
+            maxWidth: 900,
+            lineHeight: 1.3,
+          }}
+        >
+          {tagline}
+        </div>
+      </div>
+    ),
+    { ...size }
+  );
+}
+

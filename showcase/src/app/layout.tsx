@@ -30,6 +30,27 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 1,
   },
+  openGraph: {
+    title: "tambo",
+    description: "Build AI-powered apps with just one line of code",
+    url: "https://tambo.co",
+    siteName: "tambo",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "tambo"
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "tambo",
+    description: "Build AI-powered apps with just one line of code",
+    images: "/twitter-image",
+  },
 };
 
 export default function RootLayout({

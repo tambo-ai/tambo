@@ -1,15 +1,15 @@
 import "@/app/global.css";
-import { RootProvider } from "fumadocs-ui/provider";
-import { ThemeProvider } from "next-themes";
-import { Inter } from "next/font/google";
+import { WebVitalsReporter } from "@/components/web-vitals";
 import {
   PostHogPageview,
   PostHogRootProvider,
 } from "@/providers/posthog-provider";
-import { Suspense } from "react";
-import { WebVitalsReporter } from "@/components/web-vitals";
-import type { Metadata } from "next";
 import { TamboRootProvider } from "@/providers/tambo-provider";
+import { RootProvider } from "fumadocs-ui/provider";
+import type { Metadata } from "next";
+import { ThemeProvider } from "next-themes";
+import { Inter } from "next/font/google";
+import { Suspense } from "react";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.ai";
 
@@ -28,12 +28,21 @@ export const metadata: Metadata = {
     url: baseUrl,
     siteName: "Tambo AI Docs",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Tambo AI Documentation"
+      }
+    ]
   },
   twitter: {
     card: "summary_large_image",
     title: "Tambo AI Documentation",
     description:
       "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+    images: "/twitter-image",
   },
   robots: {
     index: true,
