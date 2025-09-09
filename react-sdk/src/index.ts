@@ -74,7 +74,10 @@ export {
   type InteractableConfig,
   type WithTamboInteractableProps,
 } from "./providers/hoc/with-tambo-interactable";
-export { useTamboInteractable } from "./providers/tambo-interactable-provider";
+export {
+  useTamboInteractable,
+  useCurrentInteractablesSnapshot,
+} from "./providers/tambo-interactable-provider";
 
 // Context helpers exports
 export {

@@ -2,10 +2,58 @@
 
 import { cn } from "@/lib/utils";
 import { useTambo, useTamboComponentState } from "@tambo-ai/react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import * as React from "react";
+import { z } from "zod";
 
-const inputFieldsVariants = cva(
+/**
+ * Zod schema for Field
+ */
+export const fieldSchema = z.object({
+  id: z.string().describe("Unique identifier for the field"),
+  type: z
+    .enum(["text", "number", "email", "password"])
+    .describe("Type of input field"),
+  label: z.string().describe("Display label for the field"),
+  placeholder: z.string().optional().describe("Optional placeholder text"),
+  required: z.boolean().optional().describe("Whether the field is required"),
+  description: z
+    .string()
+    .optional()
+    .describe("Additional description text for the field"),
+  disabled: z.boolean().optional().describe("Whether the field is disabled"),
+  maxLength: z.number().optional().describe("Maximum length of the field"),
+  minLength: z.number().optional().describe("Minimum length of the field"),
+  pattern: z
+    .string()
+    .optional()
+    .describe("Regular expression pattern for validation"),
+  autoComplete: z.string().optional().describe("Autocomplete attribute value"),
+  error: z.string().optional().describe("Error message for the field"),
+});
+
+/**
+ * Zod schema for InputFields component props
+ */
+export const inputFieldsSchema = z.object({
+  fields: z
+    .array(fieldSchema)
+    .describe("Array of field configurations to render"),
+  variant: z
+    .enum(["default", "solid", "bordered"])
+    .optional()
+    .describe("Visual style variant"),
+  layout: z
+    .enum(["default", "compact", "relaxed"])
+    .optional()
+    .describe("Spacing layout"),
+  className: z
+    .string()
+    .optional()
+    .describe("Additional CSS classes for styling"),
+});
+
+export const inputFieldsVariants = cva(
   "w-full rounded-lg transition-all duration-200",
   {
     variants: {
@@ -32,48 +80,20 @@ const inputFieldsVariants = cva(
 
 /**
  * Represents a field in an input fields component
- * @property {string} id - Unique identifier for the field
- * @property {'text' | 'number' | 'email' | 'password'} type - Type of input field
- * @property {string} label - Display label for the field
- * @property {string} [placeholder] - Optional placeholder text
- * @property {boolean} [required] - Whether the field is required
- * @property {string} [description] - Additional description text for the field
- * @property {boolean} [disabled] - Whether the field is disabled
- * @property {number} [maxLength] - Maximum length of the field
- * @property {number} [minLength] - Minimum length of the field
- * @property {string} [pattern] - Regular expression pattern for validation
- * @property {string} [autoComplete] - Autocomplete attribute value
- * @property {string} [error] - Error message for the field
  */
-export interface Field {
-  id: string;
-  type: "text" | "number" | "email" | "password";
-  label: string;
-  placeholder?: string;
-  required?: boolean;
-  description?: string;
-  disabled?: boolean;
-  maxLength?: number;
-  minLength?: number;
-  pattern?: string;
-  autoComplete?: string;
-  error?: string;
-}
+export type Field = z.infer<typeof fieldSchema>;
 
+/**
+ * Interface representing the state of the InputFields component
+ */
 export interface InputFieldsState {
   values: Record<string, string>;
 }
 
 /**
- * Props for the InputFields component
- * @interface
+ * Props for the InputFields component type inferred from the Zod schema
  */
-export interface InputFieldsProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof inputFieldsVariants> {
-  /** Array of field configurations to render */
-  fields: Field[];
-}
+export type InputFieldsProps = z.infer<typeof inputFieldsSchema>;
 
 /**
  * A component that renders a collection of form input fields with validation and accessibility features
@@ -217,5 +237,3 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
   },
 );
 InputFields.displayName = "InputFields";
-
-export { inputFieldsVariants };
