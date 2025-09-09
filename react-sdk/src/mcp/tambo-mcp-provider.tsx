@@ -25,11 +25,11 @@ export function extractErrorMessage(content: unknown): string {
       : "Error occurred but no details provided";
   }
 
-  if (typeof content === "string") {
-    return content;
+  if (typeof content === "object") {
+    return JSON.stringify(content);
   }
 
-  return "Invalid error content format";
+  return `error content: ${content}`;
 }
 
 export interface McpServerInfo {

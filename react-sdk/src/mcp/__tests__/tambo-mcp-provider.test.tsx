@@ -114,7 +114,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe("Invalid error content format");
+      expect(result).toBe("error content: 42");
     });
 
     it("should handle boolean content", () => {
@@ -122,7 +122,7 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe("Unknown error occurred");
+      expect(result).toBe("error content: false");
     });
 
     it("should handle object content", () => {
@@ -130,7 +130,29 @@ describe("extractErrorMessage", () => {
 
       const result = extractErrorMessage(content);
 
-      expect(result).toBe("Invalid error content format");
+      expect(result).toBe('{"error":"Something went wrong"}');
+    });
+
+    it("should handle complex object content", () => {
+      const content = {
+        error: "Something went wrong",
+        code: 500,
+        details: { message: "Internal server error" },
+      };
+
+      const result = extractErrorMessage(content);
+
+      expect(result).toBe(
+        '{"error":"Something went wrong","code":500,"details":{"message":"Internal server error"}}',
+      );
+    });
+
+    it("should handle empty object content", () => {
+      const content = {};
+
+      const result = extractErrorMessage(content);
+
+      expect(result).toBe("{}");
     });
   });
 });
