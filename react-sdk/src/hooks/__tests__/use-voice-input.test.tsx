@@ -116,6 +116,7 @@ describe("useVoiceInput", () => {
 
     jest.mocked(useTamboVoiceInput).mockReturnValue({
       isEnabled: true,
+      isRealTimeMode: false,
     });
   });
 
@@ -329,6 +330,7 @@ describe("useVoiceInput", () => {
     it("should return error when voice input is disabled", async () => {
       jest.mocked(useTamboVoiceInput).mockReturnValue({
         isEnabled: false,
+        isRealTimeMode: false,
       });
 
       const { result } = renderHook(() => useVoiceInput());

@@ -19,6 +19,7 @@ export interface UseVoiceInputResult {
   clearError: () => void;
   isRecording: boolean;
   isTranscribing: boolean;
+  isRealTimeTranscribing: boolean;
   state: VoiceInputState;
   error: Error | null;
   isSupported: boolean;
@@ -42,7 +43,7 @@ export interface UseVoiceInputResult {
  */
 export const useVoiceInput = (): UseVoiceInputResult => {
   const { value, setValue } = useTamboThreadInput();
-  const { isEnabled } = useTamboVoiceInput();
+  const { isEnabled, isRealTimeMode } = useTamboVoiceInput();
 
   const [state, setState] = useState<VoiceInputState>("idle");
   const [error, setError] = useState<Error | null>(null);
@@ -53,6 +54,12 @@ export const useVoiceInput = (): UseVoiceInputResult => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Real-time transcription refs
+  const realTimeChunkInterval = useRef<NodeJS.Timeout | null>(null);
+  const lastTranscriptionRef = useRef<string>("");
+  const currentChunkIndex = useRef<number>(0);
+  const accumulatedChunks = useRef<Blob[]>([]);
 
   // Check if browser supports necessary APIs
   const isSupported =
@@ -75,13 +82,21 @@ export const useVoiceInput = (): UseVoiceInputResult => {
 
     // Clear chunks
     chunksRef.current = [];
+
+    // Clear real-time transcription interval
+    if (realTimeChunkInterval.current) {
+      clearInterval(realTimeChunkInterval.current);
+      realTimeChunkInterval.current = null;
+    }
+
+    // Reset real-time transcription refs
+    lastTranscriptionRef.current = "";
+    currentChunkIndex.current = 0;
+    accumulatedChunks.current = [];
   }, []);
 
-  const transcribeAudio = useCallback(
-    async (audioBlob: Blob) => {
-      setState("transcribing");
-      setError(null);
-
+  const transcribeAudioChunk = useCallback(
+    async (audioBlob: Blob, isRealTime = false) => {
       try {
         // Create FormData for multipart upload
         const formData = new FormData();
@@ -90,11 +105,8 @@ export const useVoiceInput = (): UseVoiceInputResult => {
         formData.append("response_format", "text");
 
         // Send to backend for transcription
-        // Use the current window origin for the API route
         const baseUrl =
-          typeof window !== "undefined"
-            ? window.location.origin
-            : "https://api.tambo.ai";
+          typeof window !== "undefined" ? window.location.origin : "";
         const response = await fetch(`${baseUrl}/api/v1/audio/transcriptions`, {
           method: "POST",
           body: formData,
@@ -107,21 +119,51 @@ export const useVoiceInput = (): UseVoiceInputResult => {
         const data = await response.json();
         const transcribedText = data.text ?? "";
 
-        if (transcribedText) {
-          // Append transcribed text to existing input
-          setValue(value + (value ? " " : "") + transcribedText);
+        if (transcribedText.trim()) {
+          if (isRealTime) {
+            // For real-time, replace the previous transcription with the new one
+            // Remove the last transcription and add the new one
+            const currentValue = value;
+            const baseText = currentValue.replace(
+              lastTranscriptionRef.current,
+              "",
+            );
+            const newValue = baseText + (baseText ? " " : "") + transcribedText;
+            setValue(newValue);
+            lastTranscriptionRef.current = transcribedText;
+          } else {
+            // For batch mode, append transcribed text to existing input
+            setValue(value + (value ? " " : "") + transcribedText);
+          }
         }
 
+        return transcribedText;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err : new Error("Transcription failed");
+        console.error("Transcription error:", errorMessage);
+        throw errorMessage;
+      }
+    },
+    [value, setValue],
+  );
+
+  const transcribeAudio = useCallback(
+    async (audioBlob: Blob) => {
+      setState("transcribing");
+      setError(null);
+
+      try {
+        await transcribeAudioChunk(audioBlob, false);
         setState("idle");
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err : new Error("Transcription failed");
         setError(errorMessage);
         setState("error");
-        console.error("Transcription error:", errorMessage);
       }
     },
-    [value, setValue],
+    [transcribeAudioChunk],
   );
 
   const startRecording = useCallback(async () => {
@@ -184,13 +226,43 @@ export const useVoiceInput = (): UseVoiceInputResult => {
         chunksRef.current = [];
         cleanup();
 
-        // Only transcribe if we have audio data
-        if (audioBlob.size > 0) {
+        // Only transcribe if we have audio data and we're in batch mode
+        if (audioBlob.size > 0 && !isRealTimeMode) {
           await transcribeAudio(audioBlob);
         } else {
           setState("idle");
         }
       };
+
+      // Real-time transcription setup
+      if (isRealTimeMode) {
+        // Process accumulated audio in 3-second chunks for real-time transcription
+        realTimeChunkInterval.current = setInterval(async () => {
+          if (chunksRef.current.length > 0) {
+            try {
+              // Accumulate all audio chunks so far (including previous ones)
+              accumulatedChunks.current.push(...chunksRef.current);
+
+              // Create blob from accumulated chunks to ensure valid audio
+              const chunkBlob = new Blob(accumulatedChunks.current, {
+                type: mimeType,
+              });
+
+              // Clear current chunks (but keep accumulated for next iteration)
+              chunksRef.current = [];
+
+              // Only transcribe if we have enough audio data (avoid very small chunks)
+              if (chunkBlob.size > 1000) {
+                // At least 1KB of audio data
+                await transcribeAudioChunk(chunkBlob, true);
+              }
+            } catch (err) {
+              console.error("Real-time transcription error:", err);
+              // Continue processing even if one chunk fails
+            }
+          }
+        }, 1000); // Process every 3 seconds for more stable chunks
+      }
 
       mediaRecorder.onerror = (event) => {
         console.error("MediaRecorder error:", event);
@@ -200,7 +272,16 @@ export const useVoiceInput = (): UseVoiceInputResult => {
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+
+      // Start recording with different timeslice for real-time mode
+      if (isRealTimeMode) {
+        // Request data every 500ms for real-time processing
+        mediaRecorder.start(500);
+      } else {
+        // Default batch mode
+        mediaRecorder.start();
+      }
+
       setState("recording");
     } catch (err) {
       const errorMessage =
@@ -241,9 +322,11 @@ export const useVoiceInput = (): UseVoiceInputResult => {
   }, [
     isSupported,
     isEnabled,
+    isRealTimeMode,
     state,
     cleanup,
     transcribeAudio,
+    transcribeAudioChunk,
     permissionRequestCount,
   ]);
 
@@ -268,6 +351,7 @@ export const useVoiceInput = (): UseVoiceInputResult => {
     clearError,
     isRecording: state === "recording",
     isTranscribing: state === "transcribing",
+    isRealTimeTranscribing: isRealTimeMode && state === "recording",
     state,
     error,
     isSupported,

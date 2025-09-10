@@ -2,8 +2,8 @@
 import React, { createContext, PropsWithChildren, useContext } from "react";
 
 export interface TamboVoiceInputContextProps {
-  /** Whether voice input is enabled */
-  isEnabled: boolean;
+  /** Whether to use real-time transcription (chunked) vs batch mode */
+  isRealTimeMode: boolean;
 }
 
 export const TamboVoiceInputContext = createContext<
@@ -12,7 +12,7 @@ export const TamboVoiceInputContext = createContext<
 
 export interface TamboVoiceInputProviderProps {
   /** Whether voice input functionality is enabled. Defaults to false. */
-  voiceInputEnabled?: boolean;
+  realTimeMode?: boolean;
 }
 
 /**
@@ -21,21 +21,21 @@ export interface TamboVoiceInputProviderProps {
  *
  * @param props - The props for the TamboVoiceInputProvider
  * @param props.children - The children to render
- * @param props.voiceInputEnabled - Whether voice input is enabled (default: false)
+ * @param props.realTimeMode - Whether to use real-time transcription (chunked) vs batch mode (default: false)
  * @returns The provider component
  *
  * @example
  * ```tsx
- * <TamboVoiceInputProvider voiceInputEnabled={true}>
+ * <TamboVoiceInputProvider realTimeMode={true}>
  *   <App />
  * </TamboVoiceInputProvider>
  * ```
  */
 export const TamboVoiceInputProvider: React.FC<
   PropsWithChildren<TamboVoiceInputProviderProps>
-> = ({ children, voiceInputEnabled = true }) => {
+> = ({ children, realTimeMode = false }) => {
   const contextValue: TamboVoiceInputContextProps = {
-    isEnabled: voiceInputEnabled,
+    isRealTimeMode: realTimeMode,
   };
 
   return (
@@ -54,9 +54,9 @@ export const TamboVoiceInputProvider: React.FC<
  *
  * @example
  * ```tsx
- * const { isEnabled } = useTamboVoiceInput();
+ * const { isRealTimeMode } = useTamboVoiceInput();
  *
- * if (isEnabled) {
+ * if (isRealTimeMode) {
  *   // Show voice input button
  * }
  * ```

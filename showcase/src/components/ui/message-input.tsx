@@ -7,6 +7,7 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  useTamboVoiceInput,
   useVoiceInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -567,6 +568,71 @@ const MessageInputVoiceButton = React.forwardRef<
 MessageInputVoiceButton.displayName = "MessageInput.VoiceButton";
 
 /**
+ * Real-time transcription indicator component
+ * Shows a pulsing wave animation when real-time transcription is active
+ */
+const MessageInputRealTimeIndicator = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Don't render during SSR
+  if (!isClient) {
+    return null;
+  }
+
+  return <RealTimeIndicatorInner ref={ref} className={className} {...props} />;
+});
+
+const RealTimeIndicatorInner = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { isEnabled } = useTamboVoiceInput();
+  const { isRealTimeTranscribing } = useVoiceInput();
+
+  // Don't render if not enabled or not actively transcribing in real-time
+  if (!isEnabled || !isRealTimeTranscribing) {
+    return null;
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-600 text-xs font-medium",
+        className,
+      )}
+      {...props}
+    >
+      <div className="flex items-center gap-0.5">
+        <div className="w-1 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+        <div
+          className="w-1 h-2 bg-blue-400 rounded-full animate-pulse"
+          style={{ animationDelay: "0.1s" }}
+        ></div>
+        <div
+          className="w-1 h-4 bg-blue-400 rounded-full animate-pulse"
+          style={{ animationDelay: "0.2s" }}
+        ></div>
+        <div
+          className="w-1 h-2 bg-blue-400 rounded-full animate-pulse"
+          style={{ animationDelay: "0.3s" }}
+        ></div>
+      </div>
+      <span>Live transcription</span>
+    </div>
+  );
+});
+RealTimeIndicatorInner.displayName = "RealTimeIndicatorInner";
+MessageInputRealTimeIndicator.displayName = "MessageInput.RealTimeIndicator";
+
+/**
  * Props for the MessageInputError component.
  * Extends standard HTMLParagraphElement attributes.
  */
@@ -650,7 +716,8 @@ const MessageInputToolbar = React.forwardRef<
         })}
       </div>
       <div className="flex items-center gap-2">
-        {/* Right side - voice button first, then submit button */}
+        {/* Right side - real-time indicator, voice button, then submit button */}
+        <MessageInputRealTimeIndicator />
         {React.Children.map(children, (child): React.ReactNode => {
           if (
             React.isValidElement(child) &&
@@ -680,6 +747,7 @@ export {
   MessageInput,
   MessageInputError,
   MessageInputMcpConfigButton,
+  MessageInputRealTimeIndicator,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,

@@ -7,11 +7,12 @@ import {
   MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
+  MessageInputToolbar,
   MessageInputVoiceButton,
 } from "@/components/ui/message-input";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
-import { TamboProvider } from "@tambo-ai/react";
+import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
 
 export default function MessageInputPage() {
   const usageCode = `import { 
@@ -23,6 +24,7 @@ export default function MessageInputPage() {
   MessageInputVoiceButton,
   MessageInputError 
 } from "@/components/ui/message-input";
+import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
 
 // Basic usage
 <MessageInput contextKey="my-thread" variant="default">
@@ -56,6 +58,20 @@ export default function MessageInputPage() {
     </MessageInputToolbar>
     <MessageInputError />
   </MessageInput>
+</TamboProvider>
+
+// With real-time voice transcription
+<TamboProvider apiKey="your-api-key">
+  <TamboVoiceInputProvider realTimeMode={true}>
+    <MessageInput contextKey="my-thread" variant="default">
+      <MessageInputTextarea placeholder="Speak to see real-time transcription..." />
+      <MessageInputToolbar>
+        <MessageInputVoiceButton />
+        <MessageInputSubmitButton />
+      </MessageInputToolbar>
+      <MessageInputError />
+    </MessageInput>
+  </TamboVoiceInputProvider>
 </TamboProvider>`;
 
   const installCommand = "npx tambo add message-input";
@@ -257,6 +273,34 @@ export default function MessageInputPage() {
               This example shows all available toolbar components: MCP
               configuration (left), voice input and submit button (right).
             </p>
+          </div>
+
+          {/* Real-Time Voice Input Example */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">
+              Real-Time Voice Transcription
+            </h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <TamboProvider apiKey="demo-key">
+                <TamboVoiceInputProvider realTimeMode={true}>
+                  <MessageInput contextKey="demo-realtime" variant="default">
+                    <MessageInputTextarea placeholder="Speak to see real-time transcription..." />
+                    <MessageInputToolbar>
+                      <MessageInputVoiceButton />
+                      <MessageInputSubmitButton />
+                    </MessageInputToolbar>
+                    <MessageInputError />
+                  </MessageInput>
+                </TamboVoiceInputProvider>
+              </TamboProvider>
+            </div>
+            <div className="mt-2 p-3 bg-blue-50 border-l-4 border-blue-400">
+              <p className="text-sm text-blue-800">
+                <strong>Real-Time Mode:</strong> Words appear in the text box as
+                you speak. This provides a more interactive experience but may
+                be less accurate than batch processing.
+              </p>
+            </div>
           </div>
 
           {/* Minimal Example */}

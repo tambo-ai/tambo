@@ -4,6 +4,8 @@ import React, { createContext, PropsWithChildren, useContext } from "react";
 export interface TamboVoiceInputContextProps {
   /** Whether voice input is enabled */
   isEnabled: boolean;
+  /** Whether to use real-time transcription (chunked) vs batch mode */
+  isRealTimeMode: boolean;
 }
 
 export const TamboVoiceInputContext = createContext<
@@ -11,8 +13,8 @@ export const TamboVoiceInputContext = createContext<
 >(undefined);
 
 export interface TamboVoiceInputProviderProps {
-  /** Deprecated: Voice input is now always enabled when the component is present */
-  voiceInputEnabled?: boolean;
+  /** Whether to use real-time transcription (chunked) vs batch mode (default: false) */
+  realTimeMode?: boolean;
 }
 
 /**
@@ -20,6 +22,7 @@ export interface TamboVoiceInputProviderProps {
  * Voice input is now automatically enabled when the MessageInputVoiceButton component is used.
  * @param props - The props for the TamboVoiceInputProvider
  * @param props.children - The children to render
+ * @param props.realTimeMode - Whether to use real-time transcription (chunked) vs batch mode (default: false)
  * @returns The provider component
  * @example
  * ```tsx
@@ -30,9 +33,10 @@ export interface TamboVoiceInputProviderProps {
  */
 export const TamboVoiceInputProvider: React.FC<
   PropsWithChildren<TamboVoiceInputProviderProps>
-> = ({ children }) => {
+> = ({ children, realTimeMode = false }) => {
   const contextValue: TamboVoiceInputContextProps = {
     isEnabled: true,
+    isRealTimeMode: realTimeMode,
   };
 
   return (
