@@ -22,9 +22,7 @@ export const ProjectStep = memo(function ProjectStep({
   onCreateClick,
 }: ProjectStepProps) {
   // Fetch projects - parent component handles session checking
-  const projectsQuery = api.project.getUserProjects.useQuery(undefined, {
-    // Fetch enabled by default - session is guaranteed by parent
-  });
+  const projectsQuery = api.project.getUserProjects.useQuery();
 
   const isLoading = projectsQuery.isLoading;
   const error = projectsQuery.error;

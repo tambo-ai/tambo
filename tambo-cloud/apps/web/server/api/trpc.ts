@@ -18,6 +18,7 @@ import * as Sentry from "@sentry/nextjs";
 import { getDb, HydraDb } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
+import { headers } from "next/headers";
 
 export type Context = {
   db: HydraDb;
@@ -43,9 +44,8 @@ export type Context = {
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: {
-  headers: Headers;
-}): Promise<Context> => {
+export const createTRPCContext = async (): Promise<Context> => {
+  const requestHeaders = await headers();
   const session = await getServerSession(authOptions);
   const db = getDb(env.DATABASE_URL);
 
@@ -63,7 +63,7 @@ export const createTRPCContext = async (opts: {
     db,
     session,
     user,
-    ...opts,
+    headers: requestHeaders,
   };
 };
 
