@@ -212,8 +212,12 @@ export const TamboThreadProvider: React.FC<
     [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
   });
   const client = useTamboClient();
-  const { componentList, toolRegistry, componentToolAssociations } =
-    useTamboRegistry();
+  const {
+    componentList,
+    toolRegistry,
+    componentToolAssociations,
+    onCallUnregisteredTool,
+  } = useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
@@ -582,6 +586,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
+            onCallUnregisteredTool,
           );
           if (ignoreResponseRef.current) {
             setIgnoreResponse(false);
@@ -724,6 +729,7 @@ export const TamboThreadProvider: React.FC<
       client,
       componentList,
       currentThread?.id,
+      onCallUnregisteredTool,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
@@ -862,6 +868,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             advanceResponse.responseMessageDto,
             toolRegistry,
+            onCallUnregisteredTool,
           );
           const toolResponseString =
             typeof toolCallResponse.result === "string"
@@ -944,6 +951,7 @@ export const TamboThreadProvider: React.FC<
       handleAdvanceStream,
       streaming,
       getAdditionalContext,
+      onCallUnregisteredTool,
     ],
   );
 

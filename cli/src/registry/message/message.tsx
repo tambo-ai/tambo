@@ -1,11 +1,11 @@
 "use client";
 
-import { createMarkdownComponents } from "./markdown-components";
+import { createMarkdownComponents } from "@/components/ui/markdown-components";
 import {
   checkHasContent,
   getMessageImages,
   getSafeContent,
-} from "../lib/thread-hooks";
+} from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -439,9 +439,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
 ToolcallInfo.displayName = "ToolcallInfo";
 
-function keyifyParameters(
-  parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
-) {
+function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   if (!parameters) return;
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),
