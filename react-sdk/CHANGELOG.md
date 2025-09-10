@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.0](https://github.com/tambo-ai/tambo/compare/react-v0.48.0...react-v0.49.0) (2025-09-10)
+
+
+### Features
+
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
 ## [0.48.0](https://github.com/tambo-ai/tambo/compare/react-v0.47.0...react-v0.48.0) (2025-09-09)
 
 
