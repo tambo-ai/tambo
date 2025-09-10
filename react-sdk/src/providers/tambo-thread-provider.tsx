@@ -860,6 +860,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             advanceResponse.responseMessageDto,
             toolRegistry,
+            onCallUnregisteredTool,
           );
           const toolResponseString =
             typeof toolCallResponse.result === "string"
@@ -942,6 +943,7 @@ export const TamboThreadProvider: React.FC<
       handleAdvanceStream,
       streaming,
       getAdditionalContext,
+      onCallUnregisteredTool,
     ],
   );
 
