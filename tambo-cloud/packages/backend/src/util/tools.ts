@@ -49,17 +49,14 @@ export function generateAdditionalContext(message: ThreadMessage) {
   let nextContentContext = "";
 
   if (message.component && !message.actionType) {
-    nextContentContext += `\n<Component>${JSON.stringify(message.component)}</Component>`;
-  }
-  if (
-    Object.keys(message.componentState ?? {}).length > 0 &&
-    !message.actionType
-  ) {
-    nextContentContext += `\n<ComponentState>${JSON.stringify(message.componentState)}</ComponentState>`;
+    nextContentContext += `<Component>${JSON.stringify(message.component)}</Component>\n\n`;
   }
 
-  if (message.additionalContext) {
-    nextContentContext += `<System> The following is additional context provided by the system that you can use when responding to the user: ${JSON.stringify(message.additionalContext)} </System>`;
+  if (
+    message.additionalContext &&
+    Object.keys(message.additionalContext).length > 0
+  ) {
+    nextContentContext += `<AdditionalContext> The following is additional context provided by the system that you can use when responding to the user: ${JSON.stringify(message.additionalContext)} </AdditionalContext>\n\n`;
   }
 
   if (nextContentContext) {

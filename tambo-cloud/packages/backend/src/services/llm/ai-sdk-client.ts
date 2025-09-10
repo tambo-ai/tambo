@@ -42,6 +42,7 @@ import {
   StreamingCompleteParams,
 } from "./llm-client";
 import { limitTokens } from "./token-limiter";
+import { UnreachableCaseError } from "ts-essentials";
 
 type TextCompleteParams = Parameters<typeof streamText<ToolSet, never>>[0];
 type TextStreamResponse = ReturnType<typeof streamText<ToolSet, never>>;
@@ -522,19 +523,52 @@ function convertOpenAIMessageToCoreMessage(
     } satisfies CoreToolMessage;
   }
   if (message.role === "assistant" && message.tool_calls) {
+    const content: (ToolCallPart | { type: "text"; text: string })[] = [];
+
+    // Add text content if it exists
+    if (message.content) {
+      if (typeof message.content === "string") {
+        content.push({ type: "text", text: message.content });
+      } else if (Array.isArray(message.content)) {
+        message.content.forEach((part) => {
+          switch (part.type) {
+            case "text":
+              content.push({ type: "text", text: part.text });
+              break;
+            case "refusal":
+              // Handle refusal content
+              content.push({
+                type: "text",
+                text: `[Refusal]: ${part.refusal}`,
+              });
+              break;
+            default:
+              // This should never happen - unreachable case
+              console.error(
+                `Unexpected content type in assistant message: ${(part as any).type}`,
+              );
+              throw new UnreachableCaseError(part);
+          }
+        });
+      }
+    }
+
+    // Add tool calls
+    message.tool_calls.forEach((call) => {
+      content.push({
+        type: "tool-call",
+        args:
+          call.type === "function"
+            ? tryParseJson(call.function.arguments)
+            : call.custom.input,
+        toolCallId: call.id,
+        toolName: getToolName(call),
+      } satisfies ToolCallPart);
+    });
+
     return {
       role: "assistant",
-      content: message.tool_calls.map(
-        (call): ToolCallPart => ({
-          type: "tool-call",
-          args:
-            call.type === "function"
-              ? tryParseJson(call.function.arguments)
-              : call.custom.input,
-          toolCallId: call.id,
-          toolName: getToolName(call),
-        }),
-      ),
+      content: content,
     } satisfies CoreAssistantMessage;
   }
   if (message.role === "user") {

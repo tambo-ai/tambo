@@ -1,4 +1,5 @@
 import {
+  ChatCompletionContentPart,
   ChatCompletionContentPartText,
   ChatCompletionMessageParam,
   ComponentDecisionV2,
@@ -246,6 +247,8 @@ function combineComponentWithState(
     ...component,
     reasoning: component.reasoning || "",
     componentState: {
+      instructions:
+        "\nThe following values represent the current internal state of the component attached to this message. These values may have been updated by the user.",
       ...component.componentState,
       ...componentState,
     },
@@ -291,16 +294,31 @@ function makeUserMessages(
   }
   const additionalContextMessage = generateAdditionalContext(message);
 
-  const content: ChatCompletionContentPartText[] = additionalContextMessage
-    ? [
-        ...(message.content as ChatCompletionContentPartText[]),
-        additionalContextMessage,
-      ]
-    : (message.content as ChatCompletionContentPartText[]);
+  // Only wrap text content with <User> tags, preserve other content types as-is
+  const wrappedContent: ChatCompletionContentPart[] =
+    message.role === MessageRole.User
+      ? [
+          { type: "text", text: "<User>" },
+          ...message.content,
+          { type: "text", text: "</User>" },
+        ]
+      : message.content;
+
+  // Combine additional context (if any) with the wrapped content
+  const content: ChatCompletionContentPart[] = additionalContextMessage
+    ? [additionalContextMessage, ...wrappedContent]
+    : wrappedContent;
+
+  // user messages support mixed content, system messages only support text
   return [
-    {
-      role: message.role, // either user or system
-      content: content,
-    },
+    message.role === MessageRole.User
+      ? {
+          role: message.role,
+          content: content,
+        }
+      : {
+          role: message.role,
+          content: content as ChatCompletionContentPartText[],
+        },
   ];
 }

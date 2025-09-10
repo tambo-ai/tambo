@@ -136,7 +136,7 @@ describe("threadMessagesToChatHistory", () => {
           {
             "content": [
               {
-                "text": "{"componentName":"TestComponent","message":"test reasoning","props":{},"componentState":{"state":"test"},"reasoning":"test reasoning","toolCallRequest":{"tool_call_id":"test-tool-1","toolName":"test_tool","parameters":[{"parameterName":"param1","parameterValue":"value1"}]}}",
+                "text": "{"componentName":"TestComponent","message":"test reasoning","props":{},"componentState":{"instructions":"\\nThe following values represent the current internal state of the component attached to this message. These values may have been updated by the user.","state":"test"},"reasoning":"test reasoning","toolCallRequest":{"tool_call_id":"test-tool-1","toolName":"test_tool","parameters":[{"parameterName":"param1","parameterValue":"value1"}]}}",
                 "type": "text",
               },
             ],
@@ -229,11 +229,13 @@ describe("threadMessagesToChatHistory", () => {
         {
           role: "user",
           content: [
-            { type: "text", text: "user input" },
             {
-              text: '<System> The following is additional context provided by the system that you can use when responding to the user: {"extra":"context"} </System>',
+              text: '<AdditionalContext> The following is additional context provided by the system that you can use when responding to the user: {"extra":"context"} </AdditionalContext>\n\n',
               type: "text",
             },
+            { type: "text", text: "<User>" },
+            { type: "text", text: "user input" },
+            { type: "text", text: "</User>" },
           ],
         },
       ]);
@@ -301,7 +303,15 @@ describe("threadMessagesToChatHistory", () => {
           {
             "content": [
               {
+                "text": "<User>",
+                "type": "text",
+              },
+              {
                 "text": "user request",
+                "type": "text",
+              },
+              {
+                "text": "</User>",
                 "type": "text",
               },
             ],
