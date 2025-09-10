@@ -277,7 +277,14 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <Streamdown components={createMarkdownComponents()}>
+              <Streamdown
+                components={
+                  createMarkdownComponents() as Record<
+                    string,
+                    React.ComponentType<Record<string, unknown>>
+                  >
+                }
+              >
                 {typeof safeContent === "string" ? safeContent : ""}
               </Streamdown>
             ) : (
@@ -326,7 +333,7 @@ function getToolStatusMessage(
  * @component ToolcallInfo
  */
 const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
-  ({ className, markdown = true, ...props }, ref) => {
+  ({ className, markdown: _markdown = true, ...props }, ref) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { message, isLoading } = useMessageContext();
     const { thread } = useTambo();
@@ -417,19 +424,8 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
                     <span className="text-muted-foreground italic">
                       Empty response
                     </span>
-                  ) : React.isValidElement(associatedToolResponse.content) ? (
-                    associatedToolResponse.content
-                  ) : markdown ? (
-                    <Streamdown components={createMarkdownComponents()}>
-                      {typeof getSafeContent(associatedToolResponse.content) ===
-                      "string"
-                        ? (getSafeContent(
-                            associatedToolResponse.content,
-                          ) as string)
-                        : ""}
-                    </Streamdown>
                   ) : (
-                    getSafeContent(associatedToolResponse.content)
+                    formatToolResult(associatedToolResponse.content)
                   )}
                 </div>
               </>
@@ -450,6 +446,34 @@ function keyifyParameters(
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),
   );
+}
+
+/**
+ * Helper function to detect if content is JSON and format it nicely
+ * @param content - The content to check and format
+ * @returns Formatted content or original content if not JSON
+ */
+function formatToolResult(
+  content: TamboThreadMessage["content"],
+): React.ReactNode {
+  if (!content) return content;
+
+  const safeContent = getSafeContent(content);
+  if (typeof safeContent !== "string") return safeContent;
+
+  // Try to parse as JSON
+  try {
+    const parsed = JSON.parse(safeContent);
+    return (
+      <pre className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64">
+        <code className="font-mono break-words whitespace-pre-wrap">
+          {JSON.stringify(parsed, null, 2)}
+        </code>
+      </pre>
+    );
+  } catch {
+    return safeContent;
+  }
 }
 
 /**

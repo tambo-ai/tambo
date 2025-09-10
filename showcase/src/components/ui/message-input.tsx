@@ -4,7 +4,6 @@ import { McpConfigModal } from "@/components/ui/mcp-config-modal";
 import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import {
-  TamboThreadInputProvider,
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
@@ -130,17 +129,15 @@ export interface MessageInputProps
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
   ({ children, className, contextKey, variant, ...props }, ref) => {
     return (
-      <TamboThreadInputProvider contextKey={contextKey}>
-        <MessageInputInternal
-          ref={ref}
-          className={className}
-          contextKey={contextKey}
-          variant={variant}
-          {...props}
-        >
-          {children}
-        </MessageInputInternal>
-      </TamboThreadInputProvider>
+      <MessageInputInternal
+        ref={ref}
+        className={className}
+        contextKey={contextKey}
+        variant={variant}
+        {...props}
+      >
+        {children}
+      </MessageInputInternal>
     );
   },
 );
