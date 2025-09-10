@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
+import { useTamboClient } from "../providers/tambo-client-provider";
 import { useTamboThreadInput } from "../providers/tambo-thread-input-provider";
 import { useTamboVoiceInput } from "../providers/tambo-voice-input-provider";
 
@@ -42,6 +43,7 @@ export interface UseVoiceInputResult {
  * ```
  */
 export const useVoiceInput = (): UseVoiceInputResult => {
+  const { client } = useTamboClient();
   const { value, setValue } = useTamboThreadInput();
   const { isEnabled, isRealTimeMode } = useTamboVoiceInput();
 
@@ -106,7 +108,10 @@ export const useVoiceInput = (): UseVoiceInputResult => {
 
         // Send to backend for transcription
         const baseUrl =
-          typeof window !== "undefined" ? window.location.origin : "";
+          client?.baseURL ??
+          (typeof window !== "undefined"
+            ? window.location.origin
+            : "https://api.tambo.ai");
         const response = await fetch(`${baseUrl}/api/v1/audio/transcriptions`, {
           method: "POST",
           body: formData,
@@ -145,7 +150,7 @@ export const useVoiceInput = (): UseVoiceInputResult => {
         throw errorMessage;
       }
     },
-    [value, setValue],
+    [client, value, setValue],
   );
 
   const transcribeAudio = useCallback(
