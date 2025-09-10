@@ -8,6 +8,7 @@ import {
   MessageInputError,
   // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
+import { MessageInputFileButton } from "../message-input/message-input";
 import {
   MessageSuggestions,
   MessageSuggestionsStatus,
@@ -263,8 +264,9 @@ export const MessageThreadPanel = React.forwardRef<
           {/* Message input */}
           <div className="p-4">
             <MessageInput contextKey={contextKey}>
-              <MessageInputTextarea />
+              <MessageInputTextarea placeholder="Type your message or paste images..." />
               <MessageInputToolbar>
+                <MessageInputFileButton />
                 {/* Uncomment this to enable client-side MCP config modal button */}
                 {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />

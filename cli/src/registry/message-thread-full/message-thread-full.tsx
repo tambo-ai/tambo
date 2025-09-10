@@ -1,39 +1,39 @@
 "use client";
 
+import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
+  MessageInputError,
+  MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputSubmitButton,
-  MessageInputError,
-  // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/ui/message-suggestions";
-import type { messageVariants } from "@/components/ui/message";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import {
-  ThreadHistory,
-  ThreadHistoryHeader,
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-  ThreadHistoryList,
-} from "@/components/ui/thread-history";
+  ThreadContainer,
+  useThreadContainerContext,
+} from "@/components/ui/thread-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
 import {
-  ThreadContainer,
-  useThreadContainerContext,
-} from "@/components/ui/thread-container";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@/components/ui/thread-history";
 import { useMergedRef } from "@/lib/thread-hooks";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
+import { MessageInputFileButton } from "../message-input/message-input";
 
 /**
  * Props for the MessageThreadFull component
@@ -111,8 +111,9 @@ export const MessageThreadFull = React.forwardRef<
         {/* Message input */}
         <div className="p-4">
           <MessageInput contextKey={contextKey}>
-            <MessageInputTextarea />
+            <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
+              <MessageInputFileButton />
               {/* Uncomment this to enable client-side MCP config modal button */}
               {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />
