@@ -9,13 +9,13 @@ export type AgentProviderInfo = Readonly<{
 // The order of this array determines UI ordering (e.g., dropdown lists)
 export const AGENT_PROVIDER_REGISTRY: ReadonlyArray<AgentProviderInfo> = [
   { type: AgentProviderType.CREWAI, name: "CrewAI", isSupported: true },
-  { type: AgentProviderType.MASTRA, name: "Mastra", isSupported: false },
-  { type: AgentProviderType.AGUI, name: "AG-UI", isSupported: false },
   {
     type: AgentProviderType.LLAMAINDEX,
     name: "LlamaIndex",
-    isSupported: false,
+    isSupported: true,
   },
+  { type: AgentProviderType.MASTRA, name: "Mastra", isSupported: false },
+  { type: AgentProviderType.AGUI, name: "AG-UI", isSupported: false },
   { type: AgentProviderType.LANGGRAPH, name: "LangGraph", isSupported: false },
   {
     type: AgentProviderType.PYDANTICAI,

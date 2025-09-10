@@ -12,6 +12,7 @@ import {
 } from "@ag-ui/client";
 import { Message, StateDeltaEvent, ToolCallEndEvent } from "@ag-ui/core";
 import { CrewAIAgent } from "@ag-ui/crewai";
+import { LlamaIndexAgent } from "@ag-ui/llamaindex";
 // TODO: re-introduce mastra support
 // import { MastraAgent } from "@ag-ui/mastra";
 import {
@@ -71,6 +72,13 @@ export class AgentClient {
       }
       case AgentProviderType.CREWAI: {
         const agent = new CrewAIAgent({
+          url: agentUrl,
+          agentId: normalizedAgentName,
+        });
+        return new AgentClient(chainId, agent as unknown as AbstractAgent);
+      }
+      case AgentProviderType.LLAMAINDEX: {
+        const agent = new LlamaIndexAgent({
           url: agentUrl,
           agentId: normalizedAgentName,
         });
