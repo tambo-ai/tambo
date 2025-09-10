@@ -15,7 +15,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@react-leaflet/core": "^2.1.0",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.69.0",
+    "@tambo-ai/typescript-sdk": "^0.70.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
     "framer-motion": "^12.23.12",
@@ -33,8 +33,8 @@
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0",
-    "streamdown": "^1.1.5",
     "recharts": "^3.1.2",
+    "streamdown": "^1.1.5",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
