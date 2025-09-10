@@ -25,7 +25,7 @@ export interface TamboRegistryContext {
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
-  onCallUnknownTool?: (
+  onCallUnregisteredTool?: (
     toolName: string,
     args: TamboAI.ToolCallRequest["parameters"],
   ) => Promise<string>;
@@ -67,10 +67,10 @@ export interface TamboRegistryProviderProps {
    * Note that this is generally only for agents, where the agent code may
    * request tool calls that are not registered in the tool registry.
    */
-  onCallUnknownTool?: (
+  onCallUnregisteredTool?: (
     toolName: string,
     args: TamboAI.ToolCallRequest["parameters"],
-  ) => void;
+  ) => Promise<string>;
 }
 
 /**
@@ -80,11 +80,17 @@ export interface TamboRegistryProviderProps {
  * @param props.children - The children to wrap
  * @param props.components - The components to register
  * @param props.tools - The tools to register
+ * @param props.onCallUnregisteredTool - The function to call when an unknown tool is called (optional)
  * @returns The TamboRegistryProvider component
  */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>
-> = ({ children, components: userComponents, tools: userTools }) => {
+> = ({
+  children,
+  components: userComponents,
+  tools: userTools,
+  onCallUnregisteredTool,
+}) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
   const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
     {},
@@ -214,6 +220,7 @@ export const TamboRegistryProvider: React.FC<
     registerTool,
     registerTools,
     addToolAssociation,
+    onCallUnregisteredTool,
   };
 
   return (

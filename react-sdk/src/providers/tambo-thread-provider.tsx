@@ -215,7 +215,7 @@ export const TamboThreadProvider: React.FC<
     componentList,
     toolRegistry,
     componentToolAssociations,
-    onCallUnknownTool,
+    onCallUnregisteredTool,
   } = useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
   const [ignoreResponse, setIgnoreResponse] = useState(false);
@@ -585,7 +585,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
-            onCallUnknownTool,
+            onCallUnregisteredTool,
           );
           if (ignoreResponseRef.current) {
             setIgnoreResponse(false);
@@ -728,7 +728,7 @@ export const TamboThreadProvider: React.FC<
       client,
       componentList,
       currentThread?.id,
-      onCallUnknownTool,
+      onCallUnregisteredTool,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,

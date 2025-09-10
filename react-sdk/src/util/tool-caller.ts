@@ -14,7 +14,7 @@ import { mapTamboToolToContextTool } from "./registry";
 export const handleToolCall = async (
   message: TamboAI.Beta.Threads.ThreadMessage,
   toolRegistry: TamboToolRegistry,
-  onCallUnknownTool?: (
+  onCallUnregisteredTool?: (
     toolName: string,
     args: TamboAI.ToolCallRequest["parameters"],
   ) => Promise<string>,
@@ -29,11 +29,14 @@ export const handleToolCall = async (
   try {
     const tool = findTool(message.toolCallRequest.toolName, toolRegistry);
     if (!tool) {
-      if (onCallUnknownTool) {
-        onCallUnknownTool(
+      if (onCallUnregisteredTool) {
+        const result = await onCallUnregisteredTool(
           message.toolCallRequest.toolName,
           message.toolCallRequest.parameters,
         );
+        return {
+          result,
+        };
       }
       throw new Error(
         `Tool ${message.toolCallRequest.toolName} not found in registry`,
