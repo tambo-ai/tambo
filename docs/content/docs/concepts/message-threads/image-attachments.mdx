@@ -19,7 +19,7 @@ import {
   MessageInputSubmitButton,
   MessageInputStagedImages,
   MessageInputToolbar,
-} from '@tambo-ai/react';
+} from "@tambo-ai/react";
 
 function ChatInterface() {
   return (
@@ -38,7 +38,7 @@ function ChatInterface() {
 ## Image input methods
 
 - **File picker**: Click the file button to select images
-- **Drag & drop**: Drag images directly onto the input area  
+- **Drag & drop**: Drag images directly onto the input area
 - **Clipboard paste**: Use Ctrl+V (or Cmd+V) to paste images
 
 ## Custom image handling
@@ -46,7 +46,7 @@ function ChatInterface() {
 Use the `useMessageImages` hook for custom image management:
 
 ```tsx
-import { useMessageImages } from '@tambo-ai/react';
+import { useMessageImages } from "@tambo-ai/react";
 
 function CustomImageHandler() {
   const { images, addImages, removeImage, clearImages } = useMessageImages();
@@ -57,7 +57,7 @@ function CustomImageHandler() {
 
   return (
     <div>
-      {images.map(image => (
+      {images.map((image) => (
         <div key={image.id}>
           <img src={image.dataUrl} alt={image.name} />
           <button onClick={() => removeImage(image.id)}>Remove</button>
