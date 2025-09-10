@@ -27,7 +27,7 @@ export interface TamboRegistryContext {
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
   onCallUnregisteredTool?: (
     toolName: string,
-    args: TamboAI.ToolCallRequest["parameters"],
+    args: TamboAI.ToolCallParameter[],
   ) => Promise<string>;
 }
 
@@ -69,7 +69,7 @@ export interface TamboRegistryProviderProps {
    */
   onCallUnregisteredTool?: (
     toolName: string,
-    args: TamboAI.ToolCallRequest["parameters"],
+    args: TamboAI.ToolCallParameter[],
   ) => Promise<string>;
 }
 

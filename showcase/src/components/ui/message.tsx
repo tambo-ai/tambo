@@ -392,9 +392,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
 ToolcallInfo.displayName = "ToolcallInfo";
 
-function keyifyParameters(
-  parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
-) {
+function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   if (!parameters) return;
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),

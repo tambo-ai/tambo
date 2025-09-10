@@ -16,7 +16,7 @@ export const handleToolCall = async (
   toolRegistry: TamboToolRegistry,
   onCallUnregisteredTool?: (
     toolName: string,
-    args: TamboAI.ToolCallRequest["parameters"],
+    args: TamboAI.ToolCallParameter[],
   ) => Promise<string>,
 ): Promise<{
   result: string;
