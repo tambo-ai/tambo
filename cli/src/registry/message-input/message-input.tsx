@@ -9,9 +9,9 @@ import {
   useTamboThreadInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Square, Paperclip, X } from "lucide-react";
-import * as React from "react";
+import { ArrowUp, Paperclip, Square, X } from "lucide-react";
 import Image from "next/image";
+import * as React from "react";
 
 /**
  * CSS variants for the message input container
@@ -273,7 +273,7 @@ const MessageInputInternal = React.forwardRef<
       },
       submit,
       handleSubmit,
-      isPending: isPending || isSubmitting,
+      isPending: isPending ?? isSubmitting,
       error,
       contextKey,
       textareaRef,
