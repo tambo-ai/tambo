@@ -6,6 +6,7 @@ import { MobileProvider } from "@/providers/mobile-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
 import { usePathname } from "next/navigation";
+import { ProductHuntBanner } from "@/components/product-hunt-banner";
 
 export default function Template({
   children,
@@ -24,6 +25,7 @@ export default function Template({
     >
       <MobileProvider>
         <div className="flex min-h-screen flex-col">
+          <ProductHuntBanner />
           <Navbar />
           <Sidebar />
           <div className="w-full md:pl-64 transition-all duration-300">
