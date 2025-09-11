@@ -1,18 +1,18 @@
 import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import "leaflet/dist/leaflet.css";
-import type { Metadata } from "next";
 import "../styles/showcase-theme.css";
 import "./globals.css";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: {
-    template: "%s | tambo",
-    default: "tambo | Build AI-powered apps with just one line of code",
+    template: "%s | tambo-ui",
+    default: "tambo-ui | A component library for Generative Interfaces",
   },
-  description: "Build AI-powered apps with just one line of code",
+  description:
+    "Build natural language interfaces with React. Use our component library to build your app in a weekend.",
   keywords: ["Tambo", "Showcase", "Components", "AI", "App Development"],
-  metadataBase: new URL("https://tambo.co"),
+  metadataBase: new URL("https://ui.tambo.co"),
   authors: [
     {
       name: "tambo",
@@ -29,6 +29,29 @@ export const metadata: Metadata = {
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
+  },
+  openGraph: {
+    type: "website",
+    url: "https://ui.tambo.co",
+    title: "tambo-ui | A component library for Generative Interfaces",
+    description:
+      "Build natural language interfaces with React. Use our component library to build your app in a weekend.",
+    siteName: "tambo-ui",
+    images: [
+      {
+        url: "/og",
+        width: 1200,
+        height: 630,
+        alt: "tambo-ui Open Graph Image",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "tambo-ui | A component library for Generative Interfaces",
+    description:
+      "Build natural language interfaces with React. Use our component library to build your app in a weekend.",
+    images: ["/og"],
   },
 };
 
