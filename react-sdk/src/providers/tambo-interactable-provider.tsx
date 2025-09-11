@@ -9,13 +9,13 @@ import React, {
   useState,
 } from "react";
 import { z } from "zod";
+import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
 import {
   TamboInteractableComponent,
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
 import { useTamboComponent } from "./tambo-component-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
-import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -174,59 +174,68 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   }, [interactableComponents, registerTool]);
 
   const updateInteractableComponentProps = useCallback(
-    (id: string, newProps: Record<string, any>) => {
-      let updateResult = "Updated successfully";
+    (id: string, newProps: Record<string, any>): string => {
+      if (!newProps || Object.keys(newProps).length === 0) {
+        return `Warning: No props provided for component with ID ${id}.`;
+      }
+
+      // Check existence synchronously
+      const exists = interactableComponents.some((c) => c.id === id);
+      if (!exists) {
+        return `Error: Component with ID ${id} not found`;
+      }
+
+      let resultMessage = "Updated successfully";
 
       setInteractableComponents((prev) => {
-        const componentExists = prev.some((c) => c.id === id);
-
-        if (!componentExists) {
-          updateResult = `Error: Component with ID ${id} not found`;
+        const idx = prev.findIndex((c) => c.id === id);
+        if (idx === -1) {
+          // Shouldn't normally happen since we pre-checked
+          resultMessage = `Error: Component with ID ${id} not found`;
           return prev;
         }
 
-        const updatedComponents = prev.map((c) =>
-          c.id === id ? { ...c, props: { ...c.props, ...newProps } } : c,
-        );
+        const original = prev[idx];
 
-        // Check if the update actually changed anything
-        const originalComponent = prev.find((c) => c.id === id);
-        const updatedComponent = updatedComponents.find((c) => c.id === id);
-
-        if (!originalComponent || !updatedComponent) {
-          updateResult = `Error: Failed to update component with ID ${id}`;
-          return prev;
-        }
-
-        // Check if props actually changed
-        const propsChanged =
-          JSON.stringify(originalComponent.props) !==
-          JSON.stringify(updatedComponent.props);
+        // Compare props shallowly
+        const propsChanged = Object.entries(newProps).some(([key, value]) => {
+          return original.props[key] !== value;
+        });
 
         if (!propsChanged) {
-          updateResult = `Warning: No changes detected for component with ID ${id}. The update might not have worked.`;
-          return prev;
+          resultMessage = `Updated successfully`;
+          return prev; // unchanged
         }
+
+        // Apply partial update
+        const updated = {
+          ...original,
+          props: { ...original.props, ...newProps },
+        };
+
+        const updatedComponents = [...prev];
+        updatedComponents[idx] = updated;
 
         return updatedComponents;
       });
 
-      return updateResult;
+      return resultMessage;
     },
-    [],
+    [interactableComponents],
   );
 
   const registerInteractableComponentUpdateTool = useCallback(
     (component: TamboInteractableComponent) => {
       const schemaForArgs =
         typeof component.propsSchema === "object" &&
-        "describe" in component.propsSchema
-          ? component.propsSchema
+        "describe" in component.propsSchema &&
+        "partial" in component.propsSchema
+          ? (component.propsSchema as any).partial()
           : z.object({});
 
       registerTool({
         name: `update_interactable_component_${component.id}`,
-        description: `Update the props of interactable component ${component.id} (${component.name})`,
+        description: `Update the props of interactable component ${component.id} (${component.name}). You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.`,
         tool: (componentId: string, newProps: any) => {
           return updateInteractableComponentProps(componentId, newProps);
         },
@@ -237,7 +246,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
               .string()
               .describe("The ID of the interactable component to update"),
             schemaForArgs.describe(
-              "The new props to update the component with",
+              "The props to update the component with. You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.",
             ),
           )
           .returns(z.string()),
