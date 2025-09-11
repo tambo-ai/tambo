@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.50.0](https://github.com/tambo-ai/tambo/compare/react-v0.49.0...react-v0.50.0) (2025-09-11)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+
 ## [0.49.0](https://github.com/tambo-ai/tambo/compare/react-v0.48.0...react-v0.49.0) (2025-09-10)
 
 
