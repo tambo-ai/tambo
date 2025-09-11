@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.8.0](https://github.com/tambo-ai/tambo/compare/docs-v1.7.0...docs-v1.8.0) (2025-09-11)
+
+
+### Features
+
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+
+### Bug Fixes
+
+* **ui:** When tool calls are big, allow scrolling ([#1034](https://github.com/tambo-ai/tambo/issues/1034)) ([8149f6b](https://github.com/tambo-ai/tambo/commit/8149f6bd3f2513861bd699649a0500376388e0c4))
+
+
+### Miscellaneous Chores
+
+* **docs:** update sitemap domain to docs.tambo.co ([#1027](https://github.com/tambo-ai/tambo/issues/1027)) ([cfd5a7e](https://github.com/tambo-ai/tambo/commit/cfd5a7ea41dd0a7983bce825ccaec997e966a431))
+
 ## [1.7.0](https://github.com/tambo-ai/tambo/compare/docs-v1.6.0...docs-v1.7.0) (2025-09-09)
 
 
