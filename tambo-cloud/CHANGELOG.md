@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.106.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.105.0...repo-v0.106.0) (2025-09-11)
+
+
+### Features
+
+* **agents:** add llamaindex support ([#1737](https://github.com/tambo-ai/tambo-cloud/issues/1737)) ([f395efb](https://github.com/tambo-ai/tambo-cloud/commit/f395efb43125456b3f9f85983c2bf2c3740960b1))
+* **thread-state:** heighten the AI’s Awareness of useTamboComponentState ([#1733](https://github.com/tambo-ai/tambo-cloud/issues/1733)) ([985dd87](https://github.com/tambo-ai/tambo-cloud/commit/985dd870e43e5624c62c6a4bd7c5cb61e9cc84d0))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump to @tambo-ai/react@0.49  ([#1739](https://github.com/tambo-ai/tambo-cloud/issues/1739)) ([2cc1afe](https://github.com/tambo-ai/tambo-cloud/commit/2cc1afe5eab193e7782650450cda13f86f91fdd0))
+* **deps:** Fix hono vulnerability ([#1736](https://github.com/tambo-ai/tambo-cloud/issues/1736)) ([aecaf94](https://github.com/tambo-ai/tambo-cloud/commit/aecaf9430957a5c7ef73658e239b2c09ab7988ff))
+* **performance:** pre-cache some trpc calls that should be on all authed pages ([#1728](https://github.com/tambo-ai/tambo-cloud/issues/1728)) ([6d7ccab](https://github.com/tambo-ai/tambo-cloud/commit/6d7ccabc5ec4b605fd888b4624f0998dc10b7c1f))
+
 ## [0.105.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.104.2...repo-v0.105.0) (2025-09-09)
 
 
