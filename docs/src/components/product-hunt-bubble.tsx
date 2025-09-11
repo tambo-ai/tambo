@@ -44,13 +44,17 @@ export const ProductHuntThoughtBubble: FC<ProductHuntThoughtBubbleProps> = ({
         className="fixed bottom-24 right-6 z-[60] pointer-events-none"
       >
         {/* Thought bubble tail pointing down to chat button */}
-        <div className="absolute -bottom-3 right-6 pointer-events-auto">
+        <div
+          className="absolute -bottom-3 right-6 pointer-events-none"
+          aria-hidden="true"
+        >
           <svg
             width="20"
             height="18"
             viewBox="0 0 20 18"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
           >
             <path
               d="M 10 0 Q 8 4, 12 8 Q 10 6, 6 6 Z"
