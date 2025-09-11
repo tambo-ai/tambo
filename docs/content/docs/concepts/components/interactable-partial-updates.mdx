@@ -1,0 +1,120 @@
+---
+title: Interactable Components — Partial Updates and Tools
+description: How partial prop updates work for interactable components, the auto-registered tools, and the snapshot hook.
+---
+
+When using interactable components, Tambo can modify props on components you have pre-placed in your UI. This page explains the partial update behavior, the tools that get auto-registered, and how to expose or customize interactable context for the AI.
+
+## Partial Updates (Shallow Merge)
+
+Interactable component props are updated via partial updates. When an update occurs, only the provided top-level props are merged into the component's existing props. This is a shallow merge at the first level:
+
+- Providing `{ count: 5 }` only updates `count`, leaving other props unchanged.
+- Providing nested objects replaces that nested object entirely unless you supply the full nested structure.
+
+Example shallow merge behavior:
+
+```tsx
+// Original props
+{
+  title: "Original Title",
+  config: {
+    theme: "light",
+    language: "en",
+    features: { notifications: true, analytics: false },
+  },
+}
+
+// Update with a nested object that omits some keys
+{
+  config: { theme: "dark" }
+}
+
+// Resulting props (config is replaced)
+{
+  title: "Original Title",
+  config: {
+    theme: "dark",
+    // language and features are now undefined because config was replaced
+  },
+}
+```
+
+Best practice for nested updates: If you need to update a deeply nested value but keep the rest, provide the full nested object for that branch.
+
+```tsx
+// Proper nested update (preserves other nested keys)
+{
+  config: {
+    theme: "light",
+    language: "en",
+    features: {
+      notifications: true,
+      analytics: false,
+    },
+  },
+}
+```
+
+### Update Results and Errors
+
+Updates return a string status:
+
+- `"Updated successfully"` for success (including no-op when values are unchanged)
+- `"Error: Component with ID <id> not found"` when the target does not exist
+- `"Warning: No props provided for component with ID <id>."` when the update object is empty/null/undefined
+
+## Auto-registered Tools for Interactables
+
+When there are interactable components present, the following tools are registered automatically to help the AI reason about and modify your UI:
+
+- `get_all_interactable_components` — Returns all interactable components with their current props.
+- `get_interactable_component_by_id` — Returns a specific interactable component by id.
+- `remove_interactable_component` — Removes a component from the interactables list.
+- `update_interactable_component_<id>` — Updates the props for a specific component id using partial props. The argument schema is derived from the component's `propsSchema` and accepts partials.
+
+These tools enable the AI to discover what's on the page and perform targeted updates.
+
+## Snapshot Hook: useCurrentInteractablesSnapshot
+
+Use this hook to read the current interactables without risking accidental mutation of internal state. It returns a cloned snapshot of each item and its props.
+
+```tsx
+import {
+  useCurrentInteractablesSnapshot,
+  useTamboContextHelpers,
+} from "@tambo-ai/react";
+
+function InteractablesContextSummary() {
+  const { addContextHelper } = useTamboContextHelpers();
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  React.useEffect(() => {
+    const helper = () => {
+      if (snapshot.length === 0) return null;
+      return {
+        description: "Interactable components currently on screen",
+        components: snapshot.map((c) => ({
+          id: c.id,
+          componentName: c.name,
+          props: c.props,
+        })),
+      };
+    };
+
+    addContextHelper("interactables", helper);
+  }, [addContextHelper, snapshot]);
+
+  return null;
+}
+```
+
+## Practical Tips
+
+- For nested updates, provide the complete nested object to avoid unintended `undefined` values.
+- Arrays are replaced entirely when provided in partial updates.
+- If you need fine-grained nested updates, structure your props to keep critical nested branches small and independent.
+
+With these tools and behaviors, you can confidently let Tambo adjust parts of your UI through natural language while retaining predictable update semantics.
+
+
