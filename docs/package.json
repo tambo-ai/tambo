@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbo",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.69.0",
+    "@tambo-ai/typescript-sdk": "^0.70.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
     "framer-motion": "^12.23.12",

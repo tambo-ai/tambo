@@ -1,5 +1,6 @@
 "use client";
 
+import { createMarkdownComponents } from "@/components/ui/markdown-components";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
@@ -11,7 +12,6 @@ import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
-import { createMarkdownComponents } from "@/components/ui/markdown-components";
 
 /**
  * CSS variants for the message container
@@ -346,7 +346,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
+              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
@@ -380,9 +380,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
 ToolcallInfo.displayName = "ToolcallInfo";
 
-function keyifyParameters(
-  parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
-) {
+function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   if (!parameters) return;
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),
