@@ -195,9 +195,8 @@ export const TamboThreadInputProvider: React.FC<
         throw error;
       }
 
-      // Clear both text and images after successful submission
+      // Clear text after successful submission
       setInputValue("");
-      imageState.clearImages();
     },
     [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
   );

@@ -9,9 +9,9 @@ import {
   useTamboThreadInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Square, Paperclip, X } from "lucide-react";
-import * as React from "react";
+import { ArrowUp, Paperclip, Square, X } from "lucide-react";
 import Image from "next/image";
+import * as React from "react";
 
 /**
  * CSS variants for the message input container
@@ -150,8 +150,16 @@ const MessageInputInternal = React.forwardRef<
   HTMLFormElement,
   MessageInputProps
 >(({ children, className, contextKey, variant, ...props }, ref) => {
-  const { value, setValue, submit, isPending, error, images, addImages } =
-    useTamboThreadInput();
+  const {
+    value,
+    setValue,
+    submit,
+    isPending,
+    error,
+    images,
+    addImages,
+    clearImages,
+  } = useTamboThreadInput();
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
@@ -176,13 +184,17 @@ const MessageInputInternal = React.forwardRef<
       setDisplayValue("");
       setIsSubmitting(true);
 
+      // Clear images in next tick for immediate UI feedback
+      if (images.length > 0) {
+        setTimeout(() => clearImages(), 0);
+      }
+
       try {
         await submit({
           contextKey,
           streamResponse: true,
         });
         setValue("");
-        // Images are cleared automatically in TamboThreadInputProvider
         setTimeout(() => {
           textareaRef.current?.focus();
         }, 0);
@@ -211,6 +223,7 @@ const MessageInputInternal = React.forwardRef<
       cancel,
       isSubmitting,
       images,
+      clearImages,
     ],
   );
 

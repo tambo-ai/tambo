@@ -151,8 +151,16 @@ const MessageInputInternal = React.forwardRef<
   HTMLFormElement,
   MessageInputProps
 >(({ children, className, contextKey, variant, ...props }, ref) => {
-  const { value, setValue, submit, isPending, error, images, addImages } =
-    useTamboThreadInput();
+  const {
+    value,
+    setValue,
+    submit,
+    isPending,
+    error,
+    images,
+    addImages,
+    clearImages,
+  } = useTamboThreadInput();
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
@@ -176,6 +184,11 @@ const MessageInputInternal = React.forwardRef<
       setSubmitError(null);
       setDisplayValue("");
       setIsSubmitting(true);
+
+      // Clear images in next tick for immediate UI feedback
+      if (images.length > 0) {
+        setTimeout(() => clearImages(), 0);
+      }
 
       try {
         await submit({
@@ -212,6 +225,7 @@ const MessageInputInternal = React.forwardRef<
       cancel,
       isSubmitting,
       images,
+      clearImages,
     ],
   );
 
