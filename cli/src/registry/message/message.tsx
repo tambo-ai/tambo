@@ -1,11 +1,6 @@
 "use client";
 
 import { createMarkdownComponents } from "@/components/ui/markdown-components";
-import {
-  checkHasContent,
-  getMessageImages,
-  getSafeContent,
-} from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -17,6 +12,11 @@ import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
+import {
+  checkHasContent,
+  getMessageImages,
+  getSafeContent,
+} from "../lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -191,7 +191,7 @@ const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
         data-slot="message-images"
         {...props}
       >
-        {images.map((imageUrl, index) => (
+        {images.map((imageUrl: string, index: number) => (
           <div
             key={index}
             className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
