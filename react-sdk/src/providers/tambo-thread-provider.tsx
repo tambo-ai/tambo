@@ -191,11 +191,25 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   },
 });
 
+export type InitialTamboThreadMessage = Pick<
+  TamboThreadMessage,
+  "role" | "content"
+> & {
+  /** Optional ID - will be auto-generated if not provided */
+  id?: string;
+  /** Optional creation timestamp - will be auto-generated if not provided */
+  createdAt?: string;
+  /** Optional additional context to include with the message */
+  additionalContext?: Record<string, any>;
+  /** Optional component state - will default to empty object if not provided */
+  componentState?: Record<string, any>;
+};
+
 export interface TamboThreadProviderProps {
   /** Whether to stream the response */
   streaming?: boolean;
   /** Initial messages to be included in new threads */
-  initialMessages?: TamboThreadMessage[];
+  initialMessages?: InitialTamboThreadMessage[];
 }
 
 /**
@@ -216,10 +230,10 @@ export const TamboThreadProvider: React.FC<
       id: "placeholder",
       messages: initialMessages.map((msg) => ({
         ...msg,
-        id: msg.id || crypto.randomUUID(),
+        id: msg.id ?? crypto.randomUUID(),
         threadId: "placeholder",
-        createdAt: msg.createdAt || new Date().toISOString(),
-        componentState: msg.componentState || {},
+        createdAt: msg.createdAt ?? new Date().toISOString(),
+        componentState: msg.componentState ?? {},
       })),
       createdAt: "",
       projectId: "",
