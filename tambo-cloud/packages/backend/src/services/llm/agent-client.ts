@@ -113,6 +113,22 @@ export class AgentClient {
           toolCallId: toolCallId,
         };
       }
+      if (m.role === "assistant") {
+        return {
+          role: m.role,
+          content: convertMessagesToString(m.content),
+          id: `tambo-${m.role}-${msgIndex}`,
+          toolCalls: m.tool_calls
+            ?.map((t) => {
+              if (t.type === "function") {
+                return t;
+              }
+              console.warn(`Unexpected tool call type: ${t.type}`);
+              return undefined;
+            })
+            .filter((t) => t !== undefined),
+        };
+      }
       return {
         role: m.role,
         content: convertMessagesToString(m.content),
@@ -276,7 +292,7 @@ export class AgentClient {
             type: AgentResponseType.MESSAGE,
             message: {
               role: "assistant",
-              content: currentToolCall.function.arguments,
+              content: "",
               id: messageId,
               toolCalls: [currentToolCall],
             },

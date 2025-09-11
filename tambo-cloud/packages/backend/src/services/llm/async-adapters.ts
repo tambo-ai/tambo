@@ -11,16 +11,17 @@ type EventHandlerParams = Parameters<
  */
 function createPushAsyncIterator<T>() {
   type Resolver = (r: IteratorResult<T>) => void;
+  type Rejecter = (reason?: unknown) => void;
 
   const queue: T[] = [];
-  const waiters: Resolver[] = [];
+  const waiters: { resolve: Resolver; reject: Rejecter }[] = [];
   let done = false;
   let failed: unknown | null = null;
 
   function push(v: T) {
     if (done || failed !== null) return;
     if (waiters.length) {
-      const resolve = waiters.shift()!;
+      const { resolve } = waiters.shift()!;
       resolve({ value: v, done: false });
     } else {
       queue.push(v);
@@ -31,20 +32,20 @@ function createPushAsyncIterator<T>() {
     if (done || failed !== null) return;
     done = true;
     while (waiters.length) {
-      const waiter = waiters.shift()!;
-      waiter({ value: undefined, done: true });
+      const { resolve } = waiters.shift()!;
+      resolve({ value: undefined, done: true });
     }
   }
 
   function fail(err: unknown) {
     if (done || failed !== null) return;
-    failed = err ?? new Error("Unknown error");
+    // Normalize once so every consumer sees the same error instance
+    const error = err ?? new Error("Unknown error");
+    failed = error;
     while (waiters.length) {
-      const resolve = waiters.shift()!;
-      // Propagate error on next pull
-      // We can't throw directly here, so we resolve and let `next()` throw.
-      // We'll handle via a flag in `next()`.
-      resolve({ value: undefined, done: true });
+      const { reject } = waiters.shift()!;
+      // Reject the promise immediately to propagate the same normalized error
+      reject(error);
     }
   }
 
@@ -60,8 +61,8 @@ function createPushAsyncIterator<T>() {
     }
     if (done) return { value: undefined, done: true };
 
-    const promise = new Promise<IteratorResult<T>>((resolve) =>
-      waiters.push(resolve),
+    const promise = new Promise<IteratorResult<T>>((resolve, reject) =>
+      waiters.push({ resolve, reject }),
     );
     return await promise;
   }
@@ -107,12 +108,16 @@ function eventsToAsyncIterator(
     },
     onRunErrorEvent(params) {
       push(params);
-      // TODO: not quite sure what to pass here
+      // Propagate the error to consumers; pending/next pulls will reject
       fail(params.event);
-      finish(); // avoid throwing; let the consumer decide how to surface the error
+      finish(); // close out the iterator; error is delivered via rejection
     },
     onRunFinishedEvent(params) {
       push(params);
+      finish();
+    },
+    onRunFailed({ error }) {
+      fail(error);
       finish();
     },
   });
@@ -163,11 +168,19 @@ export async function* runStreamingAgent(
   // Kick off the underlying process (non-blocking)
   // If this can throw synchronously, you might want to catch and fail the iterator.
   const resultPromise = agent.runAgent(...(args ?? []));
+  // Prevent unhandled rejections if iteration aborts early due to a failure
+  void resultPromise.catch(() => undefined);
 
   // Before we return, we need to yield all the events from the agent
   // This is important because the agent may emit events after the runAgent call
   // has resolved, and we want to capture those events as well
-  yield* iter;
+
+  // Note that we are doing a manual iteration instead of `yield* iter` because
+  // we need to capture any errors with stack traces to here, as they happen
+  // inside this iterator
+  for await (const event of iter) {
+    yield event;
+  }
 
   // the final result is not part of the iterator, so we need to await it,
   // and it actually contains the final result of running the agent

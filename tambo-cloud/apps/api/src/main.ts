@@ -40,8 +40,8 @@ async function bootstrap() {
   });
 
   // Add unhandled rejection handler
-  process.on("unhandledRejection", (reason, promise) => {
-    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.on("unhandledRejection", (reason, _promise) => {
+    logUnhandledRejection(reason);
     Sentry.captureException(reason);
   });
 
@@ -175,3 +175,22 @@ function buildCspDirectives({
   };
 }
 bootstrap().catch(console.error);
+
+/** Recursively log the stack trace of an unhandled rejection */
+function logUnhandledRejection(reason: any, seen: Set<Error> = new Set()) {
+  if (seen.has(reason)) {
+    // Be careful not to log the same error multiple times
+    return;
+  }
+  console.error(
+    seen.size === 0 ? "Unhandled Rejection:" : "  Caused by:",
+    `${reason}`,
+  );
+  if (reason instanceof Error) {
+    console.error("    Stack Trace:", reason.stack);
+  }
+  seen.add(reason);
+  if (reason.cause instanceof Error) {
+    logUnhandledRejection(reason.cause, seen);
+  }
+}

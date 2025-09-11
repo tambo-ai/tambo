@@ -9,7 +9,7 @@
     "build": "NODE_OPTIONS=--experimental-require-module nest build",
     "start": "NODE_OPTIONS=--experimental-require-module nest start",
     "generate-config": "NODE_OPTIONS=--experimental-require-module npx nest start generate-config",
-    "dev": "NODE_OPTIONS=--experimental-require-module nest start --watch",
+    "dev": "NODE_OPTIONS='--experimental-require-module --trace-warnings' nest start --watch",
     "start:dev": "NODE_OPTIONS=--experimental-require-module nest start --watch",
     "start:debug": "NODE_OPTIONS=--experimental-require-module nest start --debug --watch ",
     "start:prod": "NODE_OPTIONS=--experimental-require-module node dist/apps/api/src/main",

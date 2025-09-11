@@ -351,7 +351,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
+              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
