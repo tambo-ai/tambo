@@ -375,6 +375,137 @@ describe("TamboThreadProvider", () => {
     );
   });
 
+  it("should handle unregistered tool calls with onCallUnregisteredTool", async () => {
+    const mockOnCallUnregisteredTool = jest
+      .fn()
+      .mockResolvedValue("unregistered-tool-result");
+
+    const wrapperWithUnregisteredTool = ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => (
+      <TamboRegistryProvider
+        components={mockRegistry}
+        onCallUnregisteredTool={mockOnCallUnregisteredTool}
+      >
+        <TamboContextHelpersProvider
+          contextHelpers={{
+            currentTimeContextHelper: () => null,
+            currentPageContextHelper: () => null,
+          }}
+        >
+          <TamboThreadProvider streaming={false}>
+            {children}
+          </TamboThreadProvider>
+        </TamboContextHelpersProvider>
+      </TamboRegistryProvider>
+    );
+
+    const mockUnregisteredToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+      {
+        responseMessageDto: {
+          id: "unregistered-tool-call-1",
+          content: [{ type: "text", text: "Unregistered tool response" }],
+          role: "tool",
+          threadId: "test-thread-1",
+          toolCallRequest: {
+            toolName: "unregistered-tool",
+            parameters: [
+              { parameterName: "input", parameterValue: "test-input" },
+            ],
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+    jest
+      .mocked(mockThreadsApi.advanceById)
+      .mockResolvedValueOnce(mockUnregisteredToolCallResponse)
+      .mockResolvedValueOnce({
+        responseMessageDto: {
+          id: "advance-response2",
+          content: [{ type: "text", text: "response 2" }],
+          role: "user",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      });
+
+    const { result } = renderHook(() => useTamboThread(), {
+      wrapper: wrapperWithUnregisteredTool,
+    });
+
+    await act(async () => {
+      await result.current.sendThreadMessage("Use unregistered tool", {
+        threadId: "test-thread-1",
+        streamResponse: false,
+      });
+    });
+
+    expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
+    expect(mockOnCallUnregisteredTool).toHaveBeenCalledWith(
+      "unregistered-tool",
+      [{ parameterName: "input", parameterValue: "test-input" }],
+    );
+  });
+
+  it("should handle unregistered tool calls without onCallUnregisteredTool", async () => {
+    const mockUnregisteredToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+      {
+        responseMessageDto: {
+          id: "unregistered-tool-call-1",
+          content: [{ type: "text", text: "Unregistered tool response" }],
+          role: "tool",
+          threadId: "test-thread-1",
+          toolCallRequest: {
+            toolName: "unregistered-tool",
+            parameters: [
+              { parameterName: "input", parameterValue: "test-input" },
+            ],
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+    jest
+      .mocked(mockThreadsApi.advanceById)
+      .mockResolvedValueOnce(mockUnregisteredToolCallResponse)
+      .mockResolvedValueOnce({
+        responseMessageDto: {
+          id: "advance-response2",
+          content: [{ type: "text", text: "response 2" }],
+          role: "user",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      });
+
+    const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+    await act(async () => {
+      await result.current.sendThreadMessage("Use unregistered tool", {
+        threadId: "test-thread-1",
+        streamResponse: false,
+      });
+    });
+
+    expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
+    // Should not throw an error, but the tool call should fail gracefully
+  });
+
   describe("streaming behavior", () => {
     it("should call advanceStream when streamResponse=true", async () => {
       // Use wrapper with streaming=true to show that explicit streamResponse=true works

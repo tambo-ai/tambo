@@ -78,6 +78,7 @@ export const TamboProvider: React.FC<
   streaming,
   contextHelpers,
   contextKey,
+  onCallUnregisteredTool,
   autoInteractables = false,
 }) => {
   // Should only be used in browser
@@ -92,7 +93,11 @@ export const TamboProvider: React.FC<
       environment={environment}
       userToken={userToken}
     >
-      <TamboRegistryProvider components={components} tools={tools}>
+      <TamboRegistryProvider
+        components={components}
+        tools={tools}
+        onCallUnregisteredTool={onCallUnregisteredTool}
+      >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboComponentProvider>
             <TamboInteractableProvider autoInteractables={autoInteractables}>

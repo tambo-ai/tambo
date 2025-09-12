@@ -1,7 +1,7 @@
-import { MetadataRoute } from "next";
 import { source } from "@/lib/source";
+import { MetadataRoute } from "next";
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.ai";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = source.getPages();

@@ -2,6 +2,7 @@ import { CLI } from "@/components/cli";
 import {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
   MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
@@ -15,32 +16,27 @@ export default function MessageInputPage() {
   MessageInputTextarea, 
   MessageInputToolbar,
   MessageInputSubmitButton,
+  MessageInputFileButton,
   MessageInputMcpConfigButton,
   MessageInputError 
 } from "@/components/ui/message-input";
 
-// Basic usage
+// Basic usage with image attachments
 <MessageInput contextKey="my-thread" variant="default">
-  <MessageInputTextarea />
+  <MessageInputTextarea placeholder="Type your message or paste images..." />
   <MessageInputToolbar>
+    <MessageInputFileButton />
     <MessageInputSubmitButton />
   </MessageInputToolbar>
   <MessageInputError />
 </MessageInput>
 
-// With solid variant
+// With all available features
 <MessageInput contextKey="my-thread" variant="solid">
   <MessageInputTextarea placeholder="Type your message..." />
   <MessageInputToolbar>
-    <MessageInputSubmitButton />
-  </MessageInputToolbar>
-</MessageInput>
-
-// With MCP configuration button
-<MessageInput contextKey="my-thread" variant="default">
-  <MessageInputTextarea />
-  <MessageInputToolbar>
     <MessageInputMcpConfigButton />
+    <MessageInputFileButton />
     <MessageInputSubmitButton />
   </MessageInputToolbar>
   <MessageInputError />
@@ -84,7 +80,8 @@ export default function MessageInputPage() {
                   </strong>{" "}
                   The main text input area where users type their messages.
                   Automatically resizes based on content and handles keyboard
-                  shortcuts for submission.
+                  shortcuts for submission. Supports image pasting from
+                  clipboard.
                 </li>
                 <li>
                   <strong>
@@ -92,6 +89,14 @@ export default function MessageInputPage() {
                   </strong>{" "}
                   Container for toolbar elements positioned alongside the input.
                   Typically contains the submit button and other action buttons.
+                </li>
+                <li>
+                  <strong>
+                    <code>&lt;MessageInputFileButton /&gt;</code> -
+                  </strong>{" "}
+                  Button to open file picker for selecting images to attach to
+                  messages. Supports multiple image selection and validates file
+                  types and sizes.
                 </li>
                 <li>
                   <strong>
@@ -127,12 +132,14 @@ export default function MessageInputPage() {
 
           {/* Default Variant Example */}
           <div>
-            <h3 className="text-lg font-medium mb-3">Default Message Input</h3>
+            <h3 className="text-lg font-medium mb-3">
+              Default Message Input with Image Attachments
+            </h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-default" variant="default">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-end items-center mt-2 p-1 gap-2">
-                  {/* Add any other tools here */}
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
                 <MessageInputError />
@@ -145,9 +152,9 @@ export default function MessageInputPage() {
             <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-solid" variant="solid">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-end items-center mt-2 p-1 gap-2">
-                  {/* Add any other tools here */}
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
                 <MessageInputError />
@@ -160,9 +167,9 @@ export default function MessageInputPage() {
             <h3 className="text-lg font-medium mb-3">Bordered Variant</h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-bordered" variant="bordered">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-end items-center mt-2 p-1 gap-2">
-                  {/* Add any other tools here */}
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
                 <MessageInputError />
@@ -173,16 +180,17 @@ export default function MessageInputPage() {
           {/* With MCP configuration button */}
           <div>
             <h3 className="text-lg font-medium mb-3">
-              With MCP configuration button
+              Full-featured: MCP Config + Image Attachments
             </h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-mcp" variant="default">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-between items-center mt-2 p-1 gap-2">
                   <div className="flex items-center gap-2">
                     <MessageInputMcpConfigButton />
                   </div>
                   <div className="flex items-center gap-2">
+                    <MessageInputFileButton />
                     <MessageInputSubmitButton />
                   </div>
                 </div>

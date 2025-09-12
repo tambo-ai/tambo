@@ -116,6 +116,7 @@ export interface TamboThreadContextProps {
       contextKey?: string;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
+      content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
     },
   ) => Promise<TamboThreadMessage>;
 }
@@ -214,8 +215,12 @@ export const TamboThreadProvider: React.FC<
     [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
   });
   const client = useTamboClient();
-  const { componentList, toolRegistry, componentToolAssociations } =
-    useTamboRegistry();
+  const {
+    componentList,
+    toolRegistry,
+    componentToolAssociations,
+    onCallUnregisteredTool,
+  } = useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
   const { addInteractableComponent, autoInteractables } =
     useTamboInteractable();
@@ -614,6 +619,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
+            onCallUnregisteredTool,
           );
           if (ignoreResponseRef.current) {
             setIgnoreResponse(false);
@@ -769,6 +775,7 @@ export const TamboThreadProvider: React.FC<
       client,
       componentList,
       currentThread?.id,
+      onCallUnregisteredTool,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
@@ -786,6 +793,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice?: string;
         contextKey?: string;
         additionalContext?: Record<string, any>;
+        content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
       } = {},
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);
@@ -795,6 +803,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice,
         contextKey,
         additionalContext,
+        content,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
@@ -811,9 +820,14 @@ export const TamboThreadProvider: React.FC<
         combinedContext[helperContext.name] = helperContext.context;
       }
 
+      // Use provided content or build simple text message
+      const messageContent = content ?? [
+        { type: "text" as const, text: message },
+      ];
+
       addThreadMessage(
         {
-          content: [{ type: "text", text: message }],
+          content: messageContent as any,
           renderedComponent: null,
           role: "user",
           threadId: threadId,
@@ -840,7 +854,7 @@ export const TamboThreadProvider: React.FC<
 
       const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
         messageToAppend: {
-          content: [{ type: "text", text: message }],
+          content: messageContent as any,
           role: "user",
           additionalContext: combinedContext,
         },
@@ -901,6 +915,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             advanceResponse.responseMessageDto,
             toolRegistry,
+            onCallUnregisteredTool,
           );
           const toolResponseString =
             typeof toolCallResponse.result === "string"
@@ -983,8 +998,8 @@ export const TamboThreadProvider: React.FC<
       updateThreadStatus,
       streaming,
       getAdditionalContext,
-      handleComponentRendered,
-      handleAdvanceStream,
+      onCallUnregisteredTool,
+      handleComponentRendered
     ],
   );
 
