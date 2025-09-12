@@ -3,7 +3,15 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   ...nextJsConfig,
-  { ignores: [".source/"] },
+  {
+    ignores: [
+      ".source/",
+      "next-env.d.ts",
+      ".next/**",
+      "coverage/**",
+      "test/__mocks__/fileMock.cjs",
+    ],
+  },
   {
     rules: {
       // We would like to turn on these rules, but there are too many small issues

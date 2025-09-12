@@ -18,7 +18,8 @@
     "next-env.d.ts",
     "*.mjs",
     ".next/types/**/*.ts",
-    "types/*.d.ts"
+    "types/*.d.ts",
+    "test/__mocks__/*.ts"
   ],
   "exclude": ["node_modules", ".next"]
 }
