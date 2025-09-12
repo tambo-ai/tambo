@@ -8,6 +8,7 @@ import Image from "next/image";
 import React from "react";
 import { Button } from "../ui/button";
 import { AddToIdeDropdown } from "./add-to-ide-dropdown";
+import { ProductHuntWidget } from "./product-hunt-widget";
 
 const ease: Easing = [0.16, 1, 0.3, 1];
 
@@ -219,24 +220,23 @@ function HeroCommandBox() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
-      className="mt-4"
     >
-      <div className="flex items-center rounded-xl bg-slate-50 dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-700 max-w-fit shadow-sm hover:shadow-md transition-shadow duration-300">
-        <code className="font-mono text-sm text-slate-800 dark:text-slate-200 mr-4 select-all">
+      <div className="flex items-center rounded-xl bg-slate-50 dark:bg-slate-900 p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <code className="font-mono text-xs sm:text-sm text-slate-800 dark:text-slate-200 mr-3 sm:mr-4 select-all">
           {command}
         </code>
         {/* Vertical separator line */}
-        <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mr-4"></div>
+        <div className="w-px h-4 sm:h-5 bg-slate-300 dark:bg-slate-600 mr-3 sm:mr-4"></div>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleCopy}
-          className="h-auto p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+          className="h-auto p-1.5 sm:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
         >
           {copied ? (
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
           ) : (
-            <Copy className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-600 dark:text-slate-400" />
           )}
         </Button>
       </div>
@@ -252,8 +252,12 @@ export function Hero() {
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:max-w-[50%] space-y-4 sm:space-y-6">
           <HeroPill />
           <HeroTitles />
-          <HeroCommandBox />
-          <AddToIdeDropdown />
+          {/* HeroCommandBox and AddToIdeDropdown side by side on desktop, stacked on mobile */}
+          <div className="flex flex-row gap-4 items-center justify-center lg:justify-start w-full">
+            <HeroCommandBox />
+            <AddToIdeDropdown />
+          </div>
+          <ProductHuntWidget />
         </div>
 
         {/* Hero illustration */}

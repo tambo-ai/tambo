@@ -67,7 +67,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SMOKETEST_PROJECT_ID: z.string().min(1).optional(),
 
     // TamboHack URL
-    NEXT_PUBLIC_TAMBOHACK_URL: z.string().url().optional(),
+    NEXT_PUBLIC_PRODUCT_HUNT_URL: z.string().url().optional(),
 
     // Whitelabeling vars
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional(),
@@ -115,7 +115,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_SMOKETEST_PROJECT_ID,
 
     // TamboHack URL
-    NEXT_PUBLIC_TAMBOHACK_URL: process.env.NEXT_PUBLIC_TAMBOHACK_URL,
+    NEXT_PUBLIC_PRODUCT_HUNT_URL: process.env.NEXT_PUBLIC_PRODUCT_HUNT_URL,
 
     // Whitelabeling (falls back to non-public vars for convenience)
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME:

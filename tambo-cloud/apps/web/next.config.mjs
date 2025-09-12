@@ -50,8 +50,8 @@ const config = {
         permanent: false,
       },
       {
-        source: "/hack",
-        destination: process.env.NEXT_PUBLIC_TAMBOHACK_URL || "/",
+        source: "/product-hunt",
+        destination: process.env.NEXT_PUBLIC_PRODUCT_HUNT_URL || "/",
         permanent: false,
       },
       {

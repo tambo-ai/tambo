@@ -1,3 +1,4 @@
+import { ProductHuntBanner } from "@/components/sections/product-hunt-banner";
 import { ComponentLibraryDemo } from "@/components/sections/component-library-demo";
 import { Features } from "@/components/sections/features";
 import { FinalCTA } from "@/components/sections/final-cta";
@@ -7,12 +8,11 @@ import { Hero } from "@/components/sections/hero";
 import { MCP } from "@/components/sections/mcp";
 import { Pricing } from "@/components/sections/pricing";
 import { SocialProof } from "@/components/sections/social-proof";
-import { TamboHackBanner } from "@/components/sections/tambohack-banner";
 
 export default function Home() {
   return (
     <div className="min-h-screen">
-      <TamboHackBanner />
+      <ProductHuntBanner />
       <Header className="px-4 sm:px-6 lg:px-8" />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
