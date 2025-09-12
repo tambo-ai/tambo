@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.106.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.106.1...repo-v0.106.2) (2025-09-12)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump ai to v5, including telemetry ([#1742](https://github.com/tambo-ai/tambo-cloud/issues/1742)) ([1a4cc2b](https://github.com/tambo-ai/tambo-cloud/commit/1a4cc2b7d8440b48b4e27d9db3fc4d6b40eb300d))
+
 ## [0.106.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.106.0...repo-v0.106.1) (2025-09-11)
 
 
