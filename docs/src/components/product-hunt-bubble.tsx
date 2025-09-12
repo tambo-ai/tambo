@@ -109,14 +109,13 @@ export const ProductHuntThoughtBubble: FC<ProductHuntThoughtBubbleProps> = ({
                 className="w-6 h-6 flex-shrink-0"
               />
               <span className="font-semibold text-sm text-gray-900">
-                We&apos;re live on Product Hunt!
+                We&apos;re live on Product Hunt.
               </span>
             </div>
 
             {/* Message */}
             <p className="text-xs text-gray-600 leading-relaxed">
-              Help us reach more developers by giving us an upvote. Your support
-              means the world! 🚀
+              Check it out & share your feedback.
             </p>
 
             {/* CTA */}
@@ -126,22 +125,9 @@ export const ProductHuntThoughtBubble: FC<ProductHuntThoughtBubbleProps> = ({
               transition={{ duration: 0.2 }}
             >
               <span className="text-xs font-medium text-orange-600 flex items-center gap-1">
-                Upvote now
+                See the discussion
                 <ExternalLink className="w-3 h-3" />
               </span>
-              <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "loop",
-                }}
-                className="text-lg"
-              >
-                👍
-              </motion.div>
             </motion.div>
           </div>
         </motion.div>

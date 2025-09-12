@@ -70,6 +70,7 @@ export const ProductHuntBanner: FC = () => {
   return (
     <AnimatePresence mode="wait">
       <motion.div
+        ref={bannerRef}
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -12 }}
@@ -92,17 +93,17 @@ export const ProductHuntBanner: FC = () => {
               </span>
               <span className="text-xs sm:text-sm font-medium text-orange-700 text-center">
                 <span className="hidden sm:inline">
-                  We&apos;re live on Product Hunt! Help us reach more
-                  developers.
+                  We&apos;re live on Product Hunt. Check it out & share your
+                  feedback.
                 </span>
-                <span className="sm:hidden">Live on Product Hunt!</span>
+                <span className="sm:hidden">Live on Product Hunt.</span>
               </span>
               <button
                 onClick={handleUpvote}
-                className="inline-flex items-center gap-1.5 rounded-md border border-orange-500/40 text-orange-700 bg-orange-100/50 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium hover:bg-orange-200/50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1"
+                className="inline-flex items-center cursor-pointer gap-1.5 rounded-md border border-orange-500/40 text-orange-700 bg-orange-100/50 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium hover:bg-orange-200/50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1"
                 aria-label="Upvote on Product Hunt"
               >
-                <span>Upvote</span>
+                <span>See the discussion</span>
                 <ExternalLink className="w-3 h-3" />
               </button>
             </div>
