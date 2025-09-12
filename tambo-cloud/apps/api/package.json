@@ -25,6 +25,7 @@
   "dependencies": {
     "@ag-ui/crewai": "^0.0.2",
     "@ag-ui/llamaindex": "^0.1.2",
+    "@langfuse/otel": "^4.0.1",
     "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
@@ -53,7 +54,6 @@
     "jose": "^5.10.0",
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.2",
-    "langfuse-vercel": "^3.38.5",
     "openai": "^5.19.1",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
