@@ -187,6 +187,7 @@ export const projects = pgTable(
       .notNull(),
     agentUrl: text("agent_url"),
     agentName: text("agent_name"),
+    agentHeaders: customJsonb<Record<string, string>>("agent_headers"),
   }),
   (table) => {
     return [

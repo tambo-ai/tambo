@@ -505,6 +505,13 @@
       "when": 1756347021656,
       "tag": "0071_pink_skrulls",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1757711186361,
+      "tag": "0072_lucky_hannibal_king",
+      "breakpoints": true
     }
   ]
 }

@@ -19,8 +19,8 @@ export const AGENT_PROVIDER_REGISTRY: ReadonlyArray<AgentProviderInfo> = [
   { type: AgentProviderType.LANGGRAPH, name: "LangGraph", isSupported: false },
   {
     type: AgentProviderType.PYDANTICAI,
-    name: "PydanticAI",
-    isSupported: false,
+    name: "Pydantic AI",
+    isSupported: true,
   },
 ] as const;
 

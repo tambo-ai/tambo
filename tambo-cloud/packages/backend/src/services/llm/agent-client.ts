@@ -2,6 +2,7 @@ import {
   AbstractAgent,
   Message as AGUIMessage,
   EventType,
+  HttpAgent,
   MessagesSnapshotEvent,
   RunFinishedEvent,
   TextMessageContentEvent,
@@ -45,19 +46,21 @@ export class AgentClient {
   public static async create({
     agentProviderType,
     agentUrl,
-    agentName,
+    // agentName, - use for Mastra
     chainId,
+    headers,
   }: {
     agentProviderType: AgentProviderType;
     agentUrl: string;
     agentName?: string | null;
     chainId: string;
+    headers: Record<string, string>;
   }) {
-    const normalizedAgentName: string | undefined =
-      agentName && agentName.trim() ? agentName.trim() : undefined;
     switch (agentProviderType) {
       case AgentProviderType.MASTRA: {
         throw new Error("Mastra support is not implemented");
+        // const normalizedAgentName: string | undefined =
+        // agentName && agentName.trim() ? agentName.trim() : undefined;
         // const client = new MastraClient({ baseUrl: agentUrl });
         // const agents = await MastraAgent.getRemoteAgents({
         //   mastraClient: client,
@@ -73,16 +76,23 @@ export class AgentClient {
       case AgentProviderType.CREWAI: {
         const agent = new CrewAIAgent({
           url: agentUrl,
-          agentId: normalizedAgentName,
+          headers,
         });
         return new AgentClient(chainId, agent as unknown as AbstractAgent);
       }
       case AgentProviderType.LLAMAINDEX: {
         const agent = new LlamaIndexAgent({
           url: agentUrl,
-          agentId: normalizedAgentName,
+          headers,
         });
         return new AgentClient(chainId, agent as unknown as AbstractAgent);
+      }
+      case AgentProviderType.PYDANTICAI: {
+        const agent = new HttpAgent({
+          url: agentUrl,
+          headers,
+        });
+        return new AgentClient(chainId, agent);
       }
       default: {
         throw new Error(

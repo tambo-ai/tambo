@@ -92,10 +92,13 @@ export const toolsRouter = createTRPCRouter({
         // Cannot pass in oauthProvider, because we don't have the client information yet
       });
       if (!validity.valid) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `MCP server validation failed: ${validity.error}`,
-        });
+        // Allow creating a server when auth is required so the user can proceed
+        if (!validity.requiresAuth) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `MCP server validation failed: ${validity.error}`,
+          });
+        }
       }
 
       const server = await operations.createMcpServer(
@@ -231,6 +234,28 @@ export const toolsRouter = createTRPCRouter({
       );
 
       if (!validity.valid) {
+        // Allow saving updates needed to proceed with auth when the server requires authorization
+        if (validity.requiresAuth) {
+          const server = await operations.updateMcpServer(
+            ctx.db,
+            projectId,
+            serverId,
+            url,
+            customHeaders,
+            mcpTransport,
+            true,
+          );
+          return {
+            id: server.id,
+            url: server.url,
+            customHeaders: server.customHeaders,
+            mcpTransport: server.mcpTransport,
+            mcpRequiresAuth: server.mcpRequiresAuth,
+            mcpCapabilities: validity.capabilities,
+            mcpVersion: validity.version,
+            mcpInstructions: validity.instructions,
+          };
+        }
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `MCP server validation failed: ${validity.error}`,

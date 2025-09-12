@@ -137,9 +137,10 @@ export async function updateProject(
     agentProviderType,
     agentUrl,
     agentName,
+    agentHeaders,
   }: {
     name?: string;
-    customInstructions?: string;
+    customInstructions?: string | null;
     defaultLlmProviderName?: string | null;
     defaultLlmModelName?: string | null;
     customLlmModelName?: string | null;
@@ -151,6 +152,7 @@ export async function updateProject(
     agentProviderType?: AgentProviderType;
     agentUrl?: string | null;
     agentName?: string | null;
+    agentHeaders?: Record<string, string> | null;
   },
 ) {
   // Create update object with only provided fields
@@ -192,6 +194,9 @@ export async function updateProject(
   }
   if (agentName !== undefined) {
     updateData.agentName = agentName;
+  }
+  if (agentHeaders !== undefined) {
+    updateData.agentHeaders = agentHeaders ?? null;
   }
 
   // Only perform update if there are fields to update

@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { api, type RouterOutputs } from "@/trpc/react";
 import {
-  AGENT_PROVIDER_REGISTRY,
   AgentProviderType,
   AiProviderType,
   DEFAULT_OPENAI_MODEL,
@@ -18,12 +17,7 @@ import { ExternalLinkIcon, InfoIcon, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { z } from "zod";
-
-function getAgentProviderLabel(type: AgentProviderType): string {
-  const info = AGENT_PROVIDER_REGISTRY.find((p) => p.type === type);
-  if (!info) return String(type);
-  return info.isSupported ? info.name : `${info.name} (coming soon)`;
-}
+import { AgentSettings } from "./agent-settings";
 
 export const ProviderKeySectionSchema = z
   .object({
@@ -79,6 +73,30 @@ interface ProviderModelOption {
 }
 
 export const FREE_MESSAGE_LIMIT = 500;
+
+// --- Header conversion helpers (module-level) ---
+function agentHeadersArrayToRecord(
+  items: { header: string; value: string }[],
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const kv of items) {
+    // Normalize header names to a consistent case to avoid duplicate
+    // case-variants (HTTP header names are case-insensitive).
+    const key = kv.header.trim().toLowerCase();
+    const val = kv.value.trim();
+    if (!key || !val) continue;
+    // Keep last-write-wins behavior on duplicate keys.
+    result[key] = val;
+  }
+  return result;
+}
+
+function agentHeadersRecordToArray(
+  record: Record<string, string> | null | undefined,
+): { header: string; value: string }[] {
+  if (!record) return [];
+  return Object.entries(record).map(([header, value]) => ({ header, value }));
+}
 
 export function ProviderKeySection({
   project,
@@ -140,6 +158,9 @@ export function ProviderKeySection({
   );
   const [agentUrl, setAgentUrl] = useState<string>("");
   const [agentName, setAgentName] = useState<string>("");
+  const [agentHeaders, setAgentHeaders] = useState<
+    { header: string; value: string }[]
+  >([]);
 
   // Parse provider and model from combined value
   const parsedSelection = useMemo(() => {
@@ -242,6 +263,9 @@ export function ProviderKeySection({
       }
       setAgentUrl(projectLlmSettings.agentUrl ?? "");
       setAgentName(projectLlmSettings.agentName ?? "");
+      setAgentHeaders(
+        agentHeadersRecordToArray(projectLlmSettings.agentHeaders),
+      );
       agentHydratedRef.current = project?.id ?? null;
     }
 
@@ -467,6 +491,7 @@ export function ProviderKeySection({
         agentProviderType: agentProvider,
         agentUrl: localAgentUrl,
         agentName: localAgentName || null,
+        agentHeaders: agentHeadersArrayToRecord(agentHeaders),
       });
       return;
     }
@@ -623,6 +648,7 @@ export function ProviderKeySection({
     agentProvider,
     agentUrl,
     agentName,
+    agentHeaders,
     toast,
   ]);
 
@@ -1118,70 +1144,18 @@ export function ProviderKeySection({
         {/* Agent Settings */}
         <AnimatePresence mode="wait">
           {mode === AiProviderType.AGENT && (
-            <motion.div
-              key="agent-settings"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="space-y-4 rounded-md max-w-xl"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="agent-provider">Agent Provider</Label>
-                <Combobox
-                  items={AGENT_PROVIDER_REGISTRY.map((provider) => ({
-                    value: provider.type,
-                    label: getAgentProviderLabel(provider.type),
-                    disabled: !provider.isSupported,
-                  }))}
-                  value={agentProvider}
-                  onChange={(newProvider) => {
-                    setAgentProvider(newProvider);
-                    setHasUnsavedChanges(true);
-                  }}
-                  placeholder="Select agent provider..."
-                  searchPlaceholder="Search agent providers..."
-                  emptyText="No provider found."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="agent-url">Agent URL</Label>
-                <Input
-                  id="agent-url"
-                  type="url"
-                  placeholder="e.g., https://my-agent.example.com"
-                  value={agentUrl}
-                  onChange={(e) => {
-                    setAgentUrl(e.target.value);
-                    setHasUnsavedChanges(true);
-                  }}
-                />
-                {showValidationErrors && !agentUrl.trim() && (
-                  <p className="text-sm text-destructive">
-                    Agent URL is required
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="agent-name">Agent Name</Label>
-                <Input
-                  id="agent-name"
-                  type="text"
-                  placeholder="e.g., tambo-agent"
-                  value={agentName}
-                  onChange={(e) => {
-                    setAgentName(e.target.value);
-                    setHasUnsavedChanges(true);
-                  }}
-                />
-                <p className="text-xs text-foreground">
-                  Optional. Some agent providers require an agent name to route
-                  requests correctly.
-                </p>
-              </div>
-            </motion.div>
+            <AgentSettings
+              agentProvider={agentProvider}
+              setAgentProvider={setAgentProvider}
+              setHasUnsavedChanges={setHasUnsavedChanges}
+              agentUrl={agentUrl}
+              setAgentUrl={setAgentUrl}
+              showValidationErrors={showValidationErrors}
+              agentName={agentName}
+              setAgentName={setAgentName}
+              agentHeaders={agentHeaders}
+              setAgentHeaders={setAgentHeaders}
+            />
           )}
         </AnimatePresence>
       </CardContent>

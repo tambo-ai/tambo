@@ -14,6 +14,7 @@ import { TRPCClientErrorLike } from "@trpc/client";
 import { Check, Info, Loader2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { HeadersEditor, type HeaderKV } from "./headers-editor";
 import { McpServerToolsDialog } from "./mcp-server-tools-dialog";
 
 export interface MCPServerInfo {
@@ -66,12 +67,12 @@ export function McpServerEditor({
     server.mcpTransport || MCPTransport.SSE,
   );
   const [url, setUrl] = useState(server.url || (isNew ? "https://" : ""));
-  const firstHeaderKey = Object.keys(server.customHeaders)[0];
-  const [headerName, setHeaderName] = useState(firstHeaderKey || "");
-  const [headerValue, setHeaderValue] = useState(
-    server.customHeaders[firstHeaderKey] || "",
+  const [headers, setHeaders] = useState<HeaderKV[]>(
+    Object.entries(server.customHeaders).map(([header, value]) => ({
+      header,
+      value,
+    })),
   );
-  const [isHeaderValueFocused, setIsHeaderValueFocused] = useState(false);
   const [isInspecting, setIsInspecting] = useState(false);
   const {
     data: authResult,
@@ -90,8 +91,6 @@ export function McpServerEditor({
   // Dynamic IDs based on server ID
   const urlInputId = useId();
   const transportId = useId();
-  const headerNameId = useId();
-  const headerValueId = useId();
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -104,9 +103,13 @@ export function McpServerEditor({
   useEffect(() => {
     setMcpTransport(server.mcpTransport || MCPTransport.SSE);
     setUrl(server.url || (isNew ? "https://" : ""));
-    setHeaderName(firstHeaderKey || "");
-    setHeaderValue(server.customHeaders[firstHeaderKey] || "");
-  }, [server, isNew, firstHeaderKey]);
+    setHeaders(
+      Object.entries(server.customHeaders).map(([header, value]) => ({
+        header,
+        value,
+      })),
+    );
+  }, [server, isNew]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -114,35 +117,42 @@ export function McpServerEditor({
       handleSave();
     }
   };
-  const trimmedUrl = url.trim();
-
-  const trimmedHeaderName = headerName.trim();
-  const customHeaders: Record<string, string> = {};
-  if (trimmedHeaderName) {
-    customHeaders[trimmedHeaderName] = headerValue;
-  }
-
   const {
-    mutate: handleSave,
+    mutate: mutateSave,
     data: saveResult,
     error: saveError,
   } = useMutation({
-    mutationFn: async () => {
-      if (!trimmedUrl) {
-        return;
-      }
-
-      return await onSave({
-        url: trimmedUrl,
-        customHeaders,
-        mcpTransport,
-      });
+    mutationFn: async (input: {
+      url: string;
+      customHeaders: Record<string, string>;
+      mcpTransport: MCPTransport;
+    }) => {
+      if (!input.url.trim()) return;
+      return await onSave(input);
     },
   });
 
+  const handleSave = () => {
+    const trimmedUrl = url.trim();
+    const customHeaders: Record<string, string> = Object.fromEntries(
+      headers
+        .map(({ header, value }) => [header.trim(), value] as const)
+        .filter(([key]) => Boolean(key)),
+    );
+    mutateSave({ url: trimmedUrl, customHeaders, mcpTransport });
+  };
+
+  // Compute auth/editability state before defining debouncedSave
+  const mcpRequiresAuth = saveResult?.mcpRequiresAuth || server.mcpRequiresAuth;
+  const mcpIsAuthed = saveResult?.mcpIsAuthed || server.mcpIsAuthed;
+  const canEditHeaders = isEditing || (!!mcpRequiresAuth && !mcpIsAuthed);
+
   // Use debounced callback for auto-save
   const debouncedSave = useDebouncedCallback(async () => {
-    if (hideEditButtons && isEditing) {
+    // Save in two cases:
+    // 1) Inline autosave mode while editing normally
+    // 2) During auth flow when headers are editable but not in standard edit mode
+    if ((hideEditButtons && isEditing) || (canEditHeaders && !isEditing)) {
       handleSave();
     }
   }, 500);
@@ -160,26 +170,6 @@ export function McpServerEditor({
       await debouncedSave();
     }
   };
-
-  const handleHeaderNameChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setHeaderName(e.target.value);
-    if (hideEditButtons && isEditing) {
-      await debouncedSave();
-    }
-  };
-
-  const handleHeaderValueChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setHeaderValue(e.target.value);
-    if (hideEditButtons && isEditing) {
-      await debouncedSave();
-    }
-  };
-  const mcpRequiresAuth = saveResult?.mcpRequiresAuth || server.mcpRequiresAuth;
-  const mcpIsAuthed = saveResult?.mcpIsAuthed || server.mcpIsAuthed;
 
   const showAuthButton =
     !!mcpRequiresAuth &&
@@ -329,33 +319,22 @@ export function McpServerEditor({
         </Select>
       </div>
       <div>
-        <label
-          htmlFor={headerNameId}
-          className="block text-sm font-medium mt-1"
-        >
-          Custom Header
-        </label>
-        <div className="flex gap-2 mt-1">
-          <Input
-            id={headerNameId}
-            value={headerName}
-            onChange={handleHeaderNameChange}
-            placeholder="Optional header name (e.g. Authorization)"
-            className="flex-[2]"
-            disabled={!isEditing}
-          />
-          <Input
-            id={headerValueId}
-            type={isHeaderValueFocused ? "text" : "password"}
-            value={headerValue}
-            onChange={handleHeaderValueChange}
-            onFocus={() => setIsHeaderValueFocused(true)}
-            onBlur={() => setIsHeaderValueFocused(false)}
-            placeholder="Header value"
-            className="flex-[5]"
-            disabled={!isEditing || !headerName.trim()}
-          />
-        </div>
+        <label className="block text-sm font-medium mt-1">Custom Headers</label>
+        <HeadersEditor
+          headers={headers}
+          onSave={async (updated) => {
+            setHeaders(updated);
+            // When user explicitly saves a row, persist immediately if editable
+            if (canEditHeaders) {
+              handleSave();
+            } else if (hideEditButtons) {
+              await debouncedSave();
+            }
+          }}
+          className={
+            !canEditHeaders ? "pointer-events-none opacity-50" : undefined
+          }
+        />
       </div>
 
       {projectId && (
