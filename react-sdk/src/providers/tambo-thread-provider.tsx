@@ -113,6 +113,7 @@ export interface TamboThreadContextProps {
       contextKey?: string;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
+      content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
     },
   ) => Promise<TamboThreadMessage>;
 }
@@ -786,6 +787,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice?: string;
         contextKey?: string;
         additionalContext?: Record<string, any>;
+        content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
       } = {},
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);
@@ -795,6 +797,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice,
         contextKey,
         additionalContext,
+        content,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
@@ -811,9 +814,14 @@ export const TamboThreadProvider: React.FC<
         combinedContext[helperContext.name] = helperContext.context;
       }
 
+      // Use provided content or build simple text message
+      const messageContent = content ?? [
+        { type: "text" as const, text: message },
+      ];
+
       addThreadMessage(
         {
-          content: [{ type: "text", text: message }],
+          content: messageContent as any,
           renderedComponent: null,
           role: "user",
           threadId: threadId,
@@ -840,7 +848,7 @@ export const TamboThreadProvider: React.FC<
 
       const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
         messageToAppend: {
-          content: [{ type: "text", text: message }],
+          content: messageContent as any,
           role: "user",
           additionalContext: combinedContext,
         },
