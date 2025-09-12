@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.9.0](https://github.com/tambo-ai/tambo/compare/docs-v1.8.0...docs-v1.9.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* Replace TamboHackBanner with ProductHuntBanner ([#1035](https://github.com/tambo-ai/tambo/issues/1035)) ([7af2f53](https://github.com/tambo-ai/tambo/commit/7af2f5394c5d3d85ee7e0ec03b4b767df946d249))
+
+## [1.8.0](https://github.com/tambo-ai/tambo/compare/docs-v1.7.0...docs-v1.8.0) (2025-09-11)
+
+
+### Features
+
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+
+### Bug Fixes
+
+* **ui:** When tool calls are big, allow scrolling ([#1034](https://github.com/tambo-ai/tambo/issues/1034)) ([8149f6b](https://github.com/tambo-ai/tambo/commit/8149f6bd3f2513861bd699649a0500376388e0c4))
+
+
+### Miscellaneous Chores
+
+* **docs:** update sitemap domain to docs.tambo.co ([#1027](https://github.com/tambo-ai/tambo/issues/1027)) ([cfd5a7e](https://github.com/tambo-ai/tambo/commit/cfd5a7ea41dd0a7983bce825ccaec997e966a431))
+
 ## [1.7.0](https://github.com/tambo-ai/tambo/compare/docs-v1.6.0...docs-v1.7.0) (2025-09-09)
 
 

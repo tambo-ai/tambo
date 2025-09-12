@@ -5,6 +5,7 @@ export {
   TamboMessageProvider,
   useTamboCurrentMessage,
 } from "./hooks/use-current-message";
+export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";
 export {

@@ -4,6 +4,7 @@ import {
   MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputFileButton,
   MessageInputSubmitButton,
   MessageInputError,
 } from "@/components/ui/message-input";
@@ -265,8 +266,9 @@ export const MessageThreadCollapsible = React.forwardRef<
           {/* Message input */}
           <div className="p-4">
             <MessageInput contextKey={contextKey}>
-              <MessageInputTextarea />
+              <MessageInputTextarea placeholder="Type your message or paste images..." />
               <MessageInputToolbar>
+                <MessageInputFileButton />
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />

@@ -1,4 +1,5 @@
 "use client";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import React, {
   createContext,
   PropsWithChildren,
@@ -24,6 +25,10 @@ export interface TamboRegistryContext {
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
+  onCallUnregisteredTool?: (
+    toolName: string,
+    args: TamboAI.ToolCallParameter[],
+  ) => Promise<string>;
 }
 
 export const TamboRegistryContext = createContext<TamboRegistryContext>({
@@ -53,6 +58,19 @@ export interface TamboRegistryProviderProps {
   components?: TamboComponent[];
   /** The tools to register */
   tools?: TamboTool[];
+
+  /**
+   * A function to call when an unknown tool is called. If this function is not
+   * provided, an error will be thrown when a tool call is requested by the
+   * server.
+   *
+   * Note that this is generally only for agents, where the agent code may
+   * request tool calls that are not registered in the tool registry.
+   */
+  onCallUnregisteredTool?: (
+    toolName: string,
+    args: TamboAI.ToolCallParameter[],
+  ) => Promise<string>;
 }
 
 /**
@@ -62,11 +80,17 @@ export interface TamboRegistryProviderProps {
  * @param props.children - The children to wrap
  * @param props.components - The components to register
  * @param props.tools - The tools to register
+ * @param props.onCallUnregisteredTool - The function to call when an unknown tool is called (optional)
  * @returns The TamboRegistryProvider component
  */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>
-> = ({ children, components: userComponents, tools: userTools }) => {
+> = ({
+  children,
+  components: userComponents,
+  tools: userTools,
+  onCallUnregisteredTool,
+}) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
   const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
     {},
@@ -196,6 +220,7 @@ export const TamboRegistryProvider: React.FC<
     registerTool,
     registerTools,
     addToolAssociation,
+    onCallUnregisteredTool,
   };
 
   return (
