@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.106.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.106.0...repo-v0.106.1) (2025-09-11)
+
+
+### Bug Fixes
+
+* **agents:** Handle some error cases ([#1740](https://github.com/tambo-ai/tambo-cloud/issues/1740)) ([0b303e6](https://github.com/tambo-ai/tambo-cloud/commit/0b303e67e3df0cbdc47b2791dac7af56ac638276))
+
 ## [0.106.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.105.0...repo-v0.106.0) (2025-09-11)
 
 
