@@ -4,9 +4,11 @@ import Link from "next/link";
 interface BlogPostProps {
   children: React.ReactNode;
   title?: string;
+  author?: string;
+  date?: string;
 }
 
-export function BlogPost({ children, title }: BlogPostProps) {
+export function BlogPost({ children, title, author, date }: BlogPostProps) {
   return (
     <article className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
@@ -36,6 +38,32 @@ export function BlogPost({ children, title }: BlogPostProps) {
             )}
           </div>
         </nav>
+
+        {/* Title */}
+        {title && (
+          <h1 className="text-center font-bold text-3xl sm:text-4xl md:text-5xl mb-8 mt-8 md:mt-12">
+            {title}
+          </h1>
+        )}
+
+        {/* Author and Date Information */}
+        {(author || date) && (
+          <div className="mb-8 text-center">
+            <div className="inline-flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-full text-sm border">
+              {author && (
+                <span className="font-medium text-foreground">By {author}</span>
+              )}
+              {author && date && (
+                <span className="text-muted-foreground">•</span>
+              )}
+              {date && (
+                <span className="text-muted-foreground font-medium">
+                  {date}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Article Content */}
         <div className="prose prose-lg max-w-none mb-16">{children}</div>

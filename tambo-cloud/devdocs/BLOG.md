@@ -17,7 +17,11 @@ category: "feature"
 featured: false
 ---
 
-<BlogPost title="Your Blog Post Title">Your content here...</BlogPost>
+<BlogPost title="Your Blog Post Title" author="Your Name" date="2025-01-15">
+
+Your content here...
+
+</BlogPost>
 ```
 
 ## Frontmatter Requirements
@@ -63,7 +67,7 @@ type BlogCategory =
 The main wrapper component for all blog posts. **Always use this as the root component.**
 
 ```tsx title="blog-post-usage.mdx"
-<BlogPost title="Your Post Title">
+<BlogPost title="Your Post Title" author="Author Name" date="2025-01-15">
   {/* Your content goes here */}
   <h1>Your Content</h1>
   <p>Your paragraphs...</p>
@@ -72,7 +76,36 @@ The main wrapper component for all blog posts. **Always use this as the root com
 
 **Props:**
 
-- `title` (optional): The post title for breadcrumb navigation
+- `title` (optional): The post title - displays as h1 and in breadcrumb navigation
+- `author` (optional): Author name - displays below title in format `/ Author Name / Date`
+- `date` (optional): Publication date - displays with author info
+
+**✅ Important**: When using the `BlogPost` component with a title prop, **do not** include a duplicate `# Title` heading in your content. The component will render the title as an h1 automatically.
+
+### Title and Author Display
+
+The `BlogPost` component automatically handles:
+
+1. **Breadcrumb Navigation**: Shows Home > Blog > Post Title
+2. **Title Rendering**: Displays the title as a large, centered h1 heading
+3. **Author/Date Info**: Shows author and date in the format `/ Author Name / Date` below the title
+
+```mdx title="correct-usage.mdx"
+<BlogPost title="My Amazing Post" author="John Doe" date="2025-01-15">
+
+<!-- ❌ Don't do this - title is already rendered -->
+<!-- # My Amazing Post -->
+
+<!-- ✅ Start directly with your content -->
+
+This is the first paragraph of my post...
+
+## Section Heading
+
+More content here...
+
+</BlogPost>
+```
 
 ### Available MDX Components
 
@@ -120,6 +153,12 @@ apps/web/app/blog/posts/
 ![Alt text describing the image](/path/to/image.png)
 ```
 
+### Author Information
+
+- **Use your full name**: e.g., "Akhilesh Rangani" instead of "akhilesh"
+- **Be consistent**: Use the same name format across all your posts
+- **Team posts**: Use "tambo Team" for collaborative posts
+
 ## Advanced Features
 
 ### Syntax Highlighting
@@ -162,7 +201,7 @@ You can import and use custom React components:
 ```tsx title="custom-component-usage.mdx"
 import { MyCustomComponent } from "@/components/MyCustomComponent";
 
-<BlogPost title="Using Custom Components">
+<BlogPost title="Using Custom Components" author="Developer" date="2025-01-15">
   <MyCustomComponent prop="value" />
 </BlogPost>;
 ```
@@ -176,6 +215,16 @@ import { MyCustomComponent } from "@/components/MyCustomComponent";
 - Check that frontmatter has required `title` and `date` fields
 - Ensure the directory structure is correct
 - Verify the `page.mdx` filename
+
+**Title appearing twice:**
+
+- Remove any `# Title` heading from your MDX content
+- The `BlogPost` component handles title rendering automatically
+
+**Author/date not showing:**
+
+- Ensure you're passing `author` and `date` props to `<BlogPost>`
+- Check that the values match your frontmatter
 
 **Images not loading:**
 
@@ -198,7 +247,7 @@ import { MyCustomComponent } from "@/components/MyCustomComponent";
 
 ## Examples
 
-### Simple Feature Announcement
+### Complete Blog Post Example
 
 ````mdx title="feature-announcement.mdx"
 ---
@@ -211,14 +260,73 @@ category: "feature"
 featured: true
 ---
 
-<BlogPost title="New Streaming API Released">
-  # New Streaming API Released We're excited to announce the release of our new
-  streaming API... ## What's New - Real-time data streaming - WebSocket support
-  - Automatic reconnection ## Getting Started ```typescript import{" "}
-  {StreamingAPI} from '@tambo/streaming'; const api = new StreamingAPI();
-  api.connect(); ```
+<BlogPost title="New Streaming API Released" author="Engineering Team" date="2025-01-15">
+
+We're excited to announce the release of our new streaming API that enables real-time data processing with minimal latency.
+
+## What's New
+
+- Real-time data streaming with WebSocket support
+- Automatic reconnection and error handling
+- Built-in rate limiting and backpressure management
+
+## Getting Started
+
+Here's how to set up the streaming API in your application:
+
+```typescript
+import { StreamingAPI } from "@tambo/streaming";
+
+const api = new StreamingAPI({
+  endpoint: "wss://api.tambo.co/stream",
+  apiKey: "your-api-key",
+});
+
+// Connect to the stream
+await api.connect();
+
+// Listen for data
+api.on("data", (data) => {
+  console.log("Received:", data);
+});
+```
+
+## Migration Guide
+
+If you're upgrading from our previous API, here are the key changes...
+
 </BlogPost>
 ````
+
+### Simple Update Post
+
+```mdx title="bug-fix-update.mdx"
+---
+title: "Authentication Bug Fix"
+date: "2025-01-10"
+description: "Fixed issue with OAuth token refresh"
+tags: ["bug fix", "auth"]
+author: "Security Team"
+category: "bug fix"
+featured: false
+---
+
+<BlogPost title="Authentication Bug Fix" author="Security Team" date="2025-01-10">
+
+We've resolved an issue where OAuth tokens weren't refreshing correctly in certain edge cases.
+
+## What Was Fixed
+
+- Token refresh now handles network timeouts properly
+- Improved error messages for authentication failures
+- Fixed race condition in concurrent refresh attempts
+
+## Action Required
+
+No action needed - this fix is automatically applied to all applications.
+
+</BlogPost>
+```
 
 ---
 
