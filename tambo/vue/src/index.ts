@@ -1,7 +1,15 @@
-/** Vue exports mirroring the React SDK public API, adapted for Vue composables and components. */
+// Vue-first public API: plugin + composables + types
+export { TamboPlugin, type TamboPluginOptions } from "./plugin";
 
-export * from "./providers";
+// Composables
 export * from "./hooks";
+
+// Types
 export * from "./model";
+
+// Optional: low-level provider keys for advanced use
+export * from "./providers";
+
+// MCP surface (placeholder)
 export * from "./mcp";
 

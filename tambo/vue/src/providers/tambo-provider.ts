@@ -3,7 +3,7 @@ import { TamboClientContextProps, provideTamboClient } from "./tambo-client-prov
 
 export type TamboContextProps = TamboClientContextProps;
 
-const TamboKey: InjectionKey<TamboContextProps> = Symbol("TamboContext");
+export const TamboKey: InjectionKey<TamboContextProps> = Symbol("TamboContext");
 
 export interface TamboProviderProps {
   tamboUrl?: string;

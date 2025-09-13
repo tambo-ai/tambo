@@ -59,8 +59,8 @@ export const PLACEHOLDER_THREAD: TamboThread = {
   metadata: {},
 };
 
-const TamboThreadKey: InjectionKey<TamboThreadContextProps> = Symbol("TamboThreadContext");
-const TamboGenerationStageKey: InjectionKey<TamboGenerationStageContextProps> = Symbol("TamboGenerationStageContext");
+export const TamboThreadKey: InjectionKey<TamboThreadContextProps> = Symbol("TamboThreadContext");
+export const TamboGenerationStageKey: InjectionKey<TamboGenerationStageContextProps> = Symbol("TamboGenerationStageContext");
 
 export interface TamboThreadProviderProps { streaming?: boolean }
 

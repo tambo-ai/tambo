@@ -10,7 +10,7 @@ export interface TamboComponentContextProps {
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
 }
 
-const TamboComponentKey: InjectionKey<TamboComponentContextProps> = Symbol("TamboComponentContext");
+export const TamboComponentKey: InjectionKey<TamboComponentContextProps> = Symbol("TamboComponentContext");
 
 export function provideTamboComponent() {
   const client = useTamboClient();

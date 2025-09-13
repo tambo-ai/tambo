@@ -23,7 +23,7 @@ export interface TamboRegistryContext {
   ) => Promise<string>;
 }
 
-const TamboRegistryKey: InjectionKey<TamboRegistryContext> = Symbol(
+export const TamboRegistryKey: InjectionKey<TamboRegistryContext> = Symbol(
   "TamboRegistryContext",
 );
 

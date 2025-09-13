@@ -4,7 +4,7 @@ import { TamboInteractableComponent, type TamboInteractableContext } from "../mo
 import { useTamboComponent } from "./tambo-component-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 
-const TamboInteractableKey: InjectionKey<TamboInteractableContext> = Symbol("TamboInteractableContext");
+export const TamboInteractableKey: InjectionKey<TamboInteractableContext> = Symbol("TamboInteractableContext");
 
 export function provideTamboInteractable() {
   const state = reactive<{ interactableComponents: TamboInteractableComponent[] }>({ interactableComponents: [] });

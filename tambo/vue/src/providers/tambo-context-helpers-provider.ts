@@ -13,7 +13,7 @@ export interface TamboContextHelpersContextProps {
   removeContextHelper: (name: string) => void;
 }
 
-const TamboContextHelpersKey: InjectionKey<TamboContextHelpersContextProps> = Symbol(
+export const TamboContextHelpersKey: InjectionKey<TamboContextHelpersContextProps> = Symbol(
   "TamboContextHelpersContext",
 );
 

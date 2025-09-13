@@ -15,7 +15,7 @@ export interface TamboClientContextProps {
   isUpdatingToken: Ref<boolean>;
 }
 
-const TamboClientKey: InjectionKey<TamboClientContextProps> = Symbol(
+export const TamboClientKey: InjectionKey<TamboClientContextProps> = Symbol(
   "TamboClientContext",
 );
 
