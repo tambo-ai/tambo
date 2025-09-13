@@ -1,0 +1,89 @@
+{
+  "name": "@tambo-ai/vue",
+  "version": "0.1.0",
+  "description": "Vue client package for Tambo AI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "tambo/vue"
+  },
+  "homepage": "https://tambo.co",
+  "main": "./dist/index.js",
+  "module": "./esm/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./mcp": {
+      "import": "./esm/mcp/index.js",
+      "require": "./dist/mcp/index.js",
+      "types": "./dist/mcp/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "esm"
+  ],
+  "engines": {
+    "node": ">=22",
+    "npm": ">=11"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "dev": "concurrently -c blue.bold,green.bold \"npm run dev:cjs\" \"npm run dev:esm\"",
+    "dev:cjs": "tsc -p tsconfig.cjs.json --watch",
+    "dev:esm": "tsc -p tsconfig.esm.json --watch",
+    "check-types": "tsc --noEmit",
+    "test": "jest --config jest.config.ts",
+    "format": "prettier --write .",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format:lint": "npm run format && npm run lint:fix",
+    "clean": "rimraf dist esm coverage"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0 || ^3.5.0 || ^3.6.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@tambo-ai/typescript-sdk": "^0.70.0",
+    "@tanstack/vue-query": "^5.85.5",
+    "partial-json": "^0.1.7",
+    "ts-essentials": "^10.1.1",
+    "ts-node": "^10.9.2",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@types/jest": "^30.0.0",
+    "@types/json-schema": "^7.0.15",
+    "@types/node": "^22.15.32",
+    "@vue/test-utils": "^2.4.6",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.35.0",
+    "eslint-plugin-jsdoc": "^55.0.0",
+    "eslint-plugin-vue": "^9.29.1",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.4.1",
+    "jest": "^30.1.3",
+    "jest-environment-jsdom": "^30.1.2",
+    "lint-staged": "^16.1.5",
+    "prettier": "^3.6.2",
+    "prettier-2": "npm:prettier@^2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.43.0",
+    "vue": "^3.5.12"
+  }
+}
+
