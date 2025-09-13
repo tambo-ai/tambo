@@ -19,7 +19,7 @@ export function useTamboThreadList(
       return (await client.beta.projects.getCurrent()).id;
     },
   });
-  const currentProjectId = projectId ?? (queriedProjectId as string | undefined);
+  const currentProjectId = projectId ?? (queriedProjectId as unknown as string | undefined);
 
   const threadState = useTamboQuery({
     ...options,

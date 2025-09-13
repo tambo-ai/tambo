@@ -16,7 +16,7 @@ export interface useTamboSuggestionsOptions { maxSuggestions?: number }
 export function useTamboSuggestions(options: useTamboSuggestionsOptions = {}) {
   const { maxSuggestions = 3 } = options;
   const { thread, generationStage } = useTamboThread();
-  const { sendThreadMessage } = useTambo();
+  const tambo = useTambo();
   const tamboClient = useTamboClient();
   const { componentList, toolRegistry, componentToolAssociations } = useTamboRegistry();
   const selectedSuggestionId = ref<string | null>(null);
@@ -54,7 +54,7 @@ export function useTamboSuggestions(options: useTamboSuggestionsOptions = {}) {
         throw new Error(INPUT_ERROR_MESSAGES.VALIDATION);
       }
       if (shouldSubmit) {
-        await sendThreadMessage(validation.sanitizedInput, { threadId: thread.id });
+        await tambo.sendThreadMessage(validation.sanitizedInput, { threadId: thread.id });
       } else {
         setInputValue(validation.sanitizedInput);
       }

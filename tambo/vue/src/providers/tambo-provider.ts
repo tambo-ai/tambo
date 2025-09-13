@@ -1,7 +1,15 @@
 import { InjectionKey, inject, provide } from "vue";
 import { TamboClientContextProps, provideTamboClient } from "./tambo-client-provider";
+import { TamboThreadContextProps } from "./tambo-thread-provider";
+import { TamboContextHelpersContextProps } from "./tambo-context-helpers-provider";
+import { TamboComponentContextProps } from "./tambo-component-provider";
+import { TamboInteractableContext } from "../model/tambo-interactable";
 
-export type TamboContextProps = TamboClientContextProps;
+export type TamboContextProps = TamboClientContextProps &
+  TamboThreadContextProps &
+  TamboContextHelpersContextProps &
+  TamboComponentContextProps &
+  TamboInteractableContext;
 
 export const TamboKey: InjectionKey<TamboContextProps> = Symbol("TamboContext");
 
@@ -15,8 +23,9 @@ export interface TamboProviderProps {
 export function provideTambo(props: TamboProviderProps) {
   const clientCtx = provideTamboClient(props);
   const ctx: TamboContextProps = {
-    ...clientCtx,
-  };
+    ...(clientCtx as any),
+    // The full context is assembled by the plugin; this provider keeps client piece only.
+  } as any;
   provide(TamboKey, ctx);
   return ctx;
 }
