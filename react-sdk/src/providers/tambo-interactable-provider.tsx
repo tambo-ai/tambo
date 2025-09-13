@@ -9,13 +9,13 @@ import React, {
   useState,
 } from "react";
 import { z } from "zod";
+import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
 import {
   TamboInteractableComponent,
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
 import { useTamboComponent } from "./tambo-component-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
-import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -25,7 +25,13 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   getInteractableComponent: () => undefined,
   getInteractableComponentsByName: () => [],
   clearAllInteractableComponents: () => {},
+  autoInteractables: false,
 });
+
+export interface TamboInteractableProviderProps {
+  /** Whether to automatically make all generated components interactable */
+  autoInteractables?: boolean;
+}
 
 /**
  * The TamboInteractableProvider manages a list of components that are currently
@@ -33,11 +39,12 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
  * for Tambo to perform CRUD operations on the components list.
  * @param props - The props for the TamboInteractableProvider
  * @param props.children - The children to wrap
+ * @param props.autoInteractables - Whether to automatically make all generated components interactable
  * @returns The TamboInteractableProvider component
  */
-export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
-  children,
-}) => {
+export const TamboInteractableProvider: React.FC<
+  PropsWithChildren<TamboInteractableProviderProps>
+> = ({ children, autoInteractables = false }) => {
   const [interactableComponents, setInteractableComponents] = useState<
     TamboInteractableComponent[]
   >([]);
@@ -297,6 +304,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     getInteractableComponent,
     getInteractableComponentsByName,
     clearAllInteractableComponents,
+    autoInteractables,
   };
 
   return (
