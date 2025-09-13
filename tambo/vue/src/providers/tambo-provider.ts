@@ -1,9 +1,12 @@
 import { InjectionKey, inject, provide } from "vue";
-import { TamboClientContextProps, provideTamboClient } from "./tambo-client-provider";
+import { TamboClientContextProps, TamboClientKey, provideTamboClient } from "./tambo-client-provider";
 import { TamboThreadContextProps } from "./tambo-thread-provider";
 import { TamboContextHelpersContextProps } from "./tambo-context-helpers-provider";
 import { TamboComponentContextProps } from "./tambo-component-provider";
 import { TamboInteractableContext } from "../model/tambo-interactable";
+import { TamboThreadKey, TamboGenerationStageKey } from "./tambo-thread-provider";
+import { TamboRegistryKey, TamboRegistryContext } from "./tambo-registry-provider";
+import { TamboContextHelpersKey } from "./tambo-context-helpers-provider";
 
 export type TamboContextProps = TamboClientContextProps &
   TamboThreadContextProps &
@@ -31,8 +34,21 @@ export function provideTambo(props: TamboProviderProps) {
 }
 
 export function useTambo() {
-  const ctx = inject(TamboKey);
-  if (!ctx) throw new Error("useTambo must be used after provideTambo");
-  return ctx;
+  // Compose from individual contexts to ensure consistent shape
+  const client = inject(TamboClientKey) as any;
+  const registry = inject(TamboRegistryKey) as TamboRegistryContext | undefined;
+  const helpers = inject(TamboContextHelpersKey) as TamboContextHelpersContextProps | undefined;
+  const thread = inject(TamboThreadKey) as TamboThreadContextProps | undefined;
+  const stage = inject(TamboGenerationStageKey) as any;
+
+  if (!client) throw new Error("useTambo must be used after plugin installation");
+
+  return {
+    ...client,
+    ...(registry || {}),
+    ...(helpers || {}),
+    ...(thread || {}),
+    ...(stage || {}),
+  } as TamboContextProps as any;
 }
 
