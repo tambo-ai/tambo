@@ -1,0 +1,37 @@
+import type TamboAI from "@tambo-ai/typescript-sdk";
+import { useTamboClient } from "../providers/tambo-client-provider";
+import { useTamboQuery } from "./vue-query-hooks";
+
+interface UseTamboThreadListConfig {
+  projectId?: string;
+  contextKey?: string;
+}
+
+export function useTamboThreadList(
+  { projectId, contextKey }: UseTamboThreadListConfig = {},
+  options: Partial<any> = {},
+) {
+  const client = useTamboClient();
+  const { data: queriedProjectId, ...projectIdState } = useTamboQuery({
+    ...(options as any),
+    queryKey: ["projectId"],
+    queryFn: async () => {
+      return (await client.beta.projects.getCurrent()).id;
+    },
+  });
+  const currentProjectId = projectId ?? (queriedProjectId as string | undefined);
+
+  const threadState = useTamboQuery({
+    ...options,
+    enabled: !!currentProjectId,
+    queryKey: ["threads", currentProjectId, contextKey],
+    queryFn: async () => {
+      if (!currentProjectId) return null as TamboAI.Beta.Threads.ThreadsOffsetAndLimit | null;
+      const threadIter = await client.beta.threads.list(currentProjectId, { contextKey });
+      return threadIter as any;
+    },
+  });
+
+  return currentProjectId ? threadState : { data: null, ...projectIdState };
+}
+
