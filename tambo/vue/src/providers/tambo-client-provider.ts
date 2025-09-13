@@ -47,8 +47,9 @@ export function createTamboClientContext(
 }
 
 export function provideTamboClient(props: TamboClientProviderProps) {
+  // SFC-friendly alias that returns context without providing.
+  // Callers should provide via app.provide or provide() in setup.
   const context = createTamboClientContext(props);
-  provide(TamboClientKey, context);
   return context;
 }
 

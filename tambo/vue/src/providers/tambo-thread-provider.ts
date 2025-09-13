@@ -64,7 +64,7 @@ export const TamboGenerationStageKey: InjectionKey<TamboGenerationStageContextPr
 
 export interface TamboThreadProviderProps { streaming?: boolean }
 
-export function provideTamboThread(props: TamboThreadProviderProps = {}) {
+export function createTamboThreadContext(props: TamboThreadProviderProps = {}) {
   const streaming = props.streaming ?? true;
   const threadMap = reactive<Record<string, TamboThread>>({ [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD });
   const client = useTamboClient();
@@ -522,8 +522,7 @@ export function provideTamboThread(props: TamboThreadProviderProps = {}) {
     sendThreadMessage,
   };
 
-  provide(TamboThreadKey, threadCtx);
-  provide(TamboGenerationStageKey, {
+  const generationCtx: TamboGenerationStageContextProps = {
     get generationStage() {
       return currentGenerationStage.value;
     },
@@ -533,8 +532,15 @@ export function provideTamboThread(props: TamboThreadProviderProps = {}) {
     get isIdle() {
       return isIdle.value;
     },
-  });
+  } as any;
 
+  return { threadCtx, generationCtx };
+}
+
+export function provideTamboThread(props: TamboThreadProviderProps = {}) {
+  const { threadCtx, generationCtx } = createTamboThreadContext(props);
+  provide(TamboThreadKey, threadCtx);
+  provide(TamboGenerationStageKey, generationCtx);
   return threadCtx;
 }
 

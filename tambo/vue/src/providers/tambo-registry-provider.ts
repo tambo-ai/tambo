@@ -1,5 +1,5 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { InjectionKey, inject, provide, reactive } from "vue";
+import { InjectionKey, inject, reactive } from "vue";
 import { ZodSchema } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
@@ -36,7 +36,7 @@ export interface TamboRegistryProviderProps {
   ) => Promise<string>;
 }
 
-export function provideTamboRegistry(props: TamboRegistryProviderProps = {}) {
+export function createTamboRegistryContext(props: TamboRegistryProviderProps = {}) {
   const state = reactive<{
     componentList: ComponentRegistry;
     toolRegistry: Record<string, TamboTool>;
@@ -131,7 +131,6 @@ export function provideTamboRegistry(props: TamboRegistryProviderProps = {}) {
     onCallUnregisteredTool: props.onCallUnregisteredTool,
   };
 
-  provide(TamboRegistryKey, ctx);
   return ctx;
 }
 

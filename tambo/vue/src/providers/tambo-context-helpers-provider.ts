@@ -17,7 +17,7 @@ export const TamboContextHelpersKey: InjectionKey<TamboContextHelpersContextProp
   "TamboContextHelpersContext",
 );
 
-export function provideTamboContextHelpers(
+export function createTamboContextHelpersContext(
   props: TamboContextHelpersProviderProps = {},
 ) {
   const helpers = reactive<Record<string, ContextHelperFn>>({});
@@ -52,6 +52,13 @@ export function provideTamboContextHelpers(
     removeContextHelper,
   };
 
+  return ctx;
+}
+
+export function provideTamboContextHelpers(
+  props: TamboContextHelpersProviderProps = {},
+) {
+  const ctx = createTamboContextHelpersContext(props);
   provide(TamboContextHelpersKey, ctx);
   return ctx;
 }
