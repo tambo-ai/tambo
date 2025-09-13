@@ -1,5 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { isIdleStage } from "../model/generate-component-response";
 import { validateInput } from "../model/validate-input";
 import { useTamboClient } from "../providers/tambo-client-provider";
@@ -22,25 +22,25 @@ export function useTamboSuggestions(options: useTamboSuggestionsOptions = {}) {
   const selectedSuggestionId = ref<string | null>(null);
   const { setValue: setInputValue } = useTamboThreadInput();
 
-  const latestMessage = () => thread.messages[thread.messages.length - 1];
-  const isLatestFromTambo = () => latestMessage()?.role === "assistant";
-  const latestMessageId = () => latestMessage()?.id;
+  const latestMessage = computed(() => thread.messages[thread.messages.length - 1]);
+  const isLatestFromTambo = computed(() => latestMessage.value?.role === "assistant");
+  const latestMessageId = computed(() => latestMessage.value?.id);
 
   watch(latestMessageId, () => { selectedSuggestionId.value = null; });
 
-  const shouldGenerateSuggestions = () => latestMessageId() && isLatestFromTambo() && isIdleStage(generationStage);
+  const shouldGenerateSuggestions = computed(() => latestMessageId.value && isLatestFromTambo.value && isIdleStage(generationStage));
   const suggestionsResult = useTamboQuery({
-    queryKey: ["suggestions", shouldGenerateSuggestions() ? latestMessageId() : null],
+    queryKey: computed(() => ["suggestions", shouldGenerateSuggestions.value ? latestMessageId.value : null]) as any,
     queryFn: async () => {
-      if (!shouldGenerateSuggestions()) return [] as any[];
+      if (!shouldGenerateSuggestions.value) return [] as any[];
       const components = getAvailableComponents(componentList, toolRegistry, componentToolAssociations);
       return await tamboClient.beta.threads.suggestions.generate(
         thread.id,
-        latestMessageId()!,
+        latestMessageId.value!,
         { maxSuggestions, availableComponents: components },
       );
     },
-    enabled: Boolean(latestMessageId() && isLatestFromTambo()),
+    enabled: computed(() => Boolean(latestMessageId.value && isLatestFromTambo.value)) as any,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
@@ -64,11 +64,11 @@ export function useTamboSuggestions(options: useTamboSuggestionsOptions = {}) {
 
   const generateMutationState = useTamboMutation({
     mutationFn: async (abortController: AbortController) => {
-      if (!shouldGenerateSuggestions()) return undefined;
+      if (!shouldGenerateSuggestions.value) return undefined;
       const components = getAvailableComponents(componentList, toolRegistry, componentToolAssociations);
       return await tamboClient.beta.threads.suggestions.generate(
         thread.id,
-        latestMessageId()!,
+        latestMessageId.value!,
         { maxSuggestions, availableComponents: components },
         { signal: abortController.signal },
       );
@@ -76,7 +76,7 @@ export function useTamboSuggestions(options: useTamboSuggestionsOptions = {}) {
     retry: false,
   });
 
-  const suggestions = isLatestFromTambo()
+  const suggestions = isLatestFromTambo.value
     ? (suggestionsResult.data ?? generateMutationState.data ?? [])
     : [];
 

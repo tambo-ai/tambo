@@ -13,6 +13,9 @@ test('TamboPlugin installs and provides client', () => {
   })
   const app = createApp(Comp)
   app.use(TamboPlugin, { apiKey: 'test-key' })
-  // Mounting to DOM is not required for injection tests with simple composables
+  // Must mount to trigger setup/injection
+  const el = document.createElement('div')
+  document.body.appendChild(el)
+  app.mount(el)
 })
 
