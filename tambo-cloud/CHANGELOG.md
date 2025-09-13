@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.107.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.106.2...repo-v0.107.0) (2025-09-12)
+
+
+### Features
+
+* **agents:** add custom headers, use them in MCP settings, and enable pydantic-ai ([#1745](https://github.com/tambo-ai/tambo-cloud/issues/1745)) ([881c26e](https://github.com/tambo-ai/tambo-cloud/commit/881c26ea87809a6b979fcc116551079c3f35b8a8))
+* Replace TamboHackBanner with ProductHuntBanner ([#1703](https://github.com/tambo-ai/tambo-cloud/issues/1703)) ([afc63cd](https://github.com/tambo-ai/tambo-cloud/commit/afc63cd666e396e78ae13fdf1f720873d081b8dc))
+
+
+### Miscellaneous Chores
+
+* add tambo + inkeep blog ([#1660](https://github.com/tambo-ai/tambo-cloud/issues/1660)) ([42a63d5](https://github.com/tambo-ai/tambo-cloud/commit/42a63d5a7f5e89c8704f03b740b12cfd413c97a8))
+* **migrations:** missing migration ([#1748](https://github.com/tambo-ai/tambo-cloud/issues/1748)) ([3a60a9c](https://github.com/tambo-ai/tambo-cloud/commit/3a60a9ce517dd79cd985e2d858c20d94b4c413b4))
+* **tests:** Set up initial testing in apps/web ([#1747](https://github.com/tambo-ai/tambo-cloud/issues/1747)) ([16c6b6f](https://github.com/tambo-ai/tambo-cloud/commit/16c6b6f807ef6e86eccc49d8fe95e6d132f6da0c))
+
 ## [0.106.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.106.1...repo-v0.106.2) (2025-09-12)
 
 
