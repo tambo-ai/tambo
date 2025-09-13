@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.32.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.31.0...tambo-v0.32.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+
+### Bug Fixes
+
+* **ui:** When tool calls are big, allow scrolling ([#1034](https://github.com/tambo-ai/tambo/issues/1034)) ([8149f6b](https://github.com/tambo-ai/tambo/commit/8149f6bd3f2513861bd699649a0500376388e0c4))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump inquirer to fix tmp vulnerability ([#1029](https://github.com/tambo-ai/tambo/issues/1029)) ([4a0c28e](https://github.com/tambo-ai/tambo/commit/4a0c28e9598473d8cf39515305c262c42720b248))
+
 ## [0.31.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.30.1...tambo-v0.31.0) (2025-09-09)
 
 
