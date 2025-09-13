@@ -29,7 +29,7 @@ export function createTamboClientContext(
   const tamboConfig: ClientOptions = {
     apiKey: props.apiKey,
     defaultHeaders: {
-      "X-Tambo-Vue-Version": "0.1.0",
+      "X-Tambo-Vue-Version": (process?.env?.npm_package_version as string) || "dev",
     },
   };
   if (props.tamboUrl) tamboConfig.baseURL = props.tamboUrl;

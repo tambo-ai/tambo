@@ -5,6 +5,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "types": ["jest", "node"],
+    "resolveJsonModule": true,
     "skipLibCheck": true
   },
   "include": ["src"],
