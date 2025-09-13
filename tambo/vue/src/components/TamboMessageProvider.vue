@@ -1,4 +1,17 @@
 <script setup lang="ts">
+import { provideTamboMessage } from '../hooks/use-current-message'
+import type { TamboThreadMessage } from '../model/generate-component-response'
+
+const props = defineProps<{ message: TamboThreadMessage }>()
+provideTamboMessage(props.message)
+</script>
+
+<template>
+  <slot />
+  <!-- Provides current message context to child components -->
+</template>
+
+<script setup lang="ts">
 import { provide } from 'vue'
 import type { TamboThreadMessage } from '../model/generate-component-response'
 import { TamboMessageKey } from '../hooks/use-current-message'
