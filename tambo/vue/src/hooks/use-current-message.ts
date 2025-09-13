@@ -1,7 +1,7 @@
 import { InjectionKey, VNode, inject, provide } from "vue";
 import { TamboThreadMessage } from "../model/generate-component-response";
 
-const TamboMessageKey: InjectionKey<TamboThreadMessage> = Symbol("TamboMessage");
+export const TamboMessageKey: InjectionKey<TamboThreadMessage> = Symbol("TamboMessage");
 
 export function provideTamboMessage(message: TamboThreadMessage) {
   provide(TamboMessageKey, message);
