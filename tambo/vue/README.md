@@ -1,6 +1,8 @@
-@tambo-ai/vue
+@tambo-ai/vue (Experimental)
 
 Vue 3 SDK for Tambo AI. Vue-first API with plugin + composables and slot-based stream components.
+
+Status: Experimental. Interfaces may change. If you find an issue, please open a PR with a fix or a reproduction.
 
 Quickstart
 
@@ -49,4 +51,8 @@ Notes
 
 - Requires Vue 3 and @tanstack/vue-query installed in the host app.
 - SSR: some features are browser-only (streaming, crypto). Guard usage in SSR and call in onMounted() where needed.
+
+Contributing
+
+- Experimental package: small, focused PRs welcome. Please include tests.
 
