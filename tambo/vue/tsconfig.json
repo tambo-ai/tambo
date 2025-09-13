@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "composite": false,
+    "jsx": "preserve",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "types": ["jest", "node"],
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["dist", "esm", "node_modules"]
+}
+
