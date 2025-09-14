@@ -331,6 +331,7 @@ This hook provides a safe way to read the current interactable components withou
 Returns a cloned snapshot of the current interactable components. Each component and its props are shallow-cloned to prevent external mutation from affecting internal state.
 
 **Returns:** Array of interactable components with the following structure:
+
 - `id`: Unique identifier for the component
 - `name`: Component name
 - `description`: Component description
@@ -338,12 +339,13 @@ Returns a cloned snapshot of the current interactable components. Each component
 - `propsSchema`: Optional Zod schema for props validation
 
 **Example:**
+
 ```tsx
 import { useCurrentInteractablesSnapshot } from "@tambo-ai/react";
 
 function InteractablesList() {
   const snapshot = useCurrentInteractablesSnapshot();
-  
+
   return (
     <div>
       {snapshot.map((component) => (
@@ -358,6 +360,7 @@ function InteractablesList() {
 ```
 
 **Use cases:**
+
 - Reading current interactable components for display
 - Creating context helpers that provide component information to AI
 - Debugging or monitoring interactable component state
