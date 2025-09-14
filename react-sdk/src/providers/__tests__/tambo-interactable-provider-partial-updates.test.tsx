@@ -99,7 +99,7 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
           {
             count: 5,
           },
-        ) as unknown as string;
+        );
       });
 
       expect(updateResult).toBe("Updated successfully");
@@ -318,12 +318,15 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
     it("should return error for non-existent component", () => {
       const { result } = renderHook(() => useTamboInteractable(), { wrapper });
 
-      const updateResult = result.current.updateInteractableComponentProps(
-        "non-existent",
-        {
-          title: "New Title",
-        },
-      );
+      let updateResult = "";
+      act(() => {
+        updateResult = result.current.updateInteractableComponentProps(
+          "non-existent",
+          {
+            title: "New Title",
+          },
+        );
+      });
 
       expect(updateResult).toBe(
         "Error: Component with ID non-existent not found",
@@ -346,10 +349,13 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         componentId = result.current.addInteractableComponent(component);
       });
 
-      const updateResult = result.current.updateInteractableComponentProps(
-        componentId,
-        {},
-      );
+      let updateResult = "";
+      act(() => {
+        updateResult = result.current.updateInteractableComponentProps(
+          componentId,
+          {},
+        );
+      });
 
       expect(updateResult).toBe(
         `Warning: No props provided for component with ID ${componentId}.`,
@@ -372,10 +378,13 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         componentId = result.current.addInteractableComponent(component);
       });
 
-      const updateResult = result.current.updateInteractableComponentProps(
-        componentId,
-        null as any,
-      );
+      let updateResult = "";
+      act(() => {
+        updateResult = result.current.updateInteractableComponentProps(
+          componentId,
+          null as any,
+        );
+      });
 
       expect(updateResult).toBe(
         `Warning: No props provided for component with ID ${componentId}.`,
@@ -398,10 +407,13 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         componentId = result.current.addInteractableComponent(component);
       });
 
-      const updateResult = result.current.updateInteractableComponentProps(
-        componentId,
-        undefined as any,
-      );
+      let updateResult = "";
+      act(() => {
+        updateResult = result.current.updateInteractableComponentProps(
+          componentId,
+          undefined as any,
+        );
+      });
 
       expect(updateResult).toBe(
         `Warning: No props provided for component with ID ${componentId}.`,
@@ -629,10 +641,12 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
             count: 5,
             active: true,
           },
-        ) as unknown as string;
+        );
       });
 
-      expect(updateResult).toBe("Updated successfully");
+      expect(updateResult).toBe(
+        "No changes needed - all provided props are identical to current values",
+      );
       expect(result.current.interactableComponents[0].props).toEqual(
         originalProps,
       );
