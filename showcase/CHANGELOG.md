@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.23.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.22.0...showcase-v0.23.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* Replace TamboHackBanner with ProductHuntBanner ([#1035](https://github.com/tambo-ai/tambo/issues/1035)) ([7af2f53](https://github.com/tambo-ai/tambo/commit/7af2f5394c5d3d85ee7e0ec03b4b767df946d249))
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+
+### Miscellaneous Chores
+
+* **showcase:** add robots.txt and sitemap link ([#1020](https://github.com/tambo-ai/tambo/issues/1020)) ([762f0cd](https://github.com/tambo-ai/tambo/commit/762f0cdc10d41e702b2964d86b1bf0eda3149656))
+* **showcase:** Update meta and implement og and twitter image ([#1025](https://github.com/tambo-ai/tambo/issues/1025)) ([34a0be0](https://github.com/tambo-ai/tambo/commit/34a0be06e0479894a581b47d6e63a1523a64c64b))
+
 ## [0.22.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.21.0...showcase-v0.22.0) (2025-09-09)
 
 

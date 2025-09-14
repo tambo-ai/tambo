@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/tambo-ai/tambo/compare/docs-v1.8.0...docs-v1.9.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* Replace TamboHackBanner with ProductHuntBanner ([#1035](https://github.com/tambo-ai/tambo/issues/1035)) ([7af2f53](https://github.com/tambo-ai/tambo/commit/7af2f5394c5d3d85ee7e0ec03b4b767df946d249))
+
 ## [1.8.0](https://github.com/tambo-ai/tambo/compare/docs-v1.7.0...docs-v1.8.0) (2025-09-11)
 
 
