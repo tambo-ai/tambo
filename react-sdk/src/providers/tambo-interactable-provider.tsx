@@ -179,16 +179,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         return `Warning: No props provided for component with ID ${id}.`;
       }
 
-      // Check existence synchronously
-      const exists = interactableComponents.some((c) => c.id === id);
-      if (!exists) {
-        return `Error: Component with ID ${id} not found`;
-      }
-
       // Initialize result message
       let resultMessage = "Updated successfully";
 
-      // Find the component
+      // Find the component from current state
       const component = interactableComponents.find((c) => c.id === id);
       if (!component) {
         resultMessage = `Error: Component with ID ${id} not found`;
