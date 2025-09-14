@@ -319,3 +319,46 @@ Adds or replaces a helper at the given key.
 `const { removeContextHelper } = useTamboContextHelpers()`
 
 Removes a helper by key so it is no longer included in outgoing messages.
+
+### useCurrentInteractablesSnapshot
+
+This hook provides a safe way to read the current interactable components without risking accidental mutation of internal state.
+
+#### snapshot
+
+`const snapshot = useCurrentInteractablesSnapshot()`
+
+Returns a cloned snapshot of the current interactable components. Each component and its props are shallow-cloned to prevent external mutation from affecting internal state.
+
+**Returns:** Array of interactable components with the following structure:
+- `id`: Unique identifier for the component
+- `name`: Component name
+- `description`: Component description
+- `props`: Cloned props object
+- `propsSchema`: Optional Zod schema for props validation
+
+**Example:**
+```tsx
+import { useCurrentInteractablesSnapshot } from "@tambo-ai/react";
+
+function InteractablesList() {
+  const snapshot = useCurrentInteractablesSnapshot();
+  
+  return (
+    <div>
+      {snapshot.map((component) => (
+        <div key={component.id}>
+          <h3>{component.name}</h3>
+          <p>Props: {JSON.stringify(component.props)}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+**Use cases:**
+- Reading current interactable components for display
+- Creating context helpers that provide component information to AI
+- Debugging or monitoring interactable component state
+- Building UI that shows what components are currently interactable
