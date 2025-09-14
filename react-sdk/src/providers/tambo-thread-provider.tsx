@@ -267,7 +267,7 @@ export const TamboThreadProvider: React.FC<
           `Auto-generated ${componentName} component`,
         component: registeredComponent.component,
         props: props ?? {},
-        propsSchema: registeredComponent.props,
+        propsSchema: registeredComponent.propsSchema,
       });
     },
     [autoInteractables, addInteractableComponent],
@@ -996,10 +996,11 @@ export const TamboThreadProvider: React.FC<
       client,
       updateThreadMessage,
       updateThreadStatus,
+      handleAdvanceStream,
       streaming,
       getAdditionalContext,
       onCallUnregisteredTool,
-      handleComponentRendered
+      handleComponentRendered,
     ],
   );
 

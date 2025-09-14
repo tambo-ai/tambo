@@ -184,6 +184,7 @@ export const TamboRegistryProvider: React.FC<
             name,
             description,
             props,
+            propsSchema,
             contextTools: [],
           },
         };
