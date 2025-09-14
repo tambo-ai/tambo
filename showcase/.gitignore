@@ -16,6 +16,10 @@
 # next.js
 /.next/
 /out/
+# generated SEO assets
+public/sitemap.xml
+public/sitemap-*.xml
+public/robots.txt
 
 # production
 /build
