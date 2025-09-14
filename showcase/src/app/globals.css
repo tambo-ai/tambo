@@ -61,6 +61,8 @@ html {
     --color-5: 186 94% 13%; /* #023A41 */
 
     --header-height: 3.5rem;
+    --banner-height: 0px;
+    --sidebar-top-offset: calc(var(--banner-height) + var(--header-height));
     font-family: Inter, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
   }

@@ -4,6 +4,7 @@ import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -179,8 +180,9 @@ export const MessageThreadFull = React.forwardRef<
         {/* Message input */}
         <div className="p-4">
           <MessageInput contextKey={contextKey}>
-            <MessageInputTextarea />
+            <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
+              <MessageInputFileButton />
               <MessageInputSubmitButton />
             </MessageInputToolbar>
             <MessageInputError />

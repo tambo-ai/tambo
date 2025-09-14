@@ -4,6 +4,7 @@
     "sending-messages",
     "showing-responses",
     "switching-thread",
-    "thread-status"
+    "thread-status",
+    "image-attachments"
   ]
 }
