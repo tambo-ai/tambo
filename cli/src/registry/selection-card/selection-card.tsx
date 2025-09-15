@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useTamboComponentState } from "@tambo-ai/react";
 import { Check, CheckSquare, Minus, Square } from "lucide-react";
 import * as React from "react";
 import { z } from "zod";
@@ -166,16 +167,25 @@ export const SelectionCard = React.forwardRef<
     // Determine mode: controlled (selectedIds + onChange), semi-controlled (selectedIds only), or independent
     const isControlled = selectedIds !== undefined && onChange !== undefined;
 
-    // Internal state for independent and semi-controlled modes
-    const [internalSelectedIds, setInternalSelectedIds] = React.useState<
-      string[]
-    >(selectedIds ?? defaultSelectedIds);
+    // Internal state for independent and semi-controlled modes using Tambo state management
+    // This allows AI to understand and interact with the selection state
+    const [internalSelectedIds, setInternalSelectedIds] =
+      useTamboComponentState("selectedItems", defaultSelectedIds);
+
+    // Handle streaming updates from defaultSelectedIds
+    React.useEffect(() => {
+      if (defaultSelectedIds.length > 0 && !internalSelectedIds?.length) {
+        setInternalSelectedIds(defaultSelectedIds);
+      }
+    }, [defaultSelectedIds, internalSelectedIds, setInternalSelectedIds]);
 
     // State for collapsed/expanded view (show only 5 items initially)
     const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
 
-    // Use controlled value or internal state
-    const currentSelectedIds = isControlled ? selectedIds : internalSelectedIds;
+    // Use controlled value or internal state, with fallback to empty array
+    const currentSelectedIds = React.useMemo(() => {
+      return isControlled ? selectedIds : (internalSelectedIds ?? []);
+    }, [isControlled, selectedIds, internalSelectedIds]);
 
     // Handler that works for all modes
     const handleSelectionChange = React.useCallback(
@@ -188,7 +198,7 @@ export const SelectionCard = React.forwardRef<
         // Only call onChange if provided (for controlled and semi-controlled modes)
         onChange?.(newSelectedIds);
       },
-      [isControlled, onChange],
+      [isControlled, onChange, setInternalSelectedIds],
     );
     // Convert items to normalized format
     const normalizedItems = React.useMemo(() => {
@@ -455,5 +465,3 @@ export const SelectionCard = React.forwardRef<
 );
 
 SelectionCard.displayName = "SelectionCard";
-
-// SelectionIntents type is already exported above
