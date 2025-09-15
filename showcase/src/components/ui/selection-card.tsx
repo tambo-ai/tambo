@@ -194,7 +194,7 @@ export const SelectionCard = React.forwardRef<
         return selectedIds || [];
       }
       // internalSelectedIds is guaranteed to be initialized as an array via useTamboComponentState
-      return internalSelectedIds || [];
+      return internalSelectedIds ?? [];
     }, [isControlled, selectedIds, internalSelectedIds]);
 
     // Handler that works for all modes

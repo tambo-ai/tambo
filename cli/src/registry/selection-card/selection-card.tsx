@@ -167,24 +167,34 @@ export const SelectionCard = React.forwardRef<
     // Determine mode: controlled (selectedIds + onChange), semi-controlled (selectedIds only), or independent
     const isControlled = selectedIds !== undefined && onChange !== undefined;
 
+    // Serialize defaultSelectedIds for stable comparison
+    const defaultSelectedIdsSerialized = JSON.stringify(defaultSelectedIds);
+
+    // Stabilize defaultSelectedIds reference to prevent infinite re-renders
+    const stableDefaultSelectedIds = React.useMemo(() => {
+      return defaultSelectedIds;
+    }, [defaultSelectedIdsSerialized]);
+
     // Internal state for independent and semi-controlled modes using Tambo state management
     // This allows AI to understand and interact with the selection state
+    // Use setFromProp parameter to handle streaming updates properly
     const [internalSelectedIds, setInternalSelectedIds] =
-      useTamboComponentState("selectedItems", defaultSelectedIds);
-
-    // Handle streaming updates from defaultSelectedIds
-    React.useEffect(() => {
-      if (defaultSelectedIds.length > 0 && !internalSelectedIds?.length) {
-        setInternalSelectedIds(defaultSelectedIds);
-      }
-    }, [defaultSelectedIds, internalSelectedIds, setInternalSelectedIds]);
+      useTamboComponentState<string[]>(
+        "selectedItems",
+        [],
+        stableDefaultSelectedIds,
+      );
 
     // State for collapsed/expanded view (show only 5 items initially)
     const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
 
-    // Use controlled value or internal state, with fallback to empty array
+    // Use controlled value or internal state, with proper fallback handling
     const currentSelectedIds = React.useMemo(() => {
-      return isControlled ? selectedIds : (internalSelectedIds ?? []);
+      if (isControlled) {
+        return selectedIds || [];
+      }
+      // internalSelectedIds is guaranteed to be initialized as an array via useTamboComponentState
+      return internalSelectedIds ?? [];
     }, [isControlled, selectedIds, internalSelectedIds]);
 
     // Handler that works for all modes
