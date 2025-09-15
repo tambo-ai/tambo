@@ -1,6 +1,6 @@
+import { env } from "@/lib/env";
 import dns from "dns/promises";
 import { parse as parseTld } from "tldts";
-import { env } from "@/lib/env";
 
 // Helper to validate URLs are not pointing to unsafe locations
 const isUnsafeHostname = (hostname: string): boolean => {
