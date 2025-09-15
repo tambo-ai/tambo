@@ -34,7 +34,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
     "jose": "^5.10.0",
-    "openai": "^5.19.1"
+    "openai": "^5.20.2"
   },
   "license": "Apache-2.0"
 }
