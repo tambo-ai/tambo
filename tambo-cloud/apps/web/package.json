@@ -66,7 +66,7 @@
     "js-tiktoken": "^1.0.21",
     "json-stringify-pretty-compact": "^4.0.0",
     "lucide-react": "^0.542.0",
-    "luxon": "^3.7.1",
+    "luxon": "^3.7.2",
     "next": "^15.5.2",
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.5",
