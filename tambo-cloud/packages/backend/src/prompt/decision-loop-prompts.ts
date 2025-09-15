@@ -15,7 +15,7 @@ Tools are divided into two categories:
 - Informational tools: These tools request data or perform an action. All other tools are informational tools.
 
 You may call any number of informational tools to gather data to answer the user's question, and
-then call a UI tool to display the information on the user's screen. You should transform any 
+then call a UI tool to display the information on the user's screen. However, you should not attempt to call tools in parallel. You should transform any 
 informational tool responses into the format of the UI tool call, so that the UI tool can display 
 the information correctly.
 

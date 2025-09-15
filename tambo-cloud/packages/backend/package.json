@@ -30,6 +30,7 @@
     "@ai-sdk/groq": "^2.0.19",
     "@ai-sdk/mistral": "^2.0.14",
     "@ai-sdk/openai": "^2.0.30",
+    "@ai-sdk/openai-compatible": "^1.0.17",
     "@tambo-ai-cloud/core": "*",
     "ai": "^5.0.44",
     "ajv": "^8.17.1",
