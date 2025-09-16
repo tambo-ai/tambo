@@ -1,4 +1,5 @@
 import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
+import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { DeepPartial } from "ts-essentials";
@@ -9,7 +10,7 @@ import {
   TamboThreadMessage,
 } from "../../model/generate-component-response";
 import { serializeRegistry } from "../../testing/tools";
-import { useTamboClient } from "../tambo-client-provider";
+import { useTamboClient, useTamboQueryClient } from "../tambo-client-provider";
 import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "../tambo-thread-provider";
@@ -26,6 +27,7 @@ Object.defineProperty(global, "crypto", {
 // Mock the required providers
 jest.mock("../tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(),
 }));
 jest.mock("@tambo-ai/typescript-sdk", () => ({
   advanceStream: jest.fn(),
@@ -104,6 +106,10 @@ describe("TamboThreadProvider", () => {
     beta: mockBeta,
   } satisfies PartialTamboAI as unknown as TamboAI;
 
+  let mockQueryClient: {
+    refetchQueries: jest.Mock;
+  };
+
   const mockRegistry: TamboComponent[] = [
     {
       name: "TestOnly",
@@ -142,6 +148,15 @@ describe("TamboThreadProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Setup mock query client
+    mockQueryClient = {
+      refetchQueries: jest.fn().mockResolvedValue(undefined),
+    };
+    jest
+      .mocked(useTamboQueryClient)
+      .mockReturnValue(mockQueryClient as unknown as QueryClient);
+
     jest.mocked(mockThreadsApi.retrieve).mockResolvedValue(mockThread);
     jest
       .mocked(mockThreadsApi.messages.create)
@@ -1014,6 +1029,86 @@ describe("TamboThreadProvider", () => {
 
       // Verify generation stage is set to ERROR
       expect(result.current.generationStage).toBe(GenerationStage.ERROR);
+    });
+  });
+
+  describe("refetch threads list behavior", () => {
+    it("should refetch threads list when switching from placeholder to real thread", async () => {
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Start with placeholder thread
+      expect(result.current.thread.id).toBe("placeholder");
+
+      // Switch to a real thread (simulating new thread creation)
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      // Verify that refetchQueries was called with the correct parameters
+      expect(mockQueryClient.refetchQueries).toHaveBeenCalledWith({
+        queryKey: ["threads"],
+        type: "active",
+      });
+    });
+
+    it("should not refetch threads list when switching between existing threads", async () => {
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // First switch to a real thread
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      // Clear the mock to reset call count
+      mockQueryClient.refetchQueries.mockClear();
+
+      // Switch to another existing thread
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-2");
+      });
+
+      // Verify that refetchQueries was NOT called again
+      expect(mockQueryClient.refetchQueries).not.toHaveBeenCalled();
+    });
+
+    it("should refetch threads list when creating a new thread via sendThreadMessage", async () => {
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Mock the advance response to return a new thread ID
+      const mockAdvanceResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "response-1",
+          content: [{ type: "text", text: "Response" }],
+          role: "assistant",
+          threadId: "new-thread-123",
+          component: undefined,
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      jest
+        .mocked(mockThreadsApi.advance)
+        .mockResolvedValue(mockAdvanceResponse);
+
+      // Start with placeholder thread
+      expect(result.current.thread.id).toBe("placeholder");
+
+      // Send a message which will create a new thread
+      await act(async () => {
+        await result.current.sendThreadMessage("Hello", {
+          threadId: "placeholder",
+          streamResponse: false,
+        });
+      });
+
+      // Verify that refetchQueries was called when the new thread was created
+      expect(mockQueryClient.refetchQueries).toHaveBeenCalledWith({
+        queryKey: ["threads"],
+        type: "active",
+      });
     });
   });
 });

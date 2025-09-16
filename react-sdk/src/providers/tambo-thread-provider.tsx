@@ -24,7 +24,7 @@ import {
   mapTamboToolToContextTool,
 } from "../util/registry";
 import { handleToolCall } from "../util/tool-caller";
-import { useTamboClient } from "./tambo-client-provider";
+import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
@@ -212,6 +212,7 @@ export const TamboThreadProvider: React.FC<
     [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
   });
   const client = useTamboClient();
+  const queryClient = useTamboQueryClient();
   const {
     componentList,
     toolRegistry,
@@ -245,6 +246,17 @@ export const TamboThreadProvider: React.FC<
   useEffect(() => {
     ignoreResponseRef.current = ignoreResponse;
   }, [ignoreResponse]);
+
+  const refetchThreadsList = useCallback(async () => {
+    try {
+      await queryClient.refetchQueries({
+        queryKey: ["threads"],
+        type: "active",
+      });
+    } catch (error) {
+      console.warn("Failed to refetch threads list:", error);
+    }
+  }, [queryClient]);
 
   const fetchThread = useCallback(
     async (threadId: string, includeInternalMessages = true) => {
@@ -459,6 +471,7 @@ export const TamboThreadProvider: React.FC<
         console.warn("Switching to placeholder thread, may be a bug.");
         return;
       }
+
       setCurrentThreadId(threadId);
       setThreadMap((prevMap) => {
         if (prevMap[threadId]) {
@@ -474,11 +487,20 @@ export const TamboThreadProvider: React.FC<
         };
         return updatedThreadMap;
       });
+
+      const wasPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
+
+      // If we're switching from placeholder to a real thread,
+      // this means a new thread was created, so refetch the threads list
+      if (wasPlaceholderThread) {
+        await refetchThreadsList();
+      }
+
       if (fetch) {
         await fetchThread(threadId);
       }
     },
-    [fetchThread],
+    [fetchThread, currentThreadId, refetchThreadsList],
   );
 
   const updateThreadStatus = useCallback(
