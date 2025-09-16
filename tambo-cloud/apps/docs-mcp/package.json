@@ -16,7 +16,7 @@
     "@sentry/nextjs": "^10.11.0",
     "@inkeep/inkeep-analytics": "0.2.4-alpha.27",
     "mcp-handler": "^1.0.2",
-    "next": "^15.5.0",
+    "next": "^15.5.3",
     "openai": "^5.20.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
