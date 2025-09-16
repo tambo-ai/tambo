@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { z } from "zod";
 import { AgentSettings } from "./agent-settings";
+import { CustomLlmParametersEditor } from "./custom-llm-parameters-editor";
 
 export const ProviderKeySectionSchema = z
   .object({
@@ -1118,19 +1119,32 @@ export function ProviderKeySection({
                         </p>
                       )}
                     </div>
+
+                    {/* Custom LLM Parameters Section */}
+                    <div className="space-y-2">
+                      <Label>Custom LLM Parameters</Label>
+                      <CustomLlmParametersEditor
+                        project={project}
+                        selectedProvider={parsedSelection.provider}
+                        selectedModel={parsedSelection.model}
+                        onEdited={onEdited}
+                      />
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div className="border-t flex items-center justify-between text-xs">
-                <a
-                  href="https://github.com/tambo-ai/tambo-cloud/issues/new?template=feature_request.md&title=Add%20support%20for%20[Model%20Name]"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-foreground hover:text-primary transition-colors"
-                >
-                  Request support for another model
-                  <ExternalLinkIcon className="ml-1 h-3 w-3" />
-                </a>
+              <div className="border-t pt-2">
+                <div className="flex items-center justify-between text-xs">
+                  <a
+                    href="https://github.com/tambo-ai/tambo-cloud/issues/new?template=feature_request.md&title=Add%20support%20for%20[Model%20Name]"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-foreground hover:text-primary transition-colors"
+                  >
+                    Request support for another model
+                    <ExternalLinkIcon className="ml-1 h-3 w-3" />
+                  </a>
+                </div>
               </div>
             </div>
             {showValidationErrors && !combinedSelectValue && (

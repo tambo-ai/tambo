@@ -2,6 +2,7 @@ export * from "./ComponentDecision";
 export * from "./composio-utils";
 export * from "./encrypt";
 export * from "./json";
+export type * from "./llm-parameter-types";
 export type * from "./mcp-auth";
 export * from "./MCPClient";
 export * from "./oauth";

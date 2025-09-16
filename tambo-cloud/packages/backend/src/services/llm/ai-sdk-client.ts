@@ -6,6 +6,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
   ChatCompletionMessageParam,
+  CustomLlmParameters,
   getToolDescription,
   getToolName,
   tryParseJson,
@@ -113,6 +114,7 @@ export class AISdkClient implements LLMClient {
   private apiKey: string | undefined;
   private baseURL?: string;
   private maxInputTokens?: number | null;
+  private customLlmParameters?: CustomLlmParameters;
   readonly chainId: string;
   readonly userId: string;
 
@@ -124,6 +126,7 @@ export class AISdkClient implements LLMClient {
     userId: string,
     baseURL?: string,
     maxInputTokens?: number | null,
+    customLlmParameters?: CustomLlmParameters,
   ) {
     this.apiKey = apiKey;
     this.model = model;
@@ -132,6 +135,7 @@ export class AISdkClient implements LLMClient {
     this.userId = userId;
     this.baseURL = baseURL;
     this.maxInputTokens = maxInputTokens;
+    this.customLlmParameters = customLlmParameters;
   }
 
   async complete(
@@ -221,11 +225,24 @@ export class AISdkClient implements LLMClient {
       ...(experimentalTelemetry && {
         experimental_telemetry: experimentalTelemetry,
       }),
+      /**
+       * Extract and flatten custom parameters from our nested storage structure.
+       *
+       * Storage format: provider -> model -> parameters (for model-specific configs)
+       * AI SDK expects: provider -> parameters (flat structure)
+       *
+       * We extract only the current model's parameters and merge them with default
+       * parallel tool calls settings, then pass them to the AI SDK.
+       * This allows users to have different settings for GPT-4 vs GPT-3.5, etc.
+       */
       providerOptions: {
         [providerKey]: {
+          // Default parallel tool calls settings (always applied)
           parallelToolCalls: false,
           disableParallelToolUse: true,
           parallel_tool_calls: false,
+          // Custom parameters override defaults (if any exist)
+          ...this.customLlmParameters?.[providerKey]?.[this.model],
         },
       },
     };

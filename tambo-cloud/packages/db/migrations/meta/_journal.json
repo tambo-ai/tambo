@@ -512,6 +512,13 @@
       "when": 1757711186361,
       "tag": "0072_lucky_hannibal_king",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1757968702060,
+      "tag": "0073_brown_alex_power",
+      "breakpoints": true
     }
   ]
 }

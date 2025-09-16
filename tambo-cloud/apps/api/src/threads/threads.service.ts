@@ -165,6 +165,7 @@ export class ThreadsService {
       agentType: project.agentProviderType,
       agentName: project.agentName,
       agentUrl: project.agentUrl,
+      customLlmParameters: project.customLlmParameters,
     });
   }
 

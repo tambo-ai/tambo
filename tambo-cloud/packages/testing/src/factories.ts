@@ -48,6 +48,7 @@ export function createMockDBProject(
     agentProviderType: overrides.agentProviderType ?? AgentProviderType.AGUI,
     agentUrl: overrides.agentUrl ?? null,
     agentName: overrides.agentName ?? null,
+    customLlmParameters: overrides.customLlmParameters ?? null,
     creatorId: overrides.creatorId ?? null,
     members: overrides.members ?? [],
     agentHeaders: overrides.agentHeaders ?? null,

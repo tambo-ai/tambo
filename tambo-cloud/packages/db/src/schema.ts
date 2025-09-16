@@ -14,6 +14,7 @@ import {
   SessionClientInformation,
   ToolCallRequest,
   ToolProviderType,
+  type CustomLlmParameters,
 } from "@tambo-ai-cloud/core";
 import { relations, sql } from "drizzle-orm";
 import {
@@ -187,6 +188,9 @@ export const projects = pgTable(
       .notNull(),
     agentUrl: text("agent_url"),
     agentName: text("agent_name"),
+    customLlmParameters: customJsonb<CustomLlmParameters>(
+      "custom_llm_parameters",
+    ),
     agentHeaders: customJsonb<Record<string, string>>("agent_headers"),
   }),
   (table) => {

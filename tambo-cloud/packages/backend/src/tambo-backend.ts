@@ -4,6 +4,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   LegacyComponentDecision,
   ThreadMessage,
+  CustomLlmParameters,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { AvailableComponent } from "./model/component-metadata";
@@ -26,6 +27,7 @@ interface TamboBackendOptions {
   agentType?: AgentProviderType;
   agentName?: string;
   agentUrl?: string;
+  customLlmParameters?: CustomLlmParameters;
   headers?: Record<string, string>;
 }
 
@@ -105,6 +107,7 @@ class AgenticTamboBackend implements TamboBackend {
       agentType,
       agentName,
       agentUrl,
+      customLlmParameters,
       headers = {},
     } = options;
     const llmClient = new AISdkClient(
@@ -115,6 +118,7 @@ class AgenticTamboBackend implements TamboBackend {
       userId,
       baseURL,
       maxInputTokens,
+      customLlmParameters,
     );
 
     const modelOptions = {
