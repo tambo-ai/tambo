@@ -53,7 +53,7 @@
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
     "eslint": "^9",
-    "eslint-config-next": "15.5.2",
+    "eslint-config-next": "15.5.3",
     "next-sitemap": "^4.2.3",
     "postcss": "^8.5.6",
     "rimraf": "^6.0.1",
