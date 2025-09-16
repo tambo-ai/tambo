@@ -91,16 +91,31 @@ allowed to do so.
   - Prefer React.FC for components. Use PropsWithChildren and `ComponentProps[WithRef|WithoutRef]` as needed.
   - Exports: prefer named exports; allow multiple exports when they belong together (e.g., component + related types); avoid default exports.
 - State & data
-  - Local UI: use useState. Shared: use React Context. Server state: React Query/tRPC hooks.
+  - Local UI elements should use useState.
+  - For shared state between components, use React Context.
   - Minimize use of useEffect; derive state or memoize instead. Memoize callbacks with useCallback when passed to children.
-  - For tRPC/React Query, don’t manually track separate loading flags. Instead use the provided hook states. Follow devdocs/LOADING_STATES.md patterns for skeletons and disabling controls.
+  - When making network request, use tRPC/React Query loading states instead of
+    manually tracking separate loading flags. Follow devdocs/LOADING_STATES.md
+    patterns for skeletons and disabling controls.
 - Layout & styling (Tailwind + shadcn)
-  - Use flex/grid for any even slightly complex layout. Manage spacing primarily with gap (using `gap-_` classes if needed), and element padding `p-_`. Avoid ever setting margins and avoid space-x/y.
+  - Use flex/grid for layout. Manage element spacing with gap (use `gap-*`
+    classes when needed), and padding (`p-*`, `pt-*`, `pr-*`, `pb-*`, `pl-*`,
+    etc.).
+  - Avoid changing element margins (`m-*`, `mt-*`, `mr-*`, `mb-*`, `ml-*`, etc.) and avoid tailwind classes `space-x-*`/`space-y-*`.
   - Truncate overflowing text with text-ellipsis. Prefer minimal Tailwind usage; avoid ad-hoc CSS.
 - Typography
   - Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See apps/web/lib/fonts.ts and tailwind.config.ts.
 - Text
   - avoid manually changing string cases, as it is usually a code smell for not providing the correct string to the component. If a internal key should be shown to a user, the english string should be provided separately. e.g. if a key has a value agent_mode, the english string should be provided separately as "Agent Mode" rather than trying to capitalize it.
+  - Avoid overly long JSX, instead break out any complex JSX into a separate component.
+    - use simple '&&' to hide/show simple elements, using simple boolean values, like `{hasError && <div>Error: ${error}</div>}`.
+    - however, avoid ternaries unless the options are just one or two lines. nested or chained ternaries are a code smell.
+    - when using map(), try to keep the JSX in the inner loop simple, only a few lines of JSX.
+    - avoid functions with statements inside of JSX, such as if/else, switch, etc. If you have to
+      add braces ({}) to JSX, that is a sign that you should break out the JSX
+      into a separate component.
+  - Use loading states provided by react-query or tRPC, e.g. `isFetching`, `isError`, `isSuccess`, etc.
+  - When using loading states, use the Skeleton components or show the real components in a disabled/blank state, rather than showing only loading spinner or not showing any content.
 
 ## 4) Backend (NestJS in apps/api)
 
