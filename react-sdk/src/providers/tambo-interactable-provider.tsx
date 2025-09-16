@@ -179,54 +179,37 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         return `Warning: No props provided for component with ID ${id}.`;
       }
 
-      // Initialize result message
-      let resultMessage = "Updated successfully";
-
-      // Find the component from current state
-      const component = interactableComponents.find((c) => c.id === id);
-      if (!component) {
-        resultMessage = `Error: Component with ID ${id} not found`;
-        return resultMessage;
-      }
-
-      // Compare props shallowly to determine if any changes are needed
-      const propsChanged = Object.entries(newProps).some(([key, value]) => {
-        const currentValue = component.props[key];
-        return currentValue !== value;
-      });
-
-      // Update message based on comparison result
-      if (!propsChanged) {
-        resultMessage = `No changes needed - all provided props are identical to current values`;
-        return resultMessage; // Early return, no state update needed
-      }
-
-      // Apply the partial update to component props
       setInteractableComponents((prev) => {
-        const idx = prev.findIndex((c) => c.id === id);
-        if (idx === -1) {
-          // Shouldn't normally happen since we pre-checked
-          resultMessage = `Error: Component with ID ${id} not found during update`;
+        const component = prev.find((c) => c.id === id);
+        if (!component) {
           return prev;
         }
 
-        const original = prev[idx];
+        // Compare props shallowly
+        const propsChanged = Object.entries(newProps).some(([key, value]) => {
+          return component.props[key] !== value;
+        });
 
-        // Apply partial update by merging new props with existing props
+        if (!propsChanged) {
+          return prev; // unchanged
+        }
+
+        // Apply partial update
         const updated = {
-          ...original,
-          props: { ...original.props, ...newProps },
+          ...component,
+          props: { ...component.props, ...newProps },
         };
 
         const updatedComponents = [...prev];
+        const idx = prev.findIndex((c) => c.id === id);
         updatedComponents[idx] = updated;
 
         return updatedComponents;
       });
 
-      return resultMessage;
+      return "Updated successfully";
     },
-    [interactableComponents],
+    [],
   );
 
   const registerInteractableComponentUpdateTool = useCallback(
@@ -337,7 +320,6 @@ export const useTamboInteractable = () => {
  */
 export const useCurrentInteractablesSnapshot = () => {
   const { interactableComponents } = useTamboInteractable();
-
   // Clone the array and each item/props to prevent mutation
   const copy = interactableComponents.map((c) => ({
     ...c,

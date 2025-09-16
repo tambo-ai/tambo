@@ -54,6 +54,7 @@ import {
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
  * @param props.userToken - The JWT id token to use to identify the user in the Tambo API. (preferred over contextKey)
  * @param props.contextKey - Optional context key to be used in the thread input provider
+ * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<

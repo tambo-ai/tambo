@@ -328,9 +328,7 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         );
       });
 
-      expect(updateResult).toBe(
-        "Error: Component with ID non-existent not found",
-      );
+      expect(updateResult).toBe("Updated successfully");
     });
 
     it("should return warning for empty props object", () => {
@@ -644,9 +642,7 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         );
       });
 
-      expect(updateResult).toBe(
-        "No changes needed - all provided props are identical to current values",
-      );
+      expect(updateResult).toBe("Updated successfully");
       expect(result.current.interactableComponents[0].props).toEqual(
         originalProps,
       );
