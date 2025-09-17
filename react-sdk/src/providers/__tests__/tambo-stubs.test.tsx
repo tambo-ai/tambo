@@ -20,8 +20,12 @@ describe("TamboStubProvider threads functionality", () => {
     total: 1,
     count: 1,
     getPaginatedItems: () => [mockThread],
-    nextPageParams: () => ({ offset: 1, limit: 10 }),
-    nextPageInfo: () => null,
+    nextPageRequestOptions: () => ({
+      offset: 1,
+      limit: 10,
+      path: "/threads",
+      method: "get",
+    }),
   };
 
   it("should populate query cache with threads data", async () => {

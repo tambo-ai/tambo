@@ -84,9 +84,11 @@ export function useTamboComponentState<S>(
         state: { [keyName]: newState },
       };
       await client.beta.threads.messages.updateComponentState(
-        existingMessage.threadId,
         existingMessage.id,
-        componentStateUpdate,
+        {
+          id: existingMessage.threadId,
+          state: componentStateUpdate,
+        },
       );
     },
     debounceTime,
