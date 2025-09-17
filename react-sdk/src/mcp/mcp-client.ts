@@ -135,12 +135,8 @@ export class MCPClient {
           : undefined;
 
       // Prevent re-entrant onclose during deliberate close by detaching
-      // the handler from the previous client instance without using `any`.
-      interface ClosableWithOptionalOnClose {
-        close: () => Promise<void>;
-        onclose?: (() => void) | null;
-      }
-      const prevClient = this.client as unknown as ClosableWithOptionalOnClose;
+      // the handler from the previous client instance.
+      const prevClient = this.client;
       // Prevent re-entrant onclose callbacks from the previous client
       prevClient.onclose = undefined;
 
