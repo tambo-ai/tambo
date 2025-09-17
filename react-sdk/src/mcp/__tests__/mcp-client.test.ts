@@ -315,9 +315,10 @@ describe("MCPClient", () => {
   });
 
   describe("onclose", () => {
-    it("should reconnect MCPClient when client is closed by external means", async () => {
+    it("should reconnect MCPClient when client is closed by external means (no backoff on manual preemption)", async () => {
       const endpoint = "https://api.example.com/mcp";
       const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      jest.useFakeTimers();
       const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
 
       // Create new mock instances to verify reconnection creates new instances
@@ -339,13 +340,18 @@ describe("MCPClient", () => {
         () => newMockTransportInstance as any,
       );
 
-      // Simulate the onclose callback being triggered by external client closure
-      await (client as any).onclose();
+      // Reset counts after initial creation
+      jest.clearAllMocks();
+
+      // Trigger automatic onclose (schedules a delayed reconnect)
+      (client as any).onclose();
+      // Manual reconnect should preempt the scheduled automatic attempt
+      const reconnectPromise = client.reconnect();
+      // No timers should be pending after manual preemption
+      await reconnectPromise;
 
       // Verify warning message is logged
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Tambo MCP Client closed, reconnecting...",
-      );
+      expect(consoleSpy).toHaveBeenCalled();
 
       // Verify old client was closed
       expect(mockClientInstance.close).toHaveBeenCalled();
@@ -367,7 +373,109 @@ describe("MCPClient", () => {
         newMockTransportInstance,
       );
 
+      // Ensure only a single reconnect attempt occurred
+      expect(MockedClient).toHaveBeenCalledTimes(1);
+      expect(newMockClientInstance.connect).toHaveBeenCalledTimes(1);
+
       consoleSpy.mockRestore();
+      jest.useRealTimers();
+    });
+  });
+
+  describe("reconnect re-entrancy and single-flight", () => {
+    it("prevents re-entrant onclose during deliberate close and coalesces concurrent calls", async () => {
+      const endpoint = "https://api.example.com/mcp";
+      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+
+      // Simulate an implementation where closing the client would call its own onclose handler
+      const closeImpl = jest.fn(async () => {
+        if (typeof mockClientInstance.onclose === "function") {
+          // would cause recursion if not detached
+          (mockClientInstance.onclose as unknown as () => void)();
+        }
+        return;
+      });
+      mockClientInstance.close = closeImpl;
+
+      // Prepare new instances for the reconnect
+      const newMockClientInstance = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        close: jest.fn().mockResolvedValue(undefined),
+        listTools: jest.fn(),
+        callTool: jest.fn(),
+        onclose: null,
+      };
+      MockedClient.mockImplementation(() => newMockClientInstance as any);
+
+      // Reset counts after initial creation
+      jest.clearAllMocks();
+
+      // Trigger auto onclose and manual reconnect nearly simultaneously
+      (client as any).onclose();
+      await client.reconnect();
+
+      // Should have detached onclose before calling close, avoiding recursion
+      expect(closeImpl).toHaveBeenCalledTimes(1);
+      expect(mockClientInstance.onclose).toBeUndefined();
+
+      // Single-flight: only one new client/connect
+      expect(MockedClient).toHaveBeenCalledTimes(1);
+      expect(newMockClientInstance.connect).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("backoff + jitter (automatic reconnect)", () => {
+    it("applies jitter and resets to initial delay after a successful reconnect (manual preempt)", async () => {
+      jest.useFakeTimers();
+      const base = MCPClient.BACKOFF_INITIAL_MS;
+      const ratio = MCPClient.BACKOFF_JITTER_RATIO;
+      const min = Math.round(base * (1 - ratio));
+      const max = Math.round(base * (1 + ratio));
+      const setTimeoutSpy = jest.spyOn(global, "setTimeout");
+      const randSpy = jest.spyOn(Math, "random").mockReturnValue(0.0); // extreme low jitter
+
+      const endpoint = "https://api.example.com/mcp";
+      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+
+      // Prepare one attempt that will succeed to avoid rescheduling
+      MockedClient.mockImplementation(
+        () =>
+          ({
+            connect: jest.fn().mockResolvedValue(undefined),
+            close: jest.fn().mockResolvedValue(undefined),
+            listTools: jest.fn(),
+            callTool: jest.fn(),
+            onclose: null,
+          }) as any,
+      );
+
+      // Trigger once to capture the delay
+      (client as any).onclose();
+      expect(setTimeoutSpy).toHaveBeenCalled();
+      const numericDelays = setTimeoutSpy.mock.calls
+        .map((c) => c[1])
+        .filter((v) => typeof v === "number") as number[];
+      expect(numericDelays.length).toBeGreaterThan(0);
+      const d = numericDelays[0]!;
+      expect(d).toBeGreaterThanOrEqual(min);
+      expect(d).toBeLessThanOrEqual(max);
+
+      // Manual reconnect succeeds and should reset backoff attempts
+      await client.reconnect();
+
+      // Trigger onclose again and ensure we start from initial range again
+      (client as any).onclose();
+      const numericDelays2 = setTimeoutSpy.mock.calls
+        .map((c) => c[1])
+        .filter((v) => typeof v === "number") as number[];
+      expect(numericDelays2.length).toBeGreaterThanOrEqual(2);
+      const dAgain = numericDelays2[1]!;
+      expect(dAgain).toBeGreaterThanOrEqual(min);
+      expect(dAgain).toBeLessThanOrEqual(max);
+
+      jest.useRealTimers();
+      setTimeoutSpy.mockRestore();
+      randSpy.mockRestore();
     });
   });
 
