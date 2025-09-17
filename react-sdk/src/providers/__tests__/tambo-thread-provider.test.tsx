@@ -114,7 +114,7 @@ describe("TamboThreadProvider", () => {
   } satisfies PartialTamboAI as unknown as TamboAI;
 
   let mockQueryClient: {
-    refetchQueries: jest.Mock;
+    invalidateQueries: jest.Mock;
     setQueryData: jest.Mock;
   };
 
@@ -159,7 +159,7 @@ describe("TamboThreadProvider", () => {
 
     // Setup mock query client
     mockQueryClient = {
-      refetchQueries: jest.fn().mockResolvedValue(undefined),
+      invalidateQueries: jest.fn().mockResolvedValue(undefined),
       setQueryData: jest.fn(),
     };
     jest
@@ -1090,9 +1090,8 @@ describe("TamboThreadProvider", () => {
       );
 
       // Verify that refetchQueries was called when the new thread was created
-      expect(mockQueryClient.refetchQueries).toHaveBeenCalledWith({
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
         queryKey: ["threads"],
-        type: "active",
       });
     });
 
@@ -1126,7 +1125,7 @@ describe("TamboThreadProvider", () => {
 
       // Verify that neither setQueryData nor refetchQueries were called
       expect(mockQueryClient.setQueryData).not.toHaveBeenCalled();
-      expect(mockQueryClient.refetchQueries).not.toHaveBeenCalled();
+      expect(mockQueryClient.invalidateQueries).not.toHaveBeenCalled();
 
       // Verify the thread was switched correctly
       expect(result.current.thread.id).toBe("existing-thread-123");
