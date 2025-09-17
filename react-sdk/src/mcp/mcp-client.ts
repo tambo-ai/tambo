@@ -47,7 +47,7 @@ export class MCPClient {
    * This is the recommended way to create an MCPClient as it handles both
    * instantiation and connection setup.
    * @param endpoint - The URL of the MCP server to connect to
-   * @param transport - The transport type to use for the MCP client. Defaults to HTTP.
+   * @param transportType - The transport type to use for the MCP client. Defaults to HTTP.
    * @param headers - Optional custom headers to include in requests
    * @returns A connected MCPClient instance ready for use
    * @throws Will throw an error if connection fails
@@ -62,13 +62,17 @@ export class MCPClient {
     return mcpClient;
   }
   /**
-   * Reconnects to the MCP server, retaining the same session ID.
-   *
+   * Reconnects to the MCP server, optionally retaining the same session ID.
+   * @param newSession - Whether to create a new session (true) or reuse existing session ID (false)
+   * @param reportErrorOnClose - Whether to report errors when closing the client
    * Note that only StreamableHTTPClientTransport supports session IDs.
    */
-  async reconnect(reportErrorOnClose = true) {
-    const sessionId =
-      "sessionId" in this.transport ? this.transport.sessionId : undefined;
+  async reconnect(newSession = false, reportErrorOnClose = true) {
+    const sessionId = newSession
+      ? undefined
+      : "sessionId" in this.transport
+        ? this.transport.sessionId
+        : undefined;
     try {
       await this.client.close();
     } catch (error) {
@@ -84,7 +88,7 @@ export class MCPClient {
 
   private async onclose() {
     console.warn("Tambo MCP Client closed, reconnecting...");
-    await this.reconnect(false);
+    await this.reconnect(false, false);
   }
 
   private initializeTransport(sessionId: string | undefined) {
