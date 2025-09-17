@@ -261,10 +261,10 @@ export const TamboThreadProvider: React.FC<
 
         queryClient.setQueryData(
           ["threads", currentProject.id, contextKey],
-          (old: any) => {
+          (old: TamboAI.Beta.Threads.ThreadsOffsetAndLimit | undefined) => {
             return {
               ...old,
-              items: [optimisticThread, ...old.items],
+              items: [optimisticThread, ...(old?.items ?? [])],
             };
           },
         );
