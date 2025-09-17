@@ -119,26 +119,52 @@ describe("MCPClient", () => {
   });
 
   describe("reconnect", () => {
-    it("should reconnect with the same session ID for HTTP transport", async () => {
+    it("should create new transport and client instances and call connect when reconnect() is called", async () => {
       const endpoint = "https://api.example.com/mcp";
       const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
 
-      // Clear previous calls
+      // Clear previous calls to focus on reconnect behavior
       jest.clearAllMocks();
+
+      // Create new mock instances to verify new instances are created
+      const newMockClientInstance = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        close: jest.fn().mockResolvedValue(undefined),
+        listTools: jest.fn(),
+        callTool: jest.fn(),
+        onclose: null,
+      };
+
+      const newMockTransportInstance = {
+        sessionId: "new-session-id",
+      };
+
+      // Mock the constructors to return new instances
+      MockedClient.mockImplementation(() => newMockClientInstance as any);
+      MockedStreamableHTTPClientTransport.mockImplementation(
+        () => newMockTransportInstance as any,
+      );
 
       await client.reconnect();
 
+      // Verify old client was closed
       expect(mockClientInstance.close).toHaveBeenCalled();
+
+      // Verify new transport was created with preserved session ID
       expect(MockedStreamableHTTPClientTransport).toHaveBeenCalledWith(
         new URL(endpoint),
         { sessionId: "test-session-id", requestInit: { headers: {} } },
       );
+
+      // Verify new client was created
       expect(MockedClient).toHaveBeenCalledWith({
         name: "tambo-mcp-client",
         version: "1.0.0",
       });
-      expect(mockClientInstance.connect).toHaveBeenCalledWith(
-        mockTransportInstance,
+
+      // Verify new client's connect was called with new transport
+      expect(newMockClientInstance.connect).toHaveBeenCalledWith(
+        newMockTransportInstance,
       );
     });
 
@@ -191,22 +217,59 @@ describe("MCPClient", () => {
   });
 
   describe("onclose", () => {
-    it("should call reconnect when client closes", async () => {
+    it("should reconnect MCPClient when client is closed by external means", async () => {
       const endpoint = "https://api.example.com/mcp";
       const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
       const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
-      const reconnectSpy = jest.spyOn(client, "reconnect").mockResolvedValue();
 
-      // Simulate the onclose callback
+      // Create new mock instances to verify reconnection creates new instances
+      const newMockClientInstance = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        close: jest.fn().mockResolvedValue(undefined),
+        listTools: jest.fn(),
+        callTool: jest.fn(),
+        onclose: null,
+      };
+
+      const newMockTransportInstance = {
+        sessionId: "reconnected-session-id",
+      };
+
+      // Mock the constructors to return new instances for reconnection
+      MockedClient.mockImplementation(() => newMockClientInstance as any);
+      MockedStreamableHTTPClientTransport.mockImplementation(
+        () => newMockTransportInstance as any,
+      );
+
+      // Simulate the onclose callback being triggered by external client closure
       await (client as any).onclose();
 
+      // Verify warning message is logged
       expect(consoleSpy).toHaveBeenCalledWith(
         "Tambo MCP Client closed, reconnecting...",
       );
-      expect(reconnectSpy).toHaveBeenCalledWith(false);
+
+      // Verify old client was closed
+      expect(mockClientInstance.close).toHaveBeenCalled();
+
+      // Verify new transport was created with preserved session ID
+      expect(MockedStreamableHTTPClientTransport).toHaveBeenCalledWith(
+        new URL(endpoint),
+        { sessionId: "test-session-id", requestInit: { headers: {} } },
+      );
+
+      // Verify new client was created
+      expect(MockedClient).toHaveBeenCalledWith({
+        name: "tambo-mcp-client",
+        version: "1.0.0",
+      });
+
+      // Verify new client's connect was called with new transport
+      expect(newMockClientInstance.connect).toHaveBeenCalledWith(
+        newMockTransportInstance,
+      );
 
       consoleSpy.mockRestore();
-      reconnectSpy.mockRestore();
     });
   });
 
