@@ -20,27 +20,25 @@ export enum MCPTransport {
 export class MCPClient {
   private client: Client;
   private transport: SSEClientTransport | StreamableHTTPClientTransport;
+  private transportType: MCPTransport;
+  private endpoint: string;
+  private headers: Record<string, string>;
 
   /**
    * Private constructor to enforce using the static create method.
    * @param endpoint - The URL of the MCP server to connect to
-   * @param transport - The transport to use for the MCP client
+   * @param transportType - The transport to use for the MCP client
    * @param headers - Optional custom headers to include in requests
    */
   private constructor(
     endpoint: string,
-    transport: MCPTransport,
-    headers?: Record<string, string>,
+    transportType: MCPTransport,
+    headers?: Record<string, string> = {},
   ) {
-    if (transport === MCPTransport.SSE) {
-      this.transport = new SSEClientTransport(new URL(endpoint), {
-        requestInit: { headers },
-      });
-    } else {
-      this.transport = new StreamableHTTPClientTransport(new URL(endpoint), {
-        requestInit: { headers },
-      });
-    }
+    this.endpoint = endpoint;
+    this.headers = headers;
+    this.transportType = transportType;
+    this.transport = this.initializeTransport(undefined);
     this.client = new Client({
       name: "tambo-mcp-client",
       version: "1.0.0",
@@ -59,12 +57,46 @@ export class MCPClient {
    */
   static async create(
     endpoint: string,
-    transport: MCPTransport = MCPTransport.HTTP,
+    transportType: MCPTransport = MCPTransport.HTTP,
     headers?: Record<string, string>,
   ): Promise<MCPClient> {
-    const mcpClient = new MCPClient(endpoint, transport, headers);
+    const mcpClient = new MCPClient(endpoint, transportType, headers);
     await mcpClient.client.connect(mcpClient.transport);
     return mcpClient;
+  }
+  /**
+   * Reconnects to the MCP server, retaining the same session ID.
+   *
+   * Note that only StreamableHTTPClientTransport supports session IDs.
+   */
+  async reconnect() {
+    const sessionId =
+      "sessionId" in this.transport ? this.transport.sessionId : undefined;
+    try {
+      await this.client.close();
+    } catch (error) {
+      console.error("Error closing client:", error);
+    }
+    this.transport = this.initializeTransport(sessionId);
+    this.client = new Client({
+      name: "tambo-mcp-client",
+      version: "1.0.0",
+    });
+
+    await this.client.connect(this.transport);
+  }
+
+  private initializeTransport(sessionId: string | undefined) {
+    if (this.transportType === MCPTransport.SSE) {
+      return new SSEClientTransport(new URL(this.endpoint), {
+        requestInit: { headers: this.headers },
+      });
+    } else {
+      return new StreamableHTTPClientTransport(new URL(this.endpoint), {
+        sessionId,
+        requestInit: { headers: this.headers },
+      });
+    }
   }
 
   /**
