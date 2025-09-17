@@ -269,9 +269,8 @@ export const TamboThreadProvider: React.FC<
           },
         );
 
-        await queryClient.refetchQueries({
+        await queryClient.invalidateQueries({
           queryKey: ["threads"],
-          type: "active",
         });
       } catch (error) {
         console.warn("Failed to refetch threads list:", error);
