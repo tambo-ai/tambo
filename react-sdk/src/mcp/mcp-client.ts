@@ -135,8 +135,12 @@ export class MCPClient {
           : undefined;
 
       // Prevent re-entrant onclose during deliberate close by detaching
-      // the handler from the previous client instance.
-      const prevClient = this.client as any;
+      // the handler from the previous client instance without using `any`.
+      interface ClosableWithOptionalOnClose {
+        close: () => Promise<void>;
+        onclose?: (() => void) | null;
+      }
+      const prevClient = this.client as unknown as ClosableWithOptionalOnClose;
       // Prevent re-entrant onclose callbacks from the previous client
       prevClient.onclose = undefined;
 
@@ -153,14 +157,15 @@ export class MCPClient {
       await this.client.connect(this.transport);
     };
 
-    this.reconnecting = doReconnect()
-      .then(() => {
+    this.reconnecting = (async () => {
+      try {
+        await doReconnect();
         // Successful manual reconnect: reset backoff.
         this.backoffAttempts = 0;
-      })
-      .finally(() => {
+      } finally {
         this.reconnecting = undefined;
-      });
+      }
+    })();
 
     return await this.reconnecting;
   }
@@ -204,29 +209,28 @@ export class MCPClient {
       `${delayMs}ms`,
     );
 
-    this.reconnectTimer = setTimeout(() => {
+    this.reconnectTimer = setTimeout(async () => {
       this.reconnectTimer = undefined;
       // Start the actual reconnect (single-flight)
-      this.reconnecting = this.reconnect(false, false)
-        .then(() => {
-          // Success: reset attempts
-          this.backoffAttempts = 0;
-        })
-        .catch((err) => {
-          // Failure: increase attempts; scheduling occurs in finally below so the
-          // new timer isn't blocked by `this.reconnecting` being truthy.
-          this.backoffAttempts += 1;
-          console.warn(
-            "Automatic reconnect failed; will retry with backoff.",
-            err,
-          );
-        })
-        .finally(() => {
-          this.reconnecting = undefined;
-          if (this.backoffAttempts > 0) {
-            this.scheduleAutoReconnect();
-          }
-        });
+      const inFlight = (this.reconnecting = this.reconnect(false, false));
+      try {
+        await inFlight;
+        // Success: reset attempts
+        this.backoffAttempts = 0;
+      } catch (err) {
+        // Failure: increase attempts; scheduling occurs in finally below so the
+        // new timer isn't blocked by `this.reconnecting` being truthy.
+        this.backoffAttempts += 1;
+        console.warn(
+          "Automatic reconnect failed; will retry with backoff.",
+          err,
+        );
+      } finally {
+        this.reconnecting = undefined;
+        if (this.backoffAttempts > 0) {
+          this.scheduleAutoReconnect();
+        }
+      }
     }, delayMs);
   }
 
