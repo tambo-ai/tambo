@@ -1,5 +1,6 @@
 "use client";
 
+import { createMarkdownComponents } from "@/components/tambo/markdown-components";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
@@ -10,8 +11,7 @@ import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import { createMarkdownComponents } from "@/components/tambo/markdown-components";
+import { Streamdown } from "streamdown";
 
 /**
  * CSS variants for the message container
@@ -200,7 +200,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div
         ref={ref}
         className={cn(
-          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_ul]:py-4 [&_ol]:py-4 [&_li]:list-item",
+          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
           className,
         )}
         data-slot="message-content"
@@ -225,9 +225,9 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <ReactMarkdown components={createMarkdownComponents()}>
+              <Streamdown components={createMarkdownComponents()}>
                 {typeof safeContent === "string" ? safeContent : ""}
-              </ReactMarkdown>
+              </Streamdown>
             ) : (
               safeContent
             )}
@@ -346,7 +346,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
+              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
@@ -380,9 +380,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
 ToolcallInfo.displayName = "ToolcallInfo";
 
-function keyifyParameters(
-  parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
-) {
+function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   if (!parameters) return;
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),

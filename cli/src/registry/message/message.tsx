@@ -1,6 +1,6 @@
 "use client";
 
-import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
+import { createMarkdownComponents } from "@/components/ui/markdown-components";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -8,10 +8,15 @@ import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import { Streamdown } from "streamdown";
+import {
+  checkHasContent,
+  getMessageImages,
+  getSafeContent,
+} from "../lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -118,6 +123,7 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
     if (message.actionType === "tool_response") {
       return null;
     }
+
     return (
       <MessageContext.Provider value={contextValue}>
         <div
@@ -161,6 +167,52 @@ const LoadingIndicator: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 LoadingIndicator.displayName = "LoadingIndicator";
 
 /**
+ * Props for the MessageImages component.
+ */
+export type MessageImagesProps = React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Displays images from message content horizontally.
+ * @component MessageImages
+ */
+const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
+  ({ className, ...props }, ref) => {
+    const { message } = useMessageContext();
+    const images = getMessageImages(message.content);
+
+    if (images.length === 0) {
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn("flex flex-wrap gap-2 mb-2", className)}
+        data-slot="message-images"
+        {...props}
+      >
+        {images.map((imageUrl: string, index: number) => (
+          <div
+            key={index}
+            className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+          >
+            <Image
+              src={imageUrl}
+              alt={`Image ${index + 1}`}
+              width={128}
+              height={128}
+              className="w-full h-full object-cover"
+              unoptimized
+            />
+          </div>
+        ))}
+      </div>
+    );
+  },
+);
+MessageImages.displayName = "MessageImages";
+
+/**
  * Props for the MessageContent component.
  * Extends standard HTMLDivElement attributes.
  */
@@ -200,7 +252,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div
         ref={ref}
         className={cn(
-          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_ul]:py-4 [&_ol]:py-4 [&_li]:list-item",
+          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
           className,
         )}
         data-slot="message-content"
@@ -225,9 +277,16 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <ReactMarkdown components={createMarkdownComponents()}>
+              <Streamdown
+                components={
+                  createMarkdownComponents() as Record<
+                    string,
+                    React.ComponentType<Record<string, unknown>>
+                  >
+                }
+              >
                 {typeof safeContent === "string" ? safeContent : ""}
-              </ReactMarkdown>
+              </Streamdown>
             ) : (
               safeContent
             )}
@@ -274,7 +333,7 @@ function getToolStatusMessage(
  * @component ToolcallInfo
  */
 const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, markdown: _markdown = true, ...props }, ref) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { message, isLoading } = useMessageContext();
     const { thread } = useTambo();
@@ -312,13 +371,13 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col items-start text-xs opacity-50",
+          "flex flex-col items-start text-xs opacity-50 pt-2",
           className,
         )}
         data-slot="toolcall-info"
         {...props}
       >
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col gap-2">
           <button
             type="button"
             aria-expanded={isExpanded}
@@ -346,7 +405,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
+              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
@@ -359,8 +418,8 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             </span>
             {associatedToolResponse && (
               <>
-                <span className="whitespace-pre-wrap">result:</span>
-                <div>
+                <span className="whitespace-pre-wrap font-medium">result:</span>
+                <div className="whitespace-pre-wrap">
                   {!associatedToolResponse.content ? (
                     <span className="text-muted-foreground italic">
                       Empty response
@@ -380,9 +439,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
 ToolcallInfo.displayName = "ToolcallInfo";
 
-function keyifyParameters(
-  parameters: TamboAI.ToolCallRequest["parameters"] | undefined,
-) {
+function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   if (!parameters) return;
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),
@@ -467,7 +524,7 @@ const MessageRenderedComponentArea = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn(className)}
+      className={cn("pt-2", className)}
       data-slot="message-rendered-component-area"
       {...props}
     >
@@ -495,7 +552,7 @@ const MessageRenderedComponentArea = React.forwardRef<
             </button>
           </div>
         ) : (
-          <div className="w-full pt-2 px-2">{message.renderedComponent}</div>
+          <div className="w-full pt-4 px-2">{message.renderedComponent}</div>
         ))}
     </div>
   );
@@ -507,6 +564,7 @@ export {
   LoadingIndicator,
   Message,
   MessageContent,
+  MessageImages,
   MessageRenderedComponentArea,
   messageVariants,
   ToolcallInfo,

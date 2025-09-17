@@ -108,7 +108,7 @@ export function Sidebar({ className }: SidebarProps) {
     <div
       className={cn(
         // Base styles
-        "sidebar fixed top-[var(--header-height)] bottom-0 left-0 border-r border-border/40 p-4 overflow-y-auto flex flex-col bg-background z-40 w-64",
+        "sidebar fixed top-[var(--sidebar-top-offset)] bottom-0 left-0 border-r border-border/40 p-4 overflow-y-auto flex flex-col bg-background z-40 w-64",
         // Hide on mobile with CSS rather than conditional rendering to prevent flash
         "max-md:hidden",
         className,
@@ -117,7 +117,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex flex-col flex-grow">{sidebarContent}</div>
       <div className="pt-4 mt-auto border-t border-border/40">
         <p className="text-sm text-muted-foreground px-3">
-          Fractal Dynamics Inc © 2025
+          Fractal Dynamics Inc © {new Date().getFullYear()}
         </p>
       </div>
     </div>

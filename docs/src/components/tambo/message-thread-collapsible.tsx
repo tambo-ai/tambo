@@ -28,8 +28,11 @@ import {
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { Collapsible } from "radix-ui";
 import * as React from "react";
+import { ProductHuntThoughtBubble } from "@/components/product-hunt-bubble";
+import { PRODUCT_HUNT_BUBBLE_DISMISS_KEY } from "@/lib/product-hunt";
 
 /**
  * Props for the MessageThreadCollapsible component
@@ -42,6 +45,8 @@ export interface MessageThreadCollapsibleProps
   contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
   defaultOpen?: boolean;
+  /** Initial query to pre-fill the message input */
+  initialQuery?: string;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -184,110 +189,226 @@ CollapsibleTrigger.displayName = "CollapsibleTrigger";
 export const MessageThreadCollapsible = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleProps
->(({ className, contextKey, defaultOpen = false, variant, ...props }, ref) => {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen);
-
-  const handleThreadChange = React.useCallback(() => {
-    setIsOpen(true);
-  }, [setIsOpen]);
-
-  /**
-   * Configuration for the MessageThreadCollapsible component
-   */
-  const THREAD_CONFIG = {
-    labels: {
-      openState: "ask tambo",
-    },
-  };
-
-  const { thread } = useTambo();
-
-  // Starter message for when the thread is empty
-  const starterMessage: TamboThreadMessage = {
-    id: "starter-login-prompt",
-    role: "assistant",
-    content: [{ type: "text", text: "Ask me anything about tambo." }],
-    createdAt: new Date().toISOString(),
-    actionType: undefined,
-    componentState: {},
-    threadId: "",
-  };
-
-  const defaultSuggestions: Suggestion[] = [
+>(
+  (
     {
-      id: "suggestion-1",
-      title: "Create an account",
-      detailedSuggestion: "How do I create an account?",
-      messageId: "create-account-query",
+      className,
+      contextKey,
+      defaultOpen = false,
+      initialQuery,
+      variant,
+      ...props
     },
-    {
-      id: "suggestion-2",
-      title: "Join the Discord",
-      detailedSuggestion: "How do I join the tambo Discord?",
-      messageId: "join-discord-query",
-    },
-    {
-      id: "suggestion-3",
-      title: "Open an issue on GitHub",
-      detailedSuggestion: "How do I open an issue on GitHub?",
-      messageId: "open-issue-query",
-    },
-  ];
+    ref,
+  ) => {
+    const searchParams = useSearchParams();
 
-  return (
-    <CollapsibleContainer
-      ref={ref}
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      className={className}
-      {...props}
-    >
-      <CollapsibleTrigger
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        contextKey={contextKey}
-        onThreadChange={handleThreadChange}
-        config={THREAD_CONFIG}
-      />
-      <Collapsible.Content>
-        <div className="h-[calc(100vh-8rem)] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
-          {/* Message thread content */}
-          <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
-            {/* Conditionally render the starter message */}
-            {thread.messages.length === 0 && (
-              <Message role="assistant" message={starterMessage}>
-                <MessageContent />
-              </Message>
-            )}
+    // Use initialQuery prop if provided, otherwise check search params
+    const queryFromUrl = searchParams.get("q") || undefined;
+    const finalInitialQuery = initialQuery || queryFromUrl;
 
-            <ThreadContent variant={variant}>
-              <ThreadContentMessages />
-            </ThreadContent>
-          </ScrollableMessageContainer>
+    const [isOpen, setIsOpen] = React.useState(
+      defaultOpen || !!finalInitialQuery,
+    );
 
-          {/* Message Suggestions Status */}
-          <MessageSuggestions>
-            <MessageSuggestionsStatus />
-          </MessageSuggestions>
+    // Product Hunt bubble state
+    const [showProductHunt, setShowProductHunt] = React.useState(false);
+    const reopenBubbleTimeoutRef = React.useRef<number | null>(null);
 
-          {/* Message input */}
-          <div className="p-2 sm:p-3 md:p-4">
-            <MessageInput contextKey={contextKey}>
-              <MessageInputTextarea />
-              <MessageInputToolbar>
-                <MessageInputSubmitButton />
-              </MessageInputToolbar>
-              <MessageInputError />
-            </MessageInput>
-          </div>
+    // Open the collapsible when the initial query is set
+    React.useEffect(() => {
+      if (finalInitialQuery) setIsOpen(true);
+    }, [finalInitialQuery]);
 
-          {/* Message suggestions */}
-          <MessageSuggestions initialSuggestions={defaultSuggestions}>
-            <MessageSuggestionsList />
-          </MessageSuggestions>
-        </div>
-      </Collapsible.Content>
-    </CollapsibleContainer>
-  );
-});
+    // Show Product Hunt bubble a bit after load when closed (and not dismissed)
+    React.useEffect(() => {
+      if (typeof window === "undefined") return;
+
+      let timer: number | undefined;
+      try {
+        const dismissed =
+          window.sessionStorage.getItem(PRODUCT_HUNT_BUBBLE_DISMISS_KEY) ===
+          "1";
+
+        timer = window.setTimeout(() => {
+          if (!dismissed && !isOpen) setShowProductHunt(true);
+        }, 3000);
+      } catch {
+        // If sessionStorage is unavailable, still show after delay if closed
+        timer = window.setTimeout(() => {
+          if (!isOpen) setShowProductHunt(true);
+        }, 3000);
+      }
+
+      return () => {
+        if (timer) window.clearTimeout(timer);
+      };
+    }, [isOpen]);
+
+    const handleDismissProductHunt = React.useCallback(() => {
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(PRODUCT_HUNT_BUBBLE_DISMISS_KEY, "1");
+        }
+      } catch {
+        // SessionStorage might be blocked
+      }
+      setShowProductHunt(false);
+    }, []);
+
+    const handleThreadChange = React.useCallback(() => {
+      setIsOpen(true);
+      setShowProductHunt(false); // Hide bubble when opening chat
+    }, [setIsOpen]);
+
+    React.useEffect(() => {
+      if (reopenBubbleTimeoutRef.current) {
+        window.clearTimeout(reopenBubbleTimeoutRef.current);
+        reopenBubbleTimeoutRef.current = null;
+      }
+    }, []);
+
+    /**
+     * Configuration for the MessageThreadCollapsible component
+     */
+    const THREAD_CONFIG = {
+      labels: {
+        openState: "ask tambo",
+      },
+    };
+
+    const { thread } = useTambo();
+
+    // Starter message for when the thread is empty
+    const starterMessage: TamboThreadMessage = {
+      id: "starter-login-prompt",
+      role: "assistant",
+      content: [{ type: "text", text: "Ask me anything about tambo." }],
+      createdAt: new Date().toISOString(),
+      actionType: undefined,
+      componentState: {},
+      threadId: "",
+    };
+
+    const defaultSuggestions: Suggestion[] = [
+      {
+        id: "suggestion-1",
+        title: "Create an account",
+        detailedSuggestion: "How do I create an account?",
+        messageId: "create-account-query",
+      },
+      {
+        id: "suggestion-2",
+        title: "Join the Discord",
+        detailedSuggestion: "How do I join the tambo Discord?",
+        messageId: "join-discord-query",
+      },
+      {
+        id: "suggestion-3",
+        title: "Open an issue on GitHub",
+        detailedSuggestion: "How do I open an issue on GitHub?",
+        messageId: "open-issue-query",
+      },
+    ];
+
+    return (
+      <>
+        <CollapsibleContainer
+          ref={ref}
+          isOpen={isOpen}
+          onOpenChange={(open) => {
+            setIsOpen(open);
+            if (open) {
+              setShowProductHunt(false);
+              if (reopenBubbleTimeoutRef.current) {
+                window.clearTimeout(reopenBubbleTimeoutRef.current);
+                reopenBubbleTimeoutRef.current = null;
+              }
+            }
+          }}
+          className={className}
+          {...props}
+        >
+          <CollapsibleTrigger
+            isOpen={isOpen}
+            onClose={() => {
+              setIsOpen(false);
+              // Clear existing timer if any
+              if (reopenBubbleTimeoutRef.current) {
+                window.clearTimeout(reopenBubbleTimeoutRef.current);
+                reopenBubbleTimeoutRef.current = null;
+              }
+              // Reopen bubble after a short delay, unless dismissed
+              reopenBubbleTimeoutRef.current = window.setTimeout(() => {
+                try {
+                  if (typeof window !== "undefined") {
+                    const dismissed =
+                      window.sessionStorage.getItem(
+                        PRODUCT_HUNT_BUBBLE_DISMISS_KEY,
+                      ) === "1";
+                    if (!dismissed) setShowProductHunt(true);
+                  }
+                } catch {
+                  setShowProductHunt(true);
+                }
+              }, 5000);
+            }}
+            contextKey={contextKey}
+            onThreadChange={handleThreadChange}
+            config={THREAD_CONFIG}
+          />
+          <Collapsible.Content>
+            <div className="h-[calc(100vh-8rem)] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
+              {/* Message thread content */}
+              <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
+                {/* Conditionally render the starter message */}
+                {thread.messages.length === 0 && (
+                  <Message role="assistant" message={starterMessage}>
+                    <MessageContent />
+                  </Message>
+                )}
+
+                <ThreadContent variant={variant}>
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </ScrollableMessageContainer>
+
+              {/* Message Suggestions Status */}
+              <MessageSuggestions>
+                <MessageSuggestionsStatus />
+              </MessageSuggestions>
+
+              {/* Message input */}
+              <div className="p-2 sm:p-3 md:p-4">
+                <MessageInput
+                  contextKey={contextKey}
+                  initialQuery={finalInitialQuery}
+                >
+                  <MessageInputTextarea />
+                  <MessageInputToolbar>
+                    <MessageInputSubmitButton />
+                  </MessageInputToolbar>
+                  <MessageInputError />
+                </MessageInput>
+              </div>
+
+              {/* Message suggestions */}
+              <MessageSuggestions initialSuggestions={defaultSuggestions}>
+                <MessageSuggestionsList />
+              </MessageSuggestions>
+            </div>
+          </Collapsible.Content>
+        </CollapsibleContainer>
+
+        {/* Product Hunt Thought Bubble - only show when chat is closed */}
+        {showProductHunt && !isOpen && (
+          <ProductHuntThoughtBubble
+            isOpen={isOpen}
+            onDismiss={handleDismissProductHunt}
+          />
+        )}
+      </>
+    );
+  },
+);
 MessageThreadCollapsible.displayName = "MessageThreadCollapsible";

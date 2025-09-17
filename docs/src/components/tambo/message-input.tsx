@@ -111,6 +111,8 @@ export interface MessageInputProps
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
+  /** Initial query to pre-fill the input */
+  initialQuery?: string;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -129,12 +131,16 @@ export interface MessageInputProps
  * ```
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
-  ({ children, className, contextKey, variant, ...props }, ref) => {
+  (
+    { children, className, contextKey, initialQuery, variant, ...props },
+    ref,
+  ) => {
     const { value, setValue, submit, isPending, error } = useTamboThreadInput();
     const { cancel } = useTamboThread();
     const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [hasSetInitialQuery, setHasSetInitialQuery] = React.useState(false);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     React.useEffect(() => {
@@ -143,6 +149,14 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         textareaRef.current.focus();
       }
     }, [value]);
+
+    // Pre-fill input with initialQuery only once when component mounts
+    React.useEffect(() => {
+      if (initialQuery && !hasSetInitialQuery && !value) {
+        setValue(initialQuery);
+        setHasSetInitialQuery(true);
+      }
+    }, [initialQuery, setValue, value, hasSetInitialQuery]);
 
     const handleSubmit = React.useCallback(
       async (e: React.FormEvent) => {

@@ -3,6 +3,36 @@ import { TamboTool } from "../model/component-metadata";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
+/**
+ * Extracts error message from MCP tool result content.
+ * Handles both array and string content formats.
+ * Always returns a string, even for invalid/null inputs.
+ * @returns The extracted error message as a string
+ */
+export function extractErrorMessage(content: unknown): string {
+  if (content === undefined || content === null) {
+    return "Unknown error occurred";
+  }
+
+  if (Array.isArray(content)) {
+    const textItems = content
+      .filter(
+        (item) => item && item.type === "text" && typeof item.text === "string",
+      )
+      .map((item) => item.text);
+
+    return textItems.length > 0
+      ? textItems.join(" ")
+      : "Error occurred but no details provided";
+  }
+
+  if (typeof content === "object") {
+    return JSON.stringify(content);
+  }
+
+  return `${content}`;
+}
+
 export interface McpServerInfo {
   name?: string;
   url: string;
@@ -70,8 +100,8 @@ export const TamboMcpProvider: FC<{
             }
             const result = await mcpServer.callTool(tool.name, args);
             if (result.isError) {
-              // TODO: is there a better way to handle this?
-              throw new Error(`${result.content}`);
+              const errorMessage = extractErrorMessage(result.content);
+              throw new Error(errorMessage);
             }
             return result.content;
           },

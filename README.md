@@ -8,15 +8,21 @@
 </div>
 
 <p align="center">
+  <a href="https://www.producthunt.com/products/tambo?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-tambo" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1005008&theme=light&t=1757714078501" alt="tambo - An&#0032;AI&#0032;orchestration&#0032;framework&#0032;for&#0032;React&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
+
+<p align="center">
   <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/@tambo-ai/react.svg" alt="npm version"></a>
   <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo.svg" alt="license"></a>
   <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo.svg" alt="GitHub last commit"></a>
   <a href="https://discord.gg/dJNvPEHth6"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a>
   <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
+  <a href="https://www.producthunt.com/posts/tambo?utm_source=github&utm_medium=readme&utm_campaign=ph-badge"><img src="https://img.shields.io/badge/Product%20Hunt-Discuss%20%26%20Support-orange?logo=producthunt" alt="Product Hunt">
 </p>
 
 > [!IMPORTANT]
-> 🎉 We just open-sourced the hosted backend — check out [tambo-ai/tambo-cloud](https://github.com/tambo-ai/tambo-cloud)! Join [TamboHack](https://tambo.co/hack) — $10k in grants for builders & contributors.
+> **We’re live on Product Hunt today.** If this project is useful, please
+> [join the discussion and share feedback](https://www.producthunt.com/posts/tambo?utm_source=github&utm_medium=readme&utm_campaign=ph-launch).
 
 ## Build apps with Generative UI and MCP
 
@@ -33,6 +39,12 @@ npx tambo create-app my-tambo-app
 For detailed information about what Tambo is and how it works, check out our [docs site.](https://docs.tambo.co)
 
 For a quick walkthrough of using the fundamental features of Tambo, check out [this page.](https://docs.tambo.co/getting-started/quickstart)
+
+Further reading:
+
+- Getting started with this repo: [GETTING_STARTED.md](./GETTING_STARTED.md)
+- Contributing guidelines: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Join our community: https://discord.gg/dJNvPEHth6
 
 ## How does tambo-ai work?
 

@@ -11,8 +11,10 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
+import { StagedImage, useMessageImages } from "../hooks/use-message-images";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
+import { buildMessageContent } from "../util/message-builder";
 import { useTamboMessageDrafts } from "./hooks/use-tambo-message-drafts";
 import { useTamboThread } from "./tambo-thread-provider";
 
@@ -61,6 +63,16 @@ export interface TamboThreadInputContextProps
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
   }) => Promise<void>;
+  /** Currently staged images */
+  images: StagedImage[];
+  /** Add a single image */
+  addImage: (file: File) => Promise<void>;
+  /** Add multiple images */
+  addImages: (files: File[]) => Promise<void>;
+  /** Remove an image by id */
+  removeImage: (id: string) => void;
+  /** Clear all staged images */
+  clearImages: () => void;
 }
 
 export const TamboThreadInputContext = createContext<
@@ -88,6 +100,7 @@ export const TamboThreadInputProvider: React.FC<
     thread?.id ?? "null_thread",
   );
   const [inputValue, setInputValue] = useState(currentDraft);
+  const imageState = useMessageImages();
 
   useEffect(() => {
     setInputValue(currentDraft);
@@ -113,25 +126,97 @@ export const TamboThreadInputProvider: React.FC<
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
     } = {}) => {
-      const validation = validateInput(inputValue);
-      if (!validation.isValid) {
-        throw new ThreadInputError(
-          `Cannot submit message: ${validation.error ?? INPUT_ERROR_MESSAGES.VALIDATION}`,
-          { cause: validation.error },
-        );
+      // Validate text input if present
+      if (inputValue?.trim()) {
+        const validation = validateInput(inputValue);
+        if (!validation.isValid) {
+          throw new ThreadInputError(
+            `Cannot submit message: ${validation.error ?? INPUT_ERROR_MESSAGES.VALIDATION}`,
+            { cause: validation.error },
+          );
+        }
       }
 
-      await sendThreadMessage(validation.sanitizedInput, {
-        threadId: thread.id,
-        contextKey: submitContextKey ?? contextKey ?? undefined,
-        streamResponse: streamResponse,
-        forceToolChoice: forceToolChoice,
-        additionalContext: additionalContext,
-      });
+      // Check if we have content to send
+      if (!inputValue.trim() && imageState.images.length === 0) {
+        throw new ThreadInputError(INPUT_ERROR_MESSAGES.EMPTY, {
+          cause: "No text or images to send",
+        });
+      }
+
+      // Build message content with text and images
+      const messageContent = buildMessageContent(inputValue, imageState.images);
+
+      try {
+        await sendThreadMessage(inputValue || "Image message", {
+          threadId: thread.id,
+          contextKey: submitContextKey ?? contextKey ?? undefined,
+          streamResponse: streamResponse,
+          forceToolChoice: forceToolChoice,
+          additionalContext: additionalContext,
+          content: messageContent,
+        });
+      } catch (error: any) {
+        // Handle image-related errors with friendly messages
+        if (imageState.images.length > 0) {
+          const errorMessage = error?.message?.toLowerCase() ?? "";
+
+          // Backend not yet supporting image content type
+          if (errorMessage.includes("unknown content part type: image")) {
+            throw new ThreadInputError(
+              "Image attachments are not yet supported by the backend. This feature is coming soon.",
+              { cause: error },
+            );
+          }
+
+          // Handle specific model vision support errors
+          // OpenAI errors
+          if (
+            errorMessage.includes(
+              "does not support image message content types",
+            ) ||
+            (errorMessage.includes("invalid model") &&
+              errorMessage.includes(
+                "image_url is only supported by certain models",
+              ))
+          ) {
+            throw new ThreadInputError(
+              "This model doesn't support images. Please use GPT-4o, GPT-4 Turbo, or other vision-capable models.",
+              { cause: error },
+            );
+          }
+
+          // Anthropic Claude errors
+          if (
+            errorMessage.includes("does not support image") ||
+            errorMessage.includes("vision not supported")
+          ) {
+            throw new ThreadInputError(
+              "This Claude model doesn't support images. Please use Claude 3.5 Sonnet, Claude 3 Opus, or other vision-capable models.",
+              { cause: error },
+            );
+          }
+
+          // Generic image/vision errors
+          if (
+            errorMessage.includes("image") ||
+            errorMessage.includes("vision")
+          ) {
+            throw new ThreadInputError(
+              "This model doesn't support image attachments. Please use a vision-capable model.",
+              { cause: error },
+            );
+          }
+        }
+
+        throw error;
+      }
+
+      // Clear text after successful submission
       setInputValue("");
       saveDraft("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, saveDraft],
+    [inputValue, sendThreadMessage, thread.id, contextKey, imageState, saveDraft],
   );
 
   const {
@@ -147,6 +232,11 @@ export const TamboThreadInputProvider: React.FC<
     value: inputValue,
     setValue: handleSetInputValue,
     submit: submitAsync,
+    images: imageState.images,
+    addImage: imageState.addImage,
+    addImages: imageState.addImages,
+    removeImage: imageState.removeImage,
+    clearImages: imageState.clearImages,
   };
 
   return (

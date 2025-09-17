@@ -3,11 +3,12 @@ node_modules
 showcase/.next/
 .env
 .env.*
+!.env.example
 dist
 build
 coverage
 *.log
 .DS_Store
-
+.idea
 #claude local settings
 .claude/settings.local.json

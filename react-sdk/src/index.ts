@@ -5,6 +5,7 @@ export {
   TamboMessageProvider,
   useTamboCurrentMessage,
 } from "./hooks/use-current-message";
+export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";
 export {
@@ -74,7 +75,10 @@ export {
   type InteractableConfig,
   type WithTamboInteractableProps,
 } from "./providers/hoc/with-tambo-interactable";
-export { useTamboInteractable } from "./providers/tambo-interactable-provider";
+export {
+  useTamboInteractable,
+  useCurrentInteractablesSnapshot,
+} from "./providers/tambo-interactable-provider";
 
 // Context helpers exports
 export {

@@ -1,5 +1,65 @@
 # Changelog
 
+## [0.23.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.22.0...showcase-v0.23.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* Replace TamboHackBanner with ProductHuntBanner ([#1035](https://github.com/tambo-ai/tambo/issues/1035)) ([7af2f53](https://github.com/tambo-ai/tambo/commit/7af2f5394c5d3d85ee7e0ec03b4b767df946d249))
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+
+### Miscellaneous Chores
+
+* **showcase:** add robots.txt and sitemap link ([#1020](https://github.com/tambo-ai/tambo/issues/1020)) ([762f0cd](https://github.com/tambo-ai/tambo/commit/762f0cdc10d41e702b2964d86b1bf0eda3149656))
+* **showcase:** Update meta and implement og and twitter image ([#1025](https://github.com/tambo-ai/tambo/issues/1025)) ([34a0be0](https://github.com/tambo-ai/tambo/commit/34a0be06e0479894a581b47d6e63a1523a64c64b))
+
+## [0.22.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.21.0...showcase-v0.22.0) (2025-09-09)
+
+
+### Features
+
+* streamline type definition across all generative components ([#996](https://github.com/tambo-ai/tambo/issues/996)) ([896306f](https://github.com/tambo-ai/tambo/commit/896306f1a5544d0cd88f8f88bdf9285ca6e9b6a8))
+
+## [0.21.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.20.1...showcase-v0.21.0) (2025-09-05)
+
+
+### Features
+
+* **docs:** setup ai page actions ([#943](https://github.com/tambo-ai/tambo/issues/943)) ([836d7a3](https://github.com/tambo-ai/tambo/commit/836d7a3c88edea65fc6441519cc574f53372e01b))
+
+## [0.20.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.20.0...showcase-v0.20.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* fixed the year on the sidebar ([#973](https://github.com/tambo-ai/tambo/issues/973)) ([e89127a](https://github.com/tambo-ai/tambo/commit/e89127a9782e563e46be153a65c618eaa8f443ae))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump next from 15.5.1 to 15.5.2 in the next group across 1 directory ([#955](https://github.com/tambo-ai/tambo/issues/955)) ([c1b99f4](https://github.com/tambo-ai/tambo/commit/c1b99f4eb19edcd18456d1d2cf43df724129d6e9))
+
+## [0.20.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.19.1...showcase-v0.20.0) (2025-08-28)
+
+
+### Features
+
+* migrate from react-markdown to streamdown ([#927](https://github.com/tambo-ai/tambo/issues/927)) ([fe5648e](https://github.com/tambo-ai/tambo/commit/fe5648e1e15d0181bc3bfc48bebdc556bb4be6b9))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-config-next from 15.5.0 to 15.5.2 in the eslint group ([#949](https://github.com/tambo-ai/tambo/issues/949)) ([61eba78](https://github.com/tambo-ai/tambo/commit/61eba784bac5c1b84eb7f7ba0acb4a0a8ab908fd))
+* **deps-dev:** bump the eslint group with 5 updates ([#917](https://github.com/tambo-ai/tambo/issues/917)) ([ee0ee2e](https://github.com/tambo-ai/tambo/commit/ee0ee2e541d6a37322131a15cc02f6694436ceb3))
+* **deps:** bump @tambo-ai/typescript-sdk to get deprecated ActionType ([#928](https://github.com/tambo-ai/tambo/issues/928)) ([0b316e6](https://github.com/tambo-ai/tambo/commit/0b316e6d842241069e8b17d5823b8b8df60cbaf8))
+* **deps:** bump lucide-react from 0.540.0 to 0.541.0 ([#916](https://github.com/tambo-ai/tambo/issues/916)) ([50da283](https://github.com/tambo-ai/tambo/commit/50da2833e2e451211377cde13abd28d5835e2b7c))
+* **deps:** bump next from 15.4.7 to 15.5.0 ([#914](https://github.com/tambo-ai/tambo/issues/914)) ([4c4ff85](https://github.com/tambo-ai/tambo/commit/4c4ff85c219e8018f743d5fbe32d8a2b111819dc))
+* **deps:** bump streamdown from 1.1.3 to 1.1.5 ([#950](https://github.com/tambo-ai/tambo/issues/950)) ([5aff96d](https://github.com/tambo-ai/tambo/commit/5aff96daf6685b7b9198819aba3cb1576d9622a0))
+* Fix react/mcp subpackage path ([#946](https://github.com/tambo-ai/tambo/issues/946)) ([180ed1b](https://github.com/tambo-ai/tambo/commit/180ed1be9c04dc58c256d1183cdfc812fb3b961b))
+* fix tsconfig paths for react-sdk ([#945](https://github.com/tambo-ai/tambo/issues/945)) ([14dab2f](https://github.com/tambo-ai/tambo/commit/14dab2f4ae96e1a3c7b24cc84b0d15d74106f9a5))
+
 ## [0.19.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.19.0...showcase-v0.19.1) (2025-08-23)
 
 

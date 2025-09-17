@@ -4,7 +4,7 @@
   "componentName": "Message",
   "dependencies": [
     "class-variance-authority",
-    "react-markdown",
+    "streamdown",
     "lucide-react",
     "highlight.js",
     "@tambo-ai/react",

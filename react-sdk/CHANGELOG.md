@@ -1,5 +1,75 @@
 # Changelog
 
+## [0.50.0](https://github.com/tambo-ai/tambo/compare/react-v0.49.0...react-v0.50.0) (2025-09-11)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+
+## [0.49.0](https://github.com/tambo-ai/tambo/compare/react-v0.48.0...react-v0.49.0) (2025-09-10)
+
+
+### Features
+
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+## [0.48.0](https://github.com/tambo-ai/tambo/compare/react-v0.47.0...react-v0.48.0) (2025-09-09)
+
+
+### Features
+
+* **interactables:** Add automatic context injection for interactable components that sends their current state to the AI by default. ([#977](https://github.com/tambo-ai/tambo/issues/977)) ([bdec8f9](https://github.com/tambo-ai/tambo/commit/bdec8f9a3097d7bae52086b6ff0699e0e6759e12))
+
+
+### Bug Fixes
+
+* Extract error messages from mcp tool response content array ([#1016](https://github.com/tambo-ai/tambo/issues/1016)) ([5a7057e](https://github.com/tambo-ai/tambo/commit/5a7057eae1649da1f6debb2582153ba24f8613d7))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1004](https://github.com/tambo-ai/tambo/issues/1004)) ([d24edce](https://github.com/tambo-ai/tambo/commit/d24edceb6a297f174108c0b4f7d43376a57819a3))
+* **deps-dev:** bump the testing group with 2 updates ([#1007](https://github.com/tambo-ai/tambo/issues/1007)) ([4f8bd5c](https://github.com/tambo-ai/tambo/commit/4f8bd5cfcdcc2773116cee5a4f862ea73ead5925))
+* **deps:** bump use-debounce from 10.0.5 to 10.0.6 ([#1010](https://github.com/tambo-ai/tambo/issues/1010)) ([b973105](https://github.com/tambo-ai/tambo/commit/b973105b281c6b109165304b1633dabd60815742))
+* remove unused file ([#1017](https://github.com/tambo-ai/tambo/issues/1017)) ([f9f6062](https://github.com/tambo-ai/tambo/commit/f9f60626b119bdc3b8bb0d11063076d062036890))
+
+## [0.47.0](https://github.com/tambo-ai/tambo/compare/react-v0.46.5...react-v0.47.0) (2025-09-05)
+
+
+### Features
+
+* **context-helpers:** remove global context helper registry ([#975](https://github.com/tambo-ai/tambo/issues/975)) ([b643495](https://github.com/tambo-ai/tambo/commit/b6434956ad1f3e4e34e658e569014799a77cb73a))
+
+
+### Bug Fixes
+
+* register interactable components tools only when there is any interactable component ([#974](https://github.com/tambo-ai/tambo/issues/974)) ([864f76c](https://github.com/tambo-ai/tambo/commit/864f76c91140a9f0ac4915aaed37d2904e1e8bc8))
+
+## [0.46.5](https://github.com/tambo-ai/tambo/compare/react-v0.46.4...react-v0.46.5) (2025-09-04)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the testing group with 2 updates ([#948](https://github.com/tambo-ai/tambo/issues/948)) ([e92b501](https://github.com/tambo-ai/tambo/commit/e92b501faa45552861ed7c3d6d791c139da55c1e))
+
+## [0.46.4](https://github.com/tambo-ai/tambo/compare/react-v0.46.3...react-v0.46.4) (2025-08-27)
+
+
+### Bug Fixes
+
+* update useTamboComponentState  ([#912](https://github.com/tambo-ai/tambo/issues/912)) ([4f0061c](https://github.com/tambo-ai/tambo/commit/4f0061c54dfffde4c86201716176dd96960e1079))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @testing-library/jest-dom from 6.7.0 to 6.8.0 ([#929](https://github.com/tambo-ai/tambo/issues/929)) ([7a22c3e](https://github.com/tambo-ai/tambo/commit/7a22c3e707de982f93fdf2e54e2a50f0ef240892))
+* **deps-dev:** bump concurrently from 9.2.0 to 9.2.1 ([#931](https://github.com/tambo-ai/tambo/issues/931)) ([d8bd714](https://github.com/tambo-ai/tambo/commit/d8bd714ed58ded81e7e340ede4dd0303602daf54))
+* **deps-dev:** bump the eslint group with 5 updates ([#917](https://github.com/tambo-ai/tambo/issues/917)) ([ee0ee2e](https://github.com/tambo-ai/tambo/commit/ee0ee2e541d6a37322131a15cc02f6694436ceb3))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.3 to 1.17.4 ([#920](https://github.com/tambo-ai/tambo/issues/920)) ([daca967](https://github.com/tambo-ai/tambo/commit/daca967cf2bc07bd0b9600e3fb4e123c7b2c217e))
+* **deps:** bump @tambo-ai/typescript-sdk to get deprecated ActionType ([#928](https://github.com/tambo-ai/tambo/issues/928)) ([0b316e6](https://github.com/tambo-ai/tambo/commit/0b316e6d842241069e8b17d5823b8b8df60cbaf8))
+* **deps:** bump @tanstack/react-query from 5.85.3 to 5.85.5 ([#922](https://github.com/tambo-ai/tambo/issues/922)) ([7fdfdc7](https://github.com/tambo-ai/tambo/commit/7fdfdc718272240d20d8368666aa8dc9018f16db))
+
 ## [0.46.3](https://github.com/tambo-ai/tambo/compare/react-v0.46.2...react-v0.46.3) (2025-08-25)
 
 
