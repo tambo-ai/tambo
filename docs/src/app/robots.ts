@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.ai";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
 
 export default function robots(): MetadataRoute.Robots {
   return {
