@@ -33,16 +33,13 @@ export class MCPClient {
   private constructor(
     endpoint: string,
     transportType: MCPTransport,
-    headers?: Record<string, string> = {},
+    headers: Record<string, string> = {},
   ) {
     this.endpoint = endpoint;
     this.headers = headers;
     this.transportType = transportType;
     this.transport = this.initializeTransport(undefined);
-    this.client = new Client({
-      name: "tambo-mcp-client",
-      version: "1.0.0",
-    });
+    this.client = this.initializeClient();
   }
 
   /**
@@ -69,21 +66,25 @@ export class MCPClient {
    *
    * Note that only StreamableHTTPClientTransport supports session IDs.
    */
-  async reconnect() {
+  async reconnect(reportErrorOnClose = true) {
     const sessionId =
       "sessionId" in this.transport ? this.transport.sessionId : undefined;
     try {
       await this.client.close();
     } catch (error) {
-      console.error("Error closing client:", error);
+      if (reportErrorOnClose) {
+        console.error("Error closing Tambo MCP Client:", error);
+      }
     }
     this.transport = this.initializeTransport(sessionId);
-    this.client = new Client({
-      name: "tambo-mcp-client",
-      version: "1.0.0",
-    });
+    this.client = this.initializeClient();
 
     await this.client.connect(this.transport);
+  }
+
+  private async onclose() {
+    console.warn("Tambo MCP Client closed, reconnecting...");
+    await this.reconnect(false);
   }
 
   private initializeTransport(sessionId: string | undefined) {
@@ -97,6 +98,15 @@ export class MCPClient {
         requestInit: { headers: this.headers },
       });
     }
+  }
+
+  private initializeClient() {
+    const client = new Client({
+      name: "tambo-mcp-client",
+      version: "1.0.0",
+    });
+    client.onclose = this.onclose.bind(this);
+    return client;
   }
 
   /**
