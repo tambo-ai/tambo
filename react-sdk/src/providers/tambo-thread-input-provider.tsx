@@ -216,7 +216,14 @@ export const TamboThreadInputProvider: React.FC<
       setInputValue("");
       saveDraft("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState, saveDraft],
+    [
+      inputValue,
+      sendThreadMessage,
+      thread.id,
+      contextKey,
+      imageState,
+      saveDraft,
+    ],
   );
 
   const {
