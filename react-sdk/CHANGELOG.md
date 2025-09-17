@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.0](https://github.com/tambo-ai/tambo/compare/react-v0.51.0...react-v0.52.0) (2025-09-17)
+
+
+### Features
+
+* **mcp:** Add reconnection logic + method to MCP Client ([#1060](https://github.com/tambo-ai/tambo/issues/1060)) ([3759258](https://github.com/tambo-ai/tambo/commit/37592580be8977c0dcc2002211e7bc7053a3b673))
+
 ## [0.51.0](https://github.com/tambo-ai/tambo/compare/react-v0.50.0...react-v0.51.0) (2025-09-17)
 
 
