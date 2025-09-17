@@ -43,7 +43,7 @@ describe("useTamboThreadList", () => {
     update: jest.fn(),
     delete: jest.fn(),
     advance: jest.fn(),
-    advanceById: jest.fn(),
+    advanceByID: jest.fn(),
   } satisfies DeepPartial<TamboAI["beta"]["threads"]>;
 
   const mockBeta = {
