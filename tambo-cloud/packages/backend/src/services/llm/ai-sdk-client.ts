@@ -356,7 +356,7 @@ export class AISdkClient implements LLMClient {
     result: TextStreamResponse,
   ): AsyncIterableIterator<LLMResponse> {
     let accumulatedMessage = "";
-    let _accumulatedReasoning = "";
+    let accumulatedReasoning: string[] = [];
     const accumulatedToolCall: {
       name?: string;
       arguments: string;
@@ -391,10 +391,14 @@ export class AISdkClient implements LLMClient {
           console.error("Got error from tool call", delta.error);
           break;
         case "reasoning-start":
-          _accumulatedReasoning = "";
+          // append to the last element of the array
+          accumulatedReasoning = [...accumulatedReasoning, ""];
           break;
         case "reasoning-delta":
-          _accumulatedReasoning += delta.text;
+          accumulatedReasoning = [
+            ...accumulatedReasoning.slice(0, -1),
+            accumulatedReasoning[accumulatedReasoning.length - 1] + delta.text,
+          ];
           break;
         case "reasoning-end":
           break;
@@ -439,6 +443,7 @@ export class AISdkClient implements LLMClient {
           tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
           refusal: null,
         },
+        reasoning: accumulatedReasoning,
         index: 0,
         logprobs: null,
       };

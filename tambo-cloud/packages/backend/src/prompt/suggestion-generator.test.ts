@@ -194,7 +194,7 @@ describe("suggestion-generator", () => {
         props: { label: "Click me" },
         message: "Using button component",
         componentState: {},
-        reasoning: "Button requested by user",
+        reasoning: ["Button requested by user"],
       };
 
       const mockHistory: ThreadMessage[] = [
@@ -397,7 +397,7 @@ describe("suggestion-generator", () => {
         props: { label: "First" },
         message: "Using button component",
         componentState: {},
-        reasoning: "Button requested by user",
+        reasoning: ["Button requested by user"],
       };
 
       const inputDecision: LegacyComponentDecision = {
@@ -405,7 +405,7 @@ describe("suggestion-generator", () => {
         props: { value: "Latest" },
         message: "Using input component",
         componentState: {},
-        reasoning: "Input requested by user",
+        reasoning: ["Input requested by user"],
       };
 
       const mockHistory: ThreadMessage[] = [

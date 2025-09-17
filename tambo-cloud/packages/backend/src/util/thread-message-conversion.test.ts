@@ -97,7 +97,7 @@ describe("threadMessagesToChatHistory", () => {
         message: "test reasoning",
         props: {},
         componentState: {},
-        reasoning: "test reasoning",
+        reasoning: ["test reasoning"],
       };
 
       const toolCallRequest: ToolCallRequest = {
@@ -124,6 +124,7 @@ describe("threadMessagesToChatHistory", () => {
           toolCallRequest,
         },
         componentState: { state: "test" },
+        reasoning: ["test reasoning"],
       };
 
       const result = threadMessagesToChatCompletionMessageParam([
@@ -136,7 +137,7 @@ describe("threadMessagesToChatHistory", () => {
           {
             "content": [
               {
-                "text": "{"componentName":"TestComponent","message":"test reasoning","props":{},"componentState":{"instructions":"\\nThe following values represent the current internal state of the component attached to this message. These values may have been updated by the user.","state":"test"},"reasoning":"test reasoning","toolCallRequest":{"tool_call_id":"test-tool-1","toolName":"test_tool","parameters":[{"parameterName":"param1","parameterValue":"value1"}]}}",
+                "text": "{"componentName":"TestComponent","message":"test reasoning","props":{},"componentState":{"instructions":"\\nThe following values represent the current internal state of the component attached to this message. These values may have been updated by the user.","state":"test"},"reasoning":["test reasoning"],"toolCallRequest":{"tool_call_id":"test-tool-1","toolName":"test_tool","parameters":[{"parameterName":"param1","parameterValue":"value1"}]}}",
                 "type": "text",
               },
             ],

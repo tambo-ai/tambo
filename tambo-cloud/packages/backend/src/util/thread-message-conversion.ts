@@ -245,7 +245,6 @@ function combineComponentWithState(
 ): ComponentDecisionV2 {
   return {
     ...component,
-    reasoning: component.reasoning || "",
     componentState: {
       instructions:
         "\nThe following values represent the current internal state of the component attached to this message. These values may have been updated by the user.",
@@ -257,9 +256,7 @@ function combineComponentWithState(
 
 /** This simulates the tool call that the LLM would make to decide which
  * component to use, since we previously recorded this in the message history */
-function makeFakeDecisionCall(
-  component: LegacyComponentDecision,
-): ToolCallRequest {
+function makeFakeDecisionCall(component: ComponentDecisionV2): ToolCallRequest {
   return {
     toolName: "decide_component",
     parameters: [

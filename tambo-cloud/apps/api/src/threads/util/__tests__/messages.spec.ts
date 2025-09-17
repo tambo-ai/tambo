@@ -72,6 +72,7 @@ describe("messages utilities", () => {
         actionType: null,
         error: null,
         isCancelled: false,
+        reasoning: null,
       };
 
       jest.mocked(operations.addMessage).mockResolvedValue(mockResponse);
@@ -136,6 +137,7 @@ describe("messages utilities", () => {
         componentDecision: null,
         error: null,
         isCancelled: false,
+        reasoning: null,
       };
 
       jest.mocked(operations.updateMessage).mockResolvedValue(mockResponse);
@@ -184,7 +186,7 @@ describe("messages utilities", () => {
         componentName: "TestComponent",
         props: { prop1: "value1" },
         componentState: { state1: "value1" },
-        reasoning: "test reasoning",
+        reasoning: ["test reasoning"],
       };
 
       const mockResponse = {
@@ -262,6 +264,7 @@ describe("messages utilities", () => {
         actionType: ActionType.ToolCall,
         error: null,
         isCancelled: false,
+        reasoning: null,
       };
 
       const newMessage: ThreadMessage = {
@@ -273,6 +276,7 @@ describe("messages utilities", () => {
         toolCallRequest: undefined,
         tool_call_id: undefined,
         error: undefined,
+        reasoning: undefined,
       };
 
       jest

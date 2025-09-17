@@ -38,7 +38,6 @@ export class ComponentDecisionV2Dto implements ComponentDecisionV2 {
     additionalProperties: true,
   })
   componentState!: Record<string, unknown> | null;
-  reasoning!: string;
   statusMessage?: string;
   completionStatusMessage?: string;
   /** This is filled in whether the tool call is a server-side or client-side tool call. */

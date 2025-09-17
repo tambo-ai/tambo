@@ -75,7 +75,14 @@ type LLMChatCompletionChoice = Omit<
     | "unknown";
 };
 
-export type LLMResponse = Omit<LLMChatCompletionChoice, "finish_reason">;
+/** Additional fields that are not part of the ChatCompletionChoice, but we
+ * still need to pass them back through to the caller */
+interface LLMResponseExtras {
+  /** Reasoning tokens from the LLM */
+  reasoning?: string[];
+}
+export type LLMResponse = Omit<LLMChatCompletionChoice, "finish_reason"> &
+  LLMResponseExtras;
 
 /** Get the string response from the LLM response */
 export function getLLMResponseMessage(response: Partial<LLMResponse>) {
@@ -100,13 +107,11 @@ export function getLLMResponseToolCallRequest(
     return undefined;
   }
 
-  // TODO: should we throw here?
   const args = tryParseJsonObject(llmToolCall.function.arguments, false);
   if (!args) {
-    console.error(
-      `Failed to parse tool call arguments, is this an incomplete stream? ${llmToolCall.function.arguments}`,
-    );
-    return undefined;
+    // This is expected when tool calls are streaming, so generaly we assume
+    // that a parsing error here is just a temporary issue
+    return;
   }
   const parameters = Object.entries(args).map(([key, value]) => ({
     parameterName: key,

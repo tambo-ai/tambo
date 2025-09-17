@@ -64,6 +64,10 @@ export class ThreadMessageDto {
   })
   metadata?: Record<string, unknown>;
   component?: ComponentDecisionV2Dto;
+  @ApiProperty({
+    description: "Reasoning text from the LLM, if the model supports it.",
+  })
+  reasoning?: string[];
 
   @ApiProperty({
     type: "object",
@@ -123,6 +127,14 @@ export class MessageRequest implements InternalThreadMessage {
 
   @IsNotEmpty()
   content!: ChatCompletionContentPartDto[];
+
+  @IsOptional()
+  @ApiProperty({
+    type: "array",
+    items: { type: "string" },
+    description: "Reasoning text from the LLM, if the model supports it.",
+  })
+  reasoning?: string[];
 
   @IsOptional()
   @ApiProperty({

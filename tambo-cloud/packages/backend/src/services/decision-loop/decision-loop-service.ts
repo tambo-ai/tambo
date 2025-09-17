@@ -78,7 +78,6 @@ export async function* runDecisionLoop(
   });
 
   const initialDecision: LegacyComponentDecision = {
-    reasoning: "",
     message: "",
     componentName: "",
     props: null,
@@ -164,6 +163,7 @@ export async function* runDecisionLoop(
             : getLLMResponseToolCallId(chunk),
         statusMessage,
         completionStatusMessage,
+        reasoning: chunk.reasoning ?? undefined,
       };
 
       accumulatedDecision = {
@@ -184,6 +184,11 @@ function removeTamboToolParameters(
   chunk: Partial<LLMResponse>,
 ) {
   const originalRequest = getLLMResponseToolCallRequest(chunk);
+  // Just means the tool call is still streaming
+  if (!originalRequest) {
+    return;
+  }
+  // "custom" tool calls are not supported
   if (toolCall.type !== "function") {
     return originalRequest;
   }
@@ -197,7 +202,6 @@ function removeTamboToolParameters(
 
     // Only include tool call request if it's not the displayMessageTool
     if (
-      originalRequest &&
       filteredArgs &&
       getToolName(toolCall) !== getToolName(displayMessageTool)
     ) {

@@ -127,6 +127,8 @@ export interface ThreadMessage {
    * The tool call request for the message
    */
   toolCallRequest?: ToolCallRequest;
+  /** Reasoning text from the LLM */
+  reasoning?: string[];
 }
 
 /** Temporary internal type to make sure that subclasses are aligned on types */
@@ -142,6 +144,7 @@ export interface InternalThreadMessage {
   toolCallRequest?: Partial<ToolCallRequest>;
   tool_call_id?: string;
   isCancelled?: boolean;
+  reasoning?: string[];
 }
 
 /**

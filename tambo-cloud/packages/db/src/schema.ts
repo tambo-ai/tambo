@@ -448,6 +448,7 @@ export const messages = pgTable(
       customJsonb<OpenAI.Chat.Completions.ChatCompletionContentPart[]>(
         "content",
       ).notNull(),
+    reasoning: customJsonb<string[]>("reasoning"),
     additionalContext:
       customJsonb<Record<string, unknown>>("additional_context"),
     toolCallId: text("tool_call_id"),
@@ -465,7 +466,15 @@ export const messages = pgTable(
       .notNull(),
   }),
   (table) => {
-    return [index("messages_thread_id_idx").on(table.threadId)];
+    return [
+      index("messages_thread_id_idx").on(table.threadId),
+      check(
+        "chk_messages_reasoning_max_len",
+        sql`${table.reasoning} IS NULL
+            OR (jsonb_typeof(${table.reasoning}->'json') = 'array' AND
+                jsonb_array_length(${table.reasoning}->'json') <= 200)`,
+      ),
+    ];
   },
 );
 

@@ -2,6 +2,7 @@ import { McpToolRegistry } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ContentPartType,
+  LegacyComponentDecision,
   MCPClient,
   MessageRole,
   ThreadMessage,
@@ -100,12 +101,12 @@ describe("tool utilities", () => {
       ],
     };
 
-    const componentDecision = {
+    const componentDecision: LegacyComponentDecision = {
       message: "test message",
       componentName: "TestComponent",
       props: {},
       componentState: {},
-      reasoning: "test reasoning",
+      reasoning: ["test reasoning"],
     };
 
     const advanceRequestDto = {

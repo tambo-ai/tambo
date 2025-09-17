@@ -159,7 +159,7 @@ describe("Thread State", () => {
         componentName: "test-component",
         props: {},
         componentState: {},
-        reasoning: "test reasoning",
+        reasoning: ["test reasoning"],
       };
 
       const mockInProgressMessage: ThreadMessage = {
@@ -204,7 +204,7 @@ describe("Thread State", () => {
         componentName: "test-component",
         props: {},
         componentState: {},
-        reasoning: "test reasoning",
+        reasoning: ["test reasoning"],
         toolCallRequest,
         toolCallId: "tool-123",
       };
@@ -246,9 +246,9 @@ describe("Thread State", () => {
         componentName: "test-component",
         props: {},
         componentState: {},
-        reasoning: "because",
+        reasoning: ["because"],
         ...(tool ? { toolCallId: tool.id, toolCallRequest: tool.request } : {}),
-      } as LegacyComponentDecision;
+      };
     }
 
     async function collect<T>(iter: AsyncIterableIterator<T>): Promise<T[]> {
@@ -400,6 +400,7 @@ describe("Thread State", () => {
         error: null,
         isCancelled: false,
         additionalContext: null,
+        reasoning: null,
       });
 
       const result = await finishInProgressMessage(

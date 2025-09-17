@@ -101,12 +101,16 @@ allowed to do so.
   - Use flex/grid for layout. Manage element spacing with gap (use `gap-*`
     classes when needed), and padding (`p-*`, `pt-*`, `pr-*`, `pb-*`, `pl-*`,
     etc.).
-  - Avoid changing element margins (`m-*`, `mt-*`, `mr-*`, `mb-*`, `ml-*`, etc.) and avoid tailwind classes `space-x-*`/`space-y-*`.
+  - Avoid changing element margins (`m-*`, `mt-*`, `mr-*`, `mb-*`, `ml-*`, etc.) and avoid `space-x-*`/`space-y-*`.
   - Truncate overflowing text with text-ellipsis. Prefer minimal Tailwind usage; avoid ad-hoc CSS.
 - Typography
   - Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See apps/web/lib/fonts.ts and tailwind.config.ts.
 - Text
-  - avoid manually changing string cases, as it is usually a code smell for not providing the correct string to the component. If a internal key should be shown to a user, the english string should be provided separately. e.g. if a key has a value agent_mode, the english string should be provided separately as "Agent Mode" rather than trying to capitalize it.
+  - avoid manually changing string cases, as it is usually a code smell for not
+    providing the correct string to the component. If a internal key should be
+    shown to a user, the english string should be provided separately. e.g. if a
+    key has a value agent_mode, the english string should be provided separately
+    as "Agent Mode" rather than trying to capitalize it.
   - Avoid overly long JSX, instead break out any complex JSX into a separate component.
     - use simple '&&' to hide/show simple elements, using simple boolean values, like `{hasError && <div>Error: ${error}</div>}`.
     - however, avoid ternaries unless the options are just one or two lines. nested or chained ternaries are a code smell.
@@ -114,8 +118,11 @@ allowed to do so.
     - avoid functions with statements inside of JSX, such as if/else, switch, etc. If you have to
       add braces ({}) to JSX, that is a sign that you should break out the JSX
       into a separate component.
-  - Use loading states provided by react-query or tRPC, e.g. `isFetching`, `isError`, `isSuccess`, etc.
-  - When using loading states, use the Skeleton components or show the real components in a disabled/blank state, rather than showing only loading spinner or not showing any content.
+- Use loading states provided by react-query or tRPC, e.g. `isFetching`,
+  `isError`, `isSuccess`, etc.
+- When using loading states, use the Skeleton components or show the real
+  components in a disabled/blank state, rather than showing only loading spinner
+  or not showing any content.
 
 ## 4) Backend (NestJS in apps/api)
 

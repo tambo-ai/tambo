@@ -68,6 +68,7 @@ export async function addMessage(
     error: message.error ?? undefined,
     isCancelled: message.isCancelled,
     additionalContext: message.additionalContext ?? {},
+    reasoning: message.reasoning ?? undefined,
   };
 }
 
@@ -89,6 +90,7 @@ export async function updateMessage(
     error: messageDto.error,
     isCancelled: messageDto.isCancelled,
     additionalContext: messageDto.additionalContext ?? {},
+    reasoning: messageDto.reasoning ?? undefined,
   });
 
   if (messageDto.role === MessageRole.Tool && messageDto.error) {
@@ -113,6 +115,7 @@ export async function updateMessage(
     error: message.error ?? undefined,
     isCancelled: message.isCancelled,
     additionalContext: message.additionalContext ?? {},
+    reasoning: message.reasoning ?? undefined,
   };
 }
 
@@ -153,7 +156,6 @@ export async function addAssistantMessageToThread(
     componentName: component.componentName,
     props: component.props,
     componentState: component.componentState,
-    reasoning: component.reasoning,
   };
   return await addMessage(db, threadId, {
     role: MessageRole.Assistant,
@@ -168,6 +170,7 @@ export async function addAssistantMessageToThread(
     toolCallRequest: component.toolCallRequest,
     tool_call_id: component.toolCallId,
     componentState: component.componentState ?? {},
+    reasoning: component.reasoning,
   });
 }
 
