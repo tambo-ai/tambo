@@ -97,8 +97,15 @@ describe("TamboThreadProvider", () => {
     TamboAI["beta"]["threads"]
   > as unknown as TamboAI.Beta.Threads;
 
+  const mockProjectsApi = {
+    getCurrent: jest.fn(),
+  } satisfies DeepPartial<
+    TamboAI["beta"]["projects"]
+  > as unknown as TamboAI.Beta.Projects;
+
   const mockBeta = {
     threads: mockThreadsApi,
+    projects: mockProjectsApi,
   } satisfies PartialTamboAI["beta"];
 
   const mockTamboAI = {
@@ -108,6 +115,7 @@ describe("TamboThreadProvider", () => {
 
   let mockQueryClient: {
     refetchQueries: jest.Mock;
+    setQueryData: jest.Mock;
   };
 
   const mockRegistry: TamboComponent[] = [
@@ -152,6 +160,7 @@ describe("TamboThreadProvider", () => {
     // Setup mock query client
     mockQueryClient = {
       refetchQueries: jest.fn().mockResolvedValue(undefined),
+      setQueryData: jest.fn(),
     };
     jest
       .mocked(useTamboQueryClient)
@@ -167,6 +176,13 @@ describe("TamboThreadProvider", () => {
     jest
       .mocked(mockThreadsApi.advanceById)
       .mockResolvedValue(createMockAdvanceResponse());
+    jest.mocked(mockProjectsApi.getCurrent).mockResolvedValue({
+      id: "test-project-id",
+      name: "Test Project",
+      isTokenRequired: false,
+      providerType: "llm",
+      userId: "test-user-id",
+    });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
   });
 
@@ -1033,44 +1049,6 @@ describe("TamboThreadProvider", () => {
   });
 
   describe("refetch threads list behavior", () => {
-    it("should refetch threads list when switching from placeholder to real thread", async () => {
-      const { result } = renderHook(() => useTamboThread(), { wrapper });
-
-      // Start with placeholder thread
-      expect(result.current.thread.id).toBe("placeholder");
-
-      // Switch to a real thread (simulating new thread creation)
-      await act(async () => {
-        await result.current.switchCurrentThread("test-thread-1");
-      });
-
-      // Verify that refetchQueries was called with the correct parameters
-      expect(mockQueryClient.refetchQueries).toHaveBeenCalledWith({
-        queryKey: ["threads"],
-        type: "active",
-      });
-    });
-
-    it("should not refetch threads list when switching between existing threads", async () => {
-      const { result } = renderHook(() => useTamboThread(), { wrapper });
-
-      // First switch to a real thread
-      await act(async () => {
-        await result.current.switchCurrentThread("test-thread-1");
-      });
-
-      // Clear the mock to reset call count
-      mockQueryClient.refetchQueries.mockClear();
-
-      // Switch to another existing thread
-      await act(async () => {
-        await result.current.switchCurrentThread("test-thread-2");
-      });
-
-      // Verify that refetchQueries was NOT called again
-      expect(mockQueryClient.refetchQueries).not.toHaveBeenCalled();
-    });
-
     it("should refetch threads list when creating a new thread via sendThreadMessage", async () => {
       const { result } = renderHook(() => useTamboThread(), { wrapper });
 
@@ -1096,19 +1074,62 @@ describe("TamboThreadProvider", () => {
       // Start with placeholder thread
       expect(result.current.thread.id).toBe("placeholder");
 
-      // Send a message which will create a new thread
+      // Send a message which will create a new thread with contextKey
       await act(async () => {
         await result.current.sendThreadMessage("Hello", {
           threadId: "placeholder",
           streamResponse: false,
+          contextKey: "test-context-key",
         });
       });
+
+      // Verify that setQueryData was called first (optimistic update)
+      expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+        ["threads", "test-project-id", "test-context-key"],
+        expect.any(Function),
+      );
 
       // Verify that refetchQueries was called when the new thread was created
       expect(mockQueryClient.refetchQueries).toHaveBeenCalledWith({
         queryKey: ["threads"],
         type: "active",
       });
+    });
+
+    it("should not refetch threads list when switching between existing threads", async () => {
+      const { result } = renderHook(() => useTamboThread(), { wrapper });
+
+      // Start with placeholder thread
+      expect(result.current.thread.id).toBe("placeholder");
+
+      // Clear any previous mock calls
+      jest.clearAllMocks();
+
+      // Mock the retrieve call to return the expected thread
+      const existingThread = createMockThread({ id: "existing-thread-123" });
+      jest
+        .mocked(mockThreadsApi.retrieve)
+        .mockResolvedValueOnce(existingThread);
+
+      // Switch to an existing thread (this should not trigger refetch)
+      await act(async () => {
+        await result.current.switchCurrentThread("existing-thread-123");
+      });
+
+      // Verify that the thread retrieval was called
+      expect(mockThreadsApi.retrieve).toHaveBeenCalledWith(
+        "existing-thread-123",
+        {
+          includeInternal: true,
+        },
+      );
+
+      // Verify that neither setQueryData nor refetchQueries were called
+      expect(mockQueryClient.setQueryData).not.toHaveBeenCalled();
+      expect(mockQueryClient.refetchQueries).not.toHaveBeenCalled();
+
+      // Verify the thread was switched correctly
+      expect(result.current.thread.id).toBe("existing-thread-123");
     });
   });
 });

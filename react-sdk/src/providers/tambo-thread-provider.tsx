@@ -247,16 +247,38 @@ export const TamboThreadProvider: React.FC<
     ignoreResponseRef.current = ignoreResponse;
   }, [ignoreResponse]);
 
-  const refetchThreadsList = useCallback(async () => {
-    try {
-      await queryClient.refetchQueries({
-        queryKey: ["threads"],
-        type: "active",
-      });
-    } catch (error) {
-      console.warn("Failed to refetch threads list:", error);
-    }
-  }, [queryClient]);
+  const refetchThreadsList = useCallback(
+    async (threadId: string, contextKey: string | undefined) => {
+      try {
+        const currentProject = await client.beta.projects.getCurrent();
+
+        const optimisticThread = {
+          ...PLACEHOLDER_THREAD,
+          id: threadId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        queryClient.setQueryData(
+          ["threads", currentProject.id, contextKey],
+          (old: any) => {
+            return {
+              ...old,
+              items: [optimisticThread, ...old.items],
+            };
+          },
+        );
+
+        await queryClient.refetchQueries({
+          queryKey: ["threads"],
+          type: "active",
+        });
+      } catch (error) {
+        console.warn("Failed to refetch threads list:", error);
+      }
+    },
+    [client.beta.projects, queryClient],
+  );
 
   const fetchThread = useCallback(
     async (threadId: string, includeInternalMessages = true) => {
@@ -488,19 +510,11 @@ export const TamboThreadProvider: React.FC<
         return updatedThreadMap;
       });
 
-      const wasPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
-
-      // If we're switching from placeholder to a real thread,
-      // this means a new thread was created, so refetch the threads list
-      if (wasPlaceholderThread) {
-        await refetchThreadsList();
-      }
-
       if (fetch) {
         await fetchThread(threadId);
       }
     },
-    [fetchThread, currentThreadId, refetchThreadsList],
+    [fetchThread],
   );
 
   const updateThreadStatus = useCallback(
@@ -567,6 +581,7 @@ export const TamboThreadProvider: React.FC<
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
+      contextKey?: string,
     ): Promise<TamboThreadMessage> => {
       if (ignoreResponseRef.current) {
         setIgnoreResponse(false);
@@ -678,6 +693,7 @@ export const TamboThreadProvider: React.FC<
             toolCallResponseStream,
             toolCallResponseParams,
             chunk.responseMessageDto.threadId,
+            contextKey,
           );
         } else {
           if (ignoreResponseRef.current) {
@@ -699,7 +715,18 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId !== currentThread?.id
           ) {
             hasSetThreadId = true;
+            const wasPlaceholderThread =
+              currentThreadId === PLACEHOLDER_THREAD.id;
             await switchCurrentThread(chunk.responseMessageDto.threadId, false);
+
+            // If we're switching from placeholder to a real thread
+            // this means a new thread was created, so refetch the threads list
+            if (wasPlaceholderThread) {
+              await refetchThreadsList(
+                chunk.responseMessageDto.threadId,
+                contextKey,
+              );
+            }
           }
 
           if (!finalMessage) {
@@ -751,7 +778,9 @@ export const TamboThreadProvider: React.FC<
       client,
       componentList,
       currentThread?.id,
+      currentThreadId,
       onCallUnregisteredTool,
+      refetchThreadsList,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
@@ -859,6 +888,7 @@ export const TamboThreadProvider: React.FC<
             advanceStreamResponse,
             params,
             threadId,
+            contextKey,
           );
         } catch (error) {
           updateThreadStatus(threadId, GenerationStage.ERROR);
@@ -953,7 +983,17 @@ export const TamboThreadProvider: React.FC<
             componentList,
           )
         : advanceResponse.responseMessageDto;
+      const wasPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
+
+      // If we're switching from placeholder to a real thread
+      // this means a new thread was created, so refetch the threads list
+      if (wasPlaceholderThread) {
+        await refetchThreadsList(
+          advanceResponse.responseMessageDto.threadId,
+          contextKey,
+        );
+      }
       updateThreadStatus(
         advanceResponse.responseMessageDto.threadId,
         GenerationStage.COMPLETE,
@@ -974,6 +1014,7 @@ export const TamboThreadProvider: React.FC<
       streaming,
       getAdditionalContext,
       onCallUnregisteredTool,
+      refetchThreadsList,
     ],
   );
 
