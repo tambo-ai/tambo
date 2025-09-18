@@ -11,6 +11,10 @@ permissions:
 jobs:
   validate-pr-title:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
     steps:
       - name: PR Conventional Commit Validation
         uses: ytanikin/pr-conventional-commits@1.4.2
