@@ -50,11 +50,6 @@ const config = {
         permanent: false,
       },
       {
-        source: "/product-hunt",
-        destination: process.env.NEXT_PUBLIC_PRODUCT_HUNT_URL || "/",
-        permanent: false,
-      },
-      {
         source: "/issue",
         destination: "https://github.com/tambo-ai/tambo/issues/new",
         permanent: false,

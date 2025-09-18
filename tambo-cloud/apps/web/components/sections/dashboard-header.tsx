@@ -3,7 +3,6 @@
 import { Icons } from "@/components/icons";
 import { MobileDashboardNavigation } from "@/components/sections/mobile-dashboard-navigation";
 import { ProjectDropdown } from "@/components/sections/project-dropdown";
-import { ProductHuntBanner } from "@/components/sections/product-hunt-banner";
 import { UserProfileDropdown } from "@/components/sections/user-profile-dropdown";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -36,7 +35,6 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
 
   return (
     <>
-      <ProductHuntBanner />
       <header
         className={cn(
           "sticky top-0 z-50 h-[var(--dashboard-header-height)] backdrop-blur bg-background border-b border-border/20",

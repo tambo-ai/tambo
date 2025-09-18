@@ -8,7 +8,6 @@ import Image from "next/image";
 import React from "react";
 import { Button } from "../ui/button";
 import { AddToIdeDropdown } from "./add-to-ide-dropdown";
-import { ProductHuntWidget } from "./product-hunt-widget";
 
 const ease: Easing = [0.16, 1, 0.3, 1];
 
@@ -257,7 +256,6 @@ export function Hero() {
             <HeroCommandBox />
             <AddToIdeDropdown />
           </div>
-          <ProductHuntWidget />
         </div>
 
         {/* Hero illustration */}

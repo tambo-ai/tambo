@@ -2,7 +2,6 @@ import { Footer } from "@/components/sections/footer";
 import { ReactNode } from "react";
 import { BlogHeader } from "../../components/blog/blog-header";
 import { Metadata } from "next";
-import { ProductHuntBanner } from "@/components/sections/product-hunt-banner";
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +19,6 @@ interface BlogLayoutProps {
 export default function BlogLayout({ children }: BlogLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
-      <ProductHuntBanner />
       <BlogHeader />
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

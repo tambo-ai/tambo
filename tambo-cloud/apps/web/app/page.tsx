@@ -1,4 +1,3 @@
-import { ProductHuntBanner } from "@/components/sections/product-hunt-banner";
 import { ComponentLibraryDemo } from "@/components/sections/component-library-demo";
 import { Features } from "@/components/sections/features";
 import { FinalCTA } from "@/components/sections/final-cta";
@@ -12,7 +11,6 @@ import { SocialProof } from "@/components/sections/social-proof";
 export default function Home() {
   return (
     <div className="min-h-screen">
-      <ProductHuntBanner />
       <Header className="px-4 sm:px-6 lg:px-8" />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
