@@ -897,7 +897,7 @@ export const TamboThreadProvider: React.FC<
       try {
         advanceResponse = await (threadId === placeholderThread.id
           ? client.beta.threads.advance(params)
-          : client.beta.threads.advanceById(threadId, params));
+          : client.beta.threads.advanceByID(threadId, params));
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         throw error;
@@ -960,7 +960,7 @@ export const TamboThreadProvider: React.FC<
             false,
           );
 
-          advanceResponse = await client.beta.threads.advanceById(
+          advanceResponse = await client.beta.threads.advanceByID(
             advanceResponse.responseMessageDto.threadId,
             toolCallResponseParams,
           );

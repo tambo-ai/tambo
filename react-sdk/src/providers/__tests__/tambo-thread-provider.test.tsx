@@ -90,7 +90,7 @@ describe("TamboThreadProvider", () => {
     },
     retrieve: jest.fn(),
     advance: jest.fn(),
-    advanceById: jest.fn(),
+    advanceByID: jest.fn(),
   } satisfies DeepPartial<
     TamboAI["beta"]["threads"]
   > as unknown as TamboAI.Beta.Threads;
@@ -150,7 +150,7 @@ describe("TamboThreadProvider", () => {
       .mocked(mockThreadsApi.advance)
       .mockResolvedValue(createMockAdvanceResponse());
     jest
-      .mocked(mockThreadsApi.advanceById)
+      .mocked(mockThreadsApi.advanceByID)
       .mockResolvedValue(createMockAdvanceResponse());
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
   });
@@ -255,7 +255,7 @@ describe("TamboThreadProvider", () => {
     };
 
     jest
-      .mocked(mockThreadsApi.advanceById)
+      .mocked(mockThreadsApi.advanceByID)
       .mockResolvedValue(mockAdvanceResponse);
 
     const { result } = renderHook(() => useTamboThread(), { wrapper });
@@ -272,7 +272,7 @@ describe("TamboThreadProvider", () => {
       });
     });
 
-    expect(mockThreadsApi.advanceById).toHaveBeenCalledWith("test-thread-1", {
+    expect(mockThreadsApi.advanceByID).toHaveBeenCalledWith("test-thread-1", {
       messageToAppend: {
         content: [{ type: "text", text: "Hello" }],
         role: "user",
@@ -346,7 +346,7 @@ describe("TamboThreadProvider", () => {
     };
 
     jest
-      .mocked(mockThreadsApi.advanceById)
+      .mocked(mockThreadsApi.advanceByID)
       .mockResolvedValueOnce(mockToolCallResponse)
       .mockResolvedValueOnce({
         responseMessageDto: {
@@ -423,7 +423,7 @@ describe("TamboThreadProvider", () => {
       };
 
     jest
-      .mocked(mockThreadsApi.advanceById)
+      .mocked(mockThreadsApi.advanceByID)
       .mockResolvedValueOnce(mockUnregisteredToolCallResponse)
       .mockResolvedValueOnce({
         responseMessageDto: {
@@ -478,7 +478,7 @@ describe("TamboThreadProvider", () => {
       };
 
     jest
-      .mocked(mockThreadsApi.advanceById)
+      .mocked(mockThreadsApi.advanceByID)
       .mockResolvedValueOnce(mockUnregisteredToolCallResponse)
       .mockResolvedValueOnce({
         responseMessageDto: {
@@ -589,7 +589,7 @@ describe("TamboThreadProvider", () => {
 
       // Should not call advance or advanceById
       expect(mockThreadsApi.advance).not.toHaveBeenCalled();
-      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+      expect(mockThreadsApi.advanceByID).not.toHaveBeenCalled();
     });
 
     it("should call advanceById when streamResponse=false for existing thread", async () => {
@@ -629,7 +629,7 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      expect(mockThreadsApi.advanceById).toHaveBeenCalledWith("test-thread-1", {
+      expect(mockThreadsApi.advanceByID).toHaveBeenCalledWith("test-thread-1", {
         messageToAppend: {
           content: [{ type: "text", text: "Hello non-streaming" }],
           role: "user",
@@ -688,7 +688,7 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      expect(mockThreadsApi.advanceById).toHaveBeenCalledWith("test-thread-1", {
+      expect(mockThreadsApi.advanceByID).toHaveBeenCalledWith("test-thread-1", {
         messageToAppend: {
           content: [{ type: "text", text: "Hello default" }],
           role: "user",
@@ -790,7 +790,7 @@ describe("TamboThreadProvider", () => {
 
       // Should not call advance or advanceById
       expect(mockThreadsApi.advance).not.toHaveBeenCalled();
-      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+      expect(mockThreadsApi.advanceByID).not.toHaveBeenCalled();
     });
 
     it("should call advance when streamResponse=false for placeholder thread", async () => {
@@ -851,7 +851,7 @@ describe("TamboThreadProvider", () => {
       });
 
       // Should not call advanceById or advanceStream
-      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+      expect(mockThreadsApi.advanceByID).not.toHaveBeenCalled();
       expect(advanceStream).not.toHaveBeenCalled();
     });
 
@@ -940,7 +940,7 @@ describe("TamboThreadProvider", () => {
 
       // Should not call advance or advanceById
       expect(mockThreadsApi.advance).not.toHaveBeenCalled();
-      expect(mockThreadsApi.advanceById).not.toHaveBeenCalled();
+      expect(mockThreadsApi.advanceByID).not.toHaveBeenCalled();
     });
   });
 
@@ -949,7 +949,7 @@ describe("TamboThreadProvider", () => {
       const testError = new Error("API call failed");
 
       // Mock advanceById to throw an error
-      jest.mocked(mockThreadsApi.advanceById).mockRejectedValue(testError);
+      jest.mocked(mockThreadsApi.advanceByID).mockRejectedValue(testError);
 
       const { result } = renderHook(() => useTamboThread(), { wrapper });
 

@@ -3,6 +3,7 @@
   "extends": "./base.json",
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
+    "types": [],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowJs": true,

@@ -80,13 +80,12 @@ export function useTamboComponentState<S>(
   // Debounced callback to update the remote thread message's componentState
   const updateRemoteThreadMessage = useDebouncedCallback(
     async (newState: S, existingMessage: TamboThreadMessage) => {
-      const componentStateUpdate = {
-        state: { [keyName]: newState },
-      };
       await client.beta.threads.messages.updateComponentState(
-        existingMessage.threadId,
         existingMessage.id,
-        componentStateUpdate,
+        {
+          id: existingMessage.threadId,
+          state: { [keyName]: newState },
+        },
       );
     },
     debounceTime,
