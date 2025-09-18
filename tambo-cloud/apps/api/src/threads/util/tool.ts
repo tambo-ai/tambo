@@ -1,12 +1,15 @@
 import { McpToolRegistry } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
+  ContentPartType,
   LegacyComponentDecision,
+  MCPToolCallResult,
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
+import { ChatCompletionContentPartDto } from "../dto/message.dto";
 import { tryParseJson } from "./content";
 
 export function extractToolResponse(message: ThreadMessage): any {
@@ -23,6 +26,18 @@ export function extractToolResponse(message: ThreadMessage): any {
     return contentString;
   }
   return null;
+}
+
+function buildToolResponseContent(
+  result: MCPToolCallResult,
+): ChatCompletionContentPartDto[] {
+  if (typeof result === "string") {
+    return [{ type: ContentPartType.Text, text: result }];
+  }
+  if (Array.isArray(result.content)) {
+    return result.content;
+  }
+  return [];
 }
 
 export async function callSystemTool(
@@ -42,12 +57,7 @@ export async function callSystemTool(
       ]),
     );
     const result = await toolSource.callTool(toolCallRequest.toolName, params);
-    const responseContent =
-      typeof result === "string"
-        ? [{ type: "text" as const, text: result }]
-        : Array.isArray(result.content)
-          ? result.content
-          : [];
+    const responseContent = buildToolResponseContent(result);
 
     // TODO: handle cases where MCP server returns *only* resource types
     if (responseContent.length === 0) {

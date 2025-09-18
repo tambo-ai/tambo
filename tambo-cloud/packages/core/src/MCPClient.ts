@@ -133,7 +133,10 @@ export class MCPClient {
    * @returns The result from the tool execution
    * @throws Will throw an error if the tool call fails or if arguments are invalid
    */
-  async callTool(name: string, args: Record<string, unknown>) {
+  async callTool(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<MCPToolCallResult> {
     const result = await this.client.callTool({
       name,
       arguments: args,
@@ -141,6 +144,14 @@ export class MCPClient {
     return result;
   }
 }
+
+/**
+ * The result of a tool call.
+ * This is the same as the result of a tool call in the OpenAI SDK, but is reified here
+ */
+export type MCPToolCallResult = Awaited<
+  ReturnType<typeof Client.prototype.callTool>
+>;
 
 // Example usage:
 /*

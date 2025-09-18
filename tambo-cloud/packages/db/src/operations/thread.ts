@@ -9,8 +9,11 @@ import {
   isNull,
   ne,
   or,
+  type SQL,
   sql,
 } from "drizzle-orm";
+import { type SubqueryWithSelection } from "drizzle-orm/pg-core";
+import { UnreachableCaseError } from "ts-essentials";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -363,6 +366,15 @@ export async function updateThreadGenerationStatus(
   return updated;
 }
 
+type SortFieldKeys =
+  | "contextKey"
+  | "threadId"
+  | "created"
+  | "updated"
+  | "threadName"
+  | "messages"
+  | "errors";
+
 export async function getThreadsByProjectWithCounts(
   db: HydraDb,
   projectId: string,
@@ -380,14 +392,7 @@ export async function getThreadsByProjectWithCounts(
     sortDirection = "desc",
   }: {
     searchQuery?: string;
-    sortField?:
-      | "created"
-      | "updated"
-      | "threadId"
-      | "threadName"
-      | "contextKey"
-      | "messages"
-      | "errors";
+    sortField?: SortFieldKeys;
     sortDirection?: "asc" | "desc";
   } = {},
 ) {
@@ -432,14 +437,8 @@ export async function getThreadsByProjectWithCounts(
       .as("counts");
 
     // Build the main query with join
-    const orderBy =
-      sortField === "messages"
-        ? sortDirection === "asc"
-          ? countsSubquery.messageCount
-          : desc(countsSubquery.messageCount)
-        : sortDirection === "asc"
-          ? countsSubquery.errorCount
-          : desc(countsSubquery.errorCount);
+    const countsField = getCountsField(sortField, countsSubquery);
+    const orderBy = sortDirection === "asc" ? countsField : desc(countsField);
 
     const threadsWithCounts = await db
       .select({
@@ -473,35 +472,14 @@ export async function getThreadsByProjectWithCounts(
     }));
   }
 
+  const orderedField = getFieldFromSort(sortField);
   // non-count sorting
-  const getOrderBy = () => {
-    let field;
-    switch (sortField) {
-      case "created":
-        field = schema.threads.createdAt;
-        break;
-      case "updated":
-        field = schema.threads.updatedAt;
-        break;
-      case "threadId":
-        field = schema.threads.id;
-        break;
-      case "threadName":
-        field = schema.threads.name;
-        break;
-      case "contextKey":
-        field = schema.threads.contextKey;
-        break;
-      default:
-        field = schema.threads.createdAt;
-    }
-    return sortDirection === "asc" ? field : desc(field);
-  };
+  const orderBy = sortDirection === "asc" ? orderedField : desc(orderedField);
 
   // Get threads without messages
   const threads = await db.query.threads.findMany({
     where: and(...whereConditions),
-    orderBy: [getOrderBy()],
+    orderBy: [orderBy],
     offset,
     limit,
   });
@@ -541,6 +519,47 @@ export async function getThreadsByProjectWithCounts(
     messageCount: countsMap.get(thread.id)?.messageCount || 0,
     errorCount: countsMap.get(thread.id)?.errorCount || 0,
   }));
+}
+
+function getFieldFromSort(sortField: SortFieldKeys) {
+  switch (sortField) {
+    case "created":
+      return schema.threads.createdAt;
+    case "updated":
+      return schema.threads.updatedAt;
+    case "threadId":
+      return schema.threads.id;
+    case "threadName":
+      return schema.threads.name;
+    case "contextKey":
+      return schema.threads.contextKey;
+    case "errors":
+    case "messages":
+      // should never happen because we handle these separately
+      return schema.threads.createdAt;
+    default:
+      throw new UnreachableCaseError(sortField);
+  }
+}
+
+function getCountsField(
+  sortField: "messages" | "errors",
+  countsSubquery: SubqueryWithSelection<
+    {
+      messageCount: SQL.Aliased<number>;
+      errorCount: SQL.Aliased<number>;
+    },
+    "counts"
+  >,
+) {
+  switch (sortField) {
+    case "messages":
+      return countsSubquery.messageCount;
+    case "errors":
+      return countsSubquery.errorCount;
+    default:
+      throw new UnreachableCaseError(sortField);
+  }
 }
 
 export async function countThreadsByProjectWithSearch(

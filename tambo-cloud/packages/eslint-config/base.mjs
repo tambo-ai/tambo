@@ -46,6 +46,7 @@ export default tseslint.config(
         "error",
       "@typescript-eslint/no-unnecessary-condition": "error",
       "@typescript-eslint/no-floating-promises": "error",
+      "no-nested-ternary": "error",
     },
   },
   {

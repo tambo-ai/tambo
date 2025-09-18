@@ -18,6 +18,8 @@ export default tseslint.config(
       // in the apps/web project right now to do so.
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
+      // Turning this off for a separate refactor later
+      "no-nested-ternary": "off",
     },
   },
   {
