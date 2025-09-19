@@ -546,5 +546,3 @@
 - unpin cli from old version of @tambo-ai/react ([#150](https://github.com/tambo-ai/tambo/issues/150)) ([25ad800](https://github.com/tambo-ai/tambo/commit/25ad800d4402dd6db314321715bd48fcaa0df6f8))
 
 ### Miscellaneous
-
-- **cli:** update release configuration and CLI version to 0.0.3 ([#153](https://github.com/tambo-ai/tambo/issues/153)) ([11831f2](https://github.com/tambo-ai/tambo/commit/11831f232169af428209d2d5eac69bcc82e45353))
