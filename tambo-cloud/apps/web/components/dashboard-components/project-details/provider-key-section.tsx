@@ -392,8 +392,8 @@ export function ProviderKeySection({
       : canUseFreeMessages
         ? messageUsage?.messageCount &&
           messageUsage.messageCount >= FREE_MESSAGE_LIMIT
-          ? "free messages used, please add a key"
-          : `using free messages (${messageUsage?.messageCount ?? 0}/${FREE_MESSAGE_LIMIT})`
+          ? "starter LLM calls used — connect your provider key to continue"
+          : `using starter LLM calls (${messageUsage?.messageCount ?? 0}/${FREE_MESSAGE_LIMIT})`
         : "API key required";
 
   // --- Event Handlers ---
@@ -786,12 +786,13 @@ export function ProviderKeySection({
         {mode === AiProviderType.LLM && (
           <div className="max-w-xl">
             <p className="text-sm font-sans text-foreground max-w-sm">
-              Tambo offers 500 free messages. Once the limit is reached,
-              you&apos;ll have to add your API key to your project.
+              Get started with 500 starter LLM calls. Tambo is BYO Model — add
+              your provider key anytime to continue.
             </p>
             <div className="flex items-center gap-2 mt-2 mb-2">
               <p className="text-xs font-sans text-success max-w-xs bg-success-background rounded-full p-2">
-                {projectMessageUsage?.messageCount} out of 500 messages used
+                {projectMessageUsage?.messageCount} of 500 starter LLM calls
+                used
               </p>
             </div>
           </div>
@@ -1020,8 +1021,8 @@ export function ProviderKeySection({
                                 onChange={(e) => setApiKeyInput(e.target.value)}
                                 placeholder={
                                   parsedSelection.provider === "openai"
-                                    ? "Enter API Key or leave empty for free messages"
-                                    : "Enter API Key"
+                                    ? "Enter your LLM provider key"
+                                    : "Enter your LLM provider key"
                                 }
                                 autoFocus
                                 className={cn(

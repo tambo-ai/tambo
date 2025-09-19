@@ -68,8 +68,8 @@ export class FreeLimitReachedError extends HttpException {
       {
         type: "https://problems-registry.smartbear.com/payment-required",
         status: HttpStatus.PAYMENT_REQUIRED,
-        title: "Free Message Limit Reached",
-        detail: `You have used all ${FREE_MESSAGE_LIMIT} free messages. To continue using this service, please contact your provider or, if you are the developer, set up your OpenAI API key at https://tambo.co/dashboard.`,
+        title: "Starter LLM Call Limit Reached",
+        detail: `You’ve used all ${FREE_MESSAGE_LIMIT} starter LLM calls. To continue, add your LLM provider key at https://tambo.co/dashboard.`,
         code: "FREE_LIMIT_REACHED",
         details: {
           limit: FREE_MESSAGE_LIMIT,

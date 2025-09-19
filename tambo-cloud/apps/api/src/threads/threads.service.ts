@@ -2014,7 +2014,7 @@ export class ThreadsService {
         // Only allow fallback key for default model
         if (modelName !== DEFAULT_OPENAI_MODEL) {
           throw new NotFoundException(
-            `No API key found for project ${projectId}. Free messages are only available for the default model (${DEFAULT_OPENAI_MODEL}). Please add your OpenAI API key to use other models.`,
+            `Starter LLM calls are only available on the default model. Add your provider key to continue.`,
           );
         }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;
@@ -2042,7 +2042,7 @@ export class ThreadsService {
         // Only allow fallback key for default model
         if (modelName !== DEFAULT_OPENAI_MODEL) {
           throw new NotFoundException(
-            `No OpenAI API key found for project ${projectId}. Free messages are only available for the default model (${DEFAULT_OPENAI_MODEL}). Please add your OpenAI API key to use other models.`,
+            `Starter LLM calls are only available on the default model. Add your provider key to continue.`,
           );
         }
         const fallbackKey = process.env.FALLBACK_OPENAI_API_KEY;

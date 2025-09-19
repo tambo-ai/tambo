@@ -146,7 +146,8 @@ export function ProjectInfo({
               <span
                 className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
               >
-                {remainingMessages} free messages left
+                {remainingMessages} starter LLM calls left — bring your own key
+                to keep going
               </span>
               {isLowMessages && (
                 <Link
@@ -224,13 +225,14 @@ export function ProjectInfo({
           <div className="sm:border-l border-muted-foreground/20 sm:pl-4">
             <motion.div variants={itemVariants}>
               <h5 className="text-xs font-medium text-foreground mb-1">
-                Remaining free messages
+                Starter LLM calls remaining
               </h5>
               <div className="flex items-center gap-4">
                 <p
                   className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                 >
-                  {remainingMessages}
+                  {remainingMessages} starter LLM calls left — bring your own
+                  key to keep going
                 </p>
                 <Link
                   href={`/dashboard/${project.id}/settings`}

@@ -38,7 +38,7 @@ const pricingData: PricingTier[] = [
     subtitle: "Perfect for getting started",
     price: "Free",
     features: [
-      "10k messages / mo (hard cap)",
+      "10k stored messages / mo",
       "Unlimited users (OAuth)",
       "Chat-thread history",
       "Analytics + observability",

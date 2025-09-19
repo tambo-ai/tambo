@@ -192,8 +192,9 @@ export function CreateProjectDialog({
             />
             <div className="space-y-1 p-2">
               <p className="text-xs text-foreground">
-                Start with 500 free messages, after that you can add your own
-                LLM Provider Key from the project settings.
+                Try Tambo instantly with 500 starter LLM calls. Tambo is BYO
+                Model: add your own key when you’re ready to scale or experiment
+                with other providers.
               </p>
             </div>
           </motion.div>
