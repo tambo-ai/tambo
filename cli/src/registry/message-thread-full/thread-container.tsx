@@ -10,7 +10,10 @@ import { useRef } from "react";
 /**
  * Props for the ThreadContainer component
  */
-export type ThreadContainerProps = React.HTMLAttributes<HTMLDivElement>;
+export interface ThreadContainerProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  sidebarPosition?: "left" | "right";
+}
 
 /**
  * A responsive container component for message threads that handles
@@ -21,7 +24,7 @@ export type ThreadContainerProps = React.HTMLAttributes<HTMLDivElement>;
 export const ThreadContainer = React.forwardRef<
   HTMLDivElement,
   ThreadContainerProps
->(({ className, children, ...props }, ref) => {
+>(({ className, children, sidebarPosition, ...props }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(containerRef);
   const { isLeftPanel, historyPosition } = usePositioning(
@@ -30,6 +33,8 @@ export const ThreadContainer = React.forwardRef<
     hasCanvasSpace,
   );
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
+
+  const effectiveHistoryPosition = sidebarPosition ?? historyPosition;
 
   return (
     <div
@@ -43,7 +48,7 @@ export const ThreadContainer = React.forwardRef<
         "transition-all duration-200 ease-in-out",
 
         // Sidebar spacing based on history position
-        historyPosition === "right"
+        effectiveHistoryPosition === "right"
           ? "mr-[var(--sidebar-width,16rem)]"
           : "ml-[var(--sidebar-width,16rem)]",
 

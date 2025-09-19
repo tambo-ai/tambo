@@ -42,6 +42,10 @@ export interface MessageThreadFullProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional context key for the thread */
   contextKey?: string;
+  /** Preferred sidebar position; defaults to auto based on layout */
+  sidebarPosition?: "left" | "right" | "auto";
+  /** Preferred input alignment; defaults to opposite of sidebar */
+  inputAlign?: "left" | "right" | "auto";
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -57,12 +61,15 @@ export interface MessageThreadFullProps
 export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
->(({ className, contextKey, variant, ...props }, ref) => {
+>(({ className, contextKey, variant, sidebarPosition = "auto", inputAlign = "auto", ...props }, ref) => {
   const { containerRef, historyPosition } = useThreadContainerContext();
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
+  const effectiveHistoryPosition =
+    sidebarPosition === "auto" ? historyPosition : sidebarPosition;
+
   const threadHistorySidebar = (
-    <ThreadHistory contextKey={contextKey} position={historyPosition}>
+    <ThreadHistory contextKey={contextKey} position={effectiveHistoryPosition}>
       <ThreadHistoryHeader />
       <ThreadHistoryNewButton />
       <ThreadHistorySearch />
@@ -94,9 +101,14 @@ export const MessageThreadFull = React.forwardRef<
   return (
     <>
       {/* Thread History Sidebar - rendered first if history is on the left */}
-      {historyPosition === "left" && threadHistorySidebar}
+      {effectiveHistoryPosition === "left" && threadHistorySidebar}
 
-      <ThreadContainer ref={mergedRef} className={className} {...props}>
+      <ThreadContainer
+        ref={mergedRef}
+        className={className}
+        sidebarPosition={effectiveHistoryPosition}
+        {...props}
+      >
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
             <ThreadContentMessages />
@@ -109,7 +121,18 @@ export const MessageThreadFull = React.forwardRef<
         </MessageSuggestions>
 
         {/* Message input */}
-        <div className="p-4">
+        <div
+          className={cn(
+            "p-4",
+            inputAlign === "left"
+              ? "mr-auto"
+              : inputAlign === "right"
+                ? "ml-auto"
+                : effectiveHistoryPosition === "left"
+                  ? "ml-auto"
+                  : "mr-auto",
+          )}
+        >
           <MessageInput contextKey={contextKey}>
             <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
@@ -129,7 +152,7 @@ export const MessageThreadFull = React.forwardRef<
       </ThreadContainer>
 
       {/* Thread History Sidebar - rendered last if history is on the right */}
-      {historyPosition === "right" && threadHistorySidebar}
+      {effectiveHistoryPosition === "right" && threadHistorySidebar}
     </>
   );
 });

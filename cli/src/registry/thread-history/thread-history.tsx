@@ -62,6 +62,7 @@ interface ThreadHistoryProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   defaultCollapsed?: boolean;
   position?: "left" | "right";
+  density?: "compact" | "default";
 }
 
 const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
@@ -72,6 +73,7 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
       onThreadChange,
       defaultCollapsed = true,
       position = "left",
+      density = "default",
       children,
       ...props
     },
@@ -164,7 +166,16 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
           {...props}
         >
           <div
-            className={cn("flex flex-col h-full", isCollapsed ? "p-2" : "p-4")}
+            className={cn(
+              "flex flex-col h-full",
+              isCollapsed
+                ? density === "compact"
+                  ? "p-1"
+                  : "p-2"
+                : density === "compact"
+                  ? "p-2"
+                  : "p-4",
+            )}
           >
             {children}
           </div>
