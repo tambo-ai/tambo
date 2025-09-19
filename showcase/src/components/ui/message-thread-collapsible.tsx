@@ -21,7 +21,7 @@ import {
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
-import { Collapsible } from "radix-ui";
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { XIcon } from "lucide-react";
 import * as React from "react";
 import { type VariantProps } from "class-variance-authority";

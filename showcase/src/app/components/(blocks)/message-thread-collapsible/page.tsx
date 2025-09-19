@@ -1,7 +1,8 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import { MessageThreadCollapsible } from "@/components/ui/message-thread-collapsible";
+import * as Collapsible from "@/components/ui/message-thread-collapsible";
+import { Button } from "@/components/ui/button";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { DemoWrapper } from "../../demo-wrapper";
@@ -46,11 +47,19 @@ export default function MessageThreadCollapsiblePage() {
               <div className="flex-grow" />
               <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
               <div className="h-4 w-[200px] bg-muted/80 rounded-md" />
-              <MessageThreadCollapsible
-                defaultOpen={false}
-                contextKey={userContextKey}
-                className="absolute bottom-6 right-4"
-              />
+              <Collapsible.Root isFixed position="bottom-right">
+                <Collapsible.Trigger asChild>
+                  <Button variant="floating" size="icon" aria-label="Open chat" />
+                </Collapsible.Trigger>
+                <Collapsible.Content>
+                  <div className="h-[500px] flex flex-col">
+                    {/* Place your thread UI here or import the full composite */}
+                    <div className="p-6 text-sm text-muted-foreground">
+                      Compose your thread content within Content.
+                    </div>
+                  </div>
+                </Collapsible.Content>
+              </Collapsible.Root>
             </div>
           </DemoWrapper>
         </div>
