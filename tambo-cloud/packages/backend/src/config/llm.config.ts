@@ -12,6 +12,9 @@ export const llmProviderConfig: LlmProviderConfig = {
     apiKeyLink: "https://platform.openai.com/api-keys",
     models: openaiModels,
     isDefaultProvider: true,
+    providerSpecificParams: {
+      parallelToolCalls: false,
+    },
   },
   anthropic: {
     apiName: "anthropic",
@@ -19,6 +22,9 @@ export const llmProviderConfig: LlmProviderConfig = {
     docLinkRoot: "https://docs.anthropic.com",
     apiKeyLink: "https://console.anthropic.com/settings/keys",
     models: anthropicModels,
+    providerSpecificParams: {
+      disableParallelToolUse: true,
+    },
   },
   gemini: {
     apiName: "gemini",

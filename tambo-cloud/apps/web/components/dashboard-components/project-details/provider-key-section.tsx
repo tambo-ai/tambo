@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { z } from "zod";
 import { AgentSettings } from "./agent-settings";
-import { CustomLlmParametersEditor } from "./custom-llm-parameters-editor";
+import { CustomLlmParametersEditor } from "./custom-llm-parameters/editor";
 
 export const ProviderKeySectionSchema = z
   .object({
@@ -67,9 +67,7 @@ interface ProviderModelOption {
     status?: string;
     notes?: string;
     docLink?: string;
-    properties?: {
-      inputTokenLimit?: number;
-    };
+    inputTokenLimit?: number;
   };
 }
 
@@ -212,7 +210,7 @@ export function ProviderKeySection({
               status: model.status,
               notes: model.notes,
               docLink: model.docLink,
-              properties: model.properties,
+              inputTokenLimit: model.inputTokenLimit,
             },
           });
         });
@@ -293,8 +291,8 @@ export function ProviderKeySection({
       } else {
         const providerConfig = llmProviderConfigData[provider];
         const modelConfig = providerConfig?.models?.[actualModel];
-        if (modelConfig?.properties?.inputTokenLimit) {
-          setMaxInputTokens(modelConfig.properties.inputTokenLimit.toString());
+        if (modelConfig?.inputTokenLimit) {
+          setMaxInputTokens(modelConfig.inputTokenLimit.toString());
         }
       }
     }
@@ -427,10 +425,8 @@ export function ProviderKeySection({
           const option = providerModelOptions.find(
             (opt) => opt.value === value,
           );
-          if (option?.model?.properties?.inputTokenLimit) {
-            setMaxInputTokens(
-              option.model.properties.inputTokenLimit.toString(),
-            );
+          if (option?.model?.inputTokenLimit) {
+            setMaxInputTokens(option.model.inputTokenLimit.toString());
           } else {
             setMaxInputTokens("");
           }
@@ -591,12 +587,12 @@ export function ProviderKeySection({
 
       // Check against model limit if applicable
       if (
-        currentSelectedOption?.model?.properties?.inputTokenLimit &&
-        tokens > currentSelectedOption.model.properties.inputTokenLimit
+        currentSelectedOption?.model?.inputTokenLimit &&
+        tokens > currentSelectedOption.model.inputTokenLimit
       ) {
         toast({
           title: "Error",
-          description: `Input token limit cannot exceed model maximum (${currentSelectedOption.model.properties.inputTokenLimit.toLocaleString()}).`,
+          description: `Input token limit cannot exceed model maximum (${currentSelectedOption.model.inputTokenLimit.toLocaleString()}).`,
           variant: "destructive",
         });
         return;
@@ -983,11 +979,8 @@ export function ProviderKeySection({
                           id="max-input-tokens"
                           type="number"
                           min="1"
-                          max={
-                            currentSelectedOption.model?.properties
-                              ?.inputTokenLimit
-                          }
-                          placeholder={`${currentSelectedOption.model?.properties?.inputTokenLimit ?? 4096}`}
+                          max={currentSelectedOption.model?.inputTokenLimit}
+                          placeholder={`${currentSelectedOption.model?.inputTokenLimit ?? 4096}`}
                           value={maxInputTokens}
                           onChange={(e) => {
                             setMaxInputTokens(e.target.value);
@@ -997,12 +990,11 @@ export function ProviderKeySection({
                         <p className="text-xs text-foreground">
                           Tambo will limit the number of tokens sent to the
                           model to this value.
-                          {currentSelectedOption.model?.properties
-                            ?.inputTokenLimit && (
+                          {currentSelectedOption.model?.inputTokenLimit && (
                             <span>
                               {" "}
                               Maximum:{" "}
-                              {currentSelectedOption.model.properties.inputTokenLimit.toLocaleString()}
+                              {currentSelectedOption.model.inputTokenLimit.toLocaleString()}
                             </span>
                           )}
                         </p>

@@ -19,6 +19,7 @@ import {
   CoreUserMessage,
   generateText,
   jsonSchema,
+  JSONValue,
   LanguageModel,
   streamText,
   Tool,
@@ -34,7 +35,10 @@ import type OpenAI from "openai";
 import { UnreachableCaseError } from "ts-essentials";
 import { z } from "zod";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
-import type { LlmProviderConfigInfo } from "../../config/llm-config-types";
+import {
+  PARAMETER_METADATA,
+  type LlmProviderConfigInfo,
+} from "../../config/llm-config-types";
 import { llmProviderConfig } from "../../config/llm.config";
 import { Provider } from "../../model/providers";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
@@ -183,7 +187,7 @@ export class AISdkClient implements LLMClient {
       );
     }
 
-    const modelTokenLimit = modelCfg?.properties.inputTokenLimit;
+    const modelTokenLimit = modelCfg?.inputTokenLimit;
     const effectiveTokenLimit = this.maxInputTokens ?? modelTokenLimit;
     messagesFormatted = limitTokens(messagesFormatted, effectiveTokenLimit);
 
@@ -210,13 +214,36 @@ export class AISdkClient implements LLMClient {
       functionId: `${this.provider}-${this.model}`,
     });
 
-    // Default temperature to 0 unless overridden by config
-    const temperature = modelCfg?.properties.temperature;
+    // Extract custom parameters for the current model
+    const allCustomParams =
+      this.customLlmParameters?.[providerKey]?.[this.model];
+
+    // For openai-compatible provider, split parameters between suggestions and custom keys
+    let customParams = allCustomParams;
+    let providerSpecificCustomParams = {} as Record<string, JSONValue>;
+
+    if (providerKey === "openai-compatible" && allCustomParams) {
+      const suggestionKeys = Object.keys(PARAMETER_METADATA);
+
+      // Split parameters: suggestions go to customParams, custom keys go to providerOptions
+      customParams = {};
+      providerSpecificCustomParams = {};
+
+      Object.entries(allCustomParams).forEach(([key, value]) => {
+        if (suggestionKeys.includes(key)) {
+          customParams![key] = value;
+        } else {
+          providerSpecificCustomParams[key] = value;
+        }
+      });
+    }
+
+    // Get model-specific defaults (e.g., temperature: 1 for models that need it)
+    const modelDefaults = modelCfg?.commonParametersDefaults || {};
 
     const baseConfig: AICompleteParams = {
       model: modelInstance,
       messages: coreMessages,
-      temperature: temperature ?? 0,
       tools,
       toolChoice: params.tool_choice
         ? this.convertToolChoice(params.tool_choice)
@@ -226,25 +253,24 @@ export class AISdkClient implements LLMClient {
         experimental_telemetry: experimentalTelemetry,
       }),
       /**
-       * Extract and flatten custom parameters from our nested storage structure.
-       *
-       * Storage format: provider -> model -> parameters (for model-specific configs)
-       * AI SDK expects: provider -> parameters (flat structure)
-       *
-       * We extract only the current model's parameters and merge them with default
-       * parallel tool calls settings, then pass them to the AI SDK.
-       * This allows users to have different settings for GPT-4 vs GPT-3.5, etc.
+       * Provider-specific configuration
        */
       providerOptions: {
         [providerKey]: {
-          // Default parallel tool calls settings (always applied)
-          parallelToolCalls: false,
-          disableParallelToolUse: true,
-          parallel_tool_calls: false,
-          // Custom parameters override defaults (if any exist)
-          ...this.customLlmParameters?.[providerKey]?.[this.model],
+          // Provider-specific params from config as base defaults (e.g., disable parallel tool calls for OpenAI/Anthropic)
+          ...providerCfg?.providerSpecificParams,
+          // For openai-compatible, add custom user-defined keys here
+          ...(providerKey === "openai-compatible" &&
+            providerSpecificCustomParams),
         },
       },
+      /**
+       * Apply parameter hierarchy:
+       * 1. Model-specific defaults
+       * 2. Custom user parameters (highest priority)
+       */
+      ...modelDefaults, // Model-specific defaults (e.g., temperature: 1)
+      ...(customParams || {}), // Custom parameters override all
     };
 
     if (params.stream) {

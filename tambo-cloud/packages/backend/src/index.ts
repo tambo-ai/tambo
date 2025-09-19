@@ -2,7 +2,10 @@ export {
   createLangfuseConfig,
   createLangfuseTelemetryConfig,
 } from "./config/langfuse.config";
-export { type LlmProviderConfig } from "./config/llm-config-types";
+export {
+  type LlmProviderConfig,
+  PARAMETER_METADATA,
+} from "./config/llm-config-types";
 export { llmProviderConfig } from "./config/llm.config";
 export * from "./model";
 export * from "./services/suggestion/suggestion.types";
