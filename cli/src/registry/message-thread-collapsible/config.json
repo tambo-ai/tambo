@@ -1,6 +1,6 @@
 {
   "name": "message-thread-collapsible",
-  "description": "Displays message threads that can be expanded or collapsed. Requires a custom trigger button for closed state. Supports fixed positioning, size and surface variants.",
+  "description": "Compound components to build a collapsible chat panel: Root, Trigger, Content. Provide your own Button as Trigger. Supports fixed positioning, size and surface variants.",
   "componentName": "MessageThreadCollapsible",
   "dependencies": [
     "@tambo-ai/react",
@@ -24,17 +24,20 @@
     }
   ],
   "props": {
-    "contextKey": { "type": "string", "description": "Thread context key" },
-    "defaultOpen": { "type": "boolean", "default": false },
-    "isFixed": { "type": "boolean", "default": true, "description": "Use fixed positioning" },
-    "position": { "type": "enum", "values": ["bottom-right","bottom-left","top-right","top-left"], "default": "bottom-right" },
-    "offset": { "type": "number", "default": 16 },
-    "size": { "type": "enum", "values": ["sm","md","lg"], "default": "md" },
-    "appearance": { "type": "enum", "values": ["default","elevated","bordered"], "default": "default" },
-    "trigger": { "type": "ReactNode", "required": true, "description": "Custom trigger button (use <Button>)" }
+    "Root": {
+      "isFixed": { "type": "boolean", "default": true },
+      "position": { "type": "enum", "values": ["bottom-right","bottom-left","top-right","top-left"], "default": "bottom-right" },
+      "offset": { "type": "number", "default": 16 },
+      "size": { "type": "enum", "values": ["sm","md","lg"], "default": "md" },
+      "appearance": { "type": "enum", "values": ["default","elevated","bordered"], "default": "default" }
+    },
+    "Trigger": {
+      "asChild": { "type": "boolean", "default": true, "description": "Render your Button as the trigger" }
+    },
+    "Content": {}
   },
   "usage": {
-    "fixed": "<MessageThreadCollapsible contextKey=\"chat\" isFixed position=\"bottom-left\" size=\"sm\" appearance=\"elevated\" trigger={<Button variant=\"floating\" size=\"icon\"><Icon/></Button>} />",
-    "embedded": "<div className=\"col-span-3\"><MessageThreadCollapsible contextKey=\"chat\" isFixed={false} size=\"lg\" appearance=\"bordered\" trigger={<Button>Open Chat</Button>} /></div>"
+    "fixed": "<Collapsible.Root isFixed position=\"bottom-left\"><Collapsible.Trigger asChild><Button variant=\"floating\" size=\"icon\" aria-label=\"Open chat\" /></Collapsible.Trigger><Collapsible.Content>…</Collapsible.Content></Collapsible.Root>",
+    "embedded": "<div className=\"col-span-3\"><Collapsible.Root isFixed={false} size=\"lg\" appearance=\"bordered\"><Collapsible.Trigger asChild><Button>Open Chat</Button></Collapsible.Trigger><Collapsible.Content>…</Collapsible.Content></Collapsible.Root></div>"
   }
 }
