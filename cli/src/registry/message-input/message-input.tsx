@@ -11,6 +11,7 @@ import {
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 // Optional Next.js wrapper can be provided by consumers; default to plain img
 import * as React from "react";
 
@@ -366,11 +367,12 @@ export interface MessageInputTextareaProps
  * </MessageInput>
  * ```
  */
-const MessageInputTextarea = ({
+const MessageInputTextarea = React.forwardRef<HTMLTextAreaElement, MessageInputTextareaProps>(
+({
   className,
   placeholder = "What do you want to do?",
   ...props
-}: MessageInputTextareaProps) => {
+}, ref) => {
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
@@ -413,7 +415,12 @@ const MessageInputTextarea = ({
 
   return (
     <textarea
-      ref={textareaRef}
+      ref={(node) => {
+        // keep internal ref for focus management and also forward external ref
+        (textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+      }}
       value={value}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
@@ -429,7 +436,7 @@ const MessageInputTextarea = ({
       {...props}
     />
   );
-};
+});
 MessageInputTextarea.displayName = "MessageInput.Textarea";
 
 /**
@@ -470,20 +477,17 @@ const MessageInputSubmitButton = React.forwardRef<
     cancel();
   };
 
-  const buttonClasses = cn(
-    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
-    className,
-  );
-
   return (
-    <button
+    <Button
       ref={ref}
       type={isPending ? "button" : "submit"}
       disabled={isUpdatingToken}
       onClick={isPending ? handleCancel : undefined}
-      className={buttonClasses}
+      size="icon"
+      variant={isPending ? "secondary" : "default"}
       aria-label={isPending ? "Cancel message" : "Send message"}
       data-slot={isPending ? "message-input-cancel" : "message-input-submit"}
+      className={className}
       {...props}
     >
       {children ??
@@ -492,7 +496,7 @@ const MessageInputSubmitButton = React.forwardRef<
         ) : (
           <ArrowUp className="w-5 h-5" />
         ))}
-    </button>
+    </Button>
   );
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
@@ -671,11 +675,6 @@ const MessageInputFileButton = React.forwardRef<
     }
   };
 
-  const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
-    className,
-  );
-
   return (
     <TooltipProvider>
       <Tooltip
@@ -683,11 +682,12 @@ const MessageInputFileButton = React.forwardRef<
         side="top"
         className="bg-muted text-primary"
       >
-        <button
+        <Button
           ref={ref}
           type="button"
           onClick={handleClick}
-          className={buttonClasses}
+          size="icon"
+          variant="secondary"
           aria-label="Attach Images"
           data-slot="message-input-file-button"
           {...props}
@@ -702,7 +702,7 @@ const MessageInputFileButton = React.forwardRef<
             className="hidden"
             aria-hidden="true"
           />
-        </button>
+        </Button>
       </Tooltip>
     </TooltipProvider>
   );

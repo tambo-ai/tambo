@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Dialog } from "radix-ui";
+import * as Dialog from "@radix-ui/react-dialog";
+import { Button } from "@/components/ui/button";
 import { useTambo } from "@tambo-ai/react";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
@@ -75,13 +76,13 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
     return (
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>
-          <button className="fixed bottom-4 right-4 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors">
+          <Button className="fixed bottom-4 right-4 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors" variant="ghost">
             Talk to AI (
             <span suppressHydrationWarning>
               {hotkey.replace("mod", isMac ? "⌘" : "Ctrl")}
             </span>
             )
-          </button>
+          </Button>
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/40" />
