@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.24.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.23.0...showcase-v0.24.0) (2025-09-19)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+
+### Bug Fixes
+
+* **react-sdk:** refetch thread list on new thread creation ([#1059](https://github.com/tambo-ai/tambo/issues/1059)) ([b2739ab](https://github.com/tambo-ai/tambo/commit/b2739abd46ff2cb786ef81b9a6efbb5180e17df6))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/leaflet.heat from 0.2.4 to 0.2.5 ([#1053](https://github.com/tambo-ai/tambo/issues/1053)) ([cecfc79](https://github.com/tambo-ai/tambo/commit/cecfc796a9fea6bf4e1c1f94a94d814e9b18e066))
+* **deps-dev:** bump the eslint group with 3 updates ([#1044](https://github.com/tambo-ai/tambo/issues/1044)) ([34d4b83](https://github.com/tambo-ai/tambo/commit/34d4b83660d1b8d3833d6c480ef236c44ac8a398))
+* **deps:** bump next from 15.5.2 to 15.5.3 in the next group across 1 directory ([#1055](https://github.com/tambo-ai/tambo/issues/1055)) ([d21ecdb](https://github.com/tambo-ai/tambo/commit/d21ecdbc498ca018f2763b9f4f1df87fd2edafcc))
+* **deps:** bump streamdown from 1.1.5 to 1.2.0 ([#1050](https://github.com/tambo-ai/tambo/issues/1050)) ([f78ae45](https://github.com/tambo-ai/tambo/commit/f78ae4545c1714df7a954ff513da47ef8bd8958e))
+* **lint:** fix eslint config to make cursor/vscode happy ([#1069](https://github.com/tambo-ai/tambo/issues/1069)) ([6e84c6e](https://github.com/tambo-ai/tambo/commit/6e84c6e7cade904b74bc2491c5d7e023f89f15b0))
+* remove producthunt banners, bubbles and widget ([#1065](https://github.com/tambo-ai/tambo/issues/1065)) ([7ceff06](https://github.com/tambo-ai/tambo/commit/7ceff06f312e404a0e1d3c81efec569139e6f847))
+* **showcase:** generate and update sitemap ([#1023](https://github.com/tambo-ai/tambo/issues/1023)) ([04fb9ea](https://github.com/tambo-ai/tambo/commit/04fb9ea3a039bad159ba0cb4cd64bc7c2382476f))
+
 ## [0.23.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.22.0...showcase-v0.23.0) (2025-09-12)
 
 
