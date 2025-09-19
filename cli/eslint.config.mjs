@@ -46,6 +46,7 @@ export default tseslint.config(
         project: "./tsconfig.json",
         ecmaVersion: "latest",
         sourceType: "module",
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   },
