@@ -1,6 +1,6 @@
 {
   "name": "thread-dropdown",
-  "description": "Displays and manages a dropdown menu for collapsible chat threads",
+  "description": "Compound API for a thread menu: Root, Trigger, Content, Item, Separator, AutoContent",
   "componentName": "ThreadDropdown",
   "dependencies": [
     "class-variance-authority",
@@ -15,5 +15,13 @@
       "name": "thread-dropdown.tsx",
       "content": "src/registry/thread-dropdown/thread-dropdown.tsx"
     }
-  ]
+  ],
+  "props": {
+    "Root": { "contextKey": { "type": "string" } },
+    "Trigger": { "asChild": { "type": "boolean", "default": true } },
+    "AutoContent": { "className": { "type": "string" } }
+  },
+  "usage": {
+    "default": "<ThreadDropdownRoot contextKey=\"default\"><ThreadDropdownTrigger asChild><Button size=\"icon\">⋯</Button></ThreadDropdownTrigger><ThreadDropdownAutoContent /></ThreadDropdownRoot>"
+  }
 }
