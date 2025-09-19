@@ -1,12 +1,17 @@
 import nextJsConfig from "@tambo-ai/eslint-config/next-js";
-import tseslint from "typescript-eslint";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   ...nextJsConfig,
   {
     languageOptions: {
       parserOptions: {
+        project: "./tsconfig.json",
+        ecmaVersion: "latest",
+        sourceType: "module",
+        tsconfigRootDir: import.meta.dirname,
+
         projectService: {
           allowDefaultProject: ["next-sitemap.config.js"],
         },

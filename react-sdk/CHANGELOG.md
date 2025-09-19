@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.53.1](https://github.com/tambo-ai/tambo/compare/react-v0.53.0...react-v0.53.1) (2025-09-19)
+
+
+### Bug Fixes
+
+* **react-sdk:** refetch thread list on new thread creation ([#1059](https://github.com/tambo-ai/tambo/issues/1059)) ([b2739ab](https://github.com/tambo-ai/tambo/commit/b2739abd46ff2cb786ef81b9a6efbb5180e17df6))
+
+## [0.53.0](https://github.com/tambo-ai/tambo/compare/react-v0.52.0...react-v0.53.0) (2025-09-17)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+## [0.52.0](https://github.com/tambo-ai/tambo/compare/react-v0.51.0...react-v0.52.0) (2025-09-17)
+
+
+### Features
+
+* **mcp:** Add reconnection logic + method to MCP Client ([#1060](https://github.com/tambo-ai/tambo/issues/1060)) ([3759258](https://github.com/tambo-ai/tambo/commit/37592580be8977c0dcc2002211e7bc7053a3b673))
+
+## [0.51.0](https://github.com/tambo-ai/tambo/compare/react-v0.50.0...react-v0.51.0) (2025-09-17)
+
+
+### Features
+
+* **sdk:** partial updates for interactables + auto tools + new docs ([#1036](https://github.com/tambo-ai/tambo/issues/1036)) ([7352f12](https://github.com/tambo-ai/tambo/commit/7352f1274c399215bfc99b4bbd69b3db4b7364cc))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump lint-staged from 16.1.5 to 16.1.6 ([#1048](https://github.com/tambo-ai/tambo/issues/1048)) ([3791b74](https://github.com/tambo-ai/tambo/commit/3791b749feb6a62be4157c1f40100aeecbb3d0a1))
+* **deps-dev:** bump the eslint group with 3 updates ([#1044](https://github.com/tambo-ai/tambo/issues/1044)) ([34d4b83](https://github.com/tambo-ai/tambo/commit/34d4b83660d1b8d3833d6c480ef236c44ac8a398))
+* **deps-dev:** bump ts-jest from 29.4.1 to 29.4.2 in the testing group ([#1047](https://github.com/tambo-ai/tambo/issues/1047)) ([3ca8153](https://github.com/tambo-ai/tambo/commit/3ca8153eaadd74abb2608eba2d6953f01437b6f8))
+* **deps:** bump @tanstack/react-query from 5.85.5 to 5.87.4 ([#1052](https://github.com/tambo-ai/tambo/issues/1052)) ([42010df](https://github.com/tambo-ai/tambo/commit/42010df6bee9236e7077795668d6990cc183ca87))
+
 ## [0.50.0](https://github.com/tambo-ai/tambo/compare/react-v0.49.0...react-v0.50.0) (2025-09-11)
 
 

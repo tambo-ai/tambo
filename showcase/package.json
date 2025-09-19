@@ -11,12 +11,12 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
-    "@vercel/og": "^0.6.3",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.3",
     "@react-leaflet/core": "^2.1.0",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.70.0",
+    "@tambo-ai/typescript-sdk": "^0.71.0",
+    "@vercel/og": "^0.6.3",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
     "framer-motion": "^12.23.12",
