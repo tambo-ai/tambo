@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { XIcon } from "lucide-react";
 import * as React from "react";
-import { type VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import type { Suggestion } from "@tambo-ai/react";
 
 /**
@@ -45,6 +45,10 @@ export interface MessageThreadCollapsibleProps
   position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   /** Offset in pixels from the viewport edges when fixed (default: 16) */
   offset?: number;
+  /** Visual size (container width/padding) */
+  size?: "sm" | "md" | "lg";
+  /** Surface appearance */
+  appearance?: "default" | "elevated" | "bordered";
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -103,7 +107,31 @@ interface CollapsibleContainerProps
   isFixed?: boolean;
   position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   offset?: number;
+  size?: "sm" | "md" | "lg";
+  appearance?: "default" | "elevated" | "bordered";
 }
+const collapsibleSurfaceVariants = cva(
+  "rounded-lg bg-background transition-all duration-300 ease-in-out",
+  {
+    variants: {
+      size: {
+        sm: "w-full max-w-sm",
+        md: "w-full max-w-md",
+        lg: "w-full md:max-w-lg",
+      },
+      appearance: {
+        default: "border border-border shadow-sm",
+        elevated: "shadow-lg border border-border",
+        bordered: "border-2 border-border",
+      },
+    },
+    defaultVariants: {
+      size: "md",
+      appearance: "default",
+    },
+  },
+);
+
 
 /**
  * Container component for the collapsible panel
@@ -111,7 +139,7 @@ interface CollapsibleContainerProps
 const CollapsibleContainer = React.forwardRef<
   HTMLDivElement,
   CollapsibleContainerProps
->(({ className, isOpen, onOpenChange, children, isFixed = true, position = "bottom-right", offset = 16, style, ...props }, ref) => {
+>(({ className, isOpen, onOpenChange, children, isFixed = true, position = "bottom-right", offset = 16, size = "md", appearance = "default", style, ...props }, ref) => {
   const placementStyle: React.CSSProperties = {};
   if (isFixed) {
     if (position.includes("bottom")) (placementStyle as any).bottom = offset;
@@ -126,8 +154,7 @@ const CollapsibleContainer = React.forwardRef<
       open={isOpen}
       onOpenChange={onOpenChange}
       className={cn(
-        "w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg bg-background border border-gray-200",
-        "transition-all duration-300 ease-in-out",
+        collapsibleSurfaceVariants({ size, appearance }),
         isFixed && "fixed",
         className,
       )}
@@ -217,7 +244,7 @@ CollapsibleTrigger.displayName = "CollapsibleTrigger";
 export const MessageThreadCollapsible = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleProps
->(({ className, contextKey, defaultOpen = false, variant, isFixed = true, position = "bottom-right", offset = 16, ...props }, ref) => {
+>(({ className, contextKey, defaultOpen = false, variant, isFixed = true, position = "bottom-right", offset = 16, size = "md", appearance = "default", ...props }, ref) => {
   const { isOpen, setIsOpen, shortcutText } = useCollapsibleState(defaultOpen);
 
   const handleThreadChange = React.useCallback(() => {
@@ -263,6 +290,8 @@ export const MessageThreadCollapsible = React.forwardRef<
       isFixed={isFixed}
       position={position}
       offset={offset}
+      size={size}
+      appearance={appearance}
       className={className}
       {...props}
     >
