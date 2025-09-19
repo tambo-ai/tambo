@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
@@ -96,14 +97,14 @@ export const ThreadDropdown = React.forwardRef<
     <div className={cn("relative", className)} ref={ref} {...props}>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
-          <div
-            role="button"
-            tabIndex={0}
-            className="rounded-md px-1 flex items-center gap-2 text-sm border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
+          <Button
+            variant="ghost"
+            size="icon"
             aria-label="Thread History"
+            className="px-1"
           >
             <ChevronDownIcon className="h-4 w-4" />
-          </div>
+          </Button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
