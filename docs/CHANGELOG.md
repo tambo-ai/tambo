@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.11.0](https://github.com/tambo-ai/tambo/compare/docs-v1.10.0...docs-v1.11.0) (2025-09-19)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+
+### Miscellaneous Chores
+
+* remove producthunt banners, bubbles and widget ([#1065](https://github.com/tambo-ai/tambo/issues/1065)) ([7ceff06](https://github.com/tambo-ai/tambo/commit/7ceff06f312e404a0e1d3c81efec569139e6f847))
+
 ## [1.10.0](https://github.com/tambo-ai/tambo/compare/docs-v1.9.0...docs-v1.10.0) (2025-09-17)
 
 
