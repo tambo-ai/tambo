@@ -11,7 +11,7 @@ import {
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
-import Image from "next/image";
+// Optional Next.js wrapper can be provided by consumers; default to plain img
 import * as React from "react";
 
 /**
@@ -316,6 +316,7 @@ const MessageInputInternal = React.forwardRef<
         onSubmit={handleSubmit}
         className={cn(messageInputVariants({ variant }), className)}
         data-slot="message-input-form"
+        data-dragging={isDragging ? "true" : undefined}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -324,10 +325,7 @@ const MessageInputInternal = React.forwardRef<
       >
         <div
           className={cn(
-            "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
-            isDragging
-              ? "border border-dashed border-emerald-400"
-              : "border border-gray-200",
+            "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3 border border-gray-200",
           )}
         >
           {isDragging && (
@@ -751,12 +749,7 @@ const MessageInputStagedImages = React.forwardRef<
       {images.map((image: StagedImage) => (
         <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
           <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
-            <Image
-              src={image.dataUrl}
-              alt={image.name}
-              fill
-              className="object-cover"
-            />
+            <img src={image.dataUrl} alt={image.name} className="object-cover w-full h-full" />
           </div>
           <button
             type="button"
