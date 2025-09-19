@@ -162,6 +162,10 @@ export const projects = pgTable(
     customLlmBaseURL: text("custom_llm_base_url"), // For "openai-compatible" provider type
     maxInputTokens: integer("max_input_tokens"), // Maximum number of input tokens to send to the model
     maxToolCallLimit: integer("max_tool_call_limit").default(10).notNull(), // Maximum number of tool calls allowed per response
+    // Whether end-users are allowed to provide system prompts when creating/advancing threads
+    allowSystemPromptOverride: boolean("allow_system_prompt_override")
+      .default(false)
+      .notNull(),
     // OAuth token validation settings
     oauthValidationMode: text("oauth_validation_mode", {
       enum: Object.values(OAuthValidationMode) as [OAuthValidationMode],

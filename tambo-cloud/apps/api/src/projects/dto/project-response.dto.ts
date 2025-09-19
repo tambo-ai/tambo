@@ -22,6 +22,7 @@ export class ProjectResponse {
   customLlmBaseURL?: string;
   customInstructions?: string;
   maxInputTokens?: number | null;
+  allowSystemPromptOverride?: boolean;
   isTokenRequired!: boolean;
   providerType!: AiProviderType;
   agentProviderType?: AgentProviderType;

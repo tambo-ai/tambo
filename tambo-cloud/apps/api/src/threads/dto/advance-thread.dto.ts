@@ -23,6 +23,12 @@ export class AdvanceThreadDto {
     },
   })
   toolCallCounts?: Record<string, number>;
+  @ApiProperty({
+    description: "Initial messages to include when creating a new thread",
+    type: [MessageRequest],
+    required: false,
+  })
+  initialMessages?: MessageRequest[];
 }
 
 @ApiSchema({ name: "AdvanceThreadResponse" })

@@ -32,6 +32,7 @@ export function createMockDBProject(
     deprecated_mcpEnabled: overrides.deprecated_mcpEnabled ?? false,
     deprecatedComposioEnabled: overrides.deprecatedComposioEnabled ?? false,
     customInstructions: overrides.customInstructions ?? null,
+    allowSystemPromptOverride: overrides.allowSystemPromptOverride ?? false,
     defaultLlmProviderName: overrides.defaultLlmProviderName ?? "openai",
     defaultLlmModelName: overrides.defaultLlmModelName ?? "gpt-4.1-2025-04-14",
     customLlmModelName: overrides.customLlmModelName ?? null,

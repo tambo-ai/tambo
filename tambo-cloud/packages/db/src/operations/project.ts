@@ -21,6 +21,7 @@ export async function createProject(
     name,
     userId,
     customInstructions,
+    allowSystemPromptOverride = false,
     role = "admin",
     defaultLlmProviderName,
     defaultLlmModelName,
@@ -30,6 +31,7 @@ export async function createProject(
     name: string;
     userId: string;
     customInstructions?: string;
+    allowSystemPromptOverride?: boolean;
     defaultLlmProviderName?: string;
     defaultLlmModelName?: string;
     customLlmModelName?: string;
@@ -47,6 +49,7 @@ export async function createProject(
       .values({
         name: name || "New Project",
         customInstructions,
+        allowSystemPromptOverride,
         defaultLlmProviderName,
         defaultLlmModelName,
         customLlmModelName,
@@ -140,6 +143,7 @@ export async function updateProject(
     agentName,
     customLlmParameters,
     agentHeaders,
+    allowSystemPromptOverride,
   }: {
     name?: string;
     customInstructions?: string | null;
@@ -156,6 +160,7 @@ export async function updateProject(
     agentName?: string | null;
     customLlmParameters?: CustomLlmParameters | null;
     agentHeaders?: Record<string, string> | null;
+    allowSystemPromptOverride?: boolean;
   },
 ) {
   // Create update object with only provided fields
@@ -203,6 +208,9 @@ export async function updateProject(
   }
   if (agentHeaders !== undefined) {
     updateData.agentHeaders = agentHeaders ?? null;
+  }
+  if (allowSystemPromptOverride !== undefined) {
+    updateData.allowSystemPromptOverride = allowSystemPromptOverride;
   }
 
   // Only perform update if there are fields to update

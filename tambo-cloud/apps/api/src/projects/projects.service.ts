@@ -49,6 +49,7 @@ export class ProjectsService {
 
   async findAllForUser(userId: string): Promise<ProjectResponse[]> {
     const projects = await operations.getProjectsForUser(this.getDb(), userId);
+
     return projects.map((project) => ({
       id: project.id,
       name: project.name,
@@ -58,6 +59,7 @@ export class ProjectsService {
       customLlmModelName: project.customLlmModelName ?? undefined,
       customLlmBaseURL: project.customLlmBaseURL ?? undefined,
       customInstructions: project.customInstructions ?? undefined,
+      allowSystemPromptOverride: project.allowSystemPromptOverride,
       maxInputTokens: project.maxInputTokens ?? undefined,
       isTokenRequired: project.isTokenRequired,
       providerType: project.providerType,
@@ -82,6 +84,7 @@ export class ProjectsService {
       customLlmModelName: project.customLlmModelName ?? undefined,
       customLlmBaseURL: project.customLlmBaseURL ?? undefined,
       customInstructions: project.customInstructions ?? undefined,
+      allowSystemPromptOverride: project.allowSystemPromptOverride,
       maxInputTokens: project.maxInputTokens ?? undefined,
       isTokenRequired: project.isTokenRequired,
       providerType: project.providerType,
@@ -151,6 +154,7 @@ export class ProjectsService {
     if (!updated) {
       return undefined;
     }
+
     return {
       id: updated.id,
       name: updated.name,
@@ -160,6 +164,7 @@ export class ProjectsService {
       customLlmModelName: updated.customLlmModelName ?? undefined,
       customLlmBaseURL: updated.customLlmBaseURL ?? undefined,
       customInstructions: updated.customInstructions ?? undefined,
+      allowSystemPromptOverride: updated.allowSystemPromptOverride,
       maxInputTokens: updated.maxInputTokens ?? undefined,
       isTokenRequired: updated.isTokenRequired,
       providerType: updated.providerType,

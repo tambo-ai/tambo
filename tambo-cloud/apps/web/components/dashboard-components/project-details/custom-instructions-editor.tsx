@@ -7,7 +7,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -38,7 +40,12 @@ export const CustomInstructionsEditorProps = z.object({
 });
 
 interface CustomInstructionsEditorProps {
-  project?: { id: string; name: string; customInstructions?: string | null };
+  project?: {
+    id: string;
+    name: string;
+    customInstructions?: string | null;
+    allowSystemPromptOverride?: boolean | null;
+  };
   onEdited?: () => void;
 }
 
@@ -50,13 +57,25 @@ export function CustomInstructionsEditor({
   const [customInstructions, setCustomInstructions] = useState(
     project?.customInstructions || "",
   );
+  const { toast } = useToast();
+  const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState<
+    boolean | undefined
+  >(
+    project?.allowSystemPromptOverride === undefined
+      ? undefined
+      : Boolean(project?.allowSystemPromptOverride),
+  );
 
   // Update the instructions when the project changes (e.g., after loading)
   useEffect(() => {
     if (project?.customInstructions !== undefined) {
       setCustomInstructions(project.customInstructions || "");
     }
-  }, [project?.customInstructions]);
+    if (project) {
+      // initialize local switch state from project
+      setAllowSystemPromptOverride(Boolean(project.allowSystemPromptOverride));
+    }
+  }, [project]);
 
   const updateProject = api.project.updateProject.useMutation({
     onSuccess: () => {
@@ -67,6 +86,33 @@ export function CustomInstructionsEditor({
       }
     },
   });
+
+  const updateAllowOverride = (val: boolean) => {
+    if (!project) return;
+    setAllowSystemPromptOverride(val);
+    updateProject.mutate(
+      {
+        projectId: project.id,
+        allowSystemPromptOverride: Boolean(val),
+      },
+      {
+        onSuccess: () => {
+          toast({ title: "Saved", description: "Updated project setting" });
+          if (onEdited) onEdited();
+        },
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "Failed to update project setting",
+            variant: "destructive",
+          });
+          setAllowSystemPromptOverride(
+            Boolean(project.allowSystemPromptOverride),
+          );
+        },
+      },
+    );
+  };
 
   const handleSave = async () => {
     if (!project) return;
@@ -119,6 +165,25 @@ export function CustomInstructionsEditor({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex-1">
+            <div className="text-sm font-medium">
+              Allow system prompt override
+            </div>
+            <div className="text-sm text-foreground">
+              When enabled, a system message passed from client-side
+              initialMessages will override custom instructions.
+            </div>
+          </div>
+          <div className="flex items-center">
+            <Switch
+              checked={!!allowSystemPromptOverride}
+              onCheckedChange={(val) => updateAllowOverride(Boolean(val))}
+              aria-label="Allow system prompt override"
+            />
+          </div>
+        </div>
+
         <div className="relative">
           <AnimatePresence mode="wait">
             {isEditing ? (

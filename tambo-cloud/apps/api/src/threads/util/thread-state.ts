@@ -106,7 +106,6 @@ export async function processThreadMessage(
   advanceRequestDto: AdvanceThreadDto,
   tamboBackend: ITamboBackend,
   allTools: ToolRegistry,
-  customInstructions: string | undefined,
 ): Promise<LegacyComponentDecision> {
   const latestMessage = messages[messages.length - 1];
   // For tool responses, we can fully hydrate the component
@@ -139,7 +138,6 @@ export async function processThreadMessage(
   const decisionStream = await tamboBackend.runDecisionLoop({
     messages,
     strictTools,
-    customInstructions,
     forceToolChoice:
       latestMessage.role === MessageRole.User
         ? advanceRequestDto.forceToolChoice

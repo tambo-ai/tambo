@@ -380,7 +380,6 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect.objectContaining({
         messages: expect.any(Array),
         strictTools: expect.any(Array),
-        customInstructions: undefined,
       }),
     );
   });
@@ -495,7 +494,6 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect.objectContaining({
         messages: expect.any(Array),
         strictTools: expect.any(Array),
-        customInstructions: undefined,
         forceToolChoice: "someTool",
       }),
     );

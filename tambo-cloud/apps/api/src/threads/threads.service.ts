@@ -172,6 +172,7 @@ export class ThreadsService {
   async createThread(
     createThreadDto: Omit<ThreadRequest, "contextKey">,
     contextKey?: string,
+    initialMessages?: MessageRequest[],
   ): Promise<Thread> {
     return await Sentry.startSpan(
       {
@@ -180,16 +181,29 @@ export class ThreadsService {
         attributes: {
           projectId: createThreadDto.projectId,
           hasContextKey: !!contextKey,
+          hasInitialMessages: !!initialMessages?.length,
         },
       },
-      async () => await this.createThread_(createThreadDto, contextKey),
+      async () =>
+        await this.createThread_(createThreadDto, contextKey, initialMessages),
     );
   }
 
   private async createThread_(
     createThreadDto: Omit<ThreadRequest, "contextKey">,
     contextKey?: string,
+    initialMessages?: MessageRequest[],
   ): Promise<Thread> {
+    // Fetch project early so validation can use project settings (allowSystemPromptOverride)
+    const project = await operations.getProject(
+      this.getDb(),
+      createThreadDto.projectId,
+    );
+    const allowOverride = project?.allowSystemPromptOverride ?? false;
+
+    // Validate initial messages if provided (basic checks)
+    this.validateInitialMessages(initialMessages, allowOverride);
+
     const thread = await operations.createThread(this.getDb(), {
       projectId: createThreadDto.projectId,
       contextKey: contextKey,
@@ -197,12 +211,54 @@ export class ThreadsService {
       name: createThreadDto.name,
     });
 
+    // Insert project system prompt as first message unless overridden
+
+    // Build final initial messages to persist: prefer user system message if provided and allowed, otherwise use project.customInstructions
+    const finalInitialMessages: MessageRequest[] = [];
+    const userProvidedSystem = initialMessages?.find(
+      (m) => m.role === MessageRole.System,
+    );
+    if (userProvidedSystem) {
+      // user system message will be used (we validated allowOverride above)
+      finalInitialMessages.push(userProvidedSystem);
+      // append remaining initial messages except the system one
+      for (const m of initialMessages ?? []) {
+        if (m.role !== MessageRole.System) finalInitialMessages.push(m);
+      }
+    } else {
+      if (project?.customInstructions) {
+        finalInitialMessages.push({
+          role: MessageRole.System,
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: project.customInstructions,
+            },
+          ],
+        });
+      }
+      if (initialMessages && initialMessages.length > 0) {
+        finalInitialMessages.push(...initialMessages);
+      }
+    }
+
+    // Persist final initial messages
+    if (finalInitialMessages.length > 0) {
+      for (const message of finalInitialMessages) {
+        await this.addMessage(thread.id, message);
+      }
+    }
+
     // Add breadcrumb for thread creation
     Sentry.addBreadcrumb({
       message: "Thread created",
       category: "threads",
       level: "info",
-      data: { threadId: thread.id, projectId: thread.projectId },
+      data: {
+        threadId: thread.id,
+        projectId: thread.projectId,
+        initialMessageCount: initialMessages?.length || 0,
+      },
     });
 
     return {
@@ -275,22 +331,24 @@ export class ThreadsService {
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
       name: thread.name ?? undefined,
-      messages: thread.messages.map((message) => ({
-        id: message.id,
-        threadId: message.threadId,
-        role: message.role,
-        createdAt: message.createdAt,
-        component: message.componentDecision ?? undefined,
-        content: convertContentPartToDto(message.content),
-        metadata: message.metadata ?? undefined,
-        componentState: message.componentState ?? {},
-        toolCallRequest: message.toolCallRequest ?? undefined,
-        actionType: message.actionType ?? undefined,
-        tool_call_id: message.toolCallId ?? undefined,
-        error: message.error ?? undefined,
-        isCancelled: message.isCancelled,
-        reasoning: message.reasoning ?? undefined,
-      })),
+      messages: thread.messages
+        .filter((message) => message.role !== MessageRole.System)
+        .map((message) => ({
+          id: message.id,
+          threadId: message.threadId,
+          role: message.role,
+          createdAt: message.createdAt,
+          component: message.componentDecision ?? undefined,
+          content: convertContentPartToDto(message.content),
+          metadata: message.metadata ?? undefined,
+          componentState: message.componentState ?? {},
+          toolCallRequest: message.toolCallRequest ?? undefined,
+          actionType: message.actionType ?? undefined,
+          tool_call_id: message.toolCallId ?? undefined,
+          error: message.error ?? undefined,
+          isCancelled: message.isCancelled,
+          reasoning: message.reasoning ?? undefined,
+        })),
     };
   }
 
@@ -546,26 +604,29 @@ export class ThreadsService {
   async getMessages(
     threadId: string,
     includeInternal: boolean = false,
+    includeSystem: boolean = false,
   ): Promise<ThreadMessageDto[]> {
     const messages = await operations.getMessages(
       this.getDb(),
       threadId,
       includeInternal,
     );
-    return messages.map((message) => ({
-      ...message,
-      content: convertContentPartToDto(message.content),
-      metadata: message.metadata ?? undefined,
-      toolCallRequest: message.toolCallRequest ?? undefined,
-      tool_call_id: message.toolCallId ?? undefined,
-      actionType: message.actionType ?? undefined,
-      componentState: message.componentState ?? {},
-      component: message.componentDecision as ComponentDecisionV2 | undefined,
-      error: message.error ?? undefined,
-      isCancelled: message.isCancelled,
-      additionalContext: message.additionalContext ?? {},
-      reasoning: message.reasoning ?? undefined,
-    }));
+    return messages
+      .filter((message) => includeSystem || message.role !== MessageRole.System)
+      .map((message) => ({
+        ...message,
+        content: convertContentPartToDto(message.content),
+        metadata: message.metadata ?? undefined,
+        toolCallRequest: message.toolCallRequest ?? undefined,
+        tool_call_id: message.toolCallId ?? undefined,
+        actionType: message.actionType ?? undefined,
+        componentState: message.componentState ?? {},
+        component: message.componentDecision as ComponentDecisionV2 | undefined,
+        error: message.error ?? undefined,
+        isCancelled: message.isCancelled,
+        additionalContext: message.additionalContext ?? {},
+        reasoning: message.reasoning ?? undefined,
+      }));
   }
 
   async deleteMessage(messageId: string) {
@@ -933,10 +994,19 @@ export class ThreadsService {
       // Rate limiting check
       await this.checkMessageLimit(projectId);
 
+      // If advancing an existing thread, initialMessages must not be provided
+      if (unresolvedThreadId && advanceRequestDto.initialMessages?.length) {
+        throw new Error(
+          "Cannot provide initialMessages when advancing an existing thread",
+        );
+      }
+
       const thread = await this.ensureThread(
         projectId,
         unresolvedThreadId,
         contextKey,
+        false,
+        advanceRequestDto.initialMessages,
       );
 
       // Set user context for better error tracking
@@ -984,9 +1054,8 @@ export class ThreadsService {
         `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
       );
 
-      const messages = await this.getMessages(thread.id, true);
+      const messages = await this.getMessages(thread.id, true, true);
       const project = await operations.getProject(db, projectId);
-      const customInstructions = project?.customInstructions ?? undefined;
 
       if (messages.length === 0) {
         throw new Error("No messages found");
@@ -1024,7 +1093,6 @@ export class ThreadsService {
           threadMessageDtoToThreadMessage(messages),
           userMessage,
           advanceRequestDto,
-          customInstructions,
           toolCallCounts,
           allTools,
           mcpAccessToken,
@@ -1040,7 +1108,6 @@ export class ThreadsService {
         advanceRequestDto,
         tamboBackend,
         allTools,
-        customInstructions,
       );
 
       const {
@@ -1254,7 +1321,6 @@ export class ThreadsService {
     messages: ThreadMessage[],
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
-    customInstructions: string | undefined,
     toolCallCounts: Record<string, number>,
     allTools: ToolRegistry,
     mcpAccessToken: string,
@@ -1268,7 +1334,9 @@ export class ThreadsService {
           projectId,
           threadId,
           messageCount: messages.length,
-          hasCustomInstructions: !!customInstructions,
+          hasCustomInstructions: messages.some(
+            (m) => m.role === MessageRole.System,
+          ),
           toolCallCount: Object.keys(toolCallCounts).length,
         },
       },
@@ -1281,7 +1349,6 @@ export class ThreadsService {
           messages,
           userMessage,
           advanceRequestDto,
-          customInstructions,
           toolCallCounts,
           allTools,
           mcpAccessToken,
@@ -1298,7 +1365,6 @@ export class ThreadsService {
     messages: ThreadMessage[],
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
-    customInstructions: string | undefined,
     toolCallCounts: Record<string, number>,
     allTools: ToolRegistry,
     mcpAccessToken: string,
@@ -1369,7 +1435,6 @@ export class ThreadsService {
         const messageStream = await tamboBackend.runDecisionLoop({
           messages,
           strictTools,
-          customInstructions,
         });
 
         decisionLoopSpan.end();
@@ -1437,7 +1502,6 @@ export class ThreadsService {
       const streamedResponseMessages = await tamboBackend.runDecisionLoop({
         messages,
         strictTools,
-        customInstructions,
         forceToolChoice: advanceRequestDto.forceToolChoice,
       });
 
@@ -1476,7 +1540,9 @@ export class ThreadsService {
         scope.setTag("threadId", threadId);
         scope.setContext("streamGenerationContext", {
           messageCount: messages.length,
-          hasCustomInstructions: !!customInstructions,
+          hasCustomInstructions: messages.some(
+            (m) => m.role === MessageRole.System,
+          ),
           toolCallCount: Object.keys(toolCallCounts).length,
           maxToolCallLimit,
           userMessageRole: userMessage.role,
@@ -1837,6 +1903,7 @@ export class ThreadsService {
     threadId: string | undefined,
     contextKey: string | undefined,
     preventCreate: boolean = false,
+    initialMessages?: MessageRequest[],
   ): Promise<Thread> {
     // If the threadId is provided, ensure that the thread belongs to the project
     if (threadId) {
@@ -1861,8 +1928,72 @@ export class ThreadsService {
         projectId,
       },
       contextKey,
+      initialMessages,
     );
     return newThread;
+  }
+
+  private validateInitialMessages(
+    initialMessages?: MessageRequest[],
+    allowOverride: boolean = false,
+  ): void {
+    if (!initialMessages || initialMessages.length === 0) {
+      return;
+    }
+    for (const [index, message] of initialMessages.entries()) {
+      // Normalize content: accept either array of ContentPart or a simple string
+      const normalizedContent: any[] = Array.isArray(message.content)
+        ? message.content
+        : // if it's a string, treat it as a single text content part
+          [{ type: ContentPartType.Text, text: String(message.content) }];
+
+      if (normalizedContent.length === 0) {
+        throw new Error(`Initial message at index ${index} must have content`);
+      }
+
+      const allowedRoles = [
+        MessageRole.System,
+        MessageRole.User,
+        MessageRole.Assistant,
+      ];
+      if (!allowedRoles.includes(message.role)) {
+        throw new Error(
+          `Initial message at index ${index} has invalid role "${message.role}". Allowed roles are: ${allowedRoles.join(", ")}`,
+        );
+      }
+
+      // Validate content structure using the normalized content
+      for (const [contentIndex, contentPart] of normalizedContent.entries()) {
+        if (
+          contentPart.type === ContentPartType.Text &&
+          (contentPart.text === undefined ||
+            contentPart.text === null ||
+            contentPart.text === "")
+        ) {
+          throw new Error(
+            `Initial message at index ${index}, content part ${contentIndex} with type 'text' must have text property`,
+          );
+        }
+      }
+    }
+
+    // Enforce system message rules: only one and must be first. Also respect project override setting.
+    const systemIndices = initialMessages
+      .map((m, i) => (m.role === MessageRole.System ? i : -1))
+      .filter((i) => i >= 0);
+    if (systemIndices.length > 1) {
+      throw new Error("Only one system message is allowed in initialMessages");
+    }
+    if (systemIndices.length === 1 && systemIndices[0] !== 0) {
+      throw new Error(
+        "System message, if present, must be the first initial message",
+      );
+    }
+    if (systemIndices.length === 1 && !allowOverride) {
+      throw new Error(
+        "Project does not allow overriding the system prompt with initial messages",
+      );
+    }
   }
 
   private async validateProjectAndProviderKeys(

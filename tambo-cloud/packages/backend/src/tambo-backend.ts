@@ -42,7 +42,7 @@ export interface ModelOptions {
 interface RunDecisionLoopParams {
   messages: ThreadMessage[];
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
-  customInstructions: string | undefined;
+  customInstructions?: string | undefined;
   forceToolChoice?: string;
 }
 
