@@ -1,5 +1,19 @@
-import { LlmModelConfig } from "../llm-config-types";
+import type {
+  LlmModelConfig,
+  LlmParameterMetadata,
+} from "../../llm-config-types";
 
+const reasoningParameters: LlmParameterMetadata = {
+  reasoningEffort: {
+    description:
+      "Controls the effort of the model to reason, only if reasoningSummary is also set",
+    uiType: "string",
+  },
+  reasoningSummary: {
+    description: "Enables reasoning token output",
+    uiType: "string",
+  },
+};
 export const openaiModels: LlmModelConfig = {
   "gpt-5-2025-08-07": {
     apiName: "gpt-5-2025-08-07",
@@ -9,6 +23,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-5",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 400000,
+    modelSpecificParams: reasoningParameters,
     // We can add common parameters defaults here if needed
     // commonParametersDefaults: {
     //   temperature: 1,
@@ -23,6 +38,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-5-mini",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 400000,
+    modelSpecificParams: reasoningParameters,
   },
   "gpt-5-nano-2025-08-07": {
     apiName: "gpt-5-nano-2025-08-07",
@@ -60,6 +76,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/o3",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 200000,
+    modelSpecificParams: reasoningParameters,
   },
   "gpt-4o-2024-11-20": {
     apiName: "gpt-4o-2024-11-20",

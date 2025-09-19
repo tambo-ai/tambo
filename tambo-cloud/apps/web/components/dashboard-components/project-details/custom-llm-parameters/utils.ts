@@ -1,5 +1,5 @@
-import { CustomLlmParameters } from "@tambo-ai-cloud/core";
-import { ParameterEntry, type ParameterType } from "./types";
+import { CustomLlmParameters, LlmParameterUIType } from "@tambo-ai-cloud/core";
+import { ParameterEntry } from "./types";
 
 /**
  * Safely attempts to parse JSON, returning null if parsing fails
@@ -15,7 +15,7 @@ const tryParseJson = (value: string): unknown => {
 /**
  * Validates if a value is valid for the given parameter type
  */
-export const validateValue = (value: string, type: ParameterType) => {
+export const validateValue = (value: string, type: LlmParameterUIType) => {
   if (!value.trim()) return { isValid: false, error: "Value cannot be empty" }; // Empty values are not allowed
 
   // Handle string type separately since it doesn't need JSON parsing
@@ -74,7 +74,7 @@ export const validateValue = (value: string, type: ParameterType) => {
  * Converts string values from form inputs to their proper types for storage.
  * The AI SDK expects proper JSON types, not strings.
  */
-export const convertValue = (value: string, type: ParameterType) => {
+export const convertValue = (value: string, type: LlmParameterUIType) => {
   // Handle string type separately
   if (type === "string") {
     return value;
@@ -113,15 +113,18 @@ export const generateParameterId = (prefix: string): string => {
  * Detects the type of a value from stored JSON.
  * Used when loading parameters from the database.
  */
-export const detectType = (value: unknown): ParameterType => {
+export const detectType = (value: unknown): LlmParameterUIType => {
   if (Array.isArray(value)) return "array"; // check arrays before objects
-  return typeof value as ParameterType; // for boolean, number, object, string
+  return typeof value as LlmParameterUIType; // for boolean, number, object, string
 };
 
 /**
  * Formats a value for display based on its type
  */
-export const formatValueForDisplay = (value: string, type: ParameterType) => {
+export const formatValueForDisplay = (
+  value: string,
+  type: LlmParameterUIType,
+) => {
   // Handle string type separately to add quotes
   if (type === "string") {
     return `"${value}"`;
@@ -139,14 +142,14 @@ export const formatValueForDisplay = (value: string, type: ParameterType) => {
 /**
  * Checks if a value should use a textarea (for arrays and objects)
  */
-export const shouldUseTextarea = (type: ParameterType) => {
+export const shouldUseTextarea = (type: LlmParameterUIType) => {
   return type === "array" || type === "object";
 };
 
 /**
  * Gets the default value for a given parameter type
  */
-export const getDefaultValueForType = (type: ParameterType): string => {
+export const getDefaultValueForType = (type: LlmParameterUIType): string => {
   switch (type) {
     case "boolean":
       return "false";

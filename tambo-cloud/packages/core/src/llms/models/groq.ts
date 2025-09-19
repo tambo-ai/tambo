@@ -1,4 +1,4 @@
-import { LlmModelConfig } from "../llm-config-types";
+import type { LlmModelConfig } from "../../llm-config-types";
 
 export const groqModels: LlmModelConfig = {
   "llama-3.3-70b-versatile": {

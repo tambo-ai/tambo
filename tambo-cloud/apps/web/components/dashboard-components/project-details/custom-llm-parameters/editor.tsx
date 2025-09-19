@@ -1,18 +1,19 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import {
-  generateParameterId,
-  convertValue,
-  getDefaultValueForType,
-  validateValue,
-  extractParameters,
-} from "./utils";
 import { api, RouterOutputs } from "@/trpc/react";
+import { LlmParameterUIType, llmProviderConfig } from "@tambo-ai-cloud/core";
 import { AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditMode, ViewMode } from "./editor-modes";
 import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
+import {
+  convertValue,
+  extractParameters,
+  generateParameterId,
+  getDefaultValueForType,
+  validateValue,
+} from "./utils";
 
 interface CustomLlmParametersEditorProps {
   project?: RouterOutputs["project"]["getUserProjects"][number];
@@ -183,7 +184,7 @@ export function CustomLlmParametersEditor({
         id: generateParameterId("new"),
         key: "",
         value: "",
-        type: "string",
+        type: "string" as const,
       },
     ];
     setParameters(newParams);
@@ -191,7 +192,7 @@ export function CustomLlmParametersEditor({
   }, [parameters, allowCustomParameters, toast]);
 
   const handleApplySuggestion = useCallback(
-    (suggestion: { key: string; type: string }) => {
+    (suggestion: { key: string; type: LlmParameterUIType }) => {
       if (parameters.some((p) => p.key === suggestion.key)) {
         toast({
           variant: "default",
@@ -224,6 +225,27 @@ export function CustomLlmParametersEditor({
     },
     [],
   );
+  const suggestions = useMemo(() => {
+    const base = PARAMETER_SUGGESTIONS;
+    if (!currentModel) return base;
+    const providerInfo = llmProviderConfig[providerName];
+    const modelInfo = providerInfo?.models?.[currentModel];
+    const providerParams = modelInfo?.modelSpecificParams ?? {};
+    const providerSuggestions = Object.entries(providerParams).map(
+      ([key, value]) => ({
+        key,
+        description: value.description,
+        type: value.uiType,
+      }),
+    );
+    const seen = new Set<string>();
+    const merged = [...base, ...providerSuggestions].filter((s) => {
+      if (seen.has(s.key)) return false;
+      seen.add(s.key);
+      return true;
+    });
+    return merged;
+  }, [providerName, currentModel]);
 
   return (
     <div className="relative">
@@ -233,7 +255,7 @@ export function CustomLlmParametersEditor({
             key="edit-mode"
             parameters={parameters}
             providerName={providerName}
-            suggestions={PARAMETER_SUGGESTIONS}
+            suggestions={suggestions}
             isPending={updateProject.isPending}
             activeEditIndex={activeEditIndex}
             onParametersChange={handleParameterChange}

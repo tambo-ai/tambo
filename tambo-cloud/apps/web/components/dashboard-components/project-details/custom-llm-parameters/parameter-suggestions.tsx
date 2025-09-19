@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipProvider } from "@/components/ui/tambo/tooltip";
+import { LlmParameterUIType } from "@tambo-ai-cloud/core";
 import { Plus } from "lucide-react";
 import { PARAMETER_SUGGESTIONS } from "./types";
 
@@ -14,7 +15,7 @@ import { PARAMETER_SUGGESTIONS } from "./types";
 interface ParameterSuggestionsProps {
   providerName: string;
   suggestions: typeof PARAMETER_SUGGESTIONS;
-  onApply: (suggestion: { key: string; type: string }) => void;
+  onApply: (suggestion: { key: string; type: LlmParameterUIType }) => void;
 }
 
 export function ParameterSuggestions({

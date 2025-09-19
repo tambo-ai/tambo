@@ -2,12 +2,12 @@ import { env } from "@/lib/env";
 import { customLlmParametersSchema } from "@/lib/llm-parameters";
 import { validateSafeURL } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { llmProviderConfig } from "@tambo-ai-cloud/backend";
 import {
   AgentProviderType,
   AiProviderType,
   encryptOAuthSecretKey,
   hashKey,
+  llmProviderConfig,
   MCPTransport,
   OAuthValidationMode,
   validateMcpServer,

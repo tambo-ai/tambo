@@ -1,13 +1,13 @@
-import { motion } from "framer-motion";
-import { CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AnimatePresence } from "framer-motion";
-import { ParameterSuggestions } from "./parameter-suggestions";
-import { ParameterRow } from "./parameter-row";
-import { shouldUseTextarea, formatValueForDisplay } from "./utils";
+import { CardDescription } from "@/components/ui/card";
+import { LlmParameterUIType } from "@tambo-ai-cloud/core";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
 import type { FC } from "react";
+import { ParameterRow } from "./parameter-row";
+import { ParameterSuggestions } from "./parameter-suggestions";
+import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
+import { formatValueForDisplay, shouldUseTextarea } from "./utils";
 
 /**
  *
@@ -124,7 +124,10 @@ interface EditModeProps {
   onBeginEdit: (index: number) => void;
   onRemoveRow: (index: number) => void;
   onAddParameter: () => void;
-  onApplySuggestion: (suggestion: { key: string; type: string }) => void;
+  onApplySuggestion: (suggestion: {
+    key: string;
+    type: LlmParameterUIType;
+  }) => void;
   onSave: () => void;
   onCancel: () => void;
   allowCustomParameters?: boolean;

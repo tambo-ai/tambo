@@ -1,4 +1,4 @@
-import { LlmModelConfig } from "../llm-config-types";
+import type { LlmModelConfig } from "../../llm-config-types";
 
 export const geminiModels: LlmModelConfig = {
   "gemini-2.5-pro": {

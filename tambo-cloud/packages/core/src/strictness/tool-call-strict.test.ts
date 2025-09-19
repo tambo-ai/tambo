@@ -1,4 +1,4 @@
-import { ToolCallRequest } from "@tambo-ai-cloud/core";
+import type { ToolCallRequest } from "../ComponentDecision";
 import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import OpenAI from "openai";
 import { canBeNull, unstrictifyToolCallRequest } from "./tool-call-strict";

@@ -1,4 +1,4 @@
-import { LlmModelConfig } from "../llm-config-types";
+import type { LlmModelConfig } from "../../llm-config-types";
 
 export const anthropicModels: LlmModelConfig = {
   "claude-opus-4-1-20250805": {

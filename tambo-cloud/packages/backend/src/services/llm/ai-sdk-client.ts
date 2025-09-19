@@ -9,7 +9,10 @@ import {
   CustomLlmParameters,
   getToolDescription,
   getToolName,
+  llmProviderConfig,
+  PARAMETER_METADATA,
   tryParseJson,
+  type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
 import {
   convertToCoreMessages,
@@ -35,11 +38,6 @@ import type OpenAI from "openai";
 import { UnreachableCaseError } from "ts-essentials";
 import { z } from "zod";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
-import {
-  PARAMETER_METADATA,
-  type LlmProviderConfigInfo,
-} from "../../config/llm-config-types";
-import { llmProviderConfig } from "../../config/llm.config";
 import { Provider } from "../../model/providers";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
 import {

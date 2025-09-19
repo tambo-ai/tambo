@@ -1,22 +1,23 @@
-import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { LlmParameterUIType } from "@tambo-ai-cloud/core";
+import { motion } from "framer-motion";
 import { Trash2 } from "lucide-react";
-import {
-  validateValue,
-  shouldUseTextarea,
-  getDefaultValueForType,
-} from "./utils";
+import { useEffect, useMemo, useState } from "react";
 import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
+import {
+  getDefaultValueForType,
+  shouldUseTextarea,
+  validateValue,
+} from "./utils";
 
 /**
  * ParameterRow Component
@@ -63,7 +64,7 @@ export function ParameterRow({
     onParameterChange(index, updatedParam);
   };
 
-  const handleTypeChange = (value: string) => {
+  const handleTypeChange = (value: LlmParameterUIType) => {
     if (!isEditing) onBeginEdit(index);
 
     // Clear validation error when type changes

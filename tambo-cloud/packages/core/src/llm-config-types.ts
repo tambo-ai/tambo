@@ -1,4 +1,4 @@
-import { JSONValue } from "@tambo-ai-cloud/core";
+import type { JSONValue } from "./llm-parameter-types";
 
 // These are the common parameters that are supported by AI SDK streamtext
 export interface CommonParametersDefaults {
@@ -14,13 +14,27 @@ export interface CommonParametersDefaults {
   headers?: Record<string, string>;
   // We can add other specific capabilities here
 }
+export type LlmParameterUIType =
+  | "number"
+  | "string"
+  | "boolean"
+  | "array"
+  | "object";
 
-export const PARAMETER_METADATA: Record<
-  keyof CommonParametersDefaults,
-  {
-    description: string;
-    uiType: string;
-  }
+/** the schema for a parameter, suitable for deciding how to display it in the UI */
+export interface LlmParameterSchema {
+  description: string;
+  uiType: LlmParameterUIType;
+}
+
+/** A mapping of parameter names to their schema */
+export type LlmParameterMetadata<K extends string = string> = Record<
+  K,
+  LlmParameterSchema
+>;
+
+export const PARAMETER_METADATA: LlmParameterMetadata<
+  keyof CommonParametersDefaults
 > = {
   temperature: {
     description: "Controls randomness in output",
@@ -58,6 +72,8 @@ export interface LlmModelConfigInfo {
   tamboDocLink?: string;
   /** Additional capabilities of the model */
   commonParametersDefaults?: CommonParametersDefaults;
+  /** Any parameters that are specific to just this model, such as reasoning or modality */
+  modelSpecificParams?: LlmParameterMetadata;
   /** Whether the model is the default model */
   isDefaultModel?: boolean;
   /** Input token limit of the model */

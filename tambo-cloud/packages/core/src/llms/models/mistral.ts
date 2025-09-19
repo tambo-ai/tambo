@@ -1,4 +1,4 @@
-import { LlmModelConfig } from "../llm-config-types";
+import type { LlmModelConfig } from "../../llm-config-types";
 
 export const mistralModels: LlmModelConfig = {
   "mistral-medium-2505": {
