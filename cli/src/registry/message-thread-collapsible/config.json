@@ -1,6 +1,6 @@
 {
   "name": "message-thread-collapsible",
-  "description": "Displays message threads that can be expanded or collapsed",
+  "description": "Displays message threads that can be expanded or collapsed. Supports fixed positioning, custom trigger content, size and surface variants.",
   "componentName": "MessageThreadCollapsible",
   "dependencies": [
     "@tambo-ai/react",
@@ -22,5 +22,20 @@
       "name": "message-thread-collapsible.tsx",
       "content": "src/registry/message-thread-collapsible/message-thread-collapsible.tsx"
     }
-  ]
+  ],
+  "props": {
+    "contextKey": { "type": "string", "description": "Thread context key" },
+    "defaultOpen": { "type": "boolean", "default": false },
+    "isFixed": { "type": "boolean", "default": true, "description": "Use fixed positioning" },
+    "position": { "type": "enum", "values": ["bottom-right","bottom-left","top-right","top-left"], "default": "bottom-right" },
+    "offset": { "type": "number", "default": 16 },
+    "size": { "type": "enum", "values": ["sm","md","lg"], "default": "md" },
+    "appearance": { "type": "enum", "values": ["default","elevated","bordered"], "default": "default" },
+    "trigger": { "type": "ReactNode", "description": "Custom trigger content for closed state" }
+  },
+  "usage": {
+    "fixed": "<MessageThreadCollapsible contextKey=\"chat\" isFixed position=\"bottom-left\" size=\"sm\" appearance=\"elevated\" />",
+    "embedded": "<div className=\"col-span-3\"><MessageThreadCollapsible contextKey=\"chat\" isFixed={false} size=\"lg\" appearance=\"bordered\" /></div>",
+    "customTrigger": "<MessageThreadCollapsible trigger={<button className=\"p-2 rounded-md bg-primary text-primary-foreground\">Open Chat</button>} />"
+  }
 }
