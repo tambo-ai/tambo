@@ -39,6 +39,12 @@ export interface MessageThreadCollapsibleProps
   contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
   defaultOpen?: boolean;
+  /** Whether the panel should be fixed-positioned (default: true) */
+  isFixed?: boolean;
+  /** Corner placement when fixed */
+  position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  /** Offset in pixels from the viewport edges when fixed (default: 16) */
+  offset?: number;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -94,6 +100,9 @@ interface CollapsibleContainerProps
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  isFixed?: boolean;
+  position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  offset?: number;
 }
 
 /**
@@ -102,21 +111,33 @@ interface CollapsibleContainerProps
 const CollapsibleContainer = React.forwardRef<
   HTMLDivElement,
   CollapsibleContainerProps
->(({ className, isOpen, onOpenChange, children, ...props }, ref) => (
-  <Collapsible.Root
-    ref={ref}
-    open={isOpen}
-    onOpenChange={onOpenChange}
-    className={cn(
-      "w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg bg-background border border-gray-200",
-      "transition-all duration-300 ease-in-out",
-      className,
-    )}
-    {...props}
-  >
-    {children}
-  </Collapsible.Root>
-));
+>(({ className, isOpen, onOpenChange, children, isFixed = true, position = "bottom-right", offset = 16, style, ...props }, ref) => {
+  const placementStyle: React.CSSProperties = {};
+  if (isFixed) {
+    if (position.includes("bottom")) (placementStyle as any).bottom = offset;
+    if (position.includes("top")) (placementStyle as any).top = offset;
+    if (position.includes("right")) (placementStyle as any).right = offset;
+    if (position.includes("left")) (placementStyle as any).left = offset;
+  }
+
+  return (
+    <Collapsible.Root
+      ref={ref}
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      className={cn(
+        "w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg bg-background border border-gray-200",
+        "transition-all duration-300 ease-in-out",
+        isFixed && "fixed",
+        className,
+      )}
+      style={{ ...(isFixed ? placementStyle : {}), ...style }}
+      {...props}
+    >
+      {children}
+    </Collapsible.Root>
+  );
+});
 CollapsibleContainer.displayName = "CollapsibleContainer";
 
 /**
@@ -196,7 +217,7 @@ CollapsibleTrigger.displayName = "CollapsibleTrigger";
 export const MessageThreadCollapsible = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleProps
->(({ className, contextKey, defaultOpen = false, variant, ...props }, ref) => {
+>(({ className, contextKey, defaultOpen = false, variant, isFixed = true, position = "bottom-right", offset = 16, ...props }, ref) => {
   const { isOpen, setIsOpen, shortcutText } = useCollapsibleState(defaultOpen);
 
   const handleThreadChange = React.useCallback(() => {
@@ -239,6 +260,9 @@ export const MessageThreadCollapsible = React.forwardRef<
       ref={ref}
       isOpen={isOpen}
       onOpenChange={setIsOpen}
+      isFixed={isFixed}
+      position={position}
+      offset={offset}
       className={className}
       {...props}
     >
