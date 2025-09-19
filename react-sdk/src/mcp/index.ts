@@ -1,7 +1,7 @@
 export { MCPTransport } from "./mcp-client";
 export {
   TamboMcpProvider,
-  useMcpServers,
+  useTamboMcpServers,
   type ConnectedMcpServer,
   type FailedMcpServer,
   type McpServer,

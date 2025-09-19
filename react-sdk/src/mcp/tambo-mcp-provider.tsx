@@ -209,6 +209,6 @@ export const TamboMcpProvider: FC<{
  * input array, because they are added as they are connected.
  * @returns The MCP servers
  */
-export const useMcpServers = () => {
+export const useTamboMcpServers = () => {
   return useContext(McpProviderContext);
 };
