@@ -18,7 +18,11 @@ import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
-import { ThreadDropdown } from "@/components/ui/thread-dropdown";
+import {
+  ThreadDropdownRoot,
+  ThreadDropdownTrigger,
+  ThreadDropdownAutoContent,
+} from "@/components/ui/thread-dropdown";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
 import * as Collapsible from "@radix-ui/react-collapsible";
@@ -171,10 +175,14 @@ const CollapsibleTrigger = ({
       <div className="flex items-center justify-between w-full p-4">
         <div className="flex items-center gap-2">
           <span>{config.labels.openState}</span>
-          <ThreadDropdown
-            contextKey={contextKey}
-            onThreadChange={onThreadChange}
-          />
+          <ThreadDropdownRoot contextKey={contextKey}>
+            <ThreadDropdownTrigger asChild>
+              <button className="rounded-md px-1 flex items-center gap-2 text-sm border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors">
+                Threads
+              </button>
+            </ThreadDropdownTrigger>
+            <ThreadDropdownAutoContent />
+          </ThreadDropdownRoot>
         </div>
         <button
           className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
