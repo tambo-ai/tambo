@@ -144,16 +144,23 @@ describe("TamboRegistryProvider", () => {
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
       // Add a new tool association
+      const newTool: TamboTool = {
+        name: "new-tool",
+        description: "New tool",
+        tool: jest.fn().mockResolvedValue("new-tool-result"),
+        toolSchema: z
+          .function()
+          .args(z.string().describe("input"))
+          .returns(z.string()),
+      };
+
+      // First register the tool
       act(() => {
-        const newTool: TamboTool = {
-          name: "new-tool",
-          description: "New tool",
-          tool: jest.fn().mockResolvedValue("new-tool-result"),
-          toolSchema: z
-            .function()
-            .args(z.string().describe("input"))
-            .returns(z.string()),
-        };
+        result.current.registerTool(newTool);
+      });
+
+      // Then add the association
+      act(() => {
         result.current.addToolAssociation("TestComponent", newTool);
       });
 
@@ -300,7 +307,7 @@ describe("TamboRegistryProvider", () => {
           result.current.registerTool(invalidTool);
         });
       }).toThrow(
-        'tool "invalid tool name" cannot contain spaces. Use underscores, hyphens, or camelCase instead.',
+        'tool "invalid tool name" must only contain letters, numbers, underscores, and hyphens.',
       );
     });
 
@@ -323,7 +330,7 @@ describe("TamboRegistryProvider", () => {
           result.current.registerComponent(invalidComponent);
         });
       }).toThrow(
-        'component "Invalid Component Name" cannot contain spaces. Use underscores, hyphens, or camelCase instead.',
+        'component "Invalid Component Name" must only contain letters, numbers, underscores, and hyphens.',
       );
     });
   });

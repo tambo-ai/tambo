@@ -350,7 +350,7 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
           result.current.addInteractableComponent(invalidComponent);
         });
       }).toThrow(
-        'component "Invalid Component Name" cannot contain spaces. Use underscores, hyphens, or camelCase instead.',
+        'component "Invalid Component Name" must only contain letters, numbers, underscores, and hyphens.',
       );
     });
 

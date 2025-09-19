@@ -15,7 +15,7 @@ import {
   TamboComponent,
   TamboTool,
 } from "../model/component-metadata";
-import { assertNoSpacesInName } from "../util/validate-component-name";
+import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
 
 export interface TamboRegistryContext {
@@ -103,7 +103,7 @@ export const TamboRegistryProvider: React.FC<
   const registerTool = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
       // Validate tool name
-      assertNoSpacesInName(tool.name, "tool");
+      assertValidName(tool.name, "tool");
 
       // Validate tool schemas
       if (tool.toolSchema && isZodSchema(tool.toolSchema)) {
@@ -132,8 +132,8 @@ export const TamboRegistryProvider: React.FC<
   const addToolAssociation = useCallback(
     (componentName: string, tool: TamboTool) => {
       // Validate component and tool names
-      assertNoSpacesInName(componentName, "component");
-      assertNoSpacesInName(tool.name, "tool");
+      assertValidName(componentName, "component");
+      assertValidName(tool.name, "tool");
 
       if (!componentList[componentName]) {
         throw new Error(`Component ${componentName} not found in registry`);
@@ -163,7 +163,7 @@ export const TamboRegistryProvider: React.FC<
       } = options;
 
       // Validate component name
-      assertNoSpacesInName(name, "component");
+      assertValidName(name, "component");
 
       // Validate that at least one props definition is provided
       if (!propsSchema && !propsDefinition) {
