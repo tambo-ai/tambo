@@ -7,6 +7,7 @@ import { MCPClient, MCPTransport } from "./mcp-client";
  * Extracts error message from MCP tool result content.
  * Handles both array and string content formats.
  * Always returns a string, even for invalid/null inputs.
+ * @returns The extracted error message as a string
  */
 export function extractErrorMessage(content: unknown): string {
   if (content === undefined || content === null) {
