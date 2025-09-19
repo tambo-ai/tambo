@@ -1,8 +1,23 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import * as Collapsible from "@/components/ui/message-thread-collapsible";
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { Button } from "@/components/ui/button";
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputToolbar,
+  MessageInputFileButton,
+  MessageInputSubmitButton,
+  MessageInputError,
+} from "@/components/ui/message-input";
+import {
+  MessageSuggestions,
+  MessageSuggestionsStatus,
+  MessageSuggestionsList,
+} from "@/components/ui/message-suggestions";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+import { ThreadContent, ThreadContentMessages } from "@/components/ui/thread-content";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { DemoWrapper } from "../../demo-wrapper";
@@ -47,15 +62,48 @@ export default function MessageThreadCollapsiblePage() {
               <div className="flex-grow" />
               <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
               <div className="h-4 w-[200px] bg-muted/80 rounded-md" />
-              <Collapsible.Root isFixed position="bottom-right">
+              <Collapsible.Root>
                 <Collapsible.Trigger asChild>
-                  <Button variant="floating" size="icon" aria-label="Open chat" />
+                  <Button
+                    variant="floating"
+                    size="icon"
+                    aria-label="Open chat"
+                    className="fixed bottom-6 right-4"
+                  />
                 </Collapsible.Trigger>
                 <Collapsible.Content>
-                  <div className="h-[500px] flex flex-col">
-                    {/* Place your thread UI here or import the full composite */}
-                    <div className="p-6 text-sm text-muted-foreground">
-                      Compose your thread content within Content.
+                  <div className="fixed bottom-20 right-4 w-full max-w-md rounded-lg bg-background border border-border shadow-lg">
+                    <div className="h-[500px] flex flex-col">
+                      <ScrollableMessageContainer className="p-4">
+                        <ThreadContent>
+                          <ThreadContentMessages />
+                        </ThreadContent>
+                      </ScrollableMessageContainer>
+
+                      <MessageSuggestions>
+                        <MessageSuggestionsStatus />
+                      </MessageSuggestions>
+
+                      <div className="p-4">
+                        <MessageInput contextKey={userContextKey}>
+                          <MessageInputTextarea placeholder="Type your message or paste images..." />
+                          <MessageInputToolbar>
+                            <MessageInputFileButton />
+                            <MessageInputSubmitButton />
+                          </MessageInputToolbar>
+                          <MessageInputError />
+                        </MessageInput>
+                      </div>
+
+                      <MessageSuggestions
+                        initialSuggestions={[
+                          { id: "s1", title: "Get started", detailedSuggestion: "What can you help me with?", messageId: "welcome-query" },
+                          { id: "s2", title: "Learn more", detailedSuggestion: "Tell me about your capabilities.", messageId: "capabilities-query" },
+                          { id: "s3", title: "Examples", detailedSuggestion: "Show me some example queries.", messageId: "examples-query" },
+                        ]}
+                      >
+                        <MessageSuggestionsList />
+                      </MessageSuggestions>
                     </div>
                   </div>
                 </Collapsible.Content>
