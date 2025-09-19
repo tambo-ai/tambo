@@ -76,7 +76,7 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
     return (
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>
-          <Button className="fixed bottom-4 right-4 bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors" variant="ghost">
+          <Button className="bg-background/50 backdrop-blur-sm border rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 transition-colors" variant="ghost">
             Talk to AI (
             <span suppressHydrationWarning>
               {hotkey.replace("mod", isMac ? "⌘" : "Ctrl")}
@@ -89,7 +89,7 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
           <Dialog.Content
             ref={ref}
             className={cn(
-              "fixed top-1/4 left-1/2 -translate-x-1/2 w-[440px] rounded-lg shadow-lg transition-all duration-200 outline-none",
+              "mx-auto my-24 w-[440px] rounded-lg shadow-lg transition-all duration-200 outline-none",
               className,
             )}
             {...props}
