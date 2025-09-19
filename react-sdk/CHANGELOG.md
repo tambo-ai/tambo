@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.1](https://github.com/tambo-ai/tambo/compare/react-v0.53.0...react-v0.53.1) (2025-09-19)
+
+
+### Bug Fixes
+
+* **react-sdk:** refetch thread list on new thread creation ([#1059](https://github.com/tambo-ai/tambo/issues/1059)) ([b2739ab](https://github.com/tambo-ai/tambo/commit/b2739abd46ff2cb786ef81b9a6efbb5180e17df6))
+
 ## [0.53.0](https://github.com/tambo-ai/tambo/compare/react-v0.52.0...react-v0.53.0) (2025-09-17)
 
 
