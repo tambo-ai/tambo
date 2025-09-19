@@ -24,6 +24,8 @@ export const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         destructive:
           "bg-destructive text-destructive-foreground hover:opacity-90",
+        floating:
+          "bg-primary text-primary-foreground shadow-lg hover:opacity-90 rounded-full",
       },
       size: {
         sm: "h-8 px-3 text-xs",

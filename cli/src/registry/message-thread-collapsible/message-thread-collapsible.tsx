@@ -49,8 +49,8 @@ export interface MessageThreadCollapsibleProps
   size?: "sm" | "md" | "lg";
   /** Surface appearance */
   appearance?: "default" | "elevated" | "bordered";
-  /** Custom trigger content when closed (rendered inside Collapsible.Trigger asChild) */
-  trigger?: React.ReactNode;
+  /** Required: custom trigger button (rendered inside Collapsible.Trigger asChild). Provide a <Button>. */
+  trigger: React.ReactNode;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -202,24 +202,7 @@ const CollapsibleTrigger = ({
   <>
     {!isOpen && (
       <Collapsible.Trigger asChild>
-        {customTrigger ?? (
-          <button
-            className={cn(
-              "flex items-center justify-between w-full p-4",
-              "hover:bg-muted/50 transition-colors",
-            )}
-            aria-expanded={isOpen}
-            aria-controls="message-thread-content"
-          >
-            <span>{config.labels.closedState}</span>
-            <span
-              className="text-xs text-muted-foreground pl-8"
-              suppressHydrationWarning
-            >
-              {`(${shortcutText})`}
-            </span>
-          </button>
-        )}
+        {customTrigger}
       </Collapsible.Trigger>
     )}
     {isOpen && (
