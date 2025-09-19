@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.2](https://github.com/tambo-ai/tambo/compare/react-v0.53.1...react-v0.53.2) (2025-09-19)
+
+
+### Miscellaneous Chores
+
+* **lint:** fix eslint config to make cursor/vscode happy ([#1069](https://github.com/tambo-ai/tambo/issues/1069)) ([6e84c6e](https://github.com/tambo-ai/tambo/commit/6e84c6e7cade904b74bc2491c5d7e023f89f15b0))
+
 ## [0.53.1](https://github.com/tambo-ai/tambo/compare/react-v0.53.0...react-v0.53.1) (2025-09-19)
 
 
