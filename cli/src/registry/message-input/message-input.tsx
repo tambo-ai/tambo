@@ -14,6 +14,7 @@ import { ArrowUp, Paperclip, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // Optional Next.js wrapper can be provided by consumers; default to plain img
 import * as React from "react";
+import { useMergedRef } from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message input container
