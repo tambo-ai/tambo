@@ -1,3 +1,4 @@
+import { deepEqual } from "fast-equals";
 import React, {
   createContext,
   FC,
@@ -79,6 +80,14 @@ export const TamboMcpProvider: FC<{
     async function registerMcpServers(mcpServerInfos: McpServerInfo[]) {
       // Maps tool names to the MCP client that registered them
       const mcpServerMap = new Map<string, McpServer>();
+      setConnectedMcpServers((prev) =>
+        // remove any servers that are not in the new list
+        prev.filter((s) =>
+          mcpServerInfos.some((mcpServerInfo) =>
+            equalsMcpServer(s, mcpServerInfo),
+          ),
+        ),
+      );
 
       // initialize the MCP clients, converting McpServerInfo -> McpServer
       const mcpServers = await Promise.allSettled(
@@ -95,7 +104,11 @@ export const TamboMcpProvider: FC<{
             };
             // note because the promises may resolve in any order, the resulting
             // array may not be in the same order as the input array
-            setConnectedMcpServers((prev) => [...prev, connectedMcpServer]);
+            setConnectedMcpServers((prev) => [
+              // replace the server if it already exists
+              ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
+              connectedMcpServer,
+            ]);
             return connectedMcpServer;
           } catch (error) {
             const failedMcpServer = {
@@ -104,7 +117,11 @@ export const TamboMcpProvider: FC<{
             };
             // note because the promises may resolve in any order, the resulting
             // array may not be in the same order as the input array
-            setConnectedMcpServers((prev) => [...prev, failedMcpServer]);
+            setConnectedMcpServers((prev) => [
+              // replace the server if it already exists
+              ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
+              failedMcpServer,
+            ]);
             return failedMcpServer;
           }
         }),
@@ -212,3 +229,10 @@ export const TamboMcpProvider: FC<{
 export const useTamboMcpServers = () => {
   return useContext(McpProviderContext);
 };
+function equalsMcpServer(s: McpServer, mcpServerInfo: McpServerInfo): boolean {
+  return (
+    s.url === mcpServerInfo.url &&
+    s.transport === mcpServerInfo.transport &&
+    deepEqual(s.customHeaders, mcpServerInfo.customHeaders)
+  );
+}
