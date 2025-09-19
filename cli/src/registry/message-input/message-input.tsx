@@ -329,6 +329,7 @@ const MessageInputInternal = React.forwardRef<
           className={cn(
             "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3 border border-gray-200",
           )}
+          data-dragging={isDragging ? "true" : undefined}
         >
           {isDragging && (
             <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 flex items-center justify-center pointer-events-none z-20">
@@ -417,7 +418,7 @@ const MessageInputTextarea = React.forwardRef<HTMLTextAreaElement, MessageInputT
   return (
     <textarea
       ref={(node) => {
-        // keep internal ref for focus management and also forward external ref
+        // Keep internal ref for focus management and forward external ref
         (textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
         if (typeof ref === "function") ref(node);
         else if (ref) (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
