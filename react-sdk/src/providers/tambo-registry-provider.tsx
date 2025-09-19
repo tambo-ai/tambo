@@ -138,12 +138,16 @@ export const TamboRegistryProvider: React.FC<
       if (!componentList[componentName]) {
         throw new Error(`Component ${componentName} not found in registry`);
       }
+      if (!toolRegistry[tool.name]) {
+        throw new Error(`Tool ${tool.name} not found in registry`);
+      }
+
       setComponentToolAssociations((prev) => ({
         ...prev,
         [componentName]: [...(prev[componentName] || []), tool.name],
       }));
     },
-    [componentList],
+    [componentList, toolRegistry],
   );
 
   const registerComponent = useCallback(
