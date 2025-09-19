@@ -1,6 +1,6 @@
 {
   "name": "thread-content",
-  "description": "Displays the messages within a thread",
+  "description": "Compound parts to render thread content: Root (ThreadContent) and Messages",
   "componentName": "ThreadContent",
   "dependencies": ["class-variance-authority", "@tambo-ai/react"],
   "devDependencies": [],
@@ -10,5 +10,12 @@
       "name": "thread-content.tsx",
       "content": "src/registry/thread-content/thread-content.tsx"
     }
-  ]
+  ],
+  "props": {
+    "ThreadContent": { "variant": { "type": "string" } },
+    "ThreadContentMessages": {}
+  },
+  "usage": {
+    "default": "<ScrollableMessageContainer className=\"p-4\"><ThreadContent><ThreadContentMessages /></ThreadContent></ScrollableMessageContainer>"
+  }
 }

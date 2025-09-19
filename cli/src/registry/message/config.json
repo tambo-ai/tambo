@@ -1,6 +1,6 @@
 {
   "name": "message",
-  "description": "Displays individual messages in a conversation with markdown support",
+  "description": "Compound parts to render messages: Message, MessageContent, MessageImages, MessageRenderedComponentArea, ToolcallInfo",
   "componentName": "Message",
   "dependencies": [
     "class-variance-authority",
@@ -27,5 +27,16 @@
       "name": "lib/thread-hooks.ts",
       "content": "src/registry/lib/thread-hooks.ts"
     }
-  ]
+  ],
+  "props": {
+    "Message": { "role": { "type": "enum", "values": ["user", "assistant"] } },
+    "MessageContent": { "markdown": { "type": "boolean", "default": true } },
+    "MessageImages": {},
+    "MessageRenderedComponentArea": {},
+    "ToolcallInfo": {}
+  },
+  "usage": {
+    "assistant": "<Message role=\"assistant\" message={msg}><MessageContent /><ToolcallInfo /></Message>",
+    "userWithImages": "<Message role=\"user\" message={msg}><MessageImages /><MessageContent /></Message>"
+  }
 }

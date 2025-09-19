@@ -1,6 +1,6 @@
 {
   "name": "message-input",
-  "description": "Composes and sends messages in a conversation",
+  "description": "Compound parts for composing messages: MessageInput, Textarea, Toolbar, SubmitButton, FileButton, Error, StagedImages",
   "componentName": "MessageInput",
   "dependencies": [
     "class-variance-authority",
@@ -26,5 +26,18 @@
       "name": "suggestions-tooltip.tsx",
       "content": "src/registry/message-suggestions/suggestions-tooltip.tsx"
     }
-  ]
+  ],
+  "props": {
+    "MessageInput": { "contextKey": { "type": "string" } },
+    "MessageInputTextarea": { "placeholder": { "type": "string", "default": "What do you want to do?" } },
+    "MessageInputToolbar": {},
+    "MessageInputSubmitButton": {},
+    "MessageInputFileButton": { "accept": { "type": "string", "default": "image/*" } },
+    "MessageInputError": {},
+    "MessageInputStagedImages": {}
+  },
+  "usage": {
+    "basic": "<MessageInput contextKey=\"chat\"><MessageInputTextarea /><MessageInputToolbar><MessageInputSubmitButton /></MessageInputToolbar><MessageInputError /></MessageInput>",
+    "withFiles": "<MessageInput><MessageInputTextarea /><MessageInputToolbar><MessageInputFileButton /><MessageInputSubmitButton /></MessageInputToolbar></MessageInput>"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "scrollable-message-container",
-  "description": "A container that scrolls to the bottom when new messages are added",
+  "description": "A container that auto-scrolls on new messages; height controlled by parent; pairs with ThreadContent",
   "componentName": "ScrollableMessageContainer",
   "dependencies": ["@tambo-ai/react"],
   "devDependencies": [],
@@ -10,5 +10,11 @@
       "name": "scrollable-message-container.tsx",
       "content": "src/registry/scrollable-message-container/scrollable-message-container.tsx"
     }
-  ]
+  ],
+  "props": {
+    "ScrollableMessageContainer": {}
+  },
+  "usage": {
+    "default": "<ScrollableMessageContainer className=\"p-4\"><ThreadContent><ThreadContentMessages /></ThreadContent></ScrollableMessageContainer>"
+  }
 }
