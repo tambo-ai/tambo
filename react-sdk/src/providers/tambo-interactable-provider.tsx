@@ -16,6 +16,7 @@ import {
 } from "../model/tambo-interactable";
 import { useTamboComponent } from "./tambo-component-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+import { assertNoSpacesInName } from "../util/validate-component-name";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -247,6 +248,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     (
       component: Omit<TamboInteractableComponent, "id" | "createdAt">,
     ): string => {
+      // Validate component name
+      assertNoSpacesInName(component.name, "component");
+
       const id = `${component.name}-${Math.random().toString(36).slice(2, 11)}`;
       const newComponent: TamboInteractableComponent = {
         ...component,
