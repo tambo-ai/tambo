@@ -213,6 +213,35 @@ export async function handleAddComponents(
 
     if (!options.silent) {
       console.log(chalk.green("\n✨ Installation complete!"));
+      // Print example usage for each installed component from registry json
+      try {
+        const registryDir = path.join(process.cwd(), "cli", "src", "registry");
+        for (const comp of newComponents) {
+          const compDir = path.join(registryDir, comp);
+          const configPath = path.join(compDir, "config.json");
+          if (fs.existsSync(configPath)) {
+            const configRaw = fs.readFileSync(configPath, "utf-8");
+            const config = JSON.parse(configRaw) as {
+              name: string;
+              usage?: Record<string, string>;
+              description?: string;
+            };
+            if (config?.usage) {
+              const [label, snippet] = Object.entries(config.usage)[0] ?? [];
+              if (snippet) {
+                console.log(`\n${chalk.bold(`Example (${config.name}${label ? ` - ${label}` : ""}):`)}`);
+                console.log(snippet);
+              }
+            } else {
+              console.log(`\n${chalk.bold(`Example (${comp}):`)}`);
+              console.log(`<${comp} />`);
+            }
+          }
+        }
+        console.log();
+      } catch {
+        // Non-fatal: example printing is best-effort
+      }
     }
   } catch (error) {
     if (!options.silent) {
