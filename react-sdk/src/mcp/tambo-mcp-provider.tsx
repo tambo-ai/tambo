@@ -199,7 +199,7 @@ export const TamboMcpProvider: FC<{
  * For example, to forcibly disconnect and reconnect all MCP servers:
  *
  * ```tsx
- * const mcpServers = useMcpServers();
+ * const mcpServers = useTamboMcpServers();
  * mcpServers.forEach((mcpServer) => {
  *   mcpServer.client?.reconnect();
  * });
