@@ -131,8 +131,9 @@ export const TamboRegistryProvider: React.FC<
 
   const addToolAssociation = useCallback(
     (componentName: string, tool: TamboTool) => {
-      // Validate component name
+      // Validate component and tool names
       assertNoSpacesInName(componentName, "component");
+      assertNoSpacesInName(tool.name, "tool");
 
       if (!componentList[componentName]) {
         throw new Error(`Component ${componentName} not found in registry`);
