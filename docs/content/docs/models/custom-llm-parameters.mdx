@@ -3,9 +3,11 @@ title: Custom LLM Parameters
 description: Configure advanced model parameters for fine-tuned AI responses and behavior control.
 ---
 
+Tambo uses an LLM behind the scenes to process user messages. You can change what model Tambo uses, and while Tambo uses certain parameters by default when calling the LLM, you can override these parameters to customize behavior depending on your chosen provider.
+
 <Callout type="info" title="Provider Support">
   Custom parameters are available for **OpenAI-compatible providers**. Other
-  providers (OpenAI, Anthropic, etc.) are limited to suggested parameters for
+  providers (OpenAI, Anthropic, etc.) are limited to common parameters for
   compatibility.
 </Callout>
 
@@ -54,7 +56,7 @@ These are the parameters **supported by tambo** and **suggested for use** across
   combinations with your specific use case.
 </Callout>
 
-### Parameter Types
+### Parameter Data Types
 
 | Type        | Description       | Examples                                   |
 | ----------- | ----------------- | ------------------------------------------ |
