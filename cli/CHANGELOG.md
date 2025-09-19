@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.33.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.32.0...tambo-v0.33.0) (2025-09-19)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump meow from 13.2.0 to 14.0.0 ([#1049](https://github.com/tambo-ai/tambo/issues/1049)) ([b49dfdf](https://github.com/tambo-ai/tambo/commit/b49dfdf7d68d46434270d3a7cdb928365de516c3))
+* **deps:** bump streamdown from 1.1.5 to 1.2.0 ([#1050](https://github.com/tambo-ai/tambo/issues/1050)) ([f78ae45](https://github.com/tambo-ai/tambo/commit/f78ae4545c1714df7a954ff513da47ef8bd8958e))
+* **lint:** fix eslint config to make cursor/vscode happy ([#1069](https://github.com/tambo-ai/tambo/issues/1069)) ([6e84c6e](https://github.com/tambo-ai/tambo/commit/6e84c6e7cade904b74bc2491c5d7e023f89f15b0))
+
 ## [0.32.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.31.0...tambo-v0.32.0) (2025-09-12)
 
 
