@@ -1,0 +1,165 @@
+---
+title: Custom LLM Parameters
+description: Configure advanced model parameters for fine-tuned AI responses and behavior control.
+---
+
+<Callout type="info" title="Provider Support">
+  Custom parameters are available for **OpenAI-compatible providers**. Other
+  providers (OpenAI, Anthropic, etc.) are limited to suggested parameters for
+  compatibility.
+</Callout>
+
+## How Does It Work?
+
+Custom LLM parameters allow you to override default model settings with provider-specific configurations. Parameters are stored per model, letting you optimize different models independently.
+
+**Example configuration:**
+
+- `temperature`: 0.7
+- `maxOutputTokens`: 1000
+- `topP`: 0.9
+- `presencePenalty`: 0.1
+
+## Why Use Custom LLM Parameters?
+
+- **Fine-tune output quality** - Control randomness, length, and creativity
+- **Optimize for use cases** - Different parameters for creative writing vs. code generation
+- **Provider compatibility** - Support both standard and custom parameters
+- **Model-specific tuning** - Configure each model independently
+
+## Basic Parameters
+
+### Common Parameters (All Providers)
+
+These are the parameters **supported by tambo** and **suggested for use** across all LLM providers. Users can only configure these parameters through the tambo UI - they work reliably across all supported providers:
+
+| Parameter              | Type   | Description                                                                                                    | Range/Example                                   |
+| ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **`temperature`**      | number | Controls randomness in output. Lower values for deterministic responses, higher values for creative responses. | `0.0-0.3` (deterministic), `0.7-1.0` (creative) |
+| **`maxOutputTokens`**  | number | Maximum number of tokens to generate. Helps control response length and costs.                                 | `100-4000` (varies by model)                    |
+| **`maxRetries`**       | number | Number of retry attempts for failed API calls.                                                                 | `1-5`                                           |
+| **`topP`**             | number | Nucleus sampling threshold. Alternative to temperature for controlling randomness.                             | `0.0-1.0`                                       |
+| **`topK`**             | number | Top-K sampling limit. Restricts sampling to top K most likely tokens.                                          | `1-100`                                         |
+| **`presencePenalty`**  | number | Penalty for introducing new topics. Higher values encourage staying on topic.                                  | `-2.0 to 2.0`                                   |
+| **`frequencyPenalty`** | number | Penalty for token repetition. Higher values reduce repetitive text.                                            | `-2.0 to 2.0`                                   |
+| **`stopSequences`**    | array  | Array of strings that stop generation when encountered.                                                        | `["\n", "###"]`                                 |
+| **`seed`**             | number | Random seed for deterministic sampling. Same seed + prompt = same output.                                      | Any integer                                     |
+| **`headers`**          | object | Custom HTTP headers for requests.                                                                              | `{"Authorization": "Bearer token"}`             |
+
+<Callout type="info" title="Parameter Behavior">
+  While these parameters are supported across all tambo providers, **tambo does
+  not guarantee specific model behavior** when using these parameters. Different
+  models may interpret the same parameter values differently, and results can
+  vary based on the model, prompt, and context. Always test parameter
+  combinations with your specific use case.
+</Callout>
+
+### Parameter Types
+
+| Type        | Description       | Examples                                   |
+| ----------- | ----------------- | ------------------------------------------ |
+| **string**  | Text values       | `"stop"`, `"You are a helpful assistant"`  |
+| **number**  | Numeric values    | `0.7`, `1000`                              |
+| **boolean** | True/false values | `true`, `false`                            |
+| **array**   | JSON arrays       | `["\n", "###"]`, `[1, 2, 3]`               |
+| **object**  | JSON objects      | `{"key": "value"}`, `{"temperature": 0.5}` |
+
+## OpenAI-Compatible Providers
+
+OpenAI-compatible providers support both **suggested parameters** (the common parameters above) and **custom parameters** for advanced use cases.
+
+### Suggested Parameters for OpenAI-Compatible
+
+All common parameters listed above are available as suggestions for OpenAI-compatible providers.
+
+### Custom Parameters for OpenAI-Compatible
+
+For full flexibility with OpenAI-compatible APIs, you can add any custom parameter supported by the provider. These parameters are configured through the tambo UI and passed directly to the OpenAI-compatible API.
+
+#### Available Custom Parameters
+
+These are examples of custom parameters that may be supported by OpenAI-compatible providers following OpenAI's API:
+
+| Parameter        | Type    | Description                                         |
+| ---------------- | ------- | --------------------------------------------------- |
+| **`max_tokens`** | number  | Alternative to `maxOutputTokens`                    |
+| **`logit_bias`** | object  | Modify token probabilities (e.g., `{"1234": -100}`) |
+| **`user`**       | string  | End-user identifier for monitoring                  |
+| **`suffix`**     | string  | Text to append after completion                     |
+| **`logprobs`**   | number  | Include log probabilities in response               |
+| **`echo`**       | boolean | Include prompt in completion                        |
+| **`best_of`**    | number  | Generate multiple completions, return best          |
+
+<Callout type="warning" title="Custom Parameters Disclaimer">
+  When adding custom parameters, **results are not guaranteed**. Different
+  OpenAI-compatible providers may interpret or support these parameters
+  differently. The examples above are suggestions only—always verify with your
+  specific provider's documentation and test thoroughly before production use.
+</Callout>
+
+## Advanced Usage Patterns
+
+### Creative Writing Model
+
+- `temperature`: 0.9 (high creativity)
+- `topP`: 0.95 (diverse word choices)
+- `presencePenalty`: 0.6 (encourage new topics)
+- `maxOutputTokens`: 2000 (longer responses)
+
+### Code Generation Model
+
+- `temperature`: 0.2 (low randomness)
+- `topP`: 0.1 (focused word choices)
+- `frequencyPenalty`: 0.3 (reduce repetition)
+- `stopSequences`: ["\n\n", "###"] (stop at logical breaks)
+
+### Deterministic Analysis Model
+
+- `temperature`: 0.0 (completely deterministic)
+- `seed`: 42 (reproducible results)
+- `maxOutputTokens`: 500 (controlled length)
+
+### Custom OpenAI-Compatible Setup
+
+- `temperature`: 0.7
+- `max_tokens`: 1000
+- `logit_bias`: `{"50256": -100}` (modify token probabilities)
+- `user`: "analytics-user" (for monitoring)
+- `presence_penalty`: 0.1
+
+## Integration with Projects
+
+Parameters are configured per project and stored with the following hierarchy:
+
+- **Provider** (e.g., "openai", "openai-compatible")
+- **Model** (e.g., "gpt-4", "claude-3-sonnet", "custom-model-v1")
+- **Parameters** (key-value configuration)
+
+This allows different projects to have different parameter sets for the same model, enabling fine-tuned optimization across use cases.
+
+## Best Practices
+
+- **Start with defaults**: Begin with suggested parameters before adding custom ones
+- **Test incrementally**: Change one parameter at a time to understand effects
+- **Document configurations**: Note which parameter sets work best for specific use cases
+- **Monitor usage**: Higher token limits and retries can increase API costs
+- **Use custom parameters sparingly**: Only for OpenAI-compatible providers when needed
+
+## Troubleshooting
+
+**Parameters not applying?**
+
+- Verify you're using an OpenAI-compatible provider for custom parameters
+- Check parameter syntax matches the expected type (string/number/boolean/array/object)
+
+**Model not responding as expected?**
+
+- Lower temperature values (0.0-0.3) for more deterministic responses
+- Adjust `topP` and `topK` for fine-grained control over randomness
+- Use `stopSequences` to prevent rambling responses
+
+**API errors with custom parameters?**
+
+- Ensure custom parameter names match the provider's API documentation
+- Verify parameter values are within acceptable ranges
+- Check that the provider supports the custom parameter you're trying to use
