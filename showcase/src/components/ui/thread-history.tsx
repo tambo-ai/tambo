@@ -240,7 +240,6 @@ const ThreadHistoryNewButton = React.forwardRef<
 
       try {
         await startNewThread();
-        await refetch();
         onThreadChange?.();
       } catch (error) {
         console.error("Failed to create new thread:", error);

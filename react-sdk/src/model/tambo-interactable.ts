@@ -20,7 +20,7 @@ export interface TamboInteractableContext {
   updateInteractableComponentProps: (
     id: string,
     newProps: Record<string, any>,
-  ) => void;
+  ) => string;
   /** Get an interactable component by ID */
   getInteractableComponent: (
     id: string,

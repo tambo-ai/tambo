@@ -212,11 +212,10 @@ describe("useTamboComponentState", () => {
       });
 
       // The debounced function should be called
-      expect(mockUpdateComponentState).toHaveBeenCalledWith(
-        message.threadId,
-        message.id,
-        { state: { testKey: newValue } },
-      );
+      expect(mockUpdateComponentState).toHaveBeenCalledWith(message.id, {
+        id: message.threadId,
+        state: { testKey: newValue },
+      });
     });
 
     it("should work with complex objects and arrays", () => {

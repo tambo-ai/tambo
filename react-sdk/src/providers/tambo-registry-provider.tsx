@@ -15,6 +15,7 @@ import {
   TamboComponent,
   TamboTool,
 } from "../model/component-metadata";
+import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
 
 export interface TamboRegistryContext {
@@ -101,6 +102,9 @@ export const TamboRegistryProvider: React.FC<
 
   const registerTool = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
+      // Validate tool name
+      assertValidName(tool.name, "tool");
+
       // Validate tool schemas
       if (tool.toolSchema && isZodSchema(tool.toolSchema)) {
         assertNoZodRecord(tool.toolSchema, `toolSchema of tool "${tool.name}"`);
@@ -127,15 +131,23 @@ export const TamboRegistryProvider: React.FC<
 
   const addToolAssociation = useCallback(
     (componentName: string, tool: TamboTool) => {
+      // Validate component and tool names
+      assertValidName(componentName, "component");
+      assertValidName(tool.name, "tool");
+
       if (!componentList[componentName]) {
         throw new Error(`Component ${componentName} not found in registry`);
       }
+      if (!toolRegistry[tool.name]) {
+        throw new Error(`Tool ${tool.name} not found in registry`);
+      }
+
       setComponentToolAssociations((prev) => ({
         ...prev,
         [componentName]: [...(prev[componentName] || []), tool.name],
       }));
     },
-    [componentList],
+    [componentList, toolRegistry],
   );
 
   const registerComponent = useCallback(
@@ -149,6 +161,9 @@ export const TamboRegistryProvider: React.FC<
         loadingComponent,
         associatedTools,
       } = options;
+
+      // Validate component name
+      assertValidName(name, "component");
 
       // Validate that at least one props definition is provided
       if (!propsSchema && !propsDefinition) {

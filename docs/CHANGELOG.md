@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.11.0](https://github.com/tambo-ai/tambo/compare/docs-v1.10.0...docs-v1.11.0) (2025-09-19)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+
+### Miscellaneous Chores
+
+* remove producthunt banners, bubbles and widget ([#1065](https://github.com/tambo-ai/tambo/issues/1065)) ([7ceff06](https://github.com/tambo-ai/tambo/commit/7ceff06f312e404a0e1d3c81efec569139e6f847))
+
+## [1.10.0](https://github.com/tambo-ai/tambo/compare/docs-v1.9.0...docs-v1.10.0) (2025-09-17)
+
+
+### Features
+
+* **sdk:** partial updates for interactables + auto tools + new docs ([#1036](https://github.com/tambo-ai/tambo/issues/1036)) ([7352f12](https://github.com/tambo-ai/tambo/commit/7352f1274c399215bfc99b4bbd69b3db4b7364cc))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump mermaid from 11.10.1 to 11.11.0 ([#1051](https://github.com/tambo-ai/tambo/issues/1051)) ([e3b3ce7](https://github.com/tambo-ai/tambo/commit/e3b3ce7fb3751165a86842ca770526eccce9a2ef))
+* **deps:** bump next from 15.5.2 to 15.5.3 in the next group across 1 directory ([#1055](https://github.com/tambo-ai/tambo/issues/1055)) ([d21ecdb](https://github.com/tambo-ai/tambo/commit/d21ecdbc498ca018f2763b9f4f1df87fd2edafcc))
+* **deps:** bump streamdown from 1.1.5 to 1.2.0 ([#1050](https://github.com/tambo-ai/tambo/issues/1050)) ([f78ae45](https://github.com/tambo-ai/tambo/commit/f78ae4545c1714df7a954ff513da47ef8bd8958e))
+* **deps:** bump the fumadocs group with 3 updates ([#1045](https://github.com/tambo-ai/tambo/issues/1045)) ([70bd2dc](https://github.com/tambo-ai/tambo/commit/70bd2dceeb77fc0df89057400a40957e00b9e7ac))
+* update sitemap to .co domain ([#1042](https://github.com/tambo-ai/tambo/issues/1042)) ([64b2da1](https://github.com/tambo-ai/tambo/commit/64b2da187dbbc1fda98953bedb3cfe84c6e83d66))
+
+
+### Documentation
+
+* use https://docs.tambo.co as default baseUrl in layout ([#1043](https://github.com/tambo-ai/tambo/issues/1043)) ([55aa89c](https://github.com/tambo-ai/tambo/commit/55aa89cdea368b8476820504b549ca562c504038))
+
+## [1.9.0](https://github.com/tambo-ai/tambo/compare/docs-v1.8.0...docs-v1.9.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* Replace TamboHackBanner with ProductHuntBanner ([#1035](https://github.com/tambo-ai/tambo/issues/1035)) ([7af2f53](https://github.com/tambo-ai/tambo/commit/7af2f5394c5d3d85ee7e0ec03b4b767df946d249))
+
 ## [1.8.0](https://github.com/tambo-ai/tambo/compare/docs-v1.7.0...docs-v1.8.0) (2025-09-11)
 
 

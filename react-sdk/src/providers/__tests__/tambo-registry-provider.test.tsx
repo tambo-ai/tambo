@@ -144,16 +144,23 @@ describe("TamboRegistryProvider", () => {
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
       // Add a new tool association
+      const newTool: TamboTool = {
+        name: "new-tool",
+        description: "New tool",
+        tool: jest.fn().mockResolvedValue("new-tool-result"),
+        toolSchema: z
+          .function()
+          .args(z.string().describe("input"))
+          .returns(z.string()),
+      };
+
+      // First register the tool
       act(() => {
-        const newTool: TamboTool = {
-          name: "new-tool",
-          description: "New tool",
-          tool: jest.fn().mockResolvedValue("new-tool-result"),
-          toolSchema: z
-            .function()
-            .args(z.string().describe("input"))
-            .returns(z.string()),
-        };
+        result.current.registerTool(newTool);
+      });
+
+      // Then add the association
+      act(() => {
         result.current.addToolAssociation("TestComponent", newTool);
       });
 
@@ -278,6 +285,52 @@ describe("TamboRegistryProvider", () => {
         });
       }).toThrow(
         "Component InvalidComponent must have either propsSchema (recommended) or propsDefinition defined",
+      );
+    });
+
+    it("should throw error when tool name contains spaces", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const invalidTool: TamboTool = {
+        name: "invalid tool name", // Contains spaces
+        description: "Tool with spaces in name",
+        tool: jest.fn().mockResolvedValue("result"),
+        toolSchema: z.function().args(z.string()).returns(z.string()),
+      };
+
+      expect(() => {
+        act(() => {
+          result.current.registerTool(invalidTool);
+        });
+      }).toThrow(
+        'tool "invalid tool name" must only contain letters, numbers, underscores, and hyphens.',
+      );
+    });
+
+    it("should throw error when component name contains spaces", () => {
+      const invalidComponent: TamboComponent = {
+        name: "Invalid Component Name", // Contains spaces
+        component: () => <div>Invalid</div>,
+        description: "Component with spaces in name",
+        propsSchema: z.object({ test: z.string() }),
+      };
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      expect(() => {
+        act(() => {
+          result.current.registerComponent(invalidComponent);
+        });
+      }).toThrow(
+        'component "Invalid Component Name" must only contain letters, numbers, underscores, and hyphens.',
       );
     });
   });

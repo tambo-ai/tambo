@@ -26,7 +26,7 @@ import {
   mapTamboToolToContextTool,
 } from "../util/registry";
 import { handleToolCall } from "../util/tool-caller";
-import { useTamboClient } from "./tambo-client-provider";
+import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 import { useTamboInteractable } from "./tambo-interactable-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
@@ -215,6 +215,7 @@ export const TamboThreadProvider: React.FC<
     [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
   });
   const client = useTamboClient();
+  const queryClient = useTamboQueryClient();
   const {
     componentList,
     toolRegistry,
@@ -250,6 +251,38 @@ export const TamboThreadProvider: React.FC<
   useEffect(() => {
     ignoreResponseRef.current = ignoreResponse;
   }, [ignoreResponse]);
+
+  const refetchThreadsList = useCallback(
+    async (threadId: string, contextKey: string | undefined) => {
+      try {
+        const currentProject = await client.beta.projects.getCurrent();
+
+        const optimisticThread = {
+          ...PLACEHOLDER_THREAD,
+          id: threadId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        queryClient.setQueryData(
+          ["threads", currentProject.id, contextKey],
+          (old: TamboAI.Beta.Threads.ThreadsOffsetAndLimit | undefined) => {
+            return {
+              ...old,
+              items: [optimisticThread, ...(old?.items ?? [])],
+            };
+          },
+        );
+
+        await queryClient.invalidateQueries({
+          queryKey: ["threads"],
+        });
+      } catch (error) {
+        console.warn("Failed to refetch threads list:", error);
+      }
+    },
+    [client.beta.projects, queryClient],
+  );
 
   // Callback to handle automatic interactables
   const handleComponentRendered = useCallback(
@@ -492,6 +525,7 @@ export const TamboThreadProvider: React.FC<
         console.warn("Switching to placeholder thread, may be a bug.");
         return;
       }
+
       setCurrentThreadId(threadId);
       setThreadMap((prevMap) => {
         if (prevMap[threadId]) {
@@ -507,6 +541,7 @@ export const TamboThreadProvider: React.FC<
         };
         return updatedThreadMap;
       });
+
       if (fetch) {
         await fetchThread(threadId);
       }
@@ -578,6 +613,7 @@ export const TamboThreadProvider: React.FC<
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
+      contextKey?: string,
     ): Promise<TamboThreadMessage> => {
       if (ignoreResponseRef.current) {
         setIgnoreResponse(false);
@@ -689,6 +725,7 @@ export const TamboThreadProvider: React.FC<
             toolCallResponseStream,
             toolCallResponseParams,
             chunk.responseMessageDto.threadId,
+            contextKey,
           );
         } else {
           if (ignoreResponseRef.current) {
@@ -710,7 +747,18 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId !== currentThread?.id
           ) {
             hasSetThreadId = true;
+            const wasPlaceholderThread =
+              currentThreadId === PLACEHOLDER_THREAD.id;
             await switchCurrentThread(chunk.responseMessageDto.threadId, false);
+
+            // If we're switching from placeholder to a real thread
+            // this means a new thread was created, so refetch the threads list
+            if (wasPlaceholderThread) {
+              await refetchThreadsList(
+                chunk.responseMessageDto.threadId,
+                contextKey,
+              );
+            }
           }
 
           if (!finalMessage) {
@@ -775,7 +823,9 @@ export const TamboThreadProvider: React.FC<
       client,
       componentList,
       currentThread?.id,
+      currentThreadId,
       onCallUnregisteredTool,
+      refetchThreadsList,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
@@ -884,6 +934,7 @@ export const TamboThreadProvider: React.FC<
             advanceStreamResponse,
             params,
             threadId,
+            contextKey,
           );
         } catch (error) {
           updateThreadStatus(threadId, GenerationStage.ERROR);
@@ -895,7 +946,7 @@ export const TamboThreadProvider: React.FC<
       try {
         advanceResponse = await (threadId === PLACEHOLDER_THREAD.id
           ? client.beta.threads.advance(params)
-          : client.beta.threads.advanceById(threadId, params));
+          : client.beta.threads.advanceByID(threadId, params));
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         throw error;
@@ -958,7 +1009,7 @@ export const TamboThreadProvider: React.FC<
             false,
           );
 
-          advanceResponse = await client.beta.threads.advanceById(
+          advanceResponse = await client.beta.threads.advanceByID(
             advanceResponse.responseMessageDto.threadId,
             toolCallResponseParams,
           );
@@ -979,7 +1030,17 @@ export const TamboThreadProvider: React.FC<
             handleComponentRendered,
           )
         : advanceResponse.responseMessageDto;
+      const wasPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
+
+      // If we're switching from placeholder to a real thread
+      // this means a new thread was created, so refetch the threads list
+      if (wasPlaceholderThread) {
+        await refetchThreadsList(
+          advanceResponse.responseMessageDto.threadId,
+          contextKey,
+        );
+      }
       updateThreadStatus(
         advanceResponse.responseMessageDto.threadId,
         GenerationStage.COMPLETE,
@@ -1000,6 +1061,7 @@ export const TamboThreadProvider: React.FC<
       streaming,
       getAdditionalContext,
       onCallUnregisteredTool,
+      refetchThreadsList,
       handleComponentRendered,
     ],
   );
