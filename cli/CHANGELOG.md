@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.33.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.33.0...tambo-v0.33.1) (2025-09-20)
+
+
+### Bug Fixes
+
+* **mcp:** Handle cases where the server list changes ([#1080](https://github.com/tambo-ai/tambo/issues/1080)) ([86bf03e](https://github.com/tambo-ai/tambo/commit/86bf03eac65fef399abf0e02283c47c2aa166e00))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+
 ## [0.33.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.32.0...tambo-v0.33.0) (2025-09-19)
 
 
