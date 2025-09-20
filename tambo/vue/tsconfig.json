@@ -1,0 +1,13 @@
+{
+  "extends": "../../packages/typescript-config/react-library.json",
+  "compilerOptions": {
+    "composite": false,
+    "jsx": "preserve",
+    "types": ["node", "vitest/globals"],
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src"],
+  "exclude": ["dist", "esm", "node_modules"]
+}
+
