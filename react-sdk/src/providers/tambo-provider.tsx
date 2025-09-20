@@ -22,6 +22,7 @@ import {
 } from "./tambo-context-helpers-provider";
 import {
   TamboInteractableProvider,
+  TamboInteractableProviderProps,
   useTamboInteractable,
 } from "./tambo-interactable-provider";
 import {
@@ -55,6 +56,7 @@ import {
  * @param props.userToken - The JWT id token to use to identify the user in the Tambo API. (preferred over contextKey)
  * @param props.contextKey - Optional context key to be used in the thread input provider
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
+ * @param props.autoInteractables - Whether to automatically make all generated components interactable. Defaults to false.
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -63,7 +65,8 @@ export const TamboProvider: React.FC<
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
       TamboContextHelpersProviderProps &
-      TamboThreadInputProviderProps
+      TamboThreadInputProviderProps &
+      TamboInteractableProviderProps
   >
 > = ({
   children,
@@ -77,6 +80,7 @@ export const TamboProvider: React.FC<
   contextHelpers,
   contextKey,
   onCallUnregisteredTool,
+  autoInteractables = false,
 }) => {
   // Should only be used in browser
   if (typeof window === "undefined") {
@@ -96,15 +100,15 @@ export const TamboProvider: React.FC<
         onCallUnregisteredTool={onCallUnregisteredTool}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboThreadProvider streaming={streaming}>
-            <TamboThreadInputProvider contextKey={contextKey}>
-              <TamboComponentProvider>
-                <TamboInteractableProvider>
+          <TamboComponentProvider>
+            <TamboInteractableProvider autoInteractables={autoInteractables}>
+              <TamboThreadProvider streaming={streaming}>
+                <TamboThreadInputProvider contextKey={contextKey}>
                   <TamboCompositeProvider>{children}</TamboCompositeProvider>
-                </TamboInteractableProvider>
-              </TamboComponentProvider>
-            </TamboThreadInputProvider>
-          </TamboThreadProvider>
+                </TamboThreadInputProvider>
+              </TamboThreadProvider>
+            </TamboInteractableProvider>
+          </TamboComponentProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>

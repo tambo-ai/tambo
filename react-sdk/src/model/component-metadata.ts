@@ -25,6 +25,7 @@ export interface ComponentContextTool {
 export interface RegisteredComponent extends TamboAI.AvailableComponent {
   component: ComponentType<any>;
   loadingComponent?: ComponentType<any>;
+  propsSchema?: z.ZodTypeAny | JSONSchema7;
 }
 
 export type ComponentRegistry = Record<string, RegisteredComponent>;
