@@ -1,6 +1,6 @@
 {
   "name": "control-bar",
-  "description": "Provides controls and actions in the interface",
+  "description": "Compound API for a dialog-based control bar: Root, Trigger, Content",
   "componentName": "ControlBar",
   "dependencies": ["@tambo-ai/react", "radix-ui", "class-variance-authority"],
   "devDependencies": [],
@@ -15,5 +15,13 @@
       "name": "control-bar.tsx",
       "content": "src/registry/control-bar/control-bar.tsx"
     }
-  ]
+  ],
+  "props": {
+    "Root": { "hotkey": { "type": "string", "default": "mod+k" } },
+    "Trigger": { "asChild": { "type": "boolean", "default": true } },
+    "Content": { "contextKey": { "type": "string" } }
+  },
+  "usage": {
+    "default": "<ControlBarRoot hotkey=\"mod+k\"><ControlBarTrigger asChild><Button>Open</Button></ControlBarTrigger><ControlBarContent contextKey=\"chat\"/></ControlBarRoot>"
+  }
 }

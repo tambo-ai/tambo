@@ -10,7 +10,11 @@ import { useRef } from "react";
 /**
  * Props for the ThreadContainer component
  */
-export type ThreadContainerProps = React.HTMLAttributes<HTMLDivElement>;
+export interface ThreadContainerProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  sidebarPosition?: "left" | "right";
+  reserveSidebarSpace?: boolean;
+}
 
 /**
  * A responsive container component for message threads that handles
@@ -21,7 +25,7 @@ export type ThreadContainerProps = React.HTMLAttributes<HTMLDivElement>;
 export const ThreadContainer = React.forwardRef<
   HTMLDivElement,
   ThreadContainerProps
->(({ className, children, ...props }, ref) => {
+>(({ className, children, sidebarPosition, reserveSidebarSpace = true, ...props }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(containerRef);
   const { isLeftPanel, historyPosition } = usePositioning(
@@ -30,6 +34,8 @@ export const ThreadContainer = React.forwardRef<
     hasCanvasSpace,
   );
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
+
+  const effectiveHistoryPosition = sidebarPosition ?? historyPosition;
 
   return (
     <div
@@ -42,10 +48,12 @@ export const ThreadContainer = React.forwardRef<
         // Add smooth transitions for layout changes
         "transition-all duration-200 ease-in-out",
 
-        // Sidebar spacing based on history position
-        historyPosition === "right"
-          ? "mr-[var(--sidebar-width,16rem)]"
-          : "ml-[var(--sidebar-width,16rem)]",
+        // Sidebar spacing based on history position (optional)
+        reserveSidebarSpace
+          ? effectiveHistoryPosition === "right"
+            ? "mr-[var(--sidebar-width,16rem)]"
+            : "ml-[var(--sidebar-width,16rem)]"
+          : null,
 
         // Width constraints based on canvas presence
         hasCanvasSpace

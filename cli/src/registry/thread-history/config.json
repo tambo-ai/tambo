@@ -1,6 +1,6 @@
 {
   "name": "thread-history",
-  "description": "Displays the chronological history of a conversation thread",
+  "description": "Compound parts to render a thread history sidebar: Root, Header, NewButton, Search, List",
   "componentName": "ThreadHistory",
   "dependencies": ["lucide-react", "@tambo-ai/react", "radix-ui"],
   "devDependencies": [],
@@ -10,5 +10,21 @@
       "name": "thread-history.tsx",
       "content": "src/registry/thread-history/thread-history.tsx"
     }
-  ]
+  ],
+  "props": {
+    "Root": {
+      "contextKey": { "type": "string" },
+      "position": { "type": "enum", "values": ["left", "right"], "default": "left" },
+      "defaultCollapsed": { "type": "boolean", "default": true },
+      "density": { "type": "enum", "values": ["compact", "default"], "default": "default" }
+    },
+    "Header": {},
+    "NewButton": {},
+    "Search": {},
+    "List": {}
+  },
+  "usage": {
+    "leftEmbedded": "<ThreadHistoryRoot contextKey=\"chat\" position=\"left\" defaultCollapsed={false}><ThreadHistoryHeader /><ThreadHistoryNewButton /><ThreadHistorySearch /><ThreadHistoryList /></ThreadHistoryRoot>",
+    "rightCompact": "<ThreadHistoryRoot contextKey=\"chat\" position=\"right\" density=\"compact\"><ThreadHistoryHeader /><ThreadHistoryList /></ThreadHistoryRoot>"
+  }
 }

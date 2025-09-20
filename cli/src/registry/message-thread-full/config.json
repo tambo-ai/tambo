@@ -1,6 +1,6 @@
 {
   "name": "message-thread-full",
-  "description": "Displays a complete message thread with all its content and interactions",
+  "description": "Displays a complete message thread with all its content and interactions. Supports sidebar position control and input alignment.",
   "componentName": "MessageThreadFull",
   "dependencies": ["@tambo-ai/react", "class-variance-authority"],
   "devDependencies": [],
@@ -27,4 +27,16 @@
       "content": "src/registry/message-thread-full/thread-container.tsx"
     }
   ]
+  ,
+  "props": {
+    "contextKey": { "type": "string" },
+    "sidebarPosition": { "type": "enum", "values": ["left","right","auto"], "default": "auto" },
+    "inputAlign": { "type": "enum", "values": ["left","right","auto"], "default": "auto" },
+    "variant": { "type": "string" }
+  },
+  "usage": {
+    "default": "<MessageThreadFull contextKey=\"chat\" />",
+    "rightSidebar": "<MessageThreadFull contextKey=\"chat\" sidebarPosition=\"right\" />",
+    "leftInput": "<MessageThreadFull inputAlign=\"left\" />"
+  }
 }

@@ -11,8 +11,10 @@ import {
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
-import Image from "next/image";
+import { Button } from "@/components/ui/button";
+// Optional Next.js wrapper can be provided by consumers; default to plain img
 import * as React from "react";
+import { useMergedRef } from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message input container
@@ -316,6 +318,7 @@ const MessageInputInternal = React.forwardRef<
         onSubmit={handleSubmit}
         className={cn(messageInputVariants({ variant }), className)}
         data-slot="message-input-form"
+        data-dragging={isDragging ? "true" : undefined}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -324,11 +327,9 @@ const MessageInputInternal = React.forwardRef<
       >
         <div
           className={cn(
-            "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
-            isDragging
-              ? "border border-dashed border-emerald-400"
-              : "border border-gray-200",
+            "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3 border border-gray-200",
           )}
+          data-dragging={isDragging ? "true" : undefined}
         >
           {isDragging && (
             <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 flex items-center justify-center pointer-events-none z-20">
@@ -368,11 +369,12 @@ export interface MessageInputTextareaProps
  * </MessageInput>
  * ```
  */
-const MessageInputTextarea = ({
+const MessageInputTextarea = React.forwardRef<HTMLTextAreaElement, MessageInputTextareaProps>(
+({
   className,
   placeholder = "What do you want to do?",
   ...props
-}: MessageInputTextareaProps) => {
+}, ref) => {
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
@@ -415,7 +417,12 @@ const MessageInputTextarea = ({
 
   return (
     <textarea
-      ref={textareaRef}
+      ref={(node) => {
+        // Keep internal ref for focus management and forward external ref
+        (textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+      }}
       value={value}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
@@ -431,7 +438,7 @@ const MessageInputTextarea = ({
       {...props}
     />
   );
-};
+});
 MessageInputTextarea.displayName = "MessageInput.Textarea";
 
 /**
@@ -472,20 +479,17 @@ const MessageInputSubmitButton = React.forwardRef<
     cancel();
   };
 
-  const buttonClasses = cn(
-    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
-    className,
-  );
-
   return (
-    <button
+    <Button
       ref={ref}
       type={isPending ? "button" : "submit"}
       disabled={isUpdatingToken}
       onClick={isPending ? handleCancel : undefined}
-      className={buttonClasses}
+      size="icon"
+      variant={isPending ? "secondary" : "default"}
       aria-label={isPending ? "Cancel message" : "Send message"}
       data-slot={isPending ? "message-input-cancel" : "message-input-submit"}
+      className={className}
       {...props}
     >
       {children ??
@@ -494,7 +498,7 @@ const MessageInputSubmitButton = React.forwardRef<
         ) : (
           <ArrowUp className="w-5 h-5" />
         ))}
-    </button>
+    </Button>
   );
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
@@ -673,11 +677,6 @@ const MessageInputFileButton = React.forwardRef<
     }
   };
 
-  const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
-    className,
-  );
-
   return (
     <TooltipProvider>
       <Tooltip
@@ -685,11 +684,12 @@ const MessageInputFileButton = React.forwardRef<
         side="top"
         className="bg-muted text-primary"
       >
-        <button
+        <Button
           ref={ref}
           type="button"
           onClick={handleClick}
-          className={buttonClasses}
+          size="icon"
+          variant="secondary"
           aria-label="Attach Images"
           data-slot="message-input-file-button"
           {...props}
@@ -704,7 +704,7 @@ const MessageInputFileButton = React.forwardRef<
             className="hidden"
             aria-hidden="true"
           />
-        </button>
+        </Button>
       </Tooltip>
     </TooltipProvider>
   );
@@ -751,12 +751,7 @@ const MessageInputStagedImages = React.forwardRef<
       {images.map((image: StagedImage) => (
         <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
           <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
-            <Image
-              src={image.dataUrl}
-              alt={image.name}
-              fill
-              className="object-cover"
-            />
+            <img src={image.dataUrl} alt={image.name} className="object-cover w-full h-full" />
           </div>
           <button
             type="button"
