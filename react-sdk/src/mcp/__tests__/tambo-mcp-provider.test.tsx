@@ -1,4 +1,13 @@
-import { extractErrorMessage } from "../tambo-mcp-provider";
+import { render, waitFor } from "@testing-library/react";
+import React, { useEffect } from "react";
+import { useTamboRegistry } from "../../providers/tambo-registry-provider";
+import { MCPClient, MCPTransport } from "../mcp-client";
+import {
+  extractErrorMessage,
+  TamboMcpProvider,
+  useTamboMcpServers,
+  type McpServer,
+} from "../tambo-mcp-provider";
 
 // Mock the MCP client to avoid ES module issues
 jest.mock("../mcp-client", () => ({
@@ -153,6 +162,120 @@ describe("extractErrorMessage", () => {
       const result = extractErrorMessage(content);
 
       expect(result).toBe("{}");
+    });
+  });
+});
+
+describe("TamboMcpProvider server list changes", () => {
+  beforeEach(() => {
+    // Mock registry so tool registration is a no-op
+    (useTamboRegistry as unknown as jest.Mock).mockReturnValue({
+      registerTool: jest.fn(),
+    });
+
+    // Ensure MCPClient.create exists and returns a fake client with listTools
+    (MCPClient as unknown as any).create = jest
+      .fn()
+      .mockResolvedValue({ listTools: jest.fn().mockResolvedValue([]) });
+  });
+
+  const Capture: React.FC<{ onUpdate: (servers: McpServer[]) => void }> = ({
+    onUpdate,
+  }) => {
+    const servers = useTamboMcpServers();
+    useEffect(() => {
+      onUpdate(servers);
+    }, [servers, onUpdate]);
+    return <div data-testid="urls">{servers.map((s) => s.url).join(",")}</div>;
+  };
+
+  it("adds a new server when the list grows", async () => {
+    let latest: McpServer[] = [];
+    const { rerender, getByTestId } = render(
+      <TamboMcpProvider mcpServers={["https://a.example"]}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TamboMcpProvider>,
+    );
+
+    // Wait for initial connection
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Add new server
+    rerender(
+      <TamboMcpProvider mcpServers={["https://a.example", "https://b.example"]}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TamboMcpProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+      const urls = getByTestId("urls").textContent || "";
+      expect(urls).toContain("https://a.example");
+      expect(urls).toContain("https://b.example");
+    });
+  });
+
+  it("removes a server when the list shrinks", async () => {
+    let latest: McpServer[] = [];
+    const { rerender, getByTestId } = render(
+      <TamboMcpProvider mcpServers={["https://a.example", "https://b.example"]}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TamboMcpProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+    });
+
+    // Remove one server
+    rerender(
+      <TamboMcpProvider mcpServers={["https://a.example"]}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TamboMcpProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+      const urls = getByTestId("urls").textContent || "";
+      expect(urls).toContain("https://a.example");
+      expect(urls).not.toContain("https://b.example");
+    });
+  });
+
+  it("does not duplicate when a new copy of the same list is passed", async () => {
+    let latest: McpServer[] = [];
+    const initial = [
+      { url: "https://a.example", transport: MCPTransport.SSE },
+      { url: "https://b.example", transport: MCPTransport.SSE },
+    ];
+
+    const { rerender } = render(
+      <TamboMcpProvider mcpServers={initial}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TamboMcpProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+    });
+
+    // Pass a new array instance with the same logical servers
+    const same = [
+      { url: "https://a.example", transport: MCPTransport.SSE },
+      { url: "https://b.example", transport: MCPTransport.SSE },
+    ];
+    rerender(
+      <TamboMcpProvider mcpServers={same}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TamboMcpProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+      const urls = latest.map((s) => s.url).sort();
+      expect(urls).toEqual(["https://a.example", "https://b.example"].sort());
     });
   });
 });
