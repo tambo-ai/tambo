@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.24.0...showcase-v0.24.1) (2025-09-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+
 ## [0.24.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.23.0...showcase-v0.24.0) (2025-09-19)
 
 
