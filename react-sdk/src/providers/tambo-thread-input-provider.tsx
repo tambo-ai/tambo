@@ -96,12 +96,11 @@ export const TamboThreadInputProvider: React.FC<
   PropsWithChildren<TamboThreadInputProviderProps>
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
-  const { currentDraft, saveDraft } = useTamboMessageDrafts(
-    thread?.id ?? "null_thread",
-  );
-  const [inputValue, setInputValue] = useState(currentDraft);
+  const { currentDraft, saveDraft } = useTamboMessageDrafts(thread?.id);
+  const [inputValue, setInputValue] = useState("");
   const imageState = useMessageImages();
 
+  // Sync with draft when thread changes
   useEffect(() => {
     setInputValue(currentDraft);
   }, [currentDraft]);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
 const DRAFT_KEY = "tambo-message-drafts";
@@ -24,6 +24,18 @@ const getDrafts = (storageKey: string): Draft[] => {
   }
 };
 
+const setDrafts = (storageKey: string, drafts: Draft[]) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(drafts));
+  } catch (e) {
+    console.error("Failed to persist drafts", e);
+  }
+};
+
 /**
  * This internal hook is used to manage the draft of a message input for a thread.
  *
@@ -38,46 +50,50 @@ export function useTamboMessageDrafts(
   threadId?: string,
   storageKey = DRAFT_KEY,
 ) {
-  const [currentDraft, setCurrentDraft] = useState<string>(
-    getDrafts(storageKey).find((d) => d.id === threadId)?.content ?? "",
+  const [currentDraft, setCurrentDraft] = useState<string>("");
+
+  const persistDraft = useDebouncedCallback(
+    (content: string, threadId?: string) => {
+      if (typeof window === "undefined" || !threadId) {
+        return;
+      }
+
+      const drafts = getDrafts(storageKey);
+      const otherDrafts = drafts.filter((d) => d.id !== threadId);
+
+      if (content.trim() === "") {
+        setDrafts(storageKey, otherDrafts);
+        return;
+      }
+
+      const now = Date.now();
+      const newDraft: Draft = {
+        id: threadId,
+        content,
+        timestamp: now,
+      };
+      const updatedDrafts = [...otherDrafts, newDraft];
+      setDrafts(storageKey, updatedDrafts);
+    },
+    300,
   );
 
-  const persistDraft = useDebouncedCallback((content: string) => {
-    if (typeof window === "undefined" || !threadId) {
-      return;
-    }
+  const saveDraft = useCallback(
+    (content: string) => {
+      setCurrentDraft(content);
+      persistDraft(content, threadId);
+    },
+    [persistDraft, threadId],
+  );
 
-    const drafts = getDrafts(storageKey);
-    const otherDrafts = drafts.filter((d) => d.id !== threadId);
-
-    if (content === "") {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(otherDrafts));
-      } catch (e) {
-        console.error("Failed to clear draft", e);
-      }
-      return;
-    }
-
-    const now = Date.now();
-    const newDraft: Draft = {
-      id: threadId,
-      content,
-      timestamp: now,
-    };
-    const updatedDrafts = [...otherDrafts, newDraft];
-
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(updatedDrafts));
-    } catch (e) {
-      console.error("Failed to persist draft", e);
-    }
-  }, 300);
-
-  // Persist draft to local storage on change
+  // Update draft when threadId changes
   useEffect(() => {
-    persistDraft(currentDraft);
-  }, [persistDraft, currentDraft]);
+    if (threadId) {
+      const draft =
+        getDrafts(storageKey).find((d) => d.id === threadId)?.content ?? "";
+      setCurrentDraft(draft);
+    }
+  }, [threadId, storageKey]);
 
-  return { currentDraft, saveDraft: setCurrentDraft };
+  return { currentDraft, saveDraft };
 }
