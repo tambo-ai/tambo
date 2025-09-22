@@ -26,7 +26,8 @@ function collectDocPaths(dir, baseSegments = []) {
       paths.push(...collectDocPaths(full, [...baseSegments, entry]));
     } else if (entry.endsWith(".mdx")) {
       const name = entry.replace(/\.mdx$/, "");
-      const segments = name === "index" ? baseSegments : [...baseSegments, name];
+      const segments =
+        name === "index" ? baseSegments : [...baseSegments, name];
       const url = "/" + segments.join("/");
       paths.push(url);
     }
@@ -46,7 +47,9 @@ function getLastModForFile(filePath) {
       const end = content.indexOf("\n---", 3);
       if (end !== -1) {
         const frontmatter = content.slice(3, end).trim();
-        const updatedMatch = frontmatter.match(/(^|\n)updated:\s*([\d-:TZ.+]+)/);
+        const updatedMatch = frontmatter.match(
+          /(^|\n)updated:\s*([\d-:TZ.+]+)/,
+        );
         if (updatedMatch) return new Date(updatedMatch[2]).toISOString();
         const dateMatch = frontmatter.match(/(^|\n)date:\s*([\d-:TZ.+]+)/);
         if (dateMatch) return new Date(dateMatch[2]).toISOString();
@@ -76,7 +79,8 @@ function enumerateRoutes() {
         walk(full, [...baseSegments, entry]);
       } else if (entry.endsWith(".mdx")) {
         const name = entry.replace(/\.mdx$/, "");
-        const segments = name === "index" ? baseSegments : [...baseSegments, name];
+        const segments =
+          name === "index" ? baseSegments : [...baseSegments, name];
         const url = "/" + segments.join("/");
         const lastmod = getLastModForFile(full);
         routes.set(url, lastmod);
@@ -119,8 +123,8 @@ module.exports = {
     };
   },
   // explicitly include all enumerated paths for determinism
-  additionalPaths: async () => enumerated.map((e) => ({ loc: `${siteUrl}${e.url}`, lastmod: e.lastmod })),
+  additionalPaths: async () =>
+    enumerated.map((e) => ({ loc: `${siteUrl}${e.url}`, lastmod: e.lastmod })),
   // include ensures index and known root routes are emitted
   include: enumerated.map((e) => e.url),
 };
-
