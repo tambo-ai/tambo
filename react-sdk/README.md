@@ -100,14 +100,10 @@ import { TamboProvider } from "@tambo-ai/react";
 
 This is also handled automatically for you if you are using the `MessageThreadFull` component.
 
-For custom components, you can use the `useMessageContext` hook to get the current message.
+For custom components rendered by Tambo, you can use the `useTamboCurrentMessage` hook inside the component to access the current message.
 
 ```tsx
-import {
-  useTambo,
-  useMessageContext,
-  type TamboThreadMessage,
-} from "@tambo-ai/react";
+import { useTambo, type TamboThreadMessage } from "@tambo-ai/react";
 
 function ChatHistory() {
   const { thread } = useTambo();
@@ -127,11 +123,11 @@ function CustomMessage({ message }: { message: TamboThreadMessage }) {
       {/* Render the message content */}
       <div>Role: {message.role}</div>
       <div>
-        {message.content.map((part) =>
+        {message.content.map((part, i) =>
           part.type === "text" ? (
-            <div key={part.id}>{part.text}</div>
+            <div key={i}>{part.text}</div>
           ) : (
-            <div key={part.id}>Non-text content: {part.type}</div>
+            <div key={i}>Non-text content: {part.type}</div>
           ),
         )}
       </div>
@@ -207,7 +203,15 @@ function ChatInterface() {
       <div>
         {thread.messages.map((message, index) => (
           <div key={index} className={`message ${message.role}`}>
-            <div>{message.content}</div>
+            <div>
+              {message.content.map((part, i) =>
+                part.type === "text" ? (
+                  <div key={i}>{part.text}</div>
+                ) : (
+                  <div key={i}>Non-text content: {part.type}</div>
+                ),
+              )}
+            </div>
             {message.renderedComponent}
           </div>
         ))}
@@ -360,11 +364,12 @@ const tools: TamboTool[] = [
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
     url: "https://mcp-server-1.com",
-    transport: "http",
+    transport: MCPTransport.HTTP,
     name: "mcp-server-1",
   },
 ];
@@ -374,7 +379,9 @@ const mcpServers = [
   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
   components={components}
 >
-  <TamboMcpProvider mcpServers={mcpServers}>{children}</TamboMcpProvider>
+  <TamboMcpProvider mcpServers={mcpServers}>
+    <YourApp />
+  </TamboMcpProvider>
 </TamboProvider>;
 ```
 

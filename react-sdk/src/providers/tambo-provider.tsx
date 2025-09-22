@@ -52,7 +52,7 @@ import {
  * @param props.tools - The tools to register
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
- * @param props.userToken - The JWT id token to use to identify the user in the Tambo API. (preferred over contextKey)
+ * @param props.userToken - The user's OAuth token (access or ID) used to identify the user and exchange for a Tambo session token (preferred over contextKey)
  * @param props.contextKey - Optional context key to be used in the thread input provider
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @returns The TamboProvider component

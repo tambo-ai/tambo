@@ -118,14 +118,14 @@ export const TamboContextHelpersProvider: React.FC<
 
 /**
  * Hook to access context helpers functionality.
- * Safe to call even when no provider is present: proxies to the global registry.
- * @returns The context helpers context props (registry-backed).
+ * Must be used within a TamboContextHelpersProvider. Throws if no provider is present.
+ * @returns The context helpers context props.
  */
 export const useTamboContextHelpers = () => {
   const context = useContext(TamboContextHelpersContext);
   if (context) return context;
 
-  // Fallback to global registry so the API is standalone outside any provider
+  // No provider present: expose methods that throw with a helpful error
   return {
     getAdditionalContext: async () => {
       throw new Error("No provider found");
