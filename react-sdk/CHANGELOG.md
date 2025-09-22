@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.54.1](https://github.com/tambo-ai/tambo/compare/react-v0.54.0...react-v0.54.1) (2025-09-20)
+
+
+### Bug Fixes
+
+* add validation to prevent spaces in component and tool names ([#1079](https://github.com/tambo-ai/tambo/issues/1079)) ([0ede1eb](https://github.com/tambo-ai/tambo/commit/0ede1eb88fa22476c2662cdab3ef91b07b7ad5d6))
+* **mcp:** Handle cases where the server list changes ([#1080](https://github.com/tambo-ai/tambo/issues/1080)) ([86bf03e](https://github.com/tambo-ai/tambo/commit/86bf03eac65fef399abf0e02283c47c2aa166e00))
+* update typo ([#1078](https://github.com/tambo-ai/tambo/issues/1078)) ([1a8fb47](https://github.com/tambo-ai/tambo/commit/1a8fb473d49f74aea0211ce5c1acb21f75e7a38e))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+
+## [0.54.0](https://github.com/tambo-ai/tambo/compare/react-v0.53.2...react-v0.54.0) (2025-09-19)
+
+
+### Features
+
+* **mcp:** Add hook to get at MCP servers for reconnection ([#1066](https://github.com/tambo-ai/tambo/issues/1066)) ([23e4767](https://github.com/tambo-ai/tambo/commit/23e476735cd2e59a61f1f766532e8fb6b7c97b1b))
+
+## [0.53.2](https://github.com/tambo-ai/tambo/compare/react-v0.53.1...react-v0.53.2) (2025-09-19)
+
+
+### Miscellaneous Chores
+
+* **lint:** fix eslint config to make cursor/vscode happy ([#1069](https://github.com/tambo-ai/tambo/issues/1069)) ([6e84c6e](https://github.com/tambo-ai/tambo/commit/6e84c6e7cade904b74bc2491c5d7e023f89f15b0))
+
 ## [0.53.1](https://github.com/tambo-ai/tambo/compare/react-v0.53.0...react-v0.53.1) (2025-09-19)
 
 

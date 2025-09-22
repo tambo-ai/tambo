@@ -55,7 +55,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish @tambo-ai/react to npm
+      - name: Publish @tambo-ai/react to npm --filter=@tambo-ai/react --filter=tambo --filter=create-tambo-app
         if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
         working-directory: ./react-sdk
         env:
