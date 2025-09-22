@@ -1,36 +1,36 @@
 "use client";
 
+import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
+  MessageInputError,
   MessageInputFileButton,
   MessageInputSubmitButton,
-  MessageInputError,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/ui/message-suggestions";
-import {
-  ThreadHistory,
-  ThreadHistoryHeader,
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-  ThreadHistoryList,
-} from "@/components/ui/thread-history";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
-import type { messageVariants } from "@/components/ui/message";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
-import { cn } from "@/lib/utils";
+import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@/components/ui/thread-history";
 import { useMergedRef } from "@/lib/thread-hooks";
+import { cn } from "@/lib/utils";
+import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import type { Suggestion } from "@tambo-ai/react";
 
 /**
  * Props for the MessageThreadPanel component

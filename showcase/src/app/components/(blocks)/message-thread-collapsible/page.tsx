@@ -1,25 +1,36 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import * as Collapsible from "@radix-ui/react-collapsible";
 import { Button } from "@/components/ui/button";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
+  MessageInputError,
   MessageInputFileButton,
   MessageInputSubmitButton,
-  MessageInputError,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/ui/message-suggestions";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
-import { ThreadContent, ThreadContentMessages } from "@/components/ui/thread-content";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
+import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@/components/ui/thread-history";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
+import * as Collapsible from "@radix-ui/react-collapsible";
+import { MessageCircle, PlusIcon } from "lucide-react";
 import { DemoWrapper } from "../../demo-wrapper";
 
 export default function MessageThreadCollapsiblePage() {
@@ -66,44 +77,83 @@ export default function MessageThreadCollapsiblePage() {
                 <Collapsible.Trigger asChild>
                   <Button
                     variant="floating"
-                    size="icon"
+                    size="sm"
                     aria-label="Open chat"
-                    className="fixed bottom-6 right-4"
-                  />
+                    className="absolute bottom-6 right-4"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Chat with Tambo
+                  </Button>
                 </Collapsible.Trigger>
                 <Collapsible.Content>
-                  <div className="fixed bottom-20 right-4 w-full max-w-md rounded-lg bg-background border border-border shadow-lg">
-                    <div className="h-[500px] flex flex-col">
-                      <ScrollableMessageContainer className="p-4">
-                        <ThreadContent>
-                          <ThreadContentMessages />
-                        </ThreadContent>
-                      </ScrollableMessageContainer>
-
-                      <MessageSuggestions>
-                        <MessageSuggestionsStatus />
-                      </MessageSuggestions>
-
-                      <div className="p-4">
-                        <MessageInput contextKey={userContextKey}>
-                          <MessageInputTextarea placeholder="Type your message or paste images..." />
-                          <MessageInputToolbar>
-                            <MessageInputFileButton />
-                            <MessageInputSubmitButton />
-                          </MessageInputToolbar>
-                          <MessageInputError />
-                        </MessageInput>
-                      </div>
-
-                      <MessageSuggestions
-                        initialSuggestions={[
-                          { id: "s1", title: "Get started", detailedSuggestion: "What can you help me with?", messageId: "welcome-query" },
-                          { id: "s2", title: "Learn more", detailedSuggestion: "Tell me about your capabilities.", messageId: "capabilities-query" },
-                          { id: "s3", title: "Examples", detailedSuggestion: "Show me some example queries.", messageId: "examples-query" },
-                        ]}
+                  <div className="absolute bottom-20 right-4 z-50 w-[768px] rounded-lg bg-background border border-border shadow-lg overflow-hidden">
+                    <div className="h-[500px] flex">
+                      {/* Sidebar */}
+                      <ThreadHistory
+                        contextKey={userContextKey}
+                        position="left"
+                        defaultCollapsed={true}
+                        className="h-full"
                       >
-                        <MessageSuggestionsList />
-                      </MessageSuggestions>
+                        <ThreadHistoryHeader>My Assistant</ThreadHistoryHeader>
+                        <ThreadHistoryNewButton>
+                          <PlusIcon className="h-4 w-4" />
+                          New
+                        </ThreadHistoryNewButton>
+                        <ThreadHistorySearch />
+                        <ThreadHistoryList />
+                      </ThreadHistory>
+
+                      {/* Main content */}
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <ScrollableMessageContainer className="p-4">
+                          <ThreadContent>
+                            <ThreadContentMessages />
+                          </ThreadContent>
+                        </ScrollableMessageContainer>
+
+                        <MessageSuggestions>
+                          <MessageSuggestionsStatus />
+                        </MessageSuggestions>
+
+                        <div className="p-4">
+                          <MessageInput contextKey={userContextKey}>
+                            <MessageInputTextarea placeholder="Type your message or paste images..." />
+                            <MessageInputToolbar>
+                              <MessageInputFileButton />
+                              <MessageInputSubmitButton />
+                            </MessageInputToolbar>
+                            <MessageInputError />
+                          </MessageInput>
+                        </div>
+
+                        <MessageSuggestions
+                          initialSuggestions={[
+                            {
+                              id: "s1",
+                              title: "Get started",
+                              detailedSuggestion: "What can you help me with?",
+                              messageId: "welcome-query",
+                            },
+                            {
+                              id: "s2",
+                              title: "Learn more",
+                              detailedSuggestion:
+                                "Tell me about your capabilities.",
+                              messageId: "capabilities-query",
+                            },
+                            {
+                              id: "s3",
+                              title: "Examples",
+                              detailedSuggestion:
+                                "Show me some example queries.",
+                              messageId: "examples-query",
+                            },
+                          ]}
+                        >
+                          <MessageSuggestionsList />
+                        </MessageSuggestions>
+                      </div>
                     </div>
                   </div>
                 </Collapsible.Content>

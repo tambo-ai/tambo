@@ -49,34 +49,7 @@ const mockThreads: TamboThread[] = [
 ];
 
 export default function ThreadHistoryPage() {
-  const usageCode = `import { 
-  ThreadHistory, 
-  ThreadHistoryHeader, 
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-  ThreadHistoryList 
-} from "@/components/ui/thread-history";
-
-// Basic usage (left sidebar)
-<ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
-  <ThreadHistoryHeader />
-  <ThreadHistoryNewButton />
-  <ThreadHistorySearch />
-  <ThreadHistoryList />
-</ThreadHistory>
-
-// Right sidebar with callbacks
-<ThreadHistory 
-  contextKey="my-app" 
-  position="right" 
-  defaultCollapsed={true}
-  onThreadChange={() => console.log("Thread changed")}
->
-  <ThreadHistoryHeader />
-  <ThreadHistoryNewButton />
-  <ThreadHistorySearch />
-  <ThreadHistoryList />
-</ThreadHistory>`;
+  const usageCode = `import {\n  ThreadHistory,\n  ThreadHistoryHeader,\n  ThreadHistoryNewButton,\n  ThreadHistorySearch,\n  ThreadHistoryList\n} from "@/components/ui/thread-history";\n\n// Basic usage (left sidebar)\n<ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>\n  <ThreadHistoryHeader />\n  <ThreadHistoryNewButton />\n  <ThreadHistorySearch />\n  <ThreadHistoryList />\n</ThreadHistory>\n\n// Right sidebar with callbacks\n<ThreadHistory\n  contextKey="my-app"\n  position="right"\n  defaultCollapsed={true}\n  onThreadChange={() => console.log('Thread changed')}\n>\n  <ThreadHistoryHeader />\n  <ThreadHistoryNewButton />\n  <ThreadHistorySearch />\n  <ThreadHistoryList />\n</ThreadHistory>`;
 
   const installCommand = "npx tambo add thread-history";
 

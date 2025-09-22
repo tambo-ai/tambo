@@ -14,9 +14,17 @@
   "props": {
     "Root": {
       "contextKey": { "type": "string" },
-      "position": { "type": "enum", "values": ["left", "right"], "default": "left" },
+      "position": {
+        "type": "enum",
+        "values": ["left", "right"],
+        "default": "left"
+      },
       "defaultCollapsed": { "type": "boolean", "default": true },
-      "density": { "type": "enum", "values": ["compact", "default"], "default": "default" }
+      "density": {
+        "type": "enum",
+        "values": ["compact", "default"],
+        "default": "default"
+      }
     },
     "Header": {},
     "NewButton": {},
@@ -24,7 +32,8 @@
     "List": {}
   },
   "usage": {
-    "leftEmbedded": "<ThreadHistoryRoot contextKey=\"chat\" position=\"left\" defaultCollapsed={false}><ThreadHistoryHeader /><ThreadHistoryNewButton /><ThreadHistorySearch /><ThreadHistoryList /></ThreadHistoryRoot>",
-    "rightCompact": "<ThreadHistoryRoot contextKey=\"chat\" position=\"right\" density=\"compact\"><ThreadHistoryHeader /><ThreadHistoryList /></ThreadHistoryRoot>"
+    "leftEmbedded": "<ThreadHistoryRoot contextKey=\"chat\" position=\"left\" defaultCollapsed={false}><Header /><NewButton /><Search /><List /></ThreadHistoryRoot>",
+    "rightCompact": "<ThreadHistoryRoot contextKey=\"chat\" position=\"right\" density=\"compact\"><Header /><List /></ThreadHistoryRoot>",
+    "withThreadDropdown": "<ThreadHistoryRoot contextKey=\"chat\"><Header /><NewButton /><Search /><List /><ThreadDropdownAutoContent /></ThreadHistoryRoot>"
   }
 }

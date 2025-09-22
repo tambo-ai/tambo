@@ -11,6 +11,8 @@ const buttonVariants = cva(
           "bg-primary text-primary-foreground shadow hover:bg-primary/90",
         outline:
           "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+        floating:
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
       },
       size: {
         default: "h-9 px-4 py-2",

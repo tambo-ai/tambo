@@ -25,57 +25,68 @@ export interface ThreadContainerProps
 export const ThreadContainer = React.forwardRef<
   HTMLDivElement,
   ThreadContainerProps
->(({ className, children, sidebarPosition, reserveSidebarSpace = true, ...props }, ref) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(containerRef);
-  const { isLeftPanel, historyPosition } = usePositioning(
-    className,
-    canvasIsOnLeft,
-    hasCanvasSpace,
-  );
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
+>(
+  (
+    {
+      className,
+      children,
+      sidebarPosition,
+      reserveSidebarSpace = true,
+      ...props
+    },
+    ref,
+  ) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(containerRef);
+    const { isLeftPanel, historyPosition } = usePositioning(
+      className,
+      canvasIsOnLeft,
+      hasCanvasSpace,
+    );
+    const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
-  const effectiveHistoryPosition = sidebarPosition ?? historyPosition;
+    const effectiveHistoryPosition = sidebarPosition ?? historyPosition;
 
-  return (
-    <div
-      ref={mergedRef}
-      className={cn(
-        // Base layout and styling
-        "flex flex-col bg-white overflow-hidden bg-background",
-        "h-screen",
+    return (
+      <div
+        ref={mergedRef}
+        className={cn(
+          // Base layout and styling
+          "flex flex-col bg-white overflow-hidden bg-background",
+          "h-screen",
 
-        // Add smooth transitions for layout changes
-        "transition-all duration-200 ease-in-out",
+          // Add smooth transitions for layout changes
+          "transition-all duration-200 ease-in-out",
 
-        // Sidebar spacing based on history position (optional)
-        reserveSidebarSpace
-          ? effectiveHistoryPosition === "right"
-            ? "mr-[var(--sidebar-width,16rem)]"
-            : "ml-[var(--sidebar-width,16rem)]"
-          : null,
+          // Sidebar spacing based on history position (optional)
+          reserveSidebarSpace
+            ? effectiveHistoryPosition === "right"
+              ? "mr-[var(--sidebar-width,16rem)]"
+              : "ml-[var(--sidebar-width,16rem)]"
+            : null,
 
-        // Width constraints based on canvas presence
-        hasCanvasSpace
-          ? "max-w-3xl"
-          : "w-[calc(100%-var(--sidebar-width,16rem))]",
+          // Width constraints based on canvas presence
+          hasCanvasSpace
+            ? "max-w-3xl"
+            : "w-[calc(100%-var(--sidebar-width,16rem))]",
 
-        // Border styling when canvas is present
-        hasCanvasSpace && (canvasIsOnLeft ? "border-l" : "border-r"),
-        hasCanvasSpace && "border-border",
+          // Border styling when canvas is present
+          hasCanvasSpace && (canvasIsOnLeft ? "border-l" : "border-r"),
+          hasCanvasSpace && "border-border",
 
-        // Right alignment when specified
-        !isLeftPanel && "ml-auto",
+          // Right alignment when specified
+          !isLeftPanel && "ml-auto",
 
-        // Custom classes passed via props
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
+          // Custom classes passed via props
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
 ThreadContainer.displayName = "ThreadContainer";
 
 /**

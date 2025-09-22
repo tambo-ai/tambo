@@ -30,10 +30,10 @@ import {
   ThreadHistorySearch,
 } from "@/components/ui/thread-history";
 import { useMergedRef } from "@/lib/thread-hooks";
+import { cn } from "@/lib/utils";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { MessageInputFileButton } from "../message-input/message-input";
 
 /**
@@ -62,99 +62,109 @@ export interface MessageThreadFullProps
 export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
->(({ className, contextKey, variant, sidebarPosition = "auto", inputAlign = "auto", ...props }, ref) => {
-  const { containerRef, historyPosition } = useThreadContainerContext();
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
-
-  const effectiveHistoryPosition =
-    sidebarPosition === "auto" ? historyPosition : sidebarPosition;
-
-  const threadHistorySidebar = (
-    <ThreadHistory contextKey={contextKey} position={effectiveHistoryPosition}>
-      <ThreadHistoryHeader />
-      <ThreadHistoryNewButton />
-      <ThreadHistorySearch />
-      <ThreadHistoryList />
-    </ThreadHistory>
-  );
-
-  const defaultSuggestions: Suggestion[] = [
+>(
+  (
     {
-      id: "suggestion-1",
-      title: "Get started",
-      detailedSuggestion: "What can you help me with?",
-      messageId: "welcome-query",
+      className,
+      contextKey,
+      variant,
+      sidebarPosition = "auto",
+      inputAlign = "auto",
+      ...props
     },
-    {
-      id: "suggestion-2",
-      title: "Learn more",
-      detailedSuggestion: "Tell me about your capabilities.",
-      messageId: "capabilities-query",
-    },
-    {
-      id: "suggestion-3",
-      title: "Examples",
-      detailedSuggestion: "Show me some example queries I can try.",
-      messageId: "examples-query",
-    },
-  ];
+    ref,
+  ) => {
+    const { containerRef, historyPosition } = useThreadContainerContext();
+    const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
-  return (
-    <>
-      {/* Thread History Sidebar - rendered first if history is on the left */}
-      {effectiveHistoryPosition === "left" && threadHistorySidebar}
+    const effectiveHistoryPosition =
+      sidebarPosition === "auto" ? historyPosition : sidebarPosition;
 
-      <ThreadContainer
-        ref={mergedRef}
-        className={className}
-        sidebarPosition={effectiveHistoryPosition}
-        {...props}
+    const threadHistorySidebar = (
+      <ThreadHistory
+        contextKey={contextKey}
+        position={effectiveHistoryPosition}
       >
-        <ScrollableMessageContainer className="p-4">
-          <ThreadContent variant={variant}>
-            <ThreadContentMessages />
-          </ThreadContent>
-        </ScrollableMessageContainer>
+        <ThreadHistoryHeader />
+        <ThreadHistoryNewButton />
+        <ThreadHistorySearch />
+        <ThreadHistoryList />
+      </ThreadHistory>
+    );
 
-        {/* Message suggestions status */}
-        <MessageSuggestions>
-          <MessageSuggestionsStatus />
-        </MessageSuggestions>
+    const defaultSuggestions: Suggestion[] = [
+      {
+        id: "suggestion-1",
+        title: "Get started",
+        detailedSuggestion: "What can you help me with?",
+        messageId: "welcome-query",
+      },
+      {
+        id: "suggestion-2",
+        title: "Learn more",
+        detailedSuggestion: "Tell me about your capabilities.",
+        messageId: "capabilities-query",
+      },
+      {
+        id: "suggestion-3",
+        title: "Examples",
+        detailedSuggestion: "Show me some example queries I can try.",
+        messageId: "examples-query",
+      },
+    ];
 
-        {/* Message input */}
-        <div
-          className={cn(
-            "p-4",
-            inputAlign === "left"
-              ? "mr-auto"
-              : inputAlign === "right"
-                ? "ml-auto"
-                : effectiveHistoryPosition === "left"
+    return (
+      <>
+        {/* Thread History Sidebar - rendered first if history is on the left */}
+        {effectiveHistoryPosition === "left" && threadHistorySidebar}
+
+        <ThreadContainer ref={mergedRef} className={className} {...props}>
+          <ScrollableMessageContainer className="p-4">
+            <ThreadContent variant={variant}>
+              <ThreadContentMessages />
+            </ThreadContent>
+          </ScrollableMessageContainer>
+
+          {/* Message suggestions status */}
+          <MessageSuggestions>
+            <MessageSuggestionsStatus />
+          </MessageSuggestions>
+
+          {/* Message input */}
+          <div
+            className={cn(
+              "p-4",
+              inputAlign === "left"
+                ? "mr-auto"
+                : inputAlign === "right"
                   ? "ml-auto"
-                  : "mr-auto",
-          )}
-        >
-          <MessageInput contextKey={contextKey}>
-            <MessageInputTextarea placeholder="Type your message or paste images..." />
-            <MessageInputToolbar>
-              <MessageInputFileButton />
-              {/* Uncomment this to enable client-side MCP config modal button */}
-              {/* <MessageInputMcpConfigButton /> */}
-              <MessageInputSubmitButton />
-            </MessageInputToolbar>
-            <MessageInputError />
-          </MessageInput>
-        </div>
+                  : effectiveHistoryPosition === "left"
+                    ? "ml-auto"
+                    : "mr-auto",
+            )}
+          >
+            <MessageInput contextKey={contextKey}>
+              <MessageInputTextarea placeholder="Type your message or paste images..." />
+              <MessageInputToolbar>
+                <MessageInputFileButton />
+                {/* Uncomment this to enable client-side MCP config modal button */}
+                {/* <MessageInputMcpConfigButton /> */}
+                <MessageInputSubmitButton />
+              </MessageInputToolbar>
+              <MessageInputError />
+            </MessageInput>
+          </div>
 
-        {/* Message suggestions */}
-        <MessageSuggestions initialSuggestions={defaultSuggestions}>
-          <MessageSuggestionsList />
-        </MessageSuggestions>
-      </ThreadContainer>
+          {/* Message suggestions */}
+          <MessageSuggestions initialSuggestions={defaultSuggestions}>
+            <MessageSuggestionsList />
+          </MessageSuggestions>
+        </ThreadContainer>
 
-      {/* Thread History Sidebar - rendered last if history is on the right */}
-      {effectiveHistoryPosition === "right" && threadHistorySidebar}
-    </>
-  );
-});
+        {/* Thread History Sidebar - rendered last if history is on the right */}
+        {effectiveHistoryPosition === "right" && threadHistorySidebar}
+      </>
+    );
+  },
+);
 MessageThreadFull.displayName = "MessageThreadFull";

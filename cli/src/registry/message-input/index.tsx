@@ -1,6 +1,9 @@
 export {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
+  MessageInputMcpConfigButton,
+  MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,

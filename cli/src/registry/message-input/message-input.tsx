@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { McpConfigModal } from "@/components/ui/mcp-config-modal";
 import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
@@ -11,10 +12,8 @@ import {
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 // Optional Next.js wrapper can be provided by consumers; default to plain img
 import * as React from "react";
-import { useMergedRef } from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message input container
@@ -369,12 +368,10 @@ export interface MessageInputTextareaProps
  * </MessageInput>
  * ```
  */
-const MessageInputTextarea = React.forwardRef<HTMLTextAreaElement, MessageInputTextareaProps>(
-({
-  className,
-  placeholder = "What do you want to do?",
-  ...props
-}, ref) => {
+const MessageInputTextarea = React.forwardRef<
+  HTMLTextAreaElement,
+  MessageInputTextareaProps
+>(({ className, placeholder = "What do you want to do?", ...props }, ref) => {
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
@@ -419,9 +416,13 @@ const MessageInputTextarea = React.forwardRef<HTMLTextAreaElement, MessageInputT
     <textarea
       ref={(node) => {
         // Keep internal ref for focus management and forward external ref
-        (textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+        (
+          textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>
+        ).current = node;
         if (typeof ref === "function") ref(node);
-        else if (ref) (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+        else if (ref)
+          (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current =
+            node;
       }}
       value={value}
       onChange={handleChange}
@@ -690,6 +691,7 @@ const MessageInputFileButton = React.forwardRef<
           onClick={handleClick}
           size="icon"
           variant="secondary"
+          className={className}
           aria-label="Attach Images"
           data-slot="message-input-file-button"
           {...props}
@@ -751,7 +753,11 @@ const MessageInputStagedImages = React.forwardRef<
       {images.map((image: StagedImage) => (
         <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
           <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
-            <img src={image.dataUrl} alt={image.name} className="object-cover w-full h-full" />
+            <img
+              src={image.dataUrl}
+              alt={image.name}
+              className="object-cover w-full h-full"
+            />
           </div>
           <button
             type="button"

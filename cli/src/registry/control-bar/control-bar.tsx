@@ -1,25 +1,23 @@
 "use client";
 
-import * as React from "react";
-import * as Dialog from "@radix-ui/react-dialog";
-import { Button } from "@/components/ui/button";
-import { useTambo } from "@tambo-ai/react";
-import { cn } from "@/lib/utils";
-import type { VariantProps } from "class-variance-authority";
 import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
+  MessageInputError,
+  MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputSubmitButton,
-  MessageInputError,
-  // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+import { cn } from "@/lib/utils";
+import * as Dialog from "@radix-ui/react-dialog";
+import { useTambo } from "@tambo-ai/react";
+import type { VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 /** Compound API: Root wraps the dialog, Trigger renders asChild, Content holds the body */
 export interface ControlBarRootProps
@@ -41,12 +39,22 @@ export interface ControlBarRootProps
  * />
  * ```
  */
-export const ControlBarRoot = React.forwardRef<HTMLDivElement, ControlBarRootProps>(
-  ({ className, contextKey, hotkey = "mod+k", variant, children, ...props }, ref) => {
+export const ControlBarRoot = React.forwardRef<
+  HTMLDivElement,
+  ControlBarRootProps
+>(
+  (
+    {
+      className: _className,
+      contextKey: _contextKey,
+      hotkey = "mod+k",
+      variant: _variant,
+      children,
+      ..._props
+    },
+    _ref,
+  ) => {
     const [open, setOpen] = React.useState(false);
-    const isMac =
-      typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
-    const { thread } = useTambo();
 
     React.useEffect(() => {
       const down = (e: KeyboardEvent) => {

@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
-import { ChevronDownIcon, PlusIcon } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+import { PlusIcon } from "lucide-react";
 import * as React from "react";
 import { useCallback } from "react";
 
@@ -33,17 +33,18 @@ export interface ThreadDropdownRootProps
 type Ctx = { contextKey?: string; onThreadChange?: () => void };
 const Ctx = React.createContext<Ctx>({});
 
-export const ThreadDropdownRoot = React.forwardRef<HTMLDivElement, ThreadDropdownRootProps>(
-  ({ contextKey, onThreadChange, children, ...props }, ref) => (
-    <Ctx.Provider value={{ contextKey, onThreadChange }}>
-      <DropdownMenu.Root {...props}>
-        <div className={cn("relative")} ref={ref}>
-          {children}
-        </div>
-      </DropdownMenu.Root>
-    </Ctx.Provider>
-  ),
-);
+export const ThreadDropdownRoot = React.forwardRef<
+  HTMLDivElement,
+  ThreadDropdownRootProps
+>(({ contextKey, onThreadChange, children, ...props }, ref) => (
+  <Ctx.Provider value={{ contextKey, onThreadChange }}>
+    <DropdownMenu.Root {...props}>
+      <div className={cn("relative")} ref={ref}>
+        {children}
+      </div>
+    </DropdownMenu.Root>
+  </Ctx.Provider>
+));
 ThreadDropdownRoot.displayName = "ThreadDropdown.Root";
 
 export const ThreadDropdownTrigger = DropdownMenu.Trigger;
@@ -79,25 +80,41 @@ export const ThreadDropdownItem = (
 
 export const ThreadDropdownSeparator = (
   props: React.ComponentPropsWithoutRef<typeof DropdownMenu.Separator>,
-) => <DropdownMenu.Separator className={cn("my-1 h-px bg-border", props.className)} {...props} />;
+) => (
+  <DropdownMenu.Separator
+    className={cn("my-1 h-px bg-border", props.className)}
+    {...props}
+  />
+);
 
-export const ThreadDropdownAutoContent: React.FC<React.ComponentPropsWithoutRef<typeof DropdownMenu.Content>> = (props) => {
+export const ThreadDropdownAutoContent: React.FC<
+  React.ComponentPropsWithoutRef<typeof DropdownMenu.Content>
+> = (props) => {
   const { contextKey, onThreadChange } = React.useContext(Ctx);
-  const { data: threads, isLoading, error, refetch } = useTamboThreadList({ contextKey });
+  const {
+    data: threads,
+    isLoading,
+    error,
+    refetch,
+  } = useTamboThreadList({ contextKey });
   const { switchCurrentThread, startNewThread } = useTamboThread();
-  const isMac = typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
   const modKey = isMac ? "⌥" : "Alt";
 
-  const handleNewThread = useCallback(async (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    try {
-      await startNewThread();
-      await refetch();
-      onThreadChange?.();
-    } catch (error) {
-      console.error("Failed to create new thread:", error);
-    }
-  }, [onThreadChange, startNewThread, refetch]);
+  const handleNewThread = useCallback(
+    async (e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
+      try {
+        await startNewThread();
+        await refetch();
+        onThreadChange?.();
+      } catch (error) {
+        console.error("Failed to create new thread:", error);
+      }
+    },
+    [onThreadChange, startNewThread, refetch],
+  );
 
   const handleSwitchThread = async (threadId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -111,12 +128,20 @@ export const ThreadDropdownAutoContent: React.FC<React.ComponentPropsWithoutRef<
 
   return (
     <ThreadDropdownContent {...props}>
-      <ThreadDropdownItem onSelect={(e: Event) => { e.preventDefault(); handleNewThread(); }}>
+      <ThreadDropdownItem
+        onSelect={(e: Event) => {
+          e.preventDefault();
+          handleNewThread();
+        }}
+      >
         <div className="flex items-center">
           <PlusIcon className="mr-2 h-4 w-4" />
           <span>New Thread</span>
         </div>
-        <span className="ml-auto text-xs text-muted-foreground" suppressHydrationWarning>
+        <span
+          className="ml-auto text-xs text-muted-foreground"
+          suppressHydrationWarning
+        >
           {modKey}+⇧+N
         </span>
       </ThreadDropdownItem>
@@ -124,14 +149,19 @@ export const ThreadDropdownAutoContent: React.FC<React.ComponentPropsWithoutRef<
       {isLoading ? (
         <ThreadDropdownItem disabled>Loading threads...</ThreadDropdownItem>
       ) : error ? (
-        <ThreadDropdownItem disabled className="text-destructive">Error loading threads</ThreadDropdownItem>
+        <ThreadDropdownItem disabled className="text-destructive">
+          Error loading threads
+        </ThreadDropdownItem>
       ) : threads?.items.length === 0 ? (
         <ThreadDropdownItem disabled>No previous threads</ThreadDropdownItem>
       ) : (
         threads?.items.map((thread) => (
           <ThreadDropdownItem
             key={thread.id}
-            onSelect={(e: Event) => { e.preventDefault(); handleSwitchThread(thread.id); }}
+            onSelect={(e: Event) => {
+              e.preventDefault();
+              handleSwitchThread(thread.id);
+            }}
           >
             <span className="truncate max-w-[180px]">{`Thread ${thread.id.substring(0, 8)}`}</span>
           </ThreadDropdownItem>

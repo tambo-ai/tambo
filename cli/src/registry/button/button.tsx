@@ -70,4 +70,3 @@ export type ButtonSize = NonNullable<
 >;
 
 export { Button };
-

@@ -17,7 +17,12 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "paths": {
+      "@/components/ui/*": ["./src/registry/*"],
+      "@/components/*": ["./src/registry/*"],
+      "@/lib/*": ["./src/lib/*"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/types/*.d.ts"],
   "exclude": ["node_modules", "./dist"]

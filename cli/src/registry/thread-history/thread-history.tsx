@@ -12,7 +12,6 @@ import {
   ArrowRightToLine,
   MoreHorizontal,
   Pencil,
-  PlusIcon,
   SearchIcon,
   Sparkles,
 } from "lucide-react";
@@ -98,13 +97,22 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
       generateThreadName,
     } = useTamboThread();
 
-    // Update CSS variable when sidebar collapses/expands (scoped via root div)
-    const rootRef = React.useRef<HTMLDivElement>(null);
+    // Track sidebar width locally instead of setting a scoped CSS var via ref
+    const [sidebarWidth, setSidebarWidth] = React.useState(
+      isCollapsed ? "3rem" : "16rem",
+    );
+
     React.useEffect(() => {
-      const sidebarWidth = isCollapsed ? "3rem" : "16rem";
-      if (rootRef.current) {
-        rootRef.current.style.setProperty("--sidebar-width", sidebarWidth);
-      }
+      if (typeof document === "undefined") return;
+      const collapsed =
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--thread-history-collapsed-width")
+          .trim() || "3rem";
+      const expanded =
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--thread-history-expanded-width")
+          .trim() || "16rem";
+      setSidebarWidth(isCollapsed ? collapsed : expanded);
     }, [isCollapsed]);
 
     // Focus search input when expanded from collapsed state
@@ -156,14 +164,16 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
         value={contextValue as ThreadHistoryContextValue}
       >
         <div
-          ref={rootRef}
           ref={ref}
           className={cn(
             "border-flat bg-container min-h-full transition-all duration-300",
             position === "left" ? "border-r" : "border-l",
-            isCollapsed ? "w-12" : "w-64",
             className,
           )}
+          style={{
+            width: sidebarWidth,
+            ...props.style,
+          }}
           {...props}
         >
           <div
@@ -211,7 +221,7 @@ const ThreadHistoryHeader = React.forwardRef<
       {...props}
     >
       {!isCollapsed && (
-        <h2 className="text-sm text-muted-foreground">Tambo Conversations</h2>
+        <div className="text-sm text-muted-foreground">{props.children}</div>
       )}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -284,8 +294,7 @@ const ThreadHistoryNewButton = React.forwardRef<
       title="New thread"
       {...props}
     >
-      <PlusIcon className="h-4 w-4 bg-green-600 rounded-full text-white" />
-      {!isCollapsed && <span className="text-sm font-medium">New thread</span>}
+      {props.children}
     </button>
   );
 });
@@ -601,34 +610,32 @@ const ThreadOptionsDropdown = ({
           <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
         </button>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          className="min-w-[160px] text-xs bg-popover rounded-md p-1 shadow-md border border-border"
-          sideOffset={5}
-          align="end"
+      <DropdownMenu.Content
+        className="min-w-[160px] text-xs bg-popover rounded-md p-1 shadow-md border border-border"
+        sideOffset={5}
+        align="end"
+      >
+        <DropdownMenu.Item
+          className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRename(thread);
+          }}
         >
-          <DropdownMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRename(thread);
-            }}
-          >
-            <Pencil className="h-3 w-3" />
-            Rename
-          </DropdownMenu.Item>
-          <DropdownMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onGenerateName(thread);
-            }}
-          >
-            <Sparkles className="h-3 w-3" />
-            Generate Name
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
+          <Pencil className="h-3 w-3" />
+          Rename
+        </DropdownMenu.Item>
+        <DropdownMenu.Item
+          className="flex items-center gap-2 px-2 py-1.5 text-foreground hover:bg-backdrop rounded-sm cursor-pointer outline-none transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onGenerateName(thread);
+          }}
+        >
+          <Sparkles className="h-3 w-3" />
+          Generate Name
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   );
 };

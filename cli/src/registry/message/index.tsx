@@ -1,7 +1,8 @@
 export {
   Message,
   MessageContent,
+  MessageImages,
   MessageRenderedComponentArea,
-  messageVariants,
   ToolcallInfo,
+  messageVariants,
 } from "./message";

@@ -1,7 +1,7 @@
 export {
-  ThreadHistory as ThreadHistoryRoot,
-  ThreadHistoryHeader as ThreadHistoryHeader,
-  ThreadHistoryNewButton as ThreadHistoryNewButton,
-  ThreadHistorySearch as ThreadHistorySearch,
-  ThreadHistoryList as ThreadHistoryList,
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
 } from "./thread-history";

@@ -229,7 +229,9 @@ export async function handleAddComponents(
             if (config?.usage) {
               const [label, snippet] = Object.entries(config.usage)[0] ?? [];
               if (snippet) {
-                console.log(`\n${chalk.bold(`Example (${config.name}${label ? ` - ${label}` : ""}):`)}`);
+                console.log(
+                  `\n${chalk.bold(`Example (${config.name}${label ? ` - ${label}` : ""}):`)}`,
+                );
                 console.log(snippet);
               }
             } else {

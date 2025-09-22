@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import * as React from "react";
 
 export interface MessageThreadCollapsibleRootProps
@@ -36,7 +36,10 @@ const surfaceVariants = cva(
   },
 );
 
-const Root = React.forwardRef<HTMLDivElement, MessageThreadCollapsibleRootProps>(
+const Root = React.forwardRef<
+  HTMLDivElement,
+  MessageThreadCollapsibleRootProps
+>(
   (
     {
       className,
@@ -53,16 +56,20 @@ const Root = React.forwardRef<HTMLDivElement, MessageThreadCollapsibleRootProps>
   ) => {
     const placement: React.CSSProperties = {};
     if (isFixed) {
-      if (position.includes("bottom")) (placement as any).bottom = offset;
-      if (position.includes("top")) (placement as any).top = offset;
-      if (position.includes("right")) (placement as any).right = offset;
-      if (position.includes("left")) (placement as any).left = offset;
+      if (position.includes("bottom")) placement.bottom = offset as number;
+      if (position.includes("top")) placement.top = offset as number;
+      if (position.includes("right")) placement.right = offset as number;
+      if (position.includes("left")) placement.left = offset as number;
     }
 
     return (
       <Collapsible.Root
         ref={ref}
-        className={cn(surfaceVariants({ size, appearance }), isFixed && "fixed", className)}
+        className={cn(
+          surfaceVariants({ size, appearance }),
+          isFixed && "fixed",
+          className,
+        )}
         style={{ ...(isFixed ? placement : {}), ...style }}
         {...props}
       >
@@ -75,7 +82,9 @@ Root.displayName = "MessageThreadCollapsible.Root";
 
 const Trigger = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentPropsWithoutRef<typeof Collapsible.Trigger> & { asChild?: boolean }
+  React.ComponentPropsWithoutRef<typeof Collapsible.Trigger> & {
+    asChild?: boolean;
+  }
 >(({ asChild = true, ...props }, ref) => (
   <Collapsible.Trigger ref={ref} asChild={asChild} {...props} />
 ));
@@ -91,5 +100,4 @@ const Content = React.forwardRef<
 ));
 Content.displayName = "MessageThreadCollapsible.Content";
 
-export { Root, Trigger, Content };
-
+export { Content, Root, Trigger };
