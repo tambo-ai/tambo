@@ -1,10 +1,9 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import { DemoControlBar } from "@/components/ui/control-bar";
+import { ControlBar } from "@/components/tambo/control-bar";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
-import * as React from "react";
 import { DemoWrapper } from "../../demo-wrapper";
 
 export default function ControlBarPage() {
@@ -54,7 +53,7 @@ export default function ControlBarPage() {
                 </p>
               </div>
 
-              <DemoControlBar contextKey={userContextKey} />
+              <ControlBar contextKey={userContextKey} />
             </div>
           </DemoWrapper>
         </div>

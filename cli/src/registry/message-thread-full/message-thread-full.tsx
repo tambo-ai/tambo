@@ -4,6 +4,7 @@ import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -30,10 +31,10 @@ import {
   ThreadHistorySearch,
 } from "@/components/ui/thread-history";
 import { useMergedRef } from "@/lib/thread-hooks";
+import { cn } from "@/lib/utils";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { MessageInputFileButton } from "../message-input/message-input";
 
 /**
  * Props for the MessageThreadFull component
@@ -45,7 +46,7 @@ export interface MessageThreadFullProps
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
@@ -92,11 +93,14 @@ export const MessageThreadFull = React.forwardRef<
   ];
 
   return (
-    <>
+    <div
+      className={cn("flex w-full items-stretch min-h-0 h-full", className)}
+      {...props}
+    >
       {/* Thread History Sidebar - rendered first if history is on the left */}
       {historyPosition === "left" && threadHistorySidebar}
 
-      <ThreadContainer ref={mergedRef} className={className} {...props}>
+      <ThreadContainer ref={mergedRef} className="flex-1 min-w-0 min-h-0">
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
             <ThreadContentMessages />
@@ -130,7 +134,7 @@ export const MessageThreadFull = React.forwardRef<
 
       {/* Thread History Sidebar - rendered last if history is on the right */}
       {historyPosition === "right" && threadHistorySidebar}
-    </>
+    </div>
   );
 });
 MessageThreadFull.displayName = "MessageThreadFull";

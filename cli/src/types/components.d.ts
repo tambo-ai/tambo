@@ -127,6 +127,13 @@ declare module "@/components/ui/message-input" {
     children?: React.ReactNode;
   }
 
+  export interface MessageInputFileButtonProps
+    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    children?: React.ReactNode;
+    accept?: string;
+    multiple?: boolean;
+  }
+
   export type MessageInputErrorProps =
     React.HTMLAttributes<HTMLParagraphElement>;
 
@@ -149,6 +156,10 @@ declare module "@/components/ui/message-input" {
 
   export const MessageInputSubmitButton: React.ForwardRefExoticComponent<
     MessageInputSubmitButtonProps & React.RefAttributes<HTMLButtonElement>
+  >;
+
+  export const MessageInputFileButton: React.ForwardRefExoticComponent<
+    MessageInputFileButtonProps & React.RefAttributes<HTMLButtonElement>
   >;
 
   export const MessageInputToolbar: React.ForwardRefExoticComponent<
@@ -351,6 +362,10 @@ declare module "@/lib/thread-hooks" {
   export function checkHasContent(
     content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
   ): boolean;
+
+  export function getMessageImages(
+    content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  ): string[];
 }
 
 declare module "@/components/ui/thread-container" {

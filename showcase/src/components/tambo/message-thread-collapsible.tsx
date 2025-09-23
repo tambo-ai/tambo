@@ -1,31 +1,31 @@
 "use client";
 
+import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
+  MessageInputError,
+  MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputFileButton,
-  MessageInputSubmitButton,
-  MessageInputError,
-} from "@/components/ui/message-input";
+} from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
-} from "@/components/ui/message-suggestions";
-import type { messageVariants } from "@/components/ui/message";
+  MessageSuggestionsStatus,
+} from "@/components/tambo/message-suggestions";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
-import { ThreadDropdown } from "@/components/ui/thread-dropdown";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+} from "@/components/tambo/thread-content";
+import { ThreadDropdown } from "@/components/tambo/thread-dropdown";
 import { cn } from "@/lib/utils";
-import { Collapsible } from "radix-ui";
-import { XIcon } from "lucide-react";
-import * as React from "react";
-import { type VariantProps } from "class-variance-authority";
 import type { Suggestion } from "@tambo-ai/react";
+import { type VariantProps } from "class-variance-authority";
+import { XIcon } from "lucide-react";
+import { Collapsible } from "radix-ui";
+import * as React from "react";
+import { MessageInputFileButton } from "./message-input";
 
 /**
  * Props for the MessageThreadCollapsible component
@@ -41,7 +41,7 @@ export interface MessageThreadCollapsibleProps
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
@@ -250,7 +250,7 @@ export const MessageThreadCollapsible = React.forwardRef<
         config={THREAD_CONFIG}
       />
       <Collapsible.Content>
-        <div className="h-[500px] flex flex-col">
+        <div className="h-[700px] flex flex-col">
           {/* Message thread content */}
           <ScrollableMessageContainer className="p-4">
             <ThreadContent variant={variant}>
@@ -269,6 +269,8 @@ export const MessageThreadCollapsible = React.forwardRef<
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <MessageInputToolbar>
                 <MessageInputFileButton />
+                {/* Uncomment this to enable client-side MCP config modal button */}
+                {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />

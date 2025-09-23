@@ -1,11 +1,11 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
+} from "@/components/tambo/thread-content";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 

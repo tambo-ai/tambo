@@ -96,15 +96,6 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
       generateThreadName,
     } = useTamboThread();
 
-    // Update CSS variable when sidebar collapses/expands
-    React.useEffect(() => {
-      const sidebarWidth = isCollapsed ? "3rem" : "16rem";
-      document.documentElement.style.setProperty(
-        "--sidebar-width",
-        sidebarWidth,
-      );
-    }, [isCollapsed]);
-
     // Focus search input when expanded from collapsed state
     React.useEffect(() => {
       if (!isCollapsed && shouldFocusSearch) {
@@ -155,10 +146,14 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
       >
         <div
           ref={ref}
+          data-position={position}
+          data-collapsed={isCollapsed ? "true" : "false"}
           className={cn(
-            "border-flat bg-container h-screen fixed top-0 transition-all duration-300",
-            position === "left" ? "border-r left-0" : "border-l right-0",
-            isCollapsed ? "w-12" : "w-64",
+            "border-flat bg-container transition-all duration-300 flex-none h-full",
+            position === "left" ? "border-r" : "border-l",
+            isCollapsed
+              ? "w-[var(--sidebar-collapsed-width)]"
+              : "w-[var(--sidebar-expanded-width)]",
             className,
           )}
           {...props}
@@ -240,6 +235,7 @@ const ThreadHistoryNewButton = React.forwardRef<
 
       try {
         await startNewThread();
+        await refetch();
         onThreadChange?.();
       } catch (error) {
         console.error("Failed to create new thread:", error);
@@ -491,7 +487,7 @@ const ThreadHistoryList = React.forwardRef<
             key={thread.id}
             onClick={async () => await handleSwitchThread(thread.id)}
             className={cn(
-              "p-2 rounded-md hover:bg-muted cursor-pointer group flex items-center justify-between",
+              "p-2 rounded-md hover:bg-backdrop cursor-pointer group flex items-center justify-between",
               currentThread?.id === thread.id ? "bg-muted" : "",
               editingThread?.id === thread.id ? "bg-muted" : "",
             )}
@@ -588,9 +584,9 @@ const ThreadOptionsDropdown = ({
           <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
         </button>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Portal container={document.body}>
+      <DropdownMenu.Portal>
         <DropdownMenu.Content
-          className="showcase-theme min-w-[160px] text-xs bg-popover rounded-md p-1 shadow-md border border-border z-[9999]"
+          className="min-w-[160px] text-xs bg-popover rounded-md p-1 shadow-md border border-border"
           sideOffset={5}
           align="end"
         >

@@ -1,6 +1,11 @@
 "use client";
 
 import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import {
+  checkHasContent,
+  getMessageImages,
+  getSafeContent,
+} from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -12,11 +17,6 @@ import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
-import {
-  checkHasContent,
-  getMessageImages,
-  getSafeContent,
-} from "../lib/thread-hooks";
 
 /**
  * CSS variants for the message container

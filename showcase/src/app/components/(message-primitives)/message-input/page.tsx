@@ -6,7 +6,7 @@ import {
   MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
-} from "@/components/ui/message-input";
+} from "@/components/tambo/message-input";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 

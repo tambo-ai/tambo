@@ -5,7 +5,7 @@ import {
   Message,
   MessageContent,
   MessageRenderedComponentArea,
-} from "@/components/ui/message";
+} from "@/components/tambo/message";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 

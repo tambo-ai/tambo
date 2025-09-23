@@ -1,30 +1,30 @@
 "use client";
 
-import type { messageVariants } from "@/components/ui/message";
+import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
   MessageInputError,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-} from "@/components/ui/message-input";
+} from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
   MessageSuggestionsList,
   MessageSuggestionsStatus,
-} from "@/components/ui/message-suggestions";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+} from "@/components/tambo/message-suggestions";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
+} from "@/components/tambo/thread-content";
 import {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryList,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-} from "@/components/ui/thread-history";
+} from "@/components/tambo/thread-history";
 import {
   useCanvasDetection,
   useMergedRef,
@@ -35,7 +35,7 @@ import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { useRef } from "react";
-import { MessageInputFileButton } from "../message-input/message-input";
+import { MessageInputFileButton } from "./message-input";
 
 /**
  * Props for the MessageThreadPanel component

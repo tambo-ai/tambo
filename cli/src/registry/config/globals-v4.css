@@ -68,6 +68,8 @@
   --panel-left-width: 500px;
   --panel-right-width: 500px;
   --sidebar-width: 3rem;
+  --sidebar-collapsed-width: 3rem;
+  --sidebar-expanded-width: 16rem;
 }
 
 .dark {
@@ -104,6 +106,8 @@
   --panel-left-width: 500px;
   --panel-right-width: 500px;
   --sidebar-width: 3rem;
+  --sidebar-collapsed-width: 3rem;
+  --sidebar-expanded-width: 16rem;
 }
 
 @layer base {

@@ -1,12 +1,16 @@
 "use client";
 
-import { McpConfigModal } from "@/components/ui/mcp-config-modal";
-import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
+import { McpConfigModal } from "@/components/tambo/mcp-config-modal";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  type StagedImage,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
@@ -195,6 +199,7 @@ const MessageInputInternal = React.forwardRef<
           streamResponse: true,
         });
         setValue("");
+        // Images are cleared automatically by the TamboThreadInputProvider
         setTimeout(() => {
           textareaRef.current?.focus();
         }, 0);
@@ -286,7 +291,7 @@ const MessageInputInternal = React.forwardRef<
       },
       submit,
       handleSubmit,
-      isPending: isPending || isSubmitting,
+      isPending: isPending ?? isSubmitting,
       error,
       contextKey,
       textareaRef,
@@ -574,7 +579,6 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <McpConfigModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        className="showcase-theme"
       />
     </TooltipProvider>
   );
@@ -660,7 +664,7 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files ?? []);
     if (files.length > 0) {
       try {
         await addImages(files);
@@ -747,7 +751,7 @@ const MessageInputStagedImages = React.forwardRef<
       data-slot="message-input-staged-images"
       {...props}
     >
-      {images.map((image) => (
+      {images.map((image: StagedImage) => (
         <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
           <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
             <Image

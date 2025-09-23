@@ -1,7 +1,7 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
+import { MessageThreadPanel } from "@/components/tambo/message-thread-panel";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { DemoWrapper } from "../../demo-wrapper";

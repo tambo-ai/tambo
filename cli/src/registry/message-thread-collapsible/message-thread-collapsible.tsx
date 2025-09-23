@@ -1,32 +1,31 @@
 "use client";
 
+import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
+  MessageInputError,
+  MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputSubmitButton,
-  MessageInputError,
-  // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
-import { MessageInputFileButton } from "../message-input/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/ui/message-suggestions";
-import type { messageVariants } from "@/components/ui/message";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
-import { Collapsible } from "radix-ui";
-import { XIcon } from "lucide-react";
-import * as React from "react";
-import { type VariantProps } from "class-variance-authority";
 import type { Suggestion } from "@tambo-ai/react";
+import { type VariantProps } from "class-variance-authority";
+import { XIcon } from "lucide-react";
+import { Collapsible } from "radix-ui";
+import * as React from "react";
+import { MessageInputFileButton } from "../message-input/message-input";
 
 /**
  * Props for the MessageThreadCollapsible component
@@ -42,7 +41,7 @@ export interface MessageThreadCollapsibleProps
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];

@@ -367,4 +367,4 @@ const MessageSuggestionsList = React.forwardRef<
 });
 MessageSuggestionsList.displayName = "MessageSuggestions.List";
 
-export { MessageSuggestions, MessageSuggestionsStatus, MessageSuggestionsList };
+export { MessageSuggestions, MessageSuggestionsList, MessageSuggestionsStatus };
