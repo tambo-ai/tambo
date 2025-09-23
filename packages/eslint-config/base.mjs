@@ -44,7 +44,7 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["*.mjs"],
+          allowDefaultProject: ["*.mjs", "*.js"],
         },
       },
     },
