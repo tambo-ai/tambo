@@ -8,7 +8,7 @@ import {
   MessageInputError,
   // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
-import { MessageInputFileButton } from "../message-input/message-input";
+import { MessageInputFileButton } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
   MessageSuggestionsStatus,

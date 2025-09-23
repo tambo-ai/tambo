@@ -72,6 +72,14 @@ declare module "@/components/ui/message" {
     variants: Record<string, Record<string, string>>;
     defaultVariants: Record<string, string>;
   };
+
+  export const ReasoningInfo: React.ForwardRefExoticComponent<
+    ReasoningInfoProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const MessageImages: React.ForwardRefExoticComponent<
+    MessageImagesProps & React.RefAttributes<HTMLDivElement>
+  >;
 }
 
 declare module "@/components/ui/thread-content" {
@@ -164,6 +172,11 @@ declare module "@/components/ui/message-input" {
     variants: Record<string, Record<string, string>>;
     defaultVariants: Record<string, string>;
   };
+
+  export const MessageInputFileButton: React.ForwardRefExoticComponent<
+    React.ButtonHTMLAttributes<HTMLButtonElement> &
+      React.RefAttributes<HTMLButtonElement>
+  >;
 }
 
 declare module "@/components/ui/message-suggestions" {
@@ -351,6 +364,10 @@ declare module "@/lib/thread-hooks" {
   export function checkHasContent(
     content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
   ): boolean;
+
+  export function getMessageImages(
+    content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  ): string[];
 }
 
 declare module "@/components/ui/thread-container" {
