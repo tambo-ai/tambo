@@ -243,7 +243,7 @@ function MyApp() {
           <form onSubmit={addServer} className="mb-8">
             <div className="space-y-6">
               {/* Server URL */}
-              <div className="settings-field">
+              <div className="grid grid-cols-[320px_minmax(0,1fr)] sm:gap-x-6 gap-x-0 gap-y-1 items-start sm:grid-rows-[auto_auto]">
                 <label
                   htmlFor="server-url"
                   className="block text-sm font-semibold text-foreground mb-2"
@@ -253,7 +253,7 @@ function MyApp() {
                     (must be accessible from the browser)
                   </span>
                 </label>
-                <p className="text-sm text-secondary settings-description">
+                <p className="text-sm text-secondary whitespace-normal break-words [overflow:visible] [text-overflow:initial]">
                   Enter the full URL to your MCP server endpoint.
                 </p>
                 <input
@@ -268,7 +268,7 @@ function MyApp() {
               </div>
 
               {/* Server Name */}
-              <div className="settings-field">
+              <div className="grid grid-cols-[320px_minmax(0,1fr)] sm:gap-x-6 gap-x-0 gap-y-1 items-start sm:grid-rows-[auto_auto]">
                 <label
                   htmlFor="server-name"
                   className="block text-sm font-semibold text-foreground mb-2"
@@ -278,7 +278,7 @@ function MyApp() {
                     (optional)
                   </span>
                 </label>
-                <p className="text-sm text-secondary settings-description">
+                <p className="text-sm text-secondary whitespace-normal break-words [overflow:visible] [text-overflow:initial]">
                   A friendly name to identify this server in the list.
                 </p>
                 <input
@@ -292,11 +292,11 @@ function MyApp() {
               </div>
 
               {/* Transport Type */}
-              <div className="settings-field">
+              <div className="grid grid-cols-[320px_minmax(0,1fr)] sm:gap-x-6 gap-x-0 gap-y-1 items-start sm:grid-rows-[auto_auto]">
                 <label className="block text-sm font-semibold text-foreground mb-2">
                   Transport Type
                 </label>
-                <p className="text-sm text-secondary settings-description">
+                <p className="text-sm text-secondary whitespace-normal break-words [overflow:visible] [text-overflow:initial]">
                   Choose how the client connects to your MCP server.
                 </p>
                 <DropdownMenu>

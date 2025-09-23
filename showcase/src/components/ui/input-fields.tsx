@@ -192,7 +192,10 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
       >
         <div className="p-6 space-y-6">
           {validFields.map((field) => (
-            <div key={field.id} className="settings-field">
+            <div
+              key={field.id}
+              className="grid grid-cols-[320px_minmax(0,1fr)] sm:gap-x-6 gap-x-0 gap-y-1 items-start sm:grid-rows-[auto_auto] sm:[&>*:nth-child(1)]:col-start-1 sm:[&>*:nth-child(1)]:row-start-1 sm:[&>*:nth-child(2)]:col-start-1 sm:[&>*:nth-child(2)]:row-start-2 sm:[&>*:nth-child(n+3)]:col-start-2 sm:[&>*:nth-child(n+3)]:row-start-1 sm:[&>*:nth-child(n+3)]:row-end-3 sm:[&>*:nth-child(n+3)]:w-full sm:[&>*:nth-child(n+3)]:max-w-full"
+            >
               <label
                 className="block text-sm font-medium text-primary"
                 htmlFor={field.id}
@@ -202,7 +205,7 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
               </label>
 
               {field.description && (
-                <p className="text-sm text-secondary settings-description">{field.description}</p>
+                <p className="text-sm text-secondary whitespace-normal break-words [overflow:visible] [text-overflow:initial]">{field.description}</p>
               )}
 
               <input
