@@ -433,7 +433,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
           )}
 
           {validFields.map((field) => (
-            <div key={field.id} className="space-y-2">
+            <div key={field.id} className="settings-field">
               <label
                 className="block text-sm font-medium text-primary"
                 htmlFor={field.id}
@@ -443,7 +443,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
               </label>
 
               {field.description && (
-                <p className="text-sm text-secondary">{field.description}</p>
+                <p className="text-sm text-secondary settings-description">{field.description}</p>
               )}
 
               {field.type === "text" && (

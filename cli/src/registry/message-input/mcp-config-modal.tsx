@@ -1,19 +1,19 @@
 "use client";
 
-import { type McpServerInfo, MCPTransport } from "@tambo-ai/react/mcp";
-import { ChevronDown, X, Trash2 } from "lucide-react";
-import React from "react";
-import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
+import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import { type McpServerInfo, MCPTransport } from "@tambo-ai/react/mcp";
+import { motion } from "framer-motion";
+import { ChevronDown, Trash2, X } from "lucide-react";
+import React from "react";
+import { createPortal } from "react-dom";
 import { Streamdown } from "streamdown";
-import { cn } from "@/lib/utils";
 
 /**
  * Modal component for configuring client-side MCP (Model Context Protocol) servers.
@@ -241,9 +241,9 @@ function MyApp() {
 
           {/* Form */}
           <form onSubmit={addServer} className="mb-8">
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Server URL */}
-              <div>
+              <div className="settings-field">
                 <label
                   htmlFor="server-url"
                   className="block text-sm font-semibold text-foreground mb-2"
@@ -253,6 +253,9 @@ function MyApp() {
                     (must be accessible from the browser)
                   </span>
                 </label>
+                <p className="text-sm text-secondary settings-description">
+                  Enter the full URL to your MCP server endpoint.
+                </p>
                 <input
                   id="server-url"
                   type="url"
@@ -265,7 +268,7 @@ function MyApp() {
               </div>
 
               {/* Server Name */}
-              <div>
+              <div className="settings-field">
                 <label
                   htmlFor="server-name"
                   className="block text-sm font-semibold text-foreground mb-2"
@@ -275,6 +278,9 @@ function MyApp() {
                     (optional)
                   </span>
                 </label>
+                <p className="text-sm text-secondary settings-description">
+                  A friendly name to identify this server in the list.
+                </p>
                 <input
                   id="server-name"
                   type="text"
@@ -286,10 +292,13 @@ function MyApp() {
               </div>
 
               {/* Transport Type */}
-              <div>
+              <div className="settings-field">
                 <label className="block text-sm font-semibold text-foreground mb-2">
                   Transport Type
                 </label>
+                <p className="text-sm text-secondary settings-description">
+                  Choose how the client connects to your MCP server.
+                </p>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button

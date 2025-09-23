@@ -165,3 +165,66 @@ html {
 .float-animation {
   animation: icon-float 3s ease-in-out infinite;
 }
+
+/* Settings layout and typography normalization */
+@layer components {
+  /*
+   * Use a two-column grid for settings fields so labels/descriptions align
+   * and controls share a consistent right edge. Collapses to a single column on small screens.
+   */
+  .settings-field {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-areas:
+      "label control"
+      "desc control";
+    column-gap: 1.5rem; /* 24px */
+    row-gap: 0.25rem; /* 4px */
+    align-items: start;
+  }
+
+  @media (max-width: 640px) {
+    .settings-field {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "label"
+        "desc"
+        "control";
+      column-gap: 0;
+      row-gap: 0.5rem;
+    }
+  }
+
+  .settings-field > label {
+    grid-area: label;
+    margin: 0; /* prevent spacing that breaks alignment */
+  }
+
+  .settings-description {
+    grid-area: desc;
+    margin: 0;
+    /* ensure descriptions never get truncated or clamped */
+    overflow: visible !important;
+    text-overflow: initial !important;
+    white-space: normal !important;
+    display: block !important;
+    -webkit-line-clamp: initial !important;
+  }
+
+  /* Place the first non-label/description child as the control column */
+  .settings-field > :not(label):not(.settings-description) {
+    grid-area: control;
+  }
+
+  /* Ensure controls align to the same right edge and fill column */
+  .settings-field > :not(label):not(.settings-description),
+  .settings-field input,
+  .settings-field select,
+  .settings-field textarea,
+  .settings-field button,
+  .settings-field .DropdownMenuTrigger,
+  .settings-field [data-radix-dropdown-menu-content] {
+    width: 100%;
+    max-width: 100%;
+  }
+}

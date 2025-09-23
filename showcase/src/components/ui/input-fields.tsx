@@ -192,7 +192,7 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
       >
         <div className="p-6 space-y-6">
           {validFields.map((field) => (
-            <div key={field.id} className="space-y-2">
+            <div key={field.id} className="settings-field">
               <label
                 className="block text-sm font-medium text-primary"
                 htmlFor={field.id}
@@ -202,7 +202,7 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
               </label>
 
               {field.description && (
-                <p className="text-sm text-secondary">{field.description}</p>
+                <p className="text-sm text-secondary settings-description">{field.description}</p>
               )}
 
               <input
