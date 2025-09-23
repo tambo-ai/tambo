@@ -48,16 +48,16 @@
     --panel-right-width: 500px;
     --sidebar-width: 16rem;
 
-  /* Tambo Specific Variables needed for tambo components */
-  --container: oklch(0.98 0 247);
-  --backdrop: oklch(0.25 0.07 252 / 0.25);
-  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
-  --radius: 0.5rem;
-  --panel-left-width: 500px;
-  --panel-right-width: 500px;
-  --sidebar-width: 3rem;
-  --sidebar-collapsed-width: 3rem;
-  --sidebar-expanded-width: 16rem;
+    /* Tambo Specific Variables needed for tambo components */
+    --container: oklch(0.98 0 247);
+    --backdrop: oklch(0.25 0.07 252 / 0.25);
+    --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+    --radius: 0.5rem;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
+    --sidebar-collapsed-width: 3rem;
+    --sidebar-expanded-width: 16rem;
   }
   .showcase-theme.dark {
     --background: 240 10% 3.9%;
@@ -81,15 +81,15 @@
     --ring: 240 4.9% 83.9%;
 
     /* Tambo Specific Variables needed for tambo components */
-  --container: oklch(0.98 0 247);
-  --backdrop: oklch(0.25 0.07 252 / 0.25);
-  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
-  --radius: 0.5rem;
-  --panel-left-width: 500px;
-  --panel-right-width: 500px;
-  --sidebar-width: 3rem;
-  --sidebar-collapsed-width: 3rem;
-  --sidebar-expanded-width: 16rem;
+    --container: oklch(0.98 0 247);
+    --backdrop: oklch(0.25 0.07 252 / 0.25);
+    --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+    --radius: 0.5rem;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
+    --sidebar-collapsed-width: 3rem;
+    --sidebar-expanded-width: 16rem;
   }
 }
 
