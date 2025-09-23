@@ -102,6 +102,34 @@ This is also handled automatically for you if you are using the `MessageThreadFu
 
 For custom components rendered by Tambo, you can use the `useTamboCurrentMessage` hook inside the component to access the current message.
 
+_Example (Tambo‑rendered custom component):_
+
+```tsx
+import { useTamboCurrentMessage } from "@tambo-ai/react";
+
+export function TamboRenderedMessage() {
+  const message = useTamboCurrentMessage();
+  return (
+    <div>
+      <div>Role: {message.role}</div>
+      <div>
+        {message.content.map((part, i) =>
+          part.type === "text" ? (
+            <div key={i}>{part.text}</div>
+          ) : (
+            <div key={i}>Non-text content: {part.type}</div>
+          ),
+        )}
+      </div>
+      {/* If Tambo provided rendered output, include it */}
+      <div>{message.renderedComponent}</div>
+    </div>
+  );
+}
+```
+
+If you're rendering your own message list (outside of a Tambo‑rendered component), you can instead pass each `message` as a prop, as shown below:
+
 ```tsx
 import { useTambo, type TamboThreadMessage } from "@tambo-ai/react";
 
