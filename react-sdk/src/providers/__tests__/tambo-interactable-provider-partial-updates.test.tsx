@@ -331,6 +331,29 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
       expect(updateResult).toBe("Updated successfully");
     });
 
+    it("should throw error when component name contains spaces", () => {
+      const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+      const invalidComponent: Omit<
+        TamboInteractableComponent,
+        "id" | "createdAt"
+      > = {
+        name: "Invalid Component Name", // Contains spaces
+        description: "A component with spaces in name",
+        component: () => <div>Invalid</div>,
+        props: { title: "Test" },
+        propsSchema: z.object({ title: z.string() }),
+      };
+
+      expect(() => {
+        act(() => {
+          result.current.addInteractableComponent(invalidComponent);
+        });
+      }).toThrow(
+        'component "Invalid Component Name" must only contain letters, numbers, underscores, and hyphens.',
+      );
+    });
+
     it("should return warning for empty props object", () => {
       const { result } = renderHook(() => useTamboInteractable(), { wrapper });
 
