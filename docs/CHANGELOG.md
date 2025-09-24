@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/tambo-ai/tambo/compare/docs-v1.12.0...docs-v1.12.1) (2025-09-22)
+
+
+### Miscellaneous Chores
+
+* Add next-sitemap to docs sitemap to see ([#1083](https://github.com/tambo-ai/tambo/issues/1083)) ([9d500c5](https://github.com/tambo-ai/tambo/commit/9d500c5259cdf440630d3c113b432ed98c1838d6))
+
 ## [1.12.0](https://github.com/tambo-ai/tambo/compare/docs-v1.11.0...docs-v1.12.0) (2025-09-20)
 
 
