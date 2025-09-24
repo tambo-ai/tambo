@@ -2,10 +2,9 @@
 
 ## [0.53.0](https://github.com/tambo-ai/tambo/compare/react-v0.52.0...react-v0.53.0) (2025-09-17)
 
-
 ### Features
 
-* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+- **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
 
 ## [0.52.0](https://github.com/tambo-ai/tambo/compare/react-v0.51.0...react-v0.52.0) (2025-09-17)
 
