@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.12.1](https://github.com/tambo-ai/tambo/compare/docs-v1.12.0...docs-v1.12.1) (2025-09-22)
+
+
+### Miscellaneous Chores
+
+* Add next-sitemap to docs sitemap to see ([#1083](https://github.com/tambo-ai/tambo/issues/1083)) ([9d500c5](https://github.com/tambo-ai/tambo/commit/9d500c5259cdf440630d3c113b432ed98c1838d6))
+
+## [1.12.0](https://github.com/tambo-ai/tambo/compare/docs-v1.11.0...docs-v1.12.0) (2025-09-20)
+
+
+### Features
+
+* **docs:** add documentation for custom llm parameters ([#1071](https://github.com/tambo-ai/tambo/issues/1071)) ([fe64ca3](https://github.com/tambo-ai/tambo/commit/fe64ca3a71c9c1616a9269fe7b7a9ec878b1ce4d))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+
+## [1.11.0](https://github.com/tambo-ai/tambo/compare/docs-v1.10.0...docs-v1.11.0) (2025-09-19)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+
+### Miscellaneous Chores
+
+* remove producthunt banners, bubbles and widget ([#1065](https://github.com/tambo-ai/tambo/issues/1065)) ([7ceff06](https://github.com/tambo-ai/tambo/commit/7ceff06f312e404a0e1d3c81efec569139e6f847))
+
 ## [1.10.0](https://github.com/tambo-ai/tambo/compare/docs-v1.9.0...docs-v1.10.0) (2025-09-17)
 
 
