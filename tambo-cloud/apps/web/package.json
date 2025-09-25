@@ -80,7 +80,7 @@
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "react-speech-recognition": "^4.0.1",
-    "recharts": "^3.2.0",
+    "recharts": "^3.2.1",
     "rehype-katex": "^7.0.1",
     "rehype-minify-whitespace": "^6.0.2",
     "rehype-pretty-code": "^0.14.1",
