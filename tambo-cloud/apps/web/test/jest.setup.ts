@@ -14,3 +14,15 @@ if (!global.ResizeObserver) {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = function scrollIntoView() {};
 }
+
+// Mock clipboard API
+Object.defineProperty(navigator, "clipboard", {
+  value: {
+    writeText: jest.fn().mockResolvedValue(undefined),
+    readText: jest.fn().mockResolvedValue(""),
+    read: jest.fn().mockResolvedValue([]),
+    write: jest.fn().mockResolvedValue(undefined),
+  },
+  writable: true,
+  configurable: true,
+});

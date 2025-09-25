@@ -35,6 +35,53 @@ describe("thread-hooks utilities", () => {
     expect(res.historyPosition).toBe("left");
   });
 
+  test("usePositioning handles all combinations of history position logic", () => {
+    // Test all combinations of the nested ternary: isRightClass ? "right" : hasCanvasSpace && canvasIsOnLeft ? "right" : "left"
+
+    // Case 1: isRightClass = true (should return "right" regardless of other params)
+    let res = usePositioning("right", false, false);
+    expect(res.historyPosition).toBe("right");
+
+    res = usePositioning("right", true, true);
+    expect(res.historyPosition).toBe("right");
+
+    res = usePositioning("right", false, true);
+    expect(res.historyPosition).toBe("right");
+
+    res = usePositioning("right", true, false);
+    expect(res.historyPosition).toBe("right");
+
+    // Case 2: isRightClass = false, hasCanvasSpace = true, canvasIsOnLeft = true (should return "right")
+    res = usePositioning("foo", true, true);
+    expect(res.historyPosition).toBe("right");
+
+    res = usePositioning("left", true, true);
+    expect(res.historyPosition).toBe("right");
+
+    res = usePositioning("", true, true);
+    expect(res.historyPosition).toBe("right");
+
+    // Case 3: isRightClass = false, hasCanvasSpace = false (should return "left" regardless of canvasIsOnLeft)
+    res = usePositioning("foo", false, false);
+    expect(res.historyPosition).toBe("left");
+
+    res = usePositioning("left", false, false);
+    expect(res.historyPosition).toBe("left");
+
+    res = usePositioning("", false, false);
+    expect(res.historyPosition).toBe("left");
+
+    // Case 4: isRightClass = false, hasCanvasSpace = true, canvasIsOnLeft = false (should return "left")
+    res = usePositioning("foo", false, true);
+    expect(res.historyPosition).toBe("left");
+
+    res = usePositioning("left", false, true);
+    expect(res.historyPosition).toBe("left");
+
+    res = usePositioning("", false, true);
+    expect(res.historyPosition).toBe("left");
+  });
+
   test("getSafeContent flattens array and allows strings/elements", () => {
     expect(getSafeContent(undefined)).toBe("");
     expect(getSafeContent(null)).toBe("");
