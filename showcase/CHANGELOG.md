@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.24.0...showcase-v0.24.1) (2025-09-25)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/leaflet.markercluster from 1.5.5 to 1.5.6 ([#1089](https://github.com/tambo-ai/tambo/issues/1089)) ([f0f09c8](https://github.com/tambo-ai/tambo/commit/f0f09c83e0415c1ac8ec40d022442fa140ac60a7))
+* **deps-dev:** bump the eslint group across 1 directory with 6 updates ([#1097](https://github.com/tambo-ai/tambo/issues/1097)) ([a6fb6f1](https://github.com/tambo-ai/tambo/commit/a6fb6f1597380bb03f4700a2757edf1009095c6f))
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+* **deps:** bump @vercel/og from 0.6.8 to 0.8.5 ([#1086](https://github.com/tambo-ai/tambo/issues/1086)) ([d11379b](https://github.com/tambo-ai/tambo/commit/d11379b0cd77c680cbf0ffdf3ebf05c3dee83467))
+* **deps:** bump recharts from 3.1.2 to 3.2.1 ([#1090](https://github.com/tambo-ai/tambo/issues/1090)) ([2ba7a11](https://github.com/tambo-ai/tambo/commit/2ba7a114b5e3c769cf846858e308928579491345))
+* **deps:** bump streamdown from 1.2.0 to 1.3.0 ([#1093](https://github.com/tambo-ai/tambo/issues/1093)) ([761f213](https://github.com/tambo-ai/tambo/commit/761f213340ea0b611d8c712d1b5ca8fb744a8ace))
+
 ## [0.24.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.23.0...showcase-v0.24.0) (2025-09-19)
 
 
