@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.2](https://github.com/tambo-ai/tambo/compare/docs-v1.12.1...docs-v1.12.2) (2025-09-25)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump mermaid from 11.11.0 to 11.12.0 ([#1088](https://github.com/tambo-ai/tambo/issues/1088)) ([03ea0c3](https://github.com/tambo-ai/tambo/commit/03ea0c31b5547a9286314ee2ee3b9962b6b1f4b9))
+* **deps:** bump streamdown from 1.2.0 to 1.3.0 ([#1093](https://github.com/tambo-ai/tambo/issues/1093)) ([761f213](https://github.com/tambo-ai/tambo/commit/761f213340ea0b611d8c712d1b5ca8fb744a8ace))
+
 ## [1.12.1](https://github.com/tambo-ai/tambo/compare/docs-v1.12.0...docs-v1.12.1) (2025-09-22)
 
 
