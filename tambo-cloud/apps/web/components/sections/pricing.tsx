@@ -198,13 +198,13 @@ function PricingTier({
           {!tier.isSimplified && (
             <CardHeader className="border-b p-6 h-fit">
               <CardTitle className="flex items-center justify-between">
-                <span className="text-lg font-semibold text-foreground">
+                <span className="text-xl font-semibold font-heading text-foreground">
                   {tier.name}
                 </span>
                 {tier.popular && (
                   <Badge
                     variant="secondary"
-                    className="bg-primary text-primary-foreground hover:bg-secondary-foreground"
+                    className="bg-primary font-semibold text-sm text-primary-foreground hover:bg-secondary-foreground"
                   >
                     Most Popular
                   </Badge>
@@ -212,14 +212,16 @@ function PricingTier({
               </CardTitle>
               <div className="pt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">{tier.price}</span>
+                  <span className="text-4xl font-extrabold font-heading">
+                    {tier.price}
+                  </span>
                   {tier.priceSubtext && (
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <span className="text-md font-medium text-muted-foreground">
                       {tier.priceSubtext}
                     </span>
                   )}
                 </div>
-                <div className="mt-1 text-sm font-medium text-muted-foreground">
+                <div className="mt-2 text-md font-medium text-muted-foreground">
                   {tier.subtitle}
                 </div>
               </div>
@@ -230,14 +232,16 @@ function PricingTier({
             <div className="flex-grow p-6 pt-5 flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="flex-shrink-0 space-y-2">
-                  <div className="text-lg font-semibold">{tier.name}</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xl font-semibold font-heading text-foreground">
+                    {tier.name}
+                  </div>
+                  <div className="text-sm font-medium text-muted-foreground">
                     {tier.subtitle}
                   </div>
                 </div>
                 <div className="flex-shrink-0 sm:self-center">
                   <Button
-                    size="lg"
+                    size="sm"
                     onClick={handleClick}
                     className="bg-muted text-foreground hover:bg-muted/80 w-full sm:w-auto"
                   >
@@ -314,7 +318,7 @@ export function Pricing() {
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease }}
         >
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-balance px-4">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl tracking-tight px-4 font-heading">
             Simple pricing from hobbyists to enterprise
           </h2>
         </motion.div>
