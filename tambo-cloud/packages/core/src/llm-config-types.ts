@@ -25,6 +25,7 @@ export type LlmParameterUIType =
 export interface LlmParameterSchema {
   description: string;
   uiType: LlmParameterUIType;
+  example?: JSONValue;
 }
 
 /** A mapping of parameter names to their schema */
@@ -39,22 +40,49 @@ export const PARAMETER_METADATA: LlmParameterMetadata<
   temperature: {
     description: "Controls randomness in output",
     uiType: "number",
+    example: 0.5,
   },
   maxOutputTokens: {
     description: "Maximum tokens to generate",
     uiType: "number",
+    example: 1000,
   },
-  maxRetries: { description: "Maximum number of retries", uiType: "number" },
-  topP: { description: "Nucleus sampling threshold", uiType: "number" },
-  topK: { description: "Top K sampling", uiType: "number" },
-  presencePenalty: { description: "Penalty for new topics", uiType: "number" },
-  frequencyPenalty: { description: "Penalty for repetition", uiType: "number" },
+  maxRetries: {
+    description: "Maximum number of retries",
+    uiType: "number",
+    example: 3,
+  },
+  topP: {
+    description: "Nucleus sampling threshold",
+    uiType: "number",
+    example: 0.5,
+  },
+  topK: { description: "Top K sampling", uiType: "number", example: 50 },
+  presencePenalty: {
+    description: "Penalty for new topics",
+    uiType: "number",
+    example: 0.1,
+  },
+  frequencyPenalty: {
+    description: "Penalty for repetition",
+    uiType: "number",
+    example: 0.1,
+  },
   stopSequences: {
     description: "Sequences where generation stops",
     uiType: "array",
+    example: ["\n"],
   },
-  seed: { description: "Deterministic sampling seed", uiType: "number" },
-  headers: { description: "Custom headers for requests", uiType: "object" },
+  seed: {
+    description: "Deterministic sampling seed",
+    uiType: "number",
+    example: 42,
+  },
+  headers: {
+    description: "Custom headers for requests",
+    uiType: "object",
+    example: { Authorization: "Bearer <your-api-key>" },
+  },
 };
 
 export interface LlmModelConfigInfo {

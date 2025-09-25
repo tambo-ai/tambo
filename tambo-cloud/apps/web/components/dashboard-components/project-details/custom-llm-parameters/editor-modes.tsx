@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CardDescription } from "@/components/ui/card";
-import { LlmParameterUIType } from "@tambo-ai-cloud/core";
+import { JSONValue, LlmParameterUIType } from "@tambo-ai-cloud/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import type { FC } from "react";
@@ -127,6 +127,7 @@ interface EditModeProps {
   onApplySuggestion: (suggestion: {
     key: string;
     type: LlmParameterUIType;
+    example?: JSONValue;
   }) => void;
   onSave: () => void;
   onCancel: () => void;

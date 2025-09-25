@@ -165,9 +165,7 @@ export function ParameterRow({
           </Select>
         ) : shouldUseTextarea(local.type) ? (
           <Textarea
-            placeholder={
-              local.type === "array" ? '[1, "two", 3]' : '{"key": "value"}'
-            }
+            placeholder={JSON.stringify(local.example)}
             value={local.value}
             onChange={(e) => handleValueChange(e.target.value)}
             className={`flex-1 resize-y min-h-[80px] font-mono text-sm ${
@@ -177,7 +175,7 @@ export function ParameterRow({
           />
         ) : (
           <Input
-            placeholder={local.type === "number" ? "0" : "Value"}
+            placeholder={JSON.stringify(local.example)}
             value={local.value}
             onChange={(e) => handleValueChange(e.target.value)}
             className={`flex-1 ${validationError ? "border-red-500" : ""}`}

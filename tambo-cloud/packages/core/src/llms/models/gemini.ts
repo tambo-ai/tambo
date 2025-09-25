@@ -1,4 +1,16 @@
-import type { LlmModelConfig } from "../../llm-config-types";
+import type {
+  LlmModelConfig,
+  LlmParameterMetadata,
+} from "../../llm-config-types";
+
+const reasoningParameters: LlmParameterMetadata = {
+  thinkingConfig: {
+    description:
+      "Set the thinkingBudget and includeThoughts in a JSON object, thinkingBudget is the number of tokens you want to spend on thinking and includeThoughts is a boolean to include thoughts in the response.",
+    uiType: "object",
+    example: { thinkingBudget: 8192, includeThoughts: true },
+  },
+};
 
 export const geminiModels: LlmModelConfig = {
   "gemini-2.5-pro": {
@@ -11,6 +23,7 @@ export const geminiModels: LlmModelConfig = {
       "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 1048576,
+    modelSpecificParams: reasoningParameters,
   },
   "gemini-2.5-flash": {
     apiName: "gemini-2.5-flash",
@@ -22,6 +35,7 @@ export const geminiModels: LlmModelConfig = {
       "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 1048576,
+    modelSpecificParams: reasoningParameters,
   },
   "gemini-2.0-flash": {
     apiName: "gemini-2.0-flash",

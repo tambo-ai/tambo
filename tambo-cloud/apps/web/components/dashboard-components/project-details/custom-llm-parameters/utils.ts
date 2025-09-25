@@ -1,4 +1,8 @@
-import { CustomLlmParameters, LlmParameterUIType } from "@tambo-ai-cloud/core";
+import {
+  CustomLlmParameters,
+  JSONValue,
+  LlmParameterUIType,
+} from "@tambo-ai-cloud/core";
 import { ParameterEntry } from "./types";
 
 /**
@@ -147,21 +151,30 @@ export const shouldUseTextarea = (type: LlmParameterUIType) => {
 };
 
 /**
- * Gets the default value for a given parameter type
+ * Gets the default value for a given parameter type, preferring examples when available
  */
-export const getDefaultValueForType = (type: LlmParameterUIType): string => {
+export const getDefaultValueForType = (
+  type: LlmParameterUIType,
+  example?: JSONValue,
+): string => {
+  // Use example if provided
+  if (example !== undefined) {
+    return valueToString(example);
+  }
+
+  // Fallback to meaningful examples
   switch (type) {
     case "boolean":
-      return "false";
+      return "true";
     case "number":
-      return "0";
+      return "0.7";
     case "array":
-      return "[]";
+      return '["example", "values"]';
     case "object":
-      return "{}";
+      return '{"key": "value"}';
     case "string":
     default:
-      return "";
+      return "example";
   }
 };
 

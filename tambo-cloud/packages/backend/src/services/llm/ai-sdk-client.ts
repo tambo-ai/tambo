@@ -213,8 +213,13 @@ export class AISdkClient implements LLMClient {
     });
 
     // Extract custom parameters for the current model
+    // Handle provider key mapping (e.g., "gemini" provider stores under "gemini" but AI SDK uses "google")
+    const originalProviderKey = this.provider; // e.g., "gemini"
+    const mappedProviderKey = providerKey; // e.g., "google"
+
     const allCustomParams =
-      this.customLlmParameters?.[providerKey]?.[this.model];
+      this.customLlmParameters?.[mappedProviderKey]?.[this.model] ||
+      this.customLlmParameters?.[originalProviderKey]?.[this.model];
 
     // For openai-compatible provider, split parameters between suggestions and custom keys
     let customParams = allCustomParams;
@@ -239,6 +244,27 @@ export class AISdkClient implements LLMClient {
     // Get model-specific defaults (e.g., temperature: 1 for models that need it)
     const modelDefaults = modelCfg?.commonParametersDefaults || {};
 
+    // Separate model-specific provider parameters from regular custom parameters
+    // Model-specific params (e.g., reasoningEffort for OpenAI) must go under providerOptions[providerKey]
+    // Regular params (e.g., temperature, top_p) go at the top level
+    const modelSpecificParamKeys = new Set(
+      Object.keys(modelCfg?.modelSpecificParams || {}),
+    );
+    const modelSpecificProviderParams: Record<string, JSONValue> = {};
+    const filteredCustomParams: Record<string, JSONValue> = {};
+
+    if (customParams) {
+      Object.entries(customParams).forEach(([key, value]) => {
+        if (modelSpecificParamKeys.has(key)) {
+          // This parameter is model-specific and should go under providerOptions
+          modelSpecificProviderParams[key] = value;
+        } else {
+          // This parameter is a standard parameter and goes at top level
+          filteredCustomParams[key] = value;
+        }
+      });
+    }
+
     const baseConfig: AICompleteParams = {
       model: modelInstance,
       messages: coreMessages,
@@ -257,6 +283,8 @@ export class AISdkClient implements LLMClient {
         [providerKey]: {
           // Provider-specific params from config as base defaults (e.g., disable parallel tool calls for OpenAI/Anthropic)
           ...providerCfg?.providerSpecificParams,
+          // Model-specific provider parameters (e.g., reasoning parameters for specific models)
+          ...modelSpecificProviderParams,
           // For openai-compatible, add custom user-defined keys here
           ...(providerKey === "openai-compatible" &&
             providerSpecificCustomParams),
@@ -265,10 +293,10 @@ export class AISdkClient implements LLMClient {
       /**
        * Apply parameter hierarchy:
        * 1. Model-specific defaults
-       * 2. Custom user parameters (highest priority)
+       * 2. Custom user parameters (highest priority, excluding model-specific provider params)
        */
       ...modelDefaults, // Model-specific defaults (e.g., temperature: 1)
-      ...(customParams || {}), // Custom parameters override all
+      ...filteredCustomParams, // Custom parameters override all, but exclude model-specific provider params
     };
 
     if (params.stream) {

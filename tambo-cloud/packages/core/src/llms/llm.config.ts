@@ -40,6 +40,9 @@ export const llmProviderConfig: LlmProviderConfig = {
     docLinkRoot: "https://docs.mistral.ai/",
     apiKeyLink: "https://console.mistral.ai/api-keys",
     models: mistralModels,
+    providerSpecificParams: {
+      parallelToolCalls: false,
+    },
   },
   "openai-compatible": {
     apiName: "openai-compatible",

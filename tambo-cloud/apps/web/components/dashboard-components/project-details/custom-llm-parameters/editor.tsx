@@ -2,7 +2,11 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { api, RouterOutputs } from "@/trpc/react";
-import { LlmParameterUIType, llmProviderConfig } from "@tambo-ai-cloud/core";
+import {
+  JSONValue,
+  LlmParameterUIType,
+  llmProviderConfig,
+} from "@tambo-ai-cloud/core";
 import { AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditMode, ViewMode } from "./editor-modes";
@@ -183,7 +187,7 @@ export function CustomLlmParametersEditor({
       {
         id: generateParameterId("new"),
         key: "",
-        value: "",
+        value: getDefaultValueForType("string"),
         type: "string" as const,
       },
     ];
@@ -192,7 +196,11 @@ export function CustomLlmParametersEditor({
   }, [parameters, allowCustomParameters, toast]);
 
   const handleApplySuggestion = useCallback(
-    (suggestion: { key: string; type: LlmParameterUIType }) => {
+    (suggestion: {
+      key: string;
+      type: LlmParameterUIType;
+      example?: JSONValue;
+    }) => {
       if (parameters.some((p) => p.key === suggestion.key)) {
         toast({
           variant: "default",
@@ -207,8 +215,9 @@ export function CustomLlmParametersEditor({
         {
           id: generateParameterId(suggestion.key),
           key: suggestion.key,
-          value: getDefaultValueForType(suggestion.type),
+          value: getDefaultValueForType(suggestion.type, suggestion.example),
           type: suggestion.type,
+          example: suggestion.example,
         },
       ];
       setParameters(newParams);
@@ -236,6 +245,7 @@ export function CustomLlmParametersEditor({
         key,
         description: value.description,
         type: value.uiType,
+        example: value.example,
       }),
     );
     const seen = new Set<string>();

@@ -8,10 +8,12 @@ const reasoningParameters: LlmParameterMetadata = {
     description:
       "Controls the effort of the model to reason, only if reasoningSummary is also set",
     uiType: "string",
+    example: "medium",
   },
   reasoningSummary: {
     description: "Enables reasoning token output",
     uiType: "string",
+    example: "auto",
   },
 };
 export const openaiModels: LlmModelConfig = {
