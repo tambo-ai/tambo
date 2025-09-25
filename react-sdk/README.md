@@ -229,8 +229,8 @@ function ChatInterface() {
     <div>
       {/* Display messages */}
       <div>
-        {thread.messages.map((message, index) => (
-          <div key={index} className={`message ${message.role}`}>
+        {thread.messages.map((message) => (
+          <div key={message.id} className={`message ${message.role}`}>
             <div>
               {message.content.map((part, i) =>
                 part.type === "text" ? (

@@ -133,16 +133,24 @@ export const useTamboContextHelpers = () => {
   // No provider present: return methods that throw with a helpful error when used
   return {
     getAdditionalContext: async () => {
-      throw new Error("No provider found");
+      throw new Error(
+        "useTamboContextHelpers must be used within a TamboContextHelpersProvider",
+      );
     },
     getContextHelpers: () => {
-      throw new Error("No provider found");
+      throw new Error(
+        "useTamboContextHelpers must be used within a TamboContextHelpersProvider",
+      );
     },
     addContextHelper: (_name: string, _helper: ContextHelperFn) => {
-      throw new Error("No provider found");
+      throw new Error(
+        "useTamboContextHelpers must be used within a TamboContextHelpersProvider",
+      );
     },
     removeContextHelper: (_name: string) => {
-      throw new Error("No provider found");
+      throw new Error(
+        "useTamboContextHelpers must be used within a TamboContextHelpersProvider",
+      );
     },
   } as TamboContextHelpersContextProps;
 };
