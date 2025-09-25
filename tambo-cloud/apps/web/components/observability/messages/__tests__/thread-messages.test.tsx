@@ -10,16 +10,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 
-// Mock framer-motion
-jest.mock("framer-motion", () => ({
-  motion: {
-    div: ({ children, _initial, _animate, _transition, ...props }: any) => (
-      <div {...props}>{children}</div>
-    ),
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
-
 // Mock the utils
 jest.mock("../../utils", () => ({
   isSameDay: (date1: Date, date2: Date) =>
@@ -139,21 +129,19 @@ describe("ThreadMessages", () => {
     expect(messageContainers).toHaveLength(3); // user and assistant messages
   });
 
-  it.skip("applies correct alignment for tool call and component messages", () => {
-    // SKIPPED: This test has issues with framer-motion component styling and CSS class application.
-    // The alignment styling involves complex CSS classes that are difficult to test reliably
-    // in the current test environment. The core functionality is tested through other tests.
+  it("applies correct alignment for tool call and component messages", () => {
     const mockMessageRefs = createMessageRefs();
     render(
       <ThreadMessages thread={mockThread} messageRefs={mockMessageRefs} />,
     );
 
-    const toolCallContainer = screen
-      .getByTestId("tool-call-message")
-      .closest("div");
-    const componentContainer = screen
-      .getByTestId("component-message")
-      .closest("div");
+    // Find the parent containers that have the CSS classes applied
+    const toolCallElement = screen.getByTestId("tool-call-message");
+    const componentElement = screen.getByTestId("component-message");
+
+    // Look for the parent div that contains the CSS classes
+    const toolCallContainer = toolCallElement.closest("div.group");
+    const componentContainer = componentElement.closest("div.group");
 
     expect(toolCallContainer).toHaveClass("items-start");
     expect(componentContainer).toHaveClass("items-start");
@@ -177,10 +165,7 @@ describe("ThreadMessages", () => {
     expect(userMessageContainer).not.toHaveClass("opacity-40");
   });
 
-  it.skip("applies opacity to non-matching messages when searching", () => {
-    // SKIPPED: This test has issues with framer-motion component styling and CSS class application.
-    // The opacity styling involves complex CSS classes that are difficult to test reliably
-    // in the current test environment. The core functionality is tested through other tests.
+  it("applies opacity to non-matching messages when searching", () => {
     const mockMessageRefs = createMessageRefs();
     const searchMatches = createMockSearchMatches();
 
@@ -194,16 +179,13 @@ describe("ThreadMessages", () => {
     );
 
     // Messages without matches should have reduced opacity
-    const assistantMessageContainer = screen
-      .getByText("assistant: Hi there")
-      .closest("div");
+    const assistantMessageElement = screen.getByText("assistant: Hi there");
+    const assistantMessageContainer =
+      assistantMessageElement.closest("div.group");
     expect(assistantMessageContainer).toHaveClass("opacity-40");
   });
 
-  it.skip("highlights current match message", () => {
-    // SKIPPED: This test has issues with framer-motion component styling and CSS class application.
-    // The highlighting styling involves complex CSS classes that are difficult to test reliably
-    // in the current test environment. The core functionality is tested through other tests.
+  it("highlights current match message", () => {
     const mockMessageRefs = createMessageRefs();
     render(
       <ThreadMessages
@@ -213,9 +195,8 @@ describe("ThreadMessages", () => {
       />,
     );
 
-    const currentMatchContainer = screen
-      .getByText("user: Hello")
-      .closest("div");
+    const currentMatchElement = screen.getByText("user: Hello");
+    const currentMatchContainer = currentMatchElement.closest("div.group");
     expect(currentMatchContainer).toHaveClass(
       "ring-2",
       "ring-yellow-400",

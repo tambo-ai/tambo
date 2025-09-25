@@ -1,9 +1,5 @@
 import { ToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
-import {
-  render,
-  screen,
-  waitForElementToBeRemoved,
-} from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 
@@ -109,10 +105,10 @@ describe("ToolCallLimitEditor", () => {
     await user.type(input, "12");
     await user.click(screen.getByRole("button", { name: /cancel/i }));
 
-    // Wait for edit form to unmount due to animation
-    await waitForElementToBeRemoved(() =>
+    // With animations skipped, the form is immediately removed
+    expect(
       screen.queryByLabelText(/maximum tool calls/i),
-    );
+    ).not.toBeInTheDocument();
 
     // Reopen and ensure value reset to prop
     const editBtn = await screen.findByRole("button", { name: /edit/i });

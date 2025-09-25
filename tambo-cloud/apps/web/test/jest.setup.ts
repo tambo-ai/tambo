@@ -26,3 +26,7 @@ Object.defineProperty(navigator, "clipboard", {
   writable: true,
   configurable: true,
 });
+
+// Disable framer-motion animations in tests
+import { MotionGlobalConfig } from "framer-motion";
+MotionGlobalConfig.skipAnimations = true;
