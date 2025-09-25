@@ -25,7 +25,7 @@ Whatever the reason, anything you need I'm here to help.
 Michael
 Co-Founder, tambo
 
-Oh, and join our <a href="https://discord.gg/HhGVeRFKep" style="color: #0066cc; text-decoration: underline;">discord</a> community to connect with us and other users.
+Oh, and join our <a href="https://tambo.co/discord" style="color: #0066cc; text-decoration: underline;">discord</a> community to connect with us and other users.
 </pre>
   </body>
 </html>`;

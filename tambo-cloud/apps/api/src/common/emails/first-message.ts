@@ -24,7 +24,7 @@ Since you're getting the hang of it, here are some things you can explore next:
 • <a href="https://docs.tambo.co/concepts/tools" style="color: #0066cc; text-decoration: underline;">Register Tools</a> - Register tools in your project
 • <a href="https://docs.tambo.co/concepts/model-context-protocol" style="color: #0066cc; text-decoration: underline;">Use MCP Servers</a> - Connect to databases, APIs, and more without writing custom tools
 
-Questions? Just reply to this email or hop into our <a href="https://discord.gg/HhGVeRFKep" style="color: #0066cc; text-decoration: underline;">Discord</a> - we're always around to help.
+Questions? Just reply to this email or hop into our <a href="https://tambo.co/discord" style="color: #0066cc; text-decoration: underline;">Discord</a> - we're always around to help.
 
 Happy building!
 
