@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.54.2](https://github.com/tambo-ai/tambo/compare/react-v0.54.1...react-v0.54.2) (2025-09-25)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 6 updates ([#1097](https://github.com/tambo-ai/tambo/issues/1097)) ([a6fb6f1](https://github.com/tambo-ai/tambo/commit/a6fb6f1597380bb03f4700a2757edf1009095c6f))
+* **deps-dev:** bump ts-jest from 29.4.2 to 29.4.4 in the testing group ([#1087](https://github.com/tambo-ai/tambo/issues/1087)) ([625384c](https://github.com/tambo-ai/tambo/commit/625384c0bc2130e76fb637d889aa25667543970a))
+* **deps:** bump @tanstack/react-query from 5.87.4 to 5.90.1 ([#1092](https://github.com/tambo-ai/tambo/issues/1092)) ([4ac242f](https://github.com/tambo-ai/tambo/commit/4ac242fbf306cee31135dd422a3115bb05b4a223))
+
+
+### Documentation
+
+* Fix react-sdk docs for typos ([#1082](https://github.com/tambo-ai/tambo/issues/1082)) ([3943de1](https://github.com/tambo-ai/tambo/commit/3943de15bce557efce2cb2016fe203dd89a7ad1c))
+
 ## [0.54.1](https://github.com/tambo-ai/tambo/compare/react-v0.54.0...react-v0.54.1) (2025-09-20)
 
 
