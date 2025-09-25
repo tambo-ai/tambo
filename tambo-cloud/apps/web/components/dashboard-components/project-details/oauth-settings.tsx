@@ -221,7 +221,7 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
         <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           OAuth Token Validation
         </CardTitle>
-        <p className="text-sm font-sans text-foreground max-w-md">
+        <p className="text-sm font-sans text-foreground">
           Configure how OAuth bearer tokens are validated for your
           project&apos;s API endpoints.
         </p>
@@ -241,7 +241,7 @@ export function OAuthSettings({ project }: OAuthSettingsProps) {
         </div>
         {/* Validation Mode Selection */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <Label className="text-base font-medium">Validation Mode</Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

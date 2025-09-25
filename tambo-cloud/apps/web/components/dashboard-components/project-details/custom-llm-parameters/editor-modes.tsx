@@ -94,7 +94,7 @@ export function ViewMode({ parameters, onEdit, isLoading }: ViewModeProps) {
       className="flex items-start justify-between gap-4"
     >
       <div className="flex-1 flex flex-col gap-3">
-        <CardDescription className="text-sm text-foreground max-w-sm">
+        <CardDescription className="text-sm text-foreground">
           Custom parameters sent with each LLM request.
         </CardDescription>
 
@@ -159,7 +159,7 @@ export function EditMode({
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="flex flex-col"
     >
-      <CardDescription className="text-sm text-foreground max-w-md mb-4">
+      <CardDescription className="text-sm text-foreground mb-4">
         {allowCustomParameters
           ? "Add custom parameters to send with each LLM request."
           : "Add parameters from the suggestions below. Custom parameters are only available for OpenAI-compatible providers."}

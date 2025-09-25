@@ -749,7 +749,7 @@ export function ProviderKeySection({
       {/* usage chip moved below mode toggle */}
       <CardContent className="space-y-4 p-6">
         {/* Mode Toggle */}
-        <div className="max-w-xl">
+        <div className="w-full">
           <Label className="mb-2 block">AI Mode</Label>
           <RadioGroup
             value={mode}
@@ -784,13 +784,13 @@ export function ProviderKeySection({
         </div>
 
         {mode === AiProviderType.LLM && (
-          <div className="max-w-xl">
-            <p className="text-sm font-sans text-foreground max-w-sm">
+          <div className="w-full">
+            <p className="text-sm font-sans text-foreground">
               Get started with 500 starter LLM calls. Tambo is BYO Model — add
               your provider key anytime to continue.
             </p>
             <div className="flex items-center gap-2 mt-2 mb-2">
-              <p className="text-xs font-sans text-success max-w-xs bg-success-background rounded-full p-2">
+              <p className="text-xs font-sans text-success bg-success-background rounded-full p-2">
                 {projectMessageUsage?.messageCount} of 500 starter LLM calls
                 used
               </p>
@@ -799,7 +799,7 @@ export function ProviderKeySection({
         )}
 
         {/* Provider • Model Select (LLM Mode) */}
-        <div className="space-y-2 max-w-xl">
+        <div className="space-y-2 w-full">
           <AnimatePresence initial={false} mode="wait">
             {mode === AiProviderType.LLM && (
               <motion.div
@@ -855,7 +855,7 @@ export function ProviderKeySection({
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="space-y-4 rounded-md max-w-xl"
+                    className="space-y-4 rounded-md w-full"
                   >
                     {/* Model Information */}
                     {currentSelectedOption.model?.notes && (

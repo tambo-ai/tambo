@@ -38,7 +38,7 @@ export function AgentSettings({
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="space-y-4 rounded-md max-w-xl"
+      className="space-y-4 rounded-md w-full"
     >
       <div className="space-y-2">
         <Label htmlFor="agent-provider">Agent Provider</Label>

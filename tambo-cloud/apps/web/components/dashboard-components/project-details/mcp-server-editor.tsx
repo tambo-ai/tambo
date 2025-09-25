@@ -178,7 +178,7 @@ export function McpServerEditor({
     projectId &&
     redirectToAuth;
   return (
-    <div className="flex flex-col gap-2 rounded-md max-w-xl">
+    <div className="flex flex-col gap-2 rounded-md w-full">
       <div className="flex flex-col gap-1">
         <label htmlFor={urlInputId} className="block text-sm font-medium">
           Server URL

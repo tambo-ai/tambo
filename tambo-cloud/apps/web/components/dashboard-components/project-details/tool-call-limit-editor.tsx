@@ -121,7 +121,7 @@ export function ToolCallLimitEditor({
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Tool Call Limit</CardTitle>
-        <CardDescription className="text-sm font-sans text-foreground max-w-md">
+        <CardDescription className="text-sm font-sans text-foreground">
           Set the maximum number of tool calls allowed per response. This helps
           prevent infinite loops and controls resource usage.
         </CardDescription>

@@ -195,7 +195,7 @@ export function CustomInstructionsEditor({
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="space-y-3"
               >
-                <CardDescription className="text-sm text-foreground max-w-sm mb-4">
+                <CardDescription className="text-sm text-foreground mb-4">
                   These instructions are added to each conversation to guide
                   tambo&apos;s responses.
                 </CardDescription>
@@ -252,7 +252,7 @@ export function CustomInstructionsEditor({
                     {project.customInstructions}
                   </motion.div>
                 ) : (
-                  <CardDescription className="text-sm text-foreground max-w-sm">
+                  <CardDescription className="text-sm text-foreground">
                     These instructions are added to each conversation to guide
                     tambo&apos;s responses.
                   </CardDescription>

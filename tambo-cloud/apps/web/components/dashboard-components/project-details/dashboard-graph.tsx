@@ -198,9 +198,7 @@ export const DashboardGraph = React.forwardRef<
               <p className="font-medium">{emptyState.title}</p>
             )}
             {emptyState.description && (
-              <p className="text-sm text-center max-w-xs">
-                {emptyState.description}
-              </p>
+              <p className="text-sm text-center">{emptyState.description}</p>
             )}
           </div>
         </div>
