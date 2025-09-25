@@ -11,6 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { RegisteredComponent } from "../model/component-metadata";
 import {
   GenerationStage,
   isIdleStage,
@@ -20,12 +21,14 @@ import { TamboThread } from "../model/tambo-thread";
 import { renderComponentIntoMessage } from "../util/generate-component";
 import {
   getAvailableComponents,
+  getComponentFromRegistry,
   getUnassociatedTools,
   mapTamboToolToContextTool,
 } from "../util/registry";
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+import { useTamboInteractable } from "./tambo-interactable-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 // Generation Stage Context - separate from thread context to prevent re-renders
@@ -220,6 +223,8 @@ export const TamboThreadProvider: React.FC<
     onCallUnregisteredTool,
   } = useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
+  const { addInteractableComponent, autoInteractables } =
+    useTamboInteractable();
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
@@ -279,6 +284,28 @@ export const TamboThreadProvider: React.FC<
     [client.beta.projects, queryClient],
   );
 
+  // Callback to handle automatic interactables
+  const handleComponentRendered = useCallback(
+    (
+      componentName: string,
+      props: any,
+      registeredComponent: RegisteredComponent,
+    ) => {
+      if (!autoInteractables) return false;
+
+      addInteractableComponent({
+        name: componentName,
+        description:
+          registeredComponent.description ??
+          `Auto-generated ${componentName} component`,
+        component: registeredComponent.component,
+        props: props ?? {},
+        propsSchema: registeredComponent.propsSchema,
+      });
+    },
+    [autoInteractables, addInteractableComponent],
+  );
+
   const fetchThread = useCallback(
     async (threadId: string, includeInternalMessages = true) => {
       const thread = await client.beta.threads.retrieve(threadId, {
@@ -298,6 +325,7 @@ export const TamboThreadProvider: React.FC<
             const messageWithComponent = renderComponentIntoMessage(
               message,
               componentList,
+              handleComponentRendered,
             );
             return messageWithComponent;
           }
@@ -313,7 +341,12 @@ export const TamboThreadProvider: React.FC<
         return updatedThreadMap;
       });
     },
-    [client.beta.threads, componentList, currentMessageCache],
+    [
+      client.beta.threads,
+      componentList,
+      currentMessageCache,
+      handleComponentRendered,
+    ],
   );
 
   useEffect(() => {
@@ -757,6 +790,19 @@ export const TamboThreadProvider: React.FC<
         }
       }
 
+      if (finalMessage?.component?.componentName) {
+        const registeredComponent = getComponentFromRegistry(
+          finalMessage.component.componentName,
+          componentList,
+        );
+
+        handleComponentRendered(
+          finalMessage.component.componentName,
+          finalMessage.component.props,
+          registeredComponent,
+        );
+      }
+
       updateThreadStatus(
         finalMessage?.threadId ?? threadId,
         GenerationStage.COMPLETE,
@@ -784,6 +830,7 @@ export const TamboThreadProvider: React.FC<
       toolRegistry,
       updateThreadMessage,
       updateThreadStatus,
+      handleComponentRendered,
     ],
   );
 
@@ -980,6 +1027,7 @@ export const TamboThreadProvider: React.FC<
         ? renderComponentIntoMessage(
             advanceResponse.responseMessageDto,
             componentList,
+            handleComponentRendered,
           )
         : advanceResponse.responseMessageDto;
       const wasPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
@@ -1014,6 +1062,7 @@ export const TamboThreadProvider: React.FC<
       getAdditionalContext,
       onCallUnregisteredTool,
       refetchThreadsList,
+      handleComponentRendered,
     ],
   );
 
