@@ -13,8 +13,8 @@ import { useEffect } from "react";
  * This hook is used by the TamboClientProvider.
  * @param client - The Tambo client.
  * @param queryClient - The query client.
- * @param userToken - The user token.
- * @returns The Tambo session token.
+ * @param userToken - The third-party OAuth token to exchange for a Tambo session.
+ * @returns React Query result for the session token (token data, fetching state, errors).
  */
 export function useTamboSessionToken(
   client: TamboAI,
