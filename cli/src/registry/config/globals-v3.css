@@ -197,6 +197,9 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
 }
 
 .animate-thinking-gradient {
+  /* Fallback */
+  background: linear-gradient(90deg, #666 0%, #bbb 50%, #666 100%);
+  /* Preferred (overrides when supported) */
   background: linear-gradient(
     90deg,
     oklch(0.14 0 0) 0%,
