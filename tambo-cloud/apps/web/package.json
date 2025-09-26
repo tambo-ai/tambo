@@ -55,7 +55,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "dompurify": "^3.2.6",
+    "dompurify": "^3.2.7",
     "drizzle-orm": "^0.44.5",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.12",
