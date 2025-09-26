@@ -125,7 +125,7 @@ export function getSafeContent(
 }
 
 /**
- * Checks if message content contains meaningful, non-empty text.
+ * Checks if message content contains meaningful, non-empty text or images.
  * @param content - The message content (string, element, array, etc.)
  * @returns True if there is content, false otherwise.
  */
@@ -139,10 +139,26 @@ export function checkHasContent(
     return content.some(
       (item) =>
         item &&
-        item.type === "text" &&
-        typeof item.text === "string" &&
-        item.text.trim().length > 0,
+        ((item.type === "text" &&
+          typeof item.text === "string" &&
+          item.text.trim().length > 0) ||
+          (item.type === "image_url" && item.image_url?.url)),
     );
   }
   return false; // Default for unknown types
+}
+
+/**
+ * Extracts image URLs from message content.
+ * @param content - The message content
+ * @returns Array of image URLs
+ */
+export function getMessageImages(
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+): string[] {
+  if (!content || !Array.isArray(content)) return [];
+
+  return content
+    .filter((item) => item && item.type === "image_url" && item.image_url?.url)
+    .map((item) => item.image_url!.url);
 }

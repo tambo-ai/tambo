@@ -5,6 +5,7 @@ import {
   MessageContent,
   MessageImages,
   MessageRenderedComponentArea,
+  ReasoningInfo,
   ToolcallInfo,
   type messageVariants,
 } from "@/components/ui/message";
@@ -130,7 +131,7 @@ const ThreadContentMessages = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex flex-col gap-4", className)}
+      className={cn("flex flex-col gap-2", className)}
       data-slot="thread-content-messages"
       {...props}
     >
@@ -157,10 +158,11 @@ const ThreadContentMessages = React.forwardRef<
             >
               <div
                 className={cn(
-                  "flex flex-col gap-2",
+                  "flex flex-col",
                   message.role === "assistant" ? "w-full" : "max-w-3xl",
                 )}
               >
+                <ReasoningInfo />
                 <MessageImages />
                 <MessageContent
                   className={

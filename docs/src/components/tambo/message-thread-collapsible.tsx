@@ -8,6 +8,7 @@ import {
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputFileButton,
 } from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
@@ -48,7 +49,7 @@ export interface MessageThreadCollapsibleProps
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
@@ -303,8 +304,9 @@ export const MessageThreadCollapsible = React.forwardRef<
                 contextKey={contextKey}
                 initialQuery={finalInitialQuery}
               >
-                <MessageInputTextarea />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </MessageInputToolbar>
                 <MessageInputError />

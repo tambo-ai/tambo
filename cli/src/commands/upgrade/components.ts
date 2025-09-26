@@ -17,6 +17,7 @@ import {
   handleDependencyInconsistencies,
   type DependencyInconsistency,
 } from "../shared/component-utils.js";
+import { setupTailwindandGlobals } from "../add/tailwind-setup.js";
 import type { UpgradeOptions } from "./index.js";
 import { confirmAction, migrateComponentsDuringUpgrade } from "./utils.js";
 
@@ -297,6 +298,11 @@ export async function upgradeComponents(
         `✔ Successfully upgraded ${successCount} of ${finalComponentsToUpgrade.length} components`,
       ),
     );
+
+    if (successCount > 0) {
+      console.log(chalk.blue("\nChecking CSS configuration..."));
+      await setupTailwindandGlobals(projectRoot);
+    }
 
     // Show post-upgrade guidance
     const remainingLegacyComponents = finalComponentsToUpgrade.filter(

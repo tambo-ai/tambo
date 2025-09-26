@@ -187,3 +187,32 @@
     color: hsl(var(--secondary));
   }
 }
+
+/*
+Animated gradient for thinking text, creates a shimmering effect that moves across the text.
+*/
+@keyframes thinking-gradient {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-thinking-gradient {
+  /* Fallback */
+  background: linear-gradient(90deg, #666 0%, #bbb 50%, #666 100%);
+  /* Preferred (overrides when supported) */
+  background: linear-gradient(
+    90deg,
+    oklch(0.14 0 0) 0%,
+    oklch(0.7 0 0) 50%,
+    oklch(0.14 0 0) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: thinking-gradient 2s linear infinite;
+}

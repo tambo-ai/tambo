@@ -34,21 +34,45 @@ export const ScrollableMessageContainer = React.forwardRef<
   // Handle forwarded ref
   React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
 
-  // Auto-scroll to bottom when messages change
+  // Create a dependency that represents all content that should trigger autoscroll
+  const messagesContent = React.useMemo(() => {
+    if (!thread?.messages) return null;
+
+    return thread.messages.map((message) => ({
+      id: message.id,
+      content: message.content,
+      tool_calls: message.tool_calls,
+      component: message.component,
+      reasoning: message.reasoning,
+      componentState: message.componentState,
+    }));
+  }, [thread?.messages]);
+
+  const generationStage = thread?.generationStage ?? "IDLE";
+
+  // Auto-scroll to bottom when any message content changes (messages, tool calls, components, reasoning)
   useEffect(() => {
-    if (scrollContainerRef.current && thread?.messages?.length) {
-      const timeoutId = setTimeout(() => {
+    if (scrollContainerRef.current && messagesContent) {
+      // Use requestAnimationFrame for immediate, smooth scrolling during streaming
+      const scroll = () => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTo({
             top: scrollContainerRef.current.scrollHeight,
             behavior: "smooth",
           });
         }
-      }, 250);
+      };
 
-      return () => clearTimeout(timeoutId);
+      if (generationStage === "STREAMING_RESPONSE") {
+        // During streaming, scroll immediately
+        requestAnimationFrame(scroll);
+      } else {
+        // For other updates, use a short delay to batch rapid changes
+        const timeoutId = setTimeout(scroll, 50);
+        return () => clearTimeout(timeoutId);
+      }
     }
-  }, [thread?.messages]);
+  }, [messagesContent, generationStage]);
 
   return (
     <div

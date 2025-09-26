@@ -5,6 +5,7 @@ import {
   Message,
   MessageContent,
   MessageRenderedComponentArea,
+  ReasoningInfo,
 } from "@/components/ui/message";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
@@ -60,7 +61,37 @@ export default function MessagePage() {
     ),
   };
 
-  const usageCode = `import { Message, MessageContent, MessageRenderedComponentArea } from "@/components/ui/message";
+  const assistantMessageWithReasoning = {
+    id: "assistant-msg-3",
+    role: "assistant" as const,
+    content: [
+      {
+        type: "text" as const,
+        text: "I'll help you create a reusable button component. Let me think through the best approach for this.",
+      },
+    ],
+    createdAt: new Date().toISOString(),
+    threadId: "sample-thread",
+    componentState: {},
+    reasoning: [
+      "The user is asking for help with a React component. I should consider what type of component would be most useful and educational. A button component is a great starting point because:\n\n1. It's commonly used in most applications\n2. It demonstrates key React concepts like props and styling\n3. It can show how to handle different variants and states\n4. It's simple enough to understand but flexible enough to be useful",
+      "For the button component, I should include:\n- **Props interface**: Define clear prop types for variant, size, disabled state, etc.\n- **Styling system**: Use a flexible approach like CSS classes or styled-components\n- **Accessibility**: Include proper ARIA attributes and keyboard navigation\n- **Event handling**: Show how to handle click events properly\n\nI'll create a component that's both educational and production-ready.",
+    ],
+  };
+
+  const assistantMessageThinking = {
+    id: "assistant-msg-4",
+    role: "assistant" as const,
+    content: [],
+    createdAt: new Date().toISOString(),
+    threadId: "sample-thread",
+    componentState: {},
+    reasoning: [
+      "Let me analyze this request step by step. The user wants help with a React component, so I should consider what would be most helpful...",
+    ],
+  };
+
+  const usageCode = `import { Message, MessageContent, MessageRenderedComponentArea, ReasoningInfo } from "@/components/ui/message";
 
 // Basic usage
 <Message 
@@ -73,10 +104,42 @@ export default function MessagePage() {
   <MessageRenderedComponentArea />
 </Message>
 
+// With reasoning
+<Message 
+  role="assistant" 
+  message={{ 
+    id: "msg-2", 
+    role: "assistant", 
+    content: "Let me help you with that...", 
+    reasoning: ["First, I need to understand...", "Then, I should consider..."],
+    createdAt: "..." 
+  }}
+  variant="default"
+>
+  <ReasoningInfo />
+  <MessageContent />
+</Message>
+
+// Thinking/Loading state with reasoning
+<Message 
+  role="assistant" 
+  message={{ 
+    id: "msg-3", 
+    role: "assistant", 
+    content: [], 
+    reasoning: ["Analyzing the request..."],
+    createdAt: "..." 
+  }}
+  isLoading={true}
+>
+  <ReasoningInfo />
+  <MessageContent />
+</Message>
+
 // With custom content
 <Message 
   role="assistant" 
-  message={{ id: "msg-2", role: "assistant", content: "Hi there!", createdAt: "..." }}
+  message={{ id: "msg-4", role: "assistant", content: "Hi there!", createdAt: "..." }}
   variant="solid"
 >
   <MessageContent content="Custom message content" markdown={false} />
@@ -132,6 +195,15 @@ export default function MessagePage() {
                   exists, otherwise renders the component inline. Only appears
                   for assistant messages with rendered components.
                 </li>
+                <li>
+                  <strong>
+                    <code>&lt;ReasoningInfo /&gt;</code> -
+                  </strong>{" "}
+                  Displays reasoning information in a collapsible dropdown.
+                  Shows the reasoning steps provided by the LLM when available.
+                  Auto-collapses when message content arrives. Shows animated
+                  &quot;Thinking&quot; text when in loading state.
+                </li>
               </ul>
             </div>
           </div>
@@ -170,6 +242,26 @@ export default function MessagePage() {
                 className="justify-start"
               >
                 <div className="w-full">
+                  <MessageContent className="text-primary font-sans" />
+                </div>
+              </Message>
+            </div>
+          </div>
+
+          {/* Assistant Message with Reasoning */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">
+              Assistant Message with Reasoning
+            </h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <Message
+                role="assistant"
+                message={assistantMessageWithReasoning}
+                variant="default"
+                className="justify-start"
+              >
+                <div className="w-full">
+                  <ReasoningInfo />
                   <MessageContent className="text-primary font-sans" />
                 </div>
               </Message>
@@ -231,15 +323,34 @@ export default function MessagePage() {
             </div>
           </div>
 
+          {/* Thinking/Loading State Example */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">Thinking/Loading State</h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <Message
+                role="assistant"
+                message={assistantMessageThinking}
+                variant="default"
+                isLoading={true}
+                className="justify-start"
+              >
+                <div className="w-full">
+                  <ReasoningInfo />
+                  <MessageContent className="text-primary font-sans" />
+                </div>
+              </Message>
+            </div>
+          </div>
+
           {/* Props Documentation */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Props</h2>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <table className="w-full text-sm">
+            <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2">Prop</th>
-                    <th className="text-left py-2">Type</th>
+                    <th className="text-left py-2 w-32">Prop</th>
+                    <th className="text-left py-2 w-48">Type</th>
                     <th className="text-left py-2">Description</th>
                   </tr>
                 </thead>
@@ -255,7 +366,11 @@ export default function MessagePage() {
                     <td className="py-2 font-mono">message</td>
                     <td className="py-2">TamboThreadMessage</td>
                     <td className="py-2">
-                      The full Tambo thread message object
+                      The full Tambo thread message object. Can include optional
+                      <code className="bg-muted px-1 rounded text-xs ml-1">
+                        reasoning
+                      </code>
+                      field (string[]) for displaying AI reasoning steps.
                     </td>
                   </tr>
                   <tr className="border-b">
@@ -272,7 +387,8 @@ export default function MessagePage() {
                     <td className="py-2">boolean</td>
                     <td className="py-2">
                       Optional flag to indicate if the message is in a loading
-                      state
+                      state. Enables thinking animation in ReasoningInfo
+                      component.
                     </td>
                   </tr>
                   <tr>

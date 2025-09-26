@@ -6,27 +6,27 @@ import {
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputError,
+  MessageInputFileButton,
   // MessageInputMcpConfigButton,
-} from "@/components/ui/message-input";
-import { MessageInputFileButton } from "../message-input/message-input";
+} from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
   MessageSuggestionsStatus,
   MessageSuggestionsList,
-} from "@/components/ui/message-suggestions";
+} from "@/components/tambo/message-suggestions";
 import {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
-} from "@/components/ui/thread-history";
+} from "@/components/tambo/thread-history";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
-import type { messageVariants } from "@/components/ui/message";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+} from "@/components/tambo/thread-content";
+import type { messageVariants } from "@/components/tambo/message";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import { cn } from "@/lib/utils";
 import {
   useMergedRef,
@@ -54,7 +54,7 @@ export interface MessageThreadPanelProps
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];

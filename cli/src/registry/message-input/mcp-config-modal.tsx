@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import { createMarkdownComponents } from "@/components/tambo/markdown-components";
 import { Streamdown } from "streamdown";
 import { cn } from "@/lib/utils";
 
