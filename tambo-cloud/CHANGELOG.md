@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.109.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.108.0...repo-v0.109.0) (2025-09-26)
+
+
+### Features
+
+* **llms:** Allow model-specific parameters, add reasoning for openai ([#1791](https://github.com/tambo-ai/tambo-cloud/issues/1791)) ([9d006ea](https://github.com/tambo-ai/tambo-cloud/commit/9d006ea84580f0115cd2ba048f9d21f0712015a1))
+* **web:** update custom LLM parameters with example support and fix reasoning parameters to go under provider options ([#1803](https://github.com/tambo-ai/tambo-cloud/issues/1803)) ([0dc400c](https://github.com/tambo-ai/tambo-cloud/commit/0dc400cb8c8aae9433ccaf182072c7e6b28b92fc))
+
+
+### Bug Fixes
+
+* **pricing:** update pricing component typography and styling to match consistency along. ([#1699](https://github.com/tambo-ai/tambo-cloud/issues/1699)) ([ba1ac55](https://github.com/tambo-ai/tambo-cloud/commit/ba1ac551f30741838d2c37e76c2cd91e92db983b))
+* **web:** Canonicalize email links for tracking ([#1805](https://github.com/tambo-ai/tambo-cloud/issues/1805)) ([6680a2f](https://github.com/tambo-ai/tambo-cloud/commit/6680a2f845ce693c77f331cbecae60c7fae8f08f))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 2 updates ([#1794](https://github.com/tambo-ai/tambo-cloud/issues/1794)) ([52a40a1](https://github.com/tambo-ai/tambo-cloud/commit/52a40a13ea543463025dcc360d9000057e9998a6))
+* **deps-dev:** bump ts-jest from 29.4.2 to 29.4.4 in the testing group ([#1795](https://github.com/tambo-ai/tambo-cloud/issues/1795)) ([36c5a69](https://github.com/tambo-ai/tambo-cloud/commit/36c5a699752eae1247e9b54e1288ac5ee7ea17dc))
+* **deps:** bump @nestjs/schedule from 6.0.0 to 6.0.1 in the nestjs group ([#1793](https://github.com/tambo-ai/tambo-cloud/issues/1793)) ([3996002](https://github.com/tambo-ai/tambo-cloud/commit/3996002ff7ff3d5304b0b3a020210ea7a3982b70))
+* **deps:** bump recharts from 3.2.0 to 3.2.1 ([#1802](https://github.com/tambo-ai/tambo-cloud/issues/1802)) ([cca4651](https://github.com/tambo-ai/tambo-cloud/commit/cca465152a42861e89c584f6c99a1e4e17ded9cb))
+* **deps:** bump the ag-ui group with 2 updates ([#1801](https://github.com/tambo-ai/tambo-cloud/issues/1801)) ([6029878](https://github.com/tambo-ai/tambo-cloud/commit/60298785b259513be7ba998af9263bd8c9b174f4))
+* **deps:** bump the ai-sdk group across 1 directory with 6 updates ([#1807](https://github.com/tambo-ai/tambo-cloud/issues/1807)) ([89d12fe](https://github.com/tambo-ai/tambo-cloud/commit/89d12fea5f41508076599a4964cd86a6ef025318))
+* **deps:** bump the sentry group with 3 updates ([#1800](https://github.com/tambo-ai/tambo-cloud/issues/1800)) ([fbcc748](https://github.com/tambo-ai/tambo-cloud/commit/fbcc748fa27995a3b094ff32374e0a6f6a5c8300))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1799](https://github.com/tambo-ai/tambo-cloud/issues/1799)) ([0fe6d9d](https://github.com/tambo-ai/tambo-cloud/commit/0fe6d9d4c62e59b7de5bc98e924f6853ca78f2a7))
+* **deps:** bump the tambo-ai group with 2 updates ([#1798](https://github.com/tambo-ai/tambo-cloud/issues/1798)) ([6b22c4b](https://github.com/tambo-ai/tambo-cloud/commit/6b22c4bec4b8045a3447bd284a5363bbe0538715))
+* fix settings component alignment and text overflow ([#1804](https://github.com/tambo-ai/tambo-cloud/issues/1804)) ([0aaa17d](https://github.com/tambo-ai/tambo-cloud/commit/0aaa17d942ac4c8316919d72fa1eef926aee2edc))
+
+
+### Code Refactoring
+
+* **ternaries:** Remove some nested ternaries ([#1809](https://github.com/tambo-ai/tambo-cloud/issues/1809)) ([2285ac9](https://github.com/tambo-ai/tambo-cloud/commit/2285ac905256664aa7f7160e97642fb584138c12))
+
+
+### Tests
+
+* **framer:** Disable framer animations so more tests can be enabled ([#1808](https://github.com/tambo-ai/tambo-cloud/issues/1808)) ([3642595](https://github.com/tambo-ai/tambo-cloud/commit/364259519e98e3632923593b94e2c78133edc139))
+
 ## [0.108.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.107.0...repo-v0.108.0) (2025-09-19)
 
 
