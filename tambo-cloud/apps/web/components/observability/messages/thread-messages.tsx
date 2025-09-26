@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ReactNode, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
 import { isSameDay } from "../utils";
 import { ComponentMessage } from "./component-message";
 import { DateSeparator } from "./date-separator";
@@ -10,6 +10,107 @@ import { ToolCallMessage } from "./tool-call-message";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
+
+type MessageGroup = {
+  type: "message" | "tool_call" | "component";
+  message: MessageType;
+  toolResponse?: MessageType;
+};
+
+// Helper function to determine alignment classes
+const getAlignmentClasses = (
+  groupType: MessageGroup["type"],
+  isUserMessage: boolean,
+): string => {
+  if (groupType === "tool_call" || groupType === "component") {
+    return "items-start";
+  }
+  return isUserMessage ? "items-end" : "items-start";
+};
+
+// Helper function to generate message key
+const getMessageKey = (group: MessageGroup): string => {
+  if (group.type === "tool_call") {
+    return `tool-${group.message.id}`;
+  }
+  if (group.type === "component") {
+    return `component-${group.message.id}`;
+  }
+  return `msg-${group.message.id}`;
+};
+
+// Helper function to get container classes
+const getContainerClasses = (
+  group: MessageGroup,
+  isUserMessage: boolean,
+  searchQuery?: string,
+  hasMatch?: boolean,
+  isCurrentMatch?: boolean,
+): string => {
+  return cn(
+    "group flex flex-col relative transition-all duration-300",
+    getAlignmentClasses(group.type, isUserMessage),
+    // apply opacity to non-matching messages when searching
+    searchQuery && !hasMatch && "opacity-40",
+    // highlight current match
+    isCurrentMatch && "ring-2 ring-yellow-400 rounded-lg p-2",
+  );
+};
+
+// Subcomponent to render individual message content
+interface MessageRendererProps {
+  group: MessageGroup;
+  isUserMessage: boolean;
+  isHighlighted: boolean;
+  copiedId: string | null;
+  onCopyId: (id: string) => void;
+  searchQuery?: string;
+}
+
+const MessageRenderer: FC<MessageRendererProps> = ({
+  group,
+  isUserMessage,
+  isHighlighted,
+  copiedId,
+  onCopyId,
+  searchQuery,
+}) => {
+  if (group.type === "tool_call") {
+    return (
+      <ToolCallMessage
+        message={group.message}
+        toolResponse={group.toolResponse}
+        isHighlighted={isHighlighted}
+        copiedId={copiedId}
+        onCopyId={onCopyId}
+        searchQuery={searchQuery}
+      />
+    );
+  }
+
+  if (group.type === "component") {
+    return (
+      <ComponentMessage
+        message={group.message}
+        isHighlighted={isHighlighted}
+        copiedId={copiedId}
+        onCopyId={onCopyId}
+        searchQuery={searchQuery}
+      />
+    );
+  }
+
+  return (
+    <MessageContent
+      message={group.message}
+      isUserMessage={isUserMessage}
+      isHighlighted={isHighlighted}
+      copiedId={copiedId}
+      onCopyId={onCopyId}
+      searchQuery={searchQuery}
+    />
+  );
+};
 
 interface ThreadMessagesProps {
   thread: ThreadType;
@@ -56,11 +157,7 @@ export function ThreadMessages({
   // Group messages and extract tool calls with their responses
   const messageGroups = useMemo(() => {
     const messages = thread.messages || [];
-    const groups: Array<{
-      type: "message" | "tool_call" | "component";
-      message: MessageType;
-      toolResponse?: MessageType;
-    }> = [];
+    const groups: MessageGroup[] = [];
 
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
@@ -129,12 +226,7 @@ export function ThreadMessages({
       const isHighlighted = highlightedMessageId === message.id;
       const isCurrentMatch = currentMatchMessageId === message.id;
       const hasMatch = hasSearchMatch(message.id);
-      const key =
-        group.type === "tool_call"
-          ? `tool-${message.id}`
-          : group.type === "component"
-            ? `component-${message.id}`
-            : `msg-${message.id}`;
+      const key = getMessageKey(group);
 
       elements.push(
         <motion.div
@@ -150,46 +242,22 @@ export function ThreadMessages({
             ease: [0.4, 0.0, 0.2, 1],
             layout: { duration: 0.2 },
           }}
-          className={cn(
-            "group flex flex-col relative transition-all duration-300",
-            group.type === "tool_call" || group.type === "component"
-              ? "items-start"
-              : isUserMessage
-                ? "items-end"
-                : "items-start",
-            // apply opacity to non-matching messages when searching
-            searchQuery && !hasMatch && "opacity-40",
-            // highlight current match
-            isCurrentMatch && "ring-2 ring-yellow-400 rounded-lg p-2",
+          className={getContainerClasses(
+            group,
+            isUserMessage,
+            searchQuery,
+            hasMatch,
+            isCurrentMatch,
           )}
         >
-          {group.type === "tool_call" ? (
-            <ToolCallMessage
-              message={message}
-              toolResponse={group.toolResponse}
-              isHighlighted={isHighlighted}
-              copiedId={copiedId}
-              onCopyId={handleCopyId}
-              searchQuery={searchQuery}
-            />
-          ) : group.type === "component" ? (
-            <ComponentMessage
-              message={message}
-              isHighlighted={isHighlighted}
-              copiedId={copiedId}
-              onCopyId={handleCopyId}
-              searchQuery={searchQuery}
-            />
-          ) : (
-            <MessageContent
-              message={message}
-              isUserMessage={isUserMessage}
-              isHighlighted={isHighlighted}
-              copiedId={copiedId}
-              onCopyId={handleCopyId}
-              searchQuery={searchQuery}
-            />
-          )}
+          <MessageRenderer
+            group={group}
+            isUserMessage={isUserMessage}
+            isHighlighted={isHighlighted}
+            copiedId={copiedId}
+            onCopyId={handleCopyId}
+            searchQuery={searchQuery}
+          />
         </motion.div>,
       );
     });

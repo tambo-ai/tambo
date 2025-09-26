@@ -4,13 +4,225 @@ import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { Check, ChevronDown, Copy, Info } from "lucide-react";
-import { isValidElement, memo, ReactNode, useState } from "react";
+import { FC, isValidElement, memo, ReactNode, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { formatTime } from "../utils";
 import { HighlightedJson, HighlightText } from "./highlight";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
+
+// Helper function to render markdown content with or without search highlighting
+const renderMarkdownContent = (
+  content: string,
+  searchQuery?: string,
+): JSX.Element => {
+  if (searchQuery) {
+    const highlightedComponents =
+      createHighlightedMarkdownComponents(searchQuery);
+    return (
+      <ReactMarkdown components={highlightedComponents}>
+        {content}
+      </ReactMarkdown>
+    );
+  }
+
+  return (
+    <ReactMarkdown components={createMarkdownComponents()}>
+      {content}
+    </ReactMarkdown>
+  );
+};
+
+// Helper function to create highlighted markdown components
+const createHighlightedMarkdownComponents = (searchQuery: string) => {
+  const baseComponents = createMarkdownComponents();
+
+  return {
+    ...baseComponents,
+    p: ({ children, ...props }: any) => (
+      <p {...props}>
+        {typeof children === "string" ? (
+          <HighlightText text={children} searchQuery={searchQuery} />
+        ) : (
+          children
+        )}
+      </p>
+    ),
+    li: ({ children, ...props }: any) => (
+      <li {...props}>
+        {typeof children === "string" ? (
+          <HighlightText text={children} searchQuery={searchQuery} />
+        ) : (
+          children
+        )}
+      </li>
+    ),
+    td: ({ children, ...props }: any) => (
+      <td {...props}>
+        {typeof children === "string" ? (
+          <HighlightText text={children} searchQuery={searchQuery} />
+        ) : (
+          children
+        )}
+      </td>
+    ),
+  };
+};
+
+// Helper function to render main content
+const renderMainContent = (
+  safeContent: ReactNode,
+  searchQuery?: string,
+): JSX.Element => {
+  if (typeof safeContent === "string" && safeContent) {
+    return renderMarkdownContent(safeContent, searchQuery);
+  }
+
+  if (isValidElement(safeContent)) {
+    return safeContent;
+  }
+
+  return <span>No content</span>;
+};
+
+// Subcomponent for additional context section
+interface AdditionalContextSectionProps {
+  message: MessageType;
+  showAdditionalContext: boolean;
+  setShowAdditionalContext: (show: boolean) => void;
+  copiedId: string | null;
+  onCopyId: (id: string) => void;
+  searchQuery?: string;
+}
+
+const AdditionalContextSection: FC<AdditionalContextSectionProps> = ({
+  message,
+  showAdditionalContext,
+  setShowAdditionalContext,
+  copiedId,
+  onCopyId,
+  searchQuery,
+}) => {
+  const formatAdditionalContext = (context: Record<string, any>) => {
+    try {
+      return JSON.stringify(context, null, 2);
+    } catch {
+      return String(context);
+    }
+  };
+
+  const contextString = formatAdditionalContext(
+    message.additionalContext || {},
+  );
+  const isContextCopied = copiedId === contextString;
+
+  const handleCopyContext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCopyId(contextString);
+  };
+
+  const toggleContext = () => {
+    setShowAdditionalContext(!showAdditionalContext);
+  };
+
+  return (
+    <div className="mt-3 border border-border rounded-lg overflow-hidden">
+      <button
+        onClick={toggleContext}
+        className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Info className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="font-medium text-xs sm:text-sm text-primary">
+            Additional Context
+          </span>
+        </div>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <span
+            onClick={handleCopyContext}
+            className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
+          >
+            {isContextCopied ? (
+              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
+            ) : (
+              <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
+            )}
+          </span>
+          <ChevronDown
+            className={cn(
+              "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 text-primary",
+              showAdditionalContext && "rotate-180",
+            )}
+          />
+        </div>
+      </button>
+
+      <motion.div
+        initial={false}
+        animate={{
+          height: showAdditionalContext ? "auto" : 0,
+          opacity: showAdditionalContext ? 1 : 0,
+        }}
+        transition={{ duration: 0.2 }}
+        className="overflow-hidden"
+      >
+        <div className="p-4 bg-background">
+          <pre className="text-xs font-mono text-primary overflow-auto max-h-96">
+            {searchQuery ? (
+              <HighlightedJson json={contextString} searchQuery={searchQuery} />
+            ) : (
+              contextString
+            )}
+          </pre>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Subcomponent for message ID section
+interface MessageIdSectionProps {
+  message: MessageType;
+  copiedId: string | null;
+  onCopyId: (id: string) => void;
+  isUserMessage: boolean;
+}
+
+const MessageIdSection: FC<MessageIdSectionProps> = ({
+  message,
+  copiedId,
+  onCopyId,
+  isUserMessage,
+}) => {
+  const isIdCopied = copiedId === message.id;
+
+  return (
+    <motion.div
+      className={cn(
+        "flex items-center gap-2 mt-2 text-[10px] sm:text-[11px] text-foreground px-1",
+        isUserMessage ? "flex-row-reverse" : "flex-row",
+      )}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.7 }}
+    >
+      <span
+        className="font-medium flex items-center gap-1 cursor-pointer bg-muted/50 rounded-md px-1.5 sm:px-2 py-0.5 sm:py-1"
+        onClick={() => onCopyId(message.id)}
+      >
+        <span className="max-w-[100px] sm:max-w-none truncate">
+          {message.id}
+        </span>
+        {isIdCopied ? (
+          <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 text-green-500" />
+        ) : (
+          <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 opacity-50" />
+        )}
+      </span>
+    </motion.div>
+  );
+};
 
 interface MessageContentProps {
   message: MessageType;
@@ -41,52 +253,6 @@ export const MessageContent = memo(
       isUserMessage &&
       message.additionalContext &&
       Object.keys(message.additionalContext).length > 0;
-
-    const formatAdditionalContext = (context: Record<string, any>) => {
-      try {
-        return JSON.stringify(context, null, 2);
-      } catch {
-        return String(context);
-      }
-    };
-
-    // Custom markdown component that highlights search terms
-    const createHighlightedMarkdownComponents = () => {
-      const baseComponents = createMarkdownComponents();
-
-      if (!searchQuery) return baseComponents;
-
-      return {
-        ...baseComponents,
-        p: ({ children, ...props }: any) => (
-          <p {...props}>
-            {typeof children === "string" ? (
-              <HighlightText text={children} searchQuery={searchQuery} />
-            ) : (
-              children
-            )}
-          </p>
-        ),
-        li: ({ children, ...props }: any) => (
-          <li {...props}>
-            {typeof children === "string" ? (
-              <HighlightText text={children} searchQuery={searchQuery} />
-            ) : (
-              children
-            )}
-          </li>
-        ),
-        td: ({ children, ...props }: any) => (
-          <td {...props}>
-            {typeof children === "string" ? (
-              <HighlightText text={children} searchQuery={searchQuery} />
-            ) : (
-              children
-            )}
-          </td>
-        ),
-      };
-    };
 
     return (
       <>
@@ -125,126 +291,31 @@ export const MessageContent = memo(
               <span className="text-xs text-foreground/50">{message.role}</span>
               {/* Main content */}
               <div className="text-primary">
-                {typeof safeContent === "string" && safeContent ? (
-                  searchQuery ? (
-                    <ReactMarkdown
-                      components={createHighlightedMarkdownComponents()}
-                    >
-                      {safeContent}
-                    </ReactMarkdown>
-                  ) : (
-                    <ReactMarkdown components={createMarkdownComponents()}>
-                      {safeContent}
-                    </ReactMarkdown>
-                  )
-                ) : isValidElement(safeContent) ? (
-                  safeContent
-                ) : (
-                  <span>No content</span>
-                )}
+                {renderMainContent(safeContent, searchQuery)}
               </div>
 
               {/* Additional Context Section - Only for user messages with context */}
               {hasAdditionalContext && (
-                <div className="mt-3 border border-border rounded-lg overflow-hidden">
-                  <button
-                    onClick={() =>
-                      setShowAdditionalContext(!showAdditionalContext)
-                    }
-                    className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Info className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="font-medium text-xs sm:text-sm text-primary">
-                        Additional Context
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onCopyId(
-                            formatAdditionalContext(
-                              message.additionalContext || {},
-                            ),
-                          );
-                        }}
-                        className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors"
-                      >
-                        {copiedId ===
-                        formatAdditionalContext(
-                          message.additionalContext || {},
-                        ) ? (
-                          <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
-                        ) : (
-                          <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-                        )}
-                      </span>
-                      <ChevronDown
-                        className={cn(
-                          "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200 text-primary",
-                          showAdditionalContext && "rotate-180",
-                        )}
-                      />
-                    </div>
-                  </button>
-
-                  <motion.div
-                    initial={false}
-                    animate={{
-                      height: showAdditionalContext ? "auto" : 0,
-                      opacity: showAdditionalContext ? 1 : 0,
-                    }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="p-4 bg-background">
-                      <pre className="text-xs font-mono text-primary overflow-auto max-h-96">
-                        {searchQuery ? (
-                          <HighlightedJson
-                            json={formatAdditionalContext(
-                              message.additionalContext || {},
-                            )}
-                            searchQuery={searchQuery}
-                          />
-                        ) : (
-                          formatAdditionalContext(
-                            message.additionalContext || {},
-                          )
-                        )}
-                      </pre>
-                    </div>
-                  </motion.div>
-                </div>
+                <AdditionalContextSection
+                  message={message}
+                  showAdditionalContext={showAdditionalContext}
+                  setShowAdditionalContext={setShowAdditionalContext}
+                  copiedId={copiedId}
+                  onCopyId={onCopyId}
+                  searchQuery={searchQuery}
+                />
               )}
             </div>
           </div>
         </motion.div>
 
         {/* Bottom metadata */}
-        <motion.div
-          className={cn(
-            "flex items-center gap-2 mt-2 text-[10px] sm:text-[11px] text-foreground px-1",
-            isUserMessage ? "flex-row-reverse" : "flex-row",
-          )}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          <span
-            className="font-medium flex items-center gap-1 cursor-pointer bg-muted/50 rounded-md px-1.5 sm:px-2 py-0.5 sm:py-1"
-            onClick={() => onCopyId(message.id)}
-          >
-            <span className="max-w-[100px] sm:max-w-none truncate">
-              {message.id}
-            </span>
-            {copiedId === message.id ? (
-              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 text-green-500" />
-            ) : (
-              <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 ml-1 opacity-50" />
-            )}
-          </span>
-        </motion.div>
+        <MessageIdSection
+          message={message}
+          copiedId={copiedId}
+          onCopyId={onCopyId}
+          isUserMessage={isUserMessage}
+        />
       </>
     );
   },

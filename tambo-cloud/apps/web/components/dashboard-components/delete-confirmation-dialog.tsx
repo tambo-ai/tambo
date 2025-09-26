@@ -41,6 +41,68 @@ interface SingleProjectProps {
 
 type DeleteConfirmationDialogProps = MultipleProjectsProps | SingleProjectProps;
 
+// Helper function to format project names for display
+// Note: compute the remainder from the names array length to ensure
+// the UI matches what is actually rendered.
+const formatProjectNames = (projectNames: string[]): string => {
+  const count = projectNames.length;
+  if (count <= 3) {
+    return projectNames.join(", ");
+  }
+
+  const firstThree = projectNames.slice(0, 3).join(", ");
+  const remainingCount = count - 3;
+  return `${firstThree} and ${remainingCount} more`;
+};
+
+// Helper function to generate multiple projects content
+const getMultipleProjectsContent = (props: MultipleProjectsProps) => {
+  const projectCount = props.selectedProjectIds.length;
+
+  return {
+    title: "Delete Projects",
+    description: (
+      <>
+        Are you sure you want to delete {projectCount} project
+        {projectCount > 1 ? "s" : ""}?
+        <span className="block mt-2 font-medium">
+          {formatProjectNames(props.selectedProjectNames)}
+        </span>
+        <span className="block mt-2 text-destructive">
+          This action cannot be undone.
+        </span>
+      </>
+    ),
+  };
+};
+
+// Helper function to generate single project content
+const getSingleProjectContent = (props: SingleProjectProps) => {
+  return {
+    title: props.alertState.title,
+    description: props.alertState.description,
+  };
+};
+
+// Helper function to get dialog content based on mode
+const getDialogContent = (props: DeleteConfirmationDialogProps) => {
+  if (props.mode === "multiple") {
+    return getMultipleProjectsContent(props);
+  }
+  return getSingleProjectContent(props);
+};
+
+// Helper function to get button text
+const getButtonText = (
+  props: DeleteConfirmationDialogProps,
+  isLoading: boolean,
+): string => {
+  if (props.mode === "multiple") {
+    return isLoading ? "Deleting..." : "Delete";
+  }
+  return "Delete";
+};
+
 export function DeleteConfirmationDialog(props: DeleteConfirmationDialogProps) {
   const { toast } = useToast();
 
@@ -98,49 +160,8 @@ export function DeleteConfirmationDialog(props: DeleteConfirmationDialogProps) {
       : (open: boolean) =>
           !open && props.setAlertState({ ...props.alertState, show: false });
 
-  // Determine content based on mode
-  const getContent = () => {
-    if (props.mode === "multiple") {
-      const projectCount = props.selectedProjectIds.length;
-      const projectNames = props.selectedProjectNames.slice(0, 3).join(", ");
-      const hasMoreProjects = props.selectedProjectNames.length > 3;
-
-      return {
-        title: "Delete Projects",
-        description: (
-          <>
-            Are you sure you want to delete {projectCount} project
-            {projectCount > 1 ? "s" : ""}?
-            {projectCount <= 3 ? (
-              <span className="block mt-2 font-medium">{projectNames}</span>
-            ) : (
-              <span className="block mt-2 font-medium">
-                {projectNames}
-                {hasMoreProjects &&
-                  ` and ${props.selectedProjectNames.length - 3} more`}
-              </span>
-            )}
-            <span className="block mt-2 text-destructive">
-              This action cannot be undone.
-            </span>
-          </>
-        ),
-      };
-    } else {
-      return {
-        title: props.alertState.title,
-        description: props.alertState.description,
-      };
-    }
-  };
-
-  const content = getContent();
-  const buttonText =
-    props.mode === "multiple"
-      ? isLoading
-        ? "Deleting..."
-        : "Delete"
-      : "Delete";
+  const content = getDialogContent(props);
+  const buttonText = getButtonText(props, isLoading);
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
