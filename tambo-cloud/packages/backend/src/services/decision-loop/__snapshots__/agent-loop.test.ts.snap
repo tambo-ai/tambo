@@ -1,0 +1,465 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`runAgentLoop complete conversation flow should handle full conversation with assistant, tool call, tool result, and follow-up 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "",
+    "props": null,
+    "reasoning": [
+      "The user is asking a math question",
+      "I should use a calculator tool",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "I'll calculate that for you.",
+    "props": null,
+    "reasoning": [
+      "The user is asking a math question",
+      "I should use a calculator tool",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "I'll calculate that for you.",
+    "props": null,
+    "reasoning": [
+      "I need to call the calculator tool with the expression",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": "call_calc_1",
+    "toolCallRequest": {
+      "parameters": [
+        {
+          "parameterName": "expression",
+          "parameterValue": "2 + 2",
+        },
+      ],
+      "toolName": "calculator",
+    },
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "tool-1",
+    "message": "4",
+    "props": null,
+    "reasoning": [],
+    "role": "tool",
+    "statusMessage": "",
+    "toolCallId": "call_calc_1",
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "user-2",
+    "message": "What about 5 * 3?",
+    "props": null,
+    "reasoning": [],
+    "role": "user",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-2",
+    "message": "",
+    "props": null,
+    "reasoning": [
+      "The user is asking another math question",
+      "I should use the calculator tool again",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-2",
+    "message": "I'll calculate that too.",
+    "props": null,
+    "reasoning": [
+      "The user is asking another math question",
+      "I should use the calculator tool again",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-2",
+    "message": "I'll calculate that too.",
+    "props": null,
+    "reasoning": [
+      "I need to call the calculator tool with the new expression",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": "call_calc_2",
+    "toolCallRequest": {
+      "parameters": [
+        {
+          "parameterName": "expression",
+          "parameterValue": "5 * 3",
+        },
+      ],
+      "toolName": "calculator",
+    },
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-2",
+    "message": "I'll calculate that too.",
+    "props": null,
+    "reasoning": [
+      "I need to call the calculator tool with the new expression",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": "call_calc_2",
+    "toolCallRequest": {
+      "parameters": [
+        {
+          "parameterName": "expression",
+          "parameterValue": "5 * 3",
+        },
+      ],
+      "toolName": "calculator",
+    },
+  },
+]
+`;
+
+exports[`runAgentLoop edge cases should handle assistant message without tool calls 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "This is a simple response.",
+    "props": null,
+    "reasoning": [],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop edge cases should handle empty message content 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "",
+    "props": null,
+    "reasoning": [],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop edge cases should handle system message 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "system-1",
+    "message": "You are a helpful assistant.",
+    "props": null,
+    "reasoning": [],
+    "role": "system",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop message event sequences should handle complete assistant message sequence 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "",
+    "props": null,
+    "reasoning": [
+      "I need to respond to the user's greeting",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "Hello! I'm doing well, thank you for asking. ",
+    "props": null,
+    "reasoning": [
+      "I should be friendly and respond to their greeting",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "Hello! I'm doing well, thank you for asking. How can I help you today?",
+    "props": null,
+    "reasoning": [
+      "I should also offer to help them",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop message event sequences should handle user message sequence 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "user-1",
+    "message": "",
+    "props": null,
+    "reasoning": [],
+    "role": "user",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "user-1",
+    "message": "What's the weather like?",
+    "props": null,
+    "reasoning": [],
+    "role": "user",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop reasoning sequences should handle assistant message with reasoning 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "",
+    "props": null,
+    "reasoning": [
+      "The user is asking about the weather",
+      "I should check the current weather conditions",
+      "I'll need to use a weather tool",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "Let me check the weather for you.",
+    "props": null,
+    "reasoning": [
+      "The user is asking about the weather",
+      "I should check the current weather conditions",
+      "I'll need to use a weather tool",
+      "I should let them know I'm looking it up",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop reasoning sequences should handle reasoning without content 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "",
+    "props": null,
+    "reasoning": [
+      "I need to think about this problem",
+      "This is a complex question that requires analysis",
+      "Let me break it down step by step",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop tool call event sequences should handle complete tool call sequence 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "I'll help you with that.",
+    "props": null,
+    "reasoning": [
+      "I should use a tool to get the information",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": undefined,
+    "toolCallRequest": undefined,
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "I'll help you with that.",
+    "props": null,
+    "reasoning": [
+      "I need to call the test_tool",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": "call_123",
+    "toolCallRequest": {
+      "parameters": [],
+      "toolName": "test_tool",
+    },
+  },
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "I'll help you with that.",
+    "props": null,
+    "reasoning": [
+      "I've prepared the tool call with parameters",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": "call_123",
+    "toolCallRequest": {
+      "parameters": [
+        {
+          "parameterName": "param1",
+          "parameterValue": "value1",
+        },
+        {
+          "parameterName": "param2",
+          "parameterValue": 42,
+        },
+      ],
+      "toolName": "test_tool",
+    },
+  },
+]
+`;
+
+exports[`runAgentLoop tool call event sequences should handle tool call with invalid JSON arguments 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "assistant-1",
+    "message": "I'll call a tool.",
+    "props": null,
+    "reasoning": [
+      "I need to call the test_tool",
+    ],
+    "role": "assistant",
+    "statusMessage": "",
+    "toolCallId": "call_123",
+    "toolCallRequest": undefined,
+  },
+]
+`;
+
+exports[`runAgentLoop tool call event sequences should handle tool result message 1`] = `
+[
+  {
+    "completionStatusMessage": "",
+    "componentName": null,
+    "componentState": null,
+    "id": "tool-1",
+    "message": "Tool execution result",
+    "props": null,
+    "reasoning": [],
+    "role": "tool",
+    "statusMessage": "",
+    "toolCallId": "call_123",
+    "toolCallRequest": undefined,
+  },
+]
+`;

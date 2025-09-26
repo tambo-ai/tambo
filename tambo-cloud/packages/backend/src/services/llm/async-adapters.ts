@@ -1,7 +1,7 @@
 import { AbstractAgent } from "@ag-ui/client";
 
 export type AgentSubscriber = AbstractAgent["subscribers"][number];
-type EventHandlerParams = Parameters<
+export type EventHandlerParams = Parameters<
   NonNullable<AgentSubscriber["onEvent"]>
 >[0];
 

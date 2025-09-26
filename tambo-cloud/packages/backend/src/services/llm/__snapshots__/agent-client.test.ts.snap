@@ -1,0 +1,285 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AgentClient Event Processing Complex Conversation Flow should handle a complete conversation with assistant message, tool call, tool result, user message, and another assistant message 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle empty tool calls array 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle run finished with object result 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle run finished with string result 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle tool calls with non-function type 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Messages Snapshot Events should handle messages snapshot with assistant message 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Messages Snapshot Events should handle messages snapshot with tool message 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Messages Snapshot Events should handle messages snapshot with user message 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Run Events should handle run error 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Run Events should handle run started/finished sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing State Events should handle state delta 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing State Events should handle state snapshot 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Step Events should handle step started/finished sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Text Message Events should handle text message chunk events 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Text Message Events should handle text message start/content/end sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Hello",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Hello there!",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Thinking Events should handle multiple thinking text messages 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Thinking Events should handle thinking start/content/end sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Tool Call Events should handle tool call chunk events 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Tool Call Events should handle tool call result 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Tool Call Events should handle tool call start/args/end sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "tambo-assistant-complete",
+      "role": "assistant",
+    },
+    "type": "complete",
+  },
+]
+`;
