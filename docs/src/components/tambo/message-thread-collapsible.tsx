@@ -8,6 +8,7 @@ import {
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputFileButton,
 } from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
@@ -303,8 +304,9 @@ export const MessageThreadCollapsible = React.forwardRef<
                 contextKey={contextKey}
                 initialQuery={finalInitialQuery}
               >
-                <MessageInputTextarea />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </MessageInputToolbar>
                 <MessageInputError />
