@@ -61,7 +61,7 @@ describe("TamboThreadProvider with initial messages", () => {
     beta: {
       threads: {
         advance: jest.fn(),
-        advanceById: jest.fn(),
+        advanceByID: jest.fn(),
         cancel: jest.fn(),
         messages: {
           create: jest.fn(),
