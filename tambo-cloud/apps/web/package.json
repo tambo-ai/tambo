@@ -94,7 +94,7 @@
     "superjson": "^2.2.2",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "tldts": "^7.0.14",
+    "tldts": "^7.0.16",
     "unified": "^11.0.5",
     "use-debounce": "^10.0.6",
     "usehooks-ts": "^3.1.1",
