@@ -5,10 +5,122 @@ exports[`AgentClient Event Processing Complex Conversation Flow should handle a 
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "assistant-msg-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "get_weather",
+          },
+          "id": "call-weather-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"location": "New York"}",
+            "name": "get_weather",
+          },
+          "id": "call-weather-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"location": "New York"}",
+            "name": "get_weather",
+          },
+          "id": "call-weather-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "{"temperature": 72, "condition": "sunny"}",
+      "id": "tool-msg-1",
+      "role": "tool",
+      "toolCallId": "call-weather-1",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "user-msg-1",
+      "role": "user",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Thanks! What about tomorrow?",
+      "id": "user-msg-1",
+      "role": "user",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "assistant-msg-2",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Tomorrow will be partly cloudy with a high of 75°F.",
+      "id": "assistant-msg-2",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Conversation completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
   },
 ]
 `;
@@ -18,10 +130,47 @@ exports[`AgentClient Event Processing Edge Cases should handle empty tool calls 
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Empty tool calls completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -29,12 +178,13 @@ exports[`AgentClient Event Processing Edge Cases should handle empty tool calls 
 exports[`AgentClient Event Processing Edge Cases should handle run finished with object result 1`] = `
 [
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "{"status":"success","data":{"key":"value"}}",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -42,12 +192,13 @@ exports[`AgentClient Event Processing Edge Cases should handle run finished with
 exports[`AgentClient Event Processing Edge Cases should handle run finished with string result 1`] = `
 [
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Simple string result",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -57,10 +208,47 @@ exports[`AgentClient Event Processing Edge Cases should handle tool calls with n
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"type": "unexpected"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Non-function tool calls completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -69,11 +257,20 @@ exports[`AgentClient Event Processing Messages Snapshot Events should handle mes
 [
   {
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Hello! How can I help you?",
+      "id": "msg-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Messages snapshot completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
   },
 ]
 `;
@@ -82,11 +279,21 @@ exports[`AgentClient Event Processing Messages Snapshot Events should handle mes
 [
   {
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Tool result",
+      "id": "tool-msg-1",
+      "role": "tool",
+      "toolCallId": "call-1",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool messages snapshot completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -95,11 +302,20 @@ exports[`AgentClient Event Processing Messages Snapshot Events should handle mes
 [
   {
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Hello, world!",
+      "id": "user-msg-1",
+      "role": "user",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "User messages snapshot completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -107,12 +323,13 @@ exports[`AgentClient Event Processing Messages Snapshot Events should handle mes
 exports[`AgentClient Event Processing Run Events should handle run error 1`] = `
 [
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Run error completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -120,12 +337,13 @@ exports[`AgentClient Event Processing Run Events should handle run error 1`] = `
 exports[`AgentClient Event Processing Run Events should handle run started/finished sequence 1`] = `
 [
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Task completed successfully",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -133,12 +351,13 @@ exports[`AgentClient Event Processing Run Events should handle run started/finis
 exports[`AgentClient Event Processing State Events should handle state delta 1`] = `
 [
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "State delta completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -146,12 +365,13 @@ exports[`AgentClient Event Processing State Events should handle state delta 1`]
 exports[`AgentClient Event Processing State Events should handle state snapshot 1`] = `
 [
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "State snapshot completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -159,12 +379,13 @@ exports[`AgentClient Event Processing State Events should handle state snapshot 
 exports[`AgentClient Event Processing Step Events should handle step started/finished sequence 1`] = `
 [
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Step sequence completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -174,10 +395,35 @@ exports[`AgentClient Event Processing Text Message Events should handle text mes
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "msg-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Chunk 1",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Chunk 1 Chunk 2",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Message completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
   },
 ]
 `;
@@ -209,12 +455,13 @@ exports[`AgentClient Event Processing Text Message Events should handle text mes
     "type": "message",
   },
   {
+    "complete": true,
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Message completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -224,10 +471,66 @@ exports[`AgentClient Event Processing Thinking Events should handle multiple thi
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "message-1",
+      "reasoning": [],
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Step 1: Analyze the problem",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Step 1: Analyze the problem",
+        "",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Step 1: Analyze the problem",
+        "Step 2: Consider solutions",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Multiple thinking completed",
+      "id": "message-2",
+      "role": "assistant",
+    },
+    "type": "message",
   },
 ]
 `;
@@ -237,10 +540,53 @@ exports[`AgentClient Event Processing Thinking Events should handle thinking sta
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "message-1",
+      "reasoning": [],
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Let me think about this...",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Let me think about this... I need to consider multiple factors.",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Thinking completed",
+      "id": "message-2",
+      "role": "assistant",
+    },
+    "type": "message",
   },
 ]
 `;
@@ -250,10 +596,65 @@ exports[`AgentClient Event Processing Tool Call Events should handle tool call c
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool call completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -262,11 +663,21 @@ exports[`AgentClient Event Processing Tool Call Events should handle tool call r
 [
   {
     "message": {
-      "content": "",
-      "id": "tambo-assistant-complete",
+      "content": "Tool execution result",
+      "id": "tool-msg-1",
+      "role": "tool",
+      "toolCallId": "call-1",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool result completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
@@ -276,10 +687,65 @@ exports[`AgentClient Event Processing Tool Call Events should handle tool call s
   {
     "message": {
       "content": "",
-      "id": "tambo-assistant-complete",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool call completed",
+      "id": "message-1",
       "role": "assistant",
     },
-    "type": "complete",
+    "type": "message",
   },
 ]
 `;
