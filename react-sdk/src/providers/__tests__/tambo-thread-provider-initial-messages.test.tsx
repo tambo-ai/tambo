@@ -6,7 +6,7 @@ import {
   GenerationStage,
   TamboThreadMessage,
 } from "../../model/generate-component-response";
-import { useTamboClient } from "../tambo-client-provider";
+import { useTamboClient, useTamboQueryClient } from "../tambo-client-provider";
 import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "../tambo-thread-provider";
@@ -23,6 +23,7 @@ Object.defineProperty(global, "crypto", {
 // Mock the required providers
 jest.mock("../tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(),
 }));
 jest.mock("@tambo-ai/typescript-sdk", () => ({
   advanceStream: jest.fn(),
@@ -73,6 +74,12 @@ describe("TamboThreadProvider with initial messages", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useTamboClient as jest.Mock).mockReturnValue(mockClient);
+    // Provide a minimal mock for the query client used by the provider
+    const mockQueryClient = {
+      setQueryData: jest.fn(),
+      invalidateQueries: jest.fn(),
+    };
+    (useTamboQueryClient as jest.Mock).mockReturnValue(mockQueryClient);
     (advanceStream as jest.Mock).mockImplementation(async function* () {
       yield {
         responseMessageDto: {
