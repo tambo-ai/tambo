@@ -333,7 +333,7 @@ function getToolStatusMessage(
  * @component ToolcallInfo
  */
 const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
-  ({ className, markdown: _markdown = true, ...props }, ref) => {
+  ({ className, markdown = true, ...props }, ref) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { message, isLoading } = useMessageContext();
     const { thread } = useTambo();
@@ -425,7 +425,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
                       Empty response
                     </span>
                   ) : (
-                    formatToolResult(associatedToolResponse.content)
+                    formatToolResult(associatedToolResponse.content, markdown)
                   )}
                 </div>
               </>
@@ -508,6 +508,9 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
             id={reasoningDetailsId}
             className={cn(
               "flex flex-col gap-1 px-3 py-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
+              "[&::-webkit-scrollbar]:w-[6px]",
+              "[&::-webkit-scrollbar-thumb]:bg-gray-300",
+              "[&::-webkit-scrollbar:horizontal]:h-[4px]",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
@@ -559,6 +562,7 @@ function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
  */
 function formatToolResult(
   content: TamboThreadMessage["content"],
+  enableMarkdown = true,
 ): React.ReactNode {
   if (!content) return content;
 
@@ -569,14 +573,33 @@ function formatToolResult(
   try {
     const parsed = JSON.parse(safeContent);
     return (
-      <pre className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64">
+      <pre
+        className={cn(
+          "bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64",
+          "[&::-webkit-scrollbar]:w-[6px]",
+          "[&::-webkit-scrollbar-thumb]:bg-gray-300",
+          "[&::-webkit-scrollbar:horizontal]:h-[4px]",
+        )}
+      >
         <code className="font-mono break-words whitespace-pre-wrap">
           {JSON.stringify(parsed, null, 2)}
         </code>
       </pre>
     );
   } catch {
-    return safeContent;
+    if (!enableMarkdown) return safeContent;
+    return (
+      <Streamdown
+        components={
+          createMarkdownComponents() as Record<
+            string,
+            React.ComponentType<Record<string, unknown>>
+          >
+        }
+      >
+        {safeContent}
+      </Streamdown>
+    );
   }
 }
 
