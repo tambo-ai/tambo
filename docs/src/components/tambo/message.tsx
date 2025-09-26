@@ -461,7 +461,7 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
 
     // Auto-collapse when content arrives and reasoning is not loading
     React.useEffect(() => {
-      if (message.content && !isLoading) {
+      if (checkHasContent(message.content) && !isLoading) {
         setIsExpanded(false);
       }
     }, [message.content, isLoading]);
