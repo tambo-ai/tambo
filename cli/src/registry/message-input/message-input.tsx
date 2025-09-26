@@ -1,7 +1,10 @@
 "use client";
 
-import { McpConfigModal } from "@/components/ui/mcp-config-modal";
-import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
+import { McpConfigModal } from "@/components/tambo/mcp-config-modal";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,

@@ -6,21 +6,21 @@ import {
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputError,
+  MessageInputFileButton,
   // MessageInputMcpConfigButton,
-} from "@/components/ui/message-input";
-import { MessageInputFileButton } from "@/components/ui/message-input";
+} from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
   MessageSuggestionsStatus,
   MessageSuggestionsList,
-} from "@/components/ui/message-suggestions";
-import type { messageVariants } from "@/components/ui/message";
+} from "@/components/tambo/message-suggestions";
+import type { messageVariants } from "@/components/tambo/message";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
-import { ThreadDropdown } from "@/components/ui/thread-dropdown";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+} from "@/components/tambo/thread-content";
+import { ThreadDropdown } from "@/components/tambo/thread-dropdown";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import { cn } from "@/lib/utils";
 import { Collapsible } from "radix-ui";
 import { XIcon } from "lucide-react";
@@ -42,7 +42,7 @@ export interface MessageThreadCollapsibleProps
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];

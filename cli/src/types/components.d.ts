@@ -15,13 +15,14 @@
  * - Tooltip component
  * - ThreadDropdown component
  * - ScrollableMessageContainer component
+ * - MessageInputFileButton component
  *
  * These components are meant to be installed and used in end-user projects
  * through the CLI installation process.
  */
 type ComponentVariant = "default" | "solid" | "bordered" | null | undefined;
 
-declare module "@/components/ui/message" {
+declare module "@/components/tambo/message" {
   export interface MessageProps {
     className?: string;
     role: "user" | "assistant";
@@ -82,7 +83,7 @@ declare module "@/components/ui/message" {
   >;
 }
 
-declare module "@/components/ui/thread-content" {
+declare module "@/components/tambo/thread-content" {
   export interface ThreadContentProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
@@ -111,7 +112,7 @@ declare module "@/components/ui/thread-content" {
   >;
 }
 
-declare module "@/components/ui/message-input" {
+declare module "@/components/tambo/message-input" {
   export interface MessageInputProps
     extends React.HTMLAttributes<HTMLFormElement> {
     variant?: ComponentVariant;
@@ -179,7 +180,7 @@ declare module "@/components/ui/message-input" {
   >;
 }
 
-declare module "@/components/ui/message-suggestions" {
+declare module "@/components/tambo/message-suggestions" {
   export interface MessageSuggestionsProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
@@ -216,14 +217,14 @@ declare module "@/components/ui/message-suggestions" {
   >;
 }
 
-declare module "@/components/ui/markdown-components" {
+declare module "@/components/tambo/markdown-components" {
   export const createMarkdownComponents: (
     theme?: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) => Record<string, React.ComponentType<any>>;
 }
 
-declare module "@/components/ui/thread-history" {
+declare module "@/components/tambo/thread-history" {
   export interface ThreadHistoryProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
@@ -257,7 +258,7 @@ declare module "@/components/ui/thread-history" {
   >;
 }
 
-declare module "@/components/ui/thread-list" {
+declare module "@/components/tambo/thread-list" {
   export interface ThreadListProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
@@ -280,7 +281,7 @@ declare module "@/components/ui/thread-list" {
   };
 }
 
-declare module "@/components/ui/message-generation-stage" {
+declare module "@/components/tambo/message-generation-stage" {
   export interface GenerationStageProps
     extends React.HTMLAttributes<HTMLDivElement> {
     showLabel?: boolean;
@@ -290,7 +291,7 @@ declare module "@/components/ui/message-generation-stage" {
   >;
 }
 
-declare module "@/components/ui/suggestions-tooltip" {
+declare module "@/components/tambo/suggestions-tooltip" {
   export interface TooltipProps {
     content: React.ReactNode;
     children: React.ReactNode;
@@ -319,7 +320,7 @@ declare module "@/components/ui/suggestions-tooltip" {
   export const TooltipTrigger: any;
 }
 
-declare module "@/components/ui/thread-dropdown" {
+declare module "@/components/tambo/thread-dropdown" {
   export interface ThreadDropdownProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
@@ -331,7 +332,7 @@ declare module "@/components/ui/thread-dropdown" {
   >;
 }
 
-declare module "@/components/ui/scrollable-message-container" {
+declare module "@/components/tambo/scrollable-message-container" {
   export const ScrollableMessageContainer: React.ForwardRefExoticComponent<
     React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>
   >;
@@ -370,7 +371,7 @@ declare module "@/lib/thread-hooks" {
   ): string[];
 }
 
-declare module "@/components/ui/thread-container" {
+declare module "@/components/tambo/thread-container" {
   export const ThreadContainer: React.ForwardRefExoticComponent<
     ThreadContainerProps & React.RefAttributes<HTMLDivElement>
   >;
@@ -387,7 +388,7 @@ declare module "@/components/ui/thread-container" {
   };
 }
 
-declare module "@/components/ui/mcp-config-modal" {
+declare module "@/components/tambo/mcp-config-modal" {
   export const McpConfigModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;

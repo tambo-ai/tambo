@@ -1,39 +1,39 @@
 "use client";
 
-import type { messageVariants } from "@/components/ui/message";
+import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
   MessageInputError,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-} from "@/components/ui/message-input";
+  MessageInputFileButton,
+} from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
   MessageSuggestionsList,
   MessageSuggestionsStatus,
-} from "@/components/ui/message-suggestions";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+} from "@/components/tambo/message-suggestions";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import {
   ThreadContainer,
   useThreadContainerContext,
-} from "@/components/ui/thread-container";
+} from "@/components/tambo/thread-container";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
+} from "@/components/tambo/thread-content";
 import {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryList,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-} from "@/components/ui/thread-history";
+} from "@/components/tambo/thread-history";
 import { useMergedRef } from "@/lib/thread-hooks";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { MessageInputFileButton } from "@/components/ui/message-input";
 
 /**
  * Props for the MessageThreadFull component
@@ -45,7 +45,7 @@ export interface MessageThreadFullProps
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];

@@ -5,20 +5,21 @@ import { Dialog } from "radix-ui";
 import { useTambo } from "@tambo-ai/react";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
-import type { messageVariants } from "@/components/ui/message";
+import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
   MessageInputSubmitButton,
   MessageInputError,
+  MessageInputFileButton,
   // MessageInputMcpConfigButton,
-} from "@/components/ui/message-input";
+} from "@/components/tambo/message-input";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+} from "@/components/tambo/thread-content";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 
 /**
  * Props for the ControlBar component
@@ -33,7 +34,7 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/ui/message".
+   * These values are defined in messageVariants from "@/components/tambo/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
@@ -102,6 +103,7 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                     <MessageInputToolbar>
                       {/* Uncomment this to enable client-side MCP config modal button */}
                       {/* <MessageInputMcpConfigButton /> */}
+                      <MessageInputFileButton />
                       <MessageInputSubmitButton />
                     </MessageInputToolbar>
                     <MessageInputError />
