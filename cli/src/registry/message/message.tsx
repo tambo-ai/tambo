@@ -507,8 +507,8 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
           <div
             id={reasoningDetailsId}
             className={cn(
-              "flex flex-col gap-1 px-3 py-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
-              isExpanded ? "max-h-none opacity-100" : "max-h-0 opacity-0 p-0",
+              "flex flex-col gap-1 px-3 py-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
+              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
             {message.reasoning.map((reasoningStep, index) => (
