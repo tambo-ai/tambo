@@ -1,14 +1,11 @@
-import {
-  TamboProvider,
-  TamboThreadMessage,
-  useTambo,
-} from "@tambo-ai/react-sdk";
+import { TamboProvider, TamboThreadMessage, useTambo } from "@tambo-ai/react";
 import React from "react";
 
 // Example initial messages for different use cases
 const CUSTOMER_SUPPORT_MESSAGES: TamboThreadMessage[] = [
   {
     id: "system-1",
+    threadId: "support-thread",
     role: "system",
     content: [
       {
@@ -21,6 +18,7 @@ const CUSTOMER_SUPPORT_MESSAGES: TamboThreadMessage[] = [
   },
   {
     id: "welcome-1",
+    threadId: "support-thread",
     role: "assistant",
     content: [
       {
@@ -36,6 +34,7 @@ const CUSTOMER_SUPPORT_MESSAGES: TamboThreadMessage[] = [
 const EDUCATIONAL_MESSAGES: TamboThreadMessage[] = [
   {
     id: "system-2",
+    threadId: "education-thread",
     role: "system",
     content: [
       {
@@ -48,6 +47,7 @@ const EDUCATIONAL_MESSAGES: TamboThreadMessage[] = [
   },
   {
     id: "welcome-2",
+    threadId: "education-thread",
     role: "assistant",
     content: [
       {
@@ -63,6 +63,7 @@ const EDUCATIONAL_MESSAGES: TamboThreadMessage[] = [
 const CODING_ASSISTANT_MESSAGES: TamboThreadMessage[] = [
   {
     id: "system-3",
+    threadId: "coding-thread",
     role: "system",
     content: [
       {
@@ -75,6 +76,7 @@ const CODING_ASSISTANT_MESSAGES: TamboThreadMessage[] = [
   },
   {
     id: "welcome-3",
+    threadId: "coding-thread",
     role: "assistant",
     content: [
       {
