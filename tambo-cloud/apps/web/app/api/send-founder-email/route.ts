@@ -1,6 +1,7 @@
 import { validateEmail } from "@/lib/email-validation";
 import { env } from "@/lib/env";
 import { NextResponse } from "next/server";
+import { isResendEmailUnsubscribed } from "@tambo-ai-cloud/core";
 import { Resend } from "resend";
 
 // Define the expected request body shape
@@ -82,37 +83,22 @@ export async function POST(req: Request) {
       );
     }
 
-    /*
-     * Attempt to subscribe the user to the Resend audience before
-     * sending the email. This operation is *best-effort* – any failure
-     * is logged but will not block email delivery.
-     */
+    // If possible, block emails if the user is unsubscribed in the audience (best‑effort)
     if (env.RESEND_AUDIENCE_ID) {
       try {
-        console.log(
-          `Subscribing ${usersEmail} to audience ${env.RESEND_AUDIENCE_ID}`,
+        const unsubscribed = await isResendEmailUnsubscribed(
+          resend.contacts,
+          env.RESEND_AUDIENCE_ID,
+          usersEmail,
         );
-        const contactResponse = await resend.contacts.create({
-          audienceId: env.RESEND_AUDIENCE_ID,
-          email: usersEmail,
-          unsubscribed: false,
-        });
-        console.log("Successfully subscribed contact", contactResponse);
-      } catch (subscriptionError) {
-        console.warn(
-          "Audience subscription failed (continuing with email send):",
-          subscriptionError instanceof Error
-            ? {
-                message: subscriptionError.message,
-                name: subscriptionError.name,
-              }
-            : subscriptionError,
-        );
+        if (unsubscribed) {
+          // Avoid email enumeration: add a small jitter and return a neutral response
+          await new Promise((r) => setTimeout(r, 200 + Math.random() * 400));
+          return NextResponse.json({ success: true }, { status: 202 });
+        }
+      } catch {
+        // proceed if we cannot determine
       }
-    } else {
-      console.log(
-        "RESEND_AUDIENCE_ID not configured – skipping audience subscription",
-      );
     }
 
     // Send the email to founders

@@ -15,6 +15,7 @@ export * from "./templates";
 export * from "./threads";
 export * from "./tools";
 export type * from "./typeutils";
+export * from "./email";
 // Auth helpers
 export * from "./agent-registry";
 export * from "./ai-providers";
@@ -22,3 +23,5 @@ export * from "./auth/email-domain";
 export * from "./llm-config-types";
 export * from "./llms/llm.config";
 export * from "./throttle";
+// Resend helpers (uses SDK types)
+export * from "./resend/audience";

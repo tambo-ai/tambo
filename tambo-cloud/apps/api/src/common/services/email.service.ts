@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Resend } from "resend";
 import { FREE_MESSAGE_LIMIT } from "../../threads/types/errors";
+import { isResendEmailUnsubscribed, maskEmail } from "@tambo-ai-cloud/core";
 import { firstMessageEmail } from "../emails/first-message";
 import { messageLimitEmail } from "../emails/message-limit";
 import { reactivationEmail } from "../emails/reactivation";
@@ -14,6 +15,7 @@ export class EmailService {
   private readonly fromEmailPersonal: string;
   private readonly replyToSupport: string;
   private readonly replyToPersonal: string;
+  private readonly resendAudienceId?: string;
 
   constructor(private readonly configService: ConfigService) {
     const resendApiKey = this.configService.get<string>("RESEND_API_KEY");
@@ -49,6 +51,24 @@ export class EmailService {
     if (!this.replyToPersonal) {
       throw new Error("EMAIL_REPLY_TO_PERSONAL is not configured");
     }
+
+    // Optional audience for unsubscribe checks
+    const audienceId = this.configService.get<string>("RESEND_AUDIENCE_ID");
+    this.resendAudienceId = audienceId || undefined;
+  }
+
+  /**
+   * Best-effort check: returns true if the email appears unsubscribed in Resend audience.
+   * Fails closed to false (i.e., do not block) if we cannot determine.
+   */
+  private async isEmailUnsubscribed(userEmail: string): Promise<boolean> {
+    if (!this.resendAudienceId) return false;
+    // Helper already handles errors and returns false on failure
+    return await isResendEmailUnsubscribed(
+      this.resend.contacts,
+      this.resendAudienceId,
+      userEmail,
+    );
   }
 
   async sendMessageLimitNotification(
@@ -79,6 +99,13 @@ export class EmailService {
     firstName?: string | null,
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      if (await this.isEmailUnsubscribed(userEmail)) {
+        // Skip send for unsubscribed recipients; mask PII and keep logs neutral
+        console.debug("Welcome email skipped: recipient is unsubscribed", {
+          email: maskEmail(userEmail),
+        });
+        return { success: true };
+      }
       const result = await this.resend.emails.send({
         from: this.fromEmailPersonal,
         to: userEmail,
@@ -140,6 +167,13 @@ export class EmailService {
     firstName?: string | null,
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      if (await this.isEmailUnsubscribed(userEmail)) {
+        // Skip send for unsubscribed recipients; mask PII and keep logs neutral
+        console.debug("Reactivation email skipped: recipient is unsubscribed", {
+          email: maskEmail(userEmail),
+        });
+        return { success: true };
+      }
       const result = await this.resend.emails.send({
         from: this.fromEmailPersonal,
         to: userEmail,

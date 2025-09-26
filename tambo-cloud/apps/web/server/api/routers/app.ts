@@ -1,6 +1,7 @@
 import { env } from "@/lib/env";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { Resend } from "resend";
+import { isResendEmailUnsubscribed } from "@tambo-ai-cloud/core";
 import { z } from "zod";
 
 /**
@@ -15,6 +16,24 @@ export const appRouter = createTRPCRouter({
       }
 
       const resend = new Resend(env.RESEND_API_KEY);
+
+      // If available, block emails to unsubscribed contacts (best‑effort)
+      if (env.RESEND_AUDIENCE_ID) {
+        try {
+          const unsubscribed = await isResendEmailUnsubscribed(
+            resend.contacts,
+            env.RESEND_AUDIENCE_ID,
+            input.email,
+          );
+          if (unsubscribed) {
+            // Avoid email enumeration: add a small jitter and return a neutral response while skipping the send
+            await new Promise((r) => setTimeout(r, 200 + Math.random() * 400));
+            return { success: true };
+          }
+        } catch {
+          // proceed if we cannot determine
+        }
+      }
 
       const data = await resend.emails.send({
         from: "Tambo AI <magan@tambo.co>",
