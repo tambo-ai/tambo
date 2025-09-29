@@ -13,8 +13,8 @@ const processor = remark()
 
 export async function getLLMText(page: InferPageType<typeof source>) {
   const processed = await processor.process({
-    path: page.data._file.absolutePath,
-    value: page.data.content,
+    path: page.data.info.fullPath,
+    value: await page.data.getText("processed"),
   });
 
   // note: it doesn't escape frontmatter, it's up to you.
