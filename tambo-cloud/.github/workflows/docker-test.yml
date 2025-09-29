@@ -71,6 +71,38 @@ jobs:
           build-args: |
             NODE_ENV=development
 
+      - name: Build web production image
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          load: true
+          push: false
+          tags: |
+            ghcr.io/tambo-ai/tambo-web-server:${{ github.sha }}
+            ghcr.io/tambo-ai/tambo-web-server:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+
+      - name: Build api production image
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          load: true
+          push: false
+          tags: |
+            ghcr.io/tambo-ai/tambo-api-server:${{ github.sha }}
+            ghcr.io/tambo-ai/tambo-api-server:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+
       - name: Start Docker stack
         run: |
           ./scripts/tambo-start.sh
@@ -135,23 +167,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push web image to GHCR
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      - name: Push web image to GHCR (main branch)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          # Tag the tested image for GHCR with commit SHA and latest
-          docker tag tambo-web:test ghcr.io/tambo-ai/tambo-web-server:${{ github.sha }}
           docker push ghcr.io/tambo-ai/tambo-web-server:${{ github.sha }}
-          docker tag tambo-web:test ghcr.io/tambo-ai/tambo-web-server:latest
           docker push ghcr.io/tambo-ai/tambo-web-server:latest
 
-      - name: Push api image to GHCR
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      - name: Push web image to GHCR (tags)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         run: |
-          # Tag the tested image for GHCR with commit SHA and latest
-          docker tag tambo-api:test ghcr.io/tambo-ai/tambo-api-server:${{ github.sha }}
+          docker push ghcr.io/tambo-ai/tambo-web-server:${{ github.sha }}
+
+      - name: Push api image to GHCR (main branch)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
           docker push ghcr.io/tambo-ai/tambo-api-server:${{ github.sha }}
-          docker tag tambo-api:test ghcr.io/tambo-ai/tambo-api-server:latest
           docker push ghcr.io/tambo-ai/tambo-api-server:latest
+
+      - name: Push api image to GHCR (tags)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          docker push ghcr.io/tambo-ai/tambo-api-server:${{ github.sha }}
 
       - name: Cleanup
         if: always()
