@@ -77,34 +77,6 @@ const initialMessagesWithComponent: TamboThreadMessage[] = [
 ];
 ```
 
-## API Usage
-
-### Direct API Call
-
-When using the API directly, you can include `initialMessages` in the advance thread request:
-
-```typescript
-const response = await fetch("/threads/advancestream", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
-  },
-  body: JSON.stringify({
-    messageToAppend: {
-      content: [{ type: "text", text: "Hello!" }],
-      role: "user",
-    },
-    initialMessages: [
-      {
-        content: [{ type: "text", text: "You are a helpful assistant." }],
-        role: "system",
-      },
-    ],
-  }),
-});
-```
-
 ## Behavior
 
 ### New Threads
