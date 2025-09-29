@@ -94,3 +94,7 @@ updates:
       ag-ui:
         patterns:
           - "@ag-ui/*"
+      nexstra:
+        patterns:
+          - "nextra"
+          - "nextra-*"
