@@ -40,9 +40,13 @@ fi
 echo -e "${BLUE}🔗 Creating Docker network...${NC}"
 docker network create tambo_network 2>/dev/null || true
 
-# Pull latest images
-echo -e "${YELLOW}📦 Pulling latest images...${NC}"
-docker compose --env-file docker.env pull
+# Pull latest images (skip in CI where images are built locally)
+if [ -z "$GITHUB_ACTIONS" ]; then
+    echo -e "${YELLOW}📦 Pulling latest images...${NC}"
+    docker compose --env-file docker.env pull
+else
+    echo -e "${YELLOW}📦 Skipping pull in CI (using locally built images)...${NC}"
+fi
 
 # Start all services with BuildKit
 echo -e "${BLUE}🎯 Starting Tambo services with BuildKit...${NC}"

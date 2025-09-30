@@ -35,6 +35,7 @@ services:
 
   # Web Service (Next.js)
   web:
+    image: tambo-web:latest
     build:
       context: .
       dockerfile: apps/web/Dockerfile
@@ -95,6 +96,7 @@ services:
 
   # API Service (NestJS)
   api:
+    image: tambo-api:latest
     build:
       context: .
       dockerfile: apps/api/Dockerfile
