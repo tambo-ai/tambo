@@ -20,7 +20,7 @@
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.7",
     "framer-motion": "^12.23.12",
-    "geist": "^1.4.2",
+    "geist": "^1.5.1",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
     "leaflet": "^1.9.4",
