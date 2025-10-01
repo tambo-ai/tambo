@@ -194,10 +194,7 @@ describe("useTamboThreadList", () => {
         "isRefetching": false,
         "isStale": true,
         "isSuccess": false,
-        "promise": Promise {
-          "reason": [Error: experimental_prefetchInRender feature flag is not enabled],
-          "status": "rejected",
-        },
+        "promise": Promise {},
         "refetch": [Function],
         "status": "pending",
       }
