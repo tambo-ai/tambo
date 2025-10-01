@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { getDb, schema } from "@tambo-ai-cloud/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
             ...existingContact[0].metadata,
             ...metadata,
           },
-          updatedAt: new Date(),
+          updatedAt: sql`now()`,
         })
         .where(eq(schema.contacts.email, email))
         .returning();

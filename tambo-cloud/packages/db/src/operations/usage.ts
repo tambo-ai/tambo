@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
@@ -16,7 +16,7 @@ export async function incrementMessageCount(db: HydraDb, projectId: string) {
       .update(schema.projectMessageUsage)
       .set({
         messageCount: usage.messageCount + 1,
-        updatedAt: new Date(),
+        updatedAt: sql`now()`,
       })
       .where(eq(schema.projectMessageUsage.projectId, projectId))
       .returning();
@@ -50,7 +50,7 @@ export async function updateProjectMessageUsage(
       .update(schema.projectMessageUsage)
       .set({
         ...data,
-        updatedAt: new Date(),
+        updatedAt: sql`now()`,
         firstMessageSentAt: data.firstMessageSentAt ?? usage.firstMessageSentAt,
       })
       .where(eq(schema.projectMessageUsage.projectId, projectId))

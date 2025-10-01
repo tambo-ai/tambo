@@ -7,11 +7,11 @@ import {
   hideApiKey,
   MCPTransport,
   OAuthValidationMode,
-  type CustomLlmParameters,
   ToolProviderType,
+  type CustomLlmParameters,
 } from "@tambo-ai-cloud/core";
 import { randomBytes } from "crypto";
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
@@ -219,12 +219,10 @@ export async function updateProject(
     return project;
   }
 
-  // Always bump the project timestamp on any update for consistency
-  updateData.updatedAt = new Date();
-
   const updated = await db
     .update(schema.projects)
-    .set(updateData)
+    // Always bump the project timestamp on any update for consistency
+    .set({ ...updateData, updatedAt: sql`now()` })
     .where(eq(schema.projects.id, id))
     .returning();
   return updated.length > 0 ? updated[0] : undefined;
@@ -440,7 +438,7 @@ export async function updateApiKeyStatus(
       .update(schema.projectMessageUsage)
       .set({
         hasApiKey,
-        updatedAt: new Date(),
+        updatedAt: sql`now()`,
       })
       .where(eq(schema.projectMessageUsage.projectId, projectId));
   } else {
@@ -535,7 +533,7 @@ export async function updateMcpServer(
       customHeaders: customHeaders || {},
       mcpTransport,
       mcpRequiresAuth,
-      updatedAt: new Date(),
+      updatedAt: sql`now()`,
     })
     .where(
       and(
@@ -621,7 +619,7 @@ export async function updateOAuthValidationSettings(
       oauthValidationMode: settings.mode,
       oauthSecretKeyEncrypted: settings.secretKeyEncrypted,
       oauthPublicKey: settings.publicKey,
-      updatedAt: new Date(),
+      updatedAt: sql`now()`,
     })
     .where(eq(schema.projects.id, projectId))
     .returning();

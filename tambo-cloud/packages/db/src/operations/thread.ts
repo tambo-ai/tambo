@@ -176,7 +176,7 @@ export async function updateThread(
     .set({
       contextKey,
       metadata,
-      updatedAt: new Date(),
+      updatedAt: sql`now()`,
       generationStage,
       statusMessage,
       name,
@@ -241,7 +241,7 @@ export async function addMessage(
   // Update the thread's updatedAt timestamp
   await db
     .update(schema.threads)
-    .set({ updatedAt: new Date() })
+    .set({ updatedAt: sql`now()` })
     .where(eq(schema.threads.id, message.threadId));
 
   return message;
@@ -293,7 +293,7 @@ export async function updateMessage(
   // Update the thread's updatedAt timestamp
   await db
     .update(schema.threads)
-    .set({ updatedAt: new Date() })
+    .set({ updatedAt: sql`now()` })
     .where(eq(schema.threads.id, updatedMessage.threadId));
 
   return updatedMessage;
@@ -358,7 +358,7 @@ export async function updateThreadGenerationStatus(
     .set({
       generationStage,
       statusMessage,
-      updatedAt: new Date(),
+      updatedAt: sql`now()`,
     })
     .where(eq(schema.threads.id, threadId))
     .returning();
