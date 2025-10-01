@@ -1,3 +1,4 @@
+import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -21,8 +22,10 @@ export class MCPClient {
   private client: Client;
   private transport: SSEClientTransport | StreamableHTTPClientTransport;
   private transportType: MCPTransport;
+  public sessionId?: string;
   private endpoint: string;
   private headers: Record<string, string>;
+  private authProvider?: OAuthClientProvider;
   /**
    * Tracks an in-flight reconnect so concurrent triggers coalesce
    * (single-flight). When set, additional calls to `reconnect()` or
@@ -69,31 +72,45 @@ export class MCPClient {
   private constructor(
     endpoint: string,
     transportType: MCPTransport,
-    headers: Record<string, string> = {},
+    headers?: Record<string, string>,
+    authProvider?: OAuthClientProvider,
+    sessionId?: string,
   ) {
     this.endpoint = endpoint;
-    this.headers = headers;
+    this.headers = headers ?? {};
+    this.authProvider = authProvider;
     this.transportType = transportType;
-    this.transport = this.initializeTransport(undefined);
+    this.transport = this.initializeTransport(sessionId);
     this.client = this.initializeClient();
   }
 
   /**
-   * Creates and initializes a new MCPClient instance.
-   * This is the recommended way to create an MCPClient as it handles both
-   * instantiation and connection setup.
+   * Creates and initializes a new MCPClient instance. This is the recommended
+   * way to create an MCPClient as it handles both instantiation and connection
+   * setup.
    * @param endpoint - The URL of the MCP server to connect to
    * @param transportType - The transport type to use for the MCP client. Defaults to HTTP.
    * @param headers - Optional custom headers to include in requests
+   * @param authProvider - Optional auth provider to use for authentication
+   * @param sessionId - Optional session id to use for the MCP client - if not
+   *   provided, a new session will be created
    * @returns A connected MCPClient instance ready for use
-   * @throws Will throw an error if connection fails
+   * @throws {Error} Will throw an error if connection fails
    */
   static async create(
     endpoint: string,
     transportType: MCPTransport = MCPTransport.HTTP,
-    headers?: Record<string, string>,
+    headers: Record<string, string> | undefined,
+    authProvider: OAuthClientProvider | undefined,
+    sessionId: string | undefined,
   ): Promise<MCPClient> {
-    const mcpClient = new MCPClient(endpoint, transportType, headers);
+    const mcpClient = new MCPClient(
+      endpoint,
+      transportType,
+      headers,
+      authProvider,
+      sessionId,
+    );
     await mcpClient.client.connect(mcpClient.transport);
     return mcpClient;
   }
@@ -114,6 +131,7 @@ export class MCPClient {
    * @param newSession - Whether to create a new session (true) or reuse existing session ID (false)
    * @param reportErrorOnClose - Whether to report errors when closing the client
    * Note that only StreamableHTTPClientTransport supports session IDs.
+   * @returns A promise that resolves when the reconnect is complete
    */
   async reconnect(newSession = false, reportErrorOnClose = true) {
     // If a reconnect is already running, coalesce into it.
@@ -151,6 +169,14 @@ export class MCPClient {
       this.transport = this.initializeTransport(sessionId);
       this.client = this.initializeClient();
       await this.client.connect(this.transport);
+      // We may have gotten a session id from the server, so we need to set it
+      if ("sessionId" in this.transport) {
+        this.sessionId = this.transport.sessionId;
+        if (sessionId !== this.sessionId) {
+          // This is a pretty unusual thing to happen, but it might be possible?
+          console.warn("Session id mismatch", sessionId, this.sessionId);
+        }
+      }
     };
 
     this.reconnecting = (async () => {
@@ -177,6 +203,7 @@ export class MCPClient {
 
   /**
    * Compute the next backoff delay with symmetric jitter.
+   * @returns The next backoff delay in milliseconds
    */
   private computeBackoffDelayMs(): number {
     const base = Math.min(
@@ -233,12 +260,14 @@ export class MCPClient {
   private initializeTransport(sessionId: string | undefined) {
     if (this.transportType === MCPTransport.SSE) {
       return new SSEClientTransport(new URL(this.endpoint), {
+        authProvider: this.authProvider,
         requestInit: { headers: this.headers },
       });
     } else {
       return new StreamableHTTPClientTransport(new URL(this.endpoint), {
-        sessionId,
+        authProvider: this.authProvider,
         requestInit: { headers: this.headers },
+        sessionId,
       });
     }
   }
@@ -256,7 +285,7 @@ export class MCPClient {
    * Retrieves a complete list of all available tools from the MCP server.
    * Handles pagination automatically by following cursors until all tools are fetched.
    * @returns A complete list of all available tools and their descriptions
-   * @throws Will throw an error if any server request fails during pagination
+   * @throws {Error} Will throw an error if any server request fails during pagination
    */
   async listTools(): Promise<MCPToolSpec[]> {
     const allTools: MCPToolSpec[] = [];
@@ -291,14 +320,29 @@ export class MCPClient {
     return allTools;
   }
 
+  getServerCapabilities() {
+    return this.client.getServerCapabilities();
+  }
+
+  getServerVersion() {
+    return this.client.getServerVersion();
+  }
+
+  getInstructions() {
+    return this.client.getInstructions();
+  }
+
   /**
    * Calls a specific tool on the MCP server with the provided arguments.
    * @param name - The name of the tool to call
    * @param args - Arguments to pass to the tool, must match the tool's expected schema
    * @returns The result from the tool execution
-   * @throws Will throw an error if the tool call fails or if arguments are invalid
+   * @throws {Error} Will throw an error if the tool call fails or if arguments are invalid
    */
-  async callTool(name: string, args: Record<string, unknown>) {
+  async callTool(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<MCPToolCallResult> {
     const result = await this.client.callTool({
       name,
       arguments: args,
@@ -306,6 +350,14 @@ export class MCPClient {
     return result;
   }
 }
+
+/**
+ * The result of a tool call.
+ * This is the same as the result of a tool call in the OpenAI SDK, but is reified here
+ */
+export type MCPToolCallResult = Awaited<
+  ReturnType<typeof Client.prototype.callTool>
+>;
 
 // Example usage:
 /*
