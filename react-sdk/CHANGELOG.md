@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.55.0](https://github.com/tambo-ai/tambo/compare/react-v0.54.1...react-v0.55.0) (2025-10-01)
+
+
+### Features
+
+* **mcp:** add very early session support ([#1117](https://github.com/tambo-ai/tambo/issues/1117)) ([0a441b7](https://github.com/tambo-ai/tambo/commit/0a441b7d2d1dc68a43fbe265bb806864ad9f9544))
+
+
+### Miscellaneous Chores
+
+* add agents.md & claude.md to monorepo. ([#1116](https://github.com/tambo-ai/tambo/issues/1116)) ([fe911d4](https://github.com/tambo-ai/tambo/commit/fe911d4613b301cf9a68a6a95ebc2b7a6a294dd5))
+* **deps-dev:** bump the eslint group across 1 directory with 6 updates ([#1097](https://github.com/tambo-ai/tambo/issues/1097)) ([a6fb6f1](https://github.com/tambo-ai/tambo/commit/a6fb6f1597380bb03f4700a2757edf1009095c6f))
+* **deps-dev:** bump the eslint group with 2 updates ([#1102](https://github.com/tambo-ai/tambo/issues/1102)) ([81b6601](https://github.com/tambo-ai/tambo/commit/81b6601df999b36bc51958a36c9164ef897734a4))
+* **deps-dev:** bump the testing group with 2 updates ([#1108](https://github.com/tambo-ai/tambo/issues/1108)) ([28b2c0f](https://github.com/tambo-ai/tambo/commit/28b2c0fe293c4fb437c2d105c8cc41154b4e135a))
+* **deps-dev:** bump ts-jest from 29.4.2 to 29.4.4 in the testing group ([#1087](https://github.com/tambo-ai/tambo/issues/1087)) ([625384c](https://github.com/tambo-ai/tambo/commit/625384c0bc2130e76fb637d889aa25667543970a))
+* **deps:** bump @modelcontextprotocol/sdk from 1.17.4 to 1.18.2 ([#1104](https://github.com/tambo-ai/tambo/issues/1104)) ([3e436b9](https://github.com/tambo-ai/tambo/commit/3e436b9721044b1e7668afcb997705e262f4dba4))
+* **deps:** bump @tanstack/react-query from 5.87.4 to 5.90.1 ([#1092](https://github.com/tambo-ai/tambo/issues/1092)) ([4ac242f](https://github.com/tambo-ai/tambo/commit/4ac242fbf306cee31135dd422a3115bb05b4a223))
+* **deps:** bump @tanstack/react-query from 5.90.1 to 5.90.2 ([#1113](https://github.com/tambo-ai/tambo/issues/1113)) ([97049af](https://github.com/tambo-ai/tambo/commit/97049af0246f19fc114b26a1f35fda7a1c8bfbc0))
+* **deps:** bump fast-equals from 5.2.2 to 5.3.2 ([#1103](https://github.com/tambo-ai/tambo/issues/1103)) ([2a5a6b4](https://github.com/tambo-ai/tambo/commit/2a5a6b4e1e941816a0e035ee4efab9dd8312db10))
+
+
+### Documentation
+
+* Fix react-sdk docs for typos ([#1082](https://github.com/tambo-ai/tambo/issues/1082)) ([3943de1](https://github.com/tambo-ai/tambo/commit/3943de15bce557efce2cb2016fe203dd89a7ad1c))
+
 ## [0.54.1](https://github.com/tambo-ai/tambo/compare/react-v0.54.0...react-v0.54.1) (2025-09-20)
 
 
