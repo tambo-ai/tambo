@@ -47,9 +47,9 @@
   },
   "volta": {
     "node": "22.16.0",
-    "npm": "10.9.2"
+    "npm": "11.6.1"
   },
-  "packageManager": "npm@10.9.2",
+  "packageManager": "npm@11.6.1",
   "version": "0.109.0",
   "license": "Apache-2.0"
 }
