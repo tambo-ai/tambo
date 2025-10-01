@@ -62,7 +62,7 @@ jobs:
         with:
           registry: ghcr.io
           username: tambo-bot
-          password: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          password: ${{ secrets.RELEASE_PACKAGES }}
 
       - name: Build and push web image
         uses: docker/build-push-action@v6
