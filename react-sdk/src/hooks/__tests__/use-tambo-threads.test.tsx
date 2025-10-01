@@ -199,13 +199,8 @@ describe("useTamboThreadList", () => {
         "status": "pending",
       }
     `);
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.data).toBeNull();
 
     resolvePromise!(mockThreads);
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
