@@ -28,6 +28,7 @@ export async function validateMcpServer({
       mcpTransport,
       customHeaders,
       oauthProvider,
+      undefined, // since we're not doing anything with this session, it's ok to just start a new session
     );
     const capabilities = mcpClient.getServerCapabilities();
     const version = mcpClient.getServerVersion();

@@ -22,6 +22,7 @@ export enum MCPTransport {
 export class MCPClient {
   private client: Client;
   private transport: SSEClientTransport | StreamableHTTPClientTransport;
+  public sessionId?: string;
 
   /**
    * Private constructor to enforce using the static create method.
@@ -33,7 +34,10 @@ export class MCPClient {
     transport: MCPTransport,
     headers?: Record<string, string>,
     authProvider?: OAuthClientProvider,
+    sessionId?: string,
   ) {
+    // this may be undefined if we aren't
+    this.sessionId = sessionId;
     if (transport === MCPTransport.SSE) {
       this.transport = new SSEClientTransport(new URL(endpoint), {
         authProvider,
@@ -43,6 +47,7 @@ export class MCPClient {
       this.transport = new StreamableHTTPClientTransport(new URL(endpoint), {
         authProvider,
         requestInit: { headers },
+        sessionId,
       });
     }
     this.client = new Client({
@@ -52,23 +57,43 @@ export class MCPClient {
   }
 
   /**
-   * Creates and initializes a new MCPClient instance.
-   * This is the recommended way to create an MCPClient as it handles both
-   * instantiation and connection setup.
+   * Creates and initializes a new MCPClient instance. This is the recommended
+   * way to create an MCPClient as it handles both instantiation and connection
+   * setup.
    *
    * @param endpoint - The URL of the MCP server to connect to
    * @param headers - Optional custom headers to include in requests
+   * @param authProvider - Optional auth provider to use for authentication
+   * @param sessionId - Optional session id to use for the MCP client - if not
+   *   provided, a new session will be created
    * @returns A connected MCPClient instance ready for use
    * @throws Will throw an error if connection fails
    */
   static async create(
     endpoint: string,
     transport: MCPTransport = MCPTransport.HTTP,
-    headers?: Record<string, string>,
-    authProvider?: OAuthClientProvider,
+    headers: Record<string, string> | undefined,
+    authProvider: OAuthClientProvider | undefined,
+    sessionId: string | undefined,
   ): Promise<MCPClient> {
-    const mcpClient = new MCPClient(endpoint, transport, headers, authProvider);
+    const mcpClient = new MCPClient(
+      endpoint,
+      transport,
+      headers,
+      authProvider,
+      sessionId,
+    );
     await mcpClient.client.connect(mcpClient.transport);
+    // We may have gotten a session id from the server, so we need to set it
+    if (mcpClient.transport instanceof StreamableHTTPClientTransport) {
+      mcpClient.sessionId = mcpClient.transport.sessionId;
+      if (sessionId !== mcpClient.sessionId) {
+        // This is a pretty unusual thing to happen, but it might be possible?
+        console.warn(
+          `Session id from server (${mcpClient.sessionId}) does not match the requested one provided (${sessionId})`,
+        );
+      }
+    }
     return mcpClient;
   }
 

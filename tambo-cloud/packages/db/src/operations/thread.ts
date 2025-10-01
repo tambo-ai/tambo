@@ -604,3 +604,44 @@ export async function countThreadsByProjectWithSearch(
     .where(and(...whereConditions));
   return count;
 }
+
+export async function getMcpThreadSession(
+  db: HydraDb,
+  threadId: string,
+  toolProviderId: string,
+) {
+  return await db.query.mcpThreadSession.findFirst({
+    where: and(
+      eq(schema.mcpThreadSession.threadId, threadId),
+      eq(schema.mcpThreadSession.toolProviderId, toolProviderId),
+    ),
+    columns: {
+      sessionId: true,
+    },
+  });
+}
+
+export async function updateMcpThreadSession(
+  db: HydraDb,
+  threadId: string,
+  toolProviderId: string,
+  sessionId: string,
+): Promise<void> {
+  // upsert since we may already have an entry for the session
+  await db
+    .insert(schema.mcpThreadSession)
+    .values({
+      threadId,
+      toolProviderId,
+      sessionId,
+      // Use DB time for consistency
+      updatedAt: sql`now()`,
+    })
+    .onConflictDoUpdate({
+      target: [
+        schema.mcpThreadSession.threadId,
+        schema.mcpThreadSession.toolProviderId,
+      ],
+      set: { sessionId, updatedAt: sql`now()` },
+    });
+}

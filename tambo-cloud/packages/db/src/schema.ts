@@ -25,6 +25,7 @@ import {
   pgRole,
   pgSchema,
   pgTable,
+  primaryKey,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -591,6 +592,39 @@ export const toolProviders = pgTable(
     mcpRequiresAuth: boolean("mcp_requires_auth").notNull().default(false),
   }),
   (table) => [index("tool_providers_project_id_idx").on(table.projectId)],
+);
+
+// The combination of a thread id and a tool provider id gives us a unique session for an MCP tool,
+// where we store the MCP session id.
+export const mcpThreadSession = pgTable(
+  "mcp_thread_session",
+  ({ text, timestamp }) => ({
+    threadId: text("thread_id")
+      .references(() => threads.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
+    toolProviderId: text("tool_provider_id")
+      .references(() => toolProviders.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
+    sessionId: text("session_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    primaryKey({
+      name: "mcp_thread_session_pk",
+      columns: [table.threadId, table.toolProviderId],
+    }),
+  ],
 );
 
 export const toolProviderRelations = relations(

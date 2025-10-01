@@ -19,8 +19,13 @@ const logger = new Logger("systemTools");
 export async function getSystemTools(
   db: HydraDatabase,
   projectId: string,
+  threadId: string,
 ): Promise<McpToolRegistry> {
-  const { mcpToolsSchema, mcpToolSources } = await getMcpTools(db, projectId);
+  const { mcpToolsSchema, mcpToolSources } = await getMcpTools(
+    db,
+    projectId,
+    threadId,
+  );
 
   const mcpToolNames = mcpToolsSchema.map((tool) => getToolName(tool));
   // make sure there are no name conflicts
@@ -44,6 +49,7 @@ export async function getSystemTools(
 async function getMcpTools(
   db: HydraDatabase,
   projectId: string,
+  threadId: string,
 ): Promise<McpToolRegistry> {
   const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
 
@@ -74,13 +80,31 @@ async function getMcpTools(
       | Record<string, string>
       | undefined;
 
+    const mcpSessionInfo = await operations.getMcpThreadSession(
+      db,
+      threadId,
+      mcpServer.id,
+    );
+
     try {
       const mcpClient = await MCPClient.create(
         mcpServer.url,
         mcpServer.mcpTransport,
         customHeaders,
         authProvider,
+        mcpSessionInfo?.sessionId ?? undefined,
       );
+      if (
+        mcpClient.sessionId &&
+        mcpSessionInfo?.sessionId !== mcpClient.sessionId
+      ) {
+        await operations.updateMcpThreadSession(
+          db,
+          threadId,
+          mcpServer.id,
+          mcpClient.sessionId,
+        );
+      }
 
       const tools = await mcpClient.listTools();
 
@@ -126,7 +150,10 @@ async function getMcpTools(
     }
   }
 
-  return { mcpToolsSchema: mcpTools, mcpToolSources };
+  return {
+    mcpToolsSchema: mcpTools,
+    mcpToolSources,
+  };
 }
 
 function hasAuthInfo(mcpServer: McpServer): boolean {

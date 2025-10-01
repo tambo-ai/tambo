@@ -540,6 +540,27 @@
       "when": 1758222851703,
       "tag": "0076_jittery_doctor_doom",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1759349401263,
+      "tag": "0077_fine_dark_phoenix",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1759353136103,
+      "tag": "0078_tense_blacklash",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1759354256927,
+      "tag": "0079_bizarre_princess_powerful",
+      "breakpoints": true
     }
   ]
 }

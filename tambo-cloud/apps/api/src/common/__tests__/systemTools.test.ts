@@ -16,6 +16,8 @@ jest.mock("@tambo-ai-cloud/db", () => {
     operations: {
       getProjectMcpServers: jest.fn(),
       getComposioApps: jest.fn(),
+      getMcpThreadSession: jest.fn(),
+      updateMcpThreadSession: jest.fn(),
     },
     schema,
     getDb: jest.fn(),
@@ -58,7 +60,7 @@ describe("getSystemTools", () => {
     // mockDb.query.toolProviders.findMany.mockResolvedValue([]);
     const mockDb = getDb("");
 
-    const tools = await getSystemTools(mockDb, "project123");
+    const tools = await getSystemTools(mockDb, "project123", "thread123");
     expect(tools).toEqual({
       mcpToolSources: {},
       mcpToolsSchema: [],
@@ -111,7 +113,7 @@ describe("getSystemTools", () => {
     );
     const mockDb = getDb("");
 
-    const tools = await getSystemTools(mockDb, "project123");
+    const tools = await getSystemTools(mockDb, "project123", "thread123");
     expect(tools).toEqual(
       expect.objectContaining({
         mcpToolSources: {

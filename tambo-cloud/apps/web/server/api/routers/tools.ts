@@ -327,6 +327,7 @@ export const toolsRouter = createTRPCRouter({
         server.mcpTransport,
         server.customHeaders,
         authProvider,
+        undefined, // since we're not doing anything with this session, it's ok to just start a new session
       );
 
       const tools = await mcpClient.listTools();
