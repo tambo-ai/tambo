@@ -14,8 +14,7 @@ export const AGENT_PROVIDER_REGISTRY: ReadonlyArray<AgentProviderInfo> = [
     name: "LlamaIndex",
     isSupported: true,
   },
-  { type: AgentProviderType.MASTRA, name: "Mastra", isSupported: false },
-  { type: AgentProviderType.AGUI, name: "AG-UI", isSupported: false },
+  { type: AgentProviderType.MASTRA, name: "Mastra", isSupported: true },
   { type: AgentProviderType.LANGGRAPH, name: "LangGraph", isSupported: false },
   {
     type: AgentProviderType.PYDANTICAI,

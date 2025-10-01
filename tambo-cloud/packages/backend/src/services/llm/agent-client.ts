@@ -18,8 +18,8 @@ import {
 } from "@ag-ui/core";
 import { CrewAIAgent } from "@ag-ui/crewai";
 import { LlamaIndexAgent } from "@ag-ui/llamaindex";
-// TODO: re-introduce mastra support
-// import { MastraAgent } from "@ag-ui/mastra";
+import { MastraAgent } from "@ag-ui/mastra";
+import { MastraClient } from "@mastra/client-js";
 import {
   AgentProviderType,
   ChatCompletionContentPart,
@@ -59,7 +59,7 @@ export class AgentClient {
   public static async create({
     agentProviderType,
     agentUrl,
-    // agentName, - use for Mastra
+    agentName, // only used for Mastra
     chainId,
     headers,
   }: {
@@ -71,20 +71,21 @@ export class AgentClient {
   }) {
     switch (agentProviderType) {
       case AgentProviderType.MASTRA: {
-        throw new Error("Mastra support is not implemented");
-        // const normalizedAgentName: string | undefined =
-        // agentName && agentName.trim() ? agentName.trim() : undefined;
-        // const client = new MastraClient({ baseUrl: agentUrl });
-        // const agents = await MastraAgent.getRemoteAgents({
-        //   mastraClient: client,
-        // });
-        // if (!(agentName in agents)) {
-        //   throw new Error(`Agent ${agentName} not found`);
-        // }
-        // const agent = agents[agentName];
-        // const agentClient = new AgentClient(chainId, agent);
+        const normalizedAgentName: string | undefined = agentName?.trim();
+        if (!normalizedAgentName) {
+          throw new Error("Agent name is required");
+        }
+        const client = new MastraClient({ baseUrl: agentUrl });
+        const agents = await MastraAgent.getRemoteAgents({
+          mastraClient: client,
+        });
+        if (!(normalizedAgentName in agents)) {
+          throw new Error(`Agent ${normalizedAgentName} not found`);
+        }
+        const agent = agents[normalizedAgentName];
+        const agentClient = new AgentClient(chainId, agent);
 
-        // return agentClient;
+        return agentClient;
       }
       case AgentProviderType.CREWAI: {
         const agent = new CrewAIAgent({

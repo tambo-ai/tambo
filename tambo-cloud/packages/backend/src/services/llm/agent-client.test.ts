@@ -15,10 +15,15 @@ import OpenAI from "openai";
 import { AgentClient, AgentResponse } from "./agent-client";
 
 import { RunAgentResult } from "@ag-ui/client";
+import { MastraAgent } from "@ag-ui/mastra";
 import { EventHandlerParams, runStreamingAgent } from "./async-adapters";
 import { CompleteParams } from "./llm-client";
-
 const mockRunStreamingAgent = jest.mocked(runStreamingAgent);
+
+jest.mock("@mastra/client-js", () => ({
+  MastraClient: jest.fn(),
+}));
+jest.mock("@ag-ui/mastra");
 
 describe("AgentClient", () => {
   let agentClient: AgentClient;
@@ -73,7 +78,23 @@ describe("AgentClient", () => {
       expect(client.chainId).toBe("test-chain");
     });
 
-    it("should throw error for Mastra agent", async () => {
+    it("should create a Mastra agent with name", async () => {
+      jest.spyOn(MastraAgent, "getRemoteAgents").mockResolvedValue({
+        "test-name": {} as any,
+      });
+      const client = await AgentClient.create({
+        agentProviderType: AgentProviderType.MASTRA,
+        agentUrl: "http://test-url",
+        chainId: "test-chain",
+        agentName: "test-name",
+        headers: { Authorization: "Bearer test" },
+      });
+
+      expect(client).toBeInstanceOf(AgentClient);
+      expect(client.chainId).toBe("test-chain");
+    });
+
+    it("should throw error for Mastra agent without name", async () => {
       await expect(
         AgentClient.create({
           agentProviderType: AgentProviderType.MASTRA,
@@ -81,7 +102,7 @@ describe("AgentClient", () => {
           chainId: "test-chain",
           headers: { Authorization: "Bearer test" },
         }),
-      ).rejects.toThrow("Mastra support is not implemented");
+      ).rejects.toThrow("Agent name is required");
     });
 
     it("should throw error for unsupported agent type", async () => {
