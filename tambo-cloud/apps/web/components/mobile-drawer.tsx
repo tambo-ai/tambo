@@ -7,6 +7,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  DrawerClose,
 } from "@/components/ui/drawer";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -56,24 +57,28 @@ export function MobileDrawer({
               Dashboard
             </Link>
           )}
-          <Link
-            href="/#pricing"
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "justify-start text-base w-full",
-            )}
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/#mcp"
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "justify-start text-base w-full",
-            )}
-          >
-            MCP
-          </Link>
+          <DrawerClose asChild>
+            <Link
+              href="/#pricing"
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "justify-start text-base w-full",
+              )}
+            >
+              Pricing
+            </Link>
+          </DrawerClose>
+          <DrawerClose asChild>
+            <Link
+              href="/#mcp"
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "justify-start text-base w-full",
+              )}
+            >
+              MCP
+            </Link>
+          </DrawerClose>
           <Link
             href="/blog"
             className={cn(
