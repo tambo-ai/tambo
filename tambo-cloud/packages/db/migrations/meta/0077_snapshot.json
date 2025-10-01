@@ -1,5 +1,5 @@
 {
-  "id": "b2ce9b7d-8c07-41d3-ad17-31a74ce72c54",
+  "id": "8cf88383-c6d9-4b39-beee-91ba319aa0dd",
   "prevId": "d83e269f-db1f-4c5b-8ea6-c086bc1a0594",
   "version": "7",
   "dialect": "postgresql",
@@ -463,12 +463,6 @@
       "name": "mcp_thread_session",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "bigserial",
-          "primaryKey": true,
-          "notNull": true
-        },
         "thread_id": {
           "name": "thread_id",
           "type": "text",
@@ -485,7 +479,7 @@
           "name": "session_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -510,8 +504,8 @@
           "tableTo": "threads",
           "columnsFrom": ["thread_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         },
         "mcp_thread_session_tool_provider_id_tool_providers_id_fk": {
           "name": "mcp_thread_session_tool_provider_id_tool_providers_id_fk",
@@ -519,18 +513,17 @@
           "tableTo": "tool_providers",
           "columnsFrom": ["tool_provider_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "mcp_thread_session_thread_id_tool_provider_id_idx": {
-          "name": "mcp_thread_session_thread_id_tool_provider_id_idx",
-          "nullsNotDistinct": false,
+      "compositePrimaryKeys": {
+        "mcp_thread_session_pk": {
+          "name": "mcp_thread_session_pk",
           "columns": ["thread_id", "tool_provider_id"]
         }
       },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
