@@ -82,7 +82,7 @@ The documentation follows a **progressive disclosure** pattern - starting with q
 
 #### Information Architecture
 
-In general try to fit changes into the following categories, if you can't find a good fit, suggest a new category, but ask the user for confirmation.
+In general, try to fit changes into the following categories. If you can't find a good fit, suggest a new category but ask the user for confirmation.
 
 1. **Getting Started** - Immediate value with working examples
    - Quickstart: Template installation and first interactions
@@ -127,7 +127,7 @@ In general try to fit changes into the following categories, if you can't find a
    - Use case demonstrations
    - Community templates and patterns
 
-Please update `Information Architecture` in the AGENTS.md file reflect the changes when you make them. Keeping this up to date is VERY IMPORTANT.
+Please update the `Information Architecture` section in the AGENTS.md file to reflect changes when you make them. Keeping this up to date is VERY IMPORTANT.
 
 ### Navigation Patterns (`meta.json`)
 

@@ -6,4 +6,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Quick Reference
 
-The `create-tambo-app` package - Lightweight bootstrapper for creating new Tambo AI applications.
+The `create-tambo-app` package - lightweight bootstrapper for creating new Tambo AI applications.

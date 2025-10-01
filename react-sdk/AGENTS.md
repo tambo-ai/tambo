@@ -140,7 +140,7 @@ Model Context Protocol support enables extending AI capabilities:
 - Resource access and management
 - Custom protocol implementations
 
-## Developement Patterns
+## Development Patterns
 
 ### Important Development Rules
 
@@ -150,11 +150,11 @@ Model Context Protocol support enables extending AI capabilities:
 - Maintain backward compatibility in public APIs
 - Follow React hooks rules and best practices
 
-### New End User Features Process
+### New End-User Features Process
 
-We have a doc-first approach to developing new features in our React SDK. This means we write the documentation first, and then write the code to implement the feature. Our docs are in the docs site (Read Docs/AGENTS.md)
+We have a doc-first approach to developing new features in our React SDK. This means we write the documentation first, then write the code to implement the feature. Our docs are in the docs site (read Docs/AGENTS.md).
 
-1. Read all the existing documentation and code in the repository.
-2. Read the relevant code to ensure you understand the existing code and the context.
-3. Before writing any code, write a detailed description of the feature in the docs site.
-4. Then write the code to implement the feature.
+1. Read all existing documentation and code in the repository
+2. Read the relevant code to ensure you understand the existing code and context
+3. Before writing any code, write a detailed description of the feature in the docs site
+4. Then write the code to implement the feature

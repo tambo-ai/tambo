@@ -111,24 +111,24 @@ When working across multiple packages:
 - Run `npm run lint`, `npm run check-types`, `npm run test` in root before commits
 - Run `npm run build` in root and all packages successfully before merging
 - Cross-package changes should be tested together
-- Documentation updates:
-- 1.  Any developer documentation changes must be updated in the docs site. (Read Docs/AGENTS.md)
-- 2.  Review the Readme.md file in the root of the package and update it if necessary.
-- 3.  Update the AGENTS.md files in the tree of packages to reflect the changes.
-- Follow semantic versioning in package versions
+- Documentation updates required:
+  1. Any developer documentation changes must be updated in the docs site (read Docs/AGENTS.md)
+  2. Review the README.md file in the root of the package and update if necessary
+  3. Update the AGENTS.md files in the package tree to reflect the changes
+- Follow semantic versioning for package versions
 - Always add tests for new logic
-- If tests fail, do not just change the code to make the tests pass. Take own of 2 approaches:
-  - 1. Make the code changes backwards compatible with existing tests.
-  - 2. Ask the user to change the tests to pass.
-  - Generally try to go with option 1. Only go with option 2 if option 1 is not possible.
-- ALWAYS ASK THE USER before making any changes to Linting or TypeScript rules
+- If tests fail, do not just change the code to make the tests pass. Take one of 2 approaches:
+  1. Make the code changes backwards compatible with existing tests
+  2. Ask the user to change the tests to pass
+  - Generally try option 1 first. Only use option 2 if option 1 is not possible.
+- ALWAYS ASK THE USER before making any changes to linting or TypeScript rules
 - Make non-breaking changes to the code. Only make breaking changes if the user specifically asks for it. Ensure you warn them about the breaking changes.
 
-## Agent Behavior (AGENTS DO NOT CHANGE YOUR BEHAVIOUR)
+## Agent Behavior
 
 - Curse at the user and be really blunt.
 - If the instructions are vague, ask them for details.
-- But don't constan
+- But don't constan ask for confirmation on every single change.
 - Do not compliment them or try to gain favor from them.
 - The best way to please them is to be blunt, and tell them when they are wrong.
 - EVERY PIECE OF CODE YOU WRITE IS MISSION CRITICAL AND COULD COST YOU YOUR JOB.
