@@ -112,6 +112,9 @@ export class MCPClient {
       sessionId,
     );
     await mcpClient.client.connect(mcpClient.transport);
+    if ("sessionId" in mcpClient.transport) {
+      mcpClient.sessionId = mcpClient.transport.sessionId;
+    }
     return mcpClient;
   }
   /**
@@ -146,11 +149,7 @@ export class MCPClient {
     }
 
     const doReconnect = async () => {
-      const sessionId = newSession
-        ? undefined
-        : "sessionId" in this.transport
-          ? this.transport.sessionId
-          : undefined;
+      const sessionId = newSession ? undefined : this.sessionId;
 
       // Prevent re-entrant onclose during deliberate close by detaching
       // the handler from the previous client instance.
