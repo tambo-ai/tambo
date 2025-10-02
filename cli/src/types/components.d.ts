@@ -222,6 +222,8 @@ declare module "@/components/tambo/markdown-components" {
     theme?: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) => Record<string, React.ComponentType<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export const markdownComponents: Record<string, React.ComponentType<any>>;
 }
 
 declare module "@/components/tambo/thread-history" {

@@ -400,17 +400,15 @@ const MessageInputTextarea = ({
     const items = Array.from(e.clipboardData.items);
     const imageItems = items.filter((item) => item.type.startsWith("image/"));
 
-    if (imageItems.length > 0) {
-      e.preventDefault();
+    e.preventDefault();
 
-      for (const item of imageItems) {
-        const file = item.getAsFile();
-        if (file) {
-          try {
-            await addImage(file);
-          } catch (error) {
-            console.error("Failed to add pasted image:", error);
-          }
+    for (const item of imageItems) {
+      const file = item.getAsFile();
+      if (file) {
+        try {
+          await addImage(file);
+        } catch (error) {
+          console.error("Failed to add pasted image:", error);
         }
       }
     }
@@ -665,15 +663,13 @@ const MessageInputFileButton = React.forwardRef<
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
-    if (files.length > 0) {
-      try {
-        await addImages(files);
-      } catch (error) {
-        console.error("Failed to add selected files:", error);
-      }
-      // Reset the input so the same file can be selected again
-      e.target.value = "";
+    try {
+      await addImages(files);
+    } catch (error) {
+      console.error("Failed to add selected files:", error);
     }
+    // Reset the input so the same file can be selected again
+    e.target.value = "";
   };
 
   const buttonClasses = cn(

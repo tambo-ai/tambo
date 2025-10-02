@@ -1,6 +1,6 @@
 "use client";
 
-import { createMarkdownComponents } from "@/components/tambo/markdown-components";
+import { markdownComponents } from "@/components/tambo/markdown-components";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -277,14 +277,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <Streamdown
-                components={
-                  createMarkdownComponents() as Record<
-                    string,
-                    React.ComponentType<Record<string, unknown>>
-                  >
-                }
-              >
+              <Streamdown components={markdownComponents}>
                 {typeof safeContent === "string" ? safeContent : ""}
               </Streamdown>
             ) : (
@@ -405,7 +398,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full",
+              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full truncate",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
@@ -458,6 +451,7 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
     const { message, isLoading } = useMessageContext();
     const reasoningDetailsId = React.useId();
     const [isExpanded, setIsExpanded] = useState(true);
+    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
     // Auto-collapse when content arrives and reasoning is not loading
     React.useEffect(() => {
@@ -466,8 +460,31 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
       }
     }, [message.content, isLoading]);
 
+    // Auto-scroll to bottom when reasoning content changes
+    React.useEffect(() => {
+      if (scrollContainerRef.current && isExpanded && message.reasoning) {
+        const scroll = () => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+              top: scrollContainerRef.current.scrollHeight,
+              behavior: "smooth",
+            });
+          }
+        };
+
+        if (isLoading) {
+          // During streaming, scroll immediately
+          requestAnimationFrame(scroll);
+        } else {
+          // For other updates, use a short delay to batch rapid changes
+          const timeoutId = setTimeout(scroll, 50);
+          return () => clearTimeout(timeoutId);
+        }
+      }
+    }, [message.reasoning, isExpanded, isLoading]);
+
     // Only show if there's reasoning data
-    if (!message.reasoning || message.reasoning.length === 0) {
+    if (!message.reasoning?.length) {
       return null;
     }
 
@@ -505,12 +522,10 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
             />
           </button>
           <div
+            ref={scrollContainerRef}
             id={reasoningDetailsId}
             className={cn(
               "flex flex-col gap-1 px-3 py-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
-              "[&::-webkit-scrollbar]:w-[6px]",
-              "[&::-webkit-scrollbar-thumb]:bg-gray-300",
-              "[&::-webkit-scrollbar:horizontal]:h-[4px]",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
@@ -524,14 +539,7 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
                 {reasoningStep ? (
                   <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
                     <div className="whitespace-pre-wrap break-words">
-                      <Streamdown
-                        components={
-                          createMarkdownComponents() as Record<
-                            string,
-                            React.ComponentType<Record<string, unknown>>
-                          >
-                        }
-                      >
+                      <Streamdown components={markdownComponents}>
                         {reasoningStep}
                       </Streamdown>
                     </div>
@@ -566,41 +574,47 @@ function formatToolResult(
 ): React.ReactNode {
   if (!content) return content;
 
-  const safeContent = getSafeContent(content);
-  if (typeof safeContent !== "string") return safeContent;
-
-  // Try to parse as JSON
-  try {
-    const parsed = JSON.parse(safeContent);
-    return (
-      <pre
-        className={cn(
-          "bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64",
-          "[&::-webkit-scrollbar]:w-[6px]",
-          "[&::-webkit-scrollbar-thumb]:bg-gray-300",
-          "[&::-webkit-scrollbar:horizontal]:h-[4px]",
-        )}
-      >
-        <code className="font-mono break-words whitespace-pre-wrap">
-          {JSON.stringify(parsed, null, 2)}
-        </code>
-      </pre>
-    );
-  } catch {
-    if (!enableMarkdown) return safeContent;
-    return (
-      <Streamdown
-        components={
-          createMarkdownComponents() as Record<
-            string,
-            React.ComponentType<Record<string, unknown>>
-          >
+  // First check if content can be converted to a string for JSON parsing
+  let contentString: string | null = null;
+  if (typeof content === "string") {
+    contentString = content;
+  } else if (Array.isArray(content)) {
+    contentString = content
+      .map((item) => {
+        if (item && item.type === "text") {
+          return item.text ?? "";
         }
-      >
-        {safeContent}
-      </Streamdown>
-    );
+        return "";
+      })
+      .join("");
   }
+
+  // Try to parse as JSON if we have a string
+  if (contentString) {
+    try {
+      const parsed = JSON.parse(contentString);
+      return (
+        <pre
+          className={cn(
+            "bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64",
+          )}
+        >
+          <code className="font-mono break-words whitespace-pre-wrap">
+            {JSON.stringify(parsed, null, 2)}
+          </code>
+        </pre>
+      );
+    } catch {
+      // JSON parsing failed, render as markdown or plain text
+      if (!enableMarkdown) return contentString;
+      return (
+        <Streamdown components={markdownComponents}>{contentString}</Streamdown>
+      );
+    }
+  }
+
+  // If content is not a string or array, use getSafeContent as fallback
+  return getSafeContent(content);
 }
 
 /**
