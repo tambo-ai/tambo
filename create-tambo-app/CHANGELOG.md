@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.17](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.16...create-tambo-app-v0.1.17) (2025-10-02)
+
+
+### Miscellaneous Chores
+
+* add agents.md & claude.md to monorepo. ([#1116](https://github.com/tambo-ai/tambo/issues/1116)) ([fe911d4](https://github.com/tambo-ai/tambo/commit/fe911d4613b301cf9a68a6a95ebc2b7a6a294dd5))
+* **deps-dev:** bump the eslint group across 1 directory with 6 updates ([#1097](https://github.com/tambo-ai/tambo/issues/1097)) ([a6fb6f1](https://github.com/tambo-ai/tambo/commit/a6fb6f1597380bb03f4700a2757edf1009095c6f))
+* **deps-dev:** bump the eslint group with 2 updates ([#1102](https://github.com/tambo-ai/tambo/issues/1102)) ([81b6601](https://github.com/tambo-ai/tambo/commit/81b6601df999b36bc51958a36c9164ef897734a4))
+
 ## [0.1.16](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.15...create-tambo-app-v0.1.16) (2025-09-19)
 
 
