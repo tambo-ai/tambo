@@ -66,3 +66,98 @@ Voice input requires:
 3. Click the button again to stop recording
 4. Review and edit the transcription if needed
 5. Submit your message
+
+## Backend setup
+
+Voice input requires a backend API endpoint to handle transcription securely. The `useVoiceInput` hook calls `/api/v1/audio/transcriptions` on your server, which should proxy the request to a transcription service (like OpenAI's Whisper API).
+
+<Callout type="warning" title="Why a proxy?">
+  Never expose your OpenAI API key in client-side code. The proxy endpoint keeps your API key secure on the server.
+</Callout>
+
+### Next.js App Router example
+
+Create a file at `app/api/v1/audio/transcriptions/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const audioFile = formData.get("audio") as File;
+    const model = (formData.get("model") as string) || "gpt-4o-mini-transcribe";
+    const responseFormat = (formData.get("response_format") as string) || "json";
+
+    if (!audioFile) {
+      return NextResponse.json(
+        { error: "No audio file provided" },
+        { status: 400 }
+      );
+    }
+
+    // Get OpenAI API key from environment variables
+    const openAIApiKey = process.env.OPENAI_API_KEY;
+    if (!openAIApiKey) {
+      return NextResponse.json(
+        { error: "OpenAI API key not configured" },
+        { status: 500 }
+      );
+    }
+
+    // Forward to OpenAI Whisper API
+    const openAIFormData = new FormData();
+    openAIFormData.append("file", audioFile);
+    openAIFormData.append("model", model);
+    openAIFormData.append("response_format", responseFormat);
+
+    const response = await fetch(
+      "https://api.openai.com/v1/audio/transcriptions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openAIApiKey}`,
+        },
+        body: openAIFormData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("OpenAI API error:", errorText);
+      return NextResponse.json(
+        { error: "Transcription failed" },
+        { status: response.status }
+      );
+    }
+
+    const transcribedText = await response.text();
+
+    return NextResponse.json({
+      text: transcribedText.trim(),
+    });
+  } catch (error) {
+    console.error("Transcription error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Environment variables
+
+Add your OpenAI API key to `.env.local`:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys).
+
+### Using other transcription services
+
+You can use any transcription service by modifying the proxy endpoint. Just ensure:
+- The endpoint accepts FormData with an `audio` field
+- It returns JSON with a `text` field containing the transcription

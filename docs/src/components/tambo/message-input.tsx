@@ -609,11 +609,10 @@ const RealTimeIndicatorInner = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const { isEnabled } = useTamboVoiceInput();
   const { isRealTimeTranscribing } = useVoiceInput();
 
-  // Don't render if not enabled or not actively transcribing in real-time
-  if (!isEnabled || !isRealTimeTranscribing) {
+  // Don't render if not actively transcribing in real-time
+  if (!isRealTimeTranscribing) {
     return null;
   }
 
