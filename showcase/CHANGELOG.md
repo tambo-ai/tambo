@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.25.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.24.0...showcase-v0.25.0) (2025-10-02)
+
+
+### Features
+
+* add reasoning UI, smart autoscroll with UI improvements and update component paths to use /tambo ([#1101](https://github.com/tambo-ai/tambo/issues/1101)) ([9ec66c3](https://github.com/tambo-ai/tambo/commit/9ec66c37493eb636d5778e51ca8553ffb9982fc4))
+
+
+### Bug Fixes
+
+* **thread-history:** improve sidebar animation smoothness ([#1115](https://github.com/tambo-ai/tambo/issues/1115)) ([d65319e](https://github.com/tambo-ai/tambo/commit/d65319eb9078e248d4ca6bf649b2fb736b4d7022))
+
+
+### Miscellaneous Chores
+
+* add agents.md & claude.md to monorepo. ([#1116](https://github.com/tambo-ai/tambo/issues/1116)) ([fe911d4](https://github.com/tambo-ai/tambo/commit/fe911d4613b301cf9a68a6a95ebc2b7a6a294dd5))
+* **deps-dev:** bump @types/leaflet.markercluster from 1.5.5 to 1.5.6 ([#1089](https://github.com/tambo-ai/tambo/issues/1089)) ([f0f09c8](https://github.com/tambo-ai/tambo/commit/f0f09c83e0415c1ac8ec40d022442fa140ac60a7))
+* **deps-dev:** bump the eslint group across 1 directory with 6 updates ([#1097](https://github.com/tambo-ai/tambo/issues/1097)) ([a6fb6f1](https://github.com/tambo-ai/tambo/commit/a6fb6f1597380bb03f4700a2757edf1009095c6f))
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+* **deps:** bump @vercel/og from 0.6.8 to 0.8.5 ([#1086](https://github.com/tambo-ai/tambo/issues/1086)) ([d11379b](https://github.com/tambo-ai/tambo/commit/d11379b0cd77c680cbf0ffdf3ebf05c3dee83467))
+* **deps:** bump dompurify from 3.2.6 to 3.2.7 ([#1111](https://github.com/tambo-ai/tambo/issues/1111)) ([024a6ca](https://github.com/tambo-ai/tambo/commit/024a6ca703652cdb1b014ef293e6a07a4eea2269))
+* **deps:** bump framer-motion from 12.23.12 to 12.23.22 ([#1107](https://github.com/tambo-ai/tambo/issues/1107)) ([3c0ab4b](https://github.com/tambo-ai/tambo/commit/3c0ab4b9875e2d12166fceb98915a8ef34505118))
+* **deps:** bump geist from 1.4.2 to 1.5.1 ([#1106](https://github.com/tambo-ai/tambo/issues/1106)) ([ef6f463](https://github.com/tambo-ai/tambo/commit/ef6f463d86d2e3dbd6b490cd24a08acaf531421c))
+* **deps:** bump lucide-react from 0.542.0 to 0.544.0 ([#1105](https://github.com/tambo-ai/tambo/issues/1105)) ([8b5a36b](https://github.com/tambo-ai/tambo/commit/8b5a36b772300f164351443dafe2692432981cff))
+* **deps:** bump next from 15.5.3 to 15.5.4 in the next group ([#1110](https://github.com/tambo-ai/tambo/issues/1110)) ([dd1a35d](https://github.com/tambo-ai/tambo/commit/dd1a35d669023d0440a885237e73d2109e247144))
+* **deps:** bump recharts from 3.1.2 to 3.2.1 ([#1090](https://github.com/tambo-ai/tambo/issues/1090)) ([2ba7a11](https://github.com/tambo-ai/tambo/commit/2ba7a114b5e3c769cf846858e308928579491345))
+* **deps:** bump streamdown from 1.2.0 to 1.3.0 ([#1093](https://github.com/tambo-ai/tambo/issues/1093)) ([761f213](https://github.com/tambo-ai/tambo/commit/761f213340ea0b611d8c712d1b5ca8fb744a8ace))
+
 ## [0.24.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.23.0...showcase-v0.24.0) (2025-09-19)
 
 
