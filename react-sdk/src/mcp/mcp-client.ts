@@ -9,7 +9,7 @@ import {
   ElicitRequest,
   ElicitRequestSchema,
   ElicitResult,
-} from "@modelcontextprotocol/sdk/types";
+} from "@modelcontextprotocol/sdk/types.js";
 import { JSONSchema7 } from "json-schema";
 
 export enum MCPTransport {
@@ -420,7 +420,7 @@ export class MCPClient {
     return result;
   }
 
-  async setElicitationHandler(
+  setElicitationHandler(
     handler: ((e: ElicitRequest) => Promise<ElicitResult>) | undefined,
   ) {
     this.handlers = {
@@ -435,7 +435,7 @@ export class MCPClient {
     this.client.setRequestHandler(ElicitRequestSchema, handler);
   }
 
-  async setSamplingHandler(
+  setSamplingHandler(
     handler:
       | ((e: CreateMessageRequest) => Promise<CreateMessageResult>)
       | undefined,
