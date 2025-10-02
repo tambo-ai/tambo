@@ -420,8 +420,12 @@ export class MCPClient {
   }
 
   async setElicitationHandler(
-    handler: ((e: ElicitRequest) => Promise<ElicitResult>) | null,
+    handler: ((e: ElicitRequest) => Promise<ElicitResult>) | undefined,
   ) {
+    this.handlers = {
+      ...this.handlers,
+      elicitation: handler,
+    };
     if (!handler) {
       const method = ElicitRequestSchema.shape.method.value;
       this.client.removeRequestHandler(method);
@@ -431,8 +435,14 @@ export class MCPClient {
   }
 
   async setSamplingHandler(
-    handler: ((e: CreateMessageRequest) => Promise<CreateMessageResult>) | null,
+    handler:
+      | ((e: CreateMessageRequest) => Promise<CreateMessageResult>)
+      | undefined,
   ) {
+    this.handlers = {
+      ...this.handlers,
+      sampling: handler,
+    };
     if (!handler) {
       const method = CreateMessageRequestSchema.shape.method.value;
       this.client.removeRequestHandler(method);
