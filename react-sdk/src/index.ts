@@ -24,7 +24,6 @@ export {
   TamboStubProvider,
   TamboThreadInputProvider,
   TamboThreadProvider,
-  TamboVoiceInputProvider,
   useIsTamboTokenUpdating,
   useTambo,
   useTamboClient,
@@ -33,15 +32,12 @@ export {
   useTamboStream,
   useTamboThread,
   useTamboThreadInput,
-  useTamboVoiceInput,
   type TamboComponent,
   type TamboContextHelpersContextProps,
   type TamboContextHelpersProviderProps,
   type TamboRegistryContext,
   type TamboStubProviderProps,
   type TamboThreadInputContextProps,
-  type TamboVoiceInputContextProps,
-  type TamboVoiceInputProviderProps,
 } from "./providers";
 
 // Re-export types from Tambo Node SDK

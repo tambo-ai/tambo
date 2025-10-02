@@ -1,8 +1,6 @@
 "use client";
+import { useTamboClient, useTamboThreadInput } from "@tambo-ai/react";
 import { useCallback, useRef, useState } from "react";
-import { useTamboClient } from "../providers/tambo-client-provider";
-import { useTamboThreadInput } from "../providers/tambo-thread-input-provider";
-import { useTamboVoiceInput } from "../providers/tambo-voice-input-provider";
 
 export type VoiceInputState =
   | "idle"
@@ -39,9 +37,9 @@ export interface UseVoiceInputResult {
  * ```
  */
 export const useVoiceInput = (): UseVoiceInputResult => {
-  const { client } = useTamboClient();
+  const client = useTamboClient();
   const { value, setValue } = useTamboThreadInput();
-  const { isEnabled } = useTamboVoiceInput();
+  const isEnabled = true; // Voice input is always enabled in showcase
 
   const [state, setState] = useState<VoiceInputState>("idle");
   const [error, setError] = useState<Error | null>(null);

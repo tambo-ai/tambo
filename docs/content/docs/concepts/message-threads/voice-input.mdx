@@ -1,0 +1,68 @@
+---
+title: Voice Input
+description: Add voice input support to message threads
+---
+
+### Voice input
+
+Users can record audio messages instead of typing. The audio is transcribed using OpenAI's Whisper model through your backend.
+
+## Using MessageInput with voice
+
+The `MessageInput` component provides built-in voice input functionality. Simply add the `MessageInputVoiceButton` component:
+
+```tsx
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputVoiceButton,
+  MessageInputSubmitButton,
+  MessageInputToolbar,
+} from "@tambo-ai/react";
+
+function ChatInterface() {
+  return (
+    <MessageInput contextKey="my-chat">
+      <MessageInputTextarea placeholder="Type or record a message..." />
+      <MessageInputToolbar>
+        <MessageInputVoiceButton />
+        <MessageInputSubmitButton />
+      </MessageInputToolbar>
+    </MessageInput>
+  );
+}
+```
+
+## Real-time transcription
+
+For live transcription as you speak, enable `realTimeMode`:
+
+```tsx
+<MessageInputVoiceButton realTimeMode={true} />
+```
+
+This will transcribe your speech in real-time while you're recording, updating the text input as you speak.
+
+## Voice input requirements
+
+Voice input requires:
+- **HTTPS connection** (or localhost for development)
+- **Browser support** for MediaRecorder API
+- **User permission** to access the microphone
+
+## How it works
+
+**Batch mode (default):**
+1. Click the microphone button to start recording
+2. Speak your message
+3. Click the button again to stop recording
+4. Audio is transcribed and appears in the text input
+5. Review and edit the transcription if needed
+6. Submit your message
+
+**Real-time mode:**
+1. Click the microphone button to start recording
+2. Speak your message - text appears as you speak
+3. Click the button again to stop recording
+4. Review and edit the transcription if needed
+5. Submit your message

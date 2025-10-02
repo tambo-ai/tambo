@@ -1,7 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboThreadInput } from "../../providers/tambo-thread-input-provider";
-import { useTamboVoiceInput } from "../../providers/tambo-voice-input-provider";
 import { useVoiceInput } from "../use-voice-input";
 
 // Mock the required providers
@@ -11,10 +10,6 @@ jest.mock("../../providers/tambo-client-provider", () => ({
 
 jest.mock("../../providers/tambo-thread-input-provider", () => ({
   useTamboThreadInput: jest.fn(),
-}));
-
-jest.mock("../../providers/tambo-voice-input-provider", () => ({
-  useTamboVoiceInput: jest.fn(),
 }));
 
 // Mock MediaRecorder
@@ -113,11 +108,6 @@ describe("useVoiceInput", () => {
       value: "",
       setValue: mockSetValue,
     } as any);
-
-    jest.mocked(useTamboVoiceInput).mockReturnValue({
-      isEnabled: true,
-      isRealTimeMode: false,
-    });
   });
 
   afterEach(() => {
@@ -326,24 +316,7 @@ describe("useVoiceInput", () => {
     });
   });
 
-  describe("Voice Input Disabled", () => {
-    it("should return error when voice input is disabled", async () => {
-      jest.mocked(useTamboVoiceInput).mockReturnValue({
-        isEnabled: false,
-        isRealTimeMode: false,
-      });
-
-      const { result } = renderHook(() => useVoiceInput());
-
-      await act(async () => {
-        await result.current.startRecording();
-      });
-
-      expect(result.current.state).toBe("error");
-      expect(result.current.error?.message).toBe("Voice input is disabled");
-      expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
-    });
-  });
+  describe("Voice Input Disabled", () => {});
 
   describe("Cleanup", () => {
     it("should clean up media stream on stop", async () => {

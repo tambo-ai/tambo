@@ -39,7 +39,6 @@ import {
   TamboThreadProviderProps,
   useTamboThread,
 } from "./tambo-thread-provider";
-import { TamboVoiceInputProvider } from "./tambo-voice-input-provider";
 
 /**
  * The TamboProvider gives full access to the whole Tambo API. This includes the
@@ -99,13 +98,11 @@ export const TamboProvider: React.FC<
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider streaming={streaming}>
             <TamboThreadInputProvider contextKey={contextKey}>
-              <TamboVoiceInputProvider>
-                <TamboComponentProvider>
-                  <TamboInteractableProvider>
-                    <TamboCompositeProvider>{children}</TamboCompositeProvider>
-                  </TamboInteractableProvider>
-                </TamboComponentProvider>
-              </TamboVoiceInputProvider>
+              <TamboComponentProvider>
+                <TamboInteractableProvider>
+                  <TamboCompositeProvider>{children}</TamboCompositeProvider>
+                </TamboInteractableProvider>
+              </TamboComponentProvider>
             </TamboThreadInputProvider>
           </TamboThreadProvider>
         </TamboContextHelpersProvider>

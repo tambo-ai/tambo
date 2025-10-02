@@ -6,6 +6,7 @@ import {
   MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
+  MessageInputVoiceButton,
 } from "@/components/ui/message-input";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
@@ -108,6 +109,14 @@ export default function MessageInputPage() {
                 </li>
                 <li>
                   <strong>
+                    <code>&lt;MessageInputVoiceButton /&gt;</code> -
+                  </strong>{" "}
+                  Button to record voice input and transcribe it to text.
+                  Supports both batch and real-time transcription modes. Pass{" "}
+                  <code>realTimeMode={"{true}"}</code> for live transcription.
+                </li>
+                <li>
+                  <strong>
                     <code>&lt;MessageInputSubmitButton /&gt;</code> -
                   </strong>{" "}
                   Button to submit the message form. Shows loading state during
@@ -177,10 +186,52 @@ export default function MessageInputPage() {
             </div>
           </div>
 
+          {/* With Voice Input */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">
+              With Voice Input (Batch Mode)
+            </h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <MessageInput contextKey="demo-voice" variant="default">
+                <MessageInputTextarea placeholder="Type or record a message..." />
+                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                  <MessageInputVoiceButton />
+                  <MessageInputSubmitButton />
+                </div>
+                <MessageInputError />
+              </MessageInput>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Batch mode: Records your audio, then transcribes it when you stop
+              recording.
+            </p>
+          </div>
+
+          {/* With Voice Input Real-time */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">
+              With Voice Input (Real-time Mode)
+            </h3>
+            <div className="p-4 border rounded-lg bg-white">
+              <MessageInput contextKey="demo-voice-realtime" variant="default">
+                <MessageInputTextarea placeholder="Type or record a message..." />
+                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                  <MessageInputVoiceButton realTimeMode={true} />
+                  <MessageInputSubmitButton />
+                </div>
+                <MessageInputError />
+              </MessageInput>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Real-time mode: Transcribes your speech as you speak, updating the
+              text live.
+            </p>
+          </div>
+
           {/* With MCP configuration button */}
           <div>
             <h3 className="text-lg font-medium mb-3">
-              Full-featured: MCP Config + Image Attachments
+              Full-featured: MCP Config + Voice + Image Attachments
             </h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-mcp" variant="default">
@@ -191,6 +242,7 @@ export default function MessageInputPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageInputFileButton />
+                    <MessageInputVoiceButton />
                     <MessageInputSubmitButton />
                   </div>
                 </div>

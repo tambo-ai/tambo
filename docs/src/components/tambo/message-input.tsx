@@ -1,13 +1,15 @@
 "use client";
 
-import { McpConfigModal } from "@/components/ui/mcp-config-modal";
-import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
+import { McpConfigModal } from "@/components/tambo/mcp-config-modal";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  useTamboVoiceInput,
   useVoiceInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -144,9 +146,6 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
 
     React.useEffect(() => {
       setDisplayValue(value);
-      if (value && textareaRef.current) {
-        textareaRef.current.focus();
-      }
     }, [value]);
 
     // Pre-fill input with initialQuery only once when component mounts
@@ -462,6 +461,12 @@ const MessageInputMcpConfigButton = React.forwardRef<
 });
 MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
 
+export interface MessageInputVoiceButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Whether to use real-time transcription (chunked) vs batch mode (default: false) */
+  realTimeMode?: boolean;
+}
+
 /**
  * Voice Input Button component for recording and transcribing audio.
  * @component MessageInput.VoiceButton
@@ -478,8 +483,8 @@ MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
  */
 const MessageInputVoiceButton = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, ...props }, ref) => {
+  MessageInputVoiceButtonProps
+>(({ className, realTimeMode, ...props }, ref) => {
   const [isClient, setIsClient] = React.useState(false);
   const {
     startRecording,
@@ -490,7 +495,7 @@ const MessageInputVoiceButton = React.forwardRef<
     error,
     isSupported,
     state,
-  } = useVoiceInput();
+  } = useVoiceInput({ realTimeMode });
 
   React.useEffect(() => {
     setIsClient(true);

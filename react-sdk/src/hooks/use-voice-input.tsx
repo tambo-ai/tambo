@@ -1,7 +1,6 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTamboThreadInput } from "../providers/tambo-thread-input-provider";
-import { useTamboVoiceInput } from "../providers/tambo-voice-input-provider";
 
 export type VoiceInputState =
   | "idle"
@@ -12,6 +11,11 @@ export type VoiceInputState =
   | "error";
 
 export type PermissionState = "unknown" | "granted" | "denied";
+
+export interface UseVoiceInputOptions {
+  /** Whether to use real-time transcription (chunked) vs batch mode (default: false) */
+  realTimeMode?: boolean;
+}
 
 export interface UseVoiceInputResult {
   startRecording: () => Promise<void>;
@@ -29,6 +33,8 @@ export interface UseVoiceInputResult {
 /**
  * Hook for managing voice input functionality.
  * Handles audio recording, transcription via backend API, and text input integration.
+ * @param options - Configuration options for voice input
+ * @param options.realTimeMode - Whether to use real-time transcription (default: false)
  * @returns Voice input controls and state
  * @example
  * ```tsx
@@ -41,9 +47,20 @@ export interface UseVoiceInputResult {
  * );
  * ```
  */
-export const useVoiceInput = (): UseVoiceInputResult => {
+export const useVoiceInput = (
+  options?: UseVoiceInputOptions,
+): UseVoiceInputResult => {
   const { value, setValue } = useTamboThreadInput();
-  const { isEnabled, isRealTimeMode } = useTamboVoiceInput();
+
+  // Voice input is always enabled - just use the realTimeMode option
+  const isRealTimeMode = options?.realTimeMode ?? false;
+  const isEnabled = true;
+
+  // Track the current value in a ref to avoid stale closures
+  const currentValueRef = useRef(value);
+  useEffect(() => {
+    currentValueRef.current = value;
+  }, [value]);
 
   const [state, setState] = useState<VoiceInputState>("idle");
   const [error, setError] = useState<Error | null>(null);
@@ -60,6 +77,7 @@ export const useVoiceInput = (): UseVoiceInputResult => {
   const lastTranscriptionRef = useRef<string>("");
   const currentChunkIndex = useRef<number>(0);
   const accumulatedChunks = useRef<Blob[]>([]);
+  const baseTextBeforeRealTimeRef = useRef<string>(""); // Track text before real-time started
 
   // Check if browser supports necessary APIs
   const isSupported =
@@ -93,6 +111,7 @@ export const useVoiceInput = (): UseVoiceInputResult => {
     lastTranscriptionRef.current = "";
     currentChunkIndex.current = 0;
     accumulatedChunks.current = [];
+    baseTextBeforeRealTimeRef.current = "";
   }, []);
 
   const transcribeAudioChunk = useCallback(
@@ -121,19 +140,30 @@ export const useVoiceInput = (): UseVoiceInputResult => {
 
         if (transcribedText.trim()) {
           if (isRealTime) {
-            // For real-time, replace the previous transcription with the new one
-            // Remove the last transcription and add the new one
-            const currentValue = value;
-            const baseText = currentValue.replace(
-              lastTranscriptionRef.current,
-              "",
-            );
+            // For real-time, remove the last transcription from the end and replace with new one
+            const currentValue = currentValueRef.current;
+            const lastTranscription = lastTranscriptionRef.current;
+            let baseText = currentValue;
+
+            // On first real-time transcription, save the base text
+            if (!lastTranscription) {
+              baseTextBeforeRealTimeRef.current = currentValue;
+              baseText = currentValue;
+            } else if (currentValue.endsWith(lastTranscription)) {
+              baseText = currentValue
+                .slice(0, -lastTranscription.length)
+                .trimEnd();
+            }
+
             const newValue = baseText + (baseText ? " " : "") + transcribedText;
-            setValue(newValue);
             lastTranscriptionRef.current = transcribedText;
+            setValue(newValue);
           } else {
             // For batch mode, append transcribed text to existing input
-            setValue(value + (value ? " " : "") + transcribedText);
+            const currentValue = currentValueRef.current;
+            setValue(
+              currentValue + (currentValue ? " " : "") + transcribedText,
+            );
           }
         }
 
@@ -145,7 +175,7 @@ export const useVoiceInput = (): UseVoiceInputResult => {
         throw errorMessage;
       }
     },
-    [value, setValue],
+    [setValue],
   );
 
   const transcribeAudio = useCallback(
@@ -222,14 +252,60 @@ export const useVoiceInput = (): UseVoiceInputResult => {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
-        chunksRef.current = [];
-        cleanup();
+        // Create blob from all accumulated chunks (including what's in accumulatedChunks for real-time mode)
+        let allChunks = [...chunksRef.current];
+        if (isRealTimeMode) {
+          allChunks = [...accumulatedChunks.current, ...chunksRef.current];
+        }
 
-        // Only transcribe if we have audio data and we're in batch mode
-        if (audioBlob.size > 0 && !isRealTimeMode) {
-          await transcribeAudio(audioBlob);
+        const audioBlob = new Blob(allChunks, { type: mimeType });
+        chunksRef.current = [];
+
+        // Do a final transcription with all the audio for the most accurate result
+        if (audioBlob.size > 0) {
+          if (isRealTimeMode) {
+            // In real-time mode, replace the entire real-time transcription with the final accurate one
+            setState("transcribing");
+            try {
+              const formData = new FormData();
+              formData.append("audio", audioBlob, "recording.webm");
+              formData.append("model", "gpt-4o-mini-transcribe");
+              formData.append("response_format", "text");
+
+              const baseUrl =
+                typeof window !== "undefined" ? window.location.origin : "";
+              const response = await fetch(
+                `${baseUrl}/api/v1/audio/transcriptions`,
+                {
+                  method: "POST",
+                  body: formData,
+                },
+              );
+
+              if (response.ok) {
+                const data = await response.json();
+                const finalTranscription = data.text ?? "";
+
+                // Use the base text that was saved before real-time transcription started
+                const baseText = baseTextBeforeRealTimeRef.current;
+                const newValue =
+                  baseText + (baseText ? " " : "") + finalTranscription;
+                setValue(newValue);
+              }
+              setState("idle");
+              cleanup(); // Cleanup AFTER final transcription
+            } catch (err) {
+              console.error("Final transcription error:", err);
+              setState("idle");
+              cleanup(); // Cleanup even on error
+            }
+          } else {
+            // Batch mode - just transcribe once
+            cleanup();
+            await transcribeAudio(audioBlob);
+          }
         } else {
+          cleanup();
           setState("idle");
         }
       };
@@ -328,6 +404,7 @@ export const useVoiceInput = (): UseVoiceInputResult => {
     transcribeAudio,
     transcribeAudioChunk,
     permissionRequestCount,
+    setValue
   ]);
 
   const stopRecording = useCallback(() => {
