@@ -1,6 +1,6 @@
 "use client";
 
-import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import { markdownComponents } from "@/components/tambo/markdown-components";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -16,7 +16,7 @@ import {
   checkHasContent,
   getMessageImages,
   getSafeContent,
-} from "../lib/thread-hooks";
+} from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -258,7 +258,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
         data-slot="message-content"
         {...props}
       >
-        {showLoading ? (
+        {showLoading && !message.reasoning ? (
           <div
             className="flex items-center justify-start h-4 py-1"
             data-slot="message-loading-indicator"
@@ -277,14 +277,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             ) : React.isValidElement(contentToRender) ? (
               contentToRender
             ) : markdown ? (
-              <Streamdown
-                components={
-                  createMarkdownComponents() as Record<
-                    string,
-                    React.ComponentType<Record<string, unknown>>
-                  >
-                }
-              >
+              <Streamdown components={markdownComponents}>
                 {typeof safeContent === "string" ? safeContent : ""}
               </Streamdown>
             ) : (
@@ -333,7 +326,7 @@ function getToolStatusMessage(
  * @component ToolcallInfo
  */
 const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
-  ({ className, markdown: _markdown = true, ...props }, ref) => {
+  ({ className, markdown = true, ...props }, ref) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { message, isLoading } = useMessageContext();
     const { thread } = useTambo();
@@ -371,13 +364,13 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col items-start text-xs opacity-50 pt-2",
+          "flex flex-col items-start text-xs opacity-50",
           className,
         )}
         data-slot="toolcall-info"
         {...props}
       >
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col w-full">
           <button
             type="button"
             aria-expanded={isExpanded}
@@ -405,7 +398,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
+              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full truncate",
               isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
@@ -418,14 +411,14 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             </span>
             {associatedToolResponse && (
               <>
-                <span className="whitespace-pre-wrap font-medium">result:</span>
-                <div className="whitespace-pre-wrap">
+                <span className="whitespace-pre-wrap">result:</span>
+                <div>
                   {!associatedToolResponse.content ? (
                     <span className="text-muted-foreground italic">
                       Empty response
                     </span>
                   ) : (
-                    formatToolResult(associatedToolResponse.content)
+                    formatToolResult(associatedToolResponse.content, markdown)
                   )}
                 </div>
               </>
@@ -438,6 +431,130 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 );
 
 ToolcallInfo.displayName = "ToolcallInfo";
+
+/**
+ * Props for the ReasoningInfo component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export type ReasoningInfoProps = Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "content"
+>;
+
+/**
+ * Displays reasoning information in a collapsible dropdown.
+ * Shows the reasoning strings provided by the LLM when available.
+ * @component ReasoningInfo
+ */
+const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
+  ({ className, ...props }, ref) => {
+    const { message, isLoading } = useMessageContext();
+    const reasoningDetailsId = React.useId();
+    const [isExpanded, setIsExpanded] = useState(true);
+    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+    // Auto-collapse when content arrives and reasoning is not loading
+    React.useEffect(() => {
+      if (checkHasContent(message.content) && !isLoading) {
+        setIsExpanded(false);
+      }
+    }, [message.content, isLoading]);
+
+    // Auto-scroll to bottom when reasoning content changes
+    React.useEffect(() => {
+      if (scrollContainerRef.current && isExpanded && message.reasoning) {
+        const scroll = () => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+              top: scrollContainerRef.current.scrollHeight,
+              behavior: "smooth",
+            });
+          }
+        };
+
+        if (isLoading) {
+          // During streaming, scroll immediately
+          requestAnimationFrame(scroll);
+        } else {
+          // For other updates, use a short delay to batch rapid changes
+          const timeoutId = setTimeout(scroll, 50);
+          return () => clearTimeout(timeoutId);
+        }
+      }
+    }, [message.reasoning, isExpanded, isLoading]);
+
+    // Only show if there's reasoning data
+    if (!message.reasoning?.length) {
+      return null;
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "flex flex-col items-start text-xs opacity-50",
+          className,
+        )}
+        data-slot="reasoning-info"
+        {...props}
+      >
+        <div className="flex flex-col w-full">
+          <button
+            type="button"
+            aria-expanded={isExpanded}
+            aria-controls={reasoningDetailsId}
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={cn(
+              "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md px-3 py-1 select-none w-fit",
+            )}
+          >
+            <span className={isLoading ? "animate-thinking-gradient" : ""}>
+              Thinking{" "}
+              {message.reasoning.length > 1
+                ? `(${message.reasoning.length} steps)`
+                : ""}
+            </span>
+            <ChevronDown
+              className={cn(
+                "w-3 h-3 transition-transform duration-200",
+                !isExpanded && "-rotate-90",
+              )}
+            />
+          </button>
+          <div
+            ref={scrollContainerRef}
+            id={reasoningDetailsId}
+            className={cn(
+              "flex flex-col gap-1 px-3 py-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full",
+              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
+            )}
+          >
+            {message.reasoning.map((reasoningStep, index) => (
+              <div key={index} className="flex flex-col gap-1">
+                {message.reasoning?.length && message.reasoning.length > 1 && (
+                  <span className="text-muted-foreground text-xs font-medium">
+                    Step {index + 1}:
+                  </span>
+                )}
+                {reasoningStep ? (
+                  <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
+                    <div className="whitespace-pre-wrap break-words">
+                      <Streamdown components={markdownComponents}>
+                        {reasoningStep}
+                      </Streamdown>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  },
+);
+
+ReasoningInfo.displayName = "ReasoningInfo";
 
 function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   if (!parameters) return;
@@ -453,25 +570,51 @@ function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
  */
 function formatToolResult(
   content: TamboThreadMessage["content"],
+  enableMarkdown = true,
 ): React.ReactNode {
   if (!content) return content;
 
-  const safeContent = getSafeContent(content);
-  if (typeof safeContent !== "string") return safeContent;
-
-  // Try to parse as JSON
-  try {
-    const parsed = JSON.parse(safeContent);
-    return (
-      <pre className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64">
-        <code className="font-mono break-words whitespace-pre-wrap">
-          {JSON.stringify(parsed, null, 2)}
-        </code>
-      </pre>
-    );
-  } catch {
-    return safeContent;
+  // First check if content can be converted to a string for JSON parsing
+  let contentString: string | null = null;
+  if (typeof content === "string") {
+    contentString = content;
+  } else if (Array.isArray(content)) {
+    contentString = content
+      .map((item) => {
+        if (item && item.type === "text") {
+          return item.text ?? "";
+        }
+        return "";
+      })
+      .join("");
   }
+
+  // Try to parse as JSON if we have a string
+  if (contentString) {
+    try {
+      const parsed = JSON.parse(contentString);
+      return (
+        <pre
+          className={cn(
+            "bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64",
+          )}
+        >
+          <code className="font-mono break-words whitespace-pre-wrap">
+            {JSON.stringify(parsed, null, 2)}
+          </code>
+        </pre>
+      );
+    } catch {
+      // JSON parsing failed, render as markdown or plain text
+      if (!enableMarkdown) return contentString;
+      return (
+        <Streamdown components={markdownComponents}>{contentString}</Streamdown>
+      );
+    }
+  }
+
+  // If content is not a string or array, use getSafeContent as fallback
+  return getSafeContent(content);
 }
 
 /**
@@ -524,7 +667,7 @@ const MessageRenderedComponentArea = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("pt-2", className)}
+      className={cn(className)}
       data-slot="message-rendered-component-area"
       {...props}
     >
@@ -552,7 +695,7 @@ const MessageRenderedComponentArea = React.forwardRef<
             </button>
           </div>
         ) : (
-          <div className="w-full pt-4 px-2">{message.renderedComponent}</div>
+          <div className="w-full pt-2 px-2">{message.renderedComponent}</div>
         ))}
     </div>
   );
@@ -567,5 +710,6 @@ export {
   MessageImages,
   MessageRenderedComponentArea,
   messageVariants,
+  ReasoningInfo,
   ToolcallInfo,
 };

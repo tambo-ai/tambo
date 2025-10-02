@@ -125,6 +125,35 @@ export function getSafeContent(
 }
 
 /**
+ * Checks if a content item has meaningful data.
+ * @param item - A content item from the message
+ * @returns True if the item has content, false otherwise.
+ */
+function hasContentInItem(item: unknown): boolean {
+  if (!item || typeof item !== "object") {
+    return false;
+  }
+
+  const typedItem = item as {
+    type?: string;
+    text?: string;
+    image_url?: { url?: string };
+  };
+
+  // Check for text content
+  if (typedItem.type === "text") {
+    return !!typedItem.text?.trim();
+  }
+
+  // Check for image content
+  if (typedItem.type === "image_url") {
+    return !!typedItem.image_url?.url;
+  }
+
+  return false;
+}
+
+/**
  * Checks if message content contains meaningful, non-empty text or images.
  * @param content - The message content (string, element, array, etc.)
  * @returns True if there is content, false otherwise.
@@ -136,29 +165,22 @@ export function checkHasContent(
   if (typeof content === "string") return content.trim().length > 0;
   if (React.isValidElement(content)) return true; // Assume elements have content
   if (Array.isArray(content)) {
-    return content.some(
-      (item) =>
-        item &&
-        ((item.type === "text" &&
-          typeof item.text === "string" &&
-          item.text.trim().length > 0) ||
-          (item.type === "image_url" && item.image_url?.url)),
-    );
+    return content.some(hasContentInItem);
   }
   return false; // Default for unknown types
 }
 
 /**
- * Extracts image URLs from message content.
- * @param content - The message content
+ * Extracts image URLs from message content array.
+ * @param content - Array of content items
  * @returns Array of image URLs
  */
 export function getMessageImages(
-  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  content: { type?: string; image_url?: { url?: string } }[] | undefined | null,
 ): string[] {
-  if (!content || !Array.isArray(content)) return [];
+  if (!content) return [];
 
   return content
-    .filter((item) => item && item.type === "image_url" && item.image_url?.url)
-    .map((item) => item.image_url!.url);
+    .filter((item) => item?.type === "image_url" && item.image_url?.url)
+    .map((item) => item.image_url!.url!);
 }

@@ -10,9 +10,11 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  type StagedImage,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp, Paperclip, Square, X } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 
 /**
@@ -135,13 +137,24 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
     { children, className, contextKey, initialQuery, variant, ...props },
     ref,
   ) => {
-    const { value, setValue, submit, isPending, error } = useTamboThreadInput();
+    const {
+      value,
+      setValue,
+      submit,
+      isPending,
+      error,
+      images,
+      addImages,
+      clearImages,
+    } = useTamboThreadInput();
     const { cancel } = useTamboThread();
     const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [hasSetInitialQuery, setHasSetInitialQuery] = React.useState(false);
+    const [isDragging, setIsDragging] = React.useState(false);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+    const dragCounter = React.useRef(0);
 
     React.useEffect(() => {
       setDisplayValue(value);
@@ -161,11 +174,16 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
     const handleSubmit = React.useCallback(
       async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!value.trim() || isSubmitting) return;
+        if ((!value.trim() && images.length === 0) || isSubmitting) return;
 
         setSubmitError(null);
         setDisplayValue("");
         setIsSubmitting(true);
+
+        // Clear images in next tick for immediate UI feedback
+        if (images.length > 0) {
+          setTimeout(() => clearImages(), 0);
+        }
 
         try {
           await submit({
@@ -173,6 +191,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
             streamResponse: true,
           });
           setValue("");
+          // Images are cleared automatically by the TamboThreadInputProvider
           setTimeout(() => {
             textareaRef.current?.focus();
           }, 0);
@@ -200,7 +219,59 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         setSubmitError,
         cancel,
         isSubmitting,
+        images,
+        clearImages,
       ],
+    );
+
+    const handleDragEnter = React.useCallback((e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter.current++;
+      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+        const hasImages = Array.from(e.dataTransfer.items).some((item) =>
+          item.type.startsWith("image/"),
+        );
+        if (hasImages) {
+          setIsDragging(true);
+        }
+      }
+    }, []);
+
+    const handleDragLeave = React.useCallback((e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter.current--;
+      if (dragCounter.current === 0) {
+        setIsDragging(false);
+      }
+    }, []);
+
+    const handleDragOver = React.useCallback((e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, []);
+
+    const handleDrop = React.useCallback(
+      async (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        dragCounter.current = 0;
+
+        const files = Array.from(e.dataTransfer.files).filter((file) =>
+          file.type.startsWith("image/"),
+        );
+
+        if (files.length > 0) {
+          try {
+            await addImages(files);
+          } catch (error) {
+            console.error("Failed to add dropped images:", error);
+          }
+        }
+      },
+      [addImages],
     );
 
     const contextValue = React.useMemo(
@@ -240,9 +311,28 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
           onSubmit={handleSubmit}
           className={cn(messageInputVariants({ variant }), className)}
           data-slot="message-input-form"
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
           {...props}
         >
-          <div className="flex flex-col border border-gray-200 rounded-xl bg-background shadow-md p-2 px-3">
+          <div
+            className={cn(
+              "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
+              isDragging
+                ? "border border-dashed border-emerald-400"
+                : "border border-gray-200",
+            )}
+          >
+            {isDragging && (
+              <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 flex items-center justify-center pointer-events-none z-20">
+                <p className="text-emerald-700 dark:text-emerald-300 font-medium">
+                  Drop files here to add to conversation
+                </p>
+              </div>
+            )}
+            <MessageInputStagedImages />
             {children}
           </div>
         </form>
@@ -281,6 +371,7 @@ const MessageInputTextarea = ({
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
+  const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
 
@@ -297,12 +388,31 @@ const MessageInputTextarea = ({
     }
   };
 
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = Array.from(e.clipboardData.items);
+    const imageItems = items.filter((item) => item.type.startsWith("image/"));
+
+    e.preventDefault();
+
+    for (const item of imageItems) {
+      const file = item.getAsFile();
+      if (file) {
+        try {
+          await addImage(file);
+        } catch (error) {
+          console.error("Failed to add pasted image:", error);
+        }
+      }
+    }
+  };
+
   return (
     <textarea
       ref={textareaRef}
       value={value}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
       className={cn(
         "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
         className,
@@ -398,7 +508,9 @@ MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
  */
 const MessageInputMcpConfigButton = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    className?: string;
+  }
 >(({ className, ...props }, ref) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
@@ -506,6 +618,153 @@ const MessageInputError = React.forwardRef<
 MessageInputError.displayName = "MessageInput.Error";
 
 /**
+ * Props for the MessageInputFileButton component.
+ */
+export interface MessageInputFileButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Accept attribute for file input - defaults to image types */
+  accept?: string;
+  /** Allow multiple file selection */
+  multiple?: boolean;
+}
+
+/**
+ * File attachment button component for selecting images from file system.
+ * @component MessageInput.FileButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.FileButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputFileButton = React.forwardRef<
+  HTMLButtonElement,
+  MessageInputFileButtonProps
+>(({ className, accept = "image/*", multiple = true, ...props }, ref) => {
+  const { addImages } = useTamboThreadInput();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    try {
+      await addImages(files);
+    } catch (error) {
+      console.error("Failed to add selected files:", error);
+    }
+    // Reset the input so the same file can be selected again
+    e.target.value = "";
+  };
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content="Attach Images"
+        side="top"
+        className="bg-muted text-primary"
+      >
+        <button
+          ref={ref}
+          type="button"
+          onClick={handleClick}
+          className={buttonClasses}
+          aria-label="Attach Images"
+          data-slot="message-input-file-button"
+          {...props}
+        >
+          <Paperclip className="w-4 h-4" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            multiple={multiple}
+            onChange={handleFileChange}
+            className="hidden"
+            aria-hidden="true"
+          />
+        </button>
+      </Tooltip>
+    </TooltipProvider>
+  );
+});
+MessageInputFileButton.displayName = "MessageInput.FileButton";
+
+/**
+ * Props for the MessageInputStagedImages component.
+ */
+export type MessageInputStagedImagesProps =
+  React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Component that displays currently staged images with preview and remove functionality.
+ * @component MessageInput.StagedImages
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.StagedImages />
+ *   <MessageInput.Textarea />
+ * </MessageInput>
+ * ```
+ */
+const MessageInputStagedImages = React.forwardRef<
+  HTMLDivElement,
+  MessageInputStagedImagesProps
+>(({ className, ...props }, ref) => {
+  const { images, removeImage } = useTamboThreadInput();
+
+  if (images.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-wrap gap-2 p-2 border-b border-gray-200 dark:border-gray-700",
+        className,
+      )}
+      data-slot="message-input-staged-images"
+      {...props}
+    >
+      {images.map((image: StagedImage) => (
+        <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
+          <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+            <Image
+              src={image.dataUrl}
+              alt={image.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => removeImage(image.id)}
+            className="absolute -top-2 -right-2 w-5 h-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition-colors shadow-sm z-10"
+            aria-label={`Remove ${image.name}`}
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+});
+MessageInputStagedImages.displayName = "MessageInput.StagedImages";
+
+/**
  * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
@@ -566,7 +825,9 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 export {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
   MessageInputMcpConfigButton,
+  MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,

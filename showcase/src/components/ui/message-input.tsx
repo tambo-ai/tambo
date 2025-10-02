@@ -7,6 +7,7 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  type StagedImage,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square, X } from "lucide-react";
@@ -195,6 +196,7 @@ const MessageInputInternal = React.forwardRef<
           streamResponse: true,
         });
         setValue("");
+        // Images are cleared automatically by the TamboThreadInputProvider
         setTimeout(() => {
           textareaRef.current?.focus();
         }, 0);
@@ -286,7 +288,7 @@ const MessageInputInternal = React.forwardRef<
       },
       submit,
       handleSubmit,
-      isPending: isPending || isSubmitting,
+      isPending: isPending ?? isSubmitting,
       error,
       contextKey,
       textareaRef,
@@ -395,17 +397,15 @@ const MessageInputTextarea = ({
     const items = Array.from(e.clipboardData.items);
     const imageItems = items.filter((item) => item.type.startsWith("image/"));
 
-    if (imageItems.length > 0) {
-      e.preventDefault();
+    e.preventDefault();
 
-      for (const item of imageItems) {
-        const file = item.getAsFile();
-        if (file) {
-          try {
-            await addImage(file);
-          } catch (error) {
-            console.error("Failed to add pasted image:", error);
-          }
+    for (const item of imageItems) {
+      const file = item.getAsFile();
+      if (file) {
+        try {
+          await addImage(file);
+        } catch (error) {
+          console.error("Failed to add pasted image:", error);
         }
       }
     }
@@ -660,16 +660,14 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      try {
-        await addImages(files);
-      } catch (error) {
-        console.error("Failed to add selected files:", error);
-      }
-      // Reset the input so the same file can be selected again
-      e.target.value = "";
+    const files = Array.from(e.target.files ?? []);
+    try {
+      await addImages(files);
+    } catch (error) {
+      console.error("Failed to add selected files:", error);
     }
+    // Reset the input so the same file can be selected again
+    e.target.value = "";
   };
 
   const buttonClasses = cn(
@@ -747,7 +745,7 @@ const MessageInputStagedImages = React.forwardRef<
       data-slot="message-input-staged-images"
       {...props}
     >
-      {images.map((image) => (
+      {images.map((image: StagedImage) => (
         <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
           <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
             <Image
