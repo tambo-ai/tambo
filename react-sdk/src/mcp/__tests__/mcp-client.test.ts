@@ -78,6 +78,8 @@ describe("MCPClient", () => {
         endpoint,
         MCPTransport.HTTP,
         headers,
+        undefined,
+        undefined,
       );
 
       expect(MockedStreamableHTTPClientTransport).toHaveBeenCalledWith(
@@ -97,7 +99,13 @@ describe("MCPClient", () => {
     it("should create and connect an MCPClient with SSE transport", async () => {
       const endpoint = "https://api.example.com/mcp";
 
-      const client = await MCPClient.create(endpoint, MCPTransport.SSE);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.SSE,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       expect(MockedSSEClientTransport).toHaveBeenCalledWith(new URL(endpoint), {
         requestInit: { headers: {} },
@@ -109,7 +117,13 @@ describe("MCPClient", () => {
     it("should create client with default headers when none provided", async () => {
       const endpoint = "https://api.example.com/mcp";
 
-      await MCPClient.create(endpoint);
+      await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       expect(MockedStreamableHTTPClientTransport).toHaveBeenCalledWith(
         new URL(endpoint),
@@ -121,7 +135,13 @@ describe("MCPClient", () => {
   describe("reconnect", () => {
     it("should create new transport and client instances and call connect when reconnect() is called (default behavior)", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       // Clear previous calls to focus on reconnect behavior
       jest.clearAllMocks();
@@ -170,7 +190,13 @@ describe("MCPClient", () => {
 
     it("should reconnect without session ID for SSE transport", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.SSE);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.SSE,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       // Clear previous calls
       jest.clearAllMocks();
@@ -186,7 +212,13 @@ describe("MCPClient", () => {
 
     it("should handle close errors when reportErrorOnClose is true", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
       // Make close throw an error
@@ -203,7 +235,13 @@ describe("MCPClient", () => {
 
     it("should not log close errors when reportErrorOnClose is false", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
       // Make close throw an error
@@ -217,7 +255,13 @@ describe("MCPClient", () => {
 
     it("should create new session when newSession is true", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       // Clear previous calls to focus on reconnect behavior
       jest.clearAllMocks();
@@ -266,7 +310,13 @@ describe("MCPClient", () => {
 
     it("should reuse existing session when newSession is false (default)", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       // Clear previous calls to focus on reconnect behavior
       jest.clearAllMocks();
@@ -317,7 +367,13 @@ describe("MCPClient", () => {
   describe("onclose", () => {
     it("should reconnect MCPClient when client is closed by external means (no backoff on manual preemption)", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
       jest.useFakeTimers();
       const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
 
@@ -385,7 +441,13 @@ describe("MCPClient", () => {
   describe("reconnect re-entrancy and single-flight", () => {
     it("prevents re-entrant onclose during deliberate close and coalesces concurrent calls", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       // Simulate an implementation where closing the client would call its own onclose handler
       const closeImpl = jest.fn(async () => {
@@ -435,7 +497,13 @@ describe("MCPClient", () => {
       const randSpy = jest.spyOn(Math, "random").mockReturnValue(0.0); // extreme low jitter
 
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       // Prepare one attempt that will succeed to avoid rescheduling
       MockedClient.mockImplementation(
@@ -482,7 +550,13 @@ describe("MCPClient", () => {
   describe("listTools", () => {
     it("should list all tools with pagination", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       const mockTools = [
         {
@@ -552,7 +626,13 @@ describe("MCPClient", () => {
 
     it("should handle single page of tools", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       const mockTools = [
         {
@@ -589,7 +669,13 @@ describe("MCPClient", () => {
 
     it("should throw error for invalid input schema", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       const mockTools = [
         {
@@ -615,7 +701,13 @@ describe("MCPClient", () => {
   describe("callTool", () => {
     it("should call a tool with arguments", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       const mockResult = { success: true, data: "test result" };
       mockClientInstance.callTool.mockResolvedValue(mockResult);
@@ -634,8 +726,13 @@ describe("MCPClient", () => {
 
     it("should handle tool call errors", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const client = await MCPClient.create(endpoint, MCPTransport.HTTP);
-
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
       const error = new Error("Tool call failed");
       mockClientInstance.callTool.mockRejectedValue(error);
 
@@ -650,7 +747,13 @@ describe("MCPClient", () => {
       const endpoint = "https://api.example.com/mcp";
       const headers = { Authorization: "Bearer token" };
 
-      await MCPClient.create(endpoint, MCPTransport.HTTP, headers);
+      await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        headers,
+        undefined,
+        undefined,
+      );
 
       expect(MockedStreamableHTTPClientTransport).toHaveBeenCalledWith(
         new URL(endpoint),
@@ -662,7 +765,13 @@ describe("MCPClient", () => {
       const endpoint = "https://api.example.com/mcp";
       const headers = { Authorization: "Bearer token" };
 
-      await MCPClient.create(endpoint, MCPTransport.SSE, headers);
+      await MCPClient.create(
+        endpoint,
+        MCPTransport.SSE,
+        headers,
+        undefined,
+        undefined,
+      );
 
       expect(MockedSSEClientTransport).toHaveBeenCalledWith(new URL(endpoint), {
         requestInit: { headers },
@@ -674,7 +783,13 @@ describe("MCPClient", () => {
     it("should initialize client with correct name and version", async () => {
       const endpoint = "https://api.example.com/mcp";
 
-      await MCPClient.create(endpoint);
+      await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       expect(MockedClient).toHaveBeenCalledWith({
         name: "tambo-mcp-client",
@@ -684,7 +799,13 @@ describe("MCPClient", () => {
 
     it("should set onclose handler", async () => {
       const endpoint = "https://api.example.com/mcp";
-      const _client = await MCPClient.create(endpoint);
+      const _client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+      );
 
       expect(mockClientInstance.onclose).toBeDefined();
       expect(typeof mockClientInstance.onclose).toBe("function");

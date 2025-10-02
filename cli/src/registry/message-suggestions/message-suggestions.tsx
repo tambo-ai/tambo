@@ -1,7 +1,10 @@
 "use client";
 
-import { MessageGenerationStage } from "@/components/ui/message-generation-stage";
-import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
+import { MessageGenerationStage } from "@/components/tambo/message-generation-stage";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import type { Suggestion, TamboThread } from "@tambo-ai/react";
 import { useTambo, useTamboSuggestions } from "@tambo-ai/react";

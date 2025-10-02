@@ -97,6 +97,8 @@ export const TamboMcpProvider: FC<{
               mcpServerInfo.url,
               mcpServerInfo.transport,
               mcpServerInfo.customHeaders,
+              undefined, // no oauth support yet
+              undefined, // starting with no session id at first.
             );
             const connectedMcpServer = {
               ...mcpServerInfo,

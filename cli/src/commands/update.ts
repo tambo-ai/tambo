@@ -10,6 +10,7 @@ import { installComponents } from "./add/component.js";
 import type { InstallComponentOptions } from "./add/types.js";
 import { componentExists, getInstalledComponents } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
+import { setupTailwindandGlobals } from "./add/tailwind-setup.js";
 import {
   detectCrossLocationDependencies,
   findComponentLocation,
@@ -245,6 +246,11 @@ export async function handleUpdateComponents(
           );
         }
       }
+    }
+
+    if (successCount > 0 && !options.silent) {
+      console.log(chalk.blue("\nChecking CSS configuration..."));
+      await setupTailwindandGlobals(projectRoot);
     }
 
     if (!options.silent) {
