@@ -41,7 +41,8 @@ export const env = createEnv({
     NEXTAUTH_SECRET: z.string().min(8),
     /** URL of the client app so we can redirect back to it after auth, e.g. https://tambo.co or http://localhost:3000 */
     NEXTAUTH_URL: z.string().url(),
-    EMAIL_FROM_DEFAULT: z.string().min(1),
+    /** Email address to send emails from. Required if using email authentication. */
+    EMAIL_FROM_DEFAULT: z.string().transform(allowEmptyString).optional(),
 
     // Whitelabeling (server-side copies; optional so can be omitted)
     TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional(),
