@@ -2,12 +2,44 @@ import { type OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import {
+  CreateMessageRequest,
+  CreateMessageRequestSchema,
+  CreateMessageResult,
+  ElicitRequest,
+  ElicitRequestSchema,
+  ElicitResult,
+} from "@modelcontextprotocol/sdk/types";
 import { JSONSchema7 } from "json-schema";
 
 export enum MCPTransport {
   SSE = "sse",
   HTTP = "http",
 }
+
+/**
+ * Handlers for MCP requests - these are only used if the server supports the corresponding capabilities
+ * @param elicitation - Handler for elicitation requests
+ * @param sampling - Handler for sampling requests
+ * @example
+ * ```typescript
+ * const mcp = await MCPClient.create(
+ *     'https://api.example.com/mcp',
+ *     MCPTransport.HTTP,
+ *     {},
+ *     undefined,
+ *     undefined,
+ *     {
+ *       elicitation: (e: ElicitRequest) => Promise.resolve({...}),
+ *     },
+ * });
+ * ```
+ */
+interface MCPHandlers {
+  elicitation?: (e: ElicitRequest) => Promise<ElicitResult>;
+  sampling?: (e: CreateMessageRequest) => Promise<CreateMessageResult>;
+}
+
 /**
  * A client for interacting with MCP (Model Context Protocol) servers.
  * Provides a simple interface for listing and calling tools exposed by the server.
@@ -26,6 +58,7 @@ export class MCPClient {
   private endpoint: string;
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
+  private handlers: MCPHandlers;
   /**
    * Tracks an in-flight reconnect so concurrent triggers coalesce
    * (single-flight). When set, additional calls to `reconnect()` or
@@ -63,6 +96,7 @@ export class MCPClient {
   static readonly BACKOFF_MAX_MS = 30_000;
   static readonly BACKOFF_JITTER_RATIO = 0.2;
 
+  public elicitation: EventTarget = new EventTarget();
   /**
    * Private constructor to enforce using the static create method.
    * @param endpoint - The URL of the MCP server to connect to
@@ -75,6 +109,7 @@ export class MCPClient {
     headers?: Record<string, string>,
     authProvider?: OAuthClientProvider,
     sessionId?: string,
+    handlers: MCPHandlers = {},
   ) {
     this.endpoint = endpoint;
     this.headers = headers ?? {};
@@ -82,6 +117,7 @@ export class MCPClient {
     this.transportType = transportType;
     this.transport = this.initializeTransport(sessionId);
     this.client = this.initializeClient();
+    this.handlers = handlers;
   }
 
   /**
@@ -103,6 +139,7 @@ export class MCPClient {
     headers: Record<string, string> | undefined,
     authProvider: OAuthClientProvider | undefined,
     sessionId: string | undefined,
+    handlers: MCPHandlers = {},
   ): Promise<MCPClient> {
     const mcpClient = new MCPClient(
       endpoint,
@@ -114,6 +151,12 @@ export class MCPClient {
     await mcpClient.client.connect(mcpClient.transport);
     if ("sessionId" in mcpClient.transport) {
       mcpClient.sessionId = mcpClient.transport.sessionId;
+    }
+    if (handlers.elicitation) {
+      mcpClient.setElicitationHandler(handlers.elicitation);
+    }
+    if (handlers.sampling) {
+      mcpClient.setSamplingHandler(handlers.sampling);
     }
     return mcpClient;
   }
@@ -271,12 +314,37 @@ export class MCPClient {
     }
   }
 
+  /**
+   * Initializes the MCP client with the appropriate capabilities and handlers
+   * @returns The initialized MCP client
+   */
   private initializeClient() {
-    const client = new Client({
-      name: "tambo-mcp-client",
-      version: "1.0.0",
-    });
+    const elicitationCapability = this.handlers.elicitation
+      ? { elicitation: {} }
+      : {};
+    const samplingCapability = this.handlers.sampling ? { sampling: {} } : {};
+    const client = new Client(
+      {
+        name: "tambo-mcp-client",
+        version: "1.0.0",
+      },
+      {
+        capabilities: {
+          ...elicitationCapability,
+          ...samplingCapability,
+        },
+      },
+    );
     client.onclose = this.onclose.bind(this);
+    if (this.handlers.elicitation) {
+      client.setRequestHandler(ElicitRequestSchema, this.handlers.elicitation);
+    }
+    if (this.handlers.sampling) {
+      client.setRequestHandler(
+        CreateMessageRequestSchema,
+        this.handlers.sampling,
+      );
+    }
     return client;
   }
 
@@ -349,6 +417,28 @@ export class MCPClient {
       arguments: args,
     });
     return result;
+  }
+
+  async setElicitationHandler(
+    handler: ((e: ElicitRequest) => Promise<ElicitResult>) | null,
+  ) {
+    if (!handler) {
+      const method = ElicitRequestSchema.shape.method.value;
+      this.client.removeRequestHandler(method);
+      return;
+    }
+    this.client.setRequestHandler(ElicitRequestSchema, handler);
+  }
+
+  async setSamplingHandler(
+    handler: ((e: CreateMessageRequest) => Promise<CreateMessageResult>) | null,
+  ) {
+    if (!handler) {
+      const method = CreateMessageRequestSchema.shape.method.value;
+      this.client.removeRequestHandler(method);
+      return;
+    }
+    this.client.setRequestHandler(CreateMessageRequestSchema, handler);
   }
 }
 
