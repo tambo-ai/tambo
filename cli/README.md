@@ -131,7 +131,7 @@ If you just want to add Tambo to specific pages or components, this is the quick
 
 import { TamboProvider } from "@tambo-ai/react";
 import { components } from "../../lib/tambo"; // Import components
-import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 
 export default function AIChat() {
   return (
