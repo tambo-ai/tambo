@@ -1,5 +1,74 @@
 # Changelog
 
+## [0.110.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.109.0...repo-v0.110.0) (2025-10-02)
+
+
+### Features
+
+* **agents:** Add back mastra support ([#1855](https://github.com/tambo-ai/tambo-cloud/issues/1855)) ([23f077b](https://github.com/tambo-ai/tambo-cloud/commit/23f077ba20e13c9b1d6ef8bd3835f304a0cd6fa9))
+* **agents:** support reasoning messages ([#1783](https://github.com/tambo-ai/tambo-cloud/issues/1783)) ([aa04272](https://github.com/tambo-ai/tambo-cloud/commit/aa04272b83e2fbe0ca9775aa6b9af301d2aa4a12))
+* **mcp:** Add support for sessionIds ([#1858](https://github.com/tambo-ai/tambo-cloud/issues/1858)) ([4bb0a96](https://github.com/tambo-ai/tambo-cloud/commit/4bb0a96f1132036913fa832612db191738afd4a0))
+
+
+### Bug Fixes
+
+* **api:** make email service configuration optional and handle missing environment variables ([#1864](https://github.com/tambo-ai/tambo-cloud/issues/1864)) ([5eb326c](https://github.com/tambo-ai/tambo-cloud/commit/5eb326cd6c95918199f31af10ad690bf44331cc5))
+* **ci:** prevent docker images from pushing to docker.io ([#1856](https://github.com/tambo-ai/tambo-cloud/issues/1856)) ([248aa04](https://github.com/tambo-ai/tambo-cloud/commit/248aa0416246ece85567e0bacf5e431be5409e27))
+* **db:** Fix migration for extra constraint ([#1861](https://github.com/tambo-ai/tambo-cloud/issues/1861)) ([0fa1619](https://github.com/tambo-ai/tambo-cloud/commit/0fa16194262ec52d2c1ca6900c90106a99f1219a))
+* **db:** rewind 3 snapshots, rerun as a single snapshot ([#1863](https://github.com/tambo-ai/tambo-cloud/issues/1863)) ([4e7de72](https://github.com/tambo-ai/tambo-cloud/commit/4e7de72725e2415e3702edf7e201350083faec4e))
+* **db:** use sql`now()` instead of new Date() ([#1859](https://github.com/tambo-ai/tambo-cloud/issues/1859)) ([e74c97a](https://github.com/tambo-ai/tambo-cloud/commit/e74c97a2b25a19ef235e46723ab97bf605adad3a))
+* **email:** Check unsubscribe before sending personal emails ([#1806](https://github.com/tambo-ai/tambo-cloud/issues/1806)) ([5ea3ff7](https://github.com/tambo-ai/tambo-cloud/commit/5ea3ff73b793cda45c934c8695fde9038557f379))
+* **web:** close mobile navigation drawer on hash link clicks ([#1851](https://github.com/tambo-ai/tambo-cloud/issues/1851)) ([212763f](https://github.com/tambo-ai/tambo-cloud/commit/212763f0e3e9a174b257bacf59e1ce00a9ed607a))
+
+
+### Miscellaneous Chores
+
+* **agent-dev:** no backticks in claude.md - references are as-is ([#1857](https://github.com/tambo-ai/tambo-cloud/issues/1857)) ([73ddf49](https://github.com/tambo-ai/tambo-cloud/commit/73ddf494763bfad07af22b74cbe20408a7382f81))
+* **ci:** add GitHub Container Registry login and image push steps to docker-test workflow ([#1848](https://github.com/tambo-ai/tambo-cloud/issues/1848)) ([56d2a28](https://github.com/tambo-ai/tambo-cloud/commit/56d2a28b76e0fd5b3c6251eb3bee4f81ba9df533))
+* **ci:** enhance docker-test workflow to conditionally push images to GHCR ([#1852](https://github.com/tambo-ai/tambo-cloud/issues/1852)) ([42b83a1](https://github.com/tambo-ai/tambo-cloud/commit/42b83a1ed497dda1c6fb0adaa9aad33050a94003))
+* **ci:** refactor docker-test workflow to use build-push-action for image builds and pushes ([#1849](https://github.com/tambo-ai/tambo-cloud/issues/1849)) ([b2b53bb](https://github.com/tambo-ai/tambo-cloud/commit/b2b53bbbb6ada2f8d838c942752b21ba91cd77aa))
+* **ci:** update variable name for auth in docker workflow ([#1854](https://github.com/tambo-ai/tambo-cloud/issues/1854)) ([4759cdd](https://github.com/tambo-ai/tambo-cloud/commit/4759cdd4b5ba6c2be737d22cf61b13a2e4ff85f2))
+* **deps-dev:** bump @tailwindcss/typography from 0.5.16 to 0.5.19 ([#1828](https://github.com/tambo-ai/tambo-cloud/issues/1828)) ([dfa9612](https://github.com/tambo-ai/tambo-cloud/commit/dfa9612424a13168db03571377244123238b119d))
+* **deps-dev:** bump drizzle-kit from 0.31.4 to 0.31.5 in the drizzle group ([#1812](https://github.com/tambo-ai/tambo-cloud/issues/1812)) ([3370a1c](https://github.com/tambo-ai/tambo-cloud/commit/3370a1cf5246f74ce1e9af197845dd85abb060a1))
+* **deps-dev:** bump lint-staged from 16.2.1 to 16.2.3 in the small-safe-packages group ([#1837](https://github.com/tambo-ai/tambo-cloud/issues/1837)) ([b1a5e2b](https://github.com/tambo-ai/tambo-cloud/commit/b1a5e2b472c2efa975aeeff70378a88d0f023d50))
+* **deps-dev:** bump the eslint group with 2 updates ([#1813](https://github.com/tambo-ai/tambo-cloud/issues/1813)) ([843eaf4](https://github.com/tambo-ai/tambo-cloud/commit/843eaf49371c7a890ffaa93af60bdb7390b3e3c2))
+* **deps-dev:** bump the testing group with 2 updates ([#1835](https://github.com/tambo-ai/tambo-cloud/issues/1835)) ([d3c26ec](https://github.com/tambo-ai/tambo-cloud/commit/d3c26ec031d6cb5e27b9c9cb91b6c07acae40873))
+* **deps-dev:** bump tsx from 4.20.5 to 4.20.6 ([#1826](https://github.com/tambo-ai/tambo-cloud/issues/1826)) ([3cf0930](https://github.com/tambo-ai/tambo-cloud/commit/3cf0930a79840dd5f77c4dc2c7c1f0d37d54a819))
+* **deps-dev:** bump turbo from 2.5.6 to 2.5.8 ([#1825](https://github.com/tambo-ai/tambo-cloud/issues/1825)) ([2a832ee](https://github.com/tambo-ai/tambo-cloud/commit/2a832ee953bb8b4b7d566dcb8b6d6b5b038db991))
+* **deps:** bump @langfuse/otel from 4.0.1 to 4.2.0 ([#1832](https://github.com/tambo-ai/tambo-cloud/issues/1832)) ([bf2e30a](https://github.com/tambo-ai/tambo-cloud/commit/bf2e30a6b5a4f757ae01327ff6f59bab4fdd9eb6))
+* **deps:** bump @modelcontextprotocol/sdk from 1.18.0 to 1.18.2 ([#1841](https://github.com/tambo-ai/tambo-cloud/issues/1841)) ([9d3b88e](https://github.com/tambo-ai/tambo-cloud/commit/9d3b88e158dbc28d8f0e51c20f31f3da3f7d841c))
+* **deps:** bump @tanstack/react-query from 5.87.4 to 5.90.2 ([#1824](https://github.com/tambo-ai/tambo-cloud/issues/1824)) ([ca53266](https://github.com/tambo-ai/tambo-cloud/commit/ca5326619354d81a79389f481dbfad7c6c1aa25b))
+* **deps:** bump dompurify from 3.2.6 to 3.2.7 ([#1820](https://github.com/tambo-ai/tambo-cloud/issues/1820)) ([bbb56aa](https://github.com/tambo-ai/tambo-cloud/commit/bbb56aa2e600b42e96278c652ce24bdc68890899))
+* **deps:** bump framer-motion from 12.23.12 to 12.23.22 ([#1839](https://github.com/tambo-ai/tambo-cloud/issues/1839)) ([d79d71d](https://github.com/tambo-ai/tambo-cloud/commit/d79d71d8639d82b6d99d5633568b60d70d4e3629))
+* **deps:** bump jiti from 2.5.1 to 2.6.0 ([#1829](https://github.com/tambo-ai/tambo-cloud/issues/1829)) ([7eb6a31](https://github.com/tambo-ai/tambo-cloud/commit/7eb6a310f5f840bfed10a402d3b867eeb96cd838))
+* **deps:** bump nextra from 4.4.0 to 4.5.0 ([#1821](https://github.com/tambo-ai/tambo-cloud/issues/1821)) ([9e676b9](https://github.com/tambo-ai/tambo-cloud/commit/9e676b933b9515b3737a627feed90c64e0fa379a))
+* **deps:** bump nextra-theme-blog from 4.4.0 to 4.5.0 ([#1827](https://github.com/tambo-ai/tambo-cloud/issues/1827)) ([95111dd](https://github.com/tambo-ai/tambo-cloud/commit/95111ddf9c11f369175b6165bc0b39b8de6e7d94))
+* **deps:** bump nextra-theme-blog from 4.5.0 to 4.5.1 ([#1838](https://github.com/tambo-ai/tambo-cloud/issues/1838)) ([6392ee4](https://github.com/tambo-ai/tambo-cloud/commit/6392ee4bfb54f02e2511d5e3c603977c58fc04ed))
+* **deps:** bump openai from 5.20.3 to 5.23.1 ([#1819](https://github.com/tambo-ai/tambo-cloud/issues/1819)) ([d9fa4be](https://github.com/tambo-ai/tambo-cloud/commit/d9fa4be2d6a555c19320da774b433ce7a3120f13))
+* **deps:** bump posthog-js from 1.268.6 to 1.268.8 in the small-safe-packages group across 1 directory ([#1843](https://github.com/tambo-ai/tambo-cloud/issues/1843)) ([414eed7](https://github.com/tambo-ai/tambo-cloud/commit/414eed726d0e7bc75fc4d68a448baa7a60113b48))
+* **deps:** bump react-hook-form from 7.62.0 to 7.63.0 ([#1831](https://github.com/tambo-ai/tambo-cloud/issues/1831)) ([9e1294e](https://github.com/tambo-ai/tambo-cloud/commit/9e1294eca80d578f5aa6f59ababe098069794646))
+* **deps:** bump resend from 6.1.0 to 6.1.1 ([#1847](https://github.com/tambo-ai/tambo-cloud/issues/1847)) ([5ff7ac0](https://github.com/tambo-ai/tambo-cloud/commit/5ff7ac045abcf97e9db4d4d32f85d470b719f8dd))
+* **deps:** bump the ag-ui group with 2 updates ([#1818](https://github.com/tambo-ai/tambo-cloud/issues/1818)) ([c05417e](https://github.com/tambo-ai/tambo-cloud/commit/c05417e5e189d445ba772e12ce47e6c3460e42a1))
+* **deps:** bump the ai-sdk group with 2 updates ([#1844](https://github.com/tambo-ai/tambo-cloud/issues/1844)) ([cef26ab](https://github.com/tambo-ai/tambo-cloud/commit/cef26ab13f6d23ffd2fa3412bc5aabfbec0991e0))
+* **deps:** bump the ai-sdk group with 7 updates ([#1814](https://github.com/tambo-ai/tambo-cloud/issues/1814)) ([c6e528b](https://github.com/tambo-ai/tambo-cloud/commit/c6e528b613314a144a019d498e22f9b8ef9db663))
+* **deps:** bump the next group with 2 updates ([#1816](https://github.com/tambo-ai/tambo-cloud/issues/1816)) ([55a24b3](https://github.com/tambo-ai/tambo-cloud/commit/55a24b39e16c15961a30b9bee11e4286023fb369))
+* **deps:** bump the sentry group with 3 updates ([#1846](https://github.com/tambo-ai/tambo-cloud/issues/1846)) ([9d60e75](https://github.com/tambo-ai/tambo-cloud/commit/9d60e75167203f0530dcedc46c20d9a6afad31de))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1817](https://github.com/tambo-ai/tambo-cloud/issues/1817)) ([077e96c](https://github.com/tambo-ai/tambo-cloud/commit/077e96c2db14ddf6120dcc6bb760f021e0f75cf4))
+* **deps:** bump the trpc group with 3 updates ([#1811](https://github.com/tambo-ai/tambo-cloud/issues/1811)) ([5cf4a36](https://github.com/tambo-ai/tambo-cloud/commit/5cf4a36ad83dd8bd3c179e9c184498f8938c3e8f))
+* **deps:** bump tldts from 7.0.14 to 7.0.16 ([#1830](https://github.com/tambo-ai/tambo-cloud/issues/1830)) ([53a5fa4](https://github.com/tambo-ai/tambo-cloud/commit/53a5fa40df11ea4bc428406c8c83933602fcd0be))
+* **deps:** Create nexstra dependabot group ([#1842](https://github.com/tambo-ai/tambo-cloud/issues/1842)) ([ae07bc0](https://github.com/tambo-ai/tambo-cloud/commit/ae07bc01c820f6c0c04d0d172b53e20763ca114f))
+* fix packagemanager and volta config ([#1860](https://github.com/tambo-ai/tambo-cloud/issues/1860)) ([94f0cff](https://github.com/tambo-ai/tambo-cloud/commit/94f0cff2265031dcfdbdf03474f68d744a4f3448))
+
+
+### Code Refactoring
+
+* **ci:** use docker-compose as source of truth for image builds ([#1850](https://github.com/tambo-ai/tambo-cloud/issues/1850)) ([fe2c20a](https://github.com/tambo-ai/tambo-cloud/commit/fe2c20ac65a859858e6d968e9371e98593166ecc))
+
+
+### Tests
+
+* **agent-client:** Fix tests to actually generate messages ([#1822](https://github.com/tambo-ai/tambo-cloud/issues/1822)) ([0b50073](https://github.com/tambo-ai/tambo-cloud/commit/0b50073f9ebe0eeec7f76715c7467478059d4f8d))
+
 ## [0.109.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.108.0...repo-v0.109.0) (2025-09-26)
 
 
