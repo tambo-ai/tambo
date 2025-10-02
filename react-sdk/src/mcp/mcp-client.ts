@@ -295,7 +295,9 @@ export class MCPClient {
       const response = await this.client.listTools({ cursor }, {});
       allTools.push(
         ...response.tools.map((tool): MCPToolSpec => {
-          if (tool.inputSchema.type !== "object") {
+          // make sure the right type is used
+          const inputSchemaType: string = tool.inputSchema.type;
+          if (inputSchemaType !== "object") {
             throw new Error(
               `Input schema for tool ${tool.name} is not an object`,
             );
