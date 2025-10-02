@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.34.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.33.0...tambo-v0.34.0) (2025-10-02)
+
+
+### Features
+
+* add reasoning UI, smart autoscroll with UI improvements and update component paths to use /tambo ([#1101](https://github.com/tambo-ai/tambo/issues/1101)) ([9ec66c3](https://github.com/tambo-ai/tambo/commit/9ec66c37493eb636d5778e51ca8553ffb9982fc4))
+
+
+### Bug Fixes
+
+* **mcp:** Handle cases where the server list changes ([#1080](https://github.com/tambo-ai/tambo/issues/1080)) ([86bf03e](https://github.com/tambo-ai/tambo/commit/86bf03eac65fef399abf0e02283c47c2aa166e00))
+* **thread-history:** improve sidebar animation smoothness ([#1115](https://github.com/tambo-ai/tambo/issues/1115)) ([d65319e](https://github.com/tambo-ai/tambo/commit/d65319eb9078e248d4ca6bf649b2fb736b4d7022))
+
+
+### Miscellaneous Chores
+
+* add agents.md & claude.md to monorepo. ([#1116](https://github.com/tambo-ai/tambo/issues/1116)) ([fe911d4](https://github.com/tambo-ai/tambo/commit/fe911d4613b301cf9a68a6a95ebc2b7a6a294dd5))
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+* **deps:** bump clipboardy from 4.0.0 to 5.0.0 ([#1112](https://github.com/tambo-ai/tambo/issues/1112)) ([841ca31](https://github.com/tambo-ai/tambo/commit/841ca310dac872e833f15e291f85d299f1b8a895))
+* **deps:** bump fast-equals from 5.2.2 to 5.3.2 ([#1103](https://github.com/tambo-ai/tambo/issues/1103)) ([2a5a6b4](https://github.com/tambo-ai/tambo/commit/2a5a6b4e1e941816a0e035ee4efab9dd8312db10))
+* **deps:** bump ora from 8.2.0 to 9.0.0 ([#1091](https://github.com/tambo-ai/tambo/issues/1091)) ([b7333d6](https://github.com/tambo-ai/tambo/commit/b7333d6230515ba83c77618183779b7b4e92b2af))
+* **deps:** bump streamdown from 1.2.0 to 1.3.0 ([#1093](https://github.com/tambo-ai/tambo/issues/1093)) ([761f213](https://github.com/tambo-ai/tambo/commit/761f213340ea0b611d8c712d1b5ca8fb744a8ace))
+
 ## [0.33.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.32.0...tambo-v0.33.0) (2025-09-19)
 
 
