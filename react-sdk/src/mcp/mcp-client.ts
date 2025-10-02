@@ -115,9 +115,9 @@ export class MCPClient {
     this.headers = headers ?? {};
     this.authProvider = authProvider;
     this.transportType = transportType;
+    this.handlers = handlers;
     this.transport = this.initializeTransport(sessionId);
     this.client = this.initializeClient();
-    this.handlers = handlers;
   }
 
   /**
@@ -147,6 +147,7 @@ export class MCPClient {
       headers,
       authProvider,
       sessionId,
+      handlers,
     );
     await mcpClient.client.connect(mcpClient.transport);
     if ("sessionId" in mcpClient.transport) {
