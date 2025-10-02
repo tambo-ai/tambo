@@ -1,5 +1,103 @@
 # Changelog
 
+## [1.12.1](https://github.com/tambo-ai/tambo/compare/docs-v1.12.0...docs-v1.12.1) (2025-09-22)
+
+
+### Miscellaneous Chores
+
+* Add next-sitemap to docs sitemap to see ([#1083](https://github.com/tambo-ai/tambo/issues/1083)) ([9d500c5](https://github.com/tambo-ai/tambo/commit/9d500c5259cdf440630d3c113b432ed98c1838d6))
+
+## [1.12.0](https://github.com/tambo-ai/tambo/compare/docs-v1.11.0...docs-v1.12.0) (2025-09-20)
+
+
+### Features
+
+* **docs:** add documentation for custom llm parameters ([#1071](https://github.com/tambo-ai/tambo/issues/1071)) ([fe64ca3](https://github.com/tambo-ai/tambo/commit/fe64ca3a71c9c1616a9269fe7b7a9ec878b1ce4d))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+
+## [1.11.0](https://github.com/tambo-ai/tambo/compare/docs-v1.10.0...docs-v1.11.0) (2025-09-19)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+
+### Miscellaneous Chores
+
+* remove producthunt banners, bubbles and widget ([#1065](https://github.com/tambo-ai/tambo/issues/1065)) ([7ceff06](https://github.com/tambo-ai/tambo/commit/7ceff06f312e404a0e1d3c81efec569139e6f847))
+
+## [1.10.0](https://github.com/tambo-ai/tambo/compare/docs-v1.9.0...docs-v1.10.0) (2025-09-17)
+
+
+### Features
+
+* **sdk:** partial updates for interactables + auto tools + new docs ([#1036](https://github.com/tambo-ai/tambo/issues/1036)) ([7352f12](https://github.com/tambo-ai/tambo/commit/7352f1274c399215bfc99b4bbd69b3db4b7364cc))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump mermaid from 11.10.1 to 11.11.0 ([#1051](https://github.com/tambo-ai/tambo/issues/1051)) ([e3b3ce7](https://github.com/tambo-ai/tambo/commit/e3b3ce7fb3751165a86842ca770526eccce9a2ef))
+* **deps:** bump next from 15.5.2 to 15.5.3 in the next group across 1 directory ([#1055](https://github.com/tambo-ai/tambo/issues/1055)) ([d21ecdb](https://github.com/tambo-ai/tambo/commit/d21ecdbc498ca018f2763b9f4f1df87fd2edafcc))
+* **deps:** bump streamdown from 1.1.5 to 1.2.0 ([#1050](https://github.com/tambo-ai/tambo/issues/1050)) ([f78ae45](https://github.com/tambo-ai/tambo/commit/f78ae4545c1714df7a954ff513da47ef8bd8958e))
+* **deps:** bump the fumadocs group with 3 updates ([#1045](https://github.com/tambo-ai/tambo/issues/1045)) ([70bd2dc](https://github.com/tambo-ai/tambo/commit/70bd2dceeb77fc0df89057400a40957e00b9e7ac))
+* update sitemap to .co domain ([#1042](https://github.com/tambo-ai/tambo/issues/1042)) ([64b2da1](https://github.com/tambo-ai/tambo/commit/64b2da187dbbc1fda98953bedb3cfe84c6e83d66))
+
+
+### Documentation
+
+* use https://docs.tambo.co as default baseUrl in layout ([#1043](https://github.com/tambo-ai/tambo/issues/1043)) ([55aa89c](https://github.com/tambo-ai/tambo/commit/55aa89cdea368b8476820504b549ca562c504038))
+
+## [1.9.0](https://github.com/tambo-ai/tambo/compare/docs-v1.8.0...docs-v1.9.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* Replace TamboHackBanner with ProductHuntBanner ([#1035](https://github.com/tambo-ai/tambo/issues/1035)) ([7af2f53](https://github.com/tambo-ai/tambo/commit/7af2f5394c5d3d85ee7e0ec03b4b767df946d249))
+
+## [1.8.0](https://github.com/tambo-ai/tambo/compare/docs-v1.7.0...docs-v1.8.0) (2025-09-11)
+
+
+### Features
+
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+
+### Bug Fixes
+
+* **ui:** When tool calls are big, allow scrolling ([#1034](https://github.com/tambo-ai/tambo/issues/1034)) ([8149f6b](https://github.com/tambo-ai/tambo/commit/8149f6bd3f2513861bd699649a0500376388e0c4))
+
+
+### Miscellaneous Chores
+
+* **docs:** update sitemap domain to docs.tambo.co ([#1027](https://github.com/tambo-ai/tambo/issues/1027)) ([cfd5a7e](https://github.com/tambo-ai/tambo/commit/cfd5a7ea41dd0a7983bce825ccaec997e966a431))
+
+## [1.7.0](https://github.com/tambo-ai/tambo/compare/docs-v1.6.0...docs-v1.7.0) (2025-09-09)
+
+
+### Features
+
+* add ask to tambo in the ai actions dropdown ([#993](https://github.com/tambo-ai/tambo/issues/993)) ([1b2882c](https://github.com/tambo-ai/tambo/commit/1b2882c8b64c58340551d065cba6500135a2f474))
+* **cli:** add analytics template and update related commands and docs ([#978](https://github.com/tambo-ai/tambo/issues/978)) ([5431386](https://github.com/tambo-ai/tambo/commit/5431386a79d3933725c4d395bcf4548869a7c23f))
+* **interactables:** Add automatic context injection for interactable components that sends their current state to the AI by default. ([#977](https://github.com/tambo-ai/tambo/issues/977)) ([bdec8f9](https://github.com/tambo-ai/tambo/commit/bdec8f9a3097d7bae52086b6ff0699e0e6759e12))
+
+
+### Bug Fixes
+
+* resolve ENOENT error during Vercel deployment ([#1019](https://github.com/tambo-ai/tambo/issues/1019)) ([f077236](https://github.com/tambo-ai/tambo/commit/f077236ca44a4b005e5309d4a647ade0597b5344))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @tailwindcss/postcss from 4.1.12 to 4.1.13 in the tailwind group ([#1008](https://github.com/tambo-ai/tambo/issues/1008)) ([2aa0126](https://github.com/tambo-ai/tambo/commit/2aa01268b7bc7ec3702249e437cc8df8a6827587))
+* **deps:** bump posthog-js from 1.261.0 to 1.261.8 ([#1011](https://github.com/tambo-ai/tambo/issues/1011)) ([fa139f3](https://github.com/tambo-ai/tambo/commit/fa139f335d731e98ac923268aebf2ee2e78539d3))
+* **deps:** bump the fumadocs group with 3 updates ([#1006](https://github.com/tambo-ai/tambo/issues/1006)) ([2fcc4e5](https://github.com/tambo-ai/tambo/commit/2fcc4e5cfa8162e444ca16653c138be0fab0c834))
+
 ## [1.6.0](https://github.com/tambo-ai/tambo/compare/docs-v1.5.1...docs-v1.6.0) (2025-09-05)
 
 

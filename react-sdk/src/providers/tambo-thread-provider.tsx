@@ -24,7 +24,7 @@ import {
   mapTamboToolToContextTool,
 } from "../util/registry";
 import { handleToolCall } from "../util/tool-caller";
-import { useTamboClient } from "./tambo-client-provider";
+import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
@@ -113,6 +113,7 @@ export interface TamboThreadContextProps {
       contextKey?: string;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
+      content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
     },
   ) => Promise<TamboThreadMessage>;
 }
@@ -211,8 +212,13 @@ export const TamboThreadProvider: React.FC<
     [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
   });
   const client = useTamboClient();
-  const { componentList, toolRegistry, componentToolAssociations } =
-    useTamboRegistry();
+  const queryClient = useTamboQueryClient();
+  const {
+    componentList,
+    toolRegistry,
+    componentToolAssociations,
+    onCallUnregisteredTool,
+  } = useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
@@ -240,6 +246,38 @@ export const TamboThreadProvider: React.FC<
   useEffect(() => {
     ignoreResponseRef.current = ignoreResponse;
   }, [ignoreResponse]);
+
+  const refetchThreadsList = useCallback(
+    async (threadId: string, contextKey: string | undefined) => {
+      try {
+        const currentProject = await client.beta.projects.getCurrent();
+
+        const optimisticThread = {
+          ...PLACEHOLDER_THREAD,
+          id: threadId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        queryClient.setQueryData(
+          ["threads", currentProject.id, contextKey],
+          (old: TamboAI.Beta.Threads.ThreadsOffsetAndLimit | undefined) => {
+            return {
+              ...old,
+              items: [optimisticThread, ...(old?.items ?? [])],
+            };
+          },
+        );
+
+        await queryClient.invalidateQueries({
+          queryKey: ["threads"],
+        });
+      } catch (error) {
+        console.warn("Failed to refetch threads list:", error);
+      }
+    },
+    [client.beta.projects, queryClient],
+  );
 
   const fetchThread = useCallback(
     async (threadId: string, includeInternalMessages = true) => {
@@ -454,6 +492,7 @@ export const TamboThreadProvider: React.FC<
         console.warn("Switching to placeholder thread, may be a bug.");
         return;
       }
+
       setCurrentThreadId(threadId);
       setThreadMap((prevMap) => {
         if (prevMap[threadId]) {
@@ -469,6 +508,7 @@ export const TamboThreadProvider: React.FC<
         };
         return updatedThreadMap;
       });
+
       if (fetch) {
         await fetchThread(threadId);
       }
@@ -540,6 +580,7 @@ export const TamboThreadProvider: React.FC<
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
       params: TamboAI.Beta.Threads.ThreadAdvanceParams,
       threadId: string,
+      contextKey?: string,
     ): Promise<TamboThreadMessage> => {
       if (ignoreResponseRef.current) {
         setIgnoreResponse(false);
@@ -581,6 +622,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             chunk.responseMessageDto,
             toolRegistry,
+            onCallUnregisteredTool,
           );
           if (ignoreResponseRef.current) {
             setIgnoreResponse(false);
@@ -650,6 +692,7 @@ export const TamboThreadProvider: React.FC<
             toolCallResponseStream,
             toolCallResponseParams,
             chunk.responseMessageDto.threadId,
+            contextKey,
           );
         } else {
           if (ignoreResponseRef.current) {
@@ -671,7 +714,18 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId !== currentThread?.id
           ) {
             hasSetThreadId = true;
+            const wasPlaceholderThread =
+              currentThreadId === PLACEHOLDER_THREAD.id;
             await switchCurrentThread(chunk.responseMessageDto.threadId, false);
+
+            // If we're switching from placeholder to a real thread
+            // this means a new thread was created, so refetch the threads list
+            if (wasPlaceholderThread) {
+              await refetchThreadsList(
+                chunk.responseMessageDto.threadId,
+                contextKey,
+              );
+            }
           }
 
           if (!finalMessage) {
@@ -723,6 +777,9 @@ export const TamboThreadProvider: React.FC<
       client,
       componentList,
       currentThread?.id,
+      currentThreadId,
+      onCallUnregisteredTool,
+      refetchThreadsList,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
@@ -739,6 +796,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice?: string;
         contextKey?: string;
         additionalContext?: Record<string, any>;
+        content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
       } = {},
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);
@@ -748,6 +806,7 @@ export const TamboThreadProvider: React.FC<
         forceToolChoice,
         contextKey,
         additionalContext,
+        content,
       } = options;
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
@@ -764,9 +823,14 @@ export const TamboThreadProvider: React.FC<
         combinedContext[helperContext.name] = helperContext.context;
       }
 
+      // Use provided content or build simple text message
+      const messageContent = content ?? [
+        { type: "text" as const, text: message },
+      ];
+
       addThreadMessage(
         {
-          content: [{ type: "text", text: message }],
+          content: messageContent as any,
           renderedComponent: null,
           role: "user",
           threadId: threadId,
@@ -793,7 +857,7 @@ export const TamboThreadProvider: React.FC<
 
       const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
         messageToAppend: {
-          content: [{ type: "text", text: message }],
+          content: messageContent as any,
           role: "user",
           additionalContext: combinedContext,
         },
@@ -823,6 +887,7 @@ export const TamboThreadProvider: React.FC<
             advanceStreamResponse,
             params,
             threadId,
+            contextKey,
           );
         } catch (error) {
           updateThreadStatus(threadId, GenerationStage.ERROR);
@@ -834,7 +899,7 @@ export const TamboThreadProvider: React.FC<
       try {
         advanceResponse = await (threadId === PLACEHOLDER_THREAD.id
           ? client.beta.threads.advance(params)
-          : client.beta.threads.advanceById(threadId, params));
+          : client.beta.threads.advanceByID(threadId, params));
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         throw error;
@@ -854,6 +919,7 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponse = await handleToolCall(
             advanceResponse.responseMessageDto,
             toolRegistry,
+            onCallUnregisteredTool,
           );
           const toolResponseString =
             typeof toolCallResponse.result === "string"
@@ -896,7 +962,7 @@ export const TamboThreadProvider: React.FC<
             false,
           );
 
-          advanceResponse = await client.beta.threads.advanceById(
+          advanceResponse = await client.beta.threads.advanceByID(
             advanceResponse.responseMessageDto.threadId,
             toolCallResponseParams,
           );
@@ -916,7 +982,17 @@ export const TamboThreadProvider: React.FC<
             componentList,
           )
         : advanceResponse.responseMessageDto;
+      const wasPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
+
+      // If we're switching from placeholder to a real thread
+      // this means a new thread was created, so refetch the threads list
+      if (wasPlaceholderThread) {
+        await refetchThreadsList(
+          advanceResponse.responseMessageDto.threadId,
+          contextKey,
+        );
+      }
       updateThreadStatus(
         advanceResponse.responseMessageDto.threadId,
         GenerationStage.COMPLETE,
@@ -936,6 +1012,8 @@ export const TamboThreadProvider: React.FC<
       handleAdvanceStream,
       streaming,
       getAdditionalContext,
+      onCallUnregisteredTool,
+      refetchThreadsList,
     ],
   );
 

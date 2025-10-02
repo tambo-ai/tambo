@@ -7,11 +7,10 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  useTamboVoiceInput,
-  useVoiceInput,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Loader2, Mic, Square } from "lucide-react";
+import { ArrowUp, Paperclip, Square, X } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 
 /**
@@ -129,112 +128,221 @@ export interface MessageInputProps
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
   ({ children, className, contextKey, variant, ...props }, ref) => {
-    const { value, setValue, submit, isPending, error } = useTamboThreadInput();
-    const { cancel } = useTamboThread();
-    const [displayValue, setDisplayValue] = React.useState("");
-    const [submitError, setSubmitError] = React.useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-    React.useEffect(() => {
-      setDisplayValue(value);
-      if (value && textareaRef.current) {
-        textareaRef.current.focus();
-      }
-    }, [value]);
-
-    const handleSubmit = React.useCallback(
-      async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!value.trim() || isSubmitting) return;
-
-        setSubmitError(null);
-        setDisplayValue("");
-        setIsSubmitting(true);
-
-        try {
-          await submit({
-            contextKey,
-            streamResponse: true,
-          });
-          setValue("");
-          setTimeout(() => {
-            textareaRef.current?.focus();
-          }, 0);
-        } catch (error) {
-          console.error("Failed to submit message:", error);
-          setDisplayValue(value);
-          setSubmitError(
-            error instanceof Error
-              ? error.message
-              : "Failed to send message. Please try again.",
-          );
-
-          // Cancel the thread to reset loading state
-          cancel();
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [
-        value,
-        submit,
-        contextKey,
-        setValue,
-        setDisplayValue,
-        setSubmitError,
-        cancel,
-        isSubmitting,
-      ],
-    );
-
-    const contextValue = React.useMemo(
-      () => ({
-        value: displayValue,
-        setValue: (newValue: string) => {
-          setValue(newValue);
-          setDisplayValue(newValue);
-        },
-        submit,
-        handleSubmit,
-        isPending: isPending ?? isSubmitting,
-        error,
-        contextKey,
-        textareaRef,
-        submitError,
-        setSubmitError,
-      }),
-      [
-        displayValue,
-        setValue,
-        submit,
-        handleSubmit,
-        isPending,
-        isSubmitting,
-        error,
-        contextKey,
-        submitError,
-      ],
-    );
     return (
-      <MessageInputContext.Provider
-        value={contextValue as MessageInputContextValue}
+      <MessageInputInternal
+        ref={ref}
+        className={className}
+        contextKey={contextKey}
+        variant={variant}
+        {...props}
       >
-        <form
-          ref={ref}
-          onSubmit={handleSubmit}
-          className={cn(messageInputVariants({ variant }), className)}
-          data-slot="message-input-form"
-          {...props}
-        >
-          <div className="flex flex-col border border-gray-200 rounded-xl bg-background shadow-md p-2 px-3">
-            {children}
-          </div>
-        </form>
-      </MessageInputContext.Provider>
+        {children}
+      </MessageInputInternal>
     );
   },
 );
+MessageInput.displayName = "MessageInput";
+
+/**
+ * Internal MessageInput component that uses the TamboThreadInput context
+ */
+const MessageInputInternal = React.forwardRef<
+  HTMLFormElement,
+  MessageInputProps
+>(({ children, className, contextKey, variant, ...props }, ref) => {
+  const {
+    value,
+    setValue,
+    submit,
+    isPending,
+    error,
+    images,
+    addImages,
+    clearImages,
+  } = useTamboThreadInput();
+  const { cancel } = useTamboThread();
+  const [displayValue, setDisplayValue] = React.useState("");
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const dragCounter = React.useRef(0);
+
+  React.useEffect(() => {
+    setDisplayValue(value);
+    if (value && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [value]);
+
+  const handleSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if ((!value.trim() && images.length === 0) || isSubmitting) return;
+
+      setSubmitError(null);
+      setDisplayValue("");
+      setIsSubmitting(true);
+
+      // Clear images in next tick for immediate UI feedback
+      if (images.length > 0) {
+        setTimeout(() => clearImages(), 0);
+      }
+
+      try {
+        await submit({
+          contextKey,
+          streamResponse: true,
+        });
+        setValue("");
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 0);
+      } catch (error) {
+        console.error("Failed to submit message:", error);
+        setDisplayValue(value);
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Failed to send message. Please try again.",
+        );
+
+        // Cancel the thread to reset loading state
+        cancel();
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      value,
+      submit,
+      contextKey,
+      setValue,
+      setDisplayValue,
+      setSubmitError,
+      cancel,
+      isSubmitting,
+      images,
+      clearImages,
+    ],
+  );
+
+  const handleDragEnter = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      const hasImages = Array.from(e.dataTransfer.items).some((item) =>
+        item.type.startsWith("image/"),
+      );
+      if (hasImages) {
+        setIsDragging(true);
+      }
+    }
+  }, []);
+
+  const handleDragLeave = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = React.useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      dragCounter.current = 0;
+
+      const files = Array.from(e.dataTransfer.files).filter((file) =>
+        file.type.startsWith("image/"),
+      );
+
+      if (files.length > 0) {
+        try {
+          await addImages(files);
+        } catch (error) {
+          console.error("Failed to add dropped images:", error);
+        }
+      }
+    },
+    [addImages],
+  );
+
+  const contextValue = React.useMemo(
+    () => ({
+      value: displayValue,
+      setValue: (newValue: string) => {
+        setValue(newValue);
+        setDisplayValue(newValue);
+      },
+      submit,
+      handleSubmit,
+      isPending: isPending || isSubmitting,
+      error,
+      contextKey,
+      textareaRef,
+      submitError,
+      setSubmitError,
+    }),
+    [
+      displayValue,
+      setValue,
+      submit,
+      handleSubmit,
+      isPending,
+      isSubmitting,
+      error,
+      contextKey,
+      submitError,
+    ],
+  );
+  return (
+    <MessageInputContext.Provider
+      value={contextValue as MessageInputContextValue}
+    >
+      <form
+        ref={ref}
+        onSubmit={handleSubmit}
+        className={cn(messageInputVariants({ variant }), className)}
+        data-slot="message-input-form"
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        {...props}
+      >
+        <div
+          className={cn(
+            "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
+            isDragging
+              ? "border border-dashed border-emerald-400"
+              : "border border-gray-200",
+          )}
+        >
+          {isDragging && (
+            <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 flex items-center justify-center pointer-events-none z-20">
+              <p className="text-emerald-700 dark:text-emerald-300 font-medium">
+                Drop files here to add to conversation
+              </p>
+            </div>
+          )}
+          <MessageInputStagedImages />
+          {children}
+        </div>
+      </form>
+    </MessageInputContext.Provider>
+  );
+});
+MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
 
 /**
@@ -266,6 +374,7 @@ const MessageInputTextarea = ({
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
+  const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
 
@@ -282,12 +391,33 @@ const MessageInputTextarea = ({
     }
   };
 
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = Array.from(e.clipboardData.items);
+    const imageItems = items.filter((item) => item.type.startsWith("image/"));
+
+    if (imageItems.length > 0) {
+      e.preventDefault();
+
+      for (const item of imageItems) {
+        const file = item.getAsFile();
+        if (file) {
+          try {
+            await addImage(file);
+          } catch (error) {
+            console.error("Failed to add pasted image:", error);
+          }
+        }
+      }
+    }
+  };
+
   return (
     <textarea
       ref={textareaRef}
       value={value}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
       className={cn(
         "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
         className,
@@ -383,7 +513,9 @@ MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
  */
 const MessageInputMcpConfigButton = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    className?: string;
+  }
 >(({ className, ...props }, ref) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
@@ -442,195 +574,12 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <McpConfigModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        className="showcase-theme"
       />
     </TooltipProvider>
   );
 });
 MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
-
-/**
- * Voice Input Button component for recording and transcribing audio.
- * @component MessageInput.VoiceButton
- * @example
- * ```tsx
- * <MessageInput>
- *   <MessageInput.Textarea />
- *   <MessageInput.Toolbar>
- *     <MessageInput.VoiceButton />
- *     <MessageInput.SubmitButton />
- *   </MessageInput.Toolbar>
- * </MessageInput>
- * ```
- */
-const MessageInputVoiceButton = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, ...props }, ref) => {
-  const [isClient, setIsClient] = React.useState(false);
-  const {
-    startRecording,
-    stopRecording,
-    clearError,
-    isRecording,
-    isTranscribing,
-    error,
-    isSupported,
-    state,
-  } = useVoiceInput();
-
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Don't render during SSR or if browser doesn't support voice input
-  if (!isClient || !isSupported) {
-    return null;
-  }
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (isRecording) {
-      stopRecording();
-    } else {
-      // Clear any previous errors before attempting to start
-      if (state === "permission_denied" || error) {
-        clearError();
-        // Small delay to ensure state is cleared before requesting permission
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      await startRecording();
-    }
-  };
-
-  const buttonClasses = cn(
-    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
-    isRecording
-      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse cursor-pointer"
-      : state === "permission_denied"
-        ? "bg-orange-100 hover:bg-orange-200 text-orange-600 border-2 border-orange-300 cursor-pointer"
-        : state === "error"
-          ? "bg-red-100 text-red-500 border-2 border-red-300 cursor-not-allowed"
-          : "bg-muted text-primary hover:bg-muted/80 cursor-pointer",
-    isTranscribing && "opacity-50 cursor-wait",
-    className,
-  );
-
-  const getTooltipContent = () => {
-    if (isTranscribing) return "Transcribing...";
-    if (isRecording) return "Stop recording";
-    if (state === "permission_denied") {
-      if (error?.message.includes("🔒")) {
-        return error.message; // Show detailed browser settings guidance
-      }
-      return "Microphone permission denied. Please update your microphone permissions to use voice input.";
-    }
-    if (error) return error.message;
-    return "Start voice input";
-  };
-
-  return (
-    <TooltipProvider>
-      <Tooltip
-        content={getTooltipContent()}
-        side="top"
-        className="bg-muted text-primary"
-      >
-        <button
-          ref={ref}
-          type="button"
-          onClick={handleClick}
-          disabled={isTranscribing || state === "permission_denied"}
-          className={buttonClasses}
-          aria-label={
-            isRecording
-              ? "Stop recording"
-              : state === "permission_denied"
-                ? "Permission denied"
-                : "Start voice input"
-          }
-          data-slot="message-input-voice"
-          {...props}
-        >
-          {isTranscribing ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : isRecording ? (
-            <Square className="w-4 h-4" fill="currentColor" />
-          ) : (
-            <Mic className="w-5 h-5" />
-          )}
-        </button>
-      </Tooltip>
-    </TooltipProvider>
-  );
-});
-MessageInputVoiceButton.displayName = "MessageInput.VoiceButton";
-
-/**
- * Real-time transcription indicator component
- * Shows a pulsing wave animation when real-time transcription is active
- */
-const MessageInputRealTimeIndicator = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  const [isClient, setIsClient] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Don't render during SSR
-  if (!isClient) {
-    return null;
-  }
-
-  return <RealTimeIndicatorInner ref={ref} className={className} {...props} />;
-});
-
-const RealTimeIndicatorInner = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  const { isEnabled } = useTamboVoiceInput();
-  const { isRealTimeTranscribing } = useVoiceInput();
-
-  // Don't render if not enabled or not actively transcribing in real-time
-  if (!isEnabled || !isRealTimeTranscribing) {
-    return null;
-  }
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 text-blue-600 text-xs font-medium",
-        className,
-      )}
-      {...props}
-    >
-      <div className="flex items-center gap-0.5">
-        <div className="w-1 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-        <div
-          className="w-1 h-2 bg-blue-400 rounded-full animate-pulse"
-          style={{ animationDelay: "0.1s" }}
-        ></div>
-        <div
-          className="w-1 h-4 bg-blue-400 rounded-full animate-pulse"
-          style={{ animationDelay: "0.2s" }}
-        ></div>
-        <div
-          className="w-1 h-2 bg-blue-400 rounded-full animate-pulse"
-          style={{ animationDelay: "0.3s" }}
-        ></div>
-      </div>
-      <span>Live transcription</span>
-    </div>
-  );
-});
-RealTimeIndicatorInner.displayName = "RealTimeIndicatorInner";
-MessageInputRealTimeIndicator.displayName = "MessageInput.RealTimeIndicator";
 
 /**
  * Props for the MessageInputError component.
@@ -675,6 +624,155 @@ const MessageInputError = React.forwardRef<
 MessageInputError.displayName = "MessageInput.Error";
 
 /**
+ * Props for the MessageInputFileButton component.
+ */
+export interface MessageInputFileButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Accept attribute for file input - defaults to image types */
+  accept?: string;
+  /** Allow multiple file selection */
+  multiple?: boolean;
+}
+
+/**
+ * File attachment button component for selecting images from file system.
+ * @component MessageInput.FileButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.FileButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputFileButton = React.forwardRef<
+  HTMLButtonElement,
+  MessageInputFileButtonProps
+>(({ className, accept = "image/*", multiple = true, ...props }, ref) => {
+  const { addImages } = useTamboThreadInput();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      try {
+        await addImages(files);
+      } catch (error) {
+        console.error("Failed to add selected files:", error);
+      }
+      // Reset the input so the same file can be selected again
+      e.target.value = "";
+    }
+  };
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content="Attach Images"
+        side="top"
+        className="bg-muted text-primary"
+      >
+        <button
+          ref={ref}
+          type="button"
+          onClick={handleClick}
+          className={buttonClasses}
+          aria-label="Attach Images"
+          data-slot="message-input-file-button"
+          {...props}
+        >
+          <Paperclip className="w-4 h-4" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            multiple={multiple}
+            onChange={handleFileChange}
+            className="hidden"
+            aria-hidden="true"
+          />
+        </button>
+      </Tooltip>
+    </TooltipProvider>
+  );
+});
+MessageInputFileButton.displayName = "MessageInput.FileButton";
+
+/**
+ * Props for the MessageInputStagedImages component.
+ */
+export type MessageInputStagedImagesProps =
+  React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Component that displays currently staged images with preview and remove functionality.
+ * @component MessageInput.StagedImages
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.StagedImages />
+ *   <MessageInput.Textarea />
+ * </MessageInput>
+ * ```
+ */
+const MessageInputStagedImages = React.forwardRef<
+  HTMLDivElement,
+  MessageInputStagedImagesProps
+>(({ className, ...props }, ref) => {
+  const { images, removeImage } = useTamboThreadInput();
+
+  if (images.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-wrap gap-2 p-2 border-b border-gray-200 dark:border-gray-700",
+        className,
+      )}
+      data-slot="message-input-staged-images"
+      {...props}
+    >
+      {images.map((image) => (
+        <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
+          <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+            <Image
+              src={image.dataUrl}
+              alt={image.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => removeImage(image.id)}
+            className="absolute -top-2 -right-2 w-5 h-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition-colors shadow-sm z-10"
+            aria-label={`Remove ${image.name}`}
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+});
+MessageInputStagedImages.displayName = "MessageInput.StagedImages";
+
+/**
  * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
@@ -703,36 +801,25 @@ const MessageInputToolbar = React.forwardRef<
       {...props}
     >
       <div className="flex items-center gap-2">
-        {/* Left side - everything except voice button and submit button */}
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            (child.type === MessageInputSubmitButton ||
-              child.type === MessageInputVoiceButton)
-          ) {
-            return null; // Don't render voice button or submit button here
-          }
-          return child;
-        })}
-      </div>
-      <div className="flex items-center gap-2">
-        {/* Right side - real-time indicator, voice button, then submit button */}
-        <MessageInputRealTimeIndicator />
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            child.type === MessageInputVoiceButton
-          ) {
-            return child; // Render voice button first
-          }
-          return null;
-        })}
+        {/* Left side - everything except submit button */}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
             React.isValidElement(child) &&
             child.type === MessageInputSubmitButton
           ) {
-            return child; // Render submit button second
+            return null; // Don't render submit button here
+          }
+          return child;
+        })}
+      </div>
+      <div className="flex items-center gap-2">
+        {/* Right side - only submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return child; // Only render submit button here
           }
           return null;
         })}
@@ -746,11 +833,11 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 export {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
   MessageInputMcpConfigButton,
-  MessageInputRealTimeIndicator,
+  MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,
-  MessageInputVoiceButton,
 };

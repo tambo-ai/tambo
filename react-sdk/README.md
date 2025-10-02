@@ -100,14 +100,38 @@ import { TamboProvider } from "@tambo-ai/react";
 
 This is also handled automatically for you if you are using the `MessageThreadFull` component.
 
-For custom components, you can use the `useMessageContext` hook to get the current message.
+For custom components rendered by Tambo, you can use the `useTamboCurrentMessage` hook inside the component to access the current message.
+
+_Example (Tambo‑rendered custom component):_
 
 ```tsx
-import {
-  useTambo,
-  useMessageContext,
-  type TamboThreadMessage,
-} from "@tambo-ai/react";
+import { useTamboCurrentMessage } from "@tambo-ai/react";
+
+export function TamboRenderedMessage() {
+  const message = useTamboCurrentMessage();
+  return (
+    <div>
+      <div>Role: {message.role}</div>
+      <div>
+        {message.content.map((part, i) =>
+          part.type === "text" ? (
+            <div key={i}>{part.text}</div>
+          ) : (
+            <div key={i}>Non-text content: {part.type}</div>
+          ),
+        )}
+      </div>
+      {/* If Tambo provided rendered output, include it */}
+      <div>{message.renderedComponent}</div>
+    </div>
+  );
+}
+```
+
+If you're rendering your own message list (outside of a Tambo‑rendered component), you can instead pass each `message` as a prop, as shown below:
+
+```tsx
+import { useTambo, type TamboThreadMessage } from "@tambo-ai/react";
 
 function ChatHistory() {
   const { thread } = useTambo();
@@ -127,11 +151,11 @@ function CustomMessage({ message }: { message: TamboThreadMessage }) {
       {/* Render the message content */}
       <div>Role: {message.role}</div>
       <div>
-        {message.content.map((part) =>
+        {message.content.map((part, i) =>
           part.type === "text" ? (
-            <div key={part.id}>{part.text}</div>
+            <div key={i}>{part.text}</div>
           ) : (
-            <div key={part.id}>Non-text content: {part.type}</div>
+            <div key={i}>Non-text content: {part.type}</div>
           ),
         )}
       </div>
@@ -205,9 +229,17 @@ function ChatInterface() {
     <div>
       {/* Display messages */}
       <div>
-        {thread.messages.map((message, index) => (
-          <div key={index} className={`message ${message.role}`}>
-            <div>{message.content}</div>
+        {thread.messages.map((message) => (
+          <div key={message.id} className={`message ${message.role}`}>
+            <div>
+              {message.content.map((part, i) =>
+                part.type === "text" ? (
+                  <div key={i}>{part.text}</div>
+                ) : (
+                  <div key={i}>Non-text content: {part.type}</div>
+                ),
+              )}
+            </div>
             {message.renderedComponent}
           </div>
         ))}
@@ -360,11 +392,12 @@ const tools: TamboTool[] = [
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
     url: "https://mcp-server-1.com",
-    transport: "http",
+    transport: MCPTransport.HTTP,
     name: "mcp-server-1",
   },
 ];
@@ -374,7 +407,9 @@ const mcpServers = [
   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
   components={components}
 >
-  <TamboMcpProvider mcpServers={mcpServers}>{children}</TamboMcpProvider>
+  <TamboMcpProvider mcpServers={mcpServers}>
+    <YourApp />
+  </TamboMcpProvider>
 </TamboProvider>;
 ```
 

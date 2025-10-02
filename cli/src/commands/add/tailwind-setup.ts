@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import deepEqual from "deep-equal";
 import deepmerge from "deepmerge";
+import { deepEqual } from "fast-equals";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";

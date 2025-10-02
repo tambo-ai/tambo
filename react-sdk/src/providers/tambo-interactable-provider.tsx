@@ -9,17 +9,20 @@ import React, {
   useState,
 } from "react";
 import { z } from "zod";
+import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
 import {
   TamboInteractableComponent,
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
 import { useTamboComponent } from "./tambo-component-provider";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+import { assertValidName } from "../util/validate-component-name";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
   addInteractableComponent: () => "",
   removeInteractableComponent: () => {},
-  updateInteractableComponentProps: () => {},
+  updateInteractableComponentProps: () => "",
   getInteractableComponent: () => undefined,
   getInteractableComponentsByName: () => [],
   clearAllInteractableComponents: () => {},
@@ -40,6 +43,21 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     TamboInteractableComponent[]
   >([]);
   const { registerTool } = useTamboComponent();
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  // Create a stable context helper function
+  const contextHelper = useCallback(() => {
+    return createInteractablesContextHelper(() => interactableComponents)();
+  }, [interactableComponents]);
+
+  // Register the default interactables context helper
+  useEffect(() => {
+    addContextHelper("interactables", contextHelper);
+
+    return () => {
+      removeContextHelper("interactables");
+    };
+  }, [contextHelper, addContextHelper, removeContextHelper]);
 
   useEffect(() => {
     if (interactableComponents.length > 0) {
@@ -157,44 +175,40 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   }, [interactableComponents, registerTool]);
 
   const updateInteractableComponentProps = useCallback(
-    (id: string, newProps: Record<string, any>) => {
-      let updateResult = "Updated successfully";
+    (id: string, newProps: Record<string, any>): string => {
+      if (!newProps || Object.keys(newProps).length === 0) {
+        return `Warning: No props provided for component with ID ${id}.`;
+      }
 
       setInteractableComponents((prev) => {
-        const componentExists = prev.some((c) => c.id === id);
-
-        if (!componentExists) {
-          updateResult = `Error: Component with ID ${id} not found`;
+        const component = prev.find((c) => c.id === id);
+        if (!component) {
           return prev;
         }
 
-        const updatedComponents = prev.map((c) =>
-          c.id === id ? { ...c, props: { ...c.props, ...newProps } } : c,
-        );
-
-        // Check if the update actually changed anything
-        const originalComponent = prev.find((c) => c.id === id);
-        const updatedComponent = updatedComponents.find((c) => c.id === id);
-
-        if (!originalComponent || !updatedComponent) {
-          updateResult = `Error: Failed to update component with ID ${id}`;
-          return prev;
-        }
-
-        // Check if props actually changed
-        const propsChanged =
-          JSON.stringify(originalComponent.props) !==
-          JSON.stringify(updatedComponent.props);
+        // Compare props shallowly
+        const propsChanged = Object.entries(newProps).some(([key, value]) => {
+          return component.props[key] !== value;
+        });
 
         if (!propsChanged) {
-          updateResult = `Warning: No changes detected for component with ID ${id}. The update might not have worked.`;
-          return prev;
+          return prev; // unchanged
         }
+
+        // Apply partial update
+        const updated = {
+          ...component,
+          props: { ...component.props, ...newProps },
+        };
+
+        const updatedComponents = [...prev];
+        const idx = prev.findIndex((c) => c.id === id);
+        updatedComponents[idx] = updated;
 
         return updatedComponents;
       });
 
-      return updateResult;
+      return "Updated successfully";
     },
     [],
   );
@@ -203,13 +217,14 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     (component: TamboInteractableComponent) => {
       const schemaForArgs =
         typeof component.propsSchema === "object" &&
-        "describe" in component.propsSchema
-          ? component.propsSchema
+        "describe" in component.propsSchema &&
+        "partial" in component.propsSchema
+          ? (component.propsSchema as any).partial()
           : z.object({});
 
       registerTool({
         name: `update_interactable_component_${component.id}`,
-        description: `Update the props of interactable component ${component.id} (${component.name})`,
+        description: `Update the props of interactable component ${component.id} (${component.name}). You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.`,
         tool: (componentId: string, newProps: any) => {
           return updateInteractableComponentProps(componentId, newProps);
         },
@@ -220,7 +235,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
               .string()
               .describe("The ID of the interactable component to update"),
             schemaForArgs.describe(
-              "The new props to update the component with",
+              "The props to update the component with. You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.",
             ),
           )
           .returns(z.string()),
@@ -233,7 +248,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     (
       component: Omit<TamboInteractableComponent, "id" | "createdAt">,
     ): string => {
-      const id = `${component.name}-${Math.random().toString(36).substr(2, 9)}`;
+      // Validate component name
+      assertValidName(component.name, "component");
+
+      const id = `${component.name}-${Math.random().toString(36).slice(2, 11)}`;
       const newComponent: TamboInteractableComponent = {
         ...component,
         id,
@@ -296,4 +314,21 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
  */
 export const useTamboInteractable = () => {
   return useContext(TamboInteractableContext);
+};
+
+/**
+ * Hook to get a cloned snapshot of the current interactables.
+ * Returns a shallow copy of the array with cloned items and props to prevent
+ * external mutation from affecting internal state.
+ * @returns The current interactables snapshot (cloned).
+ */
+export const useCurrentInteractablesSnapshot = () => {
+  const { interactableComponents } = useTamboInteractable();
+  // Clone the array and each item/props to prevent mutation
+  const copy = interactableComponents.map((c) => ({
+    ...c,
+    props: { ...c.props },
+  }));
+
+  return copy;
 };

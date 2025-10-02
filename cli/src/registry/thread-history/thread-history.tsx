@@ -164,7 +164,10 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
           {...props}
         >
           <div
-            className={cn("flex flex-col h-full", isCollapsed ? "p-2" : "p-4")}
+            className={cn(
+              "flex flex-col h-full",
+              isCollapsed ? "py-4 px-2" : "p-4",
+            )} // py-4 px-2 is for better alignment when isCollapsed
           >
             {children}
           </div>
@@ -192,20 +195,27 @@ const ThreadHistoryHeader = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex items-center justify-between mb-4",
-        isCollapsed ? "p-1" : "p-2",
+        "flex items-center mb-4 relative",
+        isCollapsed ? "p-1" : "p-1",
         className,
       )}
       {...props}
     >
-      {!isCollapsed && (
-        <h2 className="text-sm text-muted-foreground">Tambo Conversations</h2>
-      )}
+      <h2
+        className={cn(
+          "text-sm text-muted-foreground whitespace-nowrap ",
+          isCollapsed
+            ? "opacity-0 max-w-0 overflow-hidden "
+            : "opacity-100 max-w-none transition-all duration-300 delay-75",
+        )}
+      >
+        Tambo Conversations
+      </h2>
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "bg-container hover:bg-muted transition-colors p-1 hover:bg-backdrop rounded-md cursor-pointer",
-          position === "left" ? "ml-auto" : "",
+          `bg-container p-1 hover:bg-backdrop transition-colors rounded-md cursor-pointer absolute flex items-center justify-center`,
+          position === "left" ? "right-1" : "left-0",
         )}
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
@@ -266,14 +276,23 @@ const ThreadHistoryNewButton = React.forwardRef<
       ref={ref}
       onClick={handleNewThread}
       className={cn(
-        "flex items-center gap-2 rounded-md mb-4 hover:bg-backdrop transition-colors cursor-pointer",
-        isCollapsed ? "p-1 justify-center" : "p-2",
+        "flex items-center rounded-md mb-4 hover:bg-backdrop transition-colors cursor-pointer relative",
+        isCollapsed ? "p-1 justify-center" : "p-2 gap-2",
       )}
       title="New thread"
       {...props}
     >
       <PlusIcon className="h-4 w-4 bg-green-600 rounded-full text-white" />
-      {!isCollapsed && <span className="text-sm font-medium">New thread</span>}
+      <span
+        className={cn(
+          "text-sm font-medium whitespace-nowrap absolute left-8 pb-[2px] ",
+          isCollapsed
+            ? "opacity-0 max-w-0 overflow-hidden pointer-events-none"
+            : "opacity-100 transition-all duration-300 delay-100",
+        )}
+      >
+        New thread
+      </span>
     </button>
   );
 });
@@ -300,38 +319,43 @@ const ThreadHistorySearch = React.forwardRef<
   };
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "mb-4",
-        isCollapsed ? "flex justify-center" : "relative",
-        className,
-      )}
-      {...props}
-    >
-      {isCollapsed ? (
-        <button
-          onClick={expandOnSearch}
-          className="p-1 hover:bg-backdrop rounded-md cursor-pointer transition-colors"
-          title="Search threads"
-        >
+    <div ref={ref} className={cn("mb-4 relative", className)} {...props}>
+      {/*visible when collapsed */}
+      <button
+        onClick={expandOnSearch}
+        className={cn(
+          "p-1 hover:bg-backdrop rounded-md cursor-pointer absolute left-1/2 -translate-x-1/2",
+          isCollapsed
+            ? "opacity-100 pointer-events-auto transition-all duration-300"
+            : "opacity-0 pointer-events-none",
+        )}
+        title="Search threads"
+      >
+        <SearchIcon className="h-4 w-4 text-gray-400" />
+      </button>
+
+      {/*visible when expanded with delay */}
+
+      <div
+        className={cn(
+          //using this as wrapper
+          isCollapsed
+            ? "opacity-0 pointer-events-none"
+            : "opacity-100 delay-100 transition-all duration-500",
+        )}
+      >
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <SearchIcon className="h-4 w-4 text-gray-400" />
-        </button>
-      ) : (
-        <>
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <SearchIcon className="h-4 w-4 text-gray-400" />
-          </div>
-          <input
-            ref={searchInputRef}
-            type="text"
-            className="pl-10 pr-4 py-2 w-full text-sm rounded-md bg-container focus:outline-none"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </>
-      )}
+        </div>
+        <input
+          ref={searchInputRef}
+          type="text"
+          className="pl-10 pr-4 py-2 w-full text-sm rounded-md bg-container focus:outline-none"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
     </div>
   );
 });
@@ -468,7 +492,10 @@ const ThreadHistoryList = React.forwardRef<
     content = (
       <div
         ref={ref}
-        className={cn("text-sm text-destructive p-2", className)}
+        className={cn(
+          `text-sm text-destructive p-2 whitespace-nowrap ${isCollapsed ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100"}`,
+          className,
+        )}
         {...props}
       >
         Error loading threads
@@ -478,7 +505,10 @@ const ThreadHistoryList = React.forwardRef<
     content = (
       <div
         ref={ref}
-        className={cn("text-sm text-muted-foreground p-2", className)}
+        className={cn(
+          `text-sm text-muted-foreground p-2 whitespace-nowrap ${isCollapsed ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100"}`,
+          className,
+        )}
         {...props}
       >
         {searchQuery ? "No matching threads" : "No previous threads"}

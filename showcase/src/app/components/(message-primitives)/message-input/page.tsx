@@ -1,18 +1,14 @@
-"use client";
-
 import { CLI } from "@/components/cli";
 import {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
   MessageInputMcpConfigButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputVoiceButton,
 } from "@/components/ui/message-input";
 import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
-import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
 
 export default function MessageInputPage() {
   const usageCode = `import { 
@@ -20,59 +16,31 @@ export default function MessageInputPage() {
   MessageInputTextarea, 
   MessageInputToolbar,
   MessageInputSubmitButton,
+  MessageInputFileButton,
   MessageInputMcpConfigButton,
-  MessageInputVoiceButton,
   MessageInputError 
 } from "@/components/ui/message-input";
-import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
 
-// Basic usage
+// Basic usage with image attachments
 <MessageInput contextKey="my-thread" variant="default">
-  <MessageInputTextarea />
+  <MessageInputTextarea placeholder="Type your message or paste images..." />
   <MessageInputToolbar>
+    <MessageInputFileButton />
     <MessageInputSubmitButton />
   </MessageInputToolbar>
   <MessageInputError />
 </MessageInput>
 
-// With voice input
-<TamboProvider apiKey="your-api-key">
-  <MessageInput contextKey="my-thread" variant="default">
-    <MessageInputTextarea placeholder="Type or speak your message..." />
-    <MessageInputToolbar>
-      <MessageInputVoiceButton />
-      <MessageInputSubmitButton />
-    </MessageInputToolbar>
-    <MessageInputError />
-  </MessageInput>
-</TamboProvider>
-
-// With MCP configuration and voice input
-<TamboProvider apiKey="your-api-key">
-  <MessageInput contextKey="my-thread" variant="default">
-    <MessageInputTextarea />
-    <MessageInputToolbar>
-      <MessageInputMcpConfigButton />
-      <MessageInputVoiceButton />
-      <MessageInputSubmitButton />
-    </MessageInputToolbar>
-    <MessageInputError />
-  </MessageInput>
-</TamboProvider>
-
-// With real-time voice transcription
-<TamboProvider apiKey="your-api-key">
-  <TamboVoiceInputProvider realTimeMode={true}>
-    <MessageInput contextKey="my-thread" variant="default">
-      <MessageInputTextarea placeholder="Speak to see real-time transcription..." />
-      <MessageInputToolbar>
-        <MessageInputVoiceButton />
-        <MessageInputSubmitButton />
-      </MessageInputToolbar>
-      <MessageInputError />
-    </MessageInput>
-  </TamboVoiceInputProvider>
-</TamboProvider>`;
+// With all available features
+<MessageInput contextKey="my-thread" variant="solid">
+  <MessageInputTextarea placeholder="Type your message..." />
+  <MessageInputToolbar>
+    <MessageInputMcpConfigButton />
+    <MessageInputFileButton />
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+  <MessageInputError />
+</MessageInput>`;
 
   const installCommand = "npx tambo add message-input";
 
@@ -112,7 +80,8 @@ import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
                   </strong>{" "}
                   The main text input area where users type their messages.
                   Automatically resizes based on content and handles keyboard
-                  shortcuts for submission.
+                  shortcuts for submission. Supports image pasting from
+                  clipboard.
                 </li>
                 <li>
                   <strong>
@@ -123,20 +92,19 @@ import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
                 </li>
                 <li>
                   <strong>
+                    <code>&lt;MessageInputFileButton /&gt;</code> -
+                  </strong>{" "}
+                  Button to open file picker for selecting images to attach to
+                  messages. Supports multiple image selection and validates file
+                  types and sizes.
+                </li>
+                <li>
+                  <strong>
                     <code>&lt;MessageInputMcpConfigButton /&gt;</code> -
                   </strong>{" "}
                   Button to open the MCP configuration modal which allows you to
                   configure client-side MCP servers. You can add or remove this
                   button from the toolbar.
-                </li>
-                <li>
-                  <strong>
-                    <code>&lt;MessageInputVoiceButton /&gt;</code> -
-                  </strong>{" "}
-                  Button for voice input functionality. Allows users to record
-                  audio and automatically transcribe it to text. Automatically
-                  detects browser support and only renders when the necessary
-                  APIs are available.
                 </li>
                 <li>
                   <strong>
@@ -164,12 +132,14 @@ import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
 
           {/* Default Variant Example */}
           <div>
-            <h3 className="text-lg font-medium mb-3">Default Message Input</h3>
+            <h3 className="text-lg font-medium mb-3">
+              Default Message Input with Image Attachments
+            </h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-default" variant="default">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-end items-center mt-2 p-1 gap-2">
-                  {/* Add any other tools here */}
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
                 <MessageInputError />
@@ -182,9 +152,9 @@ import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
             <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-solid" variant="solid">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-end items-center mt-2 p-1 gap-2">
-                  {/* Add any other tools here */}
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
                 <MessageInputError />
@@ -197,9 +167,9 @@ import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
             <h3 className="text-lg font-medium mb-3">Bordered Variant</h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-bordered" variant="bordered">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-end items-center mt-2 p-1 gap-2">
-                  {/* Add any other tools here */}
+                  <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
                 <MessageInputError />
@@ -207,99 +177,25 @@ import { TamboProvider, TamboVoiceInputProvider } from "@tambo-ai/react";
             </div>
           </div>
 
-          {/* With Voice Input Example */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">With Voice Input</h3>
-            <div className="p-4 border rounded-lg bg-white">
-              <TamboProvider apiKey="demo-key">
-                <MessageInput contextKey="demo-voice" variant="default">
-                  <MessageInputTextarea placeholder="Type or speak your message..." />
-                  <div className="flex justify-end items-center mt-2 p-1 gap-2">
-                    <MessageInputVoiceButton />
-                    <MessageInputSubmitButton />
-                  </div>
-                  <MessageInputError />
-                </MessageInput>
-              </TamboProvider>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Voice input requires HTTPS (or localhost), microphone permissions,
-              and an OpenAI API key configured in your backend.
-            </p>
-          </div>
-
           {/* With MCP configuration button */}
           <div>
             <h3 className="text-lg font-medium mb-3">
-              With MCP configuration button
+              Full-featured: MCP Config + Image Attachments
             </h3>
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-mcp" variant="default">
-                <MessageInputTextarea placeholder="Type your message..." />
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-between items-center mt-2 p-1 gap-2">
                   <div className="flex items-center gap-2">
                     <MessageInputMcpConfigButton />
                   </div>
                   <div className="flex items-center gap-2">
+                    <MessageInputFileButton />
                     <MessageInputSubmitButton />
                   </div>
                 </div>
                 <MessageInputError />
               </MessageInput>
-            </div>
-          </div>
-
-          {/* Full Featured Example */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">
-              Full Featured (MCP + Voice Input)
-            </h3>
-            <div className="p-4 border rounded-lg bg-white">
-              <TamboProvider apiKey="demo-key">
-                <MessageInput contextKey="demo-full" variant="default">
-                  <MessageInputTextarea placeholder="Type or speak your message..." />
-                  <div className="flex justify-between items-center mt-2 p-1 gap-2">
-                    <MessageInputMcpConfigButton />
-                    <div className="flex items-center gap-2">
-                      <MessageInputVoiceButton />
-                      <MessageInputSubmitButton />
-                    </div>
-                  </div>
-                  <MessageInputError />
-                </MessageInput>
-              </TamboProvider>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              This example shows all available toolbar components: MCP
-              configuration (left), voice input and submit button (right).
-            </p>
-          </div>
-
-          {/* Real-Time Voice Input Example */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">
-              Real-Time Voice Transcription
-            </h3>
-            <div className="p-4 border rounded-lg bg-white">
-              <TamboProvider apiKey="demo-key">
-                <TamboVoiceInputProvider realTimeMode={true}>
-                  <MessageInput contextKey="demo-realtime" variant="default">
-                    <MessageInputTextarea placeholder="Speak to see real-time transcription..." />
-                    <MessageInputToolbar>
-                      <MessageInputVoiceButton />
-                      <MessageInputSubmitButton />
-                    </MessageInputToolbar>
-                    <MessageInputError />
-                  </MessageInput>
-                </TamboVoiceInputProvider>
-              </TamboProvider>
-            </div>
-            <div className="mt-2 p-3 bg-blue-50 border-l-4 border-blue-400">
-              <p className="text-sm text-blue-800">
-                <strong>Real-Time Mode:</strong> Words appear in the text box as
-                you speak. This provides a more interactive experience but may
-                be less accurate than batch processing.
-              </p>
             </div>
           </div>
 

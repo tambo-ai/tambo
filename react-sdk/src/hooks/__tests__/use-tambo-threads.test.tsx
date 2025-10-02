@@ -43,7 +43,7 @@ describe("useTamboThreadList", () => {
     update: jest.fn(),
     delete: jest.fn(),
     advance: jest.fn(),
-    advanceById: jest.fn(),
+    advanceByID: jest.fn(),
   } satisfies DeepPartial<TamboAI["beta"]["threads"]>;
 
   const mockBeta = {
@@ -194,21 +194,13 @@ describe("useTamboThreadList", () => {
         "isRefetching": false,
         "isStale": true,
         "isSuccess": false,
-        "promise": Promise {
-          "reason": [Error: experimental_prefetchInRender feature flag is not enabled],
-          "status": "rejected",
-        },
+        "promise": Promise {},
         "refetch": [Function],
         "status": "pending",
       }
     `);
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.data).toBeNull();
 
     resolvePromise!(mockThreads);
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });

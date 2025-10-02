@@ -4,7 +4,7 @@ import { Streaming } from "./streaming";
 import { Success } from "./success";
 
 /**
- * The TamboPropsStreamProvider provides a context for managing stream states
+ * The TamboPropStreamProvider provides a context for managing stream states
  * with compound components for Pending, Streaming, and Success states.
  * @param children - The children to wrap
  * @returns The TamboPropStreamProvider component

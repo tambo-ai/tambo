@@ -125,9 +125,9 @@ export function useTamboSuggestions(
       );
 
       return await tamboClient.beta.threads.suggestions.generate(
-        thread.id,
         latestMessageId,
         {
+          id: thread.id,
           maxSuggestions,
           availableComponents: components,
         },
@@ -186,9 +186,9 @@ export function useTamboSuggestions(
         componentToolAssociations,
       );
       return await tamboClient.beta.threads.suggestions.generate(
-        thread.id,
         latestMessageId,
         {
+          id: thread.id,
           maxSuggestions,
           availableComponents: components,
         },

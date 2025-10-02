@@ -1,4 +1,4 @@
 {
   "title": "Models",
-  "pages": ["labels"]
+  "pages": ["labels", "custom-llm-parameters"]
 }

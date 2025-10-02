@@ -18,6 +18,11 @@ const templates: Record<string, Template> = {
     description: "Tambo + Tools + MCP (recommended)",
     repository: "https://github.com/tambo-ai/tambo-template.git",
   },
+  analytics: {
+    name: "analytics",
+    description: "Generative UI Analytics Template",
+    repository: "https://github.com/tambo-ai/analytics-template.git",
+  },
 };
 
 interface CreateAppOptions {

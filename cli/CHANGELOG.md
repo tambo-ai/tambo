@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.33.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.32.0...tambo-v0.33.0) (2025-09-19)
+
+
+### Features
+
+* **sdk:** Update to the new "typescript sdk" from stainless ([#1061](https://github.com/tambo-ai/tambo/issues/1061)) ([22dd7e3](https://github.com/tambo-ai/tambo/commit/22dd7e392cbf005a2d8bb7f43a813d53eee51611))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump meow from 13.2.0 to 14.0.0 ([#1049](https://github.com/tambo-ai/tambo/issues/1049)) ([b49dfdf](https://github.com/tambo-ai/tambo/commit/b49dfdf7d68d46434270d3a7cdb928365de516c3))
+* **deps:** bump streamdown from 1.1.5 to 1.2.0 ([#1050](https://github.com/tambo-ai/tambo/issues/1050)) ([f78ae45](https://github.com/tambo-ai/tambo/commit/f78ae4545c1714df7a954ff513da47ef8bd8958e))
+* **lint:** fix eslint config to make cursor/vscode happy ([#1069](https://github.com/tambo-ai/tambo/issues/1069)) ([6e84c6e](https://github.com/tambo-ai/tambo/commit/6e84c6e7cade904b74bc2491c5d7e023f89f15b0))
+
+## [0.32.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.31.0...tambo-v0.32.0) (2025-09-12)
+
+
+### Features
+
+* **image:** add image attachment support ([#1001](https://github.com/tambo-ai/tambo/issues/1001)) ([5a8e9a2](https://github.com/tambo-ai/tambo/commit/5a8e9a2267801feb1d24dd43e3bacd4fcc368b53))
+* **sdk:** Add onCallUnregisteredTool callback for handling unexpected tool callbacks ([#1030](https://github.com/tambo-ai/tambo/issues/1030)) ([993405b](https://github.com/tambo-ai/tambo/commit/993405b6593b622f6ec755cf93d65c5272a49127))
+
+
+### Bug Fixes
+
+* **ui:** When tool calls are big, allow scrolling ([#1034](https://github.com/tambo-ai/tambo/issues/1034)) ([8149f6b](https://github.com/tambo-ai/tambo/commit/8149f6bd3f2513861bd699649a0500376388e0c4))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump inquirer to fix tmp vulnerability ([#1029](https://github.com/tambo-ai/tambo/issues/1029)) ([4a0c28e](https://github.com/tambo-ai/tambo/commit/4a0c28e9598473d8cf39515305c262c42720b248))
+
+## [0.31.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.30.1...tambo-v0.31.0) (2025-09-09)
+
+
+### Features
+
+* **cli:** add analytics template and update related commands and docs ([#978](https://github.com/tambo-ai/tambo/issues/978)) ([5431386](https://github.com/tambo-ai/tambo/commit/5431386a79d3933725c4d395bcf4548869a7c23f))
+* streamline type definition across all generative components ([#996](https://github.com/tambo-ai/tambo/issues/996)) ([896306f](https://github.com/tambo-ai/tambo/commit/896306f1a5544d0cd88f8f88bdf9285ca6e9b6a8))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/semver from 7.7.0 to 7.7.1 ([#1005](https://github.com/tambo-ai/tambo/issues/1005)) ([0d168f8](https://github.com/tambo-ai/tambo/commit/0d168f8a97c7eb86688541c3f40e4d08dabd871f))
+* **deps:** bump dotenv from 17.2.1 to 17.2.2 ([#1009](https://github.com/tambo-ai/tambo/issues/1009)) ([4b0e3f3](https://github.com/tambo-ai/tambo/commit/4b0e3f3d523858de18a98792b7bb29edade0ad5c))
+* **deps:** bump ts-morph from 26.0.0 to 27.0.0 ([#1012](https://github.com/tambo-ai/tambo/issues/1012)) ([b53efc0](https://github.com/tambo-ai/tambo/commit/b53efc0721fdf26d2823aa579276e1836b3f3102))
+
 ## [0.30.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.30.0...tambo-v0.30.1) (2025-09-04)
 
 

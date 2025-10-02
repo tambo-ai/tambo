@@ -8,7 +8,15 @@ import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/**/*", "esm/**/*", "jest.config.ts", "eslint.config.mjs"] },
+  {
+    ignores: [
+      "dist/**/*",
+      "esm/**/*",
+      "jest.config.ts",
+      "eslint.config.mjs",
+      "coverage/**/*",
+    ],
+  },
   config,
   eslint.configs.recommended,
   jsdoc.configs["flat/recommended"],
@@ -81,6 +89,7 @@ export default tseslint.config(
         project: "./tsconfig.json",
         ecmaVersion: "latest",
         sourceType: "module",
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   },

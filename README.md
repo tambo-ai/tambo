@@ -16,7 +16,7 @@
 </p>
 
 > [!IMPORTANT]
-> 🎉 We just open-sourced the hosted backend — check out [tambo-ai/tambo-cloud](https://github.com/tambo-ai/tambo-cloud)! Join [TamboHack](https://tambo.co/hack) — $10k in grants for builders & contributors.
+> 🎉 We just open-sourced the hosted backend — check out [tambo-ai/tambo-cloud](https://github.com/tambo-ai/tambo-cloud)!
 
 ## Build apps with Generative UI and MCP
 
