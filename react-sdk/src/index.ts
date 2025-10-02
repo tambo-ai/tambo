@@ -54,6 +54,12 @@ export type {
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 export { useTamboThreadList } from "./hooks/use-tambo-threads";
 export {
+  useVoiceInput,
+  type UseVoiceInputResult,
+  type VoiceInputState,
+  type PermissionState,
+} from "./hooks/use-voice-input";
+export {
   type ComponentContextToolMetadata,
   type ComponentRegistry,
   type ParameterSpec,
