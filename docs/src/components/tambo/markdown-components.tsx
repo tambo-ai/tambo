@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import type { Components } from "react-markdown";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
@@ -89,7 +88,11 @@ const CodeHeader = ({
  * Creates a set of components for use with streamdown
  * @returns Components object for streamdown
  */
-export const createMarkdownComponents = (): Components => ({
+export const createMarkdownComponents = (): Record<
+  string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  React.ComponentType<any>
+> => ({
   code: function Code({ className, children, ...props }) {
     const match = /language-(\w+)/.exec(className ?? "");
     const content = String(children).replace(/\n$/, "");
@@ -255,3 +258,8 @@ export const createMarkdownComponents = (): Components => ({
     <td className="border border-border px-4 py-2">{children}</td>
   ),
 });
+
+/**
+ * Pre-created markdown components instance for use across the application.
+ */
+export const markdownComponents = createMarkdownComponents();

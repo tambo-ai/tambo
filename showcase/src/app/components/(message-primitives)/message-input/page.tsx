@@ -35,8 +35,8 @@ export default function MessageInputPage() {
 <MessageInput contextKey="my-thread" variant="solid">
   <MessageInputTextarea placeholder="Type your message..." />
   <MessageInputToolbar>
-    <MessageInputMcpConfigButton />
     <MessageInputFileButton />
+    <MessageInputMcpConfigButton />
     <MessageInputSubmitButton />
   </MessageInputToolbar>
   <MessageInputError />
@@ -138,7 +138,7 @@ export default function MessageInputPage() {
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-default" variant="default">
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
-                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                <div className="flex justify-between items-center mt-2 p-1 gap-2">
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
@@ -153,7 +153,7 @@ export default function MessageInputPage() {
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-solid" variant="solid">
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
-                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                <div className="flex justify-between items-center mt-2 p-1 gap-2">
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
@@ -168,7 +168,7 @@ export default function MessageInputPage() {
             <div className="p-4 border rounded-lg bg-white">
               <MessageInput contextKey="demo-bordered" variant="bordered">
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
-                <div className="flex justify-end items-center mt-2 p-1 gap-2">
+                <div className="flex justify-between items-center mt-2 p-1 gap-2">
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
                 </div>
@@ -187,10 +187,10 @@ export default function MessageInputPage() {
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <div className="flex justify-between items-center mt-2 p-1 gap-2">
                   <div className="flex items-center gap-2">
+                    <MessageInputFileButton />
                     <MessageInputMcpConfigButton />
                   </div>
                   <div className="flex items-center gap-2">
-                    <MessageInputFileButton />
                     <MessageInputSubmitButton />
                   </div>
                 </div>

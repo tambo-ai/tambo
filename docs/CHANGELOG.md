@@ -1,5 +1,44 @@
 # Changelog
 
+## [1.13.0](https://github.com/tambo-ai/tambo/compare/docs-v1.12.1...docs-v1.13.0) (2025-10-02)
+
+
+### Features
+
+* add reasoning UI, smart autoscroll with UI improvements and update component paths to use /tambo ([#1101](https://github.com/tambo-ai/tambo/issues/1101)) ([9ec66c3](https://github.com/tambo-ai/tambo/commit/9ec66c37493eb636d5778e51ca8553ffb9982fc4))
+
+
+### Miscellaneous Chores
+
+* add agents.md & claude.md to monorepo. ([#1116](https://github.com/tambo-ai/tambo/issues/1116)) ([fe911d4](https://github.com/tambo-ai/tambo/commit/fe911d4613b301cf9a68a6a95ebc2b7a6a294dd5))
+* **deps:** bump dompurify from 3.2.6 to 3.2.7 ([#1111](https://github.com/tambo-ai/tambo/issues/1111)) ([024a6ca](https://github.com/tambo-ai/tambo/commit/024a6ca703652cdb1b014ef293e6a07a4eea2269))
+* **deps:** bump framer-motion from 12.23.12 to 12.23.22 ([#1107](https://github.com/tambo-ai/tambo/issues/1107)) ([3c0ab4b](https://github.com/tambo-ai/tambo/commit/3c0ab4b9875e2d12166fceb98915a8ef34505118))
+* **deps:** bump lucide-react from 0.542.0 to 0.544.0 ([#1105](https://github.com/tambo-ai/tambo/issues/1105)) ([8b5a36b](https://github.com/tambo-ai/tambo/commit/8b5a36b772300f164351443dafe2692432981cff))
+* **deps:** bump mermaid from 11.11.0 to 11.12.0 ([#1088](https://github.com/tambo-ai/tambo/issues/1088)) ([03ea0c3](https://github.com/tambo-ai/tambo/commit/03ea0c31b5547a9286314ee2ee3b9962b6b1f4b9))
+* **deps:** bump next from 15.5.3 to 15.5.4 in the next group ([#1110](https://github.com/tambo-ai/tambo/issues/1110)) ([dd1a35d](https://github.com/tambo-ai/tambo/commit/dd1a35d669023d0440a885237e73d2109e247144))
+* **deps:** bump streamdown from 1.2.0 to 1.3.0 ([#1093](https://github.com/tambo-ai/tambo/issues/1093)) ([761f213](https://github.com/tambo-ai/tambo/commit/761f213340ea0b611d8c712d1b5ca8fb744a8ace))
+* **deps:** bump the fumadocs group with 2 updates ([#1109](https://github.com/tambo-ai/tambo/issues/1109)) ([74e09de](https://github.com/tambo-ai/tambo/commit/74e09de369a412b409d12e4d94888125ac1a1bf9))
+* **deps:** bump the fumadocs group with 3 updates ([#1085](https://github.com/tambo-ai/tambo/issues/1085)) ([14f5e72](https://github.com/tambo-ai/tambo/commit/14f5e728988b9c03bbe0df1e6c04b15feb9ab6a2))
+
+## [1.12.1](https://github.com/tambo-ai/tambo/compare/docs-v1.12.0...docs-v1.12.1) (2025-09-22)
+
+
+### Miscellaneous Chores
+
+* Add next-sitemap to docs sitemap to see ([#1083](https://github.com/tambo-ai/tambo/issues/1083)) ([9d500c5](https://github.com/tambo-ai/tambo/commit/9d500c5259cdf440630d3c113b432ed98c1838d6))
+
+## [1.12.0](https://github.com/tambo-ai/tambo/compare/docs-v1.11.0...docs-v1.12.0) (2025-09-20)
+
+
+### Features
+
+* **docs:** add documentation for custom llm parameters ([#1071](https://github.com/tambo-ai/tambo/issues/1071)) ([fe64ca3](https://github.com/tambo-ai/tambo/commit/fe64ca3a71c9c1616a9269fe7b7a9ec878b1ce4d))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk to 0.72 for reasoning shape ([#1072](https://github.com/tambo-ai/tambo/issues/1072)) ([a103b5f](https://github.com/tambo-ai/tambo/commit/a103b5fa250b334edaa4d81ba8fe82d36995ae7c))
+
 ## [1.11.0](https://github.com/tambo-ai/tambo/compare/docs-v1.10.0...docs-v1.11.0) (2025-09-19)
 
 
