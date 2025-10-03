@@ -4,7 +4,7 @@ import {
   OAuthValidationMode,
   encryptOAuthSecretKey,
 } from "@tambo-ai-cloud/core";
-import { SignJWT, exportJWK, generateKeyPair } from "jose";
+import { SignJWT, exportJWK, exportSPKI, generateKeyPair } from "jose";
 import { CorrelationLoggerService } from "../../services/logger.service";
 import { validateSubjectToken } from "../oauth";
 
@@ -347,6 +347,32 @@ describe("validateSubjectToken", () => {
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining("Error parsing or using manual public key"),
       );
+    });
+
+    it("should verify JWT with manual PEM public key", async () => {
+      // Generate a real RSA key pair
+      const { publicKey, privateKey } = await generateKeyPair("RS256");
+      const publicPEM = await exportSPKI(publicKey);
+
+      const mockSettings = {
+        secretKeyEncrypted: null,
+        publicKey: publicPEM,
+      };
+
+      // Create a real JWT with the private key
+      const token = await new SignJWT(testPayload)
+        .setProtectedHeader({ alg: "RS256" })
+        .sign(privateKey);
+
+      const result = await validateSubjectToken(
+        token,
+        OAuthValidationMode.ASYMMETRIC_MANUAL,
+        mockSettings,
+        mockLogger,
+      );
+
+      expect(result.sub).toBe("user123");
+      expect(result.iss).toBe("https://example.com");
     });
   });
 

@@ -8,6 +8,8 @@ import {
   createRemoteJWKSet,
   decodeJwt,
   importJWK,
+  importSPKI,
+  importX509,
   JWTPayload,
   jwtVerify,
 } from "jose";
@@ -201,16 +203,7 @@ export async function validateSubjectToken(
 
       try {
         // Parse the public key (assuming it's in JWK format)
-        const publicKeyJWK = JSON.parse(oauthSettings.publicKey);
-
-        // Validate it's actually a public key
-        if (publicKeyJWK.kty && (publicKeyJWK.d || publicKeyJWK.k)) {
-          throw new UnauthorizedException(
-            "Private or symmetric key provided where public key expected",
-          );
-        }
-
-        const publicKey = await importJWK(publicKeyJWK);
+        const publicKey = await readPublicKey(oauthSettings.publicKey);
         const { payload } = await jwtVerify(subjectToken, publicKey, {
           algorithms: ALLOWED_ASYMMETRIC_ALGORITHMS,
         });
@@ -288,4 +281,30 @@ export async function validateSubjectToken(
         `Unsupported OAuth validation mode: ${validationMode}`,
       );
   }
+}
+
+/** Allows for both JWK and PEM formatted public keys */
+async function readPublicKey(publicKeyString: string) {
+  if (publicKeyString.startsWith("{")) {
+    // JWK formatted public key
+    const publicKeyJWK = JSON.parse(publicKeyString);
+
+    // Validate it's actually a public key
+    if (publicKeyJWK.kty && (publicKeyJWK.d || publicKeyJWK.k)) {
+      throw new UnauthorizedException(
+        "Private or symmetric key provided where public key expected",
+      );
+    }
+
+    const publicKey = await importJWK(publicKeyJWK);
+    return publicKey;
+  }
+  // PEM formatted public key - try SPKI or X.509 certificate
+  const trimmed = publicKeyString.trim();
+  if (trimmed.includes("BEGIN CERTIFICATE")) {
+    // In Node.js alg is not enforced; provide a common default for types
+    return await importX509(trimmed, "RS256");
+  }
+  // Covers "BEGIN PUBLIC KEY", "BEGIN RSA PUBLIC KEY", "BEGIN EC PUBLIC KEY"
+  return await importSPKI(trimmed, "RS256");
 }
