@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.111.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.111.0...repo-v0.111.1) (2025-10-03)
+
+
+### Miscellaneous Chores
+
+* **ci:** fix slack step in release please workflow ([#1870](https://github.com/tambo-ai/tambo-cloud/issues/1870)) ([d651fb8](https://github.com/tambo-ai/tambo-cloud/commit/d651fb8afcc49ff6372ea405f0be141f9359c6e0))
+
 ## [0.111.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.110.0...repo-v0.111.0) (2025-10-03)
 
 
