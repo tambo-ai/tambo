@@ -1,10 +1,11 @@
 export * from "./ComponentDecision";
 export * from "./composio-utils";
+export * from "./email";
 export * from "./encrypt";
 export * from "./json";
 export type * from "./llm-parameter-types";
 export type * from "./mcp-auth";
-export * from "./MCPClient";
+export * from "./mcp-client";
 export * from "./oauth";
 export * from "./oauth-validation";
 export * from "./project";
@@ -15,7 +16,6 @@ export * from "./templates";
 export * from "./threads";
 export * from "./tools";
 export type * from "./typeutils";
-export * from "./email";
 // Auth helpers
 export * from "./agent-registry";
 export * from "./ai-providers";

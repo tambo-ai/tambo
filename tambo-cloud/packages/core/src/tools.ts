@@ -2,7 +2,7 @@ import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { SseError } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type OpenAI from "openai";
-import { MCPClient, MCPTransport } from "./MCPClient";
+import { MCPClient, MCPTransport } from "./mcp-client";
 
 export enum ToolProviderType {
   COMPOSIO = "composio",
