@@ -9,6 +9,8 @@ on:
     branches:
       - main
       - develop
+  release:
+    types: [published]
   workflow_dispatch:
 
 concurrency:
@@ -50,10 +52,15 @@ jobs:
       - name: Determine if we should push to GHCR
         id: should_push
         run: |
-          if [[ "${{ github.event_name }}" == "push" && ("${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" =~ ^refs/tags/) ]]; then
+          # Push to GHCR only when a release is published
+          if [[ "${{ github.event_name }}" == "release" ]]; then
             echo "should_push=true" >> $GITHUB_OUTPUT
+            echo "release_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "Pushing to GHCR with release tag: ${{ github.event.release.tag_name }}"
           else
             echo "should_push=false" >> $GITHUB_OUTPUT
+            echo "release_tag=" >> $GITHUB_OUTPUT
+            echo "Building locally for testing (no GHCR push)"
           fi
 
       - name: Login to GitHub Container Registry
@@ -72,8 +79,8 @@ jobs:
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           tags: |
-            ${{ steps.should_push.outputs.should_push == 'true' && format('ghcr.io/tambo-ai/tambo-web-server:{0}', github.sha) || 'tambo-web:latest' }}
-            ${{ steps.should_push.outputs.should_push == 'true' && github.ref == 'refs/heads/main' && 'ghcr.io/tambo-ai/tambo-web-server:latest' || '' }}
+            ${{ steps.should_push.outputs.should_push == 'true' && format('ghcr.io/tambo-ai/tambo-web-server:{0}', steps.should_push.outputs.release_tag) || 'tambo-web:latest' }}
+            ${{ steps.should_push.outputs.should_push == 'true' && 'ghcr.io/tambo-ai/tambo-web-server:latest' || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -87,8 +94,8 @@ jobs:
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           tags: |
-            ${{ steps.should_push.outputs.should_push == 'true' && format('ghcr.io/tambo-ai/tambo-api-server:{0}', github.sha) || 'tambo-api:latest' }}
-            ${{ steps.should_push.outputs.should_push == 'true' && github.ref == 'refs/heads/main' && 'ghcr.io/tambo-ai/tambo-api-server:latest' || '' }}
+            ${{ steps.should_push.outputs.should_push == 'true' && format('ghcr.io/tambo-ai/tambo-api-server:{0}', steps.should_push.outputs.release_tag) || 'tambo-api:latest' }}
+            ${{ steps.should_push.outputs.should_push == 'true' && 'ghcr.io/tambo-ai/tambo-api-server:latest' || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -97,10 +104,10 @@ jobs:
       - name: Ensure local tags for stack
         if: steps.should_push.outputs.should_push == 'true'
         run: |
-          docker pull ghcr.io/tambo-ai/tambo-web-server:${{ github.sha }}
-          docker tag ghcr.io/tambo-ai/tambo-web-server:${{ github.sha }} tambo-web:latest
-          docker pull ghcr.io/tambo-ai/tambo-api-server:${{ github.sha }}
-          docker tag ghcr.io/tambo-ai/tambo-api-server:${{ github.sha }} tambo-api:latest
+          docker pull ghcr.io/tambo-ai/tambo-web-server:${{ steps.should_push.outputs.release_tag }}
+          docker tag ghcr.io/tambo-ai/tambo-web-server:${{ steps.should_push.outputs.release_tag }} tambo-web:latest
+          docker pull ghcr.io/tambo-ai/tambo-api-server:${{ steps.should_push.outputs.release_tag }}
+          docker tag ghcr.io/tambo-ai/tambo-api-server:${{ steps.should_push.outputs.release_tag }} tambo-api:latest
 
       - name: Start Docker stack
         run: |
