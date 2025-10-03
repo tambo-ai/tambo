@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.111.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.110.0...repo-v0.111.0) (2025-10-03)
+
+
+### Features
+
+* **mcp:** Add sampling/elicitation support to internal mcp client ([#1865](https://github.com/tambo-ai/tambo-cloud/issues/1865)) ([31f6a6e](https://github.com/tambo-ai/tambo-cloud/commit/31f6a6ef8409588934ec04bd89b4afebeff3ed3d))
+
+
+### Bug Fixes
+
+* **oauth:** Add support for PEM formatted keys ([#1868](https://github.com/tambo-ai/tambo-cloud/issues/1868)) ([0c899bf](https://github.com/tambo-ai/tambo-cloud/commit/0c899bffd2dc2ca5e623a24c5435c80c799e1089))
+
+
+### Miscellaneous Chores
+
+* **ci:** push images to GHCR with release tags during releases ([#1869](https://github.com/tambo-ai/tambo-cloud/issues/1869)) ([f2ab5da](https://github.com/tambo-ai/tambo-cloud/commit/f2ab5dac8b39000e557a5e4552c44897b4636898))
+* delete some unused JWT verification code ([#1866](https://github.com/tambo-ai/tambo-cloud/issues/1866)) ([98cc2da](https://github.com/tambo-ai/tambo-cloud/commit/98cc2dae3a8274a4c2aca8fa7d17c04572098346))
+
 ## [0.110.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.109.0...repo-v0.110.0) (2025-10-02)
 
 

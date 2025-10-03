@@ -50,6 +50,6 @@
     "npm": "11.6.1"
   },
   "packageManager": "npm@11.6.1",
-  "version": "0.110.0",
+  "version": "0.111.0",
   "license": "Apache-2.0"
 }
