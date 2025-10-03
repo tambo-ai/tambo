@@ -877,18 +877,16 @@ describe("MCPClient", () => {
         undefined,
         undefined,
         undefined,
+        {
+          elicitation: async () => ({}) as any,
+        },
       );
 
-      const setSpy = mockClientInstance.setRequestHandler as jest.Mock;
       const removeSpy = mockClientInstance.removeRequestHandler as jest.Mock;
-
-      // set first
-      await client.setElicitationHandler(async () => ({}) as any);
-      expect(setSpy).toHaveBeenCalled();
 
       // then remove
       removeSpy.mockClear();
-      await client.setElicitationHandler(undefined);
+      await client.updateElicitationHandler(undefined);
       expect(removeSpy).toHaveBeenCalledWith(expect.any(String));
     });
 
@@ -900,18 +898,16 @@ describe("MCPClient", () => {
         undefined,
         undefined,
         undefined,
+        {
+          sampling: async () => ({}) as any,
+        },
       );
 
-      const setSpy = mockClientInstance.setRequestHandler as jest.Mock;
       const removeSpy = mockClientInstance.removeRequestHandler as jest.Mock;
-
-      // set first
-      await client.setSamplingHandler(async () => ({}) as any);
-      expect(setSpy).toHaveBeenCalled();
 
       // then remove
       removeSpy.mockClear();
-      await client.setSamplingHandler(undefined);
+      await client.updateSamplingHandler(undefined);
       expect(removeSpy).toHaveBeenCalledWith(expect.any(String));
     });
   });

@@ -153,12 +153,6 @@ export class MCPClient {
     if ("sessionId" in mcpClient.transport) {
       mcpClient.sessionId = mcpClient.transport.sessionId;
     }
-    if (handlers.elicitation) {
-      mcpClient.setElicitationHandler(handlers.elicitation);
-    }
-    if (handlers.sampling) {
-      mcpClient.setSamplingHandler(handlers.sampling);
-    }
     return mcpClient;
   }
   /**
@@ -420,9 +414,14 @@ export class MCPClient {
     return result;
   }
 
-  setElicitationHandler(
+  updateElicitationHandler(
     handler: ((e: ElicitRequest) => Promise<ElicitResult>) | undefined,
   ) {
+    // Because we advertise the elicitation capability on initial connection, we can only update
+    // an existing handler, not add it if we haven't set it yet.
+    if (handler && !this.handlers.elicitation) {
+      throw new Error("Elicitation handler must be set on create");
+    }
     this.handlers = {
       ...this.handlers,
       elicitation: handler,
@@ -435,11 +434,16 @@ export class MCPClient {
     this.client.setRequestHandler(ElicitRequestSchema, handler);
   }
 
-  setSamplingHandler(
+  updateSamplingHandler(
     handler:
       | ((e: CreateMessageRequest) => Promise<CreateMessageResult>)
       | undefined,
   ) {
+    // Because we advertise the sampling capability on initial connection, we can only update
+    // an existing handler, not add it if we haven't set it yet.
+    if (handler && !this.handlers.sampling) {
+      throw new Error("Sampling handler must be set on create");
+    }
     this.handlers = {
       ...this.handlers,
       sampling: handler,
