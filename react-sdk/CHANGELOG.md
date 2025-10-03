@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.56.0](https://github.com/tambo-ai/tambo/compare/react-v0.55.0...react-v0.56.0) (2025-10-03)
+
+
+### Features
+
+* **mcp:** Add support for sampling + elicitations to internal MCPClient ([#1119](https://github.com/tambo-ai/tambo/issues/1119)) ([c9ba1a3](https://github.com/tambo-ai/tambo/commit/c9ba1a3be36666163f2cdfb5f5705854d388046d))
+
 ## [0.55.0](https://github.com/tambo-ai/tambo/compare/react-v0.54.1...react-v0.55.0) (2025-10-01)
 
 
