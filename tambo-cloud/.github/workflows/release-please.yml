@@ -50,22 +50,40 @@ jobs:
         uses: slackapi/slack-github-action@v2.1.1
         with:
           payload: |
-            text: ":rocket: Production Deployment Started"
-            blocks:
-              - type: header
-                text:
-                  type: plain_text
-                  text: ":rocket: Production Deployment Started"
-              - type: section
-                fields:
-                  - type: mrkdwn
-                    text: "*Version*\n${{ steps.release.outputs.tag_name }}"
-                  - type: mrkdwn
-                    text: "*Release PR*\nhttps://github.com/${{ github.repository }}/pull/${{ fromJson(steps.release.outputs.prs)[0].number }}"
-              - type: section
-                fields:
-                  - type: mrkdwn
-                    text: "*Triggered by*\n${{ github.actor }}"
+            {
+              "text": ":rocket: Production Deployment Started",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":rocket: Production Deployment Started"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Version*\n${{ steps.release.outputs.tag_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Release PR*\nhttps://github.com/${{ github.repository }}/pull/${{ fromJson(steps.release.outputs.prs)[0].number }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Triggered by*\n${{ github.actor }}"
+                    }
+                  ]
+                }
+              ]
+            }
         env:
           SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
   sentry-release:
