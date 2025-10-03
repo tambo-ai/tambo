@@ -64,21 +64,4 @@ export class AuthService {
 
     return jwt.sign(payload, secret);
   }
-
-  /**
-   * Verifies and decodes an MCP access token
-   */
-  verifyMcpAccessToken(token: string): McpAccessTokenPayload {
-    const secret = this.configService.get<string>("API_KEY_SECRET");
-
-    if (!secret) {
-      throw new Error("API_KEY_SECRET is not configured");
-    }
-
-    // Explicitly pin allowed algorithms for verification to prevent
-    // algorithm confusion attacks. MCP tokens are signed with HS256.
-    return jwt.verify(token, secret, {
-      algorithms: ["HS256"],
-    }) as McpAccessTokenPayload;
-  }
 }
