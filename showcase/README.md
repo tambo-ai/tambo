@@ -24,6 +24,31 @@ A react component library for [tambo ai](https://tambo.co).
   - `ThreadContent`: Content container for message threads
   - `ThreadList`: List of message threads
   - `ThreadHistory`: Historical view of message threads
+  - `ThreadNameStatus`: Displays placeholders, loading state, and retry controls for automatic thread naming
+
+#### Thread naming defaults
+
+Use the component library to expose the automatic naming workflow without recreating the supporting logic.
+
+```tsx
+import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadNameStatus,
+} from "@tambo-ai/showcase";
+
+export function ThreadPanel() {
+  return (
+    <ThreadHistory contextKey="support" position="left">
+      <ThreadHistoryHeader>
+        <ThreadNameStatus placeholder="New conversation" retryCounts={[5]} />
+      </ThreadHistoryHeader>
+    </ThreadHistory>
+  );
+}
+```
+
+`ThreadNameStatus` forwards retry counts to the shared `useThreadAutoNaming` hook so lists can refresh names after the first and fifth messages while keeping logic aligned with the thread context.
 
 - **Message Elements**
   - `Message`: Individual message component

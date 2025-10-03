@@ -1,0 +1,150 @@
+---
+title: Thread auto-naming
+description: Configure automatic thread names, placeholders, and retriggers using the existing thread context.
+---
+
+import LearnMore from "@/components/learn-more";
+
+Clear thread titles help users recognize conversations at a glance. The thread auto-naming utilities reuse the existing `TamboProvider`, thread hooks, and showcase components so you can orchestrate placeholders, trigger thresholds, and retriggers without building parallel state.
+
+<LearnMore
+  title="Sending messages"
+  description="Trigger naming once users begin a conversation."
+  href="/concepts/message-threads/sending-messages"
+/>
+
+## Configure global defaults with `TamboProvider`
+
+Set baseline behaviour on `TamboProvider`. The provider passes `autoThreadNaming` options through to the thread context, so every descendant surface shares the same placeholder rules and trigger schedule unless you override them locally.
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+export function App({ children }: { children: React.ReactNode }) {
+  return (
+    <TamboProvider
+      tamboUrl={process.env.NEXT_PUBLIC_TAMBO_URL}
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+      components={components}
+      autoThreadNaming={{
+        placeholder: "New conversation…",
+        minMessages: 2,
+        triggers: [1, 5],
+        debounceMs: 800,
+      }}
+    >
+      {children}
+    </TamboProvider>
+  );
+}
+```
+
+- **`placeholder`** renders immediately via `updateThreadName`, giving thread lists a consistent draft title.
+- **`minMessages`** defers naming until the thread holds enough context—for example, set `2` to wait for the assistant’s first response.
+- **`triggers`** lists the message counts that invoke automatic naming. The sample configuration runs after the first user message and again after the fifth message.
+- **`debounceMs`** guards against rapid retriggers when assistants send multiple back-to-back messages.
+
+Every thread created within the provider uses these defaults. Surfaces can refine the behaviour with the hook-level API described below.
+
+## Refine behaviour per surface with `useThreadAutoNaming`
+
+Call `useThreadAutoNaming` inside any component that renders thread metadata. The hook composes with `useTamboThread`, exposing helpers for scheduling additional triggers, regenerating on demand, or overriding the placeholder.
+
+```tsx
+import { useEffect } from "react";
+import { useThreadAutoNaming } from "@tambo-ai/react";
+
+export function SupportConversationHeader() {
+  const {
+    name,
+    status,
+    placeholder,
+    setPlaceholder,
+    scheduleTrigger,
+    regenerate,
+  } = useThreadAutoNaming({
+    placeholder: "Starting support case…",
+    minMessages: 1,
+    triggers: [1],
+  });
+
+  useEffect(() => {
+    scheduleTrigger({ count: 5 });
+  }, [scheduleTrigger]);
+
+  return (
+    <header>
+      <h1>{status === "generating" ? "Naming…" : name ?? placeholder}</h1>
+      <button
+        type="button"
+        onClick={() => regenerate({ count: 10 })}
+        disabled={status === "generating"}
+      >
+        Refresh name after 10 messages
+      </button>
+      <button type="button" onClick={() => setPlaceholder("Untitled chat")}>Override placeholder</button>
+    </header>
+  );
+}
+```
+
+Hook return values:
+
+- **`name`** – the most recent committed thread name.
+- **`placeholder`** – the active placeholder while a name is pending.
+- **`status`** – `"idle" | "generating" | "error"` for UI feedback.
+- **`scheduleTrigger({ count })`** – enqueue a future automatic run when the thread reaches a message count.
+- **`regenerate({ count })`** – run immediately and record which message count caused the attempt (useful for analytics and deterministic prompts).
+- **`setPlaceholder(value)`** – override the provider default for the current surface.
+
+The hook falls back to the provider configuration whenever you omit an option, so components only need to specify what they intend to override.
+
+## Deliver ready-made UI with `ThreadNameStatus`
+
+The showcase package includes headless and styled building blocks for thread titles. `ThreadNameStatus` wraps `useThreadAutoNaming`, handling placeholders, loading states, and retries so you can slot the component into `ThreadHistory` or your own header layout.
+
+```tsx
+import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadNameStatus,
+} from "@tambo-ai/showcase";
+
+export function Inbox() {
+  return (
+    <ThreadHistory contextKey="sales-inbox" position="left">
+      <ThreadHistoryHeader>
+        <ThreadNameStatus
+          placeholder="New conversation"
+          loadingText="Naming conversation…"
+          retryCounts={[5]}
+        />
+      </ThreadHistoryHeader>
+      <ThreadHistoryNewButton />
+      <ThreadHistorySearch />
+      <ThreadHistoryList />
+    </ThreadHistory>
+  );
+}
+```
+
+- `ThreadNameStatus` renders the committed name or placeholder and includes a retry button that calls `regenerate` under the hood.
+- The `retryCounts` prop feeds `scheduleTrigger`, allowing the banner to refresh names after specific milestones.
+- You can replace the visual wrapper with a custom design while reusing the hook and callback shape.
+
+## Configuration reference
+
+| Option | Location | Description |
+| --- | --- | --- |
+| `placeholder` | Provider + hook + `ThreadNameStatus` | Draft name shown before generation completes. |
+| `minMessages` | Provider + hook | Minimum total messages required before any triggers execute. |
+| `triggers` | Provider | Array of message counts that automatically invoke `generateThreadName`. |
+| `retryCounts` | `ThreadNameStatus` | Additional counts that auto-schedule reruns from the component layer. |
+| `debounceMs` | Provider | Guard against rapid retriggers when multiple assistant messages arrive quickly. |
+| `scheduleTrigger` | Hook | Imperative helper to enqueue additional runs. |
+| `regenerate` | Hook + `ThreadNameStatus` | Force an immediate naming attempt and track the triggering count. |
+
+Together these APIs keep thread naming logic inside the existing thread context while giving teams flexibility over timing, placeholders, and UI affordances.

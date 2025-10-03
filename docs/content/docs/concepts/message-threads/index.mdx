@@ -5,6 +5,8 @@ description: Understand how conversations are structured in Tambo.
 
 Message threads are the core building block for creating interactive AI experiences with Tambo. They provide a structured way to manage conversations between users and Tambo, with hooks that make it easy to interact with thread state, send messages, and display responses. Each thread maintains a history of messages and can include both text content and rendered components, allowing for rich conversational interfaces where users can see both chat history and dynamic UI components.
 
+[Thread auto-naming](./thread-auto-naming) explains how to keep conversation titles in sync with configurable defaults and per-surface overrides.
+
 ```tsx
 const { thread } = useTambo()
 const { value, setValue, submit } = useTamboThreadInput();
