@@ -4,15 +4,13 @@ import { type NavigationItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { memo } from "react";
 
-export const SidebarLink = memo(function SidebarLink({
-  item,
-  level = 0,
-}: {
+interface SidebarLinkProps {
   item: NavigationItem;
   level?: number;
-}) {
+}
+
+export const SidebarLink = ({ item, level = 0 }: SidebarLinkProps) => {
   const pathname = usePathname();
   const isActive = pathname === item.href; // check if current pathname is equal to the link href
 
@@ -30,6 +28,6 @@ export const SidebarLink = memo(function SidebarLink({
       {item.title}
     </Link>
   );
-});
+};
 
 SidebarLink.displayName = "SidebarLink";
