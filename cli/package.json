@@ -60,7 +60,7 @@
     "clipboardy": "^5.0.0",
     "deepmerge": "^4.3.1",
     "diff": "^8.0.2",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.2.3",
     "fast-equals": "^5.3.2",
     "inquirer": "^12.9.4",
     "meow": "^14.0.0",
