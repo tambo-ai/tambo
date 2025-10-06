@@ -80,6 +80,6 @@
     "@types/ora": "^3.2.0",
     "@types/recharts": "^2.0.1",
     "@types/semver": "^7.7.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }
