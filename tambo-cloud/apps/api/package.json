@@ -79,7 +79,7 @@
     "ts-jest": "^29.4.4",
     "ts-loader": "^9.5.4",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=22",

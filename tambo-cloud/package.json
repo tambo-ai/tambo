@@ -35,7 +35,7 @@
     "ts-jest": "^29.4.4",
     "tsx": "^4.20.6",
     "turbo": "^2.5.8",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "workspaces": [
     "apps/*",
