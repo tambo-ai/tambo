@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.72.0",
+    "@tambo-ai/typescript-sdk": "^0.72.1",
     "chalk": "^5.6.0",
     "cli-table3": "^0.6.5",
     "clipboardy": "^5.0.0",

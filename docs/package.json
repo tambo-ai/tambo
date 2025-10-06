@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.72.0",
+    "@tambo-ai/typescript-sdk": "^0.72.1",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.7",
     "framer-motion": "^12.23.22",
