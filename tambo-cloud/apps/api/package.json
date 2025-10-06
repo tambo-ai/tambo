@@ -49,7 +49,7 @@
     "ajv": "^8.17.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "drizzle-orm": "^0.44.5",
+    "drizzle-orm": "^0.44.6",
     "helmet": "^8.1.0",
     "jose": "^5.10.0",
     "json-schema": "^0.4.0",
