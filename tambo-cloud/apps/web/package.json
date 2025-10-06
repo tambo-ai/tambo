@@ -61,7 +61,7 @@
     "framer-motion": "^12.23.22",
     "geist": "^1.5.1",
     "highlight.js": "^11.11.1",
-    "jiti": "^2.6.0",
+    "jiti": "^2.6.1",
     "jose": "^5.10.0",
     "js-tiktoken": "^1.0.21",
     "json-stringify-pretty-compact": "^4.0.0",
