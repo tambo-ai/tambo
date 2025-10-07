@@ -12,16 +12,52 @@ Unlike regular registered components that Tambo generates and renders from scrat
 The easiest way to make a component interactable to Tambo is by using `withInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
 
 ```tsx
+import { useEffect, useState } from "react";
 import { withInteractable } from "@tambo-ai/react";
 import { z } from "zod";
 
+type NoteProps = {
+  title: string;
+  content: string;
+  color?: "white" | "yellow" | "blue" | "green";
+};
+
 // Your existing component
-function Note({ title, content, color = "white" }) {
+function Note({ title, content, color = "white" }: NoteProps) {
+  const [currentTitle, setCurrentTitle] = useState(title);
+  const [currentContent, setCurrentContent] = useState(content);
+  const [currentColor, setCurrentColor] = useState(color);
+
+  useEffect(() => {
+    setCurrentTitle(title);
+  }, [title]);
+
+  useEffect(() => {
+    setCurrentContent(content);
+  }, [content]);
+
+  useEffect(() => {
+    setCurrentColor(color);
+  }, [color]);
+
   return (
-    <div className={`note note-${color}`}>
-      <h3>{title}</h3>
-      <p>{content}</p>
-    </div>
+    <section>
+      <h3>{currentTitle}</h3>
+      <p>{currentContent}</p>
+      <div>
+        <label htmlFor="note-color">Color</label>
+        <select
+          id="note-color"
+          value={currentColor}
+          onChange={(event) => setCurrentColor(event.target.value as NoteProps["color"])}
+        >
+          <option value="white">White</option>
+          <option value="yellow">Yellow</option>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+        </select>
+      </div>
+    </section>
   );
 }
 
@@ -37,14 +73,39 @@ const InteractableNote = withInteractable(Note, {
   }),
 });
 
+type CounterProps = {
+  count: number;
+  label: string;
+};
+
 // Another simple component
-function Counter({ count, label }) {
+function Counter({ count, label }: CounterProps) {
+  const [currentCount, setCurrentCount] = useState(count);
+  const [currentLabel, setCurrentLabel] = useState(label);
+
+  useEffect(() => {
+    setCurrentCount(count);
+  }, [count]);
+
+  useEffect(() => {
+    setCurrentLabel(label);
+  }, [label]);
+
   return (
-    <div className="counter">
-      <span>
-        {label}: {count}
-      </span>
-    </div>
+    <section>
+      <p>
+        {currentLabel}: {currentCount}
+      </p>
+      <div>
+        <button type="button" onClick={() => setCurrentCount((value) => value + 1)}>
+          Increment
+        </button>
+        <button type="button" onClick={() => setCurrentCount((value) => value - 1)}>
+          Decrement
+        </button>
+        <button type="button" onClick={() => setCurrentLabel("Items")}>Reset Label</button>
+      </div>
+    </section>
   );
 }
 
@@ -60,19 +121,19 @@ const InteractableCounter = withInteractable(Counter, {
 // Place both components in your app
 function Page() {
   return (
-    <div>
+    <main>
       <InteractableNote
         title="Welcome"
         content="This is a simple note that Tambo can update!"
         color="yellow"
       />
       <InteractableCounter count={42} label="Items" />
-    </div>
+    </main>
   );
 }
 ```
 
-Now Tambo is able to read and update these components in-place when responding to messages. Users can ask things like:
+Both components track user-editable state and rely on `useEffect` hooks to synchronize their local state whenever Tambo updates the props. Now Tambo is able to read and update these components in-place when responding to messages. Users can ask things like:
 
 - "Change the note title to 'Important Reminder'"
 - "Update the note content to 'Don't forget the meeting at 3pm'"
