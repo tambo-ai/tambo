@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.112.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.112.0...repo-v0.112.1) (2025-10-07)
+
+
+### Miscellaneous Chores
+
+* add reasoning to gpt-5-nano ([#1896](https://github.com/tambo-ai/tambo-cloud/issues/1896)) ([c61df88](https://github.com/tambo-ai/tambo-cloud/commit/c61df880fc3b4cfdd8ba8e51ad67fe42fc753a72))
+
 ## [0.112.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.111.1...repo-v0.112.0) (2025-10-07)
 
 
