@@ -1,0 +1,268 @@
+---
+title: Reasoning Models
+description: Configure and use advanced reasoning capabilities models that show their thinking process.
+---
+
+Reasoning models are specialized LLMs that expose their internal thought process before generating a final response. These models excel at complex tasks requiring multi-step reasoning, problem-solving, and logical analysis by spending additional compute time "thinking" through the problem.
+
+You can add reasoning parameters through your project's LLM provider settings.
+
+<Callout type="info" title="Model Support">
+  Tambo currently supports reasoning capabilities for **OpenAI models** (GPT-5,
+  GPT-5 Mini, GPT-5 Nano, O3) and **Google Gemini models** (2.5 Pro, 2.5 Flash).
+  Each provider uses different parameter names to control reasoning behavior.
+</Callout>
+
+## What Are Reasoning Models?
+
+Traditional LLMs generate responses token-by-token in a single forward pass. Reasoning models add an intermediate "thinking" phase where the model:
+
+1. **Analyzes the problem** - Breaks down complex queries into sub-problems
+2. **Explores solutions** - Considers multiple approaches and their tradeoffs
+3. **Verifies reasoning** - Checks its logic before committing to an answer
+4. **Generates response** - Produces the final output based on verified reasoning
+
+This thinking process is captured as **reasoning tokens** that you can access, display, and analyze alongside the final response.
+
+## Supported Models
+
+### OpenAI Models
+
+OpenAI's reasoning models expose their thought process through dedicated parameters:
+
+| Model          | Description                                   |
+| -------------- | --------------------------------------------- |
+| **GPT-5**      | Latest flagship model with advanced reasoning |
+| **GPT-5 Mini** | Faster, cost-effective reasoning model        |
+| **GPT-5 Nano** | Smallest, most efficient reasoning model      |
+| **O3**         | Specialized reasoning model                   |
+
+**OpenAI Reasoning Parameters:**
+
+| Parameter          | Type   | Description                             | Values                                     |
+| ------------------ | ------ | --------------------------------------- | ------------------------------------------ |
+| `reasoningEffort`  | string | Controls intensity of reasoning process | `"minimal"`, `"low"`, `"medium"`, `"high"` |
+| `reasoningSummary` | string | Enables reasoning token output          | `"auto"`, `"detailed"`                     |
+
+### Google Gemini Models
+
+Gemini models use a "thinking budget" approach to control reasoning:
+
+| Model                | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| **gemini-2.5-pro**   | Most capable Gemini model with extended thinking |
+| **gemini-2.5-flash** | Fast, efficient reasoning for production use     |
+
+**Gemini Reasoning Parameters:**
+
+| Parameter                        | Type    | Description                             |
+| -------------------------------- | ------- | --------------------------------------- |
+| `thinkingConfig`                 | object  | Configuration for thinking behavior     |
+| `thinkingConfig.thinkingBudget`  | number  | Token budget allocated for thinking     |
+| `thinkingConfig.includeThoughts` | boolean | Whether to include thinking in response |
+
+## Configuring Reasoning in the Dashboard
+
+Reasoning parameters are configured in your project's LLM provider settings on the dashboard. Here's how to set them up:
+
+### Step 1: Access Provider Settings
+
+1. Navigate to your project in the dashboard
+2. Go to **Settings** → **LLM Providers**
+3. Select your provider and model that supports reasoning
+
+### Step 2: Configure OpenAI Reasoning Parameters
+
+For OpenAI models (GPT-5, GPT-5 Mini, GPT-5 Nano, O3):
+
+1. Under **Custom LLM Parameters**, you'll see suggested parameters
+2. Click **+ reasoningEffort** to add it
+3. Set the value to control reasoning intensity:
+   - **`"low"`** - Quick reasoning for simple tasks (faster, cheaper)
+   - **`"medium"`** - Balanced reasoning for most use cases (recommended)
+   - **`"high"`** - Deep reasoning for complex problems (slower, more expensive)
+4. Click **+ reasoningSummary** to add it
+5. Set the value to **`"auto"`** to receive reasoning tokens in responses
+6. Click **Save** to apply the configuration
+
+<Callout type="tip" title="Dashboard Suggestions">
+  When you select an OpenAI reasoning model, the dashboard automatically shows
+  **reasoningEffort** and **reasoningSummary** as suggested parameters. Just
+  click them to add!
+</Callout>
+
+### Step 3: Configure Gemini Reasoning Parameters
+
+For Gemini models (2.5 Pro, 2.5 Flash):
+
+1. Under **Custom LLM Parameters**, look for the **+ thinkingConfig** suggestion
+2. Click **+ thinkingConfig** to add it
+3. Configure the thinking behavior with a JSON object:
+   ```json
+   {
+     "thinkingBudget": 5000,
+     "includeThoughts": true
+   }
+   ```
+4. Set **`thinkingBudget`** based on your needs:
+   - **1000-2000**: Quick reasoning for simple tasks
+   - **3000-5000**: Standard reasoning for most use cases (recommended)
+   - **7000+**: Extended reasoning for complex problems
+5. Set **`includeThoughts`** to **`true`** to receive thinking tokens
+6. Click **Save** to apply the configuration
+
+<Callout type="tip" title="Dashboard Suggestions">
+  When you select a Gemini reasoning model, the dashboard automatically shows
+  **thinkingConfig** as a suggested parameter. Just click it to add!
+</Callout>
+
+### Example Configurations
+
+**OpenAI - Balanced Reasoning:**
+
+- Parameter: `reasoningEffort` → Value: `"medium"`
+- Parameter: `reasoningSummary` → Value: `"auto"`
+
+**OpenAI - Deep Reasoning:**
+
+- Parameter: `reasoningEffort` → Value: `"high"`
+- Parameter: `reasoningSummary` → Value: `"auto"`
+
+**Gemini - Standard Reasoning:**
+
+- Parameter: `thinkingConfig` → Value: `{"thinkingBudget": 5000, "includeThoughts": true}`
+
+**Gemini - Extended Reasoning:**
+
+- Parameter: `thinkingConfig` → Value: `{"thinkingBudget": 8000, "includeThoughts": true}`
+
+## When to Use Reasoning Models
+
+Reasoning models work best for tasks that benefit from step-by-step thinking:
+
+**✅ Best for:**
+
+- Complex problem-solving and analysis
+- Mathematical calculations and proofs
+- Code review and debugging
+- Strategic planning requiring multiple steps
+- Tasks where showing work builds user trust
+
+**⚠️ Not ideal for:**
+
+- Simple Q&A or fact retrieval
+- Real-time chat requiring instant responses
+- High-volume, cost-sensitive applications
+
+## Displaying Reasoning in Your App
+
+Tambo components automatically handle reasoning display - no additional code required.
+
+### Built-in Support
+
+When you add Tambo components from the CLI, reasoning support is included out-of-the-box:
+
+```bash
+npx tambo add message
+```
+
+These components include the `ReasoningInfo` sub-component that:
+
+- **Auto-displays** reasoning in a collapsible dropdown
+- **Shows thinking progress** with step counts during streaming
+- **Auto-collapses** when the final response arrives
+- **Auto-scrolls** to follow reasoning as it streams
+
+<Callout type="tip" title="Zero Configuration">
+  If you're using Tambo's pre-built components (message, thread-content,
+  message-thread-full, etc.), reasoning display is already built-in. Just
+  configure reasoning parameters in your dashboard and it works automatically.
+</Callout>
+
+### Custom Implementation
+
+If building custom components, reasoning is available in the `ThreadMessage` type:
+
+```typescript
+interface ThreadMessage {
+  id: string;
+  content: string;
+  role: "user" | "assistant";
+  reasoning?: string[]; // Array of reasoning strings
+  // ... other fields
+}
+```
+
+Access it like any other message property:
+
+```tsx
+{
+  message.reasoning?.map((step, index) => (
+    <div key={index}>
+      <strong>Step {index + 1}:</strong> {step}
+    </div>
+  ));
+}
+```
+
+## Best Practices
+
+### Performance Optimization
+
+**Balance reasoning effort with cost and latency in your dashboard configuration:**
+
+**Development Environment:**
+
+- Use `reasoningEffort: "high"` for thorough testing
+- Enable `reasoningSummary: "auto"` to debug thinking process
+- Higher costs acceptable for development
+
+**Production Environment:**
+
+- Use `reasoningEffort: "medium"` for balanced performance
+- Enable `reasoningSummary: "auto"` to maintain reasoning capabilities
+- Optimize for cost-performance balance
+
+**High-Volume Applications:**
+
+- Use `reasoningEffort: "low"` or disable reasoning parameters
+- Consider using non-reasoning models for simple queries
+- Monitor token usage and costs closely
+
+### Cost Considerations
+
+Reasoning tokens are billed separately and typically cost more than standard tokens:
+
+- **Monitor usage** - Track reasoning token consumption in your dashboard
+- **Optimize effort** - Use lower reasoning effort when appropriate
+- **Token budgets** - For Gemini, set appropriate `thinkingBudget` values based on task complexity
+
+## Troubleshooting
+
+**Reasoning not appearing in responses?**
+
+- Verify you're using a supported model (GPT-5, GPT-5 Mini, GPT-5 Nano, O3, or Gemini 2.5)
+- Check your dashboard settings under **LLM Providers** → **Custom LLM Parameters**
+- For OpenAI: Ensure `reasoningSummary` is added and set to `"auto"`
+- For Gemini: Ensure `thinkingConfig` has `includeThoughts: true`
+- Click **Save Settings** after making changes
+
+**Reasoning tokens consuming too many resources?**
+
+- In your dashboard settings, lower `reasoningEffort` from `"high"` to `"medium"` or `"low"`
+- For Gemini models, reduce the `thinkingBudget` value in `thinkingConfig`
+- Create separate projects with different configurations for simple vs. complex queries
+- Monitor token usage in your Tambo Cloud usage dashboard
+- Consider using non-reasoning models for high-volume, simple tasks
+
+## Additional Resources
+
+<Callout type="tip" title="Learn More">
+  Reasoning parameters are part of Tambo's custom LLM parameter system. For
+  information on configuring other model parameters, see [Custom LLM
+  Parameters](/models/custom-llm-parameters).
+</Callout>
+
+- **OpenAI Reasoning Models**: [OpenAI Documentation](https://platform.openai.com/docs/guides/reasoning)
+- **Gemini Thinking Config**: [Google AI Documentation](https://ai.google.dev/gemini-api/docs/thinking)
+- **Tambo Cloud GitHub**: [View Implementation](https://github.com/tambo-ai/tambo-cloud)
