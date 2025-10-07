@@ -9,6 +9,9 @@ import { MessageRequest, ThreadMessageDto } from "./message.dto";
 @ApiSchema({ name: "AdvanceThread" })
 export class AdvanceThreadDto {
   messageToAppend!: MessageRequest;
+  @ApiProperty({
+    description: "Unique user identifier for the thread",
+  })
   contextKey?: string;
   availableComponents?: AvailableComponentDto[];
   clientTools?: ComponentContextToolMetadataDto[];

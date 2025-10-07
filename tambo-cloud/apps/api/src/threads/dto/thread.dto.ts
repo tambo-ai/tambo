@@ -9,6 +9,9 @@ export class ThreadRequest {
 
   @IsString()
   @IsOptional()
+  @ApiProperty({
+    description: "Unique user identifier for the thread",
+  })
   contextKey?: string;
 
   @IsOptional()
