@@ -4,6 +4,7 @@ export interface LegacyComponentDecision {
   /** This is an internal id for noticing when multiple messages come out of a stream */
   id?: string;
   role?: MessageRole;
+  parentMessageId?: string;
   componentName: string | null;
   props: any | null;
   message: string;

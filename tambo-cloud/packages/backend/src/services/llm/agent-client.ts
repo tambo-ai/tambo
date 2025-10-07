@@ -38,6 +38,7 @@ export enum AgentResponseType {
 
 interface WithReasoning {
   reasoning?: string[];
+  parentMessageId?: string;
 }
 
 export type AgentMessage = AGUIMessage & WithReasoning;

@@ -32,6 +32,7 @@ describe("MessageContent", () => {
   const baseMessage = {
     id: "msg-1",
     role: MessageRole.User,
+    parentMessageId: undefined,
     content: [{ type: "text" as const, text: "Hello world" }],
     createdAt: new Date("2024-01-01T12:00:00Z"),
     additionalContext: null,

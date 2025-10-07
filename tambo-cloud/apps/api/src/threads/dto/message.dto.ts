@@ -57,6 +57,12 @@ export class ThreadMessageDto {
   threadId!: string;
   @IsEnum(MessageRole)
   role!: MessageRole;
+
+  @ApiProperty({
+    description: `The id of the parent message, if the message was created during the 
+generation of another message, such as during an agent call, MCP Elicitation, or MCP Sample`,
+  })
+  parentMessageId?: string;
   content!: ChatCompletionContentPartDto[];
   @ApiProperty({
     type: "object",

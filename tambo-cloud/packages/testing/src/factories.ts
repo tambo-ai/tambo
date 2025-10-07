@@ -91,6 +91,7 @@ export function createMockDBMessage(
   const message: schema.DBMessage = {
     id,
     threadId,
+    parentMessageId: overrides.parentMessageId ?? null,
     role,
     content,
     additionalContext: overrides.additionalContext ?? {},

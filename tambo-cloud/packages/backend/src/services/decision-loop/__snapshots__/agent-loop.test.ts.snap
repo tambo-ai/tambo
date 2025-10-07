@@ -8,6 +8,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "assistant-1",
     "message": "",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "The user is asking a math question",
@@ -24,6 +25,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "assistant-1",
     "message": "I'll calculate that for you.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "The user is asking a math question",
@@ -40,6 +42,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "assistant-1",
     "message": "I'll calculate that for you.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I need to call the calculator tool with the expression",
@@ -63,6 +66,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "tool-1",
     "message": "4",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "tool",
@@ -76,6 +80,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "user-2",
     "message": "What about 5 * 3?",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "user",
@@ -89,6 +94,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "assistant-2",
     "message": "",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "The user is asking another math question",
@@ -105,6 +111,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "assistant-2",
     "message": "I'll calculate that too.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "The user is asking another math question",
@@ -121,6 +128,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "assistant-2",
     "message": "I'll calculate that too.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I need to call the calculator tool with the new expression",
@@ -144,6 +152,7 @@ exports[`runAgentLoop complete conversation flow should handle full conversation
     "componentState": null,
     "id": "assistant-2",
     "message": "I'll calculate that too.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I need to call the calculator tool with the new expression",
@@ -172,6 +181,7 @@ exports[`runAgentLoop edge cases should handle assistant message without tool ca
     "componentState": null,
     "id": "assistant-1",
     "message": "This is a simple response.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "assistant",
@@ -190,6 +200,7 @@ exports[`runAgentLoop edge cases should handle empty message content 1`] = `
     "componentState": null,
     "id": "assistant-1",
     "message": "",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "assistant",
@@ -208,6 +219,7 @@ exports[`runAgentLoop edge cases should handle system message 1`] = `
     "componentState": null,
     "id": "system-1",
     "message": "You are a helpful assistant.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "system",
@@ -226,6 +238,7 @@ exports[`runAgentLoop message event sequences should handle complete assistant m
     "componentState": null,
     "id": "assistant-1",
     "message": "",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I need to respond to the user's greeting",
@@ -241,6 +254,7 @@ exports[`runAgentLoop message event sequences should handle complete assistant m
     "componentState": null,
     "id": "assistant-1",
     "message": "Hello! I'm doing well, thank you for asking. ",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I should be friendly and respond to their greeting",
@@ -256,6 +270,7 @@ exports[`runAgentLoop message event sequences should handle complete assistant m
     "componentState": null,
     "id": "assistant-1",
     "message": "Hello! I'm doing well, thank you for asking. How can I help you today?",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I should also offer to help them",
@@ -276,6 +291,7 @@ exports[`runAgentLoop message event sequences should handle user message sequenc
     "componentState": null,
     "id": "user-1",
     "message": "",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "user",
@@ -289,6 +305,7 @@ exports[`runAgentLoop message event sequences should handle user message sequenc
     "componentState": null,
     "id": "user-1",
     "message": "What's the weather like?",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "user",
@@ -307,6 +324,7 @@ exports[`runAgentLoop reasoning sequences should handle assistant message with r
     "componentState": null,
     "id": "assistant-1",
     "message": "",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "The user is asking about the weather",
@@ -324,6 +342,7 @@ exports[`runAgentLoop reasoning sequences should handle assistant message with r
     "componentState": null,
     "id": "assistant-1",
     "message": "Let me check the weather for you.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "The user is asking about the weather",
@@ -347,6 +366,7 @@ exports[`runAgentLoop reasoning sequences should handle reasoning without conten
     "componentState": null,
     "id": "assistant-1",
     "message": "",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I need to think about this problem",
@@ -369,6 +389,7 @@ exports[`runAgentLoop tool call event sequences should handle complete tool call
     "componentState": null,
     "id": "assistant-1",
     "message": "I'll help you with that.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I should use a tool to get the information",
@@ -384,6 +405,7 @@ exports[`runAgentLoop tool call event sequences should handle complete tool call
     "componentState": null,
     "id": "assistant-1",
     "message": "I'll help you with that.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I need to call the test_tool",
@@ -402,6 +424,7 @@ exports[`runAgentLoop tool call event sequences should handle complete tool call
     "componentState": null,
     "id": "assistant-1",
     "message": "I'll help you with that.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I've prepared the tool call with parameters",
@@ -434,6 +457,7 @@ exports[`runAgentLoop tool call event sequences should handle tool call with inv
     "componentState": null,
     "id": "assistant-1",
     "message": "I'll call a tool.",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [
       "I need to call the test_tool",
@@ -454,6 +478,7 @@ exports[`runAgentLoop tool call event sequences should handle tool result messag
     "componentState": null,
     "id": "tool-1",
     "message": "Tool execution result",
+    "parentMessageId": undefined,
     "props": null,
     "reasoning": [],
     "role": "tool",

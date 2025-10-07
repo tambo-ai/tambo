@@ -97,6 +97,12 @@ export interface ThreadMessage {
   threadId: string;
   /** The role of who sent the message */
   role: MessageRole;
+  /**
+   * The id of the parent message, if the message was created during the
+   * generation of another message, such as during an agent call,
+   * MCP Elicitation, or MCP Sample.
+   */
+  parentMessageId?: string;
   /** Array of content parts making up the message */
   content: ChatCompletionContentPart[];
   /** Component decision for this message */

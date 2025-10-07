@@ -337,6 +337,7 @@ export class ThreadsService {
           id: message.id,
           threadId: message.threadId,
           role: message.role,
+          parentMessageId: message.parentMessageId ?? undefined,
           createdAt: message.createdAt,
           component: message.componentDecision ?? undefined,
           content: convertContentPartToDto(message.content),
@@ -614,7 +615,10 @@ export class ThreadsService {
     return messages
       .filter((message) => includeSystem || message.role !== MessageRole.System)
       .map((message) => ({
-        ...message,
+        id: message.id,
+        threadId: message.threadId,
+        role: message.role,
+        parentMessageId: message.parentMessageId ?? undefined,
         content: convertContentPartToDto(message.content),
         metadata: message.metadata ?? undefined,
         toolCallRequest: message.toolCallRequest ?? undefined,
@@ -624,6 +628,7 @@ export class ThreadsService {
         component: message.componentDecision as ComponentDecisionV2 | undefined,
         error: message.error ?? undefined,
         isCancelled: message.isCancelled,
+        createdAt: message.createdAt,
         additionalContext: message.additionalContext ?? {},
         reasoning: message.reasoning ?? undefined,
       }));
@@ -877,7 +882,10 @@ export class ThreadsService {
       newState,
     );
     return {
-      ...message,
+      id: message.id,
+      threadId: message.threadId,
+      role: message.role,
+      parentMessageId: message.parentMessageId ?? undefined,
       content: convertContentPartToDto(message.content),
       metadata: message.metadata ?? undefined,
       componentState: message.componentState ?? {},
@@ -885,6 +893,8 @@ export class ThreadsService {
       tool_call_id: message.toolCallId ?? undefined,
       actionType: message.actionType ?? undefined,
       error: message.error ?? undefined,
+      isCancelled: message.isCancelled,
+      createdAt: message.createdAt,
       additionalContext: message.additionalContext ?? {},
       reasoning: message.reasoning ?? undefined,
     };

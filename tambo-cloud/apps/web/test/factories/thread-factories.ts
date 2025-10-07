@@ -19,6 +19,7 @@ export function createMockThreadMessage(
     id,
     threadId,
     role,
+    parentMessageId: undefined,
     content: [{ type: "text", text: "Hello" }],
     additionalContext: null,
     toolCallId: null,

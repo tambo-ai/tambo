@@ -547,6 +547,13 @@
       "when": 1759360338553,
       "tag": "0077_sloppy_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1759799710409,
+      "tag": "0078_freezing_sunfire",
+      "breakpoints": true
     }
   ]
 }

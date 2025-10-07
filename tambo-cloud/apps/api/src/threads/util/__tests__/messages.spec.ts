@@ -60,6 +60,7 @@ describe("messages utilities", () => {
       const mockResponse: typeof schema.messages.$inferSelect = {
         id: "msg1",
         threadId: "thread1",
+        parentMessageId: null,
         role: MessageRole.User,
         content: [{ type: "text" as ContentPartType.Text, text: "Hello" }],
         additionalContext: { extra: "context" },
@@ -123,6 +124,7 @@ describe("messages utilities", () => {
       const mockResponse: typeof schema.messages.$inferSelect = {
         id: "msg1",
         threadId: "thread1",
+        parentMessageId: null,
         role: MessageRole.User,
         content: [
           { type: "text" as ContentPartType.Text, text: "Updated message" },
@@ -167,12 +169,12 @@ describe("messages utilities", () => {
         additionalContext: { extra: "context" },
         createdAt: mockResponse.createdAt,
         componentState: {},
-        toolCallId: null,
+        parentMessageId: undefined,
         toolCallRequest: undefined,
         tool_call_id: undefined,
         metadata: undefined,
         actionType: undefined,
-        componentDecision: null,
+        reasoning: undefined,
         error: undefined,
         isCancelled: false,
       });
@@ -247,6 +249,7 @@ describe("messages utilities", () => {
       const mockMessage: typeof schema.messages.$inferSelect = {
         id: "msg1",
         threadId: "thread1",
+        parentMessageId: null,
         role: MessageRole.User,
         content: [
           {
@@ -269,6 +272,7 @@ describe("messages utilities", () => {
 
       const newMessage: ThreadMessage = {
         ...mockMessage,
+        parentMessageId: undefined,
         componentState: {},
         actionType: ActionType.ToolCall,
         metadata: {},

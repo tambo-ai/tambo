@@ -37,6 +37,7 @@ export async function* runAgentLoop(
     yield {
       id: message.id,
       role: message.role as MessageRole,
+      parentMessageId: message.parentMessageId,
       message: message.content || "",
       componentName: null,
       props: null,

@@ -230,6 +230,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         id: "u1",
         threadId: input.threadId,
         role: input.role,
+        parentMessageId: input.parentMessageId ?? null,
         content: input.content,
         createdAt: new Date(),
         metadata: input.metadata ?? null,
