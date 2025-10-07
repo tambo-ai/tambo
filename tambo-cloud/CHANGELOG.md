@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.112.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.111.1...repo-v0.112.0) (2025-10-07)
+
+
+### Features
+
+* **alecf:** Implement initial POC for sampling ([#1894](https://github.com/tambo-ai/tambo-cloud/issues/1894)) ([39598f3](https://github.com/tambo-ai/tambo-cloud/commit/39598f36b91405da49c73cf8287bdee5c6328b36))
+* Introduce "parentMessage" concept in messages ([#1893](https://github.com/tambo-ai/tambo-cloud/issues/1893)) ([e67aae7](https://github.com/tambo-ai/tambo-cloud/commit/e67aae7b8381ba618874853e53bbeae3b1fae9be))
+
+
+### Bug Fixes
+
+* **api:** update has_setup_project flag when projects are created ([#1872](https://github.com/tambo-ai/tambo-cloud/issues/1872)) ([8eae7d1](https://github.com/tambo-ai/tambo-cloud/commit/8eae7d17ee94a1250e266db497b38af65a406aa2))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @nestjs/schematics from 11.0.7 to 11.0.8 in the nestjs group ([#1873](https://github.com/tambo-ai/tambo-cloud/issues/1873)) ([946fb82](https://github.com/tambo-ai/tambo-cloud/commit/946fb821eb9bedb6b36568d93c0ee5de736f4c63))
+* **deps-dev:** bump @testing-library/jest-dom from 6.8.0 to 6.9.1 in the testing group ([#1876](https://github.com/tambo-ai/tambo-cloud/issues/1876)) ([c05135d](https://github.com/tambo-ai/tambo-cloud/commit/c05135d249a338622134424d5b57654b672d412e))
+* **deps-dev:** bump tailwindcss from 3.4.17 to 3.4.18 ([#1887](https://github.com/tambo-ai/tambo-cloud/issues/1887)) ([52d6556](https://github.com/tambo-ai/tambo-cloud/commit/52d6556cf21821df5fe76f9689b2fc8dccf5a0c9))
+* **deps-dev:** bump the eslint group with 4 updates ([#1875](https://github.com/tambo-ai/tambo-cloud/issues/1875)) ([e5a2673](https://github.com/tambo-ai/tambo-cloud/commit/e5a2673ef8a710845d7ae97822ddf383079c583c))
+* **deps-dev:** bump typescript from 5.9.2 to 5.9.3 ([#1886](https://github.com/tambo-ai/tambo-cloud/issues/1886)) ([463d6b2](https://github.com/tambo-ai/tambo-cloud/commit/463d6b24ca54eaddf9ed6e4440c4f56516be7a6b))
+* **deps:** bump @modelcontextprotocol/sdk from 1.18.2 to 1.19.1 ([#1890](https://github.com/tambo-ai/tambo-cloud/issues/1890)) ([565a8d3](https://github.com/tambo-ai/tambo-cloud/commit/565a8d3de74ef089c1c60f1887eb85e09098282e))
+* **deps:** bump @tambo-ai/react from 0.54.1 to 0.55.0 in the tambo-ai group ([#1880](https://github.com/tambo-ai/tambo-cloud/issues/1880)) ([cd0782c](https://github.com/tambo-ai/tambo-cloud/commit/cd0782ccd4d7624d6e4c6ee314a0470d921e36b6))
+* **deps:** bump drizzle-orm from 0.44.5 to 0.44.6 in the drizzle group ([#1874](https://github.com/tambo-ai/tambo-cloud/issues/1874)) ([af44cc8](https://github.com/tambo-ai/tambo-cloud/commit/af44cc8d5f34da403602b1a9ebe1c4bf192a5f94))
+* **deps:** bump jiti from 2.6.0 to 2.6.1 ([#1888](https://github.com/tambo-ai/tambo-cloud/issues/1888)) ([493ffd5](https://github.com/tambo-ai/tambo-cloud/commit/493ffd561729bd475a8de798fed5e550c6cf31b8))
+* **deps:** bump openai from 5.23.1 to 6.1.0 ([#1891](https://github.com/tambo-ai/tambo-cloud/issues/1891)) ([7b8df40](https://github.com/tambo-ai/tambo-cloud/commit/7b8df405791a27260ac4b802ec57269a4367d74f))
+* **deps:** bump react-hook-form from 7.63.0 to 7.64.0 ([#1889](https://github.com/tambo-ai/tambo-cloud/issues/1889)) ([15ccd29](https://github.com/tambo-ai/tambo-cloud/commit/15ccd29ffee2d88abc7e403857c0f7f6596f7dc5))
+* **deps:** bump resend from 6.1.1 to 6.1.2 ([#1892](https://github.com/tambo-ai/tambo-cloud/issues/1892)) ([9b1fd24](https://github.com/tambo-ai/tambo-cloud/commit/9b1fd24ff9c5a1b35d67949662eced859be7b5cc))
+* **deps:** bump the ag-ui group with 3 updates ([#1883](https://github.com/tambo-ai/tambo-cloud/issues/1883)) ([e078ca4](https://github.com/tambo-ai/tambo-cloud/commit/e078ca45e9d44780b3937e71443685a755641b73))
+* **deps:** bump the ai-sdk group with 3 updates ([#1877](https://github.com/tambo-ai/tambo-cloud/issues/1877)) ([8d47c9d](https://github.com/tambo-ai/tambo-cloud/commit/8d47c9df69869dad79a91180bda689c86704445c))
+* **deps:** bump the nexstra group with 2 updates ([#1885](https://github.com/tambo-ai/tambo-cloud/issues/1885)) ([a3ab8e2](https://github.com/tambo-ai/tambo-cloud/commit/a3ab8e26127f83f3dea0e612afde72b092829893))
+* **deps:** bump the sentry group with 3 updates ([#1882](https://github.com/tambo-ai/tambo-cloud/issues/1882)) ([a56e70d](https://github.com/tambo-ai/tambo-cloud/commit/a56e70d8f3c1e9eaea1ea7984b2ce147121945bd))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1881](https://github.com/tambo-ai/tambo-cloud/issues/1881)) ([b73dc4f](https://github.com/tambo-ai/tambo-cloud/commit/b73dc4f2eeec0e48714ee5246bc900ca3df86268))
+
+
+### Tests
+
+* **mcp:** Make a "testing" mcp server to test elicitation, notifications, sampling, etc ([#1853](https://github.com/tambo-ai/tambo-cloud/issues/1853)) ([70077d6](https://github.com/tambo-ai/tambo-cloud/commit/70077d67dc2779af66127913d0d797b169f65d5c))
+
 ## [0.111.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.111.0...repo-v0.111.1) (2025-10-03)
 
 
