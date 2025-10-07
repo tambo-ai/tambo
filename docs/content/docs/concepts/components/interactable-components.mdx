@@ -41,7 +41,7 @@ function Note({ title, content, color = "white" }: NoteProps) {
   }, [color]);
 
   return (
-    <section>
+    <section className={`note note-${currentColor}`}>
       <h3>{currentTitle}</h3>
       <p>{currentContent}</p>
       <div>
@@ -49,7 +49,9 @@ function Note({ title, content, color = "white" }: NoteProps) {
         <select
           id="note-color"
           value={currentColor}
-          onChange={(event) => setCurrentColor(event.target.value as NoteProps["color"])}
+          onChange={(event) =>
+            setCurrentColor(event.currentTarget.value as NoteProps["color"])
+          }
         >
           <option value="white">White</option>
           <option value="yellow">Yellow</option>
@@ -97,13 +99,21 @@ function Counter({ count, label }: CounterProps) {
         {currentLabel}: {currentCount}
       </p>
       <div>
-        <button type="button" onClick={() => setCurrentCount((value) => value + 1)}>
+        <button
+          type="button"
+          onClick={() => setCurrentCount((value) => value + 1)}
+        >
           Increment
         </button>
-        <button type="button" onClick={() => setCurrentCount((value) => value - 1)}>
+        <button
+          type="button"
+          onClick={() => setCurrentCount((value) => value - 1)}
+        >
           Decrement
         </button>
-        <button type="button" onClick={() => setCurrentLabel("Items")}>Reset Label</button>
+        <button type="button" onClick={() => setCurrentLabel("Items")}>
+          Reset Label
+        </button>
       </div>
     </section>
   );
