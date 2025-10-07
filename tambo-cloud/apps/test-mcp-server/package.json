@@ -1,0 +1,35 @@
+{
+  "name": "@tambo-ai-cloud/test-mcp-server",
+  "version": "0.0.1",
+  "description": "A test MCP server with elicitation and sampling tools for testing purposes",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "lint": "eslint",
+    "test": "jest --passWithNoTests",
+    "check-types": "tsc --noEmit"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.2",
+    "commander": "^14.0.1",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.15.32",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2",
+    "@tambo-ai-cloud/eslint-config": "*"
+  }
+}
