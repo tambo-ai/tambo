@@ -119,6 +119,7 @@ In general, try to fit changes into the following categories. If you can't find 
 6. **Models** - Configuration and customization
    - Custom LLM parameters: Temperature, max tokens, model selection
    - Labels: Organizing and categorizing interactions
+   - Reasoning Models: Advanced thinking/reasoning capabilities for OpenAI and Gemini models
    - Provider-specific configurations
 
 7. **Examples & Templates** - Real-world implementations
