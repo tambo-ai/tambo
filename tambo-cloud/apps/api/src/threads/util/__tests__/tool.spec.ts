@@ -91,7 +91,11 @@ describe("tool utilities", () => {
         } as unknown as MCPClient,
       },
       mcpToolsSchema: [],
-    } as McpToolRegistry;
+      mcpHandlers: {
+        elicitation: jest.fn(),
+        sampling: jest.fn(),
+      },
+    };
 
     const toolCallRequest = {
       toolName: "testTool",

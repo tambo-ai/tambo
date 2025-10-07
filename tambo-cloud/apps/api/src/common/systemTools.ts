@@ -1,7 +1,12 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Logger } from "@nestjs/common";
 import { McpToolRegistry } from "@tambo-ai-cloud/backend";
-import { getToolName, LogLevel, MCPClient } from "@tambo-ai-cloud/core";
+import {
+  getToolName,
+  LogLevel,
+  MCPClient,
+  MCPHandlers,
+} from "@tambo-ai-cloud/core";
 import {
   HydraDatabase,
   HydraDb,
@@ -20,11 +25,13 @@ export async function getSystemTools(
   db: HydraDatabase,
   projectId: string,
   threadId: string,
+  mcpHandlers: MCPHandlers,
 ): Promise<McpToolRegistry> {
   const { mcpToolsSchema, mcpToolSources } = await getMcpTools(
     db,
     projectId,
     threadId,
+    mcpHandlers,
   );
 
   const mcpToolNames = mcpToolsSchema.map((tool) => getToolName(tool));
@@ -42,6 +49,7 @@ export async function getSystemTools(
   return {
     mcpToolsSchema,
     mcpToolSources,
+    mcpHandlers,
   };
 }
 
@@ -50,6 +58,7 @@ async function getMcpTools(
   db: HydraDatabase,
   projectId: string,
   threadId: string,
+  mcpHandlers: MCPHandlers,
 ): Promise<McpToolRegistry> {
   const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
 
@@ -93,6 +102,7 @@ async function getMcpTools(
         customHeaders,
         authProvider,
         mcpSessionInfo?.sessionId ?? undefined,
+        mcpHandlers,
       );
       if (
         mcpClient.sessionId &&
@@ -153,6 +163,7 @@ async function getMcpTools(
   return {
     mcpToolsSchema: mcpTools,
     mcpToolSources,
+    mcpHandlers,
   };
 }
 

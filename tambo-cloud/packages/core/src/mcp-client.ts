@@ -35,9 +35,9 @@ export enum MCPTransport {
  * });
  * ```
  */
-interface MCPHandlers {
-  elicitation?: (e: ElicitRequest) => Promise<ElicitResult>;
-  sampling?: (e: CreateMessageRequest) => Promise<CreateMessageResult>;
+export interface MCPHandlers {
+  elicitation: (e: ElicitRequest) => Promise<ElicitResult>;
+  sampling: (e: CreateMessageRequest) => Promise<CreateMessageResult>;
 }
 
 /**
@@ -58,7 +58,7 @@ export class MCPClient {
   private endpoint: string;
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
-  private handlers: MCPHandlers;
+  private handlers: Partial<MCPHandlers>;
   /**
    * Tracks an in-flight reconnect so concurrent triggers coalesce
    * (single-flight). When set, additional calls to `reconnect()` or
@@ -108,7 +108,7 @@ export class MCPClient {
     headers?: Record<string, string>,
     authProvider?: OAuthClientProvider,
     sessionId?: string,
-    handlers: MCPHandlers = {},
+    handlers: Partial<MCPHandlers> = {},
   ) {
     this.endpoint = endpoint;
     this.headers = headers ?? {};
@@ -138,7 +138,7 @@ export class MCPClient {
     headers: Record<string, string> | undefined,
     authProvider: OAuthClientProvider | undefined,
     sessionId: string | undefined,
-    handlers: MCPHandlers = {},
+    handlers: Partial<MCPHandlers> = {},
   ): Promise<MCPClient> {
     const mcpClient = new MCPClient(
       endpoint,
@@ -313,9 +313,8 @@ export class MCPClient {
    * @returns The initialized MCP client
    */
   private initializeClient() {
-    const elicitationCapability = this.handlers.elicitation
-      ? { elicitation: {} }
-      : {};
+    const elicitationCapability =
+      (this.handlers.elicitation ?? false) ? { elicitation: {} } : {};
     const samplingCapability = this.handlers.sampling ? { sampling: {} } : {};
     const client = new Client(
       {

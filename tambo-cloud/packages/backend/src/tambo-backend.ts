@@ -1,10 +1,10 @@
 import {
   AgentProviderType,
   AiProviderType,
+  CustomLlmParameters,
   DEFAULT_OPENAI_MODEL,
   LegacyComponentDecision,
   ThreadMessage,
-  CustomLlmParameters,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { AvailableComponent } from "./model/component-metadata";
@@ -67,6 +67,7 @@ export interface TamboBackend {
   generateThreadName: (messages: ThreadMessage[]) => Promise<string>;
 
   readonly modelOptions: ModelOptions;
+  readonly llmClient: LLMClient;
 }
 export async function createTamboBackend(
   apiKey: string | undefined,
@@ -78,7 +79,7 @@ export async function createTamboBackend(
 }
 
 class AgenticTamboBackend implements TamboBackend {
-  private llmClient: LLMClient;
+  llmClient: LLMClient;
   /** The current model options for the TamboBackend, filled in with defaults */
   public readonly modelOptions: ModelOptions;
   private agentClient?: AgentClient;
@@ -135,7 +136,7 @@ class AgenticTamboBackend implements TamboBackend {
       case AiProviderType.AGENT: {
         // Normalize and validate required fields for the Agent provider.
         // Trim whitespace from the URL to avoid accepting whitespace-only values.
-        const normalizedAgentUrl: string = (agentUrl ?? "").trim();
+        const normalizedAgentUrl: string = agentUrl?.trim() ?? "";
         if (!agentType || !normalizedAgentUrl) {
           console.error(
             `Got agent type ${agentType} and agentUrl ${normalizedAgentUrl}`,

@@ -62,7 +62,6 @@ export interface LLMClient {
   complete(
     params: StreamingCompleteParams,
   ): Promise<AsyncIterableIterator<Partial<LLMResponse>>>;
-
   complete(params: CompleteParams): Promise<LLMResponse>;
 }
 

@@ -54,6 +54,7 @@
     "jose": "^5.10.0",
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.2",
+    "mime-types": "^2.1.35",
     "openai": "^6.1.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",

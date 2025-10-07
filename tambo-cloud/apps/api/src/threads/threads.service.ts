@@ -14,6 +14,8 @@ import {
 } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
+  ChatCompletionContentPart,
+  ChatCompletionMessageParam,
   ComponentDecisionV2,
   ContentPartType,
   decryptProviderKey,
@@ -21,6 +23,7 @@ import {
   GenerationStage,
   getToolName,
   LegacyComponentDecision,
+  MCPHandlers,
   MessageRole,
   ThreadMessage,
   throttle,
@@ -30,6 +33,7 @@ import {
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
+import mimeTypes from "mime-types";
 import OpenAI from "openai";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
@@ -41,7 +45,11 @@ import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
 } from "./dto/advance-thread.dto";
-import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
+import {
+  AudioFormat,
+  MessageRequest,
+  ThreadMessageDto,
+} from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
 import { Thread, ThreadRequest, ThreadWithMessagesDto } from "./dto/thread.dto";
@@ -1071,9 +1079,11 @@ export class ThreadsService {
         throw new Error("No messages found");
       }
       const systemToolsStart = Date.now();
+      const mcpHandlers = createMcpHandlers(tamboBackend);
 
       const systemTools =
-        cachedSystemTools ?? (await getSystemTools(db, projectId, thread.id));
+        cachedSystemTools ??
+        (await getSystemTools(db, projectId, thread.id, mcpHandlers));
       const systemToolsEnd = Date.now();
       const systemToolsDuration = systemToolsEnd - systemToolsStart;
       if (!cachedSystemTools) {
@@ -2197,4 +2207,82 @@ async function syncThreadStatus(
       });
     },
   );
+}
+
+function createMcpHandlers(tamboBackend: ITamboBackend): MCPHandlers {
+  return {
+    async sampling(e) {
+      const response = await tamboBackend.llmClient.complete({
+        stream: false,
+        promptTemplateName: "sampling",
+        promptTemplateParams: {},
+        messages: e.params.messages.map(
+          (m): ChatCompletionMessageParam => ({
+            role: m.role as string as "user", // Have to force this to "user" to let audio/image content through
+            content: [mcpContentToContentPart(m.content)],
+          }),
+        ),
+      });
+      return {
+        role: response.message.role,
+        content: { type: "text", text: response.message.content ?? "" },
+        model: tamboBackend.modelOptions.model,
+      };
+    },
+    elicitation(_e) {
+      throw new Error("Not implemented yet");
+    },
+  };
+}
+
+type McpContent = Parameters<
+  MCPHandlers["sampling"]
+>[0]["params"]["messages"][0]["content"];
+
+function mcpContentToContentPart(
+  content: McpContent,
+): ChatCompletionContentPart {
+  switch (content.type) {
+    case "text":
+      return { type: ContentPartType.Text, text: content.text };
+    case "image":
+      // TODO: convert from image to image url?
+      return {
+        type: ContentPartType.ImageUrl,
+        image_url: {
+          // this is already base64 encoded
+          url: `data:${content.mimeType};base64,${content.data}`,
+        },
+      };
+
+    case "audio": {
+      const format = mimeTypes.extension(content.mimeType);
+      if (![AudioFormat.MP3, AudioFormat.WAV].includes(format as AudioFormat)) {
+        console.warn(
+          `Unknown audio format: ${content.mimeType}, returning text content`,
+        );
+        return {
+          type: ContentPartType.Text,
+          text: "[Audio content not supported]",
+        };
+      }
+      return {
+        type: ContentPartType.InputAudio,
+        input_audio: {
+          // this is already base64 encoded
+          data: content.data,
+          // has to be "mp3" or "wav"
+          format,
+        },
+      };
+    }
+    default:
+      // content is `never` at this point, but we don't want to fully break
+      // the app, so we just return a text content part with a warning
+      console.warn(`Unknown content type: ${String((content as any)?.type)}`);
+      return {
+        type: ContentPartType.Text,
+        text: `[Unsupported content type: ${String((content as any)?.type)}]`,
+      };
+  }
 }
