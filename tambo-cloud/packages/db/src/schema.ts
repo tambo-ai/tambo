@@ -767,7 +767,10 @@ export const tamboUsers = pgTable(
     lastActivityAt: timestamp("last_activity_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    hasSetupProject: boolean("has_setup_project").notNull().default(false),
+    /** @deprecated - Use actual project count from relations instead of cached flag */
+    deprecatedHasSetupProject: boolean("has_setup_project")
+      .notNull()
+      .default(false),
 
     // Welcome email tracking
     welcomeEmailSent: boolean("welcome_email_sent").notNull().default(false),

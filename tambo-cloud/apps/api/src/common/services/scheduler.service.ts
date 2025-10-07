@@ -51,7 +51,7 @@ export class SchedulerService {
               .insert(schema.tamboUsers)
               .values({
                 userId: user.id,
-                hasSetupProject: user.projects.length > 0,
+                deprecatedHasSetupProject: user.projects.length > 0,
                 lastActivityAt: user.createdAt || new Date(),
               })
               .returning();
@@ -66,9 +66,9 @@ export class SchedulerService {
           }
 
           // Check if user is inactive
+          const hasProject = user.projects.length > 0;
           const isInactive =
-            lifecycleTracking.lastActivityAt < twoWeeksAgo ||
-            !lifecycleTracking.hasSetupProject;
+            lifecycleTracking.lastActivityAt < twoWeeksAgo || !hasProject;
 
           if (!isInactive) {
             continue;
@@ -80,11 +80,23 @@ export class SchedulerService {
               (1000 * 60 * 60 * 24),
           );
 
+          // Extract first name from user metadata
+          const metadata = user.rawUserMetaData as {
+            first_name?: string;
+            name?: string;
+            full_name?: string;
+          } | null;
+          const firstName =
+            metadata?.first_name ||
+            metadata?.name?.split(" ")[0] ||
+            metadata?.full_name?.split(" ")[0];
+
           // Send reactivation email
           const result = await this.emailService.sendReactivationEmail(
             user.email ?? "",
             daysSinceSignup,
-            lifecycleTracking.hasSetupProject,
+            hasProject,
+            firstName,
           );
 
           if (result.success) {
@@ -109,33 +121,6 @@ export class SchedulerService {
       console.log("Reactivation email job completed");
     } catch (error) {
       console.error("Error in reactivation email job:", error);
-    }
-  }
-
-  // Update user activity when they perform actions
-  async updateUserActivity(userId: string, projectId?: string) {
-    try {
-      const tracking = await this.db.query.tamboUsers.findFirst({
-        where: eq(schema.tamboUsers.userId, userId),
-      });
-
-      if (tracking) {
-        await this.db
-          .update(schema.tamboUsers)
-          .set({
-            lastActivityAt: new Date(),
-            hasSetupProject: tracking.hasSetupProject || !!projectId,
-          })
-          .where(eq(schema.tamboUsers.id, tracking.id));
-      } else {
-        await this.db.insert(schema.tamboUsers).values({
-          userId,
-          hasSetupProject: !!projectId,
-          lastActivityAt: new Date(),
-        });
-      }
-    } catch (error) {
-      console.error("Error updating user activity:", error);
     }
   }
 }
