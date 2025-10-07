@@ -280,10 +280,8 @@ export const TamboThreadProvider: React.FC<
   );
 
   const fetchThread = useCallback(
-    async (threadId: string, includeInternalMessages = true) => {
-      const thread = await client.beta.threads.retrieve(threadId, {
-        includeInternal: includeInternalMessages,
-      });
+    async (threadId: string) => {
+      const thread = await client.beta.threads.retrieve(threadId);
       const threadWithRenderedComponents = {
         ...thread,
         messages: thread.messages.map((message) => {
