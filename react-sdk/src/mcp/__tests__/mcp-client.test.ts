@@ -7,6 +7,8 @@ jest.mock("@modelcontextprotocol/sdk/client/index.js", () => ({
     close: jest.fn(),
     listTools: jest.fn(),
     callTool: jest.fn(),
+    setRequestHandler: jest.fn(),
+    removeRequestHandler: jest.fn(),
     onclose: null,
   })),
 }));
@@ -52,6 +54,8 @@ describe("MCPClient", () => {
       close: jest.fn().mockResolvedValue(undefined),
       listTools: jest.fn(),
       callTool: jest.fn(),
+      setRequestHandler: jest.fn(),
+      removeRequestHandler: jest.fn(),
       onclose: null,
     };
 
@@ -86,10 +90,13 @@ describe("MCPClient", () => {
         new URL(endpoint),
         { sessionId: undefined, requestInit: { headers } },
       );
-      expect(MockedClient).toHaveBeenCalledWith({
-        name: "tambo-mcp-client",
-        version: "1.0.0",
-      });
+      expect(MockedClient).toHaveBeenCalledWith(
+        {
+          name: "tambo-mcp-client",
+          version: "1.0.0",
+        },
+        { capabilities: {} },
+      );
       expect(mockClientInstance.connect).toHaveBeenCalledWith(
         mockTransportInstance,
       );
@@ -177,10 +184,13 @@ describe("MCPClient", () => {
       );
 
       // Verify new client was created
-      expect(MockedClient).toHaveBeenCalledWith({
-        name: "tambo-mcp-client",
-        version: "1.0.0",
-      });
+      expect(MockedClient).toHaveBeenCalledWith(
+        {
+          name: "tambo-mcp-client",
+          version: "1.0.0",
+        },
+        { capabilities: {} },
+      );
 
       // Verify new client's connect was called with new transport
       expect(newMockClientInstance.connect).toHaveBeenCalledWith(
@@ -297,10 +307,13 @@ describe("MCPClient", () => {
       );
 
       // Verify new client was created
-      expect(MockedClient).toHaveBeenCalledWith({
-        name: "tambo-mcp-client",
-        version: "1.0.0",
-      });
+      expect(MockedClient).toHaveBeenCalledWith(
+        {
+          name: "tambo-mcp-client",
+          version: "1.0.0",
+        },
+        { capabilities: {} },
+      );
 
       // Verify new client's connect was called with new transport
       expect(newMockClientInstance.connect).toHaveBeenCalledWith(
@@ -352,10 +365,13 @@ describe("MCPClient", () => {
       );
 
       // Verify new client was created
-      expect(MockedClient).toHaveBeenCalledWith({
-        name: "tambo-mcp-client",
-        version: "1.0.0",
-      });
+      expect(MockedClient).toHaveBeenCalledWith(
+        {
+          name: "tambo-mcp-client",
+          version: "1.0.0",
+        },
+        { capabilities: {} },
+      );
 
       // Verify new client's connect was called with new transport
       expect(newMockClientInstance.connect).toHaveBeenCalledWith(
@@ -419,10 +435,13 @@ describe("MCPClient", () => {
       );
 
       // Verify new client was created
-      expect(MockedClient).toHaveBeenCalledWith({
-        name: "tambo-mcp-client",
-        version: "1.0.0",
-      });
+      expect(MockedClient).toHaveBeenCalledWith(
+        {
+          name: "tambo-mcp-client",
+          version: "1.0.0",
+        },
+        { capabilities: {} },
+      );
 
       // Verify new client's connect was called with new transport
       expect(newMockClientInstance.connect).toHaveBeenCalledWith(
@@ -791,10 +810,13 @@ describe("MCPClient", () => {
         undefined,
       );
 
-      expect(MockedClient).toHaveBeenCalledWith({
-        name: "tambo-mcp-client",
-        version: "1.0.0",
-      });
+      expect(MockedClient).toHaveBeenCalledWith(
+        {
+          name: "tambo-mcp-client",
+          version: "1.0.0",
+        },
+        { capabilities: {} },
+      );
     });
 
     it("should set onclose handler", async () => {
@@ -809,6 +831,84 @@ describe("MCPClient", () => {
 
       expect(mockClientInstance.onclose).toBeDefined();
       expect(typeof mockClientInstance.onclose).toBe("function");
+    });
+  });
+
+  describe("handlers (elicitation/sampling)", () => {
+    it("sets handlers on create when provided", async () => {
+      const endpoint = "https://api.example.com/mcp";
+      const elicitation = jest.fn(async () => ({}) as any);
+      const sampling = jest.fn(async () => ({}) as any);
+
+      await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+        { elicitation, sampling },
+      );
+
+      expect(MockedClient).toHaveBeenLastCalledWith(
+        {
+          name: "tambo-mcp-client",
+          version: "1.0.0",
+        },
+        {
+          capabilities: {
+            elicitation: {},
+            sampling: {},
+          },
+        },
+      );
+
+      // Request handlers should be set for both
+      expect(mockClientInstance.setRequestHandler).toHaveBeenCalled();
+      expect(
+        (mockClientInstance.setRequestHandler as jest.Mock).mock.calls.length,
+      ).toBeGreaterThanOrEqual(2);
+    });
+
+    it("removes elicitation handler when set to undefined", async () => {
+      const endpoint = "https://api.example.com/mcp";
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+        {
+          elicitation: async () => ({}) as any,
+        },
+      );
+
+      const removeSpy = mockClientInstance.removeRequestHandler as jest.Mock;
+
+      // then remove
+      removeSpy.mockClear();
+      await client.updateElicitationHandler(undefined);
+      expect(removeSpy).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it("removes sampling handler when set to undefined", async () => {
+      const endpoint = "https://api.example.com/mcp";
+      const client = await MCPClient.create(
+        endpoint,
+        MCPTransport.HTTP,
+        undefined,
+        undefined,
+        undefined,
+        {
+          sampling: async () => ({}) as any,
+        },
+      );
+
+      const removeSpy = mockClientInstance.removeRequestHandler as jest.Mock;
+
+      // then remove
+      removeSpy.mockClear();
+      await client.updateSamplingHandler(undefined);
+      expect(removeSpy).toHaveBeenCalledWith(expect.any(String));
     });
   });
 });
