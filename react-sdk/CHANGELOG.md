@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.56.0](https://github.com/tambo-ai/tambo/compare/react-v0.55.0...react-v0.56.0) (2025-10-07)
+
+
+### Features
+
+* **mcp:** Add support for sampling + elicitations to internal MCPClient ([#1119](https://github.com/tambo-ai/tambo/issues/1119)) ([c9ba1a3](https://github.com/tambo-ai/tambo/commit/c9ba1a3be36666163f2cdfb5f5705854d388046d))
+
+
+### Miscellaneous Chores
+
+* **api:** remove includeInternal - we always pass true anyway ([#1138](https://github.com/tambo-ai/tambo/issues/1138)) ([44eadfb](https://github.com/tambo-ai/tambo/commit/44eadfbd261c2aea87bd0b708852b960fe21f5b9))
+* **deps-dev:** bump @testing-library/jest-dom from 6.8.0 to 6.9.1 in the testing group ([#1125](https://github.com/tambo-ai/tambo/issues/1125)) ([09a7caa](https://github.com/tambo-ai/tambo/commit/09a7caa92044ce6c11c1c40a9f724870ad7dcc54))
+* **deps-dev:** bump the eslint group with 5 updates ([#1123](https://github.com/tambo-ai/tambo/issues/1123)) ([59e0892](https://github.com/tambo-ai/tambo/commit/59e0892044036c974ae121ab35b98093ec66cfd4))
+* **deps-dev:** bump typescript from 5.9.2 to 5.9.3 ([#1132](https://github.com/tambo-ai/tambo/issues/1132)) ([94b23a4](https://github.com/tambo-ai/tambo/commit/94b23a47d2d347033a15a2232b7c04216c982ad3))
+* **deps:** bump @modelcontextprotocol/sdk from 1.18.2 to 1.19.1 ([#1127](https://github.com/tambo-ai/tambo/issues/1127)) ([77cf12a](https://github.com/tambo-ai/tambo/commit/77cf12a1706b9dcdf29260f4d0ff11ab3a72a7f5))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.0 to 0.72.1 ([#1129](https://github.com/tambo-ai/tambo/issues/1129)) ([8d8cf9f](https://github.com/tambo-ai/tambo/commit/8d8cf9f2fe5c0661a576f8f77192d8b9c20ca62f))
+
 ## [0.55.0](https://github.com/tambo-ai/tambo/compare/react-v0.54.1...react-v0.55.0) (2025-10-01)
 
 
