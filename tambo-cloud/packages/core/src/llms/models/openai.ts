@@ -50,6 +50,7 @@ export const openaiModels: LlmModelConfig = {
     docLink: "https://platform.openai.com/docs/models/gpt-5-nano",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 400000,
+    modelSpecificParams: reasoningParameters,
   },
   "gpt-4.1-2025-04-14": {
     apiName: "gpt-4.1-2025-04-14",
