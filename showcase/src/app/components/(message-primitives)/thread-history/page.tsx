@@ -155,7 +155,7 @@ export default function ThreadHistoryPage() {
           {/* Left Position Example */}
           <div>
             <h3 className="text-lg font-medium mb-3">
-              Left Position (Expanded) XXXX
+              Left Position (Expanded)
             </h3>
             <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden border">
               <TamboStubProvider
@@ -262,8 +262,8 @@ export default function ThreadHistoryPage() {
             <h2 className="text-xl font-semibold mb-4">Props</h2>
 
             <h3 className="text-lg font-medium mb-3">ThreadHistory</h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <table className="w-full text-sm">
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 overflow-x-auto">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-2">Prop</th>
@@ -312,35 +312,38 @@ export default function ThreadHistoryPage() {
                 </tbody>
               </table>
             </div>
+            {/* Features */}
+            <div>
+              <h3 className="text-lg font-medium mb-3">Features</h3>
 
-            <h3 className="text-lg font-medium mb-3">Features</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <strong>Collapsible Sidebar:</strong> Can be collapsed to save
-                  space
-                </li>
-                <li>
-                  <strong>Thread Management:</strong> Create new threads and
-                  switch between existing ones
-                </li>
-                <li>
-                  <strong>Search Functionality:</strong> Filter through
-                  conversation history
-                </li>
-                <li>
-                  <strong>Keyboard Shortcuts:</strong> Alt+Shift+N to create new
-                  thread
-                </li>
-                <li>
-                  <strong>Position Flexibility:</strong> Can be positioned on
-                  left or right side
-                </li>
-                <li>
-                  <strong>Responsive Behavior:</strong> Automatically adjusts
-                  layout based on collapse state
-                </li>
-              </ul>
+              <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                <ul className="space-y-2 text-sm min-w-[500px]">
+                  <li>
+                    <strong>Collapsible Sidebar:</strong> Can be collapsed to
+                    save space
+                  </li>
+                  <li>
+                    <strong>Thread Management:</strong> Create new threads and
+                    switch between existing ones
+                  </li>
+                  <li>
+                    <strong>Search Functionality:</strong> Filter through
+                    conversation history
+                  </li>
+                  <li>
+                    <strong>Keyboard Shortcuts:</strong> Alt+Shift+N to create
+                    new thread
+                  </li>
+                  <li>
+                    <strong>Position Flexibility:</strong> Can be positioned on
+                    left or right side
+                  </li>
+                  <li>
+                    <strong>Responsive Behavior:</strong> Automatically adjusts
+                    layout based on collapse state
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

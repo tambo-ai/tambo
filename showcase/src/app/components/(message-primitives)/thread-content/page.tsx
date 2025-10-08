@@ -200,8 +200,8 @@ export default function ThreadContentPage() {
             <h2 className="text-xl font-semibold mb-4">Props</h2>
 
             <h3 className="text-lg font-medium mb-3">ThreadContent</h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <table className="w-full text-sm">
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 overflow-x-auto">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-2">Prop</th>
@@ -233,8 +233,8 @@ export default function ThreadContentPage() {
             <h3 className="text-lg font-medium mb-3">
               ThreadContentMessages Props
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <table className="w-full text-sm">
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 overflow-x-auto">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-2">Prop</th>
@@ -253,31 +253,33 @@ export default function ThreadContentPage() {
                 </tbody>
               </table>
             </div>
-
-            <h3 className="text-lg font-medium mb-3">Features</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <strong>Automatic Context Integration:</strong> Connects to
-                  Tambo thread context to display messages
-                </li>
-                <li>
-                  <strong>Loading State Handling:</strong> Shows loading
-                  indicators for messages being generated
-                </li>
-                <li>
-                  <strong>Message Variants:</strong> Applies consistent styling
-                  variants to all messages
-                </li>
-                <li>
-                  <strong>Responsive Layout:</strong> Handles message alignment
-                  based on sender role
-                </li>
-                <li>
-                  <strong>Component Rendering:</strong> Supports rendered
-                  components within assistant messages
-                </li>
-              </ul>
+            {/* Features */}
+            <div>
+              <h3 className="text-lg font-medium mb-3">Features</h3>
+              <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                <ul className="space-y-2 text-sm min-w-[600px]">
+                  <li>
+                    <strong>Automatic Context Integration:</strong> Connects to
+                    Tambo thread context to display messages
+                  </li>
+                  <li>
+                    <strong>Loading State Handling:</strong> Shows loading
+                    indicators for messages being generated
+                  </li>
+                  <li>
+                    <strong>Message Variants:</strong> Applies consistent
+                    styling variants to all messages
+                  </li>
+                  <li>
+                    <strong>Responsive Layout:</strong> Handles message
+                    alignment based on sender role
+                  </li>
+                  <li>
+                    <strong>Component Rendering:</strong> Supports rendered
+                    components within assistant messages
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

@@ -217,8 +217,8 @@ export default function MessageInputPage() {
             <h2 className="text-xl font-semibold mb-4">Props</h2>
 
             <h3 className="text-lg font-medium mb-3">MessageInput</h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <table className="w-full text-sm">
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 overflow-x-auto">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-2">Prop</th>

@@ -49,7 +49,7 @@ export function CLI({
       style={{ background }}
     >
       {command && (
-        <div className="flex items-start">
+        <div className="flex items-start items-center">
           <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pr-2">
             {path && (
               <div className="flex items-center mb-2">
