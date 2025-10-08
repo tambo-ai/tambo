@@ -34,9 +34,9 @@ import {
   ToolCallLimitEditorPropsSchema,
 } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
 import {
-  ProjectTable,
-  ProjectTableProps,
-} from "@/components/dashboard-components/project-table";
+  ProjectTableContainer,
+  ProjectTableContainerSchema,
+} from "@/components/dashboard-components/project-table-container";
 import {
   ThreadTableContainer,
   ThreadTableContainerSchema,
@@ -47,9 +47,9 @@ export const tamboRegisteredComponents = [
   {
     name: "ProjectTable",
     description:
-      "Displays a comprehensive table of all user projects with project names, IDs (with copy functionality), creation dates, and navigation links to project details. Use when users want to view, browse, or select from their existing projects. Shows 'No projects found' message when empty and includes project count at the bottom.",
-    component: ProjectTable,
-    propsSchema: ProjectTableProps,
+      "Displays a comprehensive table of all user projects. This component automatically fetches project data and renders a native table with project names, IDs (with copy functionality), creation dates, last message times, message counts, and navigation links. Use when users want to view, browse, or list their projects. Shows 'No projects found' message when empty. IMPORTANT: This component fetches its own data - do NOT call fetchAllProjects first. Simply call this component directly.",
+    component: ProjectTableContainer,
+    propsSchema: ProjectTableContainerSchema,
   },
   {
     name: "ProjectInfo",
