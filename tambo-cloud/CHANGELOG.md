@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.113.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.112.1...repo-v0.113.0) (2025-10-08)
+
+
+### Features
+
+* **sampling:** Add child messages when sampling call comes through ([#1900](https://github.com/tambo-ai/tambo-cloud/issues/1900)) ([f984186](https://github.com/tambo-ai/tambo-cloud/commit/f984186865e7de475d075d8328aa84f3f4c83915))
+
+
+### Miscellaneous Chores
+
+* **api:** Document contextKey and a few other parameters ([#1898](https://github.com/tambo-ai/tambo-cloud/issues/1898)) ([0e8c243](https://github.com/tambo-ai/tambo-cloud/commit/0e8c24381a67ffa4cb55f7c8e16583a5c34ef92f))
+* remove generative table; fetch and render data directly ([#1902](https://github.com/tambo-ai/tambo-cloud/issues/1902)) ([9ae8406](https://github.com/tambo-ai/tambo-cloud/commit/9ae840649330b52455fda47c2eac17c877a3c781))
+
 ## [0.112.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.112.0...repo-v0.112.1) (2025-10-07)
 
 
