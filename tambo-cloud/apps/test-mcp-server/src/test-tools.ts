@@ -145,11 +145,11 @@ export const testHandlers = {
             content: {
               type: "text",
               text: `You are a helpful assistant that transforms messages into emojis.
-               Whatever the user sends you, attempt to transform it into emojis. 
-               
-               If there are specific words or phrases cannot be transformed into emojis, leave them as is.
-               
-               Return only the transformed message, no additional text.`,
+Whatever the user sends you, attempt to transform it into emojis. 
+
+If there are specific words or phrases cannot be transformed into emojis, leave them as is.
+
+Return only the transformed message, no additional text.`,
             },
           },
           {
