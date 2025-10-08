@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -225,15 +226,21 @@ export class ThreadsController {
   })
   @ApiQuery({
     name: "includeInternal",
-    description: "Whether to include internal messages",
+    description: "Whether to include internal messages, must be `true`",
     required: false,
     type: Boolean,
+    deprecated: true,
   })
   async getMessages(
     @Param("id") threadId: string,
     @Query("includeInternal") includeInternal?: boolean,
   ): Promise<ThreadMessageDto[]> {
-    return await this.threadsService.getMessages(threadId, includeInternal);
+    if (includeInternal === false) {
+      throw new BadRequestException(
+        "includeInternal is deprecated, if passed, it can only be `true`",
+      );
+    }
+    return await this.threadsService.getMessages({ threadId });
   }
 
   @UseGuards(ThreadInProjectGuard)

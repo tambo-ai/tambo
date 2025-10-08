@@ -404,10 +404,12 @@ export class MCPClient {
   async callTool(
     name: string,
     args: Record<string, unknown>,
+    _meta?: Record<string, unknown>,
   ): Promise<MCPToolCallResult> {
     const result = await this.client.callTool({
       name,
       arguments: args,
+      _meta,
     });
     return result;
   }

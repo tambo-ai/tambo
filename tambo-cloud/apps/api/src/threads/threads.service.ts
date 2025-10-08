@@ -15,7 +15,6 @@ import {
 import {
   ActionType,
   ChatCompletionContentPart,
-  ChatCompletionMessageParam,
   ComponentDecisionV2,
   ContentPartType,
   decryptProviderKey,
@@ -81,6 +80,7 @@ import {
   callSystemTool,
   extractToolResponse,
   isSystemToolCall,
+  MCP_PARENT_MESSAGE_ID_META_KEY,
 } from "./util/tool";
 import {
   checkToolCallLimitViolation,
@@ -610,15 +610,19 @@ export class ThreadsService {
     return await addMessage(this.getDb(), threadId, messageDto);
   }
 
-  async getMessages(
-    threadId: string,
-    includeInternal: boolean = false,
-    includeSystem: boolean = false,
-  ): Promise<ThreadMessageDto[]> {
+  async getMessages({
+    threadId,
+    includeSystem = false,
+    includeChildMessages = false,
+  }: {
+    threadId: string;
+    includeSystem?: boolean;
+    includeChildMessages?: boolean;
+  }): Promise<ThreadMessageDto[]> {
     const messages = await operations.getMessages(
       this.getDb(),
       threadId,
-      includeInternal,
+      includeChildMessages,
     );
     return messages
       .filter((message) => includeSystem || message.role !== MessageRole.System)
@@ -735,7 +739,9 @@ export class ThreadsService {
         data: { messageId, threadId: message.threadId },
       });
 
-      const threadMessages = await this.getMessages(message.threadId);
+      const threadMessages = await this.getMessages({
+        threadId: message.threadId,
+      });
       const tamboBackend = await this.createTamboBackendForThread(
         message.threadId,
         contextKey,
@@ -750,7 +756,7 @@ export class ThreadsService {
       );
 
       if (!suggestions.suggestions.length) {
-        throw new SuggestionGenerationError(messageId);
+        throw new SuggestionGenerationError(`No suggestions for ${messageId}`);
       }
 
       const savedSuggestions = await operations.createSuggestions(
@@ -847,7 +853,9 @@ export class ThreadsService {
       throw new NotFoundException("Thread not found");
     }
 
-    const messages = await this.getMessages(threadId, false);
+    const messages = await this.getMessages({
+      threadId,
+    });
     if (messages.length === 0) {
       throw new NotFoundException("No messages found for thread");
     }
@@ -1072,14 +1080,17 @@ export class ThreadsService {
         `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
       );
 
-      const messages = await this.getMessages(thread.id, true, true);
+      const messages = await this.getMessages({
+        threadId: thread.id,
+        includeSystem: true,
+      });
       const project = await operations.getProject(db, projectId);
 
       if (messages.length === 0) {
         throw new Error("No messages found");
       }
       const systemToolsStart = Date.now();
-      const mcpHandlers = createMcpHandlers(tamboBackend);
+      const mcpHandlers = createMcpHandlers(db, tamboBackend, thread.id);
 
       const systemTools =
         cachedSystemTools ??
@@ -1173,6 +1184,7 @@ export class ThreadsService {
         return await this.handleSystemToolCall(
           toolCallRequest,
           responseMessage.toolCallId ?? "",
+          responseMessageDto.id,
           allTools,
           responseMessage,
           advanceRequestDto,
@@ -1213,6 +1225,7 @@ export class ThreadsService {
   private async handleSystemToolCall(
     toolCallRequest: ToolCallRequest,
     toolCallId: string,
+    toolCallMessageId: string,
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
@@ -1224,6 +1237,7 @@ export class ThreadsService {
   private async handleSystemToolCall(
     toolCallRequest: ToolCallRequest,
     toolCallId: string,
+    toolCallMessageId: string,
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
@@ -1235,6 +1249,7 @@ export class ThreadsService {
   private async handleSystemToolCall(
     toolCallRequest: ToolCallRequest,
     toolCallId: string,
+    toolCallMessageId: string,
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
@@ -1261,6 +1276,7 @@ export class ThreadsService {
         await this.handleSystemToolCall_(
           toolCallRequest,
           toolCallId,
+          toolCallMessageId,
           allTools,
           componentDecision,
           advanceRequestDto,
@@ -1275,6 +1291,7 @@ export class ThreadsService {
   private async handleSystemToolCall_(
     toolCallRequest: ToolCallRequest,
     toolCallId: string,
+    toolCallMessageId: string,
     allTools: McpToolRegistry,
     componentDecision: LegacyComponentDecision,
     advanceRequestDto: AdvanceThreadDto,
@@ -1298,6 +1315,7 @@ export class ThreadsService {
         allTools,
         toolCallRequest,
         toolCallId,
+        toolCallMessageId,
         componentDecision,
         advanceRequestDto,
       );
@@ -1868,6 +1886,7 @@ export class ThreadsService {
         const toolResponseMessageStream = await this.handleSystemToolCall(
           toolCallRequest,
           toolCallId ?? "",
+          finalThreadMessage.id,
           allTools,
           componentDecision,
           originalRequest,
@@ -2209,19 +2228,48 @@ async function syncThreadStatus(
   );
 }
 
-function createMcpHandlers(tamboBackend: ITamboBackend): MCPHandlers {
+function createMcpHandlers(
+  db: HydraDb,
+  tamboBackend: ITamboBackend,
+  threadId: string,
+): MCPHandlers {
   return {
     async sampling(e) {
+      const parentMessageId = e.params._meta?.[
+        MCP_PARENT_MESSAGE_ID_META_KEY
+      ] as string | undefined;
+      const messages = e.params.messages.map((m) => ({
+        // Have pretend this is "user" to let audio/image content through to
+        // ChatCompletionContentPart
+        role: m.role as "user",
+        content: [mcpContentToContentPart(m.content)],
+      }));
+      // add serially for now
+      // TODO: add messages in a batch
+      for (const m of messages) {
+        await operations.addMessage(db, {
+          threadId,
+          role: m.role as MessageRole,
+          content: m.content,
+          parentMessageId,
+        });
+      }
       const response = await tamboBackend.llmClient.complete({
         stream: false,
         promptTemplateName: "sampling",
         promptTemplateParams: {},
-        messages: e.params.messages.map(
-          (m): ChatCompletionMessageParam => ({
-            role: m.role as string as "user", // Have to force this to "user" to let audio/image content through
-            content: [mcpContentToContentPart(m.content)],
-          }),
-        ),
+        messages: messages,
+      });
+      await operations.addMessage(db, {
+        threadId,
+        role: response.message.role as MessageRole,
+        content: [
+          {
+            type: "text",
+            text: response.message.content ?? "",
+          },
+        ],
+        parentMessageId,
       });
       return {
         role: response.message.role,

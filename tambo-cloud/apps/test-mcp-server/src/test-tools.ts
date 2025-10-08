@@ -52,6 +52,7 @@ export const testTools: Tool[] = [
 export const testHandlers = {
   ask_user_for_choice: async (
     args: unknown,
+    _meta: Record<string, unknown> | undefined,
     server: Server,
   ): Promise<CallToolResult> => {
     try {
@@ -76,6 +77,7 @@ export const testHandlers = {
       console.log("Eliciting input", prompt);
 
       const response = await server.elicitInput({
+        _meta,
         message: prompt,
         requestedSchema: {
           type: "object",
@@ -116,6 +118,7 @@ export const testHandlers = {
 
   emojify_via_llm: async (
     args: unknown,
+    _meta: Record<string, unknown> | undefined,
     server: Server,
   ): Promise<CallToolResult> => {
     try {
@@ -135,6 +138,7 @@ export const testHandlers = {
         };
       }
       const response = await server.createMessage({
+        _meta,
         messages: [
           {
             role: "user",

@@ -4,6 +4,7 @@ import { CallToolResult, type Tool } from "@modelcontextprotocol/sdk/types.js";
 // Generic tool handler type
 export type ToolHandler<A = unknown> = (
   args: A,
+  _meta: Record<string, unknown> | undefined,
   server: Server,
 ) => Promise<CallToolResult>;
 

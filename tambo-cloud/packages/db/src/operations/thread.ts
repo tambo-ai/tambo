@@ -250,14 +250,14 @@ export async function addMessage(
 export async function getMessages(
   db: HydraDb,
   threadId: string,
-  includeInternal: boolean = false,
+  includeChildMessages: boolean = false,
 ): Promise<(typeof schema.messages.$inferSelect)[]> {
   const messages = await db.query.messages.findMany({
-    where: includeInternal
+    where: includeChildMessages
       ? eq(schema.messages.threadId, threadId)
       : and(
           eq(schema.messages.threadId, threadId),
-          ne(schema.messages.role, MessageRole.Tool),
+          isNull(schema.messages.parentMessageId),
         ),
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });

@@ -137,16 +137,21 @@ describe("tool utilities", () => {
         mockSystemTools,
         toolCallRequest,
         "tool-call-1",
+        "tool-call-msg-1",
         componentDecision,
         advanceRequestDto,
       );
 
       expect(
         mockSystemTools.mcpToolSources.testTool.callTool,
-      ).toHaveBeenCalledWith("testTool", {
-        param1: "value1",
-        param2: "value2",
-      });
+      ).toHaveBeenCalledWith(
+        "testTool",
+        {
+          param1: "value1",
+          param2: "value2",
+        },
+        { "tambo.co/parentMessageId": "tool-call-msg-1" },
+      );
 
       expect(result).toEqual({
         messageToAppend: {
@@ -176,6 +181,7 @@ describe("tool utilities", () => {
         mockSystemTools,
         toolCallRequest,
         "tool-call-1",
+        "tool-call-msg-1",
         componentDecision,
         advanceRequestDto,
       );
@@ -194,6 +200,7 @@ describe("tool utilities", () => {
           mockSystemTools,
           toolCallRequest,
           "tool-call-1",
+          "tool-call-msg-1",
           componentDecision,
           advanceRequestDto,
         ),

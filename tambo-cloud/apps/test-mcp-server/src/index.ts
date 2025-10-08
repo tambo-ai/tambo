@@ -45,14 +45,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(
   CallToolRequestSchema,
   async (request: CallToolRequest): Promise<CallToolResult> => {
-    const { name, arguments: args } = request.params;
+    const { name, arguments: args, _meta } = request.params;
 
     const handler = serviceRegistry.getHandler(name);
     if (!handler) {
       throw new Error(`Unknown tool: ${name}`);
     }
 
-    return await handler(args, server);
+    return await handler(args, _meta, server);
   },
 );
 

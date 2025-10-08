@@ -40,10 +40,16 @@ function buildToolResponseContent(
   return [];
 }
 
+/**
+ * The key to pass in to `_meta` to identify the parent message ID, must be in the form
+ * `<prefix>/<keyname>` as per MCP spec.
+ */
+export const MCP_PARENT_MESSAGE_ID_META_KEY = "tambo.co/parentMessageId";
 export async function callSystemTool(
   systemTools: McpToolRegistry,
   toolCallRequest: ToolCallRequest,
   toolCallId: string,
+  toolCallMessageId: string,
   componentDecision: LegacyComponentDecision,
   advanceRequestDto: AdvanceThreadDto,
 ) {
@@ -56,7 +62,9 @@ export async function callSystemTool(
         p.parameterValue,
       ]),
     );
-    const result = await toolSource.callTool(toolCallRequest.toolName, params);
+    const result = await toolSource.callTool(toolCallRequest.toolName, params, {
+      [MCP_PARENT_MESSAGE_ID_META_KEY]: toolCallMessageId,
+    });
     const responseContent = buildToolResponseContent(result);
 
     // TODO: handle cases where MCP server returns *only* resource types
