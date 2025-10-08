@@ -24,6 +24,18 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    # Let package releases bake for a bit before updating,
+    # in case there is a bad release. However, always update
+    # the latest version of the Tambo packages.
+    cooldown:
+      default-days: 5
+      semver-major-days: 7
+      semver-minor-days: 4
+      semver-patch-days: 2
+      include:
+        - "*"
+      exclude:
+        - "@tambo-ai/*"
     groups:
       trpc:
         patterns:
