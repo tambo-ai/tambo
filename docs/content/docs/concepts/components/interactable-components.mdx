@@ -387,6 +387,26 @@ function InteractablesContextSummary() {
 }
 ```
 
+## Automatic Interactables
+
+In addition to manually creating interactable components, you can enable automatic interactables to make all generated components automatically interactable. This allows Tambo to update any component it generates without requiring you to pre-define which components should be interactable.
+
+### Enabling Automatic Interactables
+
+To enable automatic interactables, set the `autoInteractables` prop to `true` on the `TamboProvider`:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider autoInteractables={true}>
+      {/* Your app content */}
+    </TamboProvider>
+  );
+}
+```
+
 ## Practical Tips
 
 - For nested updates, provide the complete nested object to avoid unintended `undefined` values, since nested objects are completely replaced.
