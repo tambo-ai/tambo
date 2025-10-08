@@ -30,7 +30,7 @@
     "@ai-sdk/google": "^2.0.17",
     "@ai-sdk/groq": "^2.0.22",
     "@ai-sdk/mistral": "^2.0.17",
-    "@ai-sdk/openai": "^2.0.42",
+    "@ai-sdk/openai": "^2.0.44",
     "@ai-sdk/openai-compatible": "^1.0.19",
     "@mastra/client-js": "^0.14.1",
     "@tambo-ai-cloud/core": "*",
