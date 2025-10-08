@@ -400,7 +400,12 @@ const MessageInputTextarea = ({
     const items = Array.from(e.clipboardData.items);
     const imageItems = items.filter((item) => item.type.startsWith("image/"));
 
-    e.preventDefault();
+    // Only prevent default if we have images to handle
+    if (imageItems.length === 0) {
+      return; // Allow default text paste
+    }
+
+    e.preventDefault(); // Only prevent when handling images
 
     for (const item of imageItems) {
       const file = item.getAsFile();
