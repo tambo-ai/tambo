@@ -2,6 +2,7 @@
 
 import { Section } from "@/components/section";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { AnimatePresence, Easing, motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
 import Image from "next/image";
@@ -201,14 +202,12 @@ function HeroIllustration() {
 
 // New command box component
 function HeroCommandBox() {
-  const [copied, setCopied] = React.useState(false);
   const command = "npm create tambo-app";
+  const [copied, copy] = useClipboard(command);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(command);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await copy();
     } catch (err) {
       console.error("Failed to copy text: ", err);
     }

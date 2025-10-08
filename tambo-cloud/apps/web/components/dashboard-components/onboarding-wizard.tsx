@@ -13,11 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AnimatePresence, motion, Variants } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Copy } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { CreateProjectDialog } from "./create-project-dialog";
+import { CommandCopyButton } from "./onboarding/command-copy-button";
+import { TemplateCard } from "./onboarding/template-card";
 
 interface OnboardingWizardProps {
   open: boolean;
@@ -33,6 +35,10 @@ type OnboardingStepId =
   | "project-creation";
 
 type OnboardingPath = "template" | "existing-project" | "api-key";
+
+function RecommendedIcon() {
+  return <Badge variant="secondary">Recommended</Badge>;
+}
 
 // Animation variants
 const containerVariants = {
@@ -59,29 +65,6 @@ const stepVariants = {
     transition: { duration: 0.3 },
   },
 };
-
-const cardItemVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 10,
-    transition: {
-      duration: 0.2,
-      ease: "easeInOut",
-    },
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.3,
-      ease: "easeInOut",
-    },
-  },
-};
-
-function RecommendedIcon() {
-  return <Badge variant="secondary">Recommended</Badge>;
-}
 
 // Step configuration
 interface OnboardingStepConfig {
@@ -201,14 +184,12 @@ export function OnboardingWizard({
   const [currentStepId, setCurrentStepId] =
     useState<OnboardingStepId>("welcome");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
 
   // Reset state when dialog opens to ensure users always start from the beginning
   useEffect(() => {
     if (open) {
       setCurrentStepId("welcome");
       setSelectedTemplate(null);
-      setCopiedCommand(null);
     }
   }, [open]);
 
@@ -223,16 +204,6 @@ export function OnboardingWizard({
 
   const handleTemplateSelection = (templateId: string) => {
     setSelectedTemplate(templateId);
-  };
-
-  const copyCommand = async (command: string) => {
-    try {
-      await navigator.clipboard.writeText(command);
-      setCopiedCommand(command);
-      setTimeout(() => setCopiedCommand(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy command:", err);
-    }
   };
 
   const handleNext = () => {
@@ -328,83 +299,14 @@ export function OnboardingWizard({
       </div>
 
       <div className="space-y-3">
-        {templates.map((template) => {
-          const isSelected = selectedTemplate === template.id;
-
-          return (
-            <Card
-              key={template.id}
-              className={`cursor-pointer hover:shadow-md transition-all border-2 ${
-                isSelected
-                  ? "border-primary/50 bg-primary/5"
-                  : "hover:border-primary/50"
-              }`}
-              onClick={() => handleTemplateSelection(template.id)}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div>
-                      <CardTitle className="text-base">
-                        {template.name}
-                      </CardTitle>
-                      <CardDescription className="text-sm font-sans text-foreground">
-                        {template.description}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  {template.recommended && <RecommendedIcon />}
-                </div>
-              </CardHeader>
-
-              {isSelected && (
-                <CardContent className="pt-0">
-                  <motion.div className="space-y-3" variants={cardItemVariants}>
-                    <div className="bg-muted p-3 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <code className="text-sm font-mono">
-                          {template.command}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            await copyCommand(template.command);
-                          }}
-                        >
-                          {copiedCommand === template.command ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="text-sm text-foreground space-y-2">
-                      <p>
-                        <strong>Next steps:</strong>
-                      </p>
-                      <ol className="list-decimal list-inside space-y-1 ml-2">
-                        <li>Run the command above in your terminal</li>
-                        <li>
-                          Navigate to your project: <code>cd my-app</code>
-                        </li>
-                        <li>
-                          Initialize Tambo: <code>npx tambo init</code>
-                        </li>
-                        <li>
-                          Start development: <code>npm run dev</code>
-                        </li>
-                      </ol>
-                    </div>
-                  </motion.div>
-                </CardContent>
-              )}
-            </Card>
-          );
-        })}
+        {templates.map((template) => (
+          <TemplateCard
+            key={template.id}
+            template={template}
+            isSelected={selectedTemplate === template.id}
+            onSelect={() => handleTemplateSelection(template.id)}
+          />
+        ))}
       </div>
 
       <div className="flex justify-between">
@@ -450,22 +352,7 @@ export function OnboardingWizard({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="bg-muted p-3 rounded-lg">
-              <div className="flex items-center justify-between">
-                <code className="text-sm font-mono">npx tambo full-send</code>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={async () => await copyCommand("npx tambo full-send")}
-                >
-                  {copiedCommand === "npx tambo full-send" ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
+            <CommandCopyButton command="npx tambo full-send" />
 
             <div className="text-sm text-foreground">
               <p>

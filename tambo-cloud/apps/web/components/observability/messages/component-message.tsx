@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
 import { motion } from "framer-motion";
-import { Check, ChevronDown, Copy, Monitor } from "lucide-react";
-import { memo, useState } from "react";
+import { Monitor } from "lucide-react";
+import { memo } from "react";
 import { formatTime } from "../utils";
-import { HighlightedJson, HighlightText } from "./highlight";
+import { ComponentPropsSection } from "./component-props-section";
+import { HighlightText } from "./highlight";
+import { MessageIdCopyButton } from "./message-id-copy-button";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
@@ -12,32 +14,14 @@ type MessageType = ThreadType["messages"][0];
 interface ComponentMessageProps {
   message: MessageType;
   isHighlighted?: boolean;
-  copiedId: string | null;
-  onCopyId: (id: string) => void;
   searchQuery?: string;
 }
 
 export const ComponentMessage = memo(
-  ({
-    message,
-    isHighlighted = false,
-    copiedId,
-    onCopyId,
-    searchQuery,
-  }: ComponentMessageProps) => {
-    const [showProps, setShowProps] = useState(false);
-
+  ({ message, isHighlighted = false, searchQuery }: ComponentMessageProps) => {
     const componentName =
       message.componentDecision?.componentName || "Unknown Component";
     const componentProps = message.componentDecision?.props || {};
-
-    const formatPropsValue = (props: any) => {
-      try {
-        return JSON.stringify(props, null, 2);
-      } catch {
-        return String(props);
-      }
-    };
 
     return (
       <>
@@ -85,83 +69,16 @@ export const ComponentMessage = memo(
               </div>
 
               {/* View Props Dropdown */}
-              <div className="border border-border rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setShowProps(!showProps)}
-                  className="w-full flex items-center justify-between p-2 sm:p-3 bg-muted/30 hover:bg-muted/50 transition-colors text-primary"
-                >
-                  <span className="font-medium text-xs sm:text-sm text-primary">
-                    View Props
-                  </span>
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCopyId(formatPropsValue(componentProps));
-                      }}
-                      className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex items-center justify-center cursor-pointer hover:bg-muted rounded-sm transition-colors text-primary"
-                    >
-                      {copiedId === formatPropsValue(componentProps) ? (
-                        <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-green-500" />
-                      ) : (
-                        <Copy className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-                      )}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        "h-3 w-3 sm:h-4 sm:w-4 transition-transform duration-200",
-                        showProps && "rotate-180",
-                      )}
-                    />
-                  </div>
-                </button>
-
-                <motion.div
-                  initial={false}
-                  animate={{
-                    height: showProps ? "auto" : 0,
-                    opacity: showProps ? 1 : 0,
-                  }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-4 bg-background">
-                    <pre className="text-xs font-mono text-primary overflow-auto max-h-96">
-                      {searchQuery ? (
-                        <HighlightedJson
-                          json={formatPropsValue(componentProps)}
-                          searchQuery={searchQuery}
-                        />
-                      ) : (
-                        formatPropsValue(componentProps)
-                      )}
-                    </pre>
-                  </div>
-                </motion.div>
-              </div>
+              <ComponentPropsSection
+                componentProps={componentProps}
+                searchQuery={searchQuery}
+              />
             </div>
           </div>
         </motion.div>
 
         {/* Bottom metadata */}
-        <motion.div
-          className="flex items-center gap-2 mt-2 text-[11px] text-foreground px-1"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          <span
-            className="font-medium flex items-center gap-1 cursor-pointer bg-muted/50 rounded-md px-2 py-1"
-            onClick={() => onCopyId(message.id)}
-          >
-            {message.id}
-            {copiedId === message.id ? (
-              <Check className="h-3 w-3 ml-1 text-green-500" />
-            ) : (
-              <Copy className="h-3 w-3 ml-1 opacity-50" />
-            )}
-          </span>
-        </motion.div>
+        <MessageIdCopyButton messageId={message.id} />
       </>
     );
   },

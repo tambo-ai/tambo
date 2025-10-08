@@ -1,9 +1,10 @@
 "use client";
 
+import { useClipboard } from "@/hooks/use-clipboard";
 import { cn } from "@/lib/utils";
 import { Check, Copy } from "lucide-react";
 import * as React from "react";
-import { ButtonHTMLAttributes, useCallback, useState } from "react";
+import { ButtonHTMLAttributes, useCallback } from "react";
 import { Button } from "./ui/button";
 
 export interface CopyButtonProps
@@ -19,7 +20,7 @@ export function CopyButton({
   onClick,
   ...props
 }: CopyButtonProps) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useClipboard(clipboardValue, successDuration);
 
   const handleCopy = useCallback(
     async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -28,14 +29,12 @@ export function CopyButton({
       event.stopPropagation();
 
       try {
-        await navigator.clipboard.writeText(clipboardValue);
-        setCopied(true);
-        setTimeout(() => setCopied(false), successDuration);
+        await copy();
       } catch (error) {
         console.error("Failed to copy text:", error);
       }
     },
-    [clipboardValue, onClick, successDuration],
+    [copy, onClick],
   );
 
   return (

@@ -123,6 +123,10 @@ allowed to do so.
 - When using loading states, use the Skeleton components or show the real
   components in a disabled/blank state, rather than showing only loading spinner
   or not showing any content.
+- Use proper accessibility patterns for all components.
+  - use buttons for clickable elements, not divs or spans.
+  - use proper aria labels and roles when appropriate
+  - use semantic html elements when appropriate
 
 ## 4) Backend (NestJS in apps/api)
 

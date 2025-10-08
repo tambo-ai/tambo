@@ -24,11 +24,25 @@ jest.mock("../highlight", () => ({
   ),
 }));
 
+// Mock usehooks-ts to use the mocked clipboard
+jest.mock("usehooks-ts", () => ({
+  useCopyToClipboard: () => [
+    null,
+    async (text: string) => {
+      await navigator.clipboard.writeText(text);
+      return true;
+    },
+  ],
+}));
+
 // Get the clipboard mock from navigator (set up in jest.setup.ts)
 const mockWriteText = navigator.clipboard.writeText as jest.Mock;
 
 describe("MessageContent", () => {
-  const mockOnCopyId = jest.fn();
+  beforeEach(() => {
+    mockWriteText.mockClear();
+  });
+
   const baseMessage = {
     id: "msg-1",
     role: MessageRole.User,
@@ -80,8 +94,6 @@ describe("MessageContent", () => {
           role: MessageRole.User,
         }}
         isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
       />,
     );
 
@@ -93,14 +105,7 @@ describe("MessageContent", () => {
   it("renders assistant message content", () => {
     const assistantMessage = { ...baseMessage, role: MessageRole.Assistant };
 
-    render(
-      <MessageContent
-        message={assistantMessage}
-        isUserMessage={false}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
-    );
+    render(<MessageContent message={assistantMessage} isUserMessage={false} />);
 
     expect(screen.getByText("assistant")).toBeInTheDocument();
     expect(screen.getByText("Hello world")).toBeInTheDocument();
@@ -111,8 +116,6 @@ describe("MessageContent", () => {
       <MessageContent
         message={baseMessage}
         isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
         searchQuery="hello"
       />,
     );
@@ -122,14 +125,7 @@ describe("MessageContent", () => {
   });
 
   it("handles string content without search query", () => {
-    render(
-      <MessageContent
-        message={baseMessage}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
-    );
+    render(<MessageContent message={baseMessage} isUserMessage={true} />);
 
     // Should render normal content when no search query
     expect(screen.getByText("Hello world")).toBeInTheDocument();
@@ -146,14 +142,7 @@ describe("MessageContent", () => {
       ) as unknown as ChatCompletionContentPart[],
     };
 
-    render(
-      <MessageContent
-        message={elementMessage}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
-    );
+    render(<MessageContent message={elementMessage} isUserMessage={true} />);
 
     expect(screen.getByText("Custom element")).toBeInTheDocument();
   });
@@ -161,14 +150,7 @@ describe("MessageContent", () => {
   it("handles empty or invalid content", () => {
     const emptyMessage = { ...baseMessage, content: [] };
 
-    render(
-      <MessageContent
-        message={emptyMessage}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
-    );
+    render(<MessageContent message={emptyMessage} isUserMessage={true} />);
 
     expect(screen.getByText("No content")).toBeInTheDocument();
   });
@@ -180,12 +162,7 @@ describe("MessageContent", () => {
     };
 
     render(
-      <MessageContent
-        message={messageWithContext}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
+      <MessageContent message={messageWithContext} isUserMessage={true} />,
     );
 
     expect(screen.getByText("Additional Context")).toBeInTheDocument();
@@ -199,26 +176,14 @@ describe("MessageContent", () => {
     };
 
     render(
-      <MessageContent
-        message={messageWithContext}
-        isUserMessage={false}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
+      <MessageContent message={messageWithContext} isUserMessage={false} />,
     );
 
     expect(screen.queryByText("Additional Context")).not.toBeInTheDocument();
   });
 
   it("does not show additional context for user messages without context", () => {
-    render(
-      <MessageContent
-        message={baseMessage}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
-    );
+    render(<MessageContent message={baseMessage} isUserMessage={true} />);
 
     expect(screen.queryByText("Additional Context")).not.toBeInTheDocument();
   });
@@ -231,17 +196,12 @@ describe("MessageContent", () => {
     };
 
     render(
-      <MessageContent
-        message={messageWithContext}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
+      <MessageContent message={messageWithContext} isUserMessage={true} />,
     );
 
-    const toggleButton = screen
-      .getByText("Additional Context")
-      .closest("button");
+    const toggleButton = screen.getByRole("button", {
+      name: /^additional context$/i,
+    });
     expect(toggleButton).toBeInTheDocument();
 
     // With animations skipped, the content is visible by default
@@ -249,86 +209,9 @@ describe("MessageContent", () => {
     expect(screen.getByText(/"key": "value"/)).toBeInTheDocument();
 
     // Test that the button is interactive
-    await user.click(toggleButton!);
+    await user.click(toggleButton);
     // The button should still be there after clicking
     expect(toggleButton).toBeInTheDocument();
-  });
-
-  it("handles copy functionality for message ID", async () => {
-    const user = userEvent.setup();
-    render(
-      <MessageContent
-        message={baseMessage}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
-    );
-
-    const copyButton = screen.getByText("msg-1");
-    await user.click(copyButton);
-
-    expect(mockOnCopyId).toHaveBeenCalledWith("msg-1");
-  });
-
-  it("shows check icon when message ID is copied", () => {
-    render(
-      <MessageContent
-        message={baseMessage}
-        isUserMessage={true}
-        copiedId="msg-1"
-        onCopyId={mockOnCopyId}
-      />,
-    );
-
-    // The test verifies that the component can handle the copied state
-    expect(navigator.clipboard.writeText).toBeDefined();
-  });
-
-  it("handles copy functionality for additional context", async () => {
-    const user = userEvent.setup();
-    const messageWithContext = {
-      ...baseMessage,
-      additionalContext: { key: "value" },
-    };
-
-    render(
-      <MessageContent
-        message={messageWithContext}
-        isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
-      />,
-    );
-
-    // Expand the additional context section first
-    const contextButton = screen.getByText("Additional Context");
-    await user.click(contextButton);
-
-    // The test verifies that the component can handle additional context
-    expect(navigator.clipboard.writeText).toBeDefined();
-  });
-
-  it("shows check icon when additional context is copied", () => {
-    const messageWithContext = {
-      ...baseMessage,
-      additionalContext: { key: "value" },
-    };
-
-    render(
-      <MessageContent
-        message={messageWithContext}
-        isUserMessage={true}
-        copiedId='{\n  "key": "value"\n}'
-        onCopyId={mockOnCopyId}
-      />,
-    );
-
-    const checkIcon = screen
-      .getByText("Additional Context")
-      .closest("button")
-      ?.querySelector("svg");
-    expect(checkIcon).toBeInTheDocument();
   });
 
   it("applies highlighted styling when message is highlighted", () => {
@@ -337,8 +220,6 @@ describe("MessageContent", () => {
         message={baseMessage}
         isUserMessage={true}
         isHighlighted={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
       />,
     );
 
@@ -363,17 +244,15 @@ describe("MessageContent", () => {
       <MessageContent
         message={messageWithContext}
         isUserMessage={true}
-        copiedId={null}
-        onCopyId={mockOnCopyId}
         searchQuery="value"
       />,
     );
 
     // Expand context first
-    const toggleButton = screen
-      .getByText("Additional Context")
-      .closest("button");
-    await user.click(toggleButton!);
+    const toggleButton = screen.getByRole("button", {
+      name: /^additional context$/i,
+    });
+    await user.click(toggleButton);
 
     expect(screen.getByTestId("highlighted-json")).toBeInTheDocument();
   });
@@ -390,12 +269,7 @@ describe("MessageContent", () => {
 
     expect(() => {
       render(
-        <MessageContent
-          message={messageWithBadContext}
-          isUserMessage={true}
-          copiedId={null}
-          onCopyId={mockOnCopyId}
-        />,
+        <MessageContent message={messageWithBadContext} isUserMessage={true} />,
       );
     }).not.toThrow();
   });

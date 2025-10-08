@@ -1,10 +1,11 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { ArrowLeft, Check, Copy, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 interface KeyStepProps {
   apiKey: string;
@@ -37,7 +38,7 @@ export function KeyStep({
   onNavigateToProject,
 }: KeyStepProps) {
   const { toast } = useToast();
-  const [isCopied, setIsCopied] = useState(false);
+  const [isCopied, copy] = useClipboard(apiKey);
   const providerKeysQuery = api.project.getProviderKeys.useQuery(projectId, {
     staleTime: 30000,
   });
@@ -54,8 +55,7 @@ export function KeyStep({
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(apiKey);
-      setIsCopied(true);
+      await copy();
       toast({
         title: "Copied!",
         description: "API key copied to clipboard",
@@ -68,7 +68,7 @@ export function KeyStep({
         variant: "destructive",
       });
     }
-  }, [apiKey, toast, setIsCopied]);
+  }, [copy, toast]);
 
   if (apiKey) {
     return (

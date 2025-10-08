@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { api, type RouterOutputs } from "@/trpc/react";
-import { AnimatePresence, motion, Variants } from "framer-motion";
-import { Check, Copy, Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Copy } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import {
@@ -12,6 +13,7 @@ import {
   type AlertState,
 } from "../delete-confirmation-dialog";
 import { APIKeyDialog } from "./api-key-dialog";
+import { APIKeyListItem } from "./api-key-list-item";
 
 export const APIKeySchema = z.object({
   id: z.string().describe("The unique identifier for the API key."),
@@ -51,21 +53,6 @@ interface APIKeyListProps {
   onEdited?: () => void;
 }
 
-const listItemVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95, y: 10 },
-  visible: (index: number) => ({
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      delay: index * 0.05,
-      duration: 0.3,
-      ease: "easeOut",
-    },
-  }),
-  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
-};
-
 export function APIKeyList({
   project,
   isLoading: externalLoading,
@@ -80,10 +67,7 @@ export function APIKeyList({
     title: "",
     description: "",
   });
-  const [copyState, setCopyState] = useState<{ id: string; copied: boolean }>({
-    id: "",
-    copied: false,
-  });
+  const [, copy] = useClipboard(newGeneratedKey ?? "");
   const { toast } = useToast();
   const utils = api.useUtils();
 
@@ -208,12 +192,14 @@ export function APIKeyList({
     }
   };
 
-  const copyToClipboard = async (text: string, id: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopyState({ id, copied: true });
-    setTimeout(() => {
-      setCopyState({ id: "", copied: false });
-    }, 2000);
+  const handleDeleteKey = (id: string) => {
+    setAlertState({
+      show: true,
+      title: "Delete API Key",
+      description:
+        "Are you sure you want to delete this API key? This action cannot be undone.",
+      data: { id },
+    });
   };
 
   const isLoading = apiKeysLoading || externalLoading;
@@ -392,21 +378,12 @@ export function APIKeyList({
                     <Button
                       size="sm"
                       className="font-sans flex-1 sm:flex-initial"
-                      onClick={async () => {
-                        await copyToClipboard(newGeneratedKey, "new");
-                      }}
+                      onClick={async () => await copy()}
                     >
-                      {copyState.id === "new" && copyState.copied ? (
-                        <span className="flex items-center gap-1">
-                          <Check className="h-3 w-3" />
-                          <span className="hidden sm:inline">Copied</span>
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <Copy className="h-3 w-3" />
-                          <span className="hidden sm:inline">Copy</span>
-                        </span>
-                      )}
+                      <span className="flex items-center gap-1">
+                        <Copy className="h-3 w-3" />
+                        <span className="hidden sm:inline">Copy</span>
+                      </span>
                     </Button>
                     <Button
                       size="sm"
@@ -454,45 +431,12 @@ export function APIKeyList({
             <div className="space-y-2">
               <AnimatePresence>
                 {apiKeys.map((key, index) => (
-                  <motion.div
+                  <APIKeyListItem
                     key={key.id}
-                    custom={index}
-                    variants={listItemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    layout
-                  >
-                    <div className="flex flex-row items-start sm:items-center gap-2 sm:gap-3">
-                      {/* API Key Name */}
-                      <div className="min-w-[140px]">
-                        <p className="text-sm font-medium">{key.name}</p>
-                      </div>
-
-                      {/* API Key Value */}
-                      <code className="text-xs text-foreground font-mono px-2 py-1 bg-accent rounded-full min-w-[120px]">
-                        {key.partiallyHiddenKey?.slice(0, 15)}
-                      </code>
-
-                      {/* Delete Button */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-destructive bg-destructive/10 flex-shrink-0 rounded-full"
-                        onClick={() =>
-                          setAlertState({
-                            show: true,
-                            title: "Delete API Key",
-                            description:
-                              "Are you sure you want to delete this API key? This action cannot be undone.",
-                            data: { id: key.id },
-                          })
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </motion.div>
+                    apiKey={key}
+                    index={index}
+                    onDelete={handleDeleteKey}
+                  />
                 ))}
               </AnimatePresence>
             </div>
