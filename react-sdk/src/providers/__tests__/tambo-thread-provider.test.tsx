@@ -201,9 +201,7 @@ describe("TamboThreadProvider", () => {
       await result.current.switchCurrentThread("test-thread-1");
     });
 
-    expect(mockThreadsApi.retrieve).toHaveBeenCalledWith("test-thread-1", {
-      includeInternal: true,
-    });
+    expect(mockThreadsApi.retrieve).toHaveBeenCalledWith("test-thread-1");
     expect(result.current.thread.id).toBe("test-thread-1");
   });
 
@@ -1118,9 +1116,6 @@ describe("TamboThreadProvider", () => {
       // Verify that the thread retrieval was called
       expect(mockThreadsApi.retrieve).toHaveBeenCalledWith(
         "existing-thread-123",
-        {
-          includeInternal: true,
-        },
       );
 
       // Verify that neither setQueryData nor refetchQueries were called

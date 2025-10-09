@@ -43,4 +43,5 @@ export {
   TamboThreadProvider,
   useTamboGenerationStage,
   useTamboThread,
+  type TamboThreadProviderProps,
 } from "./tambo-thread-provider";

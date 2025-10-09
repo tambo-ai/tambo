@@ -120,7 +120,7 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
     );
 
     // Don't render tool response messages as they're shown in tool call dropdowns
-    if (message.actionType === "tool_response") {
+    if (message.role === "tool") {
       return null;
     }
 
@@ -308,7 +308,7 @@ function getToolStatusMessage(
   message: TamboThreadMessage,
   isLoading: boolean | undefined,
 ) {
-  const isToolCall = message.actionType === "tool_call";
+  const isToolCall = !!message.toolCallRequest;
   if (!isToolCall) return null;
 
   const toolCallMessage = isLoading
@@ -340,17 +340,17 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
       if (currentMessageIndex === -1) return null;
       for (let i = currentMessageIndex + 1; i < thread.messages.length; i++) {
         const nextMessage = thread.messages[i];
-        if (nextMessage.actionType === "tool_response") {
+        if (nextMessage.role === "tool") {
           return nextMessage;
         }
-        if (nextMessage.actionType === "tool_call") {
+        if (nextMessage.toolCallRequest) {
           break;
         }
       }
       return null;
     }, [message, thread?.messages]);
 
-    if (message.actionType !== "tool_call") {
+    if (!message.toolCallRequest) {
       return null;
     }
 
@@ -398,8 +398,8 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-hidden transition-[max-height,opacity,padding] duration-300 w-full truncate",
-              isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0 p-0",
+              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
+              isExpanded ? "max-h-auto opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
             <span className="whitespace-pre-wrap">
