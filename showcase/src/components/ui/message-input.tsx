@@ -288,7 +288,7 @@ const MessageInputInternal = React.forwardRef<
       },
       submit,
       handleSubmit,
-      isPending: isPending || isSubmitting,
+      isPending: isPending ?? isSubmitting,
       error,
       contextKey,
       textareaRef,
