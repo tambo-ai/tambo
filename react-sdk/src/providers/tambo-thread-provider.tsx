@@ -192,9 +192,25 @@ export const TamboThreadContext = createContext<TamboThreadContextProps>({
   },
 });
 
+export type InitialTamboThreadMessage = Pick<
+  TamboThreadMessage,
+  "role" | "content"
+> & {
+  /** Optional ID - will be auto-generated if not provided */
+  id?: string;
+  /** Optional creation timestamp - will be auto-generated if not provided */
+  createdAt?: string;
+  /** Optional additional context to include with the message */
+  additionalContext?: Record<string, any>;
+  /** Optional component state - will default to empty object if not provided */
+  componentState?: Record<string, any>;
+};
+
 export interface TamboThreadProviderProps {
   /** Whether to stream the response */
   streaming?: boolean;
+  /** Initial messages to be included in new threads */
+  initialMessages?: InitialTamboThreadMessage[];
 }
 
 /**
@@ -203,13 +219,33 @@ export interface TamboThreadProviderProps {
  * @param props - The props for the TamboThreadProvider
  * @param props.children - The children to wrap
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
+ * @param props.initialMessages - Initial messages to be included in new threads
  * @returns The TamboThreadProvider component
  */
 export const TamboThreadProvider: React.FC<
   PropsWithChildren<TamboThreadProviderProps>
-> = ({ children, streaming = true }) => {
+> = ({ children, streaming = true, initialMessages = [] }) => {
+  // Create placeholder thread with initial messages
+  const placeholderThread: TamboThread = useMemo(
+    () => ({
+      id: "placeholder",
+      messages: initialMessages.map((msg) => ({
+        ...msg,
+        id: msg.id ?? crypto.randomUUID(),
+        threadId: "placeholder",
+        createdAt: msg.createdAt ?? new Date().toISOString(),
+        componentState: msg.componentState ?? {},
+      })),
+      createdAt: "",
+      projectId: "",
+      updatedAt: "",
+      metadata: {},
+    }),
+    [initialMessages],
+  );
+
   const [threadMap, setThreadMap] = useState<Record<string, TamboThread>>({
-    [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
+    [placeholderThread.id]: placeholderThread,
   });
   const client = useTamboClient();
   const queryClient = useTamboQueryClient();
@@ -223,7 +259,7 @@ export const TamboThreadProvider: React.FC<
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
-    PLACEHOLDER_THREAD.id,
+    placeholderThread.id,
   );
   const currentThread: TamboThread | undefined = threadMap[currentThreadId];
 
@@ -280,10 +316,8 @@ export const TamboThreadProvider: React.FC<
   );
 
   const fetchThread = useCallback(
-    async (threadId: string, includeInternalMessages = true) => {
-      const thread = await client.beta.threads.retrieve(threadId, {
-        includeInternal: includeInternalMessages,
-      });
+    async (threadId: string) => {
+      const thread = await client.beta.threads.retrieve(threadId);
       const threadWithRenderedComponents = {
         ...thread,
         messages: thread.messages.map((message) => {
@@ -319,12 +353,12 @@ export const TamboThreadProvider: React.FC<
   useEffect(() => {
     if (
       currentThreadId &&
-      currentThreadId !== PLACEHOLDER_THREAD.id &&
+      currentThreadId !== placeholderThread.id &&
       !threadMap[currentThreadId]
     ) {
       fetchThread(currentThreadId);
     }
-  }, [currentThreadId, fetchThread, threadMap]);
+  }, [currentThreadId, fetchThread, threadMap, placeholderThread.id]);
 
   const addThreadMessage = useCallback(
     async (
@@ -427,14 +461,14 @@ export const TamboThreadProvider: React.FC<
   );
 
   const startNewThread = useCallback(() => {
-    setCurrentThreadId(PLACEHOLDER_THREAD.id);
+    setCurrentThreadId(placeholderThread.id);
     setThreadMap((prevMap) => {
       return {
         ...prevMap,
-        [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD,
+        [placeholderThread.id]: placeholderThread,
       };
     });
-  }, []);
+  }, [placeholderThread]);
 
   const updateThreadName = useCallback(
     async (name: string, threadId?: string) => {
@@ -447,7 +481,7 @@ export const TamboThreadProvider: React.FC<
         return { ...prevMap, [threadId]: { ...prevMap[threadId], name } };
       });
 
-      if (threadId !== PLACEHOLDER_THREAD.id) {
+      if (threadId !== placeholderThread.id) {
         const currentProject = await client.beta.projects.getCurrent();
         await client.beta.threads.update(threadId, {
           name,
@@ -455,13 +489,18 @@ export const TamboThreadProvider: React.FC<
         });
       }
     },
-    [currentThreadId, client.beta.projects, client.beta.threads],
+    [
+      currentThreadId,
+      client.beta.projects,
+      client.beta.threads,
+      placeholderThread.id,
+    ],
   );
 
   const generateThreadName = useCallback(
     async (threadId?: string) => {
       threadId ??= currentThreadId;
-      if (threadId === PLACEHOLDER_THREAD.id) {
+      if (threadId === placeholderThread.id) {
         console.warn("Cannot generate name for empty thread");
         return threadMap[threadId];
       }
@@ -483,12 +522,12 @@ export const TamboThreadProvider: React.FC<
       });
       return threadWithGeneratedName;
     },
-    [client.beta.threads, currentThreadId, threadMap],
+    [client.beta.threads, currentThreadId, threadMap, placeholderThread.id],
   );
 
   const switchCurrentThread = useCallback(
     async (threadId: string, fetch = true) => {
-      if (threadId === PLACEHOLDER_THREAD.id) {
+      if (threadId === placeholderThread.id) {
         console.warn("Switching to placeholder thread, may be a bug.");
         return;
       }
@@ -502,7 +541,7 @@ export const TamboThreadProvider: React.FC<
         const updatedThreadMap = {
           ...prevMap,
           [threadId]: {
-            ...prevMap[PLACEHOLDER_THREAD.id],
+            ...prevMap[placeholderThread.id],
             id: threadId,
           },
         };
@@ -513,7 +552,7 @@ export const TamboThreadProvider: React.FC<
         await fetchThread(threadId);
       }
     },
-    [fetchThread],
+    [fetchThread, placeholderThread],
   );
 
   const updateThreadStatus = useCallback(
@@ -801,7 +840,7 @@ export const TamboThreadProvider: React.FC<
     ): Promise<TamboThreadMessage> => {
       setIgnoreResponse(false);
       const {
-        threadId = currentThreadId ?? PLACEHOLDER_THREAD.id,
+        threadId = currentThreadId ?? placeholderThread.id,
         streamResponse = streaming,
         forceToolChoice,
         contextKey,
@@ -868,6 +907,14 @@ export const TamboThreadProvider: React.FC<
         ),
         forceToolChoice: forceToolChoice,
         toolCallCounts,
+        ...(threadId === placeholderThread.id &&
+          initialMessages.length > 0 && {
+            initialMessages: initialMessages.map((msg) => ({
+              content: msg.content,
+              role: msg.role,
+              additionalContext: msg.additionalContext,
+            })),
+          }),
       };
 
       if (streamResponse) {
@@ -876,7 +923,7 @@ export const TamboThreadProvider: React.FC<
           advanceStreamResponse = await advanceStream(
             client,
             params,
-            threadId === PLACEHOLDER_THREAD.id ? undefined : threadId,
+            threadId === placeholderThread.id ? undefined : threadId,
           );
         } catch (error) {
           updateThreadStatus(threadId, GenerationStage.ERROR);
@@ -897,7 +944,7 @@ export const TamboThreadProvider: React.FC<
 
       let advanceResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse;
       try {
-        advanceResponse = await (threadId === PLACEHOLDER_THREAD.id
+        advanceResponse = await (threadId === placeholderThread.id
           ? client.beta.threads.advance(params)
           : client.beta.threads.advanceByID(threadId, params));
       } catch (error) {
@@ -1012,6 +1059,8 @@ export const TamboThreadProvider: React.FC<
       handleAdvanceStream,
       streaming,
       getAdditionalContext,
+      placeholderThread.id,
+      initialMessages,
       onCallUnregisteredTool,
       refetchThreadsList,
     ],

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.1](https://github.com/tambo-ai/tambo/compare/docs-v1.13.0...docs-v1.13.1) (2025-10-07)
+
+
+### Miscellaneous Chores
+
+* add reasoning documentation ([#1134](https://github.com/tambo-ai/tambo/issues/1134)) ([8dadfd9](https://github.com/tambo-ai/tambo/commit/8dadfd9ded5ee16fd267f40f5dcebff9d17cab56))
+* **deps-dev:** bump the tailwind group with 2 updates ([#1126](https://github.com/tambo-ai/tambo/issues/1126)) ([0cb24a0](https://github.com/tambo-ai/tambo/commit/0cb24a0199da76e8283aafa7cf835c710c19db91))
+* **deps-dev:** bump typescript from 5.9.2 to 5.9.3 ([#1132](https://github.com/tambo-ai/tambo/issues/1132)) ([94b23a4](https://github.com/tambo-ai/tambo/commit/94b23a47d2d347033a15a2232b7c04216c982ad3))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.0 to 0.72.1 ([#1129](https://github.com/tambo-ai/tambo/issues/1129)) ([8d8cf9f](https://github.com/tambo-ai/tambo/commit/8d8cf9f2fe5c0661a576f8f77192d8b9c20ca62f))
+* **deps:** bump posthog-js from 1.261.8 to 1.271.0 ([#1130](https://github.com/tambo-ai/tambo/issues/1130)) ([c494411](https://github.com/tambo-ai/tambo/commit/c49441118f8ae5d573f3176b75443836583dda43))
+* **deps:** bump the fumadocs group with 3 updates ([#1124](https://github.com/tambo-ai/tambo/issues/1124)) ([82a0757](https://github.com/tambo-ai/tambo/commit/82a0757dfa7f0211c466ba7156b43e44edecf49c))
+
 ## [1.13.0](https://github.com/tambo-ai/tambo/compare/docs-v1.12.1...docs-v1.13.0) (2025-10-02)
 
 

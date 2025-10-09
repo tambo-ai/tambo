@@ -55,6 +55,7 @@ import {
  * @param props.userToken - The user's OAuth token (access or ID) used to identify the user and exchange for a Tambo session token (preferred over contextKey)
  * @param props.contextKey - Optional context key to be used in the thread input provider
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
+ * @param props.initialMessages - Initial messages to be included in new threads
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -76,6 +77,7 @@ export const TamboProvider: React.FC<
   streaming,
   contextHelpers,
   contextKey,
+  initialMessages,
   onCallUnregisteredTool,
 }) => {
   // Should only be used in browser
@@ -96,7 +98,10 @@ export const TamboProvider: React.FC<
         onCallUnregisteredTool={onCallUnregisteredTool}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboThreadProvider streaming={streaming}>
+          <TamboThreadProvider
+            streaming={streaming}
+            initialMessages={initialMessages}
+          >
             <TamboThreadInputProvider contextKey={contextKey}>
               <TamboComponentProvider>
                 <TamboInteractableProvider>

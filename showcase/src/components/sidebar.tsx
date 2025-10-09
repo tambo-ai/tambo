@@ -1,31 +1,11 @@
 import { navigation, NavigationItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import { memo, useMemo } from "react";
+import { SidebarLink } from "./sidebar-link";
 
 interface SidebarProps {
   className?: string;
 }
-
-// Memoized sidebar link component
-const SidebarLink = memo(
-  ({ item, level = 0 }: { item: NavigationItem; level?: number }) => {
-    return (
-      <Link
-        href={item.href}
-        className={cn(
-          "block px-3 hover:bg-accent rounded-md",
-          level === 0
-            ? "py-2 text-base font-medium"
-            : "py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30",
-        )}
-      >
-        {item.title}
-      </Link>
-    );
-  },
-);
-SidebarLink.displayName = "SidebarLink";
 
 // Memoized navigation section component
 const NavSection = memo(

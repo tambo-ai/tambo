@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.26.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.25.0...showcase-v0.26.0) (2025-10-08)
+
+
+### Features
+
+* **sidebar:** highlight active link ([#1121](https://github.com/tambo-ai/tambo/issues/1121)) ([6fe4682](https://github.com/tambo-ai/tambo/commit/6fe4682b2527f7cde53f29bb324f4b1b3495a084))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the tailwind group with 2 updates ([#1126](https://github.com/tambo-ai/tambo/issues/1126)) ([0cb24a0](https://github.com/tambo-ai/tambo/commit/0cb24a0199da76e8283aafa7cf835c710c19db91))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.0 to 0.72.1 ([#1129](https://github.com/tambo-ai/tambo/issues/1129)) ([8d8cf9f](https://github.com/tambo-ai/tambo/commit/8d8cf9f2fe5c0661a576f8f77192d8b9c20ca62f))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.1 to 0.73.0 ([#1146](https://github.com/tambo-ai/tambo/issues/1146)) ([47432e7](https://github.com/tambo-ai/tambo/commit/47432e735d7ed3f6d6c99ac1cb727e86936d9c88))
+* **deps:** bump lucide-react from 0.544.0 to 0.545.0 ([#1145](https://github.com/tambo-ai/tambo/issues/1145)) ([dae817d](https://github.com/tambo-ai/tambo/commit/dae817d5e0eb279cbb5d0f0a1ed10e98d38bf93b))
+
 ## [0.25.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.24.0...showcase-v0.25.0) (2025-10-02)
 
 
