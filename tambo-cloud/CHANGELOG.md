@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.114.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.113.0...repo-v0.114.0) (2025-10-09)
+
+
+### Features
+
+* **sampling:** Show "child" messages in the observability view in a collapsable container ([#1916](https://github.com/tambo-ai/tambo-cloud/issues/1916)) ([dda5725](https://github.com/tambo-ai/tambo-cloud/commit/dda5725a75473de2b139824a1fc0770a69619f10))
+
+
+### Bug Fixes
+
+* add linux/arm64 platform support to Docker release builds ([#1917](https://github.com/tambo-ai/tambo-cloud/issues/1917)) ([edbc442](https://github.com/tambo-ai/tambo-cloud/commit/edbc442b868bf81fd15d2e2b16b6438185ebd9b2))
+
+
+### Miscellaneous Chores
+
+* add cooldown configuration to dependabot ([#1912](https://github.com/tambo-ai/tambo-cloud/issues/1912)) ([15d079e](https://github.com/tambo-ai/tambo-cloud/commit/15d079e21a2eb8378359d793f18d180a0acd2f62))
+* **deps-dev:** bump typescript-eslint from 8.45.0 to 8.46.0 in the eslint group ([#1904](https://github.com/tambo-ai/tambo-cloud/issues/1904)) ([2fe2bfd](https://github.com/tambo-ai/tambo-cloud/commit/2fe2bfdc32955a9f210685bed32d3cd95666be79))
+* **deps:** bump @ai-sdk/openai from 2.0.42 to 2.0.44 in the ai-sdk group ([#1905](https://github.com/tambo-ai/tambo-cloud/issues/1905)) ([19e481a](https://github.com/tambo-ai/tambo-cloud/commit/19e481a5face98c7a01e1231263f062d9cea724f))
+* **deps:** bump @splinetool/runtime from 1.10.75 to 1.10.76 in the small-safe-packages group across 1 directory ([#1914](https://github.com/tambo-ai/tambo-cloud/issues/1914)) ([5c69917](https://github.com/tambo-ai/tambo-cloud/commit/5c69917d8cb77683f968c6b60640ad61cc2bfc2a))
+* **deps:** bump mime-types from 2.1.35 to 3.0.1 ([#1911](https://github.com/tambo-ai/tambo-cloud/issues/1911)) ([2180c39](https://github.com/tambo-ai/tambo-cloud/commit/2180c3909694936ced16488219aecff8b656956d))
+* **deps:** bump the sentry group with 3 updates ([#1908](https://github.com/tambo-ai/tambo-cloud/issues/1908)) ([ff1b230](https://github.com/tambo-ai/tambo-cloud/commit/ff1b230ebc0d9b771e999494b000b26657ec498d))
+* **deps:** bump the tambo-ai group with 2 updates ([#1906](https://github.com/tambo-ai/tambo-cloud/issues/1906)) ([d93de68](https://github.com/tambo-ai/tambo-cloud/commit/d93de68cf072e8a5b2d98837492faa11c116bea4))
+
+
+### Code Refactoring
+
+* **clipboard:** Standardize clipboard copying behavior across all components ([#1903](https://github.com/tambo-ai/tambo-cloud/issues/1903)) ([5611615](https://github.com/tambo-ai/tambo-cloud/commit/5611615a39d79babf8c5e27bdfb75e4abaad7e7a))
+
 ## [0.113.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.112.1...repo-v0.113.0) (2025-10-08)
 
 
