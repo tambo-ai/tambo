@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.34.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.34.0...tambo-v0.34.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* **ui:** text pasting in the message input and update message component to use role instead of actionType ([#1139](https://github.com/tambo-ai/tambo/issues/1139)) ([48b9e5a](https://github.com/tambo-ai/tambo/commit/48b9e5ae11040f86a4a558c3c89e0b22bb8a6af4))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump typescript from 5.9.2 to 5.9.3 ([#1132](https://github.com/tambo-ai/tambo/issues/1132)) ([94b23a4](https://github.com/tambo-ai/tambo/commit/94b23a47d2d347033a15a2232b7c04216c982ad3))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.0 to 0.72.1 ([#1129](https://github.com/tambo-ai/tambo/issues/1129)) ([8d8cf9f](https://github.com/tambo-ai/tambo/commit/8d8cf9f2fe5c0661a576f8f77192d8b9c20ca62f))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.1 to 0.73.0 ([#1146](https://github.com/tambo-ai/tambo/issues/1146)) ([47432e7](https://github.com/tambo-ai/tambo/commit/47432e735d7ed3f6d6c99ac1cb727e86936d9c88))
+* **deps:** bump dotenv from 17.2.2 to 17.2.3 ([#1128](https://github.com/tambo-ai/tambo/issues/1128)) ([c18bf58](https://github.com/tambo-ai/tambo/commit/c18bf583c55fdbfe1925367076a737471f743db4))
+* **deps:** bump semver from 7.7.2 to 7.7.3 ([#1147](https://github.com/tambo-ai/tambo/issues/1147)) ([f448a98](https://github.com/tambo-ai/tambo/commit/f448a9857a559691ff384d780b1c5f816c942ff3))
+
 ## [0.34.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.33.0...tambo-v0.34.0) (2025-10-02)
 
 
