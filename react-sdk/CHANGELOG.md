@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.57.0](https://github.com/tambo-ai/tambo/compare/react-v0.56.0...react-v0.57.0) (2025-10-09)
+
+
+### Features
+
+* initial messages ([#1000](https://github.com/tambo-ai/tambo/issues/1000)) ([7d7a52a](https://github.com/tambo-ai/tambo/commit/7d7a52ab45f8d230b428cb83cace36cc1037152f))
+
 ## [0.56.0](https://github.com/tambo-ai/tambo/compare/react-v0.55.0...react-v0.56.0) (2025-10-07)
 
 
