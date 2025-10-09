@@ -283,7 +283,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         },
         submit,
         handleSubmit,
-        isPending: isPending || isSubmitting,
+        isPending: isPending ?? isSubmitting,
         error,
         contextKey,
         textareaRef,
@@ -392,7 +392,16 @@ const MessageInputTextarea = ({
     const items = Array.from(e.clipboardData.items);
     const imageItems = items.filter((item) => item.type.startsWith("image/"));
 
-    e.preventDefault();
+    // Allow default paste if there is text, even when images exist
+    const hasText = e.clipboardData.getData("text/plain").length > 0;
+
+    if (imageItems.length === 0) {
+      return; // Allow default text paste
+    }
+
+    if (!hasText) {
+      e.preventDefault(); // Only prevent when image-only paste
+    }
 
     for (const item of imageItems) {
       const file = item.getAsFile();
