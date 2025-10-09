@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.14.0](https://github.com/tambo-ai/tambo/compare/docs-v1.13.1...docs-v1.14.0) (2025-10-09)
+
+
+### Features
+
+* initial messages ([#1000](https://github.com/tambo-ai/tambo/issues/1000)) ([7d7a52a](https://github.com/tambo-ai/tambo/commit/7d7a52ab45f8d230b428cb83cace36cc1037152f))
+
+
+### Bug Fixes
+
+* **ui:** text pasting in the message input and update message component to use role instead of actionType ([#1139](https://github.com/tambo-ai/tambo/issues/1139)) ([48b9e5a](https://github.com/tambo-ai/tambo/commit/48b9e5ae11040f86a4a558c3c89e0b22bb8a6af4))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.1 to 0.73.0 ([#1146](https://github.com/tambo-ai/tambo/issues/1146)) ([47432e7](https://github.com/tambo-ai/tambo/commit/47432e735d7ed3f6d6c99ac1cb727e86936d9c88))
+* **deps:** bump lucide-react from 0.544.0 to 0.545.0 ([#1145](https://github.com/tambo-ai/tambo/issues/1145)) ([dae817d](https://github.com/tambo-ai/tambo/commit/dae817d5e0eb279cbb5d0f0a1ed10e98d38bf93b))
+* **deps:** bump posthog-js from 1.271.0 to 1.273.1 ([#1143](https://github.com/tambo-ai/tambo/issues/1143)) ([9bbdb3e](https://github.com/tambo-ai/tambo/commit/9bbdb3edd87c19d3a874ae07d463e09a3af3806e))
+* **deps:** bump the fumadocs group with 2 updates ([#1142](https://github.com/tambo-ai/tambo/issues/1142)) ([69778e6](https://github.com/tambo-ai/tambo/commit/69778e63328a4e239d226e67e79fcbb02777f0be))
+
 ## [1.13.1](https://github.com/tambo-ai/tambo/compare/docs-v1.13.0...docs-v1.13.1) (2025-10-07)
 
 
