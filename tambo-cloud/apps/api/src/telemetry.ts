@@ -1,4 +1,5 @@
 import { LangfuseSpanProcessor, ShouldExportSpan } from "@langfuse/otel";
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express";
@@ -26,8 +27,11 @@ export function initializeOpenTelemetry() {
   const sdkConfig: Partial<NodeSDKConfiguration> = {
     // resource,
     instrumentations,
-    spanProcessors: [langfuseSpanProcessor],
   };
+
+  // this isn't quite working yet
+  // sdkConfig.traceExporter = new OTLPTraceExporter(langfuseConfig);
+  // console.log("OpenTelemetry configured with Langfuse exporter");
 
   // Initialize the SDK
   const sdk = new NodeSDK(sdkConfig);
@@ -44,21 +48,17 @@ export function initializeOpenTelemetry() {
 export async function shutdownOpenTelemetry(sdk: NodeSDK) {
   return await sdk.shutdown();
 }
-
+// Optional: filter our NextJS infra spans
 const shouldExportSpan: ShouldExportSpan = (span) => {
-  return ![
-    // for now just manually exclude these because we do not want them to go to
-    // langfuse even though we are using them for sentry.
-    "@opentelemetry/instrumentation-pg",
-    "@opentelemetry/instrumentation-express",
-    "@opentelemetry/instrumentation-net",
-    "@opentelemetry/instrumentation-dns",
-    "@opentelemetry/instrumentation-undici",
-  ].includes(span.otelSpan.instrumentationScope.name);
+  return span.otelSpan.instrumentationScope.name !== "next.js";
 };
 
 export const langfuseSpanProcessor = new LangfuseSpanProcessor({
   shouldExportSpan,
 });
 
-export const sdk = initializeOpenTelemetry();
+const tracerProvider = new NodeTracerProvider({
+  spanProcessors: [langfuseSpanProcessor],
+});
+
+tracerProvider.register();

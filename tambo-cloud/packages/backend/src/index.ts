@@ -1,3 +1,7 @@
+export {
+  createLangfuseConfig,
+  createLangfuseTelemetryConfig,
+} from "./config/langfuse.config";
 export * from "./model";
 export * from "./services/suggestion/suggestion.types";
 export {

@@ -13,8 +13,6 @@ if (!process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment,
-    // We manually start opentelemetry in order to set up langfuse support
-    skipOpenTelemetrySetup: true,
 
     // Performance Monitoring
     tracesSampleRate: 1,

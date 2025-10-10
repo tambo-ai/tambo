@@ -1,6 +1,5 @@
 // Initialize Sentry FIRST, before anything else
 import "./sentry";
-import { sdk, shutdownOpenTelemetry } from "./telemetry";
 
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -12,9 +11,11 @@ import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
+import { initializeOpenTelemetry, shutdownOpenTelemetry } from "./telemetry";
 
 async function bootstrap() {
   // Initialize OpenTelemetry (works alongside Sentry)
+  const sdk = initializeOpenTelemetry();
 
   const app = await NestFactory.create(AppModule, { cors: true });
 
@@ -30,20 +31,12 @@ async function bootstrap() {
 
   // Graceful shutdown
   process.on("SIGTERM", async () => {
-    console.log("SIGTERM received, shutting down...");
+    if (process.env.NODE_ENV === "production") {
+      console.log("SIGTERM received, shutting down...");
 
-    // we need to flush sentry first because it uses open telemetry
-    await Sentry.close(2000);
-    await shutdownOpenTelemetry(sdk);
-    process.exit(0);
-  });
-  process.on("SIGINT", async () => {
-    console.log("SIGINT received, flushing Sentry and OpenTelemetry...");
-
-    // we need to flush sentry first because it uses open telemetry
-    await Sentry.close(2000);
-    await shutdownOpenTelemetry(sdk);
-    process.exit(0);
+      // Flush Sentry and shutdown OpenTelemetry in parallel
+      await Promise.all([Sentry.close(2000), shutdownOpenTelemetry(sdk)]);
+    }
   });
 
   // Add unhandled rejection handler

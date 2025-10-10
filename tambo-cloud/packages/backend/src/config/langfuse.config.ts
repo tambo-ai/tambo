@@ -1,5 +1,3 @@
-import { TelemetrySettings } from "ai";
-
 interface LangfuseConfig {
   enabled: boolean;
   publicKey?: string;
@@ -25,7 +23,7 @@ export function createLangfuseConfig(): LangfuseConfig {
 
 export function createLangfuseTelemetryConfig(
   metadata?: Record<string, string>,
-): TelemetrySettings | undefined {
+) {
   const config = createLangfuseConfig();
 
   if (!config.enabled) {
