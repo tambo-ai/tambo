@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
-import { DropdownMenu } from "radix-ui";
 import * as React from "react";
 import { useCallback } from "react";
 
@@ -54,7 +54,7 @@ export const ThreadDropdown = React.forwardRef<
       }
 
       try {
-        startNewThread();
+        await startNewThread();
         await refetch();
         onThreadChange?.();
       } catch (error) {

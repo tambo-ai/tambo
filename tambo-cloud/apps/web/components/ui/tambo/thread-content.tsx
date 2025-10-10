@@ -3,7 +3,9 @@
 import {
   Message,
   MessageContent,
+  MessageImages,
   MessageRenderedComponentArea,
+  ReasoningInfo,
   ToolcallInfo,
   type messageVariants,
 } from "@/components/ui/tambo/message";
@@ -160,6 +162,8 @@ const ThreadContentMessages = React.forwardRef<
                   message.role === "assistant" ? "w-full" : "max-w-3xl",
                 )}
               >
+                <ReasoningInfo />
+                <MessageImages />
                 <MessageContent
                   className={
                     message.role === "assistant"
