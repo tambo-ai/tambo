@@ -72,7 +72,12 @@ Rules:
 
   // Add recent conversation history as separate messages
   if (messages.length > 0) {
-    const recentMessages = messages.slice(-2);
+    const recentMessages = messages
+      .filter(
+        (m) => m.role === MessageRole.User || m.role === MessageRole.Assistant,
+      )
+      .slice(-2);
+
     recentMessages.forEach((msg) => {
       const content = msg.content
         .map((c) => ("text" in c ? c.text : ""))
