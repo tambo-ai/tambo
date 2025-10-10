@@ -27,7 +27,8 @@ import {
   MessageRole,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
-import { runStreamingAgent } from "./async-adapters";
+import { EventHandlerParams, runStreamingAgent } from "./async-adapters";
+import { AsyncQueue } from "./async-queue";
 import { CompleteParams, LLMResponse } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
 
@@ -117,10 +118,13 @@ export class AgentClient {
     }
   }
 
-  async *streamRunAgent(params: {
-    messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
-    tools: OpenAI.Chat.Completions.ChatCompletionTool[];
-  }): AsyncIterableIterator<AgentResponse> {
+  async *streamRunAgent(
+    queue: AsyncQueue<EventHandlerParams>,
+    params: {
+      messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
+      tools: OpenAI.Chat.Completions.ChatCompletionTool[];
+    },
+  ): AsyncIterableIterator<AgentResponse> {
     if (!this.aguiAgent) {
       throw new Error("Agent not initialized");
     }
@@ -173,7 +177,7 @@ export class AgentClient {
         parameters: t.function.parameters,
       };
     });
-    const generator = runStreamingAgent(this.aguiAgent, [
+    const generator = runStreamingAgent(this.aguiAgent, queue, [
       { tools: agentTools },
     ]);
     let currentToolCalls: OpenAI.Chat.Completions.ChatCompletionMessageFunctionToolCall[] =
