@@ -77,6 +77,18 @@ const useMessageContext = () => {
   return context;
 };
 
+/**
+ * Get the tool call request from the message, or the component tool call request
+ *
+ * @param message - The message to get the tool call request from
+ * @returns The tool call request
+ */
+export function getToolCallRequest(
+  message: TamboThreadMessage,
+): TamboAI.ToolCallRequest | undefined {
+  return message.toolCallRequest ?? message.component?.toolCallRequest;
+}
+
 // --- Sub-Components ---
 
 /**
@@ -308,12 +320,13 @@ function getToolStatusMessage(
   message: TamboThreadMessage,
   isLoading: boolean | undefined,
 ) {
-  const isToolCall = !!message.toolCallRequest;
-  if (!isToolCall) return null;
+  if (message.role !== "assistant" || !getToolCallRequest(message)) {
+    return null;
+  }
 
   const toolCallMessage = isLoading
-    ? `Calling ${message.toolCallRequest?.toolName ?? "tool"}`
-    : `Called ${message.toolCallRequest?.toolName ?? "tool"}`;
+    ? `Calling ${getToolCallRequest(message)?.toolName ?? "tool"}`
+    : `Called ${getToolCallRequest(message)?.toolName ?? "tool"}`;
   const toolStatusMessage = isLoading
     ? message.component?.statusMessage
     : message.component?.completionStatusMessage;
@@ -343,19 +356,22 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
         if (nextMessage.role === "tool") {
           return nextMessage;
         }
-        if (nextMessage.toolCallRequest) {
+        if (
+          nextMessage.role === "assistant" &&
+          getToolCallRequest(nextMessage)
+        ) {
           break;
         }
       }
       return null;
     }, [message, thread?.messages]);
 
-    if (!message.toolCallRequest) {
+    if (message.role !== "assistant" || !getToolCallRequest(message)) {
       return null;
     }
 
     const toolCallRequest: TamboAI.ToolCallRequest | undefined =
-      message.toolCallRequest ?? message.component?.toolCallRequest;
+      getToolCallRequest(message);
     const hasToolError = message.error;
 
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
