@@ -262,56 +262,59 @@ export default function ThreadHistoryPage() {
             <h2 className="text-xl font-semibold mb-4">Props</h2>
 
             <h3 className="text-lg font-medium mb-3">ThreadHistory</h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6 overflow-x-auto">
-              <table className="w-full text-sm min-w-[800px]">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Prop</th>
-                    <th className="text-left py-2">Type</th>
-                    <th className="text-left py-2">Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="py-2 font-mono">contextKey</td>
-                    <td className="py-2">string</td>
-                    <td className="py-2">
-                      Optional context key to scope thread history
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2 font-mono">position</td>
-                    <td className="py-2">
-                      &quot;left&quot; | &quot;right&quot;
-                    </td>
-                    <td className="py-2">
-                      Position of the sidebar (default: &quot;left&quot;)
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2 font-mono">defaultCollapsed</td>
-                    <td className="py-2">boolean</td>
-                    <td className="py-2">
-                      Whether the sidebar starts collapsed (default: true)
-                    </td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2 font-mono">onThreadChange</td>
-                    <td className="py-2">() =&gt; void</td>
-                    <td className="py-2">
-                      Optional callback when thread is switched
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 font-mono">children</td>
-                    <td className="py-2">React.ReactNode</td>
-                    <td className="py-2">
-                      The sub-components to render within the sidebar
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="mb-6 bg-gray-50">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-4">Prop</th>
+                      <th className="text-left py-2 px-4">Type</th>
+                      <th className="text-left py-2 px-4">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="py-2 px-4 font-mono">contextKey</td>
+                      <td className="py-2 px-4">string</td>
+                      <td className="py-2 px-4">
+                        Optional context key to scope thread history
+                      </td>
+                    </tr>
+                    <tr className="border-b bg-gray-100">
+                      <td className="py-2 px-4 font-mono">position</td>
+                      <td className="py-2 px-4">
+                        &quot;left&quot; | &quot;right&quot;
+                      </td>
+                      <td className="py-2 px-4">
+                        Position of the sidebar (default: &quot;left&quot;)
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-2 px-4 font-mono">defaultCollapsed</td>
+                      <td className="py-2 px-4">boolean</td>
+                      <td className="py-2 px-4">
+                        Whether the sidebar starts collapsed (default: true)
+                      </td>
+                    </tr>
+                    <tr className="border-b bg-gray-100">
+                      <td className="py-2 px-4 font-mono">onThreadChange</td>
+                      <td className="py-2 px-4">() =&gt; void</td>
+                      <td className="py-2 px-4">
+                        Optional callback when thread is switched
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-4 font-mono">children</td>
+                      <td className="py-2 px-4">React.ReactNode</td>
+                      <td className="py-2 px-4">
+                        The sub-components to render within the sidebar
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
+
             {/* Features */}
             <div>
               <h3 className="text-lg font-medium mb-3">Features</h3>

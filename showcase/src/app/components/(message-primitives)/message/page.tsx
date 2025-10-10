@@ -345,27 +345,29 @@ export default function MessagePage() {
           {/* Props Documentation */}
           <div>
             <h2 className="text-xl font-semibold mb-4">Props</h2>
-            <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
-              <table className="w-full text-sm min-w-[800px]">
+            <div className="bg-gray-50 rounded-lg overflow-x-auto mb-6">
+              <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2 w-32">Prop</th>
-                    <th className="text-left py-2 w-48">Type</th>
-                    <th className="text-left py-2">Description</th>
+                    <th className="text-left py-2 px-4">Prop</th>
+                    <th className="text-left py-2 px-4">Type</th>
+                    <th className="text-left py-2 px-4">Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b">
-                    <td className="py-2 font-mono">role</td>
-                    <td className="py-2">
+                    <td className="py-2 font-mono px-4">role</td>
+                    <td className="py-2 px-4">
                       &quot;user&quot; | &quot;assistant&quot;
                     </td>
-                    <td className="py-2">The role of the message sender</td>
+                    <td className="py-2 px-4">
+                      The role of the message sender
+                    </td>
                   </tr>
-                  <tr className="border-b">
-                    <td className="py-2 font-mono">message</td>
-                    <td className="py-2">TamboThreadMessage</td>
-                    <td className="py-2">
+                  <tr className="border-b bg-gray-100">
+                    <td className="py-2 font-mono px-4">message</td>
+                    <td className="py-2 px-4">TamboThreadMessage</td>
+                    <td className="py-2 px-4">
                       The full Tambo thread message object. Can include optional
                       <code className="bg-muted px-1 rounded text-xs ml-1">
                         reasoning
@@ -374,27 +376,27 @@ export default function MessagePage() {
                     </td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-2 font-mono">variant</td>
-                    <td className="py-2">
+                    <td className="py-2 font-mono px-4">variant</td>
+                    <td className="py-2 px-4">
                       &quot;default&quot; | &quot;solid&quot;
                     </td>
-                    <td className="py-2">
+                    <td className="py-2 px-4">
                       Optional styling variant for the message container
                     </td>
                   </tr>
-                  <tr className="border-b">
-                    <td className="py-2 font-mono">isLoading</td>
-                    <td className="py-2">boolean</td>
-                    <td className="py-2">
+                  <tr className="border-b bg-gray-100">
+                    <td className="py-2 font-mono px-4">isLoading</td>
+                    <td className="py-2 px-4">boolean</td>
+                    <td className="py-2 px-4">
                       Optional flag to indicate if the message is in a loading
                       state. Enables thinking animation in ReasoningInfo
                       component.
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-2 font-mono">children</td>
-                    <td className="py-2">React.ReactNode</td>
-                    <td className="py-2">
+                    <td className="py-2 font-mono px-4">children</td>
+                    <td className="py-2 px-4">React.ReactNode</td>
+                    <td className="py-2 px-4">
                       The child elements to render within the root container
                     </td>
                   </tr>
