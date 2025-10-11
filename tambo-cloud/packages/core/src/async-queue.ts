@@ -8,6 +8,8 @@ export interface ItemSink<T> {
   fail(err: unknown): void;
 }
 
+export type ItemQueue<T> = ItemSink<T> & AsyncIterableIterator<T>;
+
 /**
  * Generic queue-backed AsyncIterator you can push values into.
  *
@@ -31,7 +33,7 @@ export interface ItemSink<T> {
  *
  * Producers should call `finish()` to end the stream, or `fail(err)` to error it.
  */
-export class AsyncQueue<T> implements AsyncIterableIterator<T>, ItemSink<T> {
+export class AsyncQueue<T> implements ItemQueue<T> {
   private queue: T[] = [];
   private waiters: Array<{
     resolve: (r: IteratorResult<T>) => void;

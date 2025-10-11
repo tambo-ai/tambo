@@ -1,5 +1,5 @@
 import { AbstractAgent } from "@ag-ui/client";
-import { AsyncQueue, ItemSink } from "./async-queue";
+import { AsyncQueue, ItemSink } from "@tambo-ai-cloud/core";
 
 export type AgentSubscriber = AbstractAgent["subscribers"][number];
 export type EventHandlerParams = Parameters<

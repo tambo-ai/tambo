@@ -24,4 +24,5 @@ export * from "./llm-config-types";
 export * from "./llms/llm.config";
 export * from "./throttle";
 // Resend helpers (uses SDK types)
+export * from "./async-queue";
 export * from "./resend/audience";

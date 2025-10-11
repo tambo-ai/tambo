@@ -1,5 +1,6 @@
 import { Message } from "@ag-ui/core";
 import {
+  AsyncQueue,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -9,7 +10,6 @@ import OpenAI from "openai";
 import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import { AgentClient } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
-import { AsyncQueue } from "../llm/async-queue";
 
 export async function* runAgentLoop(
   agentClient: AgentClient,

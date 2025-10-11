@@ -22,13 +22,13 @@ import { MastraAgent } from "@ag-ui/mastra";
 import { MastraClient } from "@mastra/client-js";
 import {
   AgentProviderType,
+  AsyncQueue,
   ChatCompletionContentPart,
   ChatCompletionMessageParam,
   MessageRole,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { EventHandlerParams, runStreamingAgent } from "./async-adapters";
-import { AsyncQueue } from "./async-queue";
 import { CompleteParams, LLMResponse } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
 

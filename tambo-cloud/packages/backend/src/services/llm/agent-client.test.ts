@@ -16,8 +16,8 @@ import { AgentClient, AgentResponse } from "./agent-client";
 
 import { RunAgentResult } from "@ag-ui/client";
 import { MastraAgent } from "@ag-ui/mastra";
+import { AsyncQueue } from "@tambo-ai-cloud/core";
 import { EventHandlerParams, runStreamingAgent } from "./async-adapters";
-import { AsyncQueue } from "./async-queue";
 import { CompleteParams } from "./llm-client";
 const mockRunStreamingAgent = jest.mocked(runStreamingAgent);
 

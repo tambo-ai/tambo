@@ -1,6 +1,7 @@
 import {
   AgentProviderType,
   AiProviderType,
+  AsyncQueue,
   CustomLlmParameters,
   DEFAULT_OPENAI_MODEL,
   LegacyComponentDecision,
@@ -14,7 +15,6 @@ import { runDecisionLoop } from "./services/decision-loop/decision-loop-service"
 import { AgentClient } from "./services/llm/agent-client";
 import { AISdkClient } from "./services/llm/ai-sdk-client";
 import { EventHandlerParams } from "./services/llm/async-adapters";
-import { AsyncQueue } from "./services/llm/async-queue";
 import { LLMClient } from "./services/llm/llm-client";
 import { generateSuggestions } from "./services/suggestion/suggestion.service";
 import { SuggestionDecision } from "./services/suggestion/suggestion.types";

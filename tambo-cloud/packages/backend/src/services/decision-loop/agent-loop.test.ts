@@ -1,4 +1,5 @@
 import {
+  AsyncQueue,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -11,7 +12,6 @@ import {
   AgentResponseType,
 } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
-import { AsyncQueue } from "../llm/async-queue";
 import { runAgentLoop } from "./agent-loop";
 
 // Mock the agent client
