@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.115.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.114.0...repo-v0.115.0) (2025-10-13)
+
+
+### Features
+
+* **web:** shift to message thread panel and modal design ([#1925](https://github.com/tambo-ai/tambo-cloud/issues/1925)) ([0c8fc4d](https://github.com/tambo-ai/tambo-cloud/commit/0c8fc4db0f3c086d394b3e5c1d724f8f503df342))
+
+
+### Bug Fixes
+
+* **backend:** suggestions failing with tool call messages ([#1923](https://github.com/tambo-ai/tambo-cloud/issues/1923)) ([1c1f1de](https://github.com/tambo-ai/tambo-cloud/commit/1c1f1de317fb687ea7f2f3c1a1371ae57b1d2fbd))
+* **debugging:** Revive langfuse support ([#1918](https://github.com/tambo-ai/tambo-cloud/issues/1918)) ([a125b82](https://github.com/tambo-ai/tambo-cloud/commit/a125b82a894a016c3b5d76c307304c7e46ebcc95))
+
+
+### Reverts
+
+* "fix(debugging): Revive langfuse support" ([#1920](https://github.com/tambo-ai/tambo-cloud/issues/1920)) ([c7a670c](https://github.com/tambo-ai/tambo-cloud/commit/c7a670c2ee32967cc96062eeb9343d3c786fe22e))
+
+
+### Miscellaneous Chores
+
+* bump tambo assistant components ([#1922](https://github.com/tambo-ai/tambo-cloud/issues/1922)) ([74f758a](https://github.com/tambo-ai/tambo-cloud/commit/74f758a032821b8ad2ac8e27d548bcc515f7a8cc))
+* **deps-dev:** bump @nestjs/schematics from 11.0.8 to 11.0.9 in the nestjs group ([#1928](https://github.com/tambo-ai/tambo-cloud/issues/1928)) ([254069d](https://github.com/tambo-ai/tambo-cloud/commit/254069d6f1dd1650293d55819a52894af7095ed3))
+* **deps-dev:** bump ts-jest from 29.4.4 to 29.4.5 in the testing group ([#1929](https://github.com/tambo-ai/tambo-cloud/issues/1929)) ([5e3c621](https://github.com/tambo-ai/tambo-cloud/commit/5e3c621e91eb9b27600af14139b6158862e1c6de))
+* **deps:** bump @tambo-ai/react from 0.56.0 to 0.57.0 in the tambo-ai group ([#1931](https://github.com/tambo-ai/tambo-cloud/issues/1931)) ([ff698b4](https://github.com/tambo-ai/tambo-cloud/commit/ff698b42f88efbe95ab482e6d804a24b3e1c4c79))
+* **deps:** bump framer-motion from 12.23.22 to 12.23.24 ([#1935](https://github.com/tambo-ai/tambo-cloud/issues/1935)) ([4bdf9d5](https://github.com/tambo-ai/tambo-cloud/commit/4bdf9d51680a4ad94a012e74377635c4ee711f66))
+* **deps:** bump mcp-handler from 1.0.2 to 1.0.3 ([#1933](https://github.com/tambo-ai/tambo-cloud/issues/1933)) ([f140a65](https://github.com/tambo-ai/tambo-cloud/commit/f140a65764b3f7ddb7cc568b8e4a9f032ba1e015))
+* **deps:** bump the ai-sdk group with 7 updates ([#1930](https://github.com/tambo-ai/tambo-cloud/issues/1930)) ([49b48c9](https://github.com/tambo-ai/tambo-cloud/commit/49b48c91d979f5e56191eace91564cc145b4ea3f))
+* **deps:** bump the small-safe-packages group across 1 directory with 9 updates ([#1937](https://github.com/tambo-ai/tambo-cloud/issues/1937)) ([556257a](https://github.com/tambo-ai/tambo-cloud/commit/556257a66ef2a8cfb76cc1d8b7324a21cfd5ade8))
+* **deps:** bump tldts from 7.0.16 to 7.0.17 ([#1936](https://github.com/tambo-ai/tambo-cloud/issues/1936)) ([a04cf55](https://github.com/tambo-ai/tambo-cloud/commit/a04cf55c9d12962782eeb738bd85f99cbd6a407d))
+
+
+### Code Refactoring
+
+* **agents:** break out AsyncQueue and push control to the decision loop ([#1921](https://github.com/tambo-ai/tambo-cloud/issues/1921)) ([abdd1c3](https://github.com/tambo-ai/tambo-cloud/commit/abdd1c35ee0f0ad9cddfd2ec245b4c8272532998))
+* move AsyncQueue to core ([#1927](https://github.com/tambo-ai/tambo-cloud/issues/1927)) ([fd2dce9](https://github.com/tambo-ai/tambo-cloud/commit/fd2dce938ac631cc74286fdb62ee2cd0d107f8f5))
+
 ## [0.114.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.113.0...repo-v0.114.0) (2025-10-09)
 
 
