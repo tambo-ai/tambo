@@ -3,7 +3,10 @@ import {
   createMockSearchMatches,
   createMockThreadDifferentDays,
   createMockThreadSameDay,
+  createMockThreadWithLargeSystemMessage,
   createMockThreadWithMessages,
+  createMockThreadWithNonFirstSystemMessage,
+  createMockThreadWithSmallSystemMessage,
   createMockThreadWithoutToolResponse,
 } from "@/test/factories/thread-factories";
 import { render, screen } from "@testing-library/react";
@@ -300,5 +303,97 @@ describe("ThreadMessages", () => {
         />,
       );
     }).not.toThrow();
+  });
+
+  it("renders first system message collapsed by default", () => {
+    const mockMessageRefs = createMessageRefs();
+    const threadWithSmallSystem = createMockThreadWithSmallSystemMessage();
+
+    render(
+      <ThreadMessages
+        thread={threadWithSmallSystem}
+        messageRefs={mockMessageRefs}
+      />,
+    );
+
+    // Should show collapse trigger instead of the actual content
+    expect(
+      screen.getByText("System prompt (click to expand)"),
+    ).toBeInTheDocument();
+    // Should not show the actual content by default
+    expect(
+      screen.queryByText("system: Small system prompt"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders large system message collapsed by default", () => {
+    const mockMessageRefs = createMessageRefs();
+    const threadWithLargeSystem = createMockThreadWithLargeSystemMessage();
+
+    render(
+      <ThreadMessages
+        thread={threadWithLargeSystem}
+        messageRefs={mockMessageRefs}
+      />,
+    );
+
+    // Should show collapse trigger instead of the actual content
+    expect(
+      screen.getByText("System prompt (click to expand)"),
+    ).toBeInTheDocument();
+    // Should not show the actual large content by default
+    expect(
+      screen.queryByText("system: AAAAAAAAAAAAAAAAAAAA"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("allows expanding collapsed system message", async () => {
+    const mockMessageRefs = createMessageRefs();
+    const user = userEvent.setup();
+    const threadWithLargeSystem = createMockThreadWithLargeSystemMessage();
+
+    render(
+      <ThreadMessages
+        thread={threadWithLargeSystem}
+        messageRefs={mockMessageRefs}
+      />,
+    );
+
+    // Initially collapsed - trigger should be visible, content should not
+    expect(
+      screen.getByText("System prompt (click to expand)"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/^system: A+/)).not.toBeInTheDocument();
+
+    // Click to expand
+    const expandButton = screen.getByText("System prompt (click to expand)");
+    await user.click(expandButton);
+
+    // Should now show the system message content
+    expect(screen.getByText(/^system: A+/)).toBeInTheDocument(); // Matches "system: AAA..." pattern
+    // Trigger should still be visible (just with rotated chevron)
+    expect(
+      screen.getByText("System prompt (click to expand)"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders system message that's not first normally (not collapsed)", () => {
+    const mockMessageRefs = createMessageRefs();
+    const threadWithNonFirstSystem =
+      createMockThreadWithNonFirstSystemMessage();
+
+    render(
+      <ThreadMessages
+        thread={threadWithNonFirstSystem}
+        messageRefs={mockMessageRefs}
+      />,
+    );
+
+    // Should render system message normally (not collapsed) since it's not the first message
+    expect(screen.getByText(/^system: A+/)).toBeInTheDocument(); // Matches "system: AAA..." pattern
+    // Should not show collapse trigger
+    expect(
+      screen.queryByText("System prompt (click to expand)"),
+    ).not.toBeInTheDocument();
   });
 });

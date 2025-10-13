@@ -22,7 +22,7 @@ export function ComponentsThemeProvider({
         dark: "components-theme dark",
       }}
     >
-      <div className="components-theme w-full">{children}</div>
+      <div className="components-theme">{children}</div>
     </ThemeProvider>
   );
 }

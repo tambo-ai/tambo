@@ -178,6 +178,84 @@ export function createMockThreadWithoutToolResponse(
 }
 
 /**
+ * Creates a thread with a small system message (should not collapse)
+ */
+export function createMockThreadWithSmallSystemMessage(
+  threadId: string = "thread-small-system",
+  projectId: string = "project-1",
+): ThreadType {
+  const messages: MessageType[] = [
+    createMockThreadMessage("msg-system", threadId, MessageRole.System, {
+      content: [{ type: "text", text: "Small system prompt" }],
+      createdAt: new Date("2024-01-01T09:59:00Z"),
+    }),
+    createMockThreadMessage("msg-1", threadId, MessageRole.User, {
+      content: [{ type: "text", text: "Hello" }],
+      createdAt: new Date("2024-01-01T10:00:00Z"),
+    }),
+    createMockThreadMessage("msg-2", threadId, MessageRole.Assistant, {
+      content: [{ type: "text", text: "Hi there" }],
+      createdAt: new Date("2024-01-01T10:01:00Z"),
+    }),
+  ];
+
+  return createMockThread(threadId, projectId, { messages });
+}
+
+/**
+ * Creates a thread with a large system message (should collapse)
+ */
+export function createMockThreadWithLargeSystemMessage(
+  threadId: string = "thread-large-system",
+  projectId: string = "project-1",
+): ThreadType {
+  // Create a large system message that exceeds the collapse threshold
+  const largeContent = "A".repeat(600); // > 500 characters
+  const messages: MessageType[] = [
+    createMockThreadMessage("msg-system", threadId, MessageRole.System, {
+      content: [{ type: "text", text: largeContent }],
+      createdAt: new Date("2024-01-01T09:59:00Z"),
+    }),
+    createMockThreadMessage("msg-1", threadId, MessageRole.User, {
+      content: [{ type: "text", text: "Hello" }],
+      createdAt: new Date("2024-01-01T10:00:00Z"),
+    }),
+    createMockThreadMessage("msg-2", threadId, MessageRole.Assistant, {
+      content: [{ type: "text", text: "Hi there" }],
+      createdAt: new Date("2024-01-01T10:01:00Z"),
+    }),
+  ];
+
+  return createMockThread(threadId, projectId, { messages });
+}
+
+/**
+ * Creates a thread with a system message that's not the first message (should not collapse)
+ */
+export function createMockThreadWithNonFirstSystemMessage(
+  threadId: string = "thread-non-first-system",
+  projectId: string = "project-1",
+): ThreadType {
+  const largeContent = "A".repeat(600); // > 500 characters
+  const messages: MessageType[] = [
+    createMockThreadMessage("msg-1", threadId, MessageRole.User, {
+      content: [{ type: "text", text: "Hello" }],
+      createdAt: new Date("2024-01-01T10:00:00Z"),
+    }),
+    createMockThreadMessage("msg-system", threadId, MessageRole.System, {
+      content: [{ type: "text", text: largeContent }],
+      createdAt: new Date("2024-01-01T09:59:00Z"),
+    }),
+    createMockThreadMessage("msg-2", threadId, MessageRole.Assistant, {
+      content: [{ type: "text", text: "Hi there" }],
+      createdAt: new Date("2024-01-01T10:01:00Z"),
+    }),
+  ];
+
+  return createMockThread(threadId, projectId, { messages });
+}
+
+/**
  * Creates search matches for testing search functionality
  */
 export function createMockSearchMatches(): Array<{

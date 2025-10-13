@@ -1,17 +1,17 @@
 import { ThreadMessagesModalSkeleton } from "@/components/skeletons/observability-skeletons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import { RouterOutputs } from "@/trpc/react";
-import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateThreadStats,
@@ -257,34 +257,20 @@ export function ThreadMessagesModal({
   }, [searchQuery, handleNextMatch, handlePreviousMatch]);
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent
-        side="right"
-        className="w-full sm:w-3/4 max-w-full sm:max-w-4xl p-4 sm:p-6 [&>button]:hidden flex flex-col gap-4"
-      >
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="w-[95vw] max-w-6xl h-[90vh] p-4 sm:p-6 flex flex-col gap-4">
         {isLoading ? (
           <ThreadMessagesModalSkeleton />
         ) : (
           <>
-            <SheetHeader className="flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <SheetTitle className="text-left text-primary text-base sm:text-lg truncate">
-                  Thread {thread.id}
-                </SheetTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  className="hover:bg-transparent flex-shrink-0"
-                >
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-                </Button>
-              </div>
-              <SheetDescription className="sr-only">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="text-left text-primary text-base sm:text-lg truncate">
+                Thread {thread.id}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
                 View messages and details for thread {thread.id}
-              </SheetDescription>
-            </SheetHeader>
+              </DialogDescription>
+            </DialogHeader>
 
             <div className="space-y-4 mt-1 flex-shrink-0">
               <div className="flex gap-2">
@@ -385,7 +371,7 @@ export function ThreadMessagesModal({
             </div>
           </>
         )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

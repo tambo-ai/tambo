@@ -1,7 +1,7 @@
 import { PreloadResources } from "@/components/preload-resources";
 import { Schema } from "@/components/schema";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
-import { MessageThreadCollapsible } from "@/components/ui/tambo/message-thread-collapsible";
+import { MessageThreadPanel } from "@/components/ui/tambo/message-thread-panel";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { WebVitalsReporter } from "@/components/web-vitals";
@@ -13,6 +13,7 @@ import {
 } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
+import { MessageThreadPanelProvider } from "@/providers/message-thread-panel-provider";
 import { NextAuthProvider } from "@/providers/nextauth-provider";
 import { TamboProviderWrapper } from "@/providers/tambo-provider";
 import { TRPCReactProvider } from "@/trpc/react";
@@ -81,7 +82,7 @@ export default async function RootLayout({
           <PHProvider>
             <body
               className={cn(
-                "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth font-sans flex flex-col snap-y snap-proximity",
+                "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
               )}
             >
               <ThemeProvider
@@ -91,14 +92,17 @@ export default async function RootLayout({
                 forcedTheme="light"
               >
                 <NextAuthProvider session={session}>
-                  {children}
-                  <ComponentsThemeProvider defaultTheme="light">
-                    <MessageThreadCollapsible
-                      className="z-50"
-                      defaultOpen={false}
-                    />
-                  </ComponentsThemeProvider>
-                  <TailwindIndicator />
+                  <MessageThreadPanelProvider>
+                    <div className="flex h-screen overflow-hidden w-full">
+                      <main className="flex-1 min-w-0 overflow-auto snap-y snap-proximity">
+                        {children}
+                      </main>
+                      <ComponentsThemeProvider defaultTheme="light">
+                        <MessageThreadPanel />
+                      </ComponentsThemeProvider>
+                    </div>
+                    <TailwindIndicator />
+                  </MessageThreadPanelProvider>
                 </NextAuthProvider>
               </ThemeProvider>
               <Toaster />

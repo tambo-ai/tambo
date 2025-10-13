@@ -113,6 +113,8 @@ export interface MessageInputProps
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
+  /** Optional ref to forward to the textarea element. */
+  inputRef?: React.RefObject<HTMLTextAreaElement>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -153,7 +155,7 @@ MessageInput.displayName = "MessageInput";
 const MessageInputInternal = React.forwardRef<
   HTMLFormElement,
   MessageInputProps
->(({ children, className, contextKey, variant, ...props }, ref) => {
+>(({ children, className, contextKey, variant, inputRef, ...props }, ref) => {
   const {
     value,
     setValue,
@@ -294,7 +296,7 @@ const MessageInputInternal = React.forwardRef<
       isPending: isPending ?? isSubmitting,
       error,
       contextKey,
-      textareaRef,
+      textareaRef: inputRef ?? textareaRef,
       submitError,
       setSubmitError,
     }),
@@ -307,6 +309,8 @@ const MessageInputInternal = React.forwardRef<
       isSubmitting,
       error,
       contextKey,
+      inputRef,
+      textareaRef,
       submitError,
     ],
   );

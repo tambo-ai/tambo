@@ -4,6 +4,7 @@ import { Icons } from "@/components/icons";
 import { MobileDashboardNavigation } from "@/components/sections/mobile-dashboard-navigation";
 import { ProjectDropdown } from "@/components/sections/project-dropdown";
 import { UserProfileDropdown } from "@/components/sections/user-profile-dropdown";
+import { TamboChatTrigger } from "@/components/tambo-chat-trigger";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 // Whitelabel badge
@@ -71,7 +72,12 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
             </div>
 
             {/* Right side - Desktop: Profile dropdown, Mobile: Mobile nav */}
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
+              {/* Tambo Assistant Trigger - Desktop only */}
+              <div className="hidden md:block">
+                <TamboChatTrigger />
+              </div>
+
               {/* Desktop Profile Dropdown */}
               <div className="hidden md:block">
                 <UserProfileDropdown user={session?.user} />

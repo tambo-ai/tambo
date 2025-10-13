@@ -1,16 +1,19 @@
+"use client";
+
 import { Icons } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-  DrawerClose,
 } from "@/components/ui/drawer";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
+import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import Link from "next/link";
 import { IoMenuSharp } from "react-icons/io5";
 
@@ -23,8 +26,10 @@ interface MobileDrawerProps {
 export function MobileDrawer({
   showDashboardButton,
   showLogoutButton,
-  showDiscordButton = false,
+  showDiscordButton: _showDiscordButton = false,
 }: MobileDrawerProps) {
+  const { togglePanel } = useMessageThreadPanel();
+
   return (
     <Drawer>
       <DrawerTrigger>
@@ -88,6 +93,17 @@ export function MobileDrawer({
           >
             Blog
           </Link>
+          <DrawerClose asChild>
+            <button
+              onClick={togglePanel}
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "justify-start text-base w-full",
+              )}
+            >
+              Ask Tambo
+            </button>
+          </DrawerClose>
           {showLogoutButton && (
             <button
               className={cn(

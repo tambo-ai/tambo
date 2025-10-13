@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { siteConfig } from "@/lib/config";
+import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import { api } from "@/trpc/react";
 import { track } from "@vercel/analytics";
 import {
@@ -30,6 +32,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 
 export function MobileDashboardNavigation() {
@@ -37,6 +40,7 @@ export function MobileDashboardNavigation() {
   const { toast } = useToast();
   const router = useRouter();
   const params = useParams();
+  const { togglePanel } = useMessageThreadPanel();
 
   const projectId = params?.projectId as string | null;
 
@@ -155,6 +159,21 @@ export function MobileDashboardNavigation() {
             <Calendar className="h-4 w-4" />
             Meet with Founder
           </a>
+          <DrawerClose asChild>
+            <button
+              onClick={togglePanel}
+              className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer text-left"
+            >
+              <Image
+                src="/logo/icon/Octo-Icon.svg"
+                width={16}
+                height={16}
+                alt="Tambo Assistant"
+                className="w-5 h-5"
+              />
+              Ask Tambo
+            </button>
+          </DrawerClose>
         </div>
 
         <DrawerFooter>
