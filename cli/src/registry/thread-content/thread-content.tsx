@@ -127,6 +127,9 @@ const ThreadContentMessages = React.forwardRef<
   ThreadContentMessagesProps
 >(({ className, ...props }, ref) => {
   const { messages, isGenerating, variant } = useThreadContentContext();
+  const filteredMessages = messages.filter(
+    (message) => message.role !== "system",
+  );
 
   return (
     <div
@@ -135,53 +138,49 @@ const ThreadContentMessages = React.forwardRef<
       data-slot="thread-content-messages"
       {...props}
     >
-      {messages
-        .filter((message) => message.role !== "system")
-        .map((message, index) => {
-          return (
-            <div
-              key={
-                message.id ??
-                `${message.role}-${
-                  message.createdAt ?? Date.now()
-                }-${message.content?.toString().substring(0, 10)}`
-              }
-              data-slot="thread-content-item"
+      {filteredMessages.map((message, index) => {
+        return (
+          <div
+            key={
+              message.id ??
+              `${message.role}-${
+                message.createdAt ?? Date.now()
+              }-${message.content?.toString().substring(0, 10)}`
+            }
+            data-slot="thread-content-item"
+          >
+            <Message
+              role={message.role === "assistant" ? "assistant" : "user"}
+              message={message}
+              variant={variant}
+              isLoading={isGenerating && index === filteredMessages.length - 1}
+              className={cn(
+                "flex w-full",
+                message.role === "assistant" ? "justify-start" : "justify-end",
+              )}
             >
-              <Message
-                role={message.role === "assistant" ? "assistant" : "user"}
-                message={message}
-                variant={variant}
-                isLoading={isGenerating && index === messages.length - 1}
+              <div
                 className={cn(
-                  "flex w-full",
-                  message.role === "assistant"
-                    ? "justify-start"
-                    : "justify-end",
+                  "flex flex-col",
+                  message.role === "assistant" ? "w-full" : "max-w-3xl",
                 )}
               >
-                <div
-                  className={cn(
-                    "flex flex-col",
-                    message.role === "assistant" ? "w-full" : "max-w-3xl",
-                  )}
-                >
-                  <ReasoningInfo />
-                  <MessageImages />
-                  <MessageContent
-                    className={
-                      message.role === "assistant"
-                        ? "text-primary font-sans"
-                        : "text-primary bg-container hover:bg-backdrop font-sans"
-                    }
-                  />
-                  <ToolcallInfo />
-                  <MessageRenderedComponentArea className="w-full" />
-                </div>
-              </Message>
-            </div>
-          );
-        })}
+                <ReasoningInfo />
+                <MessageImages />
+                <MessageContent
+                  className={
+                    message.role === "assistant"
+                      ? "text-primary font-sans"
+                      : "text-primary bg-container hover:bg-backdrop font-sans"
+                  }
+                />
+                <ToolcallInfo />
+                <MessageRenderedComponentArea className="w-full" />
+              </div>
+            </Message>
+          </div>
+        );
+      })}
     </div>
   );
 });
