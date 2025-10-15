@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.116.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.115.0...repo-v0.116.0) (2025-10-15)
+
+
+### Features
+
+* **backend:** move suggestions generation to internal model ([#1941](https://github.com/tambo-ai/tambo-cloud/issues/1941)) ([f424f66](https://github.com/tambo-ai/tambo-cloud/commit/f424f66e4b1ed169e5ce4c99d8b8ff1883e18830))
+* Stream sampling messages back to client ([#1940](https://github.com/tambo-ai/tambo-cloud/issues/1940)) ([b39abbf](https://github.com/tambo-ai/tambo-cloud/commit/b39abbf5e8b33bd90fb9704129c92504c1219739))
+* Track reasoning duration, set minimal effort ([#1942](https://github.com/tambo-ai/tambo-cloud/issues/1942)) ([758626a](https://github.com/tambo-ai/tambo-cloud/commit/758626a5ae13eed58b38251c98434f2c4cc02788))
+
+
+### Bug Fixes
+
+* add reasoningSummary to openai provider default params ([#1938](https://github.com/tambo-ai/tambo-cloud/issues/1938)) ([c355401](https://github.com/tambo-ai/tambo-cloud/commit/c355401bc732b2f8f94df692f7e3fd8ac31c731c))
+
+
+### Tests
+
+* **threads:** Add more tests for threads service ([#1943](https://github.com/tambo-ai/tambo-cloud/issues/1943)) ([0da3d7a](https://github.com/tambo-ai/tambo-cloud/commit/0da3d7a533b8ab2c94f3c5232ea55861cfbea723))
+
 ## [0.115.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.114.0...repo-v0.115.0) (2025-10-13)
 
 
