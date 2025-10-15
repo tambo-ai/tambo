@@ -1,0 +1,1 @@
+ALTER TABLE "messages" ADD COLUMN "reasoning_duration_ms" integer;

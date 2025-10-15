@@ -251,6 +251,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         isCancelled: input.isCancelled ?? false,
         additionalContext: input.additionalContext ?? {},
         reasoning: input.reasoning ?? null,
+        reasoningDurationMS: input.reasoningDurationMS ?? null,
       }),
     );
 

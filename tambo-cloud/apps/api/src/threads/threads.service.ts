@@ -358,6 +358,7 @@ export class ThreadsService {
           error: message.error ?? undefined,
           isCancelled: message.isCancelled,
           reasoning: message.reasoning ?? undefined,
+          reasoningDurationMS: message.reasoningDurationMS ?? undefined,
         })),
     };
   }
@@ -644,6 +645,7 @@ export class ThreadsService {
         createdAt: message.createdAt,
         additionalContext: message.additionalContext ?? {},
         reasoning: message.reasoning ?? undefined,
+        reasoningDurationMS: message.reasoningDurationMS ?? undefined,
       }));
   }
 
@@ -914,6 +916,7 @@ export class ThreadsService {
       createdAt: message.createdAt,
       additionalContext: message.additionalContext ?? {},
       reasoning: message.reasoning ?? undefined,
+      reasoningDurationMS: message.reasoningDurationMS ?? undefined,
     };
   }
 

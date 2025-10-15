@@ -164,6 +164,7 @@ export async function* runDecisionLoop(
         statusMessage,
         completionStatusMessage,
         reasoning: chunk.reasoning ?? undefined,
+        reasoningDurationMS: chunk.reasoningDurationMS ?? undefined,
       };
 
       accumulatedDecision = {

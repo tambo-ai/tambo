@@ -74,6 +74,10 @@ generation of another message, such as during an agent call, MCP Elicitation, or
     description: "Reasoning text from the LLM, if the model supports it.",
   })
   reasoning?: string[];
+  @ApiProperty({
+    description: "Duration of reasoning in milliseconds",
+  })
+  reasoningDurationMS?: number;
 
   @ApiProperty({
     type: "object",
@@ -141,6 +145,12 @@ export class MessageRequest implements InternalThreadMessage {
     description: "Reasoning text from the LLM, if the model supports it.",
   })
   reasoning?: string[];
+
+  @IsOptional()
+  @ApiProperty({
+    description: "Duration of reasoning in milliseconds",
+  })
+  reasoningDurationMS?: number;
 
   @IsOptional()
   @ApiProperty({

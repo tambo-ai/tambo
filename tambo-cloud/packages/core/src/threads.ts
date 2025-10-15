@@ -135,6 +135,8 @@ export interface ThreadMessage {
   toolCallRequest?: ToolCallRequest;
   /** Reasoning text from the LLM */
   reasoning?: string[];
+  /** Duration of reasoning in milliseconds */
+  reasoningDurationMS?: number;
 }
 
 /** Temporary internal type to make sure that subclasses are aligned on types */
@@ -151,6 +153,7 @@ export interface InternalThreadMessage {
   tool_call_id?: string;
   isCancelled?: boolean;
   reasoning?: string[];
+  reasoningDurationMS?: number;
 }
 
 /**

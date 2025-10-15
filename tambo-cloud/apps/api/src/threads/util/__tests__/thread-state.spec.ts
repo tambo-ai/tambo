@@ -404,6 +404,7 @@ describe("Thread State", () => {
         isCancelled: false,
         additionalContext: null,
         reasoning: null,
+        reasoningDurationMS: null,
       });
 
       const result = await finishInProgressMessage(

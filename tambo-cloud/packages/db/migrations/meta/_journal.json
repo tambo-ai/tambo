@@ -554,6 +554,13 @@
       "when": 1759799710409,
       "tag": "0078_freezing_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1760552119610,
+      "tag": "0079_futuristic_master_mold",
+      "breakpoints": true
     }
   ]
 }

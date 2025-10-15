@@ -63,6 +63,7 @@ describe("MessageContent", () => {
     error: null,
     isCancelled: false,
     reasoning: null,
+    reasoningDurationMS: null,
   };
 
   beforeEach(() => {
@@ -92,6 +93,7 @@ describe("MessageContent", () => {
           createdAt: new Date(),
           id: "msg-1",
           role: MessageRole.User,
+          reasoningDurationMS: null,
         }}
         isUserMessage={true}
       />,

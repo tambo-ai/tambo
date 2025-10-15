@@ -409,6 +409,8 @@ export class AISdkClient implements LLMClient {
   ): AsyncIterableIterator<LLMResponse> {
     let accumulatedMessage = "";
     let accumulatedReasoning: string[] = [];
+    let reasoningStartTimestamp: number | undefined;
+    let reasoningEndTimestamp: number | undefined;
     const accumulatedToolCall: {
       name?: string;
       arguments: string;
@@ -445,6 +447,7 @@ export class AISdkClient implements LLMClient {
         case "reasoning-start":
           // append to the last element of the array
           accumulatedReasoning = [...accumulatedReasoning, ""];
+          reasoningStartTimestamp = Date.now();
           break;
         case "reasoning-delta":
           accumulatedReasoning = [
@@ -453,6 +456,7 @@ export class AISdkClient implements LLMClient {
           ];
           break;
         case "reasoning-end":
+          reasoningEndTimestamp = Date.now();
           break;
         case "source": // url? not sure what this is
         case "file": // TODO: handle files - should be added as message objects
@@ -496,6 +500,10 @@ export class AISdkClient implements LLMClient {
           refusal: null,
         },
         reasoning: accumulatedReasoning,
+        reasoningDurationMS:
+          reasoningStartTimestamp && reasoningEndTimestamp
+            ? reasoningEndTimestamp - reasoningStartTimestamp
+            : undefined,
         index: 0,
         logprobs: null,
       };

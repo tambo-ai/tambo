@@ -74,6 +74,7 @@ describe("messages utilities", () => {
         error: null,
         isCancelled: false,
         reasoning: null,
+        reasoningDurationMS: null,
       };
 
       jest.mocked(operations.addMessage).mockResolvedValue(mockResponse);
@@ -140,6 +141,7 @@ describe("messages utilities", () => {
         error: null,
         isCancelled: false,
         reasoning: null,
+        reasoningDurationMS: null,
       };
 
       jest.mocked(operations.updateMessage).mockResolvedValue(mockResponse);
@@ -268,6 +270,7 @@ describe("messages utilities", () => {
         error: null,
         isCancelled: false,
         reasoning: null,
+        reasoningDurationMS: null,
       };
 
       const newMessage: ThreadMessage = {
@@ -281,6 +284,7 @@ describe("messages utilities", () => {
         tool_call_id: undefined,
         error: undefined,
         reasoning: undefined,
+        reasoningDurationMS: undefined,
       };
 
       jest

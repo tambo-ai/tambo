@@ -15,6 +15,7 @@ export const llmProviderConfig: LlmProviderConfig = {
     providerSpecificParams: {
       parallelToolCalls: false,
       reasoningSummary: "auto",
+      reasoningEffort: "minimal",
     },
   },
   anthropic: {

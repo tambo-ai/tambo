@@ -31,6 +31,7 @@ export function createMockThreadMessage(
     isCancelled: false,
     createdAt: now,
     reasoning: null,
+    reasoningDurationMS: null,
     suggestedActions: [],
     suggestions: [],
     toolCallRequest: undefined,

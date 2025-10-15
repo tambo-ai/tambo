@@ -105,6 +105,7 @@ export function createMockDBMessage(
     isCancelled: overrides.isCancelled ?? false,
     createdAt: overrides.createdAt ?? now,
     reasoning: overrides.reasoning ?? null,
+    reasoningDurationMS: overrides.reasoningDurationMS ?? null,
   };
 
   return message;

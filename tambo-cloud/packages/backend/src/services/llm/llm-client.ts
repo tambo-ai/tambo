@@ -79,6 +79,8 @@ type LLMChatCompletionChoice = Omit<
 interface LLMResponseExtras {
   /** Reasoning tokens from the LLM */
   reasoning?: string[];
+  /** Duration of reasoning in milliseconds */
+  reasoningDurationMS?: number;
 }
 export type LLMResponse = Omit<LLMChatCompletionChoice, "finish_reason"> &
   LLMResponseExtras;

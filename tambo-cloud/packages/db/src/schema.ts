@@ -19,6 +19,7 @@ import {
 import { relations, sql } from "drizzle-orm";
 import {
   check,
+  foreignKey,
   index,
   integer,
   pgPolicy,
@@ -28,7 +29,6 @@ import {
   primaryKey,
   unique,
   uuid,
-  foreignKey,
 } from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 import type OpenAI from "openai";
@@ -456,6 +456,7 @@ export const messages = pgTable(
         "content",
       ).notNull(),
     reasoning: customJsonb<string[]>("reasoning"),
+    reasoningDurationMS: integer("reasoning_duration_ms"),
     additionalContext:
       customJsonb<Record<string, unknown>>("additional_context"),
     toolCallId: text("tool_call_id"),
