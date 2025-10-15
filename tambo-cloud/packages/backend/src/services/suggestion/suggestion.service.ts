@@ -1,6 +1,8 @@
 import {
   FunctionParameters,
   getToolName,
+  SUGGESTION_MODEL,
+  SUGGESTION_PROVIDER,
   ThreadMessage,
   tryParseJsonObject,
 } from "@tambo-ai-cloud/core";
@@ -8,6 +10,7 @@ import OpenAI from "openai";
 import zodToJsonSchema from "zod-to-json-schema";
 import { AvailableComponent } from "../../model";
 import { buildSuggestionPrompt } from "../../prompt/suggestion-generator";
+import { AISdkClient } from "../llm/ai-sdk-client";
 import { LLMClient } from "../llm/llm-client";
 import {
   SuggestionDecision,
@@ -48,8 +51,21 @@ export async function generateSuggestions(
     throw new Error("Streaming is not supported yet");
   }
 
+  // Create a suggestion-specific LLMClient which ensures faster response times by using a lighter model for suggestions
+  const client = llmClient as unknown as {
+    apiKey: string | undefined;
+    userId: string;
+  };
+  const suggestionLlmClient = new AISdkClient(
+    client.apiKey,
+    SUGGESTION_MODEL,
+    SUGGESTION_PROVIDER,
+    llmClient.chainId,
+    client.userId,
+  );
+
   try {
-    const response = await llmClient.complete({
+    const response = await suggestionLlmClient.complete({
       messages:
         suggestionMessages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
       promptTemplateName: "suggestion-generation",
