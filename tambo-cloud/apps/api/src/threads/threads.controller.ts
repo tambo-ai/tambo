@@ -443,21 +443,16 @@ export class ThreadsController {
 
     const queue = new AsyncQueue<AdvanceThreadResponseDto>();
     try {
-      const p = this.threadsService
-        .advanceThread(
-          projectId,
-          advanceRequestDto,
-          threadId,
-          true,
-          advanceRequestDto.toolCallCounts ?? {},
-          undefined,
-          queue,
-          contextKey,
-        )
-        .catch((error) => {
-          console.error("Error while advancing thread", error);
-          throw error;
-        });
+      const p = this.threadsService.advanceThread(
+        projectId,
+        advanceRequestDto,
+        threadId,
+        true,
+        advanceRequestDto.toolCallCounts ?? {},
+        undefined,
+        queue,
+        contextKey,
+      );
 
       await this.handleAdvanceStream(response, queue);
       await p;
@@ -484,21 +479,16 @@ export class ThreadsController {
       advanceRequestDto.contextKey,
     );
     const queue = new AsyncQueue<AdvanceThreadResponseDto>();
-    const p = this.threadsService
-      .advanceThread(
-        projectId,
-        advanceRequestDto,
-        undefined,
-        false,
-        advanceRequestDto.toolCallCounts ?? {},
-        undefined,
-        queue,
-        contextKey,
-      )
-      .catch((error) => {
-        console.error("Error while advancing thread", error);
-        throw error;
-      });
+    const p = this.threadsService.advanceThread(
+      projectId,
+      advanceRequestDto,
+      undefined,
+      false,
+      advanceRequestDto.toolCallCounts ?? {},
+      undefined,
+      queue,
+      contextKey,
+    );
     let lastMessage: AdvanceThreadResponseDto | null = null;
     for await (const message of queue) {
       lastMessage = message;
@@ -533,21 +523,16 @@ export class ThreadsController {
 
     const queue = new AsyncQueue<AdvanceThreadResponseDto>();
     try {
-      const p = this.threadsService
-        .advanceThread(
-          projectId,
-          advanceRequestDto,
-          undefined,
-          true,
-          {},
-          undefined,
-          queue,
-          contextKey,
-        )
-        .catch((error) => {
-          console.error("Error while advancing thread", error);
-          throw error;
-        });
+      const p = this.threadsService.advanceThread(
+        projectId,
+        advanceRequestDto,
+        undefined,
+        true,
+        advanceRequestDto.toolCallCounts ?? {},
+        undefined,
+        queue,
+        contextKey,
+      );
       await this.handleAdvanceStream(response, queue);
       await p;
     } catch (error: any) {

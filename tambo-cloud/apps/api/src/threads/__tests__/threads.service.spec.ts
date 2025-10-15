@@ -1,3 +1,4 @@
+import { NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { createTamboBackend } from "@tambo-ai-cloud/backend";
@@ -9,6 +10,7 @@ import {
   GenerationStage,
   MessageRole,
   OAuthValidationMode,
+  type ChatCompletionContentPart,
 } from "@tambo-ai-cloud/core";
 import { schema, type operations as dbOperations } from "@tambo-ai-cloud/db";
 import {
@@ -26,6 +28,12 @@ import {
   AdvanceThreadResponseDto,
 } from "../dto/advance-thread.dto";
 import { ThreadsService } from "../threads.service";
+import {
+  FreeLimitReachedError,
+  InvalidSuggestionRequestError,
+  SuggestionGenerationError,
+  SuggestionNotFoundException,
+} from "../types/errors";
 
 // Mock backend pieces (TamboBackend and helpers)
 jest.mock("@tambo-ai-cloud/backend", () => {
@@ -69,6 +77,66 @@ const {
 const { __testRunDecisionLoop__ }: { __testRunDecisionLoop__: jest.Mock } =
   jest.requireMock("@tambo-ai-cloud/backend");
 
+// Helper function to create a properly-typed DBMessageWithSuggestions
+function createDBMessageWithSuggestions(
+  id: string,
+  threadId: string,
+  role: MessageRole,
+  content: ChatCompletionContentPart[],
+  suggestions: schema.DBSuggestion[] = [],
+): schema.DBMessage & { suggestions: schema.DBSuggestion[] } {
+  return {
+    ...createMockDBMessage(id, threadId, role, content),
+    suggestions,
+  };
+}
+
+// Helper function to create a properly-typed DBThreadWithMessages
+function createDBThreadWithMessages(
+  threadId: string,
+  projectId: string,
+  generationStage: GenerationStage,
+  messages: (schema.DBMessage & { suggestions: schema.DBSuggestion[] })[] = [],
+): schema.DBThread & {
+  messages: (schema.DBMessage & { suggestions: schema.DBSuggestion[] })[];
+} {
+  return {
+    ...createMockDBThread(threadId, projectId, generationStage),
+    messages,
+  };
+}
+
+// Helper function to create a properly-typed DBSuggestion
+function createDBSuggestion(
+  id: string,
+  messageId: string,
+  title: string,
+  detailedSuggestion: string,
+): schema.DBSuggestion {
+  return {
+    id,
+    messageId,
+    title,
+    detailedSuggestion,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+// Helper function to create a properly-typed DBMessageWithThread
+function createDBMessageWithThread(
+  id: string,
+  threadId: string,
+  role: MessageRole,
+  content: ChatCompletionContentPart[],
+  thread: schema.DBThread,
+): schema.DBMessage & { thread: schema.DBThread } {
+  return {
+    ...createMockDBMessage(id, threadId, role, content),
+    thread,
+  };
+}
+
 // Mock DB operations used by the service
 jest.mock("@tambo-ai-cloud/db", () => {
   const actual = jest.requireActual("@tambo-ai-cloud/db");
@@ -95,6 +163,7 @@ jest.mock("@tambo-ai-cloud/db", () => {
     // suggestions
     getSuggestions: jest.fn(),
     createSuggestions: jest.fn(),
+    getMessageWithAccess: jest.fn(),
 
     // usage / limits
     getProjectMessageUsage: jest.fn(),
@@ -109,6 +178,9 @@ jest.mock("@tambo-ai-cloud/db", () => {
     // mcp/system tools
     getProjectMcpServers: jest.fn(),
     addProjectLogEntry: jest.fn(),
+
+    // component state
+    updateMessageComponentState: jest.fn(),
   } satisfies Partial<typeof dbOperations>;
   return {
     ...actual,
@@ -175,6 +247,9 @@ describe("ThreadsService.advanceThread initialization", () => {
           projectId,
           generationStage: GenerationStage.COMPLETE,
         }),
+      },
+      projectMembers: {
+        findFirst: jest.fn(),
       },
     },
   };
@@ -266,8 +341,12 @@ describe("ThreadsService.advanceThread initialization", () => {
         {
           provide: EmailService,
           useValue: {
-            sendMessageLimitNotification: jest.fn(),
-            sendFirstMessageEmail: jest.fn(),
+            sendMessageLimitNotification: jest
+              .fn()
+              .mockResolvedValue({ success: true }),
+            sendFirstMessageEmail: jest
+              .fn()
+              .mockResolvedValue({ success: true }),
           },
         },
         {
@@ -372,7 +451,7 @@ describe("ThreadsService.advanceThread initialization", () => {
     });
     // Ensure backend instance is properly returned for this test
     jest
-      .spyOn<any, any>(service as any, "createTamboBackendForThread")
+      .spyOn<any, any>(service, "createTamboBackendForThread")
       .mockResolvedValue({
         runDecisionLoop: __testRunDecisionLoop__,
         generateSuggestions: jest.fn(),
@@ -383,7 +462,7 @@ describe("ThreadsService.advanceThread initialization", () => {
           baseURL: undefined,
           maxInputTokens: undefined,
         },
-      } as any);
+      });
     __testRunDecisionLoop__.mockImplementationOnce(() => {
       throw new Error("STOP_AFTER_INIT");
     });
@@ -505,7 +584,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         queue,
       );
 
-      const messages: any[] = [];
+      const messages: AdvanceThreadResponseDto[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -516,7 +595,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect(messages).toHaveLength(1);
 
       // Try to iterate again - should complete immediately with no items
-      const secondIteration: any[] = [];
+      const secondIteration: AdvanceThreadResponseDto[] = [];
       for await (const msg of queue) {
         secondIteration.push(msg);
       }
@@ -593,7 +672,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       );
 
       // Consume from queue
-      const messages: any[] = [];
+      const messages: AdvanceThreadResponseDto[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -642,7 +721,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         queue,
       );
 
-      const messages: any[] = [];
+      const messages: AdvanceThreadResponseDto[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -662,6 +741,966 @@ describe("ThreadsService.advanceThread initialization", () => {
         generationStage: expect.any(String),
         mcpAccessToken: expect.any(String),
       });
+    });
+  });
+
+  describe("CRUD Operations", () => {
+    describe("findAllForProject", () => {
+      it("should return all threads for a project", async () => {
+        const mockThreads = [
+          createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
+          createMockDBThread("thread_2", projectId, GenerationStage.IDLE),
+        ];
+
+        operations.getThreadsByProject.mockResolvedValue(mockThreads);
+
+        const result = await service.findAllForProject(projectId);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].id).toBe(threadId);
+        expect(result[1].id).toBe("thread_2");
+        expect(operations.getThreadsByProject).toHaveBeenCalledWith(
+          fakeDb,
+          projectId,
+          {},
+        );
+      });
+
+      it("should support pagination parameters", async () => {
+        operations.getThreadsByProject.mockResolvedValue([]);
+
+        await service.findAllForProject(projectId, {
+          offset: 10,
+          limit: 20,
+          contextKey: "ctx_123",
+        });
+
+        expect(operations.getThreadsByProject).toHaveBeenCalledWith(
+          fakeDb,
+          projectId,
+          {
+            offset: 10,
+            limit: 20,
+            contextKey: "ctx_123",
+          },
+        );
+      });
+
+      it("should map thread fields correctly", async () => {
+        const mockThread = {
+          ...createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
+          name: "My Thread",
+          metadata: { key: "value" },
+          contextKey: "ctx_test",
+        };
+
+        operations.getThreadsByProject.mockResolvedValue([mockThread]);
+
+        const result = await service.findAllForProject(projectId);
+
+        expect(result[0]).toMatchObject({
+          id: threadId,
+          name: "My Thread",
+          metadata: { key: "value" },
+          contextKey: "ctx_test",
+          projectId,
+        });
+      });
+    });
+
+    describe("countThreadsByProject", () => {
+      it("should return thread count for a project", async () => {
+        operations.countThreadsByProject.mockResolvedValue(5);
+
+        const count = await service.countThreadsByProject(projectId);
+
+        expect(count).toBe(5);
+        expect(operations.countThreadsByProject).toHaveBeenCalledWith(
+          fakeDb,
+          projectId,
+          {},
+        );
+      });
+
+      it("should support contextKey filter", async () => {
+        operations.countThreadsByProject.mockResolvedValue(3);
+
+        await service.countThreadsByProject(projectId, {
+          contextKey: "ctx_user",
+        });
+
+        expect(operations.countThreadsByProject).toHaveBeenCalledWith(
+          fakeDb,
+          projectId,
+          { contextKey: "ctx_user" },
+        );
+      });
+    });
+
+    describe("findOne", () => {
+      it("should return thread with messages", async () => {
+        const mockThread = createDBThreadWithMessages(
+          threadId,
+          projectId,
+          GenerationStage.COMPLETE,
+          [
+            createDBMessageWithSuggestions("m1", threadId, MessageRole.User, [
+              { type: "text", text: "Hello" },
+            ]),
+            createDBMessageWithSuggestions(
+              "m2",
+              threadId,
+              MessageRole.Assistant,
+              [{ type: "text", text: "Hi there" }],
+            ),
+          ],
+        );
+
+        operations.getThreadForProjectId.mockResolvedValue(mockThread);
+
+        const result = await service.findOne(threadId, projectId);
+
+        expect(result.id).toBe(threadId);
+        expect(result.messages).toHaveLength(2);
+        expect(result.messages[0].content[0]).toMatchObject({
+          type: ContentPartType.Text,
+          text: "Hello",
+        });
+      });
+
+      it("should throw NotFoundException when thread not found", async () => {
+        operations.getThreadForProjectId.mockResolvedValue(undefined);
+
+        await expect(service.findOne(threadId, projectId)).rejects.toThrow(
+          NotFoundException,
+        );
+      });
+
+      it("should filter out system messages by default", async () => {
+        const mockThread = createDBThreadWithMessages(
+          threadId,
+          projectId,
+          GenerationStage.COMPLETE,
+          [
+            createDBMessageWithSuggestions("m1", threadId, MessageRole.System, [
+              { type: "text", text: "System prompt" },
+            ]),
+            createDBMessageWithSuggestions("m2", threadId, MessageRole.User, [
+              { type: "text", text: "User message" },
+            ]),
+          ],
+        );
+
+        operations.getThreadForProjectId.mockResolvedValue(mockThread);
+
+        const result = await service.findOne(threadId, projectId);
+
+        // Should only return the user message, not the system message
+        expect(result.messages).toHaveLength(1);
+        expect(result.messages[0].role).toBe(MessageRole.User);
+      });
+
+      it("should support contextKey parameter", async () => {
+        const mockThread = createDBThreadWithMessages(
+          threadId,
+          projectId,
+          GenerationStage.COMPLETE,
+          [],
+        );
+
+        operations.getThreadForProjectId.mockResolvedValue(mockThread);
+
+        await service.findOne(threadId, projectId, "ctx_test");
+
+        expect(operations.getThreadForProjectId).toHaveBeenCalledWith(
+          fakeDb,
+          threadId,
+          projectId,
+          false,
+          "ctx_test",
+        );
+      });
+    });
+
+    describe("update", () => {
+      it("should update thread metadata", async () => {
+        const updateData = {
+          metadata: { updated: true },
+          name: "Updated Thread",
+        };
+
+        const updatedThread = createDBThreadWithMessages(
+          threadId,
+          projectId,
+          GenerationStage.COMPLETE,
+        );
+        updatedThread.metadata = updateData.metadata;
+        updatedThread.name = updateData.name;
+
+        operations.updateThread.mockResolvedValue(updatedThread);
+
+        const result = await service.update(threadId, {
+          projectId,
+          ...updateData,
+        });
+
+        expect(result.name).toBe("Updated Thread");
+        expect(result.metadata).toEqual({ updated: true });
+        expect(operations.updateThread).toHaveBeenCalledWith(
+          fakeDb,
+          threadId,
+          expect.objectContaining(updateData),
+        );
+      });
+    });
+
+    describe("updateGenerationStage", () => {
+      it("should update generation stage and status message", async () => {
+        const updatedThread = createDBThreadWithMessages(
+          threadId,
+          projectId,
+          GenerationStage.STREAMING_RESPONSE,
+        );
+        updatedThread.statusMessage = "Processing...";
+
+        operations.updateThread.mockResolvedValue(updatedThread);
+
+        await service.updateGenerationStage(
+          threadId,
+          GenerationStage.STREAMING_RESPONSE,
+          "Processing...",
+        );
+
+        expect(operations.updateThread).toHaveBeenCalledWith(
+          fakeDb,
+          threadId,
+          expect.objectContaining({
+            generationStage: GenerationStage.STREAMING_RESPONSE,
+            statusMessage: "Processing...",
+          }),
+        );
+      });
+    });
+
+    describe("cancelThread", () => {
+      it("should cancel thread and add empty assistant response for user message", async () => {
+        const mockMessage = createMockDBMessage(
+          "m1",
+          threadId,
+          MessageRole.User,
+          [{ type: "text", text: "Question?" }],
+        );
+
+        const cancelledThread = createDBThreadWithMessages(
+          threadId,
+          projectId,
+          GenerationStage.CANCELLED,
+        );
+        cancelledThread.statusMessage = "Thread advancement cancelled";
+
+        operations.updateThread.mockResolvedValue(cancelledThread);
+        operations.getLatestMessage.mockResolvedValue(mockMessage);
+        operations.updateMessage.mockResolvedValue(mockMessage);
+        operations.addMessage.mockResolvedValue(
+          createMockDBMessage("m2", threadId, MessageRole.Assistant, [
+            { type: "text", text: "" },
+          ]),
+        );
+
+        const result = await service.cancelThread(threadId);
+
+        expect(result.generationStage).toBe(GenerationStage.CANCELLED);
+        expect(operations.updateMessage).toHaveBeenCalledWith(
+          fakeDb,
+          mockMessage.id,
+          { isCancelled: true },
+        );
+        expect(operations.addMessage).toHaveBeenCalledWith(
+          fakeDb,
+          expect.objectContaining({
+            threadId,
+            role: MessageRole.Assistant,
+            content: [{ type: ContentPartType.Text, text: "" }],
+          }),
+        );
+      });
+
+      it("should add empty tool response when cancelling during tool call", async () => {
+        const mockToolCallMessage: schema.DBMessage = {
+          ...createMockDBMessage("m1", threadId, MessageRole.Assistant, [
+            { type: "text", text: "Calling tool..." },
+          ]),
+          toolCallRequest: {
+            toolName: "test_tool",
+            parameters: [],
+          },
+          toolCallId: "tc_123",
+        };
+
+        const cancelledThread = createDBThreadWithMessages(
+          threadId,
+          projectId,
+          GenerationStage.CANCELLED,
+        );
+
+        operations.updateThread.mockResolvedValue(cancelledThread);
+        operations.getLatestMessage.mockResolvedValue(mockToolCallMessage);
+        operations.updateMessage.mockResolvedValue(mockToolCallMessage);
+        operations.addMessage.mockResolvedValue(
+          createMockDBMessage("m2", threadId, MessageRole.Tool, [
+            { type: "text", text: "" },
+          ]),
+        );
+
+        await service.cancelThread(threadId);
+
+        // Check that operations.addMessage was called with the right structure
+        expect(operations.addMessage).toHaveBeenCalledWith(
+          fakeDb,
+          expect.objectContaining({
+            threadId,
+            role: MessageRole.Tool,
+            actionType: "tool_response",
+            toolCallId: "tc_123",
+            content: [{ type: ContentPartType.Text, text: "" }],
+          }),
+        );
+      });
+    });
+
+    describe("remove", () => {
+      it("should delete thread", async () => {
+        const deletedThread = createMockDBThread(
+          threadId,
+          projectId,
+          GenerationStage.COMPLETE,
+        );
+        operations.deleteThread.mockResolvedValue(deletedThread);
+
+        await service.remove(threadId);
+
+        expect(operations.deleteThread).toHaveBeenCalledWith(fakeDb, threadId);
+      });
+    });
+  });
+
+  describe("Message Operations", () => {
+    describe("getMessages", () => {
+      it("should return messages for a thread", async () => {
+        const mockMessages = [
+          createMockDBMessage("m1", threadId, MessageRole.User, [
+            { type: "text", text: "Hello" },
+          ]),
+          createMockDBMessage("m2", threadId, MessageRole.Assistant, [
+            { type: "text", text: "Hi" },
+          ]),
+        ];
+
+        operations.getMessages.mockResolvedValue(mockMessages);
+
+        const result = await service.getMessages({ threadId });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].content[0]).toMatchObject({
+          type: ContentPartType.Text,
+          text: "Hello",
+        });
+      });
+
+      it("should filter out system messages by default", async () => {
+        const mockMessages = [
+          createMockDBMessage("m1", threadId, MessageRole.System, [
+            { type: "text", text: "System" },
+          ]),
+          createMockDBMessage("m2", threadId, MessageRole.User, [
+            { type: "text", text: "User" },
+          ]),
+        ];
+
+        operations.getMessages.mockResolvedValue(mockMessages);
+
+        const result = await service.getMessages({ threadId });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].role).toBe(MessageRole.User);
+      });
+
+      it("should include system messages when requested", async () => {
+        const mockMessages = [
+          createMockDBMessage("m1", threadId, MessageRole.System, [
+            { type: "text", text: "System" },
+          ]),
+          createMockDBMessage("m2", threadId, MessageRole.User, [
+            { type: "text", text: "User" },
+          ]),
+        ];
+
+        operations.getMessages.mockResolvedValue(mockMessages);
+
+        const result = await service.getMessages({
+          threadId,
+          includeSystem: true,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].role).toBe(MessageRole.System);
+      });
+    });
+
+    describe("deleteMessage", () => {
+      it("should delete message by ID", async () => {
+        const deletedMessage = createMockDBMessage(
+          "msg_1",
+          threadId,
+          MessageRole.User,
+          [{ type: "text", text: "test" }],
+        );
+        operations.deleteMessage.mockResolvedValue(deletedMessage);
+
+        await service.deleteMessage("msg_1");
+
+        expect(operations.deleteMessage).toHaveBeenCalledWith(fakeDb, "msg_1");
+      });
+    });
+
+    describe("updateComponentState", () => {
+      it("should update message component state", async () => {
+        const messageId = "msg_1";
+        const newState = { counter: 5, expanded: true };
+
+        const updatedMessage = createMockDBMessage(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+        );
+        updatedMessage.componentState = newState;
+
+        operations.updateMessageComponentState.mockResolvedValue(
+          updatedMessage,
+        );
+
+        const result = await service.updateComponentState(messageId, newState);
+
+        expect(result.componentState).toEqual(newState);
+        expect(operations.updateMessageComponentState).toHaveBeenCalledWith(
+          fakeDb,
+          messageId,
+          newState,
+        );
+      });
+    });
+  });
+
+  describe("Message Limits & Rate Limiting", () => {
+    let emailService: EmailService;
+    let projectsService: ProjectsService;
+
+    beforeEach(() => {
+      emailService = module.get(EmailService);
+      projectsService = module.get(ProjectsService);
+
+      // Set up default mocks for findOne and findOneWithKeys
+      jest.mocked(projectsService.findOne).mockResolvedValue({
+        id: projectId,
+        name: "Test Project",
+        defaultLlmProviderName: "openai",
+        defaultLlmModelName: "gpt-4.1-2025-04-14",
+        userId: "user_1",
+        isTokenRequired: false,
+        providerType: AiProviderType.LLM,
+      });
+
+      jest.mocked(projectsService.findOneWithKeys).mockResolvedValue({
+        getProviderKeys: () => [],
+      } as any);
+    });
+
+    it("should throw FreeLimitReachedError when limit exceeded without API key", async () => {
+      operations.getProjectMessageUsage.mockResolvedValue({
+        projectId,
+        messageCount: 500, // Exactly at FREE_MESSAGE_LIMIT
+        hasApiKey: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        firstMessageSentAt: new Date(),
+        notificationSentAt: null,
+      });
+
+      const checkLimit = (service as any).checkMessageLimit_.bind(service);
+
+      await expect(checkLimit(projectId)).rejects.toThrow(
+        FreeLimitReachedError,
+      );
+    });
+
+    it("should send notification email when limit reached for first time", async () => {
+      jest.mocked(fakeDb.query.projectMembers.findFirst).mockResolvedValue({
+        user: { id: "user_1", email: "user@test.com" },
+      } as any);
+
+      operations.getProjectMessageUsage.mockResolvedValue({
+        projectId,
+        messageCount: 500, // At FREE_MESSAGE_LIMIT
+        hasApiKey: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        firstMessageSentAt: new Date(),
+        notificationSentAt: null, // Not sent yet
+      });
+
+      jest.mocked(projectsService.findOne).mockResolvedValue({
+        id: projectId,
+        name: "Test Project",
+        defaultLlmProviderName: "openai",
+        defaultLlmModelName: "gpt-4.1-2025-04-14",
+        userId: "user_1",
+        isTokenRequired: false,
+        providerType: AiProviderType.LLM,
+      });
+
+      const checkLimit = (service as any).checkMessageLimit_.bind(service);
+
+      await expect(checkLimit(projectId)).rejects.toThrow(
+        FreeLimitReachedError,
+      );
+
+      expect(emailService.sendMessageLimitNotification).toHaveBeenCalledWith(
+        projectId,
+        "user@test.com",
+        "Test Project",
+      );
+
+      expect(operations.updateProjectMessageUsage).toHaveBeenCalledWith(
+        fakeDb,
+        projectId,
+        expect.objectContaining({
+          notificationSentAt: expect.any(Date),
+        }),
+      );
+    });
+
+    it("should not send duplicate notification emails", async () => {
+      operations.getProjectMessageUsage.mockResolvedValue({
+        projectId,
+        messageCount: 500, // At FREE_MESSAGE_LIMIT
+        hasApiKey: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        firstMessageSentAt: new Date(),
+        notificationSentAt: new Date(), // Already sent
+      });
+
+      const checkLimit = (service as any).checkMessageLimit_.bind(service);
+
+      await expect(checkLimit(projectId)).rejects.toThrow(
+        FreeLimitReachedError,
+      );
+
+      expect(emailService.sendMessageLimitNotification).not.toHaveBeenCalled();
+    });
+
+    it("should send first message email for new projects", async () => {
+      operations.getProject.mockResolvedValue(
+        createMockDBProject(projectId, { name: "New Project" }),
+      );
+
+      // First call returns undefined (no usage)
+      operations.getProjectMessageUsage.mockResolvedValue(undefined);
+
+      // Mock the updateProjectMessageUsage calls
+      operations.updateProjectMessageUsage
+        .mockResolvedValueOnce({
+          projectId,
+          messageCount: 1,
+          hasApiKey: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          firstMessageSentAt: null,
+          notificationSentAt: null,
+        })
+        .mockResolvedValueOnce({
+          projectId,
+          messageCount: 1,
+          hasApiKey: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          firstMessageSentAt: new Date(),
+          notificationSentAt: null,
+        });
+
+      operations.getProjectMembers.mockResolvedValue({
+        name: "New Project",
+        members: [{ user: { id: "user_1", email: "user@test.com" } }],
+      } as any);
+
+      operations.hasUserReceivedFirstMessageEmail.mockResolvedValue(false);
+
+      const checkLimit = (service as any).checkMessageLimit_.bind(service);
+      await checkLimit(projectId);
+
+      expect(emailService.sendFirstMessageEmail).toHaveBeenCalledWith(
+        "user@test.com",
+        null,
+        "New Project",
+      );
+
+      // Check that updateProjectMessageUsage was called twice - once to create, once to update firstMessageSentAt
+      expect(operations.updateProjectMessageUsage).toHaveBeenCalledTimes(2);
+      expect(operations.updateProjectMessageUsage).toHaveBeenLastCalledWith(
+        fakeDb,
+        projectId,
+        expect.objectContaining({
+          firstMessageSentAt: expect.any(Date),
+        }),
+      );
+    });
+
+    it("should not send first message email if user already received it", async () => {
+      operations.getProjectMessageUsage.mockResolvedValue({
+        projectId,
+        messageCount: 1,
+        hasApiKey: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        firstMessageSentAt: null,
+        notificationSentAt: null,
+      });
+
+      operations.getProjectMembers.mockResolvedValue({
+        name: "Project",
+        members: [{ user: { id: "user_1", email: "user@test.com" } }],
+      } as any);
+
+      operations.hasUserReceivedFirstMessageEmail.mockResolvedValue(true);
+
+      const checkLimit = (service as any).checkMessageLimit_.bind(service);
+      await checkLimit(projectId);
+
+      expect(emailService.sendFirstMessageEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Suggestions", () => {
+    const messageId = "msg_1";
+
+    describe("getSuggestions", () => {
+      it("should return suggestions for a message", async () => {
+        const mockSuggestions = [
+          createDBSuggestion(
+            "s1",
+            messageId,
+            "Follow up question",
+            "Ask about details",
+          ),
+          createDBSuggestion(
+            "s2",
+            messageId,
+            "Different approach",
+            "Try another way",
+          ),
+        ];
+
+        const mockMessageWithThread = createDBMessageWithThread(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+          createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
+        );
+
+        operations.getMessageWithAccess.mockResolvedValue(
+          mockMessageWithThread,
+        );
+        operations.getSuggestions.mockResolvedValue(mockSuggestions);
+
+        const result = await service.getSuggestions(messageId);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].title).toBe("Follow up question");
+        expect(operations.getSuggestions).toHaveBeenCalledWith(
+          fakeDb,
+          messageId,
+        );
+      });
+
+      it("should throw SuggestionNotFoundException when no suggestions exist", async () => {
+        const mockMessageWithThread = createDBMessageWithThread(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+          createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
+        );
+
+        operations.getMessageWithAccess.mockResolvedValue(
+          mockMessageWithThread,
+        );
+        operations.getSuggestions.mockResolvedValue([]);
+
+        await expect(service.getSuggestions(messageId)).rejects.toThrow(
+          SuggestionNotFoundException,
+        );
+      });
+
+      it("should throw InvalidSuggestionRequestError when message not found", async () => {
+        operations.getMessageWithAccess.mockResolvedValue(undefined);
+
+        await expect(service.getSuggestions(messageId)).rejects.toThrow(
+          InvalidSuggestionRequestError,
+        );
+      });
+
+      it("should wrap database errors in SuggestionGenerationError", async () => {
+        const mockMessageWithThread = createDBMessageWithThread(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+          createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
+        );
+
+        operations.getMessageWithAccess.mockResolvedValue(
+          mockMessageWithThread,
+        );
+        operations.getSuggestions.mockRejectedValue(
+          new Error("Database connection error"),
+        );
+
+        await expect(service.getSuggestions(messageId)).rejects.toThrow(
+          SuggestionGenerationError,
+        );
+      });
+    });
+
+    describe("generateSuggestions", () => {
+      it("should generate and save suggestions", async () => {
+        const mockMessage = createMockDBMessage(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+        );
+
+        const mockBackend = {
+          generateSuggestions: jest.fn().mockResolvedValue({
+            suggestions: [
+              {
+                title: "Generated suggestion 1",
+                detailedSuggestion: "Details 1",
+              },
+              {
+                title: "Generated suggestion 2",
+                detailedSuggestion: "Details 2",
+              },
+            ],
+          }),
+          runDecisionLoop: jest.fn(),
+          generateThreadName: jest.fn(),
+          modelOptions: {
+            provider: "openai",
+            model: "gpt-4o",
+          },
+          llmClient: {} as any,
+        };
+
+        mockedCreateTamboBackend.mockResolvedValue(mockBackend as any);
+
+        const threadWithContext = createMockDBThread(
+          threadId,
+          projectId,
+          GenerationStage.COMPLETE,
+        );
+        threadWithContext.contextKey = "ctx_test";
+
+        const mockMessageWithThread = createDBMessageWithThread(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+          threadWithContext,
+        );
+
+        operations.getMessageWithAccess.mockResolvedValue(
+          mockMessageWithThread,
+        );
+        operations.getMessages.mockResolvedValue([mockMessage]);
+
+        const mockSuggestions = [
+          createDBSuggestion(
+            "s1",
+            messageId,
+            "Generated suggestion 1",
+            "Details 1",
+          ),
+          createDBSuggestion(
+            "s2",
+            messageId,
+            "Generated suggestion 2",
+            "Details 2",
+          ),
+        ];
+
+        operations.createSuggestions.mockResolvedValue(mockSuggestions);
+
+        jest.mocked(fakeDb.query.threads.findFirst).mockResolvedValue({
+          id: threadId,
+          projectId,
+        });
+
+        const result = await service.generateSuggestions(messageId, {
+          maxSuggestions: 2,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].title).toBe("Generated suggestion 1");
+        expect(mockBackend.generateSuggestions).toHaveBeenCalled();
+        expect(operations.createSuggestions).toHaveBeenCalledWith(
+          fakeDb,
+          expect.arrayContaining([
+            expect.objectContaining({
+              messageId,
+              title: "Generated suggestion 1",
+            }),
+          ]),
+        );
+      });
+
+      it("should throw SuggestionGenerationError when no suggestions generated", async () => {
+        const mockMessage = createMockDBMessage(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+        );
+
+        const mockBackend = {
+          generateSuggestions: jest.fn().mockResolvedValue({
+            suggestions: [],
+          }),
+          runDecisionLoop: jest.fn(),
+          generateThreadName: jest.fn(),
+          modelOptions: {
+            provider: "openai",
+            model: "gpt-4o",
+          },
+          llmClient: {} as any,
+        };
+
+        mockedCreateTamboBackend.mockResolvedValue(mockBackend as any);
+
+        const mockMessageWithThread = createDBMessageWithThread(
+          messageId,
+          threadId,
+          MessageRole.Assistant,
+          [{ type: "text", text: "Response" }],
+          createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
+        );
+
+        operations.getMessageWithAccess.mockResolvedValue(
+          mockMessageWithThread,
+        );
+        operations.getMessages.mockResolvedValue([mockMessage]);
+
+        jest.mocked(fakeDb.query.threads.findFirst).mockResolvedValue({
+          id: threadId,
+          projectId,
+        });
+
+        await expect(
+          service.generateSuggestions(messageId, { maxSuggestions: 3 }),
+        ).rejects.toThrow(SuggestionGenerationError);
+      });
+    });
+  });
+
+  describe("generateThreadName", () => {
+    it("should generate and update thread name", async () => {
+      const mockMessages = [
+        createDBMessageWithSuggestions("m1", threadId, MessageRole.User, [
+          { type: "text", text: "How do I build a web app?" },
+        ]),
+        createDBMessageWithSuggestions("m2", threadId, MessageRole.Assistant, [
+          { type: "text", text: "Here's how to build a web app..." },
+        ]),
+      ];
+
+      const mockBackend = {
+        generateThreadName: jest.fn().mockResolvedValue("Web App Development"),
+        runDecisionLoop: jest.fn(),
+        generateSuggestions: jest.fn(),
+        modelOptions: {
+          provider: "openai",
+          model: "gpt-4o",
+        },
+        llmClient: {} as any,
+      };
+
+      mockedCreateTamboBackend.mockResolvedValue(mockBackend as any);
+
+      const threadWithMessages = createDBThreadWithMessages(
+        threadId,
+        projectId,
+        GenerationStage.COMPLETE,
+        mockMessages,
+      );
+
+      operations.getThreadForProjectId.mockResolvedValue(threadWithMessages);
+      operations.getMessages.mockResolvedValue(
+        mockMessages.map((m) =>
+          createMockDBMessage(m.id, threadId, m.role, m.content),
+        ),
+      );
+
+      const updatedThread = createDBThreadWithMessages(
+        threadId,
+        projectId,
+        GenerationStage.COMPLETE,
+      );
+      updatedThread.name = "Web App Development";
+
+      operations.updateThread.mockResolvedValue(updatedThread);
+
+      jest.mocked(fakeDb.query.threads.findFirst).mockResolvedValue({
+        id: threadId,
+        projectId,
+      });
+
+      const result = await service.generateThreadName(threadId, projectId);
+
+      expect(result.name).toBe("Web App Development");
+      expect(mockBackend.generateThreadName).toHaveBeenCalled();
+      expect(operations.updateThread).toHaveBeenCalledWith(
+        fakeDb,
+        threadId,
+        expect.objectContaining({
+          name: "Web App Development",
+        }),
+      );
+    });
+
+    it("should throw NotFoundException when thread not found", async () => {
+      operations.getThreadForProjectId.mockResolvedValue(undefined);
+
+      await expect(
+        service.generateThreadName(threadId, projectId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should throw NotFoundException when no messages exist", async () => {
+      const emptyThread = createDBThreadWithMessages(
+        threadId,
+        projectId,
+        GenerationStage.COMPLETE,
+        [],
+      );
+
+      operations.getThreadForProjectId.mockResolvedValue(emptyThread);
+      operations.getMessages.mockResolvedValue([]);
+
+      await expect(
+        service.generateThreadName(threadId, projectId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });
