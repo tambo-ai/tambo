@@ -12,10 +12,7 @@ import { extractContextInfo } from "../../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../../projects/guards/bearer-token.guard";
 import { ProjectAccessOwnGuard } from "../../projects/guards/project-access-own.guard";
-import {
-  AdvanceThreadDto,
-  AdvanceThreadResponseDto,
-} from "../dto/advance-thread.dto";
+import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { ThreadInProjectGuard } from "../guards/thread-in-project-guard";
 import { ThreadsController } from "../threads.controller";
 import { ThreadsService } from "../threads.service";
@@ -206,24 +203,36 @@ describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
         contextKey: "test-context-key",
       });
 
-      // Mock a successful stream response
-      async function* streamGenerator(): AsyncIterableIterator<AdvanceThreadResponseDto> {
-        yield {
-          responseMessageDto: {
-            id: "msg-1",
-            content: [{ type: ContentPartType.Text, text: "Hello" }],
-            role: MessageRole.Assistant,
-            threadId: "test-thread-id",
-            componentState: {},
-            createdAt: new Date(),
+      // Mock a successful stream response by pushing to the queue
+      jest
+        .spyOn(threadsService, "advanceThread")
+        .mockImplementation(
+          async (
+            _projectId,
+            _advanceRequestDto,
+            _unresolvedThreadId,
+            _stream,
+            _toolCallCounts,
+            _cachedSystemTools,
+            queue,
+          ) => {
+            if (queue) {
+              queue.push({
+                responseMessageDto: {
+                  id: "msg-1",
+                  content: [{ type: ContentPartType.Text, text: "Hello" }],
+                  role: MessageRole.Assistant,
+                  threadId: "test-thread-id",
+                  componentState: {},
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.COMPLETE,
+                mcpAccessToken: "test-mcp-access-token",
+              });
+              queue.finish();
+            }
           },
-          generationStage: GenerationStage.COMPLETE,
-          mcpAccessToken: "test-mcp-access-token",
-        };
-      }
-      const mockStream = streamGenerator();
-
-      jest.spyOn(threadsService, "advanceThread").mockResolvedValue(mockStream);
+        );
 
       // Act & Assert
       const response = await request(app.getHttpServer())

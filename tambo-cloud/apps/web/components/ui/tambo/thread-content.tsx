@@ -154,6 +154,8 @@ const ThreadContentMessages = React.forwardRef<
               className={cn(
                 "flex w-full",
                 message.role === "assistant" ? "justify-start" : "justify-end",
+                // messages with parent should be slightly dimmed out
+                message.parentMessageId ? "opacity-20" : "",
               )}
             >
               <div

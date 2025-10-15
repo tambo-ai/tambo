@@ -112,19 +112,32 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
         contextKey: "test-context-key",
       });
 
+      // Mock advanceThread to fail the queue with an error
       jest
         .spyOn(threadsService, "advanceThread")
-        .mockRejectedValue(internalError);
-
-      // Act - The method should handle the error internally
-      await expect(async () => {
-        await controller.advanceThreadStream(
-          threadId,
-          mockRequest as Request,
-          advanceRequestDto,
-          mockResponse as Response,
+        .mockImplementation(
+          async (
+            _projectId,
+            _advanceRequestDto,
+            _unresolvedThreadId,
+            _stream,
+            _toolCallCounts,
+            _cachedSystemTools,
+            queue,
+          ) => {
+            if (queue) {
+              queue.fail(internalError);
+            }
+          },
         );
-      }).not.toThrow(); // Should not throw, error should be caught
+
+      // Act - The method should handle the error internally via the queue
+      await controller.advanceThreadStream(
+        threadId,
+        mockRequest as Request,
+        advanceRequestDto,
+        mockResponse as Response,
+      );
 
       // Assert - Error should be written to stream response
       expect(mockResponse.write).toHaveBeenCalledWith(
@@ -170,18 +183,31 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
         contextKey: "test-context-key",
       });
 
+      // Mock advanceThread to fail the queue with an error
       jest
         .spyOn(threadsService, "advanceThread")
-        .mockRejectedValue(internalError);
-
-      // Act - The method should handle the error internally
-      await expect(async () => {
-        await controller.createAndAdvanceThreadStream(
-          mockRequest as Request,
-          advanceRequestDto,
-          mockResponse as Response,
+        .mockImplementation(
+          async (
+            _projectId,
+            _advanceRequestDto,
+            _unresolvedThreadId,
+            _stream,
+            _toolCallCounts,
+            _cachedSystemTools,
+            queue,
+          ) => {
+            if (queue) {
+              queue.fail(internalError);
+            }
+          },
         );
-      }).not.toThrow(); // Should not throw, error should be caught
+
+      // Act - The method should handle the error internally via the queue
+      await controller.createAndAdvanceThreadStream(
+        mockRequest as Request,
+        advanceRequestDto,
+        mockResponse as Response,
+      );
 
       // Assert - Error should be written to stream response
       expect(mockResponse.write).toHaveBeenCalledWith(

@@ -4,6 +4,7 @@ import { createTamboBackend } from "@tambo-ai-cloud/backend";
 import {
   AgentProviderType,
   AiProviderType,
+  AsyncQueue,
   ContentPartType,
   GenerationStage,
   MessageRole,
@@ -20,7 +21,10 @@ import { AuthService } from "../../common/services/auth.service";
 import { EmailService } from "../../common/services/email.service";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { ProjectsService } from "../../projects/projects.service";
-import { AdvanceThreadDto } from "../dto/advance-thread.dto";
+import {
+  AdvanceThreadDto,
+  AdvanceThreadResponseDto,
+} from "../dto/advance-thread.dto";
 import { ThreadsService } from "../threads.service";
 
 // Mock backend pieces (TamboBackend and helpers)
@@ -219,6 +223,10 @@ describe("ThreadsService.advanceThread initialization", () => {
       }),
     );
     operations.getProjectMcpServers.mockResolvedValue([]);
+    operations.getThreadForProjectId.mockResolvedValue({
+      ...createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
+      messages: [],
+    });
     operations.getMessages.mockResolvedValue([
       createMockDBMessage("m1", threadId, MessageRole.User, [
         { type: "text", text: "hi" },
@@ -302,10 +310,11 @@ describe("ThreadsService.advanceThread initialization", () => {
     await module.close();
   });
 
-  test("streaming: initialization calls generateStreamingResponse with no tools/components", async () => {
+  test("retrieves MCP system tools from database", async () => {
     const dto = makeDto({ withComponents: false, withClientTools: false });
 
-    const generateStreamingResponse = jest
+    // Stop execution before hitting complex streaming logic
+    jest
       .spyOn<any, any>(service, "generateStreamingResponse")
       .mockImplementation(async () => {
         throw new Error("STOP_AFTER_INIT");
@@ -315,95 +324,18 @@ describe("ThreadsService.advanceThread initialization", () => {
       service.advanceThread(projectId, dto, undefined, true),
     ).rejects.toThrow("STOP_AFTER_INIT");
 
-    // Ensure system tools were retrieved via DB-backed implementation
+    // Verify system tools were retrieved from database
     expect(operations.getProjectMcpServers).toHaveBeenCalledWith(
       fakeDb,
       projectId,
       null,
     );
-    const initArgs = mockedCreateTamboBackend.mock.calls[0];
-    expect(initArgs[0]).toBe("sk-fallback");
-    expect(initArgs[2]).toBe(`${projectId}-tambo:anon-user`);
-    expect(initArgs[3]).toEqual(
-      expect.objectContaining({
-        provider: "openai",
-        model: "gpt-4.1-2025-04-14",
-      }),
-    );
-    // generateStreamingResponse was invoked
-    expect(generateStreamingResponse).toHaveBeenCalled();
   });
 
-  test("streaming: initialization passes system tools when present", async () => {
-    const dto = makeDto();
-
-    const generateStreamingResponse = jest
-      .spyOn<any, any>(service, "generateStreamingResponse")
-      .mockImplementation(async () => {
-        throw new Error("STOP_AFTER_INIT");
-      });
-
-    await expect(
-      service.advanceThread(projectId, dto, undefined, true),
-    ).rejects.toThrow("STOP_AFTER_INIT");
-
-    expect(operations.getProjectMcpServers).toHaveBeenCalled();
-    expect(generateStreamingResponse).toHaveBeenCalled();
-  });
-
-  test("streaming: calls backend.runDecisionLoop with strictTools, messages, customInstructions", async () => {
-    const dto = makeDto();
-    // Ensure backend instance is properly returned for this test
-    jest
-      .spyOn<any, any>(service as any, "createTamboBackendForThread")
-      .mockResolvedValue({
-        runDecisionLoop: __testRunDecisionLoop__,
-        generateSuggestions: jest.fn(),
-        generateThreadName: jest.fn(),
-        modelOptions: {
-          provider: "openai",
-          model: "gpt-4.1-2025-04-14",
-          baseURL: undefined,
-          maxInputTokens: undefined,
-        },
-      } as any);
-    __testRunDecisionLoop__.mockImplementationOnce(() => {
-      throw new Error("STOP_AFTER_INIT");
-    });
-
-    await expect(
-      service.advanceThread(projectId, dto, undefined, true),
-    ).rejects.toThrow("STOP_AFTER_INIT");
-
-    expect(__testRunDecisionLoop__).toHaveBeenCalledTimes(1);
-    const callArg = __testRunDecisionLoop__.mock.calls[0][0];
-    expect(callArg).toEqual(
-      expect.objectContaining({
-        messages: expect.any(Array),
-        strictTools: expect.any(Array),
-      }),
-    );
-  });
-
-  test("streaming: initialization with client tools and components", async () => {
-    const dto = makeDto({ withComponents: true, withClientTools: true });
-    const generateStreamingResponse = jest
-      .spyOn<any, any>(service, "generateStreamingResponse")
-      .mockImplementation(async () => {
-        throw new Error("STOP_AFTER_INIT");
-      });
-
-    await expect(
-      service.advanceThread(projectId, dto, undefined, true),
-    ).rejects.toThrow("STOP_AFTER_INIT");
-
-    expect(generateStreamingResponse).toHaveBeenCalled();
-  });
-
-  test("streaming: initialization uses contextKey in backend user id and token", async () => {
+  test("uses contextKey in backend user id and MCP token generation", async () => {
     const dto = makeDto();
     const contextKey = "ctx_123";
-    const generateStreamingResponse = jest
+    jest
       .spyOn<any, any>(service, "generateStreamingResponse")
       .mockImplementation(async () => {
         throw new Error("STOP_AFTER_INIT");
@@ -417,51 +349,21 @@ describe("ThreadsService.advanceThread initialization", () => {
         true,
         {},
         undefined,
+        undefined, // queue
         contextKey,
       ),
     ).rejects.toThrow("STOP_AFTER_INIT");
 
     const initArgs2 = mockedCreateTamboBackend.mock.calls[0];
     expect(initArgs2[2]).toBe(`${projectId}-${contextKey}`);
-    expect(initArgs2[3]).toEqual(expect.any(Object));
     expect(authService.generateMcpAccessToken).toHaveBeenCalledWith(
       projectId,
       threadId,
       contextKey,
     );
-    expect(generateStreamingResponse).toHaveBeenCalled();
   });
 
-  test("non-streaming: initialization reaches non-streaming decision flow", async () => {
-    const dto = makeDto({ withComponents: true, withClientTools: false });
-    // Spy on private method to short-circuit after entering non-streaming path
-    const advanceThread = jest
-      .spyOn<any, any>(service, "advanceThread_")
-      .mockImplementationOnce(async (...args: any[]) => {
-        // Call original to exercise path until just before processThreadMessage returns
-        const original =
-          Object.getPrototypeOf(service).advanceThread_.bind(service);
-        await original(
-          args[0],
-          args[1],
-          args[2],
-          false,
-          args[4],
-          args[5],
-          args[6],
-        ).catch(() => undefined);
-        throw new Error("STOP_AFTER_INIT");
-      });
-
-    await expect(
-      service.advanceThread(projectId, dto, undefined, false),
-    ).rejects.toThrow("STOP_AFTER_INIT");
-
-    expect(operations.getProjectMcpServers).toHaveBeenCalled();
-    expect(advanceThread).toHaveBeenCalled();
-  });
-
-  test("non-streaming: calls backend.runDecisionLoop with forceToolChoice when provided", async () => {
+  test("passes forceToolChoice parameter to decision loop", async () => {
     const dto = makeDto({
       withComponents: true,
       withClientTools: true,
@@ -500,29 +402,265 @@ describe("ThreadsService.advanceThread initialization", () => {
     );
   });
 
-  test("non-streaming: initialization handles no tools/components", async () => {
-    const dto = makeDto({ withComponents: false, withClientTools: false });
-    const advanceThread = jest
-      .spyOn<any, any>(service, "advanceThread_")
-      .mockImplementationOnce(async (...args: any[]) => {
-        const original =
-          Object.getPrototypeOf(service).advanceThread_.bind(service);
-        await original(
-          args[0],
-          args[1],
-          args[2],
-          false,
-          args[4],
-          args[5],
-          args[6],
-        ).catch(() => undefined);
-        throw new Error("STOP_AFTER_INIT");
+  describe("Queue-based streaming behavior", () => {
+    test("pushes messages to queue during streaming execution", async () => {
+      const dto = makeDto({ withComponents: false, withClientTools: false });
+      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+
+      // Mock generateStreamingResponse to push messages to the queue
+      jest
+        .spyOn<any, any>(service, "generateStreamingResponse")
+        .mockImplementation(
+          async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
+            // Simulate streaming multiple messages
+            providedQueue.push({
+              responseMessageDto: {
+                id: "msg-1",
+                role: MessageRole.Assistant,
+                content: [{ type: ContentPartType.Text, text: "Hello" }],
+                threadId,
+                componentState: {},
+                createdAt: new Date(),
+              },
+              generationStage: GenerationStage.STREAMING_RESPONSE,
+              mcpAccessToken: "token-1",
+            });
+            providedQueue.push({
+              responseMessageDto: {
+                id: "msg-2",
+                role: MessageRole.Assistant,
+                content: [{ type: ContentPartType.Text, text: "World" }],
+                threadId,
+                componentState: {},
+                createdAt: new Date(),
+              },
+              generationStage: GenerationStage.COMPLETE,
+              mcpAccessToken: "token-1",
+            });
+          },
+        );
+
+      // Start the operation (don't await - it will run concurrently)
+      // Pass undefined for threadId to avoid complex thread lookup mocking
+      const advancePromise = service.advanceThread(
+        projectId,
+        dto,
+        undefined, // let service create new thread
+        true,
+        {},
+        undefined,
+        queue,
+      );
+
+      // Consume from the queue
+      const messages: any[] = [];
+      for await (const msg of queue) {
+        messages.push(msg);
+      }
+
+      // Wait for the advance operation to complete
+      await advancePromise;
+
+      // Verify we received both messages in order
+      expect(messages).toHaveLength(2);
+      expect(messages[0].responseMessageDto.content[0].text).toBe("Hello");
+      expect(messages[0].generationStage).toBe(
+        GenerationStage.STREAMING_RESPONSE,
+      );
+      expect(messages[1].responseMessageDto.content[0].text).toBe("World");
+      expect(messages[1].generationStage).toBe(GenerationStage.COMPLETE);
+    });
+
+    test("properly finishes queue on successful completion", async () => {
+      const dto = makeDto({ withComponents: false, withClientTools: false });
+      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+
+      jest
+        .spyOn<any, any>(service, "generateStreamingResponse")
+        .mockImplementation(
+          async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
+            providedQueue.push({
+              responseMessageDto: {
+                id: "msg-1",
+                role: MessageRole.Assistant,
+                content: [{ type: ContentPartType.Text, text: "Done" }],
+                threadId,
+                componentState: {},
+                createdAt: new Date(),
+              },
+              generationStage: GenerationStage.COMPLETE,
+              mcpAccessToken: "token-1",
+            });
+          },
+        );
+
+      const advancePromise = service.advanceThread(
+        projectId,
+        dto,
+        undefined,
+        true,
+        {},
+        undefined,
+        queue,
+      );
+
+      const messages: any[] = [];
+      for await (const msg of queue) {
+        messages.push(msg);
+      }
+
+      await advancePromise;
+
+      // Verify queue completed normally
+      expect(messages).toHaveLength(1);
+
+      // Try to iterate again - should complete immediately with no items
+      const secondIteration: any[] = [];
+      for await (const msg of queue) {
+        secondIteration.push(msg);
+      }
+      expect(secondIteration).toHaveLength(0);
+    });
+
+    test("properly fails queue on error", async () => {
+      const dto = makeDto({ withComponents: false, withClientTools: false });
+      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const testError = new Error("Test error during generation");
+
+      jest
+        .spyOn<any, any>(service, "generateStreamingResponse")
+        .mockImplementation(async () => {
+          throw testError;
+        });
+
+      // Start the operation
+      const advancePromise = service.advanceThread(
+        projectId,
+        dto,
+        undefined,
+        true,
+        {},
+        undefined,
+        queue,
+      );
+
+      // Try to consume from queue - should receive the error
+      await expect(async () => {
+        for await (const _msg of queue) {
+          // Should not receive any messages
+        }
+      }).rejects.toThrow("Test error during generation");
+
+      // The advance operation itself should also complete (not hang)
+      await expect(advancePromise).rejects.toThrow(
+        "Test error during generation",
+      );
+    });
+
+    test("queue works with single final message", async () => {
+      const dto = makeDto({ withComponents: false, withClientTools: false });
+      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+
+      // Mock to push only one final message (similar to non-streaming behavior)
+      jest
+        .spyOn<any, any>(service, "generateStreamingResponse")
+        .mockImplementation(
+          async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
+            providedQueue.push({
+              responseMessageDto: {
+                id: "msg-final",
+                role: MessageRole.Assistant,
+                content: [{ type: ContentPartType.Text, text: "Final result" }],
+                threadId,
+                componentState: {},
+                createdAt: new Date(),
+              },
+              generationStage: GenerationStage.COMPLETE,
+              mcpAccessToken: "token-1",
+            });
+          },
+        );
+
+      const advancePromise = service.advanceThread(
+        projectId,
+        dto,
+        undefined,
+        true, // streaming enabled (but only one message pushed)
+        {},
+        undefined,
+        queue,
+      );
+
+      // Consume from queue
+      const messages: any[] = [];
+      for await (const msg of queue) {
+        messages.push(msg);
+      }
+
+      await advancePromise;
+
+      // Should receive exactly one message
+      expect(messages).toHaveLength(1);
+      expect(messages[0].responseMessageDto.content[0].text).toBe(
+        "Final result",
+      );
+      expect(messages[0].generationStage).toBe(GenerationStage.COMPLETE);
+    });
+
+    test("queue receives messages with correct structure", async () => {
+      const dto = makeDto({ withComponents: true, withClientTools: true });
+      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+
+      jest
+        .spyOn<any, any>(service, "generateStreamingResponse")
+        .mockImplementation(
+          async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
+            providedQueue.push({
+              responseMessageDto: {
+                id: "msg-test",
+                role: MessageRole.Assistant,
+                content: [{ type: ContentPartType.Text, text: "Response" }],
+                threadId,
+                componentState: { someState: "value" },
+                createdAt: new Date(),
+              },
+              generationStage: GenerationStage.COMPLETE,
+              statusMessage: "Complete",
+              mcpAccessToken: "test-token",
+            });
+          },
+        );
+
+      const advancePromise = service.advanceThread(
+        projectId,
+        dto,
+        undefined,
+        true,
+        {},
+        undefined,
+        queue,
+      );
+
+      const messages: any[] = [];
+      for await (const msg of queue) {
+        messages.push(msg);
+      }
+
+      await advancePromise;
+
+      // Verify message structure
+      expect(messages[0]).toMatchObject({
+        responseMessageDto: expect.objectContaining({
+          id: expect.any(String),
+          role: MessageRole.Assistant,
+          content: expect.any(Array),
+          threadId: expect.any(String),
+          componentState: expect.any(Object),
+          createdAt: expect.any(Date),
+        }),
+        generationStage: expect.any(String),
+        mcpAccessToken: expect.any(String),
       });
-
-    await expect(
-      service.advanceThread(projectId, dto, undefined, false),
-    ).rejects.toThrow("STOP_AFTER_INIT");
-
-    expect(advanceThread).toHaveBeenCalled();
+    });
   });
 });

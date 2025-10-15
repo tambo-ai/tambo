@@ -37,8 +37,10 @@ export async function* throttleChunks<T>(
 
     // Throttle the stream to avoid sending too many updates to the client
     const currentTime = Date.now();
+    const shouldYield =
+      !lastYieldedChunk || shouldForceYield?.(lastYieldedChunk, chunk);
     if (
-      !shouldForceYield?.(lastChunk, chunk) &&
+      !shouldYield &&
       currentTime - lastUpdateTime < STREAMING_UPDATE_INTERVAL_MS
     ) {
       continue;

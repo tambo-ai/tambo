@@ -42,12 +42,23 @@ export class AsyncQueue<T> implements ItemQueue<T> {
   private done = false;
   private failed: unknown | null = null;
 
+  toString() {
+    return `${this.constructor.name}(${this.queue.length} items, ${this.waiters.length} waiters, ${this.done ? "done" : "not done"}, ${this.failed ? "failed" : "not failed"})`;
+  }
+
   /**
    * Push a value into the queue.
    * Called by: Producer (the code writing values to the queue)
    */
   push(v: T) {
-    if (this.done || this.failed !== null) return;
+    if (this.done || this.failed !== null) {
+      if (this.done) {
+        console.warn(`${this.constructor.name} already done, ignoring push`);
+      } else {
+        console.warn(`${this.constructor.name} already failed, ignoring push`);
+      }
+      return;
+    }
     if (this.waiters.length) {
       const { resolve } = this.waiters.shift()!;
       resolve({ value: v, done: false });
@@ -57,11 +68,28 @@ export class AsyncQueue<T> implements ItemQueue<T> {
   }
 
   /**
-   * Signal that no more values will be pushed (graceful completion).
-   * Called by: Producer (when it's done sending values)
+   * Signal that no more values will be pushed (graceful completion). Called by:
+   * Producer (when it's done sending values)
+   *
+   * @param quietly - if true, no warning will be logged if the queue is already
+   *   done or failed. This is useful for calling finish() in a `finally` block,
+   *   where we may have already marked the queue as done or failed.
    */
-  finish() {
-    if (this.done || this.failed !== null) return;
+  finish(quietly = false) {
+    if (this.done || this.failed !== null) {
+      if (!quietly) {
+        if (this.done) {
+          console.warn(
+            `${this.constructor.name} already done, ignoring finish`,
+          );
+        } else {
+          console.warn(
+            `${this.constructor.name} already failed, ignoring finish`,
+          );
+        }
+      }
+      return;
+    }
     this.done = true;
     while (this.waiters.length) {
       const { resolve } = this.waiters.shift()!;
@@ -74,7 +102,14 @@ export class AsyncQueue<T> implements ItemQueue<T> {
    * Called by: Producer (when it encounters an error)
    */
   fail(err: unknown) {
-    if (this.done || this.failed !== null) return;
+    if (this.done || this.failed !== null) {
+      if (this.done) {
+        console.warn(`${this.constructor.name} already done, ignoring fail`);
+      } else {
+        console.warn(`${this.constructor.name} already failed, ignoring fail`);
+      }
+      return;
+    }
     // Normalize once so every consumer sees the same error instance
     const error = err ?? new Error("Unknown error");
     this.failed = error;
