@@ -525,7 +525,11 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
             )}
           >
             <span className={isLoading ? "animate-thinking-gradient" : ""}>
-              {isLoading ? "Thinking " : "Done thinking "}{" "}
+              {isLoading
+                ? "Thinking "
+                : message.reasoningDurationMS
+                  ? formatReasoningDuration(message.reasoningDurationMS) + " "
+                  : "Done Thinking "}
               {message.reasoning.length > 1
                 ? `(${message.reasoning.length} steps)`
                 : ""}
@@ -577,6 +581,33 @@ function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),
   );
+}
+
+/**
+ * Formats the reasoning duration in a human-readable format
+ * @param durationMS - The duration in milliseconds
+ * @returns The formatted duration string
+ */
+function formatReasoningDuration(durationMS: number) {
+  const seconds = durationMS / 1000;
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (seconds < 1) {
+    return "Thought for less than 1 second";
+  } else if (seconds === 1) {
+    return "Thought for 1 second";
+  } else if (seconds < 60) {
+    return `Thought for ${Math.floor(seconds)} seconds`;
+  } else if (minutes === 1) {
+    return "Thought for 1 minute";
+  } else if (minutes < 60) {
+    return `Thought for ${minutes} minutes`;
+  } else if (hours === 1) {
+    return "Thought for 1 hour";
+  } else {
+    return `Thought for ${hours} hours`;
+  }
 }
 
 /**
