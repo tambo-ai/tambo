@@ -109,6 +109,36 @@ export class ThreadsService {
     return this.db;
   }
 
+  /**
+   * Map a DB message row to the public ThreadMessageDto shape.
+   * Centralizing this keeps `findOne()` and `getMessages()` consistent when
+   * fields are added/renamed (e.g., tool calls, reasoning, additionalContext).
+   */
+  private mapDbMessageToDto(
+    message: typeof schema.messages.$inferSelect,
+  ): ThreadMessageDto {
+    return {
+      id: message.id,
+      threadId: message.threadId,
+      role: message.role,
+      parentMessageId: message.parentMessageId ?? undefined,
+      createdAt: message.createdAt,
+      // Persist the component decision as-is; callers interpret as needed
+      component: message.componentDecision as ComponentDecisionV2 | undefined,
+      content: convertContentPartToDto(message.content),
+      metadata: message.metadata ?? undefined,
+      componentState: message.componentState ?? {},
+      toolCallRequest: message.toolCallRequest ?? undefined,
+      actionType: message.actionType ?? undefined,
+      tool_call_id: message.toolCallId ?? undefined,
+      error: message.error ?? undefined,
+      isCancelled: message.isCancelled,
+      additionalContext: message.additionalContext ?? {},
+      reasoning: message.reasoning ?? undefined,
+      reasoningDurationMS: message.reasoningDurationMS ?? undefined,
+    };
+  }
+
   private async createTamboBackendForThread(
     threadId: string,
     userId: string,
@@ -319,14 +349,13 @@ export class ThreadsService {
     id: string,
     projectId: string,
     contextKey?: string,
-    includeInternal: boolean = false,
   ): Promise<ThreadWithMessagesDto> {
     const thread = await operations.getThreadForProjectId(
       this.getDb(),
       id,
       projectId,
-      includeInternal,
       contextKey,
+      false,
     );
     if (!thread) {
       throw new NotFoundException("Thread not found");
@@ -340,26 +369,7 @@ export class ThreadsService {
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
       name: thread.name ?? undefined,
-      messages: thread.messages
-        .filter((message) => message.role !== MessageRole.System)
-        .map((message) => ({
-          id: message.id,
-          threadId: message.threadId,
-          role: message.role,
-          parentMessageId: message.parentMessageId ?? undefined,
-          createdAt: message.createdAt,
-          component: message.componentDecision ?? undefined,
-          content: convertContentPartToDto(message.content),
-          metadata: message.metadata ?? undefined,
-          componentState: message.componentState ?? {},
-          toolCallRequest: message.toolCallRequest ?? undefined,
-          actionType: message.actionType ?? undefined,
-          tool_call_id: message.toolCallId ?? undefined,
-          error: message.error ?? undefined,
-          isCancelled: message.isCancelled,
-          reasoning: message.reasoning ?? undefined,
-          reasoningDurationMS: message.reasoningDurationMS ?? undefined,
-        })),
+      messages: thread.messages.map((m) => this.mapDbMessageToDto(m)),
     };
   }
 
@@ -625,28 +635,9 @@ export class ThreadsService {
       this.getDb(),
       threadId,
       includeChildMessages,
+      includeSystem,
     );
-    return messages
-      .filter((message) => includeSystem || message.role !== MessageRole.System)
-      .map((message) => ({
-        id: message.id,
-        threadId: message.threadId,
-        role: message.role,
-        parentMessageId: message.parentMessageId ?? undefined,
-        content: convertContentPartToDto(message.content),
-        metadata: message.metadata ?? undefined,
-        toolCallRequest: message.toolCallRequest ?? undefined,
-        tool_call_id: message.toolCallId ?? undefined,
-        actionType: message.actionType ?? undefined,
-        componentState: message.componentState ?? {},
-        component: message.componentDecision as ComponentDecisionV2 | undefined,
-        error: message.error ?? undefined,
-        isCancelled: message.isCancelled,
-        createdAt: message.createdAt,
-        additionalContext: message.additionalContext ?? {},
-        reasoning: message.reasoning ?? undefined,
-        reasoningDurationMS: message.reasoningDurationMS ?? undefined,
-      }));
+    return messages.map((m) => this.mapDbMessageToDto(m));
   }
 
   async deleteMessage(messageId: string) {
@@ -849,7 +840,6 @@ export class ThreadsService {
       this.getDb(),
       threadId,
       projectId,
-      false,
       contextKey,
     );
     if (!thread) {
@@ -900,24 +890,7 @@ export class ThreadsService {
       messageId,
       newState,
     );
-    return {
-      id: message.id,
-      threadId: message.threadId,
-      role: message.role,
-      parentMessageId: message.parentMessageId ?? undefined,
-      content: convertContentPartToDto(message.content),
-      metadata: message.metadata ?? undefined,
-      componentState: message.componentState ?? {},
-      toolCallRequest: message.toolCallRequest ?? undefined,
-      tool_call_id: message.toolCallId ?? undefined,
-      actionType: message.actionType ?? undefined,
-      error: message.error ?? undefined,
-      isCancelled: message.isCancelled,
-      createdAt: message.createdAt,
-      additionalContext: message.additionalContext ?? {},
-      reasoning: message.reasoning ?? undefined,
-      reasoningDurationMS: message.reasoningDurationMS ?? undefined,
-    };
+    return this.mapDbMessageToDto(message);
   }
 
   /**

@@ -7,7 +7,7 @@ import {
   ilike,
   inArray,
   isNull,
-  ne,
+  not,
   or,
   type SQL,
   sql,
@@ -78,8 +78,8 @@ export async function getThreadForProjectId(
   db: HydraDb,
   threadId: string,
   projectId: string,
-  includeInternal: boolean = false,
   contextKey?: string,
+  includeSystem: boolean = true,
 ): Promise<schema.DBThreadWithMessages | undefined> {
   return await db.query.threads.findFirst({
     where: contextKey
@@ -94,12 +94,9 @@ export async function getThreadForProjectId(
         ),
     with: {
       messages: {
-        where: includeInternal
+        where: includeSystem
           ? undefined
-          : or(
-              ne(schema.messages.role, MessageRole.Assistant),
-              isNull(schema.messages.toolCallRequest),
-            ),
+          : not(eq(schema.messages.role, MessageRole.System)),
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
         with: {
           suggestions: true,
@@ -251,14 +248,18 @@ export async function getMessages(
   db: HydraDb,
   threadId: string,
   includeChildMessages: boolean = false,
+  includeSystem: boolean = false,
 ): Promise<(typeof schema.messages.$inferSelect)[]> {
+  const where = and(
+    eq(schema.messages.threadId, threadId),
+    includeChildMessages ? undefined : isNull(schema.messages.parentMessageId),
+    includeSystem
+      ? undefined
+      : not(eq(schema.messages.role, MessageRole.System)),
+  );
+
   const messages = await db.query.messages.findMany({
-    where: includeChildMessages
-      ? eq(schema.messages.threadId, threadId)
-      : and(
-          eq(schema.messages.threadId, threadId),
-          isNull(schema.messages.parentMessageId),
-        ),
+    where,
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });
   return fixLegacyRole(messages);
@@ -339,7 +340,6 @@ export async function ensureThreadByProjectId(
     db,
     threadId,
     projectId,
-    false,
     contextKey,
   );
   if (!thread) {

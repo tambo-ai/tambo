@@ -877,14 +877,13 @@ describe("ThreadsService.advanceThread initialization", () => {
       });
 
       it("should filter out system messages by default", async () => {
+        // Mock the DB operation to return only non-system messages
+        // (filtering happens at DB level now)
         const mockThread = createDBThreadWithMessages(
           threadId,
           projectId,
           GenerationStage.COMPLETE,
           [
-            createDBMessageWithSuggestions("m1", threadId, MessageRole.System, [
-              { type: "text", text: "System prompt" },
-            ]),
             createDBMessageWithSuggestions("m2", threadId, MessageRole.User, [
               { type: "text", text: "User message" },
             ]),
@@ -894,6 +893,15 @@ describe("ThreadsService.advanceThread initialization", () => {
         operations.getThreadForProjectId.mockResolvedValue(mockThread);
 
         const result = await service.findOne(threadId, projectId);
+
+        // Verify that getThreadForProjectId was called with includeSystem: false
+        expect(operations.getThreadForProjectId).toHaveBeenCalledWith(
+          fakeDb,
+          threadId,
+          projectId,
+          undefined,
+          false,
+        );
 
         // Should only return the user message, not the system message
         expect(result.messages).toHaveLength(1);
@@ -916,8 +924,8 @@ describe("ThreadsService.advanceThread initialization", () => {
           fakeDb,
           threadId,
           projectId,
-          false,
           "ctx_test",
+          false,
         );
       });
     });
@@ -1108,10 +1116,9 @@ describe("ThreadsService.advanceThread initialization", () => {
       });
 
       it("should filter out system messages by default", async () => {
+        // Mock the DB operation to return only non-system messages
+        // (filtering happens at DB level now)
         const mockMessages = [
-          createMockDBMessage("m1", threadId, MessageRole.System, [
-            { type: "text", text: "System" },
-          ]),
           createMockDBMessage("m2", threadId, MessageRole.User, [
             { type: "text", text: "User" },
           ]),
@@ -1120,6 +1127,14 @@ describe("ThreadsService.advanceThread initialization", () => {
         operations.getMessages.mockResolvedValue(mockMessages);
 
         const result = await service.getMessages({ threadId });
+
+        // Verify that getMessages was called with includeSystem: false
+        expect(operations.getMessages).toHaveBeenCalledWith(
+          fakeDb,
+          threadId,
+          false,
+          false,
+        );
 
         expect(result).toHaveLength(1);
         expect(result[0].role).toBe(MessageRole.User);
@@ -1141,6 +1156,14 @@ describe("ThreadsService.advanceThread initialization", () => {
           threadId,
           includeSystem: true,
         });
+
+        // Verify that getMessages was called with includeSystem: true
+        expect(operations.getMessages).toHaveBeenCalledWith(
+          fakeDb,
+          threadId,
+          false,
+          true,
+        );
 
         expect(result).toHaveLength(2);
         expect(result[0].role).toBe(MessageRole.System);
