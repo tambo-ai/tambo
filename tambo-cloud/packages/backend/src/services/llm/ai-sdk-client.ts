@@ -447,7 +447,7 @@ export class AISdkClient implements LLMClient {
         case "reasoning-start":
           // append to the last element of the array
           accumulatedReasoning = [...accumulatedReasoning, ""];
-          reasoningStartTimestamp = Date.now();
+          reasoningStartTimestamp = reasoningStartTimestamp ?? Date.now();
           break;
         case "reasoning-delta":
           accumulatedReasoning = [
