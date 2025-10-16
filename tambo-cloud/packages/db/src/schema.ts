@@ -769,6 +769,8 @@ export const mcpOauthClients = pgTable(
     ),
   ],
 );
+
+export type DBMcpOauthClient = typeof mcpOauthClients.$inferSelect;
 export const mcpOauthClientRelations = relations(
   mcpOauthClients,
   ({ one }) => ({
@@ -778,7 +780,8 @@ export const mcpOauthClientRelations = relations(
     }),
   }),
 );
-export type DBMcpOauthClient = typeof mcpOauthClients.$inferSelect;
+export type DBToolProviderUserContext =
+  typeof toolProviderUserContexts.$inferSelect;
 
 export const tamboUsers = pgTable(
   "tambo_users",

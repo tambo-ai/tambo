@@ -20,6 +20,19 @@ import { env } from "process";
 
 const logger = new Logger("systemTools");
 
+class ListToolsError extends Error {
+  constructor(
+    message: string,
+    public readonly serverId: string,
+    public readonly url: string,
+    cause?: unknown,
+  ) {
+    // Preserve the original error via the native cause chain
+    super(message, { cause });
+    this.name = "ListToolsError";
+  }
+}
+
 /** Get the available MCP tools for the project, checking for duplicate tool names */
 export async function getSystemTools(
   db: HydraDatabase,
@@ -53,110 +66,186 @@ export async function getSystemTools(
   };
 }
 
+type ThreadMcpClient = { client: MCPClient; serverId: string; url: string };
+
+/** Get all MCP clients for a given thread */
+export async function getThreadMCPClients(
+  db: HydraDb,
+  projectId: string,
+  threadId: string,
+  mcpHandlers: Partial<MCPHandlers>,
+): Promise<ThreadMcpClient[]> {
+  const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
+
+  const results = await Promise.allSettled(
+    mcpServers.map(async (mcpServer) => {
+      if (!mcpServer.url) {
+        await operations.addProjectLogEntry(
+          db,
+          projectId,
+          LogLevel.WARNING,
+          `MCP server ${mcpServer.id} has no URL configured`,
+          { mcpServerId: mcpServer.id },
+        );
+        throw new Error("No URL provided");
+      }
+
+      if (mcpServer.mcpRequiresAuth && !hasAuthInfo(mcpServer)) {
+        logger.warn(
+          `MCP server ${mcpServer.id} in project ${projectId} requires auth, but no auth info found`,
+        );
+        await operations.addProjectLogEntry(
+          db,
+          projectId,
+          LogLevel.WARNING,
+          `MCP server ${mcpServer.id} requires auth but no auth info found`,
+          { mcpServerId: mcpServer.id },
+        );
+        throw new Error("Auth required but not provided");
+      }
+
+      try {
+        const authProvider = await getAuthProvider(db, mcpServer);
+        const customHeaders = mcpServer.customHeaders;
+
+        const mcpSessionInfo = await operations.getMcpThreadSession(
+          db,
+          threadId,
+          mcpServer.id,
+        );
+
+        const mcpClient = await MCPClient.create(
+          mcpServer.url,
+          mcpServer.mcpTransport,
+          customHeaders,
+          authProvider,
+          mcpSessionInfo?.sessionId ?? undefined,
+          mcpHandlers,
+        );
+
+        if (
+          mcpClient.sessionId &&
+          mcpSessionInfo?.sessionId !== mcpClient.sessionId
+        ) {
+          await operations.updateMcpThreadSession(
+            db,
+            threadId,
+            mcpServer.id,
+            mcpClient.sessionId,
+          );
+        }
+
+        return {
+          client: mcpClient,
+          serverId: mcpServer.id,
+          url: mcpServer.url,
+        };
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        logger.error(
+          `Error processing MCP server ${mcpServer.id} in project ${projectId}: ${err.message}`,
+          err.stack,
+        );
+
+        await operations.addProjectLogEntry(
+          db,
+          projectId,
+          LogLevel.ERROR,
+          `Error processing MCP server ${mcpServer.id}: ${err.message}`,
+          { mcpServerId: mcpServer.id, url: mcpServer.url },
+        );
+
+        throw err;
+      }
+    }),
+  );
+
+  const mcpClients = results
+    .filter(
+      (result): result is PromiseFulfilledResult<ThreadMcpClient> =>
+        result.status === "fulfilled",
+    )
+    .map((result) => result.value);
+
+  return mcpClients;
+}
+
 /** Get the raw MCP servers from the database, query the MCP servers, and convert them to OpenAI tool schemas */
 async function getMcpTools(
-  db: HydraDatabase,
+  db: HydraDb,
   projectId: string,
   threadId: string,
   mcpHandlers: MCPHandlers,
 ): Promise<McpToolRegistry> {
-  const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
+  const mcpClients = await getThreadMCPClients(
+    db,
+    projectId,
+    threadId,
+    mcpHandlers,
+  );
+
+  const toolResults = await Promise.allSettled(
+    mcpClients.map(async ({ client, serverId, url }) => {
+      try {
+        const tools = await client.listTools();
+        return { mcpClient: client, tools, serverId, url };
+      } catch (e) {
+        const err = e instanceof Error ? e : new Error(String(e));
+        throw new ListToolsError(err.message, serverId, url, err);
+      }
+    }),
+  );
 
   const mcpTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
   const mcpToolSources: Record<string, MCPClient> = {};
 
-  for (const mcpServer of mcpServers) {
-    if (!mcpServer.url) {
-      continue;
-    }
-    if (mcpServer.mcpRequiresAuth && !hasAuthInfo(mcpServer)) {
-      console.warn(
-        `MCP server ${mcpServer.id} in project ${projectId} requires auth, but no auth info found`,
-      );
-      // Record as a warning so the user can see it on the dashboard
-      await operations.addProjectLogEntry(
-        db,
-        projectId,
-        LogLevel.WARNING,
-        `MCP server ${mcpServer.id} requires auth but no auth info found`,
-        { mcpServerId: mcpServer.id },
-      );
-      continue;
-    }
-    const authProvider = await getAuthProvider(db, mcpServer);
-    // Extract custom_headers if they exist
-    const customHeaders = mcpServer.customHeaders as
-      | Record<string, string>
-      | undefined;
-
-    const mcpSessionInfo = await operations.getMcpThreadSession(
-      db,
-      threadId,
-      mcpServer.id,
-    );
-
-    try {
-      const mcpClient = await MCPClient.create(
-        mcpServer.url,
-        mcpServer.mcpTransport,
-        customHeaders,
-        authProvider,
-        mcpSessionInfo?.sessionId ?? undefined,
-        mcpHandlers,
-      );
-      if (
-        mcpClient.sessionId &&
-        mcpSessionInfo?.sessionId !== mcpClient.sessionId
-      ) {
-        await operations.updateMcpThreadSession(
-          db,
-          threadId,
-          mcpServer.id,
-          mcpClient.sessionId,
-        );
-      }
-
-      const tools = await mcpClient.listTools();
-
-      mcpTools.push(
-        ...tools.map(
-          (tool): OpenAI.Chat.Completions.ChatCompletionTool => ({
-            type: "function",
-            function: {
-              name: tool.name,
-              description: tool.description,
-              strict: true,
-              parameters: tool.inputSchema?.properties
-                ? {
-                    type: "object",
-                    properties: tool.inputSchema.properties,
-                    required: tool.inputSchema.required,
-                    additionalProperties: false,
-                  }
-                : undefined,
-            },
-          }),
-        ),
-      );
-
-      for (const tool of tools) {
-        mcpToolSources[tool.name] = mcpClient;
-      }
-    } catch (error) {
-      // TODO: attach this error to the project
+  for (const result of toolResults) {
+    if (result.status === "rejected") {
+      const err =
+        result.reason instanceof Error
+          ? result.reason
+          : new Error(String(result.reason));
+      const serverId = err instanceof ListToolsError ? err.serverId : undefined;
+      const url = err instanceof ListToolsError ? err.url : undefined;
       logger.error(
-        `Error processing MCP server ${mcpServer.id} in project ${projectId}: ${error}`,
+        `Error listing tools for MCP server ${serverId ?? "unknown"} (${url ?? "n/a"}) in project ${projectId}: ${err.message}`,
+        err.stack,
       );
-
-      // Store the error for visibility in the dashboard
       await operations.addProjectLogEntry(
         db,
         projectId,
         LogLevel.ERROR,
-        `Error processing MCP server ${mcpServer.id}: ${error instanceof Error ? error.message : String(error)}`,
-        { mcpServerId: mcpServer.id },
+        `Error listing tools for MCP server ${serverId ?? "unknown"}: ${err.message}`,
+        { mcpServerId: serverId, url },
       );
       continue;
+    }
+
+    const { mcpClient, tools } = result.value;
+
+    mcpTools.push(
+      ...tools.map(
+        (tool): OpenAI.Chat.Completions.ChatCompletionTool => ({
+          type: "function",
+          function: {
+            name: tool.name,
+            description: tool.description,
+            strict: true,
+            parameters: tool.inputSchema?.properties
+              ? {
+                  type: "object",
+                  properties: tool.inputSchema.properties,
+                  required: tool.inputSchema.required,
+                  additionalProperties: false,
+                }
+              : undefined,
+          },
+        }),
+      ),
+    );
+
+    for (const tool of tools) {
+      mcpToolSources[tool.name] = mcpClient;
     }
   }
 
@@ -172,7 +261,7 @@ function hasAuthInfo(mcpServer: McpServer): boolean {
     return false;
   }
   if (mcpServer.contexts.length > 1) {
-    console.warn(
+    logger.warn(
       `MCP server ${mcpServer.id} has multiple contexts, using the first one`,
     );
   }

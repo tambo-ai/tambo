@@ -439,7 +439,6 @@ describe("ThreadsService.advanceThread initialization", () => {
     expect(authService.generateMcpAccessToken).toHaveBeenCalledWith(
       projectId,
       threadId,
-      contextKey,
     );
   });
 

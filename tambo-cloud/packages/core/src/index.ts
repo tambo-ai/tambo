@@ -4,7 +4,7 @@ export * from "./email";
 export * from "./encrypt";
 export * from "./json";
 export type * from "./llm-parameter-types";
-export type * from "./mcp-auth";
+export * from "./mcp-auth";
 export * from "./mcp-client";
 export * from "./oauth";
 export * from "./oauth-validation";

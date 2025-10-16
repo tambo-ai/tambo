@@ -1120,7 +1120,6 @@ export class ThreadsService {
       const mcpAccessToken = await this.authService.generateMcpAccessToken(
         projectId,
         thread.id,
-        contextKey,
       );
 
       if (stream) {

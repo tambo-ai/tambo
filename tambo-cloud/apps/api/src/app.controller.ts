@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import {
   ApiOperation,
   ApiResponse,
@@ -7,6 +15,7 @@ import {
 } from "@nestjs/swagger";
 import { Request } from "express";
 import { AppService } from "./app.service";
+import { operations } from "@tambo-ai-cloud/db";
 import {
   CreateMcpAccessTokenDto,
   McpAccessTokenResponseDto,
@@ -57,23 +66,32 @@ export class AppController {
   })
   @ApiResponse({
     status: 400,
-    description: "Bad request - missing context key or invalid API key",
+    description: "Bad request - invalid authentication context or API key",
   })
   async createMcpAccessToken(
     @Body() createMcpAccessTokenDto: CreateMcpAccessTokenDto,
     @Req() request: Request,
   ): Promise<McpAccessTokenResponseDto> {
-    const { projectId, contextKey } = extractContextInfo(
+    const { projectId } = extractContextInfo(
       request,
       createMcpAccessTokenDto.contextKey,
     );
 
     const { threadId } = createMcpAccessTokenDto;
 
+    // Lightweight ownership check: ensure the thread exists for this project
+    const thread = await operations.getThreadForProjectId(
+      this.authService.getDb(),
+      threadId,
+      projectId,
+    );
+    if (!thread) {
+      throw new NotFoundException("Thread not found");
+    }
+
     const mcpAccessToken = await this.authService.generateMcpAccessToken(
       projectId,
       threadId,
-      contextKey,
     );
 
     return {
