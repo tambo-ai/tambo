@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.116.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.116.0...repo-v0.116.1) (2025-10-16)
+
+
+### Bug Fixes
+
+* **api:** Make sure thread API returns tool calls ([#1944](https://github.com/tambo-ai/tambo-cloud/issues/1944)) ([99b1108](https://github.com/tambo-ai/tambo-cloud/commit/99b110888e304717941e0444d26d0fdb5d4a4552))
+* calculate reasoningduration of all steps ([#1947](https://github.com/tambo-ai/tambo-cloud/issues/1947)) ([aead3e9](https://github.com/tambo-ai/tambo-cloud/commit/aead3e977ac59e51a84afda2601e6b4b225940bb))
+
+
+### Code Refactoring
+
+* **mcp:** Clean up and add tests to mcp oauth setup, mcp client setup, mcp oauth token verification, etc ([#1946](https://github.com/tambo-ai/tambo-cloud/issues/1946)) ([9ec7032](https://github.com/tambo-ai/tambo-cloud/commit/9ec7032ed24e7a6eaf5ca40f646951bd1d6f1afe))
+
 ## [0.116.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.115.0...repo-v0.116.0) (2025-10-15)
 
 
