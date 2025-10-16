@@ -589,25 +589,16 @@ function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
  * @returns The formatted duration string
  */
 function formatReasoningDuration(durationMS: number) {
-  const seconds = durationMS / 1000;
+  const seconds = Math.floor(Math.max(0, durationMS) / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
 
-  if (seconds < 1) {
-    return "Thought for less than 1 second";
-  } else if (seconds === 1) {
-    return "Thought for 1 second";
-  } else if (seconds < 60) {
-    return `Thought for ${Math.floor(seconds)} seconds`;
-  } else if (minutes === 1) {
-    return "Thought for 1 minute";
-  } else if (minutes < 60) {
-    return `Thought for ${minutes} minutes`;
-  } else if (hours === 1) {
-    return "Thought for 1 hour";
-  } else {
-    return `Thought for ${hours} hours`;
-  }
+  if (seconds < 1) return "Thought for less than 1 second";
+  if (seconds < 60)
+    return `Thought for ${seconds} ${seconds === 1 ? "second" : "seconds"}`;
+  if (minutes < 60)
+    return `Thought for ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  return `Thought for ${hours} ${hours === 1 ? "hour" : "hours"}`;
 }
 
 /**
