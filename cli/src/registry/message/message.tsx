@@ -463,7 +463,7 @@ ToolcallInfo.displayName = "ToolcallInfo";
  */
 const SamplingSubThread = ({
   parentMessageId,
-  titleText = "ai processing",
+  titleText = "requested the LLM",
 }: {
   parentMessageId: string;
   titleText?: string;
@@ -495,26 +495,31 @@ const SamplingSubThread = ({
           <ChevronRight className="w-3 h-3 transition-transform duration-200" />
         )}
       </button>
-      {isExpanded &&
-        childMessages?.map((m: TamboThreadMessage) => (
-          <div
-            key={m.id}
-            className={`flex flex-col gap-2 ${
-              m.role === "assistant" ? "pl-2" : ""
-            }`}
-          >
-            <span
-              className={cn(
-                "whitespace-pre-wrap",
-                m.role === "assistant"
-                  ? "text-primary bg-muted/50 rounded-md p-2 inline-block w-fit"
-                  : "text-secondary",
-              )}
-            >
-              {getSafeContent(m.content)}
-            </span>
+      {isExpanded && (
+        <div className="pl-8">
+          <div className="border-l-2 border-muted-foreground p-2">
+            {childMessages?.map((m: TamboThreadMessage) => (
+              <div
+                key={m.id}
+                className={`flex flex-col gap-4 pb-4 ${
+                  m.role === "assistant" ? "pl-2" : ""
+                }`}
+              >
+                <span
+                  className={cn(
+                    "whitespace-pre-wrap",
+                    m.role === "assistant"
+                      ? " bg-muted/50 rounded-md p-2 inline-block w-fit"
+                      : "",
+                  )}
+                >
+                  {getSafeContent(m.content)}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+      )}
     </div>
   );
 };
