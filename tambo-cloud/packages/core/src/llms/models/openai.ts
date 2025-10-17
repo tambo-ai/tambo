@@ -1,8 +1,12 @@
+import { type OpenAIProvider } from "@ai-sdk/openai";
 import type {
   LlmModelConfig,
   LlmParameterMetadata,
 } from "../../llm-config-types";
+import { type NarrowStrings } from "../../typeutils";
 
+type RawModelIds = Parameters<OpenAIProvider["languageModel"]>[0];
+type OpenAIModelId = NarrowStrings<RawModelIds>;
 const reasoningParameters: LlmParameterMetadata = {
   reasoningEffort: {
     description:
@@ -16,7 +20,7 @@ const reasoningParameters: LlmParameterMetadata = {
     example: "auto",
   },
 };
-export const openaiModels: LlmModelConfig = {
+export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
   "gpt-5-2025-08-07": {
     apiName: "gpt-5-2025-08-07",
     displayName: "gpt-5",

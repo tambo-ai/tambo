@@ -1,6 +1,9 @@
+import { type MistralProvider } from "@ai-sdk/mistral";
 import type { LlmModelConfig } from "../../llm-config-types";
-
-export const mistralModels: LlmModelConfig = {
+import { type NarrowStrings } from "../../typeutils";
+type RawModelIds = Parameters<MistralProvider["languageModel"]>[0];
+type MistralModelId = NarrowStrings<RawModelIds>;
+export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
   "mistral-medium-2505": {
     apiName: "mistral-medium-2505",
     displayName: "Mistral Medium 3",
@@ -10,16 +13,6 @@ export const mistralModels: LlmModelConfig = {
     docLink: "https://mistral.ai/news/mistral-medium-3",
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 128000,
-  },
-  "codestral-2508": {
-    apiName: "codestral-2508",
-    displayName: "CodeStral 2508",
-    status: "tested",
-    notes:
-      "Codestral specializes in low-latency, high-frequency tasks such as fill-in-the-middle (FIM), code correction and test generation.",
-    docLink: "https://mistral.ai/news/codestral-25-08",
-    tamboDocLink: "https://docs.tambo.co",
-    inputTokenLimit: 256000,
   },
   "magistral-medium-2506": {
     apiName: "magistral-medium-2506",
@@ -31,8 +24,8 @@ export const mistralModels: LlmModelConfig = {
     tamboDocLink: "https://docs.tambo.co",
     inputTokenLimit: 40000,
   },
-  "mistral-large-2411": {
-    apiName: "mistral-large-2411",
+  "mistral-large-latest": {
+    apiName: "mistral-large-latest",
     displayName: "Mistral Large 2.1",
     status: "known-issues",
     notes:

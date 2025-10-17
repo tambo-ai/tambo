@@ -1,6 +1,9 @@
+import { type GroqProvider } from "@ai-sdk/groq";
 import type { LlmModelConfig } from "../../llm-config-types";
-
-export const groqModels: LlmModelConfig = {
+import { type NarrowStrings } from "../../typeutils";
+type RawModelIds = Parameters<GroqProvider["languageModel"]>[0];
+type GroqModelId = NarrowStrings<RawModelIds>;
+export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
   "llama-3.3-70b-versatile": {
     apiName: "llama-3.3-70b-versatile",
     displayName: "Llama 3.3 70B Versatile",

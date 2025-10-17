@@ -1,8 +1,12 @@
+import { type GoogleGenerativeAIProvider } from "@ai-sdk/google";
 import type {
   LlmModelConfig,
   LlmParameterMetadata,
 } from "../../llm-config-types";
+import { type NarrowStrings } from "../../typeutils";
 
+type RawModelIds = Parameters<GoogleGenerativeAIProvider["languageModel"]>[0];
+type GeminiModelId = NarrowStrings<RawModelIds>;
 const reasoningParameters: LlmParameterMetadata = {
   thinkingConfig: {
     description:
@@ -12,7 +16,7 @@ const reasoningParameters: LlmParameterMetadata = {
   },
 };
 
-export const geminiModels: LlmModelConfig = {
+export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
   "gemini-2.5-pro": {
     apiName: "gemini-2.5-pro",
     displayName: "Gemini 2.5 Pro",

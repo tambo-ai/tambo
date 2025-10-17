@@ -1,11 +1,6 @@
-import { AnthropicProvider } from "@ai-sdk/anthropic";
+import { type AnthropicProvider } from "@ai-sdk/anthropic";
 import type { LlmModelConfig } from "../../llm-config-types";
-
-type NarrowStrings<T> = T extends string
-  ? string extends T
-    ? never // this branch matches the wide `string` member
-    : T // keep actual literals / narrower string types
-  : never;
+import { type NarrowStrings } from "../../typeutils";
 
 type RawModelIds = Parameters<AnthropicProvider["languageModel"]>[0];
 type AnthropicModelId = NarrowStrings<RawModelIds>;

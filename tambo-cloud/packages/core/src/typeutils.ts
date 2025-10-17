@@ -45,3 +45,16 @@ type OptionalKeys<U> = {
  * @template U The union type to combine keys from
  */
 export type CombineUnion<U> = RequiredKeys<U> & OptionalKeys<U>;
+
+/**
+ * Extracts string literals from a union type, e.g.
+ * "foo" | "bar" | "baz" | string -> "foo" | "bar" | "baz"
+ *
+ * @template T The union type to extract string literals from
+ * @returns A new type that has only the string literals from the union
+ */
+export type NarrowStrings<T> = T extends string
+  ? string extends T
+    ? never
+    : T
+  : never;
