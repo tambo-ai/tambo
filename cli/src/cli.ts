@@ -56,11 +56,11 @@ interface CommandHelp {
 const OPTION_DOCS: Record<string, string> = {
   prefix: `${chalk.yellow("--prefix <path>")}      Custom directory for components (e.g., src/components/ui)`,
   yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
-  legacyPeerDeps: `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
-  acceptAll: `${chalk.yellow("--accept-all")}         Accept all upgrades without prompting`,
+  "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
+  "accept-all": `${chalk.yellow("--accept-all")}         Accept all upgrades without prompting`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, analytics`,
-  initGit: `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
-  dryRun: `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
+  "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
+  "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
 };
 
 const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
@@ -210,11 +210,11 @@ function generateGlobalHelp(): string {
   const optionDetails = [
     OPTION_DOCS.prefix,
     OPTION_DOCS.yes,
-    OPTION_DOCS.legacyPeerDeps,
-    `${OPTION_DOCS.acceptAll} ${chalk.red("(upgrade only)")}`,
+    OPTION_DOCS["legacy-peer-deps"],
+    `${OPTION_DOCS["accept-all"]} ${chalk.red("(upgrade only)")}`,
     `${OPTION_DOCS.template} ${chalk.red("(create-app only)")}`,
-    `${OPTION_DOCS.initGit} ${chalk.red("(create-app only)")}`,
-    `${OPTION_DOCS.dryRun} ${chalk.red("(migrate only)")}`,
+    `${OPTION_DOCS["init-git"]} ${chalk.red("(create-app only)")}`,
+    `${OPTION_DOCS["dry-run"]} ${chalk.red("(migrate only)")}`,
   ].join("\n    ");
 
   // Generate examples section - show each command's examples with its description as header
