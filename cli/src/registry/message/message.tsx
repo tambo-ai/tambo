@@ -503,20 +503,14 @@ const SamplingSubThread = ({
         aria-hidden={!isExpanded}
       >
         <div className="pl-8">
-          <div className="border-l-2 border-muted-foreground p-2">
+          <div className="border-l-2 border-muted-foreground p-2 flex flex-col gap-4">
             {childMessages?.map((m: TamboThreadMessage) => (
-              <div
-                key={m.id}
-                className={`flex flex-col gap-4 pb-4 ${
-                  m.role === "assistant" ? "pl-2" : ""
-                }`}
-              >
+              <div key={m.id} className={`${m.role === "assistant" && "pl-2"}`}>
                 <span
                   className={cn(
                     "whitespace-pre-wrap",
-                    m.role === "assistant"
-                      ? " bg-muted/50 rounded-md p-2 inline-block w-fit"
-                      : "",
+                    m.role === "assistant" &&
+                      "bg-muted/50 rounded-md p-2 inline-block w-fit",
                   )}
                 >
                   {getSafeContent(m.content)}
