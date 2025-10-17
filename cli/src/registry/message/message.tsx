@@ -12,14 +12,7 @@ import { useTambo } from "@tambo-ai/react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
-import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  ExternalLink,
-  Loader2,
-  X,
-} from "lucide-react";
+import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
@@ -470,6 +463,7 @@ const SamplingSubThread = ({
 }) => {
   const { thread } = useTambo();
   const [isExpanded, setIsExpanded] = useState(false);
+  const samplingDetailsId = React.useId();
 
   const childMessages = React.useMemo(() => {
     return thread?.messages?.filter(
@@ -483,19 +477,28 @@ const SamplingSubThread = ({
     <div className="flex flex-col gap-1">
       <button
         type="button"
+        aria-expanded={isExpanded}
+        aria-controls={samplingDetailsId}
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
           "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md p-2 select-none w-fit",
         )}
       >
         <span>{titleText}</span>
-        {isExpanded ? (
-          <ChevronDown className="w-3 h-3 transition-transform duration-200" />
-        ) : (
-          <ChevronRight className="w-3 h-3 transition-transform duration-200" />
-        )}
+        <ChevronDown
+          className={cn(
+            "w-3 h-3 transition-transform duration-200",
+            !isExpanded && "-rotate-90",
+          )}
+        />
       </button>
-      {isExpanded && (
+      <div
+        id={samplingDetailsId}
+        className={cn(
+          "overflow-hidden transition-[max-height,opacity,padding] duration-300",
+          isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+        )}
+      >
         <div className="pl-8">
           <div className="border-l-2 border-muted-foreground p-2">
             {childMessages?.map((m: TamboThreadMessage) => (
@@ -519,7 +522,7 @@ const SamplingSubThread = ({
             ))}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
