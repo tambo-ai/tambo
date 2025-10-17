@@ -42,10 +42,13 @@ interface CLIFlags extends Record<string, any> {
 // Command help configuration (defined before CLI setup so we can generate help text)
 interface CommandHelp {
   command: string;
+  syntax: string;
   description: string;
   usage: string[];
   options: string[];
   examples: string[];
+  exampleTitle?: string; // Shorter title for examples section, defaults to description
+  note?: string; // Additional note to display in command list
   showComponents?: boolean;
   customSections?: () => void;
 }
@@ -63,7 +66,8 @@ const OPTION_DOCS: Record<string, string> = {
 const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
   init: {
     command: "init",
-    description: "Initialize tambo in your project",
+    syntax: "init",
+    description: "Initialize tambo in a project and set up configuration",
     usage: [
       `$ ${chalk.cyan("tambo init")} [options]`,
       `$ ${chalk.cyan("tambo full-send")} [options]  ${chalk.dim("(includes component installation)")}`,
@@ -74,10 +78,21 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       `$ ${chalk.cyan("tambo init --yes")}                # Skip all prompts`,
       `$ ${chalk.cyan("tambo full-send")}                 # Full setup with components`,
     ],
+    exampleTitle: "Getting Started",
+  },
+  "full-send": {
+    command: "full-send",
+    syntax: "full-send",
+    description:
+      "Full initialization with auth flow and component installation",
+    usage: [`$ ${chalk.cyan("tambo full-send")} [options]`],
+    options: ["yes", "legacyPeerDeps"],
+    examples: [], // Shares examples with init
   },
   add: {
     command: "add",
-    description: "Add components to your project",
+    syntax: "add <components...>",
+    description: "Add new components to your project",
     usage: [
       `$ ${chalk.cyan("tambo add")} <component> [component2] [...] [options]`,
     ],
@@ -92,6 +107,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
   },
   list: {
     command: "list",
+    syntax: "list",
     description: "List all installed components",
     usage: [`$ ${chalk.cyan("tambo list")} [options]`],
     options: ["prefix"],
@@ -102,7 +118,8 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
   },
   update: {
     command: "update",
-    description: "Update tambo components from the registry",
+    syntax: "update <components...>",
+    description: "Update specific tambo components from the registry",
     usage: [
       `$ ${chalk.cyan("tambo update")} <component> [component2] [...] [options]`,
       `$ ${chalk.cyan("tambo update installed")} [options]  ${chalk.dim("(updates ALL installed components)")}`,
@@ -116,8 +133,29 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     ],
     showComponents: true,
   },
+  "update-installed": {
+    command: "update-installed",
+    syntax: "update installed",
+    description: `${chalk.bold("Update ALL installed tambo components at once")}`,
+    usage: [`$ ${chalk.cyan("tambo update installed")} [options]`],
+    options: ["prefix", "yes", "legacyPeerDeps"],
+    note: "This will update every tambo component currently in your project",
+    examples: [], // Shares examples with update
+  },
+  upgrade: {
+    command: "upgrade",
+    syntax: "upgrade",
+    description: "Upgrade packages, components, and LLM rules",
+    usage: [`$ ${chalk.cyan("tambo upgrade")} [options]`],
+    options: ["prefix", "acceptAll", "legacyPeerDeps"],
+    examples: [
+      `$ ${chalk.cyan("tambo upgrade")}                    # Interactive upgrade`,
+      `$ ${chalk.cyan("tambo upgrade --accept-all")}       # Auto-accept all changes`,
+    ],
+  },
   "create-app": {
     command: "create-app",
+    syntax: "create-app [directory]",
     description: "Create a new tambo app from a template",
     usage: [`$ ${chalk.cyan("tambo create-app")} [directory] [options]`],
     options: ["template", "initGit", "legacyPeerDeps"],
@@ -128,6 +166,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       `$ ${chalk.cyan("tambo create-app --template=standard")}   # Use standard template`,
       `$ ${chalk.cyan("tambo create-app --init-git")}            # Initialize git repo`,
     ],
+    exampleTitle: "Create Apps",
     customSections: () => {
       console.log(`
 ${chalk.bold("Templates")}
@@ -135,18 +174,9 @@ ${chalk.bold("Templates")}
   ${chalk.cyan("analytics")}   - Generative UI Analytics Template`);
     },
   },
-  upgrade: {
-    command: "upgrade",
-    description: "Upgrade packages, components, and LLM rules",
-    usage: [`$ ${chalk.cyan("tambo upgrade")} [options]`],
-    options: ["prefix", "acceptAll", "legacyPeerDeps"],
-    examples: [
-      `$ ${chalk.cyan("tambo upgrade")}                    # Interactive upgrade`,
-      `$ ${chalk.cyan("tambo upgrade --accept-all")}       # Auto-accept all changes`,
-    ],
-  },
   migrate: {
     command: "migrate",
+    syntax: "migrate",
     description: "Migrate components from ui/ to tambo/ directory",
     usage: [`$ ${chalk.cyan("tambo migrate")} [options]`],
     options: ["yes", "dryRun"],
@@ -157,100 +187,32 @@ ${chalk.bold("Templates")}
   },
 };
 
-// Example grouping configuration
-const EXAMPLE_GROUPS = [
-  {
-    title: "Getting Started",
-    commands: ["init"],
-  },
-  {
-    title: "Adding Components",
-    commands: ["add"],
-  },
-  {
-    title: "Managing Components",
-    commands: ["list", "update"],
-  },
-  {
-    title: "Creating New Apps",
-    commands: ["create-app"],
-  },
-  {
-    title: "Upgrading & Migration",
-    commands: ["upgrade", "migrate"],
-  },
-];
-
-// Command list with special formatting
-const COMMAND_LIST = [
-  {
-    key: "init",
-    syntax: "init",
-    description: "Initialize tambo in a project and set up configuration",
-  },
-  {
-    key: "full-send",
-    syntax: "full-send",
-    description:
-      "Full initialization with auth flow and component installation",
-    options: ["yes", "legacyPeerDeps"],
-  },
-  {
-    key: "add",
-    syntax: "add <components...>",
-    description: "Add new components to your project",
-  },
-  { key: "list", syntax: "list", description: "List all installed components" },
-  {
-    key: "update",
-    syntax: "update <components...>",
-    description: "Update specific tambo components from the registry",
-  },
-  {
-    key: "update-installed",
-    syntax: "update installed",
-    description: `${chalk.bold("Update ALL installed tambo components at once")}`,
-    options: ["prefix", "yes", "legacyPeerDeps"],
-    note: "This will update every tambo component currently in your project",
-  },
-  {
-    key: "upgrade",
-    syntax: "upgrade",
-    description: "Upgrade packages, components, and LLM rules",
-  },
-  {
-    key: "create-app",
-    syntax: "create-app [directory]",
-    description: "Create a new tambo app from a template",
-  },
-  {
-    key: "migrate",
-    syntax: "migrate",
-    description: "Migrate components from ui/ to tambo/ directory",
-  },
-];
-
 // Generate global help text from command configs
 function generateGlobalHelp(): string {
   // Generate commands section
-  const commandsSection = COMMAND_LIST.map((cmd) => {
-    const config =
-      COMMAND_HELP_CONFIGS[cmd.key] ??
-      COMMAND_HELP_CONFIGS[cmd.key.split("-")[0]];
-    const opts = cmd.options ?? config?.options ?? [];
-    const optsList = opts
-      .map((o) => `--${o.replace(/([A-Z])/g, "-$1").toLowerCase()}`)
-      .join(", ");
+  const commandsSection = Object.values(COMMAND_HELP_CONFIGS)
+    .filter(
+      (cmd) =>
+        cmd.examples.length > 0 ||
+        cmd.syntax.includes("full-send") ||
+        cmd.syntax.includes("update installed"),
+    )
+    .map((cmd) => {
+      const opts = cmd.options;
+      const optsList = opts
+        .map((o) => `--${o.replace(/([A-Z])/g, "-$1").toLowerCase()}`)
+        .join(", ");
 
-    let output = `    ${chalk.yellow(cmd.syntax)}${" ".repeat(Math.max(1, 30 - cmd.syntax.length))}${cmd.description}`;
-    if (opts.length > 0) {
-      output += `\n      Options: ${chalk.dim(optsList)}`;
-    }
-    if (cmd.note) {
-      output += `\n      ${chalk.dim(cmd.note)}`;
-    }
-    return output;
-  }).join("\n\n");
+      let output = `    ${chalk.yellow(cmd.syntax)}${" ".repeat(Math.max(1, 30 - cmd.syntax.length))}${cmd.description}`;
+      if (opts.length > 0) {
+        output += `\n      Options: ${chalk.dim(optsList)}`;
+      }
+      if (cmd.note) {
+        output += `\n      ${chalk.dim(cmd.note)}`;
+      }
+      return output;
+    })
+    .join("\n\n");
 
   // Generate option details section
   const optionDetails = [
@@ -263,14 +225,14 @@ function generateGlobalHelp(): string {
     `${OPTION_DOCS.dryRun} ${chalk.red("(migrate only)")}`,
   ].join("\n    ");
 
-  // Generate examples section
-  const examplesSection = EXAMPLE_GROUPS.map((group) => {
-    const examples = group.commands
-      .map((cmd) => COMMAND_HELP_CONFIGS[cmd]?.examples.join("\n    "))
-      .filter(Boolean)
-      .join("\n    ");
-    return `    ${chalk.dim(group.title)}\n    ${examples}`;
-  }).join("\n\n");
+  // Generate examples section - show each command's examples with its description as header
+  const examplesSection = Object.values(COMMAND_HELP_CONFIGS)
+    .filter((cmd) => cmd.examples.length > 0)
+    .map((cmd) => {
+      const title = cmd.exampleTitle ?? cmd.description;
+      return `    ${chalk.dim(title)}\n    ${cmd.examples.join("\n    ")}`;
+    })
+    .join("\n\n");
 
   return `
   ${chalk.bold("Usage")}
