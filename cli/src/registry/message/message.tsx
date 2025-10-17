@@ -414,20 +414,22 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
+              "flex flex-col gap-1 p-3 pl-7 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
               isExpanded ? "max-h-auto opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
-            <span className="whitespace-pre-wrap pl-2">
+            <span className="whitespace-pre-wrap">
               tool: {toolCallRequest?.toolName}
             </span>
-            <span className="whitespace-pre-wrap pl-2">
+            <span className="whitespace-pre-wrap">
               parameters:{"\n"}
               {stringify(keyifyParameters(toolCallRequest?.parameters))}
             </span>
-            <SamplingSubThread parentMessageId={message.id} />
+            <div className="-ml-2">
+              <SamplingSubThread parentMessageId={message.id} />
+            </div>
             {associatedToolResponse && (
-              <div className="pl-2">
+              <div>
                 <span className="whitespace-pre-wrap">result:</span>
                 <div>
                   {!associatedToolResponse.content ? (
