@@ -418,16 +418,16 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
               isExpanded ? "max-h-auto opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               tool: {toolCallRequest?.toolName}
             </span>
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               parameters:{"\n"}
               {stringify(keyifyParameters(toolCallRequest?.parameters))}
             </span>
             <SamplingSubThread parentMessageId={message.id} />
             {associatedToolResponse && (
-              <>
+              <div className="pl-2">
                 <span className="whitespace-pre-wrap">result:</span>
                 <div>
                   {!associatedToolResponse.content ? (
@@ -438,7 +438,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
                     formatToolResult(associatedToolResponse.content, markdown)
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
