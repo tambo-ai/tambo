@@ -12,7 +12,14 @@ import { useTambo } from "@tambo-ai/react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
-import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  Loader2,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
@@ -449,10 +456,17 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
 ToolcallInfo.displayName = "ToolcallInfo";
 
+/**
+ * Displays a message's child messages in a collapsible dropdown.
+ * Used for MCP sampling sub-threads.
+ * @component SamplingSubThread
+ */
 const SamplingSubThread = ({
   parentMessageId,
+  titleText = "ai processing",
 }: {
   parentMessageId: string;
+  titleText?: string;
 }) => {
   const { thread } = useTambo();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -466,21 +480,26 @@ const SamplingSubThread = ({
   if (!childMessages?.length) return null;
 
   return (
-    <div className="flex flex-col gap-1 pl-4">
+    <div className="flex flex-col gap-1">
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
-          "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md py-1 select-none w-fit",
+          "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md p-2 select-none w-fit",
         )}
       >
-        <span>- ai processing</span>
+        <span>{titleText}</span>
+        {isExpanded ? (
+          <ChevronDown className="w-3 h-3 transition-transform duration-200" />
+        ) : (
+          <ChevronRight className="w-3 h-3 transition-transform duration-200" />
+        )}
       </button>
       {isExpanded &&
         childMessages?.map((m: TamboThreadMessage) => (
           <div
             key={m.id}
-            className={`flex flex-col gap-1 ${
+            className={`flex flex-col gap-2 ${
               m.role === "assistant" ? "pl-2" : ""
             }`}
           >
@@ -499,7 +518,6 @@ const SamplingSubThread = ({
     </div>
   );
 };
-
 SamplingSubThread.displayName = "SamplingSubThread";
 
 /**
