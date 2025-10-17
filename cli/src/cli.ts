@@ -72,7 +72,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       `$ ${chalk.cyan("tambo init")} [options]`,
       `$ ${chalk.cyan("tambo full-send")} [options]  ${chalk.dim("(includes component installation)")}`,
     ],
-    options: ["yes", "legacyPeerDeps"],
+    options: ["yes", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo init")}                      # Basic initialization`,
       `$ ${chalk.cyan("tambo init --yes")}                # Skip all prompts`,
@@ -86,7 +86,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     description:
       "Full initialization with auth flow and component installation",
     usage: [`$ ${chalk.cyan("tambo full-send")} [options]`],
-    options: ["yes", "legacyPeerDeps"],
+    options: ["yes", "legacy-peer-deps"],
     examples: [], // Shares examples with init
   },
   add: {
@@ -96,7 +96,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     usage: [
       `$ ${chalk.cyan("tambo add")} <component> [component2] [...] [options]`,
     ],
-    options: ["prefix", "yes", "legacyPeerDeps"],
+    options: ["prefix", "yes", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo add message")}                    # Add single component`,
       `$ ${chalk.cyan("tambo add message form graph")}         # Add multiple components`,
@@ -124,7 +124,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       `$ ${chalk.cyan("tambo update")} <component> [component2] [...] [options]`,
       `$ ${chalk.cyan("tambo update installed")} [options]  ${chalk.dim("(updates ALL installed components)")}`,
     ],
-    options: ["prefix", "yes", "legacyPeerDeps"],
+    options: ["prefix", "yes", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo update message")}                   # Update single component`,
       `$ ${chalk.cyan("tambo update message form")}              # Update multiple components`,
@@ -138,7 +138,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "update installed",
     description: `${chalk.bold("Update ALL installed tambo components at once")}`,
     usage: [`$ ${chalk.cyan("tambo update installed")} [options]`],
-    options: ["prefix", "yes", "legacyPeerDeps"],
+    options: ["prefix", "yes", "legacy-peer-deps"],
     note: "This will update every tambo component currently in your project",
     examples: [], // Shares examples with update
   },
@@ -147,7 +147,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "upgrade",
     description: "Upgrade packages, components, and LLM rules",
     usage: [`$ ${chalk.cyan("tambo upgrade")} [options]`],
-    options: ["prefix", "acceptAll", "legacyPeerDeps"],
+    options: ["prefix", "accept-all", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo upgrade")}                    # Interactive upgrade`,
       `$ ${chalk.cyan("tambo upgrade --accept-all")}       # Auto-accept all changes`,
@@ -158,7 +158,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "create-app [directory]",
     description: "Create a new tambo app from a template",
     usage: [`$ ${chalk.cyan("tambo create-app")} [directory] [options]`],
-    options: ["template", "initGit", "legacyPeerDeps"],
+    options: ["template", "init-git", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo create-app")}                       # Interactive mode`,
       `$ ${chalk.cyan("tambo create-app my-app")}                # Create in 'my-app' directory`,
@@ -179,7 +179,7 @@ ${chalk.bold("Templates")}
     syntax: "migrate",
     description: "Migrate components from ui/ to tambo/ directory",
     usage: [`$ ${chalk.cyan("tambo migrate")} [options]`],
-    options: ["yes", "dryRun"],
+    options: ["yes", "dry-run"],
     examples: [
       `$ ${chalk.cyan("tambo migrate")}               # Interactive migration`,
       `$ ${chalk.cyan("tambo migrate --dry-run")}     # Preview changes only`,
@@ -193,9 +193,7 @@ function generateGlobalHelp(): string {
   const commandsSection = Object.values(COMMAND_HELP_CONFIGS)
     .map((cmd) => {
       const opts = cmd.options;
-      const optsList = opts
-        .map((o) => `--${o.replace(/([A-Z])/g, "-$1").toLowerCase()}`)
-        .join(", ");
+      const optsList = opts.map((o) => `--${o}`).join(", ");
 
       let output = `    ${chalk.yellow(cmd.syntax)}${" ".repeat(Math.max(1, 30 - cmd.syntax.length))}${cmd.description}`;
       if (opts.length > 0) {
