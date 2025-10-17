@@ -495,9 +495,12 @@ const SamplingSubThread = ({
       <div
         id={samplingDetailsId}
         className={cn(
-          "overflow-hidden transition-[max-height,opacity,padding] duration-300",
-          isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+          "transition-[max-height,opacity] duration-300",
+          isExpanded
+            ? "max-h-96 opacity-100 overflow-auto"
+            : "max-h-0 opacity-0 overflow-hidden",
         )}
+        aria-hidden={!isExpanded}
       >
         <div className="pl-8">
           <div className="border-l-2 border-muted-foreground p-2">
