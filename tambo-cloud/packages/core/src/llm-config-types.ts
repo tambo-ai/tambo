@@ -108,7 +108,10 @@ export interface LlmModelConfigInfo {
   inputTokenLimit?: number;
 }
 
-export type LlmModelConfig = Record<string, LlmModelConfigInfo>;
+export type LlmModelConfig<ModelId extends string = string> = Record<
+  ModelId,
+  LlmModelConfigInfo
+>;
 
 /** Provider-specific parameters defaults that will be passed to the AI SDK via providerOptions */
 export interface ProviderSpecificParams {
