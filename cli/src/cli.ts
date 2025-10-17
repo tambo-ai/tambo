@@ -189,14 +189,8 @@ ${chalk.bold("Templates")}
 
 // Generate global help text from command configs
 function generateGlobalHelp(): string {
-  // Generate commands section
+  // Generate commands section - show all commands
   const commandsSection = Object.values(COMMAND_HELP_CONFIGS)
-    .filter(
-      (cmd) =>
-        cmd.examples.length > 0 ||
-        cmd.syntax.includes("full-send") ||
-        cmd.syntax.includes("update installed"),
-    )
     .map((cmd) => {
       const opts = cmd.options;
       const optsList = opts
