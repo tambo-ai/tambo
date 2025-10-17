@@ -425,6 +425,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
               parameters:{"\n"}
               {stringify(keyifyParameters(toolCallRequest?.parameters))}
             </span>
+            <SamplingSubThread parentMessageId={message.id} />
             {associatedToolResponse && (
               <>
                 <span className="whitespace-pre-wrap">result:</span>
@@ -447,6 +448,59 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 );
 
 ToolcallInfo.displayName = "ToolcallInfo";
+
+const SamplingSubThread = ({
+  parentMessageId,
+}: {
+  parentMessageId: string;
+}) => {
+  const { thread } = useTambo();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const childMessages = React.useMemo(() => {
+    return thread?.messages?.filter(
+      (m: TamboThreadMessage) => m.parentMessageId === parentMessageId,
+    );
+  }, [thread?.messages, parentMessageId]);
+
+  if (!childMessages?.length) return null;
+
+  return (
+    <div className="flex flex-col gap-1 pl-4">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md py-1 select-none w-fit",
+        )}
+      >
+        <span>- ai processing</span>
+      </button>
+      {isExpanded &&
+        childMessages?.map((m: TamboThreadMessage) => (
+          <div
+            key={m.id}
+            className={`flex flex-col gap-1 ${
+              m.role === "assistant" ? "pl-2" : ""
+            }`}
+          >
+            <span
+              className={cn(
+                "whitespace-pre-wrap",
+                m.role === "assistant"
+                  ? "text-primary bg-muted/50 rounded-md p-2 inline-block w-fit"
+                  : "text-secondary",
+              )}
+            >
+              {getSafeContent(m.content)}
+            </span>
+          </div>
+        ))}
+    </div>
+  );
+};
+
+SamplingSubThread.displayName = "SamplingSubThread";
 
 /**
  * Props for the ReasoningInfo component.
