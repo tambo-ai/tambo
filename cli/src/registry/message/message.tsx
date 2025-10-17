@@ -456,7 +456,7 @@ ToolcallInfo.displayName = "ToolcallInfo";
  */
 const SamplingSubThread = ({
   parentMessageId,
-  titleText = "requested the LLM",
+  titleText = "finished additional work",
 }: {
   parentMessageId: string;
   titleText?: string;
