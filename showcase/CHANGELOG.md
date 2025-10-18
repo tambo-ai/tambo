@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.26.2](https://github.com/tambo-ai/tambo/compare/showcase-v0.26.1...showcase-v0.26.2) (2025-10-18)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/leaflet from 1.9.20 to 1.9.21 ([#1161](https://github.com/tambo-ai/tambo/issues/1161)) ([2e50825](https://github.com/tambo-ai/tambo/commit/2e5082517be1d135bc4a04ac28d09cf9f38d1e40))
+* **deps:** bump framer-motion from 12.23.22 to 12.23.24 ([#1160](https://github.com/tambo-ai/tambo/issues/1160)) ([6dab68f](https://github.com/tambo-ai/tambo/commit/6dab68f916d255174b37c09c041ede244f9f8c4a))
+
+
+### Code Refactoring
+
+* **message:** simplify tool call request retrieval and enhance status message handling ([#1152](https://github.com/tambo-ai/tambo/issues/1152)) ([c866b67](https://github.com/tambo-ai/tambo/commit/c866b674e8fcc8524cf0de9e347902ac31efe81f))
+
 ## [0.26.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.26.0...showcase-v0.26.1) (2025-10-09)
 
 
