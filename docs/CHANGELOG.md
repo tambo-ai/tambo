@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.14.1](https://github.com/tambo-ai/tambo/compare/docs-v1.14.0...docs-v1.14.1) (2025-10-18)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump framer-motion from 12.23.22 to 12.23.24 ([#1160](https://github.com/tambo-ai/tambo/issues/1160)) ([6dab68f](https://github.com/tambo-ai/tambo/commit/6dab68f916d255174b37c09c041ede244f9f8c4a))
+* **deps:** bump posthog-js from 1.273.1 to 1.274.1 ([#1157](https://github.com/tambo-ai/tambo/issues/1157)) ([49445c2](https://github.com/tambo-ai/tambo/commit/49445c267806909c7546d6d452ff94aea8a8e8bc))
+
+
+### Code Refactoring
+
+* **message:** simplify tool call request retrieval and enhance status message handling ([#1152](https://github.com/tambo-ai/tambo/issues/1152)) ([c866b67](https://github.com/tambo-ai/tambo/commit/c866b674e8fcc8524cf0de9e347902ac31efe81f))
+
 ## [1.14.0](https://github.com/tambo-ai/tambo/compare/docs-v1.13.1...docs-v1.14.0) (2025-10-09)
 
 
