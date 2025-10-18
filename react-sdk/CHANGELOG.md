@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.58.0](https://github.com/tambo-ai/tambo/compare/react-v0.57.0...react-v0.58.0) (2025-10-18)
+
+
+### Features
+
+* (ui)show 'thought for x seconds' ([#1165](https://github.com/tambo-ai/tambo/issues/1165)) ([12d0ee1](https://github.com/tambo-ai/tambo/commit/12d0ee1edd8e1f132f00cb6e7f64216b80b9f090))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump lint-staged from 16.2.3 to 16.2.4 ([#1158](https://github.com/tambo-ai/tambo/issues/1158)) ([5bada01](https://github.com/tambo-ai/tambo/commit/5bada01943c582d7f1d4498a9c2e8d3cc15ca1ea))
+* **deps-dev:** bump ts-jest from 29.4.4 to 29.4.5 in the testing group ([#1156](https://github.com/tambo-ai/tambo/issues/1156)) ([4387b93](https://github.com/tambo-ai/tambo/commit/4387b932f370212788fa135c5f261f25ccccdd22))
+* **deps:** bump @modelcontextprotocol/sdk from 1.19.1 to 1.20.0 ([#1159](https://github.com/tambo-ai/tambo/issues/1159)) ([e586d2b](https://github.com/tambo-ai/tambo/commit/e586d2b79707707ac6e49c4c6dddfe0c30d05300))
+
 ## [0.57.0](https://github.com/tambo-ai/tambo/compare/react-v0.56.0...react-v0.57.0) (2025-10-09)
 
 
