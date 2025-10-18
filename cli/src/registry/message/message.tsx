@@ -418,18 +418,16 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
               isExpanded ? "max-h-auto opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               tool: {toolCallRequest?.toolName}
             </span>
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               parameters:{"\n"}
               {stringify(keyifyParameters(toolCallRequest?.parameters))}
             </span>
-            <div className="-ml-2">
-              <SamplingSubThread parentMessageId={message.id} />
-            </div>
+            <SamplingSubThread parentMessageId={message.id} />
             {associatedToolResponse && (
-              <div>
+              <div className="pl-2">
                 <span className="whitespace-pre-wrap">result:</span>
                 <div>
                   {!associatedToolResponse.content ? (
@@ -504,10 +502,10 @@ const SamplingSubThread = ({
         )}
         aria-hidden={!isExpanded}
       >
-        <div className="pl-8">
+        <div className="pl-2">
           <div className="border-l-2 border-muted-foreground p-2 flex flex-col gap-4">
             {childMessages?.map((m: TamboThreadMessage) => (
-              <div key={m.id} className={`${m.role === "assistant" && "pl-2"}`}>
+              <div key={m.id} className={`${m.role === "user" && "pl-2"}`}>
                 <span
                   className={cn(
                     "whitespace-pre-wrap",
