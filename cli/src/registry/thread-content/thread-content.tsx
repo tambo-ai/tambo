@@ -127,8 +127,9 @@ const ThreadContentMessages = React.forwardRef<
   ThreadContentMessagesProps
 >(({ className, ...props }, ref) => {
   const { messages, isGenerating, variant } = useThreadContentContext();
+
   const filteredMessages = messages.filter(
-    (message) => message.role !== "system",
+    (message) => message.role !== "system" && !message.parentMessageId,
   );
 
   return (
