@@ -12,16 +12,26 @@ Unlike regular registered components that Tambo generates and renders from scrat
 The easiest way to make a component interactable to Tambo is by using `withInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
 
 ```tsx
-import { withInteractable } from "@tambo-ai/react";
+import { useEffect, useId, useState } from "react";
+import {
+  withInteractable,
+  useCurrentInteractablesSnapshot,
+} from "@tambo-ai/react";
 import { z } from "zod";
 
-// Your existing component
-function Note({ title, content, color = "white" }) {
+type NoteProps = {
+  title: string;
+  content: string;
+  color?: "white" | "yellow" | "blue" | "green";
+};
+
+// Your existing presentational component
+function Note({ title, content, color = "white" }: NoteProps) {
   return (
-    <div className={`note note-${color}`}>
+    <section className={`note note-${color}`}>
       <h3>{title}</h3>
       <p>{content}</p>
-    </div>
+    </section>
   );
 }
 
@@ -37,14 +47,19 @@ const InteractableNote = withInteractable(Note, {
   }),
 });
 
-// Another simple component
-function Counter({ count, label }) {
+type CounterProps = {
+  count: number;
+  label: string;
+};
+
+// Another simple presentational component
+function Counter({ count, label }: CounterProps) {
   return (
-    <div className="counter">
-      <span>
+    <section>
+      <p>
         {label}: {count}
-      </span>
-    </div>
+      </p>
+    </section>
   );
 }
 
@@ -57,20 +72,124 @@ const InteractableCounter = withInteractable(Counter, {
   }),
 });
 
+// Controlled wrappers to achieve two-way synchronization
+function ControlledInteractableNote(props: NoteProps) {
+  // Local state is the UI source of truth for user edits
+  const [note, setNote] = useState<NoteProps>(props);
+  const [interactableId, setInteractableId] = useState<string | null>(null);
+  const snapshot = useCurrentInteractablesSnapshot();
+  const colorSelectId = useId();
+
+  // Sync down: when Tambo updates the interactable's props, reflect them in local state
+  useEffect(() => {
+    if (!interactableId) return;
+    const match = snapshot.find((c) => c.id === interactableId);
+    if (match) {
+      // Replace with the latest props coming from Tambo
+      setNote((prev) => ({ ...prev, ...(match.props as Partial<NoteProps>) }));
+    }
+  }, [snapshot, interactableId]);
+
+  // User controls update local state, which updates props passed to InteractableNote.
+  // The HOC then updates Tambo's registry (sync up).
+  return (
+    <section className={`note note-${note.color ?? "white"}`}>
+      <InteractableNote
+        {...note}
+        onInteractableReady={(id) => setInteractableId(id)}
+      />
+      <div>
+        <label htmlFor={colorSelectId}>Color</label>
+        <select
+          id={colorSelectId}
+          value={note.color ?? "white"}
+          onChange={(e) => {
+            const color = e.currentTarget.value as NoteProps["color"];
+            setNote((prev) => ({ ...prev, color }));
+          }}
+        >
+          <option value="white">White</option>
+          <option value="yellow">Yellow</option>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+        </select>
+      </div>
+    </section>
+  );
+}
+
+function ControlledInteractableCounter(props: CounterProps) {
+  const [counter, setCounter] = useState<CounterProps>(props);
+  const [interactableId, setInteractableId] = useState<string | null>(null);
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  // Sync down from Tambo updates
+  useEffect(() => {
+    if (!interactableId) return;
+    const match = snapshot.find((c) => c.id === interactableId);
+    if (match) {
+      setCounter((prev) => ({
+        ...prev,
+        ...(match.props as Partial<CounterProps>),
+      }));
+    }
+  }, [snapshot, interactableId]);
+
+  return (
+    <div>
+      <InteractableCounter
+        {...counter}
+        onInteractableReady={(id) => setInteractableId(id)}
+      />
+      <div>
+        <button
+          type="button"
+          onClick={() => {
+            const next = counter.count + 1;
+            setCounter((prev) => ({ ...prev, count: next }));
+          }}
+        >
+          Increment
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const next = counter.count - 1;
+            setCounter((prev) => ({ ...prev, count: next }));
+          }}
+        >
+          Decrement
+        </button>
+        <button
+          type="button"
+          onClick={() => setCounter((prev) => ({ ...prev, label: "Items" }))}
+        >
+          Reset Label
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Place both components in your app
 function Page() {
   return (
-    <div>
-      <InteractableNote
+    <main>
+      <ControlledInteractableNote
         title="Welcome"
         content="This is a simple note that Tambo can update!"
         color="yellow"
       />
-      <InteractableCounter count={42} label="Items" />
-    </div>
+      <ControlledInteractableCounter count={42} label="Items" />
+    </main>
   );
 }
 ```
+
+The controlled wrappers ensure two-way synchronization:
+
+- User actions update local state, which updates the props passed into the interactable wrappers (sync up to Tambo's registry).
+- When Tambo updates the interactable props, the wrappers detect those changes via `useCurrentInteractablesSnapshot()` and update local state (sync down to the UI).
 
 Now Tambo is able to read and update these components in-place when responding to messages. Users can ask things like:
 
