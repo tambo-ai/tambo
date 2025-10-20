@@ -36,7 +36,7 @@
     "@tambo-ai-cloud/core": "*",
     "ai": "^5.0.76",
     "ajv": "^8.17.1",
-    "gpt-tokenizer": "^3.0.1",
+    "gpt-tokenizer": "^3.2.0",
     "langfuse": "^3.38.4",
     "openai": "^6.1.0",
     "partial-json": "^0.1.7",
