@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.117.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.116.1...repo-v0.117.0) (2025-10-20)
+
+
+### Features
+
+* add support for claude 4.5 ([#1950](https://github.com/tambo-ai/tambo-cloud/issues/1950)) ([9136613](https://github.com/tambo-ai/tambo-cloud/commit/913661375df0f00681a6e25be60500fb6da7ca7f))
+* **api:** make the mcpAccessToken optional, only returning it if we have any mcp servers ([#1963](https://github.com/tambo-ai/tambo-cloud/issues/1963)) ([729f9b1](https://github.com/tambo-ai/tambo-cloud/commit/729f9b18b892042431a8faa6922c38ecef0cdd26))
+
+
+### Bug Fixes
+
+* eslintconfig for docs-mcp ([#1964](https://github.com/tambo-ai/tambo-cloud/issues/1964)) ([69cb6ab](https://github.com/tambo-ai/tambo-cloud/commit/69cb6ab7703e5c824eebcdc8b1ecfd26cd18bee2))
+* use types to make sure all exposed models are supported ([#1952](https://github.com/tambo-ai/tambo-cloud/issues/1952)) ([78cec10](https://github.com/tambo-ai/tambo-cloud/commit/78cec1077bf1b2fc651901838fd00ee5ce9633dc))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @nestjs/swagger from 11.2.0 to 11.2.1 in the nestjs group ([#1953](https://github.com/tambo-ai/tambo-cloud/issues/1953)) ([b37ed16](https://github.com/tambo-ai/tambo-cloud/commit/b37ed1698340ef0c17ade3f5b3c173f693c2b7a7))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.73.0 to 0.74.0 in the tambo-ai group ([#1957](https://github.com/tambo-ai/tambo-cloud/issues/1957)) ([d0a46a8](https://github.com/tambo-ai/tambo-cloud/commit/d0a46a89e4baf9f2563b0b562f7f5a6a35b3331d))
+* **deps:** bump dompurify from 3.2.7 to 3.3.0 ([#1962](https://github.com/tambo-ai/tambo-cloud/issues/1962)) ([ae245d7](https://github.com/tambo-ai/tambo-cloud/commit/ae245d7be2aaba8a2f0c68fdcc238f0d381f34ff))
+* **deps:** bump resend from 6.1.2 to 6.1.3 ([#1961](https://github.com/tambo-ai/tambo-cloud/issues/1961)) ([54617a0](https://github.com/tambo-ai/tambo-cloud/commit/54617a0507691281031ee92467ee9c4331ac776c))
+* **deps:** bump the next group with 2 updates ([#1956](https://github.com/tambo-ai/tambo-cloud/issues/1956)) ([6b47756](https://github.com/tambo-ai/tambo-cloud/commit/6b47756cefbf03196b7f4b070f113db2322619d6))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1958](https://github.com/tambo-ai/tambo-cloud/issues/1958)) ([ebb288c](https://github.com/tambo-ai/tambo-cloud/commit/ebb288c3f2b291a067cb36591b4fc0a800fdd516))
+
 ## [0.116.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.116.0...repo-v0.116.1) (2025-10-16)
 
 
