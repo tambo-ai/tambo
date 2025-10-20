@@ -187,8 +187,11 @@ export const TamboMcpProvider: FC<{
           transformToContent: (content: unknown) => {
             // MCP tools can return content in various formats
             // If it's already an array of content parts, use it as-is
-            if (Array.isArray(content)) {
-              return content as any;
+            if (
+              Array.isArray(content) &&
+              content.every((item) => !!item.type)
+            ) {
+              return content;
             }
             // Otherwise, convert to string and wrap in a text content part
             const textContent =
