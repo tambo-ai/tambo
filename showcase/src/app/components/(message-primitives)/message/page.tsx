@@ -73,6 +73,7 @@ export default function MessagePage() {
     createdAt: new Date().toISOString(),
     threadId: "sample-thread",
     componentState: {},
+    reasoningDurationMS: 8000,
     reasoning: [
       "The user is asking for help with a React component. I should consider what type of component would be most useful and educational. A button component is a great starting point because:\n\n1. It's commonly used in most applications\n2. It demonstrates key React concepts like props and styling\n3. It can show how to handle different variants and states\n4. It's simple enough to understand but flexible enough to be useful",
       "For the button component, I should include:\n- **Props interface**: Define clear prop types for variant, size, disabled state, etc.\n- **Styling system**: Use a flexible approach like CSS classes or styled-components\n- **Accessibility**: Include proper ARIA attributes and keyboard navigation\n- **Event handling**: Show how to handle click events properly\n\nI'll create a component that's both educational and production-ready.",
@@ -111,6 +112,7 @@ export default function MessagePage() {
     id: "msg-2", 
     role: "assistant", 
     content: "Let me help you with that...", 
+    reasoningDurationMS: 8000,
     reasoning: ["First, I need to understand...", "Then, I should consider..."],
     createdAt: "..." 
   }}
