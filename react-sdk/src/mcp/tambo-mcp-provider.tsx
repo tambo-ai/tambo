@@ -4,11 +4,12 @@ import React, {
   FC,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
+import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
-import { isContentPartArray, toText } from "../util/content-parts";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
 /**
@@ -61,21 +62,50 @@ export interface FailedMcpServer extends McpServerInfo {
 export type McpServer = ConnectedMcpServer | FailedMcpServer;
 
 const McpProviderContext = createContext<McpServer[]>([]);
+
+// Constant for the internal Tambo MCP server name
+const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
+
 /**
  * This provider is used to register tools from MCP servers.
- * @returns the wrapped children
+ * It automatically includes an internal Tambo MCP server when an MCP access token is available.
+ * @param props - The provider props
+ * @param props.mcpServers - Array of MCP server configurations
+ * @param props.children - The children to wrap
+ * @returns The TamboMcpProvider component
  */
 export const TamboMcpProvider: FC<{
   mcpServers: (McpServerInfo | string)[];
   children: React.ReactNode;
 }> = ({ mcpServers, children }) => {
   const { registerTool } = useTamboRegistry();
+  const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
   const [connectedMcpServers, setConnectedMcpServers] = useState<McpServer[]>(
     [],
   );
 
+  // Combine user-provided MCP servers with the internal Tambo MCP server
+  const allMcpServers = useMemo(() => {
+    const servers = [...mcpServers];
+
+    // Add internal Tambo MCP server if we have an access token and a base URL
+    if (mcpAccessToken && tamboBaseUrl) {
+      const tamboMcpUrl = `${tamboBaseUrl}/mcp`;
+      servers.push({
+        name: TAMBO_INTERNAL_MCP_SERVER_NAME,
+        url: tamboMcpUrl,
+        transport: MCPTransport.HTTP,
+        customHeaders: {
+          Authorization: `Bearer ${mcpAccessToken}`,
+        },
+      });
+    }
+
+    return servers;
+  }, [mcpServers, mcpAccessToken, tamboBaseUrl]);
+
   useEffect(() => {
-    if (!mcpServers) {
+    if (!allMcpServers.length) {
       return;
     }
     async function registerMcpServers(mcpServerInfos: McpServerInfo[]) {
@@ -198,14 +228,14 @@ export const TamboMcpProvider: FC<{
     }
 
     // normalize the server infos
-    const mcpServerInfos = mcpServers.map((mcpServer) =>
+    const mcpServerInfos = allMcpServers.map((mcpServer) =>
       typeof mcpServer === "string"
         ? { url: mcpServer, transport: MCPTransport.SSE }
         : mcpServer,
     );
 
     registerMcpServers(mcpServerInfos);
-  }, [mcpServers, registerTool]);
+  }, [allMcpServers, registerTool]);
 
   return (
     <McpProviderContext.Provider value={connectedMcpServers}>

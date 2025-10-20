@@ -1,5 +1,6 @@
 import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
+import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../../providers/tambo-registry-provider";
 import {
   TamboMcpProvider,
@@ -9,6 +10,13 @@ import {
 
 // Mock the registry to provide a no-op registerTool
 // Do not mock the registry; use the real provider in render
+
+// Mock the client provider to avoid dependency issues
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboClient: jest.fn().mockReturnValue({
+    baseURL: "https://api.tambo.co",
+  }),
+}));
 
 // Mock the MCP client; use a mutable implementation to avoid TDZ issues
 let createImpl: jest.Mock<any, any> = jest.fn();
@@ -40,11 +48,13 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
 
     const { getByTestId } = render(
       <TamboRegistryProvider>
-        <TamboMcpProvider
-          mcpServers={[{ url: "https://one.example" }, "https://two.example"]}
-        >
-          <Inner />
-        </TamboMcpProvider>
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider
+            mcpServers={[{ url: "https://one.example" }, "https://two.example"]}
+          >
+            <Inner />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>
       </TamboRegistryProvider>,
     );
 
@@ -71,9 +81,11 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
 
     render(
       <TamboRegistryProvider>
-        <TamboMcpProvider mcpServers={[{ url: "https://ok.example" }]}>
-          <Capture />
-        </TamboMcpProvider>
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider mcpServers={[{ url: "https://ok.example" }]}>
+            <Capture />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>
       </TamboRegistryProvider>,
     );
 
@@ -101,9 +113,11 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
 
     render(
       <TamboRegistryProvider>
-        <TamboMcpProvider mcpServers={[{ url: "https://fail.example" }]}>
-          <Capture />
-        </TamboMcpProvider>
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider mcpServers={[{ url: "https://fail.example" }]}>
+            <Capture />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>
       </TamboRegistryProvider>,
     );
 
