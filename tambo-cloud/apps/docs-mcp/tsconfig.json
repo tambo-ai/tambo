@@ -5,6 +5,13 @@
     "strict": true,
     "noEmit": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    "*.mjs",
+    ".next/types/**/*.ts",
+    "types/*.d.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
 }
