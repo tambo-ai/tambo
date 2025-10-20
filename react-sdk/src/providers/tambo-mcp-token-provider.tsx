@@ -1,5 +1,10 @@
 "use client";
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import React, {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useState,
+} from "react";
 import { useTamboClient } from "./tambo-client-provider";
 
 export interface TamboMcpTokenContextProps {

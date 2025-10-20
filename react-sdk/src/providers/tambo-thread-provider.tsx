@@ -642,7 +642,11 @@ export const TamboThreadProvider: React.FC<
 
       for await (const chunk of stream) {
         // Update or clear MCP access token
-        setMcpAccessToken(chunk.mcpAccessToken);
+        if (chunk.mcpAccessToken) {
+          // note that we're only setting it positively it during streaming, because it might
+          // not have been set yet in the chunk (i.e. we're not unsetting it in the chunk)
+          setMcpAccessToken(chunk.mcpAccessToken);
+        }
 
         if (chunk.responseMessageDto.toolCallRequest) {
           // Increment tool call count for this tool
@@ -954,10 +958,8 @@ export const TamboThreadProvider: React.FC<
           ? client.beta.threads.advance(params)
           : client.beta.threads.advanceByID(threadId, params));
 
-        // Update MCP access token if present
-        if (advanceResponse.mcpAccessToken) {
-          setMcpAccessToken(advanceResponse.mcpAccessToken);
-        }
+        // Update or clear MCP access token
+        setMcpAccessToken(advanceResponse.mcpAccessToken);
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         throw error;
