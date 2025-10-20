@@ -13,9 +13,9 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import { operations } from "@tambo-ai-cloud/db";
 import { Request } from "express";
 import { AppService } from "./app.service";
-import { operations } from "@tambo-ai-cloud/db";
 import {
   CreateMcpAccessTokenDto,
   McpAccessTokenResponseDto,
@@ -89,13 +89,17 @@ export class AppController {
       throw new NotFoundException("Thread not found");
     }
 
-    const mcpAccessToken = await this.authService.generateMcpAccessToken(
+    // Only generate MCP access token if project has MCP servers configured
+    const hasMcpServers = await operations.projectHasMcpServers(
+      this.authService.getDb(),
       projectId,
-      threadId,
     );
+    const mcpAccessToken = hasMcpServers
+      ? await this.authService.generateMcpAccessToken(projectId, threadId)
+      : undefined;
 
     return {
-      mcpAccessToken,
+      ...(mcpAccessToken && { mcpAccessToken }),
     };
   }
 }

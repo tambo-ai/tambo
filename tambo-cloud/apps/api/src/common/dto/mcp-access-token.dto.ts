@@ -30,8 +30,10 @@ export class CreateMcpAccessTokenDto {
 })
 export class McpAccessTokenResponseDto {
   @ApiProperty({
-    description: "JWT MCP access token to be used as bearer token",
+    description:
+      "JWT MCP access token to be used as bearer token. Only included when MCP servers are configured for the project.",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    required: false,
   })
-  mcpAccessToken!: string;
+  mcpAccessToken?: string;
 }

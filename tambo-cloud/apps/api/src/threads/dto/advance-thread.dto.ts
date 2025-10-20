@@ -52,8 +52,9 @@ export class AdvanceThreadResponseDto {
   statusMessage?: string;
   @ApiProperty({
     description:
-      "MCP access token to be used as bearer token when talking to the Tambo MCP server",
+      "MCP access token to be used as bearer token when talking to the Tambo MCP server. Only included when MCP servers are configured for the project.",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    required: false,
   })
-  mcpAccessToken!: string;
+  mcpAccessToken?: string;
 }

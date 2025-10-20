@@ -197,7 +197,7 @@ export async function checkToolCallLimitViolation(
   currentToolCounts: Record<string, number>,
   newToolCallRequest: ToolCallRequest | undefined,
   maxToolCallLimit: number,
-  mcpAccessToken: string,
+  mcpAccessToken: string | undefined,
 ): Promise<AdvanceThreadResponseDto | undefined> {
   if (!newToolCallRequest) {
     // not a tool call
@@ -235,6 +235,6 @@ export async function checkToolCallLimitViolation(
     responseMessageDto: errorThreadMessage,
     generationStage: GenerationStage.COMPLETE,
     statusMessage: "Tool call limit reached",
-    mcpAccessToken,
+    ...(mcpAccessToken && { mcpAccessToken }),
   };
 }

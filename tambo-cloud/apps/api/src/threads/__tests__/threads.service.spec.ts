@@ -177,6 +177,7 @@ jest.mock("@tambo-ai-cloud/db", () => {
 
     // mcp/system tools
     getProjectMcpServers: jest.fn(),
+    projectHasMcpServers: jest.fn(),
     addProjectLogEntry: jest.fn(),
 
     // component state
@@ -298,6 +299,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       }),
     );
     operations.getProjectMcpServers.mockResolvedValue([]);
+    operations.projectHasMcpServers.mockResolvedValue(false);
     operations.getThreadForProjectId.mockResolvedValue({
       ...createMockDBThread(threadId, projectId, GenerationStage.COMPLETE),
       messages: [],
@@ -415,6 +417,10 @@ describe("ThreadsService.advanceThread initialization", () => {
   test("uses contextKey in backend user id and MCP token generation", async () => {
     const dto = makeDto();
     const contextKey = "ctx_123";
+
+    // Mock that MCP servers exist so token generation is called
+    operations.projectHasMcpServers.mockResolvedValue(true);
+
     jest
       .spyOn<any, any>(service, "generateStreamingResponse")
       .mockImplementation(async () => {
@@ -740,6 +746,106 @@ describe("ThreadsService.advanceThread initialization", () => {
         generationStage: expect.any(String),
         mcpAccessToken: expect.any(String),
       });
+    });
+
+    test("includes mcpAccessToken when MCP servers are configured", async () => {
+      const dto = makeDto();
+      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+
+      // Mock that MCP servers exist for this project
+      operations.projectHasMcpServers.mockResolvedValue(true);
+
+      // Mock generateStreamingResponse to push a message with mcpAccessToken
+      jest
+        .spyOn<any, any>(service, "generateStreamingResponse")
+        .mockImplementation(
+          async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
+            providedQueue.push({
+              responseMessageDto: {
+                id: "msg-test",
+                role: MessageRole.Assistant,
+                content: [{ type: ContentPartType.Text, text: "Response" }],
+                threadId,
+                componentState: {},
+                createdAt: new Date(),
+              },
+              generationStage: GenerationStage.COMPLETE,
+              statusMessage: "Complete",
+              mcpAccessToken: "test-mcp-token",
+            });
+          },
+        );
+
+      const advancePromise = service.advanceThread(
+        projectId,
+        dto,
+        undefined,
+        true,
+        {},
+        undefined,
+        queue,
+      );
+
+      const messages: AdvanceThreadResponseDto[] = [];
+      for await (const msg of queue) {
+        messages.push(msg);
+      }
+
+      await advancePromise;
+
+      // Verify that mcpAccessToken is included
+      expect(messages[0]).toHaveProperty("mcpAccessToken");
+      expect(messages[0].mcpAccessToken).toBeDefined();
+      expect(typeof messages[0].mcpAccessToken).toBe("string");
+    });
+
+    test("does not include mcpAccessToken when no MCP servers are configured", async () => {
+      const dto = makeDto();
+      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+
+      // Mock that NO MCP servers exist for this project
+      operations.projectHasMcpServers.mockResolvedValue(false);
+
+      // Mock generateStreamingResponse to push a message WITHOUT mcpAccessToken
+      jest
+        .spyOn<any, any>(service, "generateStreamingResponse")
+        .mockImplementation(
+          async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
+            providedQueue.push({
+              responseMessageDto: {
+                id: "msg-test",
+                role: MessageRole.Assistant,
+                content: [{ type: ContentPartType.Text, text: "Response" }],
+                threadId,
+                componentState: {},
+                createdAt: new Date(),
+              },
+              generationStage: GenerationStage.COMPLETE,
+              statusMessage: "Complete",
+              // No mcpAccessToken here
+            });
+          },
+        );
+
+      const advancePromise = service.advanceThread(
+        projectId,
+        dto,
+        undefined,
+        true,
+        {},
+        undefined,
+        queue,
+      );
+
+      const messages: AdvanceThreadResponseDto[] = [];
+      for await (const msg of queue) {
+        messages.push(msg);
+      }
+
+      await advancePromise;
+
+      // Verify that mcpAccessToken is NOT included
+      expect(messages[0]).not.toHaveProperty("mcpAccessToken");
     });
   });
 

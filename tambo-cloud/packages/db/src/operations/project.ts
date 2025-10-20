@@ -473,6 +473,22 @@ export async function getProjectMcpServers(
   return providers;
 }
 
+export async function projectHasMcpServers(
+  db: HydraDb,
+  projectId: string,
+): Promise<boolean> {
+  const result = await db.query.toolProviders.findFirst({
+    where: and(
+      eq(schema.toolProviders.projectId, projectId),
+      eq(schema.toolProviders.type, ToolProviderType.MCP),
+    ),
+    columns: {
+      id: true,
+    },
+  });
+  return !!result;
+}
+
 export async function createMcpServer(
   db: HydraDb,
   projectId: string,
