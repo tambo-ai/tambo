@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
+import { isContentPartArray, toText } from "../util/content-parts";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
@@ -185,18 +186,12 @@ export const TamboMcpProvider: FC<{
           },
           toolSchema: tool.inputSchema as TamboTool["toolSchema"],
           transformToContent: (content: unknown) => {
-            // MCP tools can return content in various formats
-            // If it's already an array of content parts, use it as-is
-            if (
-              Array.isArray(content) &&
-              content.every((item) => !!item.type)
-            ) {
+            // MCP tools can return content in various formats; pass through arrays of content parts
+            // unchanged, otherwise stringify into a text content part.
+            if (isContentPartArray(content)) {
               return content;
             }
-            // Otherwise, convert to string and wrap in a text content part
-            const textContent =
-              typeof content === "string" ? content : JSON.stringify(content);
-            return [{ type: "text", text: textContent }];
+            return [{ type: "text", text: toText(content) }];
           },
         });
       });

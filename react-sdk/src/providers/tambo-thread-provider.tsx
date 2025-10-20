@@ -1130,21 +1130,26 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
     ...generationStageContext,
   };
 };
+import { toText } from "../util/content-parts";
+
 function convertToolResponse(toolCallResponse: {
-  result: string;
+  result: unknown;
   error?: string;
   tamboTool?: TamboTool;
 }): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+  // If the tool call errored, surface that as text so the model reliably sees the error
+  if (toolCallResponse.error) {
+    return [{ type: "text", text: toText(toolCallResponse.result) }];
+  }
+
+  // Use custom transform when available
   if (toolCallResponse.tamboTool?.transformToContent) {
-    // Use the custom transform function if provided
     return toolCallResponse.tamboTool.transformToContent(
-      toolCallResponse.result,
+      // result shape is user-defined; let the transform decide how to handle it
+      toolCallResponse.result as any,
     );
   }
-  // Default behavior: convert to string and wrap in text content part
-  const toolResponseString =
-    typeof toolCallResponse.result === "string"
-      ? toolCallResponse.result
-      : JSON.stringify(toolCallResponse.result);
-  return [{ type: "text", text: toolResponseString }];
+
+  // Default fallback to stringified text
+  return [{ type: "text", text: toText(toolCallResponse.result) }];
 }

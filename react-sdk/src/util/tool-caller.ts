@@ -20,7 +20,7 @@ export const handleToolCall = async (
     args: TamboAI.ToolCallParameter[],
   ) => Promise<string>,
 ): Promise<{
-  result: string;
+  result: unknown;
   error?: string;
   tamboTool?: TamboTool;
 }> => {
