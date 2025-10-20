@@ -106,6 +106,7 @@ updates:
       ag-ui:
         patterns:
           - "@ag-ui/*"
+          - "@mastra/*"
       nexstra:
         patterns:
           - "nextra"
