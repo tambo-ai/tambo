@@ -49,6 +49,15 @@ export interface TamboTool<
   description: string;
   tool: (...args: z.infer<Args>) => z.infer<Returns>;
   toolSchema: z.ZodFunction<Args, Returns> | JSONSchemaLite;
+  /**
+   * Optional function to transform the tool's return value into an array of content parts.
+   * If not provided, the return value will be converted to a string and wrapped in a text content part.
+   * @param result - The result returned by the tool function
+   * @returns An array of content parts to be sent back to the AI
+   */
+  transformToContent?: (
+    result: z.infer<Returns>,
+  ) => TamboAI.Beta.Threads.ChatCompletionContentPart[];
 }
 
 export type TamboToolAssociations = Record<string, string[]>;

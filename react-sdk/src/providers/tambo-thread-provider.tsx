@@ -11,6 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { TamboTool } from "../model/component-metadata";
 import {
   GenerationStage,
   isIdleStage,
@@ -968,16 +969,15 @@ export const TamboThreadProvider: React.FC<
             toolRegistry,
             onCallUnregisteredTool,
           );
-          const toolResponseString =
-            typeof toolCallResponse.result === "string"
-              ? toolCallResponse.result
-              : JSON.stringify(toolCallResponse.result);
+
+          const contentParts = convertToolResponse(toolCallResponse);
+
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
               messageToAppend: {
                 ...params.messageToAppend,
-                content: [{ type: "text", text: toolResponseString }],
+                content: contentParts,
                 role: "tool",
                 actionType: "tool_response",
                 component: advanceResponse.responseMessageDto.component,
@@ -997,7 +997,7 @@ export const TamboThreadProvider: React.FC<
           addThreadMessage(
             {
               threadId: threadId,
-              content: [{ type: "text", text: toolResponseString }],
+              content: contentParts,
               role: "tool",
               id: crypto.randomUUID(),
               createdAt: new Date().toISOString(),
@@ -1130,3 +1130,21 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
     ...generationStageContext,
   };
 };
+function convertToolResponse(toolCallResponse: {
+  result: string;
+  error?: string;
+  tamboTool?: TamboTool;
+}): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+  if (toolCallResponse.tamboTool?.transformToContent) {
+    // Use the custom transform function if provided
+    return toolCallResponse.tamboTool.transformToContent(
+      toolCallResponse.result,
+    );
+  }
+  // Default behavior: convert to string and wrap in text content part
+  const toolResponseString =
+    typeof toolCallResponse.result === "string"
+      ? toolCallResponse.result
+      : JSON.stringify(toolCallResponse.result);
+  return [{ type: "text", text: toolResponseString }];
+}

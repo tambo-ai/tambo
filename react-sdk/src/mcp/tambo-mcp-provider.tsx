@@ -184,6 +184,17 @@ export const TamboMcpProvider: FC<{
             return result.content;
           },
           toolSchema: tool.inputSchema as TamboTool["toolSchema"],
+          transformToContent: (content: unknown) => {
+            // MCP tools can return content in various formats
+            // If it's already an array of content parts, use it as-is
+            if (Array.isArray(content)) {
+              return content as any;
+            }
+            // Otherwise, convert to string and wrap in a text content part
+            const textContent =
+              typeof content === "string" ? content : JSON.stringify(content);
+            return [{ type: "text", text: textContent }];
+          },
         });
       });
     }
