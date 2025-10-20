@@ -38,7 +38,7 @@
     "ajv": "^8.17.1",
     "gpt-tokenizer": "^3.2.0",
     "langfuse": "^3.38.4",
-    "openai": "^6.1.0",
+    "openai": "^6.4.0",
     "partial-json": "^0.1.7",
     "rxjs": "7.8.1",
     "zod": "^3.25.76",
