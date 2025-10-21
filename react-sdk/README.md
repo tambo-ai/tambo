@@ -387,6 +387,42 @@ const tools: TamboTool[] = [
 </TamboProvider>;
 ```
 
+#### Advanced: Transforming Tool Responses
+
+By default, tool responses are converted to strings and wrapped in a text content part. For tools that return rich content (like images, audio, or mixed media), you can provide a `transformToContent` function to convert the tool's response into an array of content parts:
+
+```tsx
+const tools: TamboTool[] = [
+  {
+    name: "getImageData",
+    description: "Fetches image data with metadata",
+    tool: async (imageId: string) => {
+      const data = await fetchImageData(imageId);
+      return {
+        url: data.imageUrl,
+        description: data.description,
+      };
+    },
+    toolSchema: z
+      .function()
+      .args(z.string().describe("Image ID"))
+      .returns(
+        z.object({
+          url: z.string(),
+          description: z.string(),
+        }),
+      ),
+    // Transform the tool response into content parts
+    transformToContent: (result) => [
+      { type: "text", text: result.description },
+      { type: "image_url", image_url: { url: result.url } },
+    ],
+  },
+];
+```
+
+This feature is particularly useful for MCP (Model Context Protocol) tools, which already return content in the correct format. The MCP integration automatically uses `transformToContent` to pass through rich content.
+
 ### Using MCP Servers
 
 ```tsx

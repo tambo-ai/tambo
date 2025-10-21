@@ -47,6 +47,14 @@ function MyApp() {
 
 The `TamboMcpProvider` establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
 
+## Rich Content Support
+
+MCP tools automatically support rich content responses. When MCP servers return content arrays (which can include text, images, and other media types), Tambo automatically passes them through to the AI without converting them to plain text. This means MCP tools can seamlessly return images, formatted content, and other rich media.
+
+If you're building custom tools that need similar capabilities, you can use the `transformToContent` parameter when registering tools. [Learn more about returning rich content from tools](/concepts/tools/adding-tools#returning-rich-content).
+
+## How Client-Side MCP Works
+
 This is how client-side MCP works:
 
 ```mermaid
