@@ -13,8 +13,8 @@ import { useTamboQueryClient } from "../providers/tambo-client-provider";
 /**
  * Wrapper around useQuery that uses the internal tambo query client.
  *
- * Use this instead of useQuery from @tanstack/react-query
- * @param options - The options for the query, same as useQuery from @tanstack/react-query
+ * Use this instead of useQuery from `@tanstack/react-query`
+ * @param options - The options for the query, same as useQuery from `@tanstack/react-query`
  * @returns The query result
  */
 export function useTamboQuery<
@@ -30,8 +30,8 @@ export function useTamboQuery<
 /**
  * Wrapper around useMutation that uses the internal tambo query client.
  *
- * Use this instead of useMutation from @tanstack/react-query
- * @param options - The options for the mutation, same as useMutation from @tanstack/react-query
+ * Use this instead of useMutation from `@tanstack/react-query`
+ * @param options - The options for the mutation, same as useMutation from `@tanstack/react-query`
  * @returns The mutation result
  */
 export function useTamboMutation<
