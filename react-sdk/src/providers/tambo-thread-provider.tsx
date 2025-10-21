@@ -18,6 +18,7 @@ import {
   TamboThreadMessage,
 } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
+import { toText } from "../util/content-parts";
 import { renderComponentIntoMessage } from "../util/generate-component";
 import {
   getAvailableComponents,
@@ -1130,7 +1131,6 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
     ...generationStageContext,
   };
 };
-import { toText } from "../util/content-parts";
 
 function convertToolResponse(toolCallResponse: {
   result: unknown;
