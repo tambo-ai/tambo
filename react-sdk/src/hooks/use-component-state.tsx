@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
 import { useTamboCurrentMessage } from "./use-current-message";
@@ -56,11 +56,24 @@ export function useTamboComponentState<S>(
   const { updateThreadMessage } = useTamboThread();
   const client = useTamboClient();
   const messageState = message?.componentState?.[keyName];
-  const [localState, setLocalState] = useState<S | undefined>(
-    (messageState as S) ?? initialValue,
-  );
-  const [initializedFromThreadMessage, setInitializedFromThreadMessage] =
-    useState(messageState ? true : false);
+
+  // Initialize state with proper priority:
+  // 1. Message state (if exists)
+  // 2. setFromProp (if provided and no message state)
+  // 3. initialValue (fallback)
+  const [localState, setLocalState] = useState<S | undefined>(() => {
+    if (messageState !== undefined) {
+      return messageState as S;
+    }
+    if (setFromProp !== undefined) {
+      return setFromProp as S;
+    }
+    return initialValue;
+  });
+
+  // Track if we've ever received state from a thread message
+  // Using a ref since this is metadata that doesn't need to trigger renders
+  const hasReceivedMessageStateRef = useRef(messageState !== undefined);
 
   // Optimistically update the local thread message's componentState
   const updateLocalThreadMessage = useCallback(
@@ -100,22 +113,35 @@ export function useTamboComponentState<S>(
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );
 
-  // Mirror the thread message's componentState value to the local state
+  // Synchronize message state to local state
+  // This is a legitimate use of setState in useEffect because we're synchronizing with
+  // an external data source (the thread message from the API). We have proper guards
+  // to prevent infinite loops: we only update when messageState changes.
   useEffect(() => {
-    const messageState = message?.componentState?.[keyName];
-    if (!messageState) {
+    const currentMessageState = message?.componentState?.[keyName];
+
+    // Only update if we have message state
+    if (currentMessageState === undefined) {
       return;
     }
-    setInitializedFromThreadMessage(true);
-    setLocalState(message.componentState?.[keyName] as S);
-  }, [message?.componentState?.[keyName], message, keyName]);
 
-  // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
+    // Mark that we've received message state (using ref to avoid triggering renders)
+    hasReceivedMessageStateRef.current = true;
+
+    // Update local state to match message state
+    // eslint-disable-next-line -- Synchronizing with external data source (thread message from API)
+    setLocalState(currentMessageState as S);
+  }, [message?.componentState, keyName]);
+
+  // Synchronize setFromProp to local state, but only if we haven't received message state yet
+  // This allows streaming updates from props until the thread message state takes over.
+  // This is a legitimate use of setState in useEffect for prop synchronization.
   useEffect(() => {
-    if (setFromProp !== undefined && !initializedFromThreadMessage) {
+    if (setFromProp !== undefined && !hasReceivedMessageStateRef.current) {
+      // eslint-disable-next-line -- Legitimate external state synchronization
       setLocalState(setFromProp as S);
     }
-  }, [setFromProp, initializedFromThreadMessage]);
+  }, [setFromProp]);
 
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
