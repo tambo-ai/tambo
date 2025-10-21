@@ -5,9 +5,9 @@ import {
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 // Define a constant for the breakpoint to maintain consistency
@@ -16,7 +16,6 @@ export const MOBILE_BREAKPOINT = 768; // matches 'md' in Tailwind
 type MobileContextType = {
   // Core mobile state
   isMobile: boolean;
-  isMounted: boolean;
 
   // Navigation state
   isMobileMenuOpen: boolean;
@@ -37,61 +36,42 @@ type MobileContextType = {
 const MobileContext = createContext<MobileContextType | undefined>(undefined);
 
 export function MobileProvider({ children }: { children: ReactNode }) {
-  // Core state
-  const [isMounted, setIsMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  // Use useSyncExternalStore for window size - proper SSR/hydration handling
+  const isMobile = useSyncExternalStore(
+    (callback) => {
+      let timeoutId: NodeJS.Timeout;
+      const debouncedResize = () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(callback, 100);
+      };
 
-  // Navigation state
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+      window.addEventListener("resize", debouncedResize);
+      return () => {
+        window.removeEventListener("resize", debouncedResize);
+        clearTimeout(timeoutId);
+      };
+    },
+    () => window.innerWidth < MOBILE_BREAKPOINT,
+    () => false, // SSR/initial value
+  );
+
+  // Track user intent for mobile menu, but derive actual state from intent + isMobile
+  const [mobileMenuOpenIntent, setMobileMenuOpenIntent] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {},
   );
 
-  // Handle window resize and initial detection - removed isMobileMenuOpen dependency
-  useEffect(() => {
-    setIsMounted(true);
-
-    // Create a stable reference to the setIsMobileMenuOpen function
-    // to use inside the handleResize function
-    const mobileMenuSetter = setIsMobileMenuOpen;
-
-    const handleResize = () => {
-      const newIsMobile = window.innerWidth < MOBILE_BREAKPOINT;
-      setIsMobile(newIsMobile);
-
-      // Close mobile menu when switching to desktop
-      if (!newIsMobile) {
-        mobileMenuSetter(false);
-      }
-    };
-
-    // Check on mount
-    handleResize();
-
-    // Add event listener with debounce for better performance
-    let timeoutId: NodeJS.Timeout;
-    const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleResize, 100);
-    };
-
-    window.addEventListener("resize", debouncedResize);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", debouncedResize);
-      clearTimeout(timeoutId);
-    };
-  }, []); // Empty dependency array - this effect should only run once on mount
+  // Derive actual mobile menu state: only open if user wants it AND we're on mobile
+  const isMobileMenuOpen = isMobile && mobileMenuOpenIntent;
 
   // Memoize action handlers to prevent their recreation on each render
   const toggleMobileMenu = useCallback(
-    () => setIsMobileMenuOpen((prev) => !prev),
+    () => setMobileMenuOpenIntent((prev) => !prev),
     [],
   );
 
-  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), []);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpenIntent(false), []);
 
   const toggleSidebar = useCallback(
     () => setIsSidebarOpen((prev) => !prev),
@@ -108,28 +88,9 @@ export function MobileProvider({ children }: { children: ReactNode }) {
   const resetExpandedItems = useCallback(() => setExpandedItems({}), []);
 
   // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = useMemo(() => {
-    // Default state before hydration
-    if (!isMounted) {
-      return {
-        isMobile: false,
-        isMounted: false,
-        isMobileMenuOpen: false,
-        toggleMobileMenu: () => {},
-        closeMobileMenu: () => {},
-        isSidebarOpen: false,
-        toggleSidebar: () => {},
-        closeSidebar: () => {},
-        expandedItems: {},
-        toggleExpandedItem: () => {},
-        resetExpandedItems: () => {},
-      };
-    }
-
-    // Actual state after hydration
-    return {
+  const contextValue = useMemo(
+    () => ({
       isMobile,
-      isMounted,
       isMobileMenuOpen,
       toggleMobileMenu,
       closeMobileMenu,
@@ -139,20 +100,20 @@ export function MobileProvider({ children }: { children: ReactNode }) {
       expandedItems,
       toggleExpandedItem,
       resetExpandedItems,
-    };
-  }, [
-    isMobile,
-    isMounted,
-    isMobileMenuOpen,
-    isSidebarOpen,
-    expandedItems,
-    toggleMobileMenu,
-    closeMobileMenu,
-    toggleSidebar,
-    closeSidebar,
-    toggleExpandedItem,
-    resetExpandedItems,
-  ]);
+    }),
+    [
+      isMobile,
+      isMobileMenuOpen,
+      isSidebarOpen,
+      expandedItems,
+      toggleMobileMenu,
+      closeMobileMenu,
+      toggleSidebar,
+      closeSidebar,
+      toggleExpandedItem,
+      resetExpandedItems,
+    ],
+  );
 
   return (
     <MobileContext.Provider value={contextValue}>
