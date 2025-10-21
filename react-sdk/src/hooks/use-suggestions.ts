@@ -1,6 +1,6 @@
 "use client";
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { isIdleStage } from "../model/generate-component-response";
 import { validateInput } from "../model/validate-input";
 import { useTamboClient } from "../providers/tambo-client-provider";
@@ -88,19 +88,21 @@ export function useTamboSuggestions(
   const { componentList, toolRegistry, componentToolAssociations } =
     useTamboRegistry();
 
-  const [selectedSuggestionId, setSelectedSuggestionId] = useState<
-    string | null
-  >(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<{
+    messageId: string;
+    suggestionId: string;
+  } | null>(null);
   const { setValue: setInputValue } = useTamboThreadInput();
 
   const latestMessage = thread.messages[thread.messages.length - 1];
   const isLatestFromTambo = latestMessage?.role === "assistant";
   const latestMessageId = latestMessage?.id;
 
-  // Reset selected suggestion when the message changes
-  useEffect(() => {
-    setSelectedSuggestionId(null);
-  }, [latestMessageId]);
+  // Derive the selected suggestion ID - it's only valid if the message hasn't changed
+  const selectedSuggestionId =
+    selectedSuggestion?.messageId === latestMessageId
+      ? selectedSuggestion.suggestionId
+      : null;
 
   const shouldGenerateSuggestions =
     latestMessageId && isLatestFromTambo && isIdleStage(generationStage);
@@ -164,7 +166,10 @@ export function useTamboSuggestions(
       } else {
         setInputValue(validation.sanitizedInput);
       }
-      setSelectedSuggestionId(suggestion.id);
+      setSelectedSuggestion({
+        messageId: latestMessageId,
+        suggestionId: suggestion.id,
+      });
     },
   });
 
