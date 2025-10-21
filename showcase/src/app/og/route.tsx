@@ -31,7 +31,7 @@ export async function GET(request: Request) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {/* Octo icon */}
+          {/* Octo icon: Using <img> is required in next/og ImageResponse context */}
           <img
             src={`${origin}/logo/icon/Octo-Icon.svg`}
             width={48}
