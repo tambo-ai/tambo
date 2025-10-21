@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useMergedRef } from "@/lib/thread-hooks";
 import { useTambo } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -33,8 +34,11 @@ export const ScrollableMessageContainer = React.forwardRef<
   const [shouldAutoscroll, setShouldAutoscroll] = useState(true);
   const lastScrollTopRef = useRef(0);
 
-  // Handle forwarded ref
-  React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
+  // Merge the forwarded ref with the internal ref without reading `.current` during render
+  const mergedRef = useMergedRef<HTMLDivElement | null>(
+    ref,
+    scrollContainerRef,
+  );
 
   // Create a dependency that represents all content that should trigger autoscroll
   const messagesContent = React.useMemo(() => {
@@ -97,7 +101,7 @@ export const ScrollableMessageContainer = React.forwardRef<
 
   return (
     <div
-      ref={scrollContainerRef}
+      ref={mergedRef}
       onScroll={handleScroll}
       className={cn(
         "flex-1 overflow-y-auto",
