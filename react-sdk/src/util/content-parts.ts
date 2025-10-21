@@ -29,6 +29,7 @@ export function isContentPartArray(
 /**
  * Safely convert an unknown value to a string suitable for a `{ type: "text" }` content part.
  * Guarantees a string and avoids throwing on circular structures.
+ * @returns The string representation of the value
  */
 export function toText(val: unknown): string {
   if (typeof val === "string") return val;
