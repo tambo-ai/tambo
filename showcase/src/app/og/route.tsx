@@ -36,6 +36,7 @@ export async function GET(request: Request) {
             src={`${origin}/logo/icon/Octo-Icon.svg`}
             width={48}
             height={48}
+            alt="Tambo Octo icon"
             style={{ display: "block" }}
           />
           <div style={{ fontSize: 28, opacity: 0.9 }}>tambo-ui</div>
