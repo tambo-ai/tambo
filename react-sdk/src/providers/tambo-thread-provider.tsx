@@ -678,15 +678,13 @@ export const TamboThreadProvider: React.FC<
               };
             }
           }
-          const toolCallResponseString =
-            typeof toolCallResponse.result === "string"
-              ? toolCallResponse.result
-              : JSON.stringify(toolCallResponse.result);
+          const contentParts = convertToolResponse(toolCallResponse);
+
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
               messageToAppend: {
-                content: [{ type: "text", text: toolCallResponseString }],
+                content: contentParts,
                 role: "tool",
                 actionType: "tool_response",
                 component: chunk.responseMessageDto.component,
@@ -707,7 +705,7 @@ export const TamboThreadProvider: React.FC<
           addThreadMessage(
             {
               threadId: chunk.responseMessageDto.threadId,
-              content: [{ type: "text", text: toolCallResponseString }],
+              content: contentParts,
               role: "tool",
               id: crypto.randomUUID(),
               createdAt: new Date().toISOString(),
