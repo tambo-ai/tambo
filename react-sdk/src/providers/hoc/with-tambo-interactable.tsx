@@ -88,6 +88,8 @@ export function withTamboInteractable<P extends object>(
 
     // Register the component as interactable on mount (only once)
     useEffect(() => {
+      // This isn't ideal, but it's the only way to get the id set before the component is rendered
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       registerComponent();
     }, [registerComponent]);
 

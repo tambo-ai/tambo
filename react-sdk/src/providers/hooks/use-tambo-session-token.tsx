@@ -52,6 +52,7 @@ export function useTamboSessionToken(
   const accessToken = result.data?.access_token ?? null;
   useEffect(() => {
     // Mutating the SDK client instance to set the current bearer token is intentional.
+    // eslint-disable-next-line react-hooks/immutability
     client.bearer = accessToken;
   }, [accessToken, client]);
   return result;
