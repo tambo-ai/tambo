@@ -171,7 +171,7 @@ const MessageSuggestions = React.forwardRef<
 
     // Handle keyboard shortcuts for selecting suggestions
     useEffect(() => {
-      if (!suggestions || suggestions.length === 0) return;
+      if (suggestions?.length === 0) return;
 
       const handleKeyDown = (event: KeyboardEvent) => {
         const modifierPressed = isMac

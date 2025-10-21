@@ -22,7 +22,7 @@ export async function handleAddComponents(
   componentNames: string[],
   options: InstallComponentOptions = {},
 ) {
-  if (!componentNames || componentNames.length === 0) {
+  if (componentNames?.length === 0) {
     console.log(chalk.red("Please specify at least one component name."));
     return;
   }

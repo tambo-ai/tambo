@@ -34,7 +34,7 @@ export async function handleUpdateComponents(
   options: UpdateComponentOptions = {},
 ): Promise<void> {
   try {
-    if (!componentNames || componentNames.length === 0) {
+    if (componentNames?.length === 0) {
       throw new Error(
         "Please specify at least one component name or 'installed'.",
       );
