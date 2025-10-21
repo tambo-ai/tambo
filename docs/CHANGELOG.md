@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.15.0](https://github.com/tambo-ai/tambo/compare/docs-v1.14.0...docs-v1.15.0) (2025-10-21)
+
+
+### Features
+
+* **sdk:** Add client-side transformToContent callback in tool registration ([#1169](https://github.com/tambo-ai/tambo/issues/1169)) ([651dc01](https://github.com/tambo-ai/tambo/commit/651dc01649e17fce4bcfb778a041e7b7ef830dbf))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.73.0 to 0.75.0 ([#1179](https://github.com/tambo-ai/tambo/issues/1179)) ([e781957](https://github.com/tambo-ai/tambo/commit/e781957a758cdd3f5e820b24f8fe9266b3c86baf))
+* **deps:** bump dompurify from 3.2.7 to 3.3.0 ([#1175](https://github.com/tambo-ai/tambo/issues/1175)) ([ffd2ec1](https://github.com/tambo-ai/tambo/commit/ffd2ec1b2eb56eaf92f2d7eb68a9529cc3da4f92))
+* **deps:** bump framer-motion from 12.23.22 to 12.23.24 ([#1160](https://github.com/tambo-ai/tambo/issues/1160)) ([6dab68f](https://github.com/tambo-ai/tambo/commit/6dab68f916d255174b37c09c041ede244f9f8c4a))
+* **deps:** bump lucide-react from 0.545.0 to 0.546.0 ([#1174](https://github.com/tambo-ai/tambo/issues/1174)) ([49dc23f](https://github.com/tambo-ai/tambo/commit/49dc23f7ae1b0d4a88a2cea38aaccab189afa023))
+* **deps:** bump posthog-js from 1.273.1 to 1.274.1 ([#1157](https://github.com/tambo-ai/tambo/issues/1157)) ([49445c2](https://github.com/tambo-ai/tambo/commit/49445c267806909c7546d6d452ff94aea8a8e8bc))
+* **deps:** bump posthog-js from 1.274.1 to 1.276.0 ([#1173](https://github.com/tambo-ai/tambo/issues/1173)) ([6baf8ce](https://github.com/tambo-ai/tambo/commit/6baf8ce4da39ed9de0223ca74dcb8aaf3358d730))
+* **deps:** bump streamdown from 1.3.0 to 1.4.0 ([#1181](https://github.com/tambo-ai/tambo/issues/1181)) ([441d3e0](https://github.com/tambo-ai/tambo/commit/441d3e0587d71fdfb63f2365c52d0aa88bfdbb21))
+* **deps:** bump the next group with 2 updates ([#1172](https://github.com/tambo-ai/tambo/issues/1172)) ([61f92b6](https://github.com/tambo-ai/tambo/commit/61f92b6ee158f8f8b62f316d7c138937d851d132))
+
+
+### Code Refactoring
+
+* **message:** simplify tool call request retrieval and enhance status message handling ([#1152](https://github.com/tambo-ai/tambo/issues/1152)) ([c866b67](https://github.com/tambo-ai/tambo/commit/c866b674e8fcc8524cf0de9e347902ac31efe81f))
+
 ## [1.14.0](https://github.com/tambo-ai/tambo/compare/docs-v1.13.1...docs-v1.14.0) (2025-10-09)
 
 
