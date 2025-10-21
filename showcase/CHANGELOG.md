@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.26.0...showcase-v0.26.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* **ui:** text pasting in the message input and update message component to use role instead of actionType ([#1139](https://github.com/tambo-ai/tambo/issues/1139)) ([48b9e5a](https://github.com/tambo-ai/tambo/commit/48b9e5ae11040f86a4a558c3c89e0b22bb8a6af4))
+
 ## [0.26.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.25.0...showcase-v0.26.0) (2025-10-08)
 
 

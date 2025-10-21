@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.18](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.17...create-tambo-app-v0.1.18) (2025-10-09)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 5 updates ([#1123](https://github.com/tambo-ai/tambo/issues/1123)) ([59e0892](https://github.com/tambo-ai/tambo/commit/59e0892044036c974ae121ab35b98093ec66cfd4))
+* **deps-dev:** bump typescript from 5.9.2 to 5.9.3 ([#1132](https://github.com/tambo-ai/tambo/issues/1132)) ([94b23a4](https://github.com/tambo-ai/tambo/commit/94b23a47d2d347033a15a2232b7c04216c982ad3))
+
 ## [0.1.17](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.16...create-tambo-app-v0.1.17) (2025-10-02)
 
 

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.35.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.34.1...tambo-v0.35.0) (2025-10-18)
+
+
+### Features
+
+* (ui) add ui for displaying MCP sampling requests ([#1167](https://github.com/tambo-ai/tambo/issues/1167)) ([ecdb9b1](https://github.com/tambo-ai/tambo/commit/ecdb9b1415cc6abe77ddaa44faff977c15159ae0))
+* (ui)show 'thought for x seconds' ([#1165](https://github.com/tambo-ai/tambo/issues/1165)) ([12d0ee1](https://github.com/tambo-ai/tambo/commit/12d0ee1edd8e1f132f00cb6e7f64216b80b9f090))
+
+
+### Bug Fixes
+
+* filter out system message from UI ([#1162](https://github.com/tambo-ai/tambo/issues/1162)) ([8852980](https://github.com/tambo-ai/tambo/commit/8852980ae6b0271fc1bde42168bb4d0085057ffd))
+* show 'done thinking' when reasoning message completes ([#1164](https://github.com/tambo-ai/tambo/issues/1164)) ([dd0e67d](https://github.com/tambo-ai/tambo/commit/dd0e67d3655a5f6c855bb5d913eee22c8991d39d))
+
+
+### Code Refactoring
+
+* **message:** simplify tool call request retrieval and enhance status message handling ([#1152](https://github.com/tambo-ai/tambo/issues/1152)) ([c866b67](https://github.com/tambo-ai/tambo/commit/c866b674e8fcc8524cf0de9e347902ac31efe81f))
+
 ## [0.34.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.34.0...tambo-v0.34.1) (2025-10-09)
 
 
