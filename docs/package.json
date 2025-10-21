@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "scripts": {
     "build": "next build",
     "check-types": "tsc --noEmit",
