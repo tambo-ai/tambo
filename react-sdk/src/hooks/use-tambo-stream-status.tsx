@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { GenerationStage } from "../model/generate-component-response";
 import { useTamboGenerationStage } from "../providers/tambo-thread-provider";
 import { useTamboCurrentMessage } from "./use-current-message";
@@ -86,58 +86,62 @@ function assertClientSide() {
   }
 }
 
+type PropTrackingState = Record<
+  string,
+  {
+    hasStarted: boolean;
+    isComplete: boolean;
+    error?: Error;
+    messageId: string;
+  }
+>;
+
+type PropTrackingAction =
+  | {
+      type: "UPDATE_PROPS";
+      props: Record<string, any>;
+      generationStage: GenerationStage;
+      messageId: string;
+    }
+  | { type: "RESET"; messageId: string };
+
 /**
- * Track streaming status for individual props by monitoring their values.
- * Monitors when props receive their first token and when they complete streaming.
- * Maintains stable state per message - once props complete for a message, they stay complete.
- * @template Props - The type of the component props being tracked
- * @param props - The current component props object
- * @param generationStage - The current generation stage from the LLM
- * @param messageId - The ID of the current message to track component-specific state
- * @returns A record mapping each prop key to its PropStatus
+ * Reducer for managing prop tracking state.
+ * Handles state transitions when props start streaming and when they complete.
+ * @param state - The current prop tracking state
+ * @param action - The action to perform (RESET or UPDATE_PROPS)
+ * @returns The updated prop tracking state
  */
-function usePropsStreamingStatus<Props extends Record<string, any>>(
-  props: Props | undefined,
-  generationStage: GenerationStage,
-  messageId: string,
-): Record<keyof Props, PropStatus> {
-  const [propTracking, setPropTracking] = useState<
-    Record<
-      string,
-      {
-        hasStarted: boolean;
-        isComplete: boolean;
-        error?: Error;
-        messageId: string;
-      }
-    >
-  >({});
-
-  /** Reset tracking only when the message changes */
-  useEffect(() => {
-    setPropTracking((prev) => {
-      // If we have tracking data for a different message, reset
-      const hasOldMessageData = Object.values(prev).some(
-        (track) => track.messageId && track.messageId !== messageId,
+function propTrackingReducer(
+  state: PropTrackingState,
+  action: PropTrackingAction,
+): PropTrackingState {
+  switch (action.type) {
+    case "RESET": {
+      // Reset tracking if we have data for a different message
+      const hasOldMessageData = Object.values(state).some(
+        (track) => track.messageId && track.messageId !== action.messageId,
       );
-      return hasOldMessageData ? {} : prev;
-    });
-  }, [messageId]);
+      return hasOldMessageData ? {} : state;
+    }
 
-  /** Track when props start streaming (receive first token) and when they complete */
-  useEffect(() => {
-    if (!props) return;
+    case "UPDATE_PROPS": {
+      const { props, generationStage, messageId } = action;
 
-    setPropTracking((prev) => {
-      const updated = { ...prev };
+      if (!props) {
+        return state;
+      }
+
+      const updated = { ...state };
       let hasChanges = false;
 
       // First pass: identify which props are starting now
       const propsStartingNow: string[] = [];
       Object.entries(props).forEach(([key, value]) => {
-        const current = prev[key] || {
+        const current = state[key] || {
           hasStarted: false,
           isComplete: false,
+          messageId: "",
         };
 
         /** A prop starts streaming when it has a non-empty value for the first time */
@@ -152,9 +156,10 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
 
       // Second pass: update tracking and mark previous props as complete
       Object.entries(props).forEach(([key, value]) => {
-        const current = prev[key] || {
+        const current = state[key] || {
           hasStarted: false,
           isComplete: false,
+          messageId: "",
         };
 
         /** A prop starts streaming when it has a non-empty value for the first time */
@@ -194,8 +199,41 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
         }
       });
 
-      return hasChanges ? updated : prev;
-    });
+      return hasChanges ? updated : state;
+    }
+
+    default:
+      return state;
+  }
+}
+
+/**
+ * Track streaming status for individual props by monitoring their values.
+ * Monitors when props receive their first token and when they complete streaming.
+ * Maintains stable state per message - once props complete for a message, they stay complete.
+ * @template Props - The type of the component props being tracked
+ * @param props - The current component props object
+ * @param generationStage - The current generation stage from the LLM
+ * @param messageId - The ID of the current message to track component-specific state
+ * @returns A record mapping each prop key to its PropStatus
+ */
+function usePropsStreamingStatus<Props extends Record<string, any>>(
+  props: Props | undefined,
+  generationStage: GenerationStage,
+  messageId: string,
+): Record<keyof Props, PropStatus> {
+  const [propTracking, dispatch] = useReducer(propTrackingReducer, {});
+
+  /** Reset tracking when message changes */
+  useEffect(() => {
+    dispatch({ type: "RESET", messageId });
+  }, [messageId]);
+
+  /** Update tracking when props or generation stage changes */
+  useEffect(() => {
+    if (props) {
+      dispatch({ type: "UPDATE_PROPS", props, generationStage, messageId });
+    }
   }, [props, generationStage, messageId]);
 
   /** Convert tracking state to PropStatus objects */
@@ -351,7 +389,7 @@ export function useTamboStreamStatus<
       hasComponent,
       generationError,
     );
-  }, [generationStage, propStatus, message?.error, message?.component]);
+  }, [generationStage, propStatus, message]);
 
   return {
     streamStatus,
