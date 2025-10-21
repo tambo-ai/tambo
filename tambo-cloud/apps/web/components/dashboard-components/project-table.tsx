@@ -9,36 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { projectTableSchema } from "@/lib/schemas/project";
 import { type RouterOutputs } from "@/trpc/react";
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { z } from "zod";
-
-export const ProjectTableSchema = z
-  .object({
-    id: z.string().describe("The unique identifier for the project."),
-    name: z.string().describe("The human-readable name of the project."),
-    messages: z.number().describe("The number of messages in the project."),
-    users: z.number().describe("The number of users in the project."),
-    createdAt: z
-      .string()
-      .datetime()
-      .describe("The date and time the project was created."),
-    lastMessageAt: z
-      .string()
-      .datetime()
-      .nullable()
-      .describe(
-        "Timestamp of the most recently updated thread in the project.",
-      ),
-    isTokenRequired: z
-      .boolean()
-      .describe("Whether authentication tokens are required for this project."),
-  })
-  .describe(
-    "Defines the structure of a project object, including its ID, name, and creation date.",
-  );
 
 export const ProjectTableProps = z.object({
   compact: z
@@ -46,7 +22,7 @@ export const ProjectTableProps = z.object({
     .optional()
     .describe("Whether to use compact mode. Always use compact mode."),
   projects: z
-    .array(ProjectTableSchema)
+    .array(projectTableSchema)
     .optional()
     .describe("An array of project objects to display in the table."),
 });

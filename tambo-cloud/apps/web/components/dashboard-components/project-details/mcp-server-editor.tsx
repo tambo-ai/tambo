@@ -20,7 +20,7 @@ import { McpServerToolsDialog } from "./mcp-server-tools-dialog";
 export interface MCPServerInfo {
   id: string;
   url: string | null;
-  customHeaders: Record<string, string>;
+  customHeaders: Record<string, string> | null;
   mcpTransport?: MCPTransport;
   mcpRequiresAuth?: boolean;
   mcpIsAuthed?: boolean;
@@ -68,7 +68,7 @@ export function McpServerEditor({
   );
   const [url, setUrl] = useState(server.url || (isNew ? "https://" : ""));
   const [headers, setHeaders] = useState<HeaderKV[]>(
-    Object.entries(server.customHeaders).map(([header, value]) => ({
+    Object.entries(server.customHeaders ?? {}).map(([header, value]) => ({
       header,
       value,
     })),
@@ -104,7 +104,7 @@ export function McpServerEditor({
     setMcpTransport(server.mcpTransport || MCPTransport.SSE);
     setUrl(server.url || (isNew ? "https://" : ""));
     setHeaders(
-      Object.entries(server.customHeaders).map(([header, value]) => ({
+      Object.entries(server.customHeaders ?? {}).map(([header, value]) => ({
         header,
         value,
       })),

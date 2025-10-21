@@ -1,5 +1,13 @@
 import { getBaseUrl } from "@/lib/base-url";
 import { customHeadersSchema } from "@/lib/headerValidation";
+import {
+  deleteMcpServerInput,
+  inspectMcpServerInput,
+  inspectMcpServerOutputSchema,
+  listMcpServersInput,
+  mcpServerDetailSchema,
+  mcpServerSchema,
+} from "@/lib/schemas/mcp";
 import { validateSafeURL, validateServerUrl } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
@@ -27,7 +35,8 @@ type OAuthClientProvider = OAuthLocalProvider;
 
 export const toolsRouter = createTRPCRouter({
   listMcpServers: protectedProcedure
-    .input(z.object({ projectId: z.string() }))
+    .input(listMcpServersInput)
+    .output(z.array(mcpServerSchema))
     .query(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -67,6 +76,7 @@ export const toolsRouter = createTRPCRouter({
         mcpTransport: z.nativeEnum(MCPTransport),
       }),
     )
+    .output(mcpServerDetailSchema)
     .mutation(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -188,7 +198,8 @@ export const toolsRouter = createTRPCRouter({
       });
     }),
   deleteMcpServer: protectedProcedure
-    .input(z.object({ projectId: z.string(), serverId: z.string() }))
+    .input(deleteMcpServerInput)
+    .output(z.boolean())
     .mutation(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -216,6 +227,7 @@ export const toolsRouter = createTRPCRouter({
         mcpTransport: z.nativeEnum(MCPTransport),
       }),
     )
+    .output(mcpServerDetailSchema)
     .mutation(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -284,12 +296,8 @@ export const toolsRouter = createTRPCRouter({
     }),
 
   inspectMcpServer: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        serverId: z.string(),
-      }),
-    )
+    .input(inspectMcpServerInput)
+    .output(inspectMcpServerOutputSchema)
     .query(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,

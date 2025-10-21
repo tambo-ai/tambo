@@ -1,6 +1,5 @@
 "use client";
 
-import { useTamboManagementTools } from "@/components/ui/tambo/chatwithtambo/tools";
 import type { messageVariants } from "@/components/ui/tambo/message";
 import { Message, MessageContent } from "@/components/ui/tambo/message";
 import {
@@ -22,8 +21,10 @@ import {
   ThreadContentMessages,
 } from "@/components/ui/tambo/thread-content";
 import { ThreadDropdown } from "@/components/ui/tambo/thread-dropdown";
+import { registerAllTools } from "@/lib/tambo/tools/tool-registry";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
+import { api, useTRPCClient } from "@/trpc/react";
 import {
   useTambo,
   type Suggestion,
@@ -32,7 +33,7 @@ import {
 import type { VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import * as React from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Props for the MessageThreadPanel component
@@ -68,14 +69,14 @@ interface ResizablePanelProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * A resizable panel component with a draggable divider
  */
-const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
+const ResizablePanel = forwardRef<HTMLDivElement, ResizablePanelProps>(
   ({ className, children, isOpen = true, ...props }, ref) => {
-    const [width, setWidth] = React.useState(isOpen ? 400 : 0);
-    const isResizing = React.useRef(false);
-    const lastUpdateRef = React.useRef(0);
+    const [width, setWidth] = useState(isOpen ? 400 : 0);
+    const isResizing = useRef(false);
+    const lastUpdateRef = useRef(0);
 
     // Animate width when isOpen changes
-    React.useEffect(() => {
+    useEffect(() => {
       if (isOpen) {
         // When opening, animate from 0 to 400
         setWidth(400);
@@ -85,7 +86,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
       }
     }, [isOpen]);
 
-    const handleMouseMove = React.useCallback((e: MouseEvent) => {
+    const handleMouseMove = useCallback((e: MouseEvent) => {
       if (!isResizing.current) return;
 
       const now = Date.now();
@@ -164,20 +165,31 @@ ResizablePanel.displayName = "ResizablePanel";
  * <MessageThreadPanel />
  * ```
  */
-export const MessageThreadPanel = React.forwardRef<
+export const MessageThreadPanel = forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
 >(({ className, variant, ...props }, ref) => {
-  useTamboManagementTools();
+  const { registerTool } = useTambo();
+  const trpcClient = useTRPCClient();
+  const utils = api.useUtils();
+
+  /**
+   * Registers all tambo tools with the thread.
+   * This effect runs once when the component mounts and registers tools for tambo
+   * which lets tambo use the tools to interact with the tambo dashboard.
+   */
+  useEffect(() => {
+    registerAllTools(registerTool, { trpcClient, utils });
+  }, [registerTool, trpcClient, utils]);
 
   const { data: session } = useSession();
   const isUserLoggedIn = !!session;
   const { thread } = useTambo();
   const { isOpen, setIsOpen } = useMessageThreadPanel();
-  const inputRef = React.useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Update CSS variable and focus input when panel opens/closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       // Set the panel width CSS variable for layout adjustments
       document.documentElement.style.setProperty(
@@ -200,7 +212,7 @@ export const MessageThreadPanel = React.forwardRef<
   }, [isOpen]);
 
   // Add keyboard shortcut Cmd/Ctrl + K to toggle panel
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
@@ -214,7 +226,7 @@ export const MessageThreadPanel = React.forwardRef<
   }, [setIsOpen, isOpen]);
 
   // Generate or retrieve contextKey only once on mount
-  const [contextKey] = React.useState<string>(() => {
+  const [contextKey] = useState<string>(() => {
     // Check if we're in the browser before accessing localStorage
     if (typeof window === "undefined") {
       return `session-${crypto.randomUUID()}`;

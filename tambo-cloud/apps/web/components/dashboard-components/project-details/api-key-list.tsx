@@ -15,16 +15,6 @@ import {
 import { APIKeyDialog } from "./api-key-dialog";
 import { APIKeyListItem } from "./api-key-list-item";
 
-export const APIKeySchema = z.object({
-  id: z.string().describe("The unique identifier for the API key."),
-  name: z.string().describe("The name of the API key."),
-  partiallyHiddenKey: z
-    .string()
-    .optional()
-    .describe("The partially hidden API key value."),
-  lastUsedAt: z.date().nullable().describe("When the key was last used."),
-});
-
 export const APIKeyListProps = z.object({
   project: z
     .object({

@@ -1,38 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
-import { AiProviderType, MCPTransport } from "@tambo-ai-cloud/core";
+import { AiProviderType } from "@tambo-ai-cloud/core";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { z } from "zod";
 import { McpServerRow } from "./mcp-server-row";
-
-export const McpServerSchema = z.object({
-  id: z.string().describe("The unique identifier for the MCP server."),
-  url: z.string().nullable().describe("The URL of the MCP server."),
-  customHeaders: z
-    .record(z.string())
-    .describe("Custom headers for the MCP server."),
-  mcpTransport: z
-    .nativeEnum(MCPTransport)
-    .optional()
-    .describe("The transport mechanism for MCP communication."),
-  mcpRequiresAuth: z
-    .boolean()
-    .optional()
-    .describe("Whether the MCP server requires authentication."),
-  mcpIsAuthed: z
-    .boolean()
-    .optional()
-    .describe("Whether the MCP server is authenticated."),
-});
 
 export const AvailableMcpServersProps = z.object({
   project: z
     .object({
       id: z.string().describe("The unique identifier for the project."),
       name: z.string().describe("The name of the project."),
-      providerType: z.nativeEnum(AiProviderType).optional(),
+      providerType: z.nativeEnum(AiProviderType).nullish(),
     })
     .describe("The project to fetch MCP servers for."),
   onEdited: z

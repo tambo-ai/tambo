@@ -1,6 +1,6 @@
 "use client";
 
-import { tamboRegisteredComponents } from "@/components/ui/tambo/chatwithtambo/config";
+import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { env } from "@/lib/env";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
 

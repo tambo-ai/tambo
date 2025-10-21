@@ -1,5 +1,42 @@
 import { env } from "@/lib/env";
-import { customLlmParametersSchema } from "@/lib/llm-parameters";
+import {
+  updateProjectAgentSettingsInput,
+  updateProjectAgentSettingsOutputSchema,
+} from "@/lib/schemas/agent";
+import {
+  apiKeySchema,
+  deleteApiKeyInput,
+  generateApiKeyInput,
+  generatedApiKeySchema,
+  getApiKeysInput,
+} from "@/lib/schemas/api-key";
+import {
+  getProjectLlmSettingsInput,
+  projectLlmSettingsSchema,
+  updateProjectLlmSettingsInput,
+  updateProjectLlmSettingsOutputSchema,
+} from "@/lib/schemas/llm";
+import {
+  getOAuthValidationSettingsInput,
+  oauthValidationSettingsSchema,
+  updateOAuthValidationSettingsInput,
+  updateOAuthValidationSettingsOutputSchema,
+} from "@/lib/schemas/oauth";
+import {
+  createProjectInput,
+  createProjectOutputSchema,
+  getProjectByIdInput,
+  getTotalMessageUsageInput,
+  getTotalUsersInput,
+  getUserProjectsInput,
+  projectDetailSchema,
+  projectSchema,
+  removeProjectInput,
+  totalMessageUsageSchema,
+  totalUsersSchema,
+  updateProjectInput,
+  updateProjectOutputSchema,
+} from "@/lib/schemas/project";
 import { validateSafeURL } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
@@ -27,22 +64,6 @@ import {
   sql,
 } from "drizzle-orm";
 import { z } from "zod";
-
-// ---------------------------------------------------------------------------
-//  Agent header constraints (no regex; count and length limits only)
-// ---------------------------------------------------------------------------
-const MAX_AGENT_HEADER_COUNT = 20;
-const MAX_AGENT_HEADER_NAME_LENGTH = 100;
-const MAX_AGENT_HEADER_VALUE_LENGTH = 2000;
-
-const agentHeadersSchema = z
-  .record(
-    z.string().min(1).max(MAX_AGENT_HEADER_NAME_LENGTH),
-    z.string().min(1).max(MAX_AGENT_HEADER_VALUE_LENGTH),
-  )
-  .refine((obj) => Object.keys(obj).length <= MAX_AGENT_HEADER_COUNT, {
-    message: `Too many headers (max ${MAX_AGENT_HEADER_COUNT})`,
-  });
 
 // Helper function to get date filter based on period
 function getDateFilter(period: string): Date | null {
@@ -167,19 +188,79 @@ async function getMultiProjectDailyCounts(
 
 export const projectRouter = createTRPCRouter({
   // ---------------------------------------------------------------------
+  //  Fetch a single project by ID
+  // ---------------------------------------------------------------------
+  getProjectById: protectedProcedure
+    .input(getProjectByIdInput)
+    .output(projectDetailSchema)
+    .query(async ({ ctx, input: projectId }) => {
+      await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
+
+      const project = await ctx.db.query.projects.findFirst({
+        where: eq(schema.projects.id, projectId),
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Project not found.",
+        });
+      }
+
+      // Get message and user counts for this project
+      const counts = await ctx.db
+        .select({
+          messages: count(schema.messages.id),
+          users: countDistinct(schema.threads.contextKey),
+          lastMessageAt: max(schema.threads.updatedAt),
+        })
+        .from(schema.threads)
+        .leftJoin(
+          schema.messages,
+          eq(schema.messages.threadId, schema.threads.id),
+        )
+        .where(eq(schema.threads.projectId, projectId))
+        .groupBy(schema.threads.projectId);
+
+      const stats = counts[0] ?? {
+        messages: 0,
+        users: 0,
+        lastMessageAt: null,
+      };
+
+      return {
+        id: project.id,
+        name: project.name,
+        userId: ctx.user.id,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        customInstructions: project.customInstructions,
+        allowSystemPromptOverride: project.allowSystemPromptOverride ?? false,
+        defaultLlmProviderName: project.defaultLlmProviderName,
+        defaultLlmModelName: project.defaultLlmModelName,
+        customLlmModelName: project.customLlmModelName,
+        customLlmBaseURL: project.customLlmBaseURL,
+        maxInputTokens: project.maxInputTokens,
+        maxToolCallLimit: project.maxToolCallLimit,
+        isTokenRequired: project.isTokenRequired,
+        providerType: project.providerType,
+        agentProviderType: project.agentProviderType,
+        agentUrl: project.agentUrl,
+        agentName: project.agentName,
+        customLlmParameters: project.customLlmParameters,
+        messages: Number(stats.messages ?? 0),
+        users: Number(stats.users ?? 0),
+        lastMessageAt: stats.lastMessageAt ?? null,
+      };
+    }),
+
+  // ---------------------------------------------------------------------
   //  Fetch all projects visible to the current user with optional sorting.
   //  The default sort is by the most recent thread update ("thread_updated").
   // ---------------------------------------------------------------------
   getUserProjects: protectedProcedure
-    .input(
-      z
-        .object({
-          sort: z
-            .enum(["thread_updated", "created", "updated"]) // Future-proof
-            .optional(),
-        })
-        .optional(),
-    )
+    .input(getUserProjectsInput)
+    .output(z.array(projectSchema))
     .query(async ({ ctx, input }) => {
       const sortBy = input?.sort ?? "thread_updated";
       const userId = ctx.user.id;
@@ -285,7 +366,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   createProject: protectedProcedure
-    .input(z.string())
+    .input(createProjectInput)
+    .output(createProjectOutputSchema)
     .mutation(async ({ ctx, input }) => {
       return await operations.createProject(ctx.db, {
         name: input,
@@ -365,7 +447,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   getProjectLlmSettings: protectedProcedure
-    .input(z.object({ projectId: z.string() }))
+    .input(getProjectLlmSettingsInput)
+    .output(projectLlmSettingsSchema)
     .query(async ({ ctx, input }) => {
       const { projectId } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
@@ -383,6 +466,7 @@ export const projectRouter = createTRPCRouter({
           agentUrl: true,
           agentName: true,
           agentHeaders: true,
+          customLlmParameters: true,
         },
       });
 
@@ -403,31 +487,13 @@ export const projectRouter = createTRPCRouter({
         agentUrl: project.agentUrl ?? null,
         agentName: project.agentName ?? null,
         agentHeaders: project.agentHeaders,
+        customLlmParameters: project.customLlmParameters ?? null,
       };
     }),
 
   updateProject: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        name: z.string().optional(),
-        customInstructions: z.string().nullable().optional(),
-        allowSystemPromptOverride: z.boolean().optional(),
-        defaultLlmProviderName: z.string().nullable().optional(),
-        defaultLlmModelName: z.string().nullable().optional(),
-        customLlmModelName: z.string().nullable().optional(),
-        customLlmBaseURL: z.string().nullable().optional(),
-        maxInputTokens: z.number().nullable().optional(),
-        maxToolCallLimit: z.number().optional(),
-        isTokenRequired: z.boolean().optional(),
-        providerType: z.nativeEnum(AiProviderType).optional(),
-        agentProviderType: z.nativeEnum(AgentProviderType).optional(),
-        agentUrl: z.string().url().nullable().optional(),
-        agentName: z.string().nullable().optional(),
-        customLlmParameters: customLlmParametersSchema.nullable().optional(),
-        agentHeaders: agentHeadersSchema.nullable().optional(),
-      }),
-    )
+    .input(updateProjectInput)
+    .output(updateProjectOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         projectId,
@@ -510,19 +576,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   updateProjectAgentSettings: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        providerType: z.nativeEnum(AiProviderType),
-        agentProviderType: z
-          .nativeEnum(AgentProviderType)
-          .nullable()
-          .optional(),
-        agentUrl: z.string().url().nullable().optional(),
-        agentName: z.string().nullable().optional(),
-        agentHeaders: agentHeadersSchema.nullable().optional(),
-      }),
-    )
+    .input(updateProjectAgentSettingsInput)
+    .output(updateProjectAgentSettingsOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         projectId,
@@ -596,16 +651,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   updateProjectLlmSettings: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        defaultLlmProviderName: z.string().nullable().optional(),
-        defaultLlmModelName: z.string().nullable().optional(),
-        customLlmModelName: z.string().nullable().optional(),
-        customLlmBaseURL: z.string().nullable().optional(),
-        maxInputTokens: z.number().nullable().optional(),
-      }),
-    )
+    .input(updateProjectLlmSettingsInput)
+    .output(updateProjectLlmSettingsOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         projectId,
@@ -613,6 +660,7 @@ export const projectRouter = createTRPCRouter({
         defaultLlmModelName,
         customLlmModelName,
         customLlmBaseURL,
+        customLlmParameters,
       } = input;
 
       // Ensure the user has access to the project before performing any further
@@ -654,6 +702,7 @@ export const projectRouter = createTRPCRouter({
         customLlmModelName: string | null;
         customLlmBaseURL: string | null;
         maxInputTokens: number | null;
+        customLlmParameters: typeof customLlmParameters;
       }> = {};
 
       if ("defaultLlmProviderName" in input) {
@@ -669,6 +718,9 @@ export const projectRouter = createTRPCRouter({
         // Store the trimmed value (or null if blank/undefined)
         updateData.customLlmBaseURL =
           sanitizedBaseURL && sanitizedBaseURL !== "" ? sanitizedBaseURL : null;
+      }
+      if ("customLlmParameters" in input) {
+        updateData.customLlmParameters = customLlmParameters;
       }
       if ("maxInputTokens" in input) {
         if (defaultLlmProviderName && defaultLlmModelName) {
@@ -710,6 +762,7 @@ export const projectRouter = createTRPCRouter({
             customLlmModelName: true,
             customLlmBaseURL: true,
             maxInputTokens: true,
+            customLlmParameters: true,
           },
         });
         if (!currentProject)
@@ -723,6 +776,7 @@ export const projectRouter = createTRPCRouter({
           customLlmModelName: currentProject.customLlmModelName ?? null,
           customLlmBaseURL: currentProject.customLlmBaseURL ?? null,
           maxInputTokens: currentProject.maxInputTokens ?? null,
+          customLlmParameters: currentProject.customLlmParameters ?? null,
         };
       }
 
@@ -732,6 +786,7 @@ export const projectRouter = createTRPCRouter({
         customLlmModelName: updateData.customLlmModelName,
         customLlmBaseURL: updateData.customLlmBaseURL,
         maxInputTokens: updateData.maxInputTokens,
+        customLlmParameters: updateData.customLlmParameters,
       });
 
       if (!updatedProject) {
@@ -746,11 +801,12 @@ export const projectRouter = createTRPCRouter({
         customLlmModelName: updatedProject.customLlmModelName ?? null,
         customLlmBaseURL: updatedProject.customLlmBaseURL ?? null,
         maxInputTokens: updatedProject.maxInputTokens ?? null,
+        customLlmParameters: updatedProject.customLlmParameters ?? null,
       };
     }),
 
   removeProject: protectedProcedure
-    .input(z.string())
+    .input(removeProjectInput)
     .mutation(async ({ ctx, input: projectId }) => {
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
       await operations.deleteProject(ctx.db, projectId);
@@ -826,12 +882,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   generateApiKey: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        name: z.string(),
-      }),
-    )
+    .input(generateApiKeyInput)
+    .output(generatedApiKeySchema)
     .mutation(async ({ ctx, input }) => {
       const { projectId, name } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
@@ -860,19 +912,15 @@ export const projectRouter = createTRPCRouter({
     }),
 
   getApiKeys: protectedProcedure
-    .input(z.string())
+    .input(getApiKeysInput)
+    .output(z.array(apiKeySchema))
     .query(async ({ ctx, input: projectId }) => {
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
       return await operations.getApiKeys(ctx.db, projectId);
     }),
 
   removeApiKey: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        apiKeyId: z.string(),
-      }),
-    )
+    .input(deleteApiKeyInput)
     .mutation(async ({ ctx, input }) => {
       await operations.ensureProjectAccess(
         ctx.db,
@@ -903,7 +951,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   getTotalMessageUsage: protectedProcedure
-    .input(z.object({ period: z.string().optional().default("all time") }))
+    .input(getTotalMessageUsageInput)
+    .output(totalMessageUsageSchema)
     .query(async ({ ctx, input }) => {
       const { period } = input;
       const userId = ctx.user.id;
@@ -1004,7 +1053,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   getTotalUsers: protectedProcedure
-    .input(z.object({ period: z.string().optional().default("all time") }))
+    .input(getTotalUsersInput)
+    .output(totalUsersSchema)
     .query(async ({ ctx, input }) => {
       const { period } = input;
       const userId = ctx.user.id;
@@ -1063,7 +1113,8 @@ export const projectRouter = createTRPCRouter({
   // -------------------------------------------------------------------------
 
   getOAuthValidationSettings: protectedProcedure
-    .input(z.object({ projectId: z.string() }))
+    .input(getOAuthValidationSettingsInput)
+    .output(oauthValidationSettingsSchema)
     .query(async ({ ctx, input }) => {
       const { projectId } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
@@ -1076,6 +1127,7 @@ export const projectRouter = createTRPCRouter({
       if (!settings) {
         return {
           mode: OAuthValidationMode.NONE,
+          publicKey: null,
           hasSecretKey: false,
           hasPublicKey: false,
         };
@@ -1090,17 +1142,8 @@ export const projectRouter = createTRPCRouter({
     }),
 
   updateOAuthValidationSettings: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string(),
-        mode: z.enum(
-          Object.values(OAuthValidationMode) as [OAuthValidationMode],
-        ),
-        secretKey: z.string().optional(),
-        publicKey: z.string().optional(),
-        isTokenRequired: z.boolean().optional(),
-      }),
-    )
+    .input(updateOAuthValidationSettingsInput)
+    .output(updateOAuthValidationSettingsOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const { projectId, mode, secretKey, publicKey, isTokenRequired } = input;
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
