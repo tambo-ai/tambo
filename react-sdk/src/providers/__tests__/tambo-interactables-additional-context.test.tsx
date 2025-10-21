@@ -1,16 +1,16 @@
 import { render, waitFor } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
+import { withTamboInteractable } from "../hoc/with-tambo-interactable";
 import {
-  useTamboContextHelpers,
   TamboContextHelpersProvider,
+  useTamboContextHelpers,
 } from "../tambo-context-helpers-provider";
 import {
   TamboInteractableProvider,
   useCurrentInteractablesSnapshot,
 } from "../tambo-interactable-provider";
 import { TamboStubProvider } from "../tambo-stubs";
-import { withTamboInteractable } from "../hoc/with-tambo-interactable";
 
 function wrapperWithProviders(children: React.ReactNode) {
   const thread = {
@@ -242,34 +242,25 @@ describe("Interactables AdditionalContext (provider-based)", () => {
     });
 
     const TestComponent = () => {
-      const snapshot = useCurrentInteractablesSnapshot();
+      const snapshot1 = useCurrentInteractablesSnapshot();
+      const snapshot2 = useCurrentInteractablesSnapshot();
       const [testResult, setTestResult] = React.useState<string>("pending");
 
       React.useEffect(() => {
-        if (snapshot.length > 0) {
-          const originalLength = snapshot.length;
+        if (snapshot1.length > 0 && snapshot2.length > 0) {
+          // Verify that multiple calls return different array instances
+          const arraysAreDifferent = snapshot1 !== snapshot2;
 
-          // Try to mutate the returned array and props
-          snapshot.push({
-            id: "fake",
-            name: "Fake",
-            description: "",
-            component: () => null,
-            props: {},
-          } as any);
-          (snapshot[0].props as any).title = "MUTATED";
+          // Verify that props objects are also different instances
+          const propsAreDifferent = snapshot1[0].props !== snapshot2[0].props;
 
-          // The mutations should succeed on the returned copy, proving it's a separate object
-          if (
-            snapshot.length === originalLength + 1 &&
-            snapshot[0].props.title === "MUTATED"
-          ) {
-            setTestResult("mutation-successful-but-isolated");
+          if (arraysAreDifferent && propsAreDifferent) {
+            setTestResult("copies-verified");
           } else {
-            setTestResult("mutation-failed");
+            setTestResult("same-references");
           }
         }
-      }, [snapshot]);
+      }, [snapshot1, snapshot2]);
 
       return <div data-testid="test-result">{testResult}</div>;
     };
@@ -285,7 +276,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
     await waitFor(() => {
       const result = getByTestId("test-result").textContent;
-      expect(result).toBe("mutation-successful-but-isolated");
+      expect(result).toBe("copies-verified");
     });
   });
 
