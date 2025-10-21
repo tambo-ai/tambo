@@ -51,7 +51,11 @@ export interface MCPHandlers {
  * ```
  */
 export class MCPClient {
-  private client: Client;
+  /** The underlying MCP client
+   *
+   * Be careful not to mutate the client directly, use the methods provided instead.
+   */
+  client: Client;
   private transport: SSEClientTransport | StreamableHTTPClientTransport;
   private transportType: MCPTransport;
   public sessionId?: string;
