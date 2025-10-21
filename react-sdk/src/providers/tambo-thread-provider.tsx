@@ -214,6 +214,8 @@ export interface TamboThreadProviderProps {
   streaming?: boolean;
   /** Initial messages to be included in new threads */
   initialMessages?: InitialTamboThreadMessage[];
+  /** The threshold at which the thread name will be auto-generated. Defaults to 3. Pass null to disable. */
+  autoGenerateNameThreshold?: number;
 }
 
 /**
@@ -223,11 +225,17 @@ export interface TamboThreadProviderProps {
  * @param props.children - The children to wrap
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
  * @param props.initialMessages - Initial messages to be included in new threads
+ * @param props.autoGenerateNameThreshold - The threshold at which the thread name will be auto-generated. Defaults to 3. Pass null to disable.
  * @returns The TamboThreadProvider component
  */
 export const TamboThreadProvider: React.FC<
   PropsWithChildren<TamboThreadProviderProps>
-> = ({ children, streaming = true, initialMessages = [] }) => {
+> = ({
+  children,
+  streaming = true,
+  initialMessages = [],
+  autoGenerateNameThreshold = 3,
+}) => {
   // Create placeholder thread with initial messages
   const placeholderThread: TamboThread = useMemo(
     () => ({
@@ -287,36 +295,70 @@ export const TamboThreadProvider: React.FC<
     ignoreResponseRef.current = ignoreResponse;
   }, [ignoreResponse]);
 
-  const refetchThreadsList = useCallback(
-    async (threadId: string, contextKey: string | undefined) => {
+  const updateThreadsCache = useCallback(
+    async (
+      updateFn: (
+        old: TamboAI.Beta.Threads.ThreadsOffsetAndLimit | undefined,
+      ) => TamboAI.Beta.Threads.ThreadsOffsetAndLimit | undefined,
+      contextKey?: string,
+    ) => {
       try {
         const currentProject = await client.beta.projects.getCurrent();
 
-        const optimisticThread = {
-          ...PLACEHOLDER_THREAD,
-          id: threadId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
         queryClient.setQueryData(
           ["threads", currentProject.id, contextKey],
-          (old: TamboAI.Beta.Threads.ThreadsOffsetAndLimit | undefined) => {
-            return {
-              ...old,
-              items: [optimisticThread, ...(old?.items ?? [])],
-            };
-          },
+          updateFn,
         );
 
         await queryClient.invalidateQueries({
           queryKey: ["threads"],
         });
       } catch (error) {
-        console.warn("Failed to refetch threads list:", error);
+        console.warn("Failed to update threads cache:", error);
       }
     },
     [client.beta.projects, queryClient],
+  );
+
+  const addThreadToCache = useCallback(
+    async (threadId: string, contextKey: string | undefined) => {
+      const optimisticThread = {
+        ...PLACEHOLDER_THREAD,
+        id: threadId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateThreadsCache(
+        (old) => ({
+          ...old,
+          items: [optimisticThread, ...(old?.items ?? [])],
+        }),
+        contextKey,
+      );
+    },
+    [updateThreadsCache],
+  );
+
+  const updateThreadInCache = useCallback(
+    async (
+      threadId: string,
+      updateFn: (
+        thread: TamboAI.Beta.Threads.Thread,
+      ) => TamboAI.Beta.Threads.Thread,
+      contextKey?: string,
+    ) => {
+      await updateThreadsCache((old) => {
+        if (!old?.items) return old;
+        return {
+          ...old,
+          items: old.items.map((thread) =>
+            thread.id === threadId ? updateFn(thread) : thread,
+          ),
+        };
+      }, contextKey);
+    },
+    [updateThreadsCache],
   );
 
   const fetchThread = useCallback(
@@ -464,6 +506,24 @@ export const TamboThreadProvider: React.FC<
     [client.beta.threads.messages],
   );
 
+  const shouldAutoGenerateName = useCallback(
+    (thread: TamboThread): boolean => {
+      if (!autoGenerateNameThreshold || thread.id === placeholderThread.id) {
+        return false;
+      }
+
+      const messageCount = thread.messages.length;
+      const generateThreshold = autoGenerateNameThreshold;
+
+      if (!thread.name && messageCount >= generateThreshold) {
+        return true;
+      }
+
+      return false;
+    },
+    [autoGenerateNameThreshold, placeholderThread.id],
+  );
+
   const startNewThread = useCallback(() => {
     setCurrentThreadId(placeholderThread.id);
     setThreadMap((prevMap) => {
@@ -512,6 +572,7 @@ export const TamboThreadProvider: React.FC<
       const threadWithGeneratedName =
         await client.beta.threads.generateName(threadId);
 
+      // Update local thread state
       setThreadMap((prevMap) => {
         if (!prevMap[threadId]) {
           return prevMap;
@@ -524,9 +585,22 @@ export const TamboThreadProvider: React.FC<
           },
         };
       });
+
+      // Update threads cache to reflect the new name in the UI
+      await updateThreadInCache(threadId, (thread) => ({
+        ...thread,
+        name: threadWithGeneratedName.name,
+      }));
+
       return threadWithGeneratedName;
     },
-    [client.beta.threads, currentThreadId, threadMap, placeholderThread.id],
+    [
+      client.beta.threads,
+      currentThreadId,
+      threadMap,
+      placeholderThread.id,
+      updateThreadInCache,
+    ],
   );
 
   const switchCurrentThread = useCallback(
@@ -767,9 +841,9 @@ export const TamboThreadProvider: React.FC<
             await switchCurrentThread(chunk.responseMessageDto.threadId, false);
 
             // If we're switching from placeholder to a real thread
-            // this means a new thread was created, so refetch the threads list
+            // this means a new thread was created, so add it to cache
             if (wasPlaceholderThread) {
-              await refetchThreadsList(
+              await addThreadToCache(
                 chunk.responseMessageDto.threadId,
                 contextKey,
               );
@@ -822,12 +896,12 @@ export const TamboThreadProvider: React.FC<
     },
     [
       addThreadMessage,
+      addThreadToCache,
       client,
       componentList,
       currentThread?.id,
       currentThreadId,
       onCallUnregisteredTool,
-      refetchThreadsList,
       setMcpAccessToken,
       switchCurrentThread,
       toolRegistry,
@@ -940,12 +1014,23 @@ export const TamboThreadProvider: React.FC<
           throw error;
         }
         try {
-          return await handleAdvanceStream(
+          const result = await handleAdvanceStream(
             advanceStreamResponse,
             params,
             threadId,
             contextKey,
           );
+
+          const updatedThread = threadMap[result.threadId];
+          if (updatedThread && shouldAutoGenerateName(updatedThread)) {
+            try {
+              await generateThreadName(result.threadId);
+            } catch (error) {
+              console.warn("Failed to generate thread name:", error);
+            }
+          }
+
+          return result;
         } catch (error) {
           updateThreadStatus(threadId, GenerationStage.ERROR);
           throw error;
@@ -1048,9 +1133,9 @@ export const TamboThreadProvider: React.FC<
       await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
 
       // If we're switching from placeholder to a real thread
-      // this means a new thread was created, so refetch the threads list
+      // this means a new thread was created, so add it to cache
       if (wasPlaceholderThread) {
-        await refetchThreadsList(
+        await addThreadToCache(
           advanceResponse.responseMessageDto.threadId,
           contextKey,
         );
@@ -1059,6 +1144,17 @@ export const TamboThreadProvider: React.FC<
         advanceResponse.responseMessageDto.threadId,
         GenerationStage.COMPLETE,
       );
+
+      const updatedThread =
+        threadMap[advanceResponse.responseMessageDto.threadId];
+      if (updatedThread && shouldAutoGenerateName(updatedThread)) {
+        try {
+          await generateThreadName(advanceResponse.responseMessageDto.threadId);
+        } catch (error) {
+          console.warn("Failed to generate thread name:", error);
+        }
+      }
+
       return finalMessage;
     },
     [
@@ -1077,7 +1173,10 @@ export const TamboThreadProvider: React.FC<
       placeholderThread.id,
       initialMessages,
       onCallUnregisteredTool,
-      refetchThreadsList,
+      addThreadToCache,
+      shouldAutoGenerateName,
+      generateThreadName,
+      threadMap,
       setMcpAccessToken,
     ],
   );
