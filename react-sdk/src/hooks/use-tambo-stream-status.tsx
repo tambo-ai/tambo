@@ -351,7 +351,7 @@ export function useTamboStreamStatus<
       hasComponent,
       generationError,
     );
-  }, [generationStage, propStatus, message?.error, message?.component]);
+  }, [generationStage, propStatus, message]);
 
   return {
     streamStatus,
