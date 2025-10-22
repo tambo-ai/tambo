@@ -1,5 +1,5 @@
 import { MessageRole } from "@tambo-ai-cloud/core";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { schema } from "..";
 import { messages, projectMembers } from "../schema";
 import type { HydraDb } from "../types";
@@ -108,4 +108,23 @@ export async function findPreviousToolCallMessage(
       isNotNull(schema.messages.toolCallRequest),
     ),
   });
+}
+
+/**
+ * Find the ID of the last message in a thread that doesn't have a parent message ID.
+ * This is useful as a fallback when determining the parent for a new message.
+ */
+export async function findLastMessageWithoutParent(
+  db: HydraDb,
+  threadId: string,
+): Promise<string | undefined> {
+  const result = await db.query.messages.findFirst({
+    where: and(
+      eq(schema.messages.threadId, threadId),
+      isNull(schema.messages.parentMessageId),
+    ),
+    orderBy: desc(schema.messages.createdAt),
+    columns: { id: true },
+  });
+  return result?.id;
 }
