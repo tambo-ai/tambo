@@ -1189,9 +1189,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1309,9 +1311,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={true}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={true}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1442,9 +1446,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1555,9 +1561,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
