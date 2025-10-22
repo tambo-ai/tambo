@@ -678,7 +678,7 @@ export const TamboThreadProvider: React.FC<
               };
             }
           }
-          const contentParts = convertToolResponse(toolCallResponse);
+          const contentParts = await convertToolResponse(toolCallResponse);
 
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
@@ -969,7 +969,7 @@ export const TamboThreadProvider: React.FC<
             onCallUnregisteredTool,
           );
 
-          const contentParts = convertToolResponse(toolCallResponse);
+          const contentParts = await convertToolResponse(toolCallResponse);
 
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
@@ -1130,11 +1130,11 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
   };
 };
 
-function convertToolResponse(toolCallResponse: {
+async function convertToolResponse(toolCallResponse: {
   result: unknown;
   error?: string;
   tamboTool?: TamboTool;
-}): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+}): Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]> {
   // If the tool call errored, surface that as text so the model reliably sees the error
   if (toolCallResponse.error) {
     return [{ type: "text", text: toText(toolCallResponse.result) }];
@@ -1142,7 +1142,7 @@ function convertToolResponse(toolCallResponse: {
 
   // Use custom transform when available
   if (toolCallResponse.tamboTool?.transformToContent) {
-    return toolCallResponse.tamboTool.transformToContent(
+    return await toolCallResponse.tamboTool.transformToContent(
       // result shape is user-defined; let the transform decide how to handle it
       toolCallResponse.result as any,
     );

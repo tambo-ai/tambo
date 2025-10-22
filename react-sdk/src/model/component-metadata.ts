@@ -57,7 +57,9 @@ export interface TamboTool<
    */
   transformToContent?: (
     result: z.infer<Returns>,
-  ) => TamboAI.Beta.Threads.ChatCompletionContentPart[];
+  ) =>
+    | Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]>
+    | TamboAI.Beta.Threads.ChatCompletionContentPart[];
 }
 
 export type TamboToolAssociations = Record<string, string[]>;
