@@ -1126,4 +1126,490 @@ describe("TamboThreadProvider", () => {
       expect(result.current.thread.id).toBe("existing-thread-123");
     });
   });
+
+  describe("transformToContent", () => {
+    it("should use custom transformToContent when provided (non-streaming)", async () => {
+      const mockTransformToContent = jest.fn().mockReturnValue([
+        { type: "text", text: "Custom transformed content" },
+        {
+          type: "image_url",
+          image_url: { url: "https://example.com/image.png" },
+        },
+      ]);
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "custom-tool",
+              tool: jest.fn().mockResolvedValue({ data: "tool result" }),
+              description: "Tool with custom transform",
+              toolSchema: z
+                .function()
+                .args(z.string())
+                .returns(z.object({ data: z.string() })),
+              transformToContent: mockTransformToContent,
+            },
+          ],
+        },
+      ];
+
+      const wrapperWithCustomTool = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={customToolRegistry}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider streaming={false}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "tool-call-1",
+          content: [{ type: "text", text: "Tool response" }],
+          role: "tool",
+          threadId: "test-thread-1",
+          toolCallRequest: {
+            toolName: "custom-tool",
+            parameters: [{ parameterName: "input", parameterValue: "test" }],
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      jest
+        .mocked(mockThreadsApi.advanceByID)
+        .mockResolvedValueOnce(mockToolCallResponse)
+        .mockResolvedValueOnce({
+          responseMessageDto: {
+            id: "final-response",
+            content: [{ type: "text", text: "Final response" }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+          mcpAccessToken: "test-mcp-access-token",
+        });
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithCustomTool,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Use custom tool", {
+          threadId: "test-thread-1",
+          streamResponse: false,
+        });
+      });
+
+      // Verify the tool was called
+      expect(
+        customToolRegistry[0]?.associatedTools?.[0]?.tool,
+      ).toHaveBeenCalledWith("test");
+
+      // Verify transformToContent was called with the tool result
+      expect(mockTransformToContent).toHaveBeenCalledWith({
+        data: "tool result",
+      });
+
+      // Verify the second advance call included the transformed content
+      expect(mockThreadsApi.advanceByID).toHaveBeenCalledTimes(2);
+      expect(mockThreadsApi.advanceByID).toHaveBeenLastCalledWith(
+        "test-thread-1",
+        expect.objectContaining({
+          messageToAppend: expect.objectContaining({
+            content: [
+              { type: "text", text: "Custom transformed content" },
+              {
+                type: "image_url",
+                image_url: { url: "https://example.com/image.png" },
+              },
+            ],
+            role: "tool",
+          }),
+        }),
+      );
+    });
+
+    it("should use custom async transformToContent when provided (streaming)", async () => {
+      const mockTransformToContent = jest
+        .fn()
+        .mockResolvedValue([
+          { type: "text", text: "Async transformed content" },
+        ]);
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "async-tool",
+              tool: jest.fn().mockResolvedValue({ data: "async tool result" }),
+              description: "Tool with async transform",
+              toolSchema: z
+                .function()
+                .args(z.string())
+                .returns(z.object({ data: z.string() })),
+              transformToContent: mockTransformToContent,
+            },
+          ],
+        },
+      ];
+
+      const wrapperWithAsyncTool = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={customToolRegistry}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider streaming={true}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const mockToolCallChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "tool-call-chunk",
+          content: [{ type: "text", text: "Tool call" }],
+          role: "tool",
+          threadId: "test-thread-1",
+          toolCallRequest: {
+            toolName: "async-tool",
+            parameters: [
+              { parameterName: "input", parameterValue: "async-test" },
+            ],
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockFinalChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "final-chunk",
+          content: [{ type: "text", text: "Final streaming response" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockToolCallChunk;
+          yield mockFinalChunk;
+        },
+      };
+
+      jest
+        .mocked(advanceStream)
+        .mockResolvedValueOnce(mockAsyncIterator)
+        .mockResolvedValueOnce({
+          [Symbol.asyncIterator]: async function* () {
+            yield mockFinalChunk;
+          },
+        });
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithAsyncTool,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Use async tool", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Verify the tool was called
+      expect(
+        customToolRegistry[0]?.associatedTools?.[0]?.tool,
+      ).toHaveBeenCalledWith("async-test");
+
+      // Verify transformToContent was called
+      expect(mockTransformToContent).toHaveBeenCalledWith({
+        data: "async tool result",
+      });
+
+      // Verify advanceStream was called twice (initial request and tool response)
+      expect(advanceStream).toHaveBeenCalledTimes(2);
+
+      // Verify the second advanceStream call included the transformed content
+      expect(advanceStream).toHaveBeenLastCalledWith(
+        mockTamboAI,
+        expect.objectContaining({
+          messageToAppend: expect.objectContaining({
+            content: [{ type: "text", text: "Async transformed content" }],
+            role: "tool",
+          }),
+        }),
+        "test-thread-1",
+      );
+    });
+
+    it("should fallback to stringified text when transformToContent is not provided", async () => {
+      const toolWithoutTransform: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "no-transform-tool",
+              tool: jest
+                .fn()
+                .mockResolvedValue({ complex: "data", nested: { value: 42 } }),
+              description: "Tool without custom transform",
+              toolSchema: z
+                .function()
+                .args(z.string())
+                .returns(
+                  z.object({
+                    complex: z.string(),
+                    nested: z.object({ value: z.number() }),
+                  }),
+                ),
+              // No transformToContent provided
+            },
+          ],
+        },
+      ];
+
+      const wrapperWithoutTransform = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={toolWithoutTransform}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider streaming={false}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "tool-call-1",
+          content: [{ type: "text", text: "Tool call" }],
+          role: "tool",
+          threadId: "test-thread-1",
+          toolCallRequest: {
+            toolName: "no-transform-tool",
+            parameters: [{ parameterName: "input", parameterValue: "test" }],
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      jest
+        .mocked(mockThreadsApi.advanceByID)
+        .mockResolvedValueOnce(mockToolCallResponse)
+        .mockResolvedValueOnce({
+          responseMessageDto: {
+            id: "final-response",
+            content: [{ type: "text", text: "Final response" }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+          mcpAccessToken: "test-mcp-access-token",
+        });
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithoutTransform,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Use tool without transform", {
+          threadId: "test-thread-1",
+          streamResponse: false,
+        });
+      });
+
+      // Verify the tool was called
+      expect(
+        toolWithoutTransform[0]?.associatedTools?.[0]?.tool,
+      ).toHaveBeenCalledWith("test");
+
+      // Verify the second advance call used stringified content
+      expect(mockThreadsApi.advanceByID).toHaveBeenLastCalledWith(
+        "test-thread-1",
+        expect.objectContaining({
+          messageToAppend: expect.objectContaining({
+            content: [
+              {
+                type: "text",
+                text: '{"complex":"data","nested":{"value":42}}',
+              },
+            ],
+            role: "tool",
+          }),
+        }),
+      );
+    });
+
+    it("should always return text for error responses even with transformToContent", async () => {
+      const mockTransformToContent = jest.fn().mockReturnValue([
+        {
+          type: "image_url",
+          image_url: { url: "https://example.com/error.png" },
+        },
+      ]);
+
+      const toolWithTransform: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "error-tool",
+              tool: jest
+                .fn()
+                .mockRejectedValue(new Error("Tool execution failed")),
+              description: "Tool that errors",
+              toolSchema: z.function().args(z.string()).returns(z.string()),
+              transformToContent: mockTransformToContent,
+            },
+          ],
+        },
+      ];
+
+      const wrapperWithErrorTool = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={toolWithTransform}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider streaming={false}>
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "tool-call-1",
+          content: [{ type: "text", text: "Tool call" }],
+          role: "tool",
+          threadId: "test-thread-1",
+          toolCallRequest: {
+            toolName: "error-tool",
+            parameters: [{ parameterName: "input", parameterValue: "test" }],
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      jest
+        .mocked(mockThreadsApi.advanceByID)
+        .mockResolvedValueOnce(mockToolCallResponse)
+        .mockResolvedValueOnce({
+          responseMessageDto: {
+            id: "final-response",
+            content: [{ type: "text", text: "Final response" }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+          mcpAccessToken: "test-mcp-access-token",
+        });
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithErrorTool,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Use error tool", {
+          threadId: "test-thread-1",
+          streamResponse: false,
+        });
+      });
+
+      // Verify the tool was called
+      expect(
+        toolWithTransform[0]?.associatedTools?.[0]?.tool,
+      ).toHaveBeenCalledWith("test");
+
+      // Verify transformToContent was NOT called for error responses
+      expect(mockTransformToContent).not.toHaveBeenCalled();
+
+      // Verify the second advance call used text content with the error message
+      expect(mockThreadsApi.advanceByID).toHaveBeenLastCalledWith(
+        "test-thread-1",
+        expect.objectContaining({
+          messageToAppend: expect.objectContaining({
+            content: [
+              expect.objectContaining({
+                type: "text",
+                // Error message should be in text format
+              }),
+            ],
+            role: "tool",
+          }),
+        }),
+      );
+    });
+  });
 });
