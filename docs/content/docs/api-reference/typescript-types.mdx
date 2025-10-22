@@ -15,7 +15,9 @@ interface TamboTool {
   description: string;
   tool: (...args: any[]) => any;
   toolSchema: z.ZodFunction | JSONSchemaLite;
-  transformToContent?: (result: any) => Promise<ChatCompletionContentPart[]>;
+  transformToContent?: (
+    result: any,
+  ) => Promise<ChatCompletionContentPart[]> | ChatCompletionContentPart[];
 }
 ```
 
@@ -66,7 +68,7 @@ toolSchema: z.function()
 A function that transforms the tool's return value into an array of content parts. Use this when your tool needs to return rich content like images or audio.
 
 ```typescript
-transformToContent?: (result: any) => Promise<ChatCompletionContentPart[]>;
+transformToContent?: (result: any) => Promise<ChatCompletionContentPart[]> | ChatCompletionContentPart[];
 ```
 
 By default, tool responses are stringified and wrapped in a text content part. The `transformToContent` function allows you to return rich content including images, audio, or mixed media.
