@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.118.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.117.0...repo-v0.118.0) (2025-10-22)
+
+
+### Features
+
+* refactor tool registration for tambo ([#1948](https://github.com/tambo-ai/tambo-cloud/issues/1948)) ([60d9bd4](https://github.com/tambo-ai/tambo-cloud/commit/60d9bd41217555272adbec1b78aac6332ff9a013))
+* stub out "proxy" mcp server, just for prompts ([#1949](https://github.com/tambo-ai/tambo-cloud/issues/1949)) ([8de353e](https://github.com/tambo-ai/tambo-cloud/commit/8de353e6ee99b0f5bb8aaeadc8ccc06aa7675b4d))
+
+
+### Bug Fixes
+
+* add mastra to ag-ui group so packages move together ([#1965](https://github.com/tambo-ai/tambo-cloud/issues/1965)) ([d5523e3](https://github.com/tambo-ai/tambo-cloud/commit/d5523e35795e1cf205640f48371cce86ac16b014))
+* handle images in tool call responses ([#1978](https://github.com/tambo-ai/tambo-cloud/issues/1978)) ([bb1c2ac](https://github.com/tambo-ai/tambo-cloud/commit/bb1c2ac1a49690d850fed2fa38744c513ce31786))
+
+
+### Miscellaneous Chores
+
+* bump to node 22.21 ([#1977](https://github.com/tambo-ai/tambo-cloud/issues/1977)) ([0d55d15](https://github.com/tambo-ai/tambo-cloud/commit/0d55d155e5166d9e78ffa685ac68a9776bbba6dc))
+* **deps:** bump @modelcontextprotocol/sdk from 1.19.1 to 1.20.1 ([#1975](https://github.com/tambo-ai/tambo-cloud/issues/1975)) ([222418b](https://github.com/tambo-ai/tambo-cloud/commit/222418bdfe2c9cb1db6506deb1eedb218f688213))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.74.0 to 0.75.0 in the tambo-ai group ([#1968](https://github.com/tambo-ai/tambo-cloud/issues/1968)) ([ae94211](https://github.com/tambo-ai/tambo-cloud/commit/ae94211a2599e6855498c9b3895add046f8f609f))
+* **deps:** bump @tanstack/react-query from 5.90.2 to 5.90.5 ([#1973](https://github.com/tambo-ai/tambo-cloud/issues/1973)) ([f8904a9](https://github.com/tambo-ai/tambo-cloud/commit/f8904a9b62f34e7ba5cb283cf890fed7ff01f77a))
+* **deps:** bump gpt-tokenizer from 3.0.1 to 3.2.0 ([#1972](https://github.com/tambo-ai/tambo-cloud/issues/1972)) ([2f487d4](https://github.com/tambo-ai/tambo-cloud/commit/2f487d4267f54b0771a3e87044cc837c41e6a946))
+* **deps:** bump openai from 6.1.0 to 6.4.0 ([#1974](https://github.com/tambo-ai/tambo-cloud/issues/1974)) ([707b06d](https://github.com/tambo-ai/tambo-cloud/commit/707b06d8ac6c2db6854684d0efaf525aca91e166))
+* **deps:** bump react-hook-form from 7.64.0 to 7.65.0 ([#1971](https://github.com/tambo-ai/tambo-cloud/issues/1971)) ([839a1b6](https://github.com/tambo-ai/tambo-cloud/commit/839a1b6f6c31f8c0079aa3285a21f4e032f4cd66))
+* **deps:** bump streamdown from 1.3.0 to 1.4.0 ([#1970](https://github.com/tambo-ai/tambo-cloud/issues/1970)) ([770c570](https://github.com/tambo-ai/tambo-cloud/commit/770c57057884660ed8b456eecab34c9ac921641c))
+* **deps:** bump the ai-sdk group with 4 updates ([#1955](https://github.com/tambo-ai/tambo-cloud/issues/1955)) ([7d4e675](https://github.com/tambo-ai/tambo-cloud/commit/7d4e6757def43b0f2de1f812a8081d0ba7da211d))
+* **deps:** bump the sentry group with 3 updates ([#1959](https://github.com/tambo-ai/tambo-cloud/issues/1959)) ([7774023](https://github.com/tambo-ai/tambo-cloud/commit/77740232d557b238b41439397fe767f16729e544))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1969](https://github.com/tambo-ai/tambo-cloud/issues/1969)) ([4fd171b](https://github.com/tambo-ai/tambo-cloud/commit/4fd171b5e87b70a5a019699c0768c200a3aafa88))
+
 ## [0.117.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.116.1...repo-v0.117.0) (2025-10-20)
 
 
