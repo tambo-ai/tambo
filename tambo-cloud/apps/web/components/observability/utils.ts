@@ -307,7 +307,7 @@ export const formatToolResponseContent = (content: any): string => {
 
     // If content is an array (like message.content format)
     if (Array.isArray(content)) {
-      // Extract text from content parts (similar to extractToolResponse in backend)
+      // Extract text from content parts (similar to validateToolResponse in backend)
       const textParts = content
         .filter((part) => part && part.type === "text" && part.text)
         .map((part) => part.text);

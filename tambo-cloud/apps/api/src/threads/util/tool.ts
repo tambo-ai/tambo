@@ -12,7 +12,7 @@ import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { ChatCompletionContentPartDto } from "../dto/message.dto";
 import { tryParseJson } from "./content";
 
-export function extractToolResponse(message: ThreadMessage): any {
+export function validateToolResponse(message: ThreadMessage): boolean {
   // TODO: we get back "resource" from MCP servers, but it is not supported yet
   const nonResourceContent = message.content.filter(
     (part) => (part.type as string) !== "resource",
@@ -21,11 +21,14 @@ export function extractToolResponse(message: ThreadMessage): any {
     const contentString = nonResourceContent.map((part) => part.text).join("");
     const jsonResponse = tryParseJson(contentString);
     if (jsonResponse) {
-      return jsonResponse;
+      return true;
     }
-    return contentString;
+    return true;
   }
-  return null;
+  if (nonResourceContent.every((part) => part.type === "image_url")) {
+    return true;
+  }
+  return false;
 }
 
 function buildToolResponseContent(

@@ -79,9 +79,9 @@ import {
 } from "./util/thread-state";
 import {
   callSystemTool,
-  extractToolResponse,
   isSystemToolCall,
   MCP_PARENT_MESSAGE_ID_META_KEY,
+  validateToolResponse,
 } from "./util/tool";
 import {
   checkToolCallLimitViolation,
@@ -1470,8 +1470,8 @@ export class ThreadsService {
         });
 
         // Since we don't store tool responses in the db, assumes that the tool response is the messageToAppend
-        const toolResponse = extractToolResponse(userMessage);
-        if (!toolResponse) {
+        const isValidToolResponse = validateToolResponse(userMessage);
+        if (!isValidToolResponse) {
           const error = new Error("No tool response found");
           Sentry.captureException(error, {
             tags: { threadId, projectId },

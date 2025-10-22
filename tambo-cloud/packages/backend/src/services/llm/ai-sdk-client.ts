@@ -5,6 +5,7 @@ import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
+  ChatCompletionContentPart,
   ChatCompletionMessageParam,
   CustomLlmParameters,
   getToolDescription,
@@ -15,15 +16,13 @@ import {
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
 import {
-  convertToCoreMessages,
-  CoreAssistantMessage,
-  CoreMessage,
-  CoreToolMessage,
-  CoreUserMessage,
+  AssistantModelMessage,
+  convertToModelMessages,
   generateText,
   jsonSchema,
   JSONValue,
   LanguageModel,
+  ModelMessage,
   streamText,
   Tool,
   tool,
@@ -31,6 +30,7 @@ import {
   ToolChoice,
   ToolContent,
   ToolResultPart,
+  UserModelMessage,
   type GenerateTextResult,
   type ToolSet,
 } from "ai";
@@ -196,8 +196,8 @@ export class AISdkClient implements LLMClient {
     const responseFormat = this.extractResponseFormat(params);
 
     // Convert to AI SDK format
-    const coreMessages = messagesFormatted.map(
-      (message, index): CoreMessage =>
+    const modelMessages = messagesFormatted.map(
+      (message, index): ModelMessage =>
         convertOpenAIMessageToCoreMessage(
           message,
           messagesFormatted.slice(0, index),
@@ -267,7 +267,7 @@ export class AISdkClient implements LLMClient {
 
     const baseConfig: AICompleteParams = {
       model: modelInstance,
-      messages: coreMessages,
+      messages: modelMessages,
       tools,
       toolChoice: params.tool_choice
         ? this.convertToolChoice(params.tool_choice)
@@ -605,9 +605,9 @@ function findToolNameById(
  * but for some reason that function doesn't deal with tool calls.
  */
 function convertOpenAIMessageToCoreMessage(
-  message: OpenAI.Chat.Completions.ChatCompletionMessageParam,
+  message: ChatCompletionMessageParam,
   previousMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-): CoreMessage {
+): ModelMessage {
   if (message.role === "developer" || message.role === "function") {
     throw new Error("Developer messages are not supported");
   }
@@ -633,20 +633,45 @@ function convertOpenAIMessageToCoreMessage(
                 toolName: toolName,
               } satisfies ToolResultPart,
             ] satisfies ToolContent)
-          : message.content.map(
-              (part): ToolResultPart => ({
-                // TODO: Figure out multi-tool + multi-content results - is
-                // there one content per tool call?
-                type: "tool-result",
-                output: {
-                  type: "text",
-                  value: part.text,
-                },
-                toolCallId: message.tool_call_id,
-                toolName: toolName,
-              }),
-            ),
-    } satisfies CoreToolMessage;
+          : message.content.map((part): ToolResultPart => {
+              // For some reason, the OpenAI SDK thinks that these are only
+              // text, but the backend supports other content types like images
+              // so we have to broaden the type
+              const multiPart = part as ChatCompletionContentPart;
+              switch (multiPart.type) {
+                case "text":
+                  return {
+                    type: "tool-result",
+                    output: {
+                      type: "text",
+                      value: multiPart.text,
+                    },
+                    toolCallId: message.tool_call_id,
+                    toolName: toolName,
+                  };
+                case "image_url":
+                  return {
+                    type: "tool-result",
+                    output: {
+                      type: "content",
+                      value: [
+                        {
+                          type: "media",
+                          // this splits base64 encoded image data from the url
+                          data: multiPart.image_url.url.split(",")[1],
+                          mediaType: "image/jpeg",
+                        },
+                      ],
+                    },
+                    toolCallId: message.tool_call_id,
+                    toolName: toolName,
+                  };
+                default:
+                  // TODO: handle "file" and "audio" content
+                  throw new Error(`Unexpected content type: ${multiPart.type}`);
+              }
+            }),
+    } satisfies ModelMessage;
   }
   if (message.role === "assistant" && message.tool_calls) {
     const content: (ToolCallPart | { type: "text"; text: string })[] = [];
@@ -696,14 +721,14 @@ function convertOpenAIMessageToCoreMessage(
     return {
       role: "assistant",
       content: content,
-    } satisfies CoreAssistantMessage;
+    } satisfies AssistantModelMessage;
   }
   if (message.role === "user") {
     if (typeof message.content === "string") {
       return {
         role: "user",
         content: message.content,
-      } satisfies CoreUserMessage;
+      } satisfies UserModelMessage;
     } else if (Array.isArray(message.content)) {
       const processedContent = message.content
         .map((part) => {
@@ -726,7 +751,7 @@ function convertOpenAIMessageToCoreMessage(
       return {
         role: message.role,
         content: processedContent,
-      } satisfies CoreUserMessage;
+      } satisfies UserModelMessage;
     }
     console.error(
       "Unexpected content type in user message:",
@@ -734,7 +759,7 @@ function convertOpenAIMessageToCoreMessage(
     );
     throw new UnreachableCaseError(message.content);
   }
-  return convertToCoreMessages([
+  return convertToModelMessages([
     {
       role: message.role,
       parts:

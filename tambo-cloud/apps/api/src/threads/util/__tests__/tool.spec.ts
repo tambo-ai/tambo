@@ -7,10 +7,10 @@ import {
   MessageRole,
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
-import { callSystemTool, extractToolResponse } from "../tool";
+import { callSystemTool, validateToolResponse } from "../tool";
 
 describe("tool utilities", () => {
-  describe("extractToolResponse", () => {
+  describe("validateToolResponse", () => {
     it("should parse JSON from text content", () => {
       const response = { key: "value" };
       const message: ThreadMessage = {
@@ -25,7 +25,7 @@ describe("tool utilities", () => {
         ],
         role: MessageRole.Tool,
       };
-      expect(extractToolResponse(message)).toEqual(response);
+      expect(validateToolResponse(message)).toBe(true);
     });
 
     it("should return text content if not JSON", () => {
@@ -42,10 +42,10 @@ describe("tool utilities", () => {
         ],
         role: MessageRole.Tool,
       };
-      expect(extractToolResponse(message)).toBe(text);
+      expect(validateToolResponse(message)).toBe(true);
     });
 
-    it("should filter out resource content parts", () => {
+    it("should ignore resource content types", () => {
       const text = "text response";
       const message: ThreadMessage = {
         id: "1",
@@ -63,10 +63,10 @@ describe("tool utilities", () => {
         ],
         role: MessageRole.Tool,
       };
-      expect(extractToolResponse(message)).toBe(text);
+      expect(validateToolResponse(message)).toBe(true);
     });
 
-    it("should return null for non-text content", () => {
+    it("should return true for image content", () => {
       const message: ThreadMessage = {
         id: "1",
         threadId: "1",
@@ -79,7 +79,7 @@ describe("tool utilities", () => {
         ],
         role: MessageRole.Tool,
       };
-      expect(extractToolResponse(message)).toBeNull();
+      expect(validateToolResponse(message)).toBe(true);
     });
   });
 

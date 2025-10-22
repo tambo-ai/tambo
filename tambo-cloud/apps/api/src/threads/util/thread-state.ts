@@ -27,7 +27,7 @@ import {
   updateMessage,
   verifyLatestMessageConsistency,
 } from "./messages";
-import { extractToolResponse } from "./tool";
+import { validateToolResponse } from "./tool";
 
 /**
  * Get the final decision from a stream of component decisions
@@ -117,7 +117,7 @@ export async function processThreadMessage(
       `Hydrating ${latestMessage.component?.componentName}...`,
     );
 
-    const toolResponse = extractToolResponse(userMessage);
+    const toolResponse = validateToolResponse(userMessage);
     if (!toolResponse) {
       throw new Error("No tool response found");
     }
