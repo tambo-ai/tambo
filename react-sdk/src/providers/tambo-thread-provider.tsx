@@ -959,7 +959,7 @@ export const TamboThreadProvider: React.FC<
           : client.beta.threads.advanceByID(threadId, params));
 
         // Update or clear MCP access token
-        setMcpAccessToken(advanceResponse.mcpAccessToken);
+        setMcpAccessToken(advanceResponse.mcpAccessToken ?? null);
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         throw error;
@@ -1027,7 +1027,7 @@ export const TamboThreadProvider: React.FC<
           );
 
           // Update MCP or clear access token
-          setMcpAccessToken(advanceResponse.mcpAccessToken);
+          setMcpAccessToken(advanceResponse.mcpAccessToken ?? null);
         }
       } catch (error) {
         updateThreadStatus(

@@ -10,6 +10,7 @@ import React, {
 import { TamboTool } from "../model/component-metadata";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import { isContentPartArray, toText } from "../util/content-parts";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
 /**
