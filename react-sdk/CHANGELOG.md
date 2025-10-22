@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.1](https://github.com/tambo-ai/tambo/compare/react-v0.58.0...react-v0.58.1) (2025-10-22)
+
+
+### Bug Fixes
+
+* run transformToContent for streaming requests too ([#1184](https://github.com/tambo-ai/tambo/issues/1184)) ([42d8a82](https://github.com/tambo-ai/tambo/commit/42d8a82eff25836d021480ff3b9ca0fb3b9793cb))
+
 ## [0.58.0](https://github.com/tambo-ai/tambo/compare/react-v0.57.0...react-v0.58.0) (2025-10-21)
 
 
