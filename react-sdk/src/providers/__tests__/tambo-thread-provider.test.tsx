@@ -94,6 +94,7 @@ describe("TamboThreadProvider", () => {
     retrieve: jest.fn(),
     advance: jest.fn(),
     advanceByID: jest.fn(),
+    generateName: jest.fn(),
   } satisfies DeepPartial<
     TamboAI["beta"]["threads"]
   > as unknown as TamboAI.Beta.Threads;
@@ -181,6 +182,10 @@ describe("TamboThreadProvider", () => {
     jest
       .mocked(mockThreadsApi.advanceByID)
       .mockResolvedValue(createMockAdvanceResponse());
+    jest.mocked(mockThreadsApi.generateName).mockResolvedValue({
+      ...mockThread,
+      name: "Generated Thread Name",
+    });
     jest.mocked(mockProjectsApi.getCurrent).mockResolvedValue({
       id: "test-project-id",
       name: "Test Project",
@@ -1637,6 +1642,291 @@ describe("TamboThreadProvider", () => {
           }),
         }),
       );
+    });
+  });
+
+  describe("auto-generate thread name", () => {
+    it("should auto-generate thread name after reaching threshold", async () => {
+      const wrapperWithAutoGenerate = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider
+              streaming={false}
+              autoGenerateNameThreshold={2}
+            >
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithAutoGenerate,
+      });
+
+      const existingThread = createMockThread({
+        id: "test-thread-1",
+        name: undefined,
+      });
+
+      jest
+        .mocked(mockThreadsApi.retrieve)
+        .mockResolvedValueOnce(existingThread);
+
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      // Add first message
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-1",
+            role: "user",
+            threadId: "test-thread-1",
+          }),
+          false,
+        );
+      });
+
+      expect(mockThreadsApi.generateName).not.toHaveBeenCalled();
+
+      // Add second message and send to reach threshold
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-2",
+            role: "assistant",
+            threadId: "test-thread-1",
+          }),
+          false,
+        );
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test message");
+      });
+
+      expect(mockThreadsApi.generateName).toHaveBeenCalledWith("test-thread-1");
+      expect(result.current.thread.name).toBe("Generated Thread Name");
+      expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+        ["threads", "test-project-id", undefined],
+        expect.any(Function),
+      );
+    });
+
+    it("should NOT auto-generate when autoGenerateThreadName is false", async () => {
+      const wrapperWithDisabled = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider
+              streaming={false}
+              autoGenerateThreadName={false}
+              autoGenerateNameThreshold={2}
+            >
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithDisabled,
+      });
+
+      const existingThread = createMockThread({
+        id: "test-thread-1",
+        name: undefined,
+      });
+
+      jest
+        .mocked(mockThreadsApi.retrieve)
+        .mockResolvedValueOnce(existingThread);
+
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-1",
+            role: "user",
+            threadId: "test-thread-1",
+          }),
+          false,
+        );
+      });
+
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-2",
+            role: "assistant",
+            threadId: "test-thread-1",
+          }),
+          false,
+        );
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test message");
+      });
+
+      // Should NOT generate name because feature is disabled
+      expect(mockThreadsApi.generateName).not.toHaveBeenCalled();
+    });
+
+    it("should NOT auto-generate when thread already has a name", async () => {
+      const wrapperWithAutoGenerate = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider
+              streaming={false}
+              autoGenerateNameThreshold={2}
+            >
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithAutoGenerate,
+      });
+
+      const threadWithName = createMockThread({
+        id: "test-thread-1",
+        name: "Existing Thread Name",
+      });
+
+      jest
+        .mocked(mockThreadsApi.retrieve)
+        .mockResolvedValueOnce(threadWithName);
+
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      // Verify thread has existing name
+      expect(result.current.thread.name).toBe("Existing Thread Name");
+
+      // Add messages to build up state
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-1",
+            role: "user",
+            threadId: "test-thread-1",
+          }),
+          false,
+        );
+      });
+
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-2",
+            role: "assistant",
+            threadId: "test-thread-1",
+          }),
+          false,
+        );
+      });
+
+      expect(result.current.thread.messages).toHaveLength(2);
+
+      // Send another message to reach threshold (3 messages total)
+      await act(async () => {
+        await result.current.sendThreadMessage("Test message");
+      });
+
+      // Should NOT generate name because thread already has one
+      expect(mockThreadsApi.generateName).not.toHaveBeenCalled();
+    });
+
+    it("should NOT auto-generate for placeholder thread", async () => {
+      const wrapperWithAutoGenerate = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
+        <TamboRegistryProvider components={mockRegistry}>
+          <TamboContextHelpersProvider
+            contextHelpers={{
+              currentTimeContextHelper: () => null,
+              currentPageContextHelper: () => null,
+            }}
+          >
+            <TamboThreadProvider
+              streaming={false}
+              autoGenerateNameThreshold={2}
+            >
+              {children}
+            </TamboThreadProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: wrapperWithAutoGenerate,
+      });
+
+      // Stay on placeholder thread
+      expect(result.current.thread.id).toBe("placeholder");
+
+      // Add messages to placeholder thread
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-1",
+            role: "user",
+            threadId: "placeholder",
+          }),
+          false,
+        );
+      });
+
+      await act(async () => {
+        await result.current.addThreadMessage(
+          createMockMessage({
+            id: "msg-2",
+            role: "assistant",
+            threadId: "placeholder",
+          }),
+          false,
+        );
+      });
+
+      // Should NOT generate name for placeholder thread
+      expect(mockThreadsApi.generateName).not.toHaveBeenCalled();
     });
   });
 });

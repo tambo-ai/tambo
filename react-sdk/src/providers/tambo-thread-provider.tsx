@@ -214,7 +214,9 @@ export interface TamboThreadProviderProps {
   streaming?: boolean;
   /** Initial messages to be included in new threads */
   initialMessages?: InitialTamboThreadMessage[];
-  /** The threshold at which the thread name will be auto-generated. Defaults to 3. Pass null to disable. */
+  /** Whether to automatically generate thread names. Defaults to true. */
+  autoGenerateThreadName?: boolean;
+  /** The message count threshold at which the thread name will be auto-generated. Defaults to 3. */
   autoGenerateNameThreshold?: number;
 }
 
@@ -225,7 +227,8 @@ export interface TamboThreadProviderProps {
  * @param props.children - The children to wrap
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
  * @param props.initialMessages - Initial messages to be included in new threads
- * @param props.autoGenerateNameThreshold - The threshold at which the thread name will be auto-generated. Defaults to 3. Pass null to disable.
+ * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
+ * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
  * @returns The TamboThreadProvider component
  */
 export const TamboThreadProvider: React.FC<
@@ -234,6 +237,7 @@ export const TamboThreadProvider: React.FC<
   children,
   streaming = true,
   initialMessages = [],
+  autoGenerateThreadName = true,
   autoGenerateNameThreshold = 3,
 }) => {
   // Create placeholder thread with initial messages
@@ -329,13 +333,15 @@ export const TamboThreadProvider: React.FC<
         updatedAt: new Date().toISOString(),
       };
 
-      await updateThreadsCache(
-        (old) => ({
+      await updateThreadsCache((old) => {
+        if (!old) return old;
+        return {
           ...old,
-          items: [optimisticThread, ...(old?.items ?? [])],
-        }),
-        contextKey,
-      );
+          items: [optimisticThread, ...(old.items ?? [])],
+          total: (old.total ?? 0) + 1,
+          count: (old.count ?? 0) + 1,
+        } as TamboAI.Beta.Threads.ThreadsOffsetAndLimit;
+      }, contextKey);
     },
     [updateThreadsCache],
   );
@@ -355,7 +361,9 @@ export const TamboThreadProvider: React.FC<
           items: old.items.map((thread) =>
             thread.id === threadId ? updateFn(thread) : thread,
           ),
-        };
+          total: old.total,
+          count: old.count,
+        } as TamboAI.Beta.Threads.ThreadsOffsetAndLimit;
       }, contextKey);
     },
     [updateThreadsCache],
@@ -508,6 +516,12 @@ export const TamboThreadProvider: React.FC<
 
   const shouldAutoGenerateName = useCallback(
     (thread: TamboThread): boolean => {
+      // Check if auto-generate is enabled
+      if (!autoGenerateThreadName) {
+        return false;
+      }
+
+      // Check if threshold is valid
       if (!autoGenerateNameThreshold || thread.id === placeholderThread.id) {
         return false;
       }
@@ -515,13 +529,14 @@ export const TamboThreadProvider: React.FC<
       const messageCount = thread.messages.length;
       const generateThreshold = autoGenerateNameThreshold;
 
+      // Only auto-generate if thread has no name and threshold is met
       if (!thread.name && messageCount >= generateThreshold) {
         return true;
       }
 
       return false;
     },
-    [autoGenerateNameThreshold, placeholderThread.id],
+    [autoGenerateThreadName, autoGenerateNameThreshold, placeholderThread.id],
   );
 
   const startNewThread = useCallback(() => {
@@ -562,7 +577,7 @@ export const TamboThreadProvider: React.FC<
   );
 
   const generateThreadName = useCallback(
-    async (threadId?: string) => {
+    async (threadId?: string, contextKey?: string) => {
       threadId ??= currentThreadId;
       if (threadId === placeholderThread.id) {
         console.warn("Cannot generate name for empty thread");
@@ -587,10 +602,14 @@ export const TamboThreadProvider: React.FC<
       });
 
       // Update threads cache to reflect the new name in the UI
-      await updateThreadInCache(threadId, (thread) => ({
-        ...thread,
-        name: threadWithGeneratedName.name,
-      }));
+      await updateThreadInCache(
+        threadId,
+        (thread) => ({
+          ...thread,
+          name: threadWithGeneratedName.name,
+        }),
+        contextKey,
+      );
 
       return threadWithGeneratedName;
     },
@@ -1024,7 +1043,7 @@ export const TamboThreadProvider: React.FC<
           const updatedThread = threadMap[result.threadId];
           if (updatedThread && shouldAutoGenerateName(updatedThread)) {
             try {
-              await generateThreadName(result.threadId);
+              await generateThreadName(result.threadId, contextKey);
             } catch (error) {
               console.warn("Failed to generate thread name:", error);
             }
