@@ -1,11 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { isResendEmailUnsubscribed, maskEmail } from "@tambo-ai-cloud/core";
 import { Resend } from "resend";
 import { FREE_MESSAGE_LIMIT } from "../../threads/types/errors";
-import { isResendEmailUnsubscribed, maskEmail } from "@tambo-ai-cloud/core";
 import { firstMessageEmail } from "../emails/first-message";
 import { messageLimitEmail } from "../emails/message-limit";
-import { reactivationEmail } from "../emails/reactivation";
 import { welcomeEmail } from "../emails/welcome";
 
 @Injectable()
@@ -238,55 +237,6 @@ export class EmailService {
       return { success: true };
     } catch (error) {
       console.error("Failed to send first message email:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  async sendReactivationEmail(
-    userEmail: string,
-    daysSinceSignup: number,
-    hasProject: boolean,
-    firstName?: string | null,
-  ): Promise<{ success: boolean; error?: string }> {
-    const ch = this.requireChannel("personal");
-    if (!ch.success) {
-      const error = ch.error;
-      console.warn(
-        `EmailService: skipping reactivation email for ${maskEmail(userEmail)}; ${error}.`,
-      );
-      return { success: false, error };
-    }
-
-    try {
-      if (await this.isEmailUnsubscribed(userEmail)) {
-        console.debug("Reactivation email skipped: recipient is unsubscribed", {
-          email: maskEmail(userEmail),
-        });
-        return { success: true };
-      }
-      const result = await ch.resend.emails.send({
-        from: ch.from,
-        to: userEmail,
-        replyTo: ch.replyTo,
-        subject: reactivationEmail.subject,
-        html: reactivationEmail.html({
-          firstName,
-          daysSinceSignup,
-          hasProject,
-        }),
-      });
-
-      const masked = maskEmail(userEmail);
-      console.log(`Reactivation email sent successfully to ${masked}`, {
-        id: (result as { data?: { id?: string } }).data?.id,
-      });
-
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to send reactivation email:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

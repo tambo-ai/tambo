@@ -30,12 +30,3 @@ export interface FirstMessageEmailVariables {
   firstName?: string | null;
   projectName: string;
 }
-
-/**
- * The variables for the reactivation email.
- */
-export interface ReactivationEmailVariables {
-  firstName?: string | null;
-  daysSinceSignup: number;
-  hasProject: boolean;
-}
