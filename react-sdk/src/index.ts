@@ -34,6 +34,7 @@ export {
   useTamboClient,
   useTamboContextAttachment,
   useTamboContextHelpers,
+  useTamboDefaultHeaders,
   useTamboGenerationStage,
   useTamboMcpServerInfos,
   useTamboStream,
