@@ -11,12 +11,14 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { TamboTool } from "../model/component-metadata";
 import {
   GenerationStage,
   isIdleStage,
   TamboThreadMessage,
 } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
+import { toText } from "../util/content-parts";
 import { renderComponentIntoMessage } from "../util/generate-component";
 import {
   getAvailableComponents,
@@ -677,15 +679,13 @@ export const TamboThreadProvider: React.FC<
               };
             }
           }
-          const toolCallResponseString =
-            typeof toolCallResponse.result === "string"
-              ? toolCallResponse.result
-              : JSON.stringify(toolCallResponse.result);
+          const contentParts = await convertToolResponse(toolCallResponse);
+
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
               messageToAppend: {
-                content: [{ type: "text", text: toolCallResponseString }],
+                content: contentParts,
                 role: "tool",
                 actionType: "tool_response",
                 component: chunk.responseMessageDto.component,
@@ -706,7 +706,7 @@ export const TamboThreadProvider: React.FC<
           addThreadMessage(
             {
               threadId: chunk.responseMessageDto.threadId,
-              content: [{ type: "text", text: toolCallResponseString }],
+              content: contentParts,
               role: "tool",
               id: crypto.randomUUID(),
               createdAt: new Date().toISOString(),
@@ -969,16 +969,15 @@ export const TamboThreadProvider: React.FC<
             toolRegistry,
             onCallUnregisteredTool,
           );
-          const toolResponseString =
-            typeof toolCallResponse.result === "string"
-              ? toolCallResponse.result
-              : JSON.stringify(toolCallResponse.result);
+
+          const contentParts = await convertToolResponse(toolCallResponse);
+
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
               messageToAppend: {
                 ...params.messageToAppend,
-                content: [{ type: "text", text: toolResponseString }],
+                content: contentParts,
                 role: "tool",
                 actionType: "tool_response",
                 component: advanceResponse.responseMessageDto.component,
@@ -998,7 +997,7 @@ export const TamboThreadProvider: React.FC<
           addThreadMessage(
             {
               threadId: threadId,
-              content: [{ type: "text", text: toolResponseString }],
+              content: contentParts,
               role: "tool",
               id: crypto.randomUUID(),
               createdAt: new Date().toISOString(),
@@ -1131,3 +1130,25 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
     ...generationStageContext,
   };
 };
+
+async function convertToolResponse(toolCallResponse: {
+  result: unknown;
+  error?: string;
+  tamboTool?: TamboTool;
+}): Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]> {
+  // If the tool call errored, surface that as text so the model reliably sees the error
+  if (toolCallResponse.error) {
+    return [{ type: "text", text: toText(toolCallResponse.result) }];
+  }
+
+  // Use custom transform when available
+  if (toolCallResponse.tamboTool?.transformToContent) {
+    return await toolCallResponse.tamboTool.transformToContent(
+      // result shape is user-defined; let the transform decide how to handle it
+      toolCallResponse.result as any,
+    );
+  }
+
+  // Default fallback to stringified text
+  return [{ type: "text", text: toText(toolCallResponse.result) }];
+}

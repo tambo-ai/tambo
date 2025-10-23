@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.58.1](https://github.com/tambo-ai/tambo/compare/react-v0.58.0...react-v0.58.1) (2025-10-22)
+
+
+### Bug Fixes
+
+* run transformToContent for streaming requests too ([#1184](https://github.com/tambo-ai/tambo/issues/1184)) ([42d8a82](https://github.com/tambo-ai/tambo/commit/42d8a82eff25836d021480ff3b9ca0fb3b9793cb))
+
+## [0.58.0](https://github.com/tambo-ai/tambo/compare/react-v0.57.0...react-v0.58.0) (2025-10-21)
+
+
+### Features
+
+* (ui)show 'thought for x seconds' ([#1165](https://github.com/tambo-ai/tambo/issues/1165)) ([12d0ee1](https://github.com/tambo-ai/tambo/commit/12d0ee1edd8e1f132f00cb6e7f64216b80b9f090))
+* **sdk:** Add client-side transformToContent callback in tool registration ([#1169](https://github.com/tambo-ai/tambo/issues/1169)) ([651dc01](https://github.com/tambo-ai/tambo/commit/651dc01649e17fce4bcfb778a041e7b7ef830dbf))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump lint-staged from 16.2.3 to 16.2.4 ([#1158](https://github.com/tambo-ai/tambo/issues/1158)) ([5bada01](https://github.com/tambo-ai/tambo/commit/5bada01943c582d7f1d4498a9c2e8d3cc15ca1ea))
+* **deps-dev:** bump ts-jest from 29.4.4 to 29.4.5 in the testing group ([#1156](https://github.com/tambo-ai/tambo/issues/1156)) ([4387b93](https://github.com/tambo-ai/tambo/commit/4387b932f370212788fa135c5f261f25ccccdd22))
+* **deps:** bump @modelcontextprotocol/sdk from 1.19.1 to 1.20.0 ([#1159](https://github.com/tambo-ai/tambo/issues/1159)) ([e586d2b](https://github.com/tambo-ai/tambo/commit/e586d2b79707707ac6e49c4c6dddfe0c30d05300))
+* **deps:** bump @modelcontextprotocol/sdk from 1.20.0 to 1.20.1 ([#1180](https://github.com/tambo-ai/tambo/issues/1180)) ([629deb3](https://github.com/tambo-ai/tambo/commit/629deb3e3bfceb7024e0afa99e7ead7588233ff4))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.73.0 to 0.75.0 ([#1179](https://github.com/tambo-ai/tambo/issues/1179)) ([e781957](https://github.com/tambo-ai/tambo/commit/e781957a758cdd3f5e820b24f8fe9266b3c86baf))
+* **deps:** bump @tanstack/react-query from 5.90.2 to 5.90.5 ([#1176](https://github.com/tambo-ai/tambo/issues/1176)) ([4a975ea](https://github.com/tambo-ai/tambo/commit/4a975ea296460887c2aa56f11a728ce88ba7f660))
+
 ## [0.57.0](https://github.com/tambo-ai/tambo/compare/react-v0.56.0...react-v0.57.0) (2025-10-09)
 
 

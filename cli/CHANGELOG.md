@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.35.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.35.0...tambo-v0.35.1) (2025-10-21)
+
+
+### Bug Fixes
+
+* Update cli help behavior + show better docs ([#1166](https://github.com/tambo-ai/tambo/issues/1166)) ([f10732f](https://github.com/tambo-ai/tambo/commit/f10732f7a599872db92c187f89c0662b19fc97e8))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.73.0 to 0.75.0 ([#1179](https://github.com/tambo-ai/tambo/issues/1179)) ([e781957](https://github.com/tambo-ai/tambo/commit/e781957a758cdd3f5e820b24f8fe9266b3c86baf))
+* **deps:** bump streamdown from 1.3.0 to 1.4.0 ([#1181](https://github.com/tambo-ai/tambo/issues/1181)) ([441d3e0](https://github.com/tambo-ai/tambo/commit/441d3e0587d71fdfb63f2365c52d0aa88bfdbb21))
+* **deps:** bump ts-morph from 27.0.0 to 27.0.2 ([#1177](https://github.com/tambo-ai/tambo/issues/1177)) ([e19d7c1](https://github.com/tambo-ai/tambo/commit/e19d7c1d0ec0ecefd75967f609e87883e9c1cd47))
+
+## [0.35.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.34.1...tambo-v0.35.0) (2025-10-18)
+
+
+### Features
+
+* (ui) add ui for displaying MCP sampling requests ([#1167](https://github.com/tambo-ai/tambo/issues/1167)) ([ecdb9b1](https://github.com/tambo-ai/tambo/commit/ecdb9b1415cc6abe77ddaa44faff977c15159ae0))
+* (ui)show 'thought for x seconds' ([#1165](https://github.com/tambo-ai/tambo/issues/1165)) ([12d0ee1](https://github.com/tambo-ai/tambo/commit/12d0ee1edd8e1f132f00cb6e7f64216b80b9f090))
+
+
+### Bug Fixes
+
+* filter out system message from UI ([#1162](https://github.com/tambo-ai/tambo/issues/1162)) ([8852980](https://github.com/tambo-ai/tambo/commit/8852980ae6b0271fc1bde42168bb4d0085057ffd))
+* show 'done thinking' when reasoning message completes ([#1164](https://github.com/tambo-ai/tambo/issues/1164)) ([dd0e67d](https://github.com/tambo-ai/tambo/commit/dd0e67d3655a5f6c855bb5d913eee22c8991d39d))
+
+
+### Code Refactoring
+
+* **message:** simplify tool call request retrieval and enhance status message handling ([#1152](https://github.com/tambo-ai/tambo/issues/1152)) ([c866b67](https://github.com/tambo-ai/tambo/commit/c866b674e8fcc8524cf0de9e347902ac31efe81f))
+
 ## [0.34.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.34.0...tambo-v0.34.1) (2025-10-09)
 
 

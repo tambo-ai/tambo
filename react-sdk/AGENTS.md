@@ -45,6 +45,31 @@ const components: TamboComponent[] = [
 ];
 ```
 
+### Tool Registration Pattern
+
+Tools can be registered with an optional `transformToContent` function to control how tool responses are converted into content parts:
+
+```typescript
+const tools: TamboTool[] = [
+  {
+    name: "toolName",
+    description: "Tool description for AI",
+    tool: async (args) => {
+      // Tool implementation
+      return result;
+    },
+    toolSchema: zodSchema, // Zod function schema
+    // Optional: Transform tool response to content parts
+    transformToContent: (result) => [
+      { type: "text", text: result.text },
+      // Can include image_url, input_audio, etc.
+    ],
+  },
+];
+```
+
+By default, tool responses are stringified and wrapped in a text content part. The `transformToContent` function allows tools to return rich content including images, audio, or mixed media. This is particularly useful for MCP tools that already return content in the proper format.
+
 ### Key Hook System
 
 - **`useTambo()`** - Primary hook accessing all Tambo functionality
@@ -152,9 +177,9 @@ Model Context Protocol support enables extending AI capabilities:
 
 ### New End-User Features Process
 
-We have a doc-first approach to developing new features in our React SDK. This means we write the documentation first, then write the code to implement the feature. Our docs are in the docs site (read Docs/AGENTS.md).
+We have a doc-first approach to developing new features in our React SDK. This means we write the documentation first, then write the code to implement the feature. Our docs are in the docs site directory at ../docs (read [../docs/AGENTS.md](../docs/AGENTS.md)).
 
-1. Read all existing documentation and code in the repository
+1. Read relevant documentation and code in the repository
 2. Read the relevant code to ensure you understand the existing code and context
 3. Before writing any code, write a detailed description of the feature in the docs site
 4. Then write the code to implement the feature

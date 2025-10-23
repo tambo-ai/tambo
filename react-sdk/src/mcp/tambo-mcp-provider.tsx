@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { TamboTool } from "../model/component-metadata";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import { isContentPartArray, toText } from "../util/content-parts";
 import { MCPClient, MCPTransport } from "./mcp-client";
 
 /**
@@ -184,6 +185,14 @@ export const TamboMcpProvider: FC<{
             return result.content;
           },
           toolSchema: tool.inputSchema as TamboTool["toolSchema"],
+          transformToContent: (content: unknown) => {
+            // MCP tools can return content in various formats; pass through arrays of content parts
+            // unchanged, otherwise stringify into a text content part.
+            if (isContentPartArray(content)) {
+              return content;
+            }
+            return [{ type: "text", text: toText(content) }];
+          },
         });
       });
     }
