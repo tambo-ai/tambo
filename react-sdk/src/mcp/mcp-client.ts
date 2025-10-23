@@ -51,7 +51,12 @@ interface MCPHandlers {
  * ```
  */
 export class MCPClient {
-  private client: Client;
+  /**
+   * The underlying MCP client
+   *
+   * Be careful not to mutate the client directly, use the methods provided instead.
+   */
+  client: Client;
   private transport: SSEClientTransport | StreamableHTTPClientTransport;
   private transportType: MCPTransport;
   public sessionId?: string;
@@ -230,10 +235,12 @@ export class MCPClient {
   async callTool(
     name: string,
     args: Record<string, unknown>,
+    _meta?: Record<string, unknown>,
   ): Promise<MCPToolCallResult> {
     const result = await this.client.callTool({
       name,
       arguments: args,
+      _meta,
     });
     return result;
   }
