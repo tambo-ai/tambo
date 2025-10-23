@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type { MDXComponents } from "mdx/types";
 import Image from "next/image";
 import { BlogPost } from "./components/blog/blog-post";
+import { ImageZoom } from "./components/ui/shadcn-io/image-zoom";
 
 /**
  * MDX Components Configuration
@@ -32,6 +33,7 @@ import { BlogPost } from "./components/blog/blog-post";
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     BlogPost,
+    ImageZoom,
 
     h1: ({ className, ...props }) => (
       <h1
