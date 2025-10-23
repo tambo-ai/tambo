@@ -1,5 +1,5 @@
 "use client";
-import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
+import TamboAI from "@tambo-ai/typescript-sdk";
 import { Thread } from "@tambo-ai/typescript-sdk/resources/beta/threads/threads";
 import React, {
   createContext,
@@ -23,6 +23,7 @@ import {
   getUnassociatedTools,
   mapTamboToolToContextTool,
 } from "../util/registry";
+import { advanceStreamWithBuffer } from "../util/advance-stream";
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
@@ -721,7 +722,7 @@ export const TamboThreadProvider: React.FC<
             chunk.responseMessageDto.threadId,
             GenerationStage.STREAMING_RESPONSE,
           );
-          const toolCallResponseStream = await advanceStream(
+          const toolCallResponseStream = await advanceStreamWithBuffer(
             client,
             toolCallResponseParams,
             chunk.responseMessageDto.threadId,
@@ -920,7 +921,7 @@ export const TamboThreadProvider: React.FC<
       if (streamResponse) {
         let advanceStreamResponse: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>;
         try {
-          advanceStreamResponse = await advanceStream(
+          advanceStreamResponse = await advanceStreamWithBuffer(
             client,
             params,
             threadId === placeholderThread.id ? undefined : threadId,
