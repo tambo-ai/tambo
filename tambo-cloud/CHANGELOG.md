@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.118.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.118.0...repo-v0.118.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* fall back to latest non-child message in the db if parentMessageId was not passed through the sampling _meta request ([#1979](https://github.com/tambo-ai/tambo-cloud/issues/1979)) ([3182323](https://github.com/tambo-ai/tambo-cloud/commit/3182323bb2b1730eb2f913e8286f787d1d627fa7))
+
+
+### Miscellaneous Chores
+
+* add MCP Sampling blogpost ([#1976](https://github.com/tambo-ai/tambo-cloud/issues/1976)) ([a569ac3](https://github.com/tambo-ai/tambo-cloud/commit/a569ac3bd48e7858c9f3a59cd19172d04c1f3cc4))
+* **deps:** bump tambo version to get mcpAccessToken behavior ([#1980](https://github.com/tambo-ai/tambo-cloud/issues/1980)) ([de0e49f](https://github.com/tambo-ai/tambo-cloud/commit/de0e49ff19091282953ae6317a069595a1cb1058))
+
 ## [0.118.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.117.0...repo-v0.118.0) (2025-10-22)
 
 
