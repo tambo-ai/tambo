@@ -55,7 +55,10 @@ export function useTamboMcpPrompt(promptName: string) {
   );
   const mcpServers = useTamboMcpServers();
   const mcpServer = mcpServers.find(
-    (mcpServer) => mcpServer.name === promptEntry?.server.name,
+    (mcpServer) =>
+      mcpServer.name === promptEntry?.server.name &&
+      mcpServer.url === promptEntry?.server.url &&
+      mcpServer.transport === promptEntry?.server.transport,
   );
 
   return useTamboQuery({

@@ -35,9 +35,9 @@ export enum MCPTransport {
  * });
  * ```
  */
-interface MCPHandlers {
-  elicitation?: (e: ElicitRequest) => Promise<ElicitResult>;
-  sampling?: (e: CreateMessageRequest) => Promise<CreateMessageResult>;
+export interface MCPHandlers {
+  elicitation: (e: ElicitRequest) => Promise<ElicitResult>;
+  sampling: (e: CreateMessageRequest) => Promise<CreateMessageResult>;
 }
 
 /**
@@ -63,9 +63,8 @@ export class MCPClient {
   private endpoint: string;
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
-  private handlers: MCPHandlers;
+  private handlers: Partial<MCPHandlers>;
 
-  public elicitation: EventTarget = new EventTarget();
   /**
    * Private constructor to enforce using the static create method.
    * @param endpoint - The URL of the MCP server to connect to
@@ -78,7 +77,7 @@ export class MCPClient {
     headers?: Record<string, string>,
     authProvider?: OAuthClientProvider,
     sessionId?: string,
-    handlers: MCPHandlers = {},
+    handlers: Partial<MCPHandlers> = {},
   ) {
     this.endpoint = endpoint;
     this.headers = headers ?? {};
@@ -108,7 +107,7 @@ export class MCPClient {
     headers: Record<string, string> | undefined,
     authProvider: OAuthClientProvider | undefined,
     sessionId: string | undefined,
-    handlers: MCPHandlers = {},
+    handlers: Partial<MCPHandlers> = {},
   ): Promise<MCPClient> {
     const mcpClient = new MCPClient(
       endpoint,
@@ -124,6 +123,7 @@ export class MCPClient {
     }
     return mcpClient;
   }
+
   private initializeTransport(sessionId: string | undefined) {
     if (this.transportType === MCPTransport.SSE) {
       return new SSEClientTransport(new URL(this.endpoint), {
@@ -160,6 +160,7 @@ export class MCPClient {
         },
       },
     );
+
     if (this.handlers.elicitation) {
       client.setRequestHandler(ElicitRequestSchema, this.handlers.elicitation);
     }
