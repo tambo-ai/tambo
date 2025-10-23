@@ -77,6 +77,11 @@ export function assertNoZodRecord(
       return;
     }
 
+    if (current instanceof z.ZodLazy) {
+      visit(def.getter(), path);
+      return;
+    }
+
     // ───────────── Wrapper / pass-through types ───────────
     const potentialKeys = [
       "schema",
