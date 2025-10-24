@@ -7,6 +7,7 @@ import {
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { AudioModule } from "./audio/audio.module";
 import { LoggerModule } from "./common/logger.module";
 import {
   DATABASE,
@@ -42,6 +43,7 @@ export class GlobalModule {}
     RegistryModule,
     ExtractorModule,
     ThreadsModule,
+    AudioModule,
     GlobalModule,
     UsersModule,
     SchedulerModule,
