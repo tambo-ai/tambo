@@ -2,6 +2,7 @@
 
 import {
   Message,
+  MessageAttachments,
   MessageContent,
   MessageImages,
   MessageRenderedComponentArea,
@@ -167,6 +168,7 @@ const ThreadContentMessages = React.forwardRef<
                 )}
               >
                 <ReasoningInfo />
+                <MessageAttachments />
                 <MessageImages />
                 <MessageContent
                   className={

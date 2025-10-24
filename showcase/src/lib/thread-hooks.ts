@@ -104,6 +104,7 @@ export function usePositioning(
 /**
  * Converts message content into a safely renderable format.
  * Primarily joins text blocks from arrays into a single string.
+ * Filters out file content that shouldn't be displayed to the user.
  * @param content - The message content (string, element, array, etc.)
  * @returns A renderable string or React element.
  */
@@ -114,9 +115,21 @@ export function getSafeContent(
   if (typeof content === "string") return content;
   if (React.isValidElement(content)) return content; // Pass elements through
   if (Array.isArray(content)) {
-    // Filter out non-text items and join text
+    // Filter out non-text items and file content markers, then join text
     return content
-      .map((item) => (item && item.type === "text" ? (item.text ?? "") : ""))
+      .map((item) => {
+        if (item && item.type === "text") {
+          const text = item.text ?? "";
+          // Filter out file content sections (everything after "--- File:")
+          const fileMarkerIndex = text.indexOf("\n\n--- File:");
+          if (fileMarkerIndex !== -1) {
+            // Return only the text before the file marker
+            return text.substring(0, fileMarkerIndex).trim();
+          }
+          return text;
+        }
+        return "";
+      })
       .join("");
   }
   // Handle potential edge cases or unknown types
@@ -183,4 +196,33 @@ export function getMessageImages(
   return content
     .filter((item) => item?.type === "image_url" && item.image_url?.url)
     .map((item) => item.image_url!.url!);
+}
+
+/**
+ * Extracts file attachments (PDFs and text files) from message content.
+ * @param content - The message content
+ * @returns Array of file attachment info
+ */
+export function getMessageAttachments(
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+): Array<{ name: string; type: "pdf" | "text" }> {
+  if (!content) return [];
+  if (!Array.isArray(content)) return [];
+
+  const attachments: Array<{ name: string; type: "pdf" | "text" }> = [];
+
+  for (const item of content) {
+    if (item && item.type === "text" && item.text) {
+      // Look for file markers in text content
+      const fileMarkerRegex = /\n\n--- File: (.+?) ---\n/g;
+      let match;
+      while ((match = fileMarkerRegex.exec(item.text)) !== null) {
+        const fileName = match[1];
+        const type = fileName.toLowerCase().endsWith(".pdf") ? "pdf" : "text";
+        attachments.push({ name: fileName, type });
+      }
+    }
+  }
+
+  return attachments;
 }

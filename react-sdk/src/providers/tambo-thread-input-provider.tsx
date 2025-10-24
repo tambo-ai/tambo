@@ -10,7 +10,7 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { useMessageImages, StagedImage } from "../hooks/use-message-images";
+import { useMessageFiles, StagedFile } from "../hooks/use-message-files";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
@@ -61,15 +61,25 @@ export interface TamboThreadInputContextProps
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
   }) => Promise<void>;
-  /** Currently staged images */
-  images: StagedImage[];
-  /** Add a single image */
+  /** Currently staged files */
+  files: StagedFile[];
+  /** Add a single file */
+  addFile: (file: File) => Promise<void>;
+  /** Add multiple files */
+  addFiles: (files: File[]) => Promise<void>;
+  /** Remove a file by id */
+  removeFile: (id: string) => void;
+  /** Clear all staged files */
+  clearFiles: () => void;
+  /** @deprecated Use files instead */
+  images: StagedFile[];
+  /** @deprecated Use addFile instead */
   addImage: (file: File) => Promise<void>;
-  /** Add multiple images */
+  /** @deprecated Use addFiles instead */
   addImages: (files: File[]) => Promise<void>;
-  /** Remove an image by id */
+  /** @deprecated Use removeFile instead */
   removeImage: (id: string) => void;
-  /** Clear all staged images */
+  /** @deprecated Use clearFiles instead */
   clearImages: () => void;
 }
 
@@ -95,7 +105,7 @@ export const TamboThreadInputProvider: React.FC<
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
-  const imageState = useMessageImages();
+  const fileState = useMessageFiles();
 
   const submit = useCallback(
     async ({
@@ -121,17 +131,17 @@ export const TamboThreadInputProvider: React.FC<
       }
 
       // Check if we have content to send
-      if (!inputValue.trim() && imageState.images.length === 0) {
+      if (!inputValue.trim() && fileState.files.length === 0) {
         throw new ThreadInputError(INPUT_ERROR_MESSAGES.EMPTY, {
-          cause: "No text or images to send",
+          cause: "No text or files to send",
         });
       }
 
-      // Build message content with text and images
-      const messageContent = buildMessageContent(inputValue, imageState.images);
+      // Build message content with text and files
+      const messageContent = buildMessageContent(inputValue, fileState.files);
 
       try {
-        await sendThreadMessage(inputValue || "Image message", {
+        await sendThreadMessage(inputValue || "File message", {
           threadId: thread.id,
           contextKey: submitContextKey ?? contextKey ?? undefined,
           streamResponse: streamResponse,
@@ -140,10 +150,26 @@ export const TamboThreadInputProvider: React.FC<
           content: messageContent,
         });
       } catch (error: any) {
-        // Handle image-related errors with friendly messages
-        if (imageState.images.length > 0) {
-          const errorMessage = error?.message?.toLowerCase() ?? "";
+        const errorMessage = error?.message?.toLowerCase() ?? "";
 
+        // Handle connection/timeout errors
+        if (
+          errorMessage.includes("connection") ||
+          errorMessage.includes("timeout") ||
+          errorMessage.includes("network") ||
+          error?.code === "ECONNABORTED"
+        ) {
+          throw new ThreadInputError(
+            "Connection failed. Your message may be too large. Try reducing the number of files or using smaller files.",
+            { cause: error },
+          );
+        }
+
+        // Handle file-related errors with friendly messages
+        const hasImages = fileState.files.some(
+          (f) => f.contentType === "image",
+        );
+        if (hasImages) {
           // Backend not yet supporting image content type
           if (errorMessage.includes("unknown content part type: image")) {
             throw new ThreadInputError(
@@ -198,7 +224,7 @@ export const TamboThreadInputProvider: React.FC<
       // Clear text after successful submission
       setInputValue("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
+    [inputValue, sendThreadMessage, thread.id, contextKey, fileState],
   );
 
   const {
@@ -214,11 +240,17 @@ export const TamboThreadInputProvider: React.FC<
     value: inputValue,
     setValue: setInputValue,
     submit: submitAsync,
-    images: imageState.images,
-    addImage: imageState.addImage,
-    addImages: imageState.addImages,
-    removeImage: imageState.removeImage,
-    clearImages: imageState.clearImages,
+    files: fileState.files,
+    addFile: fileState.addFile,
+    addFiles: fileState.addFiles,
+    removeFile: fileState.removeFile,
+    clearFiles: fileState.clearFiles,
+    // Backwards compatibility
+    images: fileState.files,
+    addImage: fileState.addFile,
+    addImages: fileState.addFiles,
+    removeImage: fileState.removeFile,
+    clearImages: fileState.clearFiles,
   };
 
   return (
