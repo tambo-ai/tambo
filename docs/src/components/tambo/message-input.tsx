@@ -385,6 +385,20 @@ MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
 
 /**
+ * Symbol for marking pasted images
+ */
+const IS_PASTED_IMAGE = Symbol("is-pasted-image");
+
+/**
+ * Extend the File interface to include IS_PASTED_IMAGE symbol
+ */
+declare global {
+  interface File {
+    [IS_PASTED_IMAGE]?: boolean;
+  }
+}
+
+/**
  * Props for the MessageInputTextarea component.
  * Extends standard TextareaHTMLAttributes.
  */
@@ -450,11 +464,7 @@ const MessageInputTextarea = ({
       if (file) {
         try {
           // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
-          Object.defineProperty(file, "wasPasted", {
-            value: true,
-            writable: false,
-            enumerable: false,
-          });
+          file[IS_PASTED_IMAGE] = true;
           await addImage(file);
         } catch (error) {
           console.error("Failed to add pasted image:", error);
@@ -896,9 +906,7 @@ const MessageInputStagedImages = React.forwardRef<
           key={image.id}
           image={image}
           displayName={
-            (image.file as File & { wasPasted?: boolean }).wasPasted
-              ? `Image ${index + 1}`
-              : image.name
+            image.file[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
           }
           isExpanded={expandedImageId === image.id}
           onToggle={() =>
