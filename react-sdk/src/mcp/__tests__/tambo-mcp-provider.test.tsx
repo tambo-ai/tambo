@@ -1,5 +1,7 @@
 import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
+import { useTamboClient } from "../../providers/tambo-client-provider";
+import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { MCPClient, MCPTransport } from "../mcp-client";
 import {
@@ -21,6 +23,11 @@ jest.mock("../mcp-client", () => ({
 // Mock the registry provider to avoid dependency issues
 jest.mock("../../providers/tambo-registry-provider", () => ({
   useTamboRegistry: jest.fn(),
+}));
+
+// Mock the client provider to avoid dependency issues
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboClient: jest.fn(),
 }));
 
 describe("extractErrorMessage", () => {
@@ -173,6 +180,11 @@ describe("TamboMcpProvider server list changes", () => {
       registerTool: jest.fn(),
     });
 
+    // Mock client with baseURL
+    (useTamboClient as unknown as jest.Mock).mockReturnValue({
+      baseURL: "https://api.tambo.co",
+    });
+
     // Ensure MCPClient.create exists and returns a fake client with listTools
     (MCPClient as unknown as any).create = jest
       .fn()
@@ -192,9 +204,11 @@ describe("TamboMcpProvider server list changes", () => {
   it("adds a new server when the list grows", async () => {
     let latest: McpServer[] = [];
     const { rerender, getByTestId } = render(
-      <TamboMcpProvider mcpServers={["https://a.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={["https://a.example"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     // Wait for initial connection
@@ -204,9 +218,13 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Add new server
     rerender(
-      <TamboMcpProvider mcpServers={["https://a.example", "https://b.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -220,9 +238,13 @@ describe("TamboMcpProvider server list changes", () => {
   it("removes a server when the list shrinks", async () => {
     let latest: McpServer[] = [];
     const { rerender, getByTestId } = render(
-      <TamboMcpProvider mcpServers={["https://a.example", "https://b.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -231,9 +253,11 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Remove one server
     rerender(
-      <TamboMcpProvider mcpServers={["https://a.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={["https://a.example"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -252,9 +276,11 @@ describe("TamboMcpProvider server list changes", () => {
     ];
 
     const { rerender } = render(
-      <TamboMcpProvider mcpServers={initial}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={initial}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -267,9 +293,11 @@ describe("TamboMcpProvider server list changes", () => {
       { url: "https://b.example", transport: MCPTransport.SSE },
     ];
     rerender(
-      <TamboMcpProvider mcpServers={same}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={same}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
