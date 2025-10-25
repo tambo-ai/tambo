@@ -91,7 +91,10 @@ export const TamboMcpProvider: FC<{
 
     // Add internal Tambo MCP server if we have an access token and a base URL
     if (mcpAccessToken && tamboBaseUrl) {
-      const tamboMcpUrl = `${tamboBaseUrl}/mcp`;
+      // Build the internal MCP URL robustly, preserving any existing base path
+      const base = new URL(tamboBaseUrl);
+      base.pathname = `${base.pathname.replace(/\/+$/, "")}/mcp`;
+      const tamboMcpUrl = base.toString();
       servers.push({
         name: TAMBO_INTERNAL_MCP_SERVER_NAME,
         url: tamboMcpUrl,

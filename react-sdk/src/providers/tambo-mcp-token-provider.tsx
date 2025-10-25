@@ -41,16 +41,7 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const [mcpAccessToken, setMcpAccessToken] = useState<string | null>(null);
-  const client = useTamboClient();
-
-  // Get the base URL from the client. If not available, return undefined.
-  let tamboBaseUrl: string | undefined;
-  try {
-    tamboBaseUrl = client.baseURL;
-  } catch {
-    // Client not yet initialized
-    tamboBaseUrl = undefined;
-  }
+  const { baseURL: tamboBaseUrl } = useTamboClient();
 
   return (
     <TamboMcpTokenContext.Provider

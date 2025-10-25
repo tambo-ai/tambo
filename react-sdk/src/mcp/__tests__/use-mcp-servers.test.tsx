@@ -2,6 +2,8 @@ import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
 import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../../providers/tambo-registry-provider";
+import { TamboClientContext } from "../../providers/tambo-client-provider";
+import { QueryClient } from "@tanstack/react-query";
 import {
   TamboMcpProvider,
   useTamboMcpServers,
@@ -11,12 +13,7 @@ import {
 // Mock the registry to provide a no-op registerTool
 // Do not mock the registry; use the real provider in render
 
-// Mock the client provider to avoid dependency issues
-jest.mock("../../providers/tambo-client-provider", () => ({
-  useTamboClient: jest.fn().mockReturnValue({
-    baseURL: "https://api.tambo.co",
-  }),
-}));
+// Provide a minimal client context instead of mocking the hook
 
 // Mock the MCP client; use a mutable implementation to avoid TDZ issues
 let createImpl: jest.Mock<any, any> = jest.fn();
@@ -47,15 +44,26 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
     };
 
     const { getByTestId } = render(
-      <TamboRegistryProvider>
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider
-            mcpServers={[{ url: "https://one.example" }, "https://two.example"]}
-          >
-            <Inner />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>
-      </TamboRegistryProvider>,
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient: new QueryClient(),
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider
+              mcpServers={[
+                { url: "https://one.example" },
+                "https://two.example",
+              ]}
+            >
+              <Inner />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -80,13 +88,21 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
     };
 
     render(
-      <TamboRegistryProvider>
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider mcpServers={[{ url: "https://ok.example" }]}>
-            <Capture />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>
-      </TamboRegistryProvider>,
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient: new QueryClient(),
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider mcpServers={[{ url: "https://ok.example" }]}>
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -112,13 +128,21 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
     };
 
     render(
-      <TamboRegistryProvider>
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider mcpServers={[{ url: "https://fail.example" }]}>
-            <Capture />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>
-      </TamboRegistryProvider>,
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient: new QueryClient(),
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider mcpServers={[{ url: "https://fail.example" }]}>
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
