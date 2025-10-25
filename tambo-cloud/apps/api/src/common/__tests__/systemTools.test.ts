@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { Logger } from "@nestjs/common";
 import {
   LogLevel,
   MCPClient,
@@ -11,7 +12,6 @@ import {
 import { getDb, operations, schema } from "@tambo-ai-cloud/db";
 import { type JSONSchema7 } from "json-schema";
 import { getSystemTools, getThreadMCPClients } from "../systemTools";
-import { Logger } from "@nestjs/common";
 
 // Mock the db module
 jest.mock("@tambo-ai-cloud/db", () => {

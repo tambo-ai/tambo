@@ -6,16 +6,17 @@ import {
   CallToolRequestSchema,
   CallToolResult,
   isInitializeRequest,
+  ListPromptsRequestSchema,
   ListToolsRequestSchema,
   type CallToolRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Command } from "commander";
+import cors from "cors";
 import express from "express";
 import { createServer } from "http";
 import { randomUUID } from "node:crypto";
 import { McpServiceRegistry } from "./mcp-service.js";
 import { testService } from "./test-service.js";
-
 // Create MCP service registry and register services
 const serviceRegistry = new McpServiceRegistry();
 serviceRegistry.registerService(testService);
@@ -29,6 +30,7 @@ const server = new Server(
   {
     capabilities: {
       prompts: { listChanged: true },
+      tools: { listChanged: true },
     },
   },
 );
@@ -40,7 +42,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: serviceRegistry.getAllTools(),
   };
 });
-
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: serviceRegistry.getAllPrompts(),
+  };
+});
 // Handle call tool request
 server.setRequestHandler(
   CallToolRequestSchema,
@@ -179,6 +185,20 @@ async function main() {
     const port = await findAvailablePort(desiredPort);
     const enableSessionManagement =
       serverOptions.enableSessionManagement ?? true;
+    app.use(
+      "/mcp",
+      cors({
+        origin: "*", // use "*" with caution in production
+        methods: "GET,POST,DELETE",
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+        exposedHeaders: [
+          "mcp-session-id",
+          "last-event-id",
+          "mcp-protocol-version",
+        ],
+      }),
+    ); // Enable CORS for all routes so Inspector can connect
 
     // Handle POST requests for client-to-server communication
     app.post("/mcp", async (req, res) => {
@@ -186,82 +206,30 @@ async function main() {
 
       // Check for existing session ID
       const sessionId = req.headers["mcp-session-id"] as string | undefined;
-      let transport: StreamableHTTPServerTransport;
 
-      if (enableSessionManagement) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (sessionId !== undefined && sessionTransports[sessionId]) {
-          // Reuse existing transport
-          transport = sessionTransports[sessionId];
-        } else if (isInitializeRequest(req.body)) {
-          // New initialization request
-          transport = new StreamableHTTPServerTransport({
-            sessionIdGenerator: () => randomUUID(),
-            onsessioninitialized: (sessionId) => {
-              // Store the transport by session ID
-              sessionTransports[sessionId] = transport;
-              console.error(`New MCP session initialized: ${sessionId}`);
-            },
-            onsessionclosed: (sessionId) => {
-              // Clean up the transport when session is closed
-              delete sessionTransports[sessionId];
-              console.error(`MCP session closed: ${sessionId}`);
-            },
-            enableDnsRebindingProtection:
-              serverOptions.enableDnsRebindingProtection ?? false,
-            allowedHosts: serverOptions.allowedHosts,
-            allowedOrigins: serverOptions.allowedOrigins,
-          });
-
-          // Clean up transport when closed
-          transport.onclose = () => {
-            if (transport.sessionId) {
-              delete sessionTransports[transport.sessionId];
-            }
-          };
-
-          // Connect the MCP server to this transport
-          await server.connect(transport);
-        } else {
-          // Invalid request
-          res.status(400).json({
-            jsonrpc: "2.0",
-            error: {
-              code: -32000,
-              message: "Bad Request: No valid session ID provided",
-            },
-            id: null,
-          });
-          return;
-        }
-      } else {
-        // Stateless mode - create a new transport for each request
-        transport = new StreamableHTTPServerTransport({
-          sessionIdGenerator: undefined,
-          enableDnsRebindingProtection:
-            serverOptions.enableDnsRebindingProtection ?? false,
-          allowedHosts: serverOptions.allowedHosts,
-          allowedOrigins: serverOptions.allowedOrigins,
-        });
-
-        // Connect the MCP server to this transport
-        await server.connect(transport);
-      }
-
+      const transport = await initiateTransport(
+        req,
+        res,
+        serverOptions,
+        enableSessionManagement,
+        sessionId,
+      );
       // Handle the request
-      // Convert Express request/response to Node.js HTTP types
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const httpReq = req as any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const httpRes = res as any;
+      if (!transport) {
+        if (res.statusCode === 200) {
+          res.status(400).send("Invalid or missing session ID");
+        }
+        return;
+      }
       let originalErr: unknown;
       try {
-        await transport.handleRequest(httpReq, httpRes, req.body);
+        await transport.handleRequest(req, res, req.body);
       } catch (e) {
         originalErr = e;
       } finally {
         if (!enableSessionManagement) {
           try {
+            console.log("no session management, closing transport");
             await transport.close();
           } catch (closeErr) {
             // Log cleanup failure but do not convert a successful request into an error
@@ -320,6 +288,76 @@ async function main() {
     console.error("Failed to start server:", error);
     process.exit(1);
   }
+}
+
+async function initiateTransport(
+  req: express.Request,
+  res: express.Response,
+  serverOptions: ServerOptions,
+  enableSessionManagement: boolean,
+  sessionId?: string,
+): Promise<StreamableHTTPServerTransport | undefined> {
+  // Handle stateless mode first (early return)
+  if (!enableSessionManagement) {
+    console.log("no session management, creating new transport");
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableDnsRebindingProtection:
+        serverOptions.enableDnsRebindingProtection ?? false,
+      allowedHosts: serverOptions.allowedHosts,
+      allowedOrigins: serverOptions.allowedOrigins,
+    });
+    await server.connect(transport);
+    return transport;
+  }
+
+  // Session management enabled
+  console.log("session management, checking for existing transport");
+
+  // Reuse existing transport if available (early return)
+  if (sessionId !== undefined && sessionId in sessionTransports) {
+    const transport = sessionTransports[sessionId];
+    return transport;
+  }
+
+  // Invalid request - not an initialization and no existing session (early return)
+  if (!isInitializeRequest(req.body)) {
+    res.status(400).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32000,
+        message: "Bad Request: No valid session ID provided: ",
+      },
+      id: null,
+    });
+    return;
+  }
+
+  // Create new session-managed transport for initialization request
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
+    onsessioninitialized: (sessionId) => {
+      sessionTransports[sessionId] = transport;
+      console.error(`New MCP session initialized: ${sessionId}`);
+    },
+    onsessionclosed: (sessionId) => {
+      delete sessionTransports[sessionId];
+      console.error(`MCP session closed: ${sessionId}`);
+    },
+    enableDnsRebindingProtection:
+      serverOptions.enableDnsRebindingProtection ?? false,
+    allowedHosts: serverOptions.allowedHosts,
+    allowedOrigins: serverOptions.allowedOrigins,
+  });
+
+  transport.onclose = () => {
+    if (transport.sessionId) {
+      delete sessionTransports[transport.sessionId];
+    }
+  };
+
+  await server.connect(transport);
+  return transport;
 }
 
 // Start the server

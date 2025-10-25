@@ -51,7 +51,8 @@ export interface MCPHandlers {
  * ```
  */
 export class MCPClient {
-  /** The underlying MCP client
+  /**
+   * The underlying MCP client
    *
    * Be careful not to mutate the client directly, use the methods provided instead.
    */
@@ -63,42 +64,6 @@ export class MCPClient {
   private headers: Record<string, string>;
   private authProvider?: OAuthClientProvider;
   private handlers: Partial<MCPHandlers>;
-  /**
-   * Tracks an in-flight reconnect so concurrent triggers coalesce
-   * (single-flight). When set, additional calls to `reconnect()` or
-   * the automatic `onclose` handler will await the same Promise instead of
-   * starting another reconnect sequence.
-   */
-  private reconnecting?: Promise<void>;
-  /**
-   * Timer id for a scheduled automatic reconnect (used by `onclose`).
-   * Present only while waiting for the backoff delay to elapse.
-   */
-  private reconnectTimer?: ReturnType<typeof setTimeout>;
-  /**
-   * Count of consecutive automatic reconnect failures used to compute
-   * exponential backoff. Reset to 0 after a successful connection.
-   */
-  private backoffAttempts = 0;
-
-  /**
-   * Backoff policy (discoverable constants)
-   * - BACKOFF_INITIAL_MS: initial delay for the first automatic retry
-   * - BACKOFF_MULTIPLIER: exponential growth factor for each failed attempt
-   * - BACKOFF_MAX_MS: upper bound for the delay
-   * - BACKOFF_JITTER_RATIO: jitter range as a fraction of the base delay
-   *
-   * Jitter is applied symmetrically in [-ratio, +ratio]. For example, with a
-   * 500ms base delay and 0.2 ratio, the actual delay is in [400ms, 600ms].
-   *
-   * The backoff applies only to automatic reconnects started from the
-   * `onclose` handler. Explicit/manual calls to `reconnect()` run immediately
-   * (no backoff), and will preempt any scheduled automatic attempt.
-   */
-  static readonly BACKOFF_INITIAL_MS = 500;
-  static readonly BACKOFF_MULTIPLIER = 2;
-  static readonly BACKOFF_MAX_MS = 30_000;
-  static readonly BACKOFF_JITTER_RATIO = 0.2;
 
   /**
    * Private constructor to enforce using the static create method.
@@ -158,144 +123,6 @@ export class MCPClient {
     }
     return mcpClient;
   }
-  /**
-   * Reconnects to the MCP server, optionally retaining the same session ID.
-   *
-   * Single‑flight semantics:
-   * - If a reconnect is already in progress (triggered either manually or by
-   * the automatic `onclose` handler), additional calls will await the
-   * in-flight reconnect rather than start another one.
-   * - If an automatic reconnect has been scheduled but not yet started (i.e.,
-   * we are waiting in a backoff delay), calling `reconnect()` manually will
-   * cancel the scheduled attempt and perform an immediate reconnect.
-   *
-   * Backoff policy:
-   * - Backoff delays with jitter are applied only for automatic reconnects
-   * (via `onclose`). Manual calls to `reconnect()` do not use backoff.
-   * @param newSession - Whether to create a new session (true) or reuse existing session ID (false)
-   * @param reportErrorOnClose - Whether to report errors when closing the client
-   * Note that only StreamableHTTPClientTransport supports session IDs.
-   * @returns A promise that resolves when the reconnect is complete
-   */
-  async reconnect(newSession = false, reportErrorOnClose = true) {
-    // If a reconnect is already running, coalesce into it.
-    if (this.reconnecting) {
-      return await this.reconnecting;
-    }
-
-    // Manual reconnect preempts any scheduled automatic attempt.
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = undefined;
-    }
-
-    const doReconnect = async () => {
-      const sessionId = newSession ? undefined : this.sessionId;
-
-      // Prevent re-entrant onclose during deliberate close by detaching
-      // the handler from the previous client instance.
-      const prevClient = this.client;
-      // Prevent re-entrant onclose callbacks from the previous client
-      prevClient.onclose = undefined;
-
-      try {
-        await prevClient.close();
-      } catch (error) {
-        if (reportErrorOnClose) {
-          console.error("Error closing Tambo MCP Client:", error);
-        }
-      }
-
-      this.transport = this.initializeTransport(sessionId);
-      this.client = this.initializeClient();
-      await this.client.connect(this.transport);
-      // We may have gotten a session id from the server, so we need to set it
-      if ("sessionId" in this.transport) {
-        this.sessionId = this.transport.sessionId;
-        if (sessionId !== this.sessionId) {
-          // This is a pretty unusual thing to happen, but it might be possible?
-          console.warn("Session id mismatch", sessionId, this.sessionId);
-        }
-      }
-    };
-
-    this.reconnecting = (async () => {
-      try {
-        await doReconnect();
-        // Successful manual reconnect: reset backoff.
-        this.backoffAttempts = 0;
-      } finally {
-        this.reconnecting = undefined;
-      }
-    })();
-
-    return await this.reconnecting;
-  }
-
-  /**
-   * Called by the underlying MCP SDK when the connection closes.
-   * Schedules an automatic reconnect with bounded exponential backoff and
-   * jitter. If a reconnect is already scheduled or running, this is a no-op.
-   */
-  private onclose() {
-    this.scheduleAutoReconnect();
-  }
-
-  /**
-   * Compute the next backoff delay with symmetric jitter.
-   * @returns The next backoff delay in milliseconds
-   */
-  private computeBackoffDelayMs(): number {
-    const base = Math.min(
-      MCPClient.BACKOFF_MAX_MS,
-      MCPClient.BACKOFF_INITIAL_MS *
-        Math.pow(MCPClient.BACKOFF_MULTIPLIER, this.backoffAttempts),
-    );
-    const jitterRange = MCPClient.BACKOFF_JITTER_RATIO * base;
-    const jitter = (Math.random() * 2 - 1) * jitterRange; // [-range, +range]
-    const ms = Math.max(0, Math.round(base + jitter));
-    return ms;
-  }
-
-  /**
-   * Schedule an automatic reconnect attempt if one is not already scheduled
-   * or running. Uses the backoff policy and self-reschedules on failure.
-   */
-  private scheduleAutoReconnect() {
-    if (this.reconnecting || this.reconnectTimer) {
-      return;
-    }
-
-    const delayMs = this.computeBackoffDelayMs();
-    console.warn(
-      "Tambo MCP Client closed; attempting automatic reconnect in",
-      `${delayMs}ms`,
-    );
-
-    this.reconnectTimer = setTimeout(async () => {
-      this.reconnectTimer = undefined;
-      // Start the actual reconnect (single-flight)
-      const inFlight = (this.reconnecting = this.reconnect(false, false));
-      try {
-        await inFlight;
-        // Success: reset attempts
-        this.backoffAttempts = 0;
-      } catch (err) {
-        // Failure: increase attempts; scheduling occurs in finally below so the
-        // new timer isn't blocked by `this.reconnecting` being truthy.
-        this.backoffAttempts += 1;
-        console.warn(
-          "Automatic reconnect failed; will retry with backoff.",
-          err,
-        );
-      } finally {
-        this.reconnecting = undefined;
-        if (this.backoffAttempts > 0) {
-          this.scheduleAutoReconnect();
-        }
-      }
-    }, delayMs);
-  }
 
   private initializeTransport(sessionId: string | undefined) {
     if (this.transportType === MCPTransport.SSE) {
@@ -317,8 +144,9 @@ export class MCPClient {
    * @returns The initialized MCP client
    */
   private initializeClient() {
-    const elicitationCapability =
-      (this.handlers.elicitation ?? false) ? { elicitation: {} } : {};
+    const elicitationCapability = this.handlers.elicitation
+      ? { elicitation: {} }
+      : {};
     const samplingCapability = this.handlers.sampling ? { sampling: {} } : {};
     const client = new Client(
       {
@@ -332,7 +160,7 @@ export class MCPClient {
         },
       },
     );
-    client.onclose = this.onclose.bind(this);
+
     if (this.handlers.elicitation) {
       client.setRequestHandler(ElicitRequestSchema, this.handlers.elicitation);
     }
@@ -458,6 +286,12 @@ export class MCPClient {
       return;
     }
     this.client.setRequestHandler(CreateMessageRequestSchema, handler);
+  }
+
+  async close() {
+    // Not really sure which one of these to close first, but we'll close the transport first
+    await this.transport.close();
+    await this.client.close();
   }
 }
 

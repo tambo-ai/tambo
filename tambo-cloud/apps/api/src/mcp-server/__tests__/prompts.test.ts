@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { MCPClient } from "@tambo-ai-cloud/core";
 import { registerPromptHandlers } from "../prompts";
 
@@ -73,23 +73,13 @@ describe("registerPromptHandlers", () => {
           name: "client1_prompt1",
           title: "Client 1 Prompt 1",
           description: "First prompt from client 1",
-          inputSchema: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-            },
-          },
+          arguments: [{ name: "message", type: "string", required: true }],
         },
         {
           name: "client1_prompt2",
           title: "Client 1 Prompt 2",
           description: "Second prompt from client 1",
-          inputSchema: {
-            type: "object",
-            properties: {
-              count: { type: "number" },
-            },
-          },
+          arguments: [{ name: "count", type: "number", required: false }],
         },
       ]);
 
@@ -98,12 +88,7 @@ describe("registerPromptHandlers", () => {
           name: "client2_prompt1",
           title: "Client 2 Prompt 1",
           description: "First prompt from client 2",
-          inputSchema: {
-            type: "object",
-            properties: {
-              query: { type: "string" },
-            },
-          },
+          arguments: [{ name: "query", type: "string", required: true }],
         },
       ]);
 
@@ -143,22 +128,26 @@ describe("registerPromptHandlers", () => {
       );
     });
 
-    it("should preserve prompt metadata (title, description, inputSchema)", async () => {
-      const inputSchema = {
-        type: "object",
-        properties: {
-          arg1: { type: "string", description: "First argument" },
-          arg2: { type: "number", description: "Second argument" },
-        },
-        required: ["arg1"],
-      };
-
+    it("should preserve prompt metadata (title, description, arguments)", async () => {
       const mockClient = createMockMCPClient([
         {
           name: "test_prompt",
           title: "Test Prompt Title",
           description: "A detailed description of the test prompt",
-          inputSchema,
+          arguments: [
+            {
+              name: "arg1",
+              type: "string",
+              description: "First argument",
+              required: true,
+            },
+            {
+              name: "arg2",
+              type: "number",
+              description: "Second argument",
+              required: false,
+            },
+          ],
         },
       ]);
 
@@ -169,7 +158,10 @@ describe("registerPromptHandlers", () => {
         {
           title: "Test Prompt Title",
           description: "A detailed description of the test prompt",
-          argsSchema: inputSchema,
+          argsSchema: expect.objectContaining({
+            arg1: expect.any(Object), // Zod schema
+            arg2: expect.any(Object), // Zod schema
+          }),
         },
         expect.any(Function),
       );
@@ -181,7 +173,7 @@ describe("registerPromptHandlers", () => {
           name: "only_prompt",
           title: "Only Prompt",
           description: "The only prompt",
-          inputSchema: { type: "object" },
+          arguments: [],
         },
       ]);
 
@@ -238,10 +230,7 @@ describe("registerPromptHandlers", () => {
           {
             name: "client1_prompt",
             title: "Client 1 Prompt",
-            inputSchema: {
-              type: "object",
-              properties: { message: { type: "string" } },
-            },
+            arguments: [{ name: "message", type: "string", required: true }],
           },
         ],
         mockGetPrompt1,
@@ -252,10 +241,7 @@ describe("registerPromptHandlers", () => {
           {
             name: "client2_prompt",
             title: "Client 2 Prompt",
-            inputSchema: {
-              type: "object",
-              properties: { query: { type: "string" } },
-            },
+            arguments: [{ name: "query", type: "string", required: true }],
           },
         ],
         mockGetPrompt2,
@@ -322,13 +308,10 @@ describe("registerPromptHandlers", () => {
           {
             name: "test_prompt",
             title: "Test Prompt",
-            inputSchema: {
-              type: "object",
-              properties: {
-                message: { type: "string" },
-                count: { type: "number" },
-              },
-            },
+            arguments: [
+              { name: "message", type: "string", required: true },
+              { name: "count", type: "number", required: true },
+            ],
           },
         ],
         mockGetPrompt,
@@ -357,7 +340,7 @@ describe("registerPromptHandlers", () => {
           {
             name: "failing_prompt",
             title: "Failing Prompt",
-            inputSchema: { type: "object" },
+            arguments: [],
           },
         ],
         mockGetPrompt,
@@ -404,7 +387,7 @@ describe("registerPromptHandlers", () => {
         {
           name: "working_prompt",
           title: "Working Prompt",
-          inputSchema: { type: "object" },
+          arguments: [],
         },
       ]);
 
@@ -413,6 +396,7 @@ describe("registerPromptHandlers", () => {
       // Verify error was logged
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Error listing prompts for MCP server",
+        "failing-server",
         expect.any(Error),
       );
 
@@ -458,61 +442,35 @@ describe("registerPromptHandlers", () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Error listing prompts for MCP server",
+        "failing-server-1",
         expect.objectContaining({ message: "Client 1 failed" }),
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Error listing prompts for MCP server",
+        "failing-server-2",
         expect.objectContaining({ message: "Client 2 failed" }),
       );
     });
   });
 
-  describe("async iteration", () => {
-    it("should handle async iteration over prompts correctly", async () => {
-      const prompts = [
+  describe("multiple prompts", () => {
+    it("should handle multiple prompts from a single client", async () => {
+      const mockClient = createMockMCPClient([
         {
           name: "prompt1",
           title: "Prompt 1",
-          inputSchema: { type: "object" },
+          arguments: [],
         },
         {
           name: "prompt2",
           title: "Prompt 2",
-          inputSchema: { type: "object" },
+          arguments: [],
         },
-      ];
-
-      // Create an async generator to verify async iteration works
-      async function* promptGenerator() {
-        for (const prompt of prompts) {
-          yield prompt;
-        }
-      }
-
-      const mockClient = {
-        client: {
-          client: {
-            listPrompts: jest
-              .fn<typeof _mcpClientInstance.client.listPrompts>()
-              .mockResolvedValue({
-                prompts: promptGenerator() as any, // Type assertion needed for test
-              }),
-            getPrompt: jest
-              .fn<typeof _mcpClientInstance.client.getPrompt>()
-              .mockResolvedValue({
-                messages: [
-                  { role: "user", content: { type: "text", text: "Response" } },
-                ],
-              }),
-          },
-        } as unknown as MCPClient,
-        serverId: "test-server-id",
-        url: "http://test.example.com",
-      };
+      ]);
 
       await registerPromptHandlers(mockServer, [mockClient]);
 
-      // Both prompts should be registered via async iteration
+      // Both prompts should be registered
       expect(registerPromptSpy).toHaveBeenCalledTimes(2);
       expect(registerPromptSpy).toHaveBeenCalledWith(
         "prompt1",
@@ -532,20 +490,20 @@ describe("registerPromptHandlers", () => {
       const mockClient = createMockMCPClient([
         {
           name: "minimal_prompt",
-          // No title, description, or inputSchema - only name is required
+          // No title, description, or arguments - only name is required
         },
       ]);
 
       await registerPromptHandlers(mockServer, [mockClient]);
 
       expect(registerPromptSpy).toHaveBeenCalledTimes(1);
-      // Verify that undefined metadata is passed through correctly
+      // Verify that minimal metadata gets defaults
       expect(registerPromptSpy).toHaveBeenCalledWith(
         "minimal_prompt",
         {
-          title: undefined,
+          title: "minimal_prompt", // Defaults to name
           description: undefined,
-          argsSchema: undefined,
+          argsSchema: {}, // Empty object when no arguments
         },
         expect.any(Function),
       );
@@ -570,7 +528,7 @@ describe("registerPromptHandlers", () => {
           {
             name: "multi_message_prompt",
             title: "Multi Message Prompt",
-            inputSchema: { type: "object" },
+            arguments: [],
           },
         ],
         mockGetPrompt,

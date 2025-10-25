@@ -11,6 +11,7 @@ import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 import { generateOpenAPIConfig } from "./common/openapi";
+import { registerHandler } from "./mcp-server/server";
 import { initializeOpenTelemetry, shutdownOpenTelemetry } from "./telemetry";
 
 async function bootstrap() {
@@ -26,8 +27,12 @@ async function bootstrap() {
   // Security headers via Helmet (applies to all responses)
   configureHelmet(app);
   configureSwagger(app);
-  app.use(json({ limit: "1mb" }));
-  app.use(urlencoded({ extended: true, limit: "1mb" }));
+  app.use(json({ limit: "10mb" }));
+  app.use(urlencoded({ extended: true, limit: "10mb" }));
+
+  // Register MCP server handler
+  const expressInstance = app.getHttpAdapter().getInstance();
+  registerHandler(expressInstance, "/mcp");
 
   // Graceful shutdown
   process.on("SIGTERM", async () => {
