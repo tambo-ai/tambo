@@ -1,4 +1,5 @@
 export { MCPTransport } from "./mcp-client";
+export { useTamboMcpPrompt, useTamboMcpPromptList } from "./mcp-hooks";
 export {
   TamboMcpProvider,
   useTamboMcpServers,

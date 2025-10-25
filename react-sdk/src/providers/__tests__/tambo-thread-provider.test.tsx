@@ -12,6 +12,7 @@ import {
 import { serializeRegistry } from "../../testing/tools";
 import { useTamboClient, useTamboQueryClient } from "../tambo-client-provider";
 import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
+import { TamboMcpTokenProvider } from "../tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "../tambo-thread-provider";
 
@@ -149,7 +150,11 @@ describe("TamboThreadProvider", () => {
           currentPageContextHelper: () => null,
         }}
       >
-        <TamboThreadProvider streaming={false}>{children}</TamboThreadProvider>
+        <TamboMcpTokenProvider>
+          <TamboThreadProvider streaming={false}>
+            {children}
+          </TamboThreadProvider>
+        </TamboMcpTokenProvider>
       </TamboContextHelpersProvider>
     </TamboRegistryProvider>
   );
@@ -424,9 +429,11 @@ describe("TamboThreadProvider", () => {
             currentPageContextHelper: () => null,
           }}
         >
-          <TamboThreadProvider streaming={false}>
-            {children}
-          </TamboThreadProvider>
+          <TamboMcpTokenProvider>
+            <TamboThreadProvider streaming={false}>
+              {children}
+            </TamboThreadProvider>
+          </TamboMcpTokenProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     );
@@ -550,9 +557,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={true}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={true}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -635,9 +644,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={true}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={true}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -694,9 +705,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -753,7 +766,9 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider>{children}</TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider>{children}</TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -836,9 +851,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={true}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={true}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -898,9 +915,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1170,9 +1189,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1290,9 +1311,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={true}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={true}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1423,9 +1446,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1536,9 +1561,11 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider streaming={false}>
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider streaming={false}>
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
