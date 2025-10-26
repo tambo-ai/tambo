@@ -42,31 +42,16 @@ if (typeof File !== "undefined") {
   });
 }
 
-// Mock pdfjs-dist
-jest.mock("pdfjs-dist", () => ({
-  GlobalWorkerOptions: { workerSrc: "" },
-  version: "4.9.155",
-  getDocument: jest.fn(() => ({
-    promise: Promise.resolve({
-      numPages: 1,
-      getPage: jest.fn(
-        async () =>
-          await Promise.resolve({
-            getTextContent: jest.fn(
-              async () =>
-                await Promise.resolve({
-                  items: [{ str: "Mock PDF text" }],
-                }),
-            ),
-          }),
-      ),
-    }),
-  })),
-}));
-
 describe("useMessageFiles", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Mock fetch for PDF API calls
+    global.fetch = jest.fn(async () =>
+      await Promise.resolve({
+        ok: true,
+        json: async () => ({ text: "Mock PDF text", pages: 1 }),
+        text: async () => "",
+      } as any),
+    );
   });
 
   it("should initialize with empty files array", () => {
