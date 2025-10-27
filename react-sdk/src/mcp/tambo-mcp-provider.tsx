@@ -76,6 +76,21 @@ export interface FailedMcpServer extends McpServerInfo {
 
 export type McpServer = ConnectedMcpServer | FailedMcpServer;
 
+/**
+ * Provider-level MCP handlers that receive the McpServerInfo as context in addition to the request.
+ * These handlers are applied to all MCP servers unless overridden by per-server handlers.
+ */
+export interface ProviderMCPHandlers {
+  elicitation?: (
+    request: Parameters<MCPHandlers["elicitation"]>[0],
+    serverInfo: McpServerInfo,
+  ) => ReturnType<MCPHandlers["elicitation"]>;
+  sampling?: (
+    request: Parameters<MCPHandlers["sampling"]>[0],
+    serverInfo: McpServerInfo,
+  ) => ReturnType<MCPHandlers["sampling"]>;
+}
+
 const McpProviderContext = createContext<McpServer[]>([]);
 
 // Constant for the internal Tambo MCP server name
@@ -86,13 +101,15 @@ const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
  * It automatically includes an internal Tambo MCP server when an MCP access token is available.
  * @param props - The provider props
  * @param props.mcpServers - Array of MCP server configurations
+ * @param props.handlers - Optional handlers applied to all MCP servers unless overridden per-server
  * @param props.children - The children to wrap
  * @returns The TamboMcpProvider component
  */
 export const TamboMcpProvider: FC<{
   mcpServers: (McpServerInfo | string)[];
+  handlers?: ProviderMCPHandlers;
   children: React.ReactNode;
-}> = ({ mcpServers, children }) => {
+}> = ({ mcpServers, handlers, children }) => {
   const { registerTool } = useTamboRegistry();
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
   const [connectedMcpServers, setConnectedMcpServers] = useState<McpServer[]>(
@@ -142,13 +159,35 @@ export const TamboMcpProvider: FC<{
       const mcpServers = await Promise.allSettled(
         mcpServerInfos.map(async (mcpServerInfo): Promise<McpServer> => {
           try {
+            // Merge provider handlers with per-server handlers (per-server takes precedence)
+            const effectiveHandlers: Partial<MCPHandlers> = {};
+
+            // Apply provider elicitation handler if present and not overridden
+            if (mcpServerInfo.handlers?.elicitation) {
+              effectiveHandlers.elicitation =
+                mcpServerInfo.handlers.elicitation;
+            } else if (handlers?.elicitation) {
+              const elicitationHandler = handlers.elicitation;
+              effectiveHandlers.elicitation = async (request) =>
+                await elicitationHandler(request, mcpServerInfo);
+            }
+
+            // Apply provider sampling handler if present and not overridden
+            if (mcpServerInfo.handlers?.sampling) {
+              effectiveHandlers.sampling = mcpServerInfo.handlers.sampling;
+            } else if (handlers?.sampling) {
+              const samplingHandler = handlers.sampling;
+              effectiveHandlers.sampling = async (request) =>
+                await samplingHandler(request, mcpServerInfo);
+            }
+
             const client = await MCPClient.create(
               mcpServerInfo.url,
               mcpServerInfo.transport,
               mcpServerInfo.customHeaders,
               undefined, // no oauth support yet
               undefined, // starting with no session id at first.
-              mcpServerInfo.handlers,
+              effectiveHandlers,
             );
             const connectedMcpServer = {
               ...mcpServerInfo,
@@ -254,7 +293,7 @@ export const TamboMcpProvider: FC<{
     );
 
     registerMcpServers(mcpServerInfos);
-  }, [allMcpServers, registerTool]);
+  }, [allMcpServers, handlers?.elicitation, handlers?.sampling, registerTool]);
 
   // Update handlers when they change
   useEffect(() => {
@@ -280,21 +319,36 @@ export const TamboMcpProvider: FC<{
         return;
       }
 
+      // Determine effective elicitation handler (per-server overrides provider)
+      const defaultElicitationHandler = handlers?.elicitation;
+      const effectiveElicitationHandler =
+        serverInfo.handlers?.elicitation ??
+        (defaultElicitationHandler
+          ? async (request) =>
+              await defaultElicitationHandler(request, serverInfo)
+          : undefined);
+
+      // Determine effective sampling handler (per-server overrides provider)
+      const defaultSamplingHandler = handlers?.sampling;
+      const effectiveSamplingHandler =
+        serverInfo.handlers?.sampling ??
+        (defaultSamplingHandler
+          ? async (request) => await defaultSamplingHandler(request, serverInfo)
+          : undefined);
+
       // Update elicitation handler if it exists
-      if (serverInfo.handlers?.elicitation !== undefined) {
+      if (effectiveElicitationHandler !== undefined) {
         connectedServer.client.updateElicitationHandler(
-          serverInfo.handlers.elicitation,
+          effectiveElicitationHandler,
         );
       }
 
       // Update sampling handler if it exists
-      if (serverInfo.handlers?.sampling !== undefined) {
-        connectedServer.client.updateSamplingHandler(
-          serverInfo.handlers.sampling,
-        );
+      if (effectiveSamplingHandler !== undefined) {
+        connectedServer.client.updateSamplingHandler(effectiveSamplingHandler);
       }
     });
-  }, [allMcpServers, connectedMcpServers]);
+  }, [allMcpServers, connectedMcpServers, handlers]);
 
   return (
     <McpProviderContext.Provider value={connectedMcpServers}>

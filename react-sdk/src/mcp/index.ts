@@ -8,4 +8,5 @@ export {
   type FailedMcpServer,
   type McpServer,
   type McpServerInfo,
+  type ProviderMCPHandlers,
 } from "./tambo-mcp-provider";
