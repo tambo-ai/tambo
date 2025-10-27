@@ -1,10 +1,10 @@
-import { deepEqual } from "fast-equals";
 import React, {
   createContext,
   FC,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
@@ -114,17 +114,21 @@ export const TamboMcpProvider: FC<{
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
   const providerElicitationHandler = handlers?.elicitation;
   const providerSamplingHandler = handlers?.sampling;
+
+  // Stable reference to track active clients by server key
+  const clientMapRef = useRef<Map<string, McpServer>>(new Map());
+
+  // State for exposing connected servers to consumers
   const [connectedMcpServers, setConnectedMcpServers] = useState<McpServer[]>(
     [],
   );
 
-  // Combine user-provided MCP servers with the internal Tambo MCP server
-  const allMcpServers = useMemo(() => {
+  // Stable map of current server configurations keyed by server key
+  const currentServersMap = useMemo(() => {
     const servers = [...mcpServers];
 
     // Add internal Tambo MCP server if we have an access token and a base URL
     if (mcpAccessToken && tamboBaseUrl) {
-      // Build the internal MCP URL robustly, preserving any existing base path
       const base = new URL(tamboBaseUrl);
       base.pathname = `${base.pathname.replace(/\/+$/, "")}/mcp`;
       const tamboMcpUrl = base.toString();
@@ -138,241 +142,199 @@ export const TamboMcpProvider: FC<{
       });
     }
 
-    return servers;
+    // Create a map of server key -> server info for efficient lookups
+    const serverMap = new Map<string, McpServerInfo>();
+    servers.forEach((server) => {
+      const serverInfo = normalizeServerInfo(server);
+      const key = getServerKey(serverInfo);
+      serverMap.set(key, serverInfo);
+    });
+
+    return serverMap;
   }, [mcpServers, mcpAccessToken, tamboBaseUrl]);
 
+  // Main effect: manage client lifecycle (create/remove)
   useEffect(() => {
-    if (!allMcpServers.length) {
-      return;
-    }
-    async function registerMcpServers(mcpServerInfos: McpServerInfo[]) {
-      // Maps tool names to the MCP client that registered them
-      const mcpServerMap = new Map<string, McpServer>();
-      setConnectedMcpServers((prev) =>
-        // remove any servers that are not in the new list
-        prev.filter((s) =>
-          mcpServerInfos.some((mcpServerInfo) =>
-            equalsMcpServer(s, mcpServerInfo),
-          ),
-        ),
-      );
+    const clientMap = clientMapRef.current;
+    const currentKeys = new Set(currentServersMap.keys());
+    const existingKeys = new Set(clientMap.keys());
 
-      // initialize the MCP clients, converting McpServerInfo -> McpServer
-      const mcpServers = await Promise.allSettled(
-        mcpServerInfos.map(async (mcpServerInfo): Promise<McpServer> => {
+    // 1. Remove clients that are no longer in the current server list
+    const keysToRemove = Array.from(existingKeys).filter(
+      (key) => !currentKeys.has(key),
+    );
+    keysToRemove.forEach((key) => {
+      const server = clientMap.get(key);
+      if (server?.client) {
+        try {
+          server.client.close();
+        } catch (error) {
+          console.error(`Error closing MCP client for ${key}:`, error);
+        }
+      }
+      clientMap.delete(key);
+    });
+
+    // 2. Add new clients for servers that don't exist yet
+    const keysToAdd = Array.from(currentKeys).filter(
+      (key) => !existingKeys.has(key),
+    );
+
+    if (keysToAdd.length > 0) {
+      // Async initialization of new clients
+      Promise.allSettled(
+        keysToAdd.map(async (key) => {
+          const serverInfo = currentServersMap.get(key)!;
+
           try {
-            // Merge provider handlers with per-server handlers (per-server takes precedence)
+            // Build effective handlers (per-server overrides provider)
             const effectiveHandlers: Partial<MCPHandlers> = {};
 
-            // Apply provider elicitation handler if present and not overridden
-            if (mcpServerInfo.handlers?.elicitation) {
-              effectiveHandlers.elicitation =
-                mcpServerInfo.handlers.elicitation;
+            if (serverInfo.handlers?.elicitation) {
+              effectiveHandlers.elicitation = serverInfo.handlers.elicitation;
             } else if (providerElicitationHandler) {
-              const elicitationHandler = providerElicitationHandler;
               effectiveHandlers.elicitation = async (request) =>
-                await elicitationHandler(request, mcpServerInfo);
+                await providerElicitationHandler(request, serverInfo);
             }
 
-            // Apply provider sampling handler if present and not overridden
-            if (mcpServerInfo.handlers?.sampling) {
-              effectiveHandlers.sampling = mcpServerInfo.handlers.sampling;
+            if (serverInfo.handlers?.sampling) {
+              effectiveHandlers.sampling = serverInfo.handlers.sampling;
             } else if (providerSamplingHandler) {
-              const samplingHandler = providerSamplingHandler;
               effectiveHandlers.sampling = async (request) =>
-                await samplingHandler(request, mcpServerInfo);
+                await providerSamplingHandler(request, serverInfo);
             }
 
             const client = await MCPClient.create(
-              mcpServerInfo.url,
-              mcpServerInfo.transport,
-              mcpServerInfo.customHeaders,
-              undefined, // no oauth support yet
-              undefined, // starting with no session id at first.
+              serverInfo.url,
+              serverInfo.transport,
+              serverInfo.customHeaders,
+              undefined,
+              undefined,
               effectiveHandlers,
             );
-            const connectedMcpServer = {
-              ...mcpServerInfo,
-              client: client,
+
+            const connectedServer: ConnectedMcpServer = {
+              ...serverInfo,
+              client,
             };
-            // note because the promises may resolve in any order, the resulting
-            // array may not be in the same order as the input array
-            setConnectedMcpServers((prev) => {
-              const existing = prev.find((s) =>
-                equalsMcpServer(s, mcpServerInfo),
+
+            clientMap.set(key, connectedServer);
+            setConnectedMcpServers(Array.from(clientMap.values()));
+
+            // Register tools from this server
+            try {
+              const tools = await client.listTools();
+              tools.forEach((tool) => {
+                registerTool({
+                  description: tool.description ?? "",
+                  name: tool.name,
+                  tool: async (args: Record<string, unknown>) => {
+                    const server = clientMap.get(key);
+                    if (!server?.client) {
+                      throw new Error(
+                        `MCP server for tool ${tool.name} is not connected`,
+                      );
+                    }
+                    const result = await server.client.callTool(
+                      tool.name,
+                      args,
+                    );
+                    if (result.isError) {
+                      const errorMessage = extractErrorMessage(result.content);
+                      throw new Error(errorMessage);
+                    }
+                    return result.content;
+                  },
+                  toolSchema: tool.inputSchema as TamboTool["toolSchema"],
+                  transformToContent: (content: unknown) => {
+                    if (isContentPartArray(content)) {
+                      return content;
+                    }
+                    return [{ type: "text", text: toText(content) }];
+                  },
+                });
+              });
+            } catch (error) {
+              console.error(
+                `Failed to register tools from MCP server ${serverInfo.url}:`,
+                error,
               );
-              try {
-                existing?.client?.close();
-              } catch {
-                // best-effort cleanup
-              }
-              return [
-                // replace the server if it already exists
-                ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
-                connectedMcpServer,
-              ];
-            });
-            return connectedMcpServer;
+            }
           } catch (error) {
-            const failedMcpServer = {
-              ...mcpServerInfo,
+            const failedServer: FailedMcpServer = {
+              ...serverInfo,
               connectionError: error as Error,
             };
-            // note because the promises may resolve in any order, the resulting
-            // array may not be in the same order as the input array
-            setConnectedMcpServers((prev) => {
-              const existing = prev.find((s) =>
-                equalsMcpServer(s, mcpServerInfo),
-              );
-              try {
-                existing?.client?.close();
-              } catch {
-                // best-effort cleanup
-              }
-              return [
-                // replace the server if it already exists
-                ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
-                failedMcpServer,
-              ];
-            });
-            return failedMcpServer;
+            clientMap.set(key, failedServer);
+            setConnectedMcpServers(Array.from(clientMap.values()));
+            console.error(
+              `Failed to connect to MCP server ${serverInfo.url}:`,
+              error,
+            );
           }
         }),
       );
-
-      // note do not rely on the state
-      const connectedMcpServers = mcpServers
-        .filter((result) => result.status === "fulfilled")
-        .map((result) => result.value);
-
-      // Now create a map of tool name to MCP client
-      const serverToolLists = connectedMcpServers.map(async (mcpServer) => {
-        const tools = (await mcpServer.client?.listTools()) ?? [];
-        tools.forEach((tool) => {
-          mcpServerMap.set(tool.name, mcpServer);
-        });
-        return tools;
-      });
-      const toolResults = await Promise.allSettled(serverToolLists);
-
-      // Just log the failed tools, we can't do anything about them
-      const failedTools = toolResults.filter(
-        (result) => result.status === "rejected",
-      );
-      if (failedTools.length > 0) {
-        console.error(
-          "Failed to register tools from MCP servers:",
-          failedTools.map((result) => result.reason),
-        );
-      }
-
-      // Register the successful tools
-      const allTools = toolResults
-        .filter((result) => result.status === "fulfilled")
-        .map((result) => result.value)
-        .flat();
-      allTools.forEach((tool) => {
-        registerTool({
-          description: tool.description ?? "",
-          name: tool.name,
-          tool: async (args: Record<string, unknown>) => {
-            const mcpServer = mcpServerMap.get(tool.name);
-            if (!mcpServer) {
-              // should never happen
-              throw new Error(`MCP server for tool ${tool.name} not found`);
-            }
-            if (!mcpServer.client) {
-              // this can't actually happen because the tool can't be registered if the server is not connected
-              throw new Error(
-                `MCP server for tool ${tool.name} is not connected`,
-              );
-            }
-            const result = await mcpServer.client.callTool(tool.name, args);
-            if (result.isError) {
-              const errorMessage = extractErrorMessage(result.content);
-              throw new Error(errorMessage);
-            }
-            return result.content;
-          },
-          toolSchema: tool.inputSchema as TamboTool["toolSchema"],
-          transformToContent: (content: unknown) => {
-            // MCP tools can return content in various formats; pass through arrays of content parts
-            // unchanged, otherwise stringify into a text content part.
-            if (isContentPartArray(content)) {
-              return content;
-            }
-            return [{ type: "text", text: toText(content) }];
-          },
-        });
-      });
     }
 
-    // normalize the server infos
-    const mcpServerInfos = allMcpServers.map((mcpServer) =>
-      typeof mcpServer === "string"
-        ? { url: mcpServer, transport: MCPTransport.SSE }
-        : mcpServer,
-    );
+    // Update state after removals (additions update state asynchronously above)
+    if (keysToRemove.length > 0) {
+      setConnectedMcpServers(Array.from(clientMap.values()));
+    }
 
-    registerMcpServers(mcpServerInfos);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allMcpServers, registerTool]);
+  }, [currentServersMap, registerTool]);
 
-  // Update handlers when they change
-  // We depend only on the handler refs and server identities. The linter cannot
-  // infer this shape with optional chaining and derived wrapper functions.
+  // Update handlers when they change (without recreating clients)
   useEffect(() => {
-    const mcpServerInfos = allMcpServers.map((mcpServer) =>
-      typeof mcpServer === "string"
-        ? { url: mcpServer, transport: MCPTransport.SSE }
-        : mcpServer,
-    );
+    const clientMap = clientMapRef.current;
 
-    connectedMcpServers.forEach((connectedServer) => {
-      if (!connectedServer.client) {
-        // Skip failed servers
-        return;
+    clientMap.forEach((server, key) => {
+      if (!server.client) {
+        return; // Skip failed servers
       }
 
-      // Find the matching server info to get the current handlers
-      const serverInfo = mcpServerInfos.find((info) =>
-        equalsMcpServer(connectedServer, info),
-      );
-
+      const serverInfo = currentServersMap.get(key);
       if (!serverInfo) {
-        // Server was removed, will be handled by the main effect
-        return;
+        return; // Server was removed, handled by main effect
       }
 
-      // Determine effective elicitation handler (per-server overrides provider)
-      const defaultElicitationHandler = providerElicitationHandler;
+      // Determine effective handlers
       const effectiveElicitationHandler =
         serverInfo.handlers?.elicitation ??
-        (defaultElicitationHandler
+        (providerElicitationHandler
           ? async (request) =>
-              await defaultElicitationHandler(request, serverInfo)
+              await providerElicitationHandler(request, serverInfo)
           : undefined);
 
-      // Determine effective sampling handler (per-server overrides provider)
-      const defaultSamplingHandler = providerSamplingHandler;
       const effectiveSamplingHandler =
         serverInfo.handlers?.sampling ??
-        (defaultSamplingHandler
-          ? async (request) => await defaultSamplingHandler(request, serverInfo)
+        (providerSamplingHandler
+          ? async (request) =>
+              await providerSamplingHandler(request, serverInfo)
           : undefined);
 
-      // Apply handler updates unconditionally so removals propagate
-      connectedServer.client.updateElicitationHandler?.(
-        effectiveElicitationHandler,
-      );
-      connectedServer.client.updateSamplingHandler?.(effectiveSamplingHandler);
+      // Update handlers unconditionally (allows removal by passing undefined)
+      server.client.updateElicitationHandler?.(effectiveElicitationHandler);
+      server.client.updateSamplingHandler?.(effectiveSamplingHandler);
     });
-  }, [
-    allMcpServers,
-    connectedMcpServers,
-    providerElicitationHandler,
-    providerSamplingHandler,
-  ]);
+  }, [currentServersMap, providerElicitationHandler, providerSamplingHandler]);
+
+  // Cleanup on unmount: close all clients
+  useEffect(() => {
+    const clientMap = clientMapRef.current;
+    return () => {
+      clientMap.forEach((server, key) => {
+        if (server.client) {
+          try {
+            server.client.close();
+          } catch (error) {
+            console.error(`Error closing MCP client on unmount ${key}:`, error);
+          }
+        }
+      });
+      clientMap.clear();
+    };
+  }, []);
 
   return (
     <McpProviderContext.Provider value={connectedMcpServers}>
@@ -407,10 +369,29 @@ export const TamboMcpProvider: FC<{
 export const useTamboMcpServers = () => {
   return useContext(McpProviderContext);
 };
-function equalsMcpServer(s: McpServer, mcpServerInfo: McpServerInfo): boolean {
-  return (
-    s.url === mcpServerInfo.url &&
-    s.transport === mcpServerInfo.transport &&
-    deepEqual(s.customHeaders, mcpServerInfo.customHeaders)
-  );
+
+/**
+ * Creates a stable identifier for an MCP server based on its connection properties.
+ * Two servers with the same URL, transport, and headers will have the same key.
+ * @returns A stable string key identifying the server
+ */
+function getServerKey(serverInfo: McpServerInfo): string {
+  const headerStr = serverInfo.customHeaders
+    ? JSON.stringify(
+        Object.entries(serverInfo.customHeaders).sort(([a], [b]) =>
+          a.localeCompare(b),
+        ),
+      )
+    : "";
+  return `${serverInfo.url}|${serverInfo.transport ?? "SSE"}|${headerStr}`;
+}
+
+/**
+ * Normalizes a server definition (string or object) into a McpServerInfo.
+ * @returns The normalized McpServerInfo object
+ */
+function normalizeServerInfo(server: McpServerInfo | string): McpServerInfo {
+  return typeof server === "string"
+    ? { url: server, transport: MCPTransport.SSE }
+    : server;
 }

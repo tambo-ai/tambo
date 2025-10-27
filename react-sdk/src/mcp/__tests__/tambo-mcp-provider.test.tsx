@@ -186,10 +186,11 @@ describe("TamboMcpProvider server list changes", () => {
       baseURL: "https://api.tambo.co",
     });
 
-    // Ensure MCPClient.create exists and returns a fake client with listTools
-    (MCPClient as unknown as any).create = jest
-      .fn()
-      .mockResolvedValue({ listTools: jest.fn().mockResolvedValue([]) });
+    // Ensure MCPClient.create exists and returns a fake client with listTools and close
+    (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    });
   });
 
   const Capture: React.FC<{ onUpdate: (servers: McpServer[]) => void }> = ({
@@ -307,6 +308,198 @@ describe("TamboMcpProvider server list changes", () => {
       expect(urls).toEqual(["https://a.example", "https://b.example"].sort());
     });
   });
+
+  it("reuses client when same server is passed with new array instance", async () => {
+    const createSpy = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const initial = [{ url: "https://a.example", transport: MCPTransport.SSE }];
+
+    const { rerender } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={initial}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Verify client was created once
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    const firstClient = latest[0].client;
+
+    // Pass a new array with same server
+    const same = [{ url: "https://a.example", transport: MCPTransport.SSE }];
+    rerender(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={same}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Client should NOT have been created again
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    // Should be the exact same client instance
+    expect(latest[0].client).toBe(firstClient);
+  });
+
+  it("calls close() on removed server clients", async () => {
+    const closeSpy = jest.fn();
+    const createSpy = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: closeSpy,
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const { rerender } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+    });
+
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // Remove one server
+    rerender(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={["https://a.example"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // close() should have been called once for the removed server
+    expect(closeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls close() on all clients when provider unmounts", async () => {
+    const closeSpy = jest.fn();
+    const createSpy = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: closeSpy,
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const { unmount } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+    });
+
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // Unmount the provider
+    unmount();
+
+    // close() should have been called for both clients
+    expect(closeSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("creates new client when customHeaders change", async () => {
+    const closeSpy = jest.fn();
+    let clientIdCounter = 0;
+    const createSpy = jest.fn().mockImplementation(async () => {
+      const id = ++clientIdCounter;
+      return {
+        id, // Add an ID so we can track which client is which
+        listTools: jest.fn().mockResolvedValue([]),
+        close: closeSpy,
+      };
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const { rerender } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={[
+            {
+              url: "https://a.example",
+              transport: MCPTransport.SSE,
+              customHeaders: { Authorization: "Bearer token1" },
+            },
+          ]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+      expect(createSpy).toHaveBeenCalledTimes(1);
+    });
+
+    const firstClientId = (latest[0].client as any)?.id;
+    expect(firstClientId).toBe(1);
+
+    // Change the customHeaders
+    rerender(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={[
+            {
+              url: "https://a.example",
+              transport: MCPTransport.SSE,
+              customHeaders: { Authorization: "Bearer token2" },
+            },
+          ]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    // Wait for old client to be closed and new client to be created
+    await waitFor(
+      () => {
+        expect(closeSpy).toHaveBeenCalledTimes(1);
+        expect(createSpy).toHaveBeenCalledTimes(2);
+        expect(latest.length).toBe(1);
+        const newClientId = (latest[0].client as any)?.id;
+        expect(newClientId).toBe(2); // Should be the new client
+      },
+      { timeout: 3000 },
+    );
+  });
+
+  // Note: Token changes for the internal Tambo server are covered by the
+  // "creates new client when customHeaders change" test above, since token
+  // changes result in different Authorization headers, which trigger client recreation.
 });
 
 describe("TamboMcpProvider handler support", () => {
@@ -329,6 +522,7 @@ describe("TamboMcpProvider handler support", () => {
       listTools: jest.fn().mockResolvedValue([]),
       updateElicitationHandler: jest.fn(),
       updateSamplingHandler: jest.fn(),
+      close: jest.fn(),
     };
 
     // Mock MCPClient.create to return our mock client
