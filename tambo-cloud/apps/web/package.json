@@ -81,7 +81,7 @@
     "react-markdown": "^10.1.0",
     "react-medium-image-zoom": "^5.4.0",
     "react-speech-recognition": "^4.0.1",
-    "recharts": "^3.2.1",
+    "recharts": "^3.3.0",
     "rehype-katex": "^7.0.1",
     "rehype-minify-whitespace": "^6.0.2",
     "rehype-pretty-code": "^0.14.1",
