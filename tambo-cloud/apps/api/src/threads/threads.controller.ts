@@ -457,8 +457,8 @@ export class ThreadsController {
       await this.handleAdvanceStream(response, queue);
       await p;
     } catch (error: any) {
-      response.write(`error: ${error.message}\n\n`);
-      response.end();
+      console.error(error);
+      throw new InternalServerErrorException(`Error in streaming response:`);
     }
   }
 
@@ -536,8 +536,8 @@ export class ThreadsController {
       await this.handleAdvanceStream(response, queue);
       await p;
     } catch (error: any) {
-      response.write(`error: ${error.message}\n\n`);
-      response.end();
+      console.error(error);
+      throw new InternalServerErrorException("Error in streaming response");
     }
   }
 
