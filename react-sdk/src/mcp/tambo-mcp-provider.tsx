@@ -117,6 +117,10 @@ export const TamboMcpProvider: FC<{
 
   // Stable reference to track active clients by server key
   const clientMapRef = useRef<Map<string, McpServer>>(new Map());
+  // Track tool ownership to prevent duplicate registrations across servers
+  // toolOwnerRef: tool name -> server key; keyToToolsRef: server key -> set of tool names
+  const toolOwnerRef = useRef<Map<string, string>>(new Map());
+  const keyToToolsRef = useRef<Map<string, Set<string>>>(new Map());
 
   // State for exposing connected servers to consumers
   const [connectedMcpServers, setConnectedMcpServers] = useState<McpServer[]>(
@@ -169,8 +173,16 @@ export const TamboMcpProvider: FC<{
         try {
           server.client.close();
         } catch (error) {
-          console.error(`Error closing MCP client for ${key}:`, error);
+          // Avoid logging sensitive data embedded in the key (headers)
+          const url = (server as McpServer).url ?? "(unknown url)";
+          console.error(`Error closing MCP client for ${url}:`, error);
         }
+      }
+      // Release tool ownership for this server
+      const owned = keyToToolsRef.current.get(key);
+      if (owned) {
+        for (const name of owned) toolOwnerRef.current.delete(name);
+        keyToToolsRef.current.delete(key);
       }
       clientMap.delete(key);
     });
@@ -221,10 +233,25 @@ export const TamboMcpProvider: FC<{
             clientMap.set(key, connectedServer);
             setConnectedMcpServers(Array.from(clientMap.values()));
 
-            // Register tools from this server
+            // Register tools from this server (deduplicated by ownership)
             try {
               const tools = await client.listTools();
               tools.forEach((tool) => {
+                // Skip if another server already owns this tool
+                const currentOwner = toolOwnerRef.current.get(tool.name);
+                if (currentOwner && currentOwner !== key) {
+                  return;
+                }
+
+                // Record ownership for this server key
+                if (!currentOwner) {
+                  toolOwnerRef.current.set(tool.name, key);
+                  if (!keyToToolsRef.current.has(key)) {
+                    keyToToolsRef.current.set(key, new Set());
+                  }
+                  keyToToolsRef.current.get(key)!.add(tool.name);
+                }
+
                 registerTool({
                   description: tool.description ?? "",
                   name: tool.name,
@@ -322,17 +349,25 @@ export const TamboMcpProvider: FC<{
   // Cleanup on unmount: close all clients
   useEffect(() => {
     const clientMap = clientMapRef.current;
+    const ownerMapAtMount = toolOwnerRef.current;
+    const keyToToolsAtMount = keyToToolsRef.current;
     return () => {
-      clientMap.forEach((server, key) => {
+      clientMap.forEach((server, _key) => {
         if (server.client) {
           try {
             server.client.close();
           } catch (error) {
-            console.error(`Error closing MCP client on unmount ${key}:`, error);
+            const url = (server as McpServer).url ?? "(unknown url)";
+            console.error(
+              `Error closing MCP client on unmount for ${url}:`,
+              error,
+            );
           }
         }
       });
       clientMap.clear();
+      ownerMapAtMount.clear();
+      keyToToolsAtMount.clear();
     };
   }, []);
 
@@ -378,9 +413,9 @@ export const useTamboMcpServers = () => {
 function getServerKey(serverInfo: McpServerInfo): string {
   const headerStr = serverInfo.customHeaders
     ? JSON.stringify(
-        Object.entries(serverInfo.customHeaders).sort(([a], [b]) =>
-          a.localeCompare(b),
-        ),
+        Object.entries(serverInfo.customHeaders)
+          .map(([k, v]) => [k.toLowerCase(), v] as const)
+          .sort(([a], [b]) => a.localeCompare(b)),
       )
     : "";
   return `${serverInfo.url}|${serverInfo.transport ?? "SSE"}|${headerStr}`;
