@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.59.0](https://github.com/tambo-ai/tambo/compare/react-v0.58.1...react-v0.59.0) (2025-10-27)
+
+
+### Features
+
+* allow passing in elicitation/sampling handlers to provider ([#1196](https://github.com/tambo-ai/tambo/issues/1196)) ([119f8c5](https://github.com/tambo-ai/tambo/commit/119f8c537b4d6a8660aeac2f668394920afc1285))
+* Dynamically add/remove the tambo MCP server as mcpAccessToken gets set ([#1182](https://github.com/tambo-ai/tambo/issues/1182)) ([7fd96e5](https://github.com/tambo-ai/tambo/commit/7fd96e5151daa7f2096127baac517a75d793fe3f))
+
 ## [0.58.1](https://github.com/tambo-ai/tambo/compare/react-v0.58.0...react-v0.58.1) (2025-10-22)
 
 
