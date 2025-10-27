@@ -1,6 +1,6 @@
+import type { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import type { TamboThreadMessage } from "@tambo-ai/react";
 
 /**
  * Custom hook to merge multiple refs into one callback ref
@@ -116,7 +116,7 @@ export function getSafeContent(
   if (Array.isArray(content)) {
     // Filter out non-text items and join text
     return content
-      .map((item) => (item && item.type === "text" ? (item.text ?? "") : ""))
+      .map((item) => (item?.type === "text" ? (item.text ?? "") : ""))
       .join("");
   }
   // Handle potential edge cases or unknown types
