@@ -56,7 +56,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "dompurify": "^3.3.0",
-    "drizzle-orm": "^0.44.6",
+    "drizzle-orm": "^0.44.7",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.24",
     "geist": "^1.5.1",
