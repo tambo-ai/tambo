@@ -4,10 +4,10 @@ import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
   MessageInputError,
-  MessageInputFileButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputFileButton,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
@@ -61,60 +61,8 @@ export const MessageThreadFull = React.forwardRef<
   const { containerRef, historyPosition } = useThreadContainerContext();
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
-  // Track sidebar width changes using state
-  const [sidebarWidth, setSidebarWidth] = React.useState("3rem"); // Default collapsed width
-
-  // Effect to listen for CSS variable changes and update state
-  React.useEffect(() => {
-    let observer: MutationObserver | null = null;
-
-    const updateSidebarWidth = () => {
-      // Ensure we're running in the browser
-      if (typeof window !== "undefined" && typeof document !== "undefined") {
-        const width =
-          getComputedStyle(document.documentElement)
-            .getPropertyValue("--sidebar-width")
-            .trim() || "16rem"; // Fallback to default
-        setSidebarWidth(width);
-      }
-    };
-
-    // Initial read of the variable
-    updateSidebarWidth();
-
-    // Observe changes to the style attribute of the root element
-    if (typeof document !== "undefined") {
-      observer = new MutationObserver((mutationsList) => {
-        for (const mutation of mutationsList) {
-          if (
-            mutation.type === "attributes" &&
-            mutation.attributeName === "style"
-          ) {
-            // Re-check the variable value when style attribute changes
-            updateSidebarWidth();
-            break; // No need to check other mutations if style changed
-          }
-        }
-      });
-
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["style"],
-      });
-    }
-
-    // Cleanup observer on component unmount
-    return () => {
-      observer?.disconnect();
-    };
-  }, []); // Empty dependency array, runs once on mount
-
   const threadHistorySidebar = (
-    <ThreadHistory
-      contextKey={contextKey}
-      position={historyPosition}
-      className="absolute h-full z-10 border-flat rounded-l-lg bg-container transition-all duration-300"
-    >
+    <ThreadHistory contextKey={contextKey} position={historyPosition}>
       <ThreadHistoryHeader />
       <ThreadHistoryNewButton />
       <ThreadHistorySearch />
@@ -148,24 +96,7 @@ export const MessageThreadFull = React.forwardRef<
       {/* Thread History Sidebar - rendered first if history is on the left */}
       {historyPosition === "left" && threadHistorySidebar}
 
-      <ThreadContainer
-        ref={mergedRef}
-        // Pass through original className, but override width/margins with style
-        className={className}
-        style={{
-          // Explicitly set width based on observed sidebarWidth
-          width: `calc(100% - ${sidebarWidth})`,
-          // Explicitly set margins based on observed sidebarWidth and position
-          marginLeft: historyPosition === "left" ? sidebarWidth : "0",
-          marginRight: historyPosition === "right" ? sidebarWidth : "0",
-          // Add transition for smoothness
-          transition: "width 0.3s ease-in-out, margin 0.3s ease-in-out",
-          // Ensure other styles from className potentially affecting layout are compatible
-          ...(props.style || {}), // Merge with any incoming style props
-        }}
-        // Pass other props, but style is handled above
-        {...{ ...props }}
-      >
+      <ThreadContainer ref={mergedRef} className={className} {...props}>
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
             <ThreadContentMessages />
@@ -183,6 +114,8 @@ export const MessageThreadFull = React.forwardRef<
             <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
               <MessageInputFileButton />
+              {/* Uncomment this to enable client-side MCP config modal button */}
+              {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />
             </MessageInputToolbar>
             <MessageInputError />
