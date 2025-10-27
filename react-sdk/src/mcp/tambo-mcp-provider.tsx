@@ -112,6 +112,8 @@ export const TamboMcpProvider: FC<{
 }> = ({ mcpServers, handlers, children }) => {
   const { registerTool } = useTamboRegistry();
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
+  const providerElicitationHandler = handlers?.elicitation;
+  const providerSamplingHandler = handlers?.sampling;
   const [connectedMcpServers, setConnectedMcpServers] = useState<McpServer[]>(
     [],
   );
@@ -166,8 +168,8 @@ export const TamboMcpProvider: FC<{
             if (mcpServerInfo.handlers?.elicitation) {
               effectiveHandlers.elicitation =
                 mcpServerInfo.handlers.elicitation;
-            } else if (handlers?.elicitation) {
-              const elicitationHandler = handlers.elicitation;
+            } else if (providerElicitationHandler) {
+              const elicitationHandler = providerElicitationHandler;
               effectiveHandlers.elicitation = async (request) =>
                 await elicitationHandler(request, mcpServerInfo);
             }
@@ -175,8 +177,8 @@ export const TamboMcpProvider: FC<{
             // Apply provider sampling handler if present and not overridden
             if (mcpServerInfo.handlers?.sampling) {
               effectiveHandlers.sampling = mcpServerInfo.handlers.sampling;
-            } else if (handlers?.sampling) {
-              const samplingHandler = handlers.sampling;
+            } else if (providerSamplingHandler) {
+              const samplingHandler = providerSamplingHandler;
               effectiveHandlers.sampling = async (request) =>
                 await samplingHandler(request, mcpServerInfo);
             }
@@ -195,11 +197,21 @@ export const TamboMcpProvider: FC<{
             };
             // note because the promises may resolve in any order, the resulting
             // array may not be in the same order as the input array
-            setConnectedMcpServers((prev) => [
-              // replace the server if it already exists
-              ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
-              connectedMcpServer,
-            ]);
+            setConnectedMcpServers((prev) => {
+              const existing = prev.find((s) =>
+                equalsMcpServer(s, mcpServerInfo),
+              );
+              try {
+                existing?.client?.close();
+              } catch {
+                // best-effort cleanup
+              }
+              return [
+                // replace the server if it already exists
+                ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
+                connectedMcpServer,
+              ];
+            });
             return connectedMcpServer;
           } catch (error) {
             const failedMcpServer = {
@@ -208,11 +220,21 @@ export const TamboMcpProvider: FC<{
             };
             // note because the promises may resolve in any order, the resulting
             // array may not be in the same order as the input array
-            setConnectedMcpServers((prev) => [
-              // replace the server if it already exists
-              ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
-              failedMcpServer,
-            ]);
+            setConnectedMcpServers((prev) => {
+              const existing = prev.find((s) =>
+                equalsMcpServer(s, mcpServerInfo),
+              );
+              try {
+                existing?.client?.close();
+              } catch {
+                // best-effort cleanup
+              }
+              return [
+                // replace the server if it already exists
+                ...prev.filter((s) => !equalsMcpServer(s, mcpServerInfo)),
+                failedMcpServer,
+              ];
+            });
             return failedMcpServer;
           }
         }),
@@ -293,9 +315,12 @@ export const TamboMcpProvider: FC<{
     );
 
     registerMcpServers(mcpServerInfos);
-  }, [allMcpServers, handlers?.elicitation, handlers?.sampling, registerTool]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMcpServers, registerTool]);
 
   // Update handlers when they change
+  // We depend only on the handler refs and server identities. The linter cannot
+  // infer this shape with optional chaining and derived wrapper functions.
   useEffect(() => {
     const mcpServerInfos = allMcpServers.map((mcpServer) =>
       typeof mcpServer === "string"
@@ -320,7 +345,7 @@ export const TamboMcpProvider: FC<{
       }
 
       // Determine effective elicitation handler (per-server overrides provider)
-      const defaultElicitationHandler = handlers?.elicitation;
+      const defaultElicitationHandler = providerElicitationHandler;
       const effectiveElicitationHandler =
         serverInfo.handlers?.elicitation ??
         (defaultElicitationHandler
@@ -329,26 +354,25 @@ export const TamboMcpProvider: FC<{
           : undefined);
 
       // Determine effective sampling handler (per-server overrides provider)
-      const defaultSamplingHandler = handlers?.sampling;
+      const defaultSamplingHandler = providerSamplingHandler;
       const effectiveSamplingHandler =
         serverInfo.handlers?.sampling ??
         (defaultSamplingHandler
           ? async (request) => await defaultSamplingHandler(request, serverInfo)
           : undefined);
 
-      // Update elicitation handler if it exists
-      if (effectiveElicitationHandler !== undefined) {
-        connectedServer.client.updateElicitationHandler(
-          effectiveElicitationHandler,
-        );
-      }
-
-      // Update sampling handler if it exists
-      if (effectiveSamplingHandler !== undefined) {
-        connectedServer.client.updateSamplingHandler(effectiveSamplingHandler);
-      }
+      // Apply handler updates unconditionally so removals propagate
+      connectedServer.client.updateElicitationHandler?.(
+        effectiveElicitationHandler,
+      );
+      connectedServer.client.updateSamplingHandler?.(effectiveSamplingHandler);
     });
-  }, [allMcpServers, connectedMcpServers, handlers]);
+  }, [
+    allMcpServers,
+    connectedMcpServers,
+    providerElicitationHandler,
+    providerSamplingHandler,
+  ]);
 
   return (
     <McpProviderContext.Provider value={connectedMcpServers}>
