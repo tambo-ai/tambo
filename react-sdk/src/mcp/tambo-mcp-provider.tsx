@@ -26,9 +26,7 @@ export function extractErrorMessage(content: unknown): string {
 
   if (Array.isArray(content)) {
     const textItems = content
-      .filter(
-        (item) => item && item.type === "text" && typeof item.text === "string",
-      )
+      .filter((item) => item?.type === "text" && typeof item.text === "string")
       .map((item) => item.text);
 
     return textItems.length > 0
