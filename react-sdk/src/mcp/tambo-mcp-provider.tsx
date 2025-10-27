@@ -11,7 +11,7 @@ import { TamboTool } from "../model/component-metadata";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
-import { MCPClient, MCPTransport } from "./mcp-client";
+import { MCPClient, MCPHandlers, MCPTransport } from "./mcp-client";
 
 /**
  * Extracts error message from MCP tool result content.
@@ -43,12 +43,26 @@ export function extractErrorMessage(content: unknown): string {
   return `${content}`;
 }
 
+/**
+ * Configuration for connecting to an MCP server.
+ */
 export interface McpServerInfo {
+  /** Optional name for the MCP server */
   name?: string;
+  /** The URL of the MCP server to connect to */
   url: string;
+  /** Optional description of the MCP server */
   description?: string;
+  /** The transport type to use (SSE or HTTP). Defaults to SSE for string URLs */
   transport?: MCPTransport;
+  /** Optional custom headers to include in requests */
   customHeaders?: Record<string, string>;
+  /**
+   * Optional handlers for elicitation and sampling requests from the server.
+   * Note: These callbacks should be stable (e.g., wrapped in useCallback or defined outside the component)
+   * to avoid constant re-registration of the MCP server on every render.
+   */
+  handlers?: Partial<MCPHandlers>;
 }
 
 export interface ConnectedMcpServer extends McpServerInfo {
@@ -134,6 +148,7 @@ export const TamboMcpProvider: FC<{
               mcpServerInfo.customHeaders,
               undefined, // no oauth support yet
               undefined, // starting with no session id at first.
+              mcpServerInfo.handlers,
             );
             const connectedMcpServer = {
               ...mcpServerInfo,
@@ -240,6 +255,46 @@ export const TamboMcpProvider: FC<{
 
     registerMcpServers(mcpServerInfos);
   }, [allMcpServers, registerTool]);
+
+  // Update handlers when they change
+  useEffect(() => {
+    const mcpServerInfos = allMcpServers.map((mcpServer) =>
+      typeof mcpServer === "string"
+        ? { url: mcpServer, transport: MCPTransport.SSE }
+        : mcpServer,
+    );
+
+    connectedMcpServers.forEach((connectedServer) => {
+      if (!connectedServer.client) {
+        // Skip failed servers
+        return;
+      }
+
+      // Find the matching server info to get the current handlers
+      const serverInfo = mcpServerInfos.find((info) =>
+        equalsMcpServer(connectedServer, info),
+      );
+
+      if (!serverInfo) {
+        // Server was removed, will be handled by the main effect
+        return;
+      }
+
+      // Update elicitation handler if it exists
+      if (serverInfo.handlers?.elicitation !== undefined) {
+        connectedServer.client.updateElicitationHandler(
+          serverInfo.handlers.elicitation,
+        );
+      }
+
+      // Update sampling handler if it exists
+      if (serverInfo.handlers?.sampling !== undefined) {
+        connectedServer.client.updateSamplingHandler(
+          serverInfo.handlers.sampling,
+        );
+      }
+    });
+  }, [allMcpServers, connectedMcpServers]);
 
   return (
     <McpProviderContext.Provider value={connectedMcpServers}>
