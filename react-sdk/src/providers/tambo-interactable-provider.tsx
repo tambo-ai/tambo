@@ -214,13 +214,12 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const registerInteractableComponentUpdateTool = useCallback(
-    (component: TamboInteractableComponent) => {
-      const MAX_TOOL_NAME_LENGTH = 60;
+    (component: TamboInteractableComponent, maxNameLength = 60) => {
       const tamboToolNamePart = `update_component_`;
-      const availableLength = MAX_TOOL_NAME_LENGTH - tamboToolNamePart.length;
-      if (component.name.length > availableLength) {
+      const availableLength = maxNameLength - tamboToolNamePart.length;
+      if (component.id.length > availableLength) {
         throw new Error(
-          `Interactable component name ${component.name} is too long. It must be less than ${availableLength} characters.`,
+          `Interactable component id ${component.id} is too long. It must be less than ${availableLength} characters.`,
         );
       }
 
