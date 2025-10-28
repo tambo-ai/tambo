@@ -10,8 +10,8 @@ FROM node:24-alpine
 # Set working directory
 WORKDIR /app
 
-# Install npx (comes with npm, but ensure it's available)
-# Alpine already includes npm which includes npx
+# Install the MCP server-everything package globally
+RUN npm install -g @modelcontextprotocol/server-everything
 
 # Set default port (can be overridden with -e PORT=xxxx)
 ENV PORT=3000
@@ -19,4 +19,4 @@ ENV PORT=3000
 # Port binding is done at runtime with -p $PORT:$PORT
 
 # Run the MCP server-everything with streamableHttp
-CMD ["npx", "-y", "@modelcontextprotocol/server-everything@latest", "streamableHttp"]
+CMD ["mcp-server-everything", "streamableHttp"]
