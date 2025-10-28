@@ -259,11 +259,8 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       // Validate component name
       assertValidName(component.name, "component");
 
-      // Add a count part to the component name to make it unique when using multiple instances of the same component.
-      const count = interactableComponents.filter(
-        (c) => c.name === component.name,
-      ).length;
-      const tamboGeneratedNamePart = `-${count}`;
+      // Add a random part to the component name to make it unique when using multiple instances of the same component.
+      const tamboGeneratedNamePart = `-${Math.random().toString(36).slice(2, 5)}`;
       const id = `${component.name}${tamboGeneratedNamePart}`;
       const newComponent: TamboInteractableComponent = {
         ...component,
@@ -278,7 +275,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
       return id;
     },
-    [registerInteractableComponentUpdateTool, interactableComponents],
+    [registerInteractableComponentUpdateTool],
   );
 
   const removeInteractableComponent = useCallback((id: string) => {
