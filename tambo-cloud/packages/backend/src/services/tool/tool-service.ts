@@ -21,6 +21,11 @@ export interface TamboToolParameters {
 export const standardToolParameters: FunctionParameters = {
   type: "object",
   properties: {
+    _tambo_displayMessage: {
+      type: "string",
+      description:
+        "A message to be displayed before the tool is called. This should be a natural language response to the previous message to describe what you are about to do. For example, `First, let me <do something>` or 'Great, I can see <something>, let me <do something>'. Get creative, this is what will make the user feel like they are having a conversation with you. You can and should use markdown formatting (code blocks with language specification, bold, lists) when showing examples or code. This is the only message the user will see, so add any text here you want the user to see as a message from you. There is no other general message field.",
+    },
     _tambo_statusMessage: {
       type: "string",
       description:
@@ -30,11 +35,6 @@ export const standardToolParameters: FunctionParameters = {
       type: "string",
       description:
         "A message that will be displayed to the user to explain in a few words what the tool has done, to replace the statusMessage when the tool has completed its task. For example, 'looked for <something>' or 'created <something>'",
-    },
-    _tambo_displayMessage: {
-      type: "string",
-      description:
-        "A message to be displayed before the tool is called. This should be a natural language response to the previous message to describe what you are about to do. For example, `First, let me <do something>` or 'Great, I can see <something>, let me <do something>'. Get creative, this is what will make the user feel like they are having a conversation with you. You can and should use markdown formatting (code blocks with language specification, bold, lists) when showing examples or code.",
     },
   },
   required: [
