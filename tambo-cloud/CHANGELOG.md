@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.120.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.119.0...repo-v0.120.0) (2025-10-28)
+
+
+### Features
+
+* add dockerfile for mcp-everything ([#1999](https://github.com/tambo-ai/tambo-cloud/issues/1999)) ([94180a5](https://github.com/tambo-ai/tambo-cloud/commit/94180a5c16aa56f476974f1cf353866f777bfdab))
+
+
+### Bug Fixes
+
+* better MCP Everything docker deploy ([#2001](https://github.com/tambo-ai/tambo-cloud/issues/2001)) ([c0a88a9](https://github.com/tambo-ai/tambo-cloud/commit/c0a88a9eb32f089a5da197e277269862ab064b5c))
+* Ensure Tambo always responds with a complete _tambo_displayMessage ([#2003](https://github.com/tambo-ai/tambo-cloud/issues/2003)) ([a569086](https://github.com/tambo-ai/tambo-cloud/commit/a569086eb5d4bd533f9011589aaa194d6237c370))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 3 updates ([#1998](https://github.com/tambo-ai/tambo-cloud/issues/1998)) ([b14647c](https://github.com/tambo-ai/tambo-cloud/commit/b14647cce7c41a0cf9d82ee1fa3e09f085cc4a46))
+
 ## [0.119.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.118.1...repo-v0.119.0) (2025-10-27)
 
 
