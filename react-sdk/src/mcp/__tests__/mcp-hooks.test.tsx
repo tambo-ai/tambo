@@ -309,13 +309,16 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     });
 
     let capturedPrompts: ListPromptEntry[] = [];
+    let capturedServerKeys: string[] = [];
     const Capture: React.FC = () => {
       const { data: prompts } = useTamboMcpPromptList();
+      const servers = useTamboMcpServers();
       useEffect(() => {
         if (prompts) {
           capturedPrompts = prompts;
         }
-      }, [prompts]);
+        capturedServerKeys = servers.map((s) => s.key);
+      }, [prompts, servers]);
       return null;
     };
 
@@ -368,16 +371,17 @@ describe("useTamboMcpPromptList - individual server caching", () => {
       (key) => Array.isArray(key) && key[0] === "mcp-prompts",
     );
     expect(promptCacheKeys.length).toBe(2);
+    // Ensure provider keys are populated before asserting
+    await waitFor(() => expect(capturedServerKeys.length).toBe(2));
 
-    // Verify each server has its own cache key
-    const hasServerAKey = promptCacheKeys.some((key) =>
-      (key[1] as string).includes("server-a.example"),
-    );
-    const hasServerBKey = promptCacheKeys.some((key) =>
-      (key[1] as string).includes("server-b.example"),
-    );
-    expect(hasServerAKey).toBe(true);
-    expect(hasServerBKey).toBe(true);
+    // Verify each connected server key is present exactly once in the cache keys
+    const promptKeySet = new Set(promptCacheKeys.map((k) => String(k[1])));
+    // The server keys are captured from the provider to avoid relying on string substrings
+    capturedServerKeys.forEach((key) => {
+      expect(promptKeySet.has(key)).toBe(true);
+    });
+    // And no duplicates
+    expect(promptKeySet.size).toBe(capturedServerKeys.length);
   });
 
   it("should handle server errors gracefully without affecting other servers", async () => {

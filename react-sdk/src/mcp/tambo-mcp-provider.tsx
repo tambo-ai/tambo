@@ -151,7 +151,8 @@ export const TamboMcpProvider: FC<{
     servers.forEach((server) => {
       const serverInfo = normalizeServerInfo(server);
       const key = getServerKey(serverInfo);
-      serverMap.set(key, { ...serverInfo });
+      // serverInfo is already a fresh object; store it directly to avoid unnecessary allocation
+      serverMap.set(key, serverInfo);
     });
 
     return serverMap;

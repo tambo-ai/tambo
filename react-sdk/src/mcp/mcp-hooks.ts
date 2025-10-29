@@ -7,13 +7,13 @@ import { useTamboQueries, useTamboQuery } from "../hooks";
 import {
   type ConnectedMcpServer,
   type McpServer,
-  McpServerInfo,
   useTamboMcpServers,
 } from "./tambo-mcp-provider";
 
 export type ListPromptItem = ListPromptsResult["prompts"][number];
 export interface ListPromptEntry {
-  server: McpServerInfo;
+  // Only connected servers produce prompt entries, so expose the connected type
+  server: ConnectedMcpServer;
   prompt: ListPromptItem;
 }
 
@@ -35,10 +35,10 @@ export function useTamboMcpPromptList() {
         const result = await mcpServer.client.client.listPrompts();
         const prompts: ListPromptItem[] = result?.prompts ?? [];
         const promptsEntries = prompts.map((prompt) => ({
-          server: mcpServer,
+          server: mcpServer as ConnectedMcpServer,
           prompt,
         }));
-        return promptsEntries ?? [];
+        return promptsEntries;
       },
     })),
     combine: (results) => {
@@ -106,13 +106,9 @@ export function useTamboMcpPrompt(
   const promptEntry = promptEntries?.find(
     (prompt) => prompt.prompt.name === promptName,
   );
-  const mcpServers = useTamboMcpServers();
-  const mcpServer = mcpServers.find(
-    (mcpServer) =>
-      mcpServer.name === promptEntry?.server.name &&
-      mcpServer.url === promptEntry?.server.url &&
-      mcpServer.transport === promptEntry?.server.transport,
-  );
+  // Use the stable server key (and the server instance itself) instead of brittle
+  // name/url/transport matching.
+  const mcpServer = promptEntry?.server;
 
   // Canonicalize args to avoid unstable cache keys from object identity/order
   const sortedArgsEntries = Object.keys(args)
