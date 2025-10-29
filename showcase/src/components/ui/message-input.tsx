@@ -857,8 +857,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
                   <DropdownMenu.Item
                     key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
                     className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                    onSelect={(e: Event) => {
-                      e.preventDefault();
+                    onSelect={() => {
                       setSelectedPromptName(promptEntry.prompt.name);
                     }}
                   >
