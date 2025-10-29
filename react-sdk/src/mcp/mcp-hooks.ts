@@ -49,34 +49,41 @@ export function useTamboMcpPromptList() {
   return queries;
 }
 // TODO: find a more general place for this
-function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
-  data: T[];
-  error: Error[];
-  isPending: boolean;
-  isSuccess: boolean;
-  isError: boolean;
-  isPaused: boolean;
-  isRefetching: boolean;
-  isFetching: boolean;
-  isLoading: boolean;
-} {
+function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]) {
+  const errors = results
+    .filter((result) => result.isError)
+    .map((result) => result.error as Error);
+
+  // Treat queries that are idle (disabled) as non-blocking for aggregate status
+  const enabledish = results.filter(
+    (r) => r.fetchStatus !== "idle" || r.isSuccess || r.isError,
+  );
+
   return {
     // Prefer flatMap to avoid extra intermediate arrays
     data: results.flatMap((result) =>
       result.isSuccess && Array.isArray(result.data) ? result.data : [],
     ),
-    // error is already a single Error per result; no need to flatten
-    error: results
-      .filter((result) => result.isError)
-      .map((result) => result.error as Error),
-    isPending: results.some((result) => result.isPending),
-    isSuccess: results.every((result) => result.isSuccess),
-    isError: results.some((result) => result.isError),
-    isPaused: results.some((result) => result.isPaused),
-    isRefetching: results.some((result) => result.isRefetching),
-    isFetching: results.some((result) => result.isFetching),
-    isLoading: results.some((result) => result.isLoading),
-  };
+    // Preserve a single error for compatibility and expose the full list for diagnostics
+    error: errors[0] ?? null,
+    errors,
+    isPending: enabledish.some((result) => result.isPending),
+    isSuccess:
+      enabledish.length > 0 && enabledish.every((result) => result.isSuccess),
+    isError: errors.length > 0,
+    isPaused: enabledish.some((result) => result.isPaused),
+    isRefetching: enabledish.some((result) => result.isRefetching),
+    isFetching: enabledish.some((result) => result.isFetching),
+    isLoading: enabledish.some((result) => result.isLoading),
+    // Aggregate refetch to trigger all underlying queries
+    refetch: async () => {
+      await Promise.all(
+        results.map(async (r) => {
+          await r.refetch();
+        }),
+      );
+    },
+  } as const;
 }
 
 // Type guard for narrowing to connected servers
