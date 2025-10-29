@@ -249,6 +249,11 @@ export class MCPClient {
   updateElicitationHandler(
     handler: ((e: ElicitRequest) => Promise<ElicitResult>) | undefined,
   ) {
+    // Skip if handler hasn't changed
+    if (handler === this.handlers.elicitation) {
+      return;
+    }
+
     // Because we advertise the elicitation capability on initial connection, we can only update
     // an existing handler, not add it if we haven't set it yet.
     if (handler && !this.handlers.elicitation) {
@@ -271,6 +276,11 @@ export class MCPClient {
       | ((e: CreateMessageRequest) => Promise<CreateMessageResult>)
       | undefined,
   ) {
+    // Skip if handler hasn't changed
+    if (handler === this.handlers.sampling) {
+      return;
+    }
+
     // Because we advertise the sampling capability on initial connection, we can only update
     // an existing handler, not add it if we haven't set it yet.
     if (handler && !this.handlers.sampling) {
@@ -289,7 +299,9 @@ export class MCPClient {
   }
 
   async close() {
-    // Not really sure which one of these to close first, but we'll close the transport first
+    // Not really sure which one of these to close first, but we'll close the
+    // transport first so that no requests can come in and hit closing/closed
+    // clients
     await this.transport.close();
     await this.client.close();
   }
