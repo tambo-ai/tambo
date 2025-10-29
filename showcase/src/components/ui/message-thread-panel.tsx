@@ -4,10 +4,9 @@ import {
   MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputFileButton,
   MessageInputSubmitButton,
   MessageInputError,
-  MessageInputFileButton,
-  // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
@@ -28,14 +27,9 @@ import {
 import type { messageVariants } from "@/components/ui/message";
 import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
-import {
-  useMergedRef,
-  useCanvasDetection,
-  usePositioning,
-} from "@/lib/thread-hooks";
+import { useMergedRef } from "@/lib/thread-hooks";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { useRef } from "react";
 import type { Suggestion } from "@tambo-ai/react";
 
 /**
@@ -46,7 +40,6 @@ export interface MessageThreadPanelProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Optional key to identify the context of the thread
-   * Used to maintain separate thread histories for different contexts
    */
   contextKey?: string;
   /** Optional content to render in the left panel of the grid */
@@ -66,102 +59,71 @@ export interface MessageThreadPanelProps
 interface ResizablePanelProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Children elements to render inside the container */
   children: React.ReactNode;
-  /** Whether the panel should be positioned on the left (true) or right (false) */
-  isLeftPanel: boolean;
 }
 
 /**
  * A resizable panel component with a draggable divider
+ * Always positioned on the right side for showcase purposes
  */
 const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
-  ({ className, children, isLeftPanel, ...props }, ref) => {
-    const [width, setWidth] = React.useState(956);
+  ({ className, children, ...props }, ref) => {
+    const [width, setWidth] = React.useState(500);
     const isResizing = React.useRef(false);
-    const lastUpdateRef = React.useRef(0);
+    const panelRef = React.useRef<HTMLDivElement>(null);
+    const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
 
-    const handleMouseMove = React.useCallback(
-      (e: MouseEvent) => {
-        if (!isResizing.current) return;
+    const handleMouseMove = React.useCallback((e: MouseEvent) => {
+      if (!isResizing.current) return;
 
-        const now = Date.now();
-        if (now - lastUpdateRef.current < 16) return;
-        lastUpdateRef.current = now;
+      const containerRect =
+        panelRef.current?.parentElement?.getBoundingClientRect();
+      if (!containerRect || !panelRef.current) return;
 
-        const windowWidth = window.innerWidth;
+      const newWidth = Math.round(containerRect.right - e.clientX);
+      const clampedWidth = Math.max(
+        300,
+        Math.min(containerRect.width - 300, newWidth),
+      );
 
-        requestAnimationFrame(() => {
-          let newWidth;
-          if (isLeftPanel) {
-            newWidth = Math.round(e.clientX);
-          } else {
-            newWidth = Math.round(windowWidth - e.clientX);
-          }
+      setWidth(clampedWidth);
+      panelRef.current.style.width = `${clampedWidth}px`;
+    }, []);
 
-          // Ensure minimum width of 300px
-          const clampedWidth = Math.max(
-            300,
-            Math.min(windowWidth - 300, newWidth),
-          );
-          setWidth(clampedWidth);
-
-          // Update both panel and canvas widths using the same divider position
-          if (isLeftPanel) {
-            document.documentElement.style.setProperty(
-              "--panel-left-width",
-              `${clampedWidth}px`,
-            );
-          } else {
-            document.documentElement.style.setProperty(
-              "--panel-right-width",
-              `${clampedWidth}px`,
-            );
-          }
-        });
+    const handleMouseDown = React.useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault();
+        isResizing.current = true;
+        document.body.style.cursor = "ew-resize";
+        document.body.style.userSelect = "none";
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener(
+          "mouseup",
+          () => {
+            isResizing.current = false;
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+            document.removeEventListener("mousemove", handleMouseMove);
+          },
+          { once: true },
+        );
       },
-      [isLeftPanel],
+      [handleMouseMove],
     );
 
     return (
       <div
-        ref={ref}
+        ref={mergedRef}
         className={cn(
-          "h-screen flex flex-col bg-background relative",
+          "h-full flex flex-col bg-background relative overflow-hidden border-l border-border ml-auto",
           "transition-[width] duration-75 ease-out",
-          "overflow-x-auto",
-          isLeftPanel
-            ? "border-r border-border"
-            : "border-l border-border ml-auto",
           className,
         )}
-        style={{
-          width: `${width}px`,
-          flex: "0 0 auto",
-        }}
+        style={{ width: `${width}px`, flex: "0 0 auto", maxWidth: "100%" }}
         {...props}
       >
-        {/* Always show resize handle */}
         <div
-          className={cn(
-            "absolute top-0 bottom-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors z-50",
-            isLeftPanel ? "right-0" : "left-0",
-          )}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            isResizing.current = true;
-            document.body.style.cursor = "ew-resize";
-            document.body.style.userSelect = "none";
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener(
-              "mouseup",
-              () => {
-                isResizing.current = false;
-                document.body.style.cursor = "";
-                document.body.style.userSelect = "";
-                document.removeEventListener("mousemove", handleMouseMove);
-              },
-              { once: true },
-            );
-          }}
+          className="absolute inset-y-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors z-50 left-0"
+          onMouseDown={handleMouseDown}
         />
         {children}
       </div>
@@ -171,35 +133,13 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
 ResizablePanel.displayName = "ResizablePanel";
 
 /**
- * A resizable panel component that displays a chat thread with message history, input, and suggestions
- * @component
- * @example
- * ```tsx
- * // Default left positioning
- * <MessageThreadPanel
- *   contextKey="my-thread"
- * />
- *
- * // Explicit right positioning
- * <MessageThreadPanel
- *   contextKey="my-thread"
- *   className="right"
- * />
- * ```
+ * A resizable panel component that displays a chat thread with message history
+ * Purely for showcase purposes, always positioned on right side
  */
 export const MessageThreadPanel = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
 >(({ className, contextKey, variant, ...props }, ref) => {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(panelRef);
-  const { isLeftPanel, historyPosition } = usePositioning(
-    className,
-    canvasIsOnLeft,
-    hasCanvasSpace,
-  );
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
-
   const defaultSuggestions: Suggestion[] = [
     {
       id: "suggestion-1",
@@ -222,83 +162,46 @@ export const MessageThreadPanel = React.forwardRef<
   ];
 
   return (
-    <ResizablePanel
-      ref={mergedRef}
-      isLeftPanel={isLeftPanel}
-      className={className}
-      {...props}
-    >
-      <div className="flex h-full relative">
-        {historyPosition === "left" && (
-          <div
-            className="flex-none transition-all duration-300 ease-in-out"
-            style={{ width: "var(--sidebar-width, 16rem)" }}
-          >
-            <ThreadHistory
-              contextKey={contextKey}
-              defaultCollapsed={true}
-              position="left"
-              className="h-full border-0 border-r border-flat"
-            >
-              <ThreadHistoryHeader />
-              <ThreadHistoryNewButton />
-              <ThreadHistorySearch />
-              <ThreadHistoryList />
-            </ThreadHistory>
-          </div>
-        )}
-
-        <div className="flex flex-col h-full flex-grow transition-all duration-300 ease-in-out">
-          {/* Message thread content */}
+    <ResizablePanel ref={ref} className={className} {...props}>
+      <div className="flex h-full">
+        <div className="flex flex-col h-full flex-1 min-w-0 w-[calc(100%-16rem)]">
           <ScrollableMessageContainer className="p-4">
             <ThreadContent variant={variant}>
               <ThreadContentMessages />
             </ThreadContent>
           </ScrollableMessageContainer>
 
-          {/* Message Suggestions Status */}
           <MessageSuggestions>
             <MessageSuggestionsStatus />
           </MessageSuggestions>
 
-          {/* Message input */}
           <div className="p-4">
             <MessageInput contextKey={contextKey}>
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <MessageInputToolbar>
                 <MessageInputFileButton />
-                {/* Uncomment this to enable client-side MCP config modal button */}
-                {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />
             </MessageInput>
           </div>
 
-          {/* Message suggestions */}
           <MessageSuggestions initialSuggestions={defaultSuggestions}>
             <MessageSuggestionsList />
           </MessageSuggestions>
         </div>
 
-        {historyPosition === "right" && (
-          <div
-            className="flex-none transition-all duration-300 ease-in-out"
-            style={{ width: "var(--sidebar-width, 16rem)" }}
-          >
-            <ThreadHistory
-              contextKey={contextKey}
-              defaultCollapsed={true}
-              position="right"
-              className="h-full border-0 border-l border-flat"
-            >
-              <ThreadHistoryHeader />
-              <ThreadHistoryNewButton />
-              <ThreadHistorySearch />
-              <ThreadHistoryList />
-            </ThreadHistory>
-          </div>
-        )}
+        <ThreadHistory
+          contextKey={contextKey}
+          defaultCollapsed={true}
+          position="right"
+          className="h-full border-0 border-l border-flat rounded-r-lg relative z-10"
+        >
+          <ThreadHistoryHeader />
+          <ThreadHistoryNewButton />
+          <ThreadHistorySearch />
+          <ThreadHistoryList />
+        </ThreadHistory>
       </div>
     </ResizablePanel>
   );

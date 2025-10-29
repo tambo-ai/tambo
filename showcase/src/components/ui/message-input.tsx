@@ -609,6 +609,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <McpConfigModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        className="showcase-theme"
       />
     </TooltipProvider>
   );

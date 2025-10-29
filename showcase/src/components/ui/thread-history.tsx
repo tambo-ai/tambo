@@ -156,7 +156,7 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
         <div
           ref={ref}
           className={cn(
-            "border-flat bg-container h-screen fixed top-0 transition-all duration-300",
+            "border-flat bg-container h-full absolute top-0 transition-all duration-300",
             position === "left" ? "border-r left-0" : "border-l right-0",
             isCollapsed ? "w-12" : "w-64",
             className,

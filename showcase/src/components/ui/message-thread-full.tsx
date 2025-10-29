@@ -61,6 +61,47 @@ export const MessageThreadFull = React.forwardRef<
   const { containerRef, historyPosition } = useThreadContainerContext();
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
+  // Track sidebar width changes using state
+  const [sidebarWidth, setSidebarWidth] = React.useState("16rem");
+
+  // Effect to listen for CSS variable changes and update state
+  React.useEffect(() => {
+    const updateSidebarWidth = () => {
+      if (typeof window !== "undefined" && typeof document !== "undefined") {
+        const width =
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--sidebar-width")
+            .trim() || "16rem";
+        setSidebarWidth(width);
+      }
+    };
+
+    // Initial read
+    updateSidebarWidth();
+
+    // Observe changes to the style attribute of the root element
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "style"
+        ) {
+          updateSidebarWidth();
+          break;
+        }
+      }
+    });
+
+    if (typeof document !== "undefined") {
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["style"],
+      });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const threadHistorySidebar = (
     <ThreadHistory contextKey={contextKey} position={historyPosition}>
       <ThreadHistoryHeader />
@@ -96,7 +137,18 @@ export const MessageThreadFull = React.forwardRef<
       {/* Thread History Sidebar - rendered first if history is on the left */}
       {historyPosition === "left" && threadHistorySidebar}
 
-      <ThreadContainer ref={mergedRef} className={className} {...props}>
+      <ThreadContainer
+        ref={mergedRef}
+        className={className}
+        style={{
+          // Use observed sidebar width for reactive layout
+          width: `calc(100% - ${sidebarWidth})`,
+          marginLeft: historyPosition === "left" ? sidebarWidth : "0",
+          marginRight: historyPosition === "right" ? sidebarWidth : "0",
+          transition: "width 0.3s ease-in-out, margin 0.3s ease-in-out",
+        }}
+        {...props}
+      >
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
             <ThreadContentMessages />
