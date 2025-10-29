@@ -1,14 +1,15 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import {
-  ElicitationProvider,
-  useElicitationHandler,
-} from "@/components/ui/elicitation-provider";
 import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
-import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
+import {
+  MCPTransport,
+  TamboElicitationProvider,
+  TamboMcpProvider,
+  useTamboElicitationHandler,
+} from "@tambo-ai/react/mcp";
 import { DemoWrapper } from "../../demo-wrapper";
 
 const MCP_DEMO_URL =
@@ -16,7 +17,7 @@ const MCP_DEMO_URL =
 
 function MessageThreadPanelContent() {
   const userContextKey = useUserContextKey("message-thread-panel");
-  const elicitationHandler = useElicitationHandler();
+  const elicitationHandler = useTamboElicitationHandler();
 
   return (
     <TamboMcpProvider
@@ -51,7 +52,7 @@ export default function MessageThreadPanelPage() {
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
-        <ElicitationProvider>
+        <TamboElicitationProvider>
           <div className="flex flex-col gap-8">
             <div>
               <h1 className="text-3xl font-bold mb-4">Message Thread Panel</h1>
@@ -70,7 +71,7 @@ export default function MessageThreadPanelPage() {
 
             <MessageThreadPanelContent />
           </div>
-        </ElicitationProvider>
+        </TamboElicitationProvider>
       </ShowcaseThemeProvider>
     </div>
   );

@@ -1,14 +1,15 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import {
-  ElicitationProvider,
-  useElicitationHandler,
-} from "@/components/ui/elicitation-provider";
 import { MessageThreadCollapsible } from "@/components/ui/message-thread-collapsible";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
-import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
+import {
+  MCPTransport,
+  TamboElicitationProvider,
+  TamboMcpProvider,
+  useTamboElicitationHandler,
+} from "@tambo-ai/react/mcp";
 import { DemoWrapper } from "../../demo-wrapper";
 
 const MCP_DEMO_URL =
@@ -16,7 +17,7 @@ const MCP_DEMO_URL =
 
 function MessageThreadCollapsibleContent() {
   const userContextKey = useUserContextKey("message-thread-collapsible");
-  const elicitationHandler = useElicitationHandler();
+  const elicitationHandler = useTamboElicitationHandler();
 
   return (
     <TamboMcpProvider
@@ -55,7 +56,7 @@ export default function MessageThreadCollapsiblePage() {
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
-        <ElicitationProvider>
+        <TamboElicitationProvider>
           <div className="flex flex-col gap-8">
             <div>
               <h1 className="text-3xl font-bold mb-4">
@@ -76,7 +77,7 @@ export default function MessageThreadCollapsiblePage() {
 
             <MessageThreadCollapsibleContent />
           </div>
-        </ElicitationProvider>
+        </TamboElicitationProvider>
       </ShowcaseThemeProvider>
     </div>
   );

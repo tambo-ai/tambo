@@ -1,6 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import {
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "@tambo-ai/react/mcp";
 import { Check } from "lucide-react";
 import * as React from "react";
 
@@ -34,27 +38,6 @@ interface BooleanFieldSchema extends BaseFieldSchema {
 }
 
 type FieldSchema = StringFieldSchema | NumberFieldSchema | BooleanFieldSchema;
-
-/**
- * Elicitation request from MCP server
- */
-export interface ElicitationRequest {
-  message: string;
-  requestedSchema: {
-    type: "object";
-    properties: Record<string, FieldSchema>;
-    required?: string[];
-  };
-}
-
-/**
- * Elicitation response to be sent back
- */
-export interface ElicitationResponse {
-  action: "accept" | "decline" | "cancel";
-  content?: Record<string, unknown>;
-  [x: string]: unknown;
-}
 
 /**
  * Props for individual field components
@@ -275,7 +258,7 @@ const Field: React.FC<FieldProps> = (props) => {
  * Determines if the elicitation should use single-entry mode
  * (one field that is boolean or enum)
  */
-function isSingleEntryMode(request: ElicitationRequest): boolean {
+function isSingleEntryMode(request: TamboElicitationRequest): boolean {
   const fields = Object.entries(request.requestedSchema.properties);
 
   if (fields.length !== 1) {
@@ -294,8 +277,8 @@ function isSingleEntryMode(request: ElicitationRequest): boolean {
  * Props for the ElicitationUI component
  */
 export interface ElicitationUIProps {
-  request: ElicitationRequest;
-  onResponse: (response: ElicitationResponse) => void;
+  request: TamboElicitationRequest;
+  onResponse: (response: TamboElicitationResponse) => void;
   className?: string;
 }
 

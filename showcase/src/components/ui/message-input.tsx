@@ -1,11 +1,11 @@
 "use client";
 
+import { ElicitationUI } from "@/components/ui/elicitation-ui";
 import {
-  ElicitationUI,
-  type ElicitationRequest,
-  type ElicitationResponse,
-} from "@/components/ui/elicitation-ui";
-import { useElicitationContext } from "@/components/ui/elicitation-provider";
+  useTamboElicitationContext,
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "@tambo-ai/react/mcp";
 import { McpConfigModal } from "@/components/ui/mcp-config-modal";
 import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
@@ -74,7 +74,7 @@ const messageInputVariants = cva("w-full", {
  * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
- * @property {ElicitationRequest | null} elicitation - Current elicitation request
+ * @property {TamboElicitationRequest | null} elicitation - Current elicitation request
  * @property {function} setElicitation - Function to set the elicitation request
  * @property {function} resolveElicitation - Function to resolve the elicitation promise
  */
@@ -92,13 +92,13 @@ interface MessageInputContextValue {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
-  elicitation: ElicitationRequest | null;
+  elicitation: TamboElicitationRequest | null;
   setElicitation: React.Dispatch<
-    React.SetStateAction<ElicitationRequest | null>
+    React.SetStateAction<TamboElicitationRequest | null>
   >;
-  resolveElicitation: ((response: ElicitationResponse) => void) | null;
+  resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
   setResolveElicitation: React.Dispatch<
-    React.SetStateAction<((response: ElicitationResponse) => void) | null>
+    React.SetStateAction<((response: TamboElicitationResponse) => void) | null>
   >;
 }
 
@@ -198,7 +198,7 @@ const MessageInputInternal = React.forwardRef<
   const dragCounter = React.useRef(0);
 
   // Use elicitation context if available (optional)
-  const elicitationContext = useElicitationContext();
+  const elicitationContext = useTamboElicitationContext();
   const elicitation = elicitationContext?.elicitation ?? null;
   const setElicitation = elicitationContext?.setElicitation;
   const resolveElicitation = elicitationContext?.resolveElicitation ?? null;
@@ -315,7 +315,7 @@ const MessageInputInternal = React.forwardRef<
   );
 
   const handleElicitationResponse = React.useCallback(
-    (response: ElicitationResponse) => {
+    (response: TamboElicitationResponse) => {
       if (resolveElicitation) {
         resolveElicitation(response);
       }
