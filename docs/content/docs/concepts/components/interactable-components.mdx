@@ -11,6 +11,18 @@ Unlike regular registered components that Tambo generates and renders from scrat
 
 The easiest way to make a component interactable to Tambo is by using `withInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
 
+<Callout type="info" title="No Registration Required">
+
+Unlike regular components that need to be registered in the `TamboProvider` components array, interactable components are automatically registered when they mount. You don't need to add them to your components array.
+
+</Callout>
+
+<Callout type="warn" title="Want Inline Generation Too?">
+
+If you want Tambo to be able to both modify pre-placed instances AND generate new instances inline, you'll need to register the component normally in the `TamboProvider` as well.
+
+</Callout>
+
 ```tsx
 import { withInteractable } from "@tambo-ai/react";
 import { z } from "zod";
