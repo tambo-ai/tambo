@@ -95,11 +95,7 @@ export function extractErrorMessage(content: unknown): string {
 }
 
 /**
- * Configuration for connecting to an MCP server.
- */
-/**
  * User-provided configuration for an MCP server.
- * Does not include the derived stable key.
  */
 export interface McpServerInfo {
   /** Optional name for the MCP server */
@@ -131,15 +127,24 @@ interface McpServerConfig extends McpServerInfo {
   key: string;
 }
 
+/**
+ * Connected MCP server with an active client.
+ */
 export interface ConnectedMcpServer extends McpServerConfig {
   client: MCPClient;
 }
 
+/**
+ * Failed MCP server with a connection error.
+ */
 export interface FailedMcpServer extends McpServerConfig {
   client?: never;
   connectionError: Error;
 }
 
+/**
+ * An active or failed MCP server, with access to the MCP client.
+ */
 export type McpServer = ConnectedMcpServer | FailedMcpServer;
 
 /**
