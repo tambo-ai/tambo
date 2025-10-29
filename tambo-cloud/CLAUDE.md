@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-For comprehensive coding standards and patterns, see [AGENTS.md](AGENTS.md) which contains detailed instructions for AI agents working in this codebase.
+For comprehensive coding standards and patterns, see @AGENTS.md which contains detailed instructions for AI agents working in this codebase.
 
 ## Repository Overview
 
