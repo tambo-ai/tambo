@@ -4,7 +4,12 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
 import { useTamboQueries, useTamboQuery } from "../hooks";
-import { McpServerInfo, useTamboMcpServers } from "./tambo-mcp-provider";
+import {
+  type ConnectedMcpServer,
+  type McpServer,
+  McpServerInfo,
+  useTamboMcpServers,
+} from "./tambo-mcp-provider";
 
 export type ListPromptItem = ListPromptsResult["prompts"][number];
 export interface ListPromptEntry {
@@ -21,8 +26,13 @@ export function useTamboMcpPromptList() {
   const queries = useTamboQueries({
     queries: mcpServers.map((mcpServer) => ({
       queryKey: ["mcp-prompts", mcpServer.key],
+      // Only run for connected servers that have a client
+      enabled: isConnectedMcpServer(mcpServer),
       queryFn: async (): Promise<ListPromptEntry[]> => {
-        const result = await mcpServer.client?.client.listPrompts();
+        // Fast path: if this server doesn't have a client, skip work
+        if (!isConnectedMcpServer(mcpServer)) return [];
+
+        const result = await mcpServer.client.client.listPrompts();
         const prompts: ListPromptItem[] = result?.prompts ?? [];
         const promptsEntries = prompts.map((prompt) => ({
           server: mcpServer,
@@ -51,14 +61,14 @@ function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
   isLoading: boolean;
 } {
   return {
-    data: results
-      .filter((result) => result.isSuccess)
-      .map((result) => result.data)
-      .flat(),
+    // Prefer flatMap to avoid extra intermediate arrays
+    data: results.flatMap((result) =>
+      result.isSuccess && Array.isArray(result.data) ? result.data : [],
+    ),
+    // error is already a single Error per result; no need to flatten
     error: results
       .filter((result) => result.isError)
-      .map((result) => result.error)
-      .flat(),
+      .map((result) => result.error as Error),
     isPending: results.some((result) => result.isPending),
     isSuccess: results.every((result) => result.isSuccess),
     isError: results.some((result) => result.isError),
@@ -67,6 +77,11 @@ function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
     isFetching: results.some((result) => result.isFetching),
     isLoading: results.some((result) => result.isLoading),
   };
+}
+
+// Type guard for narrowing to connected servers
+function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
+  return "client" in server && server.client != null;
 }
 
 /**
@@ -92,13 +107,22 @@ export function useTamboMcpPrompt(
       mcpServer.transport === promptEntry?.server.transport,
   );
 
+  // Canonicalize args to avoid unstable cache keys from object identity/order
+  const sortedArgsEntries = Object.keys(args)
+    .sort()
+    .map((k) => [k, args[k]] as const);
   return useTamboQuery({
-    queryKey: ["mcp-prompt", promptName],
+    // Include server identity and sorted args to prevent stale cache hits
+    queryKey: ["mcp-prompt", promptName, mcpServer?.key, sortedArgsEntries],
+    // Only run when we have a prompt name and a connected server
+    enabled: Boolean(
+      promptName && mcpServer && isConnectedMcpServer(mcpServer),
+    ),
     queryFn: async (): Promise<GetPromptResult | null> => {
-      if (!promptName) {
+      if (!promptName || !mcpServer || !isConnectedMcpServer(mcpServer)) {
         return null;
       }
-      const result = await mcpServer?.client?.client.getPrompt({
+      const result = await mcpServer.client.client.getPrompt({
         name: promptName,
         arguments: args,
       });
