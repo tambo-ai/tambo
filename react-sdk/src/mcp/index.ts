@@ -10,3 +10,10 @@ export {
   type McpServerInfo,
   type ProviderMCPHandlers,
 } from "./tambo-mcp-provider";
+export {
+  TamboElicitationProvider,
+  useTamboElicitationContext,
+  useTamboElicitationHandler,
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "./tambo-elicitation-provider";
