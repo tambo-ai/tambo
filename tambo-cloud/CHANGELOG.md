@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.120.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.0...repo-v0.120.1) (2025-10-29)
+
+
+### Miscellaneous Chores
+
+* **blog:** Add cheatsheet blog post. ([#2004](https://github.com/tambo-ai/tambo-cloud/issues/2004)) ([787527f](https://github.com/tambo-ai/tambo-cloud/commit/787527fd3744182fed2fe9a02fde2a9ff2ee8ccc))
+
 ## [0.120.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.119.0...repo-v0.120.0) (2025-10-28)
 
 
