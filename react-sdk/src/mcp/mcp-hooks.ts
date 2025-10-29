@@ -35,7 +35,7 @@ export function useTamboMcpPromptList() {
         const result = await mcpServer.client.client.listPrompts();
         const prompts: ListPromptItem[] = result?.prompts ?? [];
         const promptsEntries = prompts.map((prompt) => ({
-          server: mcpServer as ConnectedMcpServer,
+          server: mcpServer,
           prompt,
         }));
         return promptsEntries;
@@ -49,7 +49,19 @@ export function useTamboMcpPromptList() {
   return queries;
 }
 // TODO: find a more general place for this
-function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]) {
+function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
+  data: T[];
+  error: Error | null;
+  errors: Error[];
+  isPending: boolean;
+  isSuccess: boolean;
+  isError: boolean;
+  isPaused: boolean;
+  isRefetching: boolean;
+  isFetching: boolean;
+  isLoading: boolean;
+  refetch: () => Promise<void>;
+} {
   const errors = results
     .filter((result) => result.isError)
     .map((result) => result.error as Error);
@@ -83,7 +95,7 @@ function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]) {
         }),
       );
     },
-  } as const;
+  };
 }
 
 // Type guard for narrowing to connected servers
