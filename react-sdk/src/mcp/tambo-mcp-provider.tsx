@@ -65,11 +65,13 @@ export interface McpServerInfo {
 
 export interface ConnectedMcpServer extends McpServerInfo {
   client: MCPClient;
+  key: string;
 }
 
 export interface FailedMcpServer extends McpServerInfo {
   client?: never;
   connectionError: Error;
+  key: string;
 }
 
 export type McpServer = ConnectedMcpServer | FailedMcpServer;
@@ -149,7 +151,7 @@ export const TamboMcpProvider: FC<{
     servers.forEach((server) => {
       const serverInfo = normalizeServerInfo(server);
       const key = getServerKey(serverInfo);
-      serverMap.set(key, serverInfo);
+      serverMap.set(key, { ...serverInfo });
     });
 
     return serverMap;
@@ -226,6 +228,7 @@ export const TamboMcpProvider: FC<{
             const connectedServer: ConnectedMcpServer = {
               ...serverInfo,
               client,
+              key,
             };
 
             clientMap.set(key, connectedServer);
@@ -289,6 +292,7 @@ export const TamboMcpProvider: FC<{
             const failedServer: FailedMcpServer = {
               ...serverInfo,
               connectionError: error as Error,
+              key,
             };
             clientMap.set(key, failedServer);
             setConnectedMcpServers(Array.from(clientMap.values()));

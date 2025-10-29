@@ -2,7 +2,8 @@ import {
   GetPromptResult,
   type ListPromptsResult,
 } from "@modelcontextprotocol/sdk/types.js";
-import { useTamboQuery } from "../hooks";
+import { UseQueryResult } from "@tanstack/react-query";
+import { useTamboQueries, useTamboQuery } from "../hooks";
 import { McpServerInfo, useTamboMcpServers } from "./tambo-mcp-provider";
 
 export type ListPromptItem = ListPromptsResult["prompts"][number];
@@ -17,37 +18,67 @@ export interface ListPromptEntry {
  */
 export function useTamboMcpPromptList() {
   const mcpServers = useTamboMcpServers();
-  return useTamboQuery({
-    queryKey: ["mcp-prompts"],
-    queryFn: async (): Promise<ListPromptEntry[]> => {
-      const promptResults = await Promise.allSettled(
-        mcpServers.map(async (mcpServer) => ({
+  const queries = useTamboQueries({
+    queries: mcpServers.map((mcpServer) => ({
+      queryKey: ["mcp-prompts", mcpServer.key],
+      queryFn: async (): Promise<ListPromptEntry[]> => {
+        const result = await mcpServer.client?.client.listPrompts();
+        const prompts: ListPromptItem[] = result?.prompts ?? [];
+        const promptsEntries = prompts.map((prompt) => ({
           server: mcpServer,
-          response: await mcpServer.client?.client.listPrompts(),
-        })),
-      );
-
-      const prompts: ListPromptEntry[] = promptResults
-        .filter((result) => result.status === "fulfilled")
-        .flatMap((result) => {
-          const { server, response } = result.value;
-          return response?.prompts?.map((prompt: ListPromptItem) => ({
-            server,
-            prompt,
-          }));
-        })
-        .filter((prompt) => prompt !== undefined);
-      return prompts;
+          prompt,
+        }));
+        return promptsEntries ?? [];
+      },
+    })),
+    combine: (results) => {
+      return combineArrayResults(results);
     },
   });
+
+  return queries;
+}
+// TODO: find a more general place for this
+function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
+  data: T[];
+  error: Error[];
+  isPending: boolean;
+  isSuccess: boolean;
+  isError: boolean;
+  isPaused: boolean;
+  isRefetching: boolean;
+  isFetching: boolean;
+  isLoading: boolean;
+} {
+  return {
+    data: results
+      .filter((result) => result.isSuccess)
+      .map((result) => result.data)
+      .flat(),
+    error: results
+      .filter((result) => result.isError)
+      .map((result) => result.error)
+      .flat(),
+    isPending: results.some((result) => result.isPending),
+    isSuccess: results.every((result) => result.isSuccess),
+    isError: results.some((result) => result.isError),
+    isPaused: results.some((result) => result.isPaused),
+    isRefetching: results.some((result) => result.isRefetching),
+    isFetching: results.some((result) => result.isFetching),
+    isLoading: results.some((result) => result.isLoading),
+  };
 }
 
 /**
  * Hook to get the prompt for the specified name.
- * @param promptName - The name of the prompt to get.
+ * @param promptName - The name of the prompt to get. If the prompt won't return anything
+ * @param args - The arguments to pass to the prompt.
  * @returns The prompt for the specified name.
  */
-export function useTamboMcpPrompt(promptName: string) {
+export function useTamboMcpPrompt(
+  promptName: string | undefined,
+  args: Record<string, string> = {},
+) {
   // figure out which server has the prompt
   const { data: promptEntries } = useTamboMcpPromptList();
   const promptEntry = promptEntries?.find(
@@ -63,10 +94,15 @@ export function useTamboMcpPrompt(promptName: string) {
 
   return useTamboQuery({
     queryKey: ["mcp-prompt", promptName],
-    queryFn: async (): Promise<GetPromptResult | undefined> => {
-      return await mcpServer?.client?.client.getPrompt({
+    queryFn: async (): Promise<GetPromptResult | null> => {
+      if (!promptName) {
+        return null;
+      }
+      const result = await mcpServer?.client?.client.getPrompt({
         name: promptName,
+        arguments: args,
       });
+      return result ?? null; // return null because react-query doesn't like undefined results
     },
   });
 }
