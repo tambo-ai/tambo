@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.120.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.1...repo-v0.120.2) (2025-10-29)
+
+
+### Bug Fixes
+
+* remove strict mode for now ([#2009](https://github.com/tambo-ai/tambo-cloud/issues/2009)) ([2008033](https://github.com/tambo-ai/tambo-cloud/commit/20080338544a8359f0cc1ac3a6639b1dd789fead))
+
+
+### Miscellaneous Chores
+
+* update CLAUDE.md files to reference AGENTS.md properly ([#2006](https://github.com/tambo-ai/tambo-cloud/issues/2006)) ([04853f3](https://github.com/tambo-ai/tambo-cloud/commit/04853f3585ab8b4be9fc60323ec9ea10e9c2f085))
+
 ## [0.120.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.0...repo-v0.120.1) (2025-10-29)
 
 
