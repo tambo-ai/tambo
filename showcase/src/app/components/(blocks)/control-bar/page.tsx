@@ -1,7 +1,7 @@
 "use client";
 
 import { CLI } from "@/components/cli";
-import { ControlBar } from "@/components/ui/control-bar";
+import { DemoControlBar } from "@/components/ui/control-bar";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import * as React from "react";
@@ -54,7 +54,7 @@ export default function ControlBarPage() {
                 </p>
               </div>
 
-              <ControlBar contextKey={userContextKey} />
+              <DemoControlBar contextKey={userContextKey} />
             </div>
           </DemoWrapper>
         </div>
