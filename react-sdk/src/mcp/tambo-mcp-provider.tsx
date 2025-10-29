@@ -1,7 +1,6 @@
 import React, {
   createContext,
   FC,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -12,59 +11,8 @@ import { TamboTool } from "../model/component-metadata";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
+import { type ElicitationContextState, useElicitation } from "./elicitation";
 import { MCPClient, MCPHandlers, MCPTransport } from "./mcp-client";
-
-/**
- * JSON Schema types for elicitation fields
- */
-interface BaseFieldSchema {
-  type: "string" | "number" | "integer" | "boolean";
-  description?: string;
-  default?: unknown;
-}
-
-interface StringFieldSchema extends BaseFieldSchema {
-  type: "string";
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  format?: "email" | "uri" | "date" | "date-time";
-  enum?: string[];
-  enumNames?: string[];
-}
-
-interface NumberFieldSchema extends BaseFieldSchema {
-  type: "number" | "integer";
-  minimum?: number;
-  maximum?: number;
-}
-
-interface BooleanFieldSchema extends BaseFieldSchema {
-  type: "boolean";
-}
-
-type FieldSchema = StringFieldSchema | NumberFieldSchema | BooleanFieldSchema;
-
-/**
- * Elicitation request from MCP server
- */
-export interface TamboElicitationRequest {
-  message: string;
-  requestedSchema: {
-    type: "object";
-    properties: Record<string, FieldSchema>;
-    required?: string[];
-  };
-}
-
-/**
- * Elicitation response to be sent back
- */
-export interface TamboElicitationResponse {
-  action: "accept" | "decline" | "cancel";
-  content?: Record<string, unknown>;
-  [x: string]: unknown;
-}
 
 /**
  * Extracts error message from MCP tool result content.
@@ -165,16 +113,8 @@ export interface ProviderMCPHandlers {
 /**
  * Context value for MCP provider including server list and elicitation state
  */
-interface McpProviderContextValue {
+interface McpProviderContextValue extends ElicitationContextState {
   servers: McpServer[];
-  elicitation: TamboElicitationRequest | null;
-  setElicitation: React.Dispatch<
-    React.SetStateAction<TamboElicitationRequest | null>
-  >;
-  resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
-  setResolveElicitation: React.Dispatch<
-    React.SetStateAction<((response: TamboElicitationResponse) => void) | null>
-  >;
 }
 
 const McpProviderContext = createContext<McpProviderContextValue>({
@@ -206,36 +146,14 @@ export const TamboMcpProvider: FC<{
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
   const providerSamplingHandler = handlers?.sampling;
 
-  // Internal elicitation state
-  const [elicitation, setElicitation] =
-    useState<TamboElicitationRequest | null>(null);
-  const [resolveElicitation, setResolveElicitation] = useState<
-    ((response: TamboElicitationResponse) => void) | null
-  >(null);
-
-  // Create default elicitation handler if none provided
-  const defaultElicitationHandler = useCallback(
-    async (request: {
-      params: {
-        message: string;
-        requestedSchema: TamboElicitationRequest["requestedSchema"];
-      };
-    }) => {
-      return await new Promise<TamboElicitationResponse>((resolve) => {
-        // Set the elicitation request to show the UI
-        setElicitation({
-          message: request.params.message,
-          requestedSchema: request.params.requestedSchema,
-        });
-
-        // Store the resolve function so we can call it when the user responds
-        setResolveElicitation(() => (response: TamboElicitationResponse) => {
-          resolve(response);
-        });
-      });
-    },
-    [setElicitation, setResolveElicitation],
-  );
+  // Elicitation state and default handler
+  const {
+    elicitation,
+    setElicitation,
+    resolveElicitation,
+    setResolveElicitation,
+    defaultElicitationHandler,
+  } = useElicitation();
 
   // Use provided handler or fall back to default
   const providerElicitationHandler =
@@ -505,7 +423,13 @@ export const TamboMcpProvider: FC<{
       resolveElicitation,
       setResolveElicitation,
     }),
-    [connectedMcpServers, elicitation, resolveElicitation],
+    [
+      connectedMcpServers,
+      elicitation,
+      setElicitation,
+      resolveElicitation,
+      setResolveElicitation,
+    ],
   );
 
   return (
