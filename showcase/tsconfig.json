@@ -2,22 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "@tambo-ai/typescript-config/nextjs.json",
   "compilerOptions": {
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@/*": ["./src/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
