@@ -17,6 +17,12 @@ Unlike regular components that need to be registered in the `TamboProvider` comp
 
 </Callout>
 
+<Callout type="warn" title="Want Inline Generation Too?">
+
+If you want Tambo to be able to both modify pre-placed instances AND generate new instances inline, you'll need to register the component normally in the `TamboProvider` as well.
+
+</Callout>
+
 ```tsx
 import { withInteractable } from "@tambo-ai/react";
 import { z } from "zod";

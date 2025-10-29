@@ -75,9 +75,15 @@ const tamboComponents: TamboComponent[] = [
 </TamboProvider>;
 ```
 
-<Callout type="info" title="Interactable Components Don't Need Registration">
+<Callout type="info" title="Interactable Components">
 
-This registration approach is for components that Tambo generates from scratch. If you want to pre-place components on your page and let Tambo modify them, use [Interactable Components](/concepts/components/interactable-components) instead—they register themselves automatically when mounted.
+This registration approach is for components that Tambo generates from scratch. If you want to pre-place components on your page and let Tambo modify them, use [Interactable Components](./interactable-components) instead—they register themselves automatically when mounted.
+
+</Callout>
+
+<Callout type="warn" title="Want Both Capabilities?">
+
+If you want Tambo to both modify pre-placed interactable components AND be able to generate new instances inline, register the component in the `TamboProvider` components array as well.
 
 </Callout>
 
