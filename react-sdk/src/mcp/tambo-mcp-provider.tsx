@@ -1,6 +1,7 @@
 import React, {
   createContext,
   FC,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -12,6 +13,58 @@ import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
 import { MCPClient, MCPHandlers, MCPTransport } from "./mcp-client";
+
+/**
+ * JSON Schema types for elicitation fields
+ */
+interface BaseFieldSchema {
+  type: "string" | "number" | "integer" | "boolean";
+  description?: string;
+  default?: unknown;
+}
+
+interface StringFieldSchema extends BaseFieldSchema {
+  type: "string";
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  format?: "email" | "uri" | "date" | "date-time";
+  enum?: string[];
+  enumNames?: string[];
+}
+
+interface NumberFieldSchema extends BaseFieldSchema {
+  type: "number" | "integer";
+  minimum?: number;
+  maximum?: number;
+}
+
+interface BooleanFieldSchema extends BaseFieldSchema {
+  type: "boolean";
+}
+
+type FieldSchema = StringFieldSchema | NumberFieldSchema | BooleanFieldSchema;
+
+/**
+ * Elicitation request from MCP server
+ */
+export interface TamboElicitationRequest {
+  message: string;
+  requestedSchema: {
+    type: "object";
+    properties: Record<string, FieldSchema>;
+    required?: string[];
+  };
+}
+
+/**
+ * Elicitation response to be sent back
+ */
+export interface TamboElicitationResponse {
+  action: "accept" | "decline" | "cancel";
+  content?: Record<string, unknown>;
+  [x: string]: unknown;
+}
 
 /**
  * Extracts error message from MCP tool result content.
@@ -104,7 +157,28 @@ export interface ProviderMCPHandlers {
   ) => ReturnType<MCPHandlers["sampling"]>;
 }
 
-const McpProviderContext = createContext<McpServer[]>([]);
+/**
+ * Context value for MCP provider including server list and elicitation state
+ */
+interface McpProviderContextValue {
+  servers: McpServer[];
+  elicitation: TamboElicitationRequest | null;
+  setElicitation: React.Dispatch<
+    React.SetStateAction<TamboElicitationRequest | null>
+  >;
+  resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
+  setResolveElicitation: React.Dispatch<
+    React.SetStateAction<((response: TamboElicitationResponse) => void) | null>
+  >;
+}
+
+const McpProviderContext = createContext<McpProviderContextValue>({
+  servers: [],
+  elicitation: null,
+  setElicitation: () => {},
+  resolveElicitation: null,
+  setResolveElicitation: () => {},
+});
 
 // Constant for the internal Tambo MCP server name
 const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
@@ -125,8 +199,42 @@ export const TamboMcpProvider: FC<{
 }> = ({ mcpServers, handlers, children }) => {
   const { registerTool } = useTamboRegistry();
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
-  const providerElicitationHandler = handlers?.elicitation;
   const providerSamplingHandler = handlers?.sampling;
+
+  // Internal elicitation state
+  const [elicitation, setElicitation] =
+    useState<TamboElicitationRequest | null>(null);
+  const [resolveElicitation, setResolveElicitation] = useState<
+    ((response: TamboElicitationResponse) => void) | null
+  >(null);
+
+  // Create default elicitation handler if none provided
+  const defaultElicitationHandler = useCallback(
+    async (request: {
+      params: {
+        message: string;
+        requestedSchema: TamboElicitationRequest["requestedSchema"];
+      };
+    }) => {
+      return await new Promise<TamboElicitationResponse>((resolve) => {
+        // Set the elicitation request to show the UI
+        setElicitation({
+          message: request.params.message,
+          requestedSchema: request.params.requestedSchema,
+        });
+
+        // Store the resolve function so we can call it when the user responds
+        setResolveElicitation(() => (response: TamboElicitationResponse) => {
+          resolve(response);
+        });
+      });
+    },
+    [setElicitation, setResolveElicitation],
+  );
+
+  // Use provided handler or fall back to default
+  const providerElicitationHandler =
+    handlers?.elicitation ?? defaultElicitationHandler;
 
   // Stable reference to track active clients by server key
   const clientMapRef = useRef<Map<string, McpServer>>(new Map());
@@ -384,8 +492,19 @@ export const TamboMcpProvider: FC<{
     };
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      servers: connectedMcpServers,
+      elicitation,
+      setElicitation,
+      resolveElicitation,
+      setResolveElicitation,
+    }),
+    [connectedMcpServers, elicitation, resolveElicitation],
+  );
+
   return (
-    <McpProviderContext.Provider value={connectedMcpServers}>
+    <McpProviderContext.Provider value={contextValue}>
       {children}
     </McpProviderContext.Provider>
   );
@@ -415,7 +534,42 @@ export const TamboMcpProvider: FC<{
  * @returns The MCP servers
  */
 export const useTamboMcpServers = () => {
-  return useContext(McpProviderContext);
+  return useContext(McpProviderContext).servers;
+};
+
+/**
+ * Hook to access elicitation context from TamboMcpProvider.
+ * This provides access to the current elicitation request and methods to respond to it.
+ *
+ * The elicitation state is automatically managed by TamboMcpProvider when MCP servers
+ * request user input through the elicitation protocol.
+ * @returns The elicitation context with current request and response handlers
+ * @example
+ * ```tsx
+ * function ElicitationUI() {
+ *   const { elicitation, resolveElicitation } = useTamboElicitationContext();
+ *
+ *   if (!elicitation) return null;
+ *
+ *   return (
+ *     <div>
+ *       <p>{elicitation.message}</p>
+ *       <button onClick={() => resolveElicitation?.({ action: "accept", content: {} })}>
+ *         Accept
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export const useTamboElicitationContext = () => {
+  const context = useContext(McpProviderContext);
+  return {
+    elicitation: context.elicitation,
+    setElicitation: context.setElicitation,
+    resolveElicitation: context.resolveElicitation,
+    setResolveElicitation: context.setResolveElicitation,
+  };
 };
 
 /**
