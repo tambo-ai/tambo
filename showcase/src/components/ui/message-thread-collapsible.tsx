@@ -4,9 +4,10 @@ import {
   MessageInput,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputFileButton,
   MessageInputSubmitButton,
   MessageInputError,
+  MessageInputFileButton,
+  // MessageInputMcpConfigButton,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
@@ -269,6 +270,8 @@ export const MessageThreadCollapsible = React.forwardRef<
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <MessageInputToolbar>
                 <MessageInputFileButton />
+                {/* Uncomment this to enable client-side MCP config modal button */}
+                {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />
