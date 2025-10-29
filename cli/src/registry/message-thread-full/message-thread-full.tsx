@@ -4,10 +4,11 @@ import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
   MessageInputError,
+  MessageInputFileButton,
+  MessageInputMcpPromptButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputFileButton,
 } from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
@@ -114,6 +115,7 @@ export const MessageThreadFull = React.forwardRef<
             <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
               <MessageInputFileButton />
+              <MessageInputMcpPromptButton />
               {/* Uncomment this to enable client-side MCP config modal button */}
               {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />

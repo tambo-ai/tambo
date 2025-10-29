@@ -6,17 +6,20 @@ import {
   TooltipProvider,
 } from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
+import { useTamboMcpPrompt, useTamboMcpPromptList } from "@tambo-ai/react/mcp";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
   Image as ImageIcon,
   Paperclip,
+  Sparkles,
   Square,
   X,
 } from "lucide-react";
@@ -746,6 +749,137 @@ const MessageInputFileButton = React.forwardRef<
 MessageInputFileButton.displayName = "MessageInput.FileButton";
 
 /**
+ * Props for the MessageInputMcpPromptButton component.
+ */
+export type MessageInputMcpPromptButtonProps =
+  React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+/**
+ * MCP Prompt picker button component for inserting prompts from MCP servers.
+ * @component MessageInput.McpPromptButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.FileButton />
+ *     <MessageInput.McpPromptButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputMcpPromptButton = React.forwardRef<
+  HTMLButtonElement,
+  MessageInputMcpPromptButtonProps
+>(({ className, ...props }, ref) => {
+  const { setValue, value } = useMessageInputContext();
+  const { data: promptList, isLoading } = useTamboMcpPromptList();
+  const [selectedPromptName, setSelectedPromptName] = React.useState<
+    string | null
+  >(null);
+  const { data: promptData } = useTamboMcpPrompt(selectedPromptName ?? "");
+
+  // When prompt data is fetched, insert it into the input
+  React.useEffect(() => {
+    if (promptData && selectedPromptName) {
+      // Extract the text from the prompt messages
+      const promptText = promptData.messages
+        .map((msg) => {
+          if (msg.content.type === "text") {
+            return msg.content.text;
+          }
+          return "";
+        })
+        .filter(Boolean)
+        .join("\n");
+
+      // Insert the prompt text, appending to existing value if any
+      const newValue = value ? `${value}\n\n${promptText}` : promptText;
+      setValue(newValue);
+
+      // Reset the selected prompt
+      setSelectedPromptName(null);
+    }
+  }, [promptData, selectedPromptName, setValue, value]);
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content="Insert MCP Prompt"
+        side="top"
+        className="bg-muted text-primary"
+      >
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button
+              ref={ref}
+              type="button"
+              className={buttonClasses}
+              aria-label="Insert MCP Prompt"
+              data-slot="message-input-mcp-prompt-button"
+              {...props}
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+              side="top"
+              align="start"
+              sideOffset={5}
+            >
+              {isLoading ? (
+                <DropdownMenu.Item
+                  className="px-2 py-1.5 text-sm text-muted-foreground"
+                  disabled
+                >
+                  Loading prompts...
+                </DropdownMenu.Item>
+              ) : !promptList || promptList.length === 0 ? (
+                <DropdownMenu.Item
+                  className="px-2 py-1.5 text-sm text-muted-foreground"
+                  disabled
+                >
+                  No prompts available
+                </DropdownMenu.Item>
+              ) : (
+                promptList.map((promptEntry) => (
+                  <DropdownMenu.Item
+                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
+                    className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                    onSelect={(e: Event) => {
+                      e.preventDefault();
+                      setSelectedPromptName(promptEntry.prompt.name);
+                    }}
+                  >
+                    <span className="font-medium truncate max-w-full">
+                      {promptEntry.prompt.name}
+                    </span>
+                    {promptEntry.prompt.description && (
+                      <span className="text-xs text-muted-foreground truncate max-w-full">
+                        {promptEntry.prompt.description}
+                      </span>
+                    )}
+                  </DropdownMenu.Item>
+                ))
+              )}
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      </Tooltip>
+    </TooltipProvider>
+  );
+});
+MessageInputMcpPromptButton.displayName = "MessageInput.McpPromptButton";
+
+/**
  * Props for the ImageContextBadge component.
  */
 interface ImageContextBadgeProps {
@@ -959,6 +1093,7 @@ export {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpConfigButton,
+  MessageInputMcpPromptButton,
   MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,
