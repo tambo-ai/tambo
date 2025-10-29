@@ -2,12 +2,18 @@ import {
   GetPromptResult,
   type ListPromptsResult,
 } from "@modelcontextprotocol/sdk/types.js";
-import { useTamboQuery } from "../hooks";
-import { McpServerInfo, useTamboMcpServers } from "./tambo-mcp-provider";
+import { UseQueryResult } from "@tanstack/react-query";
+import { useTamboQueries, useTamboQuery } from "../hooks";
+import {
+  type ConnectedMcpServer,
+  type McpServer,
+  useTamboMcpServers,
+} from "./tambo-mcp-provider";
 
 export type ListPromptItem = ListPromptsResult["prompts"][number];
 export interface ListPromptEntry {
-  server: McpServerInfo;
+  // Only connected servers produce prompt entries, so expose the connected type
+  server: ConnectedMcpServer;
   prompt: ListPromptItem;
 }
 
@@ -17,56 +23,125 @@ export interface ListPromptEntry {
  */
 export function useTamboMcpPromptList() {
   const mcpServers = useTamboMcpServers();
-  return useTamboQuery({
-    queryKey: ["mcp-prompts"],
-    queryFn: async (): Promise<ListPromptEntry[]> => {
-      const promptResults = await Promise.allSettled(
-        mcpServers.map(async (mcpServer) => ({
-          server: mcpServer,
-          response: await mcpServer.client?.client.listPrompts(),
-        })),
-      );
+  const queries = useTamboQueries({
+    queries: mcpServers.map((mcpServer) => ({
+      queryKey: ["mcp-prompts", mcpServer.key],
+      // Only run for connected servers that have a client
+      enabled: isConnectedMcpServer(mcpServer),
+      queryFn: async (): Promise<ListPromptEntry[]> => {
+        // Fast path: if this server doesn't have a client, skip work
+        if (!isConnectedMcpServer(mcpServer)) return [];
 
-      const prompts: ListPromptEntry[] = promptResults
-        .filter((result) => result.status === "fulfilled")
-        .flatMap((result) => {
-          const { server, response } = result.value;
-          return response?.prompts?.map((prompt: ListPromptItem) => ({
-            server,
-            prompt,
-          }));
-        })
-        .filter((prompt) => prompt !== undefined);
-      return prompts;
+        const result = await mcpServer.client.client.listPrompts();
+        const prompts: ListPromptItem[] = result?.prompts ?? [];
+        const promptsEntries = prompts.map((prompt) => ({
+          server: mcpServer,
+          prompt,
+        }));
+        return promptsEntries;
+      },
+    })),
+    combine: (results) => {
+      return combineArrayResults(results);
     },
   });
+
+  return queries;
+}
+// TODO: find a more general place for this
+function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
+  data: T[];
+  error: Error | null;
+  errors: Error[];
+  isPending: boolean;
+  isSuccess: boolean;
+  isError: boolean;
+  isPaused: boolean;
+  isRefetching: boolean;
+  isFetching: boolean;
+  isLoading: boolean;
+  refetch: () => Promise<void>;
+} {
+  const errors = results
+    .filter((result) => result.isError)
+    .map((result) => result.error as Error);
+
+  // Treat queries that are idle (disabled) as non-blocking for aggregate status
+  const enabledish = results.filter(
+    (r) => r.fetchStatus !== "idle" || r.isSuccess || r.isError,
+  );
+
+  return {
+    // Prefer flatMap to avoid extra intermediate arrays
+    data: results.flatMap((result) =>
+      result.isSuccess && Array.isArray(result.data) ? result.data : [],
+    ),
+    // Preserve a single error for compatibility and expose the full list for diagnostics
+    error: errors[0] ?? null,
+    errors,
+    isPending: enabledish.some((result) => result.isPending),
+    isSuccess:
+      enabledish.length > 0 && enabledish.every((result) => result.isSuccess),
+    isError: errors.length > 0,
+    isPaused: enabledish.some((result) => result.isPaused),
+    isRefetching: enabledish.some((result) => result.isRefetching),
+    isFetching: enabledish.some((result) => result.isFetching),
+    isLoading: enabledish.some((result) => result.isLoading),
+    // Aggregate refetch to trigger all underlying queries
+    refetch: async () => {
+      await Promise.all(
+        results.map(async (r) => {
+          await r.refetch();
+        }),
+      );
+    },
+  };
+}
+
+// Type guard for narrowing to connected servers
+function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
+  return "client" in server && server.client != null;
 }
 
 /**
  * Hook to get the prompt for the specified name.
- * @param promptName - The name of the prompt to get.
+ * @param promptName - The name of the prompt to get. If the prompt won't return anything
+ * @param args - The arguments to pass to the prompt.
  * @returns The prompt for the specified name.
  */
-export function useTamboMcpPrompt(promptName: string) {
+export function useTamboMcpPrompt(
+  promptName: string | undefined,
+  args: Record<string, string> = {},
+) {
   // figure out which server has the prompt
   const { data: promptEntries } = useTamboMcpPromptList();
   const promptEntry = promptEntries?.find(
     (prompt) => prompt.prompt.name === promptName,
   );
-  const mcpServers = useTamboMcpServers();
-  const mcpServer = mcpServers.find(
-    (mcpServer) =>
-      mcpServer.name === promptEntry?.server.name &&
-      mcpServer.url === promptEntry?.server.url &&
-      mcpServer.transport === promptEntry?.server.transport,
-  );
+  // Use the stable server key (and the server instance itself) instead of brittle
+  // name/url/transport matching.
+  const mcpServer = promptEntry?.server;
 
+  // Canonicalize args to avoid unstable cache keys from object identity/order
+  const sortedArgsEntries = Object.keys(args)
+    .sort()
+    .map((k) => [k, args[k]] as const);
   return useTamboQuery({
-    queryKey: ["mcp-prompt", promptName],
-    queryFn: async (): Promise<GetPromptResult | undefined> => {
-      return await mcpServer?.client?.client.getPrompt({
+    // Include server identity and sorted args to prevent stale cache hits
+    queryKey: ["mcp-prompt", promptName, mcpServer?.key, sortedArgsEntries],
+    // Only run when we have a prompt name and a connected server
+    enabled: Boolean(
+      promptName && mcpServer && isConnectedMcpServer(mcpServer),
+    ),
+    queryFn: async (): Promise<GetPromptResult | null> => {
+      if (!promptName || !mcpServer || !isConnectedMcpServer(mcpServer)) {
+        return null;
+      }
+      const result = await mcpServer.client.client.getPrompt({
         name: promptName,
+        arguments: args,
       });
+      return result ?? null; // return null because react-query doesn't like undefined results
     },
   });
 }

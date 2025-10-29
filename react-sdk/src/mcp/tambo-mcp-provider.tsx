@@ -44,6 +44,10 @@ export function extractErrorMessage(content: unknown): string {
 /**
  * Configuration for connecting to an MCP server.
  */
+/**
+ * User-provided configuration for an MCP server.
+ * Does not include the derived stable key.
+ */
 export interface McpServerInfo {
   /** Optional name for the MCP server */
   name?: string;
@@ -63,11 +67,22 @@ export interface McpServerInfo {
   handlers?: Partial<MCPHandlers>;
 }
 
-export interface ConnectedMcpServer extends McpServerInfo {
+/**
+ * Normalized server information with a stable derived key.
+ */
+interface McpServerConfig extends McpServerInfo {
+  /**
+   * Stable identity for this server derived from its URL/transport/headers.
+   * Present for all server states (connected or failed).
+   */
+  key: string;
+}
+
+export interface ConnectedMcpServer extends McpServerConfig {
   client: MCPClient;
 }
 
-export interface FailedMcpServer extends McpServerInfo {
+export interface FailedMcpServer extends McpServerConfig {
   client?: never;
   connectionError: Error;
 }
@@ -81,11 +96,11 @@ export type McpServer = ConnectedMcpServer | FailedMcpServer;
 export interface ProviderMCPHandlers {
   elicitation?: (
     request: Parameters<MCPHandlers["elicitation"]>[0],
-    serverInfo: McpServerInfo,
+    serverInfo: McpServerConfig,
   ) => ReturnType<MCPHandlers["elicitation"]>;
   sampling?: (
     request: Parameters<MCPHandlers["sampling"]>[0],
-    serverInfo: McpServerInfo,
+    serverInfo: McpServerConfig,
   ) => ReturnType<MCPHandlers["sampling"]>;
 }
 
@@ -145,11 +160,11 @@ export const TamboMcpProvider: FC<{
     }
 
     // Create a map of server key -> server info for efficient lookups
-    const serverMap = new Map<string, McpServerInfo>();
+    const serverMap = new Map<string, McpServerConfig>();
     servers.forEach((server) => {
       const serverInfo = normalizeServerInfo(server);
-      const key = getServerKey(serverInfo);
-      serverMap.set(key, serverInfo);
+      // Store without cloning to avoid unnecessary allocation
+      serverMap.set(serverInfo.key, serverInfo);
     });
 
     return serverMap;
@@ -408,7 +423,9 @@ export const useTamboMcpServers = () => {
  * Two servers with the same URL, transport, and headers will have the same key.
  * @returns A stable string key identifying the server
  */
-function getServerKey(serverInfo: McpServerInfo): string {
+function getServerKey(
+  serverInfo: Pick<McpServerInfo, "url" | "transport" | "customHeaders">,
+): string {
   const headerStr = serverInfo.customHeaders
     ? JSON.stringify(
         Object.entries(serverInfo.customHeaders)
@@ -423,8 +440,11 @@ function getServerKey(serverInfo: McpServerInfo): string {
  * Normalizes a server definition (string or object) into a McpServerInfo.
  * @returns The normalized McpServerInfo object
  */
-function normalizeServerInfo(server: McpServerInfo | string): McpServerInfo {
-  return typeof server === "string"
-    ? { url: server, transport: MCPTransport.SSE }
-    : server;
+function normalizeServerInfo(server: McpServerInfo | string): McpServerConfig {
+  const s =
+    typeof server === "string"
+      ? { url: server, transport: MCPTransport.SSE }
+      : server;
+  const key = getServerKey(s);
+  return { ...s, key } as McpServerConfig;
 }
