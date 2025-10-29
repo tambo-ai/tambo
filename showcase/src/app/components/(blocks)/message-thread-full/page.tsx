@@ -1,6 +1,10 @@
 "use client";
 
 import { CLI } from "@/components/cli";
+import {
+  ElicitationProvider,
+  useElicitationHandler,
+} from "@/components/ui/elicitation-provider";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
@@ -10,16 +14,34 @@ import { DemoWrapper } from "../../demo-wrapper";
 const MCP_DEMO_URL =
   process.env.NEXT_PUBLIC_MCP_DEMO_URL || "https://everything-mcp.tambo.co/mcp";
 
-export default function MessageThreadFullPage() {
+function MessageThreadFullContent() {
   const userContextKey = useUserContextKey("message-thread-full");
+  const elicitationHandler = useElicitationHandler();
+
+  return (
+    <TamboMcpProvider
+      mcpServers={[{ url: MCP_DEMO_URL, transport: MCPTransport.HTTP }]}
+      handlers={{ elicitation: elicitationHandler }}
+    >
+      <DemoWrapper title="Message Thread Full">
+        <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
+          <MessageThreadFull
+            contextKey={userContextKey}
+            className="w-full rounded-lg"
+          />
+        </div>
+      </DemoWrapper>
+    </TamboMcpProvider>
+  );
+}
+
+export default function MessageThreadFullPage() {
   const installCommand = "npx tambo add message-thread-full";
 
   return (
     <div className="py-8 max-w-4xl mx-auto">
       <ShowcaseThemeProvider defaultTheme="light">
-        <TamboMcpProvider
-          mcpServers={[{ url: MCP_DEMO_URL, transport: MCPTransport.HTTP }]}
-        >
+        <ElicitationProvider>
           <div className="flex flex-col gap-8">
             <div>
               <h1 className="text-3xl font-bold mb-4">Message Thread Full</h1>
@@ -36,16 +58,9 @@ export default function MessageThreadFullPage() {
               </div>
             </div>
 
-            <DemoWrapper title="Message Thread Full">
-              <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
-                <MessageThreadFull
-                  contextKey={userContextKey}
-                  className="w-full rounded-lg"
-                />
-              </div>
-            </DemoWrapper>
+            <MessageThreadFullContent />
           </div>
-        </TamboMcpProvider>
+        </ElicitationProvider>
       </ShowcaseThemeProvider>
     </div>
   );
