@@ -801,6 +801,11 @@ const MessageInputMcpPromptButton = React.forwardRef<
     }
   }, [promptData, selectedPromptName, setValue, value]);
 
+  // Only show button if prompts are available (hide during loading and when no prompts)
+  if (!promptList || promptList.length === 0) {
+    return null;
+  }
+
   const buttonClasses = cn(
     "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
