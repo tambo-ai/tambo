@@ -299,7 +299,7 @@ export const TamboMcpProvider: FC<{
                 registerTool({
                   description: tool.description ?? "",
                   name: tool.name,
-                  tool: async (args: Record<string, unknown>) => {
+                  tool: async (args: Record<string, unknown> = {}) => {
                     const server = clientMap.get(key);
                     if (!server?.client) {
                       throw new Error(
