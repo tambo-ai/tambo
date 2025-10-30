@@ -11,7 +11,14 @@ import { TamboTool } from "../model/component-metadata";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
-import { MCPClient, MCPHandlers, MCPTransport } from "./mcp-client";
+import { type ElicitationContextState, useElicitation } from "./elicitation";
+import {
+  MCPClient,
+  MCPElicitationHandler,
+  MCPHandlers,
+  MCPSamplingHandler,
+  MCPTransport,
+} from "./mcp-client";
 
 /**
  * Extracts error message from MCP tool result content.
@@ -42,11 +49,7 @@ export function extractErrorMessage(content: unknown): string {
 }
 
 /**
- * Configuration for connecting to an MCP server.
- */
-/**
  * User-provided configuration for an MCP server.
- * Does not include the derived stable key.
  */
 export interface McpServerInfo {
   /** Optional name for the MCP server */
@@ -78,33 +81,60 @@ interface McpServerConfig extends McpServerInfo {
   key: string;
 }
 
+/**
+ * Connected MCP server with an active client.
+ */
 export interface ConnectedMcpServer extends McpServerConfig {
   client: MCPClient;
 }
 
+/**
+ * Failed MCP server with a connection error.
+ */
 export interface FailedMcpServer extends McpServerConfig {
   client?: never;
   connectionError: Error;
 }
 
+/**
+ * An active or failed MCP server, with access to the MCP client.
+ */
 export type McpServer = ConnectedMcpServer | FailedMcpServer;
 
 /**
  * Provider-level MCP handlers that receive the McpServerInfo as context in addition to the request.
  * These handlers are applied to all MCP servers unless overridden by per-server handlers.
+ *
+ * Handlers receive three parameters:
+ * 1. request - The MCP request
+ * 2. extra - RequestHandlerExtra containing AbortSignal and other metadata
+ * 3. serverInfo - Configuration of the MCP server that triggered this request
  */
 export interface ProviderMCPHandlers {
   elicitation?: (
-    request: Parameters<MCPHandlers["elicitation"]>[0],
+    request: Parameters<MCPElicitationHandler>[0],
+    extra: Parameters<MCPElicitationHandler>[1],
     serverInfo: McpServerConfig,
-  ) => ReturnType<MCPHandlers["elicitation"]>;
+  ) => ReturnType<MCPElicitationHandler>;
   sampling?: (
-    request: Parameters<MCPHandlers["sampling"]>[0],
+    request: Parameters<MCPSamplingHandler>[0],
+    extra: Parameters<MCPSamplingHandler>[1],
     serverInfo: McpServerConfig,
-  ) => ReturnType<MCPHandlers["sampling"]>;
+  ) => ReturnType<MCPSamplingHandler>;
 }
 
-const McpProviderContext = createContext<McpServer[]>([]);
+/**
+ * Context value for MCP provider including server list and elicitation state
+ */
+interface McpProviderContextValue extends ElicitationContextState {
+  servers: McpServer[];
+}
+
+const McpProviderContext = createContext<McpProviderContextValue>({
+  servers: [],
+  elicitation: null,
+  resolveElicitation: null,
+});
 
 // Constant for the internal Tambo MCP server name
 const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
@@ -125,8 +155,15 @@ export const TamboMcpProvider: FC<{
 }> = ({ mcpServers, handlers, children }) => {
   const { registerTool } = useTamboRegistry();
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
-  const providerElicitationHandler = handlers?.elicitation;
   const providerSamplingHandler = handlers?.sampling;
+
+  // Elicitation state and default handler
+  const { elicitation, resolveElicitation, defaultElicitationHandler } =
+    useElicitation();
+
+  // Use provided handler or fall back to default
+  const providerElicitationHandler =
+    handlers?.elicitation ?? defaultElicitationHandler;
 
   // Stable reference to track active clients by server key
   const clientMapRef = useRef<Map<string, McpServer>>(new Map());
@@ -218,15 +255,15 @@ export const TamboMcpProvider: FC<{
             if (serverInfo.handlers?.elicitation) {
               effectiveHandlers.elicitation = serverInfo.handlers.elicitation;
             } else if (providerElicitationHandler) {
-              effectiveHandlers.elicitation = async (request) =>
-                await providerElicitationHandler(request, serverInfo);
+              effectiveHandlers.elicitation = async (request, extra) =>
+                await providerElicitationHandler(request, extra, serverInfo);
             }
 
             if (serverInfo.handlers?.sampling) {
               effectiveHandlers.sampling = serverInfo.handlers.sampling;
             } else if (providerSamplingHandler) {
-              effectiveHandlers.sampling = async (request) =>
-                await providerSamplingHandler(request, serverInfo);
+              effectiveHandlers.sampling = async (request, extra) =>
+                await providerSamplingHandler(request, extra, serverInfo);
             }
 
             const client = await MCPClient.create(
@@ -268,7 +305,7 @@ export const TamboMcpProvider: FC<{
                 registerTool({
                   description: tool.description ?? "",
                   name: tool.name,
-                  tool: async (args: Record<string, unknown>) => {
+                  tool: async (args: Record<string, unknown> = {}) => {
                     const server = clientMap.get(key);
                     if (!server?.client) {
                       throw new Error(
@@ -342,15 +379,15 @@ export const TamboMcpProvider: FC<{
       const effectiveElicitationHandler =
         serverInfo.handlers?.elicitation ??
         (providerElicitationHandler
-          ? async (request) =>
-              await providerElicitationHandler(request, serverInfo)
+          ? async (request, extra) =>
+              await providerElicitationHandler(request, extra, serverInfo)
           : undefined);
 
       const effectiveSamplingHandler =
         serverInfo.handlers?.sampling ??
         (providerSamplingHandler
-          ? async (request) =>
-              await providerSamplingHandler(request, serverInfo)
+          ? async (request, extra) =>
+              await providerSamplingHandler(request, extra, serverInfo)
           : undefined);
 
       // Update handlers unconditionally (allows removal by passing undefined)
@@ -384,8 +421,17 @@ export const TamboMcpProvider: FC<{
     };
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      servers: connectedMcpServers,
+      elicitation,
+      resolveElicitation,
+    }),
+    [connectedMcpServers, elicitation, resolveElicitation],
+  );
+
   return (
-    <McpProviderContext.Provider value={connectedMcpServers}>
+    <McpProviderContext.Provider value={contextValue}>
       {children}
     </McpProviderContext.Provider>
   );
@@ -415,7 +461,40 @@ export const TamboMcpProvider: FC<{
  * @returns The MCP servers
  */
 export const useTamboMcpServers = () => {
-  return useContext(McpProviderContext);
+  return useContext(McpProviderContext).servers;
+};
+
+/**
+ * Hook to access elicitation context from TamboMcpProvider.
+ * This provides access to the current elicitation request and methods to respond to it.
+ *
+ * The elicitation state is automatically managed by TamboMcpProvider when MCP servers
+ * request user input through the elicitation protocol.
+ * @returns The elicitation context with current request and response handlers
+ * @example
+ * ```tsx
+ * function ElicitationUI() {
+ *   const { elicitation, resolveElicitation } = useTamboElicitationContext();
+ *
+ *   if (!elicitation) return null;
+ *
+ *   return (
+ *     <div>
+ *       <p>{elicitation.message}</p>
+ *       <button onClick={() => resolveElicitation?.({ action: "accept", content: {} })}>
+ *         Accept
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export const useTamboElicitationContext = () => {
+  const context = useContext(McpProviderContext);
+  return {
+    elicitation: context.elicitation,
+    resolveElicitation: context.resolveElicitation,
+  };
 };
 
 /**
