@@ -131,4 +131,4 @@ Skip pseudocode for:
 - Standard React patterns
 - Obvious utility functions
 
-Save the plan to `.plans/[feature-name].md` in the root directory using the Write tool.
+Save the plan to `.plans/[feature-name].md`in the root directory using the Write tool.
