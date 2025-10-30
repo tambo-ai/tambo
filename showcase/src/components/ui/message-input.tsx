@@ -1,11 +1,6 @@
 "use client";
 
 import { ElicitationUI } from "@/components/ui/elicitation-ui";
-import {
-  useTamboElicitationContext,
-  type TamboElicitationRequest,
-  type TamboElicitationResponse,
-} from "@tambo-ai/react/mcp";
 import { McpConfigModal } from "@/components/ui/mcp-config-modal";
 import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
@@ -16,7 +11,13 @@ import {
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
-import { useTamboMcpPrompt, useTamboMcpPromptList } from "@tambo-ai/react/mcp";
+import {
+  useTamboElicitationContext,
+  useTamboMcpPrompt,
+  useTamboMcpPromptList,
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "@tambo-ai/react/mcp";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
@@ -190,10 +191,8 @@ const MessageInputInternal = React.forwardRef<
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const dragCounter = React.useRef(0);
 
-  // Use elicitation context if available (optional)
-  const elicitationContext = useTamboElicitationContext();
-  const elicitation = elicitationContext?.elicitation ?? null;
-  const resolveElicitation = elicitationContext?.resolveElicitation ?? null;
+  // Use elicitation context (optional)
+  const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
     setDisplayValue(value);

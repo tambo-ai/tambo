@@ -194,10 +194,8 @@ const MessageInputInternal = React.forwardRef<
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const dragCounter = React.useRef(0);
 
-  // Use elicitation context if available (optional)
-  const elicitationContext = useTamboElicitationContext();
-  const elicitation = elicitationContext?.elicitation ?? null;
-  const resolveElicitation = elicitationContext?.resolveElicitation ?? null;
+  // Use elicitation context (optional)
+  const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
     setDisplayValue(value);
