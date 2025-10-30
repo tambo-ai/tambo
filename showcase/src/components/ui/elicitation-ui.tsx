@@ -5,7 +5,6 @@ import {
   type TamboElicitationRequest,
   type TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
-import { Check } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -49,6 +48,7 @@ interface FieldProps {
   onChange: (value: unknown) => void;
   required: boolean;
   autoFocus?: boolean;
+  showValidation?: boolean;
 }
 
 /**
@@ -76,37 +76,25 @@ const BooleanField: React.FC<FieldProps> = ({
           autoFocus={autoFocus}
           onClick={() => onChange(true)}
           className={cn(
-            "flex-1 px-4 py-2 rounded-lg border transition-colors flex items-center justify-center",
+            "flex-1 px-4 py-2 rounded-lg border transition-colors",
             boolValue === true
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-background border-border hover:bg-muted",
           )}
         >
           Yes
-          <Check
-            className={cn(
-              "w-4 h-4 ml-2",
-              boolValue === true ? "opacity-100" : "opacity-0",
-            )}
-          />
         </button>
         <button
           type="button"
           onClick={() => onChange(false)}
           className={cn(
-            "flex-1 px-4 py-2 rounded-lg border transition-colors flex items-center justify-center",
+            "flex-1 px-4 py-2 rounded-lg border transition-colors",
             boolValue === false
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-background border-border hover:bg-muted",
           )}
         >
           No
-          <Check
-            className={cn(
-              "w-4 h-4 ml-2",
-              boolValue === false ? "opacity-100" : "opacity-0",
-            )}
-          />
         </button>
       </div>
     </div>
@@ -143,19 +131,13 @@ const EnumField: React.FC<FieldProps> = ({
             autoFocus={autoFocus && index === 0}
             onClick={() => onChange(option)}
             className={cn(
-              "px-4 py-2 rounded-lg border transition-colors flex items-center",
+              "px-4 py-2 rounded-lg border transition-colors",
               stringValue === option
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background border-border hover:bg-muted",
             )}
           >
             {optionNames[index] || option}
-            <Check
-              className={cn(
-                "w-4 h-4 ml-2",
-                stringValue === option ? "opacity-100" : "opacity-0",
-              )}
-            />
           </button>
         ))}
       </div>
@@ -173,11 +155,30 @@ const StringField: React.FC<FieldProps> = ({
   onChange,
   required,
   autoFocus,
+  showValidation,
 }) => {
   const stringSchema = schema as StringFieldSchema;
   const stringValue = (value as string | undefined) || "";
 
-  const inputType = stringSchema.format === "email" ? "email" : "text";
+  // Map JSON Schema format to HTML5 input type
+  const getInputType = (): string => {
+    switch (stringSchema.format) {
+      case "email":
+        return "email";
+      case "uri":
+        return "url";
+      case "date":
+        return "date";
+      case "date-time":
+        return "datetime-local";
+      default:
+        return "text";
+    }
+  };
+
+  const inputType = getInputType();
+  const isValid = validateField(value, schema, required);
+  const showError = showValidation && !isValid;
 
   return (
     <div className="space-y-2">
@@ -191,13 +192,25 @@ const StringField: React.FC<FieldProps> = ({
         autoFocus={autoFocus}
         value={stringValue}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        className={cn(
+          "w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2",
+          showError
+            ? "border-destructive focus:ring-destructive"
+            : "border-border focus:ring-primary",
+        )}
         placeholder={schema.description || name}
         minLength={stringSchema.minLength}
         maxLength={stringSchema.maxLength}
         pattern={stringSchema.pattern}
         required={required}
       />
+      {showError && (
+        <p className="text-xs text-destructive">
+          {required && !stringValue
+            ? "This field is required"
+            : "Please enter a valid value"}
+        </p>
+      )}
     </div>
   );
 };
@@ -212,9 +225,13 @@ const NumberField: React.FC<FieldProps> = ({
   onChange,
   required,
   autoFocus,
+  showValidation,
 }) => {
   const numberSchema = schema as NumberFieldSchema;
   const numberValue = value as number | undefined;
+
+  const isValid = validateField(value, schema, required);
+  const showError = showValidation && !isValid;
 
   return (
     <div className="space-y-2">
@@ -231,13 +248,25 @@ const NumberField: React.FC<FieldProps> = ({
           const val = e.target.value;
           onChange(val === "" ? undefined : Number(val));
         }}
-        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        className={cn(
+          "w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2",
+          showError
+            ? "border-destructive focus:ring-destructive"
+            : "border-border focus:ring-primary",
+        )}
         placeholder={schema.description || name}
         min={numberSchema.minimum}
         max={numberSchema.maximum}
         step={numberSchema.type === "integer" ? 1 : "any"}
         required={required}
       />
+      {showError && (
+        <p className="text-xs text-destructive">
+          {required && numberValue === undefined
+            ? "This field is required"
+            : "Please enter a valid number"}
+        </p>
+      )}
     </div>
   );
 };
@@ -287,6 +316,100 @@ function isSingleEntryMode(request: TamboElicitationRequest): boolean {
 }
 
 /**
+ * Validates a field value against its schema constraints
+ */
+function validateField(
+  value: unknown,
+  schema: FieldSchema,
+  required: boolean,
+): boolean {
+  // Check required
+  if (required && (value === undefined || value === "" || value === null)) {
+    return false;
+  }
+
+  // If empty and not required, it's valid
+  if (!required && (value === undefined || value === "" || value === null)) {
+    return true;
+  }
+
+  // String validation
+  if (schema.type === "string") {
+    const stringSchema = schema as StringFieldSchema;
+    const stringValue = value as string;
+
+    if (stringSchema.minLength && stringValue.length < stringSchema.minLength) {
+      return false;
+    }
+
+    if (stringSchema.maxLength && stringValue.length > stringSchema.maxLength) {
+      return false;
+    }
+
+    if (stringSchema.pattern) {
+      try {
+        const regex = new RegExp(stringSchema.pattern);
+        if (!regex.test(stringValue)) {
+          return false;
+        }
+      } catch {
+        // Invalid regex pattern, skip validation
+      }
+    }
+
+    // Format validation (basic checks)
+    if (stringSchema.format) {
+      switch (stringSchema.format) {
+        case "email":
+          // Basic email validation
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
+            return false;
+          }
+          break;
+        case "uri":
+          try {
+            new URL(stringValue);
+          } catch {
+            return false;
+          }
+          break;
+        // date and date-time are validated by the input type
+      }
+    }
+  }
+
+  // Number validation
+  if (schema.type === "number" || schema.type === "integer") {
+    const numberSchema = schema as NumberFieldSchema;
+    const numberValue = value as number;
+
+    if (isNaN(numberValue)) {
+      return false;
+    }
+
+    if (
+      numberSchema.minimum !== undefined &&
+      numberValue < numberSchema.minimum
+    ) {
+      return false;
+    }
+
+    if (
+      numberSchema.maximum !== undefined &&
+      numberValue > numberSchema.maximum
+    ) {
+      return false;
+    }
+
+    if (schema.type === "integer" && !Number.isInteger(numberValue)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Props for the ElicitationUI component
  */
 export interface ElicitationUIProps {
@@ -321,11 +444,23 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
     },
   );
 
+  // Track whether to show validation errors
+  const [showValidation, setShowValidation] = React.useState(false);
+
   const handleFieldChange = (name: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Show validation as user types if already attempted submit
+    if (showValidation) {
+      setShowValidation(true);
+    }
   };
 
   const handleAccept = () => {
+    // Check if valid before submitting
+    if (!isValid) {
+      setShowValidation(true);
+      return;
+    }
     onResponse({ action: "accept", content: formData });
   };
 
@@ -345,13 +480,14 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
     onResponse({ action: "accept", content: updatedData });
   };
 
-  // Check if form is valid (all required fields filled)
+  // Check if form is valid (all fields pass validation)
   const isValid = React.useMemo(() => {
-    return Array.from(requiredFields).every((field) => {
-      const value = formData[field];
-      return value !== undefined && value !== "";
+    return fields.every(([fieldName, fieldSchema]) => {
+      const value = formData[fieldName];
+      const isRequired = requiredFields.has(fieldName);
+      return validateField(value, fieldSchema, isRequired);
     });
-  }, [formData, requiredFields]);
+  }, [formData, fields, requiredFields]);
 
   if (singleEntry) {
     const [fieldName, fieldSchema] = fields[0];
@@ -372,6 +508,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           onChange={(value) => handleSingleEntryChange(fieldName, value)}
           required={requiredFields.has(fieldName)}
           autoFocus
+          showValidation={showValidation}
         />
         <div className="flex justify-end gap-2 pt-2">
           <button
@@ -407,6 +544,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
             onChange={(value) => handleFieldChange(name, value)}
             required={requiredFields.has(name)}
             autoFocus={index === 0}
+            showValidation={showValidation}
           />
         ))}
       </div>
