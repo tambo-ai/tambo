@@ -14,9 +14,20 @@ Before I start planning, I want to make sure I understand what we're building. L
 
 ---
 
-**Step 3: Initial Codebase Research**
+**Step 3: Create Planning Todo List**
 
-Launch researcher agent:
+Use TodoWrite to create a planning todo list:
+
+- Clarify requirements (mark as completed)
+- Initial codebase research
+- Parallel deep research (will break down into subtasks)
+- Synthesize plan document
+
+---
+
+**Step 4: Initial Codebase Research**
+
+Mark "Initial codebase research" as in_progress, then launch researcher agent:
 
 ```
 /task researcher "Analyze the codebase to understand:
@@ -28,11 +39,15 @@ Launch researcher agent:
 Feature context: [confirmed requirements]"
 ```
 
+After agent completes, mark task as completed and update todos with specific research areas discovered.
+
 ---
 
-**Step 4: Parallel Deep Research**
+**Step 5: Parallel Deep Research**
 
-Based on the initial research findings, launch multiple researcher agents in parallel:
+Update todo list with 2-8 specific research tasks based on initial findings. Mark "Parallel deep research" as in_progress.
+
+Launch multiple research agents in parallel (in a SINGLE message with multiple Task calls):
 
 ```
 /task researcher "Research how to implement [specific aspect] using [technology X].
