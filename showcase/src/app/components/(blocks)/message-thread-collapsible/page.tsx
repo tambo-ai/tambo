@@ -32,6 +32,24 @@ function MessageThreadCollapsibleContent() {
           },
         },
       ]}
+      mcpServers={[
+        {
+          url: MCP_DEMO_URL,
+          transport: MCPTransport.HTTP,
+          handlers: {
+            elicitation: async (request) => {
+              console.log("elicitation request", request);
+              return {
+                action: "accept",
+                content: {
+                  type: "text",
+                  text: "Hello, world!",
+                },
+              };
+            },
+          },
+        },
+      ]}
     >
       <DemoWrapper title="Message Thread Collapsible">
         <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full relative">
