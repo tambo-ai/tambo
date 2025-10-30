@@ -1659,12 +1659,14 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider
-              streaming={false}
-              autoGenerateNameThreshold={2}
-            >
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider
+                streaming={false}
+                autoGenerateNameThreshold={2}
+              >
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1737,13 +1739,15 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider
-              streaming={false}
-              autoGenerateThreadName={false}
-              autoGenerateNameThreshold={2}
-            >
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider
+                streaming={false}
+                autoGenerateThreadName={false}
+                autoGenerateNameThreshold={2}
+              >
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1808,12 +1812,14 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider
-              streaming={false}
-              autoGenerateNameThreshold={2}
-            >
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider
+                streaming={false}
+                autoGenerateNameThreshold={2}
+              >
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
@@ -1885,12 +1891,14 @@ describe("TamboThreadProvider", () => {
               currentPageContextHelper: () => null,
             }}
           >
-            <TamboThreadProvider
-              streaming={false}
-              autoGenerateNameThreshold={2}
-            >
-              {children}
-            </TamboThreadProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider
+                streaming={false}
+                autoGenerateNameThreshold={2}
+              >
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       );
