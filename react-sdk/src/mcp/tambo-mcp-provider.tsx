@@ -433,7 +433,7 @@ function getServerKey(
           .sort(([a], [b]) => a.localeCompare(b)),
       )
     : "";
-  return `${serverInfo.url}|${serverInfo.transport ?? "SSE"}|${headerStr}`;
+  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.SSE}|${headerStr}`;
 }
 
 /**
@@ -446,5 +446,5 @@ function normalizeServerInfo(server: McpServerInfo | string): McpServerConfig {
       ? { url: server, transport: MCPTransport.SSE }
       : server;
   const key = getServerKey(s);
-  return { ...s, key } as McpServerConfig;
+  return { ...s, key };
 }
