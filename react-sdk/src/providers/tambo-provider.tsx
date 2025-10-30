@@ -81,11 +81,6 @@ export const TamboProvider: React.FC<
   initialMessages,
   onCallUnregisteredTool,
 }) => {
-  // Should only be used in browser
-  if (typeof window === "undefined") {
-    console.error("TamboProvider must be used within a browser");
-  }
-
   return (
     <TamboClientProvider
       tamboUrl={tamboUrl}
