@@ -13,4 +13,4 @@ coverage
 #claude local settings
 .claude/settings.local.json
 #coding agents
-.plans/*
+.plans/
