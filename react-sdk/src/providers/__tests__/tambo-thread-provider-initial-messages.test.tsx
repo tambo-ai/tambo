@@ -50,9 +50,9 @@ const createWrapper = (initialMessages: TamboThreadMessage[] = []) => {
       <TamboContextHelpersProvider>
         <TamboMcpTokenProvider>
           <TamboThreadProvider
-          initialMessages={initialMessages}
-          autoGenerateThreadName={false}
-        >
+            initialMessages={initialMessages}
+            autoGenerateThreadName={false}
+          >
             {children}
           </TamboThreadProvider>
         </TamboMcpTokenProvider>
