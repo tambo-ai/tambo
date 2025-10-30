@@ -67,7 +67,7 @@ const BooleanField: React.FC<FieldProps> = ({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-foreground">
-        {schema.description || name}
+        {schema.description ?? name}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       <div className="flex gap-2">
@@ -113,14 +113,14 @@ const EnumField: React.FC<FieldProps> = ({
   autoFocus,
 }) => {
   const stringSchema = schema as StringFieldSchema;
-  const options = stringSchema.enum || [];
-  const optionNames = stringSchema.enumNames || options;
+  const options = stringSchema.enum ?? [];
+  const optionNames = stringSchema.enumNames ?? options;
   const stringValue = value as string | undefined;
 
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-foreground">
-        {schema.description || name}
+        {schema.description ?? name}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -158,7 +158,7 @@ const StringField: React.FC<FieldProps> = ({
   showValidation,
 }) => {
   const stringSchema = schema as StringFieldSchema;
-  const stringValue = (value as string | undefined) || "";
+  const stringValue = (value as string | undefined) ?? "";
 
   // Map JSON Schema format to HTML5 input type
   const getInputType = (): string => {
@@ -183,7 +183,7 @@ const StringField: React.FC<FieldProps> = ({
   return (
     <div className="space-y-2">
       <label htmlFor={name} className="text-sm font-medium text-foreground">
-        {schema.description || name}
+        {schema.description ?? name}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       <input
@@ -198,7 +198,7 @@ const StringField: React.FC<FieldProps> = ({
             ? "border-destructive focus:ring-destructive"
             : "border-border focus:ring-primary",
         )}
-        placeholder={schema.description || name}
+        placeholder={schema.description ?? name}
         minLength={stringSchema.minLength}
         maxLength={stringSchema.maxLength}
         pattern={stringSchema.pattern}
@@ -236,7 +236,7 @@ const NumberField: React.FC<FieldProps> = ({
   return (
     <div className="space-y-2">
       <label htmlFor={name} className="text-sm font-medium text-foreground">
-        {schema.description || name}
+        {schema.description ?? name}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       <input
@@ -254,7 +254,7 @@ const NumberField: React.FC<FieldProps> = ({
             ? "border-destructive focus:ring-destructive"
             : "border-border focus:ring-primary",
         )}
-        placeholder={schema.description || name}
+        placeholder={schema.description ?? name}
         min={numberSchema.minimum}
         max={numberSchema.maximum}
         step={numberSchema.type === "integer" ? 1 : "any"}
@@ -429,7 +429,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
 }) => {
   const singleEntry = isSingleEntryMode(request);
   const fields = Object.entries(request.requestedSchema.properties);
-  const requiredFields = new Set(request.requestedSchema.required || []);
+  const requiredFields = new Set(request.requestedSchema.required ?? []);
 
   // Initialize form data with defaults
   const [formData, setFormData] = React.useState<Record<string, unknown>>(
