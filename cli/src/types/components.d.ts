@@ -16,6 +16,7 @@
  * - ThreadDropdown component
  * - ScrollableMessageContainer component
  * - MessageInputFileButton component
+ * - ElicitationUI component
  *
  * These components are meant to be installed and used in end-user projects
  * through the CLI installation process.
@@ -377,6 +378,21 @@ declare module "@/components/tambo/scrollable-message-container" {
   export const ScrollableMessageContainer: React.ForwardRefExoticComponent<
     React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>
   >;
+}
+
+declare module "@/components/tambo/elicitation-ui" {
+  import type {
+    TamboElicitationRequest,
+    TamboElicitationResponse,
+  } from "@tambo-ai/react/mcp";
+
+  export interface ElicitationUIProps {
+    request: TamboElicitationRequest;
+    onResponse: (response: TamboElicitationResponse) => void;
+    className?: string;
+  }
+
+  export const ElicitationUI: React.FC<ElicitationUIProps>;
 }
 
 declare module "@/lib/thread-hooks" {
