@@ -63,7 +63,7 @@ Research findings:
 - Technology research: [summary]
 - Codebase deep dives: [summary]
 
-Output to .claude/.plans/[feature-name].md"
+Output to .plans/[feature-name].md (create the .plans/ directory if it doesn't exist)"
 ```
 
 **Step 1: Clarify Requirements**
