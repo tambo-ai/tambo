@@ -67,8 +67,8 @@ const CodeHeader = ({
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-primary">
-      <span className="lowercase text-primary">{language}</span>
+    <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-muted-foreground">
+      <span className="lowercase text-muted-foreground">{language}</span>
       <button
         onClick={copyToClipboard}
         className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
