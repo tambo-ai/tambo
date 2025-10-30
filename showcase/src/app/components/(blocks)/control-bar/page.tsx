@@ -3,7 +3,6 @@
 import { CLI } from "@/components/cli";
 import { DemoControlBar } from "@/components/ui/control-bar";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import * as React from "react";
 import { DemoWrapper } from "../../demo-wrapper";
 
 export default function ControlBarPage() {
