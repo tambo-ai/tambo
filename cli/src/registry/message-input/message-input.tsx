@@ -1,5 +1,6 @@
 "use client";
 
+import { ElicitationUI } from "@/components/tambo/elicitation-ui";
 import { McpConfigModal } from "@/components/tambo/mcp-config-modal";
 import {
   Tooltip,
@@ -13,7 +14,13 @@ import {
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
-import { useTamboMcpPrompt, useTamboMcpPromptList } from "@tambo-ai/react/mcp";
+import {
+  useTamboElicitationContext,
+  useTamboMcpPrompt,
+  useTamboMcpPromptList,
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "@tambo-ai/react/mcp";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
@@ -71,6 +78,9 @@ const messageInputVariants = cva("w-full", {
  * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
+ * @property {TamboElicitationRequest | null} elicitation - Current elicitation request
+ * @property {function} setElicitation - Function to set the elicitation request
+ * @property {function} resolveElicitation - Function to resolve the elicitation promise
  */
 interface MessageInputContextValue {
   value: string;
@@ -86,6 +96,14 @@ interface MessageInputContextValue {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
+  elicitation: TamboElicitationRequest | null;
+  setElicitation: React.Dispatch<
+    React.SetStateAction<TamboElicitationRequest | null>
+  >;
+  resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
+  setResolveElicitation: React.Dispatch<
+    React.SetStateAction<((response: TamboElicitationResponse) => void) | null>
+  >;
 }
 
 /**
@@ -182,6 +200,13 @@ const MessageInputInternal = React.forwardRef<
   const [isDragging, setIsDragging] = React.useState(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const dragCounter = React.useRef(0);
+
+  // Use elicitation context if available (optional)
+  const elicitationContext = useTamboElicitationContext();
+  const elicitation = elicitationContext?.elicitation ?? null;
+  const setElicitation = elicitationContext?.setElicitation;
+  const resolveElicitation = elicitationContext?.resolveElicitation ?? null;
+  const setResolveElicitation = elicitationContext?.setResolveElicitation;
 
   React.useEffect(() => {
     setDisplayValue(value);
@@ -293,6 +318,21 @@ const MessageInputInternal = React.forwardRef<
     [addImages],
   );
 
+  const handleElicitationResponse = React.useCallback(
+    (response: TamboElicitationResponse) => {
+      if (resolveElicitation) {
+        resolveElicitation(response);
+      }
+      if (setElicitation) {
+        setElicitation(null);
+      }
+      if (setResolveElicitation) {
+        setResolveElicitation(null);
+      }
+    },
+    [resolveElicitation, setElicitation, setResolveElicitation],
+  );
+
   const contextValue = React.useMemo(
     () => ({
       value: displayValue,
@@ -308,6 +348,10 @@ const MessageInputInternal = React.forwardRef<
       textareaRef: inputRef ?? textareaRef,
       submitError,
       setSubmitError,
+      elicitation,
+      setElicitation,
+      resolveElicitation,
+      setResolveElicitation,
     }),
     [
       displayValue,
@@ -321,6 +365,8 @@ const MessageInputInternal = React.forwardRef<
       inputRef,
       textareaRef,
       submitError,
+      elicitation,
+      resolveElicitation,
     ],
   );
   return (
@@ -353,8 +399,17 @@ const MessageInputInternal = React.forwardRef<
               </p>
             </div>
           )}
-          <MessageInputStagedImages />
-          {children}
+          {elicitation ? (
+            <ElicitationUI
+              request={elicitation}
+              onResponse={handleElicitationResponse}
+            />
+          ) : (
+            <>
+              <MessageInputStagedImages />
+              {children}
+            </>
+          )}
         </div>
       </form>
     </MessageInputContext.Provider>
