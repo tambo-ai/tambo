@@ -1,5 +1,6 @@
 "use client";
 
+import { ElicitationUI } from "@/components/ui/elicitation-ui";
 import { McpConfigModal } from "@/components/ui/mcp-config-modal";
 import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,13 @@ import {
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
-import { useTamboMcpPrompt, useTamboMcpPromptList } from "@tambo-ai/react/mcp";
+import {
+  useTamboElicitationContext,
+  useTamboMcpPrompt,
+  useTamboMcpPromptList,
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "@tambo-ai/react/mcp";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
@@ -68,6 +75,8 @@ const messageInputVariants = cva("w-full", {
  * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
+ * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
+ * @property {function} resolveElicitation - Function to resolve the elicitation promise (automatically clears state)
  */
 interface MessageInputContextValue {
   value: string;
@@ -83,6 +92,8 @@ interface MessageInputContextValue {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
+  elicitation: TamboElicitationRequest | null;
+  resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
 }
 
 /**
@@ -179,6 +190,9 @@ const MessageInputInternal = React.forwardRef<
   const [isDragging, setIsDragging] = React.useState(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const dragCounter = React.useRef(0);
+
+  // Use elicitation context (optional)
+  const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
     setDisplayValue(value);
@@ -290,6 +304,16 @@ const MessageInputInternal = React.forwardRef<
     [addImages],
   );
 
+  const handleElicitationResponse = React.useCallback(
+    (response: TamboElicitationResponse) => {
+      // Calling resolveElicitation automatically clears the elicitation state
+      if (resolveElicitation) {
+        resolveElicitation(response);
+      }
+    },
+    [resolveElicitation],
+  );
+
   const contextValue = React.useMemo(
     () => ({
       value: displayValue,
@@ -305,6 +329,8 @@ const MessageInputInternal = React.forwardRef<
       textareaRef: inputRef ?? textareaRef,
       submitError,
       setSubmitError,
+      elicitation,
+      resolveElicitation,
     }),
     [
       displayValue,
@@ -318,6 +344,8 @@ const MessageInputInternal = React.forwardRef<
       inputRef,
       textareaRef,
       submitError,
+      elicitation,
+      resolveElicitation,
     ],
   );
   return (
@@ -350,8 +378,17 @@ const MessageInputInternal = React.forwardRef<
               </p>
             </div>
           )}
-          <MessageInputStagedImages />
-          {children}
+          {elicitation ? (
+            <ElicitationUI
+              request={elicitation}
+              onResponse={handleElicitationResponse}
+            />
+          ) : (
+            <>
+              <MessageInputStagedImages />
+              {children}
+            </>
+          )}
         </div>
       </form>
     </MessageInputContext.Provider>

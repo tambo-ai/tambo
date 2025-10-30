@@ -2,7 +2,10 @@ import { type OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import {
+  ClientNotification,
+  ClientRequest,
   CreateMessageRequest,
   CreateMessageRequestSchema,
   CreateMessageResult,
@@ -18,9 +21,48 @@ export enum MCPTransport {
 }
 
 /**
+ * Handler for MCP elicitation requests.
+ * Receives the elicit request and a RequestHandlerExtra containing an AbortSignal that fires when the request is cancelled.
+ * @param request - The elicitation request from the server
+ * @param extra - Additional context including AbortSignal for cancellation
+ * @returns Promise resolving to the elicitation result
+ * @example
+ * ```typescript
+ * const handler: MCPElicitationHandler = async (request, extra) => {
+ *   // Listen for cancellation
+ *   extra.signal.addEventListener('abort', () => {
+ *     console.log('Request cancelled');
+ *   });
+ *
+ *   // Return user's response
+ *   return {
+ *     action: 'accept',
+ *     content: { name: 'John' }
+ *   };
+ * };
+ * ```
+ */
+export type MCPElicitationHandler = (
+  e: ElicitRequest,
+  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+) => Promise<ElicitResult>;
+
+/**
+ * Handler for MCP sampling requests (create_message).
+ * Receives the sampling request and a RequestHandlerExtra containing an AbortSignal that fires when the request is cancelled.
+ * @param request - The sampling/create_message request from the server
+ * @param extra - Additional context including AbortSignal for cancellation
+ * @returns Promise resolving to the sampling result
+ */
+export type MCPSamplingHandler = (
+  e: CreateMessageRequest,
+  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+) => Promise<CreateMessageResult>;
+
+/**
  * Handlers for MCP requests - these are only used if the server supports the corresponding capabilities
- * @param elicitation - Handler for elicitation requests
- * @param sampling - Handler for sampling requests
+ * @param elicitation - Handler for elicitation requests (receives request and RequestHandlerExtra with AbortSignal)
+ * @param sampling - Handler for sampling requests (receives request and RequestHandlerExtra with AbortSignal)
  * @example
  * ```typescript
  * const mcp = await MCPClient.create(
@@ -30,14 +72,14 @@ export enum MCPTransport {
  *     undefined,
  *     undefined,
  *     {
- *       elicitation: (e: ElicitRequest) => Promise.resolve({...}),
+ *       elicitation: (e, extra) => Promise.resolve({...}),
  *     },
- * });
+ * );
  * ```
  */
 export interface MCPHandlers {
-  elicitation: (e: ElicitRequest) => Promise<ElicitResult>;
-  sampling: (e: CreateMessageRequest) => Promise<CreateMessageResult>;
+  elicitation: MCPElicitationHandler;
+  sampling: MCPSamplingHandler;
 }
 
 /**
@@ -246,9 +288,7 @@ export class MCPClient {
     return result;
   }
 
-  updateElicitationHandler(
-    handler: ((e: ElicitRequest) => Promise<ElicitResult>) | undefined,
-  ) {
+  updateElicitationHandler(handler: MCPElicitationHandler | undefined) {
     // Skip if handler hasn't changed
     if (handler === this.handlers.elicitation) {
       return;
@@ -271,11 +311,7 @@ export class MCPClient {
     this.client.setRequestHandler(ElicitRequestSchema, handler);
   }
 
-  updateSamplingHandler(
-    handler:
-      | ((e: CreateMessageRequest) => Promise<CreateMessageResult>)
-      | undefined,
-  ) {
+  updateSamplingHandler(handler: MCPSamplingHandler | undefined) {
     // Skip if handler hasn't changed
     if (handler === this.handlers.sampling) {
       return;
