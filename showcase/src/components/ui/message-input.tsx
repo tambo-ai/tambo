@@ -211,6 +211,32 @@ const MessageInputInternal = React.forwardRef<
     }
   }, [value]);
 
+  // Handle abort signal from elicitation request (e.g., server timeout)
+  React.useEffect(() => {
+    if (!elicitation?.signal) return;
+
+    const handleAbort = () => {
+      // Clear the elicitation UI when the request is aborted
+      if (setElicitation) {
+        setElicitation(null);
+      }
+      if (setResolveElicitation) {
+        setResolveElicitation(null);
+      }
+    };
+
+    if (elicitation.signal.aborted) {
+      handleAbort();
+      return;
+    }
+
+    elicitation.signal.addEventListener("abort", handleAbort);
+
+    return () => {
+      elicitation.signal?.removeEventListener("abort", handleAbort);
+    };
+  }, [elicitation, setElicitation, setResolveElicitation]);
+
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();

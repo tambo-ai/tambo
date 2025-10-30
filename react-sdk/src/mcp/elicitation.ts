@@ -1,4 +1,9 @@
 import { useMemo, useState } from "react";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {
+  ClientNotification,
+  ClientRequest,
+} from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * JSON Schema types for elicitation fields
@@ -41,6 +46,8 @@ export interface TamboElicitationRequest {
     properties: Record<string, FieldSchema>;
     required?: string[];
   };
+  /** AbortSignal that fires when the server cancels the request (e.g., timeout) */
+  signal?: AbortSignal;
 }
 
 /**
@@ -82,24 +89,50 @@ export function useElicitation() {
 
   const defaultElicitationHandler = useMemo(
     () =>
-      async (request: {
-        params: {
-          message: string;
-          requestedSchema: TamboElicitationRequest["requestedSchema"];
-        };
-      }): Promise<TamboElicitationResponse> => {
-        return await new Promise<TamboElicitationResponse>((resolve) => {
-          // Set the elicitation request to show the UI
-          setElicitation({
-            message: request.params.message,
-            requestedSchema: request.params.requestedSchema,
-          });
+      async (
+        request: {
+          params: {
+            message: string;
+            requestedSchema: TamboElicitationRequest["requestedSchema"];
+          };
+        },
+        extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+      ): Promise<TamboElicitationResponse> => {
+        return await new Promise<TamboElicitationResponse>(
+          (resolve, reject) => {
+            // Set the elicitation request to show the UI
+            setElicitation({
+              message: request.params.message,
+              requestedSchema: request.params.requestedSchema,
+              signal: extra.signal,
+            });
 
-          // Store the resolve function so we can call it when the user responds
-          setResolveElicitation(() => (response: TamboElicitationResponse) => {
-            resolve(response);
-          });
-        });
+            // If the signal is already aborted, reject immediately
+            if (extra.signal.aborted) {
+              setElicitation(null);
+              reject(new Error("Request aborted"));
+              return;
+            }
+
+            // Listen for abort signal to clean up
+            const handleAbort = () => {
+              setElicitation(null);
+              setResolveElicitation(null);
+              reject(new Error("Request aborted"));
+            };
+
+            extra.signal.addEventListener("abort", handleAbort, { once: true });
+
+            // Store the resolve function so we can call it when the user responds
+            setResolveElicitation(
+              () => (response: TamboElicitationResponse) => {
+                // Remove abort listener since we're resolving normally
+                extra.signal.removeEventListener("abort", handleAbort);
+                resolve(response);
+              },
+            );
+          },
+        );
       },
     [],
   );

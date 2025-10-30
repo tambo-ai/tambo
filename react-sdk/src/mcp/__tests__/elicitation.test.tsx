@@ -4,6 +4,26 @@ import {
   type TamboElicitationRequest,
   type TamboElicitationResponse,
 } from "../elicitation";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {
+  ClientNotification,
+  ClientRequest,
+} from "@modelcontextprotocol/sdk/types.js";
+
+// Create a mock RequestHandlerExtra for testing
+function createMockExtra(): RequestHandlerExtra<
+  ClientRequest,
+  ClientNotification
+> {
+  return {
+    signal: new AbortController().signal,
+    requestId: "test-request-id",
+     
+    sendNotification: (async () => {}) as any,
+     
+    sendRequest: (async () => ({ _meta: {} })) as any,
+  };
+}
 
 describe("useElicitation", () => {
   it("initializes with null state", () => {
@@ -47,14 +67,19 @@ describe("useElicitation", () => {
 
       // Start the handler but don't await yet
       let handlerPromise: Promise<TamboElicitationResponse>;
+      const extra = createMockExtra();
       act(() => {
-        handlerPromise = result.current.defaultElicitationHandler(request);
+        handlerPromise = result.current.defaultElicitationHandler(
+          request,
+          extra,
+        );
       });
 
       // Elicitation should be set
       expect(result.current.elicitation).toEqual({
         message: "Please provide your name",
         requestedSchema: request.params.requestedSchema,
+        signal: extra.signal,
       });
 
       // Resolve callback should be set
@@ -93,8 +118,12 @@ describe("useElicitation", () => {
 
       // Start the handler
       let handlerPromise: Promise<TamboElicitationResponse>;
+      const extra = createMockExtra();
       act(() => {
-        handlerPromise = result.current.defaultElicitationHandler(request);
+        handlerPromise = result.current.defaultElicitationHandler(
+          request,
+          extra,
+        );
       });
 
       // Resolve with accept
@@ -131,8 +160,12 @@ describe("useElicitation", () => {
       };
 
       let handlerPromise: Promise<TamboElicitationResponse>;
+      const extra = createMockExtra();
       act(() => {
-        handlerPromise = result.current.defaultElicitationHandler(request);
+        handlerPromise = result.current.defaultElicitationHandler(
+          request,
+          extra,
+        );
       });
 
       const response: TamboElicitationResponse = {
@@ -166,8 +199,12 @@ describe("useElicitation", () => {
       };
 
       let handlerPromise: Promise<TamboElicitationResponse>;
+      const extra = createMockExtra();
       act(() => {
-        handlerPromise = result.current.defaultElicitationHandler(request);
+        handlerPromise = result.current.defaultElicitationHandler(
+          request,
+          extra,
+        );
       });
 
       const response: TamboElicitationResponse = {
@@ -202,8 +239,9 @@ describe("useElicitation", () => {
       };
 
       let promise1: Promise<TamboElicitationResponse>;
+      const extra1 = createMockExtra();
       act(() => {
-        promise1 = result.current.defaultElicitationHandler(request1);
+        promise1 = result.current.defaultElicitationHandler(request1, extra1);
       });
 
       expect(result.current.elicitation?.message).toBe("First request");
@@ -237,8 +275,9 @@ describe("useElicitation", () => {
       };
 
       let promise2: Promise<TamboElicitationResponse>;
+      const extra2 = createMockExtra();
       act(() => {
-        promise2 = result.current.defaultElicitationHandler(request2);
+        promise2 = result.current.defaultElicitationHandler(request2, extra2);
       });
 
       expect(result.current.elicitation?.message).toBe("Second request");

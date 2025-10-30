@@ -98,14 +98,21 @@ export type McpServer = ConnectedMcpServer | FailedMcpServer;
 /**
  * Provider-level MCP handlers that receive the McpServerInfo as context in addition to the request.
  * These handlers are applied to all MCP servers unless overridden by per-server handlers.
+ *
+ * Handlers receive three parameters:
+ * 1. request - The MCP request
+ * 2. extra - RequestHandlerExtra containing AbortSignal and other metadata
+ * 3. serverInfo - Configuration of the MCP server that triggered this request
  */
 export interface ProviderMCPHandlers {
   elicitation?: (
     request: Parameters<MCPHandlers["elicitation"]>[0],
+    extra: Parameters<MCPHandlers["elicitation"]>[1],
     serverInfo: McpServerConfig,
   ) => ReturnType<MCPHandlers["elicitation"]>;
   sampling?: (
     request: Parameters<MCPHandlers["sampling"]>[0],
+    extra: Parameters<MCPHandlers["sampling"]>[1],
     serverInfo: McpServerConfig,
   ) => ReturnType<MCPHandlers["sampling"]>;
 }
@@ -249,15 +256,15 @@ export const TamboMcpProvider: FC<{
             if (serverInfo.handlers?.elicitation) {
               effectiveHandlers.elicitation = serverInfo.handlers.elicitation;
             } else if (providerElicitationHandler) {
-              effectiveHandlers.elicitation = async (request) =>
-                await providerElicitationHandler(request, serverInfo);
+              effectiveHandlers.elicitation = async (request, extra) =>
+                await providerElicitationHandler(request, extra, serverInfo);
             }
 
             if (serverInfo.handlers?.sampling) {
               effectiveHandlers.sampling = serverInfo.handlers.sampling;
             } else if (providerSamplingHandler) {
-              effectiveHandlers.sampling = async (request) =>
-                await providerSamplingHandler(request, serverInfo);
+              effectiveHandlers.sampling = async (request, extra) =>
+                await providerSamplingHandler(request, extra, serverInfo);
             }
 
             const client = await MCPClient.create(
@@ -373,15 +380,15 @@ export const TamboMcpProvider: FC<{
       const effectiveElicitationHandler =
         serverInfo.handlers?.elicitation ??
         (providerElicitationHandler
-          ? async (request) =>
-              await providerElicitationHandler(request, serverInfo)
+          ? async (request, extra) =>
+              await providerElicitationHandler(request, extra, serverInfo)
           : undefined);
 
       const effectiveSamplingHandler =
         serverInfo.handlers?.sampling ??
         (providerSamplingHandler
-          ? async (request) =>
-              await providerSamplingHandler(request, serverInfo)
+          ? async (request, extra) =>
+              await providerSamplingHandler(request, extra, serverInfo)
           : undefined);
 
       // Update handlers unconditionally (allows removal by passing undefined)

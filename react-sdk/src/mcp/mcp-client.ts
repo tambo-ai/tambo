@@ -2,7 +2,10 @@ import { type OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import {
+  ClientNotification,
+  ClientRequest,
   CreateMessageRequest,
   CreateMessageRequestSchema,
   CreateMessageResult,
@@ -19,8 +22,8 @@ export enum MCPTransport {
 
 /**
  * Handlers for MCP requests - these are only used if the server supports the corresponding capabilities
- * @param elicitation - Handler for elicitation requests
- * @param sampling - Handler for sampling requests
+ * @param elicitation - Handler for elicitation requests (receives request and RequestHandlerExtra with AbortSignal)
+ * @param sampling - Handler for sampling requests (receives request and RequestHandlerExtra with AbortSignal)
  * @example
  * ```typescript
  * const mcp = await MCPClient.create(
@@ -30,14 +33,20 @@ export enum MCPTransport {
  *     undefined,
  *     undefined,
  *     {
- *       elicitation: (e: ElicitRequest) => Promise.resolve({...}),
+ *       elicitation: (e: ElicitRequest, extra: RequestHandlerExtra<ClientRequest, ClientNotification>) => Promise.resolve({...}),
  *     },
  * });
  * ```
  */
 export interface MCPHandlers {
-  elicitation: (e: ElicitRequest) => Promise<ElicitResult>;
-  sampling: (e: CreateMessageRequest) => Promise<CreateMessageResult>;
+  elicitation: (
+    e: ElicitRequest,
+    extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+  ) => Promise<ElicitResult>;
+  sampling: (
+    e: CreateMessageRequest,
+    extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+  ) => Promise<CreateMessageResult>;
 }
 
 /**
@@ -246,9 +255,7 @@ export class MCPClient {
     return result;
   }
 
-  updateElicitationHandler(
-    handler: ((e: ElicitRequest) => Promise<ElicitResult>) | undefined,
-  ) {
+  updateElicitationHandler(handler: MCPHandlers["elicitation"] | undefined) {
     // Skip if handler hasn't changed
     if (handler === this.handlers.elicitation) {
       return;
@@ -271,11 +278,7 @@ export class MCPClient {
     this.client.setRequestHandler(ElicitRequestSchema, handler);
   }
 
-  updateSamplingHandler(
-    handler:
-      | ((e: CreateMessageRequest) => Promise<CreateMessageResult>)
-      | undefined,
-  ) {
+  updateSamplingHandler(handler: MCPHandlers["sampling"] | undefined) {
     // Skip if handler hasn't changed
     if (handler === this.handlers.sampling) {
       return;
