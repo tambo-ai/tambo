@@ -60,17 +60,14 @@ export interface TamboElicitationResponse {
 }
 
 /**
- * Elicitation context state
+ * Elicitation context state - read-only interface for consumers.
+ * State management is handled internally by useElicitation hook.
  */
 export interface ElicitationContextState {
+  /** Current elicitation request, or null if none active */
   elicitation: TamboElicitationRequest | null;
-  setElicitation: React.Dispatch<
-    React.SetStateAction<TamboElicitationRequest | null>
-  >;
+  /** Function to call when user responds to elicitation (clears state automatically) */
   resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
-  setResolveElicitation: React.Dispatch<
-    React.SetStateAction<((response: TamboElicitationResponse) => void) | null>
-  >;
 }
 
 /**
@@ -128,6 +125,9 @@ export function useElicitation() {
               () => (response: TamboElicitationResponse) => {
                 // Remove abort listener since we're resolving normally
                 extra.signal.removeEventListener("abort", handleAbort);
+                // Clear state now that user has responded
+                setElicitation(null);
+                setResolveElicitation(null);
                 resolve(response);
               },
             );

@@ -133,9 +133,7 @@ interface McpProviderContextValue extends ElicitationContextState {
 const McpProviderContext = createContext<McpProviderContextValue>({
   servers: [],
   elicitation: null,
-  setElicitation: () => {},
   resolveElicitation: null,
-  setResolveElicitation: () => {},
 });
 
 // Constant for the internal Tambo MCP server name
@@ -160,13 +158,8 @@ export const TamboMcpProvider: FC<{
   const providerSamplingHandler = handlers?.sampling;
 
   // Elicitation state and default handler
-  const {
-    elicitation,
-    setElicitation,
-    resolveElicitation,
-    setResolveElicitation,
-    defaultElicitationHandler,
-  } = useElicitation();
+  const { elicitation, resolveElicitation, defaultElicitationHandler } =
+    useElicitation();
 
   // Use provided handler or fall back to default
   const providerElicitationHandler =
@@ -432,17 +425,9 @@ export const TamboMcpProvider: FC<{
     () => ({
       servers: connectedMcpServers,
       elicitation,
-      setElicitation,
       resolveElicitation,
-      setResolveElicitation,
     }),
-    [
-      connectedMcpServers,
-      elicitation,
-      setElicitation,
-      resolveElicitation,
-      setResolveElicitation,
-    ],
+    [connectedMcpServers, elicitation, resolveElicitation],
   );
 
   return (
@@ -508,9 +493,7 @@ export const useTamboElicitationContext = () => {
   const context = useContext(McpProviderContext);
   return {
     elicitation: context.elicitation,
-    setElicitation: context.setElicitation,
     resolveElicitation: context.resolveElicitation,
-    setResolveElicitation: context.setResolveElicitation,
   };
 };
 

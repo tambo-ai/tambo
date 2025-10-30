@@ -78,9 +78,8 @@ const messageInputVariants = cva("w-full", {
  * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
- * @property {TamboElicitationRequest | null} elicitation - Current elicitation request
- * @property {function} setElicitation - Function to set the elicitation request
- * @property {function} resolveElicitation - Function to resolve the elicitation promise
+ * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
+ * @property {function} resolveElicitation - Function to resolve the elicitation promise (automatically clears state)
  */
 interface MessageInputContextValue {
   value: string;
@@ -97,13 +96,7 @@ interface MessageInputContextValue {
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
   elicitation: TamboElicitationRequest | null;
-  setElicitation: React.Dispatch<
-    React.SetStateAction<TamboElicitationRequest | null>
-  >;
   resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
-  setResolveElicitation: React.Dispatch<
-    React.SetStateAction<((response: TamboElicitationResponse) => void) | null>
-  >;
 }
 
 /**
@@ -204,9 +197,7 @@ const MessageInputInternal = React.forwardRef<
   // Use elicitation context if available (optional)
   const elicitationContext = useTamboElicitationContext();
   const elicitation = elicitationContext?.elicitation ?? null;
-  const setElicitation = elicitationContext?.setElicitation;
   const resolveElicitation = elicitationContext?.resolveElicitation ?? null;
-  const setResolveElicitation = elicitationContext?.setResolveElicitation;
 
   React.useEffect(() => {
     setDisplayValue(value);
@@ -214,32 +205,6 @@ const MessageInputInternal = React.forwardRef<
       textareaRef.current.focus();
     }
   }, [value]);
-
-  // Handle abort signal from elicitation request (e.g., server timeout)
-  React.useEffect(() => {
-    if (!elicitation?.signal) return;
-
-    const handleAbort = () => {
-      // Clear the elicitation UI when the request is aborted
-      if (setElicitation) {
-        setElicitation(null);
-      }
-      if (setResolveElicitation) {
-        setResolveElicitation(null);
-      }
-    };
-
-    if (elicitation.signal.aborted) {
-      handleAbort();
-      return;
-    }
-
-    elicitation.signal.addEventListener("abort", handleAbort);
-
-    return () => {
-      elicitation.signal?.removeEventListener("abort", handleAbort);
-    };
-  }, [elicitation, setElicitation, setResolveElicitation]);
 
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
@@ -346,17 +311,12 @@ const MessageInputInternal = React.forwardRef<
 
   const handleElicitationResponse = React.useCallback(
     (response: TamboElicitationResponse) => {
+      // Calling resolveElicitation automatically clears the elicitation state
       if (resolveElicitation) {
         resolveElicitation(response);
       }
-      if (setElicitation) {
-        setElicitation(null);
-      }
-      if (setResolveElicitation) {
-        setResolveElicitation(null);
-      }
     },
-    [resolveElicitation, setElicitation, setResolveElicitation],
+    [resolveElicitation],
   );
 
   const contextValue = React.useMemo(
@@ -375,9 +335,7 @@ const MessageInputInternal = React.forwardRef<
       submitError,
       setSubmitError,
       elicitation,
-      setElicitation,
       resolveElicitation,
-      setResolveElicitation,
     }),
     [
       displayValue,
