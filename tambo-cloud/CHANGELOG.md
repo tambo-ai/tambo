@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.120.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.3...repo-v0.120.4) (2025-10-30)
+
+
+### Miscellaneous Chores
+
+* Add metadata labels to our docker images ([#2002](https://github.com/tambo-ai/tambo-cloud/issues/2002)) ([8584150](https://github.com/tambo-ai/tambo-cloud/commit/8584150d6c31c8eecf30395d2654eceb599cd585))
+
 ## [0.120.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.2...repo-v0.120.3) (2025-10-30)
 
 
