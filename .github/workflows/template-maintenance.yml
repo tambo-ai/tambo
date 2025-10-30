@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: upgrade-logs-${{ matrix.template-repo }}-${{ env.RELEASE_TAG }}
           path: |

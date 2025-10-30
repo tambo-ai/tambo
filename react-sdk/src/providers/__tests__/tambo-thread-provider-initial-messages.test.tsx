@@ -8,6 +8,7 @@ import {
 } from "../../model/generate-component-response";
 import { useTamboClient, useTamboQueryClient } from "../tambo-client-provider";
 import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
+import { TamboMcpTokenProvider } from "../tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "../tambo-thread-provider";
 
@@ -47,9 +48,11 @@ const createWrapper = (initialMessages: TamboThreadMessage[] = []) => {
   const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <TamboRegistryProvider components={[]} tools={[]}>
       <TamboContextHelpersProvider>
-        <TamboThreadProvider initialMessages={initialMessages}>
-          {children}
-        </TamboThreadProvider>
+        <TamboMcpTokenProvider>
+          <TamboThreadProvider initialMessages={initialMessages}>
+            {children}
+          </TamboThreadProvider>
+        </TamboMcpTokenProvider>
       </TamboContextHelpersProvider>
     </TamboRegistryProvider>
   );

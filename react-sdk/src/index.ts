@@ -97,3 +97,6 @@ export type {
   ContextHelperFn,
   ContextHelpers,
 } from "./context-helpers";
+
+// Note MCP exports like TamboMcpProvider are available separately in the
+// @tambo-ai/react/mcp package

@@ -1,6 +1,6 @@
+import type { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import type { TamboThreadMessage } from "@tambo-ai/react";
 
 /**
  * Custom hook to merge multiple refs into one callback ref

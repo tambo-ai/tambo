@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**⚠️ IMPORTANT: Read [AGENTS.md](./AGENTS.md) before making any changes or using any tools. It contains detailed architectural guidance and development patterns.**
+**⚠️ IMPORTANT: Read @AGENTS.md before making any changes or using any tools. It contains detailed architectural guidance and development patterns.**
 
 ## Quick Reference
 

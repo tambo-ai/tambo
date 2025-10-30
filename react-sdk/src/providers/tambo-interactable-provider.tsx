@@ -14,9 +14,9 @@ import {
   TamboInteractableComponent,
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
+import { assertValidName } from "../util/validate-component-name";
 import { useTamboComponent } from "./tambo-component-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
-import { assertValidName } from "../util/validate-component-name";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
   interactableComponents: [],
@@ -214,7 +214,15 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const registerInteractableComponentUpdateTool = useCallback(
-    (component: TamboInteractableComponent) => {
+    (component: TamboInteractableComponent, maxNameLength = 60) => {
+      const tamboToolNamePart = `update_component_`;
+      const availableLength = maxNameLength - tamboToolNamePart.length;
+      if (component.id.length > availableLength) {
+        throw new Error(
+          `Interactable component id ${component.id} is too long. It must be less than ${availableLength} characters.`,
+        );
+      }
+
       const schemaForArgs =
         typeof component.propsSchema === "object" &&
         "describe" in component.propsSchema &&
@@ -223,7 +231,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           : z.object({});
 
       registerTool({
-        name: `update_interactable_component_${component.id}`,
+        name: `${tamboToolNamePart}${component.id}`,
         description: `Update the props of interactable component ${component.id} (${component.name}). You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.`,
         tool: (componentId: string, newProps: any) => {
           return updateInteractableComponentProps(componentId, newProps);
@@ -251,7 +259,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       // Validate component name
       assertValidName(component.name, "component");
 
-      const id = `${component.name}-${Math.random().toString(36).slice(2, 11)}`;
+      // Add a random part to the component name to make it unique when using multiple instances of the same component.
+      const tamboGeneratedNamePart = `-${Math.random().toString(36).slice(2, 5)}`;
+      const id = `${component.name}${tamboGeneratedNamePart}`;
       const newComponent: TamboInteractableComponent = {
         ...component,
         id,

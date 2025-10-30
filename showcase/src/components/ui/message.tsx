@@ -746,7 +746,7 @@ function formatToolResult(
   } else if (Array.isArray(content)) {
     contentString = content
       .map((item) => {
-        if (item && item.type === "text") {
+        if (item?.type === "text") {
           return item.text ?? "";
         }
         return "";
