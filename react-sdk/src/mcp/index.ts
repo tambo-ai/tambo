@@ -1,5 +1,9 @@
 export { MCPTransport } from "./mcp-client";
-export type { MCPHandlers } from "./mcp-client";
+export type {
+  MCPElicitationHandler,
+  MCPHandlers,
+  MCPSamplingHandler,
+} from "./mcp-client";
 export type {
   TamboElicitationRequest,
   TamboElicitationResponse,

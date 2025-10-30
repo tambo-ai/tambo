@@ -12,7 +12,13 @@ import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
 import { type ElicitationContextState, useElicitation } from "./elicitation";
-import { MCPClient, MCPHandlers, MCPTransport } from "./mcp-client";
+import {
+  MCPClient,
+  MCPElicitationHandler,
+  MCPHandlers,
+  MCPSamplingHandler,
+  MCPTransport,
+} from "./mcp-client";
 
 /**
  * Extracts error message from MCP tool result content.
@@ -106,15 +112,15 @@ export type McpServer = ConnectedMcpServer | FailedMcpServer;
  */
 export interface ProviderMCPHandlers {
   elicitation?: (
-    request: Parameters<MCPHandlers["elicitation"]>[0],
-    extra: Parameters<MCPHandlers["elicitation"]>[1],
+    request: Parameters<MCPElicitationHandler>[0],
+    extra: Parameters<MCPElicitationHandler>[1],
     serverInfo: McpServerConfig,
-  ) => ReturnType<MCPHandlers["elicitation"]>;
+  ) => ReturnType<MCPElicitationHandler>;
   sampling?: (
-    request: Parameters<MCPHandlers["sampling"]>[0],
-    extra: Parameters<MCPHandlers["sampling"]>[1],
+    request: Parameters<MCPSamplingHandler>[0],
+    extra: Parameters<MCPSamplingHandler>[1],
     serverInfo: McpServerConfig,
-  ) => ReturnType<MCPHandlers["sampling"]>;
+  ) => ReturnType<MCPSamplingHandler>;
 }
 
 /**

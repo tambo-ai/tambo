@@ -1,5 +1,10 @@
 import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {
+  ClientNotification,
+  ClientRequest,
+} from "@modelcontextprotocol/sdk/types.js";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
@@ -11,6 +16,19 @@ import {
   type McpServer,
   type ProviderMCPHandlers,
 } from "../tambo-mcp-provider";
+
+// Helper to create mock RequestHandlerExtra for testing
+function createMockExtra(): RequestHandlerExtra<
+  ClientRequest,
+  ClientNotification
+> {
+  return {
+    signal: new AbortController().signal,
+    requestId: "test-request-id",
+    sendNotification: (async () => {}) as any,
+    sendRequest: (async () => ({ _meta: {} })) as any,
+  };
+}
 
 // Mock the MCP client to avoid ES module issues
 jest.mock("../mcp-client", () => ({
@@ -586,10 +604,12 @@ describe("TamboMcpProvider handler support", () => {
       method: "sampling/createMessage" as const,
       params: {},
     };
-    await passedHandlers.elicitation(mockRequest);
+    const mockExtra = createMockExtra();
+    await passedHandlers.elicitation(mockRequest, mockExtra);
 
     expect(mockElicitationHandler).toHaveBeenCalledWith(
       mockRequest,
+      mockExtra,
       expect.objectContaining({
         url: "https://test.example",
         transport: MCPTransport.SSE,
@@ -646,10 +666,12 @@ describe("TamboMcpProvider handler support", () => {
         modelPreferences: {},
       },
     };
-    await passedHandlers.sampling(mockRequest);
+    const mockExtra = createMockExtra();
+    await passedHandlers.sampling(mockRequest, mockExtra);
 
     expect(mockSamplingHandler).toHaveBeenCalledWith(
       mockRequest,
+      mockExtra,
       expect.objectContaining({
         url: "https://test.example",
         transport: MCPTransport.SSE,
@@ -737,11 +759,13 @@ describe("TamboMcpProvider handler support", () => {
       method: "sampling/createMessage" as const,
       params: {},
     };
+    const mockExtra = createMockExtra();
 
     // Call handler for server A
-    await serverAHandlers.elicitation(mockRequest);
+    await serverAHandlers.elicitation(mockRequest, mockExtra);
     expect(mockElicitationHandler).toHaveBeenCalledWith(
       mockRequest,
+      mockExtra,
       expect.objectContaining({
         url: "https://server-a.example",
         name: "Server A",
@@ -751,9 +775,10 @@ describe("TamboMcpProvider handler support", () => {
     mockElicitationHandler.mockClear();
 
     // Call handler for server B
-    await serverBHandlers.elicitation(mockRequest);
+    await serverBHandlers.elicitation(mockRequest, mockExtra);
     expect(mockElicitationHandler).toHaveBeenCalledWith(
       mockRequest,
+      mockExtra,
       expect.objectContaining({
         url: "https://server-b.example",
         name: "Server B",
