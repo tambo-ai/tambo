@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.120.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.2...repo-v0.120.3) (2025-10-30)
+
+
+### Bug Fixes
+
+* **tools:** Fix handling of primitives in tool parameters ([#2011](https://github.com/tambo-ai/tambo-cloud/issues/2011)) ([fd4867b](https://github.com/tambo-ai/tambo-cloud/commit/fd4867b9a519c8b33a0ee63b9ca88b23c0d605be))
+
+
+### Miscellaneous Chores
+
+* sync mcp-client from tambo repo ([#2008](https://github.com/tambo-ai/tambo-cloud/issues/2008)) ([2c2f1dd](https://github.com/tambo-ai/tambo-cloud/commit/2c2f1ddc75773b4216604cf8ba48ece3397c6998))
+
 ## [0.120.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.1...repo-v0.120.2) (2025-10-29)
 
 
