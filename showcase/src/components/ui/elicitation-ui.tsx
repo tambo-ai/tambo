@@ -76,27 +76,37 @@ const BooleanField: React.FC<FieldProps> = ({
           autoFocus={autoFocus}
           onClick={() => onChange(true)}
           className={cn(
-            "flex-1 px-4 py-2 rounded-lg border transition-colors",
+            "flex-1 px-4 py-2 rounded-lg border transition-colors flex items-center justify-center",
             boolValue === true
-              ? "bg-emerald-500 text-white border-emerald-500"
+              ? "bg-primary text-primary-foreground border-primary"
               : "bg-background border-border hover:bg-muted",
           )}
         >
-          {boolValue === true && <Check className="w-4 h-4 mr-2 inline" />}
           Yes
+          <Check
+            className={cn(
+              "w-4 h-4 ml-2",
+              boolValue === true ? "opacity-100" : "opacity-0",
+            )}
+          />
         </button>
         <button
           type="button"
           onClick={() => onChange(false)}
           className={cn(
-            "flex-1 px-4 py-2 rounded-lg border transition-colors",
+            "flex-1 px-4 py-2 rounded-lg border transition-colors flex items-center justify-center",
             boolValue === false
-              ? "bg-emerald-500 text-white border-emerald-500"
+              ? "bg-primary text-primary-foreground border-primary"
               : "bg-background border-border hover:bg-muted",
           )}
         >
-          {boolValue === false && <Check className="w-4 h-4 mr-2 inline" />}
           No
+          <Check
+            className={cn(
+              "w-4 h-4 ml-2",
+              boolValue === false ? "opacity-100" : "opacity-0",
+            )}
+          />
         </button>
       </div>
     </div>
@@ -133,16 +143,19 @@ const EnumField: React.FC<FieldProps> = ({
             autoFocus={autoFocus && index === 0}
             onClick={() => onChange(option)}
             className={cn(
-              "px-4 py-2 rounded-lg border transition-colors",
+              "px-4 py-2 rounded-lg border transition-colors flex items-center",
               stringValue === option
-                ? "bg-emerald-500 text-white border-emerald-500"
+                ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background border-border hover:bg-muted",
             )}
           >
-            {stringValue === option && (
-              <Check className="w-4 h-4 mr-2 inline" />
-            )}
             {optionNames[index] || option}
+            <Check
+              className={cn(
+                "w-4 h-4 ml-2",
+                stringValue === option ? "opacity-100" : "opacity-0",
+              )}
+            />
           </button>
         ))}
       </div>
@@ -178,7 +191,7 @@ const StringField: React.FC<FieldProps> = ({
         autoFocus={autoFocus}
         value={stringValue}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         placeholder={schema.description || name}
         minLength={stringSchema.minLength}
         maxLength={stringSchema.maxLength}
@@ -218,7 +231,7 @@ const NumberField: React.FC<FieldProps> = ({
           const val = e.target.value;
           onChange(val === "" ? undefined : Number(val));
         }}
-        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         placeholder={schema.description || name}
         min={numberSchema.minimum}
         max={numberSchema.maximum}
@@ -349,7 +362,9 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           className,
         )}
       >
-        <div className="text-sm text-foreground mb-2">{request.message}</div>
+        <div className="text-base font-semibold text-foreground mb-2">
+          {request.message}
+        </div>
         <Field
           name={fieldName}
           schema={fieldSchema}
@@ -358,11 +373,11 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           required={requiredFields.has(fieldName)}
           autoFocus
         />
-        <div className="flex gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
             onClick={handleCancel}
-            className="px-4 py-2 text-sm rounded-lg border border-border bg-background hover:bg-muted transition-colors"
+            className="px-4 py-2 text-sm rounded-lg border border-destructive text-destructive hover:bg-destructive/10 transition-colors"
           >
             Cancel
           </button>
@@ -379,7 +394,9 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
         className,
       )}
     >
-      <div className="text-sm text-foreground">{request.message}</div>
+      <div className="text-base font-semibold text-foreground">
+        {request.message}
+      </div>
       <div className="space-y-3">
         {fields.map(([name, schema], index) => (
           <Field
@@ -393,11 +410,11 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           />
         ))}
       </div>
-      <div className="flex gap-2 pt-2">
+      <div className="flex justify-end gap-2 pt-2">
         <button
           type="button"
           onClick={handleCancel}
-          className="px-4 py-2 text-sm rounded-lg border border-border bg-background hover:bg-muted transition-colors"
+          className="px-4 py-2 text-sm rounded-lg border border-destructive text-destructive hover:bg-destructive/10 transition-colors"
         >
           Cancel
         </button>
@@ -412,7 +429,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           type="button"
           onClick={handleAccept}
           disabled={!isValid}
-          className="ml-auto px-6 py-2 text-sm rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-6 py-2 text-sm rounded-lg bg-black/80 text-white hover:bg-black/70 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Submit
         </button>
