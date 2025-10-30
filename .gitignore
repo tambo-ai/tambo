@@ -12,3 +12,5 @@ coverage
 .idea
 #claude local settings
 .claude/settings.local.json
+#coding agents
+.plans/
