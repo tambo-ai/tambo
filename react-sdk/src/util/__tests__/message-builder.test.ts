@@ -1,17 +1,44 @@
 import { buildMessageContent } from "../message-builder";
-import { StagedImage } from "../../hooks/use-message-images";
+import { StagedFile } from "../../hooks/use-message-files";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 
 describe("buildMessageContent", () => {
   const createMockStagedImage = (
-    overrides: Partial<StagedImage> = {},
-  ): StagedImage => ({
+    overrides: Partial<StagedFile> = {},
+  ): StagedFile => ({
     id: "test-id",
     name: "test-image.png",
     dataUrl: "data:image/png;base64,mock-data",
     file: new File([""], "test-image.png", { type: "image/png" }),
     size: 1024,
     type: "image/png",
+    contentType: "image",
+    ...overrides,
+  });
+
+  const createMockStagedTextFile = (
+    overrides: Partial<StagedFile> = {},
+  ): StagedFile => ({
+    id: "test-text-id",
+    name: "test.txt",
+    textContent: "Mock text content",
+    file: new File(["Mock text content"], "test.txt", { type: "text/plain" }),
+    size: 100,
+    type: "text/plain",
+    contentType: "text",
+    ...overrides,
+  });
+
+  const createMockStagedPdf = (
+    overrides: Partial<StagedFile> = {},
+  ): StagedFile => ({
+    id: "test-pdf-id",
+    name: "test.pdf",
+    textContent: "Mock PDF text content",
+    file: new File(["PDF content"], "test.pdf", { type: "application/pdf" }),
+    size: 500,
+    type: "application/pdf",
+    contentType: "text",
     ...overrides,
   });
 
@@ -148,16 +175,51 @@ describe("buildMessageContent", () => {
     });
   });
 
+  it("should handle text files", () => {
+    const textFile = createMockStagedTextFile();
+    const result = buildMessageContent("", [textFile]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      type: "text",
+      text: "\n\n--- File: test.txt ---\nMock text content",
+    });
+  });
+
+  it("should handle PDF files", () => {
+    const pdfFile = createMockStagedPdf();
+    const result = buildMessageContent("", [pdfFile]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      type: "text",
+      text: "\n\n--- File: test.pdf ---\nMock PDF text content",
+    });
+  });
+
+  it("should handle mixed file types", () => {
+    const image = createMockStagedImage();
+    const textFile = createMockStagedTextFile();
+    const result = buildMessageContent("Check these files:", [image, textFile]);
+
+    // Text content and text files are combined into one text part, then images separately
+    expect(result).toHaveLength(2);
+    expect(result[0].type).toBe("text");
+    expect(result[0].text).toContain("Check these files:");
+    expect(result[0].text).toContain("--- File: test.txt ---");
+    expect(result[1].type).toBe("image_url");
+  });
+
   it("should throw error when no content provided", () => {
     expect(() => {
       buildMessageContent("", []);
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or files");
   });
 
   it("should throw error when only whitespace provided", () => {
     expect(() => {
       buildMessageContent("   \n\t  ", []);
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or files");
   });
 
   it("should return correct content type structure", () => {

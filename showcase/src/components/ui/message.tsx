@@ -3,6 +3,7 @@
 import { markdownComponents } from "@/components/ui/markdown-components";
 import {
   checkHasContent,
+  getMessageAttachments,
   getMessageImages,
   getSafeContent,
 } from "@/lib/thread-hooks";
@@ -223,6 +224,55 @@ const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
   },
 );
 MessageImages.displayName = "MessageImages";
+
+/**
+ * Props for the MessageAttachments component.
+ * Extends standard HTMLDivElement attributes.
+ */
+export type MessageAttachmentsProps = React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Displays file attachments (PDFs and text files) in the message.
+ * Shows small file cards with icons.
+ * @component MessageAttachments
+ */
+const MessageAttachments = React.forwardRef<
+  HTMLDivElement,
+  MessageAttachmentsProps
+>(({ className, ...props }, ref) => {
+  const { message } = useMessageContext();
+  const attachments = getMessageAttachments(message.content);
+
+  if (attachments.length === 0) {
+    return null;
+  }
+
+  const getFileIcon = (type: "pdf" | "text") => {
+    return type === "pdf" ? "📄" : "📝";
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={cn("flex flex-wrap gap-2 mb-2", className)}
+      data-slot="message-attachments"
+      {...props}
+    >
+      {attachments.map((attachment, index) => (
+        <div
+          key={index}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm"
+        >
+          <span className="text-base">{getFileIcon(attachment.type)}</span>
+          <span className="text-gray-700 dark:text-gray-300 font-medium">
+            {attachment.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+});
+MessageAttachments.displayName = "MessageAttachments";
 
 /**
  * Props for the MessageContent component.
@@ -821,6 +871,7 @@ MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
 export {
   LoadingIndicator,
   Message,
+  MessageAttachments,
   MessageContent,
   MessageImages,
   MessageRenderedComponentArea,

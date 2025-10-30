@@ -7,12 +7,13 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  type StagedImage,
+  type StagedFile,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
   Image as ImageIcon,
+  Loader2,
   Paperclip,
   Square,
   X,
@@ -165,9 +166,9 @@ const MessageInputInternal = React.forwardRef<
     submit,
     isPending,
     error,
-    images,
-    addImages,
-    clearImages,
+    files,
+    addFiles,
+    clearFiles,
   } = useTamboThreadInput();
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
@@ -187,15 +188,15 @@ const MessageInputInternal = React.forwardRef<
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if ((!value.trim() && images.length === 0) || isSubmitting) return;
+      if ((!value.trim() && files.length === 0) || isSubmitting) return;
 
       setSubmitError(null);
       setDisplayValue("");
       setIsSubmitting(true);
 
-      // Clear images in next tick for immediate UI feedback
-      if (images.length > 0) {
-        setTimeout(() => clearImages(), 0);
+      // Clear files in next tick for immediate UI feedback
+      if (files.length > 0) {
+        setTimeout(() => clearFiles(), 0);
       }
 
       try {
@@ -204,7 +205,7 @@ const MessageInputInternal = React.forwardRef<
           streamResponse: true,
         });
         setValue("");
-        // Images are cleared automatically by the TamboThreadInputProvider
+        // Files are cleared automatically by the TamboThreadInputProvider
         setTimeout(() => {
           textareaRef.current?.focus();
         }, 0);
@@ -232,8 +233,8 @@ const MessageInputInternal = React.forwardRef<
       setSubmitError,
       cancel,
       isSubmitting,
-      images,
-      clearImages,
+      files,
+      clearFiles,
     ],
   );
 
@@ -242,10 +243,14 @@ const MessageInputInternal = React.forwardRef<
     e.stopPropagation();
     dragCounter.current++;
     if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      const hasImages = Array.from(e.dataTransfer.items).some((item) =>
-        item.type.startsWith("image/"),
+      const hasSupportedFiles = Array.from(e.dataTransfer.items).some(
+        (item) =>
+          item.type.startsWith("image/") ||
+          item.type === "application/pdf" ||
+          item.type === "text/plain" ||
+          item.type === "text/markdown",
       );
-      if (hasImages) {
+      if (hasSupportedFiles) {
         setIsDragging(true);
       }
     }
@@ -272,19 +277,23 @@ const MessageInputInternal = React.forwardRef<
       setIsDragging(false);
       dragCounter.current = 0;
 
-      const files = Array.from(e.dataTransfer.files).filter((file) =>
-        file.type.startsWith("image/"),
+      const droppedFiles = Array.from(e.dataTransfer.files).filter(
+        (file) =>
+          file.type.startsWith("image/") ||
+          file.type === "application/pdf" ||
+          file.type === "text/plain" ||
+          file.type === "text/markdown",
       );
 
-      if (files.length > 0) {
+      if (droppedFiles.length > 0) {
         try {
-          await addImages(files);
+          await addFiles(droppedFiles);
         } catch (error) {
-          console.error("Failed to add dropped images:", error);
+          console.error("Failed to add dropped files:", error);
         }
       }
     },
-    [addImages],
+    [addFiles],
   );
 
   const contextValue = React.useMemo(
@@ -347,7 +356,7 @@ const MessageInputInternal = React.forwardRef<
               </p>
             </div>
           )}
-          <MessageInputStagedImages />
+          <MessageInputStagedFiles />
           {children}
         </div>
       </form>
@@ -400,7 +409,7 @@ const MessageInputTextarea = ({
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage } = useTamboThreadInput();
+  const { addFile } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
 
@@ -419,28 +428,28 @@ const MessageInputTextarea = ({
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const items = Array.from(e.clipboardData.items);
-    const imageItems = items.filter((item) => item.type.startsWith("image/"));
+    const fileItems = items.filter((item) => item.type.startsWith("image/"));
 
-    // Allow default paste if there is text, even when images exist
+    // Allow default paste if there is text, even when files exist
     const hasText = e.clipboardData.getData("text/plain").length > 0;
 
-    if (imageItems.length === 0) {
+    if (fileItems.length === 0) {
       return; // Allow default text paste
     }
 
     if (!hasText) {
-      e.preventDefault(); // Only prevent when image-only paste
+      e.preventDefault(); // Only prevent when file-only paste
     }
 
-    for (const item of imageItems) {
+    for (const item of fileItems) {
       const file = item.getAsFile();
       if (file) {
         try {
           // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
           file[IS_PASTED_IMAGE] = true;
-          await addImage(file);
+          await addFile(file);
         } catch (error) {
-          console.error("Failed to add pasted image:", error);
+          console.error("Failed to add pasted file:", error);
         }
       }
     }
@@ -663,7 +672,7 @@ MessageInputError.displayName = "MessageInput.Error";
  */
 export interface MessageInputFileButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Accept attribute for file input - defaults to image types */
+  /** Accept attribute for file input - defaults to images, PDFs, and text files */
   accept?: string;
   /** Allow multiple file selection */
   multiple?: boolean;
@@ -686,68 +695,78 @@ export interface MessageInputFileButtonProps
 const MessageInputFileButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputFileButtonProps
->(({ className, accept = "image/*", multiple = true, ...props }, ref) => {
-  const { addImages } = useTamboThreadInput();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+>(
+  (
+    {
+      className,
+      accept = "image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf",
+      multiple = true,
+      ...props
+    },
+    ref,
+  ) => {
+    const { addFiles } = useTamboThreadInput();
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
+    const handleClick = () => {
+      fileInputRef.current?.click();
+    };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    try {
-      await addImages(files);
-    } catch (error) {
-      console.error("Failed to add selected files:", error);
-    }
-    // Reset the input so the same file can be selected again
-    e.target.value = "";
-  };
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
+      try {
+        await addFiles(files);
+      } catch (error) {
+        console.error("Failed to add selected files:", error);
+      }
+      // Reset the input so the same file can be selected again
+      e.target.value = "";
+    };
 
-  const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
-    className,
-  );
+    const buttonClasses = cn(
+      "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+      className,
+    );
 
-  return (
-    <TooltipProvider>
-      <Tooltip
-        content="Attach Images"
-        side="top"
-        className="bg-muted text-primary"
-      >
-        <button
-          ref={ref}
-          type="button"
-          onClick={handleClick}
-          className={buttonClasses}
-          aria-label="Attach Images"
-          data-slot="message-input-file-button"
-          {...props}
+    return (
+      <TooltipProvider>
+        <Tooltip
+          content="Attach Files"
+          side="top"
+          className="bg-muted text-primary"
         >
-          <Paperclip className="w-4 h-4" />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            multiple={multiple}
-            onChange={handleFileChange}
-            className="hidden"
-            aria-hidden="true"
-          />
-        </button>
-      </Tooltip>
-    </TooltipProvider>
-  );
-});
+          <button
+            ref={ref}
+            type="button"
+            onClick={handleClick}
+            className={buttonClasses}
+            aria-label="Attach Files"
+            data-slot="message-input-file-button"
+            {...props}
+          >
+            <Paperclip className="w-4 h-4" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={accept}
+              multiple={multiple}
+              onChange={handleFileChange}
+              className="hidden"
+              aria-hidden="true"
+            />
+          </button>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  },
+);
 MessageInputFileButton.displayName = "MessageInput.FileButton";
 
 /**
  * Props for the ImageContextBadge component.
  */
 interface ImageContextBadgeProps {
-  image: StagedImage;
+  image: StagedFile;
   displayName: string;
   isExpanded: boolean;
   onToggle: () => void;
@@ -836,63 +855,149 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
 );
 
 /**
- * Props for the MessageInputStagedImages component.
+ * Props for the MessageInputStagedFiles component.
  */
-export type MessageInputStagedImagesProps =
-  React.HTMLAttributes<HTMLDivElement>;
+export type MessageInputStagedFilesProps = React.HTMLAttributes<HTMLDivElement>;
 
 /**
- * Component that displays currently staged images with preview and remove functionality.
- * @component MessageInput.StagedImages
+ * Returns the appropriate icon for a file type
+ */
+const getFileIcon = (file: StagedFile) => {
+  if (file.type === "application/pdf") {
+    return "📄";
+  } else if (file.type.startsWith("text/")) {
+    return "📝";
+  } else {
+    return "🖼️";
+  }
+};
+
+/**
+ * Formats file size in human-readable format
+ */
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${Math.round((bytes / Math.pow(k, i)) * 10) / 10} ${sizes[i]}`;
+};
+
+/**
+ * Component that displays currently staged files with preview and remove functionality.
+ * @component MessageInput.StagedFiles
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.StagedImages />
+ *   <MessageInput.StagedFiles />
  *   <MessageInput.Textarea />
  * </MessageInput>
  * ```
  */
-const MessageInputStagedImages = React.forwardRef<
+const MessageInputStagedFiles = React.forwardRef<
   HTMLDivElement,
-  MessageInputStagedImagesProps
+  MessageInputStagedFilesProps
 >(({ className, ...props }, ref) => {
-  const { images, removeImage } = useTamboThreadInput();
+  const { files, removeFile } = useTamboThreadInput();
   const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
     null,
   );
 
-  if (images.length === 0) {
+  if (files.length === 0) {
     return null;
   }
+
+  const imageFiles = files.filter((f) => f.contentType === "image");
+  const nonImageFiles = files.filter((f) => f.contentType !== "image");
 
   return (
     <div
       ref={ref}
       className={cn(
-        "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border",
+        "flex flex-col gap-2 pb-2 pt-1 border-b border-border",
         className,
       )}
-      data-slot="message-input-staged-images"
+      data-slot="message-input-staged-files"
       {...props}
     >
-      {images.map((image, index) => (
-        <ImageContextBadge
-          key={image.id}
-          image={image}
-          displayName={
-            image.file[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
-          }
-          isExpanded={expandedImageId === image.id}
-          onToggle={() =>
-            setExpandedImageId(expandedImageId === image.id ? null : image.id)
-          }
-          onRemove={() => removeImage(image.id)}
-        />
-      ))}
+      {files.length > 0 && (
+        <span className="text-xs font-medium text-muted-foreground px-1">
+          Attached files ({files.length}/10)
+        </span>
+      )}
+
+      {/* Image files with expandable badges */}
+      {imageFiles.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {imageFiles.map((image, index) => (
+            <ImageContextBadge
+              key={image.id}
+              image={image}
+              displayName={
+                image.file[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
+              }
+              isExpanded={expandedImageId === image.id}
+              onToggle={() =>
+                setExpandedImageId(
+                  expandedImageId === image.id ? null : image.id,
+                )
+              }
+              onRemove={() => removeFile(image.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Non-image files with file cards */}
+      {nonImageFiles.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {nonImageFiles.map((file: StagedFile) => (
+            <div
+              key={file.id}
+              className={cn(
+                "group relative flex items-center gap-2 px-3 py-2 rounded-lg border transition-all",
+                file.isProcessing
+                  ? "bg-muted border-border animate-pulse"
+                  : "bg-background border-border hover:bg-muted hover:shadow-sm",
+              )}
+            >
+              {file.isProcessing ? (
+                <Loader2 className="w-4 h-4 text-muted-foreground animate-spin flex-shrink-0" />
+              ) : (
+                <div className="text-xl flex-shrink-0">{getFileIcon(file)}</div>
+              )}
+
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
+                  {file.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {formatFileSize(file.size)}
+                  {file.isProcessing && " • Processing..."}
+                </span>
+              </div>
+
+              {!file.isProcessing && (
+                <button
+                  type="button"
+                  onClick={() => removeFile(file.id)}
+                  className="flex-shrink-0 w-5 h-5 text-muted-foreground hover:text-foreground rounded flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+                  aria-label={`Remove ${file.name}`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 });
-MessageInputStagedImages.displayName = "MessageInput.StagedImages";
+MessageInputStagedFiles.displayName = "MessageInput.StagedFiles";
+
+// Backwards compatibility alias
+const MessageInputStagedImages = MessageInputStagedFiles;
 
 /**
  * Container for the toolbar components (like submit button and MCP config button).
@@ -957,6 +1062,7 @@ export {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpConfigButton,
+  MessageInputStagedFiles,
   MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,
