@@ -153,7 +153,7 @@ export default function MessagePage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Message</h1>
-          <p className="text-lg text-secondary mb-6">
+          <p className="text-lg text-muted-foreground mb-6">
             A primitive component for displaying individual messages in a
             conversation thread. Supports user and assistant roles with
             customizable styling variants.
@@ -217,7 +217,7 @@ export default function MessagePage() {
         {/* User Message Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">User Message</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <Message
               role="user"
               message={userMessage}
@@ -234,7 +234,7 @@ export default function MessagePage() {
         {/* Assistant Message Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Assistant Message</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <Message
               role="assistant"
               message={assistantMessage}
@@ -253,7 +253,7 @@ export default function MessagePage() {
           <h3 className="text-lg font-medium mb-3">
             Assistant Message with Reasoning
           </h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <Message
               role="assistant"
               message={assistantMessageWithReasoning}
@@ -273,7 +273,7 @@ export default function MessagePage() {
           <h3 className="text-lg font-medium mb-3">
             Assistant Message with Rendered Component
           </h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <Message
               role="assistant"
               message={assistantMessageWithComponent}
@@ -291,7 +291,7 @@ export default function MessagePage() {
         {/* Solid Variant Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <Message
               role="assistant"
               message={assistantMessage}
@@ -308,7 +308,7 @@ export default function MessagePage() {
         {/* Loading State Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Loading State</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <Message
               role="assistant"
               message={{ ...assistantMessage, content: [] }}
@@ -326,7 +326,7 @@ export default function MessagePage() {
         {/* Thinking/Loading State Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Thinking/Loading State</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <Message
               role="assistant"
               message={assistantMessageThinking}

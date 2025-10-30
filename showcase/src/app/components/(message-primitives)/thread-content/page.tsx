@@ -104,7 +104,7 @@ export default function ThreadContentPage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Thread Content</h1>
-          <p className="text-lg text-secondary mb-6">
+          <p className="text-lg text-muted-foreground mb-6">
             A primitive component that displays the main content area of a
             conversation thread. Automatically connects to the Tambo context to
             render messages with customizable styling variants.
@@ -151,7 +151,7 @@ export default function ThreadContentPage() {
         {/* Default Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Default Thread Content</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <TamboStubProvider thread={mockThread}>
               <ThreadContent variant="default">
                 <ThreadContentMessages />
@@ -162,7 +162,7 @@ export default function ThreadContentPage() {
         {/* Solid Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <TamboStubProvider thread={mockThread}>
               <ThreadContent variant="solid">
                 <ThreadContentMessages />
@@ -176,7 +176,7 @@ export default function ThreadContentPage() {
           <h3 className="text-lg font-medium mb-3">
             Empty Thread (No Messages)
           </h3>
-          <div className="p-4 h-48 border rounded-lg bg-white flex items-center justify-center">
+          <div className="p-4 h-48 border rounded-lg bg-card flex items-center justify-center">
             <TamboStubProvider
               thread={{
                 messages: [],

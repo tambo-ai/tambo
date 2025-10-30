@@ -84,7 +84,7 @@ export default function ThreadHistoryPage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Thread History</h1>
-          <p className="text-lg text-secondary mb-6">
+          <p className="text-lg text-muted-foreground mb-6">
             A primitive component that displays a sidebar with conversation
             history, search functionality, and thread management. Supports
             collapsible behavior and can be positioned on left or right.
@@ -106,7 +106,7 @@ export default function ThreadHistoryPage() {
         {/* Sub-components */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="bg-muted rounded-lg p-4 mb-6">
             <ul className="space-y-3 text-sm">
               <li>
                 <strong>
@@ -152,10 +152,8 @@ export default function ThreadHistoryPage() {
 
         {/* Left Position Example */}
         <div>
-          <h3 className="text-lg font-medium mb-3">
-            Left Position (Expanded) XXXX
-          </h3>
-          <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden border">
+          <h3 className="text-lg font-medium mb-3">Left Position (Expanded)</h3>
+          <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
             <TamboStubProvider
               thread={mockThreads[0]}
               threads={{
@@ -171,7 +169,7 @@ export default function ThreadHistoryPage() {
                 contextKey="demo-left"
                 position="left"
                 defaultCollapsed={false}
-                className="relative bg-white border-r"
+                className="relative bg-card border-r"
               >
                 <ThreadHistoryHeader />
                 <ThreadHistoryNewButton />
@@ -180,7 +178,9 @@ export default function ThreadHistoryPage() {
               </ThreadHistory>
             </TamboStubProvider>
             <div className="ml-64 p-4 h-full">
-              <p className="text-gray-500">Main content area would go here</p>
+              <p className="text-muted-foreground">
+                Main content area would go here
+              </p>
             </div>
           </div>
         </div>
@@ -188,7 +188,7 @@ export default function ThreadHistoryPage() {
         {/* Collapsed State Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Collapsed State</h3>
-          <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden border">
+          <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
             <TamboStubProvider
               thread={mockThreads[0]}
               threads={{
@@ -204,7 +204,7 @@ export default function ThreadHistoryPage() {
                 contextKey="demo-collapsed"
                 position="left"
                 defaultCollapsed={true}
-                className="relative bg-white border-r"
+                className="relative bg-card border-r"
               >
                 <ThreadHistoryHeader />
                 <ThreadHistoryNewButton />
@@ -213,10 +213,10 @@ export default function ThreadHistoryPage() {
               </ThreadHistory>
             </TamboStubProvider>
             <div className="ml-12 p-4 h-full">
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 Main content area adjusts when sidebar is collapsed
               </p>
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-sm text-muted-foreground/80 mt-2">
                 Click the arrow icon in the sidebar to expand
               </p>
             </div>
@@ -226,7 +226,7 @@ export default function ThreadHistoryPage() {
         {/* Minimal Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Minimal (Header Only)</h3>
-          <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden border">
+          <div className="relative h-64 bg-muted rounded-lg overflow-hidden border">
             <TamboStubProvider
               thread={mockThreads[0]}
               threads={{
@@ -241,14 +241,16 @@ export default function ThreadHistoryPage() {
                 contextKey="demo-minimal"
                 position="left"
                 defaultCollapsed={false}
-                className="relative bg-white border-r"
+                className="relative bg-card border-r"
               >
                 <ThreadHistoryHeader />
                 <ThreadHistoryList />
               </ThreadHistory>
             </TamboStubProvider>
             <div className="ml-64 p-4 h-full">
-              <p className="text-gray-500">Minimal sidebar with just header</p>
+              <p className="text-muted-foreground">
+                Minimal sidebar with just header
+              </p>
             </div>
           </div>
         </div>
@@ -258,7 +260,7 @@ export default function ThreadHistoryPage() {
           <h2 className="text-xl font-semibold mb-4">Props</h2>
 
           <h3 className="text-lg font-medium mb-3">ThreadHistory</h3>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="bg-muted rounded-lg p-4 mb-6">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
@@ -308,7 +310,7 @@ export default function ThreadHistoryPage() {
           </div>
 
           <h3 className="text-lg font-medium mb-3">Features</h3>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-muted rounded-lg p-4">
             <ul className="space-y-2 text-sm">
               <li>
                 <strong>Collapsible Sidebar:</strong> Can be collapsed to save

@@ -19,7 +19,7 @@ export default function CanvasSpacePage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Canvas Space</h1>
-          <p className="text-lg text-secondary">
+          <p className="text-lg text-muted-foreground">
             A dedicated area that dynamically displays interactive UI components
             generated within a Tambo chat thread. It automatically updates to
             show the latest generated component and clears when switching

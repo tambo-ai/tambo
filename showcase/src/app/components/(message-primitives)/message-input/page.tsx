@@ -132,7 +132,7 @@ export default function MessageInputPage() {
           <h3 className="text-lg font-medium mb-3">
             Default Message Input with Image Attachments
           </h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <MessageInput contextKey="demo-default" variant="default">
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <div className="flex justify-between items-center mt-2 p-1 gap-2">
@@ -147,7 +147,7 @@ export default function MessageInputPage() {
         {/* Solid Variant Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <MessageInput contextKey="demo-solid" variant="solid">
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <div className="flex justify-between items-center mt-2 p-1 gap-2">
@@ -162,7 +162,7 @@ export default function MessageInputPage() {
         {/* Bordered Variant Example */}
         <div>
           <h3 className="text-lg font-medium mb-3">Bordered Variant</h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <MessageInput contextKey="demo-bordered" variant="bordered">
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <div className="flex justify-between items-center mt-2 p-1 gap-2">
@@ -179,7 +179,7 @@ export default function MessageInputPage() {
           <h3 className="text-lg font-medium mb-3">
             Full-featured: MCP Config + Image Attachments
           </h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <MessageInput contextKey="demo-mcp" variant="default">
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <div className="flex justify-between items-center mt-2 p-1 gap-2">
@@ -201,7 +201,7 @@ export default function MessageInputPage() {
           <h3 className="text-lg font-medium mb-3">
             Minimal Input (No Toolbar)
           </h3>
-          <div className="p-4 border rounded-lg bg-white">
+          <div className="p-4 border rounded-lg bg-card">
             <MessageInput contextKey="demo-minimal">
               <MessageInputTextarea placeholder="Simple message input..." />
               <MessageInputError />

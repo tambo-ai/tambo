@@ -36,7 +36,7 @@ export default function MessageThreadFullPage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Message Thread Full</h1>
-          <p className="text-lg text-secondary">
+          <p className="text-lg text-muted-foreground">
             A full message thread component with chat history and input field.
           </p>
         </div>

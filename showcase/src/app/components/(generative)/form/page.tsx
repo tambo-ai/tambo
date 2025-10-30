@@ -22,7 +22,7 @@ Make it use the bordered variant with a relaxed layout.`;
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Form</h1>
-          <p className="text-lg text-secondary">
+          <p className="text-lg text-muted-foreground">
             A dynamic form builder component that creates structured forms with
             multiple input types.
           </p>

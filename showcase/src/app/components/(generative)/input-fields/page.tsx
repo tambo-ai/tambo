@@ -24,7 +24,7 @@ Use the solid variant with compact layout. Show validation patterns, length cons
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Input Fields</h1>
-          <p className="text-lg text-secondary">
+          <p className="text-lg text-muted-foreground">
             A focused collection of input fields optimized for data entry and
             user information capture with advanced validation.
           </p>

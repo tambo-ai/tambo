@@ -23,7 +23,7 @@ export default function GraphPage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Graph</h1>
-          <p className="text-lg text-secondary">
+          <p className="text-lg text-muted-foreground">
             A versatile data visualization component that supports bar charts,
             line charts, and pie charts with customizable styles.
           </p>

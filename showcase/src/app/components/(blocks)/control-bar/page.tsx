@@ -15,7 +15,7 @@ export default function ControlBarPage() {
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold mb-4">Control Bar</h1>
-          <p className="text-lg text-secondary">
+          <p className="text-lg text-muted-foreground">
             A floating control bar component that provides quick access to chat
             functionality via keyboard shortcuts.
           </p>
