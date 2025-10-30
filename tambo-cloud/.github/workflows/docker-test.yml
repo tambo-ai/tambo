@@ -74,6 +74,22 @@ jobs:
           username: tambo-bot
           password: ${{ secrets.RELEASE_PACKAGES }}
 
+      - name: Extract metadata for web image
+        id: meta_web
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/tambo-ai/tambo-web-server
+          tags: |
+            type=raw,value=latest
+            type=semver,pattern={{version}},value=${{ steps.should_push.outputs.release_tag }}
+          labels: |
+            org.opencontainers.image.title=Tambo Web Server
+            org.opencontainers.image.description=Next.js web frontend for Tambo AI platform
+            org.opencontainers.image.vendor=Tambo AI
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo-cloud
+            org.opencontainers.image.documentation=https://docs.tambo.co
+
       - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
@@ -82,13 +98,28 @@ jobs:
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
-          tags: |
-            ${{ steps.should_push.outputs.should_push == 'true' && format('ghcr.io/tambo-ai/tambo-web-server:{0}', steps.should_push.outputs.release_tag) || 'tambo-web:latest' }}
-            ${{ steps.should_push.outputs.should_push == 'true' && 'ghcr.io/tambo-ai/tambo-web-server:latest' || '' }}
+          tags: ${{ steps.should_push.outputs.should_push == 'true' && steps.meta_web.outputs.tags || 'tambo-web:latest' }}
+          labels: ${{ steps.meta_web.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             NODE_ENV=production
+
+      - name: Extract metadata for api image
+        id: meta_api
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/tambo-ai/tambo-api-server
+          tags: |
+            type=raw,value=latest
+            type=semver,pattern={{version}},value=${{ steps.should_push.outputs.release_tag }}
+          labels: |
+            org.opencontainers.image.title=Tambo API Server
+            org.opencontainers.image.description=NestJS backend API for Tambo AI platform
+            org.opencontainers.image.vendor=Tambo AI
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo-cloud
+            org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push api image
         uses: docker/build-push-action@v6
@@ -98,9 +129,8 @@ jobs:
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
-          tags: |
-            ${{ steps.should_push.outputs.should_push == 'true' && format('ghcr.io/tambo-ai/tambo-api-server:{0}', steps.should_push.outputs.release_tag) || 'tambo-api:latest' }}
-            ${{ steps.should_push.outputs.should_push == 'true' && 'ghcr.io/tambo-ai/tambo-api-server:latest' || '' }}
+          tags: ${{ steps.should_push.outputs.should_push == 'true' && steps.meta_api.outputs.tags || 'tambo-api:latest' }}
+          labels: ${{ steps.meta_api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
