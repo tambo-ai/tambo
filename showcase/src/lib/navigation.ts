@@ -2,6 +2,7 @@ export type NavigationItem = {
   title: string;
   href: string;
   children?: NavigationItem[];
+  isNew?: boolean;
 };
 
 export const navigation: NavigationItem[] = [
