@@ -48,15 +48,6 @@ export default tseslint.config(
     },
   },
   {
-    languageOptions: {
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ["*.mjs"],
-        },
-      },
-    },
-  },
-  {
     files: ["**/registry/**/*.tsx", "**/components/**/*.tsx"],
     rules: {
       "@tambo/token-usage": "error",
