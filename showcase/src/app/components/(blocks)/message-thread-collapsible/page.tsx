@@ -84,7 +84,7 @@ export default function MessageThreadCollapsiblePage() {
     <div className="py-8 max-w-4xl mx-auto">
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-bold mb-4">
+          <h1 className="text-2xl font-semibold mb-4">
             Message Thread Collapsible
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -94,7 +94,7 @@ export default function MessageThreadCollapsiblePage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
+          <h2 className="text-xl font-500 mb-4">Installation</h2>
           <div className="rounded-md">
             <CLI command={installCommand} />
           </div>

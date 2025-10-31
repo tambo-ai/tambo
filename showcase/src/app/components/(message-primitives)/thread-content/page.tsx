@@ -103,7 +103,7 @@ export default function ThreadContentPage() {
     <div className="py-8 max-w-4xl mx-auto">
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-bold mb-4">Thread Content</h1>
+          <h1 className="text-2xl font-semibold mb-4">Thread Content</h1>
           <p className="text-lg text-muted-foreground mb-6">
             A primitive component that displays the main content area of a
             conversation thread. Automatically connects to the Tambo context to
@@ -113,7 +113,7 @@ export default function ThreadContentPage() {
 
         {/* Installation */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
+          <h2 className="text-xl font-500 mb-4">Installation</h2>
           <div className="rounded-md">
             <CLI command={installCommand} />
           </div>
@@ -125,7 +125,7 @@ export default function ThreadContentPage() {
 
         {/* Sub-components */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
+          <h2 className="text-xl font-500 mb-4">Sub-components</h2>
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <ul className="space-y-3 text-sm">
               <li>
@@ -144,7 +144,7 @@ export default function ThreadContentPage() {
 
         {/* Sample Code */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Usage</h2>
+          <h2 className="text-xl font-500 mb-4">Usage</h2>
           <SyntaxHighlighter code={usageCode} language="tsx" />
         </div>
 
@@ -195,9 +195,9 @@ export default function ThreadContentPage() {
 
         {/* Props Documentation */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Props</h2>
+          <h2 className="text-xl font-500 mb-4">Props</h2>
 
-          <h3 className="text-lg font-medium mb-3">ThreadContent</h3>
+          <h3 className="text-base font-500 mb-3">ThreadContent</h3>
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <table className="w-full text-sm">
               <thead>

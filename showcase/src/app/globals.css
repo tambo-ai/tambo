@@ -259,3 +259,26 @@ html {
 .float-animation {
   animation: icon-float 3s ease-in-out infinite;
 }
+
+@layer utilities {
+  /* Custom font weights for modern typography */
+  .font-450 {
+    font-weight: 450;
+  }
+
+  .font-500 {
+    font-weight: 500;
+  }
+
+  /* Prose customization for markdown/doc content */
+  .prose {
+    @apply prose-zinc dark:prose-invert;
+    @apply prose-h1:text-2xl prose-h1:font-semibold;
+    @apply prose-h2:mt-12 prose-h2:text-xl prose-h2:font-500;
+    @apply prose-h3:text-base prose-h3:font-500;
+    @apply prose-h4:text-base prose-h4:font-500;
+    @apply prose-strong:font-500;
+    @apply prose-img:m-0;
+    @apply max-w-full;
+  }
+}

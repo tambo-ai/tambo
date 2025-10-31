@@ -13,7 +13,7 @@ export default function ControlBarPage() {
     <div className="py-8 max-w-4xl mx-auto">
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-bold mb-4">Control Bar</h1>
+          <h1 className="text-2xl font-semibold mb-4">Control Bar</h1>
           <p className="text-lg text-muted-foreground">
             A floating control bar component that provides quick access to chat
             functionality via keyboard shortcuts.
@@ -21,7 +21,7 @@ export default function ControlBarPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
+          <h2 className="text-xl font-500 mb-4">Installation</h2>
           <div className="rounded-md">
             <CLI command={installCommand} />
           </div>
@@ -30,7 +30,7 @@ export default function ControlBarPage() {
         <DemoWrapper title="Control Bar Demo">
           <div className="h-full relative bg-muted/20 flex flex-col items-center justify-center p-8">
             <div className="text-center space-y-4 mb-8">
-              <h3 className="text-xl font-semibold">Interactive Demo</h3>
+              <h3 className="text-base font-500">Interactive Demo</h3>
               <p className="text-muted-foreground max-w-md">
                 The control bar appears as a floating button in the bottom-right
                 corner. Click the button or press{" "}
