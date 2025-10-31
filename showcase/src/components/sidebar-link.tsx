@@ -22,7 +22,7 @@ export const SidebarLink = ({ item, level = 0 }: SidebarLinkProps) => {
         level === 0
           ? "py-2 text-base font-medium"
           : "py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30",
-        isActive && "bg-accent/30 text-foreground", // Active link style
+        isActive && "bg-accent/30 text-foreground font-500", // Active link style
       )}
     >
       {item.title}

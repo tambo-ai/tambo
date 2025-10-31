@@ -37,9 +37,7 @@ export function DemoWrapper({
             : "flex items-center justify-between",
         )}
       >
-        {!hidePreviewHeading && (
-          <h2 className="text-xl font-semibold">Preview</h2>
-        )}
+        {!hidePreviewHeading && <h2 className="text-xl font-500">Preview</h2>}
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="text-xs">
