@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.16.0](https://github.com/tambo-ai/tambo/compare/docs-v1.15.0...docs-v1.16.0) (2025-10-31)
+
+
+### Features
+
+* add context badge for images ([#1192](https://github.com/tambo-ai/tambo/issues/1192)) ([020cd5e](https://github.com/tambo-ai/tambo/commit/020cd5e19285921bf0ef3086d3d84777bf694685))
+
+
+### Bug Fixes
+
+* run transformToContent for streaming requests too ([#1184](https://github.com/tambo-ai/tambo/issues/1184)) ([42d8a82](https://github.com/tambo-ai/tambo/commit/42d8a82eff25836d021480ff3b9ca0fb3b9793cb))
+
+
+### Miscellaneous Chores
+
+* **config:** Align tsconfigs and eslint configs between docs, showcase, and base ([#1216](https://github.com/tambo-ai/tambo/issues/1216)) ([ab61266](https://github.com/tambo-ai/tambo/commit/ab61266f89f14084d9f9f8abc2098bc3a3cb3adf))
+* **deps-dev:** bump @tailwindcss/postcss from 4.1.14 to 4.1.16 in the tailwind group ([#1204](https://github.com/tambo-ai/tambo/issues/1204)) ([352b252](https://github.com/tambo-ai/tambo/commit/352b252d5152d500dd87168002524f6219df0984))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.0 to 0.75.1 ([#1208](https://github.com/tambo-ai/tambo/issues/1208)) ([76640d7](https://github.com/tambo-ai/tambo/commit/76640d7eab0202555ba699039152be7b656d40ef))
+* **deps:** bump posthog-js from 1.276.0 to 1.280.1 ([#1200](https://github.com/tambo-ai/tambo/issues/1200)) ([c7886ad](https://github.com/tambo-ai/tambo/commit/c7886adaf96e654c175534082682676b29bfbb8f))
+* **docs:** add callouts for interactable components registration ([#1213](https://github.com/tambo-ai/tambo/issues/1213)) ([1bdd145](https://github.com/tambo-ai/tambo/commit/1bdd145788d6738c5f0e24896400ff45188be637))
+* update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
+
 ## [1.15.0](https://github.com/tambo-ai/tambo/compare/docs-v1.14.0...docs-v1.15.0) (2025-10-21)
 
 
