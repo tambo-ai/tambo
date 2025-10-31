@@ -1,34 +1,31 @@
 "use client";
 
-import { CLI } from "@/components/cli";
+import { ComponentCodePreview } from "@/components/component-code-preview";
+import { InstallationSection } from "@/components/installation-section";
 import { DemoControlBar } from "@/components/ui/control-bar";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import { DemoWrapper } from "../../demo-wrapper";
 
 export default function ControlBarPage() {
   const userContextKey = useUserContextKey("control-bar");
-  const installCommand = "npx tambo add control-bar";
 
   return (
-    <div className="py-8 max-w-6xl mx-auto">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-2xl font-semibold mb-4">Control Bar</h1>
-          <p className="text-lg text-muted-foreground">
-            A floating control bar component that provides quick access to chat
-            functionality via keyboard shortcuts.
-          </p>
-        </div>
+    <div className="prose max-w-full">
+      {/* Title & Description */}
+      <h1>Control Bar</h1>
+      <p className="text-lg text-muted-foreground">
+        A floating control bar component that provides quick access to chat
+        functionality via keyboard shortcuts. Appears as a button in the
+        bottom-right corner and can be triggered with Cmd+K (Mac) or Ctrl+K
+        (Windows/Linux).
+      </p>
 
-        <div>
-          <h2 className="text-xl font-500 mb-4">Installation</h2>
-          <div className="rounded-md">
-            <CLI command={installCommand} />
-          </div>
-        </div>
+      {/* Examples Section */}
+      <h2 className="mt-12">Examples</h2>
 
-        <DemoWrapper title="Control Bar Demo">
-          <div className="h-full relative bg-muted/20 flex flex-col items-center justify-center p-8">
+      <ComponentCodePreview
+        title="Basic Usage"
+        component={
+          <div className="h-full w-full relative bg-muted/20 flex flex-col items-center justify-center p-8">
             <div className="text-center space-y-4 mb-8">
               <h3 className="text-base font-500">Interactive Demo</h3>
               <p className="text-muted-foreground max-w-md">
@@ -49,8 +46,60 @@ export default function ControlBarPage() {
 
             <DemoControlBar contextKey={userContextKey} />
           </div>
-        </DemoWrapper>
+        }
+        code={`import { DemoControlBar } from "@tambo-ai/react";
+
+export function ChatInterface() {
+  return (
+    <div className="relative">
+      {/* Your main content */}
+      <div className="min-h-screen">
+        <h1>Your App Content</h1>
       </div>
+
+      {/* Control bar floats on top */}
+      <DemoControlBar contextKey="demo" />
+    </div>
+  );
+}`}
+        previewClassName="p-0"
+        minHeight={650}
+        enableFullscreen
+        fullscreenTitle="Control Bar"
+      />
+
+      {/* Installation */}
+      <InstallationSection cliCommand="npx tambo add control-bar" />
+
+      {/* Component API */}
+      <h2 className="mt-12">Component API</h2>
+
+      <h3>DemoControlBar</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Prop</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>contextKey</td>
+            <td>string</td>
+            <td>-</td>
+            <td>Unique identifier for the conversation thread</td>
+          </tr>
+          <tr>
+            <td>className</td>
+            <td>string</td>
+            <td>-</td>
+            <td>Additional CSS classes for customization</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

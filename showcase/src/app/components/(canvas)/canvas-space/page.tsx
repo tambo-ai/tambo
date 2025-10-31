@@ -1,47 +1,70 @@
-import { CLI } from "@/components/cli";
+"use client";
+
+import { ComponentCodePreview } from "@/components/component-code-preview";
+import { InstallationSection } from "@/components/installation-section";
 import { CanvasChatInterface } from "@/components/generative/CanvasChatInterface";
-import { CopyablePrompt, Section } from "@/components/ui/doc-components";
-import { DemoWrapper } from "../../demo-wrapper";
 
 export default function CanvasSpacePage() {
-  const installCommand = "npx tambo add canvas-space";
-  const examplePrompt = `Generate a line chart showing monthly website traffic:
-  - Title: "Monthly Website Visitors"
-  - Labels: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug
-  - Datasets:
-    - Unique Visitors: 5K, 6.2K, 7.1K, 6.8K, 8K, 9.5K, 11K, 10.5K
-    - Page Views: 25K, 30K, 35K, 33K, 40K, 48K, 55K, 52K
-  - Use the default variant, medium size
-  - Show tooltips and the legend`;
-
   return (
-    <div className="container mx-auto pt-6 px-6 max-w-4xl">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-2xl font-semibold mb-4">Canvas Space</h1>
-          <p className="text-lg text-muted-foreground">
-            A dedicated area that dynamically displays interactive UI components
-            generated within a Tambo chat thread. It automatically updates to
-            show the latest generated component and clears when switching
-            threads.
-          </p>
-        </div>
+    <div className="prose max-w-full">
+      <h1>Canvas Space</h1>
+      <p className="text-lg text-muted-foreground">
+        A dedicated area that dynamically displays interactive UI components
+        generated within a Tambo chat thread. It automatically updates to show
+        the latest generated component and clears when switching threads.
+      </p>
 
-        <div>
-          <h2 className="text-xl font-500 mb-4">Installation</h2>
-          <div className="rounded-md">
-            <CLI command={installCommand} />
-          </div>
-        </div>
+      <h2 className="mt-12">Example</h2>
 
-        <Section title="Example Prompt">
-          <CopyablePrompt prompt={examplePrompt} />
-        </Section>
+      <ComponentCodePreview
+        component={<CanvasChatInterface />}
+        code={`import { CanvasSpace } from "@tambo-ai/react";
 
-        <DemoWrapper title="Canvas Space" height={800}>
-          <CanvasChatInterface />
-        </DemoWrapper>
-      </div>
+export function CanvasDemo() {
+  return (
+    <CanvasSpace contextKey="my-thread" />
+  );
+}`}
+        previewClassName="p-0"
+        minHeight={650}
+      />
+
+      <InstallationSection cliCommand="npx tambo add canvas-space" />
+
+      <h2 className="mt-12">Component API</h2>
+
+      <h3>CanvasSpace</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Prop</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>contextKey</td>
+            <td>string</td>
+            <td>-</td>
+            <td className="text-muted-foreground">
+              The context key identifying which thread to display generated
+              components from
+            </td>
+          </tr>
+          <tr>
+            <td>className</td>
+            <td>string</td>
+            <td>-</td>
+            <td className="text-muted-foreground">
+              Optional CSS class names to apply custom styling to the canvas
+              container
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
