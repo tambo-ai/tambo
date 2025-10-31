@@ -91,13 +91,6 @@ Available components:
 
 - `graph` - Interactive charts (line, bar, scatter, pie)
 
-## Token Usage Guidance
-
-- Registry templates ship with neutral-first color tokens (`text-foreground`, `text-muted-foreground`). Keep them intact when extending components.
-- Never place `text-primary` on neutral backgrounds—only use it alongside `bg-primary` CTAs.
-- Replace any lingering `text-secondary` usages with `text-muted-foreground`. Input placeholders should remain `placeholder:text-muted-foreground`.
-- See `TOKENS.md` for the complete “Neutral by Default, Brand by Exception” rules enforced by the ESLint token-usage rule.
-
 ## Project Structure
 
 When you add components, they'll be installed in your project following this structure:

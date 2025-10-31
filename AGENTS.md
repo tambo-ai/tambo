@@ -133,7 +133,6 @@ When working across multiple packages:
   - Generally try option 1 first. Only use option 2 if option 1 is not possible.
 - ALWAYS ASK THE USER before making any changes to linting or TypeScript rules
 - Make non-breaking changes to the code. Only make breaking changes if the user specifically asks for it. Ensure you warn them about the breaking changes.
-- Enforce the design token rules in `docs/content/design-system/TOKENS.md`; brand text (`text-primary`) only pairs with `bg-primary`, and `text-secondary` is forbidden.
 
 ## Agent Behavior
 

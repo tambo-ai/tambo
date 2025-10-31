@@ -21,13 +21,6 @@ This documentation is built using [Fumadocs.](https://fumadocs.dev/)
 - `src/components/` - React components for the documentation site
 - `public/` - Static assets and images
 
-## Design Token Rules
-
-- Documentation examples must match the neutral-first guidance in `TOKENS.md`.
-- Prefer `text-foreground` or `text-muted-foreground` for narrative text and captions.
-- Only showcase `text-primary` when paired with `bg-primary`; highlight deprecated patterns in callouts rather than production snippets.
-- Keep placeholders neutral (`placeholder:text-muted-foreground`) and avoid resurrecting `text-secondary` in docs content or code samples.
-
 ## License
 
 MIT License - see the [LICENSE](https://github.com/tambo-ai/tambo/blob/main/LICENSE) file for details.

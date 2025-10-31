@@ -99,33 +99,30 @@ In general, try to fit changes into the following categories. If you can't find 
    - Additional Context: Dynamic helpers, page context, interactable tracking
    - Suggestions: AI-generated action recommendations
 
-3. **Design System** - Token rules, theming, visual foundations
-   - `design-system/TOKENS`: Neutral-first palette rules, migration checklist, lint automation
-
-4. **Best Practices** - Guidance for production implementations
+3. **Best Practices** - Guidance for production implementations
    - Component data props optimization
    - Performance considerations
    - Error handling patterns
    - Security best practices
 
-5. **API Reference** - Technical specifications
+4. **API Reference** - Technical specifications
    - React hooks: Complete signatures, parameters, return values
    - TypeScript interfaces and types
    - Provider configurations
 
-6. **CLI** - Command-line tooling documentation
+5. **CLI** - Command-line tooling documentation
    - Commands: add, create-app, init, list, migrate, update, upgrade
    - Configuration: Project setup, customization options
    - Workflows: Development patterns, component management
    - Global options: Flags and environment variables
 
-7. **Models** - Configuration and customization
+6. **Models** - Configuration and customization
    - Custom LLM parameters: Temperature, max tokens, model selection
    - Labels: Organizing and categorizing interactions
    - Reasoning Models: Advanced thinking/reasoning capabilities for OpenAI and Gemini models
    - Provider-specific configurations
 
-8. **Examples & Templates** - Real-world implementations
+7. **Examples & Templates** - Real-world implementations
    - Chat starter applications
    - Integration examples (Supabase MCP client)
    - Use case demonstrations
