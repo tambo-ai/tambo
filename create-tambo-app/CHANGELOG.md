@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.19](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.18...create-tambo-app-v0.1.19) (2025-10-31)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#1203](https://github.com/tambo-ai/tambo/issues/1203)) ([5c44450](https://github.com/tambo-ai/tambo/commit/5c444508e2309ef8b4ec9c9050e408e19a8a6e48))
+* update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
+
 ## [0.1.18](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.17...create-tambo-app-v0.1.18) (2025-10-09)
 
 
