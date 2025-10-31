@@ -217,10 +217,12 @@ export const createMarkdownComponents = (): Record<
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-primary font-medium px-1.5 py-0.5 rounded-md bg-primary/5 hover:bg-primary/10 hover:underline transition-colors inline-flex items-center gap-1.5"
+      className="text-foreground hover:text-primary font-medium transition-colors inline-flex items-center gap-1"
     >
-      {children}
-      <ExternalLink className="w-3 h-3" />
+      <span className="underline decoration-muted-foreground hover:decoration-primary">
+        {children}
+      </span>
+      <ExternalLink className="w-3 h-3 flex-shrink-0" />
     </a>
   ),
 

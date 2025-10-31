@@ -225,7 +225,7 @@ export default function MessagePage() {
               className="justify-end"
             >
               <div className="max-w-3xl">
-                <MessageContent className="text-primary bg-container hover:bg-backdrop font-sans" />
+                <MessageContent className="text-foreground bg-container hover:bg-backdrop font-sans" />
               </div>
             </Message>
           </div>
@@ -242,7 +242,7 @@ export default function MessagePage() {
               className="justify-start"
             >
               <div className="w-full">
-                <MessageContent className="text-primary font-sans" />
+                <MessageContent className="text-foreground font-sans" />
               </div>
             </Message>
           </div>
@@ -262,7 +262,7 @@ export default function MessagePage() {
             >
               <div className="w-full">
                 <ReasoningInfo />
-                <MessageContent className="text-primary font-sans" />
+                <MessageContent className="text-foreground font-sans" />
               </div>
             </Message>
           </div>
@@ -281,7 +281,7 @@ export default function MessagePage() {
               className="justify-start"
             >
               <div className="w-full">
-                <MessageContent className="text-primary font-sans" />
+                <MessageContent className="text-foreground font-sans" />
                 <MessageRenderedComponentArea className="w-full" />
               </div>
             </Message>
@@ -299,7 +299,7 @@ export default function MessagePage() {
               className="justify-start"
             >
               <div className="w-full">
-                <MessageContent className="text-primary font-sans" />
+                <MessageContent className="text-foreground font-sans" />
               </div>
             </Message>
           </div>
@@ -317,7 +317,7 @@ export default function MessagePage() {
               className="justify-start"
             >
               <div className="w-full">
-                <MessageContent className="text-primary font-sans" />
+                <MessageContent className="text-foreground font-sans" />
               </div>
             </Message>
           </div>
@@ -336,7 +336,7 @@ export default function MessagePage() {
             >
               <div className="w-full">
                 <ReasoningInfo />
-                <MessageContent className="text-primary font-sans" />
+                <MessageContent className="text-foreground font-sans" />
               </div>
             </Message>
           </div>
