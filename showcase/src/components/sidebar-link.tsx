@@ -18,14 +18,19 @@ export const SidebarLink = ({ item, level = 0 }: SidebarLinkProps) => {
     <Link
       href={item.href}
       className={cn(
-        "block px-3 hover:bg-accent rounded-md transition-colors",
+        "block px-3 hover:bg-accent rounded-md transition-colors flex items-center justify-between gap-2",
         level === 0
           ? "py-2 text-base font-medium"
           : "py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30",
         isActive && "bg-accent/30 text-foreground font-500", // Active link style
       )}
     >
-      {item.title}
+      <span>{item.title}</span>
+      {item.isNew && (
+        <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground font-medium">
+          new
+        </span>
+      )}
     </Link>
   );
 };
