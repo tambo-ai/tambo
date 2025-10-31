@@ -4,10 +4,32 @@ import { CLI } from "@/components/cli";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
+import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
 import { DemoWrapper } from "../../demo-wrapper";
 
-export default function MessageThreadFullPage() {
+const MCP_DEMO_URL =
+  process.env.NEXT_PUBLIC_MCP_DEMO_URL || "https://everything-mcp.tambo.co/mcp";
+
+function MessageThreadFullContent() {
   const userContextKey = useUserContextKey("message-thread-full");
+
+  return (
+    <TamboMcpProvider
+      mcpServers={[{ url: MCP_DEMO_URL, transport: MCPTransport.HTTP }]}
+    >
+      <DemoWrapper title="Message Thread Full">
+        <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
+          <MessageThreadFull
+            contextKey={userContextKey}
+            className="w-full rounded-lg"
+          />
+        </div>
+      </DemoWrapper>
+    </TamboMcpProvider>
+  );
+}
+
+export default function MessageThreadFullPage() {
   const installCommand = "npx tambo add message-thread-full";
 
   return (
@@ -28,14 +50,7 @@ export default function MessageThreadFullPage() {
             </div>
           </div>
 
-          <DemoWrapper title="Message Thread Full">
-            <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
-              <MessageThreadFull
-                contextKey={userContextKey}
-                className="w-full rounded-lg"
-              />
-            </div>
-          </DemoWrapper>
+          <MessageThreadFullContent />
         </div>
       </ShowcaseThemeProvider>
     </div>

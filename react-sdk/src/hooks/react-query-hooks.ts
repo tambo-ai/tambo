@@ -1,9 +1,12 @@
 // tamboHooks.ts
 import {
+  QueriesOptions,
+  QueriesResults,
   QueryKey,
   useMutation,
   UseMutationOptions,
   UseMutationResult,
+  useQueries,
   useQuery,
   UseQueryOptions,
   UseQueryResult,
@@ -61,3 +64,26 @@ export type UseTamboQueryResult<
   TData = unknown,
   TError = Error,
 > = UseQueryResult<TData, TError>;
+
+/**
+ * Wrapper around useQueries that uses the internal tambo query client.
+ * @param options - The options for the queries, same as useQueries from `@tanstack/react-query`
+ * @param options.queries - The queries to run, same as queries from useQueries from `@tanstack/react-query`
+ * @param options.combine - The function to combine the results of the queries, same as combine from useQueries from `@tanstack/react-query`
+ * @param options.subscribed - Whether to subscribe to the queries, same as subscribed from useQueries from `@tanstack/react-query`
+ * @returns The queries result
+ */
+export function useTamboQueries<
+  T extends any[],
+  TCombinedResult = QueriesResults<T>,
+>({
+  queries,
+  ...options
+}: {
+  queries: readonly [...QueriesOptions<T>];
+  combine?: (result: QueriesResults<T>) => TCombinedResult;
+  subscribed?: boolean;
+}) {
+  const queryClient = useTamboQueryClient();
+  return useQueries({ ...options, queries }, queryClient);
+}

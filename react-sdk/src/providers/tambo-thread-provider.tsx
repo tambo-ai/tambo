@@ -28,6 +28,7 @@ import {
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+import { useTamboMcpToken } from "./tambo-mcp-token-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 // Generation Stage Context - separate from thread context to prevent re-renders
@@ -258,6 +259,7 @@ export const TamboThreadProvider: React.FC<
     onCallUnregisteredTool,
   } = useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
+  const { setMcpAccessToken } = useTamboMcpToken();
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
@@ -639,6 +641,13 @@ export const TamboThreadProvider: React.FC<
       updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
 
       for await (const chunk of stream) {
+        // Update or clear MCP access token
+        if (chunk.mcpAccessToken) {
+          // note that we're only setting it positively it during streaming, because it might
+          // not have been set yet in the chunk (i.e. we're not unsetting it in the chunk)
+          setMcpAccessToken(chunk.mcpAccessToken);
+        }
+
         if (chunk.responseMessageDto.toolCallRequest) {
           // Increment tool call count for this tool
           const toolName = chunk.responseMessageDto.toolCallRequest.toolName;
@@ -678,15 +687,13 @@ export const TamboThreadProvider: React.FC<
               };
             }
           }
-          const toolCallResponseString =
-            typeof toolCallResponse.result === "string"
-              ? toolCallResponse.result
-              : JSON.stringify(toolCallResponse.result);
+          const contentParts = await convertToolResponse(toolCallResponse);
+
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
               messageToAppend: {
-                content: [{ type: "text", text: toolCallResponseString }],
+                content: contentParts,
                 role: "tool",
                 actionType: "tool_response",
                 component: chunk.responseMessageDto.component,
@@ -707,7 +714,7 @@ export const TamboThreadProvider: React.FC<
           addThreadMessage(
             {
               threadId: chunk.responseMessageDto.threadId,
-              content: [{ type: "text", text: toolCallResponseString }],
+              content: contentParts,
               role: "tool",
               id: crypto.randomUUID(),
               createdAt: new Date().toISOString(),
@@ -821,6 +828,7 @@ export const TamboThreadProvider: React.FC<
       currentThreadId,
       onCallUnregisteredTool,
       refetchThreadsList,
+      setMcpAccessToken,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
@@ -949,6 +957,9 @@ export const TamboThreadProvider: React.FC<
         advanceResponse = await (threadId === placeholderThread.id
           ? client.beta.threads.advance(params)
           : client.beta.threads.advanceByID(threadId, params));
+
+        // Update or clear MCP access token
+        setMcpAccessToken(advanceResponse.mcpAccessToken ?? null);
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         throw error;
@@ -971,7 +982,7 @@ export const TamboThreadProvider: React.FC<
             onCallUnregisteredTool,
           );
 
-          const contentParts = convertToolResponse(toolCallResponse);
+          const contentParts = await convertToolResponse(toolCallResponse);
 
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
@@ -1014,6 +1025,9 @@ export const TamboThreadProvider: React.FC<
             advanceResponse.responseMessageDto.threadId,
             toolCallResponseParams,
           );
+
+          // Update MCP or clear access token
+          setMcpAccessToken(advanceResponse.mcpAccessToken ?? null);
         }
       } catch (error) {
         updateThreadStatus(
@@ -1064,6 +1078,7 @@ export const TamboThreadProvider: React.FC<
       initialMessages,
       onCallUnregisteredTool,
       refetchThreadsList,
+      setMcpAccessToken,
     ],
   );
 
@@ -1132,11 +1147,11 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
   };
 };
 
-function convertToolResponse(toolCallResponse: {
+async function convertToolResponse(toolCallResponse: {
   result: unknown;
   error?: string;
   tamboTool?: TamboTool;
-}): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+}): Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]> {
   // If the tool call errored, surface that as text so the model reliably sees the error
   if (toolCallResponse.error) {
     return [{ type: "text", text: toText(toolCallResponse.result) }];
@@ -1144,7 +1159,7 @@ function convertToolResponse(toolCallResponse: {
 
   // Use custom transform when available
   if (toolCallResponse.tamboTool?.transformToContent) {
-    return toolCallResponse.tamboTool.transformToContent(
+    return await toolCallResponse.tamboTool.transformToContent(
       // result shape is user-defined; let the transform decide how to handle it
       toolCallResponse.result as any,
     );

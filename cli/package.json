@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.35.0",
+  "version": "0.35.1",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.75.0",
+    "@tambo-ai/typescript-sdk": "^0.75.1",
     "chalk": "^5.6.0",
     "cli-table3": "^0.6.5",
     "clipboardy": "^5.0.0",

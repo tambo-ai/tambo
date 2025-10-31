@@ -24,6 +24,7 @@ import {
   TamboInteractableProvider,
   useTamboInteractable,
 } from "./tambo-interactable-provider";
+import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
 import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
@@ -80,11 +81,6 @@ export const TamboProvider: React.FC<
   initialMessages,
   onCallUnregisteredTool,
 }) => {
-  // Should only be used in browser
-  if (typeof window === "undefined") {
-    console.error("TamboProvider must be used within a browser");
-  }
-
   return (
     <TamboClientProvider
       tamboUrl={tamboUrl}
@@ -98,18 +94,20 @@ export const TamboProvider: React.FC<
         onCallUnregisteredTool={onCallUnregisteredTool}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboThreadProvider
-            streaming={streaming}
-            initialMessages={initialMessages}
-          >
-            <TamboThreadInputProvider contextKey={contextKey}>
-              <TamboComponentProvider>
-                <TamboInteractableProvider>
-                  <TamboCompositeProvider>{children}</TamboCompositeProvider>
-                </TamboInteractableProvider>
-              </TamboComponentProvider>
-            </TamboThreadInputProvider>
-          </TamboThreadProvider>
+          <TamboMcpTokenProvider>
+            <TamboThreadProvider
+              streaming={streaming}
+              initialMessages={initialMessages}
+            >
+              <TamboThreadInputProvider contextKey={contextKey}>
+                <TamboComponentProvider>
+                  <TamboInteractableProvider>
+                    <TamboCompositeProvider>{children}</TamboCompositeProvider>
+                  </TamboInteractableProvider>
+                </TamboComponentProvider>
+              </TamboThreadInputProvider>
+            </TamboThreadProvider>
+          </TamboMcpTokenProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>
