@@ -10,7 +10,7 @@ export default function ControlBarPage() {
   const installCommand = "npx tambo add control-bar";
 
   return (
-    <div className="py-8 max-w-4xl mx-auto">
+    <div className="py-8 max-w-6xl mx-auto">
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-2xl font-semibold mb-4">Control Bar</h1>
