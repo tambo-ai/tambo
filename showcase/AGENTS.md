@@ -171,3 +171,22 @@ When making decisions, keep in mind:
 - Don't rely on color alone to indicate state (add icons, text, etc.)
 - Components must work in both light and dark modes
 - Use CSS variables for all colors (no hardcoded values)
+
+---
+
+## Layout System
+
+The showcase uses a simple flex-based layout with a fixed sidebar. Keep it simple.
+
+### Layout Structure
+
+- **Navbar** handles all header functionality including mobile menu
+- **Sidebar** is 256px (`w-64`) fixed on desktop, slides in overlay on mobile
+- **Main content** uses `md:pl-64` offset to account for fixed sidebar width
+- **Footer** spacing: `py-6 mt-8` with container padding `px-4 md:px-6`
+
+### Content Width
+
+- Standard pages: `max-w-4xl` (896px)
+- Wide pages (message threads, blocks): `max-w-6xl` (1152px)
+- Set at page level, not in layout template
