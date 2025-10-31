@@ -51,11 +51,6 @@ interface FieldProps {
   validationError?: string | null;
 }
 
-// Create a safe DOM id fragment from an arbitrary field name
-function toFieldId(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_-]/g, "-");
-}
-
 /**
  * Boolean field component - renders yes/no buttons
  */
@@ -183,8 +178,7 @@ const StringField: React.FC<FieldProps> = ({
 
   const inputType = getInputType();
   const hasError = !!validationError;
-  const baseId = React.useId();
-  const inputId = `${baseId}-${toFieldId(name)}`;
+  const inputId = React.useId();
   const errorId = `${inputId}-error`;
 
   return (
@@ -236,8 +230,7 @@ const NumberField: React.FC<FieldProps> = ({
   const numberSchema = schema as NumberFieldSchema;
   const numberValue = value as number | undefined;
   const hasError = !!validationError;
-  const baseId = React.useId();
-  const inputId = `${baseId}-${toFieldId(name)}`;
+  const inputId = React.useId();
   const errorId = `${inputId}-error`;
 
   return (
