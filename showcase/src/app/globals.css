@@ -43,7 +43,7 @@ html {
     /* Borders & Input - NEUTRAL */
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 157 100% 75%;
+    --ring: 240 5.9% 50%;
 
     /* Destructive - KEEP AS-IS */
     --destructive: 0 84.2% 60.2%;
