@@ -2,7 +2,6 @@ import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
 import turboPlugin from "eslint-plugin-turbo";
 import { globalIgnores } from "eslint/config";
-import tokenUsageRule from "./rules/token-usage.js";
 import tseslint from "typescript-eslint";
 
 /**
@@ -15,15 +14,9 @@ export default tseslint.config(
   {
     plugins: {
       turbo: turboPlugin,
-      "@tambo": {
-        rules: {
-          "token-usage": tokenUsageRule,
-        },
-      },
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
-      "@tambo/token-usage": "error",
     },
   },
   {
@@ -48,9 +41,12 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/registry/**/*.tsx", "**/components/**/*.tsx"],
-    rules: {
-      "@tambo/token-usage": "error",
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ["*.mjs"],
+        },
+      },
     },
   },
   globalIgnores(["examples/**"]),

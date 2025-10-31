@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "scripts": {
-    "test": "node --test"
-  },
   "exports": {
     "./base": "./base.mjs",
     "./next-js": "./next.mjs",
