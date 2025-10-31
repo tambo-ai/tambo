@@ -1,13 +1,11 @@
 "use client";
 
 import hljs from "highlight.js";
-import "highlight.js/styles/vs2015.css";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface CLIProps {
   command?: string;
-  background?: string;
   path?: string;
   isCode?: boolean;
   language?: string;
@@ -15,7 +13,6 @@ interface CLIProps {
 
 export function CLI({
   command,
-  background = "#1E1E1E",
   path,
   isCode = false,
   language = "typescript",
@@ -44,16 +41,15 @@ export function CLI({
   };
 
   return (
-    <div
-      className="p-3 md:p-4 font-mono text-xs md:text-sm rounded-lg w-full overflow-hidden"
-      style={{ background }}
-    >
+    <div className="p-3 md:p-4 font-mono text-xs md:text-sm rounded-lg w-full overflow-hidden bg-card border border-border">
       {command && (
         <div className="flex items-start">
           <div className="flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pr-2">
             {path && (
               <div className="flex items-center mb-2">
-                <span className="text-[#A0A0A0] text-xs truncate">{path}</span>
+                <span className="text-muted-foreground text-xs truncate">
+                  {path}
+                </span>
               </div>
             )}
             {isCode ? (
@@ -62,15 +58,20 @@ export function CLI({
                   className="!bg-transparent !p-0 !m-0"
                   style={{ fontSize: "inherit" }}
                 >
-                  <code ref={codeRef} className={`language-${language}`}>
+                  <code
+                    ref={codeRef}
+                    className={`language-${language} text-foreground cli-code`}
+                  >
                     {command.trim()}
                   </code>
                 </pre>
               </div>
             ) : (
               <div className="flex items-start overflow-x-auto">
-                <span className="text-[#5C94F7] mr-2 flex-shrink-0">$</span>
-                <pre className="text-white whitespace-pre-wrap break-words">
+                <span className="text-muted-foreground mr-2 flex-shrink-0">
+                  $
+                </span>
+                <pre className="text-foreground whitespace-pre-wrap break-words">
                   {command}
                 </pre>
               </div>
@@ -78,7 +79,7 @@ export function CLI({
           </div>
           <button
             onClick={copyToClipboard}
-            className="text-gray-400 hover:text-white transition-colors ml-2 flex-shrink-0 p-1 touch-manipulation rounded-md"
+            className="text-muted-foreground hover:text-foreground transition-colors ml-2 flex-shrink-0 p-1 touch-manipulation rounded-md"
             aria-label="Copy to clipboard"
           >
             {copied ? (

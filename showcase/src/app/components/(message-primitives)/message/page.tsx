@@ -1,13 +1,13 @@
 "use client";
 
-import { CLI } from "@/components/cli";
+import { ComponentCodePreview } from "@/components/component-code-preview";
+import { InstallationSection } from "@/components/installation-section";
 import {
   Message,
   MessageContent,
   MessageRenderedComponentArea,
   ReasoningInfo,
 } from "@/components/ui/message";
-import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 
 export default function MessagePage() {
   // Sample message data for examples
@@ -91,318 +91,300 @@ export default function MessagePage() {
     ],
   };
 
-  const usageCode = `import { Message, MessageContent, MessageRenderedComponentArea, ReasoningInfo } from "@/components/ui/message";
-
-// Basic usage
-<Message 
-  role="user" 
-  message={{ id: "msg-1", role: "user", content: "Hello!", createdAt: "..." }}
-  variant="default"
-  isLoading={false}
->
-  <MessageContent />
-  <MessageRenderedComponentArea />
-</Message>
-
-// With reasoning
-<Message 
-  role="assistant" 
-  message={{ 
-    id: "msg-2", 
-    role: "assistant", 
-    content: "Let me help you with that...", 
-    reasoningDurationMS: 8000,
-    reasoning: ["First, I need to understand...", "Then, I should consider..."],
-    createdAt: "..." 
-  }}
-  variant="default"
->
-  <ReasoningInfo />
-  <MessageContent />
-</Message>
-
-// Thinking/Loading state with reasoning
-<Message 
-  role="assistant" 
-  message={{ 
-    id: "msg-3", 
-    role: "assistant", 
-    content: [], 
-    reasoning: ["Analyzing the request..."],
-    createdAt: "..." 
-  }}
-  isLoading={true}
->
-  <ReasoningInfo />
-  <MessageContent />
-</Message>
-
-// With custom content
-<Message 
-  role="assistant" 
-  message={{ id: "msg-4", role: "assistant", content: "Hi there!", createdAt: "..." }}
-  variant="solid"
->
-  <MessageContent content="Custom message content" markdown={false} />
-</Message>`;
-
-  const installCommand = "npx tambo add message";
-
   return (
-    <div className="py-8 max-w-4xl mx-auto">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-2xl font-semibold mb-4">Message</h1>
-          <p className="text-lg text-muted-foreground mb-6">
-            A primitive component for displaying individual messages in a
-            conversation thread. Supports user and assistant roles with
-            customizable styling variants.
-          </p>
-        </div>
+    <div className="prose max-w-full">
+      <h1>Message</h1>
+      <p className="text-lg text-muted-foreground">
+        A primitive component for displaying individual messages in a
+        conversation thread. Supports user and assistant roles with customizable
+        styling variants.
+      </p>
 
-        {/* Installation */}
-        <div>
-          <h2 className="text-xl font-500 mb-4">Installation</h2>
-          <div className="rounded-md">
-            <CLI command={installCommand} />
-          </div>
-          <p className="text-sm text-muted-foreground italic mt-2">
-            Note: This component is automatically included when you install any
-            of the &quot;Message Thread&quot; blocks.
-          </p>
-        </div>
+      <h2 className="mt-12">Examples</h2>
 
-        {/* Sub-components */}
-        <div>
-          <h2 className="text-xl font-500 mb-4">Sub-components</h2>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <ul className="space-y-3 text-sm">
-              <li>
-                <strong>
-                  <code>&lt;MessageContent /&gt;</code> -
-                </strong>{" "}
-                Displays the actual message text content with optional markdown
-                rendering. Handles loading states, tool call status, and content
-                formatting. Supports custom content override and markdown
-                toggle.
-              </li>
-              <li>
-                <strong>
-                  <code>&lt;MessageRenderedComponentArea /&gt;</code> -
-                </strong>{" "}
-                Renders interactive components returned by assistant messages.
-                Shows a &quot;View in canvas&quot; button if a canvas space
-                exists, otherwise renders the component inline. Only appears for
-                assistant messages with rendered components.
-              </li>
-              <li>
-                <strong>
-                  <code>&lt;ReasoningInfo /&gt;</code> -
-                </strong>{" "}
-                Displays reasoning information in a collapsible dropdown. Shows
-                the reasoning steps provided by the LLM when available.
-                Auto-collapses when message content arrives. Shows animated
-                &quot;Thinking&quot; text when in loading state.
-              </li>
-            </ul>
-          </div>
-        </div>
+      <ComponentCodePreview
+        title="User Message"
+        component={
+          <Message
+            role="user"
+            message={userMessage}
+            variant="default"
+            className="justify-end"
+          >
+            <div className="max-w-3xl">
+              <MessageContent className="text-foreground bg-container hover:bg-backdrop font-sans" />
+            </div>
+          </Message>
+        }
+        code={`import { Message, MessageContent } from "@tambo-ai/react";
 
-        {/* Sample Code */}
-        <div>
-          <h2 className="text-xl font-500 mb-4">Usage</h2>
-          <SyntaxHighlighter code={usageCode} language="tsx" />
-        </div>
-
-        {/* User Message Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">User Message</h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <Message
-              role="user"
-              message={userMessage}
-              variant="default"
-              className="justify-end"
-            >
-              <div className="max-w-3xl">
-                <MessageContent className="text-foreground bg-container hover:bg-backdrop font-sans" />
-              </div>
-            </Message>
-          </div>
-        </div>
-
-        {/* Assistant Message Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Assistant Message</h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <Message
-              role="assistant"
-              message={assistantMessage}
-              variant="default"
-              className="justify-start"
-            >
-              <div className="w-full">
-                <MessageContent className="text-foreground font-sans" />
-              </div>
-            </Message>
-          </div>
-        </div>
-
-        {/* Assistant Message with Reasoning */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">
-            Assistant Message with Reasoning
-          </h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <Message
-              role="assistant"
-              message={assistantMessageWithReasoning}
-              variant="default"
-              className="justify-start"
-            >
-              <div className="w-full">
-                <ReasoningInfo />
-                <MessageContent className="text-foreground font-sans" />
-              </div>
-            </Message>
-          </div>
-        </div>
-
-        {/* Assistant Message with Component */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">
-            Assistant Message with Rendered Component
-          </h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <Message
-              role="assistant"
-              message={assistantMessageWithComponent}
-              variant="default"
-              className="justify-start"
-            >
-              <div className="w-full">
-                <MessageContent className="text-foreground font-sans" />
-                <MessageRenderedComponentArea className="w-full" />
-              </div>
-            </Message>
-          </div>
-        </div>
-
-        {/* Solid Variant Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <Message
-              role="assistant"
-              message={assistantMessage}
-              variant="solid"
-              className="justify-start"
-            >
-              <div className="w-full">
-                <MessageContent className="text-foreground font-sans" />
-              </div>
-            </Message>
-          </div>
-        </div>
-
-        {/* Loading State Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Loading State</h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <Message
-              role="assistant"
-              message={{ ...assistantMessage, content: [] }}
-              variant="default"
-              isLoading={true}
-              className="justify-start"
-            >
-              <div className="w-full">
-                <MessageContent className="text-foreground font-sans" />
-              </div>
-            </Message>
-          </div>
-        </div>
-
-        {/* Thinking/Loading State Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Thinking/Loading State</h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <Message
-              role="assistant"
-              message={assistantMessageThinking}
-              variant="default"
-              isLoading={true}
-              className="justify-start"
-            >
-              <div className="w-full">
-                <ReasoningInfo />
-                <MessageContent className="text-foreground font-sans" />
-              </div>
-            </Message>
-          </div>
-        </div>
-
-        {/* Props Documentation */}
-        <div>
-          <h2 className="text-xl font-500 mb-4">Props</h2>
-          <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
-            <table className="w-full text-sm min-w-[800px]">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 w-32">Prop</th>
-                  <th className="text-left py-2 w-48">Type</th>
-                  <th className="text-left py-2">Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">role</td>
-                  <td className="py-2">
-                    &quot;user&quot; | &quot;assistant&quot;
-                  </td>
-                  <td className="py-2">The role of the message sender</td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">message</td>
-                  <td className="py-2">TamboThreadMessage</td>
-                  <td className="py-2">
-                    The full Tambo thread message object. Can include optional
-                    <code className="bg-muted px-1 rounded text-xs ml-1">
-                      reasoning
-                    </code>
-                    field (string[]) for displaying AI reasoning steps.
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">variant</td>
-                  <td className="py-2">
-                    &quot;default&quot; | &quot;solid&quot;
-                  </td>
-                  <td className="py-2">
-                    Optional styling variant for the message container
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">isLoading</td>
-                  <td className="py-2">boolean</td>
-                  <td className="py-2">
-                    Optional flag to indicate if the message is in a loading
-                    state. Enables thinking animation in ReasoningInfo
-                    component.
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-2 font-mono">children</td>
-                  <td className="py-2">React.ReactNode</td>
-                  <td className="py-2">
-                    The child elements to render within the root container
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+export function UserMessage() {
+  return (
+    <Message role="user" message={message} variant="default" className="justify-end">
+      <div className="max-w-3xl">
+        <MessageContent className="text-foreground bg-container hover:bg-backdrop" />
       </div>
+    </Message>
+  );
+}`}
+        previewClassName="p-4"
+      />
+
+      <ComponentCodePreview
+        title="Assistant Message"
+        component={
+          <Message
+            role="assistant"
+            message={assistantMessage}
+            variant="default"
+            className="justify-start"
+          >
+            <div className="w-full">
+              <MessageContent className="text-foreground font-sans" />
+            </div>
+          </Message>
+        }
+        code={`import { Message, MessageContent } from "@tambo-ai/react";
+
+export function AssistantMessage() {
+  return (
+    <Message role="assistant" message={message} variant="default" className="justify-start">
+      <div className="w-full">
+        <MessageContent className="text-foreground font-sans" />
+      </div>
+    </Message>
+  );
+}`}
+        previewClassName="p-4"
+      />
+
+      <ComponentCodePreview
+        title="Assistant Message with Reasoning"
+        component={
+          <Message
+            role="assistant"
+            message={assistantMessageWithReasoning}
+            variant="default"
+            className="justify-start"
+          >
+            <div className="w-full">
+              <ReasoningInfo />
+              <MessageContent className="text-foreground font-sans" />
+            </div>
+          </Message>
+        }
+        code={`import { Message, MessageContent, ReasoningInfo } from "@tambo-ai/react";
+
+export function MessageWithReasoning() {
+  return (
+    <Message role="assistant" message={message} variant="default">
+      <div className="w-full">
+        <ReasoningInfo />
+        <MessageContent className="text-foreground font-sans" />
+      </div>
+    </Message>
+  );
+}`}
+        previewClassName="p-4"
+      />
+
+      <ComponentCodePreview
+        title="Assistant Message with Rendered Component"
+        component={
+          <Message
+            role="assistant"
+            message={assistantMessageWithComponent}
+            variant="default"
+            className="justify-start"
+          >
+            <div className="w-full">
+              <MessageContent className="text-foreground font-sans" />
+              <MessageRenderedComponentArea className="w-full" />
+            </div>
+          </Message>
+        }
+        code={`import { Message, MessageContent, MessageRenderedComponentArea } from "@tambo-ai/react";
+
+export function MessageWithComponent() {
+  return (
+    <Message role="assistant" message={message} variant="default">
+      <div className="w-full">
+        <MessageContent className="text-foreground font-sans" />
+        <MessageRenderedComponentArea className="w-full" />
+      </div>
+    </Message>
+  );
+}`}
+        previewClassName="p-4"
+      />
+
+      <ComponentCodePreview
+        title="Solid Variant"
+        component={
+          <Message
+            role="assistant"
+            message={assistantMessage}
+            variant="solid"
+            className="justify-start"
+          >
+            <div className="w-full">
+              <MessageContent className="text-foreground font-sans" />
+            </div>
+          </Message>
+        }
+        code={`import { Message, MessageContent } from "@tambo-ai/react";
+
+export function SolidMessage() {
+  return (
+    <Message role="assistant" message={message} variant="solid">
+      <div className="w-full">
+        <MessageContent className="text-foreground font-sans" />
+      </div>
+    </Message>
+  );
+}`}
+        previewClassName="p-4"
+      />
+
+      <ComponentCodePreview
+        title="Loading State"
+        component={
+          <Message
+            role="assistant"
+            message={{ ...assistantMessage, content: [] }}
+            variant="default"
+            isLoading={true}
+            className="justify-start"
+          >
+            <div className="w-full">
+              <MessageContent className="text-foreground font-sans" />
+            </div>
+          </Message>
+        }
+        code={`import { Message, MessageContent } from "@tambo-ai/react";
+
+export function LoadingMessage() {
+  return (
+    <Message role="assistant" message={message} isLoading={true} variant="default">
+      <div className="w-full">
+        <MessageContent className="text-foreground font-sans" />
+      </div>
+    </Message>
+  );
+}`}
+        previewClassName="p-4"
+      />
+
+      <ComponentCodePreview
+        title="Thinking/Loading State with Reasoning"
+        component={
+          <Message
+            role="assistant"
+            message={assistantMessageThinking}
+            variant="default"
+            isLoading={true}
+            className="justify-start"
+          >
+            <div className="w-full">
+              <ReasoningInfo />
+              <MessageContent className="text-foreground font-sans" />
+            </div>
+          </Message>
+        }
+        code={`import { Message, MessageContent, ReasoningInfo } from "@tambo-ai/react";
+
+export function ThinkingMessage() {
+  return (
+    <Message role="assistant" message={message} isLoading={true}>
+      <div className="w-full">
+        <ReasoningInfo />
+        <MessageContent className="text-foreground font-sans" />
+      </div>
+    </Message>
+  );
+}`}
+        previewClassName="p-4"
+      />
+
+      <InstallationSection cliCommand="npx tambo add message" />
+
+      <h2 className="mt-12">Component API</h2>
+
+      <h3>Message</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Prop</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>role</td>
+            <td>&quot;user&quot; | &quot;assistant&quot;</td>
+            <td>-</td>
+            <td>The role of the message sender</td>
+          </tr>
+          <tr>
+            <td>message</td>
+            <td>TamboThreadMessage</td>
+            <td>-</td>
+            <td>
+              The full Tambo thread message object. Can include optional{" "}
+              <code>reasoning</code> field (string[]) for displaying AI
+              reasoning steps.
+            </td>
+          </tr>
+          <tr>
+            <td>variant</td>
+            <td>&quot;default&quot; | &quot;solid&quot;</td>
+            <td>&quot;default&quot;</td>
+            <td>Optional styling variant for the message container</td>
+          </tr>
+          <tr>
+            <td>isLoading</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>
+              Optional flag to indicate if the message is in a loading state.
+              Enables thinking animation in ReasoningInfo component.
+            </td>
+          </tr>
+          <tr>
+            <td>children</td>
+            <td>React.ReactNode</td>
+            <td>-</td>
+            <td>The child elements to render within the root container</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Sub-components</h3>
+
+      <ul>
+        <li>
+          <strong>MessageContent</strong> - Displays the actual message text
+          content with optional markdown rendering. Handles loading states, tool
+          call status, and content formatting. Supports custom content override
+          and markdown toggle.
+        </li>
+        <li>
+          <strong>MessageRenderedComponentArea</strong> - Renders interactive
+          components returned by assistant messages. Shows a &quot;View in
+          canvas&quot; button if a canvas space exists, otherwise renders the
+          component inline. Only appears for assistant messages with rendered
+          components.
+        </li>
+        <li>
+          <strong>ReasoningInfo</strong> - Displays reasoning information in a
+          collapsible dropdown. Shows the reasoning steps provided by the LLM
+          when available. Auto-collapses when message content arrives. Shows
+          animated &quot;Thinking&quot; text when in loading state.
+        </li>
+      </ul>
     </div>
   );
 }
