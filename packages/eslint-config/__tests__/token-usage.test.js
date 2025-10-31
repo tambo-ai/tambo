@@ -47,7 +47,10 @@ test("token-usage fixes deprecated text-secondary", async () => {
   );
 
   assert.equal(result.messages[0]?.messageId, "textSecondaryDeprecated");
-  assert.equal(result.output, '<p className="text-muted-foreground">Caption</p>');
+  assert.equal(
+    result.output,
+    '<p className="text-muted-foreground">Caption</p>',
+  );
 });
 
 test("token-usage flags text-primary without bg-primary", async () => {
@@ -78,5 +81,8 @@ test("token-usage fixes placeholder text-primary", async () => {
   );
 
   assert.equal(result.messages[0]?.messageId, "textPrimaryInPlaceholder");
-  assert.equal(result.output, '<input className="placeholder:text-muted-foreground" />');
+  assert.equal(
+    result.output,
+    '<input className="placeholder:text-muted-foreground" />',
+  );
 });

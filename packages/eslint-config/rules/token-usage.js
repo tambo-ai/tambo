@@ -17,7 +17,10 @@ const getLiteralValue = (valueNode) => {
     valueNode.expression.type === "Literal" &&
     typeof valueNode.expression.value === "string"
   ) {
-    const raw = typeof valueNode.expression.raw === "string" ? valueNode.expression.raw : null;
+    const raw =
+      typeof valueNode.expression.raw === "string"
+        ? valueNode.expression.raw
+        : null;
     const quote = raw?.startsWith("'") ? "'" : '"';
     return {
       value: valueNode.expression.value,
@@ -78,7 +81,10 @@ const rule = {
   create(context) {
     return {
       JSXAttribute(node) {
-        if (node.name.type !== "JSXIdentifier" || node.name.name !== "className") {
+        if (
+          node.name.type !== "JSXIdentifier" ||
+          node.name.name !== "className"
+        ) {
           return;
         }
 
@@ -92,14 +98,19 @@ const rule = {
         const hasTextPrimary = classes.includes("text-primary");
         const hasBgPrimary = classes.includes("bg-primary");
         const hasTextSecondary = classes.includes("text-secondary");
-        const hasPlaceholderTextPrimary = value.includes("placeholder:text-primary");
+        const hasPlaceholderTextPrimary = value.includes(
+          "placeholder:text-primary",
+        );
 
         if (hasTextSecondary) {
           context.report({
             node,
             messageId: "textSecondaryDeprecated",
             fix(fixer) {
-              const newValue = value.replaceAll("text-secondary", "text-muted-foreground");
+              const newValue = value.replaceAll(
+                "text-secondary",
+                "text-muted-foreground",
+              );
               return replaceWithQuote(fixer, node.value, newValue, quote);
             },
           });

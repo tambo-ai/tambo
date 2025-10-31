@@ -2,7 +2,7 @@ CHANGELOG.md
 .release-please-manifest.json
 **/CHANGELOG.md
 **/.next
-react/esm/
-react/dist/
-react-sdk/esm
+**/dist
+**/esm
+**/node_modules
 docs/.source/
