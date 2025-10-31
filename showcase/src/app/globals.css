@@ -272,13 +272,26 @@ html {
 
   /* Prose customization for markdown/doc content */
   .prose {
-    @apply prose-zinc dark:prose-invert;
+    @apply dark:prose-invert;
     @apply prose-h1:text-2xl prose-h1:font-semibold;
     @apply prose-h2:mt-12 prose-h2:text-xl prose-h2:font-500;
     @apply prose-h3:text-base prose-h3:font-500;
     @apply prose-h4:text-base prose-h4:font-500;
     @apply prose-strong:font-500;
     @apply prose-img:m-0;
-    @apply max-w-full;
+    @apply max-w-6xl;
+  }
+
+  /* Override highlight.js backgrounds in code elements */
+  code[class*="language-"],
+  pre code[class*="language-"] {
+    background: transparent !important;
+  }
+
+  /* CLI and code viewer styling - ensure proper inheritance */
+  .cli-code,
+  .code-viewer code {
+    background: transparent !important;
+    color: inherit !important;
   }
 }

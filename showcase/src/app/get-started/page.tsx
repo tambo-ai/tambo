@@ -30,14 +30,12 @@ export default function GetStartedPage() {
               <p className="text-sm md:text-base text-muted-foreground mb-4">
                 {step.description}
               </p>
-              <div className="bg-slate-800 rounded-lg">
-                <CLI
-                  command={step.code}
-                  path={step.path}
-                  isCode={step.isCode}
-                  language={step.language}
-                />
-              </div>
+              <CLI
+                command={step.code}
+                path={step.path}
+                isCode={step.isCode}
+                language={step.language}
+              />
             </div>
           ))}
         </TabsContent>
@@ -54,14 +52,12 @@ export default function GetStartedPage() {
               <p className="text-sm md:text-base text-muted-foreground mb-4">
                 {step.description}
               </p>
-              <div className="bg-slate-800 rounded-lg">
-                <CLI
-                  command={step.code}
-                  path={step.path}
-                  isCode={step.isCode}
-                  language={step.language}
-                />
-              </div>
+              <CLI
+                command={step.code}
+                path={step.path}
+                isCode={step.isCode}
+                language={step.language}
+              />
             </div>
           ))}
         </TabsContent>
