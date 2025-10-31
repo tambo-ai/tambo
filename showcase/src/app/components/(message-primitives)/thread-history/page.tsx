@@ -107,6 +107,7 @@ export function ChatSidebar() {
   );
 }`}
         previewClassName="p-0"
+        fullBleed
       />
 
       <ComponentCodePreview
@@ -159,6 +160,7 @@ export function CollapsedSidebar() {
   );
 }`}
         previewClassName="p-0"
+        fullBleed
       />
 
       <ComponentCodePreview
@@ -213,6 +215,7 @@ export function RightSidebar() {
   );
 }`}
         previewClassName="p-0"
+        fullBleed
       />
 
       <ComponentCodePreview
@@ -257,6 +260,7 @@ export function MinimalSidebar() {
   );
 }`}
         previewClassName="p-0"
+        fullBleed
       />
 
       <InstallationSection cliCommand="npx tambo add thread-history" />
