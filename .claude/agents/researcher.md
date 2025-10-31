@@ -1,6 +1,8 @@
 ---
 name: researcher
-description: General-purpose research agent that can analyze codebases, evaluate technologies, and research implementation approaches
+description: General-purpose research agent that can analyze codebases, evaluate technologies, and research implementation approaches. Use this agent to gather information, analyze patterns, and understand existing implementations before planning or coding.
+model: sonnet
+color: green
 tools: Read, Glob, Grep, WebSearch, WebFetch, Bash
 ---
 

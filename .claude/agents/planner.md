@@ -1,6 +1,8 @@
 ---
 name: planner
-description: Synthesizes research findings into a structured, concise implementation plan
+description: Synthesizes research findings into a structured, concise implementation plan. Use this agent after completing research to create actionable implementation plans with phases, file structures, and key design decisions.
+model: sonnet
+color: blue
 tools: Read, Write, Glob
 ---
 
