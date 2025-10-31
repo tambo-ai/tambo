@@ -51,9 +51,10 @@ src/
 
 ## Adding New Component Demos
 
-1. Create page in `src/app/components/(category)/`
-2. Implement chat interface in `src/components/generative/` if needed
-3. Add component to `src/components/ui/` if new
-4. Update `src/lib/navigation.ts`
+- Add new components in in `src/app/components/(category)/[component-name]/page.tsx`
+
+4. Update the `src/lib/navigation.ts`:
+   - **Mark it as new**: Add `isNew: true` to the navigation item
+   - **Remove old "new" badges**: Find the previously newest component in that category and remove its `isNew: true` flag
 
 See `src/app/components/AGENTS.md` for detailed page structure patterns.
