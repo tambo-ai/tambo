@@ -47,7 +47,7 @@ export default function MessageInputPage() {
     <div className="py-8 max-w-4xl mx-auto">
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-bold mb-4">Message Input</h1>
+          <h1 className="text-2xl font-semibold mb-4">Message Input</h1>
           <p className="text-lg text-foreground/70 mb-6">
             A primitive component for handling message input with textarea,
             toolbar, submit button, and error display. Provides form submission
@@ -66,7 +66,7 @@ export default function MessageInputPage() {
 
         {/* Installation */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
+          <h2 className="text-xl font-500 mb-4">Installation</h2>
           <div className="rounded-md">
             <CLI command={installCommand} />
           </div>
@@ -78,7 +78,7 @@ export default function MessageInputPage() {
 
         {/* Sub-components */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
+          <h2 className="text-xl font-500 mb-4">Sub-components</h2>
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <ul className="space-y-3 text-sm">
               <li>
@@ -132,7 +132,7 @@ export default function MessageInputPage() {
 
         {/* Sample Code */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Usage</h2>
+          <h2 className="text-xl font-500 mb-4">Usage</h2>
           <SyntaxHighlighter code={usageCode} language="tsx" />
         </div>
 
@@ -220,9 +220,9 @@ export default function MessageInputPage() {
 
         {/* Props Documentation */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Props</h2>
+          <h2 className="text-xl font-500 mb-4">Props</h2>
 
-          <h3 className="text-lg font-medium mb-3">MessageInput</h3>
+          <h3 className="text-base font-500 mb-3">MessageInput</h3>
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <table className="w-full text-sm">
               <thead>

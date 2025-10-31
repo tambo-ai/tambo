@@ -22,7 +22,7 @@ export default function GraphPage() {
     <div className="container mx-auto pt-6 px-6 max-w-4xl">
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-bold mb-4">Graph</h1>
+          <h1 className="text-2xl font-semibold mb-4">Graph</h1>
           <p className="text-lg text-muted-foreground">
             A versatile data visualization component that supports bar charts,
             line charts, and pie charts with customizable styles.
@@ -30,7 +30,7 @@ export default function GraphPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
+          <h2 className="text-xl font-500 mb-4">Installation</h2>
           <div className="rounded-md">
             <CLI command={installCommand} />
           </div>
