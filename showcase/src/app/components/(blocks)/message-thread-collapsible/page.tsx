@@ -3,7 +3,6 @@
 import { CLI } from "@/components/cli";
 import { MessageThreadCollapsible } from "@/components/ui/message-thread-collapsible";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
 import { DemoWrapper } from "../../demo-wrapper";
 
@@ -15,7 +14,24 @@ function MessageThreadCollapsibleContent() {
 
   return (
     <TamboMcpProvider
-      mcpServers={[{ url: MCP_DEMO_URL, transport: MCPTransport.HTTP }]}
+      mcpServers={[
+        {
+          url: MCP_DEMO_URL,
+          transport: MCPTransport.HTTP,
+          handlers: {
+            elicitation: async (request) => {
+              console.log("elicitation request", request);
+              return {
+                action: "accept",
+                content: {
+                  type: "text",
+                  text: "Hello, world!",
+                },
+              };
+            },
+          },
+        },
+      ]}
     >
       <DemoWrapper title="Message Thread Collapsible">
         <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full relative">
@@ -48,28 +64,26 @@ export default function MessageThreadCollapsiblePage() {
 
   return (
     <div className="py-8 max-w-4xl mx-auto">
-      <ShowcaseThemeProvider defaultTheme="light">
-        <div className="flex flex-col gap-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-4">
-              Message Thread Collapsible
-            </h1>
-            <p className="text-lg text-secondary">
-              A collapsible message thread component with chat history and input
-              field.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Installation</h2>
-            <div className="rounded-md">
-              <CLI command={installCommand} />
-            </div>
-          </div>
-
-          <MessageThreadCollapsibleContent />
+      <div className="flex flex-col gap-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-4">
+            Message Thread Collapsible
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            A collapsible message thread component with chat history and input
+            field.
+          </p>
         </div>
-      </ShowcaseThemeProvider>
+
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Installation</h2>
+          <div className="rounded-md">
+            <CLI command={installCommand} />
+          </div>
+        </div>
+
+        <MessageThreadCollapsibleContent />
+      </div>
     </div>
   );
 }
