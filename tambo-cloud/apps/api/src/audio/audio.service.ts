@@ -54,7 +54,7 @@ export class AudioService {
   private async transcribeWithOpenai(
     audioBuffer: Buffer,
     filename: string,
-    model: string = "gpt-4o-mini-transcribe",
+    model: string = "whisper-1",
   ): Promise<string> {
     const audioFile = await toFile(audioBuffer, filename);
     const transcription = await this.openaiClient.audio.transcriptions.create({
