@@ -70,7 +70,7 @@ export const GitHubIssueCreator = React.forwardRef<
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-            <Github className="h-5 w-5 text-muted-foreground" />
+              <Github className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-foreground">
