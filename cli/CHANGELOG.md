@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.36.0...tambo-v0.37.0) (2025-10-31)
+
+
+### Features
+
+* Add validation UI to elicitation ([#1220](https://github.com/tambo-ai/tambo/issues/1220)) ([417209d](https://github.com/tambo-ai/tambo/commit/417209de0edad1a17d42f527ed9320913b541a2d))
+
 ## [0.36.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.35.1...tambo-v0.36.0) (2025-10-31)
 
 
