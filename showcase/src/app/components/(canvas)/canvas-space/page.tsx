@@ -26,6 +26,7 @@ export function CanvasDemo() {
   );
 }`}
         previewClassName="p-0"
+        fullBleed
         minHeight={650}
       />
 
