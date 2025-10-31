@@ -47,8 +47,8 @@ export default function MessageThreadPanelPage() {
         <div>
           <h1 className="text-3xl font-bold mb-4">Message Thread Panel</h1>
           <p className="text-lg text-muted-foreground">
-            A sidebar-style message thread component with chat history and
-            input field.
+            A sidebar-style message thread component with chat history and input
+            field.
           </p>
         </div>
 
