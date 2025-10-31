@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.120.5](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.4...repo-v0.120.5) (2025-10-31)
+
+
+### Bug Fixes
+
+* re-enable strict json mode for openai ([#2016](https://github.com/tambo-ai/tambo-cloud/issues/2016)) ([c212a04](https://github.com/tambo-ai/tambo-cloud/commit/c212a0478a55028beb291061905351daa869dc6c))
+
+
+### Code Refactoring
+
+* change default transcription model to whisper ([#2017](https://github.com/tambo-ai/tambo-cloud/issues/2017)) ([7c0b60e](https://github.com/tambo-ai/tambo-cloud/commit/7c0b60ef4abcb3737f6447b644caf895ea1c2397))
+
 ## [0.120.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.3...repo-v0.120.4) (2025-10-30)
 
 
