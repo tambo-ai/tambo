@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.27.0...showcase-v0.28.0) (2025-10-31)
+
+
+### Features
+
+* Add validation UI to elicitation ([#1220](https://github.com/tambo-ai/tambo/issues/1220)) ([417209d](https://github.com/tambo-ai/tambo/commit/417209de0edad1a17d42f527ed9320913b541a2d))
+
 ## [0.27.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.26.1...showcase-v0.27.0) (2025-10-31)
 
 
