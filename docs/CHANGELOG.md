@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.1](https://github.com/tambo-ai/tambo/compare/docs-v1.16.0...docs-v1.16.1) (2025-10-31)
+
+
+### Bug Fixes
+
+* **docs:** Migrate to Tailwind CSS v4 ([#1222](https://github.com/tambo-ai/tambo/issues/1222)) ([253af21](https://github.com/tambo-ai/tambo/commit/253af21b900ccd837d959abc1d7a09729716b11a))
+
 ## [1.16.0](https://github.com/tambo-ai/tambo/compare/docs-v1.15.0...docs-v1.16.0) (2025-10-31)
 
 
