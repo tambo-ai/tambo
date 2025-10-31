@@ -48,7 +48,7 @@ interface FieldProps {
   onChange: (value: unknown) => void;
   required: boolean;
   autoFocus?: boolean;
-  showValidation?: boolean;
+  validationError?: string | null;
 }
 
 /**
@@ -155,7 +155,7 @@ const StringField: React.FC<FieldProps> = ({
   onChange,
   required,
   autoFocus,
-  showValidation,
+  validationError,
 }) => {
   const stringSchema = schema as StringFieldSchema;
   const stringValue = (value as string | undefined) || "";
@@ -177,8 +177,7 @@ const StringField: React.FC<FieldProps> = ({
   };
 
   const inputType = getInputType();
-  const isValid = validateField(value, schema, required);
-  const showError = showValidation && !isValid;
+  const hasError = !!validationError;
 
   return (
     <div className="space-y-2">
@@ -194,7 +193,7 @@ const StringField: React.FC<FieldProps> = ({
         onChange={(e) => onChange(e.target.value)}
         className={cn(
           "w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2",
-          showError
+          hasError
             ? "border-destructive focus:ring-destructive"
             : "border-border focus:ring-primary",
         )}
@@ -204,12 +203,8 @@ const StringField: React.FC<FieldProps> = ({
         pattern={stringSchema.pattern}
         required={required}
       />
-      {showError && (
-        <p className="text-xs text-destructive">
-          {required && !stringValue
-            ? "This field is required"
-            : "Please enter a valid value"}
-        </p>
+      {validationError && (
+        <p className="text-xs text-destructive">{validationError}</p>
       )}
     </div>
   );
@@ -225,13 +220,11 @@ const NumberField: React.FC<FieldProps> = ({
   onChange,
   required,
   autoFocus,
-  showValidation,
+  validationError,
 }) => {
   const numberSchema = schema as NumberFieldSchema;
   const numberValue = value as number | undefined;
-
-  const isValid = validateField(value, schema, required);
-  const showError = showValidation && !isValid;
+  const hasError = !!validationError;
 
   return (
     <div className="space-y-2">
@@ -250,7 +243,7 @@ const NumberField: React.FC<FieldProps> = ({
         }}
         className={cn(
           "w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2",
-          showError
+          hasError
             ? "border-destructive focus:ring-destructive"
             : "border-border focus:ring-primary",
         )}
@@ -260,12 +253,8 @@ const NumberField: React.FC<FieldProps> = ({
         step={numberSchema.type === "integer" ? 1 : "any"}
         required={required}
       />
-      {showError && (
-        <p className="text-xs text-destructive">
-          {required && numberValue === undefined
-            ? "This field is required"
-            : "Please enter a valid number"}
-        </p>
+      {validationError && (
+        <p className="text-xs text-destructive">{validationError}</p>
       )}
     </div>
   );
@@ -313,6 +302,98 @@ function isSingleEntryMode(request: TamboElicitationRequest): boolean {
     schema.type === "boolean" ||
     (schema.type === "string" && !!(schema as StringFieldSchema).enum)
   );
+}
+
+/**
+ * Gets a specific validation error message for a field
+ */
+function getValidationError(
+  value: unknown,
+  schema: FieldSchema,
+  required: boolean,
+): string | null {
+  // Check required
+  if (required && (value === undefined || value === "" || value === null)) {
+    return "This field is required";
+  }
+
+  // If empty and not required, it's valid
+  if (!required && (value === undefined || value === "" || value === null)) {
+    return null;
+  }
+
+  // String validation
+  if (schema.type === "string") {
+    const stringSchema = schema as StringFieldSchema;
+    const stringValue = value as string;
+
+    if (stringSchema.minLength && stringValue.length < stringSchema.minLength) {
+      return `Minimum length is ${stringSchema.minLength} characters`;
+    }
+
+    if (stringSchema.maxLength && stringValue.length > stringSchema.maxLength) {
+      return `Maximum length is ${stringSchema.maxLength} characters`;
+    }
+
+    if (stringSchema.pattern) {
+      try {
+        const regex = new RegExp(stringSchema.pattern);
+        if (!regex.test(stringValue)) {
+          return "Value does not match required pattern";
+        }
+      } catch {
+        // Invalid regex pattern, skip validation
+      }
+    }
+
+    // Format validation
+    if (stringSchema.format) {
+      switch (stringSchema.format) {
+        case "email":
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
+            return "Please enter a valid email address";
+          }
+          break;
+        case "uri":
+          try {
+            new URL(stringValue);
+          } catch {
+            return "Please enter a valid URL";
+          }
+          break;
+      }
+    }
+  }
+
+  // Number validation
+  if (schema.type === "number" || schema.type === "integer") {
+    const numberSchema = schema as NumberFieldSchema;
+    const numberValue = value as number;
+
+    if (isNaN(numberValue)) {
+      return "Please enter a valid number";
+    }
+
+    if (
+      numberSchema.minimum !== undefined &&
+      numberValue < numberSchema.minimum
+    ) {
+      return `Minimum value is ${numberSchema.minimum}`;
+    }
+
+    if (
+      numberSchema.maximum !== undefined &&
+      numberValue > numberSchema.maximum
+    ) {
+      return `Maximum value is ${numberSchema.maximum}`;
+    }
+
+    if (schema.type === "integer" && !Number.isInteger(numberValue)) {
+      return "Please enter a whole number";
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -444,21 +525,22 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
     },
   );
 
-  // Track whether to show validation errors
-  const [showValidation, setShowValidation] = React.useState(false);
+  // Track which fields have been touched (interacted with)
+  const [touchedFields, setTouchedFields] = React.useState<Set<string>>(
+    new Set(),
+  );
 
   const handleFieldChange = (name: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Show validation as user types if already attempted submit
-    if (showValidation) {
-      setShowValidation(true);
-    }
+    // Mark field as touched so we can show validation errors
+    setTouchedFields((prev) => new Set(prev).add(name));
   };
 
   const handleAccept = () => {
     // Check if valid before submitting
     if (!isValid) {
-      setShowValidation(true);
+      // Mark all fields as touched to show validation errors
+      setTouchedFields(new Set(fields.map(([name]) => name)));
       return;
     }
     onResponse({ action: "accept", content: formData });
@@ -491,6 +573,14 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
 
   if (singleEntry) {
     const [fieldName, fieldSchema] = fields[0];
+    const validationError = touchedFields.has(fieldName)
+      ? getValidationError(
+          formData[fieldName],
+          fieldSchema,
+          requiredFields.has(fieldName),
+        )
+      : null;
+
     return (
       <div
         className={cn(
@@ -508,7 +598,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           onChange={(value) => handleSingleEntryChange(fieldName, value)}
           required={requiredFields.has(fieldName)}
           autoFocus
-          showValidation={showValidation}
+          validationError={validationError}
         />
         <div className="flex justify-end gap-2 pt-2">
           <button
@@ -535,18 +625,28 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
         {request.message}
       </div>
       <div className="space-y-3">
-        {fields.map(([name, schema], index) => (
-          <Field
-            key={name}
-            name={name}
-            schema={schema}
-            value={formData[name]}
-            onChange={(value) => handleFieldChange(name, value)}
-            required={requiredFields.has(name)}
-            autoFocus={index === 0}
-            showValidation={showValidation}
-          />
-        ))}
+        {fields.map(([name, schema], index) => {
+          const validationError = touchedFields.has(name)
+            ? getValidationError(
+                formData[name],
+                schema,
+                requiredFields.has(name),
+              )
+            : null;
+
+          return (
+            <Field
+              key={name}
+              name={name}
+              schema={schema}
+              value={formData[name]}
+              onChange={(value) => handleFieldChange(name, value)}
+              required={requiredFields.has(name)}
+              autoFocus={index === 0}
+              validationError={validationError}
+            />
+          );
+        })}
       </div>
       <div className="flex justify-end gap-2 pt-2">
         <button
