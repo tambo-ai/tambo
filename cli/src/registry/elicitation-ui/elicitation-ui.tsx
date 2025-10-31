@@ -183,7 +183,8 @@ const StringField: React.FC<FieldProps> = ({
 
   const inputType = getInputType();
   const hasError = !!validationError;
-  const inputId = toFieldId(name);
+  const baseId = React.useId();
+  const inputId = `${baseId}-${toFieldId(name)}`;
   const errorId = `${inputId}-error`;
 
   return (
@@ -235,7 +236,8 @@ const NumberField: React.FC<FieldProps> = ({
   const numberSchema = schema as NumberFieldSchema;
   const numberValue = value as number | undefined;
   const hasError = !!validationError;
-  const inputId = toFieldId(name);
+  const baseId = React.useId();
+  const inputId = `${baseId}-${toFieldId(name)}`;
   const errorId = `${inputId}-error`;
 
   return (
@@ -250,8 +252,12 @@ const NumberField: React.FC<FieldProps> = ({
         autoFocus={autoFocus}
         value={numberValue ?? ""}
         onChange={(e) => {
-          const val = e.target.value;
-          onChange(val === "" ? undefined : Number(val));
+          const { value, valueAsNumber } = e.currentTarget;
+          onChange(
+            value === "" || Number.isNaN(valueAsNumber)
+              ? undefined
+              : valueAsNumber,
+          );
         }}
         className={cn(
           "w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2",
@@ -514,6 +520,8 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
   const handleSingleEntryChange = (name: string, value: unknown) => {
     const updatedData = { ...formData, [name]: value };
     setFormData(updatedData);
+    // Mark as touched for consistency/future-proofing
+    setTouchedFields((prev) => new Set(prev).add(name));
     // Submit immediately
     onResponse({ action: "accept", content: updatedData });
   };
