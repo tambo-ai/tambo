@@ -68,12 +68,14 @@ tambo upgrade               # Upgrade Tambo dependencies
 
 ### New End-User Features Process
 
-We have a doc-first approach to developing new features in our CLI. This means we write the documentation first, then write the code to implement the feature. Our docs are in the docs site (read Docs/AGENTS.md).
+We have a doc-first approach to developing new features in our CLI. This means we write the documentation first, then write the code to implement the feature. Our docs are in the docs site (read ../docs/AGENTS.md).
 
 1. Read all existing documentation and code in the repository
 2. Read the relevant code to ensure you understand the existing code and context
 3. Before writing any code, write a detailed description of the feature in the docs site
 4. Then write the code to implement the feature
+
+If you do update the components directly, you should also update the documentation in the docs site (read ../docs/AGENTS.md).
 
 ### Adding New Commands
 
