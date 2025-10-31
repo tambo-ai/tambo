@@ -39,7 +39,10 @@ tambo upgrade               # Upgrade Tambo dependencies
 
 ### Component Registry System
 
-- **Registry**: `src/registry/` - Template components with metadata
+- **Registry**: `src/registry/` - Template components with metadata. These
+  components are copied into a user's project when they run the `tambo add`
+  command. Any changes to the component files should be made in this package first,
+  and then duplicated into the showcase/ and docs/ packages.
 - **Structure**: Each component has:
   - `config.json` - Metadata (name, description, dependencies)
   - Component files (`.tsx`, `.ts`)
