@@ -32,7 +32,7 @@ export default function MessageThreadFullPage() {
   const installCommand = "npx tambo add message-thread-full";
 
   return (
-    <div className="py-8 max-w-4xl mx-auto">
+    <div className="py-8 max-w-6xl mx-auto">
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-2xl font-semibold mb-4">Message Thread Full</h1>
