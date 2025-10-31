@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.61.0](https://github.com/tambo-ai/tambo/compare/react-v0.60.0...react-v0.61.0) (2025-10-31)
+
+
+### Features
+
+* **react-sdk:** auto generate thread name ([#1185](https://github.com/tambo-ai/tambo/issues/1185)) ([991a567](https://github.com/tambo-ai/tambo/commit/991a567e3591c735f55022d5aae194eda88bd8f5))
+
 ## [0.60.0](https://github.com/tambo-ai/tambo/compare/react-v0.59.0...react-v0.60.0) (2025-10-30)
 
 
