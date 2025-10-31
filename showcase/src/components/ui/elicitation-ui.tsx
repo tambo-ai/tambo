@@ -51,6 +51,11 @@ interface FieldProps {
   validationError?: string | null;
 }
 
+// Create a safe DOM id fragment from an arbitrary field name
+function toFieldId(name: string): string {
+  return name.replace(/[^a-zA-Z0-9_-]/g, "-");
+}
+
 /**
  * Boolean field component - renders yes/no buttons
  */
@@ -178,15 +183,17 @@ const StringField: React.FC<FieldProps> = ({
 
   const inputType = getInputType();
   const hasError = !!validationError;
+  const inputId = toFieldId(name);
+  const errorId = `${inputId}-error`;
 
   return (
     <div className="space-y-2">
-      <label htmlFor={name} className="text-sm font-medium text-foreground">
+      <label htmlFor={inputId} className="text-sm font-medium text-foreground">
         {schema.description || name}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       <input
-        id={name}
+        id={inputId}
         type={inputType}
         autoFocus={autoFocus}
         value={stringValue}
@@ -200,11 +207,14 @@ const StringField: React.FC<FieldProps> = ({
         placeholder={schema.description || name}
         minLength={stringSchema.minLength}
         maxLength={stringSchema.maxLength}
-        pattern={stringSchema.pattern}
         required={required}
+        aria-invalid={hasError || undefined}
+        aria-describedby={hasError ? errorId : undefined}
       />
       {validationError && (
-        <p className="text-xs text-destructive">{validationError}</p>
+        <p id={errorId} className="text-xs text-destructive" aria-live="polite">
+          {validationError}
+        </p>
       )}
     </div>
   );
@@ -225,15 +235,17 @@ const NumberField: React.FC<FieldProps> = ({
   const numberSchema = schema as NumberFieldSchema;
   const numberValue = value as number | undefined;
   const hasError = !!validationError;
+  const inputId = toFieldId(name);
+  const errorId = `${inputId}-error`;
 
   return (
     <div className="space-y-2">
-      <label htmlFor={name} className="text-sm font-medium text-foreground">
+      <label htmlFor={inputId} className="text-sm font-medium text-foreground">
         {schema.description || name}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       <input
-        id={name}
+        id={inputId}
         type="number"
         autoFocus={autoFocus}
         value={numberValue ?? ""}
@@ -252,9 +264,13 @@ const NumberField: React.FC<FieldProps> = ({
         max={numberSchema.maximum}
         step={numberSchema.type === "integer" ? 1 : "any"}
         required={required}
+        aria-invalid={hasError || undefined}
+        aria-describedby={hasError ? errorId : undefined}
       />
       {validationError && (
-        <p className="text-xs text-destructive">{validationError}</p>
+        <p id={errorId} className="text-xs text-destructive" aria-live="polite">
+          {validationError}
+        </p>
       )}
     </div>
   );
@@ -305,41 +321,56 @@ function isSingleEntryMode(request: TamboElicitationRequest): boolean {
 }
 
 /**
- * Gets a specific validation error message for a field
+ * Unified validation function that returns both validity and a user-facing message.
  */
-function getValidationError(
+function validateField(
   value: unknown,
   schema: FieldSchema,
   required: boolean,
-): string | null {
-  // Check required
+): { valid: boolean; error: string | null } {
+  // Required
   if (required && (value === undefined || value === "" || value === null)) {
-    return "This field is required";
+    return { valid: false, error: "This field is required" };
   }
 
   // If empty and not required, it's valid
   if (!required && (value === undefined || value === "" || value === null)) {
-    return null;
+    return { valid: true, error: null };
   }
 
   // String validation
   if (schema.type === "string") {
     const stringSchema = schema as StringFieldSchema;
-    const stringValue = value as string;
+    const stringValue = String(value);
 
-    if (stringSchema.minLength && stringValue.length < stringSchema.minLength) {
-      return `Minimum length is ${stringSchema.minLength} characters`;
+    if (
+      stringSchema.minLength !== undefined &&
+      stringValue.length < stringSchema.minLength
+    ) {
+      return {
+        valid: false,
+        error: `Minimum length is ${stringSchema.minLength} characters`,
+      };
     }
 
-    if (stringSchema.maxLength && stringValue.length > stringSchema.maxLength) {
-      return `Maximum length is ${stringSchema.maxLength} characters`;
+    if (
+      stringSchema.maxLength !== undefined &&
+      stringValue.length > stringSchema.maxLength
+    ) {
+      return {
+        valid: false,
+        error: `Maximum length is ${stringSchema.maxLength} characters`,
+      };
     }
 
     if (stringSchema.pattern) {
       try {
         const regex = new RegExp(stringSchema.pattern);
         if (!regex.test(stringValue)) {
-          return "Value does not match required pattern";
+          return {
+            valid: false,
+            error: "Value does not match required pattern",
+          };
         }
       } catch {
         // Invalid regex pattern, skip validation
@@ -351,14 +382,17 @@ function getValidationError(
       switch (stringSchema.format) {
         case "email":
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-            return "Please enter a valid email address";
+            return {
+              valid: false,
+              error: "Please enter a valid email address",
+            };
           }
           break;
         case "uri":
           try {
             new URL(stringValue);
           } catch {
-            return "Please enter a valid URL";
+            return { valid: false, error: "Please enter a valid URL" };
           }
           break;
       }
@@ -368,126 +402,47 @@ function getValidationError(
   // Number validation
   if (schema.type === "number" || schema.type === "integer") {
     const numberSchema = schema as NumberFieldSchema;
-    const numberValue = value as number;
+    const numberValue = Number(value);
 
-    if (isNaN(numberValue)) {
-      return "Please enter a valid number";
+    if (Number.isNaN(numberValue)) {
+      return { valid: false, error: "Please enter a valid number" };
     }
 
     if (
       numberSchema.minimum !== undefined &&
       numberValue < numberSchema.minimum
     ) {
-      return `Minimum value is ${numberSchema.minimum}`;
+      return {
+        valid: false,
+        error: `Minimum value is ${numberSchema.minimum}`,
+      };
     }
 
     if (
       numberSchema.maximum !== undefined &&
       numberValue > numberSchema.maximum
     ) {
-      return `Maximum value is ${numberSchema.maximum}`;
+      return {
+        valid: false,
+        error: `Maximum value is ${numberSchema.maximum}`,
+      };
     }
 
     if (schema.type === "integer" && !Number.isInteger(numberValue)) {
-      return "Please enter a whole number";
+      return { valid: false, error: "Please enter a whole number" };
     }
   }
 
-  return null;
+  return { valid: true, error: null };
 }
 
-/**
- * Validates a field value against its schema constraints
- */
-function validateField(
+// Helper preserving existing call sites for message-only usage
+function getValidationError(
   value: unknown,
   schema: FieldSchema,
   required: boolean,
-): boolean {
-  // Check required
-  if (required && (value === undefined || value === "" || value === null)) {
-    return false;
-  }
-
-  // If empty and not required, it's valid
-  if (!required && (value === undefined || value === "" || value === null)) {
-    return true;
-  }
-
-  // String validation
-  if (schema.type === "string") {
-    const stringSchema = schema as StringFieldSchema;
-    const stringValue = value as string;
-
-    if (stringSchema.minLength && stringValue.length < stringSchema.minLength) {
-      return false;
-    }
-
-    if (stringSchema.maxLength && stringValue.length > stringSchema.maxLength) {
-      return false;
-    }
-
-    if (stringSchema.pattern) {
-      try {
-        const regex = new RegExp(stringSchema.pattern);
-        if (!regex.test(stringValue)) {
-          return false;
-        }
-      } catch {
-        // Invalid regex pattern, skip validation
-      }
-    }
-
-    // Format validation (basic checks)
-    if (stringSchema.format) {
-      switch (stringSchema.format) {
-        case "email":
-          // Basic email validation
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-            return false;
-          }
-          break;
-        case "uri":
-          try {
-            new URL(stringValue);
-          } catch {
-            return false;
-          }
-          break;
-        // date and date-time are validated by the input type
-      }
-    }
-  }
-
-  // Number validation
-  if (schema.type === "number" || schema.type === "integer") {
-    const numberSchema = schema as NumberFieldSchema;
-    const numberValue = value as number;
-
-    if (isNaN(numberValue)) {
-      return false;
-    }
-
-    if (
-      numberSchema.minimum !== undefined &&
-      numberValue < numberSchema.minimum
-    ) {
-      return false;
-    }
-
-    if (
-      numberSchema.maximum !== undefined &&
-      numberValue > numberSchema.maximum
-    ) {
-      return false;
-    }
-
-    if (schema.type === "integer" && !Number.isInteger(numberValue)) {
-      return false;
-    }
-  }
-
-  return true;
+): string | null {
+  return validateField(value, schema, required).error;
 }
 
 /**
@@ -567,7 +522,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
     return fields.every(([fieldName, fieldSchema]) => {
       const value = formData[fieldName];
       const isRequired = requiredFields.has(fieldName);
-      return validateField(value, fieldSchema, isRequired);
+      return validateField(value, fieldSchema, isRequired).valid;
     });
   }, [formData, fields, requiredFields]);
 
