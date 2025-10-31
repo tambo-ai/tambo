@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.28.0...showcase-v0.28.1) (2025-10-31)
+
+
+### Miscellaneous Chores
+
+* **showcase:** Simplify color system to neutral palette ([#1219](https://github.com/tambo-ai/tambo/issues/1219)) ([26f600f](https://github.com/tambo-ai/tambo/commit/26f600f643f0596d30d23ab18c7dc2fdadc7d5ca))
+
 ## [0.28.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.27.0...showcase-v0.28.0) (2025-10-31)
 
 
