@@ -176,7 +176,8 @@ export const GitHubIssueCreator = React.forwardRef<
           </button>
 
           <p className="text-xs text-center text-muted-foreground">
-            You'll be redirected to GitHub where you can add additional details
+            You&apos;ll be redirected to GitHub where you can add additional
+            details
           </p>
         </div>
       </div>

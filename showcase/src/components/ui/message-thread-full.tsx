@@ -5,6 +5,7 @@ import {
   MessageInput,
   MessageInputError,
   MessageInputFileButton,
+  MessageInputMcpPromptButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -62,59 +63,48 @@ export const MessageThreadFull = React.forwardRef<
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
   // Track sidebar width changes using state
-  const [sidebarWidth, setSidebarWidth] = React.useState("3rem"); // Default collapsed width
+  const [sidebarWidth, setSidebarWidth] = React.useState("16rem");
 
   // Effect to listen for CSS variable changes and update state
   React.useEffect(() => {
-    let observer: MutationObserver | null = null;
-
     const updateSidebarWidth = () => {
-      // Ensure we're running in the browser
       if (typeof window !== "undefined" && typeof document !== "undefined") {
         const width =
           getComputedStyle(document.documentElement)
             .getPropertyValue("--sidebar-width")
-            .trim() || "16rem"; // Fallback to default
+            .trim() || "16rem";
         setSidebarWidth(width);
       }
     };
 
-    // Initial read of the variable
+    // Initial read
     updateSidebarWidth();
 
     // Observe changes to the style attribute of the root element
-    if (typeof document !== "undefined") {
-      observer = new MutationObserver((mutationsList) => {
-        for (const mutation of mutationsList) {
-          if (
-            mutation.type === "attributes" &&
-            mutation.attributeName === "style"
-          ) {
-            // Re-check the variable value when style attribute changes
-            updateSidebarWidth();
-            break; // No need to check other mutations if style changed
-          }
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "style"
+        ) {
+          updateSidebarWidth();
+          break;
         }
-      });
+      }
+    });
 
+    if (typeof document !== "undefined") {
       observer.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ["style"],
       });
     }
 
-    // Cleanup observer on component unmount
-    return () => {
-      observer?.disconnect();
-    };
-  }, []); // Empty dependency array, runs once on mount
+    return () => observer.disconnect();
+  }, []);
 
   const threadHistorySidebar = (
-    <ThreadHistory
-      contextKey={contextKey}
-      position={historyPosition}
-      className="absolute h-full z-10 border-flat rounded-l-lg bg-container transition-all duration-300"
-    >
+    <ThreadHistory contextKey={contextKey} position={historyPosition}>
       <ThreadHistoryHeader />
       <ThreadHistoryNewButton />
       <ThreadHistorySearch />
@@ -150,21 +140,15 @@ export const MessageThreadFull = React.forwardRef<
 
       <ThreadContainer
         ref={mergedRef}
-        // Pass through original className, but override width/margins with style
         className={className}
         style={{
-          // Explicitly set width based on observed sidebarWidth
+          // Use observed sidebar width for reactive layout
           width: `calc(100% - ${sidebarWidth})`,
-          // Explicitly set margins based on observed sidebarWidth and position
           marginLeft: historyPosition === "left" ? sidebarWidth : "0",
           marginRight: historyPosition === "right" ? sidebarWidth : "0",
-          // Add transition for smoothness
           transition: "width 0.3s ease-in-out, margin 0.3s ease-in-out",
-          // Ensure other styles from className potentially affecting layout are compatible
-          ...(props.style || {}), // Merge with any incoming style props
         }}
-        // Pass other props, but style is handled above
-        {...{ ...props }}
+        {...props}
       >
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
@@ -183,6 +167,9 @@ export const MessageThreadFull = React.forwardRef<
             <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
               <MessageInputFileButton />
+              <MessageInputMcpPromptButton />
+              {/* Uncomment this to enable client-side MCP config modal button */}
+              {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />
             </MessageInputToolbar>
             <MessageInputError />

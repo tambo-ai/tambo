@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**⚠️ IMPORTANT: Read [AGENTS.md](./AGENTS.md) before making any changes or using any tools. It contains detailed architectural guidance and development workflows.**
+**⚠️ IMPORTANT: Read @AGENTS.md before making any changes or using any tools. It contains detailed architectural guidance and development workflows.**
 
 ## Quick Reference
 
@@ -23,4 +23,4 @@ turbo lint              # Lint all packages
 turbo test              # Test all packages
 ```
 
-For detailed information on architecture, development patterns, and cross-package workflows, see [AGENTS.md](./AGENTS.md).
+For detailed information on architecture, development patterns, and cross-package workflows, see @AGENTS.md.

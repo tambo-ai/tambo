@@ -1,6 +1,11 @@
 "use client";
 
 import { markdownComponents } from "@/components/tambo/markdown-components";
+import {
+  checkHasContent,
+  getMessageImages,
+  getSafeContent,
+} from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -12,11 +17,6 @@ import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
-import {
-  checkHasContent,
-  getMessageImages,
-  getSafeContent,
-} from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -76,6 +76,18 @@ const useMessageContext = () => {
   }
   return context;
 };
+
+/**
+ * Get the tool call request from the message, or the component tool call request
+ *
+ * @param message - The message to get the tool call request from
+ * @returns The tool call request
+ */
+export function getToolCallRequest(
+  message: TamboThreadMessage,
+): TamboAI.ToolCallRequest | undefined {
+  return message.toolCallRequest ?? message.component?.toolCallRequest;
+}
 
 // --- Sub-Components ---
 
@@ -308,12 +320,13 @@ function getToolStatusMessage(
   message: TamboThreadMessage,
   isLoading: boolean | undefined,
 ) {
-  const isToolCall = !!message.toolCallRequest;
-  if (!isToolCall) return null;
+  if (message.role !== "assistant" || !getToolCallRequest(message)) {
+    return null;
+  }
 
   const toolCallMessage = isLoading
-    ? `Calling ${message.toolCallRequest?.toolName ?? "tool"}`
-    : `Called ${message.toolCallRequest?.toolName ?? "tool"}`;
+    ? `Calling ${getToolCallRequest(message)?.toolName ?? "tool"}`
+    : `Called ${getToolCallRequest(message)?.toolName ?? "tool"}`;
   const toolStatusMessage = isLoading
     ? message.component?.statusMessage
     : message.component?.completionStatusMessage;
@@ -343,19 +356,22 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
         if (nextMessage.role === "tool") {
           return nextMessage;
         }
-        if (nextMessage.toolCallRequest) {
+        if (
+          nextMessage.role === "assistant" &&
+          getToolCallRequest(nextMessage)
+        ) {
           break;
         }
       }
       return null;
     }, [message, thread?.messages]);
 
-    if (!message.toolCallRequest) {
+    if (message.role !== "assistant" || !getToolCallRequest(message)) {
       return null;
     }
 
     const toolCallRequest: TamboAI.ToolCallRequest | undefined =
-      message.toolCallRequest ?? message.component?.toolCallRequest;
+      getToolCallRequest(message);
     const hasToolError = message.error;
 
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
@@ -398,19 +414,20 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
+              "flex flex-col gap-1 p-3 pl-7 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
               isExpanded ? "max-h-auto opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               tool: {toolCallRequest?.toolName}
             </span>
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               parameters:{"\n"}
               {stringify(keyifyParameters(toolCallRequest?.parameters))}
             </span>
+            <SamplingSubThread parentMessageId={message.id} />
             {associatedToolResponse && (
-              <>
+              <div className="pl-2">
                 <span className="whitespace-pre-wrap">result:</span>
                 <div>
                   {!associatedToolResponse.content ? (
@@ -421,7 +438,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
                     formatToolResult(associatedToolResponse.content, markdown)
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -431,6 +448,82 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 );
 
 ToolcallInfo.displayName = "ToolcallInfo";
+
+/**
+ * Displays a message's child messages in a collapsible dropdown.
+ * Used for MCP sampling sub-threads.
+ * @component SamplingSubThread
+ */
+const SamplingSubThread = ({
+  parentMessageId,
+  titleText = "finished additional work",
+}: {
+  parentMessageId: string;
+  titleText?: string;
+}) => {
+  const { thread } = useTambo();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const samplingDetailsId = React.useId();
+
+  const childMessages = React.useMemo(() => {
+    return thread?.messages?.filter(
+      (m: TamboThreadMessage) => m.parentMessageId === parentMessageId,
+    );
+  }, [thread?.messages, parentMessageId]);
+
+  if (!childMessages?.length) return null;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        aria-expanded={isExpanded}
+        aria-controls={samplingDetailsId}
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md p-2 select-none w-fit",
+        )}
+      >
+        <span>{titleText}</span>
+        <ChevronDown
+          className={cn(
+            "w-3 h-3 transition-transform duration-200",
+            !isExpanded && "-rotate-90",
+          )}
+        />
+      </button>
+      <div
+        id={samplingDetailsId}
+        className={cn(
+          "transition-[max-height,opacity] duration-300",
+          isExpanded
+            ? "max-h-96 opacity-100 overflow-auto"
+            : "max-h-0 opacity-0 overflow-hidden",
+        )}
+        aria-hidden={!isExpanded}
+      >
+        <div className="pl-2">
+          <div className="border-l-2 border-muted-foreground p-2 flex flex-col gap-4">
+            {childMessages?.map((m: TamboThreadMessage) => (
+              <div key={m.id} className={`${m.role === "user" && "pl-2"}`}>
+                <span
+                  className={cn(
+                    "whitespace-pre-wrap",
+                    m.role === "assistant" &&
+                      "bg-muted/50 rounded-md p-2 inline-block w-fit",
+                  )}
+                >
+                  {getSafeContent(m.content)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+SamplingSubThread.displayName = "SamplingSubThread";
 
 /**
  * Props for the ReasoningInfo component.
@@ -509,7 +602,11 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
             )}
           >
             <span className={isLoading ? "animate-thinking-gradient" : ""}>
-              Thinking{" "}
+              {isLoading
+                ? "Thinking "
+                : message.reasoningDurationMS
+                  ? formatReasoningDuration(message.reasoningDurationMS) + " "
+                  : "Done Thinking "}
               {message.reasoning.length > 1
                 ? `(${message.reasoning.length} steps)`
                 : ""}
@@ -564,6 +661,24 @@ function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
 }
 
 /**
+ * Formats the reasoning duration in a human-readable format
+ * @param durationMS - The duration in milliseconds
+ * @returns The formatted duration string
+ */
+function formatReasoningDuration(durationMS: number) {
+  const seconds = Math.floor(Math.max(0, durationMS) / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (seconds < 1) return "Thought for less than 1 second";
+  if (seconds < 60)
+    return `Thought for ${seconds} ${seconds === 1 ? "second" : "seconds"}`;
+  if (minutes < 60)
+    return `Thought for ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  return `Thought for ${hours} ${hours === 1 ? "hour" : "hours"}`;
+}
+
+/**
  * Helper function to detect if content is JSON and format it nicely
  * @param content - The content to check and format
  * @returns Formatted content or original content if not JSON
@@ -581,7 +696,7 @@ function formatToolResult(
   } else if (Array.isArray(content)) {
     contentString = content
       .map((item) => {
-        if (item && item.type === "text") {
+        if (item?.type === "text") {
           return item.text ?? "";
         }
         return "";
