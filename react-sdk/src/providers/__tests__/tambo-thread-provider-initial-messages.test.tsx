@@ -1,4 +1,4 @@
-import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
+import TamboAI from "@tambo-ai/typescript-sdk";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { DeepPartial } from "ts-essentials";
@@ -11,6 +11,7 @@ import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
 import { TamboMcpTokenProvider } from "../tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "../tambo-thread-provider";
+import { advanceStreamWithBuffer } from "../../util/advance-stream";
 
 type PartialTamboAI = DeepPartial<TamboAI>;
 
@@ -26,8 +27,8 @@ jest.mock("../tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
   useTamboQueryClient: jest.fn(),
 }));
-jest.mock("@tambo-ai/typescript-sdk", () => ({
-  advanceStream: jest.fn(),
+jest.mock("../../util/advance-stream", () => ({
+  advanceStreamWithBuffer: jest.fn(),
 }));
 
 // Test utilities
@@ -86,19 +87,21 @@ describe("TamboThreadProvider with initial messages", () => {
       invalidateQueries: jest.fn(),
     };
     (useTamboQueryClient as jest.Mock).mockReturnValue(mockQueryClient);
-    (advanceStream as jest.Mock).mockImplementation(async function* () {
-      yield {
-        responseMessageDto: {
-          id: "response-1",
-          role: "assistant",
-          content: [{ type: "text", text: "Hello back!" }],
-          threadId: "new-thread-id",
-          componentState: {},
-          createdAt: new Date().toISOString(),
-        },
-        generationStage: GenerationStage.COMPLETE,
-      };
-    });
+    (advanceStreamWithBuffer as jest.Mock).mockImplementation(
+      async function* () {
+        yield {
+          responseMessageDto: {
+            id: "response-1",
+            role: "assistant",
+            content: [{ type: "text", text: "Hello back!" }],
+            threadId: "new-thread-id",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+        };
+      },
+    );
   });
 
   it("should initialize with empty messages when no initial messages provided", () => {
@@ -151,8 +154,8 @@ describe("TamboThreadProvider with initial messages", () => {
       await result.current.sendThreadMessage("Test message");
     });
 
-    // Check that advanceStream was called with initial messages
-    expect(advanceStream).toHaveBeenCalledWith(
+    // Check that advanceStreamWithBuffer was called with initial messages
+    expect(advanceStreamWithBuffer).toHaveBeenCalledWith(
       mockClient,
       expect.objectContaining({
         initialMessages: [
@@ -189,8 +192,8 @@ describe("TamboThreadProvider with initial messages", () => {
       await result.current.sendThreadMessage("Test message");
     });
 
-    // Check that advanceStream was called without initial messages
-    expect(advanceStream).toHaveBeenCalledWith(
+    // Check that advanceStreamWithBuffer was called without initial messages
+    expect(advanceStreamWithBuffer).toHaveBeenCalledWith(
       mockClient,
       expect.not.objectContaining({
         initialMessages: expect.anything(),

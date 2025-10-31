@@ -1,4 +1,4 @@
-import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
+import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
@@ -15,6 +15,7 @@ import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
 import { TamboMcpTokenProvider } from "../tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "../tambo-thread-provider";
+import { advanceStreamWithBuffer } from "../../util/advance-stream";
 
 type PartialTamboAI = DeepPartial<TamboAI>;
 
@@ -30,8 +31,8 @@ jest.mock("../tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
   useTamboQueryClient: jest.fn(),
 }));
-jest.mock("@tambo-ai/typescript-sdk", () => ({
-  advanceStream: jest.fn(),
+jest.mock("../../util/advance-stream", () => ({
+  advanceStreamWithBuffer: jest.fn(),
 }));
 
 // Mock the getCustomContext
@@ -351,8 +352,8 @@ describe("TamboThreadProvider", () => {
       },
     };
 
-    // Mock advanceStream to return our async iterator
-    jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+    // Mock advanceStreamWithBuffer to return our async iterator
+    jest.mocked(advanceStreamWithBuffer).mockResolvedValue(mockAsyncIterator);
 
     const { result } = renderHook(() => useTamboThread(), { wrapper });
 
@@ -548,7 +549,7 @@ describe("TamboThreadProvider", () => {
   });
 
   describe("streaming behavior", () => {
-    it("should call advanceStream when streamResponse=true", async () => {
+    it("should call advanceStreamWithBuffer when streamResponse=true", async () => {
       // Use wrapper with streaming=true to show that explicit streamResponse=true works
       const wrapperWithStreaming = ({
         children,
@@ -591,7 +592,7 @@ describe("TamboThreadProvider", () => {
         },
       };
 
-      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+      jest.mocked(advanceStreamWithBuffer).mockResolvedValue(mockAsyncIterator);
 
       const { result } = renderHook(() => useTamboThread(), {
         wrapper: wrapperWithStreaming,
@@ -609,7 +610,7 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      expect(advanceStream).toHaveBeenCalledWith(
+      expect(advanceStreamWithBuffer).toHaveBeenCalledWith(
         mockTamboAI,
         {
           messageToAppend: {
@@ -691,9 +692,9 @@ describe("TamboThreadProvider", () => {
         toolCallCounts: {},
       });
 
-      // Should not call advance or advanceStream
+      // Should not call advance or advanceStreamWithBuffer
       expect(mockThreadsApi.advance).not.toHaveBeenCalled();
-      expect(advanceStream).not.toHaveBeenCalled();
+      expect(advanceStreamWithBuffer).not.toHaveBeenCalled();
     });
 
     it("should call advanceById when streamResponse is undefined and provider streaming=false", async () => {
@@ -752,12 +753,12 @@ describe("TamboThreadProvider", () => {
         toolCallCounts: {},
       });
 
-      // Should not call advance or advanceStream
+      // Should not call advance or advanceStreamWithBuffer
       expect(mockThreadsApi.advance).not.toHaveBeenCalled();
-      expect(advanceStream).not.toHaveBeenCalled();
+      expect(advanceStreamWithBuffer).not.toHaveBeenCalled();
     });
 
-    it("should call advanceStream when streamResponse is undefined and provider streaming=true (default)", async () => {
+    it("should call advanceStreamWithBuffer when streamResponse is undefined and provider streaming=true (default)", async () => {
       // Use wrapper with streaming=true (default) to test that undefined streamResponse respects provider setting
       const wrapperWithDefaultStreaming = ({
         children,
@@ -798,7 +799,7 @@ describe("TamboThreadProvider", () => {
         },
       };
 
-      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+      jest.mocked(advanceStreamWithBuffer).mockResolvedValue(mockAsyncIterator);
 
       const { result } = renderHook(() => useTamboThread(), {
         wrapper: wrapperWithDefaultStreaming,
@@ -816,7 +817,7 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      expect(advanceStream).toHaveBeenCalledWith(
+      expect(advanceStreamWithBuffer).toHaveBeenCalledWith(
         mockTamboAI,
         {
           messageToAppend: {
@@ -901,12 +902,12 @@ describe("TamboThreadProvider", () => {
         toolCallCounts: {},
       });
 
-      // Should not call advanceById or advanceStream
+      // Should not call advanceById or advanceStreamWithBuffer
       expect(mockThreadsApi.advanceByID).not.toHaveBeenCalled();
-      expect(advanceStream).not.toHaveBeenCalled();
+      expect(advanceStreamWithBuffer).not.toHaveBeenCalled();
     });
 
-    it("should call advanceStream when streamResponse=true for placeholder thread", async () => {
+    it("should call advanceStreamWithBuffer when streamResponse=true for placeholder thread", async () => {
       // Use wrapper with streaming=false to show that explicit streamResponse=true overrides provider setting
       const wrapperWithoutStreaming = ({
         children,
@@ -949,7 +950,7 @@ describe("TamboThreadProvider", () => {
         },
       };
 
-      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+      jest.mocked(advanceStreamWithBuffer).mockResolvedValue(mockAsyncIterator);
 
       const { result } = renderHook(() => useTamboThread(), {
         wrapper: wrapperWithoutStreaming,
@@ -970,7 +971,7 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      expect(advanceStream).toHaveBeenCalledWith(
+      expect(advanceStreamWithBuffer).toHaveBeenCalledWith(
         mockTamboAI,
         {
           messageToAppend: {
@@ -1024,8 +1025,8 @@ describe("TamboThreadProvider", () => {
     it("should set generation stage to ERROR when streaming sendThreadMessage fails", async () => {
       const testError = new Error("Streaming API call failed");
 
-      // Mock advanceStream to throw an error
-      jest.mocked(advanceStream).mockRejectedValue(testError);
+      // Mock advanceStreamWithBuffer to throw an error
+      jest.mocked(advanceStreamWithBuffer).mockRejectedValue(testError);
 
       const { result } = renderHook(() => useTamboThread(), { wrapper });
 
