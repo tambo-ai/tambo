@@ -200,29 +200,29 @@ export default function ThreadContentPage() {
             <h2 className="text-xl font-semibold mb-4">Props</h2>
 
             <h3 className="text-lg font-medium mb-3">ThreadContent</h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <table className="w-full text-sm">
+            <div className="bg-gray-50 rounded-lg mb-6 overflow-x-auto">
+              <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2">Prop</th>
-                    <th className="text-left py-2">Type</th>
-                    <th className="text-left py-2">Description</th>
+                    <th className="text-left py-2 px-4">Prop</th>
+                    <th className="text-left py-2 px-4">Type</th>
+                    <th className="text-left py-2 px-4">Description</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b">
-                    <td className="py-2 font-mono">variant</td>
-                    <td className="py-2">
+                  <tr className="border-b bg-gray-100">
+                    <td className="py-2 font-mono px-4">variant</td>
+                    <td className="py-2 px-4">
                       &quot;default&quot; | &quot;solid&quot;
                     </td>
-                    <td className="py-2">
+                    <td className="py-2 px-4">
                       Optional styling variant for the message container
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-2 font-mono">children</td>
-                    <td className="py-2">React.ReactNode</td>
-                    <td className="py-2">
+                    <td className="py-2 font-mono px-4">children</td>
+                    <td className="py-2 px-4">React.ReactNode</td>
+                    <td className="py-2 px-4">
                       The child elements to render within the container
                     </td>
                   </tr>
@@ -233,51 +233,53 @@ export default function ThreadContentPage() {
             <h3 className="text-lg font-medium mb-3">
               ThreadContentMessages Props
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <table className="w-full text-sm">
+            <div className="bg-gray-50 rounded-lg mb-6 overflow-x-auto">
+              <table className="w-max min-w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2">Prop</th>
-                    <th className="text-left py-2">Type</th>
-                    <th className="text-left py-2">Description</th>
+                    <th className="text-left py-2 px-4">Prop</th>
+                    <th className="text-left py-2 px-4">Type</th>
+                    <th className="text-left py-2 px-4">Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="py-2 font-mono">className</td>
-                    <td className="py-2">string</td>
-                    <td className="py-2">
+                    <td className="py-2 font-mono px-4">className</td>
+                    <td className="py-2 px-4">string</td>
+                    <td className="py-2 px-4">
                       Optional CSS classes to apply to the messages container
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-
-            <h3 className="text-lg font-medium mb-3">Features</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <strong>Automatic Context Integration:</strong> Connects to
-                  Tambo thread context to display messages
-                </li>
-                <li>
-                  <strong>Loading State Handling:</strong> Shows loading
-                  indicators for messages being generated
-                </li>
-                <li>
-                  <strong>Message Variants:</strong> Applies consistent styling
-                  variants to all messages
-                </li>
-                <li>
-                  <strong>Responsive Layout:</strong> Handles message alignment
-                  based on sender role
-                </li>
-                <li>
-                  <strong>Component Rendering:</strong> Supports rendered
-                  components within assistant messages
-                </li>
-              </ul>
+            {/* Features */}
+            <div>
+              <h3 className="text-lg font-medium mb-3">Features</h3>
+              <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                <ul className="space-y-2 text-sm min-w-[600px]">
+                  <li>
+                    <strong>Automatic Context Integration:</strong> Connects to
+                    Tambo thread context to display messages
+                  </li>
+                  <li>
+                    <strong>Loading State Handling:</strong> Shows loading
+                    indicators for messages being generated
+                  </li>
+                  <li>
+                    <strong>Message Variants:</strong> Applies consistent
+                    styling variants to all messages
+                  </li>
+                  <li>
+                    <strong>Responsive Layout:</strong> Handles message
+                    alignment based on sender role
+                  </li>
+                  <li>
+                    <strong>Component Rendering:</strong> Supports rendered
+                    components within assistant messages
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
