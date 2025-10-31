@@ -217,7 +217,7 @@ export const createMarkdownComponents = (): Record<
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-foreground hover:text-primary font-medium transition-colors inline-flex items-center gap-1"
+      className="text-muted-foreground underline hover:text-foreground transition-colors inline-flex items-center gap-1.5"
     >
       <span className="underline decoration-muted-foreground hover:decoration-primary">
         {children}

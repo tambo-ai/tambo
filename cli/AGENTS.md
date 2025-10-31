@@ -98,3 +98,4 @@ If you do update the components directly, you should also update the documentati
 - Follow existing patterns for command structure
 - Test component generation end-to-end
 - Update help text for new commands/options
+- Registry components must follow `TOKENS.md` (neutral-first text tokens; never use `text-primary` off `bg-primary`, replace `text-secondary` with `text-muted-foreground`).

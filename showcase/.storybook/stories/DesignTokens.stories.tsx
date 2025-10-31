@@ -1,3 +1,4 @@
+/* eslint-disable @tambo/token-usage */
 import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta = {
@@ -92,6 +93,8 @@ export const IncorrectTextUsage: Story = {
     </div>
   ),
 };
+
+/* eslint-enable @tambo/token-usage */
 
 export const InteractiveStates: Story = {
   render: () => (

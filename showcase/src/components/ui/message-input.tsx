@@ -595,7 +595,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -632,7 +632,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <Tooltip
         content="Configure MCP Servers"
         side="right"
-        className="bg-muted text-muted-foreground"
+        className="bg-muted text-foreground"
       >
         <button
           ref={ref}
@@ -746,7 +746,7 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -755,7 +755,7 @@ const MessageInputFileButton = React.forwardRef<
       <Tooltip
         content="Attach Images"
         side="top"
-        className="bg-muted text-muted-foreground"
+        className="bg-muted text-foreground"
       >
         <button
           ref={ref}
@@ -844,7 +844,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
   }
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -853,7 +853,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
       <Tooltip
         content="Insert MCP Prompt"
         side="top"
-        className="bg-muted text-muted-foreground"
+        className="bg-muted text-foreground"
       >
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
