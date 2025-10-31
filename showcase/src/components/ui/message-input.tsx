@@ -595,7 +595,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -746,7 +746,7 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -844,7 +844,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
   }
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -1002,7 +1002,7 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
         e.stopPropagation();
         onRemove();
       }}
-      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
+      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-foreground rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
       aria-label={`Remove ${displayName}`}
     >
       <X className="w-3 h-3" />
