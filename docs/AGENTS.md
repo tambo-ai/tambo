@@ -93,7 +93,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - Components: Registration, schemas, lifecycle, interactables
    - Message Threads: Sending messages, responses, history management, status tracking
    - Tools: Function calling, schemas, orchestration
-   - Model Context Protocol: Client-side connections, tool discovery, server integration
+   - Model Context Protocol: Client-side and server-side connections, tool discovery, elicitation (user input requests)
    - Streaming: Real-time responses, component streaming, status monitoring
    - User Authentication: OAuth providers, session management, context keys
    - Additional Context: Dynamic helpers, page context, interactable tracking

@@ -1,4 +1,8 @@
 {
   "title": "Model Context Protocol",
-  "pages": ["clientside-mcp-connection", "serverside-mcp-connection"]
+  "pages": [
+    "clientside-mcp-connection",
+    "serverside-mcp-connection",
+    "elicitation"
+  ]
 }
