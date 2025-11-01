@@ -1,3 +1,4 @@
+import { remarkMdxMermaid } from "fumadocs-core/mdx-plugins";
 import {
   defineConfig,
   defineDocs,
@@ -10,6 +11,7 @@ import {
 export const docs = defineDocs({
   docs: {
     schema: frontmatterSchema,
+
     postprocess: {
       includeProcessedMarkdown: true,
     },
@@ -21,6 +23,6 @@ export const docs = defineDocs({
 
 export default defineConfig({
   mdxOptions: {
-    // MDX options
+    remarkPlugins: [remarkMdxMermaid],
   },
 });
