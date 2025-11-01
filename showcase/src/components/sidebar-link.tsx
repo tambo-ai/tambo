@@ -10,7 +10,7 @@ interface SidebarLinkProps {
   level?: number;
 }
 
-export const SidebarLink = ({ item, _level = 0 }: SidebarLinkProps) => {
+export const SidebarLink = ({ item, level: _level = 0 }: SidebarLinkProps) => {
   const pathname = usePathname();
   const isActive = pathname === item.href; // check if current pathname is equal to the link href
 
