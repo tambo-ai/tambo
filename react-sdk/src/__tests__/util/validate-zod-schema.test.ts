@@ -110,4 +110,12 @@ describe("assertNoZodRecord", () => {
       'z.record() is not supported in mySchema. Found at path "(root)". Replace it with z.object({ ... }) using explicit keys.',
     );
   });
+
+  it("should handle ZodLazy schemas", () => {
+    const schema = z.lazy(() => z.record(z.string()));
+
+    expect(() => assertNoZodRecord(schema)).toThrow(
+      'z.record() is not supported in schema. Found at path "(root)". Replace it with z.object({ ... }) using explicit keys.',
+    );
+  });
 });
