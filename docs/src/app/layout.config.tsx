@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 export const baseOptions: BaseLayoutProps = {
@@ -9,10 +10,12 @@ export const baseOptions: BaseLayoutProps = {
     {
       type: "icon",
       icon: (
-        <img
+        <Image
           src="/discord-icon.svg"
           alt=""
           aria-hidden="true"
+          width={20}
+          height={20}
           className="h-5 w-5"
         />
       ),
@@ -22,10 +25,12 @@ export const baseOptions: BaseLayoutProps = {
     {
       type: "icon",
       icon: (
-        <img
+        <Image
           src="/logo/icon/Octo-Icon.svg"
           alt=""
           aria-hidden="true"
+          width={20}
+          height={20}
           className="h-5 w-5"
         />
       ),

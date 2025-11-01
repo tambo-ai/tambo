@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://docs.tambo.co/robots.txt</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://docs.tambo.co/llms.txt</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/llms-full.txt</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/llms.mdx</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/llms.mdx/api-reference/react-hooks</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -71,8 +69,10 @@
 <url><loc>https://docs.tambo.co/llms.mdx/models/labels</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/llms.mdx/models/reasoning-models</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/llms.mdx/tambo-mcp-server</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/llms.txt</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/robots.txt</loc><lastmod>1970-01-01T00:00:00.000Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co</loc><lastmod>2025-10-11T13:35:24.212Z</lastmod><changefreq>weekly</changefreq><priority>1</priority></url>
-<url><loc>https://docs.tambo.co/api-reference/react-hooks</loc><lastmod>2025-11-01T03:16:15.721Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/api-reference/react-hooks</loc><lastmod>2025-11-01T23:21:59.991Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/api-reference/typescript-types</loc><lastmod>2025-10-31T16:08:00.498Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/best-practices/component-data-props</loc><lastmod>2025-09-08T23:41:07.988Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/cli</loc><lastmod>2025-09-08T23:41:07.995Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -94,16 +94,16 @@
 <url><loc>https://docs.tambo.co/concepts/additional-context/examples</loc><lastmod>2025-09-08T23:41:07.996Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/components</loc><lastmod>2025-09-08T23:41:07.997Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/components/component-state</loc><lastmod>2025-09-08T23:41:07.997Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://docs.tambo.co/concepts/components/composition-patterns</loc><lastmod>2025-11-01T03:18:42.167Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/concepts/components/composition-patterns</loc><lastmod>2025-11-01T23:21:59.992Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/components/defining-tambo-components</loc><lastmod>2025-10-31T16:08:00.499Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/components/interactable-components</loc><lastmod>2025-10-31T16:08:00.499Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/components/registering-components-dynamically</loc><lastmod>2025-09-08T23:41:07.998Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/components/registering-with-tambo-provider</loc><lastmod>2025-09-08T23:41:07.998Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://docs.tambo.co/concepts/components/ui-components/message</loc><lastmod>2025-11-01T03:16:48.019Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://docs.tambo.co/concepts/components/ui-components/message-input</loc><lastmod>2025-11-01T03:17:22.392Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://docs.tambo.co/concepts/components/ui-components/thread-content</loc><lastmod>2025-11-01T03:17:53.692Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/concepts/components/ui-components/message</loc><lastmod>2025-11-01T23:21:59.993Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/concepts/components/ui-components/message-input</loc><lastmod>2025-11-01T23:21:59.993Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/concepts/components/ui-components/thread-content</loc><lastmod>2025-11-01T23:21:59.994Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/message-threads</loc><lastmod>2025-09-08T23:41:07.998Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://docs.tambo.co/concepts/message-threads/image-attachments</loc><lastmod>2025-09-23T20:59:11.397Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/concepts/message-threads/image-attachments</loc><lastmod>2025-11-01T23:21:59.994Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/message-threads/initial-messages</loc><lastmod>2025-10-11T13:35:24.208Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/message-threads/sending-messages</loc><lastmod>2025-09-08T23:41:07.998Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/concepts/message-threads/showing-responses</loc><lastmod>2025-09-08T23:41:07.998Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -133,7 +133,7 @@
 <url><loc>https://docs.tambo.co/examples-and-templates/chat-starter-app</loc><lastmod>2025-10-11T13:35:24.211Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/examples-and-templates/supabase-mcp-client</loc><lastmod>2025-09-08T23:41:08.002Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/getting-started/components</loc><lastmod>2025-09-08T23:41:08.002Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-<url><loc>https://docs.tambo.co/getting-started/integrate</loc><lastmod>2025-10-31T23:33:57.103Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://docs.tambo.co/getting-started/integrate</loc><lastmod>2025-11-01T23:21:59.995Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/getting-started/quickstart</loc><lastmod>2025-09-08T23:41:08.002Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/models/custom-llm-parameters</loc><lastmod>2025-10-11T13:35:24.212Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>https://docs.tambo.co/models/labels</loc><lastmod>2025-09-08T23:41:08.003Z</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
