@@ -8,11 +8,13 @@ import { useTamboClient } from "../providers/tambo-client-provider";
  * - stopRecording: A function to stop recording audio.
  * - isRecording: A boolean indicating if the user is recording audio.
  * - isRecordingComplete: A boolean indicating if the recording is complete.
- * - transcribeRecordedAudio: A function to transcribe the recorded audio.
+ * - isTranscribing: A boolean indicating if the audio is being transcribed.
+ * - transcript: The transcript of the recorded audio.
  */
 export function useTamboVoice() {
   const [isRecording, setIsRecording] = useState(false);
-  const [isRecordingComplete, setIsRecordingComplete] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcript, setTranscript] = useState<string | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null,
   );
@@ -30,7 +32,6 @@ export function useTamboVoice() {
     };
 
     const handleStop = () => {
-      setIsRecordingComplete(true);
       setMediaRecorder(null);
     };
 
@@ -43,10 +44,23 @@ export function useTamboVoice() {
     };
   }, [mediaRecorder]);
 
+  const transcribeRecordedAudio = useCallback(async () => {
+    const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
+    const file = new File([audioBlob], `recording.webm`, {
+      type: "audio/webm",
+    });
+
+    setIsTranscribing(true);
+    const result = await client.beta.audio.transcribe({ file });
+    setIsTranscribing(false);
+    setTranscript(result);
+    return result;
+  }, [audioChunks, client]);
+
   const startRecording = useCallback(async () => {
     setIsRecording(true);
-    setIsRecordingComplete(false);
     audioChunks.current = [];
+    setTranscript(null);
 
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
@@ -60,28 +74,21 @@ export function useTamboVoice() {
     recorder.start();
   }, []);
 
+  // Stop recording audio and start transcription
   const stopRecording = useCallback(() => {
     if (mediaRecorder?.state === "recording") {
       mediaRecorder.requestData();
       mediaRecorder.stop();
     }
     setIsRecording(false);
-  }, [mediaRecorder]);
-
-  const transcribeRecordedAudio = useCallback(async () => {
-    const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
-    const file = new File([audioBlob], `recording.webm`, {
-      type: "audio/webm",
-    });
-
-    return await client.beta.audio.transcribe({ file });
-  }, [audioChunks, client]);
+    transcribeRecordedAudio();
+  }, [mediaRecorder, transcribeRecordedAudio]);
 
   return {
     startRecording,
     stopRecording,
     isRecording,
-    isRecordingComplete,
-    transcribeRecordedAudio,
+    isTranscribing,
+    transcript,
   };
 }
