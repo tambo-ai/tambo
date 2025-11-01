@@ -145,7 +145,7 @@ After configuring your MCP servers below, integrate them into your application.
 #### 1. Import the required components
 
 \`\`\`tsx
-import { useMcpServers } from "@/components/ui/mcp-config-modal";
+import { useMcpServers } from "@/components/tambo/mcp-config-modal";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 \`\`\`
 

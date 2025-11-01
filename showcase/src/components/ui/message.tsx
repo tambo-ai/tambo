@@ -1,7 +1,10 @@
 "use client";
 
 import { markdownComponents } from "@/components/ui/markdown-components";
-import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@/components/tambo/suggestions-tooltip";
 import {
   checkHasContent,
   getMessageImages,
