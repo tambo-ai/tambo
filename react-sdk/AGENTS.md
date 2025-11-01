@@ -174,6 +174,7 @@ Model Context Protocol support enables extending AI capabilities:
 - Use `z.infer<typeof schema>` for Zod-derived prop types
 - Maintain backward compatibility in public APIs
 - Follow React hooks rules and best practices
+- Export new hooks from `src/hooks/index.ts` and `src/index.ts` in the same change.
 
 ### New End-User Features Process
 

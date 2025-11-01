@@ -3,6 +3,18 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 
 /**
+ * @deprecated This module is deprecated. Use @tambo-ai/react utilities instead.
+ *
+ * Migration guide:
+ * - Import from @tambo-ai/react instead of this file
+ * - getSafeContent, checkHasContent, getMessageImages, getMessageAttachments are now in @tambo-ai/react
+ * - New hooks available: useTamboThreadMessages, useTamboMessageProps, etc.
+ *
+ * These functions are kept here temporarily for backwards compatibility.
+ * They will be removed in a future version.
+ */
+
+/**
  * Custom hook to merge multiple refs into one callback ref
  * @param refs - Array of refs to merge
  * @returns A callback ref that updates all provided refs
@@ -102,6 +114,8 @@ export function usePositioning(
 }
 
 /**
+ * @deprecated Use import from @tambo-ai/react instead: import { getSafeContent } from "@tambo-ai/react"
+ *
  * Converts message content into a safely renderable format.
  * Primarily joins text blocks from arrays into a single string.
  * @param content - The message content (string, element, array, etc.)
@@ -154,6 +168,8 @@ function hasContentInItem(item: unknown): boolean {
 }
 
 /**
+ * @deprecated Use import from @tambo-ai/react instead: import { checkHasContent } from "@tambo-ai/react"
+ *
  * Checks if message content contains meaningful, non-empty text or images.
  * @param content - The message content (string, element, array, etc.)
  * @returns True if there is content, false otherwise.
@@ -171,6 +187,8 @@ export function checkHasContent(
 }
 
 /**
+ * @deprecated Use import from @tambo-ai/react instead: import { getMessageImages } from "@tambo-ai/react"
+ *
  * Extracts image URLs from message content array.
  * @param content - Array of content items
  * @returns Array of image URLs

@@ -1,0 +1,316 @@
+---
+title: MessageInput Component
+description: Learn how to use and customize the MessageInput component for chat interfaces
+---
+
+The MessageInput component provides a flexible, composable input system for sending messages in your Tambo-powered chat applications. It handles text input, image attachments, MCP prompts, and submission logic out of the box.
+
+## Basic Usage
+
+The MessageInput component follows a compound component pattern:
+
+```tsx
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputSubmitButton,
+  MessageInputToolbar,
+} from "@/components/ui/message-input";
+
+function MyChat() {
+  return (
+    <MessageInput contextKey="my-chat">
+      <MessageInputTextarea />
+      <MessageInputToolbar>
+        <MessageInputSubmitButton />
+      </MessageInputToolbar>
+    </MessageInput>
+  );
+}
+```
+
+## Component Structure
+
+The MessageInput consists of several sub-components:
+
+- **MessageInput** - Root form container that provides context
+- **MessageInputTextarea** - Text input field with auto-resize
+- **MessageInputSubmitButton** - Submit/cancel button
+- **MessageInputToolbar** - Container that handles button layout
+- **MessageInputActions** - Alternative to Toolbar with simpler styling
+- **MessageInputFileButton** - Image attachment picker
+- **MessageInputMcpConfigButton** - MCP server configuration
+- **MessageInputMcpPromptButton** - MCP prompt picker
+- **MessageInputAttachments** - Preview of attached images
+- **MessageInputError** - Error message display
+
+Each helper is exported individually from `@/components/ui/message-input`, so import the pieces you need for a given layout.
+
+## Standard Layout with Toolbar
+
+The Toolbar component automatically handles layout, placing the submit button on the right:
+
+```tsx
+<MessageInput contextKey="my-chat" variant="solid">
+  <MessageInputAttachments />
+  <MessageInputTextarea placeholder="What do you want to do?" />
+  <MessageInputToolbar>
+    <MessageInputFileButton />
+    <MessageInputMcpConfigButton />
+    <MessageInputMcpPromptButton />
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+  <MessageInputError />
+</MessageInput>
+```
+
+## Alternative: Custom Actions
+
+For more control over layout, use `MessageInputActions` instead of `Toolbar`:
+
+```tsx
+<MessageInput contextKey="my-chat">
+  <MessageInputTextarea />
+  <div className="flex justify-between items-center mt-2">
+    <MessageInputActions>
+      <MessageInputFileButton />
+      <MessageInputMcpPromptButton />
+    </MessageInputActions>
+    <MessageInputSubmitButton />
+  </div>
+</MessageInput>
+```
+
+## Exported Components
+
+### MessageInputFileButton
+
+Button for attaching images from the file system:
+
+```tsx
+<MessageInputFileButton
+  accept="image/*"
+  multiple={true}
+  className="custom-button"
+/>
+```
+
+**Props:**
+- `accept` - File types to accept (default: `"image/*"`)
+- `multiple` - Allow multiple file selection (default: `true`)
+- `icon` - Optional custom icon component (defaults to the paperclip)
+
+### MessageInputMcpConfigButton
+
+Opens the MCP server configuration modal:
+
+```tsx
+<MessageInputMcpConfigButton className="custom-button" />
+```
+
+### MessageInputMcpPromptButton
+
+Dropdown picker for inserting MCP prompts:
+
+```tsx
+<MessageInputMcpPromptButton className="custom-button" />
+```
+
+This component automatically hides when no MCP prompts are available.
+
+### MessageInputAttachments
+
+Displays currently attached images with preview and remove functionality:
+
+```tsx
+<MessageInputAttachments className="custom-staging-area" />
+```
+
+This component automatically hides when no images are staged.
+
+> Legacy projects can continue using `MessageInputStagedImages`; it now re-exports `MessageInputAttachments` and will be removed in a future release. 
+> When you introduce other file types, extend `useMessageAttachments` and the attachment badge component to add their UI.
+
+## Input Props
+
+The root `MessageInput` component accepts:
+
+- **contextKey** - `string` - Thread context identifier
+- **variant** - `"default" | "solid" | "bordered"` - Visual styling
+- **inputRef** - `React.RefObject<HTMLTextAreaElement>` - Forward ref to textarea
+
+## Variants
+
+### Default Variant
+
+Standard styling with border and shadow:
+
+```tsx
+<MessageInput contextKey="chat" variant="default">
+  <MessageInputTextarea />
+  <MessageInputToolbar>
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+</MessageInput>
+```
+
+### Solid Variant
+
+Enhanced styling with rounded corners:
+
+```tsx
+<MessageInput contextKey="chat" variant="solid">
+  <MessageInputTextarea />
+  <MessageInputToolbar>
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+</MessageInput>
+```
+
+### Bordered Variant
+
+Emphasized border styling:
+
+```tsx
+<MessageInput contextKey="chat" variant="bordered">
+  <MessageInputTextarea />
+  <MessageInputToolbar>
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+</MessageInput>
+```
+
+## Custom Toolbar Composition
+
+Build your own toolbar layout without using the Toolbar component:
+
+```tsx
+<MessageInput contextKey="chat">
+  <MessageInputTextarea />
+  <div className="flex items-center gap-2 mt-2 p-1">
+    <div className="flex gap-2 flex-1">
+      <MessageInputFileButton />
+      <MessageInputMcpPromptButton />
+    </div>
+    <div className="flex gap-2">
+      <button type="button" className="custom-button">
+        Custom Action
+      </button>
+      <MessageInputSubmitButton />
+    </div>
+  </div>
+</MessageInput>
+```
+
+## Features
+
+### Drag and Drop
+
+The MessageInput automatically supports drag-and-drop for images:
+
+```tsx
+<MessageInput contextKey="chat">
+  <MessageInputTextarea />
+  {/* Images can be dragged directly onto the input area */}
+  <MessageInputToolbar>
+    <MessageInputSubmitButton />
+  </MessageInputToolbar>
+</MessageInput>
+```
+
+### Paste Images
+
+Images can be pasted directly into the textarea from the clipboard.
+
+### Auto-Resize
+
+The textarea automatically resizes based on content up to a maximum height.
+
+### Keyboard Shortcuts
+
+- **Enter** - Submit message
+- **Shift + Enter** - New line in message
+
+## Accessing Input Context
+
+Use the input context in custom components:
+
+```tsx
+import { useMessageInputContext } from "@/components/ui/message-input";
+
+function CustomInputComponent() {
+  const { value, setValue, isPending, submit } = useMessageInputContext();
+
+  return (
+    <div>
+      <p>Current value: {value}</p>
+      <button onClick={() => submit({ streamResponse: true })}>
+        Send
+      </button>
+    </div>
+  );
+}
+```
+
+## Advanced Customization
+
+### Custom Submit Button
+
+Replace the default submit button:
+
+```tsx
+<MessageInput contextKey="chat">
+  <MessageInputTextarea />
+  <MessageInputToolbar>
+    <button
+      type="submit"
+      className="custom-submit-button"
+    >
+      Send Message
+    </button>
+  </MessageInputToolbar>
+</MessageInput>
+```
+
+### Custom File Input
+
+Create a custom file button using the hook:
+
+```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
+
+function CustomFileButton() {
+  const { addImages } = useTamboThreadInput();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <>
+      <button onClick={() => inputRef.current?.click()}>
+        Attach Files
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={(e) => addImages(Array.from(e.target.files ?? []))}
+        className="hidden"
+      />
+    </>
+  );
+}
+```
+
+## Best Practices
+
+1. **Always provide contextKey** - Ensures thread isolation
+2. **Use Toolbar for simple layouts** - It handles button positioning automatically
+3. **Use Actions for custom layouts** - Gives you full control
+4. **Include Error component** - Shows submission errors to users
+5. **Stage images above textarea** - Use StagedImages before Textarea for better UX
+
+## Related
+
+- [Message Component](/docs/concepts/components/ui-components/message) - Display chat messages
+- [ThreadContent Component](/docs/concepts/components/ui-components/thread-content) - Container for message lists
+- [Composition Patterns](/docs/concepts/components/composition-patterns) - Advanced composition techniques

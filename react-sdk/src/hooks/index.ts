@@ -10,3 +10,8 @@ export {
   type StreamStatus,
 } from "./use-tambo-stream-status";
 export { useTamboThreadList } from "./use-tambo-threads";
+export * from "./use-tambo-thread-messages";
+export * from "./use-tambo-message-props";
+export * from "./use-tambo-message-loading";
+export * from "./use-tambo-message-reasoning";
+export * from "./use-tambo-message-tool-call";

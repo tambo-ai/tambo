@@ -5,9 +5,20 @@ export {
   TamboMessageProvider,
   useTamboCurrentMessage,
 } from "./hooks/use-current-message";
-export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
+export {
+  useMessageAttachments,
+  useMessageImages,
+  type StagedAttachment,
+  type StagedImage,
+  type TamboAttachmentKind,
+} from "./hooks/use-message-images";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";
+export { useTamboThreadMessages } from "./hooks/use-tambo-thread-messages";
+export { useTamboMessageProps } from "./hooks/use-tambo-message-props";
+export { useTamboMessageLoading } from "./hooks/use-tambo-message-loading";
+export { useTamboMessageReasoning } from "./hooks/use-tambo-message-reasoning";
+export { useTamboMessageToolCall } from "./hooks/use-tambo-message-tool-call";
 export {
   useTamboStreamStatus,
   type PropStatus,
@@ -92,6 +103,9 @@ export type {
   ContextHelperFn,
   ContextHelpers,
 } from "./context-helpers";
+
+// Utility functions
+export { getSafeContent, checkHasContent, getMessageImages } from "./util";
 
 // Note MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package

@@ -1,17 +1,20 @@
 import { buildMessageContent } from "../message-builder";
-import { StagedImage } from "../../hooks/use-message-images";
+import { StagedAttachment } from "../../hooks/use-message-images";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 
 describe("buildMessageContent", () => {
-  const createMockStagedImage = (
-    overrides: Partial<StagedImage> = {},
-  ): StagedImage => ({
+  const createMockAttachment = (
+    overrides: Partial<StagedAttachment> = {},
+  ): StagedAttachment => ({
     id: "test-id",
-    name: "test-image.png",
+    name: "test-file.png",
     dataUrl: "data:image/png;base64,mock-data",
-    file: new File([""], "test-image.png", { type: "image/png" }),
+    file: new File([""], "test-file.png", { type: "image/png" }),
     size: 1024,
     type: "image/png",
+    kind: "image",
+    previewUrl: "data:image/png;base64,mock-data",
+    lastModified: Date.now(),
     ...overrides,
   });
 
@@ -27,7 +30,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should build content with images only", () => {
-    const image = createMockStagedImage({
+    const image = createMockAttachment({
       dataUrl: "data:image/png;base64,abc123",
     });
 
@@ -45,11 +48,11 @@ describe("buildMessageContent", () => {
 
   it("should build content with both text and images", () => {
     const images = [
-      createMockStagedImage({
+      createMockAttachment({
         id: "img1",
         dataUrl: "data:image/png;base64,abc123",
       }),
-      createMockStagedImage({
+      createMockAttachment({
         id: "img2",
         dataUrl: "data:image/jpeg;base64,def456",
       }),
@@ -89,7 +92,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should skip empty text but keep images", () => {
-    const image = createMockStagedImage();
+    const image = createMockAttachment();
     const result = buildMessageContent("   ", [image]);
 
     expect(result).toEqual([
@@ -104,17 +107,17 @@ describe("buildMessageContent", () => {
 
   it("should handle multiple images correctly", () => {
     const images = [
-      createMockStagedImage({
+      createMockAttachment({
         id: "img1",
         name: "photo1.jpg",
         dataUrl: "data:image/jpeg;base64,photo1data",
       }),
-      createMockStagedImage({
+      createMockAttachment({
         id: "img2",
         name: "photo2.png",
         dataUrl: "data:image/png;base64,photo2data",
       }),
-      createMockStagedImage({
+      createMockAttachment({
         id: "img3",
         name: "photo3.gif",
         dataUrl: "data:image/gif;base64,photo3data",
@@ -151,17 +154,17 @@ describe("buildMessageContent", () => {
   it("should throw error when no content provided", () => {
     expect(() => {
       buildMessageContent("", []);
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or attachments");
   });
 
   it("should throw error when only whitespace provided", () => {
     expect(() => {
       buildMessageContent("   \n\t  ", []);
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or attachments");
   });
 
   it("should return correct content type structure", () => {
-    const image = createMockStagedImage();
+    const image = createMockAttachment();
     const result = buildMessageContent("Test", [image]);
 
     // Verify the structure matches ChatCompletionContentPart interface
@@ -194,11 +197,11 @@ describe("buildMessageContent", () => {
 
   it("should maintain order of text first then images", () => {
     const images = [
-      createMockStagedImage({
+      createMockAttachment({
         id: "first",
         dataUrl: "data:image/png;base64,first",
       }),
-      createMockStagedImage({
+      createMockAttachment({
         id: "second",
         dataUrl: "data:image/png;base64,second",
       }),

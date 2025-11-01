@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { useMessageImages } from "../use-message-images";
+import { useMessageAttachments, useMessageImages } from "../use-message-images";
 
 // Mock crypto.randomUUID
 global.crypto = {
@@ -14,7 +14,11 @@ const mockFileReader = {
   result: "data:image/png;base64,mock-data",
 };
 
-(global as any).FileReader = jest.fn(() => {
+(global as any).FileReader = jest.fn(createMockFileReader);
+
+const fileReaderMock = (global as any).FileReader as jest.Mock;
+
+function createMockFileReader() {
   const reader = { ...mockFileReader };
   reader.readAsDataURL = jest.fn(() => {
     setTimeout(() => {
@@ -24,11 +28,12 @@ const mockFileReader = {
     }, 0);
   });
   return reader;
-});
+}
 
 describe("useMessageImages", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    fileReaderMock.mockImplementation(createMockFileReader);
   });
 
   it("should initialize with empty images array", () => {
@@ -75,7 +80,61 @@ describe("useMessageImages", () => {
     ];
 
     await expect(result.current.addImages(mockFiles)).rejects.toThrow(
-      "No valid image files provided",
+      "Only image files are allowed",
     );
+  });
+});
+
+describe("useMessageAttachments", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    fileReaderMock.mockImplementation(createMockFileReader);
+  });
+
+  it("rejects non-image files", async () => {
+    const { result } = renderHook(() => useMessageAttachments());
+    const mockFile = new File(["hello"], "notes.txt", { type: "text/plain" });
+
+    await expect(result.current.addAttachment(mockFile)).rejects.toThrow(
+      "Only image attachments are supported. Extend detectAttachmentKind to enable additional file types.",
+    );
+
+    expect(result.current.attachments).toHaveLength(0);
+  });
+
+  it("stages image files", async () => {
+    const { result } = renderHook(() => useMessageAttachments());
+    const mockFile = new File([""], "photo.png", { type: "image/png" });
+
+    await act(async () => {
+      await result.current.addAttachment(mockFile);
+    });
+
+    expect(result.current.attachments).toHaveLength(1);
+    expect(result.current.attachments[0]).toMatchObject({
+      name: "photo.png",
+      kind: "image",
+      type: "image/png",
+    });
+  });
+
+  it("clears all attachments", async () => {
+    const { result } = renderHook(() => useMessageAttachments());
+    const files = [
+      new File([""], "file1.png", { type: "image/png" }),
+      new File([""], "file2.png", { type: "image/png" }),
+    ];
+
+    await act(async () => {
+      await result.current.addAttachments(files);
+    });
+
+    expect(result.current.attachments).toHaveLength(2);
+
+    act(() => {
+      result.current.clearAttachments();
+    });
+
+    expect(result.current.attachments).toHaveLength(0);
   });
 });

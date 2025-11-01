@@ -27,5 +27,16 @@
       "name": "lib/thread-hooks.ts",
       "content": "src/registry/lib/thread-hooks.ts"
     }
+  ],
+  "exports": [
+    "Message",
+    "MessageContent",
+    "MessageImages",
+    "MessageActions",
+    "MessageAction",
+    "ToolcallInfo",
+    "ReasoningInfo",
+    "MessageRenderedComponentArea",
+    "getToolCallRequest"
   ]
 }

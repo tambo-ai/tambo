@@ -70,7 +70,7 @@ export interface ThreadContentProps
  * @example
  * ```tsx
  * <ThreadContent variant="solid">
- *   <ThreadContent.Messages />
+ *   <ThreadContentMessages />
  * </ThreadContent>
  * ```
  */
@@ -107,50 +107,81 @@ ThreadContent.displayName = "ThreadContent";
 
 /**
  * Props for the ThreadContentMessages component.
- * Extends standard HTMLDivElement attributes.
+ * Extends standard HTMLDivElement attributes, excluding children.
  */
-export type ThreadContentMessagesProps = React.HTMLAttributes<HTMLDivElement>;
+export interface ThreadContentMessagesProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
+  /**
+   * Optional render function for custom message rendering.
+   * If provided, you have full control over how each message is displayed.
+   * If not provided, uses default rendering.
+   *
+   * @example
+   * ```tsx
+   * <ThreadContentMessages>
+   *   {(message) => (
+   *     <div className="my-custom-message">
+   *       {message.content}
+   *     </div>
+   *   )}
+   * </ThreadContentMessages>
+   * ```
+   */
+  children?: (message: TamboThreadMessage) => React.ReactNode;
+}
 
 /**
  * Renders the list of messages in the thread.
  * Automatically connects to the context to display messages.
- * @component ThreadContent.Messages
+ * @component ThreadContentMessages
  * @example
  * ```tsx
  * <ThreadContent>
- *   <ThreadContent.Messages />
+ *   <ThreadContentMessages />
  * </ThreadContent>
  * ```
  */
 const ThreadContentMessages = React.forwardRef<
   HTMLDivElement,
   ThreadContentMessagesProps
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   const { messages, isGenerating, variant } = useThreadContentContext();
+
+  const filteredMessages = messages.filter(
+    (message) => message.role !== "system" && !message.parentMessageId,
+  );
 
   return (
     <div
       ref={ref}
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex flex-col space-y-12", className)}
       data-slot="thread-content-messages"
       {...props}
     >
-      {messages.map((message, index) => {
+      {filteredMessages.map((message, index) => {
+        const key =
+          message.id ??
+          `${message.role}-${
+            message.createdAt ?? Date.now()
+          }-${message.content?.toString().substring(0, 10)}`;
+
+        // If children render prop provided, use it for custom rendering
+        if (children) {
+          return (
+            <div key={key} data-slot="thread-content-item">
+              {children(message)}
+            </div>
+          );
+        }
+
+        // Otherwise, use default rendering
         return (
-          <div
-            key={
-              message.id ??
-              `${message.role}-${
-                message.createdAt ?? Date.now()
-              }-${message.content?.toString().substring(0, 10)}`
-            }
-            data-slot="thread-content-item"
-          >
+          <div key={key} data-slot="thread-content-item">
             <Message
               role={message.role === "assistant" ? "assistant" : "user"}
               message={message}
               variant={variant}
-              isLoading={isGenerating && index === messages.length - 1}
+              isLoading={isGenerating && index === filteredMessages.length - 1}
               className={cn(
                 "flex w-full",
                 message.role === "assistant" ? "justify-start" : "justify-end",
@@ -181,6 +212,6 @@ const ThreadContentMessages = React.forwardRef<
     </div>
   );
 });
-ThreadContentMessages.displayName = "ThreadContent.Messages";
+ThreadContentMessages.displayName = "ThreadContentMessages";
 
 export { ThreadContent, ThreadContentMessages };

@@ -40,6 +40,19 @@ declare module "@/components/tambo/message" {
     content?: string | { type: string; text?: string }[];
   }
 
+  export type MessageImagesProps = React.HTMLAttributes<HTMLDivElement>;
+
+  export interface MessageActionsProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    children?: React.ReactNode;
+  }
+
+  export interface MessageActionProps
+    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    tooltip?: string;
+    children?: React.ReactNode;
+  }
+
   export interface MessageRenderedComponentAreaProps
     extends React.HTMLAttributes<HTMLDivElement> {
     enableCanvasSpace?: boolean;
@@ -51,12 +64,33 @@ declare module "@/components/tambo/message" {
     markdown?: boolean;
   }
 
+  export type ReasoningInfoProps = Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "content"
+  >;
+
+  export type LoadingIndicatorProps = React.HTMLAttributes<HTMLDivElement>;
+
   export const Message: React.ForwardRefExoticComponent<
     MessageProps & React.RefAttributes<HTMLDivElement>
   >;
 
+  export const LoadingIndicator: React.FC<LoadingIndicatorProps>;
+
   export const MessageContent: React.ForwardRefExoticComponent<
     MessageContentProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const MessageImages: React.ForwardRefExoticComponent<
+    MessageImagesProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const MessageActions: React.ForwardRefExoticComponent<
+    MessageActionsProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const MessageAction: React.ForwardRefExoticComponent<
+    MessageActionProps & React.RefAttributes<HTMLButtonElement>
   >;
 
   export const ToolcallInfo: React.ForwardRefExoticComponent<
@@ -78,10 +112,6 @@ declare module "@/components/tambo/message" {
 
   export const ReasoningInfo: React.ForwardRefExoticComponent<
     ReasoningInfoProps & React.RefAttributes<HTMLDivElement>
-  >;
-
-  export const MessageImages: React.ForwardRefExoticComponent<
-    MessageImagesProps & React.RefAttributes<HTMLDivElement>
   >;
 }
 
@@ -115,16 +145,23 @@ declare module "@/components/tambo/thread-content" {
 }
 
 declare module "@/components/tambo/message-input" {
+  import type { StagedAttachment } from "@tambo-ai/react";
+  import type {
+    TamboElicitationRequest,
+    TamboElicitationResponse,
+  } from "@tambo-ai/react/mcp";
   export interface MessageInputProps
     extends React.HTMLAttributes<HTMLFormElement> {
     variant?: ComponentVariant;
     contextKey?: string;
+    initialQuery?: string;
   }
 
   export interface MessageInputRootProps
     extends React.HTMLAttributes<HTMLFormElement> {
     contextKey?: string;
     variant?: ComponentVariant;
+    initialQuery?: string;
     children?: React.ReactNode;
   }
 
@@ -138,14 +175,23 @@ declare module "@/components/tambo/message-input" {
     children?: React.ReactNode;
   }
 
+  export interface MessageInputActionsProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    children?: React.ReactNode;
+  }
+
   export type MessageInputFileButtonProps =
-    React.ButtonHTMLAttributes<HTMLButtonElement>;
+    React.ButtonHTMLAttributes<HTMLButtonElement> & {
+      icon?: React.ReactNode;
+    };
 
   export type MessageInputMcpPromptButtonProps =
     React.HTMLAttributes<HTMLButtonElement>;
 
-  export type MessageInputStagedImagesProps =
+  export type MessageInputAttachmentsProps =
     React.HTMLAttributes<HTMLDivElement>;
+
+  export type MessageInputStagedImagesProps = MessageInputAttachmentsProps;
 
   export type MessageInputErrorProps =
     React.HTMLAttributes<HTMLParagraphElement>;
@@ -153,10 +199,33 @@ declare module "@/components/tambo/message-input" {
   export type MessageInputToolbarProps = React.HTMLAttributes<HTMLDivElement>;
 
   export type MessageInputMcpConfigButtonProps =
-    React.HTMLAttributes<HTMLButtonElement>;
+    React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+  export interface MessageInputContextValue {
+    value: string;
+    setValue: (value: string) => void;
+    submit: (options: {
+      contextKey?: string;
+      streamResponse?: boolean;
+    }) => Promise<void>;
+    handleSubmit: (e: React.FormEvent) => Promise<void>;
+    isPending: boolean;
+    error: Error | null;
+    contextKey?: string;
+    attachments: StagedAttachment[];
+    addAttachment: (file: File) => Promise<StagedAttachment>;
+    addAttachments: (files: File[]) => Promise<StagedAttachment[]>;
+    removeAttachment: (id: string) => void;
+    clearAttachments: () => void;
+    textareaRef: React.RefObject<HTMLTextAreaElement>;
+    submitError: string | null;
+    setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
+    elicitation: TamboElicitationRequest | null;
+    resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
+  }
 
   export const MessageInput: React.ForwardRefExoticComponent<
-    MessageInputProps & React.RefAttributes<HTMLTextAreaElement>
+    MessageInputProps & React.RefAttributes<HTMLFormElement>
   >;
 
   export const MessageInputRoot: React.ForwardRefExoticComponent<
@@ -179,6 +248,10 @@ declare module "@/components/tambo/message-input" {
     MessageInputToolbarProps & React.RefAttributes<HTMLDivElement>
   >;
 
+  export const MessageInputActions: React.ForwardRefExoticComponent<
+    MessageInputActionsProps & React.RefAttributes<HTMLDivElement>
+  >;
+
   export const MessageInputError: React.ForwardRefExoticComponent<
     MessageInputErrorProps & React.RefAttributes<HTMLParagraphElement>
   >;
@@ -197,9 +270,15 @@ declare module "@/components/tambo/message-input" {
     MessageInputMcpPromptButtonProps & React.RefAttributes<HTMLButtonElement>
   >;
 
+  export const MessageInputAttachments: React.ForwardRefExoticComponent<
+    MessageInputAttachmentsProps & React.RefAttributes<HTMLDivElement>
+  >;
+
   export const MessageInputStagedImages: React.ForwardRefExoticComponent<
     MessageInputStagedImagesProps & React.RefAttributes<HTMLDivElement>
   >;
+
+  export const useMessageInputContext: () => MessageInputContextValue;
 }
 
 declare module "@/components/tambo/message-suggestions" {

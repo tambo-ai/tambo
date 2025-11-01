@@ -1,22 +1,32 @@
 "use client";
 
+import { ElicitationUI } from "@/components/tambo/elicitation-ui";
 import { McpConfigModal } from "@/components/tambo/mcp-config-modal";
 import {
   Tooltip,
   TooltipProvider,
 } from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  type StagedImage,
+  type StagedAttachment,
 } from "@tambo-ai/react";
+import {
+  useTamboElicitationContext,
+  useTamboMcpPrompt,
+  useTamboMcpPromptList,
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "@tambo-ai/react/mcp";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
   Image as ImageIcon,
   Paperclip,
+  Sparkles,
   Square,
   X,
 } from "lucide-react";
@@ -37,10 +47,12 @@ const messageInputVariants = cva("w-full", {
       solid: [
         "[&>div]:bg-background",
         "[&>div]:border-0",
-        "[&>div]:shadow-xl [&>div]:shadow-black/5 [&>div]:dark:shadow-black/20",
+        "[&>div]:rounded-3xl",
+        "[&>div]:shadow-xs",
         "[&>div]:ring-1 [&>div]:ring-black/5 [&>div]:dark:ring-white/10",
         "[&_textarea]:bg-transparent",
-        "[&_textarea]:rounded-lg",
+        "[&_textarea]:rounded-3xl",
+        "[&_textarea]:min-h-[44px]",
       ].join(" "),
       bordered: [
         "[&>div]:bg-transparent",
@@ -65,11 +77,14 @@ const messageInputVariants = cva("w-full", {
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
  * @property {string|undefined} contextKey - The thread context key
+ * @property {StagedAttachment[]} attachments - Currently staged attachments
  * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
+ * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
+ * @property {function} resolveElicitation - Function to resolve the elicitation promise (automatically clears state)
  */
-interface MessageInputContextValue {
+export interface MessageInputContextValue {
   value: string;
   setValue: (value: string) => void;
   submit: (options: {
@@ -80,9 +95,16 @@ interface MessageInputContextValue {
   isPending: boolean;
   error: Error | null;
   contextKey?: string;
+  attachments: StagedAttachment[];
+  addAttachment: (file: File) => Promise<StagedAttachment>;
+  addAttachments: (files: File[]) => Promise<StagedAttachment[]>;
+  removeAttachment: (id: string) => void;
+  clearAttachments: () => void;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
+  elicitation: TamboElicitationRequest | null;
+  resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
 }
 
 /**
@@ -119,10 +141,10 @@ export interface MessageInputProps
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
+  /** Optional initial query to populate the input with. */
+  initialQuery?: string;
   /** Optional ref to forward to the textarea element. */
   inputRef?: React.RefObject<HTMLTextAreaElement>;
-  /** Initial query to pre-fill the input */
-  initialQuery?: string;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -134,20 +156,24 @@ export interface MessageInputProps
  * @example
  * ```tsx
  * <MessageInput contextKey="my-thread" variant="solid">
- *   <MessageInput.Textarea />
- *   <MessageInput.SubmitButton />
- *   <MessageInput.Error />
+ *   <MessageInputTextarea />
+ *   <MessageInputSubmitButton />
+ *   <MessageInputError />
  * </MessageInput>
  * ```
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
-  ({ children, className, contextKey, variant, ...props }, ref) => {
+  (
+    { children, className, contextKey, variant, initialQuery, ...props },
+    ref,
+  ) => {
     return (
       <MessageInputInternal
         ref={ref}
         className={className}
         contextKey={contextKey}
         variant={variant}
+        initialQuery={initialQuery}
         {...props}
       >
         {children}
@@ -182,18 +208,25 @@ const MessageInputInternal = React.forwardRef<
       submit,
       isPending,
       error,
-      images,
-      addImages,
-      clearImages,
+      attachments,
+      addAttachment,
+      addAttachments,
+      removeAttachment,
+      clearAttachments,
     } = useTamboThreadInput();
     const { cancel } = useTamboThread();
     const [displayValue, setDisplayValue] = React.useState("");
     const [submitError, setSubmitError] = React.useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [hasSetInitialQuery, setHasSetInitialQuery] = React.useState(false);
     const [isDragging, setIsDragging] = React.useState(false);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
     const dragCounter = React.useRef(0);
+    const [appliedInitialQuery, setAppliedInitialQuery] = React.useState<
+      string | null
+    >(null);
+
+    // Use elicitation context (optional)
+    const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
     React.useEffect(() => {
       setDisplayValue(value);
@@ -202,26 +235,32 @@ const MessageInputInternal = React.forwardRef<
       }
     }, [value]);
 
-    // Pre-fill input with initialQuery only once when component mounts
     React.useEffect(() => {
-      if (initialQuery && !hasSetInitialQuery && !value) {
-        setValue(initialQuery);
-        setHasSetInitialQuery(true);
+      if (!initialQuery) {
+        setAppliedInitialQuery(null);
+        return;
       }
-    }, [initialQuery, setValue, value, hasSetInitialQuery]);
+      if (appliedInitialQuery === initialQuery) {
+        return;
+      }
+
+      setAppliedInitialQuery(initialQuery);
+      setValue(initialQuery);
+      setDisplayValue(initialQuery);
+    }, [initialQuery, appliedInitialQuery, setValue, setDisplayValue]);
 
     const handleSubmit = React.useCallback(
       async (e: React.FormEvent) => {
         e.preventDefault();
-        if ((!value.trim() && images.length === 0) || isSubmitting) return;
+        if ((!value.trim() && attachments.length === 0) || isSubmitting) return;
 
         setSubmitError(null);
         setDisplayValue("");
         setIsSubmitting(true);
 
         // Clear images in next tick for immediate UI feedback
-        if (images.length > 0) {
-          setTimeout(() => clearImages(), 0);
+        if (attachments.length > 0) {
+          setTimeout(() => clearAttachments(), 0);
         }
 
         try {
@@ -258,8 +297,8 @@ const MessageInputInternal = React.forwardRef<
         setSubmitError,
         cancel,
         isSubmitting,
-        images,
-        clearImages,
+        attachments,
+        clearAttachments,
       ],
     );
 
@@ -268,10 +307,10 @@ const MessageInputInternal = React.forwardRef<
       e.stopPropagation();
       dragCounter.current++;
       if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-        const hasImages = Array.from(e.dataTransfer.items).some((item) =>
-          item.type.startsWith("image/"),
+        const hasFiles = Array.from(e.dataTransfer.items).some(
+          (item) => item.kind === "file",
         );
-        if (hasImages) {
+        if (hasFiles) {
           setIsDragging(true);
         }
       }
@@ -298,19 +337,27 @@ const MessageInputInternal = React.forwardRef<
         setIsDragging(false);
         dragCounter.current = 0;
 
-        const files = Array.from(e.dataTransfer.files).filter((file) =>
-          file.type.startsWith("image/"),
-        );
+        const files = Array.from(e.dataTransfer.files);
 
         if (files.length > 0) {
           try {
-            await addImages(files);
+            await addAttachments(files);
           } catch (error) {
-            console.error("Failed to add dropped images:", error);
+            console.error("Failed to add dropped attachments:", error);
           }
         }
       },
-      [addImages],
+      [addAttachments],
+    );
+
+    const handleElicitationResponse = React.useCallback(
+      (response: TamboElicitationResponse) => {
+        // Calling resolveElicitation automatically clears the elicitation state
+        if (resolveElicitation) {
+          resolveElicitation(response);
+        }
+      },
+      [resolveElicitation],
     );
 
     const contextValue = React.useMemo(
@@ -325,9 +372,16 @@ const MessageInputInternal = React.forwardRef<
         isPending: isPending ?? isSubmitting,
         error,
         contextKey,
+        attachments,
+        addAttachment,
+        addAttachments,
+        removeAttachment,
+        clearAttachments,
         textareaRef: inputRef ?? textareaRef,
         submitError,
         setSubmitError,
+        elicitation,
+        resolveElicitation: resolveElicitation ?? null,
       }),
       [
         displayValue,
@@ -338,9 +392,16 @@ const MessageInputInternal = React.forwardRef<
         isSubmitting,
         error,
         contextKey,
+        attachments,
+        addAttachment,
+        addAttachments,
+        removeAttachment,
+        clearAttachments,
         inputRef,
         textareaRef,
         submitError,
+        elicitation,
+        resolveElicitation,
       ],
     );
     return (
@@ -360,7 +421,7 @@ const MessageInputInternal = React.forwardRef<
         >
           <div
             className={cn(
-              "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
+              "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3 cursor-text",
               isDragging
                 ? "border border-dashed border-emerald-400"
                 : "border border-border",
@@ -373,8 +434,17 @@ const MessageInputInternal = React.forwardRef<
                 </p>
               </div>
             )}
-            <MessageInputStagedImages />
-            {children}
+            {elicitation ? (
+              <ElicitationUI
+                request={elicitation}
+                onResponse={handleElicitationResponse}
+              />
+            ) : (
+              <>
+                <MessageInputAttachments />
+                {children}
+              </>
+            )}
           </div>
         </form>
       </MessageInputContext.Provider>
@@ -385,16 +455,16 @@ MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
 
 /**
- * Symbol for marking pasted images
+ * Symbol for marking pasted attachments
  */
-const IS_PASTED_IMAGE = Symbol("is-pasted-image");
+const IS_PASTED_ATTACHMENT = Symbol("is-pasted-attachment");
 
 /**
- * Extend the File interface to include IS_PASTED_IMAGE symbol
+ * Extend the File interface to include IS_PASTED_ATTACHMENT symbol
  */
 declare global {
   interface File {
-    [IS_PASTED_IMAGE]?: boolean;
+    [IS_PASTED_ATTACHMENT]?: boolean;
   }
 }
 
@@ -411,11 +481,11 @@ export interface MessageInputTextareaProps
 /**
  * Textarea component for entering message text.
  * Automatically connects to the context to handle value changes and key presses.
- * @component MessageInput.Textarea
+ * @component MessageInputTextarea
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.Textarea placeholder="Type your message..." />
+ *   <MessageInputTextarea placeholder="Type your message..." />
  * </MessageInput>
  * ```
  */
@@ -427,7 +497,7 @@ const MessageInputTextarea = ({
   const { value, setValue, textareaRef, handleSubmit } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage } = useTamboThreadInput();
+  const { addAttachment } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
 
@@ -464,10 +534,10 @@ const MessageInputTextarea = ({
       if (file) {
         try {
           // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
-          file[IS_PASTED_IMAGE] = true;
-          await addImage(file);
+          file[IS_PASTED_ATTACHMENT] = true;
+          await addAttachment(file);
         } catch (error) {
-          console.error("Failed to add pasted image:", error);
+          console.error("Failed to add pasted attachment:", error);
         }
       }
     }
@@ -492,7 +562,7 @@ const MessageInputTextarea = ({
     />
   );
 };
-MessageInputTextarea.displayName = "MessageInput.Textarea";
+MessageInputTextarea.displayName = "MessageInputTextarea";
 
 /**
  * Props for the MessageInputSubmitButton component.
@@ -507,13 +577,13 @@ export interface MessageInputSubmitButtonProps
 /**
  * Submit button component for sending messages.
  * Automatically connects to the context to handle submission state.
- * @component MessageInput.SubmitButton
+ * @component MessageInputSubmitButton
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.Textarea />
+ *   <MessageInputTextarea />
  *   <div className="flex justify-end mt-2 p-1">
- *     <MessageInput.SubmitButton />
+ *     <MessageInputSubmitButton />
  *   </div>
  * </MessageInput>
  * ```
@@ -557,19 +627,19 @@ const MessageInputSubmitButton = React.forwardRef<
     </button>
   );
 });
-MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
+MessageInputSubmitButton.displayName = "MessageInputSubmitButton";
 
 /**
  * MCP Config Button component for opening the MCP configuration modal.
- * @component MessageInput.McpConfigButton
+ * @component MessageInputMcpConfigButton
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.Textarea />
- *   <MessageInput.Toolbar>
- *     <MessageInput.McpConfigButton />
- *     <MessageInput.SubmitButton />
- *   </MessageInput.Toolbar>
+ *   <MessageInputTextarea />
+ *   <MessageInputToolbar>
+ *     <MessageInputMcpConfigButton />
+ *     <MessageInputSubmitButton />
+ *   </MessageInputToolbar>
  * </MessageInput>
  * ```
  */
@@ -640,7 +710,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
     </TooltipProvider>
   );
 });
-MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
+MessageInputMcpConfigButton.displayName = "MessageInputMcpConfigButton";
 
 /**
  * Props for the MessageInputError component.
@@ -651,13 +721,13 @@ export type MessageInputErrorProps = React.HTMLAttributes<HTMLParagraphElement>;
 /**
  * Error message component for displaying submission errors.
  * Automatically connects to the context to display any errors.
- * @component MessageInput.Error
+ * @component MessageInputError
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.Textarea />
- *   <MessageInput.SubmitButton />
- *   <MessageInput.Error />
+ *   <MessageInputTextarea />
+ *   <MessageInputSubmitButton />
+ *   <MessageInputError />
  * </MessageInput>
  * ```
  */
@@ -682,7 +752,7 @@ const MessageInputError = React.forwardRef<
     </p>
   );
 });
-MessageInputError.displayName = "MessageInput.Error";
+MessageInputError.displayName = "MessageInputError";
 
 /**
  * Props for the MessageInputFileButton component.
@@ -693,28 +763,31 @@ export interface MessageInputFileButtonProps
   accept?: string;
   /** Allow multiple file selection */
   multiple?: boolean;
+  /** Optional custom icon to render instead of the default Paperclip. */
+  icon?: React.ReactNode;
 }
 
 /**
  * File attachment button component for selecting images from file system.
- * @component MessageInput.FileButton
+ * @component MessageInputFileButton
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.Textarea />
- *   <MessageInput.Toolbar>
- *     <MessageInput.FileButton />
- *     <MessageInput.SubmitButton />
- *   </MessageInput.Toolbar>
+ *   <MessageInputTextarea />
+ *   <MessageInputToolbar>
+ *     <MessageInputFileButton />
+ *     <MessageInputSubmitButton />
+ *   </MessageInputToolbar>
  * </MessageInput>
  * ```
  */
 const MessageInputFileButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputFileButtonProps
->(({ className, accept = "image/*", multiple = true, ...props }, ref) => {
-  const { addImages } = useTamboThreadInput();
+>(({ className, accept = "image/*", multiple = true, icon, ...props }, ref) => {
+  const { addAttachments } = useTamboThreadInput();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const isImageOnly = accept === "image/*";
 
   const handleClick = () => {
     fileInputRef.current?.click();
@@ -723,9 +796,9 @@ const MessageInputFileButton = React.forwardRef<
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     try {
-      await addImages(files);
+      await addAttachments(files);
     } catch (error) {
-      console.error("Failed to add selected files:", error);
+      console.error("Failed to add selected attachments:", error);
     }
     // Reset the input so the same file can be selected again
     e.target.value = "";
@@ -739,7 +812,7 @@ const MessageInputFileButton = React.forwardRef<
   return (
     <TooltipProvider>
       <Tooltip
-        content="Attach Images"
+        content={isImageOnly ? "Attach Images" : "Attach Files"}
         side="top"
         className="bg-muted text-foreground"
       >
@@ -748,11 +821,11 @@ const MessageInputFileButton = React.forwardRef<
           type="button"
           onClick={handleClick}
           className={buttonClasses}
-          aria-label="Attach Images"
+          aria-label={isImageOnly ? "Attach Images" : "Attach Files"}
           data-slot="message-input-file-button"
           {...props}
         >
-          <Paperclip className="w-4 h-4" />
+          {icon ?? <Paperclip className="w-4 h-4" />}
           <input
             ref={fileInputRef}
             type="file"
@@ -767,13 +840,148 @@ const MessageInputFileButton = React.forwardRef<
     </TooltipProvider>
   );
 });
-MessageInputFileButton.displayName = "MessageInput.FileButton";
+MessageInputFileButton.displayName = "MessageInputFileButton";
 
 /**
- * Props for the ImageContextBadge component.
+ * Props for the MessageInputMcpPromptButton component.
  */
-interface ImageContextBadgeProps {
-  image: StagedImage;
+export type MessageInputMcpPromptButtonProps =
+  React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+/**
+ * MCP Prompt picker button component for inserting prompts from MCP servers.
+ * @component MessageInputMcpPromptButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInputTextarea />
+ *   <MessageInputToolbar>
+ *     <MessageInputFileButton />
+ *     <MessageInputMcpPromptButton />
+ *     <MessageInputSubmitButton />
+ *   </MessageInputToolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputMcpPromptButton = React.forwardRef<
+  HTMLButtonElement,
+  MessageInputMcpPromptButtonProps
+>(({ className, ...props }, ref) => {
+  const { setValue, value } = useMessageInputContext();
+  const { data: promptList, isLoading } = useTamboMcpPromptList();
+  const [selectedPromptName, setSelectedPromptName] = React.useState<
+    string | null
+  >(null);
+  const { data: promptData } = useTamboMcpPrompt(selectedPromptName ?? "");
+
+  // When prompt data is fetched, insert it into the input
+  React.useEffect(() => {
+    if (promptData && selectedPromptName) {
+      // Extract the text from the prompt messages
+      const promptText = promptData.messages
+        .map((msg) => {
+          if (msg.content.type === "text") {
+            return msg.content.text;
+          }
+          return "";
+        })
+        .filter(Boolean)
+        .join("\n");
+
+      // Insert the prompt text, appending to existing value if any
+      const newValue = value ? `${value}\n\n${promptText}` : promptText;
+      setValue(newValue);
+
+      // Reset the selected prompt
+      setSelectedPromptName(null);
+    }
+  }, [promptData, selectedPromptName, setValue, value]);
+
+  // Only show button if prompts are available (hide during loading and when no prompts)
+  if (!promptList || promptList.length === 0) {
+    return null;
+  }
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-muted text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content="Insert MCP Prompt"
+        side="top"
+        className="bg-muted text-foreground"
+      >
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button
+              ref={ref}
+              type="button"
+              className={buttonClasses}
+              aria-label="Insert MCP Prompt"
+              data-slot="message-input-mcp-prompt-button"
+              {...props}
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+              side="top"
+              align="start"
+              sideOffset={5}
+            >
+              {isLoading ? (
+                <DropdownMenu.Item
+                  className="px-2 py-1.5 text-sm text-muted-foreground"
+                  disabled
+                >
+                  Loading prompts...
+                </DropdownMenu.Item>
+              ) : !promptList || promptList.length === 0 ? (
+                <DropdownMenu.Item
+                  className="px-2 py-1.5 text-sm text-muted-foreground"
+                  disabled
+                >
+                  No prompts available
+                </DropdownMenu.Item>
+              ) : (
+                promptList.map((promptEntry) => (
+                  <DropdownMenu.Item
+                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
+                    className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                    onSelect={() => {
+                      setSelectedPromptName(promptEntry.prompt.name);
+                    }}
+                  >
+                    <span className="font-medium truncate max-w-full">
+                      {promptEntry.prompt.name}
+                    </span>
+                    {promptEntry.prompt.description && (
+                      <span className="text-xs text-muted-foreground truncate max-w-full">
+                        {promptEntry.prompt.description}
+                      </span>
+                    )}
+                  </DropdownMenu.Item>
+                ))
+              )}
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      </Tooltip>
+    </TooltipProvider>
+  );
+});
+MessageInputMcpPromptButton.displayName = "MessageInputMcpPromptButton";
+
+/**
+ * Props for the AttachmentBadge component.
+ */
+interface AttachmentBadgeProps {
+  attachment: StagedAttachment;
   displayName: string;
   isExpanded: boolean;
   onToggle: () => void;
@@ -781,113 +989,101 @@ interface ImageContextBadgeProps {
 }
 
 /**
- * ContextBadge component that displays a staged image with expandable preview.
- * Shows a compact badge with icon and name by default, expands to show image preview on click.
- *
- * @component
- * @example
- * ```tsx
- * <ImageContextBadge
- *   image={stagedImage}
- *   displayName="Image"
- *   isExpanded={false}
- *   onToggle={() => setExpanded(!expanded)}
- *   onRemove={() => removeImage(image.id)}
- * />
- * ```
+ * Badge component that displays a staged attachment with optional expandable preview.
+ * Images render a visual preview; other attachment types render a compact badge.
  */
-const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
-  image,
+const AttachmentBadge: React.FC<AttachmentBadgeProps> = ({
+  attachment,
   displayName,
   isExpanded,
   onToggle,
   onRemove,
-}) => (
-  <div className="relative group flex-shrink-0">
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-expanded={isExpanded}
-      className={cn(
-        "relative flex items-center rounded-lg border overflow-hidden",
-        "border-border bg-background hover:bg-muted cursor-pointer",
-        "transition-[width,height,padding] duration-200 ease-in-out",
-        isExpanded ? "w-40 h-28 p-0" : "w-32 h-9 pl-3 pr-8 gap-2",
-      )}
-    >
-      {isExpanded && (
-        <div
-          className={cn(
-            "absolute inset-0 transition-opacity duration-150",
-            "opacity-100 delay-100",
-          )}
-        >
-          <div className="relative w-full h-full">
-            <Image
-              src={image.dataUrl}
-              alt={displayName}
-              fill
-              unoptimized
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
-              {displayName}
-            </div>
-          </div>
-        </div>
-      )}
-      <span
+}) => {
+  const previewSrc = attachment.previewUrl ?? attachment.dataUrl;
+  // Only image attachments are supported today. When adding new file types,
+  // replace this early return with rendering logic for each supported kind.
+  if (attachment.kind !== "image") {
+    return null;
+  }
+
+  return (
+    <div className="relative group flex-shrink-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isExpanded}
         className={cn(
-          "flex items-center gap-1.5 text-sm text-foreground truncate leading-none transition-opacity duration-150",
-          isExpanded ? "opacity-0" : "opacity-100 delay-100",
+          "relative flex items-center rounded-lg border overflow-hidden",
+          "border-border bg-background hover:bg-muted cursor-pointer",
+          "transition-[width,height,padding] duration-200 ease-in-out",
+          isExpanded ? "w-40 h-28 p-0" : "w-32 h-9 pl-3 pr-8 gap-2",
         )}
       >
-        <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="truncate">{displayName}</span>
-      </span>
-    </button>
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onRemove();
-      }}
-      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
-      aria-label={`Remove ${displayName}`}
-    >
-      <X className="w-3 h-3" />
-    </button>
-  </div>
-);
-
-/**
- * Props for the MessageInputStagedImages component.
- */
-export type MessageInputStagedImagesProps =
-  React.HTMLAttributes<HTMLDivElement>;
-
-/**
- * Component that displays currently staged images with preview and remove functionality.
- * @component MessageInput.StagedImages
- * @example
- * ```tsx
- * <MessageInput>
- *   <MessageInput.StagedImages />
- *   <MessageInput.Textarea />
- * </MessageInput>
- * ```
- */
-const MessageInputStagedImages = React.forwardRef<
-  HTMLDivElement,
-  MessageInputStagedImagesProps
->(({ className, ...props }, ref) => {
-  const { images, removeImage } = useTamboThreadInput();
-  const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
-    null,
+        {isExpanded && (
+          <div
+            className={cn(
+              "absolute inset-0 transition-opacity duration-150",
+              "opacity-100 delay-100",
+            )}
+          >
+            <div className="relative w-full h-full">
+              <Image
+                src={previewSrc}
+                alt={displayName}
+                fill
+                unoptimized
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
+                {displayName}
+              </div>
+            </div>
+          </div>
+        )}
+        <span
+          className={cn(
+            "flex items-center gap-1.5 text-sm text-foreground truncate leading-none transition-opacity duration-150",
+            isExpanded ? "opacity-0" : "opacity-100 delay-100",
+          )}
+        >
+          <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="truncate">{displayName}</span>
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
+        aria-label={`Remove ${displayName}`}
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
   );
+};
 
-  if (images.length === 0) {
+/**
+ * Props for the MessageInputAttachments component.
+ */
+export type MessageInputAttachmentsProps = React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Component that displays currently staged attachments with preview and remove functionality.
+ */
+const MessageInputAttachments = React.forwardRef<
+  HTMLDivElement,
+  MessageInputAttachmentsProps
+>(({ className, ...props }, ref) => {
+  const { attachments, removeAttachment } = useTamboThreadInput();
+  const [expandedAttachmentId, setExpandedAttachmentId] = React.useState<
+    string | null
+  >(null);
+
+  if (attachments.length === 0) {
     return null;
   }
 
@@ -898,40 +1094,54 @@ const MessageInputStagedImages = React.forwardRef<
         "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border",
         className,
       )}
-      data-slot="message-input-staged-images"
+      data-slot="message-input-attachments"
+      data-legacy-slot="message-input-staged-images"
       {...props}
     >
-      {images.map((image, index) => (
-        <ImageContextBadge
-          key={image.id}
-          image={image}
-          displayName={
-            image.file[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
-          }
-          isExpanded={expandedImageId === image.id}
-          onToggle={() =>
-            setExpandedImageId(expandedImageId === image.id ? null : image.id)
-          }
-          onRemove={() => removeImage(image.id)}
-        />
-      ))}
+      {attachments.map((attachment, index) => {
+        const displayName = attachment.name ?? `Image ${index + 1}`;
+
+        return (
+          <AttachmentBadge
+            key={attachment.id}
+            attachment={attachment}
+            displayName={displayName}
+            isExpanded={expandedAttachmentId === attachment.id}
+            onToggle={() => {
+              setExpandedAttachmentId((current) =>
+                current === attachment.id ? null : attachment.id,
+              );
+            }}
+            onRemove={() => removeAttachment(attachment.id)}
+          />
+        );
+      })}
     </div>
   );
 });
-MessageInputStagedImages.displayName = "MessageInput.StagedImages";
+MessageInputAttachments.displayName = "MessageInputAttachments";
+
+/**
+ * @deprecated Use MessageInputAttachments instead.
+ */
+const MessageInputStagedImages = React.forwardRef<
+  HTMLDivElement,
+  MessageInputAttachmentsProps
+>((props, ref) => <MessageInputAttachments ref={ref} {...props} />);
+MessageInputStagedImages.displayName = "MessageInputStagedImages";
 
 /**
  * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
- * @component MessageInput.Toolbar
+ * @component MessageInputToolbar
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.Textarea />
- *   <MessageInput.Toolbar>
- *     <MessageInput.McpConfigButton />
- *     <MessageInput.SubmitButton />
- *   </MessageInput.Toolbar>
+ *   <MessageInputTextarea />
+ *   <MessageInputToolbar>
+ *     <MessageInputMcpConfigButton />
+ *     <MessageInputSubmitButton />
+ *   </MessageInputToolbar>
  * ```
  */
 const MessageInputToolbar = React.forwardRef<
@@ -975,17 +1185,50 @@ const MessageInputToolbar = React.forwardRef<
     </div>
   );
 });
-MessageInputToolbar.displayName = "MessageInput.Toolbar";
+MessageInputToolbar.displayName = "MessageInputToolbar";
+
+/**
+ * Props for MessageInputActions.
+ */
+export interface MessageInputActionsProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+/**
+ * Alternative to MessageInputToolbar with simpler styling.
+ * Provides a clean container for action buttons.
+ */
+const MessageInputActions = React.forwardRef<
+  HTMLDivElement,
+  MessageInputActionsProps
+>(({ className, children, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn("flex items-center gap-2", className)}
+      data-slot="message-input-actions"
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
+MessageInputActions.displayName = "MessageInputActions";
 
 // --- Exports ---
 export {
   MessageInput,
+  MessageInputActions,
+  MessageInputAttachments,
   MessageInputError,
-  MessageInputFileButton,
-  MessageInputMcpConfigButton,
-  MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputFileButton,
+  MessageInputMcpConfigButton,
+  MessageInputMcpPromptButton,
+  MessageInputStagedImages,
   messageInputVariants,
+  useMessageInputContext,
 };

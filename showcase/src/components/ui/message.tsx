@@ -1,6 +1,7 @@
 "use client";
 
 import { markdownComponents } from "@/components/ui/markdown-components";
+import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import {
   checkHasContent,
   getMessageImages,
@@ -33,7 +34,7 @@ const messageVariants = cva("flex", {
         "[&>div>div:first-child]:bg-container/50",
         "[&>div>div:first-child]:hover:bg-container",
         "[&>div>div:first-child]:transition-all",
-        "[&>div>div:first-child]:duration-200",
+        "[&>div>div:first-child]:duration-150",
       ].join(" "),
     },
   },
@@ -105,7 +106,7 @@ export interface MessageProps
   variant?: VariantProps<typeof messageVariants>["variant"];
   /** Optional flag to indicate if the message is in a loading state. */
   isLoading?: boolean;
-  /** The child elements to render within the root container. Typically includes Message.Bubble and Message.RenderedComponentArea. */
+  /** The child elements to render within the root container. Typically includes MessageContent and MessageRenderedComponentArea. */
   children: React.ReactNode;
 }
 
@@ -116,8 +117,8 @@ export interface MessageProps
  * @example
  * ```tsx
  * <Message role="user" message={messageData} variant="solid">
- *   <Message.Bubble />
- *   <Message.RenderedComponentArea />
+ *   <MessageContent />
+ *   <MessageRenderedComponentArea />
  * </Message>
  * ```
  */
@@ -206,7 +207,7 @@ const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
         {images.map((imageUrl: string, index: number) => (
           <div
             key={index}
-            className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-150"
           >
             <Image
               src={imageUrl}
@@ -264,7 +265,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div
         ref={ref}
         className={cn(
-          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
+          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-150 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
           className,
         )}
         data-slot="message-content"
@@ -406,7 +407,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             <span>{toolStatusMessage}</span>
             <ChevronDown
               className={cn(
-                "w-3 h-3 transition-transform duration-200",
+                "w-3 h-3 transition-transform duration-150",
                 !isExpanded && "-rotate-90",
               )}
             />
@@ -487,7 +488,7 @@ const SamplingSubThread = ({
         <span>{titleText}</span>
         <ChevronDown
           className={cn(
-            "w-3 h-3 transition-transform duration-200",
+            "w-3 h-3 transition-transform duration-150",
             !isExpanded && "-rotate-90",
           )}
         />
@@ -613,7 +614,7 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
             </span>
             <ChevronDown
               className={cn(
-                "w-3 h-3 transition-transform duration-200",
+                "w-3 h-3 transition-transform duration-150",
                 !isExpanded && "-rotate-90",
               )}
             />
@@ -743,7 +744,7 @@ export type MessageRenderedComponentAreaProps =
  * Displays the `renderedComponent` associated with an assistant message.
  * Shows a button to view in canvas if a canvas space exists, otherwise renders inline.
  * Only renders if the message role is 'assistant' and `message.renderedComponent` exists.
- * @component Message.RenderedComponentArea
+ * @component MessageRenderedComponentArea
  */
 const MessageRenderedComponentArea = React.forwardRef<
   HTMLDivElement,
@@ -802,7 +803,7 @@ const MessageRenderedComponentArea = React.forwardRef<
                   );
                 }
               }}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer group"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 cursor-pointer group"
               aria-label="View component in canvas"
             >
               View component
@@ -815,7 +816,85 @@ const MessageRenderedComponentArea = React.forwardRef<
     </div>
   );
 });
-MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
+MessageRenderedComponentArea.displayName = "MessageRenderedComponentArea";
+
+/**
+ * Props for the MessageActions container.
+ */
+export interface MessageActionsProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  /** Action buttons to display */
+  children: React.ReactNode;
+}
+
+/**
+ * Container for message action buttons.
+ * Typically revealed on hover via CSS.
+ */
+const MessageActions = React.forwardRef<HTMLDivElement, MessageActionsProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn("flex items-center gap-2 mt-2", className)}
+        data-slot="message-actions"
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+MessageActions.displayName = "MessageActions";
+
+/**
+ * Props for the MessageAction button.
+ */
+export interface MessageActionProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Tooltip text */
+  tooltip?: string;
+  /** Button content (usually an icon) */
+  children: React.ReactNode;
+}
+
+/**
+ * Individual action button within MessageActions.
+ * Styled as an icon button with optional tooltip.
+ */
+const MessageAction = React.forwardRef<HTMLButtonElement, MessageActionProps>(
+  ({ className, tooltip, children, ...props }, ref) => {
+    const button = (
+      <button
+        ref={ref}
+        type="button"
+        className={cn(
+          "inline-flex items-center justify-center rounded-md p-2",
+          "hover:bg-accent hover:text-accent-foreground",
+          "transition-colors duration-150",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          className,
+        )}
+        data-slot="message-action"
+        {...props}
+      >
+        {children}
+      </button>
+    );
+
+    // Wrap in tooltip if provided
+    if (tooltip) {
+      return (
+        <TooltipProvider>
+          <Tooltip content={tooltip}>{button}</Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return button;
+  },
+);
+MessageAction.displayName = "MessageAction";
 
 // --- Exports ---
 export {
@@ -823,6 +902,8 @@ export {
   Message,
   MessageContent,
   MessageImages,
+  MessageActions,
+  MessageAction,
   MessageRenderedComponentArea,
   messageVariants,
   ReasoningInfo,

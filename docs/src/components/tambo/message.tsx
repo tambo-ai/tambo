@@ -1,6 +1,15 @@
 "use client";
 
 import { markdownComponents } from "@/components/tambo/markdown-components";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@/components/tambo/suggestions-tooltip";
+import {
+  checkHasContent,
+  getMessageImages,
+  getSafeContent,
+} from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 import { useTambo } from "@tambo-ai/react";
@@ -12,11 +21,6 @@ import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
-import {
-  checkHasContent,
-  getMessageImages,
-  getSafeContent,
-} from "@/lib/thread-hooks";
 
 /**
  * CSS variants for the message container
@@ -33,7 +37,7 @@ const messageVariants = cva("flex", {
         "[&>div>div:first-child]:bg-container/50",
         "[&>div>div:first-child]:hover:bg-container",
         "[&>div>div:first-child]:transition-all",
-        "[&>div>div:first-child]:duration-200",
+        "[&>div>div:first-child]:duration-150",
       ].join(" "),
     },
   },
@@ -105,7 +109,7 @@ export interface MessageProps
   variant?: VariantProps<typeof messageVariants>["variant"];
   /** Optional flag to indicate if the message is in a loading state. */
   isLoading?: boolean;
-  /** The child elements to render within the root container. Typically includes Message.Bubble and Message.RenderedComponentArea. */
+  /** The child elements to render within the root container. Typically includes MessageContent and MessageRenderedComponentArea. */
   children: React.ReactNode;
 }
 
@@ -116,8 +120,8 @@ export interface MessageProps
  * @example
  * ```tsx
  * <Message role="user" message={messageData} variant="solid">
- *   <Message.Bubble />
- *   <Message.RenderedComponentArea />
+ *   <MessageContent />
+ *   <MessageRenderedComponentArea />
  * </Message>
  * ```
  */
@@ -206,7 +210,7 @@ const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
         {images.map((imageUrl: string, index: number) => (
           <div
             key={index}
-            className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="w-32 h-32 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-150"
           >
             <Image
               src={imageUrl}
@@ -264,7 +268,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div
         ref={ref}
         className={cn(
-          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
+          "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-150 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
           className,
         )}
         data-slot="message-content"
@@ -406,7 +410,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             <span>{toolStatusMessage}</span>
             <ChevronDown
               className={cn(
-                "w-3 h-3 transition-transform duration-200",
+                "w-3 h-3 transition-transform duration-150",
                 !isExpanded && "-rotate-90",
               )}
             />
@@ -414,19 +418,20 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <div
             id={toolDetailsId}
             className={cn(
-              "flex flex-col gap-1 p-3 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
+              "flex flex-col gap-1 p-3 pl-7 overflow-auto transition-[max-height,opacity,padding] duration-300 w-full truncate",
               isExpanded ? "max-h-auto opacity-100" : "max-h-0 opacity-0 p-0",
             )}
           >
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               tool: {toolCallRequest?.toolName}
             </span>
-            <span className="whitespace-pre-wrap">
+            <span className="whitespace-pre-wrap pl-2">
               parameters:{"\n"}
               {stringify(keyifyParameters(toolCallRequest?.parameters))}
             </span>
+            <SamplingSubThread parentMessageId={message.id} />
             {associatedToolResponse && (
-              <>
+              <div className="pl-2">
                 <span className="whitespace-pre-wrap">result:</span>
                 <div>
                   {!associatedToolResponse.content ? (
@@ -437,7 +442,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
                     formatToolResult(associatedToolResponse.content, markdown)
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -447,6 +452,82 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 );
 
 ToolcallInfo.displayName = "ToolcallInfo";
+
+/**
+ * Displays a message's child messages in a collapsible dropdown.
+ * Used for MCP sampling sub-threads.
+ * @component SamplingSubThread
+ */
+const SamplingSubThread = ({
+  parentMessageId,
+  titleText = "finished additional work",
+}: {
+  parentMessageId: string;
+  titleText?: string;
+}) => {
+  const { thread } = useTambo();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const samplingDetailsId = React.useId();
+
+  const childMessages = React.useMemo(() => {
+    return thread?.messages?.filter(
+      (m: TamboThreadMessage) => m.parentMessageId === parentMessageId,
+    );
+  }, [thread?.messages, parentMessageId]);
+
+  if (!childMessages?.length) return null;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        aria-expanded={isExpanded}
+        aria-controls={samplingDetailsId}
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md p-2 select-none w-fit",
+        )}
+      >
+        <span>{titleText}</span>
+        <ChevronDown
+          className={cn(
+            "w-3 h-3 transition-transform duration-150",
+            !isExpanded && "-rotate-90",
+          )}
+        />
+      </button>
+      <div
+        id={samplingDetailsId}
+        className={cn(
+          "transition-[max-height,opacity] duration-300",
+          isExpanded
+            ? "max-h-96 opacity-100 overflow-auto"
+            : "max-h-0 opacity-0 overflow-hidden",
+        )}
+        aria-hidden={!isExpanded}
+      >
+        <div className="pl-2">
+          <div className="border-l-2 border-muted-foreground p-2 flex flex-col gap-4">
+            {childMessages?.map((m: TamboThreadMessage) => (
+              <div key={m.id} className={`${m.role === "user" && "pl-2"}`}>
+                <span
+                  className={cn(
+                    "whitespace-pre-wrap",
+                    m.role === "assistant" &&
+                      "bg-muted/50 rounded-md p-2 inline-block w-fit",
+                  )}
+                >
+                  {getSafeContent(m.content)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+SamplingSubThread.displayName = "SamplingSubThread";
 
 /**
  * Props for the ReasoningInfo component.
@@ -525,14 +606,18 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
             )}
           >
             <span className={isLoading ? "animate-thinking-gradient" : ""}>
-              Thinking{" "}
+              {isLoading
+                ? "Thinking "
+                : message.reasoningDurationMS
+                  ? formatReasoningDuration(message.reasoningDurationMS) + " "
+                  : "Done Thinking "}
               {message.reasoning.length > 1
                 ? `(${message.reasoning.length} steps)`
                 : ""}
             </span>
             <ChevronDown
               className={cn(
-                "w-3 h-3 transition-transform duration-200",
+                "w-3 h-3 transition-transform duration-150",
                 !isExpanded && "-rotate-90",
               )}
             />
@@ -580,6 +665,24 @@ function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
 }
 
 /**
+ * Formats the reasoning duration in a human-readable format
+ * @param durationMS - The duration in milliseconds
+ * @returns The formatted duration string
+ */
+function formatReasoningDuration(durationMS: number) {
+  const seconds = Math.floor(Math.max(0, durationMS) / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (seconds < 1) return "Thought for less than 1 second";
+  if (seconds < 60)
+    return `Thought for ${seconds} ${seconds === 1 ? "second" : "seconds"}`;
+  if (minutes < 60)
+    return `Thought for ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  return `Thought for ${hours} ${hours === 1 ? "hour" : "hours"}`;
+}
+
+/**
  * Helper function to detect if content is JSON and format it nicely
  * @param content - The content to check and format
  * @returns Formatted content or original content if not JSON
@@ -597,7 +700,7 @@ function formatToolResult(
   } else if (Array.isArray(content)) {
     contentString = content
       .map((item) => {
-        if (item && item.type === "text") {
+        if (item?.type === "text") {
           return item.text ?? "";
         }
         return "";
@@ -644,7 +747,7 @@ export type MessageRenderedComponentAreaProps =
  * Displays the `renderedComponent` associated with an assistant message.
  * Shows a button to view in canvas if a canvas space exists, otherwise renders inline.
  * Only renders if the message role is 'assistant' and `message.renderedComponent` exists.
- * @component Message.RenderedComponentArea
+ * @component MessageRenderedComponentArea
  */
 const MessageRenderedComponentArea = React.forwardRef<
   HTMLDivElement,
@@ -703,7 +806,7 @@ const MessageRenderedComponentArea = React.forwardRef<
                   );
                 }
               }}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer group"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 cursor-pointer group"
               aria-label="View component in canvas"
             >
               View component
@@ -716,7 +819,85 @@ const MessageRenderedComponentArea = React.forwardRef<
     </div>
   );
 });
-MessageRenderedComponentArea.displayName = "Message.RenderedComponentArea";
+MessageRenderedComponentArea.displayName = "MessageRenderedComponentArea";
+
+/**
+ * Props for the MessageActions container.
+ */
+export interface MessageActionsProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  /** Action buttons to display */
+  children: React.ReactNode;
+}
+
+/**
+ * Container for message action buttons.
+ * Typically revealed on hover via CSS.
+ */
+const MessageActions = React.forwardRef<HTMLDivElement, MessageActionsProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn("flex items-center gap-2 mt-2", className)}
+        data-slot="message-actions"
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+MessageActions.displayName = "MessageActions";
+
+/**
+ * Props for the MessageAction button.
+ */
+export interface MessageActionProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Tooltip text */
+  tooltip?: string;
+  /** Button content (usually an icon) */
+  children: React.ReactNode;
+}
+
+/**
+ * Individual action button within MessageActions.
+ * Styled as an icon button with optional tooltip.
+ */
+const MessageAction = React.forwardRef<HTMLButtonElement, MessageActionProps>(
+  ({ className, tooltip, children, ...props }, ref) => {
+    const button = (
+      <button
+        ref={ref}
+        type="button"
+        className={cn(
+          "inline-flex items-center justify-center rounded-md p-2",
+          "hover:bg-accent hover:text-accent-foreground",
+          "transition-colors duration-150",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          className,
+        )}
+        data-slot="message-action"
+        {...props}
+      >
+        {children}
+      </button>
+    );
+
+    // Wrap in tooltip if provided
+    if (tooltip) {
+      return (
+        <TooltipProvider>
+          <Tooltip content={tooltip}>{button}</Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return button;
+  },
+);
+MessageAction.displayName = "MessageAction";
 
 // --- Exports ---
 export {
@@ -724,6 +905,8 @@ export {
   Message,
   MessageContent,
   MessageImages,
+  MessageActions,
+  MessageAction,
   MessageRenderedComponentArea,
   messageVariants,
   ReasoningInfo,

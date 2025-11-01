@@ -1,0 +1,461 @@
+---
+title: Composition Patterns
+description: Learn how to compose and customize Tambo components using context-driven patterns
+---
+
+Tambo's UI components follow a context-driven composition philosophy that provides flexibility at multiple levels. You can use components with zero configuration, customize parts selectively, or take complete control when needed.
+
+## Philosophy
+
+Context-driven composition means:
+
+1. **Components share state through React Context** - No prop drilling
+2. **Sub-components access shared context** - Automatic coordination
+3. **Progressive customization** - Start simple, add complexity as needed
+4. **Compose, don't configure** - Build with components, not props
+
+## Three Levels of Customization
+
+### Level 1: Simple (Default Behavior)
+
+Use components as-is with no customization. Perfect for getting started quickly.
+
+```tsx
+import { ThreadContent, ThreadContentMessages } from "@/components/ui/thread-content";
+import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputSubmitButton,
+  MessageInputToolbar,
+} from "@/components/ui/message-input";
+
+function SimpleChat() {
+  return (
+    <div>
+      <ThreadContent>
+        <ThreadContentMessages />
+      </ThreadContent>
+      <MessageInput contextKey="chat">
+        <MessageInputTextarea />
+        <MessageInputToolbar>
+          <MessageInputSubmitButton />
+        </MessageInputToolbar>
+      </MessageInput>
+    </div>
+  );
+}
+```
+
+**When to use:**
+- Prototyping and MVPs
+- Standard chat interfaces
+- When defaults match your needs
+
+### Level 2: Intermediate (Selective Customization)
+
+Customize specific parts while keeping other defaults intact.
+
+```tsx
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
+import {
+  Message,
+  MessageActions,
+  MessageAction,
+  MessageContent,
+} from "@/components/ui/message";
+import {
+  MessageInput,
+  MessageInputFileButton,
+  MessageInputMcpPromptButton,
+  MessageInputAttachments,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
+} from "@/components/ui/message-input";
+import { Copy, ThumbsUp } from "lucide-react";
+
+function CustomizedChat() {
+  return (
+    <div>
+      <ThreadContent variant="solid">
+        <ThreadContentMessages>
+          {(message) => (
+            <div className="group">
+              <Message role={message.role} message={message} variant="solid">
+                <MessageContent />
+                <MessageActions className="opacity-0 group-hover:opacity-100">
+                  <MessageAction tooltip="Copy">
+                    <Copy className="w-4 h-4" />
+                  </MessageAction>
+                  <MessageAction tooltip="Like">
+                    <ThumbsUp className="w-4 h-4" />
+                  </MessageAction>
+                </MessageActions>
+              </Message>
+            </div>
+          )}
+        </ThreadContentMessages>
+      </ThreadContent>
+
+      <MessageInput contextKey="chat" variant="solid">
+        <MessageInputAttachments />
+        <MessageInputTextarea placeholder="Ask me anything..." />
+        <MessageInputToolbar>
+          <MessageInputFileButton />
+          <MessageInputMcpPromptButton />
+          <MessageInputSubmitButton />
+        </MessageInputToolbar>
+      </MessageInput>
+    </div>
+  );
+}
+```
+
+**When to use:**
+- Adding custom actions or buttons
+- Tweaking visual appearance
+- Enhancing default features
+
+### Level 3: Advanced (Full Control)
+
+Build completely custom layouts using low-level hooks and components.
+
+```tsx
+import { Message } from "@/components/ui/message";
+import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
+
+function AdvancedChat() {
+  const { thread, isIdle } = useTambo();
+  const { value, setValue, submit } = useTamboThreadInput();
+
+  return (
+    <div className="custom-chat-layout">
+      <div className="messages-panel">
+        {thread?.messages
+          .filter(m => m.role !== "system")
+          .map((message) => (
+            <CustomMessage key={message.id} message={message} />
+          ))}
+      </div>
+
+      <div className="input-panel">
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="custom-input"
+        />
+        <button
+          onClick={() => submit({ streamResponse: true })}
+          disabled={!isIdle}
+          className="custom-send"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+**When to use:**
+- Unique UI requirements
+- Integration with existing design systems
+- Maximum flexibility needed
+
+## Common Patterns
+
+### Pattern: Message Actions with Hover
+
+Reveal action buttons when hovering over messages:
+
+```tsx
+<ThreadContentMessages>
+  {(message) => (
+    <div className="group relative">
+      <Message role={message.role} message={message}>
+        <MessageContent />
+      </Message>
+      <MessageActions className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <MessageAction tooltip="Copy" onClick={() => copy(message)}>
+          <Copy className="w-4 h-4" />
+        </MessageAction>
+        <MessageAction tooltip="Edit" onClick={() => edit(message)}>
+          <Edit className="w-4 h-4" />
+        </MessageAction>
+      </MessageActions>
+    </div>
+  )}
+</ThreadContentMessages>
+```
+
+### Pattern: Custom Input Layout
+
+Build a toolbar with custom buttons:
+
+```tsx
+<MessageInput contextKey="chat">
+  <MessageInputAttachments />
+  <MessageInputTextarea />
+  <div className="flex justify-between items-center mt-2">
+    <MessageInputActions>
+      <MessageInputFileButton />
+      <button type="button" onClick={handleCustomAction}>
+        Custom Action
+      </button>
+    </MessageInputActions>
+    <MessageInputSubmitButton />
+  </div>
+</MessageInput>
+```
+
+### Pattern: Conditional Message Rendering
+
+Show different layouts based on message type:
+
+```tsx
+<ThreadContentMessages>
+  {(message) => {
+    if (message.role === "user") {
+      return (
+        <div className="flex justify-end">
+          <Message role="user" message={message} variant="solid">
+            <MessageContent className="bg-primary text-primary-foreground" />
+          </Message>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex justify-start">
+        <Message role="assistant" message={message}>
+          <ReasoningInfo />
+          <MessageContent />
+          <ToolcallInfo />
+          <MessageRenderedComponentArea />
+        </Message>
+      </div>
+    );
+  }}
+</ThreadContentMessages>
+```
+
+### Pattern: Message Grouping
+
+Add date separators between message groups:
+
+```tsx
+function MessageList() {
+  const { thread } = useTambo();
+  const messages = thread?.messages ?? [];
+
+  return (
+    <ThreadContentMessages>
+      {(message, index) => {
+        const prevMessage = index > 0 ? messages[index - 1] : null;
+        const showDateSeparator = shouldShowDate(message, prevMessage);
+
+        return (
+          <>
+            {showDateSeparator && (
+              <div className="date-separator">
+                {formatDate(message.createdAt)}
+              </div>
+            )}
+            <Message role={message.role} message={message}>
+              <MessageContent />
+            </Message>
+          </>
+        );
+      }}
+    </ThreadContentMessages>
+  );
+}
+```
+
+### Pattern: Accessing Message Context
+
+Use context in custom components within Message:
+
+```tsx
+import { useTamboCurrentMessage } from "@tambo-ai/react";
+
+function CustomMessageContent() {
+  const { message, isLoading, hasToolCall } = useTamboCurrentMessage();
+
+  return (
+    <div className="custom-content">
+      {hasToolCall && <ToolBadge />}
+      <p>{message.content}</p>
+      {isLoading && <LoadingSpinner />}
+    </div>
+  );
+}
+
+// Usage
+<Message role={message.role} message={message}>
+  <CustomMessageContent />
+</Message>
+```
+
+### Pattern: Custom Submit Behavior
+
+Handle submission with custom logic:
+
+```tsx
+function CustomInput() {
+  const { value, setValue } = useTamboThreadInput();
+  const { submit } = useTamboThreadInput();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      // Pre-process value
+      const processed = preprocessMessage(value);
+      setValue(processed);
+
+      // Submit with custom options
+      await submit({ streamResponse: true });
+
+      // Post-submit actions
+      trackMessageSent();
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <MessageInput contextKey="chat">
+      <MessageInputTextarea />
+      <button onClick={handleSubmit} disabled={isSubmitting}>
+        {isSubmitting ? "Sending..." : "Send"}
+      </button>
+    </MessageInput>
+  );
+}
+```
+
+## Best Practices
+
+### Start Simple, Evolve as Needed
+
+Begin with Level 1 defaults and only customize when you have specific requirements:
+
+```tsx
+// Start here
+<ThreadContent>
+  <ThreadContentMessages />
+</ThreadContent>
+
+// Add customization when needed
+<ThreadContent>
+  <ThreadContentMessages>
+    {(message) => <CustomMessage message={message} />}
+  </ThreadContentMessages>
+</ThreadContent>
+```
+
+### Use the Right Tool for the Job
+
+- **Need standard features?** Use defaults
+- **Need to add something?** Use sub-components
+- **Need to change everything?** Use render props or hooks
+
+### Leverage Context
+
+Don't pass data through props when context is available:
+
+```tsx
+// Don't do this
+<Message role={message.role} message={message}>
+  <CustomContent content={message.content} isLoading={isLoading} />
+</Message>
+
+// Do this
+<Message role={message.role} message={message}>
+  <CustomContent /> {/* Accesses context internally */}
+</Message>
+```
+
+### Compose Components
+
+Build with composition, not configuration:
+
+```tsx
+// Don't do this
+<MessageInput
+  showFileButton
+  showMcpButton
+  fileButtonPosition="left"
+  submitButtonStyle="solid"
+/>
+
+// Do this
+<MessageInput>
+  <MessageInputTextarea />
+  <MessageInputToolbar>
+    <MessageInputFileButton />
+    <MessageInputMcpPromptButton />
+    <MessageInputSubmitButton className="bg-primary" />
+  </MessageInputToolbar>
+</MessageInput>
+```
+
+## Migration Path
+
+If you have existing code, migrate progressively:
+
+### Step 1: Identify Customizations
+
+Find where you're fighting the defaults or duplicating code.
+
+### Step 2: Replace with Composition
+
+Use sub-components to achieve the same result:
+
+```tsx
+// Before: Fighting defaults
+<MessageInput
+  customToolbar={<MyToolbar />}
+  overrideSubmit={mySubmitHandler}
+/>
+
+// After: Composing
+<MessageInput>
+  <MessageInputTextarea />
+  <MyCustomToolbar>
+    <MessageInputFileButton />
+    <MyCustomButton />
+    <MessageInputSubmitButton />
+  </MyCustomToolbar>
+</MessageInput>
+```
+
+### Step 3: Leverage Context
+
+Extract shared logic into context-aware components:
+
+```tsx
+// Before: Prop drilling
+function Chat({ message, isLoading, role }) {
+  return <MessageContent message={message} isLoading={isLoading} role={role} />;
+}
+
+// After: Context-aware
+function Chat() {
+  // Message context provides all needed data
+  return <MessageContent />;
+}
+```
+
+## Related
+
+- [Message Component](/docs/concepts/components/ui-components/message) - Message display
+- [MessageInput Component](/docs/concepts/components/ui-components/message-input) - Input component
+- [ThreadContent Component](/docs/concepts/components/ui-components/thread-content) - Thread container
+- [React Hooks API](/docs/api-reference/react-hooks) - Available hooks
