@@ -12,6 +12,7 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  useTamboVoice,
   type StagedImage,
 } from "@tambo-ai/react";
 import {
@@ -25,6 +26,8 @@ import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
   Image as ImageIcon,
+  Loader2Icon,
+  Mic,
   Paperclip,
   Sparkles,
   Square,
@@ -32,6 +35,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
+import { useEffect, useState } from "react";
 
 /**
  * CSS variants for the message input container
@@ -1072,6 +1076,72 @@ const MessageInputStagedImages = React.forwardRef<
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";
 
 /**
+ * Button for dictating speech into the message input.
+ */
+const DictationButton = () => {
+  const {
+    startRecording,
+    stopRecording,
+    isRecording,
+    isTranscribing,
+    transcript,
+  } = useTamboVoice();
+  const { value, setValue } = useTamboThreadInput();
+  const [lastProcessedTranscript, setLastProcessedTranscript] =
+    useState<string>("");
+
+  const handleStartRecording = () => {
+    startRecording();
+  };
+
+  const handleStopRecording = () => {
+    stopRecording();
+  };
+
+  useEffect(() => {
+    if (transcript && transcript !== lastProcessedTranscript) {
+      setLastProcessedTranscript(transcript);
+      setValue(value + " " + transcript);
+    }
+  }, [transcript, lastProcessedTranscript, value, setValue]);
+
+  if (isTranscribing) {
+    return (
+      <button className="p-2 rounded-md">
+        <Loader2Icon className="h-5 w-5 animate-spin" />
+      </button>
+    );
+  }
+
+  if (isRecording) {
+    return (
+      <button
+        onClick={handleStopRecording}
+        className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
+      >
+        <div className="relative h-3 w-3">
+          <div className="absolute inset-0 bg-red-500 rounded-full animate-pulse"></div>
+          <div className="absolute inset-1 bg-red-600 rounded-full"></div>
+        </div>
+      </button>
+    );
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip content="Dictate">
+        <button
+          onClick={handleStartRecording}
+          className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
+        >
+          <Mic className="h-5 w-5" />
+        </button>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+/**
  * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
@@ -1112,6 +1182,7 @@ const MessageInputToolbar = React.forwardRef<
         })}
       </div>
       <div className="flex items-center gap-2">
+        <DictationButton />
         {/* Right side - only submit button */}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
@@ -1130,6 +1201,7 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 
 // --- Exports ---
 export {
+  DictationButton,
   MessageInput,
   MessageInputError,
   MessageInputFileButton,
