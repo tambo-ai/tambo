@@ -18,6 +18,8 @@ interface ComponentCodePreviewProps {
   language?: string;
   className?: string;
   previewClassName?: string;
+  /** Force the preview container to render full-bleed without padding. */
+  fullBleed?: boolean;
   title?: string;
   /** Minimum height of the preview container in pixels. Defaults to 350px. */
   minHeight?: number;
@@ -33,13 +35,14 @@ export function ComponentCodePreview({
   language = "tsx",
   className,
   previewClassName = "p-8",
+  fullBleed = false,
   title,
   minHeight = 350,
   enableFullscreen = false,
   fullscreenTitle = "Component Demo",
 }: ComponentCodePreviewProps) {
   // For full-bleed components (p-0), use fixed height so children with h-full can fill properly
-  const isFullBleed = previewClassName.includes("p-0");
+  const isFullBleed = fullBleed || previewClassName.includes("p-0");
   const heightStyle = isFullBleed
     ? { height: `${minHeight}px` }
     : { minHeight: `${minHeight}px` };
