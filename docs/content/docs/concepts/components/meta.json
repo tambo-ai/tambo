@@ -5,6 +5,8 @@
     "registering-with-tambo-provider",
     "registering-components-dynamically",
     "component-state",
-    "interactable-components"
+    "interactable-components",
+    "composition-patterns",
+    "...ui-components"
   ]
 }

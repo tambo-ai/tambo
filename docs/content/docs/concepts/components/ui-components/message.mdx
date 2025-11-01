@@ -1,0 +1,199 @@
+---
+title: Message Component
+description: Learn how to use and customize the Message component for rendering chat messages
+---
+
+The Message component provides a flexible, composable system for rendering chat messages in your Tambo-powered applications. It uses a context-driven architecture that allows you to customize individual parts while maintaining consistent behavior.
+
+## Basic Usage
+
+The Message component follows a compound component pattern where you compose the pieces you need:
+
+```tsx
+import { Message, MessageContent } from "@/components/ui/message";
+
+function MyChat() {
+  return (
+    <Message role="user" message={messageData}>
+      <MessageContent />
+    </Message>
+  );
+}
+```
+
+## Component Structure
+
+The Message component consists of several sub-components:
+
+- **Message** - Root container that provides context
+- **MessageContent** - Displays the message text content
+- **MessageImages** - Shows images from the message
+- **MessageRenderedComponentArea** - Displays AI-generated components
+- **ToolcallInfo** - Shows tool call details in a collapsible dropdown
+- **ReasoningInfo** - Displays AI reasoning process
+- **MessageActions** - Container for action buttons
+- **MessageAction** - Individual action button
+
+Import whichever helpers you need from `@/components/ui/message`; they are exposed as named exports rather than via dot notation.
+
+## Standard Layout
+
+A typical message includes content, images, tool calls, and rendered components:
+
+```tsx
+<Message role="assistant" message={message} variant="solid">
+  <ReasoningInfo />
+  <MessageImages />
+  <MessageContent />
+  <ToolcallInfo />
+  <MessageRenderedComponentArea />
+</Message>
+```
+
+## Message Actions
+
+Add interactive buttons to messages using the `MessageActions` and `MessageAction` components:
+
+```tsx
+import { Copy, ThumbsUp } from "lucide-react";
+import { Message, MessageContent, MessageActions, MessageAction } from "@/components/ui/message";
+
+<Message role="assistant" message={message}>
+  <div className="group">
+    <MessageContent />
+    <MessageActions className="opacity-0 group-hover:opacity-100">
+      <MessageAction
+        tooltip="Copy message"
+        onClick={() => copyToClipboard(message.content)}
+      >
+        <Copy className="w-4 h-4" />
+      </MessageAction>
+      <MessageAction
+        tooltip="Like message"
+        onClick={() => likeMessage(message.id)}
+      >
+        <ThumbsUp className="w-4 h-4" />
+      </MessageAction>
+    </MessageActions>
+  </div>
+</Message>
+```
+
+### Hover-Reveal Pattern
+
+Use Tailwind's `group` and `group-hover` utilities to reveal actions on hover:
+
+```tsx
+<div className="group">
+  <MessageContent />
+  <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity">
+    {/* Action buttons */}
+  </MessageActions>
+</div>
+```
+
+## Message Props
+
+The root `Message` component accepts:
+
+- **role** - `"user" | "assistant"` - The sender's role
+- **message** - `TamboThreadMessage` - The complete message object
+- **variant** - `"default" | "solid"` - Visual styling variant
+- **isLoading** - `boolean` - Whether the message is being generated
+
+## Variants
+
+### Default Variant
+
+The default styling with no background:
+
+```tsx
+<Message role="assistant" message={message} variant="default">
+  <MessageContent />
+</Message>
+```
+
+### Solid Variant
+
+Enhanced styling with background and shadow:
+
+```tsx
+<Message role="assistant" message={message} variant="solid">
+  <MessageContent />
+</Message>
+```
+
+## Customizing Content Display
+
+### Override Content
+
+Pass custom content to the Content component:
+
+```tsx
+<Message role="user" message={message}>
+  <MessageContent content="Custom text content" />
+</Message>
+```
+
+### Disable Markdown
+
+Render content as plain text instead of Markdown:
+
+```tsx
+<Message role="assistant" message={message}>
+  <MessageContent markdown={false} />
+</Message>
+```
+
+## Advanced Customization
+
+### Custom Message Layout
+
+Completely customize the message structure:
+
+```tsx
+<Message role="assistant" message={message}>
+  <div className="custom-layout">
+    <div className="custom-header">
+      <span>AI Assistant</span>
+      <ToolcallInfo />
+    </div>
+    <MessageContent className="custom-content" />
+    <MessageRenderedComponentArea />
+  </div>
+</Message>
+```
+
+### Accessing Message Context
+
+Use the message context in custom components:
+
+```tsx
+import { useTamboCurrentMessage } from "@tambo-ai/react";
+
+function CustomMessageComponent() {
+  const { message, isLoading, hasToolCall } = useTamboCurrentMessage();
+
+  return (
+    <div>
+      {isLoading && <LoadingSpinner />}
+      {hasToolCall && <ToolBadge />}
+      <p>{message.content}</p>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+1. **Use the right variant** - `solid` for emphasis, `default` for subtle
+2. **Include all relevant parts** - Don't forget ToolcallInfo and ReasoningInfo
+3. **Handle loading states** - Pass `isLoading` for the last message
+4. **Group for hover effects** - Wrap in a `group` div for clean action reveals
+5. **Provide accessible tooltips** - Use the `tooltip` prop on actions
+
+## Related
+
+- [MessageInput Component](/docs/concepts/components/ui-components/message-input) - Input for sending messages
+- [ThreadContent Component](/docs/concepts/components/ui-components/thread-content) - Container for message lists
+- [Composition Patterns](/docs/concepts/components/composition-patterns) - Advanced composition techniques

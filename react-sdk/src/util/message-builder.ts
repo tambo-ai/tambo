@@ -1,15 +1,44 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { StagedImage } from "../hooks/use-message-images";
+import { StagedAttachment } from "../hooks/use-message-images";
+
+export type AttachmentContentMapper = (
+  attachment: StagedAttachment,
+) => TamboAI.Beta.Threads.ChatCompletionContentPart[] | null | undefined;
+
+const defaultAttachmentContentMapper: AttachmentContentMapper = (
+  attachment,
+) => {
+  // Only image attachments are supported for now. When new attachment types are allowed,
+  // add their mapping logic here and update `detectAttachmentKind` accordingly.
+  if (attachment.kind === "image") {
+    return [
+      {
+        type: "image_url",
+        image_url: {
+          url: attachment.dataUrl,
+        },
+      } satisfies TamboAI.Beta.Threads.ChatCompletionContentPart,
+    ];
+  }
+
+  throw new Error(`Unsupported attachment type: ${attachment.kind}`);
+};
+
+interface BuildMessageContentOptions {
+  mapAttachmentToContentParts?: AttachmentContentMapper;
+}
 
 /**
- * Builds message content with text and images
+ * Builds message content with text and attachments.
  * @param text - The text content
- * @param images - Array of staged images
+ * @param attachments - Array of staged attachments
+ * @param options - Optional customization for attachment mapping
  * @returns Array of message content parts
  */
 export function buildMessageContent(
   text: string,
-  images: StagedImage[],
+  attachments: StagedAttachment[],
+  options?: BuildMessageContentOptions,
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
   const content: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
@@ -20,17 +49,18 @@ export function buildMessageContent(
     });
   }
 
-  for (const image of images) {
-    content.push({
-      type: "image_url",
-      image_url: {
-        url: image.dataUrl,
-      },
-    });
+  const mapAttachment =
+    options?.mapAttachmentToContentParts ?? defaultAttachmentContentMapper;
+
+  for (const attachment of attachments) {
+    const parts = mapAttachment(attachment);
+    if (parts && parts.length > 0) {
+      content.push(...parts);
+    }
   }
 
   if (content.length === 0) {
-    throw new Error("Message must contain text or images");
+    throw new Error("Message must contain text or attachments");
   }
 
   return content;

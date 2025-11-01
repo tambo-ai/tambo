@@ -51,19 +51,11 @@ This is a Turborepo monorepo for the Tambo AI framework. The repository contains
 
 ```bash
 # Development
-npm run dev              # Start showcase + docs development servers
-turbo dev               # Start all packages in development mode
-turbo build             # Build all packages
-turbo lint              # Lint all packages
-turbo test              # Run tests across all packages
-turbo check-types       # Type-check all packages
-
-# Individual package development (from package directory)
-npm run dev             # Package-specific development
-npm run build           # Build single package
-npm run test            # Test single package
-npm run lint            # Lint single package
-npm run check-types     # Type-check single package
+npm run dev              # Start showcase + docs
+npm run build           # Build all packages
+npm run lint              # Lint all packages
+npm run test              # Run tests across all packages
+npm run check-types       # Type-check all packages
 
 # Utility commands
 npm run format          # Format code with Prettier
@@ -118,7 +110,7 @@ When working across multiple packages:
 
 ## Important Development Rules
 
-- Run `npm run lint`, `npm run check-types`, `npm run test` in root before commits
+- Run `npm run lint`, `npm run check-types`, `npm run test`, `npm run format` in root before commits
 - Run `npm run build` in root and all packages successfully before merging
 - Cross-package changes should be tested together
 - Documentation updates required:

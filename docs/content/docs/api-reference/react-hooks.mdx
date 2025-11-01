@@ -325,3 +325,130 @@ Removes a helper by key so it is no longer included in outgoing messages.
 `const snapshot = useCurrentInteractablesSnapshot()`
 
 Returns a cloned snapshot of the current interactable components.
+
+## Message Context Hooks
+
+These hooks provide access to message-specific data within message components. They must be used within a `TamboMessageProvider`.
+
+### useTamboCurrentMessage
+
+Access the current message being rendered and its associated metadata.
+
+```tsx
+const { message, isLoading, isReasoning, hasToolCall } = useTamboCurrentMessage();
+```
+
+#### Returns
+
+- **message**: The current `TamboThreadMessage` object
+- **isLoading**: Boolean indicating if this message is currently being generated
+- **isReasoning**: Boolean indicating if the AI is currently reasoning
+- **hasToolCall**: Boolean indicating if the message includes a tool call
+
+### useTamboThreadMessages
+
+Convenience wrapper for getting the thread's messages along with loading state.
+
+```tsx
+const { messages, isGenerating, generationStage } = useTamboThreadMessages();
+```
+
+- **messages**: Current array of `TamboThreadMessage` objects
+- **isGenerating**: Boolean that is true while a response is being generated
+- **generationStage**: Current `GenerationStage` value from the thread
+
+### useTamboMessageProps
+
+Extracts ready-to-render props from a specific message.
+
+```tsx
+const { content, hasContent, attachments, images, reasoning, toolCall } =
+  useTamboMessageProps(message);
+```
+
+- **content**: String-safe version of `message.content`
+- **hasContent**: Boolean indicating if the message has readable content
+- **attachments**: Array of non-text content parts (currently images only; extend `useMessageAttachments` when adding new formats)
+- **images**: Array of image URLs extracted from the message
+- **reasoning**: AI reasoning string when available
+- **toolCall**: The message's tool call request, if present
+
+### useTamboMessageLoading
+
+Detects whether a message (or the thread) is still streaming.
+
+```tsx
+const isLoading = useTamboMessageLoading(message.id);
+```
+
+- Passing a message ID returns `true` only when that message is the active, streaming one
+- Without an ID, the hook reports whether any message is currently generating
+
+### useTamboMessageReasoning
+
+Returns the reasoning text associated with a message's component decision.
+
+```tsx
+const reasoning = useTamboMessageReasoning(message);
+```
+
+The hook falls back to legacy component messages until formal reasoning fields ship in the SDK.
+
+### useTamboMessageToolCall
+
+Retrieves the tool call request for a message, if one exists.
+
+```tsx
+const toolCall = useTamboMessageToolCall(message);
+```
+
+Returns `null` when the message has no tool interaction.
+
+## Utility Functions
+
+These helper functions are exported from `@tambo-ai/react` for working with message content.
+
+### getSafeContent
+
+Extracts safe text content from a message's content field, handling both string and array formats.
+
+```tsx
+import { getSafeContent } from "@tambo-ai/react";
+
+const text = getSafeContent(message.content);
+```
+
+**Parameters:**
+- `content`: `string | { type: string; text?: string }[]` - The message content to process
+
+**Returns:** `string` - Extracted text content
+
+### checkHasContent
+
+Checks whether a message has any meaningful text content.
+
+```tsx
+import { checkHasContent } from "@tambo-ai/react";
+
+const hasContent = checkHasContent(message.content);
+```
+
+**Parameters:**
+- `content`: `string | { type: string; text?: string }[]` - The message content to check
+
+**Returns:** `boolean` - True if content exists and is non-empty
+
+### getMessageImages
+
+Extracts all image URLs from a message's content.
+
+```tsx
+import { getMessageImages } from "@tambo-ai/react";
+
+const images = getMessageImages(message.content);
+```
+
+**Parameters:**
+- `content`: `string | { type: string; text?: string; image_url?: { url: string } }[]` - The message content to process
+
+**Returns:** `string[]` - Array of image URLs found in the content

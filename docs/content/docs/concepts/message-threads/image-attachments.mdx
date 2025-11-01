@@ -17,14 +17,14 @@ import {
   MessageInputTextarea,
   MessageInputFileButton,
   MessageInputSubmitButton,
-  MessageInputStagedImages,
+  MessageInputAttachments,
   MessageInputToolbar,
 } from "@tambo-ai/react";
 
 function ChatInterface() {
   return (
     <MessageInput contextKey="my-chat">
-      <MessageInputStagedImages />
+      <MessageInputAttachments />
       <MessageInputTextarea placeholder="Type a message or attach images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
@@ -35,6 +35,8 @@ function ChatInterface() {
 }
 ```
 
+> `MessageInputStagedImages` is still exported as a deprecated alias. Prefer `MessageInputAttachments` for new code.
+
 ## Image input methods
 
 - **File picker**: Click the file button to select images
@@ -43,29 +45,43 @@ function ChatInterface() {
 
 ## Custom image handling
 
-Use the `useMessageImages` hook for custom image management:
+Use the `useMessageAttachments` hook for custom image management. A legacy `useMessageImages` alias is still exported for backwards compatibility:
 
 ```tsx
-import { useMessageImages } from "@tambo-ai/react";
+import { useMessageAttachments } from "@tambo-ai/react";
 
 function CustomImageHandler() {
-  const { images, addImages, removeImage, clearImages } = useMessageImages();
+  const {
+    attachments,
+    addAttachments,
+    removeAttachment,
+    clearAttachments,
+  } = useMessageAttachments({
+    validateFile: (file) => {
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Only image files are allowed");
+      }
+    },
+  });
+
+  const images = attachments.filter((attachment) => attachment.kind === "image");
 
   const handleFileUpload = async (files: FileList) => {
-    await addImages(Array.from(files));
+    await addAttachments(Array.from(files));
   };
 
   return (
     <div>
       {images.map((image) => (
         <div key={image.id}>
-          <img src={image.dataUrl} alt={image.name} />
-          <button onClick={() => removeImage(image.id)}>Remove</button>
+          <img src={image.previewUrl ?? image.dataUrl} alt={image.name} />
+          <button onClick={() => removeAttachment(image.id)}>Remove</button>
         </div>
       ))}
+      <button onClick={clearAttachments}>Clear images</button>
     </div>
   );
 }
 ```
 
-Only image files are accepted. Non-image files will be rejected with an error.
+Only image files are accepted in this example. When you're ready to add more formats, extend the `detectAttachmentKind` guard inside `useMessageAttachments`.

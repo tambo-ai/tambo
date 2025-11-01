@@ -10,6 +10,7 @@ const config: Config = {
   transform: {
     "^.+\\.tsx?$": "ts-jest",
   },
+  watchman: false,
   prettierPath: "prettier-2",
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],

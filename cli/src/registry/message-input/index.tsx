@@ -1,8 +1,15 @@
 export {
   MessageInput,
+  MessageInputActions,
+  MessageInputAttachments,
   MessageInputError,
+  MessageInputFileButton,
+  MessageInputMcpConfigButton,
+  MessageInputMcpPromptButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
+  MessageInputStagedImages,
   messageInputVariants,
+  useMessageInputContext,
 } from "./message-input";

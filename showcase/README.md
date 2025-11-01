@@ -43,6 +43,13 @@ A react component library for [tambo ai](https://tambo.co).
 
 More components `coming soon`!
 
+## Token Usage
+
+- Default to neutral tokens (`text-foreground`, `text-muted-foreground`) for content and supporting text.
+- Reserve `text-primary` for elements sitting on `bg-primary` surfaces only.
+- Replace legacy `text-secondary` with `text-muted-foreground`; keep placeholders neutral with `placeholder:text-muted-foreground`.
+- See `TOKENS.md` in the repo root for the full “Neutral by Default, Brand by Exception” rules.
+
 ## Installation
 
 ### Getting Started in an Existing App

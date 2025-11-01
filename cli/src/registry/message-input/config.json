@@ -13,6 +13,19 @@
   ],
   "devDependencies": [],
   "requires": ["elicitation-ui"],
+  "exports": [
+    "MessageInput",
+    "MessageInputTextarea",
+    "MessageInputToolbar",
+    "MessageInputSubmitButton",
+    "MessageInputError",
+    "MessageInputFileButton",
+    "MessageInputMcpConfigButton",
+    "MessageInputMcpPromptButton",
+    "MessageInputAttachments",
+    "MessageInputStagedImages",
+    "MessageInputActions"
+  ],
   "files": [
     {
       "name": "message-input.tsx",

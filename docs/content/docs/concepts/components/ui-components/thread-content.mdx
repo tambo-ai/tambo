@@ -1,0 +1,306 @@
+---
+title: ThreadContent Component
+description: Learn how to use the ThreadContent component to display message threads with custom rendering
+---
+
+The ThreadContent component provides a container for displaying lists of messages in a thread. It supports both default rendering and custom rendering through a children render prop pattern.
+
+## Basic Usage
+
+The simplest way to use ThreadContent is with default rendering:
+
+```tsx
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/ui/thread-content";
+
+function MyChat() {
+  return (
+    <ThreadContent variant="solid">
+      <ThreadContentMessages />
+    </ThreadContent>
+  );
+}
+```
+
+## Component Structure
+
+The ThreadContent consists of two main components:
+
+- **ThreadContent** - Root container that provides thread context
+- **ThreadContentMessages** - Renders the message list
+
+Import both helpers from "@/components/ui/thread-content" as named exports; there is no dot-notation shortcut.
+
+## Default Message Rendering
+
+By default, `ThreadContentMessages` renders each message with a complete layout:
+
+```tsx
+<ThreadContent>
+  <ThreadContentMessages />
+</ThreadContent>
+```
+
+This creates messages with:
+- Message content and images
+- Tool call information
+- Reasoning displays
+- Rendered components
+- Loading states
+
+## Custom Message Rendering
+
+Use the children render prop to take full control over message rendering:
+
+```tsx
+<ThreadContent>
+  <ThreadContentMessages>
+    {(message) => (
+      <div className="my-custom-message">
+        <div className="message-header">
+          <span>{message.role}</span>
+          <span>{new Date(message.createdAt).toLocaleString()}</span>
+        </div>
+        <div className="message-body">
+          {message.content}
+        </div>
+      </div>
+    )}
+  </ThreadContentMessages>
+</ThreadContent>
+```
+
+## Render Prop Pattern
+
+The render prop receives the message object and allows you to customize everything:
+
+```tsx
+import { Message, MessageContent } from "@/components/ui/message";
+import type { TamboThreadMessage } from "@tambo-ai/react";
+
+<ThreadContentMessages>
+  {(message: TamboThreadMessage) => (
+    <Message role={message.role} message={message}>
+      {/* Custom layout */}
+      <div className="flex items-start gap-3">
+        <Avatar role={message.role} />
+        <div className="flex-1">
+          <MessageContent />
+          <MessageTimestamp time={message.createdAt} />
+        </div>
+      </div>
+    </Message>
+  )}
+</ThreadContentMessages>
+```
+
+## Props
+
+### ThreadContent Props
+
+- **variant** - `"default" | "solid"` - Visual styling variant passed to messages
+- **className** - Custom CSS classes for the container
+
+### ThreadContentMessages Props
+
+- **children** - `(message: TamboThreadMessage) => React.ReactNode` - Optional render function
+- **className** - Custom CSS classes for the messages container
+
+## When to Use Render Prop vs Default
+
+### Use Default Rendering When:
+
+- You want standard message display with all features
+- You need tool calls, reasoning, and component rendering
+- You're building a typical chat interface quickly
+
+### Use Custom Rendering When:
+
+- You need a unique message layout
+- You want to add custom metadata or actions
+- You're building a specialized interface (email threads, comments, etc.)
+- You need granular control over message components
+
+## Examples
+
+### Adding Timestamps
+
+```tsx
+<ThreadContentMessages>
+  {(message) => (
+    <div className="message-wrapper">
+      <div className="timestamp">
+        {new Date(message.createdAt).toLocaleTimeString()}
+      </div>
+      <Message role={message.role} message={message}>
+        <MessageContent />
+      </Message>
+    </div>
+  )}
+</ThreadContentMessages>
+```
+
+### Grouping by Date
+
+```tsx
+function groupMessagesByDate(messages: TamboThreadMessage[]) {
+  // Group logic here
+}
+
+<ThreadContent>
+  <ThreadContentMessages>
+    {(message) => {
+      const showDateSeparator = shouldShowDateSeparator(message);
+      return (
+        <>
+          {showDateSeparator && (
+            <div className="date-separator">
+              {formatDate(message.createdAt)}
+            </div>
+          )}
+          <Message role={message.role} message={message}>
+            <MessageContent />
+          </Message>
+        </>
+      );
+    }}
+  </ThreadContentMessages>
+</ThreadContent>
+```
+
+### Custom Message Avatars
+
+```tsx
+<ThreadContentMessages>
+  {(message) => (
+    <div className="flex gap-3">
+      <MessageAvatar
+        role={message.role}
+        userId={message.userId}
+        className="w-8 h-8"
+      />
+      <Message role={message.role} message={message} className="flex-1">
+        <MessageContent />
+        <MessageActions>
+          <MessageAction tooltip="Reply">
+            <Reply className="w-4 h-4" />
+          </MessageAction>
+        </MessageActions>
+      </Message>
+    </div>
+  )}
+</ThreadContentMessages>
+```
+
+### Conditional Rendering
+
+```tsx
+<ThreadContentMessages>
+  {(message) => {
+    // Skip system messages
+    if (message.role === "system") {
+      return null;
+    }
+
+    // Different layouts for different roles
+    if (message.role === "user") {
+      return (
+        <UserMessage message={message} />
+      );
+    }
+
+    return (
+      <AssistantMessage message={message} />
+    );
+  }}
+</ThreadContentMessages>
+```
+
+## Accessing Thread Context
+
+The ThreadContent provides context about the entire thread:
+
+```tsx
+import { useTambo } from "@tambo-ai/react";
+
+function CustomThreadMessages() {
+  const { thread, isIdle, generationStage } = useTambo();
+
+  return (
+    <ThreadContentMessages>
+      {(message) => (
+        <div>
+          {message.content}
+          {!isIdle && message.id === thread?.messages[thread.messages.length - 1]?.id && (
+            <LoadingIndicator stage={generationStage} />
+          )}
+        </div>
+      )}
+    </ThreadContentMessages>
+  );
+}
+```
+
+## Styling Variants
+
+### Default Variant
+
+Standard message styling:
+
+```tsx
+<ThreadContent variant="default">
+  <ThreadContentMessages />
+</ThreadContent>
+```
+
+### Solid Variant
+
+Enhanced styling with backgrounds and shadows:
+
+```tsx
+<ThreadContent variant="solid">
+  <ThreadContentMessages />
+</ThreadContent>
+```
+
+## Message Filtering
+
+The ThreadContent automatically filters out:
+- System messages
+- Child messages (messages with `parentMessageId`)
+
+If you need to show these messages, use the custom render prop:
+
+```tsx
+import { useTambo } from "@tambo-ai/react";
+
+function AllMessages() {
+  const { thread } = useTambo();
+
+  return (
+    <div>
+      {thread?.messages.map((message) => (
+        <div key={message.id}>
+          {message.content}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+1. **Use default rendering when possible** - It includes all features out of the box
+2. **Keep custom render functions simple** - Complex logic should be in separate components
+3. **Handle loading states** - Check if message is the last one and thread is generating
+4. **Filter appropriately** - Decide which message types to show
+5. **Maintain accessibility** - Include proper ARIA labels and keyboard navigation
+
+## Related
+
+- [Message Component](/docs/concepts/components/ui-components/message) - Message display component
+- [MessageInput Component](/docs/concepts/components/ui-components/message-input) - Input for sending messages
+- [Composition Patterns](/docs/concepts/components/composition-patterns) - Advanced composition techniques
