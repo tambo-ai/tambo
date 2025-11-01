@@ -5,6 +5,8 @@ description: Handle user input requests from MCP servers through the built-in el
 
 MCP Elicitation allows MCP servers to request additional information from users during tool execution. When an MCP server needs user input, Tambo automatically displays an interactive form in the message input area, making it seamless for users to provide the requested information.
 
+For more details on the elicitation specification, see the [MCP Elicitation documentation](https://modelcontextprotocol.io/docs/learn/client-concepts#elicitation).
+
 ## What is Elicitation?
 
 Elicitation is a protocol feature that allows MCP servers to pause execution and request structured input from the user. This is useful when:
@@ -118,7 +120,45 @@ Without the `TamboMcpProvider`, server-side MCP servers cannot send elicitation 
 
 While the built-in elicitation UI handles most use cases, you can implement custom elicitation handling if needed.
 
+### Custom Elicitation UI
+
+You can access the current elicitation request and respond to it using the `useTamboElicitationContext` hook:
+
+```tsx
+import { useTamboElicitationContext } from "@tambo-ai/react/mcp";
+
+function CustomElicitationUI() {
+  const { elicitation, resolveElicitation } = useTamboElicitationContext();
+
+  if (!elicitation) return null;
+
+  const handleAccept = () => {
+    resolveElicitation?.({
+      action: "accept",
+      content: { /* user's input */ },
+    });
+  };
+
+  const handleDecline = () => {
+    resolveElicitation?.({ action: "decline" });
+  };
+
+  return (
+    <div>
+      <p>{elicitation.message}</p>
+      {/* Render form fields based on elicitation.requestedSchema */}
+      <button onClick={handleAccept}>Accept</button>
+      <button onClick={handleDecline}>Decline</button>
+    </div>
+  );
+}
+```
+
 ### Provider-level Handler
+
+For advanced scenarios where you need programmatic control over elicitation flow—such as conditionally approving requests, implementing custom validation logic, or integrating with external systems—you can provide a handler function that intercepts elicitation requests before they reach the UI.
+
+The handler is an async callback that receives the elicitation request and returns a promise with the response. This allows you to implement custom decision logic, show your own UI, or even automatically respond based on the request content.
 
 Apply a custom handler to all MCP servers:
 
@@ -157,7 +197,7 @@ function App() {
 
 ### Per-server Handler
 
-Override the handler for a specific MCP server:
+You can also override the handler for specific MCP servers, which is useful when different servers require different approval workflows or UI patterns:
 
 ```tsx
 import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
@@ -190,40 +230,6 @@ function App() {
 ```
 
 Per-server handlers take precedence over provider-level handlers.
-
-### Accessing Elicitation State
-
-You can access the current elicitation request and respond to it using the `useTamboElicitationContext` hook:
-
-```tsx
-import { useTamboElicitationContext } from "@tambo-ai/react/mcp";
-
-function CustomElicitationUI() {
-  const { elicitation, resolveElicitation } = useTamboElicitationContext();
-
-  if (!elicitation) return null;
-
-  const handleAccept = () => {
-    resolveElicitation?.({
-      action: "accept",
-      content: { /* user's input */ },
-    });
-  };
-
-  const handleDecline = () => {
-    resolveElicitation?.({ action: "decline" });
-  };
-
-  return (
-    <div>
-      <p>{elicitation.message}</p>
-      {/* Render form fields based on elicitation.requestedSchema */}
-      <button onClick={handleAccept}>Accept</button>
-      <button onClick={handleDecline}>Decline</button>
-    </div>
-  );
-}
-```
 
 ### Handler Parameters
 
