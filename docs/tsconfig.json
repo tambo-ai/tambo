@@ -1,31 +1,17 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tambo-ai/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
+    "declaration": false,
+    "declarationMap": false,
     "incremental": true,
     "paths": {
       "@/.source": ["./.source/index.ts"],
       "@/*": ["./src/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
       "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    }
   },
   "include": [
     "next-env.d.ts",

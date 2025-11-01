@@ -52,6 +52,8 @@ import {
  * @param props.environment - The environment to use for the Tambo API
  * @param props.tools - The tools to register
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
+ * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
+ * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
  * @param props.userToken - The user's OAuth token (access or ID) used to identify the user and exchange for a Tambo session token (preferred over contextKey)
  * @param props.contextKey - Optional context key to be used in the thread input provider
@@ -76,16 +78,13 @@ export const TamboProvider: React.FC<
   environment,
   tools,
   streaming,
+  autoGenerateThreadName,
+  autoGenerateNameThreshold,
   contextHelpers,
   contextKey,
   initialMessages,
   onCallUnregisteredTool,
 }) => {
-  // Should only be used in browser
-  if (typeof window === "undefined") {
-    console.error("TamboProvider must be used within a browser");
-  }
-
   return (
     <TamboClientProvider
       tamboUrl={tamboUrl}
@@ -102,6 +101,8 @@ export const TamboProvider: React.FC<
           <TamboMcpTokenProvider>
             <TamboThreadProvider
               streaming={streaming}
+              autoGenerateThreadName={autoGenerateThreadName}
+              autoGenerateNameThreshold={autoGenerateNameThreshold}
               initialMessages={initialMessages}
             >
               <TamboThreadInputProvider contextKey={contextKey}>

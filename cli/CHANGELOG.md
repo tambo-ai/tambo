@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.37.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.36.0...tambo-v0.37.0) (2025-10-31)
+
+
+### Features
+
+* Add validation UI to elicitation ([#1220](https://github.com/tambo-ai/tambo/issues/1220)) ([417209d](https://github.com/tambo-ai/tambo/commit/417209de0edad1a17d42f527ed9320913b541a2d))
+
+## [0.36.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.35.1...tambo-v0.36.0) (2025-10-31)
+
+
+### Features
+
+* add context badge for images ([#1192](https://github.com/tambo-ai/tambo/issues/1192)) ([020cd5e](https://github.com/tambo-ai/tambo/commit/020cd5e19285921bf0ef3086d3d84777bf694685))
+* **mcp:** add prompts button, if there are prompts ([#1212](https://github.com/tambo-ai/tambo/issues/1212)) ([c4af432](https://github.com/tambo-ai/tambo/commit/c4af4323d0698d1a400ef3e07a2bcfd6bb3c390f))
+* **mcp:** Elicitation support + default UI in showcase ([#1217](https://github.com/tambo-ai/tambo/issues/1217)) ([7e9c54a](https://github.com/tambo-ai/tambo/commit/7e9c54a0a968a76b1e61612fe90de8909d949676))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#1203](https://github.com/tambo-ai/tambo/issues/1203)) ([5c44450](https://github.com/tambo-ai/tambo/commit/5c444508e2309ef8b4ec9c9050e408e19a8a6e48))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.0 to 0.75.1 ([#1208](https://github.com/tambo-ai/tambo/issues/1208)) ([76640d7](https://github.com/tambo-ai/tambo/commit/76640d7eab0202555ba699039152be7b656d40ef))
+* update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
+
 ## [0.35.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.35.0...tambo-v0.35.1) (2025-10-21)
 
 

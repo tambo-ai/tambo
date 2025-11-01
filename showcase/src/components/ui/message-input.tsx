@@ -1,19 +1,29 @@
 "use client";
 
+import { ElicitationUI } from "@/components/ui/elicitation-ui";
 import { McpConfigModal } from "@/components/ui/mcp-config-modal";
 import { Tooltip, TooltipProvider } from "@/components/ui/suggestions-tooltip";
 import { cn } from "@/lib/utils";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
+import {
+  useTamboElicitationContext,
+  useTamboMcpPrompt,
+  useTamboMcpPromptList,
+  type TamboElicitationRequest,
+  type TamboElicitationResponse,
+} from "@tambo-ai/react/mcp";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
   Image as ImageIcon,
   Paperclip,
+  Sparkles,
   Square,
   X,
 } from "lucide-react";
@@ -65,6 +75,8 @@ const messageInputVariants = cva("w-full", {
  * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
+ * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
+ * @property {function} resolveElicitation - Function to resolve the elicitation promise (automatically clears state)
  */
 interface MessageInputContextValue {
   value: string;
@@ -80,6 +92,8 @@ interface MessageInputContextValue {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
+  elicitation: TamboElicitationRequest | null;
+  resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
 }
 
 /**
@@ -176,6 +190,9 @@ const MessageInputInternal = React.forwardRef<
   const [isDragging, setIsDragging] = React.useState(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const dragCounter = React.useRef(0);
+
+  // Use elicitation context (optional)
+  const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
     setDisplayValue(value);
@@ -287,6 +304,16 @@ const MessageInputInternal = React.forwardRef<
     [addImages],
   );
 
+  const handleElicitationResponse = React.useCallback(
+    (response: TamboElicitationResponse) => {
+      // Calling resolveElicitation automatically clears the elicitation state
+      if (resolveElicitation) {
+        resolveElicitation(response);
+      }
+    },
+    [resolveElicitation],
+  );
+
   const contextValue = React.useMemo(
     () => ({
       value: displayValue,
@@ -302,6 +329,8 @@ const MessageInputInternal = React.forwardRef<
       textareaRef: inputRef ?? textareaRef,
       submitError,
       setSubmitError,
+      elicitation,
+      resolveElicitation,
     }),
     [
       displayValue,
@@ -315,6 +344,8 @@ const MessageInputInternal = React.forwardRef<
       inputRef,
       textareaRef,
       submitError,
+      elicitation,
+      resolveElicitation,
     ],
   );
   return (
@@ -347,8 +378,17 @@ const MessageInputInternal = React.forwardRef<
               </p>
             </div>
           )}
-          <MessageInputStagedImages />
-          {children}
+          {elicitation ? (
+            <ElicitationUI
+              request={elicitation}
+              onResponse={handleElicitationResponse}
+            />
+          ) : (
+            <>
+              <MessageInputStagedImages />
+              {children}
+            </>
+          )}
         </div>
       </form>
     </MessageInputContext.Provider>
@@ -506,7 +546,7 @@ const MessageInputSubmitButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
+    "w-10 h-10 bg-foreground text-background rounded-lg hover:bg-foreground/90 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
     className,
   );
 
@@ -555,7 +595,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -592,7 +632,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <Tooltip
         content="Configure MCP Servers"
         side="right"
-        className="bg-muted text-primary"
+        className="bg-muted text-muted-foreground"
       >
         <button
           ref={ref}
@@ -706,7 +746,7 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
     className,
   );
 
@@ -715,7 +755,7 @@ const MessageInputFileButton = React.forwardRef<
       <Tooltip
         content="Attach Images"
         side="top"
-        className="bg-muted text-primary"
+        className="bg-muted text-muted-foreground"
       >
         <button
           ref={ref}
@@ -742,6 +782,141 @@ const MessageInputFileButton = React.forwardRef<
   );
 });
 MessageInputFileButton.displayName = "MessageInput.FileButton";
+
+/**
+ * Props for the MessageInputMcpPromptButton component.
+ */
+export type MessageInputMcpPromptButtonProps =
+  React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+/**
+ * MCP Prompt picker button component for inserting prompts from MCP servers.
+ * @component MessageInput.McpPromptButton
+ * @example
+ * ```tsx
+ * <MessageInput>
+ *   <MessageInput.Textarea />
+ *   <MessageInput.Toolbar>
+ *     <MessageInput.FileButton />
+ *     <MessageInput.McpPromptButton />
+ *     <MessageInput.SubmitButton />
+ *   </MessageInput.Toolbar>
+ * </MessageInput>
+ * ```
+ */
+const MessageInputMcpPromptButton = React.forwardRef<
+  HTMLButtonElement,
+  MessageInputMcpPromptButtonProps
+>(({ className, ...props }, ref) => {
+  const { setValue, value } = useMessageInputContext();
+  const { data: promptList, isLoading } = useTamboMcpPromptList();
+  const [selectedPromptName, setSelectedPromptName] = React.useState<
+    string | null
+  >(null);
+  const { data: promptData } = useTamboMcpPrompt(selectedPromptName ?? "");
+
+  // When prompt data is fetched, insert it into the input
+  React.useEffect(() => {
+    if (promptData && selectedPromptName) {
+      // Extract the text from the prompt messages
+      const promptText = promptData.messages
+        .map((msg) => {
+          if (msg.content.type === "text") {
+            return msg.content.text;
+          }
+          return "";
+        })
+        .filter(Boolean)
+        .join("\n");
+
+      // Insert the prompt text, appending to existing value if any
+      const newValue = value ? `${value}\n\n${promptText}` : promptText;
+      setValue(newValue);
+
+      // Reset the selected prompt
+      setSelectedPromptName(null);
+    }
+  }, [promptData, selectedPromptName, setValue, value]);
+
+  // Only show button if prompts are available (hide during loading and when no prompts)
+  if (!promptList || promptList.length === 0) {
+    return null;
+  }
+
+  const buttonClasses = cn(
+    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    className,
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip
+        content="Insert MCP Prompt"
+        side="top"
+        className="bg-muted text-muted-foreground"
+      >
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button
+              ref={ref}
+              type="button"
+              className={buttonClasses}
+              aria-label="Insert MCP Prompt"
+              data-slot="message-input-mcp-prompt-button"
+              {...props}
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+              side="top"
+              align="start"
+              sideOffset={5}
+            >
+              {isLoading ? (
+                <DropdownMenu.Item
+                  className="px-2 py-1.5 text-sm text-muted-foreground"
+                  disabled
+                >
+                  Loading prompts...
+                </DropdownMenu.Item>
+              ) : !promptList || promptList.length === 0 ? (
+                <DropdownMenu.Item
+                  className="px-2 py-1.5 text-sm text-muted-foreground"
+                  disabled
+                >
+                  No prompts available
+                </DropdownMenu.Item>
+              ) : (
+                promptList.map((promptEntry) => (
+                  <DropdownMenu.Item
+                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
+                    className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                    onSelect={() => {
+                      setSelectedPromptName(promptEntry.prompt.name);
+                    }}
+                  >
+                    <span className="font-medium truncate max-w-full">
+                      {promptEntry.prompt.name}
+                    </span>
+                    {promptEntry.prompt.description && (
+                      <span className="text-xs text-muted-foreground truncate max-w-full">
+                        {promptEntry.prompt.description}
+                      </span>
+                    )}
+                  </DropdownMenu.Item>
+                ))
+              )}
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      </Tooltip>
+    </TooltipProvider>
+  );
+});
+MessageInputMcpPromptButton.displayName = "MessageInput.McpPromptButton";
 
 /**
  * Props for the ImageContextBadge component.
@@ -957,6 +1132,7 @@ export {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpConfigButton,
+  MessageInputMcpPromptButton,
   MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,

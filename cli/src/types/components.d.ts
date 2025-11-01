@@ -16,6 +16,7 @@
  * - ThreadDropdown component
  * - ScrollableMessageContainer component
  * - MessageInputFileButton component
+ * - ElicitationUI component
  *
  * These components are meant to be installed and used in end-user projects
  * through the CLI installation process.
@@ -23,6 +24,7 @@
 type ComponentVariant = "default" | "solid" | "bordered" | null | undefined;
 
 declare module "@/components/tambo/message" {
+  import type { TamboThreadMessage } from "@tambo-ai/react";
   export interface MessageProps {
     className?: string;
     role: "user" | "assistant";
@@ -116,7 +118,7 @@ declare module "@/components/tambo/message-input" {
   export interface MessageInputProps
     extends React.HTMLAttributes<HTMLFormElement> {
     variant?: ComponentVariant;
-    contextKey: string | undefined;
+    contextKey?: string;
   }
 
   export interface MessageInputRootProps
@@ -136,8 +138,22 @@ declare module "@/components/tambo/message-input" {
     children?: React.ReactNode;
   }
 
+  export type MessageInputFileButtonProps =
+    React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+  export type MessageInputMcpPromptButtonProps =
+    React.HTMLAttributes<HTMLButtonElement>;
+
+  export type MessageInputStagedImagesProps =
+    React.HTMLAttributes<HTMLDivElement>;
+
   export type MessageInputErrorProps =
     React.HTMLAttributes<HTMLParagraphElement>;
+
+  export type MessageInputToolbarProps = React.HTMLAttributes<HTMLDivElement>;
+
+  export type MessageInputMcpConfigButtonProps =
+    React.HTMLAttributes<HTMLButtonElement>;
 
   export const MessageInput: React.ForwardRefExoticComponent<
     MessageInputProps & React.RefAttributes<HTMLTextAreaElement>
@@ -152,8 +168,7 @@ declare module "@/components/tambo/message-input" {
   >;
 
   export const MessageInputMcpConfigButton: React.ForwardRefExoticComponent<
-    React.HTMLAttributes<HTMLButtonElement> &
-      React.RefAttributes<HTMLButtonElement>
+    MessageInputMcpConfigButtonProps & React.RefAttributes<HTMLButtonElement>
   >;
 
   export const MessageInputSubmitButton: React.ForwardRefExoticComponent<
@@ -161,7 +176,7 @@ declare module "@/components/tambo/message-input" {
   >;
 
   export const MessageInputToolbar: React.ForwardRefExoticComponent<
-    React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>
+    MessageInputToolbarProps & React.RefAttributes<HTMLDivElement>
   >;
 
   export const MessageInputError: React.ForwardRefExoticComponent<
@@ -175,12 +190,21 @@ declare module "@/components/tambo/message-input" {
   };
 
   export const MessageInputFileButton: React.ForwardRefExoticComponent<
-    React.ButtonHTMLAttributes<HTMLButtonElement> &
-      React.RefAttributes<HTMLButtonElement>
+    MessageInputFileButtonProps & React.RefAttributes<HTMLButtonElement>
+  >;
+
+  export const MessageInputMcpPromptButton: React.ForwardRefExoticComponent<
+    MessageInputMcpPromptButtonProps & React.RefAttributes<HTMLButtonElement>
+  >;
+
+  export const MessageInputStagedImages: React.ForwardRefExoticComponent<
+    MessageInputStagedImagesProps & React.RefAttributes<HTMLDivElement>
   >;
 }
 
 declare module "@/components/tambo/message-suggestions" {
+  import type { Suggestion } from "@tambo-ai/react";
+
   export interface MessageSuggestionsProps
     extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
@@ -191,6 +215,7 @@ declare module "@/components/tambo/message-suggestions" {
   export interface MessageSuggestionsRootProps
     extends React.HTMLAttributes<HTMLDivElement> {
     maxSuggestions?: number;
+    initialSuggestions?: Suggestion[];
     children?: React.ReactNode;
   }
 
@@ -229,12 +254,27 @@ declare module "@/components/tambo/markdown-components" {
 declare module "@/components/tambo/thread-history" {
   export interface ThreadHistoryProps
     extends React.HTMLAttributes<HTMLDivElement> {
-    variant?: ComponentVariant;
-    contextKey?: string | undefined;
+    contextKey?: string;
     onThreadChange?: () => void;
     defaultCollapsed?: boolean;
     position?: "left" | "right";
   }
+
+  export interface ThreadHistoryRootProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    children?: React.ReactNode;
+  }
+
+  export type ThreadHistoryHeaderProps = React.HTMLAttributes<HTMLDivElement>;
+
+  export type ThreadHistoryNewButtonProps =
+    React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+  export type ThreadHistorySearchProps =
+    React.InputHTMLAttributes<HTMLInputElement>;
+
+  export type ThreadHistoryListProps = React.HTMLAttributes<HTMLDivElement>;
+
   export const ThreadHistory: React.ForwardRefExoticComponent<
     ThreadHistoryProps & React.RefAttributes<HTMLDivElement>
   >;
@@ -340,7 +380,24 @@ declare module "@/components/tambo/scrollable-message-container" {
   >;
 }
 
+declare module "@/components/tambo/elicitation-ui" {
+  import type {
+    TamboElicitationRequest,
+    TamboElicitationResponse,
+  } from "@tambo-ai/react/mcp";
+
+  export interface ElicitationUIProps {
+    request: TamboElicitationRequest;
+    onResponse: (response: TamboElicitationResponse) => void;
+    className?: string;
+  }
+
+  export const ElicitationUI: React.FC<ElicitationUIProps>;
+}
+
 declare module "@/lib/thread-hooks" {
+  import type { TamboThreadMessage } from "@tambo-ai/react";
+
   export function useMergedRef<T>(
     ref1: React.Ref<T> | null | undefined,
     ref2: React.Ref<T> | null | undefined,
@@ -374,13 +431,12 @@ declare module "@/lib/thread-hooks" {
 }
 
 declare module "@/components/tambo/thread-container" {
+  export type ThreadContainerProps = React.HTMLAttributes<HTMLDivElement>;
+
   export const ThreadContainer: React.ForwardRefExoticComponent<
     ThreadContainerProps & React.RefAttributes<HTMLDivElement>
   >;
-  export interface ThreadContainerProps
-    extends React.HTMLAttributes<HTMLDivElement> {
-    contextKey?: string;
-  }
+
   export function useThreadContainerContext(): {
     containerRef: React.RefObject<HTMLDivElement>;
     hasCanvasSpace: boolean;
@@ -395,4 +451,7 @@ declare module "@/components/tambo/mcp-config-modal" {
     isOpen: boolean;
     onClose: () => void;
   }>;
+
+  export type McpServer = string | { url: string };
+  export function useMcpServers(): McpServer[];
 }

@@ -12,7 +12,7 @@
     "streamdown"
   ],
   "devDependencies": [],
-  "requires": [],
+  "requires": ["elicitation-ui"],
   "files": [
     {
       "name": "message-input.tsx",

@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.28.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.27.0...showcase-v0.28.0) (2025-10-31)
+
+
+### Features
+
+* Add validation UI to elicitation ([#1220](https://github.com/tambo-ai/tambo/issues/1220)) ([417209d](https://github.com/tambo-ai/tambo/commit/417209de0edad1a17d42f527ed9320913b541a2d))
+
+## [0.27.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.26.1...showcase-v0.27.0) (2025-10-31)
+
+
+### Features
+
+* add context badge for images ([#1192](https://github.com/tambo-ai/tambo/issues/1192)) ([020cd5e](https://github.com/tambo-ai/tambo/commit/020cd5e19285921bf0ef3086d3d84777bf694685))
+* bump showcase components for sampling ui ([#1170](https://github.com/tambo-ai/tambo/issues/1170)) ([e205d93](https://github.com/tambo-ai/tambo/commit/e205d932f7bcf5df077ae61a08cc22f8e6086318))
+* **mcp:** add prompts button, if there are prompts ([#1212](https://github.com/tambo-ai/tambo/issues/1212)) ([c4af432](https://github.com/tambo-ai/tambo/commit/c4af4323d0698d1a400ef3e07a2bcfd6bb3c390f))
+* **mcp:** Elicitation support + default UI in showcase ([#1217](https://github.com/tambo-ai/tambo/issues/1217)) ([7e9c54a](https://github.com/tambo-ai/tambo/commit/7e9c54a0a968a76b1e61612fe90de8909d949676))
+
+
+### Bug Fixes
+
+* update tambo components in the showcase ([#1206](https://github.com/tambo-ai/tambo/issues/1206)) ([a93c96b](https://github.com/tambo-ai/tambo/commit/a93c96b8a4b7b0376d8752e387791a3e68804815))
+
+
+### Miscellaneous Chores
+
+* **config:** Align tsconfigs and eslint configs between docs, showcase, and base ([#1216](https://github.com/tambo-ai/tambo/issues/1216)) ([ab61266](https://github.com/tambo-ai/tambo/commit/ab61266f89f14084d9f9f8abc2098bc3a3cb3adf))
+* **deps-dev:** bump @types/leaflet from 1.9.20 to 1.9.21 ([#1161](https://github.com/tambo-ai/tambo/issues/1161)) ([2e50825](https://github.com/tambo-ai/tambo/commit/2e5082517be1d135bc4a04ac28d09cf9f38d1e40))
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#1203](https://github.com/tambo-ai/tambo/issues/1203)) ([5c44450](https://github.com/tambo-ai/tambo/commit/5c444508e2309ef8b4ec9c9050e408e19a8a6e48))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.73.0 to 0.75.0 ([#1179](https://github.com/tambo-ai/tambo/issues/1179)) ([e781957](https://github.com/tambo-ai/tambo/commit/e781957a758cdd3f5e820b24f8fe9266b3c86baf))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.0 to 0.75.1 ([#1208](https://github.com/tambo-ai/tambo/issues/1208)) ([76640d7](https://github.com/tambo-ai/tambo/commit/76640d7eab0202555ba699039152be7b656d40ef))
+* **deps:** bump dompurify from 3.2.7 to 3.3.0 ([#1175](https://github.com/tambo-ai/tambo/issues/1175)) ([ffd2ec1](https://github.com/tambo-ai/tambo/commit/ffd2ec1b2eb56eaf92f2d7eb68a9529cc3da4f92))
+* **deps:** bump framer-motion from 12.23.22 to 12.23.24 ([#1160](https://github.com/tambo-ai/tambo/issues/1160)) ([6dab68f](https://github.com/tambo-ai/tambo/commit/6dab68f916d255174b37c09c041ede244f9f8c4a))
+* **deps:** bump lucide-react from 0.545.0 to 0.546.0 ([#1174](https://github.com/tambo-ai/tambo/issues/1174)) ([49dc23f](https://github.com/tambo-ai/tambo/commit/49dc23f7ae1b0d4a88a2cea38aaccab189afa023))
+* **deps:** bump recharts from 3.2.1 to 3.3.0 ([#1199](https://github.com/tambo-ai/tambo/issues/1199)) ([1c5427c](https://github.com/tambo-ai/tambo/commit/1c5427c9a60145b67165c1a8247668c768ce438d))
+* **deps:** bump streamdown from 1.3.0 to 1.4.0 ([#1181](https://github.com/tambo-ai/tambo/issues/1181)) ([441d3e0](https://github.com/tambo-ai/tambo/commit/441d3e0587d71fdfb63f2365c52d0aa88bfdbb21))
+* **deps:** bump the next group with 2 updates ([#1172](https://github.com/tambo-ai/tambo/issues/1172)) ([61f92b6](https://github.com/tambo-ai/tambo/commit/61f92b6ee158f8f8b62f316d7c138937d851d132))
+* update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
+
+
+### Code Refactoring
+
+* **message:** simplify tool call request retrieval and enhance status message handling ([#1152](https://github.com/tambo-ai/tambo/issues/1152)) ([c866b67](https://github.com/tambo-ai/tambo/commit/c866b674e8fcc8524cf0de9e347902ac31efe81f))
+
 ## [0.26.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.26.0...showcase-v0.26.1) (2025-10-09)
 
 

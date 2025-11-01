@@ -15,16 +15,26 @@ This is a Turborepo monorepo for the Tambo AI framework. The repository contains
 
 - **cli/** - Command-line interface (`tambo`)
   - Project scaffolding, component generation, and development utilities
-  - Component registry with templates for different UI frameworks
+  - Component registry with templates for different UI frameworks. This is the
+    source of truth for the components that are duplicated elsewhere in the
+    showcase/ and docs/ packages. Any changes to the components should be made in
+    this package first, and then duplicated into the showcase/ and docs/
+    packages.
   - Built as ESM module with executable binary
 
 - **showcase/** - Demo application (`@tambo-ai/showcase`)
   - Next.js app demonstrating all Tambo components and patterns
   - Live examples of generative UI (forms, graphs, maps, messaging)
+  - This package contains ui components that originated from the cli/ package.
+    Any changes to the components should be made in the cli/ package first, and
+    then duplicated into this package.
   - Serves as both documentation and testing ground
 
 - **docs/** - Documentation site (`@tambo-ai/docs`)
   - Built with Fumadocs, includes comprehensive guides and API reference
+  - This package contains ui components that originated from the cli/ package.
+    Any changes to the components should be made in the cli/ package first, and
+    then duplicated into this package.
   - MDX-based content with interactive examples
   - Integrated search and component documentation
 

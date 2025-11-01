@@ -30,9 +30,4 @@ export default tseslint.config(
       "@typescript-eslint/triple-slash-reference": "off",
     },
   },
-  {
-    rules: {
-      "react/prop-types": "off",
-    },
-  },
 );
