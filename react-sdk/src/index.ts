@@ -28,6 +28,7 @@ export {
   useTambo,
   useTamboClient,
   useTamboContextHelpers,
+  useTamboDefaultHeaders,
   useTamboGenerationStage,
   useTamboStream,
   useTamboThread,

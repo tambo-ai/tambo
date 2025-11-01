@@ -1,7 +1,12 @@
 "use client";
 import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
-import React, { createContext, PropsWithChildren, useState } from "react";
+import React, {
+  createContext,
+  PropsWithChildren,
+  useMemo,
+  useState,
+} from "react";
 import packageJson from "../../package.json";
 import { useTamboSessionToken } from "./hooks/use-tambo-session-token";
 
@@ -27,6 +32,12 @@ export interface TamboClientProviderProps {
    * user when calling the Tambo API.
    */
   userToken?: string;
+
+  /**
+   * Additional headers to include in all requests to the Tambo API.
+   * These will be merged with the default headers.
+   */
+  defaultHeaders?: Record<string, string>;
 }
 
 export interface TamboClientContextProps {
@@ -36,6 +47,8 @@ export interface TamboClientContextProps {
   queryClient: QueryClient;
   /** Whether the session token is currently being updated */
   isUpdatingToken: boolean;
+  /** Additional headers to include in all requests */
+  defaultHeaders?: Record<string, string>;
 }
 
 export const TamboClientContext = createContext<
@@ -51,24 +64,43 @@ export const TamboClientContext = createContext<
  * @param props.apiKey - The API key for the Tambo API
  * @param props.environment - The environment to use for the Tambo API
  * @param props.userToken - The oauth access token to use to identify the user in the Tambo API
+ * @param props.defaultHeaders - Additional headers to include in all requests
  * @returns The TamboClientProvider component
  */
 export const TamboClientProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps>
-> = ({ children, tamboUrl, apiKey, environment, userToken }) => {
-  const tamboConfig: ClientOptions = {
-    apiKey,
-    defaultHeaders: {
+> = ({
+  children,
+  tamboUrl,
+  apiKey,
+  environment,
+  userToken,
+  defaultHeaders,
+}) => {
+  // Create merged headers with useMemo so it updates when defaultHeaders change
+  const mergedHeaders = useMemo(() => {
+    const headers = {
       "X-Tambo-React-Version": packageJson.version,
-    },
-  };
-  if (tamboUrl) {
-    tamboConfig.baseURL = tamboUrl;
-  }
-  if (environment) {
-    tamboConfig.environment = environment;
-  }
-  const [client] = useState(() => new TamboAI(tamboConfig));
+      ...defaultHeaders, // Merge custom headers
+    };
+    return headers;
+  }, [defaultHeaders]);
+
+  // Create client with useMemo so it updates when mergedHeaders change
+  const client = useMemo(() => {
+    const tamboConfig: ClientOptions = {
+      apiKey,
+      defaultHeaders: mergedHeaders,
+    };
+    if (tamboUrl) {
+      tamboConfig.baseURL = tamboUrl;
+    }
+    if (environment) {
+      tamboConfig.environment = environment;
+    }
+    return new TamboAI(tamboConfig);
+  }, [apiKey, tamboUrl, environment, mergedHeaders]);
+
   const [queryClient] = useState(() => new QueryClient());
 
   // Keep the session token updated and get the updating state
@@ -84,6 +116,7 @@ export const TamboClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
+        defaultHeaders: mergedHeaders,
       }}
     >
       {children}
@@ -132,4 +165,18 @@ export const useIsTamboTokenUpdating = () => {
     );
   }
   return context.isUpdatingToken;
+};
+
+/**
+ * Hook to access the default headers for Tambo API requests
+ * @returns The default headers object
+ */
+export const useTamboDefaultHeaders = () => {
+  const context = React.useContext(TamboClientContext);
+  if (context === undefined) {
+    throw new Error(
+      "useTamboDefaultHeaders must be used within a TamboClientProvider",
+    );
+  }
+  return context.defaultHeaders;
 };

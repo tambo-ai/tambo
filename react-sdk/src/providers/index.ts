@@ -3,6 +3,7 @@ export {
   TamboClientProvider,
   useIsTamboTokenUpdating,
   useTamboClient,
+  useTamboDefaultHeaders,
 } from "./tambo-client-provider";
 export {
   TamboComponentProvider,
