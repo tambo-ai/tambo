@@ -21,42 +21,6 @@ export function useTamboVoice() {
   const audioChunks = useRef<Blob[]>([]);
   const client = useTamboClient();
 
-  // Register event handlers for the media recorder
-  useEffect(() => {
-    if (!mediaRecorder) return;
-
-    const handleDataAvailable = (event: BlobEvent) => {
-      if (event && event.data.size > 0) {
-        audioChunks.current.push(event.data);
-      }
-    };
-
-    const handleStop = () => {
-      setMediaRecorder(null);
-    };
-
-    mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.onstop = handleStop;
-
-    return () => {
-      mediaRecorder.ondataavailable = null;
-      mediaRecorder.onstop = null;
-    };
-  }, [mediaRecorder]);
-
-  const transcribeRecordedAudio = useCallback(async () => {
-    const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
-    const file = new File([audioBlob], `recording.webm`, {
-      type: "audio/webm",
-    });
-
-    setIsTranscribing(true);
-    const result = await client.beta.audio.transcribe({ file });
-    setIsTranscribing(false);
-    setTranscript(result);
-    return result;
-  }, [audioChunks, client]);
-
   const startRecording = useCallback(async () => {
     setIsRecording(true);
     audioChunks.current = [];
@@ -81,7 +45,43 @@ export function useTamboVoice() {
       mediaRecorder.stop();
     }
     setIsRecording(false);
-    transcribeRecordedAudio();
+  }, [mediaRecorder]);
+
+  const transcribeRecordedAudio = useCallback(async () => {
+    const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
+    const file = new File([audioBlob], `recording.webm`, {
+      type: "audio/webm",
+    });
+
+    setIsTranscribing(true);
+    const result = await client.beta.audio.transcribe({ file });
+    setIsTranscribing(false);
+    setTranscript(result);
+    return result;
+  }, [audioChunks, client]);
+
+  // Register event handlers for the media recorder
+  useEffect(() => {
+    if (!mediaRecorder) return;
+
+    const handleDataAvailable = (event: BlobEvent) => {
+      if (event && event.data.size > 0) {
+        audioChunks.current.push(event.data);
+      }
+    };
+
+    const handleStop = () => {
+      setMediaRecorder(null);
+      transcribeRecordedAudio();
+    };
+
+    mediaRecorder.ondataavailable = handleDataAvailable;
+    mediaRecorder.onstop = handleStop;
+
+    return () => {
+      mediaRecorder.ondataavailable = null;
+      mediaRecorder.onstop = null;
+    };
   }, [mediaRecorder, transcribeRecordedAudio]);
 
   return {
