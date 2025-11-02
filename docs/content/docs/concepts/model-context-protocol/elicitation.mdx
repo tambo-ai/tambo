@@ -126,12 +126,19 @@ function CustomElicitationUI() {
     resolveElicitation?.({ action: "decline" });
   };
 
+  const handleCancel = () => {
+    resolveElicitation?.({ action: "cancel" });
+  };
+
   return (
     <div>
       <p>{elicitation.message}</p>
       {/* Render form fields based on elicitation.requestedSchema */}
       <button onClick={handleAccept}>Accept</button>
       <button onClick={handleDecline}>Decline</button>
+      <button type="button" onClick={handleCancel}>
+        Cancel
+      </button>
     </div>
   );
 }
