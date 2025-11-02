@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useTamboClient } from "../providers/tambo-client-provider";
 
 /**
  * Content type for staged files
@@ -74,6 +75,33 @@ function getFileContentType(file: File): FileContentType {
  */
 export function useMessageFiles(): UseMessageFilesReturn {
   const [files, setFiles] = useState<StagedFile[]>([]);
+  const client = useTamboClient();
+
+  const uploadFile = useCallback(
+    async (file: File): Promise<string> => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Use the client's base URL for the API request
+      const baseUrl = client.baseURL;
+      const response = await fetch(`${baseUrl}/extract/pdf`, {
+        method: "POST",
+        headers: {
+          "X-API-Key": client.apiKey,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`File upload failed: ${error}`);
+      }
+
+      const { storagePath } = await response.json();
+      return storagePath;
+    },
+    [client],
+  );
 
   const addFile = useCallback(
     async (file: File) => {
@@ -120,21 +148,21 @@ export function useMessageFiles(): UseMessageFilesReturn {
       setFiles((prev) => [...prev, processingFile]);
 
       try {
-        // TODO: Upload file to storage
-        // For now, just mark as not processing
+        const storagePath = await uploadFile(file);
+        processingFile.storagePath = storagePath;
         processingFile.isProcessing = false;
 
-        // Update file to remove processing state
         setFiles((prev) =>
           prev.map((f) => (f.id === fileId ? { ...f, ...processingFile } : f)),
         );
       } catch (error) {
-        // Remove file if processing failed
+        processingFile.uploadError =
+          error instanceof Error ? error.message : "Upload failed";
         setFiles((prev) => prev.filter((f) => f.id !== fileId));
         throw error;
       }
     },
-    [files],
+    [files, uploadFile],
   );
 
   const addFiles = useCallback(
@@ -177,14 +205,22 @@ export function useMessageFiles(): UseMessageFilesReturn {
 
       setFiles((prev) => [...prev, ...processingFiles]);
 
-      // TODO: Upload files to storage
-      // For now, just mark as not processing
-      const processedFiles = processingFiles.map((f) => ({
-        ...f,
-        isProcessing: false,
-      }));
+      const processedFiles = await Promise.all(
+        processingFiles.map(async (f) => {
+          try {
+            const storagePath = await uploadFile(f.file);
+            return { ...f, storagePath, isProcessing: false };
+          } catch (error) {
+            return {
+              ...f,
+              uploadError:
+                error instanceof Error ? error.message : "Upload failed",
+              isProcessing: false,
+            };
+          }
+        }),
+      );
 
-      // Update files with processed versions
       setFiles((prev) => {
         const updatedFiles = prev.map((existingFile) => {
           const processed = processedFiles.find(
@@ -192,10 +228,10 @@ export function useMessageFiles(): UseMessageFilesReturn {
           );
           return processed ?? existingFile;
         });
-        return updatedFiles;
+        return updatedFiles.filter((f) => !f.uploadError);
       });
     },
-    [files],
+    [files, uploadFile],
   );
 
   const removeFile = useCallback((id: string) => {
