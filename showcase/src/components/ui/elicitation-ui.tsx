@@ -564,6 +564,13 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           >
             Cancel
           </button>
+          <button
+            type="button"
+            onClick={handleDecline}
+            className="px-4 py-2 text-sm rounded-lg border border-border bg-background hover:bg-muted transition-colors"
+          >
+            Decline
+          </button>
         </div>
       </div>
     );
