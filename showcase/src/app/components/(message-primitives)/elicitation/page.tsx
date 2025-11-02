@@ -58,11 +58,12 @@ function MyElicitationComponent() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Elicitation UI
+            MCP Elicitation UI
           </h1>
           <p className="text-muted-foreground text-lg">
-            Human-in-the-loop interaction component for AI agents to request
-            clarification, disambiguation, or user input during workflows.
+            Human-in-the-loop interaction component for MCP (Model Context
+            Protocol) servers to request clarification, disambiguation, or user
+            input during workflows.
           </p>
         </div>
 
@@ -89,8 +90,11 @@ function MyElicitationComponent() {
           <h2 className="text-xl font-semibold mb-4">Overview</h2>
           <div className="bg-muted rounded-lg p-4 space-y-2 text-sm">
             <p>
-              The Elicitation UI component enables AI agents to pause their
-              workflow and request input from users. This is critical for:
+              The Elicitation UI component enables MCP servers to pause their
+              workflow and request input from users through the Model Context
+              Protocol. When an MCP server sends an elicitation request, this
+              component renders the appropriate UI for collecting user
+              responses. This is critical for:
             </p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Clarifying ambiguous instructions</li>
@@ -100,10 +104,11 @@ function MyElicitationComponent() {
               <li>Validating assumptions before taking action</li>
             </ul>
             <p className="pt-2">
-              The component supports various field types and automatically
-              adapts its UI based on the schema provided. For simple yes/no or
-              single-choice questions, it uses a streamlined single-entry mode
-              that submits immediately upon selection.
+              The component integrates with the MCP elicitation protocol and
+              supports various field types, automatically adapting its UI based
+              on the JSON Schema provided in the elicitation request. For simple
+              yes/no or single-choice questions, it uses a streamlined
+              single-entry mode that submits immediately upon selection.
             </p>
           </div>
         </div>
@@ -118,9 +123,9 @@ function MyElicitationComponent() {
               <code className="px-1 py-0.5 bg-background rounded">
                 MessageInput
               </code>{" "}
-              component when an AI agent sends an elicitation request. The code
-              below shows how you would use it if building a custom UI
-              component.
+              component when an MCP server sends an elicitation request through
+              the Model Context Protocol. The code below shows how you would use
+              it if building a custom UI component.
             </p>
           </div>
           <SyntaxHighlighter code={usageCode} language="tsx" />
@@ -153,7 +158,7 @@ function MyElicitationComponent() {
               1. Permission Request (Boolean)
             </h3>
             <p className="text-sm text-muted-foreground">
-              Agent asks for permission before performing a potentially
+              MCP server asks for permission before performing a potentially
               destructive action.
             </p>
             <div className="p-4 border rounded-lg bg-card">
@@ -207,7 +212,8 @@ function MyElicitationComponent() {
               2. Disambiguation (Multiple Choice)
             </h3>
             <p className="text-sm text-muted-foreground">
-              Agent needs clarification when user&apos;s intent is ambiguous.
+              MCP server needs clarification when user&apos;s intent is
+              ambiguous.
             </p>
             <div className="p-4 border rounded-lg bg-card">
               <RequestDisclosure
@@ -286,7 +292,7 @@ function MyElicitationComponent() {
               3. Missing Information (Text Input)
             </h3>
             <p className="text-sm text-muted-foreground">
-              Agent needs specific information to proceed with the task.
+              MCP server needs specific information to proceed with the task.
             </p>
             <div className="p-4 border rounded-lg bg-card">
               <RequestDisclosure
@@ -339,7 +345,7 @@ function MyElicitationComponent() {
           <div className="space-y-4 mb-8">
             <h3 className="text-lg font-medium">4. Numeric Parameter</h3>
             <p className="text-sm text-muted-foreground">
-              Agent asks for a numeric value with constraints.
+              MCP server asks for a numeric value with constraints.
             </p>
             <div className="p-4 border rounded-lg bg-card">
               <RequestDisclosure
@@ -398,7 +404,8 @@ function MyElicitationComponent() {
               5. Multiple Fields (Complex Input)
             </h3>
             <p className="text-sm text-muted-foreground">
-              Agent needs several pieces of information to configure a feature.
+              MCP server needs several pieces of information to configure a
+              feature.
             </p>
             <div className="p-4 border rounded-lg bg-card">
               <RequestDisclosure
@@ -483,7 +490,7 @@ function MyElicitationComponent() {
           <div className="space-y-4 mb-8">
             <h3 className="text-lg font-medium">6. Email Validation</h3>
             <p className="text-sm text-muted-foreground">
-              Agent requests contact information with built-in validation.
+              MCP server requests contact information with built-in validation.
             </p>
             <div className="p-4 border rounded-lg bg-card">
               <RequestDisclosure
@@ -536,7 +543,7 @@ function MyElicitationComponent() {
           <div className="space-y-4 mb-8">
             <h3 className="text-lg font-medium">7. Optional Information</h3>
             <p className="text-sm text-muted-foreground">
-              Agent asks for optional details to enhance the result.
+              MCP server asks for optional details to enhance the result.
             </p>
             <div className="p-4 border rounded-lg bg-card">
               <RequestDisclosure
@@ -595,7 +602,7 @@ function MyElicitationComponent() {
           <div className="space-y-4 mb-8">
             <h3 className="text-lg font-medium">8. Deployment Configuration</h3>
             <p className="text-sm text-muted-foreground">
-              Agent asks for deployment parameters before proceeding with a
+              MCP server asks for deployment parameters before proceeding with a
               release.
             </p>
             <div className="p-4 border rounded-lg bg-card">
