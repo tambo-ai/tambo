@@ -16,8 +16,8 @@ export interface StagedFile {
   size: number;
   type: string;
   contentType: FileContentType;
-  dataUrl?: string;
-  textContent?: string;
+  storagePath?: string;
+  uploadError?: string;
   isProcessing?: boolean;
 }
 
@@ -34,54 +34,15 @@ const MAX_FILES = 10;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_TOTAL_SIZE = 100 * 1024 * 1024; // 100MB total
 
-/**
- * Extracts text content from PDF files
- * @param file - The PDF file to extract text from
- * @returns Promise resolving to the extracted text content
- */
-async function extractPdfText(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append("file", file);
-  const apiUrl = process.env.TAMBO_API_URL ?? "http://localhost:3001";
-  const response = await fetch(`${apiUrl}/extract/pdf`, {
-    method: "POST",
-    body: formData,
-  });
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`PDF extraction failed: ${error}`);
-  }
-  const { text } = await response.json();
-  return text;
-}
-
-/**
- * Reads text content from text files
- * @param file - The text file to read
- * @returns Promise resolving to the file content as string
- */
-async function readTextFile(file: File): Promise<string> {
-  return await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
-}
-
-/**
- * Converts image file to data URL
- * @param file - The image file to convert
- * @returns Promise resolving to the data URL string
- */
-async function fileToDataUrl(file: File): Promise<string> {
-  return await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+// Supported MIME types for file uploads
+const ALLOWED_FILE_TYPES = [
+  "application/pdf",
+  "text/plain",
+  "text/markdown",
+  "text/csv",
+  "image/jpeg",
+  "image/png",
+] as const;
 
 /**
  * Determines if a file is a supported type
@@ -89,11 +50,8 @@ async function fileToDataUrl(file: File): Promise<string> {
  * @returns True if the file type is supported
  */
 function isSupportedFile(file: File): boolean {
-  return (
-    file.type.startsWith("image/") ||
-    file.type === "application/pdf" ||
-    file.type === "text/plain" ||
-    file.type === "text/markdown"
+  return ALLOWED_FILE_TYPES.includes(
+    file.type as (typeof ALLOWED_FILE_TYPES)[number],
   );
 }
 
@@ -141,7 +99,7 @@ export function useMessageFiles(): UseMessageFilesReturn {
 
       if (!isSupportedFile(file)) {
         throw new Error(
-          "Unsupported file type. Please upload images, PDFs, or text files.",
+          "Unsupported file type. Supported: PDF, TXT, MD, CSV, JPG, PNG",
         );
       }
 
@@ -162,25 +120,13 @@ export function useMessageFiles(): UseMessageFilesReturn {
       setFiles((prev) => [...prev, processingFile]);
 
       try {
-        // Process file based on type
-        if (contentType === "image") {
-          processingFile.dataUrl = await fileToDataUrl(file);
-        } else {
-          // Extract text content
-          if (file.type === "application/pdf") {
-            processingFile.textContent = await extractPdfText(file);
-          } else {
-            processingFile.textContent = await readTextFile(file);
-          }
-        }
+        // TODO: Upload file to storage
+        // For now, just mark as not processing
+        processingFile.isProcessing = false;
 
         // Update file to remove processing state
         setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileId
-              ? { ...f, ...processingFile, isProcessing: false }
-              : f,
-          ),
+          prev.map((f) => (f.id === fileId ? { ...f, ...processingFile } : f)),
         );
       } catch (error) {
         // Remove file if processing failed
@@ -231,40 +177,22 @@ export function useMessageFiles(): UseMessageFilesReturn {
 
       setFiles((prev) => [...prev, ...processingFiles]);
 
-      // Process files
-      const processedFiles = await Promise.all(
-        processingFiles.map(async (newFile): Promise<StagedFile | null> => {
-          try {
-            const updatedFile: StagedFile = { ...newFile };
-            if (newFile.contentType === "image") {
-              updatedFile.dataUrl = await fileToDataUrl(newFile.file);
-            } else {
-              if (newFile.file.type === "application/pdf") {
-                updatedFile.textContent = await extractPdfText(newFile.file);
-              } else {
-                updatedFile.textContent = await readTextFile(newFile.file);
-              }
-            }
-            updatedFile.isProcessing = false;
-            return updatedFile;
-          } catch (error) {
-            console.error(`Failed to process ${newFile.name}:`, error);
-            return null;
-          }
-        }),
-      );
+      // TODO: Upload files to storage
+      // For now, just mark as not processing
+      const processedFiles = processingFiles.map((f) => ({
+        ...f,
+        isProcessing: false,
+      }));
 
-      // Update files with processed versions, filtering out failures
+      // Update files with processed versions
       setFiles((prev) => {
         const updatedFiles = prev.map((existingFile) => {
           const processed = processedFiles.find(
-            (pf) => pf?.id === existingFile.id,
+            (pf) => pf.id === existingFile.id,
           );
           return processed ?? existingFile;
         });
-        return updatedFiles.filter(
-          (f) => !f.isProcessing || (f.dataUrl ?? f.textContent),
-        );
+        return updatedFiles;
       });
     },
     [files],
