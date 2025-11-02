@@ -119,6 +119,24 @@ export const TamboThreadInputProvider: React.FC<
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
     } = {}) => {
+      // Check for pending uploads
+      const pendingUploads = fileState.files.filter((f) => f.isProcessing);
+      if (pendingUploads.length > 0) {
+        throw new ThreadInputError(
+          `Please wait for ${pendingUploads.length} file(s) to finish uploading.`,
+          { cause: "Files still uploading" },
+        );
+      }
+
+      // Check for failed uploads
+      const failedUploads = fileState.files.filter((f) => f.uploadError);
+      if (failedUploads.length > 0) {
+        throw new ThreadInputError(
+          `Failed to upload: ${failedUploads.map((f) => f.name).join(", ")}. Please remove and try again.`,
+          { cause: "Upload errors" },
+        );
+      }
+
       // Validate text input if present
       if (inputValue?.trim()) {
         const validation = validateInput(inputValue);
