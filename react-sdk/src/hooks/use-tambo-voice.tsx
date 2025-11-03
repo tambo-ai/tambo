@@ -51,6 +51,10 @@ export function useTamboVoice() {
   }, [mediaRecorder]);
 
   const transcribeRecordedAudio = useCallback(async () => {
+    if (!audioChunks.current.length) {
+      setTranscriptionError("No audio captured. Please try again.");
+      return;
+    }
     const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
     const file = new File([audioBlob], `recording.webm`, {
       type: "audio/webm",
