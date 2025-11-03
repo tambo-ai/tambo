@@ -802,7 +802,7 @@ const MessageRenderedComponentArea = React.forwardRef<
                   );
                 }
               }}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-secondary transition-colors duration-200 cursor-pointer group"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer group"
               aria-label="View component in canvas"
             >
               View component

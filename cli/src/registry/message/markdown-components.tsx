@@ -67,8 +67,8 @@ const CodeHeader = ({
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-primary">
-      <span className="lowercase text-primary">{language}</span>
+    <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-foreground">
+      <span className="lowercase text-muted-foreground">{language}</span>
       <button
         onClick={copyToClipboard}
         className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
@@ -217,9 +217,9 @@ export const createMarkdownComponents = (): Record<
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-primary font-medium px-1.5 py-0.5 rounded-md bg-primary/5 hover:bg-primary/10 hover:underline transition-colors inline-flex items-center gap-1.5"
+      className="inline-flex items-center gap-1.5 text-foreground underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors"
     >
-      {children}
+      <span>{children}</span>
       <ExternalLink className="w-3 h-3" />
     </a>
   ),
