@@ -2,12 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTamboClient } from "../providers/tambo-client-provider";
 
 /**
- * This hook is used to record audio and transcribe it using the Tambo API.
- * @returns An object with the following properties:
- * - startRecording: A function to start recording audio.
- * - stopRecording: A function to stop recording audio.
+ * Exposes functionality to record speech and transcribe it using the Tambo API.
+ * @returns An object with:
+ * - startRecording: A function to start recording audio and rese the current transcript.
+ * - stopRecording: A function to stop recording audio and automatically kick off transcription.
  * - isRecording: A boolean indicating if the user is recording audio.
- * - isRecordingComplete: A boolean indicating if the recording is complete.
  * - isTranscribing: A boolean indicating if the audio is being transcribed.
  * - transcript: The transcript of the recorded audio.
  */
