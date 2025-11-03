@@ -1,4 +1,4 @@
 {
   "title": "Providers",
-  "pages": ["index", "serverside-mcp-connection", "clientside-mcp-connection"]
+  "pages": ["serverside-mcp-connection", "clientside-mcp-connection"]
 }
