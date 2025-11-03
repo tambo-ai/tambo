@@ -1120,7 +1120,7 @@ const DictationButton = () => {
         onClick={handleStopRecording}
         className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
       >
-        <Square className="h-6 w-6 text-red-500 fill-current animate-pulse" />
+        <Square className="h-4 w-4 text-red-500 fill-current animate-pulse" />
       </button>
     );
   }
