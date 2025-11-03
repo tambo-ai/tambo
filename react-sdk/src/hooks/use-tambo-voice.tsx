@@ -47,6 +47,10 @@ export function useTamboVoice() {
   }, []);
 
   const startRecording = useCallback(async () => {
+    // If already recording or media recorder is already set, do nothing
+    if (isRecording) {
+      return;
+    }
     const stream = await getMediaStream();
     if (!stream) {
       return;
@@ -62,7 +66,7 @@ export function useTamboVoice() {
     });
     setMediaRecorder(recorder);
     recorder.start();
-  }, [getMediaStream]);
+  }, [getMediaStream, isRecording]);
 
   // Stop recording audio and start transcription
   const stopRecording = useCallback(() => {
