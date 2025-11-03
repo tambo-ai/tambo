@@ -20,9 +20,10 @@ html {
     --primary: 157 100% 75%;
     --primary-foreground: 186 94% 13%;
 
-    /* Secondary/Muted - NEUTRAL */
+    /* Secondary - Filled neutral controls (chips, toggles) */
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
+    /* Muted - Subtle surfaces + subdued copy */
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
@@ -88,9 +89,10 @@ html {
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
 
-    /* Secondary/Muted */
+    /* Secondary - Filled neutral controls (chips, toggles) */
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
+    /* Muted - Subtle surfaces + subdued copy */
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 

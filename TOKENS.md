@@ -1,256 +1,55 @@
-# Design Tokens - Usage Guide
+# Design Tokens – Usage Guide
 
-## Core Principle: Neutral by Default, Brand by Exception
+## Core Principle
 
-95% of your UI should use neutral tokens. Brand colors are for intentional interactive elements only.
+- Neutral by default, brand by exception: target 95% neutral usage across the UI.
+- Brand colors appear only when communicating primary calls to action or intentional highlights.
+- Every neutral choice must work in both light and dark themes without additional overrides.
 
-## Token Hierarchy
+## Text Tokens
 
-### Text Tokens
+- **`text-foreground`**: primary copy, headings, labels, and button text on neutral or muted backgrounds. Use whenever content needs maximum contrast.
+- **`text-muted-foreground`**: secondary copy such as timestamps, captions, helper text, placeholders, loading states, and passive icons. Never apply it to interactive controls.
+- **`text-primary-foreground`**: pair exclusively with `bg-primary` brand surfaces (primary CTAs, brand badges). Do not use on neutral backgrounds.
+- **`text-primary`**: legacy accent token. Avoid inside the product UI; reserve it for explicit marketing treatments that have been reviewed.
+- **Semantic status colors**: use dedicated success (`text-green-600 dark:text-green-400`), warning (`text-amber-600 dark:text-amber-400`), and error (`text-red-600 dark:text-red-400`) tokens. Never substitute brand colors for status messaging.
 
-#### Content Text (Use for 95% of text)
+## Neutral Icon & Ghost Controls
 
-**`text-foreground`**
+- Neutral icon buttons and ghost controls use the outline recipe: `border border-border`, `bg-background`, `text-foreground`, `hover:bg-muted`, and a `focus-visible:ring` treatment.
+- Do not use `text-muted-foreground` on interactive icons; if an icon looks disabled before hover, the token choice is wrong.
+- Keep hover and focus feedback neutral (background shift, ring, subtle shadow). Do not reintroduce brand color on neutral controls.
 
-- Primary body text
-- Headings
-- Button labels on colored backgrounds
-- Any text that should maintain contrast in light/dark themes
+## Background Tokens
 
-```tsx
-// ✅ Correct usage
-<p className="text-foreground">Body text</p>
-<h1 className="text-foreground">Heading</h1>
-<label className="text-foreground">Form Label</label>
-```
+- **`bg-background`**: page bodies and large neutral surfaces.
+- **`bg-card`**: elevated containers that sit above the page background.
+- **`bg-muted`**: subdued surfaces for secondary panels, code blocks, and neutral interactive elements that should feel low emphasis.
+- **`bg-secondary`**: filled neutral controls (segmented toggles, filter chips) that need slightly higher emphasis without brand color. Do not use for icon buttons; they follow the outline recipe above.
+- **`bg-primary`**: primary CTAs only. Limit to one or two per page, and always pair with `text-primary-foreground`.
 
-**`text-muted-foreground`**
+## Borders, Rings, and Focus
 
-- Secondary information
-- Captions and descriptions
-- Placeholder text
-- Icons in neutral contexts
-- Timestamps
-- Loading states
+- **`border`**: default separators, card outlines, input borders, and dividers.
+- **`border-primary` / `ring`**: focus and active states only. Never use them for passive decoration.
+- Always provide a `focus-visible:ring` treatment for interactive components that rely on neutral colors so keyboard users get a clear affordance.
 
-```tsx
-// ✅ Correct usage
-<p className="text-muted-foreground">Posted 2 hours ago</p>
-<input placeholder="Enter text..." className="placeholder:text-muted-foreground" />
-<FileIcon className="text-muted-foreground" />
-```
+## Link Styling
 
-#### Interactive Text (Use sparingly - <5% of text)
+- Inline links default to `text-foreground` with an underline in `decoration-muted-foreground` to keep the pattern neutral.
+- Hover states must increase contrast: keep `hover:text-foreground` (never reduce opacity) and shift the underline to `decoration-foreground`.
+- Avoid reintroducing brand colors into inline links unless the entire context is a marketing surface that explicitly calls for it.
 
-**`text-primary`**
+## Button Patterns
 
-- **ONLY** on `bg-primary` backgrounds
-- **NEVER** on default/white/transparent backgrounds
-- **NEVER** for content text, labels, or placeholders
+- **Primary CTA buttons**: `bg-primary` + `text-primary-foreground` with neutral hover (`hover:bg-primary/90`). Reserved for the single dominant action in a surface (e.g., message submit).
+- **Neutral outline buttons**: `border border-border bg-background text-foreground hover:bg-muted focus-visible:ring-*`. This is the default for message input toolbar actions, secondary form actions, icon buttons, and any neutral affordance that is not the primary CTA.
+- **Neutral filled buttons**: `bg-secondary text-foreground hover:bg-secondary/80` only when a control needs more emphasis than the outline pattern (segmented toggles, filter chips). Never combine with icon-only actions.
+- **Destructive buttons**: continue using the existing `bg-destructive text-destructive-foreground` patterns for irreversible actions.
+- Every button variant must include a `focus-visible:ring` treatment and avoid `text-muted-foreground`.
 
-```tsx
-// ✅ Correct usage
-<button className="bg-primary text-primary">
-  Call to Action
-</button>
+## Form Inputs
 
-// ❌ WRONG - text-primary without bg-primary
-<label className="text-primary">Form Label</label>
-<p className="text-primary">Body text</p>
-<input placeholder="..." className="placeholder:text-primary" />
-```
-
-**`text-secondary`**
-
-- **DEPRECATED** - Do not use
-- Replaced by `text-muted-foreground` for neutral contexts
-- Replaced by hardcoded semantic colors for status
-
-```tsx
-// ❌ NEVER use text-secondary
-<p className="text-secondary">Caption</p>
-
-// ✅ Use text-muted-foreground instead
-<p className="text-muted-foreground">Caption</p>
-```
-
-#### Status Text (Use for semantic states)
-
-**Hardcoded Semantic Colors**
-
-- Success: `text-green-600 dark:text-green-400`
-- Error: `text-red-600 dark:text-red-400`
-- Warning: `text-amber-600 dark:text-amber-400`
-
-```tsx
-// ✅ Correct usage
-<p className="text-green-600 dark:text-green-400">
-  Success message
-</p>
-
-// ❌ WRONG - using text-primary for status
-<p className="text-primary">Success message</p>
-```
-
-### Background Tokens
-
-#### Neutral Backgrounds
-
-**`bg-background`**
-
-- Page/app background
-- Card backgrounds in most contexts
-
-**`bg-muted`**
-
-- Interactive neutral elements (buttons, inputs)
-- Hover states for neutral actions
-- Code blocks
-- Secondary cards
-
-```tsx
-// ✅ Correct usage - neutral button
-<button className="bg-muted text-muted-foreground hover:bg-muted/80">
-  Secondary Action
-</button>
-```
-
-**`bg-card`**
-
-- Elevated content containers
-- Distinct from page background
-
-#### Brand Backgrounds
-
-**`bg-primary`**
-
-- Primary CTAs only
-- Must use with `text-primary`
-- Sparingly used (1-2 per page)
-
-```tsx
-// ✅ Correct usage
-<button className="bg-primary text-primary hover:bg-primary/90">
-  Primary CTA
-</button>
-
-// ❌ WRONG - bg-primary without text-primary
-<button className="bg-primary text-foreground">
-  Button
-</button>
-```
-
-### Border Tokens
-
-**`border`**
-
-- Default borders (inputs, cards, dividers)
-- Neutral element separation
-
-**`border-primary`**
-
-- Focus states on form inputs
-- Active states on interactive elements
-- Never for static decorative borders
-
-## Common Patterns
-
-### Form Elements
-
-```tsx
-// ✅ Correct
-<div>
-  <label className="text-foreground">Email</label>
-  <p className="text-muted-foreground">We'll never share your email</p>
-  <input
-    className="border text-foreground placeholder:text-muted-foreground"
-    placeholder="you@example.com"
-  />
-</div>
-
-// ❌ WRONG
-<div>
-  <label className="text-primary">Email</label>
-  <p className="text-secondary">We'll never share your email</p>
-  <input
-    className="border text-primary placeholder:text-secondary"
-    placeholder="you@example.com"
-  />
-</div>
-```
-
-### Interactive Elements
-
-```tsx
-// ✅ Primary action
-<button className="bg-primary text-primary hover:bg-primary/90">
-  Submit
-</button>
-
-// ✅ Secondary action
-<button className="bg-muted text-muted-foreground hover:bg-muted/80">
-  Cancel
-</button>
-
-// ❌ WRONG - text-primary without bg-primary
-<button className="bg-muted text-primary">
-  Submit
-</button>
-```
-
-### Loading States
-
-```tsx
-// ✅ Always neutral
-<div className="text-muted-foreground">
-  <Spinner className="animate-spin" />
-  Loading...
-</div>
-
-// ❌ WRONG - loading should never be branded
-<div className="text-primary">
-  <Spinner className="animate-spin" />
-  Loading...
-</div>
-```
-
-## Migration Guide
-
-### Finding Issues
-
-```bash
-# Find all text-primary usage
-grep -r "text-primary" --include="*.tsx" --include="*.ts"
-
-# Find all text-secondary usage
-grep -r "text-secondary" --include="*.tsx" --include="*.ts"
-```
-
-### Common Replacements
-
-| Old Pattern                | New Pattern                         | Context                |
-| -------------------------- | ----------------------------------- | ---------------------- |
-| `text-primary`             | `text-foreground`                   | Labels, headings       |
-| `text-secondary`           | `text-muted-foreground`             | Captions, descriptions |
-| `placeholder:text-primary` | `placeholder:text-muted-foreground` | Input placeholders     |
-| `text-primary` (icon)      | `text-muted-foreground`             | Neutral icons          |
-| `hover:text-primary`       | `hover:text-foreground`             | Non-CTA hover states   |
-
-### Testing Changes
-
-After migration:
-
-1. Test in light theme
-2. Test in dark theme
-3. Test in high contrast mode
-4. Verify text remains readable
-5. Check that brand colors only appear on intentional CTAs
-
-## Validation Checklist
-
-- [ ] TOKENS.md created with all patterns documented
-- [ ] ESLint rule added to catch text-primary misuse
-- [ ] Storybook examples show correct vs incorrect usage
-- [ ] Migration guide includes search/replace patterns
-- [ ] All developers have read and acknowledged token rules
-- [ ] Design system documentation updated
+- Inputs, textareas, and selects use `bg-background`, `border`, `text-foreground`, and `placeholder:text-muted-foreground`.
+- Focus states rely on `focus-visible:ring`/`focus:border-primary` rather than swapping to brand text colors.
+- Inline controls (checkboxes, radio, switch) use the neutral outline recipe by default; only elevate to brand surfaces when mirroring primary CTA intent.
