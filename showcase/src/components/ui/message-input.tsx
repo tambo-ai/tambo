@@ -595,7 +595,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
 
@@ -632,7 +632,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <Tooltip
         content="Configure MCP Servers"
         side="right"
-        className="bg-muted text-muted-foreground"
+        className="bg-muted text-foreground"
       >
         <button
           ref={ref}
@@ -746,7 +746,7 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
 
@@ -755,7 +755,7 @@ const MessageInputFileButton = React.forwardRef<
       <Tooltip
         content="Attach Images"
         side="top"
-        className="bg-muted text-muted-foreground"
+        className="bg-muted text-foreground"
       >
         <button
           ref={ref}
@@ -844,7 +844,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
   }
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
 
@@ -853,7 +853,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
       <Tooltip
         content="Insert MCP Prompt"
         side="top"
-        className="bg-muted text-muted-foreground"
+        className="bg-muted text-foreground"
       >
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
@@ -1002,7 +1002,7 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
         e.stopPropagation();
         onRemove();
       }}
-      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
+      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-foreground rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
       aria-label={`Remove ${displayName}`}
     >
       <X className="w-3 h-3" />
