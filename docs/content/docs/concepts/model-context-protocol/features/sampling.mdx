@@ -31,17 +31,17 @@ When an MCP server makes a sampling request, it creates a "sub-conversation" bet
 sequenceDiagram
     participant User
     participant Tambo
-    participant MCP Server
+    participant MCPServer as "MCP Server"
     participant LLM
 
     User->>Tambo: "What's the weather in SF?"
-    Tambo->>MCP Server: Call weather tool
-    MCP Server->>MCP Server: Fetch raw weather data
-    MCP Server->>Tambo: Sampling request: "Summarize this weather data"
+    Tambo->>MCPServer: Call weather tool
+    MCPServer->>MCPServer: Fetch raw weather data
+    MCPServer->>Tambo: Sampling request: "Summarize this weather data"
     Tambo->>LLM: Generate summary
     LLM->>Tambo: Summary response
-    Tambo->>MCP Server: Sampling result
-    MCP Server->>Tambo: Tool result with summary
+    Tambo->>MCPServer: Sampling result
+    MCPServer->>Tambo: Tool result with summary
     Tambo->>User: Display formatted weather
 ```
 
