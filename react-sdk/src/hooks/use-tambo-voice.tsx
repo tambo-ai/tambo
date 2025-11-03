@@ -4,12 +4,13 @@ import { useTamboClient } from "../providers/tambo-client-provider";
 /**
  * Exposes functionality to record speech and transcribe it using the Tambo API.
  * @returns An object with:
- * - startRecording: A function to start recording audio and rese the current transcript.
+ * - startRecording: A function to start recording audio and reset the current transcript.
  * - stopRecording: A function to stop recording audio and automatically kick off transcription.
  * - isRecording: A boolean indicating if the user is recording audio.
  * - isTranscribing: A boolean indicating if the audio is being transcribed.
  * - transcript: The transcript of the recorded audio.
  * - transcriptionError: An error message if the transcription fails.
+ * - mediaAccessError: An error message if microphone access fails.
  */
 export function useTamboVoice() {
   const [isRecording, setIsRecording] = useState(false);
@@ -18,28 +19,50 @@ export function useTamboVoice() {
   const [transcriptionError, setTranscriptionError] = useState<string | null>(
     null,
   );
+  const [mediaAccessError, setMediaAccessError] = useState<string | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null,
   );
   const audioChunks = useRef<Blob[]>([]);
   const client = useTamboClient();
 
+  // Get user permission and access the microphone
+  const getMediaStream = useCallback(async (): Promise<MediaStream | null> => {
+    try {
+      setMediaAccessError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+      return stream;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to access microphone. Please check permissions.";
+      setMediaAccessError(errorMessage);
+      console.error("Error getting media stream:", error);
+      return null;
+    }
+  }, []);
+
   const startRecording = useCallback(async () => {
+    const stream = await getMediaStream();
+    if (!stream) {
+      return;
+    }
+
     setIsRecording(true);
     audioChunks.current = [];
     setTranscript(null);
     setTranscriptionError(null);
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: false,
-    });
 
     const recorder = new MediaRecorder(stream, {
       mimeType: "audio/webm;codecs=opus",
     });
     setMediaRecorder(recorder);
     recorder.start();
-  }, []);
+  }, [getMediaStream]);
 
   // Stop recording audio and start transcription
   const stopRecording = useCallback(() => {
@@ -119,5 +142,6 @@ export function useTamboVoice() {
     isTranscribing,
     transcript,
     transcriptionError,
+    mediaAccessError,
   };
 }
