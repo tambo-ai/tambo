@@ -7,6 +7,7 @@ import {
   LEGACY_COMPONENT_SUBDIR,
 } from "../constants/paths.js";
 import { installComponents } from "./add/component.js";
+import { resolveComponentDependencies } from "./add/dependencies.js";
 import type { InstallComponentOptions } from "./add/types.js";
 import { componentExists, getInstalledComponents } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
@@ -136,6 +137,120 @@ export async function handleUpdateComponents(
         console.log(chalk.blue("ℹ No components to update."));
       }
       return;
+    }
+
+    // Resolve dependencies for components to update
+    if (!options.silent) {
+      console.log(chalk.blue("\nℹ Resolving component dependencies..."));
+    }
+
+    const allComponentsToUpdate = new Set<string>();
+    const dependencyMap = new Map<string, string[]>();
+
+    for (const component of verifiedComponents) {
+      allComponentsToUpdate.add(component.name);
+      try {
+        const resolved = await resolveComponentDependencies(component.name);
+        const dependencies = resolved.filter((dep) => dep !== component.name);
+
+        if (dependencies.length > 0) {
+          dependencyMap.set(component.name, dependencies);
+          dependencies.forEach((dep) => allComponentsToUpdate.add(dep));
+        }
+      } catch (error) {
+        if (!options.silent) {
+          console.log(
+            chalk.yellow(
+              `⚠️  Failed to resolve dependencies for ${component.name}: ${error}`,
+            ),
+          );
+        }
+      }
+    }
+
+    // Get list of all installed components to filter dependencies
+    const allInstalledComponents = await getInstalledComponents(
+      installPath,
+      isExplicitPrefix,
+    );
+    const installedComponentSet = new Set(allInstalledComponents);
+
+    // Split dependencies into already installed (to update) and missing (to install)
+    const dependenciesToUpdate = Array.from(allComponentsToUpdate).filter(
+      (comp) => installedComponentSet.has(comp),
+    );
+    const dependenciesToInstall = Array.from(allComponentsToUpdate).filter(
+      (comp) => !installedComponentSet.has(comp),
+    );
+
+    // Show dependency information for already installed dependencies
+    if (dependenciesToUpdate.length > verifiedComponents.length) {
+      const addedDeps = dependenciesToUpdate.filter(
+        (dep) => !verifiedComponents.find((c) => c.name === dep),
+      );
+      if (addedDeps.length > 0 && !options.silent) {
+        console.log(
+          chalk.blue("\n📦 Including installed dependencies in update:"),
+        );
+        addedDeps.forEach((dep) => {
+          const requiredBy = Array.from(dependencyMap.entries())
+            .filter(([, deps]) => deps.includes(dep))
+            .map(([comp]) => comp);
+          console.log(`    - ${dep} (required by: ${requiredBy.join(", ")})`);
+        });
+      }
+    }
+
+    // Show dependencies that need to be installed
+    if (dependenciesToInstall.length > 0 && !options.silent) {
+      console.log(chalk.blue("\n📦 Installing missing dependencies:"));
+      dependenciesToInstall.forEach((dep) => {
+        const requiredBy = Array.from(dependencyMap.entries())
+          .filter(([, deps]) => deps.includes(dep))
+          .map(([comp]) => comp);
+        console.log(`    - ${dep} (required by: ${requiredBy.join(", ")})`);
+      });
+    }
+
+    // Add all dependencies (both installed and missing) to verifiedComponents
+    const existingComponentNames = new Set(
+      verifiedComponents.map((c) => c.name),
+    );
+    const allDependencies = [...dependenciesToUpdate, ...dependenciesToInstall];
+
+    for (const depName of allDependencies) {
+      if (!existingComponentNames.has(depName)) {
+        // For already installed dependencies, find their current location
+        const location = findComponentLocation(
+          depName,
+          projectRoot,
+          installPath,
+          isExplicitPrefix,
+        );
+
+        if (location) {
+          // Dependency already exists, use its current location
+          verifiedComponents.push({
+            name: depName,
+            installPath: location.installPath,
+          });
+
+          if (location.needsCreation) {
+            legacyComponents.push(depName);
+          } else {
+            newComponents.push(depName);
+          }
+        } else {
+          // Missing dependency, use the same base install path as existing components
+          verifiedComponents.push({
+            name: depName,
+            installPath: installPath,
+          });
+
+          // Missing dependencies go to the new location by default
+          newComponents.push(depName);
+        }
+      }
     }
 
     // Check for cross-location dependencies
