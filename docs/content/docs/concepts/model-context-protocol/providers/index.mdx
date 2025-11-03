@@ -12,6 +12,7 @@ Tambo supports two ways to connect to MCP servers, each with different character
 Server-side MCP connections are configured through the Tambo dashboard and run on Tambo's backend infrastructure. This approach provides the most efficient communication since tools execute via direct server-to-server connections.
 
 **Key characteristics:**
+
 - **Authentication:** Requires OAuth-based authentication (or custom API key headers)
 - **Performance:** More efficient due to direct server-to-server communication
 - **Sharing:** MCP servers are shared across all users of your project
@@ -24,6 +25,7 @@ Server-side MCP connections are configured through the Tambo dashboard and run o
 Client-side MCP connections run directly in the user's browser, allowing you to leverage the browser's existing authentication state and access to local services.
 
 **Key characteristics:**
+
 - **Authentication:** Leverages the browser's authentication state (no OAuth setup needed)
 - **Performance:** More chatty due to browser-to-Tambo-to-MCP communication
 - **Local access:** Can connect to local MCP servers (e.g., localhost)
@@ -36,4 +38,3 @@ Client-side MCP connections run directly in the user's browser, allowing you to 
 MCP tools automatically support rich content responses. When MCP servers return content arrays (which can include text, images, and other media types), Tambo automatically passes them through to the AI without converting them to plain text. This means MCP tools can seamlessly return images, formatted content, and other rich media.
 
 If you're building custom tools that need similar capabilities, you can use the `transformToContent` parameter when registering tools. [Learn more about returning rich content from tools](/concepts/tools/adding-tools#returning-rich-content).
-
