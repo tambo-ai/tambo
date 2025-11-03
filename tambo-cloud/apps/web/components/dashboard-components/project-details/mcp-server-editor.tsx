@@ -64,7 +64,7 @@ export function McpServerEditor({
   redirectToAuth,
 }: McpServerEditorProps) {
   const [mcpTransport, setMcpTransport] = useState<MCPTransport>(
-    server.mcpTransport || MCPTransport.SSE,
+    server.mcpTransport || MCPTransport.HTTP,
   );
   const [url, setUrl] = useState(server.url || (isNew ? "https://" : ""));
   const [headers, setHeaders] = useState<HeaderKV[]>(
@@ -101,7 +101,7 @@ export function McpServerEditor({
 
   // Reset form when server changes
   useEffect(() => {
-    setMcpTransport(server.mcpTransport || MCPTransport.SSE);
+    setMcpTransport(server.mcpTransport || MCPTransport.HTTP);
     setUrl(server.url || (isNew ? "https://" : ""));
     setHeaders(
       Object.entries(server.customHeaders ?? {}).map(([header, value]) => ({
@@ -313,8 +313,8 @@ export function McpServerEditor({
             <SelectValue placeholder="Select transport type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={MCPTransport.SSE}>SSE</SelectItem>
             <SelectItem value={MCPTransport.HTTP}>HTTP Streamable</SelectItem>
+            <SelectItem value={MCPTransport.SSE}>SSE</SelectItem>
           </SelectContent>
         </Select>
       </div>

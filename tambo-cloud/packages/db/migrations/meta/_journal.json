@@ -561,6 +561,13 @@
       "when": 1760552119610,
       "tag": "0079_futuristic_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1762191102466,
+      "tag": "0080_green_stephen_strange",
+      "breakpoints": true
     }
   ]
 }

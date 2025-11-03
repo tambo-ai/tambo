@@ -618,7 +618,7 @@ export const toolProviders = pgTable(
       enum: Object.values(MCPTransport) as [MCPTransport],
     })
       .notNull()
-      .default(MCPTransport.SSE),
+      .default(MCPTransport.HTTP),
     mcpRequiresAuth: boolean("mcp_requires_auth").notNull().default(false),
   }),
   (table) => [index("tool_providers_project_id_idx").on(table.projectId)],
