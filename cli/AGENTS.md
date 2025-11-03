@@ -12,6 +12,7 @@ The Tambo CLI (`tambo`) is a command-line tool for scaffolding, managing, and ex
 # Development
 npm run dev              # Watch mode TypeScript compilation
 npm run build           # Build CLI executable
+npm run test            # Run Jest test suite
 npm run lint            # ESLint code checking
 npm run check-types     # TypeScript type checking
 
@@ -91,10 +92,62 @@ If you do update the components directly, you should also update the documentati
 3. Include component files and dependencies
 4. Test installation and generation
 
+## Testing
+
+### Test Structure
+
+- Tests are located in `tests/` directory (separate from `src/` to avoid distribution)
+- Uses Jest with ESM support and memfs for filesystem mocking
+- Test files follow pattern: `tests/commands/*.test.ts`
+
+### Running Tests
+
+```bash
+npm test                 # Run all tests
+npm test -- --watch     # Run tests in watch mode
+npm test -- list        # Run specific test file
+```
+
+### Writing Tests
+
+Tests use memfs to mock the filesystem without affecting the real filesystem:
+
+```typescript
+import { vol } from "memfs";
+
+// Setup mock filesystem
+vol.fromJSON({
+  "/mock-project/package.json": JSON.stringify({ name: "test" }),
+  "/mock-project/src/components/tambo/message.tsx":
+    "export const message = () => null;",
+});
+
+// Test your command
+await handleListComponents();
+
+// Clean up
+vol.reset();
+```
+
+Key testing utilities in `tests/helpers/mock-fs-setup.ts`:
+
+- `createBasicProjectStructure()` - Creates common test filesystem structures
+- `captureConsoleOutput()` - Captures console.log output for assertions
+- `mockProcessCwd()` - Mocks the current working directory
+
+### Test Coverage
+
+- Command handlers should have unit tests
+- Use mock filesystem to simulate project structures
+- Mock external dependencies (registry, network calls)
+- Test both success and error cases
+
 ## Important Development Rules
 
 - CLI is built as ESM module only
 - All components must be SSR compatible
 - Follow existing patterns for command structure
+- Write tests for new commands and logic changes
 - Test component generation end-to-end
 - Update help text for new commands/options
+- Always run tests before committing: `npm test`
