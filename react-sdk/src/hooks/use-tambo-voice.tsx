@@ -82,6 +82,10 @@ export function useTamboVoice() {
     };
 
     const handleStop = () => {
+      // Stop all tracks to release the microphone and remove the recording indicator
+      if (mediaRecorder?.stream) {
+        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+      }
       setMediaRecorder(null);
       transcribeRecordedAudio();
     };
@@ -94,6 +98,15 @@ export function useTamboVoice() {
       mediaRecorder.onstop = null;
     };
   }, [mediaRecorder, transcribeRecordedAudio]);
+
+  // Cleanup effect to stop media stream when component unmounts
+  useEffect(() => {
+    return () => {
+      if (mediaRecorder?.stream) {
+        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [mediaRecorder]);
 
   return {
     startRecording,
