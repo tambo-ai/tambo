@@ -1092,6 +1092,7 @@ const DictationButton = () => {
     useState<string>("");
 
   const handleStartRecording = () => {
+    setLastProcessedTranscript("");
     startRecording();
   };
 
