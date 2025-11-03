@@ -26,7 +26,7 @@ import { MessageInput } from "@/components/ui/message-input";
 <MessageInput contextKey="my-thread">
   <MessageInput.Textarea />
   <MessageInput.SubmitButton />
-</MessageInput>
+</MessageInput>;
 ```
 
 The elicitation UI automatically:
@@ -66,38 +66,19 @@ sequenceDiagram
 
 An MCP server can request confirmation before performing a destructive action:
 
-**[Placeholder for screenshot: elicitation-confirmation.png]**
-
-The server requests a boolean field asking "Are you sure you want to delete this resource?"
+![Elicitation Confirmation](elicitation-confirmation.png)
 
 ### Multi-field Forms
 
 MCP servers can request multiple fields at once:
 
-**[Placeholder for screenshot: elicitation-multi-field.png]**
-
-For example, creating a calendar event might require:
-- Event title (string, required)
-- Start time (string, date-time format, required)
-- Duration (number, optional)
-- Send invites (boolean, optional)
+![Elicitation Multi-field](elicitation-multi-field.png)
 
 ### Enum Selection
 
 When the server needs the user to choose from a predefined set of options:
 
-**[Placeholder for screenshot: elicitation-enum.png]**
-
-For example: "Which priority level?" with options: Low, Medium, High, Critical
-
-## Server-side MCP and Elicitation
-
-When using server-side MCP servers (configured through the Tambo dashboard), elicitation requests are automatically proxied through Tambo's internal infrastructure. To enable this:
-
-1. Use the `TamboMcpProvider` in your application
-2. Ensure you have the Tambo MCP token configured (this is automatic when using `TamboProvider`)
-
-The `TamboMcpProvider` automatically connects to Tambo's internal MCP server, which handles proxying elicitation requests from server-side MCP servers to your browser:
+![Elicitation Enum](elicitation-enum.png)
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
@@ -135,7 +116,9 @@ function CustomElicitationUI() {
   const handleAccept = () => {
     resolveElicitation?.({
       action: "accept",
-      content: { /* user's input */ },
+      content: {
+        /* user's input */
+      },
     });
   };
 
@@ -170,12 +153,12 @@ function App() {
     // request: { params: { message, requestedSchema } }
     // extra: { signal } - AbortSignal for cancellation
     // serverInfo: { name, url, description, ... } - MCP server config
-    
+
     console.log(`Elicitation from ${serverInfo.name}: ${request.params.message}`);
-    
+
     // Show custom UI and collect user input
     const userInput = await showCustomElicitationUI(request.params);
-    
+
     return {
       action: "accept",
       content: userInput,
@@ -252,7 +235,7 @@ Per-server handlers take precedence over provider-level handlers.
 
 ```typescript
 {
-  signal: AbortSignal;  // Fires if server cancels the request
+  signal: AbortSignal; // Fires if server cancels the request
 }
 ```
 
@@ -268,4 +251,3 @@ Per-server handlers take precedence over provider-level handlers.
 - **accept**: User provided input and wants to continue
 - **decline**: User chose not to provide input but tool should continue
 - **cancel**: User wants to abort the entire operation
-
