@@ -21,16 +21,24 @@ export function buildMessageContent(
     });
   }
 
-  // Add files as document content parts
+  // Add files - images as image_url, documents as file references
   for (const file of files) {
     if (file.storagePath) {
-      content.push({
-        type: "document",
-        document: {
-          storagePath: file.storagePath,
-          mimeType: file.type,
-        },
-      } as TamboAI.Beta.Threads.ChatCompletionContentPart);
+      if (file.type.startsWith("image/")) {
+        content.push({
+          type: "image_url",
+          image_url: {
+            url: `storage://${file.storagePath}`,
+            detail: "auto",
+          },
+        } as TamboAI.Beta.Threads.ChatCompletionContentPart);
+      } else {
+        // Store file info as text - backend will process storage:// URLs
+        content.push({
+          type: "text",
+          text: `storage://${file.storagePath}|${file.type}|${file.name}`,
+        });
+      }
     }
   }
 
