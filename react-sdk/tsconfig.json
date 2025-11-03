@@ -6,7 +6,7 @@
     "emitDecoratorMetadata": true,
     "jsx": "react",
     "module": "ES6",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "rootDir": "./src",
     "declaration": true,
     "sourceMap": true,
