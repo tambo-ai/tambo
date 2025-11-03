@@ -1108,15 +1108,16 @@ const DictationButton = () => {
 
   if (isTranscribing) {
     return (
-      <button className="p-2 rounded-md">
+      <div className="p-2 rounded-md">
         <Loader2Icon className="h-5 w-5 animate-spin" />
-      </button>
+      </div>
     );
   }
 
   if (isRecording) {
     return (
       <button
+        type="button"
         onClick={handleStopRecording}
         className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
       >
@@ -1131,6 +1132,7 @@ const DictationButton = () => {
       <TooltipProvider>
         <Tooltip content="Dictate">
           <button
+            type="button"
             onClick={handleStartRecording}
             className="p-2 rounded-md cursor-pointer hover:bg-gray-100 "
           >
