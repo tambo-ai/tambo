@@ -11,8 +11,8 @@ Tambo supports various Model Context Protocol features that enable rich interact
 | ---------------- | -------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | **Tools**        | ✅ Supported   | Call functions exposed by MCP servers to perform actions and retrieve data   | Coming soon                                                        |
 | **Elicitations** | ✅ Supported   | Request additional input from users during tool execution with dynamic forms | [View docs](/concepts/model-context-protocol/features/elicitation) |
-| **Sampling**     | ✅ Supported   | Allow MCP servers to request LLM completions through your application        | Coming soon                                                        |
-| **Prompts**      | ✅ Supported   | Use predefined prompt templates from MCP servers                             | Coming soon                                                        |
+| **Sampling**     | ✅ Supported   | Allow MCP servers to request LLM completions through your application        | [View docs](/concepts/model-context-protocol/features/sampling)    |
+| **Prompts**      | ✅ Supported   | Use predefined prompt templates from MCP servers                             | [View docs](/concepts/model-context-protocol/features/prompts)     |
 | **Resources**    | ⏳ Planned     | Access data and content exposed by MCP servers                               | Coming soon                                                        |
 
 ## Feature Details
@@ -33,9 +33,17 @@ Elicitations allow MCP servers to pause during tool execution and request additi
 
 Sampling enables MCP servers to request LLM completions through your application. This allows MCP tools to leverage AI capabilities for tasks like generating text, analyzing content, or making decisions based on context.
 
+**Note:** Sampling currently only works with server-side MCP connections.
+
+[Learn more about sampling](/concepts/model-context-protocol/features/sampling)
+
 ### Prompts
 
-Prompts allow MCP servers to expose reusable prompt templates that can be invoked by your application. This enables standardized workflows and consistent prompt patterns across different tools and services.
+Prompts allow MCP servers to expose reusable prompt templates that can be inserted into your message input. Users can select from available prompts via a dropdown menu in the message input area.
+
+**Note:** Prompt parameters are not yet supported. All prompts are inserted as-is without customization.
+
+[Learn more about prompts](/concepts/model-context-protocol/features/prompts)
 
 ### Future Features
 
