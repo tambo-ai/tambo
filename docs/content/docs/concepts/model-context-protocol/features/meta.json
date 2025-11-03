@@ -1,4 +1,4 @@
 {
   "title": "Features",
-  "pages": ["elicitation", "sampling", "prompts"]
+  "pages": ["prompts", "elicitation", "sampling"]
 }
