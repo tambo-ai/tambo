@@ -1085,6 +1085,7 @@ const DictationButton = () => {
     isRecording,
     isTranscribing,
     transcript,
+    transcriptionError,
   } = useTamboVoice();
   const { value, setValue } = useTamboThreadInput();
   const [lastProcessedTranscript, setLastProcessedTranscript] =
@@ -1128,16 +1129,19 @@ const DictationButton = () => {
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip content="Dictate">
-        <button
-          onClick={handleStartRecording}
-          className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
-        >
-          <Mic className="h-5 w-5" />
-        </button>
-      </Tooltip>
-    </TooltipProvider>
+    <div className="flex flex-row items-center gap-2">
+      <span className="text-sm text-red-500">{transcriptionError}</span>
+      <TooltipProvider>
+        <Tooltip content="Dictate">
+          <button
+            onClick={handleStartRecording}
+            className="p-2 rounded-md cursor-pointer hover:bg-gray-100 "
+          >
+            <Mic className="h-5 w-5" />
+          </button>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
   );
 };
 

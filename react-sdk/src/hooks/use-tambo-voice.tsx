@@ -9,11 +9,15 @@ import { useTamboClient } from "../providers/tambo-client-provider";
  * - isRecording: A boolean indicating if the user is recording audio.
  * - isTranscribing: A boolean indicating if the audio is being transcribed.
  * - transcript: The transcript of the recorded audio.
+ * - transcriptionError: An error message if the transcription fails.
  */
 export function useTamboVoice() {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(
+    null,
+  );
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null,
   );
@@ -24,7 +28,7 @@ export function useTamboVoice() {
     setIsRecording(true);
     audioChunks.current = [];
     setTranscript(null);
-
+    setTranscriptionError(null);
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: false,
@@ -53,10 +57,18 @@ export function useTamboVoice() {
     });
 
     setIsTranscribing(true);
-    const result = await client.beta.audio.transcribe({ file });
-    setIsTranscribing(false);
-    setTranscript(result);
-    return result;
+    try {
+      const transcription = await client.beta.audio.transcribe({ file });
+      setTranscript(transcription);
+    } catch (error) {
+      setTranscriptionError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong during transcription.",
+      );
+    } finally {
+      setIsTranscribing(false);
+    }
   }, [audioChunks, client]);
 
   // Register event handlers for the media recorder
@@ -89,5 +101,6 @@ export function useTamboVoice() {
     isRecording,
     isTranscribing,
     transcript,
+    transcriptionError,
   };
 }
