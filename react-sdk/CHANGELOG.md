@@ -31,9 +31,8 @@
 - **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#1203](https://github.com/tambo-ai/tambo/issues/1203)) ([5c44450](https://github.com/tambo-ai/tambo/commit/5c444508e2309ef8b4ec9c9050e408e19a8a6e48))
 - **deps:** bump @modelcontextprotocol/sdk from 1.20.1 to 1.20.2 ([#1205](https://github.com/tambo-ai/tambo/issues/1205)) ([dd7db23](https://github.com/tambo-ai/tambo/commit/dd7db233ad6d992a5cb1db4bd3461f924f376e28))
 - **deps:** bump @tambo-ai/typescript-sdk from 0.75.0 to 0.75.1 ([#1208](https://github.com/tambo-ai/tambo/issues/1208)) ([76640d7](https://github.com/tambo-ai/tambo/commit/76640d7eab0202555ba699039152be7b656d40ef))
-
-* remove error log about tambo in browser ([#1215](https://github.com/tambo-ai/tambo/issues/1215)) ([7d2469b](https://github.com/tambo-ai/tambo/commit/7d2469b4622ca1612913e437e7edfbda263446ea))
-* update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
+- remove error log about tambo in browser ([#1215](https://github.com/tambo-ai/tambo/issues/1215)) ([7d2469b](https://github.com/tambo-ai/tambo/commit/7d2469b4622ca1612913e437e7edfbda263446ea))
+- update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
 
 ## [0.59.0](https://github.com/tambo-ai/tambo/compare/react-v0.58.1...react-v0.59.0) (2025-10-27)
 
@@ -53,8 +52,7 @@
 ### Features
 
 - (ui)show 'thought for x seconds' ([#1165](https://github.com/tambo-ai/tambo/issues/1165)) ([12d0ee1](https://github.com/tambo-ai/tambo/commit/12d0ee1edd8e1f132f00cb6e7f64216b80b9f090))
-
-* **sdk:** Add client-side transformToContent callback in tool registration ([#1169](https://github.com/tambo-ai/tambo/issues/1169)) ([651dc01](https://github.com/tambo-ai/tambo/commit/651dc01649e17fce4bcfb778a041e7b7ef830dbf))
+- **sdk:** Add client-side transformToContent callback in tool registration ([#1169](https://github.com/tambo-ai/tambo/issues/1169)) ([651dc01](https://github.com/tambo-ai/tambo/commit/651dc01649e17fce4bcfb778a041e7b7ef830dbf))
 
 ### Miscellaneous Chores
 
@@ -95,15 +93,14 @@
 ### Miscellaneous Chores
 
 - add agents.md & claude.md to monorepo. ([#1116](https://github.com/tambo-ai/tambo/issues/1116)) ([fe911d4](https://github.com/tambo-ai/tambo/commit/fe911d4613b301cf9a68a6a95ebc2b7a6a294dd5))
-
-* **deps-dev:** bump the eslint group across 1 directory with 6 updates ([#1097](https://github.com/tambo-ai/tambo/issues/1097)) ([a6fb6f1](https://github.com/tambo-ai/tambo/commit/a6fb6f1597380bb03f4700a2757edf1009095c6f))
-* **deps-dev:** bump the eslint group with 2 updates ([#1102](https://github.com/tambo-ai/tambo/issues/1102)) ([81b6601](https://github.com/tambo-ai/tambo/commit/81b6601df999b36bc51958a36c9164ef897734a4))
-* **deps-dev:** bump the testing group with 2 updates ([#1108](https://github.com/tambo-ai/tambo/issues/1108)) ([28b2c0f](https://github.com/tambo-ai/tambo/commit/28b2c0fe293c4fb437c2d105c8cc41154b4e135a))
-* **deps-dev:** bump ts-jest from 29.4.2 to 29.4.4 in the testing group ([#1087](https://github.com/tambo-ai/tambo/issues/1087)) ([625384c](https://github.com/tambo-ai/tambo/commit/625384c0bc2130e76fb637d889aa25667543970a))
-* **deps:** bump @modelcontextprotocol/sdk from 1.17.4 to 1.18.2 ([#1104](https://github.com/tambo-ai/tambo/issues/1104)) ([3e436b9](https://github.com/tambo-ai/tambo/commit/3e436b9721044b1e7668afcb997705e262f4dba4))
-* **deps:** bump @tanstack/react-query from 5.87.4 to 5.90.1 ([#1092](https://github.com/tambo-ai/tambo/issues/1092)) ([4ac242f](https://github.com/tambo-ai/tambo/commit/4ac242fbf306cee31135dd422a3115bb05b4a223))
-* **deps:** bump @tanstack/react-query from 5.90.1 to 5.90.2 ([#1113](https://github.com/tambo-ai/tambo/issues/1113)) ([97049af](https://github.com/tambo-ai/tambo/commit/97049af0246f19fc114b26a1f35fda7a1c8bfbc0))
-* **deps:** bump fast-equals from 5.2.2 to 5.3.2 ([#1103](https://github.com/tambo-ai/tambo/issues/1103)) ([2a5a6b4](https://github.com/tambo-ai/tambo/commit/2a5a6b4e1e941816a0e035ee4efab9dd8312db10))
+- **deps-dev:** bump the eslint group across 1 directory with 6 updates ([#1097](https://github.com/tambo-ai/tambo/issues/1097)) ([a6fb6f1](https://github.com/tambo-ai/tambo/commit/a6fb6f1597380bb03f4700a2757edf1009095c6f))
+- **deps-dev:** bump the eslint group with 2 updates ([#1102](https://github.com/tambo-ai/tambo/issues/1102)) ([81b6601](https://github.com/tambo-ai/tambo/commit/81b6601df999b36bc51958a36c9164ef897734a4))
+- **deps-dev:** bump the testing group with 2 updates ([#1108](https://github.com/tambo-ai/tambo/issues/1108)) ([28b2c0f](https://github.com/tambo-ai/tambo/commit/28b2c0fe293c4fb437c2d105c8cc41154b4e135a))
+- **deps-dev:** bump ts-jest from 29.4.2 to 29.4.4 in the testing group ([#1087](https://github.com/tambo-ai/tambo/issues/1087)) ([625384c](https://github.com/tambo-ai/tambo/commit/625384c0bc2130e76fb637d889aa25667543970a))
+- **deps:** bump @modelcontextprotocol/sdk from 1.17.4 to 1.18.2 ([#1104](https://github.com/tambo-ai/tambo/issues/1104)) ([3e436b9](https://github.com/tambo-ai/tambo/commit/3e436b9721044b1e7668afcb997705e262f4dba4))
+- **deps:** bump @tanstack/react-query from 5.87.4 to 5.90.1 ([#1092](https://github.com/tambo-ai/tambo/issues/1092)) ([4ac242f](https://github.com/tambo-ai/tambo/commit/4ac242fbf306cee31135dd422a3115bb05b4a223))
+- **deps:** bump @tanstack/react-query from 5.90.1 to 5.90.2 ([#1113](https://github.com/tambo-ai/tambo/issues/1113)) ([97049af](https://github.com/tambo-ai/tambo/commit/97049af0246f19fc114b26a1f35fda7a1c8bfbc0))
+- **deps:** bump fast-equals from 5.2.2 to 5.3.2 ([#1103](https://github.com/tambo-ai/tambo/issues/1103)) ([2a5a6b4](https://github.com/tambo-ai/tambo/commit/2a5a6b4e1e941816a0e035ee4efab9dd8312db10))
 
 ### Documentation
 
@@ -114,9 +111,7 @@
 ### Bug Fixes
 
 - add validation to prevent spaces in component and tool names ([#1079](https://github.com/tambo-ai/tambo/issues/1079)) ([0ede1eb](https://github.com/tambo-ai/tambo/commit/0ede1eb88fa22476c2662cdab3ef91b07b7ad5d6))
-
-* **mcp:** Handle cases where the server list changes ([#1080](https://github.com/tambo-ai/tambo/issues/1080)) ([86bf03e](https://github.com/tambo-ai/tambo/commit/86bf03eac65fef399abf0e02283c47c2aa166e00))
-
+- **mcp:** Handle cases where the server list changes ([#1080](https://github.com/tambo-ai/tambo/issues/1080)) ([86bf03e](https://github.com/tambo-ai/tambo/commit/86bf03eac65fef399abf0e02283c47c2aa166e00))
 - update typo ([#1078](https://github.com/tambo-ai/tambo/issues/1078)) ([1a8fb47](https://github.com/tambo-ai/tambo/commit/1a8fb473d49f74aea0211ce5c1acb21f75e7a38e))
 
 ### Miscellaneous Chores
@@ -193,8 +188,7 @@
 - **deps-dev:** bump the eslint group with 4 updates ([#1004](https://github.com/tambo-ai/tambo/issues/1004)) ([d24edce](https://github.com/tambo-ai/tambo/commit/d24edceb6a297f174108c0b4f7d43376a57819a3))
 - **deps-dev:** bump the testing group with 2 updates ([#1007](https://github.com/tambo-ai/tambo/issues/1007)) ([4f8bd5c](https://github.com/tambo-ai/tambo/commit/4f8bd5cfcdcc2773116cee5a4f862ea73ead5925))
 - **deps:** bump use-debounce from 10.0.5 to 10.0.6 ([#1010](https://github.com/tambo-ai/tambo/issues/1010)) ([b973105](https://github.com/tambo-ai/tambo/commit/b973105b281c6b109165304b1633dabd60815742))
-
-* remove unused file ([#1017](https://github.com/tambo-ai/tambo/issues/1017)) ([f9f6062](https://github.com/tambo-ai/tambo/commit/f9f60626b119bdc3b8bb0d11063076d062036890))
+- remove unused file ([#1017](https://github.com/tambo-ai/tambo/issues/1017)) ([f9f6062](https://github.com/tambo-ai/tambo/commit/f9f60626b119bdc3b8bb0d11063076d062036890))
 
 ## [0.47.0](https://github.com/tambo-ai/tambo/compare/react-v0.46.5...react-v0.47.0) (2025-09-05)
 
@@ -316,8 +310,7 @@
 ### Miscellaneous
 
 - **deps-dev:** bump the eslint group across 1 directory with 2 updates ([#798](https://github.com/tambo-ai/tambo/issues/798)) ([a935277](https://github.com/tambo-ai/tambo/commit/a935277e2cfb6d9ff01c7a3084b6900d31855d45))
-
-* remove extra properties from context helpers ([#796](https://github.com/tambo-ai/tambo/issues/796)) ([ad91eb3](https://github.com/tambo-ai/tambo/commit/ad91eb3394c64682781ea7d666b76155b3bdfdf6))
+- remove extra properties from context helpers ([#796](https://github.com/tambo-ai/tambo/issues/796)) ([ad91eb3](https://github.com/tambo-ai/tambo/commit/ad91eb3394c64682781ea7d666b76155b3bdfdf6))
 
 ## [0.42.1](https://github.com/tambo-ai/tambo/compare/react-v0.42.0...react-v0.42.1) (2025-08-05)
 
@@ -392,8 +385,7 @@
 - **deps:** add back ts-node to make jest happy ([#703](https://github.com/tambo-ai/tambo/issues/703)) ([523f244](https://github.com/tambo-ai/tambo/commit/523f2442b3ab08fd9870003badeafd29426dd590))
 - **deps:** bump @modelcontextprotocol/sdk from 1.15.1 to 1.16.0 ([#682](https://github.com/tambo-ai/tambo/issues/682)) ([5ec155d](https://github.com/tambo-ai/tambo/commit/5ec155d7b38fc54ee67b2ca93a0d59bf670ee80c))
 - **deps:** bump zod from 3.25.75 to 3.25.76 ([#681](https://github.com/tambo-ai/tambo/issues/681)) ([457291a](https://github.com/tambo-ai/tambo/commit/457291a72efbc9402cafeca561e33e6e5d2c1e5f))
-
-* update documentation links to new domain and update dev command filter ([#698](https://github.com/tambo-ai/tambo/issues/698)) ([23946de](https://github.com/tambo-ai/tambo/commit/23946de0d4a67919e119f7188731f83bcc2e86a0))
+- update documentation links to new domain and update dev command filter ([#698](https://github.com/tambo-ai/tambo/issues/698)) ([23946de](https://github.com/tambo-ai/tambo/commit/23946de0d4a67919e119f7188731f83bcc2e86a0))
 
 ## [0.38.1](https://github.com/tambo-ai/tambo/compare/react-v0.38.0...react-v0.38.1) (2025-07-18)
 
@@ -413,8 +405,7 @@
 ### Features
 
 - **sdk:** Add TamboPropStreamProvider ([#654](https://github.com/tambo-ai/tambo/issues/654)) ([049dd93](https://github.com/tambo-ai/tambo/commit/049dd93aee4d52a058ccb5a8bdc4c3e5f477b41d))
-
-* tambo interactable dev-placed components ([#655](https://github.com/tambo-ai/tambo/issues/655)) ([b693818](https://github.com/tambo-ai/tambo/commit/b6938185cdb299425609bda6fefb44f0b2f2f191))
+- tambo interactable dev-placed components ([#655](https://github.com/tambo-ai/tambo/issues/655)) ([b693818](https://github.com/tambo-ai/tambo/commit/b6938185cdb299425609bda6fefb44f0b2f2f191))
 
 ## [0.37.3](https://github.com/tambo-ai/tambo/compare/react-v0.37.2...react-v0.37.3) (2025-07-10)
 
@@ -431,8 +422,7 @@
 - **deps-dev:** bump the eslint group with 5 updates ([#647](https://github.com/tambo-ai/tambo/issues/647)) ([32077e3](https://github.com/tambo-ai/tambo/commit/32077e36e194d712c7b1c7b8446ddd12aa7d1fe3))
 - **deps:** bump @modelcontextprotocol/sdk from 1.13.2 to 1.15.0 ([#641](https://github.com/tambo-ai/tambo/issues/641)) ([04011d4](https://github.com/tambo-ai/tambo/commit/04011d4cbce865206b7c9072ba2b1631ec249648))
 - **deps:** bump zod from 3.25.67 to 3.25.75 ([#643](https://github.com/tambo-ai/tambo/issues/643)) ([ba8525e](https://github.com/tambo-ai/tambo/commit/ba8525e2e97f5acd69f529c98d7b05439622a698))
-
-* trying to set package URL so dependabot picks up versioning ([#648](https://github.com/tambo-ai/tambo/issues/648)) ([66634ef](https://github.com/tambo-ai/tambo/commit/66634ef719423d80aa9a19d406e16606025f625b))
+- trying to set package URL so dependabot picks up versioning ([#648](https://github.com/tambo-ai/tambo/issues/648)) ([66634ef](https://github.com/tambo-ai/tambo/commit/66634ef719423d80aa9a19d406e16606025f625b))
 
 ## [0.37.1](https://github.com/tambo-ai/tambo/compare/react-v0.37.0...react-v0.37.1) (2025-07-03)
 
@@ -511,13 +501,12 @@
 ### Miscellaneous
 
 - bump dev to node 22 ([#569](https://github.com/tambo-ai/tambo/issues/569)) ([fd5209e](https://github.com/tambo-ai/tambo/commit/fd5209e74a88dd4676f663bf0161e0030e41a943))
-
-* **deps-dev:** bump jest and @types/jest ([#579](https://github.com/tambo-ai/tambo/issues/579)) ([46f006c](https://github.com/tambo-ai/tambo/commit/46f006c87d501d5a681b97ad147f324a67f89d95))
-* **deps-dev:** bump jest-environment-jsdom from 30.0.0 to 30.0.2 ([#574](https://github.com/tambo-ai/tambo/issues/574)) ([e895e8f](https://github.com/tambo-ai/tambo/commit/e895e8f44dc330ebe2878b7d9a55c980fb01ab63))
-* **deps-dev:** bump the eslint group with 2 updates ([#571](https://github.com/tambo-ai/tambo/issues/571)) ([80a95b7](https://github.com/tambo-ai/tambo/commit/80a95b7ee5e73f597c1d30c4a8f37bda1a31550e))
-* **deps:** bump @modelcontextprotocol/sdk from 1.12.3 to 1.13.0 ([#578](https://github.com/tambo-ai/tambo/issues/578)) ([8fbc138](https://github.com/tambo-ai/tambo/commit/8fbc138d1fff456087afdaf221cbac8a72705ca7))
-* **deps:** bump @tanstack/react-query from 5.80.7 to 5.80.10 ([#577](https://github.com/tambo-ai/tambo/issues/577)) ([fa8d83a](https://github.com/tambo-ai/tambo/commit/fa8d83a9db77d5db5179d8d7cb7c8339d48173a6))
-* **deps:** bump zod from 3.25.65 to 3.25.67 ([#576](https://github.com/tambo-ai/tambo/issues/576)) ([86584a4](https://github.com/tambo-ai/tambo/commit/86584a495a62ae5269c0bf04b65ab3bc915a6750))
+- **deps-dev:** bump jest and @types/jest ([#579](https://github.com/tambo-ai/tambo/issues/579)) ([46f006c](https://github.com/tambo-ai/tambo/commit/46f006c87d501d5a681b97ad147f324a67f89d95))
+- **deps-dev:** bump jest-environment-jsdom from 30.0.0 to 30.0.2 ([#574](https://github.com/tambo-ai/tambo/issues/574)) ([e895e8f](https://github.com/tambo-ai/tambo/commit/e895e8f44dc330ebe2878b7d9a55c980fb01ab63))
+- **deps-dev:** bump the eslint group with 2 updates ([#571](https://github.com/tambo-ai/tambo/issues/571)) ([80a95b7](https://github.com/tambo-ai/tambo/commit/80a95b7ee5e73f597c1d30c4a8f37bda1a31550e))
+- **deps:** bump @modelcontextprotocol/sdk from 1.12.3 to 1.13.0 ([#578](https://github.com/tambo-ai/tambo/issues/578)) ([8fbc138](https://github.com/tambo-ai/tambo/commit/8fbc138d1fff456087afdaf221cbac8a72705ca7))
+- **deps:** bump @tanstack/react-query from 5.80.7 to 5.80.10 ([#577](https://github.com/tambo-ai/tambo/issues/577)) ([fa8d83a](https://github.com/tambo-ai/tambo/commit/fa8d83a9db77d5db5179d8d7cb7c8339d48173a6))
+- **deps:** bump zod from 3.25.65 to 3.25.67 ([#576](https://github.com/tambo-ai/tambo/issues/576)) ([86584a4](https://github.com/tambo-ai/tambo/commit/86584a495a62ae5269c0bf04b65ab3bc915a6750))
 
 ## [0.31.3](https://github.com/tambo-ai/tambo/compare/react-v0.31.2...react-v0.31.3) (2025-06-18)
 
@@ -530,9 +519,8 @@
 ### Miscellaneous
 
 - add packagejson version to react headers ([#558](https://github.com/tambo-ai/tambo/issues/558)) ([bb840cd](https://github.com/tambo-ai/tambo/commit/bb840cdfd1a8281332bff61ac452adf7f520955f))
-
-* **deps-dev:** bump the eslint group with 4 updates ([#538](https://github.com/tambo-ai/tambo/issues/538)) ([d3c054c](https://github.com/tambo-ai/tambo/commit/d3c054c73545835424f14ea022252a3996127fc3))
-* **deps:** bump @tanstack/react-query from 5.80.6 to 5.80.7 ([#556](https://github.com/tambo-ai/tambo/issues/556)) ([8bf933e](https://github.com/tambo-ai/tambo/commit/8bf933ef30512a18a9b1944587625855b7e68048))
+- **deps-dev:** bump the eslint group with 4 updates ([#538](https://github.com/tambo-ai/tambo/issues/538)) ([d3c054c](https://github.com/tambo-ai/tambo/commit/d3c054c73545835424f14ea022252a3996127fc3))
+- **deps:** bump @tanstack/react-query from 5.80.6 to 5.80.7 ([#556](https://github.com/tambo-ai/tambo/issues/556)) ([8bf933e](https://github.com/tambo-ai/tambo/commit/8bf933ef30512a18a9b1944587625855b7e68048))
 
 ## [0.31.1](https://github.com/tambo-ai/tambo/compare/react-v0.31.0...react-v0.31.1) (2025-06-16)
 
@@ -871,8 +859,7 @@
 ### Miscellaneous
 
 - allow switch to placeholder as 'new thread' ([#201](https://github.com/tambo-ai/tambo/issues/201)) ([9061863](https://github.com/tambo-ai/tambo/commit/9061863dc2dd563b2e204b7ad10ad33237388d21))
-
-* **deps:** bump @tambo-ai/typescript-sdk from 0.39.0 to 0.40.0 ([#209](https://github.com/tambo-ai/tambo/issues/209)) ([07406d8](https://github.com/tambo-ai/tambo/commit/07406d897a70064d2d34a25d691472531c1d9fb6))
+- **deps:** bump @tambo-ai/typescript-sdk from 0.39.0 to 0.40.0 ([#209](https://github.com/tambo-ai/tambo/issues/209)) ([07406d8](https://github.com/tambo-ai/tambo/commit/07406d897a70064d2d34a25d691472531c1d9fb6))
 
 ## [0.18.2](https://github.com/tambo-ai/tambo/compare/react-v0.18.1...react-v0.18.2) (2025-03-26)
 
@@ -1021,9 +1008,7 @@
 ### Miscellaneous
 
 - add param for streamResponse to input hook's submit ([#76](https://github.com/tambo-ai/tambo/issues/76)) ([c107a1b](https://github.com/tambo-ai/tambo/commit/c107a1b3d40bd9caa9290e630ebd74f64dd90203))
-
-* **deps:** bump @tanstack/react-query from 5.67.2 to 5.67.3 ([#82](https://github.com/tambo-ai/tambo/issues/82)) ([48113b3](https://github.com/tambo-ai/tambo/commit/48113b3c85d7940d92442bd6964c8898a9984521))
-
+- **deps:** bump @tanstack/react-query from 5.67.2 to 5.67.3 ([#82](https://github.com/tambo-ai/tambo/issues/82)) ([48113b3](https://github.com/tambo-ai/tambo/commit/48113b3c85d7940d92442bd6964c8898a9984521))
 - Expose thread generation stage/status values from threadsprovider ([#74](https://github.com/tambo-ai/tambo/issues/74)) ([9f60793](https://github.com/tambo-ai/tambo/commit/9f60793ecc9fc84ec2e82b446e1e1d1c82455fbc))
 - Remove unused functions in react package ([#73](https://github.com/tambo-ai/tambo/issues/73)) ([1a6931f](https://github.com/tambo-ai/tambo/commit/1a6931fb0b5e9a21fc3cb225df05708c97b43ac1))
 - setup turbo ([#75](https://github.com/tambo-ai/tambo/issues/75)) ([11c0833](https://github.com/tambo-ai/tambo/commit/11c0833bf54f8bd0368da97855f18ca2832f7b47))
@@ -1039,8 +1024,7 @@
 - **deps-dev:** bump @eslint/js from 9.21.0 to 9.22.0 ([#142](https://github.com/tambo-ai/hydra-ai-react/issues/142)) ([ccadc7f](https://github.com/tambo-ai/hydra-ai-react/commit/ccadc7fec4cf5695e204472a0e8c60c320284d0c))
 - **deps-dev:** bump eslint from 9.21.0 to 9.22.0 ([#139](https://github.com/tambo-ai/hydra-ai-react/issues/139)) ([97e8046](https://github.com/tambo-ai/hydra-ai-react/commit/97e8046cc040e5fb564757cd8795586452409568))
 - **deps:** bump @tanstack/react-query from 5.67.1 to 5.67.2 ([#140](https://github.com/tambo-ai/hydra-ai-react/issues/140)) ([a6ce5ba](https://github.com/tambo-ai/hydra-ai-react/commit/a6ce5ba29d8261e8e7164643c5c631127daca54b))
-
-* use 'advance' function from threadprovider ([#144](https://github.com/tambo-ai/hydra-ai-react/issues/144)) ([4ee2453](https://github.com/tambo-ai/hydra-ai-react/commit/4ee2453d8c0ca59dca0c0e6e1b69d3ccd90ac0f1))
+- use 'advance' function from threadprovider ([#144](https://github.com/tambo-ai/hydra-ai-react/issues/144)) ([4ee2453](https://github.com/tambo-ai/hydra-ai-react/commit/4ee2453d8c0ca59dca0c0e6e1b69d3ccd90ac0f1))
 
 ## [0.11.1](https://github.com/use-hydra-ai/hydra-ai-react/compare/react-v0.11.0...react-v0.11.1) (2025-03-08)
 
@@ -1079,15 +1063,13 @@
 - bump client, messages are required now ([#40](https://github.com/use-hydra-ai/hydra-ai-react/issues/40)) ([a623667](https://github.com/use-hydra-ai/hydra-ai-react/commit/a62366798ea91b95dae3449f186619484f1a3b2d))
 - bump to 0.15.0 to get environent var fix ([#53](https://github.com/use-hydra-ai/hydra-ai-react/issues/53)) ([1c375b3](https://github.com/use-hydra-ai/hydra-ai-react/commit/1c375b395393a05a576958d5cb4b7c1be1c52ee3))
 - bump to version with new threads API ([#96](https://github.com/use-hydra-ai/hydra-ai-react/issues/96)) ([726d390](https://github.com/use-hydra-ai/hydra-ai-react/commit/726d390f6b0830cd0e54c2ec71f5bdd6a40334dc))
-
-* **deps-dev:** bump eslint-plugin-react-hooks from 5.1.0 to 5.2.0 ([#103](https://github.com/use-hydra-ai/hydra-ai-react/issues/103)) ([ca0c769](https://github.com/use-hydra-ai/hydra-ai-react/commit/ca0c76935bfd481c42ecb44c667415a99dc38b04))
-* **deps-dev:** bump prettier from 3.5.2 to 3.5.3 ([#101](https://github.com/use-hydra-ai/hydra-ai-react/issues/101)) ([bc68124](https://github.com/use-hydra-ai/hydra-ai-react/commit/bc68124c551daae3b7943b8170fff4eed486bf1f))
-* **deps-dev:** bump typescript from 5.7.3 to 5.8.2 ([#100](https://github.com/use-hydra-ai/hydra-ai-react/issues/100)) ([8ee4fd3](https://github.com/use-hydra-ai/hydra-ai-react/commit/8ee4fd334b439f6e1ec529f82052974bdfdaad50))
-* **deps-dev:** bump typescript-eslint from 8.24.1 to 8.25.0 ([#79](https://github.com/use-hydra-ai/hydra-ai-react/issues/79)) ([257687e](https://github.com/use-hydra-ai/hydra-ai-react/commit/257687efc967858add37034847887986daaebd64))
-* **deps-dev:** bump typescript-eslint from 8.25.0 to 8.26.0 ([#105](https://github.com/use-hydra-ai/hydra-ai-react/issues/105)) ([4b84c29](https://github.com/use-hydra-ai/hydra-ai-react/commit/4b84c292bdb7de6e3625cadddfb36323c4bef55d))
-* **deps:** bump @hydra-ai/client from 0.17.0 to 0.19.0 ([#83](https://github.com/use-hydra-ai/hydra-ai-react/issues/83)) ([16cd0f6](https://github.com/use-hydra-ai/hydra-ai-react/commit/16cd0f636785ff476c2d1680bf593a9231a09c3b))
-* **deps:** bump client to 0.28.0 ([#121](https://github.com/use-hydra-ai/hydra-ai-react/issues/121)) ([e725fce](https://github.com/use-hydra-ai/hydra-ai-react/commit/e725fce328322d351a299417d90504fd4da9c004))
-
+- **deps-dev:** bump eslint-plugin-react-hooks from 5.1.0 to 5.2.0 ([#103](https://github.com/use-hydra-ai/hydra-ai-react/issues/103)) ([ca0c769](https://github.com/use-hydra-ai/hydra-ai-react/commit/ca0c76935bfd481c42ecb44c667415a99dc38b04))
+- **deps-dev:** bump prettier from 3.5.2 to 3.5.3 ([#101](https://github.com/use-hydra-ai/hydra-ai-react/issues/101)) ([bc68124](https://github.com/use-hydra-ai/hydra-ai-react/commit/bc68124c551daae3b7943b8170fff4eed486bf1f))
+- **deps-dev:** bump typescript from 5.7.3 to 5.8.2 ([#100](https://github.com/use-hydra-ai/hydra-ai-react/issues/100)) ([8ee4fd3](https://github.com/use-hydra-ai/hydra-ai-react/commit/8ee4fd334b439f6e1ec529f82052974bdfdaad50))
+- **deps-dev:** bump typescript-eslint from 8.24.1 to 8.25.0 ([#79](https://github.com/use-hydra-ai/hydra-ai-react/issues/79)) ([257687e](https://github.com/use-hydra-ai/hydra-ai-react/commit/257687efc967858add37034847887986daaebd64))
+- **deps-dev:** bump typescript-eslint from 8.25.0 to 8.26.0 ([#105](https://github.com/use-hydra-ai/hydra-ai-react/issues/105)) ([4b84c29](https://github.com/use-hydra-ai/hydra-ai-react/commit/4b84c292bdb7de6e3625cadddfb36323c4bef55d))
+- **deps:** bump @hydra-ai/client from 0.17.0 to 0.19.0 ([#83](https://github.com/use-hydra-ai/hydra-ai-react/issues/83)) ([16cd0f6](https://github.com/use-hydra-ai/hydra-ai-react/commit/16cd0f636785ff476c2d1680bf593a9231a09c3b))
+- **deps:** bump client to 0.28.0 ([#121](https://github.com/use-hydra-ai/hydra-ai-react/issues/121)) ([e725fce](https://github.com/use-hydra-ai/hydra-ai-react/commit/e725fce328322d351a299417d90504fd4da9c004))
 - expose TamboThread type ([#109](https://github.com/use-hydra-ai/hydra-ai-react/issues/109)) ([428c50f](https://github.com/use-hydra-ai/hydra-ai-react/commit/428c50f8fd9664996320b7c26c1eff64aadb7c9b))
 - fix some caching/rerendering/useEffect triggers ([#133](https://github.com/use-hydra-ai/hydra-ai-react/issues/133)) ([f6a30e4](https://github.com/use-hydra-ai/hydra-ai-react/commit/f6a30e48fb9a93e58ec397f41371b17cec0a54e0))
 - fixed auto-submit ([#57](https://github.com/use-hydra-ai/hydra-ai-react/issues/57)) ([7ab5cda](https://github.com/use-hydra-ai/hydra-ai-react/commit/7ab5cdaeacbd027d9d5445bab98e4c67338e5a44))
@@ -1108,9 +1090,7 @@
 - Simplify error messages and handling ([#93](https://github.com/use-hydra-ai/hydra-ai-react/issues/93)) ([6801aac](https://github.com/use-hydra-ai/hydra-ai-react/commit/6801aacb33141339c3f21ddd4d0cf64264b6ff2b))
 - simplify suggestions code so we can use abortController ([#112](https://github.com/use-hydra-ai/hydra-ai-react/issues/112)) ([ac2a99b](https://github.com/use-hydra-ai/hydra-ai-react/commit/ac2a99b87e5142c7fdd74f71a1be41c71fdf97ad))
 - Simplify tool parameter mapping by marking all fields as 'object' ([#35](https://github.com/use-hydra-ai/hydra-ai-react/issues/35)) ([73b206e](https://github.com/use-hydra-ai/hydra-ai-react/commit/73b206ec3044a86c3ea8a96c908301893842287e))
-
-* **smoketest,api:** Update to expose HydraThread/HydraThreadMessage as consistent type ([#38](https://github.com/use-hydra-ai/hydra-ai-react/issues/38)) ([4e3a794](https://github.com/use-hydra-ai/hydra-ai-react/commit/4e3a794db6b6a401acee7e05a2b92842d212bdc6))
-
+- **smoketest,api:** Update to expose HydraThread/HydraThreadMessage as consistent type ([#38](https://github.com/use-hydra-ai/hydra-ai-react/issues/38)) ([4e3a794](https://github.com/use-hydra-ai/hydra-ai-react/commit/4e3a794db6b6a401acee7e05a2b92842d212bdc6))
 - stop repeating useSuggestion stuff, add react-query envelope for useTamboThreads ([#122](https://github.com/use-hydra-ai/hydra-ai-react/issues/122)) ([001c667](https://github.com/use-hydra-ai/hydra-ai-react/commit/001c667b4e86753f56fe04484504e5aeb2fa6a4d))
 - switch dependabot config to use "fix" tag ([#77](https://github.com/use-hydra-ai/hydra-ai-react/issues/77)) ([5cf0914](https://github.com/use-hydra-ai/hydra-ai-react/commit/5cf0914904f08043b3b655e4c85db67133b3a823))
 - try adding explicit registry ([f30c958](https://github.com/use-hydra-ai/hydra-ai-react/commit/f30c95806d04f714a3d2b8b03c37d85269138a75))
@@ -1124,19 +1104,18 @@
 ### Dependencies
 
 - add dependabot ([#60](https://github.com/use-hydra-ai/hydra-ai-react/issues/60)) ([39cdc31](https://github.com/use-hydra-ai/hydra-ai-react/commit/39cdc319a8d7e046a148b03b7af97a6749b08fda))
-
-* **deps-dev:** bump @eslint/js from 9.19.0 to 9.20.0 ([#62](https://github.com/use-hydra-ai/hydra-ai-react/issues/62)) ([3aa57ee](https://github.com/use-hydra-ai/hydra-ai-react/commit/3aa57eea74dd04278f91a3486a5e2ee05698b3fe))
-* **deps-dev:** bump @eslint/js from 9.20.0 to 9.21.0 ([#73](https://github.com/use-hydra-ai/hydra-ai-react/issues/73)) ([a6f21cf](https://github.com/use-hydra-ai/hydra-ai-react/commit/a6f21cf644ea54e06e0ba32044e42a301bd3ecbb))
-* **deps-dev:** bump @types/react from 19.0.8 to 19.0.10 ([#66](https://github.com/use-hydra-ai/hydra-ai-react/issues/66)) ([adf6874](https://github.com/use-hydra-ai/hydra-ai-react/commit/adf68746842cd29ef2ff966cb702f56fd76ea4d9))
-* **deps-dev:** bump eslint from 9.19.0 to 9.20.1 ([#65](https://github.com/use-hydra-ai/hydra-ai-react/issues/65)) ([7046fd3](https://github.com/use-hydra-ai/hydra-ai-react/commit/7046fd32603b33ff66ad54194ff4599987d8c949))
-* **deps-dev:** bump eslint from 9.20.1 to 9.21.0 ([#75](https://github.com/use-hydra-ai/hydra-ai-react/issues/75)) ([08e7a78](https://github.com/use-hydra-ai/hydra-ai-react/commit/08e7a78c5025d6d7a452d1dfbc9da23bd6e1e536))
-* **deps-dev:** bump prettier from 3.4.2 to 3.5.1 ([#68](https://github.com/use-hydra-ai/hydra-ai-react/issues/68)) ([c3d70c7](https://github.com/use-hydra-ai/hydra-ai-react/commit/c3d70c7ae39aff32120f819fafd2d0fbb51db564))
-* **deps-dev:** bump prettier from 3.5.1 to 3.5.2 ([#76](https://github.com/use-hydra-ai/hydra-ai-react/issues/76)) ([ebffc72](https://github.com/use-hydra-ai/hydra-ai-react/commit/ebffc7211252835d26348dec753e38b42cad4668))
-* **deps-dev:** bump typescript-eslint from 8.23.0 to 8.24.1 ([#63](https://github.com/use-hydra-ai/hydra-ai-react/issues/63)) ([984bc36](https://github.com/use-hydra-ai/hydra-ai-react/commit/984bc36407ef3a98e67addf5c488f9f8a4670f15))
-* **deps:** bump @hydra-ai/client from 0.15.0 to 0.16.0 ([#67](https://github.com/use-hydra-ai/hydra-ai-react/issues/67)) ([b939429](https://github.com/use-hydra-ai/hydra-ai-react/commit/b939429af77593c7538ad68e748e4bf88553bde2))
-* **deps:** bump zod from 3.24.1 to 3.24.2 ([#64](https://github.com/use-hydra-ai/hydra-ai-react/issues/64)) ([8ee391b](https://github.com/use-hydra-ai/hydra-ai-react/commit/8ee391b7043fb401fb2e49325e006805bb86f4e4))
-* **deps:** bump zod-to-json-schema from 3.24.1 to 3.24.2 ([#61](https://github.com/use-hydra-ai/hydra-ai-react/issues/61)) ([e74e427](https://github.com/use-hydra-ai/hydra-ai-react/commit/e74e42728ddee2a7e2620a6bfbc829fe8a9f965b))
-* **deps:** bump zod-to-json-schema from 3.24.2 to 3.24.3 ([#74](https://github.com/use-hydra-ai/hydra-ai-react/issues/74)) ([3dfa491](https://github.com/use-hydra-ai/hydra-ai-react/commit/3dfa491b1ea0e60368d4aed101862f76aa59fe79))
+- **deps-dev:** bump @eslint/js from 9.19.0 to 9.20.0 ([#62](https://github.com/use-hydra-ai/hydra-ai-react/issues/62)) ([3aa57ee](https://github.com/use-hydra-ai/hydra-ai-react/commit/3aa57eea74dd04278f91a3486a5e2ee05698b3fe))
+- **deps-dev:** bump @eslint/js from 9.20.0 to 9.21.0 ([#73](https://github.com/use-hydra-ai/hydra-ai-react/issues/73)) ([a6f21cf](https://github.com/use-hydra-ai/hydra-ai-react/commit/a6f21cf644ea54e06e0ba32044e42a301bd3ecbb))
+- **deps-dev:** bump @types/react from 19.0.8 to 19.0.10 ([#66](https://github.com/use-hydra-ai/hydra-ai-react/issues/66)) ([adf6874](https://github.com/use-hydra-ai/hydra-ai-react/commit/adf68746842cd29ef2ff966cb702f56fd76ea4d9))
+- **deps-dev:** bump eslint from 9.19.0 to 9.20.1 ([#65](https://github.com/use-hydra-ai/hydra-ai-react/issues/65)) ([7046fd3](https://github.com/use-hydra-ai/hydra-ai-react/commit/7046fd32603b33ff66ad54194ff4599987d8c949))
+- **deps-dev:** bump eslint from 9.20.1 to 9.21.0 ([#75](https://github.com/use-hydra-ai/hydra-ai-react/issues/75)) ([08e7a78](https://github.com/use-hydra-ai/hydra-ai-react/commit/08e7a78c5025d6d7a452d1dfbc9da23bd6e1e536))
+- **deps-dev:** bump prettier from 3.4.2 to 3.5.1 ([#68](https://github.com/use-hydra-ai/hydra-ai-react/issues/68)) ([c3d70c7](https://github.com/use-hydra-ai/hydra-ai-react/commit/c3d70c7ae39aff32120f819fafd2d0fbb51db564))
+- **deps-dev:** bump prettier from 3.5.1 to 3.5.2 ([#76](https://github.com/use-hydra-ai/hydra-ai-react/issues/76)) ([ebffc72](https://github.com/use-hydra-ai/hydra-ai-react/commit/ebffc7211252835d26348dec753e38b42cad4668))
+- **deps-dev:** bump typescript-eslint from 8.23.0 to 8.24.1 ([#63](https://github.com/use-hydra-ai/hydra-ai-react/issues/63)) ([984bc36](https://github.com/use-hydra-ai/hydra-ai-react/commit/984bc36407ef3a98e67addf5c488f9f8a4670f15))
+- **deps:** bump @hydra-ai/client from 0.15.0 to 0.16.0 ([#67](https://github.com/use-hydra-ai/hydra-ai-react/issues/67)) ([b939429](https://github.com/use-hydra-ai/hydra-ai-react/commit/b939429af77593c7538ad68e748e4bf88553bde2))
+- **deps:** bump zod from 3.24.1 to 3.24.2 ([#64](https://github.com/use-hydra-ai/hydra-ai-react/issues/64)) ([8ee391b](https://github.com/use-hydra-ai/hydra-ai-react/commit/8ee391b7043fb401fb2e49325e006805bb86f4e4))
+- **deps:** bump zod-to-json-schema from 3.24.1 to 3.24.2 ([#61](https://github.com/use-hydra-ai/hydra-ai-react/issues/61)) ([e74e427](https://github.com/use-hydra-ai/hydra-ai-react/commit/e74e42728ddee2a7e2620a6bfbc829fe8a9f965b))
+- **deps:** bump zod-to-json-schema from 3.24.2 to 3.24.3 ([#74](https://github.com/use-hydra-ai/hydra-ai-react/issues/74)) ([3dfa491](https://github.com/use-hydra-ai/hydra-ai-react/commit/3dfa491b1ea0e60368d4aed101862f76aa59fe79))
 
 ### Miscellaneous Chores
 
@@ -1148,38 +1127,36 @@
 - bump @hydra-ai/client to 0.13.0 ([#48](https://github.com/use-hydra-ai/hydra-ai-react/issues/48)) ([c2a137e](https://github.com/use-hydra-ai/hydra-ai-react/commit/c2a137e9ee369e599731f52b2663ada8b5dc7f01))
 - fix action secret ([740e801](https://github.com/use-hydra-ai/hydra-ai-react/commit/740e8017830d503b09b29332259e2242306a5331))
 - fix lint by removing unnecessary dependency ([#130](https://github.com/use-hydra-ai/hydra-ai-react/issues/130)) ([5141217](https://github.com/use-hydra-ai/hydra-ai-react/commit/51412175c3f2d882253d7a4e0dee6c0602324678))
-
-* **main:** release 0.0.2 ([#16](https://github.com/use-hydra-ai/hydra-ai-react/issues/16)) ([121a6d4](https://github.com/use-hydra-ai/hydra-ai-react/commit/121a6d473c56728c4da674b4e5a7763c1bbf2936))
-* **main:** release 0.0.3 ([#17](https://github.com/use-hydra-ai/hydra-ai-react/issues/17)) ([add3a85](https://github.com/use-hydra-ai/hydra-ai-react/commit/add3a85569b4903a23998b9c094035639cc95169))
-* **main:** release 0.0.4 ([#18](https://github.com/use-hydra-ai/hydra-ai-react/issues/18)) ([66b7da4](https://github.com/use-hydra-ai/hydra-ai-react/commit/66b7da45e5182990d7468997f7f6b83737f14c2d))
-* **main:** release 0.0.5 ([#19](https://github.com/use-hydra-ai/hydra-ai-react/issues/19)) ([09e095a](https://github.com/use-hydra-ai/hydra-ai-react/commit/09e095a56eb69cd2c8eb4a2523f377a4ce3085ed))
-* **main:** release 0.0.6 ([#21](https://github.com/use-hydra-ai/hydra-ai-react/issues/21)) ([f00e910](https://github.com/use-hydra-ai/hydra-ai-react/commit/f00e91061d04f6a0f7be814d3c38c3d2a5ae3d69))
-* **main:** release 0.0.7 ([#26](https://github.com/use-hydra-ai/hydra-ai-react/issues/26)) ([00d5bff](https://github.com/use-hydra-ai/hydra-ai-react/commit/00d5bff5fd622d579dfbc1e60ee3de0899b5a9e4))
-* **main:** release 0.0.8 ([#28](https://github.com/use-hydra-ai/hydra-ai-react/issues/28)) ([7e95730](https://github.com/use-hydra-ai/hydra-ai-react/commit/7e957305519aa8dc8d8f782103d9fb7ec6b70adc))
-* **main:** release 0.1.0 ([#31](https://github.com/use-hydra-ai/hydra-ai-react/issues/31)) ([efe6a8b](https://github.com/use-hydra-ai/hydra-ai-react/commit/efe6a8b03b63c3dbd96ef45f052b1a5f3ab34686))
-* **main:** release 0.1.1 ([#37](https://github.com/use-hydra-ai/hydra-ai-react/issues/37)) ([5613e95](https://github.com/use-hydra-ai/hydra-ai-react/commit/5613e95a20a77179fec6b36a494bffbe392054d2))
-* **main:** release 0.1.2 ([#39](https://github.com/use-hydra-ai/hydra-ai-react/issues/39)) ([f705b28](https://github.com/use-hydra-ai/hydra-ai-react/commit/f705b2849e79ecdb7626e62d00772ef0799cfe0c))
-* **main:** release 0.1.3 ([#41](https://github.com/use-hydra-ai/hydra-ai-react/issues/41)) ([55ad98a](https://github.com/use-hydra-ai/hydra-ai-react/commit/55ad98a0707ef5c3550a822382b14a467a690850))
-* **main:** release 0.1.4 ([#45](https://github.com/use-hydra-ai/hydra-ai-react/issues/45)) ([e911c16](https://github.com/use-hydra-ai/hydra-ai-react/commit/e911c165f324a8a9da21b4c617eedfbd0e50908f))
-* **main:** release 0.1.5 ([#49](https://github.com/use-hydra-ai/hydra-ai-react/issues/49)) ([2bbcc32](https://github.com/use-hydra-ai/hydra-ai-react/commit/2bbcc32f9a093fe04cb5dc769724a561bf7b9315))
-* **main:** release 0.1.6 ([#51](https://github.com/use-hydra-ai/hydra-ai-react/issues/51)) ([a3f52e6](https://github.com/use-hydra-ai/hydra-ai-react/commit/a3f52e6980193272b6c07b05420c232f2cd8559e))
-* **main:** release 0.1.7 ([#54](https://github.com/use-hydra-ai/hydra-ai-react/issues/54)) ([d110ea4](https://github.com/use-hydra-ai/hydra-ai-react/commit/d110ea4ae644178cbb67b6d7e9e08e38d0fe50c9))
-* **main:** release 0.10.0 ([#127](https://github.com/use-hydra-ai/hydra-ai-react/issues/127)) ([71f3b3d](https://github.com/use-hydra-ai/hydra-ai-react/commit/71f3b3d0640c97e26ba07445cf705e3d1ba66465))
-* **main:** release 0.2.0 ([#56](https://github.com/use-hydra-ai/hydra-ai-react/issues/56)) ([700f0a2](https://github.com/use-hydra-ai/hydra-ai-react/commit/700f0a2098786e18b9991bbf10c37040453abb45))
-* **main:** release 0.2.1 ([#58](https://github.com/use-hydra-ai/hydra-ai-react/issues/58)) ([3f3d73e](https://github.com/use-hydra-ai/hydra-ai-react/commit/3f3d73e4754524af2ab18661499db430251ccb61))
-* **main:** release 0.3.0 ([#70](https://github.com/use-hydra-ai/hydra-ai-react/issues/70)) ([3ac33d7](https://github.com/use-hydra-ai/hydra-ai-react/commit/3ac33d742824cf81e5d3ec6b2e80e71251212ae3))
-* **main:** release 0.3.1 ([#78](https://github.com/use-hydra-ai/hydra-ai-react/issues/78)) ([dde938c](https://github.com/use-hydra-ai/hydra-ai-react/commit/dde938cf8447f09970cc0bf6d563f8e769f97ae4))
-* **main:** release 0.4.0 ([#87](https://github.com/use-hydra-ai/hydra-ai-react/issues/87)) ([31f11c2](https://github.com/use-hydra-ai/hydra-ai-react/commit/31f11c25f277b08943e0e19ef5e3332bf7af8d6e))
-* **main:** release 0.5.0 ([#89](https://github.com/use-hydra-ai/hydra-ai-react/issues/89)) ([f3ba3b7](https://github.com/use-hydra-ai/hydra-ai-react/commit/f3ba3b763961465a8334a34a3393dc8559295d3e))
-* **main:** release 0.6.0 ([#92](https://github.com/use-hydra-ai/hydra-ai-react/issues/92)) ([ccb74a4](https://github.com/use-hydra-ai/hydra-ai-react/commit/ccb74a47cd77f150279bae7874874591b64d20ab))
-* **main:** release 0.6.1 ([#95](https://github.com/use-hydra-ai/hydra-ai-react/issues/95)) ([fda2572](https://github.com/use-hydra-ai/hydra-ai-react/commit/fda25724b9f79bbca6cf8d9e239915af5043085f))
-* **main:** release 0.7.0 ([#98](https://github.com/use-hydra-ai/hydra-ai-react/issues/98)) ([1269273](https://github.com/use-hydra-ai/hydra-ai-react/commit/12692736b997b5c3b5b39d3191b7bf6f57cf2c36))
-* **main:** release 0.8.0 ([#104](https://github.com/use-hydra-ai/hydra-ai-react/issues/104)) ([6086b60](https://github.com/use-hydra-ai/hydra-ai-react/commit/6086b608823acf653a521d4bf5981fb111ca4283))
-* **main:** release 0.8.1 ([#113](https://github.com/use-hydra-ai/hydra-ai-react/issues/113)) ([3cf4a54](https://github.com/use-hydra-ai/hydra-ai-react/commit/3cf4a547366eeddaf2b99ee9d74506873c663493))
-* **main:** release 0.9.0 ([#116](https://github.com/use-hydra-ai/hydra-ai-react/issues/116)) ([598fdc7](https://github.com/use-hydra-ai/hydra-ai-react/commit/598fdc7481d758759dd173963a23f1444471e3a0))
-* **main:** release 0.9.1 ([#118](https://github.com/use-hydra-ai/hydra-ai-react/issues/118)) ([ed8fc23](https://github.com/use-hydra-ai/hydra-ai-react/commit/ed8fc23f13e9c9d1119820661bbb57725635efeb))
-* **main:** release 0.9.2 ([#123](https://github.com/use-hydra-ai/hydra-ai-react/issues/123)) ([03d6a7c](https://github.com/use-hydra-ai/hydra-ai-react/commit/03d6a7cb63564ffb7ba6bcd4a003f912d3c58517))
-
+- **main:** release 0.0.2 ([#16](https://github.com/use-hydra-ai/hydra-ai-react/issues/16)) ([121a6d4](https://github.com/use-hydra-ai/hydra-ai-react/commit/121a6d473c56728c4da674b4e5a7763c1bbf2936))
+- **main:** release 0.0.3 ([#17](https://github.com/use-hydra-ai/hydra-ai-react/issues/17)) ([add3a85](https://github.com/use-hydra-ai/hydra-ai-react/commit/add3a85569b4903a23998b9c094035639cc95169))
+- **main:** release 0.0.4 ([#18](https://github.com/use-hydra-ai/hydra-ai-react/issues/18)) ([66b7da4](https://github.com/use-hydra-ai/hydra-ai-react/commit/66b7da45e5182990d7468997f7f6b83737f14c2d))
+- **main:** release 0.0.5 ([#19](https://github.com/use-hydra-ai/hydra-ai-react/issues/19)) ([09e095a](https://github.com/use-hydra-ai/hydra-ai-react/commit/09e095a56eb69cd2c8eb4a2523f377a4ce3085ed))
+- **main:** release 0.0.6 ([#21](https://github.com/use-hydra-ai/hydra-ai-react/issues/21)) ([f00e910](https://github.com/use-hydra-ai/hydra-ai-react/commit/f00e91061d04f6a0f7be814d3c38c3d2a5ae3d69))
+- **main:** release 0.0.7 ([#26](https://github.com/use-hydra-ai/hydra-ai-react/issues/26)) ([00d5bff](https://github.com/use-hydra-ai/hydra-ai-react/commit/00d5bff5fd622d579dfbc1e60ee3de0899b5a9e4))
+- **main:** release 0.0.8 ([#28](https://github.com/use-hydra-ai/hydra-ai-react/issues/28)) ([7e95730](https://github.com/use-hydra-ai/hydra-ai-react/commit/7e957305519aa8dc8d8f782103d9fb7ec6b70adc))
+- **main:** release 0.1.0 ([#31](https://github.com/use-hydra-ai/hydra-ai-react/issues/31)) ([efe6a8b](https://github.com/use-hydra-ai/hydra-ai-react/commit/efe6a8b03b63c3dbd96ef45f052b1a5f3ab34686))
+- **main:** release 0.1.1 ([#37](https://github.com/use-hydra-ai/hydra-ai-react/issues/37)) ([5613e95](https://github.com/use-hydra-ai/hydra-ai-react/commit/5613e95a20a77179fec6b36a494bffbe392054d2))
+- **main:** release 0.1.2 ([#39](https://github.com/use-hydra-ai/hydra-ai-react/issues/39)) ([f705b28](https://github.com/use-hydra-ai/hydra-ai-react/commit/f705b2849e79ecdb7626e62d00772ef0799cfe0c))
+- **main:** release 0.1.3 ([#41](https://github.com/use-hydra-ai/hydra-ai-react/issues/41)) ([55ad98a](https://github.com/use-hydra-ai/hydra-ai-react/commit/55ad98a0707ef5c3550a822382b14a467a690850))
+- **main:** release 0.1.4 ([#45](https://github.com/use-hydra-ai/hydra-ai-react/issues/45)) ([e911c16](https://github.com/use-hydra-ai/hydra-ai-react/commit/e911c165f324a8a9da21b4c617eedfbd0e50908f))
+- **main:** release 0.1.5 ([#49](https://github.com/use-hydra-ai/hydra-ai-react/issues/49)) ([2bbcc32](https://github.com/use-hydra-ai/hydra-ai-react/commit/2bbcc32f9a093fe04cb5dc769724a561bf7b9315))
+- **main:** release 0.1.6 ([#51](https://github.com/use-hydra-ai/hydra-ai-react/issues/51)) ([a3f52e6](https://github.com/use-hydra-ai/hydra-ai-react/commit/a3f52e6980193272b6c07b05420c232f2cd8559e))
+- **main:** release 0.1.7 ([#54](https://github.com/use-hydra-ai/hydra-ai-react/issues/54)) ([d110ea4](https://github.com/use-hydra-ai/hydra-ai-react/commit/d110ea4ae644178cbb67b6d7e9e08e38d0fe50c9))
+- **main:** release 0.10.0 ([#127](https://github.com/use-hydra-ai/hydra-ai-react/issues/127)) ([71f3b3d](https://github.com/use-hydra-ai/hydra-ai-react/commit/71f3b3d0640c97e26ba07445cf705e3d1ba66465))
+- **main:** release 0.2.0 ([#56](https://github.com/use-hydra-ai/hydra-ai-react/issues/56)) ([700f0a2](https://github.com/use-hydra-ai/hydra-ai-react/commit/700f0a2098786e18b9991bbf10c37040453abb45))
+- **main:** release 0.2.1 ([#58](https://github.com/use-hydra-ai/hydra-ai-react/issues/58)) ([3f3d73e](https://github.com/use-hydra-ai/hydra-ai-react/commit/3f3d73e4754524af2ab18661499db430251ccb61))
+- **main:** release 0.3.0 ([#70](https://github.com/use-hydra-ai/hydra-ai-react/issues/70)) ([3ac33d7](https://github.com/use-hydra-ai/hydra-ai-react/commit/3ac33d742824cf81e5d3ec6b2e80e71251212ae3))
+- **main:** release 0.3.1 ([#78](https://github.com/use-hydra-ai/hydra-ai-react/issues/78)) ([dde938c](https://github.com/use-hydra-ai/hydra-ai-react/commit/dde938cf8447f09970cc0bf6d563f8e769f97ae4))
+- **main:** release 0.4.0 ([#87](https://github.com/use-hydra-ai/hydra-ai-react/issues/87)) ([31f11c2](https://github.com/use-hydra-ai/hydra-ai-react/commit/31f11c25f277b08943e0e19ef5e3332bf7af8d6e))
+- **main:** release 0.5.0 ([#89](https://github.com/use-hydra-ai/hydra-ai-react/issues/89)) ([f3ba3b7](https://github.com/use-hydra-ai/hydra-ai-react/commit/f3ba3b763961465a8334a34a3393dc8559295d3e))
+- **main:** release 0.6.0 ([#92](https://github.com/use-hydra-ai/hydra-ai-react/issues/92)) ([ccb74a4](https://github.com/use-hydra-ai/hydra-ai-react/commit/ccb74a47cd77f150279bae7874874591b64d20ab))
+- **main:** release 0.6.1 ([#95](https://github.com/use-hydra-ai/hydra-ai-react/issues/95)) ([fda2572](https://github.com/use-hydra-ai/hydra-ai-react/commit/fda25724b9f79bbca6cf8d9e239915af5043085f))
+- **main:** release 0.7.0 ([#98](https://github.com/use-hydra-ai/hydra-ai-react/issues/98)) ([1269273](https://github.com/use-hydra-ai/hydra-ai-react/commit/12692736b997b5c3b5b39d3191b7bf6f57cf2c36))
+- **main:** release 0.8.0 ([#104](https://github.com/use-hydra-ai/hydra-ai-react/issues/104)) ([6086b60](https://github.com/use-hydra-ai/hydra-ai-react/commit/6086b608823acf653a521d4bf5981fb111ca4283))
+- **main:** release 0.8.1 ([#113](https://github.com/use-hydra-ai/hydra-ai-react/issues/113)) ([3cf4a54](https://github.com/use-hydra-ai/hydra-ai-react/commit/3cf4a547366eeddaf2b99ee9d74506873c663493))
+- **main:** release 0.9.0 ([#116](https://github.com/use-hydra-ai/hydra-ai-react/issues/116)) ([598fdc7](https://github.com/use-hydra-ai/hydra-ai-react/commit/598fdc7481d758759dd173963a23f1444471e3a0))
+- **main:** release 0.9.1 ([#118](https://github.com/use-hydra-ai/hydra-ai-react/issues/118)) ([ed8fc23](https://github.com/use-hydra-ai/hydra-ai-react/commit/ed8fc23f13e9c9d1119820661bbb57725635efeb))
+- **main:** release 0.9.2 ([#123](https://github.com/use-hydra-ai/hydra-ai-react/issues/123)) ([03d6a7c](https://github.com/use-hydra-ai/hydra-ai-react/commit/03d6a7cb63564ffb7ba6bcd4a003f912d3c58517))
 - npm install @types/react ([#42](https://github.com/use-hydra-ai/hydra-ai-react/issues/42)) ([fba7c8a](https://github.com/use-hydra-ai/hydra-ai-react/commit/fba7c8acabccdb9861437e530a6793757dbd1962))
 - release 0.0.2 ([8c5f706](https://github.com/use-hydra-ai/hydra-ai-react/commit/8c5f7064813d57fe91e82f7b6fe66322cad1fbd4))
 - release 0.1.5 ([021b559](https://github.com/use-hydra-ai/hydra-ai-react/commit/021b559f1ec37fe41048224b308cebe63170d13a))
@@ -1220,9 +1197,7 @@
 ### Bug Fixes
 
 - Add QueryClientProvider to TamboProvider ([#117](https://github.com/use-hydra-ai/hydra-ai-react/issues/117)) ([321de97](https://github.com/use-hydra-ai/hydra-ai-react/commit/321de97b76bf60d0c77ea3f91649fcb9a742348b))
-
-* **deps:** bump client to 0.28.0 ([#121](https://github.com/use-hydra-ai/hydra-ai-react/issues/121)) ([e725fce](https://github.com/use-hydra-ai/hydra-ai-react/commit/e725fce328322d351a299417d90504fd4da9c004))
-
+- **deps:** bump client to 0.28.0 ([#121](https://github.com/use-hydra-ai/hydra-ai-react/issues/121)) ([e725fce](https://github.com/use-hydra-ai/hydra-ai-react/commit/e725fce328322d351a299417d90504fd4da9c004))
 - Use internal queryClient for react-query-related calls ([#119](https://github.com/use-hydra-ai/hydra-ai-react/issues/119)) ([7073f40](https://github.com/use-hydra-ai/hydra-ai-react/commit/7073f400c791d53f5c7cd7f0112cac898546b31f))
 
 ## [0.9.0](https://github.com/use-hydra-ai/hydra-ai-react/compare/v0.8.1...v0.9.0) (2025-03-05)
@@ -1250,9 +1225,8 @@
 - **deps-dev:** bump prettier from 3.5.2 to 3.5.3 ([#101](https://github.com/use-hydra-ai/hydra-ai-react/issues/101)) ([bc68124](https://github.com/use-hydra-ai/hydra-ai-react/commit/bc68124c551daae3b7943b8170fff4eed486bf1f))
 - **deps-dev:** bump typescript from 5.7.3 to 5.8.2 ([#100](https://github.com/use-hydra-ai/hydra-ai-react/issues/100)) ([8ee4fd3](https://github.com/use-hydra-ai/hydra-ai-react/commit/8ee4fd334b439f6e1ec529f82052974bdfdaad50))
 - **deps-dev:** bump typescript-eslint from 8.25.0 to 8.26.0 ([#105](https://github.com/use-hydra-ai/hydra-ai-react/issues/105)) ([4b84c29](https://github.com/use-hydra-ai/hydra-ai-react/commit/4b84c292bdb7de6e3625cadddfb36323c4bef55d))
-
-* expose TamboThread type ([#109](https://github.com/use-hydra-ai/hydra-ai-react/issues/109)) ([428c50f](https://github.com/use-hydra-ai/hydra-ai-react/commit/428c50f8fd9664996320b7c26c1eff64aadb7c9b))
-* make sure to sync up thread loading with placeholder thread object ([#110](https://github.com/use-hydra-ai/hydra-ai-react/issues/110)) ([1a9c436](https://github.com/use-hydra-ai/hydra-ai-react/commit/1a9c4363bb35015d0b513afd25012e3865744563))
+- expose TamboThread type ([#109](https://github.com/use-hydra-ai/hydra-ai-react/issues/109)) ([428c50f](https://github.com/use-hydra-ai/hydra-ai-react/commit/428c50f8fd9664996320b7c26c1eff64aadb7c9b))
+- make sure to sync up thread loading with placeholder thread object ([#110](https://github.com/use-hydra-ai/hydra-ai-react/issues/110)) ([1a9c436](https://github.com/use-hydra-ai/hydra-ai-react/commit/1a9c4363bb35015d0b513afd25012e3865744563))
 
 ## [0.7.0](https://github.com/use-hydra-ai/hydra-ai-react/compare/v0.6.1...v0.7.0) (2025-03-01)
 
@@ -1295,10 +1269,8 @@
 ### Bug Fixes
 
 - Add streaming generation stage ([#81](https://github.com/use-hydra-ai/hydra-ai-react/issues/81)) ([c7e5151](https://github.com/use-hydra-ai/hydra-ai-react/commit/c7e5151ca2b4827c2ba3ee000070147dfcd1d906))
-
-* **deps-dev:** bump typescript-eslint from 8.24.1 to 8.25.0 ([#79](https://github.com/use-hydra-ai/hydra-ai-react/issues/79)) ([257687e](https://github.com/use-hydra-ai/hydra-ai-react/commit/257687efc967858add37034847887986daaebd64))
-* **deps:** bump @hydra-ai/client from 0.17.0 to 0.19.0 ([#83](https://github.com/use-hydra-ai/hydra-ai-react/issues/83)) ([16cd0f6](https://github.com/use-hydra-ai/hydra-ai-react/commit/16cd0f636785ff476c2d1680bf593a9231a09c3b))
-
+- **deps-dev:** bump typescript-eslint from 8.24.1 to 8.25.0 ([#79](https://github.com/use-hydra-ai/hydra-ai-react/issues/79)) ([257687e](https://github.com/use-hydra-ai/hydra-ai-react/commit/257687efc967858add37034847887986daaebd64))
+- **deps:** bump @hydra-ai/client from 0.17.0 to 0.19.0 ([#83](https://github.com/use-hydra-ai/hydra-ai-react/issues/83)) ([16cd0f6](https://github.com/use-hydra-ai/hydra-ai-react/commit/16cd0f636785ff476c2d1680bf593a9231a09c3b))
 - Make sendThreadMessage options optional ([#80](https://github.com/use-hydra-ai/hydra-ai-react/issues/80)) ([bdf32a7](https://github.com/use-hydra-ai/hydra-ai-react/commit/bdf32a7d3235f49b8f5a8fc130941ba94d9e431e))
 - switch dependabot config to use "fix" tag ([#77](https://github.com/use-hydra-ai/hydra-ai-react/issues/77)) ([5cf0914](https://github.com/use-hydra-ai/hydra-ai-react/commit/5cf0914904f08043b3b655e4c85db67133b3a823))
 
