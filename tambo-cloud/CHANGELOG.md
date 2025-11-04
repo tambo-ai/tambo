@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.120.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.6...repo-v0.120.7) (2025-11-04)
+
+
+### Bug Fixes
+
+* Refactor JWT claims structure in transactionMiddleware ([#2033](https://github.com/tambo-ai/tambo-cloud/issues/2033)) ([f82b60d](https://github.com/tambo-ai/tambo-cloud/commit/f82b60d324f07867711ece9554555d1724172940))
+* update default MCP transport from SSE to HTTP ([#2029](https://github.com/tambo-ai/tambo-cloud/issues/2029)) ([688d65e](https://github.com/tambo-ai/tambo-cloud/commit/688d65e70dbee45fee9042fcb99457fd76a30c78))
+
 ## [0.120.6](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.5...repo-v0.120.6) (2025-11-03)
 
 
