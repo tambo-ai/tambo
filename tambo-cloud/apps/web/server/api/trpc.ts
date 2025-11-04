@@ -155,30 +155,31 @@ const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
     const roleSql =
       role === "authenticated" ? sql.raw("authenticated") : sql.raw("anon");
 
-    // precompute parameter values (avoid raw)
+    // Precompute values for parameterized queries
     const claimsText = JSON.stringify(jwtClaims);
     const sub = jwtClaims.sub ?? "";
 
     try {
-      await tx.execute(sql`
-        -- auth.jwt()
-        select set_config('request.jwt.claims', ${claimsText}, TRUE);
-        -- auth.uid()
-        select set_config('request.jwt.claim.sub', ${sub}, TRUE);
-        -- set local role
-        set local role ${roleSql};
-      `);
+      // Execute as separate statements to use parameterized queries
+      await tx.execute(
+        sql`select set_config('request.jwt.claims', ${claimsText}, TRUE)`,
+      );
+      await tx.execute(
+        sql`select set_config('request.jwt.claim.sub', ${sub}, TRUE)`,
+      );
+      await tx.execute(sql`set local role ${roleSql}`);
       return await next({ ctx: { ...ctx, db: tx } });
     } catch (error) {
       console.error("error setting config: ", error);
       throw error;
     } finally {
-      await tx.execute(sql`
-        -- reset
-        select set_config('request.jwt.claims', NULL, TRUE);
-        select set_config('request.jwt.claim.sub', NULL, TRUE);
-        reset role;
-      `);
+      await tx.execute(
+        sql`select set_config('request.jwt.claims', NULL, TRUE)`,
+      );
+      await tx.execute(
+        sql`select set_config('request.jwt.claim.sub', NULL, TRUE)`,
+      );
+      await tx.execute(sql`reset role`);
     }
   });
 });
