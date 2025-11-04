@@ -7,24 +7,57 @@ import { useEffect, useState } from "react";
  * @param refs - Array of refs to merge
  * @returns A callback ref that updates all provided refs
  */
-export function useMergedRef<T>(...refs: React.Ref<T>[]) {
-  return React.useCallback(
-    (element: T) => {
-      for (const ref of refs) {
-        if (!ref) continue;
+export function useMergeRefs<Instance>(
+  ...refs: (React.Ref<Instance> | undefined)[]
+): null | React.RefCallback<Instance> {
+  const cleanupRef = React.useRef<void | (() => void)>(undefined);
 
-        if (typeof ref === "function") {
-          ref(element);
-        } else {
-          // This cast is safe because we're just updating the .current property
-          (ref as React.MutableRefObject<T>).current = element;
-        }
+  const refEffect = React.useCallback((instance: Instance | null) => {
+    const cleanups = refs.map((ref) => {
+      if (ref == null) {
+        return;
       }
-    },
-    [refs],
-  );
-}
 
+      if (typeof ref === "function") {
+        const refCallback = ref;
+        const refCleanup: void | (() => void) = refCallback(instance);
+        return typeof refCleanup === "function"
+          ? refCleanup
+          : () => {
+              refCallback(null);
+            };
+      }
+
+      (ref as React.MutableRefObject<Instance | null>).current = instance;
+      return () => {
+        (ref as React.MutableRefObject<Instance | null>).current = null;
+      };
+    });
+
+    return () => {
+      cleanups.forEach((refCleanup) => refCleanup?.());
+    };
+  }, refs);
+
+  return React.useMemo(() => {
+    if (refs.every((ref) => ref == null)) {
+      return null;
+    }
+
+    return (value) => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        (cleanupRef as React.MutableRefObject<void | (() => void)>).current =
+          undefined;
+      }
+
+      if (value != null) {
+        (cleanupRef as React.MutableRefObject<void | (() => void)>).current =
+          refEffect(value);
+      }
+    };
+  }, refs);
+}
 /**
  * Custom hook to detect canvas space presence and position
  * @param elementRef - Reference to the component to compare position with

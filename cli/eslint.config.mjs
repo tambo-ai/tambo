@@ -1,7 +1,7 @@
 /** @type {import("@typescript-eslint/utils").TSESLint.FlatConfig.ConfigArray} */
 
 import eslint from "@eslint/js";
-import config from "@tambo-ai/eslint-config/base";
+import reactConfig from "@tambo-ai/eslint-config/react-internal";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -14,7 +14,7 @@ export default tseslint.config(
       "tests/**/*",
     ],
   },
-  config,
+  reactConfig,
   eslint.configs.recommended,
   tseslint.configs.stylisticTypeChecked,
 
