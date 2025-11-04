@@ -586,7 +586,7 @@ describe("TamboMcpProvider handler support", () => {
     // Verify MCPClient.create was called
     expect(createSpy).toHaveBeenCalledWith(
       "https://test.example",
-      MCPTransport.SSE,
+      MCPTransport.HTTP,
       undefined,
       undefined,
       undefined,
@@ -612,7 +612,7 @@ describe("TamboMcpProvider handler support", () => {
       mockExtra,
       expect.objectContaining({
         url: "https://test.example",
-        transport: MCPTransport.SSE,
+        transport: MCPTransport.HTTP,
       }),
     );
   });
@@ -648,7 +648,7 @@ describe("TamboMcpProvider handler support", () => {
     // Verify MCPClient.create was called with sampling handler
     expect(createSpy).toHaveBeenCalledWith(
       "https://test.example",
-      MCPTransport.SSE,
+      MCPTransport.HTTP,
       undefined,
       undefined,
       undefined,
@@ -674,7 +674,7 @@ describe("TamboMcpProvider handler support", () => {
       mockExtra,
       expect.objectContaining({
         url: "https://test.example",
-        transport: MCPTransport.SSE,
+        transport: MCPTransport.HTTP,
       }),
     );
   });

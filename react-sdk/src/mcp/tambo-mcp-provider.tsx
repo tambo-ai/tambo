@@ -58,7 +58,7 @@ export interface McpServerInfo {
   url: string;
   /** Optional description of the MCP server */
   description?: string;
-  /** The transport type to use (SSE or HTTP). Defaults to SSE for string URLs */
+  /** The transport type to use (SSE or HTTP). Defaults to HTTP for string URLs */
   transport?: MCPTransport;
   /** Optional custom headers to include in requests */
   customHeaders?: Record<string, string>;
@@ -512,7 +512,7 @@ function getServerKey(
           .sort(([a], [b]) => a.localeCompare(b)),
       )
     : "";
-  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.SSE}|${headerStr}`;
+  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.HTTP}|${headerStr}`;
 }
 
 /**
@@ -522,7 +522,7 @@ function getServerKey(
 function normalizeServerInfo(server: McpServerInfo | string): McpServerConfig {
   const s =
     typeof server === "string"
-      ? { url: server, transport: MCPTransport.SSE }
+      ? { url: server, transport: MCPTransport.HTTP }
       : server;
   const key = getServerKey(s);
   return { ...s, key };
