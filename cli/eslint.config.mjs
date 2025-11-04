@@ -5,7 +5,15 @@ import reactConfig from "@tambo-ai/eslint-config/react-internal";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/**/*", "esm/**/*", "jest.config.ts", "eslint.config.mjs"] },
+  {
+    ignores: [
+      "dist/**/*",
+      "esm/**/*",
+      "jest.config.ts",
+      "eslint.config.mjs",
+      "tests/**/*",
+    ],
+  },
   reactConfig,
   eslint.configs.recommended,
   tseslint.configs.stylisticTypeChecked,
