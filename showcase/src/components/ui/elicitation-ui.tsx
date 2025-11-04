@@ -603,7 +603,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
               schema={schema}
               value={formData[name]}
               onChange={(value) => handleFieldChange(name, value)}
-              required={requiredFields.has(name)}
+              required={requiredFields.includes(name)}
               autoFocus={index === 0}
               validationError={validationError}
             />
