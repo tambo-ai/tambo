@@ -16,9 +16,8 @@ export interface BlogPostListItem {
   category: BlogCategory;
   description?: string;
   date: string;
-  featured?: boolean;
   author?: string;
-  tags?: string[];
+  authorImage?: string;
 }
 
 // Sort options

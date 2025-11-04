@@ -22,9 +22,7 @@ jest.mock(
           frontMatter: {
             title: "Post B",
             date: "2024-01-10",
-            tags: ["feature"],
             author: "A",
-            featured: false,
           },
         },
         {
@@ -34,9 +32,7 @@ jest.mock(
           frontMatter: {
             title: "Post A",
             date: "2024-05-20",
-            tags: ["announcement", "news"],
             author: "B",
-            featured: true,
           },
         },
         {
@@ -46,9 +42,7 @@ jest.mock(
           frontMatter: {
             title: "Post C",
             date: "2023-12-31",
-            tags: ["bugfix"],
             author: "C",
-            featured: false,
           },
         },
       ];
@@ -70,20 +64,13 @@ describe("get-posts", () => {
     expect(posts[0].frontMatter.title).toBe("Post A");
   });
 
-  test("getPostListItems maps category from tags and frontmatter", async () => {
+  test("getPostListItems maps category from post name", async () => {
     const { getPostListItems } = await import("@/lib/get-posts");
     const items = await getPostListItems();
     const byId = Object.fromEntries(items.map((i) => [i.id, i]));
-    expect(byId.a.category).toBe("announcement");
-    expect(byId.b.category).toBe("feature");
-    // bugfix maps to "bug fix"
-    expect(byId.c.category).toBe("bug fix");
-  });
-
-  test("getTags flattens tags across posts", async () => {
-    const { getTags } = await import("@/lib/get-posts");
-    const tags = await getTags();
-    // order follows date-desc posts: a(announcement,news), b(feature), c(bugfix)
-    expect(tags).toEqual(["announcement", "news", "feature", "bugfix"]);
+    // Default category is "update"
+    expect(byId.a.category).toBe("update");
+    expect(byId.b.category).toBe("update");
+    expect(byId.c.category).toBe("update");
   });
 });

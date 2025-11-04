@@ -26,7 +26,6 @@ export const metadata: Metadata = {
 
 export default async function BlogPage() {
   const allPosts = await getPostListItems();
-  const featuredPosts = allPosts.filter((post) => post.featured);
 
-  return <BlogPageComponent posts={allPosts} featuredPosts={featuredPosts} />;
+  return <BlogPageComponent posts={allPosts} />;
 }

@@ -1,4 +1,5 @@
 import type { BlogCategory, BlogPostListItem } from "@/lib/blog/types";
+import { BLOG_DEFAULTS } from "@/lib/blog/defaults";
 import { normalizePages } from "nextra/normalize-pages";
 import { getPageMap } from "nextra/page-map";
 
@@ -7,10 +8,8 @@ export interface BlogFrontMatter {
   title: string;
   date: string;
   description?: string;
-  tags?: string[];
   author?: string;
-  category?: BlogCategory;
-  featured?: boolean;
+  authorImage?: string;
 }
 
 export interface BlogPost {
@@ -20,36 +19,18 @@ export interface BlogPost {
   content?: string;
 }
 
-// Helper to determine category from tags or frontmatter
-function determineCategory(frontMatter: BlogFrontMatter): BlogCategory {
-  // Check if category is explicitly set
-  if (frontMatter.category) {
-    // Validate it's a valid category
-    const validCategories: BlogCategory[] = [
-      "new",
-      "feature",
-      "bug fix",
-      "update",
-      "event",
-      "tutorial",
-      "announcement",
-    ];
-    if (validCategories.includes(frontMatter.category)) {
-      return frontMatter.category;
-    }
-  }
+// Helper to determine category from post name/slug
+function determineCategory(name: string): BlogCategory {
+  const slug = name.toLowerCase();
 
-  // Fallback to first tag or default
-  const firstTag = frontMatter.tags?.[0]?.toLocaleLowerCase();
-  if (firstTag) {
-    if (firstTag === "new") return "new";
-    if (firstTag === "feature") return "feature";
-    if (firstTag === "bug fix" || firstTag === "bugfix") return "bug fix";
-    if (firstTag === "update") return "update";
-    if (firstTag === "event") return "event";
-    if (firstTag === "tutorial") return "tutorial";
-    if (firstTag === "announcement") return "announcement";
-  }
+  // Map slug patterns to categories
+  if (slug.includes("hack") || slug.includes("event")) return "event";
+  if (slug.includes("support") || slug.includes("feature")) return "feature";
+  if (slug.includes("announcement") || slug.includes("launch"))
+    return "announcement";
+  if (slug.includes("tutorial") || slug.includes("guide")) return "tutorial";
+  if (slug.includes("fix")) return "bug fix";
+  if (slug.includes("new")) return "new";
 
   // Default category
   return "update";
@@ -76,10 +57,8 @@ export async function getPosts(): Promise<BlogPost[]> {
         title: item.frontMatter.title ?? "",
         date: item.frontMatter.date ?? new Date().toISOString(),
         description: item.frontMatter.description,
-        tags: item.frontMatter.tags,
-        author: item.frontMatter.author,
-        category: item.frontMatter.category,
-        featured: item.frontMatter.featured,
+        author: item.frontMatter.author ?? BLOG_DEFAULTS.author,
+        authorImage: item.frontMatter.authorImage ?? BLOG_DEFAULTS.authorImage,
       },
     }))
     .toSorted(
@@ -97,7 +76,7 @@ export async function getPostListItems(): Promise<BlogPostListItem[]> {
 
   return posts.map((post) => {
     const slug = post.name;
-    const category = determineCategory(post.frontMatter);
+    const category = determineCategory(post.name);
 
     return {
       id: slug,
@@ -105,15 +84,9 @@ export async function getPostListItems(): Promise<BlogPostListItem[]> {
       title: post.frontMatter.title,
       category,
       date: post.frontMatter.date,
-      featured: post.frontMatter.featured,
+      description: post.frontMatter.description,
       author: post.frontMatter.author,
-      tags: post.frontMatter.tags || [],
+      authorImage: post.frontMatter.authorImage,
     };
   });
-}
-
-export async function getTags(): Promise<string[]> {
-  const posts = await getPosts();
-  const tags = posts.flatMap((post) => post.frontMatter.tags || []);
-  return tags;
 }

@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 import rehypeKatex from "rehype-katex";
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
+import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+import { remarkInjectBlogLayout } from "./lib/mdx/inject-blog-layout.mjs";
 
 const jiti = createJiti(fileURLToPath(import.meta.url));
 
@@ -142,11 +144,13 @@ const config = {
 };
 
 // Nextra configuration for MDX support
+// Includes blog-specific plugins: remarkMdxFrontmatter exports frontmatter as a variable,
+// and remarkInjectBlogLayout automatically wraps blog posts with the BlogPost layout component
 const withNextra = nextra({
   defaultShowCopyCode: true,
   readingTime: true,
   mdxOptions: {
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkGfm, remarkMdxFrontmatter, remarkInjectBlogLayout],
     rehypePlugins: [
       rehypeKatex,
       [
@@ -157,7 +161,7 @@ const withNextra = nextra({
             dark: "github-dark",
           },
           keepBackground: false,
-          defaultLang: "ts",
+          defaultLang: "typescript",
         },
       ],
     ],
