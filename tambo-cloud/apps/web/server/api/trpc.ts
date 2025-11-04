@@ -151,18 +151,22 @@ const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
         }
       : {};
 
+    // whitelist role for identifier interpolation
+    const roleSql =
+      role === "authenticated" ? sql.raw("authenticated") : sql.raw("anon");
+
+    // precompute parameter values (avoid raw)
+    const claimsText = JSON.stringify(jwtClaims);
+    const sub = jwtClaims.sub ?? "";
+
     try {
       await tx.execute(sql`
         -- auth.jwt()
-        select set_config('request.jwt.claims', '${sql.raw(
-          JSON.stringify(jwtClaims),
-        )}', TRUE);
+        select set_config('request.jwt.claims', ${claimsText}, TRUE);
         -- auth.uid()
-        select set_config('request.jwt.claim.sub', '${sql.raw(
-          jwtClaims.sub ?? "",
-        )}', TRUE);												
+        select set_config('request.jwt.claim.sub', ${sub}, TRUE);
         -- set local role
-        set local role ${sql.raw(role)};
+        set local role ${roleSql};
       `);
       return await next({ ctx: { ...ctx, db: tx } });
     } catch (error) {
@@ -174,7 +178,7 @@ const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
         select set_config('request.jwt.claims', NULL, TRUE);
         select set_config('request.jwt.claim.sub', NULL, TRUE);
         reset role;
-        `);
+      `);
     }
   });
 });
