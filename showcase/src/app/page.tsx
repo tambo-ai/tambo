@@ -2,7 +2,6 @@
 
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import { ShowcaseThemeProvider } from "@/providers/showcase-theme-provider";
 import Link from "next/link";
 import { DemoWrapper } from "./components/demo-wrapper";
 
@@ -36,13 +35,11 @@ export default function DocsPage() {
       </div>
 
       {/* Demo Chat Component */}
-      <ShowcaseThemeProvider defaultTheme="light">
-        <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
-          <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
-            <MessageThreadFull contextKey={userContextKey} />
-          </div>
-        </DemoWrapper>
-      </ShowcaseThemeProvider>
+      <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
+        <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
+          <MessageThreadFull contextKey={userContextKey} />
+        </div>
+      </DemoWrapper>
     </div>
   );
 }

@@ -147,28 +147,36 @@ export async function handleAddComponents(
       ? path.join(process.cwd(), installPath, LEGACY_COMPONENT_SUBDIR)
       : null;
 
-    const existingComponents = components.filter((comp) => {
-      const newPath = path.join(existingComponentsPath, `${comp}.tsx`);
-      const legacyPath = legacyComponentsPath
-        ? path.join(legacyComponentsPath, `${comp}.tsx`)
-        : null;
+    let existingComponents: string[] = [];
+    let newComponents: string[] = [];
 
-      return (
-        fs.existsSync(newPath) || (legacyPath && fs.existsSync(legacyPath))
-      );
-    });
-    const newComponents = components.filter(
-      (comp) => !existingComponents.includes(comp),
-    );
+    // If forceUpdate is true, treat all components as new to force reinstall
+    if (options.forceUpdate) {
+      newComponents = components;
+    } else {
+      existingComponents = components.filter((comp) => {
+        const newPath = path.join(existingComponentsPath, `${comp}.tsx`);
+        const legacyPath = legacyComponentsPath
+          ? path.join(legacyComponentsPath, `${comp}.tsx`)
+          : null;
 
-    if (newComponents.length === 0) {
-      if (!options.silent) {
-        console.log(
-          chalk.blue("ℹ All required components are already installed:"),
+        return (
+          fs.existsSync(newPath) || (legacyPath && fs.existsSync(legacyPath))
         );
-        existingComponents.forEach((comp) => console.log(`  - ${comp}`));
+      });
+      newComponents = components.filter(
+        (comp) => !existingComponents.includes(comp),
+      );
+
+      if (newComponents.length === 0) {
+        if (!options.silent) {
+          console.log(
+            chalk.blue("ℹ All required components are already installed:"),
+          );
+          existingComponents.forEach((comp) => console.log(`  - ${comp}`));
+        }
+        return;
       }
-      return;
     }
 
     // 5. Show installation plan

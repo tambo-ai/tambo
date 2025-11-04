@@ -3,7 +3,7 @@ title: Client-side MCP Connection
 description: Connect to MCP servers from your application to extend Tambo's capabilities
 ---
 
-### 2. Client-Side Support
+### Client-side Support
 
 Client-side MCP integration allows your application to connect to MCP servers
 that are accessible from the end user's browser, for instance when using a local
@@ -15,7 +15,7 @@ This is useful for:
 - MCP servers where the user's browser is already authenticated
 - Private or internal services behind a firewall, that are only visible from the user's browser
 
-**Note:** _There is currently no support for authenticated MCP servers when using the client-side MCP provider_.
+**Note:** _There is currently no support for authenticated MCP servers when using client-side MCP connections_.
 
 To implement client-side MCP support, use the `TamboMcpProvider` component inside your `TamboProvider`:
 
@@ -47,20 +47,12 @@ function MyApp() {
 
 The `TamboMcpProvider` establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
 
-## Rich Content Support
-
-MCP tools automatically support rich content responses. When MCP servers return content arrays (which can include text, images, and other media types), Tambo automatically passes them through to the AI without converting them to plain text. This means MCP tools can seamlessly return images, formatted content, and other rich media.
-
-If you're building custom tools that need similar capabilities, you can use the `transformToContent` parameter when registering tools. [Learn more about returning rich content from tools](/concepts/tools/adding-tools#returning-rich-content).
-
-## How Client-Side MCP Works
-
-This is how client-side MCP works:
+## Control Flow
 
 ```mermaid
 sequenceDiagram
-    participant MCP
     participant Browser
+    participant MCP
     participant Tambo
 
     Browser->>Tambo: "Show me issues in the last 30 days"

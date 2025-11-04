@@ -5,7 +5,15 @@ import config from "@tambo-ai/eslint-config/base";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/**/*", "esm/**/*", "jest.config.ts", "eslint.config.mjs"] },
+  {
+    ignores: [
+      "dist/**/*",
+      "esm/**/*",
+      "jest.config.ts",
+      "eslint.config.mjs",
+      "tests/**/*",
+    ],
+  },
   config,
   eslint.configs.recommended,
   tseslint.configs.stylisticTypeChecked,

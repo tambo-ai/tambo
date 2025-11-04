@@ -72,3 +72,9 @@ npm run clean        # Remove .next build artifacts
 - Use unique context keys for thread isolation
 - Follow existing demo patterns for consistency
 - Include interactive examples for all components
+
+## Design Token Guidance
+
+- Default to `text-foreground` and `text-muted-foreground` for UI copy; reserve `text-primary` for elements on `bg-primary`.
+- Reference the Storybook story `Design System/Token Usage` for canonical correct vs incorrect examples.
+- Treat any `text-secondary` usage in demos as a blocker and migrate to neutral tokens before shipping.

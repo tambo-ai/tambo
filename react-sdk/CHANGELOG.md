@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.61.0](https://github.com/tambo-ai/tambo/compare/react-v0.60.0...react-v0.61.0) (2025-11-04)
+
+
+### Features
+
+* **react-sdk:** auto generate thread name ([#1185](https://github.com/tambo-ai/tambo/issues/1185)) ([991a567](https://github.com/tambo-ai/tambo/commit/991a567e3591c735f55022d5aae194eda88bd8f5))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 2 updates ([#1237](https://github.com/tambo-ai/tambo/issues/1237)) ([dc476b3](https://github.com/tambo-ai/tambo/commit/dc476b321bb4b351ea21b34386611ed1ecd02a82))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.1 to 0.76.0 ([#1241](https://github.com/tambo-ai/tambo/issues/1241)) ([62d792e](https://github.com/tambo-ai/tambo/commit/62d792e38cd34832e729219a4f1ea28424d85433))
+* **deps:** bump @tanstack/react-query from 5.90.5 to 5.90.6 ([#1240](https://github.com/tambo-ai/tambo/issues/1240)) ([40d9f21](https://github.com/tambo-ai/tambo/commit/40d9f2147e1926b86bf71942fc38208ae9fed48f))
+
 ## [0.60.0](https://github.com/tambo-ai/tambo/compare/react-v0.59.0...react-v0.60.0) (2025-10-30)
 
 
