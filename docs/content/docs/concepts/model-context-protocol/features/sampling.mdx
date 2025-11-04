@@ -19,7 +19,7 @@ For example, a data retrieval tool might fetch raw information from an API, then
 
 ## Server-side Support Only
 
-**Important:** Sampling currently only works with **[server-side MCP connections](/concepts/model-context-protocol/serverside-mcp-connection)**. Client-side MCP servers cannot make sampling requests at this time.
+**Important:** Sampling currently only works with **[server-side MCP connections](/concepts/model-context-protocol/providers/serverside-mcp-connection)**. Client-side MCP servers cannot make sampling requests at this time.
 
 This limitation exists because sampling requests need to be processed through Tambo's backend infrastructure to ensure proper security, rate limiting, and LLM access control.
 
@@ -128,5 +128,5 @@ import LearnMore from "@/components/learn-more";
 <LearnMore
   title="Server-side MCP Connections"
   description="Configure MCP servers through the Tambo dashboard"
-  href="/concepts/model-context-protocol/serverside-mcp-connection"
+  href="/concepts/model-context-protocol/providers/serverside-mcp-connection"
 />
