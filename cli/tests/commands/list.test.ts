@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { vol, fs as memfsFs } from "memfs";
+import { fs as memfsFs, vol } from "memfs";
 import { createBasicProjectStructure } from "../helpers/mock-fs-setup.js";
 
 // Mock fs module before importing the command

@@ -94,53 +94,28 @@ If you do update the components directly, you should also update the documentati
 
 ## Testing
 
-### Test Structure
-
-- Tests are located in `tests/` directory (separate from `src/` to avoid distribution)
-- Uses Jest with ESM support and memfs for filesystem mocking
-- Test files follow pattern: `tests/commands/*.test.ts`
+Tests are in `tests/` directory using Jest with ESM support and memfs for filesystem mocking.
 
 ### Running Tests
 
 ```bash
 npm test                 # Run all tests
 npm test -- --watch     # Run tests in watch mode
-npm test -- list        # Run specific test file
+npm test -- add          # Run specific test file
 ```
 
 ### Writing Tests
 
-Tests use memfs to mock the filesystem without affecting the real filesystem:
+- Use `memfs` (`vol.fromJSON()`) to mock filesystem operations
+- Mock external dependencies: `child_process.execSync`, `inquirer.prompt`, registry utilities
+- Helper functions in `tests/helpers/mock-fs-setup.ts` for common test scenarios
+- See `tests/commands/list.test.ts` and `tests/commands/add.test.ts` for examples
 
-```typescript
-import { vol } from "memfs";
+Key requirements:
 
-// Setup mock filesystem
-vol.fromJSON({
-  "/mock-project/package.json": JSON.stringify({ name: "test" }),
-  "/mock-project/src/components/tambo/message.tsx":
-    "export const message = () => null;",
-});
-
-// Test your command
-await handleListComponents();
-
-// Clean up
-vol.reset();
-```
-
-Key testing utilities in `tests/helpers/mock-fs-setup.ts`:
-
-- `createBasicProjectStructure()` - Creates common test filesystem structures
-- `captureConsoleOutput()` - Captures console.log output for assertions
-- `mockProcessCwd()` - Mocks the current working directory
-
-### Test Coverage
-
-- Command handlers should have unit tests
-- Use mock filesystem to simulate project structures
-- Mock external dependencies (registry, network calls)
+- Command handlers must have unit tests
 - Test both success and error cases
+- Mock external dependencies (don't hit real filesystem/network/npm)
 
 ## Important Development Rules
 
