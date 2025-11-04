@@ -808,7 +808,9 @@ export type MessageInputMcpPromptButtonProps =
  */
 const MessageInputMcpPromptButton = React.forwardRef<
   HTMLButtonElement,
-  MessageInputMcpPromptButtonProps
+  MessageInputMcpPromptButtonProps & {
+    className?: string;
+  }
 >(({ className, ...props }, ref) => {
   const { setValue, value } = useMessageInputContext();
   const { data: promptList, isLoading } = useTamboMcpPromptList();
