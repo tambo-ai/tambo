@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useReactMediaRecorder } from "react-media-recorder";
 import { useTamboClient } from "../providers/tambo-client-provider";
 
 /**
@@ -13,131 +14,75 @@ import { useTamboClient } from "../providers/tambo-client-provider";
  * - mediaAccessError: An error message if microphone access fails.
  */
 export function useTamboVoice() {
-  const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [transcriptionError, setTranscriptionError] = useState<string | null>(
     null,
   );
-  const [mediaAccessError, setMediaAccessError] = useState<string | null>(null);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null,
-  );
-  const audioChunks = useRef<Blob[]>([]);
   const client = useTamboClient();
+  const {
+    status,
+    startRecording: startMediaRecording,
+    stopRecording: stopMediaRecording,
+    mediaBlobUrl,
+    error: mediaAccessError,
+  } = useReactMediaRecorder({
+    audio: true,
+    video: false,
+    blobPropertyBag: { type: "audio/webm" },
+  });
 
-  // Get user permission and access the microphone
-  const getMediaStream = useCallback(async (): Promise<MediaStream | null> => {
-    try {
-      setMediaAccessError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-      return stream;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to access microphone. Please check permissions.";
-      setMediaAccessError(errorMessage);
-      console.error("Error getting media stream:", error);
-      return null;
-    }
-  }, []);
+  const isRecording = status === "recording";
 
-  const startRecording = useCallback(async () => {
-    // If already recording or media recorder is already set, do nothing
-    if (isRecording) {
-      return;
-    }
-    const stream = await getMediaStream();
-    if (!stream) {
-      return;
-    }
+  const transcribeRecordedAudio = useCallback(
+    async (blobUrl: string) => {
+      setIsTranscribing(true);
+      setTranscriptionError(null);
 
-    setIsRecording(true);
-    audioChunks.current = [];
+      try {
+        // Fetch the blob from the URL
+        const response = await fetch(blobUrl);
+        const audioBlob = await response.blob();
+        const file = new File([audioBlob], "recording.webm", {
+          type: "audio/webm",
+        });
+
+        const transcription = await client.beta.audio.transcribe({ file });
+        setTranscript(transcription);
+      } catch (error) {
+        setTranscriptionError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong during transcription.",
+        );
+      } finally {
+        setIsTranscribing(false);
+      }
+    },
+    [client],
+  );
+
+  // Trigger transcription when recording stops and we have a blob URL
+  useEffect(() => {
+    if (status === "stopped" && mediaBlobUrl) {
+      transcribeRecordedAudio(mediaBlobUrl);
+    }
+  }, [status, mediaBlobUrl, transcribeRecordedAudio]);
+
+  const startRecording = useCallback(() => {
+    if (isRecording) return;
+
+    // Reset state when starting new recording
     setTranscript(null);
     setTranscriptionError(null);
+    startMediaRecording();
+  }, [isRecording, startMediaRecording]);
 
-    const recorder = new MediaRecorder(stream, {
-      mimeType: "audio/webm;codecs=opus",
-    });
-    setMediaRecorder(recorder);
-    recorder.start();
-  }, [getMediaStream, isRecording]);
-
-  // Stop recording audio and start transcription
   const stopRecording = useCallback(() => {
-    if (mediaRecorder?.state === "recording") {
-      mediaRecorder.requestData();
-      mediaRecorder.stop();
+    if (isRecording) {
+      stopMediaRecording();
     }
-    setIsRecording(false);
-  }, [mediaRecorder]);
-
-  const transcribeRecordedAudio = useCallback(async () => {
-    if (!audioChunks.current.length) {
-      setTranscriptionError("No audio captured. Please try again.");
-      return;
-    }
-    const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
-    const file = new File([audioBlob], `recording.webm`, {
-      type: "audio/webm",
-    });
-
-    setIsTranscribing(true);
-    try {
-      const transcription = await client.beta.audio.transcribe({ file });
-      setTranscript(transcription);
-    } catch (error) {
-      setTranscriptionError(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong during transcription.",
-      );
-    } finally {
-      setIsTranscribing(false);
-    }
-  }, [audioChunks, client]);
-
-  // Register event handlers for the media recorder
-  useEffect(() => {
-    if (!mediaRecorder) return;
-
-    const handleDataAvailable = (event: BlobEvent) => {
-      if (event && event.data.size > 0) {
-        audioChunks.current.push(event.data);
-      }
-    };
-
-    const handleStop = () => {
-      // Stop all tracks to release the microphone and remove the recording indicator
-      if (mediaRecorder?.stream) {
-        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-      }
-      setMediaRecorder(null);
-      transcribeRecordedAudio();
-    };
-
-    mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.onstop = handleStop;
-
-    return () => {
-      mediaRecorder.ondataavailable = null;
-      mediaRecorder.onstop = null;
-    };
-  }, [mediaRecorder, transcribeRecordedAudio]);
-
-  // Cleanup effect to stop media stream when component unmounts
-  useEffect(() => {
-    return () => {
-      if (mediaRecorder?.stream) {
-        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [mediaRecorder]);
+  }, [isRecording, stopMediaRecording]);
 
   return {
     startRecording,
@@ -146,6 +91,6 @@ export function useTamboVoice() {
     isTranscribing,
     transcript,
     transcriptionError,
-    mediaAccessError,
+    mediaAccessError: mediaAccessError || null,
   };
 }
