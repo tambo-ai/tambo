@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.120.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.7...repo-v0.120.8) (2025-11-04)
+
+
+### Bug Fixes
+
+* split middleware commands ([#2034](https://github.com/tambo-ai/tambo-cloud/issues/2034)) ([9fdd306](https://github.com/tambo-ai/tambo-cloud/commit/9fdd3064ade79bd6d83de7860951b09b51f19d9c))
+
 ## [0.120.7](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.6...repo-v0.120.7) (2025-11-04)
 
 
