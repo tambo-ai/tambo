@@ -175,7 +175,14 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     const { isIdle } = useTambo();
     const isGenerating = !isIdle;
 
-    const formId = `form-${React.useId()}`;
+    const baseId = React.useId();
+    const formId = React.useMemo(() => {
+      const ids = (fields ?? [])
+        .map((f) => f.id)
+        .filter(Boolean)
+        .join("-");
+      return ids ? `form-${baseId}-${ids}` : `form-${baseId}`;
+    }, [baseId, fields]);
 
     /**
      * Component state managed by Tambo

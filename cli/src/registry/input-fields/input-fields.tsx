@@ -121,7 +121,13 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
     const isGenerating = !isIdle;
 
     const baseId = React.useId();
-    const inputFieldsId = `input-fields-${baseId}`;
+    const inputFieldsId = React.useMemo(() => {
+      const ids = (fields ?? [])
+        .map((f) => f.id)
+        .filter(Boolean)
+        .join("-");
+      return ids ? `input-fields-${baseId}-${ids}` : `input-fields-${baseId}`;
+    }, [baseId, fields]);
 
     /**
      * Component state managed by Tambo

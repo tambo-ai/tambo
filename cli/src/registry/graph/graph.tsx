@@ -19,7 +19,7 @@ type GraphSize = "default" | "sm" | "lg";
 /**
  * Variants for the Graph component
  */
-const graphVariants = cva(
+export const graphVariants = cva(
   "w-full rounded-lg overflow-hidden transition-all duration-200",
   {
     variants: {
