@@ -83,9 +83,9 @@ export function assertNoZodRecord(
     }
 
     if (current instanceof z.ZodFunction) {
-      // Check the return type for z.record()
-      if (def.returns instanceof z.ZodType) {
-        visit(def.returns, [...path, "()"]);
+      // Check the function arguments for z.record()
+      if (def.args instanceof z.ZodTuple) {
+        visit(def.args, [...path, "args"]);
       }
       return;
     }

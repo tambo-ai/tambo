@@ -119,36 +119,36 @@ describe("assertNoZodRecord", () => {
     );
   });
 
-  it("should allow z.function() with valid return type", () => {
+  it("should allow z.function() with valid arguments", () => {
     const schema = z
       .function()
-      .args(z.string())
-      .returns(z.object({ name: z.string(), age: z.number() }));
+      .args(z.string(), z.number())
+      .returns(z.string());
 
     expect(() => assertNoZodRecord(schema)).not.toThrow();
   });
 
-  it("should throw when z.function() return type contains z.record()", () => {
-    const schema = z.function().args(z.string()).returns(z.record(z.string()));
+  it("should throw when z.function() arguments contain z.record()", () => {
+    const schema = z.function().args(z.record(z.string())).returns(z.string());
 
     expect(() => assertNoZodRecord(schema)).toThrow(
-      'z.record() is not supported in schema. Found at path "()". Replace it with z.object({ ... }) using explicit keys.',
+      'z.record() is not supported in schema. Found at path "args.0". Replace it with z.object({ ... }) using explicit keys.',
     );
   });
 
-  it("should throw when z.function() return type contains nested z.record()", () => {
+  it("should throw when z.function() arguments contain nested z.record()", () => {
     const schema = z
       .function()
-      .args(z.string())
-      .returns(
+      .args(
         z.object({
           name: z.string(),
           metadata: z.record(z.string()),
         }),
-      );
+      )
+      .returns(z.string());
 
     expect(() => assertNoZodRecord(schema)).toThrow(
-      'z.record() is not supported in schema. Found at path "().metadata". Replace it with z.object({ ... }) using explicit keys.',
+      'z.record() is not supported in schema. Found at path "args.0.metadata". Replace it with z.object({ ... }) using explicit keys.',
     );
   });
 });
