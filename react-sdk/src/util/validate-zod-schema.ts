@@ -22,7 +22,7 @@ export function assertNoZodRecord(
       return;
     if (visited.has(current)) return;
 
-    const def: any = (current as any)._def;
+    const def: any = current._def;
     const typeName: ZodFirstPartyTypeKind | undefined = def?.typeName;
 
     // ───────────────────── Disallowed ─────────────────────
@@ -79,6 +79,14 @@ export function assertNoZodRecord(
 
     if (current instanceof z.ZodLazy) {
       visit(def.getter(), path);
+      return;
+    }
+
+    if (current instanceof z.ZodFunction) {
+      // Check the return type for z.record()
+      if (def.returns instanceof z.ZodType) {
+        visit(def.returns, [...path, "()"]);
+      }
       return;
     }
 

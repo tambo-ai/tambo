@@ -118,4 +118,37 @@ describe("assertNoZodRecord", () => {
       'z.record() is not supported in schema. Found at path "(root)". Replace it with z.object({ ... }) using explicit keys.',
     );
   });
+
+  it("should allow z.function() with valid return type", () => {
+    const schema = z
+      .function()
+      .args(z.string())
+      .returns(z.object({ name: z.string(), age: z.number() }));
+
+    expect(() => assertNoZodRecord(schema)).not.toThrow();
+  });
+
+  it("should throw when z.function() return type contains z.record()", () => {
+    const schema = z.function().args(z.string()).returns(z.record(z.string()));
+
+    expect(() => assertNoZodRecord(schema)).toThrow(
+      'z.record() is not supported in schema. Found at path "()". Replace it with z.object({ ... }) using explicit keys.',
+    );
+  });
+
+  it("should throw when z.function() return type contains nested z.record()", () => {
+    const schema = z
+      .function()
+      .args(z.string())
+      .returns(
+        z.object({
+          name: z.string(),
+          metadata: z.record(z.string()),
+        }),
+      );
+
+    expect(() => assertNoZodRecord(schema)).toThrow(
+      'z.record() is not supported in schema. Found at path "().metadata". Replace it with z.object({ ... }) using explicit keys.',
+    );
+  });
 });
