@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReactMediaRecorder } from "react-media-recorder";
 import { useTamboClient } from "../providers/tambo-client-provider";
+import { useTamboMutation } from "./react-query-hooks";
 
 /**
  * Exposes functionality to record speech and transcribe it using the Tambo API.
@@ -14,11 +15,7 @@ import { useTamboClient } from "../providers/tambo-client-provider";
  * - mediaAccessError: An error message if microphone access fails.
  */
 export function useTamboVoice() {
-  const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
-  const [transcriptionError, setTranscriptionError] = useState<string | null>(
-    null,
-  );
   const client = useTamboClient();
   const {
     status,
@@ -34,49 +31,51 @@ export function useTamboVoice() {
 
   const isRecording = status === "recording";
 
-  const transcribeRecordedAudio = useCallback(
-    async (blobUrl: string) => {
-      setIsTranscribing(true);
-      setTranscriptionError(null);
+  const transcriptionMutation = useTamboMutation<
+    string,
+    Error,
+    string // blobUrl parameter
+  >({
+    mutationFn: async (blobUrl: string) => {
+      const response = await fetch(blobUrl);
+      const audioBlob = await response.blob();
+      const file = new File([audioBlob], "recording.webm", {
+        type: "audio/webm",
+      });
 
-      try {
-        // Fetch the blob from the URL
-        const response = await fetch(blobUrl);
-        const audioBlob = await response.blob();
-        const file = new File([audioBlob], "recording.webm", {
-          type: "audio/webm",
-        });
-
-        const transcription = await client.beta.audio.transcribe({ file });
-        setTranscript(transcription);
-      } catch (error) {
-        setTranscriptionError(
-          error instanceof Error
-            ? error.message
-            : "Something went wrong during transcription.",
-        );
-      } finally {
-        setIsTranscribing(false);
-      }
+      return await client.beta.audio.transcribe({ file });
     },
-    [client],
-  );
+    onSuccess: (transcription) => {
+      setTranscript(transcription);
+    },
+  });
 
   // Trigger transcription when recording stops and we have a blob URL
   useEffect(() => {
-    if (status === "stopped" && mediaBlobUrl) {
-      transcribeRecordedAudio(mediaBlobUrl);
+    if (
+      status === "stopped" &&
+      mediaBlobUrl &&
+      !transcriptionMutation.isPending &&
+      !transcriptionMutation.isSuccess
+    ) {
+      transcriptionMutation.mutate(mediaBlobUrl);
     }
-  }, [status, mediaBlobUrl, transcribeRecordedAudio]);
+  }, [
+    status,
+    mediaBlobUrl,
+    transcriptionMutation.isPending,
+    transcriptionMutation.isSuccess,
+    transcriptionMutation,
+  ]);
 
   const startRecording = useCallback(() => {
     if (isRecording) return;
 
     // Reset state when starting new recording
     setTranscript(null);
-    setTranscriptionError(null);
+    transcriptionMutation.reset(); // Clear any previous mutation state
     startMediaRecording();
-  }, [isRecording, startMediaRecording]);
+  }, [isRecording, startMediaRecording, transcriptionMutation]);
 
   const stopRecording = useCallback(() => {
     if (isRecording) {
@@ -88,9 +87,9 @@ export function useTamboVoice() {
     startRecording,
     stopRecording,
     isRecording,
-    isTranscribing,
+    isTranscribing: transcriptionMutation.isPending,
     transcript,
-    transcriptionError,
-    mediaAccessError: mediaAccessError || null,
+    transcriptionError: transcriptionMutation.error?.message ?? null,
+    mediaAccessError: mediaAccessError ?? null,
   };
 }
