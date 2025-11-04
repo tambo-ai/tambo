@@ -635,7 +635,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   };
 
   return (
-    <TooltipProvider>
+    <>
       <Tooltip
         content="Configure MCP Servers"
         side="right"
@@ -657,7 +657,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-    </TooltipProvider>
+    </>
   );
 });
 MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
@@ -757,34 +757,32 @@ const MessageInputFileButton = React.forwardRef<
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip
-        content="Attach Images"
-        side="top"
-        className="bg-muted text-primary"
+    <Tooltip
+      content="Attach Images"
+      side="top"
+      className="bg-muted text-primary"
+    >
+      <button
+        ref={ref}
+        type="button"
+        onClick={handleClick}
+        className={buttonClasses}
+        aria-label="Attach Images"
+        data-slot="message-input-file-button"
+        {...props}
       >
-        <button
-          ref={ref}
-          type="button"
-          onClick={handleClick}
-          className={buttonClasses}
-          aria-label="Attach Images"
-          data-slot="message-input-file-button"
-          {...props}
-        >
-          <Paperclip className="w-4 h-4" />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            multiple={multiple}
-            onChange={handleFileChange}
-            className="hidden"
-            aria-hidden="true"
-          />
-        </button>
-      </Tooltip>
-    </TooltipProvider>
+        <Paperclip className="w-4 h-4" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleFileChange}
+          className="hidden"
+          aria-hidden="true"
+        />
+      </button>
+    </Tooltip>
   );
 });
 MessageInputFileButton.displayName = "MessageInput.FileButton";
@@ -855,71 +853,69 @@ const MessageInputMcpPromptButton = React.forwardRef<
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip
-        content="Insert MCP Prompt"
-        side="top"
-        className="bg-muted text-primary"
-      >
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button
-              ref={ref}
-              type="button"
-              className={buttonClasses}
-              aria-label="Insert MCP Prompt"
-              data-slot="message-input-mcp-prompt-button"
-              {...props}
-            >
-              <Sparkles className="w-4 h-4" />
-            </button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content
-              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
-              side="top"
-              align="start"
-              sideOffset={5}
-            >
-              {isLoading ? (
+    <Tooltip
+      content="Insert MCP Prompt"
+      side="top"
+      className="bg-muted text-primary"
+    >
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <button
+            ref={ref}
+            type="button"
+            className={buttonClasses}
+            aria-label="Insert MCP Prompt"
+            data-slot="message-input-mcp-prompt-button"
+            {...props}
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+            side="top"
+            align="start"
+            sideOffset={5}
+          >
+            {isLoading ? (
+              <DropdownMenu.Item
+                className="px-2 py-1.5 text-sm text-muted-foreground"
+                disabled
+              >
+                Loading prompts...
+              </DropdownMenu.Item>
+            ) : !promptList || promptList.length === 0 ? (
+              <DropdownMenu.Item
+                className="px-2 py-1.5 text-sm text-muted-foreground"
+                disabled
+              >
+                No prompts available
+              </DropdownMenu.Item>
+            ) : (
+              promptList.map((promptEntry) => (
                 <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
+                  key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
+                  className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  onSelect={() => {
+                    setSelectedPromptName(promptEntry.prompt.name);
+                  }}
                 >
-                  Loading prompts...
-                </DropdownMenu.Item>
-              ) : !promptList || promptList.length === 0 ? (
-                <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
-                >
-                  No prompts available
-                </DropdownMenu.Item>
-              ) : (
-                promptList.map((promptEntry) => (
-                  <DropdownMenu.Item
-                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
-                    className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                    onSelect={() => {
-                      setSelectedPromptName(promptEntry.prompt.name);
-                    }}
-                  >
-                    <span className="font-medium truncate max-w-full">
-                      {promptEntry.prompt.name}
+                  <span className="font-medium truncate max-w-full">
+                    {promptEntry.prompt.name}
+                  </span>
+                  {promptEntry.prompt.description && (
+                    <span className="text-xs text-muted-foreground truncate max-w-full">
+                      {promptEntry.prompt.description}
                     </span>
-                    {promptEntry.prompt.description && (
-                      <span className="text-xs text-muted-foreground truncate max-w-full">
-                        {promptEntry.prompt.description}
-                      </span>
-                    )}
-                  </DropdownMenu.Item>
-                ))
-              )}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
-      </Tooltip>
-    </TooltipProvider>
+                  )}
+                </DropdownMenu.Item>
+              ))
+            )}
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </Tooltip>
   );
 });
 MessageInputMcpPromptButton.displayName = "MessageInput.McpPromptButton";
@@ -1130,17 +1126,15 @@ const DictationButton = () => {
   return (
     <div className="flex flex-row items-center gap-2">
       <span className="text-sm text-red-500">{transcriptionError}</span>
-      <TooltipProvider>
-        <Tooltip content="Dictate">
-          <button
-            type="button"
-            onClick={handleStartRecording}
-            className="p-2 rounded-md cursor-pointer hover:bg-gray-100 "
-          >
-            <Mic className="h-5 w-5" />
-          </button>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip content="Dictate">
+        <button
+          type="button"
+          onClick={handleStartRecording}
+          className="p-2 rounded-md cursor-pointer hover:bg-gray-100 "
+        >
+          <Mic className="h-5 w-5" />
+        </button>
+      </Tooltip>
     </div>
   );
 };
@@ -1164,41 +1158,43 @@ const MessageInputToolbar = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex justify-between items-center mt-2 p-1 gap-2",
-        className,
-      )}
-      data-slot="message-input-toolbar"
-      {...props}
-    >
-      <div className="flex items-center gap-2">
-        {/* Left side - everything except submit button */}
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
-          ) {
-            return null; // Don't render submit button here
-          }
-          return child;
-        })}
+    <TooltipProvider>
+      <div
+        ref={ref}
+        className={cn(
+          "flex justify-between items-center mt-2 p-1 gap-2",
+          className,
+        )}
+        data-slot="message-input-toolbar"
+        {...props}
+      >
+        <div className="flex items-center gap-2">
+          {/* Left side - everything except submit button */}
+          {React.Children.map(children, (child): React.ReactNode => {
+            if (
+              React.isValidElement(child) &&
+              child.type === MessageInputSubmitButton
+            ) {
+              return null; // Don't render submit button here
+            }
+            return child;
+          })}
+        </div>
+        <div className="flex items-center gap-2">
+          <DictationButton />
+          {/* Right side - only submit button */}
+          {React.Children.map(children, (child): React.ReactNode => {
+            if (
+              React.isValidElement(child) &&
+              child.type === MessageInputSubmitButton
+            ) {
+              return child; // Only render submit button here
+            }
+            return null;
+          })}
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        <DictationButton />
-        {/* Right side - only submit button */}
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
-          ) {
-            return child; // Only render submit button here
-          }
-          return null;
-        })}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 });
 MessageInputToolbar.displayName = "MessageInput.Toolbar";
