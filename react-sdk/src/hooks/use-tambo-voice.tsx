@@ -87,9 +87,9 @@ export function useTamboVoice() {
     startRecording,
     stopRecording,
     isRecording,
+    mediaAccessError: mediaAccessError ?? null,
     isTranscribing: transcriptionMutation.isPending,
     transcript,
     transcriptionError: transcriptionMutation.error?.message ?? null,
-    mediaAccessError: mediaAccessError ?? null,
   };
 }
