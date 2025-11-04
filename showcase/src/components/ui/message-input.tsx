@@ -21,9 +21,9 @@ import {
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
+  FileText,
   Image as ImageIcon,
   Paperclip,
-  Sparkles,
   Square,
   X,
 } from "lucide-react";
@@ -865,7 +865,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
               data-slot="message-input-mcp-prompt-button"
               {...props}
             >
-              <Sparkles className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
             </button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
