@@ -27,7 +27,7 @@ import {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
 } from "@/components/ui/thread-history";
-import { useMergedRef } from "@/lib/thread-hooks";
+import { useMergeRefs } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
@@ -71,7 +71,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
     const [width, setWidth] = React.useState(500);
     const isResizing = React.useRef(false);
     const panelRef = React.useRef<HTMLDivElement>(null);
-    const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
+    const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, panelRef);
 
     const handleMouseMove = React.useCallback((e: MouseEvent) => {
       if (!isResizing.current) return;

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import {
   useCanvasDetection,
   usePositioning,
-  useMergedRef,
+  useMergeRefs,
 } from "@/lib/thread-hooks";
 import * as React from "react";
 import { useRef } from "react";
@@ -29,7 +29,7 @@ export const ThreadContainer = React.forwardRef<
     canvasIsOnLeft,
     hasCanvasSpace,
   );
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
+  const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, containerRef);
 
   return (
     <div
