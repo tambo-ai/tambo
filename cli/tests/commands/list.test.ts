@@ -1,4 +1,11 @@
-import { jest } from "@jest/globals";
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
 import { createBasicProjectStructure } from "../helpers/mock-fs-setup.js";
 

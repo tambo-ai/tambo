@@ -29,7 +29,7 @@
     "build": "tsc",
     "dev": "concurrently -c blue.bold,green.bold \"npm run dev:esm\"",
     "dev:esm": "tsc --watch",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --project tsconfig.check.json --noEmit",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.ts",
     "format": "prettier --write .",
     "lint": "eslint",

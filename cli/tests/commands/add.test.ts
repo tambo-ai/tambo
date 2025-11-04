@@ -1,5 +1,12 @@
-import { jest } from "@jest/globals";
-import { vol, fs as memfsFs } from "memfs";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
+import { fs as memfsFs, vol } from "memfs";
 
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
