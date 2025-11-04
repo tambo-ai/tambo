@@ -8,10 +8,10 @@ import {
 } from "../../constants/paths.js";
 import { getInstallationPath } from "../init.js";
 import { installComponents } from "./component.js";
-import { resolveComponentDependencies } from "./dependencies.js";
 import { setupTailwindandGlobals } from "./tailwind-setup.js";
 import type { InstallComponentOptions } from "./types.js";
 import { getKnownComponentNames } from "./utils.js";
+import { resolveComponentDependencies } from "../../utils/dependency-resolution.js";
 
 /**
  * Main function to handle component installation

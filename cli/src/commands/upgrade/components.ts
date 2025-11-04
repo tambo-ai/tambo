@@ -8,7 +8,6 @@ import {
   LEGACY_COMPONENT_SUBDIR,
 } from "../../constants/paths.js";
 import { installComponents } from "../add/component.js";
-import { resolveComponentDependencies } from "../add/dependencies.js";
 import { setupTailwindandGlobals } from "../add/tailwind-setup.js";
 import type { InstallComponentOptions } from "../add/types.js";
 import { getInstalledComponents } from "../add/utils.js";
@@ -21,6 +20,11 @@ import {
 } from "../shared/component-utils.js";
 import type { UpgradeOptions } from "./index.js";
 import { confirmAction, migrateComponentsDuringUpgrade } from "./utils.js";
+import {
+  resolveDependenciesForComponents,
+  displayDependencyInfo,
+  expandComponentsWithDependencies,
+} from "../../utils/dependency-resolution.js";
 
 /**
  * Represents a component that will be upgraded
@@ -233,99 +237,25 @@ export async function upgradeComponents(
 
     // Resolve dependencies for selected components
     console.log(chalk.blue("\nResolving component dependencies..."));
-    const allComponentsToUpgrade = new Set<string>();
-    const dependencyMap = new Map<string, string[]>(); // Track which dependencies were added by which component
-
-    for (const component of componentsToUpgrade) {
-      allComponentsToUpgrade.add(component.name);
-      try {
-        const resolved = await resolveComponentDependencies(component.name);
-        const dependencies = resolved.filter((dep) => dep !== component.name);
-
-        if (dependencies.length > 0) {
-          dependencyMap.set(component.name, dependencies);
-          dependencies.forEach((dep) => allComponentsToUpgrade.add(dep));
-        }
-      } catch (error) {
-        console.log(
-          chalk.yellow(
-            `⚠️  Failed to resolve dependencies for ${component.name}: ${error}`,
-          ),
-        );
-      }
-    }
-
-    // Split dependencies into already installed (to upgrade) and missing (to install)
     const installedComponentSet = new Set(installedComponentNames);
-    const dependenciesToUpgrade = Array.from(allComponentsToUpgrade).filter(
-      (comp) => installedComponentSet.has(comp),
+
+    // Resolve dependencies for all components
+    const dependencyResult = await resolveDependenciesForComponents(
+      componentsToUpgrade,
+      installedComponentSet,
     );
-    const dependenciesToInstall = Array.from(allComponentsToUpgrade).filter(
-      (comp) => !installedComponentSet.has(comp),
+
+    // Display dependency information
+    displayDependencyInfo(dependencyResult, componentsToUpgrade);
+
+    // Expand componentsToUpgrade to include all dependencies with their locations
+    componentsToUpgrade = await expandComponentsWithDependencies(
+      componentsToUpgrade,
+      dependencyResult,
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
     );
-
-    // Show dependency information for already installed dependencies
-    if (dependenciesToUpgrade.length > componentsToUpgrade.length) {
-      const addedDeps = dependenciesToUpgrade.filter(
-        (dep) => !componentsToUpgrade.find((c) => c.name === dep),
-      );
-      if (addedDeps.length > 0) {
-        console.log(
-          chalk.blue("\n📦 Including installed dependencies in upgrade:"),
-        );
-        addedDeps.forEach((dep) => {
-          const requiredBy = Array.from(dependencyMap.entries())
-            .filter(([, deps]) => deps.includes(dep))
-            .map(([comp]) => comp);
-          console.log(`    - ${dep} (required by: ${requiredBy.join(", ")})`);
-        });
-      }
-    }
-
-    // Show dependencies that need to be installed
-    if (dependenciesToInstall.length > 0) {
-      console.log(chalk.blue("\n📦 Installing missing dependencies:"));
-      dependenciesToInstall.forEach((dep) => {
-        const requiredBy = Array.from(dependencyMap.entries())
-          .filter(([, deps]) => deps.includes(dep))
-          .map(([comp]) => comp);
-        console.log(`    - ${dep} (required by: ${requiredBy.join(", ")})`);
-      });
-    }
-
-    // Update componentsToUpgrade to include all dependencies with their locations
-    const allDependencies = [
-      ...dependenciesToUpgrade,
-      ...dependenciesToInstall,
-    ];
-    componentsToUpgrade = allDependencies
-      .map((name) => {
-        const existing = componentsToUpgrade.find((c) => c.name === name);
-        if (existing) return existing;
-
-        // Find location for already installed dependency
-        const location = findComponentLocation(
-          name,
-          projectRoot,
-          installPath,
-          isExplicitPrefix,
-        );
-
-        if (location) {
-          // Dependency already exists, use its current location
-          return {
-            name,
-            installPath: location.installPath,
-          };
-        } else {
-          // Missing dependency, use the same base install path as existing components
-          return {
-            name,
-            installPath: installPath,
-          };
-        }
-      })
-      .filter(Boolean) as { name: string; installPath: string }[];
 
     // Handle inconsistencies and migration
     let migrationPerformed = false;
