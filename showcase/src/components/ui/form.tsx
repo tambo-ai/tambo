@@ -175,22 +175,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     const { isIdle } = useTambo();
     const isGenerating = !isIdle;
 
-    /**
-     * Generates a unique identifier for the form based on field IDs
-     * This ensures persistence of state between re-renders
-     */
-    const formId = React.useMemo(() => {
-      try {
-        // Safely create a form ID, handling any potential issues with fields
-        const validFields = fields.filter(
-          (f) => f && typeof f === "object" && f.id,
-        );
-        return `form-${validFields.map((f) => f.id).join("-")}`;
-      } catch (err) {
-        console.error("Error generating form ID:", err);
-        return `form-${Date.now()}`;
-      }
-    }, [fields]);
+    const formId = `form-${React.useId()}`;
 
     /**
      * Component state managed by Tambo
