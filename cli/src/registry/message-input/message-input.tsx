@@ -25,11 +25,11 @@ import {
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   ArrowUp,
+  FileText,
   Image as ImageIcon,
   Loader2Icon,
   Mic,
   Paperclip,
-  Sparkles,
   Square,
   X,
 } from "lucide-react";
@@ -602,7 +602,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
 
@@ -639,7 +639,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <Tooltip
         content="Configure MCP Servers"
         side="right"
-        className="bg-muted text-primary"
+        className="bg-muted text-foreground"
       >
         <button
           ref={ref}
@@ -752,7 +752,7 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
 
@@ -848,7 +848,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
   }
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
 
@@ -856,7 +856,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
     <Tooltip
       content="Insert MCP Prompt"
       side="top"
-      className="bg-muted text-primary"
+      className="bg-muted text-foreground"
     >
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
@@ -868,7 +868,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
             data-slot="message-input-mcp-prompt-button"
             {...props}
           >
-            <Sparkles className="w-4 h-4" />
+            <FileText className="w-4 h-4" />
           </button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>

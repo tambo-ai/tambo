@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.29.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.28.0...showcase-v0.29.0) (2025-11-04)
+
+
+### Features
+
+* Add showcase for elicitation ui ([#1233](https://github.com/tambo-ai/tambo/issues/1233)) ([89a91ab](https://github.com/tambo-ai/tambo/commit/89a91ab000722041ca8c183b7afdb5f8491b5ee3))
+* **ui:** Update Design Token Usage in Component Library ([#1221](https://github.com/tambo-ai/tambo/issues/1221)) ([b2d16f6](https://github.com/tambo-ai/tambo/commit/b2d16f67df80a6cf28cfbec66a5e76d9297cf131))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 2 updates ([#1237](https://github.com/tambo-ai/tambo/issues/1237)) ([dc476b3](https://github.com/tambo-ai/tambo/commit/dc476b321bb4b351ea21b34386611ed1ecd02a82))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.1 to 0.76.0 ([#1241](https://github.com/tambo-ai/tambo/issues/1241)) ([62d792e](https://github.com/tambo-ai/tambo/commit/62d792e38cd34832e729219a4f1ea28424d85433))
+* **deps:** bump lucide-react from 0.546.0 to 0.548.0 ([#1242](https://github.com/tambo-ai/tambo/issues/1242)) ([5824e0b](https://github.com/tambo-ai/tambo/commit/5824e0b1a8c6362cb476ee62959748ea85c31953))
+* **showcase:** Simplify color system to neutral palette ([#1219](https://github.com/tambo-ai/tambo/issues/1219)) ([26f600f](https://github.com/tambo-ai/tambo/commit/26f600f643f0596d30d23ab18c7dc2fdadc7d5ca))
+
+
+### Documentation
+
+* **mcp-features:** Add docs for Prompts and Sampling ([#1247](https://github.com/tambo-ai/tambo/issues/1247)) ([599faaf](https://github.com/tambo-ai/tambo/commit/599faaf4ad7669423a4f9d89dc5758c7b3917c42))
+
 ## [0.28.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.27.0...showcase-v0.28.0) (2025-10-31)
 
 

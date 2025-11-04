@@ -8,6 +8,7 @@ import {
   LEGACY_COMPONENT_SUBDIR,
 } from "../../constants/paths.js";
 import { installComponents } from "../add/component.js";
+import { setupTailwindandGlobals } from "../add/tailwind-setup.js";
 import type { InstallComponentOptions } from "../add/types.js";
 import { getInstalledComponents } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
@@ -17,9 +18,13 @@ import {
   handleDependencyInconsistencies,
   type DependencyInconsistency,
 } from "../shared/component-utils.js";
-import { setupTailwindandGlobals } from "../add/tailwind-setup.js";
 import type { UpgradeOptions } from "./index.js";
 import { confirmAction, migrateComponentsDuringUpgrade } from "./utils.js";
+import {
+  resolveDependenciesForComponents,
+  displayDependencyInfo,
+  expandComponentsWithDependencies,
+} from "../../utils/dependency-resolution.js";
 
 /**
  * Represents a component that will be upgraded
@@ -229,6 +234,28 @@ export async function upgradeComponents(
         .map((name: string) => verifiedMap.get(name))
         .filter(Boolean) as { name: string; installPath: string }[];
     }
+
+    // Resolve dependencies for selected components
+    console.log(chalk.blue("\nResolving component dependencies..."));
+    const installedComponentSet = new Set(installedComponentNames);
+
+    // Resolve dependencies for all components
+    const dependencyResult = await resolveDependenciesForComponents(
+      componentsToUpgrade,
+      installedComponentSet,
+    );
+
+    // Display dependency information
+    displayDependencyInfo(dependencyResult, componentsToUpgrade);
+
+    // Expand componentsToUpgrade to include all dependencies with their locations
+    componentsToUpgrade = await expandComponentsWithDependencies(
+      componentsToUpgrade,
+      dependencyResult,
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
+    );
 
     // Handle inconsistencies and migration
     let migrationPerformed = false;
