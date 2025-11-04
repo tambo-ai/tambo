@@ -34,7 +34,7 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.5",
     "tsx": "^4.20.6",
-    "turbo": "^2.5.8",
+    "turbo": "^2.6.0",
     "typescript": "^5.9.3"
   },
   "workspaces": [

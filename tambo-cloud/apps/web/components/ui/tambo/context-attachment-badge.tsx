@@ -150,13 +150,13 @@ export const ContextAttachmentBadgeList = React.forwardRef<
 
   const contextsList = message
     ? getMessageContexts(message)
-    : (contextAttachment?.attachments ?? []);
+    : contextAttachment.attachments;
 
   // Build attachments array
   const removeImage = message ? undefined : threadInput.removeImage;
   const removeContext = message
     ? undefined
-    : contextAttachment?.removeContextAttachment;
+    : contextAttachment.removeContextAttachment;
 
   const allAttachments = [
     ...imagesList.map((image, index) => ({

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import type { Suggestion } from "@tambo-ai/react";
+import { withInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useState } from "react";
 import { z } from "zod";
@@ -39,15 +40,23 @@ const toolCallLimitEditorSuggestions: Suggestion[] = [
   },
 ];
 
-export const ToolCallLimitEditorPropsSchema = z.object({
-  project: z
-    .object({
-      id: z.string().describe("The unique identifier for the project."),
-      maxToolCallLimit: z
-        .number()
-        .describe("The maximum number of tool calls allowed per response."),
-    })
-    .describe("The project to configure tool call limits for."),
+export const InteractableToolCallLimitEditorProps = z.object({
+  projectId: z.string().describe("The unique identifier for the project."),
+  maxToolCallLimit: z
+    .number()
+    .describe("The current maximum number of tool calls allowed per response."),
+  editedLimit: z
+    .number()
+    .optional()
+    .describe(
+      "When set, the component enters edit mode with this limit value pre-filled. This allows Tambo to propose a specific tool call limit change.",
+    ),
+  enterEditMode: z
+    .boolean()
+    .optional()
+    .describe(
+      "When true, the component enters edit mode with the current limit value, allowing the user to modify it manually.",
+    ),
   onEdited: z
     .function()
     .args()
@@ -59,51 +68,53 @@ export const ToolCallLimitEditorPropsSchema = z.object({
 });
 
 interface ToolCallLimitEditorProps {
-  project: {
-    id: string;
-    maxToolCallLimit: number;
-  };
+  projectId: string;
+  maxToolCallLimit: number;
+  editedLimit?: number;
+  enterEditMode?: boolean;
   onEdited?: () => void;
 }
 
 export function ToolCallLimitEditor({
-  project,
+  projectId,
+  maxToolCallLimit,
+  editedLimit,
+  enterEditMode,
   onEdited,
 }: ToolCallLimitEditorProps) {
   const maxToolCallLimitId = useId();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [maxToolCallLimit, setMaxToolCallLimit] = useState("");
+  const [limitValue, setLimitValue] = useState("");
 
   const { mutateAsync: updateProject, isPending: isUpdating } =
     api.project.updateProject.useMutation();
 
+  // Sync current value from prop (but respect ongoing edits)
   useEffect(() => {
-    if (project?.maxToolCallLimit) {
-      setMaxToolCallLimit(project.maxToolCallLimit.toString());
+    if (maxToolCallLimit && !isEditing) {
+      setLimitValue(maxToolCallLimit.toString());
     }
-  }, [project?.maxToolCallLimit]);
+  }, [maxToolCallLimit, isEditing]);
 
-  if (!project) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            Tool Call Limit
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent border-current" />
-            Loading...
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // When Tambo sends editedLimit, enter edit mode with that value
+  useEffect(() => {
+    if (editedLimit !== undefined) {
+      setLimitValue(editedLimit.toString());
+      setIsEditing(true);
+    }
+  }, [editedLimit]);
+
+  // When Tambo sends enterEditMode, enter edit mode with current value
+  useEffect(() => {
+    if (enterEditMode === true) {
+      setLimitValue(maxToolCallLimit.toString());
+      setIsEditing(true);
+    }
+  }, [enterEditMode, maxToolCallLimit]);
 
   const handleSave = async () => {
-    const limit = parseInt(maxToolCallLimit);
+    const limit = parseInt(limitValue);
 
     if (isNaN(limit) || limit < 1) {
       toast({
@@ -116,7 +127,7 @@ export function ToolCallLimitEditor({
 
     try {
       await updateProject({
-        projectId: project?.id ?? "",
+        projectId,
         maxToolCallLimit: limit,
       });
 
@@ -137,7 +148,7 @@ export function ToolCallLimitEditor({
   };
 
   const handleCancel = () => {
-    setMaxToolCallLimit(project.maxToolCallLimit.toString());
+    setLimitValue(maxToolCallLimit.toString());
     setIsEditing(false);
   };
 
@@ -175,8 +186,8 @@ export function ToolCallLimitEditor({
                     id={maxToolCallLimitId}
                     type="number"
                     min="1"
-                    value={maxToolCallLimit}
-                    onChange={(e) => setMaxToolCallLimit(e.target.value)}
+                    value={limitValue}
+                    onChange={(e) => setLimitValue(e.target.value)}
                     placeholder="Enter maximum tool calls"
                     disabled={isUpdating}
                     autoFocus
@@ -219,9 +230,7 @@ export function ToolCallLimitEditor({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Current Limit</p>
-                    <p className="text-2xl font-bold">
-                      {project.maxToolCallLimit}
-                    </p>
+                    <p className="text-2xl font-bold">{maxToolCallLimit}</p>
                   </div>
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -249,3 +258,13 @@ export function ToolCallLimitEditor({
     </Card>
   );
 }
+
+export const InteractableToolCallLimitEditor = withInteractable(
+  ToolCallLimitEditor,
+  {
+    componentName: "ToolCallLimitEditor",
+    description:
+      "Manages the maximum number of tool calls allowed per response for a project. This helps prevent infinite loops and controls resource usage. Users can view the current limit and edit it to a new value.",
+    propsSchema: InteractableToolCallLimitEditorProps,
+  },
+);

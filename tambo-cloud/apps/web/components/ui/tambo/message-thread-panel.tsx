@@ -292,15 +292,15 @@ export const MessageThreadPanel = forwardRef<
 
   // Use custom suggestions if available, otherwise use defaults
   const activeSuggestions =
-    contextAttachment?.customSuggestions ?? defaultSuggestions;
+    contextAttachment.customSuggestions ?? defaultSuggestions;
 
   // Clear custom suggestions when a new message is sent
   useEffect(() => {
     if (
       thread?.messages?.length &&
-      contextAttachment?.customSuggestions !== null
+      contextAttachment.customSuggestions !== null
     ) {
-      contextAttachment?.setCustomSuggestions(null);
+      contextAttachment.setCustomSuggestions(null);
     }
   }, [thread?.messages?.length, contextAttachment]);
 

@@ -42,8 +42,7 @@ export function EditableHint({
   componentName,
 }: EditableHintProps) {
   const { setIsOpen } = useMessageThreadPanel();
-  const { setCustomSuggestions, addContextAttachment } =
-    useContextAttachment() ?? {};
+  const { setCustomSuggestions, addContextAttachment } = useContextAttachment();
   const [showPopover, setShowPopover] = useState(false);
 
   // Generate a component name from description if not provided
@@ -58,8 +57,8 @@ export function EditableHint({
     (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setCustomSuggestions?.(suggestions);
-      addContextAttachment?.({
+      setCustomSuggestions(suggestions);
+      addContextAttachment({
         name: contextName,
       });
       setIsOpen(true);

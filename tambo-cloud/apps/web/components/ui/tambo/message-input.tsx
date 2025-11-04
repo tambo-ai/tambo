@@ -195,10 +195,7 @@ const MessageInputInternal = React.forwardRef<
       if (images.length > 0) {
         setTimeout(() => clearImages(), 0);
       }
-      if (
-        contextAttachment?.attachments &&
-        contextAttachment.attachments.length > 0
-      ) {
+      if (contextAttachment.attachments.length > 0) {
         setTimeout(() => contextAttachment.clearContextAttachments(), 0);
       }
 

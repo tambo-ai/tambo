@@ -19,7 +19,9 @@ export const addMcpServerInput = z.object({
     .describe("Custom headers for the MCP server"),
   mcpTransport: z
     .nativeEnum(MCPTransport)
-    .describe("Transport mechanism for MCP communication (SSE or stdio)"),
+    .describe(
+      "Transport mechanism for MCP communication (SSE or stdio), default is HTTP",
+    ),
 });
 
 export const updateMcpServerInput = z.object({
@@ -31,7 +33,7 @@ export const updateMcpServerInput = z.object({
     .describe("Custom headers for the MCP server"),
   mcpTransport: z
     .nativeEnum(MCPTransport)
-    .describe("Transport mechanism for MCP communication"),
+    .describe("Transport mechanism for MCP communication, default is HTTP"),
 });
 
 export const deleteMcpServerInput = z.object({
@@ -58,7 +60,7 @@ export const mcpServerSchema = z.object({
   mcpIsAuthed: z.boolean().describe("Whether the MCP server is authenticated"),
   mcpTransport: z
     .nativeEnum(MCPTransport)
-    .describe("Transport mechanism for MCP communication"),
+    .describe("Transport mechanism for MCP communication, default is HTTP"),
 });
 
 export const mcpServerDetailSchema = z.object({
@@ -69,7 +71,7 @@ export const mcpServerDetailSchema = z.object({
     .describe("Custom headers for the MCP server"),
   mcpTransport: z
     .nativeEnum(MCPTransport)
-    .describe("Transport mechanism for MCP communication"),
+    .describe("Transport mechanism for MCP communication, default is HTTP"),
   mcpRequiresAuth: z
     .boolean()
     .describe("Whether the MCP server requires authentication"),

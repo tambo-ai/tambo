@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -106,9 +107,7 @@ export interface ContextAttachmentProviderProps {
  * Provider that enables context attachment features and custom suggestions in MessageInput.
  *
  * **When to use:**
- * - **Optional** - MessageInput works without this provider (shows images only)
- * - **Required** if you want to programmatically add context items (components, files, etc.)
- * - **Required** if you want to set custom suggestions for message threads
+ * - **Required** - Must wrap any component that uses `useContextAttachment()`
  * - Wrap your app or specific routes where you need context features
  *
  * **What it does:**
@@ -117,11 +116,6 @@ export interface ContextAttachmentProviderProps {
  * - Manages custom suggestions that replace auto-generated suggestions
  * - Allows components to add/remove contexts via `useContextAttachment()`
  * - Allows components to set custom suggestions via `setCustomSuggestions()`
- *
- * **Without this provider:**
- * - MessageInputContexts will only show images (still works!)
- * - `useContextAttachment()` returns `undefined`
- * - Custom suggestions cannot be set
  *
  * @example
  * Basic usage - wrap your app
@@ -159,14 +153,20 @@ export function ContextAttachmentProvider({
   >(null);
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
-  // Cleanup: remove all context helpers on unmount
+  // Track latest attachments for cleanup without triggering effect re-runs
+  const attachmentsRef = useRef<ContextAttachment[]>([]);
+  useEffect(() => {
+    attachmentsRef.current = attachments;
+  }, [attachments]);
+
+  // Cleanup: remove all context helpers on unmount only
   useEffect(() => {
     return () => {
-      attachments.forEach((context) => {
+      attachmentsRef.current.forEach((context) => {
         removeContextHelper(context.id);
       });
     };
-  }, [attachments, removeContextHelper]);
+  }, [removeContextHelper]);
 
   const addContextAttachment = useCallback(
     (context: Omit<ContextAttachment, "id">) => {
@@ -247,27 +247,34 @@ export function ContextAttachmentProvider({
 /**
  * Hook to access context attachment state and methods.
  *
- * Returns `undefined` if used outside of `ContextAttachmentProvider`.
- * Use optional chaining when calling methods.
+ * **Must be used within a `ContextAttachmentProvider`** - throws an error otherwise.
+ *
+ * @throws {Error} If used outside of ContextAttachmentProvider
  *
  * @example
  * ```tsx
  * const contextAttachment = useContextAttachment();
  *
  * // Add a context
- * contextAttachment?.addContextAttachment({
+ * contextAttachment.addContextAttachment({
  *   name: "Button.tsx",
  *   icon: <FileIcon />,
  *   metadata: { path: "/src/Button.tsx" }
  * });
  *
  * // Remove a context
- * contextAttachment?.removeContextAttachment(contextId);
+ * contextAttachment.removeContextAttachment(contextId);
  *
  * // Set custom suggestions
- * contextAttachment?.setCustomSuggestions([{ id: "1", title: "Add Feature" }]);
+ * contextAttachment.setCustomSuggestions([{ id: "1", title: "Add Feature" }]);
  * ```
  */
 export function useContextAttachment() {
-  return useContext(ContextAttachmentContext);
+  const context = useContext(ContextAttachmentContext);
+  if (!context) {
+    throw new Error(
+      "useContextAttachment must be used within a ContextAttachmentProvider",
+    );
+  }
+  return context;
 }

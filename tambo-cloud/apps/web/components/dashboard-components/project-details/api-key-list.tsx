@@ -4,11 +4,11 @@ import { EditableHint } from "@/components/ui/editable-hint";
 import { Input } from "@/components/ui/input";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
-import { api, type RouterOutputs } from "@/trpc/react";
-import type { Suggestion } from "@tambo-ai/react";
+import { api } from "@/trpc/react";
+import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import {
   DeleteConfirmationDialog,
@@ -38,37 +38,47 @@ const apiKeyListSuggestions: Suggestion[] = [
   },
 ];
 
-export const APIKeyListProps = z.object({
-  project: z
-    .object({
-      id: z.string(),
-      name: z.string(),
-    })
-    .optional()
-    .describe("The project to fetch API keys for."),
+export const InteractableAPIKeyListProps = z.object({
+  projectId: z.string().describe("The project ID to fetch API keys for."),
   isLoading: z
     .boolean()
     .optional()
     .describe("Whether the API keys are loading."),
+  createKeyWithName: z
+    .string()
+    .optional()
+    .describe(
+      "When set, automatically creates a new API key with the specified name. The component will enter create mode and execute the key creation.",
+    ),
+  enterCreateMode: z
+    .boolean()
+    .optional()
+    .describe(
+      "When true, automatically opens the create key form dialog, allowing the user to enter a key name manually.",
+    ),
   onEdited: z
     .function()
     .args()
     .returns(z.void())
     .optional()
     .describe(
-      "Optional callback function triggered when API keys are successfully updated.",
+      "Optional callback function triggered when API keys are successfully created, updated, or deleted.",
     ),
 });
 
 interface APIKeyListProps {
-  project?: RouterOutputs["project"]["getUserProjects"][number];
+  projectId?: string;
   isLoading?: boolean;
+  createKeyWithName?: string;
+  enterCreateMode?: boolean;
   onEdited?: () => void;
 }
 
 export function APIKeyList({
-  project,
+  projectId,
   isLoading: externalLoading,
+  createKeyWithName,
+  enterCreateMode,
   onEdited,
 }: APIKeyListProps) {
   const [isCreating, setIsCreating] = useState(false);
@@ -83,19 +93,20 @@ export function APIKeyList({
   const [, copy] = useClipboard(newGeneratedKey ?? "");
   const { toast } = useToast();
   const utils = api.useUtils();
+  const lastCreateKeyRef = useRef<string | undefined>();
 
   const {
     data: apiKeys,
     isLoading: apiKeysLoading,
     error: apiKeysError,
-  } = api.project.getApiKeys.useQuery(project?.id ?? "", {
-    enabled: !!project?.id,
+  } = api.project.getApiKeys.useQuery(projectId ?? "", {
+    enabled: !!projectId,
   });
 
   const { mutateAsync: generateApiKey, isPending: isGeneratingKey } =
     api.project.generateApiKey.useMutation({
       onSuccess: async () => {
-        await utils.project.getApiKeys.invalidate(project?.id ?? "");
+        await utils.project.getApiKeys.invalidate(projectId ?? "");
         onEdited?.();
       },
       onError: () => {
@@ -109,7 +120,7 @@ export function APIKeyList({
 
   const { mutateAsync: removeApiKey } = api.project.removeApiKey.useMutation({
     onSuccess: async () => {
-      await utils.project.getApiKeys.invalidate(project?.id ?? "");
+      await utils.project.getApiKeys.invalidate(projectId ?? "");
       onEdited?.();
       toast({
         title: "Success",
@@ -150,7 +161,7 @@ export function APIKeyList({
       try {
         setIsCreating(true);
         const newKey = await generateApiKey({
-          projectId: project?.id ?? "",
+          projectId: projectId ?? "",
           name: name,
         });
         setNewGeneratedKey(newKey.apiKey);
@@ -171,7 +182,7 @@ export function APIKeyList({
         setIsCreating(false);
       }
     },
-    [generateApiKey, newKeyName, project?.id, toast],
+    [generateApiKey, newKeyName, projectId, toast],
   );
 
   // Auto-create first key if none exist
@@ -181,12 +192,31 @@ export function APIKeyList({
     }
   }, [apiKeysLoading, apiKeys, handleCreateApiKey]);
 
+  // When Tambo sends createKeyWithName, automatically create the key
+  useEffect(() => {
+    if (
+      createKeyWithName !== undefined &&
+      projectId &&
+      createKeyWithName !== lastCreateKeyRef.current
+    ) {
+      lastCreateKeyRef.current = createKeyWithName;
+      handleCreateApiKey(createKeyWithName).catch(console.error);
+    }
+  }, [createKeyWithName, projectId, handleCreateApiKey]);
+
+  // When Tambo sends enterCreateMode, open the create form
+  useEffect(() => {
+    if (enterCreateMode) {
+      setIsCreating(true);
+    }
+  }, [enterCreateMode]);
+
   const handleDeleteApiKey = async () => {
     try {
-      if (!alertState.data || !project?.id) return;
+      if (!alertState.data || !projectId) return;
 
       await removeApiKey({
-        projectId: project.id,
+        projectId: projectId,
         apiKeyId: alertState.data.id,
       });
     } finally {
@@ -216,16 +246,6 @@ export function APIKeyList({
   };
 
   const isLoading = apiKeysLoading || externalLoading;
-
-  if (!project) {
-    return (
-      <Card className="border rounded-md overflow-hidden">
-        <CardContent className="p-6">
-          <p className="text-sm text-muted-foreground">No project found</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   // Show loading state
   if (isLoading) {
@@ -479,3 +499,10 @@ export function APIKeyList({
     </Card>
   );
 }
+
+export const InteractableAPIKeyList = withInteractable(APIKeyList, {
+  componentName: "APIKeyManager",
+  description:
+    "A component that allows users to manage API keys for their project. Users can view existing API keys, create new keys with custom names, and delete keys they no longer need. Each key is displayed with its creation date and preview, and newly created keys are shown once for copying.",
+  propsSchema: InteractableAPIKeyListProps,
+});

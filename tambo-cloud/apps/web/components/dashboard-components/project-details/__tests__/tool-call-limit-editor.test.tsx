@@ -1,4 +1,5 @@
 import { ToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
+import { ContextAttachmentProvider } from "@/components/ui/tambo/context-attachment-provider";
 import { MessageThreadPanelProvider } from "@/providers/message-thread-panel-provider";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -22,19 +23,31 @@ jest.mock("@/trpc/react", () => ({
   },
 }));
 
+// Mock the Tambo React hooks
+jest.mock("@tambo-ai/react", () => ({
+  useTamboContextHelpers: () => ({
+    addContextHelper: jest.fn(),
+    removeContextHelper: jest.fn(),
+  }),
+  withInteractable: (Component: React.ComponentType) => Component,
+}));
+
 function renderEditor(
   overrides?: Partial<React.ComponentProps<typeof ToolCallLimitEditor>>,
 ) {
   const onEdited = jest.fn();
-  const props = {
-    project: { id: "proj_1", maxToolCallLimit: 3 },
+  const props: React.ComponentProps<typeof ToolCallLimitEditor> = {
+    projectId: "proj_1",
+    maxToolCallLimit: 3,
     onEdited,
     ...overrides,
-  } as unknown as React.ComponentProps<typeof ToolCallLimitEditor>;
+  };
   const view = render(
-    <MessageThreadPanelProvider>
-      <ToolCallLimitEditor {...props} />
-    </MessageThreadPanelProvider>,
+    <ContextAttachmentProvider>
+      <MessageThreadPanelProvider>
+        <ToolCallLimitEditor {...props} />
+      </MessageThreadPanelProvider>
+    </ContextAttachmentProvider>,
   );
   return { onEdited, ...view };
 }
@@ -123,13 +136,24 @@ describe("ToolCallLimitEditor", () => {
     expect(input2.value).toBe("3");
   });
 
-  it("renders loading placeholder when project is missing", () => {
-    render(
-      <MessageThreadPanelProvider>
-        {/* @ts-expect-error testing defensive branch */}
-        <ToolCallLimitEditor project={undefined} />
-      </MessageThreadPanelProvider>,
+  it("treats zero as invalid when editing", async () => {
+    const user = userEvent.setup();
+    renderEditor({ maxToolCallLimit: 5 });
+
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+    const input = await screen.findByLabelText(/maximum tool calls/i);
+    await user.clear(input);
+    await user.type(input, "0");
+
+    await user.click(screen.getByRole("button", { name: /save/i }));
+
+    // Should show error toast and not save
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: "destructive",
+        description: "Please enter a valid number greater than 0.",
+      }),
     );
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
   });
 });
