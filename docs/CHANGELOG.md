@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.17.0](https://github.com/tambo-ai/tambo/compare/docs-v1.16.0...docs-v1.17.0) (2025-11-04)
+
+
+### Features
+
+* **ui:** Update Design Token Usage in Component Library ([#1221](https://github.com/tambo-ai/tambo/issues/1221)) ([b2d16f6](https://github.com/tambo-ai/tambo/commit/b2d16f67df80a6cf28cfbec66a5e76d9297cf131))
+
+
+### Bug Fixes
+
+* **docs:** Migrate to Tailwind CSS v4 ([#1222](https://github.com/tambo-ai/tambo/issues/1222)) ([253af21](https://github.com/tambo-ai/tambo/commit/253af21b900ccd837d959abc1d7a09729716b11a))
+* **docs:** revive mermaid charts ([#1230](https://github.com/tambo-ai/tambo/issues/1230)) ([41c774d](https://github.com/tambo-ai/tambo/commit/41c774d080bf26208c260d3b044cac17df7c7259))
+* fix broken mcp links ([#1249](https://github.com/tambo-ai/tambo/issues/1249)) ([78d2f56](https://github.com/tambo-ai/tambo/commit/78d2f5602e975a82d4520941ef76336b17d9508a))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.1 to 0.76.0 ([#1241](https://github.com/tambo-ai/tambo/issues/1241)) ([62d792e](https://github.com/tambo-ai/tambo/commit/62d792e38cd34832e729219a4f1ea28424d85433))
+* **deps:** bump lucide-react from 0.546.0 to 0.548.0 ([#1242](https://github.com/tambo-ai/tambo/issues/1242)) ([5824e0b](https://github.com/tambo-ai/tambo/commit/5824e0b1a8c6362cb476ee62959748ea85c31953))
+* **deps:** bump mermaid from 11.12.0 to 11.12.1 ([#1243](https://github.com/tambo-ai/tambo/issues/1243)) ([2d969f1](https://github.com/tambo-ai/tambo/commit/2d969f1aaa7d2d9e7af43d0db4c21b7cec5cb76e))
+* **deps:** bump posthog-js from 1.280.1 to 1.282.0 ([#1244](https://github.com/tambo-ai/tambo/issues/1244)) ([bbe1389](https://github.com/tambo-ai/tambo/commit/bbe1389aa0a7b6cabab75325a02c6a9ef0ce7101))
+
+
+### Documentation
+
+* **mcp-features:** Add docs for Prompts and Sampling ([#1247](https://github.com/tambo-ai/tambo/issues/1247)) ([599faaf](https://github.com/tambo-ai/tambo/commit/599faaf4ad7669423a4f9d89dc5758c7b3917c42))
+* **mcp:** Add section on MCP elicitation ([#1231](https://github.com/tambo-ai/tambo/issues/1231)) ([64a564c](https://github.com/tambo-ai/tambo/commit/64a564c3f07792e3c5a4ef60239ef60baebb38d0))
+* **mcp:** Add some structure to existing MCP pages ([#1236](https://github.com/tambo-ai/tambo/issues/1236)) ([4921921](https://github.com/tambo-ai/tambo/commit/4921921afff73e54f39bd0792e284c9e3f620c67))
+
 ## [1.16.0](https://github.com/tambo-ai/tambo/compare/docs-v1.15.0...docs-v1.16.0) (2025-10-31)
 
 
