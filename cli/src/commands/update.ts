@@ -17,6 +17,11 @@ import {
   handleDependencyInconsistencies,
   type DependencyInconsistency,
 } from "./shared/component-utils.js";
+import {
+  resolveDependenciesForComponents,
+  displayDependencyInfo,
+  expandComponentsWithDependencies,
+} from "../utils/dependency-resolution.js";
 
 interface UpdateComponentOptions {
   legacyPeerDeps?: boolean;
@@ -136,6 +141,67 @@ export async function handleUpdateComponents(
         console.log(chalk.blue("ℹ No components to update."));
       }
       return;
+    }
+
+    // Resolve dependencies for components to update
+    if (!options.silent) {
+      console.log(chalk.blue("\nℹ Resolving component dependencies..."));
+    }
+
+    // Get list of all installed components to filter dependencies
+    const allInstalledComponents = await getInstalledComponents(
+      installPath,
+      isExplicitPrefix,
+    );
+    const installedComponentSet = new Set(allInstalledComponents);
+
+    // Resolve dependencies for all components
+    const dependencyResult = await resolveDependenciesForComponents(
+      verifiedComponents,
+      installedComponentSet,
+      { silent: options.silent },
+    );
+
+    // Display dependency information
+    if (!options.silent) {
+      displayDependencyInfo(dependencyResult, verifiedComponents);
+    }
+
+    // Expand verifiedComponents to include all dependencies with their locations
+    const expandedComponents = await expandComponentsWithDependencies(
+      verifiedComponents,
+      dependencyResult,
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
+    );
+
+    // Update verifiedComponents and categorize expanded dependencies
+    verifiedComponents.length = 0;
+    verifiedComponents.push(...expandedComponents);
+
+    // Re-categorize components after expansion
+    legacyComponents.length = 0;
+    newComponents.length = 0;
+
+    for (const component of verifiedComponents) {
+      const location = findComponentLocation(
+        component.name,
+        projectRoot,
+        installPath,
+        isExplicitPrefix,
+      );
+
+      if (location) {
+        if (location.needsCreation) {
+          legacyComponents.push(component.name);
+        } else {
+          newComponents.push(component.name);
+        }
+      } else {
+        // Missing dependencies go to the new location by default
+        newComponents.push(component.name);
+      }
     }
 
     // Check for cross-location dependencies
