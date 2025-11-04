@@ -51,22 +51,17 @@ export function useTamboVoice() {
   });
 
   // Trigger transcription when recording stops and we have a blob URL
+  const shouldTranscribe =
+    status === "stopped" &&
+    mediaBlobUrl &&
+    !transcriptionMutation.isPending &&
+    !transcriptionMutation.isSuccess;
+
   useEffect(() => {
-    if (
-      status === "stopped" &&
-      mediaBlobUrl &&
-      !transcriptionMutation.isPending &&
-      !transcriptionMutation.isSuccess
-    ) {
+    if (shouldTranscribe) {
       transcriptionMutation.mutate(mediaBlobUrl);
     }
-  }, [
-    status,
-    mediaBlobUrl,
-    transcriptionMutation.isPending,
-    transcriptionMutation.isSuccess,
-    transcriptionMutation,
-  ]);
+  }, [shouldTranscribe, mediaBlobUrl, transcriptionMutation]);
 
   const startRecording = useCallback(() => {
     if (isRecording) return;
