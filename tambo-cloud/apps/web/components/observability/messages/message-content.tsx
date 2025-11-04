@@ -1,3 +1,7 @@
+import {
+  ContextAttachmentBadgeList,
+  ContextAttachmentBadgeListData,
+} from "@/components/ui/tambo/context-attachment-badge";
 import { createMarkdownComponents } from "@/components/ui/tambo/markdown-components";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { getSafeContent } from "@/lib/thread-hooks";
@@ -248,8 +252,15 @@ export const MessageContent = memo(
               isHighlighted && "ring-4 ring-theme-accent ring-inset",
             )}
           >
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <span className="text-xs text-foreground/50">{message.role}</span>
+
+              {/* Image and context attachments */}
+              <ContextAttachmentBadgeList
+                message={message as ContextAttachmentBadgeListData}
+                className="mb-2"
+              />
+
               {/* Main content */}
               <div className="text-primary">
                 {renderMainContent(safeContent, searchQuery)}

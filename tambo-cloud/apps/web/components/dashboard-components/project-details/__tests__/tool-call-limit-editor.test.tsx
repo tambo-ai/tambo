@@ -1,4 +1,5 @@
 import { ToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
+import { MessageThreadPanelProvider } from "@/providers/message-thread-panel-provider";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
@@ -30,7 +31,11 @@ function renderEditor(
     onEdited,
     ...overrides,
   } as unknown as React.ComponentProps<typeof ToolCallLimitEditor>;
-  const view = render(<ToolCallLimitEditor {...props} />);
+  const view = render(
+    <MessageThreadPanelProvider>
+      <ToolCallLimitEditor {...props} />
+    </MessageThreadPanelProvider>,
+  );
   return { onEdited, ...view };
 }
 
@@ -119,8 +124,12 @@ describe("ToolCallLimitEditor", () => {
   });
 
   it("renders loading placeholder when project is missing", () => {
-    // @ts-expect-error testing defensive branch
-    render(<ToolCallLimitEditor project={undefined} />);
+    render(
+      <MessageThreadPanelProvider>
+        {/* @ts-expect-error testing defensive branch */}
+        <ToolCallLimitEditor project={undefined} />
+      </MessageThreadPanelProvider>,
+    );
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 });

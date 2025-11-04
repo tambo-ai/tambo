@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
+import { EditableHint } from "@/components/ui/editable-hint";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -12,13 +13,43 @@ import {
   AiProviderType,
   DEFAULT_OPENAI_MODEL,
 } from "@tambo-ai-cloud/core";
+import type { Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLinkIcon, InfoIcon, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDebounce } from "use-debounce";
 import { z } from "zod";
 import { AgentSettings } from "./agent-settings";
 import { CustomLlmParametersEditor } from "./custom-llm-parameters/editor";
+
+const providerKeySectionSuggestions: Suggestion[] = [
+  {
+    id: "change-model",
+    title: "Change Model",
+    detailedSuggestion: "Change the model used for this project to gpt-4o",
+    messageId: "change-model",
+  },
+  {
+    id: "turn-on-thinking",
+    title: "Turn on Thinking",
+    detailedSuggestion: "Turn on thinking for the model used for this project",
+    messageId: "turn-on-thinking",
+  },
+  {
+    id: "change-input-token-limit",
+    title: "Change Input Token Limit",
+    detailedSuggestion:
+      "Change the input token limit for the model used for this project",
+    messageId: "change-input-token-limit",
+  },
+];
 
 export const ProviderKeySectionSchema = z
   .object({
@@ -101,6 +132,11 @@ export function ProviderKeySection({
   project,
   onEdited,
 }: ProviderKeySectionProps) {
+  const modeLlmId = useId();
+  const modeAgentId = useId();
+  const customModelNameId = useId();
+  const baseUrlId = useId();
+  const maxInputTokensId = useId();
   const { toast } = useToast();
 
   // --- TRPC Queries ---
@@ -729,7 +765,14 @@ export function ProviderKeySection({
     <Card className="overflow-hidden rounded-md border">
       <CardHeader className="pb-0 pt-6">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">LLM Providers</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            LLM Providers
+            <EditableHint
+              suggestions={providerKeySectionSuggestions}
+              description="Click to know more about how to manage the LLM provider for this project"
+              componentName="LLM Providers"
+            />
+          </CardTitle>
           {hasUnsavedChanges && (
             <Button
               size="sm"
@@ -760,21 +803,23 @@ export function ProviderKeySection({
             className="grid grid-cols-2 gap-3"
           >
             <label
+              htmlFor={modeLlmId}
               className={cn(
                 "flex items-center gap-2 rounded-md border p-3",
                 mode === AiProviderType.LLM && "border-primary",
               )}
             >
-              <RadioGroupItem value={AiProviderType.LLM} id="mode-llm" />
+              <RadioGroupItem value={AiProviderType.LLM} id={modeLlmId} />
               <span className="text-sm">LLM</span>
             </label>
             <label
+              htmlFor={modeAgentId}
               className={cn(
                 "flex items-center gap-2 rounded-md border p-3",
                 mode === AiProviderType.AGENT && "border-primary",
               )}
             >
-              <RadioGroupItem value={AiProviderType.AGENT} id="mode-agent" />
+              <RadioGroupItem value={AiProviderType.AGENT} id={modeAgentId} />
               <span className="text-sm">Agent</span>
               <span className="ml-2 text-[10px] uppercase tracking-wide rounded-full bg-yellow-100 px-2 py-0.5 text-yellow-800">
                 beta
@@ -893,9 +938,9 @@ export function ProviderKeySection({
                     {currentSelectedOption.provider.isCustomProvider && (
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="custom-model-name">Model Name</Label>
+                          <Label htmlFor={customModelNameId}>Model Name</Label>
                           <Input
-                            id="custom-model-name"
+                            id={customModelNameId}
                             type="text"
                             placeholder="e.g., llama3-8b-instruct"
                             value={customModelName}
@@ -913,9 +958,9 @@ export function ProviderKeySection({
 
                         {currentSelectedOption.provider.requiresBaseUrl && (
                           <div className="space-y-2">
-                            <Label htmlFor="base-url">Base URL</Label>
+                            <Label htmlFor={baseUrlId}>Base URL</Label>
                             <Input
-                              id="base-url"
+                              id={baseUrlId}
                               type="url"
                               placeholder="e.g., https://api.example.com/v1"
                               value={baseUrl}
@@ -944,11 +989,11 @@ export function ProviderKeySection({
                         {currentSelectedOption.provider.apiName ===
                           "openai-compatible" && (
                           <div className="space-y-2">
-                            <Label htmlFor="max-input-tokens">
+                            <Label htmlFor={maxInputTokensId}>
                               Maximum Input Tokens
                             </Label>
                             <Input
-                              id="max-input-tokens"
+                              id={maxInputTokensId}
                               type="number"
                               min="1"
                               placeholder="e.g., 4096"
@@ -973,11 +1018,11 @@ export function ProviderKeySection({
                     {/* Input Token Limit for Regular Models */}
                     {!currentSelectedOption.provider.isCustomProvider && (
                       <div className="space-y-2">
-                        <Label htmlFor="max-input-tokens">
+                        <Label htmlFor={maxInputTokensId}>
                           Input Token Limit
                         </Label>
                         <Input
-                          id="max-input-tokens"
+                          id={maxInputTokensId}
                           type="number"
                           min="1"
                           max={currentSelectedOption.model?.inputTokenLimit}

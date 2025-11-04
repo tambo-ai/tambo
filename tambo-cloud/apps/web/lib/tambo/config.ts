@@ -10,10 +10,6 @@ import {
   AvailableMcpServersProps,
 } from "@/components/dashboard-components/project-details/available-mcp-servers";
 import {
-  CustomInstructionsEditor,
-  CustomInstructionsEditorProps,
-} from "@/components/dashboard-components/project-details/custom-instructions-editor";
-import {
   DailyMessagesChart,
   DailyMessagesChartSchema,
 } from "@/components/dashboard-components/project-details/daily-messages-chart";
@@ -71,13 +67,6 @@ export const tamboRegisteredComponents = [
       "Comprehensive LLM provider configuration interface allowing users to select AI providers (OpenAI, Anthropic, etc.), configure models, set API keys, and manage custom endpoints. Handles free message limits, provider-specific settings, base URLs for custom providers, and validation. Shows real-time configuration status and supports both standard and OpenAI-compatible providers. Use when users need to configure or modify their AI model settings.",
     component: ProviderKeySection,
     propsSchema: ProviderKeySectionProps,
-  },
-  {
-    name: "CustomInstructionsEditor",
-    description:
-      "Allows users to create and edit custom instructions that are automatically included in every AI conversation for their project. Features inline editing with save/cancel functionality, preview mode, and handles empty states. Use when users want to set project-wide AI behavior guidelines, context, or specific instructions that should apply to all interactions.",
-    component: CustomInstructionsEditor,
-    propsSchema: CustomInstructionsEditorProps,
   },
   {
     name: "AvailableMcpServers",

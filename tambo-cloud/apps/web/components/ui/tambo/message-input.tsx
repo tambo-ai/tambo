@@ -1,5 +1,7 @@
 "use client";
 
+import { ContextAttachmentBadgeList } from "@/components/ui/tambo/context-attachment-badge";
+import { useContextAttachment } from "@/components/ui/tambo/context-attachment-provider";
 import { McpConfigModal } from "@/components/ui/tambo/mcp-config-modal";
 import {
   Tooltip,
@@ -10,17 +12,9 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  type StagedImage,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import {
-  ArrowUp,
-  Image as ImageIcon,
-  Paperclip,
-  Square,
-  X,
-} from "lucide-react";
-import Image from "next/image";
+import { ArrowUp, Paperclip, Square } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -173,6 +167,7 @@ const MessageInputInternal = React.forwardRef<
     clearImages,
   } = useTamboThreadInput();
   const { cancel } = useTamboThread();
+  const contextAttachment = useContextAttachment();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -196,9 +191,15 @@ const MessageInputInternal = React.forwardRef<
       setDisplayValue("");
       setIsSubmitting(true);
 
-      // Clear images in next tick for immediate UI feedback
+      // Clear images and component contexts in next tick for immediate UI feedback
       if (images.length > 0) {
         setTimeout(() => clearImages(), 0);
+      }
+      if (
+        contextAttachment?.attachments &&
+        contextAttachment.attachments.length > 0
+      ) {
+        setTimeout(() => contextAttachment.clearContextAttachments(), 0);
       }
 
       try {
@@ -237,6 +238,7 @@ const MessageInputInternal = React.forwardRef<
       isSubmitting,
       images,
       clearImages,
+      contextAttachment,
     ],
   );
 
@@ -350,7 +352,6 @@ const MessageInputInternal = React.forwardRef<
               </p>
             </div>
           )}
-          <MessageInputStagedImages />
           {children}
         </div>
       </form>
@@ -359,6 +360,23 @@ const MessageInputInternal = React.forwardRef<
 });
 MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
+
+/**
+ * Symbol for marking pasted images.
+ * Using Symbol.for to create a global symbol that can be accessed across modules.
+ * @internal
+ */
+export const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
+
+/**
+ * Extend the File interface to include the IS_PASTED_IMAGE property.
+ * This is a type-safe way to mark pasted images without using a broad index signature.
+ */
+declare global {
+  interface File {
+    [IS_PASTED_IMAGE]?: boolean;
+  }
+}
 
 /**
  * Props for the MessageInputTextarea component.
@@ -426,11 +444,7 @@ const MessageInputTextarea = ({
       if (file) {
         try {
           // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
-          Object.defineProperty(file, "wasPasted", {
-            value: true,
-            writable: false,
-            enumerable: false,
-          });
+          file[IS_PASTED_IMAGE] = true;
           await addImage(file);
         } catch (error) {
           console.error("Failed to add pasted image:", error);
@@ -736,157 +750,30 @@ const MessageInputFileButton = React.forwardRef<
 MessageInputFileButton.displayName = "MessageInput.FileButton";
 
 /**
- * Props for the ImageContextBadge component.
- */
-interface ImageContextBadgeProps {
-  image: StagedImage;
-  displayName: string;
-  isExpanded: boolean;
-  onToggle: () => void;
-  onRemove: () => void;
-}
-
-/**
- * ContextBadge component that displays a staged image with expandable preview.
- * Shows a compact badge with icon and name by default, expands to show image preview on click.
+ * Unified component that displays ALL contexts: staged images and component contexts.
+ * This is the single component you need - it handles everything automatically.
+ * Hides itself when there are no contexts to show.
  *
- * @component
- * @example
- * ```tsx
- * <ImageContextBadge
- *   image={stagedImage}
- *   displayName="Image"
- *   isExpanded={false}
- *   onToggle={() => setExpanded(!expanded)}
- *   onRemove={() => removeImage(image.id)}
- * />
- * ```
- */
-const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
-  image,
-  displayName,
-  isExpanded,
-  onToggle,
-  onRemove,
-}) => (
-  <div className="relative group flex-shrink-0">
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-expanded={isExpanded}
-      className={cn(
-        "relative flex items-center rounded-lg border overflow-hidden",
-        "border-border bg-background hover:bg-muted cursor-pointer",
-        "transition-[width,height,padding] duration-200 ease-in-out",
-        isExpanded ? "w-40 h-28 p-0" : "w-32 h-9 pl-3 pr-8 gap-2",
-      )}
-    >
-      {isExpanded && (
-        <div
-          className={cn(
-            "absolute inset-0 transition-opacity duration-150",
-            "opacity-100 delay-100",
-          )}
-        >
-          <div className="relative w-full h-full">
-            <Image
-              src={image.dataUrl}
-              alt={displayName}
-              fill
-              unoptimized
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
-              {displayName}
-            </div>
-          </div>
-        </div>
-      )}
-      <span
-        className={cn(
-          "flex items-center gap-1.5 text-sm text-foreground truncate leading-none transition-opacity duration-150",
-          isExpanded ? "opacity-0" : "opacity-100 delay-100",
-        )}
-      >
-        <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="truncate">{displayName}</span>
-      </span>
-    </button>
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onRemove();
-      }}
-      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
-      aria-label={`Remove ${displayName}`}
-    >
-      <X className="w-3 h-3" />
-    </button>
-  </div>
-);
-
-/**
- * Props for the MessageInputStagedImages component.
- */
-export type MessageInputStagedImagesProps =
-  React.HTMLAttributes<HTMLDivElement>;
-
-/**
- * Component that displays currently staged images with preview and remove functionality.
- * @component MessageInput.StagedImages
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.StagedImages />
- *   <MessageInput.Textarea />
+ *   <MessageInputContexts />
+ *   <MessageInputTextarea />
  * </MessageInput>
  * ```
  */
-const MessageInputStagedImages = React.forwardRef<
+const MessageInputContexts = React.forwardRef<
   HTMLDivElement,
-  MessageInputStagedImagesProps
->(({ className, ...props }, ref) => {
-  const { images, removeImage } = useTamboThreadInput();
-  const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
-    null,
-  );
-
-  if (images.length === 0) {
-    return null;
-  }
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border",
-        className,
-      )}
-      data-slot="message-input-staged-images"
-      {...props}
-    >
-      {images.map((image, index) => (
-        <ImageContextBadge
-          key={image.id}
-          image={image}
-          displayName={
-            (image.file as File & { wasPasted?: boolean }).wasPasted
-              ? `Image ${index + 1}`
-              : image.name
-          }
-          isExpanded={expandedImageId === image.id}
-          onToggle={() =>
-            setExpandedImageId(expandedImageId === image.id ? null : image.id)
-          }
-          onRemove={() => removeImage(image.id)}
-        />
-      ))}
-    </div>
-  );
-});
-MessageInputStagedImages.displayName = "MessageInput.StagedImages";
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <ContextAttachmentBadgeList
+    ref={ref}
+    showRemoveButtons
+    className={cn("pb-2 pt-1 border-b border-border", className)}
+    {...props}
+  />
+));
+MessageInputContexts.displayName = "MessageInputContexts";
 
 /**
  * Container for the toolbar components (like submit button and MCP config button).
@@ -948,10 +835,10 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 // --- Exports ---
 export {
   MessageInput,
+  MessageInputContexts,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpConfigButton,
-  MessageInputStagedImages,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,

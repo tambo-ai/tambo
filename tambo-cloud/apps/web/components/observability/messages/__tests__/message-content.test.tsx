@@ -1,4 +1,5 @@
 import { MessageContent } from "@/components/observability/messages/message-content";
+import { ContextAttachmentProvider } from "@/components/ui/tambo/context-attachment-provider";
 import { ChatCompletionContentPart, MessageRole } from "@tambo-ai-cloud/core";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -35,8 +36,36 @@ jest.mock("usehooks-ts", () => ({
   ],
 }));
 
+// Mock the Tambo React hooks
+jest.mock("@tambo-ai/react", () => ({
+  useTamboThreadInput: () => ({
+    value: "",
+    setValue: jest.fn(),
+    submit: jest.fn(),
+    isPending: false,
+    error: null,
+    images: [],
+    addImage: jest.fn(),
+    removeImage: jest.fn(),
+  }),
+  useTamboContextHelpers: () => ({
+    addContextHelper: jest.fn(),
+    removeContextHelper: jest.fn(),
+  }),
+}));
+
 // Get the clipboard mock from navigator (set up in jest.setup.ts)
 const mockWriteText = navigator.clipboard.writeText as jest.Mock;
+
+// Test wrapper component that provides necessary contexts
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return <ContextAttachmentProvider>{children}</ContextAttachmentProvider>;
+}
+
+// Helper function to render with providers
+function renderWithProviders(ui: React.ReactElement) {
+  return render(ui, { wrapper: TestWrapper });
+}
 
 describe("MessageContent", () => {
   beforeEach(() => {
@@ -72,7 +101,7 @@ describe("MessageContent", () => {
   });
 
   it("renders user message content", () => {
-    render(
+    renderWithProviders(
       <MessageContent
         message={{
           ...baseMessage,
@@ -107,14 +136,16 @@ describe("MessageContent", () => {
   it("renders assistant message content", () => {
     const assistantMessage = { ...baseMessage, role: MessageRole.Assistant };
 
-    render(<MessageContent message={assistantMessage} isUserMessage={false} />);
+    renderWithProviders(
+      <MessageContent message={assistantMessage} isUserMessage={false} />,
+    );
 
     expect(screen.getByText("assistant")).toBeInTheDocument();
     expect(screen.getByText("Hello world")).toBeInTheDocument();
   });
 
   it("handles string content with search query", () => {
-    render(
+    renderWithProviders(
       <MessageContent
         message={baseMessage}
         isUserMessage={true}
@@ -127,7 +158,9 @@ describe("MessageContent", () => {
   });
 
   it("handles string content without search query", () => {
-    render(<MessageContent message={baseMessage} isUserMessage={true} />);
+    renderWithProviders(
+      <MessageContent message={baseMessage} isUserMessage={true} />,
+    );
 
     // Should render normal content when no search query
     expect(screen.getByText("Hello world")).toBeInTheDocument();
@@ -144,7 +177,9 @@ describe("MessageContent", () => {
       ) as unknown as ChatCompletionContentPart[],
     };
 
-    render(<MessageContent message={elementMessage} isUserMessage={true} />);
+    renderWithProviders(
+      <MessageContent message={elementMessage} isUserMessage={true} />,
+    );
 
     expect(screen.getByText("Custom element")).toBeInTheDocument();
   });
@@ -152,7 +187,9 @@ describe("MessageContent", () => {
   it("handles empty or invalid content", () => {
     const emptyMessage = { ...baseMessage, content: [] };
 
-    render(<MessageContent message={emptyMessage} isUserMessage={true} />);
+    renderWithProviders(
+      <MessageContent message={emptyMessage} isUserMessage={true} />,
+    );
 
     expect(screen.getByText("No content")).toBeInTheDocument();
   });
@@ -163,7 +200,7 @@ describe("MessageContent", () => {
       additionalContext: { key: "value", nested: { data: "test" } },
     };
 
-    render(
+    renderWithProviders(
       <MessageContent message={messageWithContext} isUserMessage={true} />,
     );
 
@@ -177,7 +214,7 @@ describe("MessageContent", () => {
       additionalContext: { key: "value" },
     };
 
-    render(
+    renderWithProviders(
       <MessageContent message={messageWithContext} isUserMessage={false} />,
     );
 
@@ -185,7 +222,9 @@ describe("MessageContent", () => {
   });
 
   it("does not show additional context for user messages without context", () => {
-    render(<MessageContent message={baseMessage} isUserMessage={true} />);
+    renderWithProviders(
+      <MessageContent message={baseMessage} isUserMessage={true} />,
+    );
 
     expect(screen.queryByText("Additional Context")).not.toBeInTheDocument();
   });
@@ -197,7 +236,7 @@ describe("MessageContent", () => {
       additionalContext: { key: "value" },
     };
 
-    render(
+    renderWithProviders(
       <MessageContent message={messageWithContext} isUserMessage={true} />,
     );
 
@@ -217,7 +256,7 @@ describe("MessageContent", () => {
   });
 
   it("applies highlighted styling when message is highlighted", () => {
-    render(
+    renderWithProviders(
       <MessageContent
         message={baseMessage}
         isUserMessage={true}
@@ -242,7 +281,7 @@ describe("MessageContent", () => {
       additionalContext: { key: "value" },
     };
 
-    render(
+    renderWithProviders(
       <MessageContent
         message={messageWithContext}
         isUserMessage={true}
@@ -270,7 +309,7 @@ describe("MessageContent", () => {
       messageWithBadContext.additionalContext;
 
     expect(() => {
-      render(
+      renderWithProviders(
         <MessageContent message={messageWithBadContext} isUserMessage={true} />,
       );
     }).not.toThrow();

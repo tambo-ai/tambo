@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EditableHint } from "@/components/ui/editable-hint";
 import { Input } from "@/components/ui/input";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { api, type RouterOutputs } from "@/trpc/react";
+import type { Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -14,6 +16,27 @@ import {
 } from "../delete-confirmation-dialog";
 import { APIKeyDialog } from "./api-key-dialog";
 import { APIKeyListItem } from "./api-key-list-item";
+
+const apiKeyListSuggestions: Suggestion[] = [
+  {
+    id: "fetch-api-keys",
+    title: "Fetch API Keys",
+    detailedSuggestion: "Fetch all API keys for this project",
+    messageId: "fetch-api-keys",
+  },
+  {
+    id: "delete-api-key",
+    title: "Delete API Key",
+    detailedSuggestion: "Delete an API key from this project",
+    messageId: "delete-api-key",
+  },
+  {
+    id: "generate-api-key",
+    title: "Generate New API Key",
+    detailedSuggestion: "Generate a new API key for this project",
+    messageId: "generate-api-key",
+  },
+];
 
 export const APIKeyListProps = z.object({
   project: z
@@ -238,7 +261,14 @@ export function APIKeyList({
       <CardContent className="p-6 space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <h4 className="text-lg font-semibold">API Keys</h4>
+            <h4 className="text-lg font-semibold">
+              API Keys
+              <EditableHint
+                suggestions={apiKeyListSuggestions}
+                description="Click to know more about how to manage API keys"
+                componentName="API Keys"
+              />
+            </h4>
           </div>
 
           <AnimatePresence mode="wait">

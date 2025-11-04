@@ -6,162 +6,183 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EditableHint } from "@/components/ui/editable-hint";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
+import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import { z } from "zod";
 
-export const CustomInstructionsEditorSchema = z.object({
-  id: z.string().describe("The unique identifier for the project."),
-  name: z.string().describe("The name of the project."),
+const customInstructionsEditorSuggestions: Suggestion[] = [
+  {
+    id: "add-custom-instructions",
+    title: "Add Custom Instructions",
+    detailedSuggestion: "Add custom instructions to the project",
+    messageId: "add-custom-instructions",
+  },
+  {
+    id: "edit-custom-instructions",
+    title: "Edit Custom Instructions",
+    detailedSuggestion: "Make the custom instructions more detailed",
+    messageId: "edit-custom-instructions",
+  },
+  {
+    id: "update-prompt-to-greet-with-howdy",
+    title: "Update Prompt to Greet with Howdy",
+    detailedSuggestion: "Update the prompt to always greet with howdy",
+    messageId: "update-prompt-to-greet-with-howdy",
+  },
+];
+
+export const InteractableCustomInstructionsEditorProps = z.object({
+  projectId: z.string().describe("The unique identifier for the project."),
   customInstructions: z
     .string()
     .nullable()
     .optional()
-    .describe("Custom instructions for the AI assistant."),
-});
-
-export const CustomInstructionsEditorProps = z.object({
-  project: CustomInstructionsEditorSchema.optional().describe(
-    "The project to edit custom instructions for.",
-  ),
-  onEdited: z
-    .function()
-    .args()
-    .returns(z.void())
+    .describe("The current custom instructions for the AI assistant."),
+  allowSystemPromptOverride: z
+    .boolean()
+    .nullable()
     .optional()
     .describe(
-      "Optional callback function triggered when instructions are successfully updated.",
+      "Current setting: when enabled, a system message passed from client-side initialMessages will override custom instructions.",
+    ),
+  editedValue: z
+    .string()
+    .optional()
+    .describe(
+      "The value to overwrite the current custom instructions field with. When set, the component will be in 'editing mode' where the user can save this updated value or cancel it.",
     ),
 });
 
 interface CustomInstructionsEditorProps {
-  project?: {
-    id: string;
-    name: string;
-    customInstructions?: string | null;
-    allowSystemPromptOverride?: boolean | null;
-  };
+  projectId: string;
+  customInstructions?: string | null;
+  allowSystemPromptOverride?: boolean | null;
+  editedValue?: string;
   onEdited?: () => void;
 }
 
 export function CustomInstructionsEditor({
-  project,
+  projectId,
+  customInstructions,
+  allowSystemPromptOverride: allowSystemPromptOverrideProp,
+  editedValue,
   onEdited,
 }: CustomInstructionsEditorProps) {
+  const customInstructionsId = useId();
   const [isEditing, setIsEditing] = useState(false);
-  const [customInstructions, setCustomInstructions] = useState(
-    project?.customInstructions || "",
-  );
+  const [savedValue, setSavedValue] = useState(customInstructions ?? "");
+  const [displayValue, setDisplayValue] = useState(customInstructions ?? "");
   const { toast } = useToast();
   const [allowSystemPromptOverride, setAllowSystemPromptOverride] = useState<
     boolean | undefined
   >(
-    project?.allowSystemPromptOverride === undefined
+    allowSystemPromptOverrideProp === undefined
       ? undefined
-      : Boolean(project?.allowSystemPromptOverride),
+      : Boolean(allowSystemPromptOverrideProp),
   );
 
-  // Update the instructions when the project changes (e.g., after loading)
-  useEffect(() => {
-    if (project?.customInstructions !== undefined) {
-      setCustomInstructions(project.customInstructions || "");
-    }
-    if (project) {
-      // initialize local switch state from project
-      setAllowSystemPromptOverride(Boolean(project.allowSystemPromptOverride));
-    }
-  }, [project]);
+  // Separate mutations to prevent state interference
+  const updateInstructions = api.project.updateProject.useMutation();
+  const updateToggle = api.project.updateProject.useMutation();
 
-  const updateProject = api.project.updateProject.useMutation({
-    onSuccess: () => {
-      setIsEditing(false);
-      // Call the onEdited callback to refresh the project data
-      if (onEdited) {
-        onEdited();
-      }
-    },
-  });
+  // Update the saved value when props change (e.g., after loading or Tambo updates)
+  // Only sync if not currently editing to avoid overwriting unsaved changes
+  useEffect(() => {
+    if (customInstructions !== undefined && !isEditing) {
+      setSavedValue(customInstructions ?? "");
+      setDisplayValue(customInstructions ?? "");
+    }
+  }, [customInstructions, isEditing]);
+
+  // Sync toggle state from props (no auto-save, just state sync)
+  useEffect(() => {
+    if (allowSystemPromptOverrideProp !== undefined) {
+      setAllowSystemPromptOverride(Boolean(allowSystemPromptOverrideProp));
+    }
+  }, [allowSystemPromptOverrideProp]);
+
+  // When Tambo sends a new editedValue, enter edit mode automatically
+  useEffect(() => {
+    if (editedValue !== undefined) {
+      setDisplayValue(editedValue);
+      setIsEditing(true);
+    }
+  }, [editedValue]);
 
   const updateAllowOverride = (val: boolean) => {
-    if (!project) return;
+    // Optimistically update local state
     setAllowSystemPromptOverride(val);
-    updateProject.mutate(
+
+    // Save to backend (no toast)
+    updateToggle.mutate(
       {
-        projectId: project.id,
+        projectId,
         allowSystemPromptOverride: Boolean(val),
       },
       {
         onSuccess: () => {
-          toast({ title: "Saved", description: "Updated project setting" });
           if (onEdited) onEdited();
         },
         onError: () => {
-          toast({
-            title: "Error",
-            description: "Failed to update project setting",
-            variant: "destructive",
-          });
-          setAllowSystemPromptOverride(
-            Boolean(project.allowSystemPromptOverride),
-          );
+          // Revert on error
+          setAllowSystemPromptOverride(Boolean(allowSystemPromptOverrideProp));
         },
       },
     );
   };
 
-  const handleSave = async () => {
-    if (!project) return;
-
-    updateProject.mutate({
-      projectId: project.id,
-      customInstructions,
-    });
+  const handleSave = () => {
+    updateInstructions.mutate(
+      {
+        projectId,
+        customInstructions: displayValue,
+      },
+      {
+        onSuccess: () => {
+          setSavedValue(displayValue);
+          setIsEditing(false);
+          toast({
+            title: "Saved",
+            description: "Custom instructions updated successfully",
+          });
+          if (onEdited) {
+            onEdited();
+          }
+        },
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "Failed to update custom instructions",
+            variant: "destructive",
+          });
+        },
+      },
+    );
   };
 
   const handleCancel = () => {
-    setCustomInstructions(project?.customInstructions || "");
+    setDisplayValue(savedValue);
     setIsEditing(false);
   };
-
-  // If project is undefined, show a loading state
-  if (!project) {
-    return (
-      <Card className="border rounded-md overflow-hidden">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-lg font-semibold">
-                Custom Instructions
-              </CardTitle>
-              <div className="h-3 w-80 bg-muted rounded animate-pulse" />
-            </div>
-            <div className="h-8 w-16 bg-muted rounded animate-pulse" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="min-h-[150px] space-y-3 animate-pulse">
-            <div className="min-h-[100px] rounded-md border border-muted bg-muted/50 p-3 space-y-2">
-              <div className="h-4 w-full bg-muted rounded" />
-              <div className="h-4 w-[80%] bg-muted rounded" />
-              <div className="h-4 w-3/4 bg-muted rounded" />
-              <div className="h-4 w-5/6 bg-muted rounded" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="border rounded-md overflow-hidden">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           Custom Instructions
+          <EditableHint
+            suggestions={customInstructionsEditorSuggestions}
+            description="Click to know more about how to manage the custom instructions for this project"
+            componentName="Custom Instructions"
+          />
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -199,10 +220,11 @@ export function CustomInstructionsEditor({
                   These instructions are added to each conversation to guide
                   tambo&apos;s responses.
                 </CardDescription>
-                <Label htmlFor="custom-instructions">Instructions</Label>
+                <Label htmlFor={customInstructionsId}>Instructions</Label>
                 <Textarea
-                  value={customInstructions}
-                  onChange={(e) => setCustomInstructions(e.target.value)}
+                  id={customInstructionsId}
+                  value={displayValue}
+                  onChange={(e) => setDisplayValue(e.target.value)}
                   placeholder="Add custom instructions for your project..."
                   className="min-h-[200px] w-full"
                   autoFocus
@@ -216,11 +238,11 @@ export function CustomInstructionsEditor({
                   <Button
                     size="sm"
                     onClick={handleSave}
-                    disabled={updateProject.isPending}
+                    disabled={updateInstructions.isPending}
                   >
-                    {updateProject.isPending ? (
+                    {updateInstructions.isPending ? (
                       <span className="flex items-center gap-1">
-                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current" />
+                        <Loader2 className="h-3 w-3 animate-spin" />
                         Saving...
                       </span>
                     ) : (
@@ -232,7 +254,7 @@ export function CustomInstructionsEditor({
                     variant="ghost"
                     className="font-sans bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-500"
                     onClick={handleCancel}
-                    disabled={updateProject.isPending}
+                    disabled={updateInstructions.isPending}
                   >
                     Cancel
                   </Button>
@@ -240,7 +262,7 @@ export function CustomInstructionsEditor({
               </motion.div>
             ) : (
               <div className="flex justify-between items-start">
-                {project.customInstructions ? (
+                {customInstructions ? (
                   <motion.div
                     key="display-instructions"
                     initial={{ opacity: 0, y: 10 }}
@@ -249,7 +271,7 @@ export function CustomInstructionsEditor({
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="flex-1 whitespace-pre-wrap rounded-md text-sm"
                   >
-                    {project.customInstructions}
+                    {customInstructions}
                   </motion.div>
                 ) : (
                   <CardDescription className="text-sm text-foreground">
@@ -270,7 +292,7 @@ export function CustomInstructionsEditor({
                     className="font-sans"
                     onClick={() => setIsEditing(true)}
                   >
-                    {project.customInstructions
+                    {customInstructions
                       ? "Edit Instructions"
                       : "Add Instructions"}
                   </Button>
@@ -283,3 +305,13 @@ export function CustomInstructionsEditor({
     </Card>
   );
 }
+
+export const InteractableCustomInstructionsEditor = withInteractable(
+  CustomInstructionsEditor,
+  {
+    componentName: "InstructionsEditor",
+    description:
+      "A component that allows users to edit custom instructions for their AI assistant project. Users can toggle edit mode, update the custom instructions text, and control whether system prompts can override these instructions.",
+    propsSchema: InteractableCustomInstructionsEditorProps,
+  },
+);

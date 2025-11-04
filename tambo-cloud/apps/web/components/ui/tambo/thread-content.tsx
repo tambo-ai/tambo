@@ -3,12 +3,12 @@
 import {
   Message,
   MessageContent,
-  MessageImages,
   MessageRenderedComponentArea,
   ReasoningInfo,
   ToolcallInfo,
   type messageVariants,
 } from "@/components/ui/tambo/message";
+import { ContextAttachmentBadgeList } from "@/components/ui/tambo/context-attachment-badge";
 import { cn } from "@/lib/utils";
 import { type TamboThreadMessage, useTambo } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
@@ -160,12 +160,12 @@ const ThreadContentMessages = React.forwardRef<
             >
               <div
                 className={cn(
-                  "flex flex-col",
+                  "flex flex-col gap-2",
                   message.role === "assistant" ? "w-full" : "max-w-3xl",
                 )}
               >
                 <ReasoningInfo />
-                <MessageImages />
+                <ContextAttachmentBadgeList message={message} />
                 <MessageContent
                   className={
                     message.role === "assistant"

@@ -6,6 +6,7 @@ import {
   AgentProviderType,
 } from "@tambo-ai-cloud/core";
 import { motion } from "framer-motion";
+import { useId } from "react";
 import { HeadersEditor, type HeaderKV } from "./headers-editor";
 
 export function AgentSettings({
@@ -31,6 +32,8 @@ export function AgentSettings({
   agentHeaders: HeaderKV[];
   setAgentHeaders: (headers: HeaderKV[]) => void;
 }) {
+  const agentUrlId = useId();
+  const agentNameId = useId();
   return (
     <motion.div
       key="agent-settings"
@@ -60,9 +63,9 @@ export function AgentSettings({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="agent-url">Agent URL</Label>
+        <Label htmlFor={agentUrlId}>Agent URL</Label>
         <Input
-          id="agent-url"
+          id={agentUrlId}
           type="url"
           placeholder="e.g., https://my-agent.example.com"
           value={agentUrl}
@@ -91,9 +94,9 @@ export function AgentSettings({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="agent-name">Agent Name</Label>
+        <Label htmlFor={agentNameId}>Agent Name</Label>
         <Input
-          id="agent-name"
+          id={agentNameId}
           type="text"
           placeholder="e.g., tambo-agent"
           value={agentName}

@@ -6,7 +6,7 @@ import {
 } from "@/components/dashboard-components/delete-confirmation-dialog";
 import { APIKeyList } from "@/components/dashboard-components/project-details/api-key-list";
 import { AvailableMcpServers } from "@/components/dashboard-components/project-details/available-mcp-servers";
-import { CustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
+import { InteractableCustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
 import { OAuthSettings } from "@/components/dashboard-components/project-details/oauth-settings";
 import { ProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
 import { ToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
@@ -467,8 +467,10 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
             </div>
 
             <div ref={customInstructionsRef} className="p-2">
-              <CustomInstructionsEditor
-                project={project}
+              <InteractableCustomInstructionsEditor
+                projectId={project.id}
+                customInstructions={project.customInstructions}
+                allowSystemPromptOverride={project.allowSystemPromptOverride}
                 onEdited={handleRefreshProject}
               />
             </div>
