@@ -6,66 +6,78 @@ import { CanvasChatInterface } from "@/components/generative/CanvasChatInterface
 
 export default function CanvasSpacePage() {
   return (
-    <div className="prose max-w-full">
-      <h1>Canvas Space</h1>
-      <p className="text-lg text-muted-foreground">
-        A dedicated area that dynamically displays interactive UI components
-        generated within a Tambo chat thread. It automatically updates to show
-        the latest generated component and clears when switching threads.
-      </p>
+    <div className="prose max-w-full space-y-12">
+      <header className="space-y-4">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+          Canvas Space
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          A dedicated area that dynamically displays interactive UI components
+          generated within a Tambo chat thread. It automatically updates to show
+          the latest generated component and clears when switching threads.
+        </p>
+      </header>
 
-      <h2 className="mt-12">Example</h2>
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Example</h2>
 
-      <ComponentCodePreview
-        component={<CanvasChatInterface />}
-        code={`import { CanvasSpace } from "@tambo-ai/react";
+        <div className="space-y-6">
+          <ComponentCodePreview
+            component={<CanvasChatInterface />}
+            code={`import { CanvasSpace } from "@tambo-ai/react";
 
 export function CanvasDemo() {
-  return (
-    <CanvasSpace contextKey="my-thread" />
-  );
+  return <CanvasSpace contextKey="my-thread" />;
 }`}
-        previewClassName="p-0"
-        fullBleed
-        minHeight={650}
-      />
+            previewClassName="p-0"
+            fullBleed
+            minHeight={650}
+          />
+        </div>
+      </section>
 
-      <InstallationSection cliCommand="npx tambo add canvas-space" />
+      <section>
+        <InstallationSection cliCommand="npx tambo add canvas-space" />
+      </section>
 
-      <h2 className="mt-12">Component API</h2>
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Component API</h2>
 
-      <h3>CanvasSpace</h3>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">CanvasSpace</h3>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Prop</th>
-            <th>Type</th>
-            <th>Default</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>contextKey</td>
-            <td>string</td>
-            <td>-</td>
-            <td className="text-muted-foreground">
-              The context key identifying which thread to display generated
-              components from
-            </td>
-          </tr>
-          <tr>
-            <td>className</td>
-            <td>string</td>
-            <td>-</td>
-            <td className="text-muted-foreground">
-              Optional CSS class names to apply custom styling to the canvas
-              container
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Prop</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>contextKey</td>
+                <td>string</td>
+                <td>-</td>
+                <td className="text-muted-foreground">
+                  The context key identifying which thread to display generated
+                  components from
+                </td>
+              </tr>
+              <tr>
+                <td>className</td>
+                <td>string</td>
+                <td>-</td>
+                <td className="text-muted-foreground">
+                  Optional CSS class names to apply custom styling to the canvas
+                  container
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

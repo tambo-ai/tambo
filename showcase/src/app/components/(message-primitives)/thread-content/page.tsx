@@ -88,26 +88,32 @@ const emptyThread: TamboThread = {
 
 export default function ThreadContentPage() {
   return (
-    <div className="prose max-w-full">
-      <h1>Thread Content</h1>
-      <p className="text-lg text-muted-foreground">
-        A primitive component that displays the main content area of a
-        conversation thread. Automatically connects to the Tambo context to
-        render messages with customizable styling variants.
-      </p>
+    <div className="prose max-w-full space-y-12">
+      <header className="space-y-4">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+          Thread Content
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          A primitive component that displays the main content area of a
+          conversation thread. Automatically connects to the Tambo context to
+          render messages with customizable styling variants.
+        </p>
+      </header>
 
-      <h2 className="mt-12">Examples</h2>
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Examples</h2>
 
-      <ComponentCodePreview
-        title="Default Variant"
-        component={
-          <TamboStubProvider thread={mockThread}>
-            <ThreadContent variant="default">
-              <ThreadContentMessages />
-            </ThreadContent>
-          </TamboStubProvider>
-        }
-        code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="Default Variant"
+            component={
+              <TamboStubProvider thread={mockThread}>
+                <ThreadContent variant="default">
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
+            }
+            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
 
 export function ChatDemo() {
   return (
@@ -116,19 +122,19 @@ export function ChatDemo() {
     </ThreadContent>
   );
 }`}
-        previewClassName="p-4"
-      />
+            previewClassName="p-4"
+          />
 
-      <ComponentCodePreview
-        title="Solid Variant"
-        component={
-          <TamboStubProvider thread={mockThread}>
-            <ThreadContent variant="solid">
-              <ThreadContentMessages />
-            </ThreadContent>
-          </TamboStubProvider>
-        }
-        code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
+          <ComponentCodePreview
+            title="Solid Variant"
+            component={
+              <TamboStubProvider thread={mockThread}>
+                <ThreadContent variant="solid">
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
+            }
+            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
 
 export function ChatDemo() {
   return (
@@ -137,19 +143,19 @@ export function ChatDemo() {
     </ThreadContent>
   );
 }`}
-        previewClassName="p-4"
-      />
+            previewClassName="p-4"
+          />
 
-      <ComponentCodePreview
-        title="Empty Thread (No Messages)"
-        component={
-          <TamboStubProvider thread={emptyThread}>
-            <ThreadContent>
-              <ThreadContentMessages />
-            </ThreadContent>
-          </TamboStubProvider>
-        }
-        code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
+          <ComponentCodePreview
+            title="Empty Thread (No Messages)"
+            component={
+              <TamboStubProvider thread={emptyThread}>
+                <ThreadContent>
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
+            }
+            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
 
 export function EmptyThread() {
   return (
@@ -158,85 +164,101 @@ export function EmptyThread() {
     </ThreadContent>
   );
 }`}
-        previewClassName="p-4 min-h-[200px]"
-      />
+            previewClassName="p-4 min-h-[200px]"
+          />
+        </div>
+      </section>
 
-      <InstallationSection cliCommand="npx tambo add thread-content" />
+      <section>
+        <InstallationSection cliCommand="npx tambo add thread-content" />
+      </section>
 
-      <h2 className="mt-12">Component API</h2>
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Component API</h2>
 
-      <h3>ThreadContent</h3>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">ThreadContent</h3>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Prop</th>
-            <th>Type</th>
-            <th>Default</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>variant</td>
-            <td>&quot;default&quot; | &quot;solid&quot;</td>
-            <td>&quot;default&quot;</td>
-            <td>Optional styling variant for the message container</td>
-          </tr>
-          <tr>
-            <td>children</td>
-            <td>React.ReactNode</td>
-            <td>-</td>
-            <td>The child elements to render within the container</td>
-          </tr>
-        </tbody>
-      </table>
+            <table>
+              <thead>
+                <tr>
+                  <th>Prop</th>
+                  <th>Type</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>variant</td>
+                  <td>&quot;default&quot; | &quot;solid&quot;</td>
+                  <td>&quot;default&quot;</td>
+                  <td>Optional styling variant for the message container</td>
+                </tr>
+                <tr>
+                  <td>children</td>
+                  <td>React.ReactNode</td>
+                  <td>-</td>
+                  <td>The child elements to render within the container</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-      <h3>ThreadContentMessages</h3>
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">ThreadContentMessages</h3>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Prop</th>
-            <th>Type</th>
-            <th>Default</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>className</td>
-            <td>string</td>
-            <td>-</td>
-            <td>Optional CSS classes to apply to the messages container</td>
-          </tr>
-        </tbody>
-      </table>
+            <table>
+              <thead>
+                <tr>
+                  <th>Prop</th>
+                  <th>Type</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>className</td>
+                  <td>string</td>
+                  <td>-</td>
+                  <td>
+                    Optional CSS classes to apply to the messages container
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-      <h3>Features</h3>
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Features</h3>
 
-      <ul>
-        <li>
-          <strong>Automatic Context Integration:</strong> Connects to Tambo
-          thread context to display messages
-        </li>
-        <li>
-          <strong>Loading State Handling:</strong> Shows loading indicators for
-          messages being generated
-        </li>
-        <li>
-          <strong>Message Variants:</strong> Applies consistent styling variants
-          to all messages
-        </li>
-        <li>
-          <strong>Responsive Layout:</strong> Handles message alignment based on
-          sender role
-        </li>
-        <li>
-          <strong>Component Rendering:</strong> Supports rendered components
-          within assistant messages
-        </li>
-      </ul>
+            <ul>
+              <li>
+                <strong>Automatic Context Integration:</strong> Connects to
+                Tambo thread context to display messages
+              </li>
+              <li>
+                <strong>Loading State Handling:</strong> Shows loading
+                indicators for messages being generated
+              </li>
+              <li>
+                <strong>Message Variants:</strong> Applies consistent styling
+                variants to all messages
+              </li>
+              <li>
+                <strong>Responsive Layout:</strong> Handles message alignment
+                based on sender role
+              </li>
+              <li>
+                <strong>Component Rendering:</strong> Supports rendered
+                components within assistant messages
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
