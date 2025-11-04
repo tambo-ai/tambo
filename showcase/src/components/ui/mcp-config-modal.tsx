@@ -114,11 +114,11 @@ export const McpConfigModal = ({
   // Helper function to get server display information
   const getServerInfo = (server: McpServerInfo) => {
     if (typeof server === "string") {
-      return { url: server, transport: "SSE (default)", name: null };
+      return { url: server, transport: "HTTP (default)", name: null };
     } else {
       return {
         url: server.url,
-        transport: server.transport ?? "SSE (default)",
+        transport: server.transport ?? "HTTP (default)",
         name: server.name ?? null,
       };
     }
