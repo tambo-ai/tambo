@@ -89,12 +89,12 @@ const profileHelper = async () => ({
 
 ### 3. Context Attachments
 
-Add visual context badges that appear above the message input using the `useContextAttachment` hook:
+Add visual context badges that appear above the message input using the `useTamboContextAttachment` hook:
 
 ```tsx
-import { useContextAttachment } from "@tambo-ai/react";
+import { useTamboContextAttachment } from "@tambo-ai/react";
 
-const { addContextAttachment } = useContextAttachment();
+const { addContextAttachment } = useTamboContextAttachment();
 
 addContextAttachment({
   name: "Button.tsx",

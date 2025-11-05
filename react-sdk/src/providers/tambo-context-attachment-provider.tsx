@@ -63,11 +63,11 @@ const ContextAttachmentContext = createContext<ContextAttachmentState | null>(
 );
 
 /**
- * Props for the ContextAttachmentProvider.
+ * Props for the TamboContextAttachmentProvider.
  * @property {(context: ContextAttachment) => Promise<ContextHelperData> | ContextHelperData} [getContextHelperData] - Optional function to customize the data sent to the AI for each context. If not provided, uses a default structure with the context name and instruction.
  * @example
  * ```tsx
- * <ContextAttachmentProvider
+ * <TamboContextAttachmentProvider
  *   getContextHelperData={(context) => ({
  *     selectedFile: {
  *       name: context.name,
@@ -77,10 +77,10 @@ const ContextAttachmentContext = createContext<ContextAttachmentState | null>(
  *   })}
  * >
  *   {children}
- * </ContextAttachmentProvider>
+ * </TamboContextAttachmentProvider>
  * ```
  */
-export interface ContextAttachmentProviderProps {
+export interface TamboContextAttachmentProviderProps {
   children?: React.ReactNode;
   getContextHelperData?: (
     context: ContextAttachment,
@@ -91,17 +91,17 @@ export interface ContextAttachmentProviderProps {
  * Provider that enables context attachment features and custom suggestions in MessageInput.
  * **When to use:**
  * - **Included by default** in TamboProvider - no need to wrap separately
- * - Use `useContextAttachment()` hook to manage context attachments
+ * - Use `useTamboContextAttachment()` hook to manage context attachments
  * **What it does:**
  * - Manages context items that appear as badges above MessageInput
  * - Syncs context data with Tambo's AI for better responses
  * - Manages custom suggestions that replace auto-generated suggestions
- * - Allows components to add/remove contexts via `useContextAttachment()`
+ * - Allows components to add/remove contexts via `useTamboContextAttachment()`
  * - Allows components to set custom suggestions via `setCustomSuggestions()`
- * @param props - The props for the ContextAttachmentProvider
+ * @param props - The props for the TamboContextAttachmentProvider
  * @param props.children - The children to wrap
  * @param props.getContextHelperData - The function to get the context helper data
- * @returns The ContextAttachmentProvider component
+ * @returns The TamboContextAttachmentProvider component
  * @example
  * Basic usage - already included in TamboProvider
  * ```tsx
@@ -126,10 +126,10 @@ export interface ContextAttachmentProviderProps {
  * </TamboProvider>
  * ```
  */
-export function ContextAttachmentProvider({
+export function TamboContextAttachmentProvider({
   children,
   getContextHelperData,
-}: ContextAttachmentProviderProps) {
+}: TamboContextAttachmentProviderProps) {
   const [attachments, setAttachments] = useState<ContextAttachment[]>([]);
   const [customSuggestions, setCustomSuggestions] = useState<
     Suggestion[] | null
@@ -254,7 +254,7 @@ export function ContextAttachmentProvider({
  * @returns The context attachment state and methods
  * @example
  * ```tsx
- * const contextAttachment = useContextAttachment();
+ * const contextAttachment = useTamboContextAttachment();
  *
  * // Add a context
  * contextAttachment.addContextAttachment({
@@ -270,11 +270,11 @@ export function ContextAttachmentProvider({
  * contextAttachment.setCustomSuggestions([{ id: "1", title: "Add Feature" }]);
  * ```
  */
-export function useContextAttachment() {
+export function useTamboContextAttachment() {
   const context = useContext(ContextAttachmentContext);
   if (!context) {
     throw new Error(
-      "useContextAttachment must be used within a ContextAttachmentProvider",
+      "useTamboContextAttachment must be used within a TamboContextAttachmentProvider",
     );
   }
   return context;

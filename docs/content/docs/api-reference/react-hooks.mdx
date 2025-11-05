@@ -320,43 +320,43 @@ Adds or replaces a helper at the given key.
 
 Removes a helper by key so it is no longer included in outgoing messages.
 
-### useContextAttachment
+### useTamboContextAttachment
 
 This hook provides utilities for managing context attachments and custom suggestions.
 
 #### attachments
 
-`const { attachments } = useContextAttachment()`
+`const { attachments } = useTamboContextAttachment()`
 
 Array of active context attachments currently displayed as badges above the message input.
 
 #### addContextAttachment
 
-`const { addContextAttachment } = useContextAttachment()`
+`const { addContextAttachment } = useTamboContextAttachment()`
 
 Function to add a new context attachment. Accepts an object with `name`, optional `icon`, and optional `metadata`. The `id` is automatically generated.
 
 #### removeContextAttachment
 
-`const { removeContextAttachment } = useContextAttachment()`
+`const { removeContextAttachment } = useTamboContextAttachment()`
 
 Function to remove a specific context attachment by its ID.
 
 #### clearContextAttachments
 
-`const { clearContextAttachments } = useContextAttachment()`
+`const { clearContextAttachments } = useTamboContextAttachment()`
 
 Function to remove all active context attachments at once.
 
 #### customSuggestions
 
-`const { customSuggestions } = useContextAttachment()`
+`const { customSuggestions } = useTamboContextAttachment()`
 
 Current custom suggestions that override auto-generated suggestions. Returns `null` if using auto-generated suggestions.
 
 #### setCustomSuggestions
 
-`const { setCustomSuggestions } = useContextAttachment()`
+`const { setCustomSuggestions } = useTamboContextAttachment()`
 
 Function to set custom suggestions or clear them by passing `null`.
 

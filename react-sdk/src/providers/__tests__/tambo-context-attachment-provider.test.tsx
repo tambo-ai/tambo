@@ -2,8 +2,8 @@ import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads
 import { act, renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import {
-  ContextAttachmentProvider,
-  useContextAttachment,
+  TamboContextAttachmentProvider,
+  useTamboContextAttachment,
   type ContextAttachment,
   type ContextHelperData,
 } from "../tambo-context-attachment-provider";
@@ -13,7 +13,7 @@ import {
 } from "../tambo-context-helpers-provider";
 
 /**
- * Test suite for ContextAttachmentProvider
+ * Test suite for TamboContextAttachmentProvider
  *
  * Tests the context attachment feature which allows:
  * - Visual context badges above message input
@@ -21,13 +21,13 @@ import {
  * - Custom suggestions that override auto-generated ones
  * - Dynamic context data customization via getContextHelperData
  */
-describe("ContextAttachmentProvider", () => {
+describe("TamboContextAttachmentProvider", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   /**
-   * Base wrapper with both ContextAttachmentProvider and TamboContextHelpersProvider
+   * Base wrapper with both TamboContextAttachmentProvider and TamboContextHelpersProvider
    * since context attachments need access to context helpers API
    * @param getContextHelperData - Optional custom function to get context helper data
    * @returns A React component that wraps children with the necessary providers
@@ -39,9 +39,11 @@ describe("ContextAttachmentProvider", () => {
   ) => {
     const Wrapper = ({ children }: { children: React.ReactNode }) => (
       <TamboContextHelpersProvider>
-        <ContextAttachmentProvider getContextHelperData={getContextHelperData}>
+        <TamboContextAttachmentProvider
+          getContextHelperData={getContextHelperData}
+        >
           {children}
-        </ContextAttachmentProvider>
+        </TamboContextAttachmentProvider>
       </TamboContextHelpersProvider>
     );
     Wrapper.displayName = "TestWrapper";
@@ -53,7 +55,7 @@ describe("ContextAttachmentProvider", () => {
      * Hook should provide all expected API functions when used within provider
      */
     it("should provide context attachment API functions", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -75,9 +77,9 @@ describe("ContextAttachmentProvider", () => {
         .mockImplementation(() => {});
 
       expect(() => {
-        renderHook(() => useContextAttachment());
+        renderHook(() => useTamboContextAttachment());
       }).toThrow(
-        "useContextAttachment must be used within a ContextAttachmentProvider",
+        "useTamboContextAttachment must be used within a TamboContextAttachmentProvider",
       );
 
       consoleErrorSpy.mockRestore();
@@ -89,7 +91,7 @@ describe("ContextAttachmentProvider", () => {
      * Should add a context attachment with auto-generated ID
      */
     it("should add a context attachment", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -112,7 +114,7 @@ describe("ContextAttachmentProvider", () => {
      * Should add multiple different attachments
      */
     it("should add multiple context attachments", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -134,7 +136,7 @@ describe("ContextAttachmentProvider", () => {
      * Should prevent duplicates with the same name
      */
     it("should prevent duplicate attachments with same name", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -154,7 +156,7 @@ describe("ContextAttachmentProvider", () => {
      * Should support optional icon property
      */
     it("should support icon property", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -176,7 +178,7 @@ describe("ContextAttachmentProvider", () => {
      * Should remove a specific attachment by ID
      */
     it("should remove context attachment by ID", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -200,7 +202,7 @@ describe("ContextAttachmentProvider", () => {
      * Should only remove the specified attachment when multiple exist
      */
     it("should only remove specified attachment", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -224,7 +226,7 @@ describe("ContextAttachmentProvider", () => {
      * Should handle removing non-existent attachment gracefully
      */
     it("should handle removing non-existent attachment gracefully", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -241,7 +243,7 @@ describe("ContextAttachmentProvider", () => {
      * Should clear all attachments at once
      */
     it("should clear all context attachments", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -264,7 +266,7 @@ describe("ContextAttachmentProvider", () => {
      * Should handle clearing when no attachments exist
      */
     it("should handle clearing when no attachments exist", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -285,13 +287,15 @@ describe("ContextAttachmentProvider", () => {
     it("should register context helpers for attachments", async () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
-          <ContextAttachmentProvider>{children}</ContextAttachmentProvider>
+          <TamboContextAttachmentProvider>
+            {children}
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       );
 
       const { result } = renderHook(
         () => ({
-          attachment: useContextAttachment(),
+          attachment: useTamboContextAttachment(),
           helpers: useTamboContextHelpers(),
         }),
         { wrapper },
@@ -326,13 +330,15 @@ describe("ContextAttachmentProvider", () => {
     it("should unregister context helpers when attachments are removed", async () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
-          <ContextAttachmentProvider>{children}</ContextAttachmentProvider>
+          <TamboContextAttachmentProvider>
+            {children}
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       );
 
       const { result } = renderHook(
         () => ({
-          attachment: useContextAttachment(),
+          attachment: useTamboContextAttachment(),
           helpers: useTamboContextHelpers(),
         }),
         { wrapper },
@@ -374,13 +380,15 @@ describe("ContextAttachmentProvider", () => {
     it("should use default context data structure", async () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
-          <ContextAttachmentProvider>{children}</ContextAttachmentProvider>
+          <TamboContextAttachmentProvider>
+            {children}
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       );
 
       const { result } = renderHook(
         () => ({
-          attachment: useContextAttachment(),
+          attachment: useTamboContextAttachment(),
           helpers: useTamboContextHelpers(),
         }),
         { wrapper },
@@ -429,17 +437,17 @@ describe("ContextAttachmentProvider", () => {
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
-          <ContextAttachmentProvider
+          <TamboContextAttachmentProvider
             getContextHelperData={customGetContextHelperData}
           >
             {children}
-          </ContextAttachmentProvider>
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       );
 
       const { result } = renderHook(
         () => ({
-          attachment: useContextAttachment(),
+          attachment: useTamboContextAttachment(),
           helpers: useTamboContextHelpers(),
         }),
         { wrapper },
@@ -499,18 +507,18 @@ describe("ContextAttachmentProvider", () => {
 
         return (
           <TamboContextHelpersProvider>
-            <ContextAttachmentProvider
+            <TamboContextAttachmentProvider
               getContextHelperData={getContextHelperData}
             >
               {children}
-            </ContextAttachmentProvider>
+            </TamboContextAttachmentProvider>
           </TamboContextHelpersProvider>
         );
       };
 
       const { result } = renderHook(
         () => ({
-          attachment: useContextAttachment(),
+          attachment: useTamboContextAttachment(),
           helpers: useTamboContextHelpers(),
         }),
         { wrapper: TestWrapper },
@@ -578,15 +586,15 @@ describe("ContextAttachmentProvider", () => {
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
-          <ContextAttachmentProvider getContextHelperData={errorGetData}>
+          <TamboContextAttachmentProvider getContextHelperData={errorGetData}>
             {children}
-          </ContextAttachmentProvider>
+          </TamboContextAttachmentProvider>
         </TamboContextHelpersProvider>
       );
 
       const { result } = renderHook(
         () => ({
-          attachment: useContextAttachment(),
+          attachment: useTamboContextAttachment(),
           helpers: useTamboContextHelpers(),
         }),
         { wrapper },
@@ -623,7 +631,7 @@ describe("ContextAttachmentProvider", () => {
      * Should start with null custom suggestions
      */
     it("should initialize with null custom suggestions", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -634,7 +642,7 @@ describe("ContextAttachmentProvider", () => {
      * Should set custom suggestions
      */
     it("should set custom suggestions", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -664,7 +672,7 @@ describe("ContextAttachmentProvider", () => {
      * Should clear custom suggestions by setting to null
      */
     it("should clear custom suggestions", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -694,7 +702,7 @@ describe("ContextAttachmentProvider", () => {
      * Should update custom suggestions when changed
      */
     it("should update custom suggestions", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -735,7 +743,7 @@ describe("ContextAttachmentProvider", () => {
      * Should handle adding attachment and setting custom suggestions together
      */
     it("should handle attachment and custom suggestions together", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -764,7 +772,7 @@ describe("ContextAttachmentProvider", () => {
      * Should clear suggestions when clearing attachments
      */
     it("should independently manage attachments and suggestions", () => {
-      const { result } = renderHook(() => useContextAttachment(), {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
@@ -813,13 +821,15 @@ describe("ContextAttachmentProvider", () => {
       // First render with attachment provider
       const { result: attachmentResult, unmount } = renderHook(
         () => ({
-          attachment: useContextAttachment(),
+          attachment: useTamboContextAttachment(),
           helpers: useTamboContextHelpers(),
         }),
         {
           wrapper: ({ children }) => (
             <SharedWrapper>
-              <ContextAttachmentProvider>{children}</ContextAttachmentProvider>
+              <TamboContextAttachmentProvider>
+                {children}
+              </TamboContextAttachmentProvider>
             </SharedWrapper>
           ),
         },

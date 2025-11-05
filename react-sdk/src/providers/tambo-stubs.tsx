@@ -10,7 +10,7 @@ import {
   TamboComponentContextProps,
   TamboComponentProvider,
 } from "./tambo-component-provider";
-import { ContextAttachmentProvider } from "./tambo-context-attachment-provider";
+import { TamboContextAttachmentProvider } from "./tambo-context-attachment-provider";
 import {
   TamboContextHelpersProvider,
   TamboContextHelpersProviderProps,
@@ -370,13 +370,13 @@ export const TamboStubProvider: React.FC<
       >
         <TamboStubThreadProvider {...threadContextProps}>
           <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-            <ContextAttachmentProvider>
+            <TamboContextAttachmentProvider>
               <TamboComponentProvider>
                 <TamboInteractableProvider>
                   <TamboCompositeProvider>{children}</TamboCompositeProvider>
                 </TamboInteractableProvider>
               </TamboComponentProvider>
-            </ContextAttachmentProvider>
+            </TamboContextAttachmentProvider>
           </TamboContextHelpersProvider>
         </TamboStubThreadProvider>
       </TamboStubRegistryProvider>

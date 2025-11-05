@@ -18,14 +18,14 @@ The feature also supports custom suggestions, allowing you to override Tambo's a
 
 ## Basic Usage
 
-The `useContextAttachment` hook provides methods to manage context attachments:
+The `useTamboContextAttachment` hook provides methods to manage context attachments:
 
 ```tsx
-import { useContextAttachment } from "@tambo-ai/react";
+import { useTamboContextAttachment } from "@tambo-ai/react";
 
 function FileViewer({ file }) {
   const { addContextAttachment, removeContextAttachment } =
-    useContextAttachment();
+    useTamboContextAttachment();
 
   const handleSelectFile = () => {
     addContextAttachment({
@@ -57,7 +57,7 @@ interface ContextAttachment {
 
 ## Hook API
 
-The `useContextAttachment` hook returns:
+The `useTamboContextAttachment` hook returns:
 
 ```tsx
 const {
@@ -67,7 +67,7 @@ const {
   clearContextAttachments, // Remove all attachments
   customSuggestions, // Current custom suggestions
   setCustomSuggestions, // Set custom suggestions
-} = useContextAttachment();
+} = useTamboContextAttachment();
 ```
 
 ### Adding Context Attachments
@@ -75,7 +75,7 @@ const {
 Add a context attachment by calling `addContextAttachment` with a name and optional metadata:
 
 ```tsx
-const { addContextAttachment } = useContextAttachment();
+const { addContextAttachment } = useTamboContextAttachment();
 
 // Simple text context
 addContextAttachment({
@@ -100,7 +100,7 @@ The `id` field is automatically generated. If you add a context with the same `n
 Remove a specific context attachment by its ID:
 
 ```tsx
-const { removeContextAttachment } = useContextAttachment();
+const { removeContextAttachment } = useTamboContextAttachment();
 
 removeContextAttachment(contextId);
 ```
@@ -108,7 +108,7 @@ removeContextAttachment(contextId);
 Or clear all attachments at once:
 
 ```tsx
-const { clearContextAttachments } = useContextAttachment();
+const { clearContextAttachments } = useTamboContextAttachment();
 
 clearContextAttachments();
 ```
@@ -118,7 +118,7 @@ clearContextAttachments();
 Display the current attachments as badges:
 
 ```tsx
-const { attachments, removeContextAttachment } = useContextAttachment();
+const { attachments, removeContextAttachment } = useTamboContextAttachment();
 
 return (
   <div>
@@ -184,10 +184,11 @@ The function can be async to fetch additional data:
 Context attachments can be combined with custom suggestions to override Tambo's auto-generated suggestions:
 
 ```tsx
-import { useContextAttachment } from "@tambo-ai/react";
+import { useTamboContextAttachment } from "@tambo-ai/react";
 
 function ComponentSelector({ component }) {
-  const { addContextAttachment, setCustomSuggestions } = useContextAttachment();
+  const { addContextAttachment, setCustomSuggestions } =
+    useTamboContextAttachment();
 
   const handleSelectComponent = () => {
     addContextAttachment({
@@ -226,7 +227,7 @@ setCustomSuggestions(null);
 Here's a complete example showing context attachments in a file browser:
 
 ```tsx
-import { useContextAttachment } from "@tambo-ai/react";
+import { useTamboContextAttachment } from "@tambo-ai/react";
 import { FileIcon, XIcon } from "lucide-react";
 
 function FileBrowser({ files }) {
@@ -235,7 +236,7 @@ function FileBrowser({ files }) {
     addContextAttachment,
     removeContextAttachment,
     setCustomSuggestions,
-  } = useContextAttachment();
+  } = useTamboContextAttachment();
 
   const handleFileClick = (file) => {
     addContextAttachment({

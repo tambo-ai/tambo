@@ -3,7 +3,7 @@ title: Suggestions
 description: Get suggestions for your users after each assistant message.
 ---
 
-Tambo automatically analyzes user interactions and generates contextual suggestions after each assistant message. You can also override these with custom suggestions using the `useContextAttachment` hook.
+Tambo automatically analyzes user interactions and generates contextual suggestions after each assistant message. You can also override these with custom suggestions using the `useTamboContextAttachment` hook.
 
 ## Using Suggestions
 
@@ -175,13 +175,13 @@ function MessageThread() {
 
 ## Custom Suggestions
 
-You can override auto-generated suggestions with your own custom suggestions using the `useContextAttachment` hook:
+You can override auto-generated suggestions with your own custom suggestions using the `useTamboContextAttachment` hook:
 
 ```tsx
-import { useContextAttachment } from "@tambo-ai/react";
+import { useTamboContextAttachment } from "@tambo-ai/react";
 
 function ComponentSelector({ component }) {
-  const { setCustomSuggestions } = useContextAttachment();
+  const { setCustomSuggestions } = useTamboContextAttachment();
 
   const handleSelectComponent = () => {
     setCustomSuggestions([
@@ -207,7 +207,7 @@ function ComponentSelector({ component }) {
 To clear custom suggestions and return to auto-generated ones:
 
 ```tsx
-const { setCustomSuggestions } = useContextAttachment();
+const { setCustomSuggestions } = useTamboContextAttachment();
 
 setCustomSuggestions(null);
 ```
