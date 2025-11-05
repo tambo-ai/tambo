@@ -77,10 +77,7 @@ function EditableNote(initial: NoteProps) {
 
   return (
     <section>
-      <InteractableNote
-        {...note}
-        onInteractableReady={setInteractableId}
-      />
+      <InteractableNote {...note} onInteractableReady={setInteractableId} />
       <label>
         Edit content
         <textarea
@@ -169,10 +166,7 @@ function EditableNote(initial: NoteProps) {
 
   return (
     <section>
-      <InteractableNote
-        {...note}
-        onInteractableReady={setInteractableId}
-      />
+      <InteractableNote {...note} onInteractableReady={setInteractableId} />
       <label>
         Edit content
         <textarea
