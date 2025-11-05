@@ -13,6 +13,7 @@ export {
   type PropStatus,
   type StreamStatus,
 } from "./hooks/use-tambo-stream-status";
+export { useTamboVoice } from "./hooks/use-tambo-voice";
 
 // Re-export provider components
 export {
