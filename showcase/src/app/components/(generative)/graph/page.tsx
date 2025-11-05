@@ -61,7 +61,8 @@ export function QuarterlySalesChart() {
     />
   );
 }`}
-            previewClassName="p-8 min-h-[600px]"
+            previewClassName="p-8"
+            minHeight={600}
           />
         </div>
       </section>
