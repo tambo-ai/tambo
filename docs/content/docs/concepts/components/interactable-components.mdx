@@ -11,6 +11,129 @@ Unlike regular registered components that Tambo generates and renders from scrat
 
 The easiest way to make a component interactable to Tambo is by using `withInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
 
+1. **Build the presentational component.** Use `useEffect` to keep any local UI state aligned with incoming props from Tambo.
+
+   ```tsx
+   import { useEffect, useState } from "react";
+
+   type NoteProps = {
+     title: string;
+     content: string;
+     color?: "white" | "yellow" | "blue" | "green";
+   };
+
+   export function Note({ title, content, color = "yellow" }: NoteProps) {
+     const [draftContent, setDraftContent] = useState(content);
+
+     useEffect(() => {
+       setDraftContent(content);
+     }, [content]);
+
+     return (
+       <section className={`note note-${color}`}>
+         <h3>{title}</h3>
+         <textarea
+           value={draftContent}
+           onChange={(event) => setDraftContent(event.currentTarget.value)}
+         />
+       </section>
+     );
+   }
+   ```
+
+2. **Register it with `withInteractable`.** This tells Tambo the component name, description, and which props it can safely edit.
+
+   ```tsx
+   import { withInteractable } from "@tambo-ai/react";
+   import { z } from "zod";
+   import { Note } from "./note";
+
+   export const InteractableNote = withInteractable(Note, {
+     componentName: "Note",
+     description:
+       "A simple note that can change title, content, and background color",
+     propsSchema: z.object({
+       title: z.string(),
+       content: z.string(),
+       color: z.enum(["white", "yellow", "blue", "green"]).optional(),
+     }),
+   });
+   ```
+
+3. **Render the interactable version in your app.** Tambo now sees the note and can change its props in place.
+
+   ```tsx
+   export function Page() {
+     return (
+       <main>
+         <InteractableNote
+           title="Release plan"
+           content="Ask Tambo to keep this note up to date."
+           color="yellow"
+         />
+       </main>
+     );
+   }
+   ```
+
+<details>
+<summary>Show full example</summary>
+
+```tsx
+import { useEffect, useState } from "react";
+import { withInteractable } from "@tambo-ai/react";
+import { z } from "zod";
+
+type NoteProps = {
+  title: string;
+  content: string;
+  color?: "white" | "yellow" | "blue" | "green";
+};
+
+function Note({ title, content, color = "yellow" }: NoteProps) {
+  const [draftContent, setDraftContent] = useState(content);
+
+  useEffect(() => {
+    setDraftContent(content);
+  }, [content]);
+
+  return (
+    <section className={`note note-${color}`}>
+      <h3>{title}</h3>
+      <textarea
+        value={draftContent}
+        onChange={(event) => setDraftContent(event.currentTarget.value)}
+      />
+    </section>
+  );
+}
+
+const InteractableNote = withInteractable(Note, {
+  componentName: "Note",
+  description:
+    "A simple note that can change title, content, and background color",
+  propsSchema: z.object({
+    title: z.string(),
+    content: z.string(),
+    color: z.enum(["white", "yellow", "blue", "green"]).optional(),
+  }),
+});
+
+export default function Page() {
+  return (
+    <main>
+      <InteractableNote
+        title="Release plan"
+        content="Ask Tambo to keep this note up to date."
+        color="yellow"
+      />
+    </main>
+  );
+}
+```
+
+</details>
+  
 <Callout type="info" title="No Registration Required">
 
 Unlike regular components that need to be registered in the `TamboProvider` components array, interactable components are automatically registered when they mount. You don't need to add them to your components array.
@@ -23,74 +146,26 @@ If you want Tambo to be able to both modify pre-placed instances AND generate ne
 
 </Callout>
 
-```tsx
-import { withInteractable } from "@tambo-ai/react";
-import { z } from "zod";
+This baseline shows the key workflow:
 
-// Your existing component
-function Note({ title, content, color = "white" }) {
-  return (
-    <div className={`note note-${color}`}>
-      <h3>{title}</h3>
-      <p>{content}</p>
-    </div>
-  );
-}
+- Build presentational components that accept props.
+- Use `useEffect` inside the component to mirror incoming prop changes onto any local UI state (like the textarea draft).
+- Register them with `withInteractable`, providing a schema so Tambo knows which props it can mutate.
+- Render the interactable version in your app; Tambo can now update those props in place.
 
-// Make it interactable
-const InteractableNote = withInteractable(Note, {
-  componentName: "Note",
-  description:
-    "A simple note component that can display title and content with different colors",
-  propsSchema: z.object({
-    title: z.string(),
-    content: z.string(),
-    color: z.enum(["white", "yellow", "blue", "green"]).optional(),
-  }),
-});
+The textarea edits are local to the component, which keeps the example lightweight.
 
-// Another simple component
-function Counter({ count, label }) {
-  return (
-    <div className="counter">
-      <span>
-        {label}: {count}
-      </span>
-    </div>
-  );
-}
+<Callout type="info" title="Need two-way sync?">
+  Want the user's edits to flow back to Tambo? Follow the step-by-step guide in
+  [Two-way state syncing for interactables](./two-way-state-syncing).
+</Callout>
 
-const InteractableCounter = withInteractable(Counter, {
-  componentName: "Counter",
-  description: "A simple counter that displays a label and count value",
-  propsSchema: z.object({
-    count: z.number(),
-    label: z.string(),
-  }),
-});
-
-// Place both components in your app
-function Page() {
-  return (
-    <div>
-      <InteractableNote
-        title="Welcome"
-        content="This is a simple note that Tambo can update!"
-        color="yellow"
-      />
-      <InteractableCounter count={42} label="Items" />
-    </div>
-  );
-}
-```
-
-Now Tambo is able to read and update these components in-place when responding to messages. Users can ask things like:
+Now Tambo is able to read and update the note in-place when responding to messages. Users can ask things like:
 
 - "Change the note title to 'Important Reminder'"
 - "Update the note content to 'Don't forget the meeting at 3pm'"
 - "Make the note blue"
-- "Set the counter to 100"
-- "Change the counter label to 'Tasks Completed'"
+- "Summarize the note I pinned earlier"
 
 ### InteractableConfig
 
@@ -122,7 +197,6 @@ function App() {
     <TamboProvider>
       {/* Your app with interactable components */}
       <InteractableNote />
-      <InteractableCounter />
     </TamboProvider>
   );
 }
@@ -148,7 +222,7 @@ With interactable components on the page, users can ask:
 - "What components are available?"
 - "Change the note title to 'Important Reminder'"
 - "Show me the current state of all my components"
-- "Make the counter red and set it to 100"
+- "Summarize the note I pinned earlier"
 
 ## Customizing Automatic Context
 
@@ -252,7 +326,6 @@ function IdsOnlyInteractables() {
 <TamboInteractableProvider>
   <PrivacyFriendlyInteractables />
   <InteractableNote title="Not visible unless requested." />
-  <InteractableCounter count={42} />
 </TamboInteractableProvider>;
 ```
 
@@ -269,8 +342,8 @@ function FilteredInteractablesContext() {
 
   React.useEffect(() => {
     const filteredHelper = () => {
-      // Only show Notes and Counters, hide other component types
-      const allowedTypes = ["Note", "Counter"];
+      // Only show Notes, hide other component types
+      const allowedTypes = ["Note"];
       const filteredComponents = snapshot.filter((component) =>
         allowedTypes.includes(component.name),
       );
