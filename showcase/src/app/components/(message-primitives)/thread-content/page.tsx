@@ -164,7 +164,8 @@ export function EmptyThread() {
     </ThreadContent>
   );
 }`}
-            previewClassName="p-4 min-h-[200px]"
+            previewClassName="p-4"
+            minHeight={200}
           />
         </div>
       </section>

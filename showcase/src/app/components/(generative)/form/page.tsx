@@ -82,7 +82,8 @@ export function ContactForm() {
     />
   );
 }`}
-            previewClassName="p-8 min-h-[700px]"
+            previewClassName="p-8"
+            minHeight={700}
           />
         </div>
       </section>
