@@ -45,7 +45,7 @@ export function useTamboVoice() {
 
       return await client.beta.audio.transcribe({ file });
     },
-    onSuccess: (transcription) => {
+    onSuccess: (transcription: string) => {
       setTranscript(transcription);
     },
   });
