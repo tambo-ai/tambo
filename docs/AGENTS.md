@@ -96,7 +96,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - Model Context Protocol: Overview, providers overview (client-side and server-side comparison, rich content support), client-side connections, server-side connections, features overview (elicitations, tools, sampling, prompts)
    - Streaming: Real-time responses, component streaming, status monitoring
    - User Authentication: OAuth providers, session management, context keys
-   - Additional Context: Dynamic helpers, page context, interactable tracking
+   - Additional Context: Dynamic helpers, page context, interactable tracking, context attachments
    - Suggestions: AI-generated action recommendations
 
 3. **Best Practices** - Guidance for production implementations
