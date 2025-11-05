@@ -142,12 +142,12 @@ export function TamboContextAttachmentProvider({
 
   // Sync context helpers with attachments using useEffect
   useEffect(() => {
-    const currentIds = new Set(attachments.map((a) => a.id));
+    const currentIds = attachments.map((a) => a.id);
     const registeredIds = registeredIdsRef.current;
 
     // Remove context helpers that are no longer in attachments
     registeredIds.forEach((id) => {
-      if (!currentIds.has(id)) {
+      if (!currentIds.includes(id)) {
         removeContextHelper(id);
         registeredIds.delete(id);
       }
