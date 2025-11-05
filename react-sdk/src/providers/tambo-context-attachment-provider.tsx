@@ -138,6 +138,7 @@ export function ContextAttachmentProvider({
 
   // Track which context helpers have been registered to avoid duplicates
   const registeredIdsRef = useRef<Set<string>>(new Set());
+  const prevGetContextHelperDataRef = useRef<typeof getContextHelperData>();
 
   // Sync context helpers with attachments using useEffect
   useEffect(() => {
@@ -152,9 +153,12 @@ export function ContextAttachmentProvider({
       }
     });
 
-    // Add context helpers for new attachments
+    const getDataChanged =
+      prevGetContextHelperDataRef.current !== getContextHelperData;
+
+    // Add or replace context helpers for attachments
     attachments.forEach((context) => {
-      if (!registeredIds.has(context.id)) {
+      if (getDataChanged || !registeredIds.has(context.id)) {
         addContextHelper(context.id, async (): Promise<ContextHelperData> => {
           if (getContextHelperData) {
             return await getContextHelperData(context);
@@ -171,6 +175,8 @@ export function ContextAttachmentProvider({
         registeredIds.add(context.id);
       }
     });
+
+    prevGetContextHelperDataRef.current = getContextHelperData;
   }, [
     attachments,
     addContextHelper,
