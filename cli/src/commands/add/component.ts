@@ -3,10 +3,11 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
 import {
-  COMPONENT_SUBDIR,
-  LEGACY_COMPONENT_SUBDIR,
-} from "../../constants/paths.js";
+  calculateLibDirectory,
+  getComponentDirectoryPath,
+} from "../shared/path-utils.js";
 import { updateImportPaths } from "../migrate.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
@@ -14,32 +15,6 @@ import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
 // Get the current file URL and convert it to a path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-/**
- * Calculates the lib directory path based on the install path and whether it's an explicit prefix
- * @param installPath The component installation path
- * @param isExplicitPrefix Whether the installPath was explicitly provided via --prefix
- * @returns The calculated lib directory path
- */
-function calculateLibDir(
-  installPath: string,
-  isExplicitPrefix: boolean,
-): string {
-  if (isExplicitPrefix) {
-    // For explicit prefix, check if it starts with 'src' as a whole directory
-    const pathParts = installPath.split(path.sep);
-    const startsWithSrc = pathParts.length > 0 && pathParts[0] === "src";
-
-    if (startsWithSrc) {
-      return path.join(process.cwd(), "src", "lib");
-    } else {
-      return path.join(process.cwd(), "lib");
-    }
-  } else {
-    // For auto-detected paths, use the standard logic
-    return path.join(process.cwd(), path.dirname(installPath), "lib");
-  }
-}
 
 /**
  * Installs multiple components and their dependencies
@@ -63,19 +38,22 @@ export async function installComponents(
   // 1. Create component directory
   const installPath = options.installPath ?? "components";
   const isExplicitPrefix = Boolean(options.isExplicitPrefix);
+  const projectRoot = process.cwd();
 
-  const componentDir = isExplicitPrefix
-    ? path.join(process.cwd(), installPath)
-    : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+  const componentDir = getComponentDirectoryPath(
+    projectRoot,
+    installPath,
+    isExplicitPrefix,
+  );
 
   // For lib directory, use the base install path if provided (for legacy compatibility)
   // Otherwise use the standard calculation
   let libDir: string;
   if (options.baseInstallPath) {
     // When using legacy location, calculate lib based on the original base path
-    libDir = calculateLibDir(options.baseInstallPath, false);
+    libDir = calculateLibDirectory(projectRoot, options.baseInstallPath, false);
   } else {
-    libDir = calculateLibDir(installPath, isExplicitPrefix);
+    libDir = calculateLibDirectory(projectRoot, installPath, isExplicitPrefix);
   }
 
   fs.mkdirSync(componentDir, { recursive: true });

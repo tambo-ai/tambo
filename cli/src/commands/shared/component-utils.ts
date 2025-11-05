@@ -1,15 +1,12 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import {
-  COMPONENT_SUBDIR,
-  LEGACY_COMPONENT_SUBDIR,
-} from "../../constants/paths.js";
 import { getConfigPath } from "../add/utils.js";
 import {
   confirmAction,
   migrateComponentsDuringUpgrade,
 } from "../upgrade/utils.js";
+import { getComponentFilePath, resolveComponentPaths } from "./path-utils.js";
 
 /**
  * Location information for a component
@@ -52,47 +49,32 @@ export function findComponentLocation(
   isExplicitPrefix = false,
 ): ComponentLocation | null {
   try {
+    const { newPath, legacyPath, newDir } = resolveComponentPaths(
+      projectRoot,
+      installPath,
+      componentName,
+      isExplicitPrefix,
+    );
+
     // For explicit prefix, check the exact path provided
     if (isExplicitPrefix) {
-      const componentPath = path.join(
-        projectRoot,
-        installPath,
-        `${componentName}.tsx`,
-      );
-      return fs.existsSync(componentPath)
-        ? { componentPath, installPath }
+      return fs.existsSync(newPath)
+        ? { componentPath: newPath, installPath }
         : null;
     }
 
     // Check new location first (tambo/)
-    const newComponentDir = path.join(
-      projectRoot,
-      installPath,
-      COMPONENT_SUBDIR,
-    );
-    const newComponentPath = path.join(newComponentDir, `${componentName}.tsx`);
-
-    if (fs.existsSync(newComponentPath)) {
+    if (fs.existsSync(newPath)) {
       return {
-        componentPath: newComponentPath,
+        componentPath: newPath,
         installPath,
       };
     }
 
     // Check legacy location (ui/)
-    const legacyComponentDir = path.join(
-      projectRoot,
-      installPath,
-      LEGACY_COMPONENT_SUBDIR,
-    );
-    const legacyComponentPath = path.join(
-      legacyComponentDir,
-      `${componentName}.tsx`,
-    );
-
-    if (fs.existsSync(legacyComponentPath)) {
+    if (legacyPath && fs.existsSync(legacyPath)) {
       return {
-        componentPath: newComponentPath, // Return new path for upgrade destination
+        componentPath: getComponentFilePath(newDir, componentName), // Return new path for upgrade destination
         installPath,
         needsCreation: true,
       };

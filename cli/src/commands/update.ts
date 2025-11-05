@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
 import ora from "ora";
-import path from "path";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -22,6 +21,7 @@ import {
   handleDependencyInconsistencies,
   type DependencyInconsistency,
 } from "./shared/component-utils.js";
+import { getLegacyComponentDirectoryPath } from "./shared/path-utils.js";
 
 interface UpdateComponentOptions {
   legacyPeerDeps?: boolean;
@@ -240,9 +240,9 @@ export async function handleUpdateComponents(
         // Component stays in legacy location
         return {
           name: component.name,
-          installPath: path.join(
+          installPath: getLegacyComponentDirectoryPath(
+            projectRoot,
             component.installPath,
-            LEGACY_COMPONENT_SUBDIR,
           ),
           isLegacy: true,
           baseInstallPath: component.installPath,

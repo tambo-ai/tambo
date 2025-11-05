@@ -7,6 +7,10 @@ import {
 } from "../../constants/paths.js";
 import { getTamboComponentInfo } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
+import {
+  getComponentDirectoryPath,
+  getLegacyComponentDirectoryPath,
+} from "../shared/path-utils.js";
 
 /**
  * Lists all installed components in the project
@@ -28,12 +32,15 @@ export async function handleListComponents(prefix?: string) {
     const { mainComponents, supportComponents } = getTamboComponentInfo();
 
     // 4. Get all .tsx files in both component directories
-    const componentsPath = isExplicitPrefix
-      ? path.join(process.cwd(), installPath)
-      : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+    const projectRoot = process.cwd();
+    const componentsPath = getComponentDirectoryPath(
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
+    );
 
     const legacyPath = !isExplicitPrefix
-      ? path.join(process.cwd(), installPath, LEGACY_COMPONENT_SUBDIR)
+      ? getLegacyComponentDirectoryPath(projectRoot, installPath)
       : null;
 
     // Categorize components by location and type

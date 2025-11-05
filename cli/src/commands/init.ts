@@ -14,7 +14,12 @@ import { handleAddComponent } from "./add/index.js";
  * @param installPath The base installation path
  */
 async function createTamboTsFile(installPath: string): Promise<void> {
-  const libDir = path.join(process.cwd(), installPath.split("/")[0], "lib");
+  const projectRoot = process.cwd();
+  // Extract first segment of installPath using path utilities
+  const normalizedPath = path.normalize(installPath);
+  const pathParts = normalizedPath.split(path.sep).filter((p) => p !== "");
+  const firstSegment = pathParts.length > 0 ? pathParts[0] : "";
+  const libDir = path.join(projectRoot, firstSegment, "lib");
   fs.mkdirSync(libDir, { recursive: true });
 
   const tamboTsPath = path.join(libDir, "tambo.ts");

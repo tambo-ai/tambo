@@ -8,6 +8,11 @@ import {
 } from "../../constants/paths.js";
 import { resolveComponentDependencies } from "../../utils/dependency-resolution.js";
 import { getInstallationPath } from "../init.js";
+import {
+  getComponentDirectoryPath,
+  getLegacyComponentDirectoryPath,
+  resolveComponentPaths,
+} from "../shared/path-utils.js";
 import { installComponents } from "./component.js";
 import { setupTailwindandGlobals } from "./tailwind-setup.js";
 import type { InstallComponentOptions } from "./types.js";
@@ -29,7 +34,8 @@ export async function handleAddComponents(
 
   try {
     // 1. Check package.json
-    if (!fs.existsSync(path.join(process.cwd(), "package.json"))) {
+    const projectRoot = process.cwd();
+    if (!fs.existsSync(path.join(projectRoot, "package.json"))) {
       throw new Error(
         "No package.json found. Please run this command in your project root.",
       );
@@ -45,12 +51,15 @@ export async function handleAddComponents(
 
     // Check if there are existing components in legacy location
     if (!isExplicitPrefix) {
-      const legacyPath = path.join(
-        process.cwd(),
+      const legacyPath = getLegacyComponentDirectoryPath(
+        projectRoot,
         installPath,
-        LEGACY_COMPONENT_SUBDIR,
       );
-      const newPath = path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+      const newPath = getComponentDirectoryPath(
+        projectRoot,
+        installPath,
+        isExplicitPrefix,
+      );
 
       // Get known Tambo component names to filter
       const knownTamboComponents = getKnownComponentNames();
@@ -140,15 +149,6 @@ export async function handleAddComponents(
     const components = Array.from(allComponents);
 
     // 4. Check which components need to be installed
-    const existingComponentsPath = isExplicitPrefix
-      ? path.join(process.cwd(), installPath)
-      : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
-
-    // Also check legacy location for existing components
-    const legacyComponentsPath = !isExplicitPrefix
-      ? path.join(process.cwd(), installPath, LEGACY_COMPONENT_SUBDIR)
-      : null;
-
     let existingComponents: string[] = [];
     let newComponents: string[] = [];
 
@@ -157,10 +157,12 @@ export async function handleAddComponents(
       newComponents = components;
     } else {
       existingComponents = components.filter((comp) => {
-        const newPath = path.join(existingComponentsPath, `${comp}.tsx`);
-        const legacyPath = legacyComponentsPath
-          ? path.join(legacyComponentsPath, `${comp}.tsx`)
-          : null;
+        const { newPath, legacyPath } = resolveComponentPaths(
+          projectRoot,
+          installPath,
+          comp,
+          isExplicitPrefix,
+        );
 
         return (
           fs.existsSync(newPath) || (legacyPath && fs.existsSync(legacyPath))
