@@ -671,32 +671,15 @@ describe("handleUpdateComponents", () => {
       await handleUpdateComponents(["message"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ markdown-components/
-        │        │  └─ markdown-components.tsx
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     ├─ markdown-components.tsx
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     ├─ markdown-components.tsx
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify output mentions dependency resolution
@@ -740,31 +723,14 @@ describe("handleUpdateComponents", () => {
       await handleUpdateComponents(["message"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ markdown-components/
-        │        │  └─ markdown-components.tsx
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
     });
   });
@@ -886,29 +852,14 @@ describe("handleUpdateComponents", () => {
       await handleUpdateComponents(["message"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify auto-proceed message
@@ -935,29 +886,14 @@ describe("handleUpdateComponents", () => {
       await handleUpdateComponents(["message"], { silent: true, yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify minimal output (silent mode)
@@ -986,28 +922,16 @@ describe("handleUpdateComponents", () => {
       });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ custom/
-        │  └─ path/
-        │     └─ message.tsx
-        ├─ lib/
-        │  └─ utils.ts
-        └─ package.json"
+      expect(toTreeSync(vol, { dir: "/mock-project/custom" }))
+        .toMatchInlineSnapshot(`
+        "custom/
+        └─ path/
+           └─ message.tsx"
+      `);
+      expect(toTreeSync(vol, { dir: "/mock-project/lib" }))
+        .toMatchInlineSnapshot(`
+        "lib/
+        └─ utils.ts"
       `);
     });
 

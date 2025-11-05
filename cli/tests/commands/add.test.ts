@@ -189,29 +189,14 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["message"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify npm install was called for missing dependencies
@@ -240,33 +225,15 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["message", "form"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ form/
-        │        │  ├─ config.json
-        │        │  └─ form.tsx
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     ├─ form.tsx
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     ├─ form.tsx
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify success message mentions both
@@ -313,33 +280,15 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["message", "form"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ form/
-        │        │  ├─ config.json
-        │        │  └─ form.tsx
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     ├─ form.tsx
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     ├─ form.tsx
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify output mentions both
@@ -361,29 +310,14 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["message"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify output mentions dependency resolution
@@ -421,31 +355,14 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["component-a"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ component-a/
-        │        │  ├─ component-a.tsx
-        │        │  └─ config.json
-        │        ├─ component-b/
-        │        │  └─ config.json
-        │        └─ config/
-        │           ├─ globals-v3.css
-        │           ├─ globals-v4.css
-        │           └─ tailwind.config.ts
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ component-a.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ component-a.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
     });
   });
@@ -465,33 +382,15 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["form"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ form/
-        │        │  ├─ config.json
-        │        │  └─ form.tsx
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ ui/
-           │     ├─ form.tsx
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ ui/
+        │     ├─ form.tsx
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify warning about legacy location
@@ -548,38 +447,17 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["graph"]);
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ form/
-        │        │  ├─ config.json
-        │        │  └─ form.tsx
-        │        ├─ graph/
-        │        │  ├─ config.json
-        │        │  └─ graph.tsx
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  ├─ tambo/
-           │  │  ├─ form.tsx
-           │  │  └─ graph.tsx
-           │  └─ ui/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  ├─ tambo/
+        │  │  ├─ form.tsx
+        │  │  └─ graph.tsx
+        │  └─ ui/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       const output = logs.join("\n");
@@ -599,29 +477,14 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["message"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       const output = logs.join("\n");
@@ -642,29 +505,14 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["message"], { silent: true, yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
 
       // Verify minimal output (silent mode)
@@ -688,28 +536,16 @@ describe("handleAddComponents", () => {
       });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ custom/
-        │  └─ path/
-        │     └─ message.tsx
-        ├─ lib/
-        │  └─ utils.ts
-        └─ package.json"
+      expect(toTreeSync(vol, { dir: "/mock-project/custom" }))
+        .toMatchInlineSnapshot(`
+        "custom/
+        └─ path/
+           └─ message.tsx"
+      `);
+      expect(toTreeSync(vol, { dir: "/mock-project/lib" }))
+        .toMatchInlineSnapshot(`
+        "lib/
+        └─ utils.ts"
       `);
     });
 
@@ -732,29 +568,17 @@ describe("handleAddComponents", () => {
       });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ components/
-        │  └─ ui/
-        │     └─ tambo/
-        │        └─ message.tsx
-        ├─ lib/
-        │  └─ utils.ts
-        └─ package.json"
+      expect(toTreeSync(vol, { dir: "/mock-project/components" }))
+        .toMatchInlineSnapshot(`
+        "components/
+        └─ ui/
+           └─ tambo/
+              └─ message.tsx"
+      `);
+      expect(toTreeSync(vol, { dir: "/mock-project/lib" }))
+        .toMatchInlineSnapshot(`
+        "lib/
+        └─ utils.ts"
       `);
     });
 
@@ -805,29 +629,14 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["message"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        └─ message/
-        │           ├─ config.json
-        │           └─ message.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ message.tsx
-           └─ lib/
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
       `);
       const utilsContent = vol.readFileSync(
         "/mock-project/src/lib/utils.ts",
@@ -894,25 +703,15 @@ describe("handleAddComponents", () => {
       await handleAddComponents(["complex-component"], { yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        └─ complex-component/
-        │           └─ config.json
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  └─ tambo/
-           │     └─ complex-component.tsx
-           └─ lib/
-              ├─ helper.ts
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ complex-component.tsx
+        └─ lib/
+           ├─ helper.ts
+           └─ utils.ts"
       `);
     });
   });

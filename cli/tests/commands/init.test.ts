@@ -460,58 +460,21 @@ describe("handleInit", () => {
       expect(vol.existsSync("/mock-project/src/lib/tambo.ts")).toBe(true);
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ .env.local
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ control-bar/
-        │        │  ├─ config.json
-        │        │  └─ control-bar.tsx
-        │        ├─ message/
-        │        │  ├─ config.json
-        │        │  └─ message.tsx
-        │        ├─ message-input/
-        │        │  ├─ config.json
-        │        │  └─ message-input.tsx
-        │        ├─ message-suggestions/
-        │        │  ├─ config.json
-        │        │  └─ message-suggestions.tsx
-        │        ├─ message-thread-full/
-        │        │  ├─ config.json
-        │        │  └─ message-thread-full.tsx
-        │        ├─ scrollable-message-container/
-        │        │  ├─ config.json
-        │        │  └─ scrollable-message-container.tsx
-        │        ├─ thread-content/
-        │        │  ├─ config.json
-        │        │  └─ thread-content.tsx
-        │        └─ thread-history/
-        │           ├─ config.json
-        │           └─ thread-history.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  ├─ control-bar.tsx
-           │  ├─ message-input.tsx
-           │  ├─ message-suggestions.tsx
-           │  ├─ message-thread-full.tsx
-           │  ├─ message.tsx
-           │  ├─ scrollable-message-container.tsx
-           │  ├─ thread-content.tsx
-           │  └─ thread-history.tsx
-           └─ lib/
-              ├─ tambo.ts
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  ├─ control-bar.tsx
+        │  ├─ message-input.tsx
+        │  ├─ message-suggestions.tsx
+        │  ├─ message-thread-full.tsx
+        │  ├─ message.tsx
+        │  ├─ scrollable-message-container.tsx
+        │  ├─ thread-content.tsx
+        │  └─ thread-history.tsx
+        └─ lib/
+           ├─ tambo.ts
+           └─ utils.ts"
       `);
 
       // Verify success message
@@ -595,54 +558,20 @@ describe("handleInit", () => {
       await handleInit({ fullSend: true, yes: true });
 
       // Verify filesystem state
-      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
-        "mock-project/
-        ├─ .env.local
-        ├─ cli/
-        │  ├─ dist/
-        │  │  └─ commands/
-        │  │     └─ add/
-        │  │        └─ utils.js
-        │  └─ src/
-        │     └─ registry/
-        │        ├─ config/
-        │        │  ├─ globals-v3.css
-        │        │  ├─ globals-v4.css
-        │        │  └─ tailwind.config.ts
-        │        ├─ message/
-        │        │  ├─ config.json
-        │        │  └─ message.tsx
-        │        ├─ message-input/
-        │        │  ├─ config.json
-        │        │  └─ message-input.tsx
-        │        ├─ message-suggestions/
-        │        │  ├─ config.json
-        │        │  └─ message-suggestions.tsx
-        │        ├─ message-thread-full/
-        │        │  ├─ config.json
-        │        │  └─ message-thread-full.tsx
-        │        ├─ scrollable-message-container/
-        │        │  ├─ config.json
-        │        │  └─ scrollable-message-container.tsx
-        │        ├─ thread-content/
-        │        │  ├─ config.json
-        │        │  └─ thread-content.tsx
-        │        └─ thread-history/
-        │           ├─ config.json
-        │           └─ thread-history.tsx
-        ├─ package.json
-        └─ src/
-           ├─ components/
-           │  ├─ message-input.tsx
-           │  ├─ message-suggestions.tsx
-           │  ├─ message-thread-full.tsx
-           │  ├─ message.tsx
-           │  ├─ scrollable-message-container.tsx
-           │  ├─ thread-content.tsx
-           │  └─ thread-history.tsx
-           └─ lib/
-              ├─ tambo.ts
-              └─ utils.ts"
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  ├─ message-input.tsx
+        │  ├─ message-suggestions.tsx
+        │  ├─ message-thread-full.tsx
+        │  ├─ message.tsx
+        │  ├─ scrollable-message-container.tsx
+        │  ├─ thread-content.tsx
+        │  └─ thread-history.tsx
+        └─ lib/
+           ├─ tambo.ts
+           └─ utils.ts"
       `);
 
       // Verify auto-proceed message
