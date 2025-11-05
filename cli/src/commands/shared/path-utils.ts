@@ -17,12 +17,17 @@ export function getComponentDirectoryPath(
   isExplicitPrefix: boolean,
 ): string {
   if (isExplicitPrefix) {
-    // If installPath is already absolute, return it as-is
-    if (path.isAbsolute(installPath)) {
-      return installPath;
+    // Anchor explicit prefixes within the project root to avoid writes outside the repo
+    // Resolve against projectRoot (handles absolute and relative inputs uniformly)
+    const absolute = path.resolve(projectRoot, installPath);
+    const rel = path.relative(projectRoot, absolute);
+    // Reject any path that escapes the project root (covers different-drive cases on Windows)
+    if (rel.startsWith("..") || path.isAbsolute(rel)) {
+      throw new Error(
+        `Prefix must be within the project root: ${projectRoot} (got ${installPath})`,
+      );
     }
-    // Otherwise, join with project root
-    return path.join(projectRoot, installPath);
+    return absolute;
   }
   return path.join(projectRoot, installPath, COMPONENT_SUBDIR);
 }

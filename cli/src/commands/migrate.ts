@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import path from "path";
 import fs from "fs";
 import inquirer from "inquirer";
 import ora from "ora";
@@ -194,7 +195,7 @@ export async function handleMigrate(options: MigrateOptions = {}) {
       // Move files and update imports
       for (const file of tamboFiles) {
         try {
-          const componentName = file.replace(".tsx", "");
+          const { name: componentName } = path.parse(file);
           const oldFile = getComponentFilePath(legacyPath, componentName);
           const newFile = getComponentFilePath(newPath, componentName);
 
