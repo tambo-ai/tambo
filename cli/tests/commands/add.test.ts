@@ -7,6 +7,7 @@ import {
   jest,
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
+import { toTreeSync } from "memfs/lib/print";
 
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
@@ -199,13 +200,26 @@ describe("handleAddComponents", () => {
       // Execute with --yes flag to skip prompts
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify component file was created
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
-
-      // Verify lib/utils.ts was created
-      expect(vol.existsSync("/mock-project/src/lib/utils.ts")).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify npm install was called for missing dependencies
       expect(execSyncCalls.length).toBeGreaterThan(0);
@@ -263,13 +277,29 @@ describe("handleAddComponents", () => {
       // Execute with multiple components
       await handleAddComponents(["message", "form"], { yes: true });
 
-      // Verify both component files were created
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/form.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ form/
+        │        │  └─ config.json
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     ├─ form.tsx
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify success message mentions both
       const output = logs.join("\n");
@@ -359,10 +389,29 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["message", "form"], { yes: true });
 
-      // Verify form was installed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/form.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ form/
+        │        │  └─ config.json
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     ├─ form.tsx
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify output mentions both
       const output = logs.join("\n");
@@ -414,15 +463,29 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify both components were installed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
-      expect(
-        vol.existsSync(
-          "/mock-project/src/components/tambo/markdown-components.tsx",
-        ),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ markdown-components/
+        │        │  └─ config.json
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     ├─ markdown-components.tsx
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify output mentions dependency resolution
       const output = logs.join("\n");
@@ -472,13 +535,29 @@ describe("handleAddComponents", () => {
       // Execute - should not hang or error
       await handleAddComponents(["component-a"], { yes: true });
 
-      // Verify both components were installed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/component-a.tsx"),
-      ).toBe(true);
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/component-b.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ component-a/
+        │        │  └─ config.json
+        │        └─ component-b/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     ├─ component-a.tsx
+           │     └─ component-b.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
     });
   });
 
@@ -525,10 +604,29 @@ describe("handleAddComponents", () => {
       // Execute - install form to maintain consistency
       await handleAddComponents(["form"], { yes: true });
 
-      // Verify new component was installed to legacy location
-      expect(vol.existsSync("/mock-project/src/components/ui/form.tsx")).toBe(
-        true,
-      );
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ form/
+        │        │  └─ config.json
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ ui/
+           │     ├─ form.tsx
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify warning about legacy location
       const output = logs.join("\n");
@@ -648,10 +746,33 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["graph"]);
 
-      // Verify installation proceeded
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/graph.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ form/
+        │        │  └─ config.json
+        │        ├─ graph/
+        │        │  └─ config.json
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  ├─ tambo/
+           │  │  ├─ form.tsx
+           │  │  └─ graph.tsx
+           │  └─ ui/
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       const output = logs.join("\n");
       expect(output).toContain("Installation complete");
@@ -685,10 +806,26 @@ describe("handleAddComponents", () => {
       // Execute with --yes
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify installation completed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       const output = logs.join("\n");
       expect(output).toContain("Auto-proceeding with installation");
@@ -720,10 +857,26 @@ describe("handleAddComponents", () => {
       // Execute with --silent and --yes
       await handleAddComponents(["message"], { silent: true, yes: true });
 
-      // Verify installation completed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify minimal output (silent mode)
       expect(logs.length).toBe(0);
@@ -758,10 +911,25 @@ describe("handleAddComponents", () => {
         installPath: "custom/path",
       });
 
-      // Verify installation to custom path (explicit prefix means direct path)
-      expect(vol.existsSync("/mock-project/custom/path/message.tsx")).toBe(
-        true,
-      );
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ custom/
+        │  └─ path/
+        │     └─ message.tsx
+        ├─ lib/
+        │  └─ utils.ts
+        └─ package.json"
+      `);
     });
 
     it("should install to exact prefix path without adding tambo subdirectory", async () => {
@@ -795,14 +963,26 @@ describe("handleAddComponents", () => {
         isExplicitPrefix: true,
       });
 
-      // Verify installation to exact path without extra tambo subdirectory
-      expect(
-        vol.existsSync("/mock-project/components/ui/tambo/message.tsx"),
-      ).toBe(true);
-      // Verify it did NOT create the nested tambo/tambo directory
-      expect(
-        vol.existsSync("/mock-project/components/ui/tambo/tambo/message.tsx"),
-      ).toBe(false);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ components/
+        │  └─ ui/
+        │     └─ tambo/
+        │        └─ message.tsx
+        ├─ lib/
+        │  └─ utils.ts
+        └─ package.json"
+      `);
     });
 
     it("should respect --forceUpdate option and overwrite existing files", async () => {
@@ -874,8 +1054,26 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify lib/utils.ts was created
-      expect(vol.existsSync("/mock-project/src/lib/utils.ts")).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
       const utilsContent = vol.readFileSync(
         "/mock-project/src/lib/utils.ts",
         "utf-8",
@@ -953,13 +1151,27 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["complex-component"], { yes: true });
 
-      // Verify nested directory was created
-      expect(
-        vol.existsSync(
-          "/mock-project/src/components/tambo/complex-component.tsx",
-        ),
-      ).toBe(true);
-      expect(vol.existsSync("/mock-project/src/lib/helper.ts")).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        └─ complex-component/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     └─ complex-component.tsx
+           └─ lib/
+              ├─ helper.ts
+              └─ utils.ts"
+      `);
     });
   });
 

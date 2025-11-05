@@ -7,6 +7,7 @@ import {
   jest,
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
+import { toTreeSync } from "memfs/lib/print";
 
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
@@ -780,15 +781,25 @@ describe("handleUpdateComponents", () => {
       // Execute
       await handleUpdateComponents(["message"], { yes: true });
 
-      // Verify both components were updated
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
-      expect(
-        vol.existsSync(
-          "/mock-project/src/components/tambo/markdown-components.tsx",
-        ),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ markdown-components/
+        │        │  └─ config.json
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     ├─ markdown-components.tsx
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify output mentions dependency resolution
       const output = logs.join("\n");
@@ -837,12 +848,25 @@ describe("handleUpdateComponents", () => {
       // Execute
       await handleUpdateComponents(["message"], { yes: true });
 
-      // Verify dependency was installed
-      expect(
-        vol.existsSync(
-          "/mock-project/src/components/tambo/markdown-components.tsx",
-        ),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ markdown-components/
+        │        │  └─ config.json
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     ├─ markdown-components.tsx
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
     });
   });
 
@@ -990,10 +1014,22 @@ describe("handleUpdateComponents", () => {
       // Execute with --yes
       await handleUpdateComponents(["message"], { yes: true });
 
-      // Verify update completed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify auto-proceed message
       const output = logs.join("\n");
@@ -1027,10 +1063,22 @@ describe("handleUpdateComponents", () => {
       // Execute with --silent and --yes
       await handleUpdateComponents(["message"], { silent: true, yes: true });
 
-      // Verify update completed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ package.json
+        └─ src/
+           ├─ components/
+           │  └─ tambo/
+           │     └─ message.tsx
+           └─ lib/
+              └─ utils.ts"
+      `);
 
       // Verify minimal output (silent mode)
       expect(logs.length).toBe(0);
@@ -1066,10 +1114,23 @@ describe("handleUpdateComponents", () => {
         prefix: "custom/path",
       });
 
-      // Verify update to custom path
-      expect(vol.existsSync("/mock-project/custom/path/message.tsx")).toBe(
-        true,
-      );
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
+        "mock-project/
+        ├─ cli/
+        │  └─ src/
+        │     └─ registry/
+        │        └─ message/
+        │           └─ config.json
+        ├─ custom/
+        │  ├─ lib/
+        │  │  └─ utils.ts
+        │  └─ path/
+        │     ├─ message.tsx
+        │     └─ tambo/
+        │        └─ message.tsx
+        └─ package.json"
+      `);
     });
 
     it("should respect --legacyPeerDeps option", async () => {

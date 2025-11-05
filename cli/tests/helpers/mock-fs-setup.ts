@@ -1,5 +1,5 @@
-import { vol, fs as memfsFs } from "memfs";
 import * as realFs from "fs";
+import { fs as memfsFs, vol } from "memfs";
 
 let fsPatched = false;
 
