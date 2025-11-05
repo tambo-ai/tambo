@@ -11,12 +11,77 @@ Unlike regular registered components that Tambo generates and renders from scrat
 
 The easiest way to make a component interactable to Tambo is by using `withInteractable`. Pass in your component, a name, a description, and the props schema, and get an interactable version of your component that Tambo knows about.
 
+1. **Build the presentational component.** Use `useEffect` to keep any local UI state aligned with incoming props from Tambo.
+
+   ```tsx
+   import { useEffect, useState } from "react";
+
+   type NoteProps = {
+     title: string;
+     content: string;
+     color?: "white" | "yellow" | "blue" | "green";
+   };
+
+   export function Note({ title, content, color = "yellow" }: NoteProps) {
+     const [draftContent, setDraftContent] = useState(content);
+
+     useEffect(() => {
+       setDraftContent(content);
+     }, [content]);
+
+     return (
+       <section className={`note note-${color}`}>
+         <h3>{title}</h3>
+         <textarea
+           value={draftContent}
+           onChange={(event) => setDraftContent(event.currentTarget.value)}
+         />
+       </section>
+     );
+   }
+   ```
+
+2. **Register it with `withInteractable`.** This tells Tambo the component name, description, and which props it can safely edit.
+
+   ```tsx
+   import { withInteractable } from "@tambo-ai/react";
+   import { z } from "zod";
+   import { Note } from "./note";
+
+   export const InteractableNote = withInteractable(Note, {
+     componentName: "Note",
+     description:
+       "A simple note that can change title, content, and background color",
+     propsSchema: z.object({
+       title: z.string(),
+       content: z.string(),
+       color: z.enum(["white", "yellow", "blue", "green"]).optional(),
+     }),
+   });
+   ```
+
+3. **Render the interactable version in your app.** Tambo now sees the note and can change its props in place.
+
+   ```tsx
+   export function Page() {
+     return (
+       <main>
+         <InteractableNote
+           title="Release plan"
+           content="Ask Tambo to keep this note up to date."
+           color="yellow"
+         />
+       </main>
+     );
+   }
+   ```
+
+<details>
+<summary>Show full example</summary>
+
 ```tsx
-import { useEffect, useId, useState } from "react";
-import {
-  withInteractable,
-  useCurrentInteractablesSnapshot,
-} from "@tambo-ai/react";
+import { useEffect, useState } from "react";
+import { withInteractable } from "@tambo-ai/react";
 import { z } from "zod";
 
 type NoteProps = {
@@ -25,21 +90,28 @@ type NoteProps = {
   color?: "white" | "yellow" | "blue" | "green";
 };
 
-// Your existing presentational component
-function Note({ title, content, color = "white" }: NoteProps) {
+function Note({ title, content, color = "yellow" }: NoteProps) {
+  const [draftContent, setDraftContent] = useState(content);
+
+  useEffect(() => {
+    setDraftContent(content);
+  }, [content]);
+
   return (
     <section className={`note note-${color}`}>
       <h3>{title}</h3>
-      <p>{content}</p>
+      <textarea
+        value={draftContent}
+        onChange={(event) => setDraftContent(event.currentTarget.value)}
+      />
     </section>
   );
 }
 
-// Make it interactable
 const InteractableNote = withInteractable(Note, {
   componentName: "Note",
   description:
-    "A simple note component that can display title and content with different colors",
+    "A simple note that can change title, content, and background color",
   propsSchema: z.object({
     title: z.string(),
     content: z.string(),
@@ -47,157 +119,41 @@ const InteractableNote = withInteractable(Note, {
   }),
 });
 
-type CounterProps = {
-  count: number;
-  label: string;
-};
-
-// Another simple presentational component
-function Counter({ count, label }: CounterProps) {
-  return (
-    <section>
-      <p>
-        {label}: {count}
-      </p>
-    </section>
-  );
-}
-
-const InteractableCounter = withInteractable(Counter, {
-  componentName: "Counter",
-  description: "A simple counter that displays a label and count value",
-  propsSchema: z.object({
-    count: z.number(),
-    label: z.string(),
-  }),
-});
-
-// Controlled wrappers to achieve two-way synchronization
-function ControlledInteractableNote(props: NoteProps) {
-  // Local state is the UI source of truth for user edits
-  const [note, setNote] = useState<NoteProps>(props);
-  const [interactableId, setInteractableId] = useState<string | null>(null);
-  const snapshot = useCurrentInteractablesSnapshot();
-  const colorSelectId = useId();
-
-  // Sync down: when Tambo updates the interactable's props, reflect them in local state
-  useEffect(() => {
-    if (!interactableId) return;
-    const match = snapshot.find((c) => c.id === interactableId);
-    if (match) {
-      // Replace with the latest props coming from Tambo
-      setNote((prev) => ({ ...prev, ...(match.props as Partial<NoteProps>) }));
-    }
-  }, [snapshot, interactableId]);
-
-  // User controls update local state, which updates props passed to InteractableNote.
-  // The HOC then updates Tambo's registry (sync up).
-  return (
-    <section className={`note note-${note.color ?? "white"}`}>
-      <InteractableNote
-        {...note}
-        onInteractableReady={(id) => setInteractableId(id)}
-      />
-      <div>
-        <label htmlFor={colorSelectId}>Color</label>
-        <select
-          id={colorSelectId}
-          value={note.color ?? "white"}
-          onChange={(e) => {
-            const color = e.currentTarget.value as NoteProps["color"];
-            setNote((prev) => ({ ...prev, color }));
-          }}
-        >
-          <option value="white">White</option>
-          <option value="yellow">Yellow</option>
-          <option value="blue">Blue</option>
-          <option value="green">Green</option>
-        </select>
-      </div>
-    </section>
-  );
-}
-
-function ControlledInteractableCounter(props: CounterProps) {
-  const [counter, setCounter] = useState<CounterProps>(props);
-  const [interactableId, setInteractableId] = useState<string | null>(null);
-  const snapshot = useCurrentInteractablesSnapshot();
-
-  // Sync down from Tambo updates
-  useEffect(() => {
-    if (!interactableId) return;
-    const match = snapshot.find((c) => c.id === interactableId);
-    if (match) {
-      setCounter((prev) => ({
-        ...prev,
-        ...(match.props as Partial<CounterProps>),
-      }));
-    }
-  }, [snapshot, interactableId]);
-
-  return (
-    <div>
-      <InteractableCounter
-        {...counter}
-        onInteractableReady={(id) => setInteractableId(id)}
-      />
-      <div>
-        <button
-          type="button"
-          onClick={() => {
-            const next = counter.count + 1;
-            setCounter((prev) => ({ ...prev, count: next }));
-          }}
-        >
-          Increment
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const next = counter.count - 1;
-            setCounter((prev) => ({ ...prev, count: next }));
-          }}
-        >
-          Decrement
-        </button>
-        <button
-          type="button"
-          onClick={() => setCounter((prev) => ({ ...prev, label: "Items" }))}
-        >
-          Reset Label
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Place both components in your app
-function Page() {
+export default function Page() {
   return (
     <main>
-      <ControlledInteractableNote
-        title="Welcome"
-        content="This is a simple note that Tambo can update!"
+      <InteractableNote
+        title="Release plan"
+        content="Ask Tambo to keep this note up to date."
         color="yellow"
       />
-      <ControlledInteractableCounter count={42} label="Items" />
     </main>
   );
 }
 ```
 
-The controlled wrappers ensure two-way synchronization:
+</details>
 
-- User actions update local state, which updates the props passed into the interactable wrappers (sync up to Tambo's registry).
-- When Tambo updates the interactable props, the wrappers detect those changes via `useCurrentInteractablesSnapshot()` and update local state (sync down to the UI).
+This baseline shows the key workflow:
 
-Now Tambo is able to read and update these components in-place when responding to messages. Users can ask things like:
+- Build presentational components that accept props.
+- Use `useEffect` inside the component to mirror incoming prop changes onto any local UI state (like the textarea draft).
+- Register them with `withInteractable`, providing a schema so Tambo knows which props it can mutate.
+- Render the interactable version in your app; Tambo can now update those props in place.
+
+The textarea edits are local to the component, which keeps the example lightweight.
+
+<Callout type="info" title="Need two-way sync?">
+  Want the user's edits to flow back to Tambo? Follow the step-by-step guide in
+  [Two-way state syncing for interactables](./two-way-state-syncing).
+</Callout>
+
+Now Tambo is able to read and update the note in-place when responding to messages. Users can ask things like:
 
 - "Change the note title to 'Important Reminder'"
 - "Update the note content to 'Don't forget the meeting at 3pm'"
 - "Make the note blue"
-- "Set the counter to 100"
-- "Change the counter label to 'Tasks Completed'"
+- "Summarize the note I pinned earlier"
 
 ### InteractableConfig
 
@@ -229,7 +185,6 @@ function App() {
     <TamboProvider>
       {/* Your app with interactable components */}
       <InteractableNote />
-      <InteractableCounter />
     </TamboProvider>
   );
 }
@@ -255,7 +210,7 @@ With interactable components on the page, users can ask:
 - "What components are available?"
 - "Change the note title to 'Important Reminder'"
 - "Show me the current state of all my components"
-- "Make the counter red and set it to 100"
+- "Summarize the note I pinned earlier"
 
 ## Customizing Automatic Context
 
@@ -359,7 +314,6 @@ function IdsOnlyInteractables() {
 <TamboInteractableProvider>
   <PrivacyFriendlyInteractables />
   <InteractableNote title="Not visible unless requested." />
-  <InteractableCounter count={42} />
 </TamboInteractableProvider>;
 ```
 
@@ -376,8 +330,8 @@ function FilteredInteractablesContext() {
 
   React.useEffect(() => {
     const filteredHelper = () => {
-      // Only show Notes and Counters, hide other component types
-      const allowedTypes = ["Note", "Counter"];
+      // Only show Notes, hide other component types
+      const allowedTypes = ["Note"];
       const filteredComponents = snapshot.filter((component) =>
         allowedTypes.includes(component.name),
       );
