@@ -222,3 +222,125 @@ enum GenerationStage {
   ERROR = "ERROR",
 }
 ```
+
+## ContextAttachment
+
+Represents a context attachment that appears as a badge above the message input.
+
+```typescript
+interface ContextAttachment {
+  id: string;
+  name: string;
+  icon?: React.ReactNode;
+  metadata?: Record<string, unknown>;
+}
+```
+
+### Properties
+
+#### id
+
+Unique identifier for the attachment. Auto-generated when adding a context attachment.
+
+```typescript
+id: string;
+```
+
+#### name
+
+Display name shown in the badge.
+
+```typescript
+name: string;
+```
+
+#### icon
+
+Optional icon to display in the badge.
+
+```typescript
+icon?: React.ReactNode;
+```
+
+#### metadata
+
+Additional data passed to the AI as context.
+
+```typescript
+metadata?: Record<string, unknown>;
+```
+
+## ContextAttachmentState
+
+The state interface returned by the `useContextAttachment` hook.
+
+```typescript
+interface ContextAttachmentState {
+  attachments: ContextAttachment[];
+  addContextAttachment: (context: Omit<ContextAttachment, "id">) => void;
+  removeContextAttachment: (id: string) => void;
+  clearContextAttachments: () => void;
+  customSuggestions: Suggestion[] | null;
+  setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
+}
+```
+
+### Properties
+
+#### attachments
+
+Array of active context attachments currently displayed as badges.
+
+```typescript
+attachments: ContextAttachment[];
+```
+
+#### addContextAttachment
+
+Function to add a new context attachment. The `id` is automatically generated.
+
+```typescript
+addContextAttachment: (context: Omit<ContextAttachment, "id">) => void;
+```
+
+#### removeContextAttachment
+
+Function to remove a specific context attachment by its ID.
+
+```typescript
+removeContextAttachment: (id: string) => void;
+```
+
+#### clearContextAttachments
+
+Function to remove all active context attachments.
+
+```typescript
+clearContextAttachments: () => void;
+```
+
+#### customSuggestions
+
+Current custom suggestions that override auto-generated ones. Returns `null` if using auto-generated suggestions.
+
+```typescript
+customSuggestions: Suggestion[] | null;
+```
+
+#### setCustomSuggestions
+
+Function to set custom suggestions or clear them by passing `null`.
+
+```typescript
+setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
+```
+
+## ContextHelperData
+
+Data structure returned by a context helper function.
+
+```typescript
+type ContextHelperData = Record<string, unknown>;
+```
+
+This type represents the data sent to the AI when a context attachment is active. You can customize this structure using the `getContextHelperData` prop on `TamboProvider`.

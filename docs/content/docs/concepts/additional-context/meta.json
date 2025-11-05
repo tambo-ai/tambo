@@ -1,4 +1,10 @@
 {
   "title": "Additional Context",
-  "pages": ["configuration", "custom-helpers", "dynamic-control", "examples"]
+  "pages": [
+    "configuration",
+    "custom-helpers",
+    "context-attachments",
+    "dynamic-control",
+    "examples"
+  ]
 }
