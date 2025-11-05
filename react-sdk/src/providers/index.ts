@@ -15,6 +15,14 @@ export {
   type TamboContextHelpersProviderProps,
 } from "./tambo-context-helpers-provider";
 export {
+  ContextAttachmentProvider,
+  useContextAttachment,
+  type ContextAttachment,
+  type ContextAttachmentProviderProps,
+  type ContextAttachmentState,
+  type ContextHelperData,
+} from "./tambo-context-attachment-provider";
+export {
   Pending,
   Streaming,
   Success,

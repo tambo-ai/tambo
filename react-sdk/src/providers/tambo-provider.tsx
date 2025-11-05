@@ -1,5 +1,5 @@
 "use client";
-import React, { PropsWithChildren, createContext, useContext } from "react";
+import React, { createContext, useContext } from "react";
 import { TamboInteractableContext } from "../model/tambo-interactable";
 import {
   TamboClientContextProps,
@@ -14,6 +14,12 @@ import {
   TamboComponentProvider,
   useTamboComponent,
 } from "./tambo-component-provider";
+import {
+  ContextAttachmentProvider,
+  ContextAttachmentProviderProps,
+  ContextAttachmentState,
+  useContextAttachment,
+} from "./tambo-context-attachment-provider";
 import {
   TamboContextHelpersContextProps,
   TamboContextHelpersProvider,
@@ -59,16 +65,18 @@ import {
  * @param props.contextKey - Optional context key to be used in the thread input provider
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @param props.initialMessages - Initial messages to be included in new threads
+ * @param props.getContextHelperData - Optional function to customize the data sent to the AI for each context attachment
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
-  PropsWithChildren<
-    TamboClientProviderProps &
-      TamboRegistryProviderProps &
-      TamboThreadProviderProps &
-      TamboContextHelpersProviderProps &
-      TamboThreadInputProviderProps
-  >
+  TamboClientProviderProps &
+    TamboRegistryProviderProps &
+    TamboThreadProviderProps &
+    TamboContextHelpersProviderProps &
+    TamboThreadInputProviderProps &
+    Partial<Pick<ContextAttachmentProviderProps, "getContextHelperData">> & {
+      children?: any;
+    }
 > = ({
   children,
   tamboUrl,
@@ -84,6 +92,7 @@ export const TamboProvider: React.FC<
   contextKey,
   initialMessages,
   onCallUnregisteredTool,
+  getContextHelperData,
 }) => {
   return (
     <TamboClientProvider
@@ -106,11 +115,17 @@ export const TamboProvider: React.FC<
               initialMessages={initialMessages}
             >
               <TamboThreadInputProvider contextKey={contextKey}>
-                <TamboComponentProvider>
-                  <TamboInteractableProvider>
-                    <TamboCompositeProvider>{children}</TamboCompositeProvider>
-                  </TamboInteractableProvider>
-                </TamboComponentProvider>
+                <ContextAttachmentProvider
+                  getContextHelperData={getContextHelperData}
+                >
+                  <TamboComponentProvider>
+                    <TamboInteractableProvider>
+                      <TamboCompositeProvider>
+                        {children}
+                      </TamboCompositeProvider>
+                    </TamboInteractableProvider>
+                  </TamboComponentProvider>
+                </ContextAttachmentProvider>
               </TamboThreadInputProvider>
             </TamboThreadProvider>
           </TamboMcpTokenProvider>
@@ -125,7 +140,8 @@ export type TamboContextProps = TamboClientContextProps &
   TamboGenerationStageContextProps &
   TamboComponentContextProps &
   TamboInteractableContext &
-  TamboContextHelpersContextProps;
+  TamboContextHelpersContextProps &
+  ContextAttachmentState;
 
 export const TamboContext = createContext<TamboContextProps>(
   {} as TamboContextProps,
@@ -138,7 +154,7 @@ export const TamboContext = createContext<TamboContextProps>(
  * @param props.children - The children to wrap
  * @returns The wrapped component
  */
-export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
+export const TamboCompositeProvider: React.FC<{ children?: any }> = ({
   children,
 }) => {
   const threads = useTamboThread();
@@ -148,6 +164,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
   const componentRegistry = useTamboComponent();
   const interactableComponents = useTamboInteractable();
   const contextHelpers = useTamboContextHelpers();
+  const contextAttachment = useContextAttachment();
 
   return (
     <TamboContext.Provider
@@ -159,6 +176,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
         ...threads,
         ...interactableComponents,
         ...contextHelpers,
+        ...contextAttachment,
       }}
     >
       {children}

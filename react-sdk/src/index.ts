@@ -17,6 +17,7 @@ export { useTamboVoice } from "./hooks/use-tambo-voice";
 
 // Re-export provider components
 export {
+  ContextAttachmentProvider,
   TamboClientProvider,
   TamboComponentProvider,
   TamboContextHelpersProvider,
@@ -25,6 +26,7 @@ export {
   TamboStubProvider,
   TamboThreadInputProvider,
   TamboThreadProvider,
+  useContextAttachment,
   useIsTamboTokenUpdating,
   useTambo,
   useTamboClient,
@@ -33,6 +35,10 @@ export {
   useTamboStream,
   useTamboThread,
   useTamboThreadInput,
+  type ContextAttachment,
+  type ContextAttachmentProviderProps,
+  type ContextAttachmentState,
+  type ContextHelperData,
   type TamboComponent,
   type TamboContextHelpersContextProps,
   type TamboContextHelpersProviderProps,
