@@ -6,22 +6,22 @@ import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../constants/paths.js";
+import {
+  displayDependencyInfo,
+  expandComponentsWithDependencies,
+  resolveDependenciesForComponents,
+} from "../utils/dependency-resolution.js";
 import { installComponents } from "./add/component.js";
+import { setupTailwindandGlobals } from "./add/tailwind-setup.js";
 import type { InstallComponentOptions } from "./add/types.js";
 import { componentExists, getInstalledComponents } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
-import { setupTailwindandGlobals } from "./add/tailwind-setup.js";
 import {
   detectCrossLocationDependencies,
   findComponentLocation,
   handleDependencyInconsistencies,
   type DependencyInconsistency,
 } from "./shared/component-utils.js";
-import {
-  resolveDependenciesForComponents,
-  displayDependencyInfo,
-  expandComponentsWithDependencies,
-} from "../utils/dependency-resolution.js";
 
 interface UpdateComponentOptions {
   legacyPeerDeps?: boolean;
@@ -292,9 +292,12 @@ export async function handleUpdateComponents(
           silent: true,
         };
 
-        if (component.isLegacy) {
+        // Set isExplicitPrefix when using explicit prefix or legacy location
+        if (isExplicitPrefix || component.isLegacy) {
           installOptions.isExplicitPrefix = true;
-          installOptions.baseInstallPath = component.baseInstallPath;
+          if (component.isLegacy) {
+            installOptions.baseInstallPath = component.baseInstallPath;
+          }
         }
 
         await installComponents([component.name], installOptions);

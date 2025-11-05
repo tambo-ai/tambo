@@ -1123,12 +1123,10 @@ describe("handleUpdateComponents", () => {
         │        └─ message/
         │           └─ config.json
         ├─ custom/
-        │  ├─ lib/
-        │  │  └─ utils.ts
         │  └─ path/
-        │     ├─ message.tsx
-        │     └─ tambo/
-        │        └─ message.tsx
+        │     └─ message.tsx
+        ├─ lib/
+        │  └─ utils.ts
         └─ package.json"
       `);
     });
