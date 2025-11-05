@@ -1,4 +1,3 @@
-import fs from "fs";
 import path from "path";
 import {
   COMPONENT_SUBDIR,
@@ -32,7 +31,7 @@ export function getComponentDirectoryPath(
  * Builds the legacy component directory path
  * @param projectRoot - Project root directory
  * @param installPath - Base installation path
- * @returns Path to the legacy component directory, or null if isExplicitPrefix is true
+ * @returns Path to the legacy component directory
  */
 export function getLegacyComponentDirectoryPath(
   projectRoot: string,
@@ -85,15 +84,6 @@ export function calculateLibDirectory(
     return path.join(projectRoot, "lib");
   }
   return path.join(projectRoot, installPathDir, "lib");
-}
-
-/**
- * Checks if a component exists at a given path
- * @param componentPath - Full path to the component file
- * @returns True if the component file exists
- */
-export function componentFileExists(componentPath: string): boolean {
-  return fs.existsSync(componentPath);
 }
 
 /**
