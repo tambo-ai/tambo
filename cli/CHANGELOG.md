@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.38.0...tambo-v0.39.0) (2025-11-05)
+
+
+### Features
+
+* add voice input ([#1234](https://github.com/tambo-ai/tambo/issues/1234)) ([88863aa](https://github.com/tambo-ai/tambo/commit/88863aa144572513261a2bd67e8c300c640298f1))
+
 ## [0.38.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.37.0...tambo-v0.38.0) (2025-11-04)
 
 
