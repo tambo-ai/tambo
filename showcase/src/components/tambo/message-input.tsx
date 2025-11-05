@@ -404,6 +404,26 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
 );
 MessageInput.displayName = "MessageInput";
 
+const STORAGE_KEY = "tambo.components.messageInput.draft";
+const storeValueInSessionStorage = (value?: string) => {
+  if (value === undefined) {
+    sessionStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ rawQuery: value }));
+};
+
+const getValueFromSessionStorage = (): string => {
+  const storedValue = sessionStorage.getItem(STORAGE_KEY) || "";
+  try {
+    const parsed = JSON.parse(storedValue);
+    return parsed.rawQuery || "";
+  } catch {
+    return "";
+  }
+};
+
 /**
  * Internal MessageInput component that uses the TamboThreadInput context
  */
@@ -434,7 +454,15 @@ const MessageInputInternal = React.forwardRef<
   const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
+    // On mount, load any stored draft value, but only if current value is empty
+    const storedValue = getValueFromSessionStorage();
+    if (!storedValue) return;
+    setValue((value) => value ?? storedValue);
+  }, [setValue]);
+
+  React.useEffect(() => {
     setDisplayValue(value);
+    storeValueInSessionStorage(value);
     if (value && editorRef.current) {
       editorRef.current.focus();
     }
@@ -449,6 +477,7 @@ const MessageInputInternal = React.forwardRef<
       setSubmitError(null);
       setImageError(null);
       setDisplayValue("");
+      storeValueInSessionStorage();
       setIsSubmitting(true);
 
       // Extract resource names directly from editor at submit time to ensure we have the latest

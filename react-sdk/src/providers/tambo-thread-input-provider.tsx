@@ -55,7 +55,7 @@ export interface TamboThreadInputContextProps extends Omit<
    * Function to update the input value
    * @param value - New value for the input field
    */
-  setValue: (value: string) => void;
+  setValue: (value: React.SetStateAction<string>) => void;
   /**
    * Function to submit the current input value
    * @param options - Submission options
