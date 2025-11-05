@@ -51,3 +51,4 @@ next-env.d.ts
 
 # vscode/cursor
 *.code*
+.claude/settings.local.json
