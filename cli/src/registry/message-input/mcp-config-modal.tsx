@@ -114,11 +114,11 @@ export const McpConfigModal = ({
   // Helper function to get server display information
   const getServerInfo = (server: McpServerInfo) => {
     if (typeof server === "string") {
-      return { url: server, transport: "SSE (default)", name: null };
+      return { url: server, transport: "HTTP (default)", name: null };
     } else {
       return {
         url: server.url,
-        transport: server.transport ?? "SSE (default)",
+        transport: server.transport ?? "HTTP (default)",
         name: server.name ?? null,
       };
     }
@@ -229,7 +229,7 @@ function MyApp() {
           <div className="mb-6">
             <p className="text-foreground mb-3 text-sm leading-relaxed">
               Configure{" "}
-              <span className="font-semibold text-primary">client-side</span>{" "}
+              <span className="font-semibold text-foreground">client-side</span>{" "}
               MCP servers to extend the capabilities of your tambo application.
               These servers will be connected{" "}
               <i>
@@ -249,7 +249,7 @@ function MyApp() {
                   className="block text-sm font-semibold text-foreground mb-2"
                 >
                   Server URL
-                  <span className="text-secondary font-normal ml-1">
+                  <span className="text-muted-foreground font-normal ml-1">
                     (must be accessible from the browser)
                   </span>
                 </label>
@@ -271,7 +271,7 @@ function MyApp() {
                   className="block text-sm font-semibold text-foreground mb-2"
                 >
                   Server Name
-                  <span className="text-secondary font-normal ml-1">
+                  <span className="text-muted-foreground font-normal ml-1">
                     (optional)
                   </span>
                 </label>
@@ -362,12 +362,12 @@ function MyApp() {
                         </div>
                         <div className="ml-5 space-y-1">
                           {serverInfo.name && (
-                            <div className="text-sm text-secondary">
+                            <div className="text-sm text-muted-foreground">
                               <span className="font-medium">Name:</span>{" "}
                               {serverInfo.name}
                             </div>
                           )}
-                          <div className="text-sm text-secondary">
+                          <div className="text-sm text-muted-foreground">
                             <span className="font-medium">Transport:</span>{" "}
                             {serverInfo.transport}
                           </div>
@@ -386,10 +386,10 @@ function MyApp() {
             </div>
           ) : (
             <div className="text-center p-8 border-2 border-dashed border-muted rounded-lg">
-              <p className="text-secondary text-sm">
+              <p className="text-muted-foreground text-sm">
                 No MCP servers configured yet
               </p>
-              <p className="text-secondary text-xs mt-1">
+              <p className="text-muted-foreground text-xs mt-1">
                 Add your first server above to get started
               </p>
             </div>
@@ -415,13 +415,13 @@ function MyApp() {
           </div>
 
           <div className="mt-4">
-            <p className="text-sm text-secondary">
+            <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">Learn more:</span>{" "}
               <a
                 href="https://docs.tambo.co/concepts/model-context-protocol/clientside-mcp-connection"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-secondary hover:text-foreground underline underline-offset-2"
+                className="text-muted-foreground hover:text-foreground underline underline-offset-2"
               >
                 client-side
               </a>{" "}
@@ -430,7 +430,7 @@ function MyApp() {
                 href="https://docs.tambo.co/concepts/model-context-protocol/serverside-mcp-connection"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-secondary hover:text-foreground underline underline-offset-2"
+                className="text-muted-foreground hover:text-foreground underline underline-offset-2"
               >
                 server-side
               </a>{" "}

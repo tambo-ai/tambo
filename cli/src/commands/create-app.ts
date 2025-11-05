@@ -225,6 +225,17 @@ export async function handleCreateApp(
       }
     }
 
+    // Update package.json name
+    if (appName !== ".") {
+      updatePackageJson(targetDir, appName);
+    } else {
+      // use the current directory name as the app name
+      updatePackageJson(targetDir, path.basename(process.cwd()));
+    }
+
+    // Change to target directory before git init and npm install
+    process.chdir(targetDir);
+
     // Initialize new git repository if requested
     if (options.initGit) {
       const gitInitSpinner = ora({
@@ -251,17 +262,6 @@ export async function handleCreateApp(
         );
       }
     }
-
-    // Update package.json name
-    if (appName !== ".") {
-      updatePackageJson(targetDir, appName);
-    } else {
-      // use the current directory name as the app name
-      updatePackageJson(targetDir, path.basename(process.cwd()));
-    }
-
-    // Change to target directory
-    process.chdir(targetDir);
 
     // Install dependencies with spinner
     const installSpinner = ora({

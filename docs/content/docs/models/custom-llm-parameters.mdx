@@ -29,6 +29,52 @@ Custom LLM parameters allow you to override default model settings with provider
 - **Provider compatibility** - Support both standard and custom parameters
 - **Model-specific tuning** - Configure each model independently
 
+## Configuring Parameters in the Dashboard
+
+All LLM parameters are configured through your project settings in the dashboard.
+
+### Step 1: Access Provider Settings
+
+1. Navigate to your project in the dashboard
+2. Go to **Settings** → **LLM Providers**
+3. Select your provider and model
+
+### Step 2: Add Parameters
+
+The dashboard shows suggested parameters based on your selected model:
+
+**For Common Parameters:**
+
+1. Under **Custom LLM Parameters**, you'll see suggested parameters like `temperature`, `maxOutputTokens`, `topP`, etc.
+2. Click **+ temperature** (or any other parameter) to add it
+3. Enter the value (e.g., `0.7` for temperature)
+4. Click **Save** to apply the configuration
+
+**For Custom Parameters (OpenAI-Compatible Only):**
+
+1. If you don't see the parameter you need in the suggestions, you can add custom parameters
+2. Click to add a parameter manually
+3. Enter the parameter name (e.g., `max_tokens`, `logit_bias`)
+4. Enter the value in the appropriate format (string, number, boolean, array, or object)
+5. Click **Save** to apply
+
+<Callout type="tip" title="Suggested Parameters">
+  The dashboard automatically shows relevant parameter suggestions based on your
+  selected provider and model. These suggestions include common parameters that
+  work across all providers.
+</Callout>
+
+### Example Configuration
+
+**Setting up a creative writing model:**
+
+1. Select your provider and model
+2. Click **+ temperature** → Enter `0.9`
+3. Click **+ topP** → Enter `0.95`
+4. Click **+ presencePenalty** → Enter `0.6`
+5. Click **+ maxOutputTokens** → Enter `2000`
+6. Click **Save**
+
 ## Basic Parameters
 
 ### Common Parameters (All Providers)

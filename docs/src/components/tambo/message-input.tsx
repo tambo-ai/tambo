@@ -13,7 +13,13 @@ import {
   type StagedImage,
 } from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ArrowUp, Paperclip, Square, X } from "lucide-react";
+import {
+  ArrowUp,
+  Image as ImageIcon,
+  Paperclip,
+  Square,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 
@@ -113,6 +119,8 @@ export interface MessageInputProps
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
+  /** Optional ref to forward to the textarea element. */
+  inputRef?: React.RefObject<HTMLTextAreaElement>;
   /** Initial query to pre-fill the input */
   initialQuery?: string;
   /** The child elements to render within the form container. */
@@ -133,8 +141,39 @@ export interface MessageInputProps
  * ```
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
+  ({ children, className, contextKey, variant, ...props }, ref) => {
+    return (
+      <MessageInputInternal
+        ref={ref}
+        className={className}
+        contextKey={contextKey}
+        variant={variant}
+        {...props}
+      >
+        {children}
+      </MessageInputInternal>
+    );
+  },
+);
+MessageInput.displayName = "MessageInput";
+
+/**
+ * Internal MessageInput component that uses the TamboThreadInput context
+ */
+const MessageInputInternal = React.forwardRef<
+  HTMLFormElement,
+  MessageInputProps
+>(
   (
-    { children, className, contextKey, initialQuery, variant, ...props },
+    {
+      children,
+      className,
+      contextKey,
+      variant,
+      inputRef,
+      initialQuery,
+      ...props
+    },
     ref,
   ) => {
     const {
@@ -205,7 +244,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
           );
 
           // Cancel the thread to reset loading state
-          cancel();
+          await cancel();
         } finally {
           setIsSubmitting(false);
         }
@@ -283,10 +322,10 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         },
         submit,
         handleSubmit,
-        isPending: isPending || isSubmitting,
+        isPending: isPending ?? isSubmitting,
         error,
         contextKey,
-        textareaRef,
+        textareaRef: inputRef ?? textareaRef,
         submitError,
         setSubmitError,
       }),
@@ -299,6 +338,8 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         isSubmitting,
         error,
         contextKey,
+        inputRef,
+        textareaRef,
         submitError,
       ],
     );
@@ -322,7 +363,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
               "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
               isDragging
                 ? "border border-dashed border-emerald-400"
-                : "border border-gray-200",
+                : "border border-border",
             )}
           >
             {isDragging && (
@@ -340,7 +381,22 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
     );
   },
 );
+MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
+
+/**
+ * Symbol for marking pasted images
+ */
+const IS_PASTED_IMAGE = Symbol("is-pasted-image");
+
+/**
+ * Extend the File interface to include IS_PASTED_IMAGE symbol
+ */
+declare global {
+  interface File {
+    [IS_PASTED_IMAGE]?: boolean;
+  }
+}
 
 /**
  * Props for the MessageInputTextarea component.
@@ -379,11 +435,11 @@ const MessageInputTextarea = ({
     setValue(e.target.value);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (value.trim()) {
-        handleSubmit(e as unknown as React.FormEvent);
+        await handleSubmit(e as unknown as React.FormEvent);
       }
     }
   };
@@ -392,12 +448,23 @@ const MessageInputTextarea = ({
     const items = Array.from(e.clipboardData.items);
     const imageItems = items.filter((item) => item.type.startsWith("image/"));
 
-    e.preventDefault();
+    // Allow default paste if there is text, even when images exist
+    const hasText = e.clipboardData.getData("text/plain").length > 0;
+
+    if (imageItems.length === 0) {
+      return; // Allow default text paste
+    }
+
+    if (!hasText) {
+      e.preventDefault(); // Only prevent when image-only paste
+    }
 
     for (const item of imageItems) {
       const file = item.getAsFile();
       if (file) {
         try {
+          // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
+          file[IS_PASTED_IMAGE] = true;
           await addImage(file);
         } catch (error) {
           console.error("Failed to add pasted image:", error);
@@ -459,10 +526,10 @@ const MessageInputSubmitButton = React.forwardRef<
   const { cancel } = useTamboThread();
   const isUpdatingToken = useIsTamboTokenUpdating();
 
-  const handleCancel = (e: React.MouseEvent) => {
+  const handleCancel = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    cancel();
+    await cancel();
   };
 
   const buttonClasses = cn(
@@ -492,6 +559,33 @@ const MessageInputSubmitButton = React.forwardRef<
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
 
+const MCPIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      color="#000000"
+      fill="none"
+    >
+      <path
+        d="M3.49994 11.7501L11.6717 3.57855C12.7762 2.47398 14.5672 2.47398 15.6717 3.57855C16.7762 4.68312 16.7762 6.47398 15.6717 7.57855M15.6717 7.57855L9.49994 13.7501M15.6717 7.57855C16.7762 6.47398 18.5672 6.47398 19.6717 7.57855C20.7762 8.68312 20.7762 10.474 19.6717 11.5785L12.7072 18.543C12.3167 18.9335 12.3167 19.5667 12.7072 19.9572L13.9999 21.2499"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      ></path>
+      <path
+        d="M17.4999 9.74921L11.3282 15.921C10.2237 17.0255 8.43272 17.0255 7.32823 15.921C6.22373 14.8164 6.22373 13.0255 7.32823 11.921L13.4999 5.74939"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      ></path>
+    </svg>
+  );
+};
 /**
  * MCP Config Button component for opening the MCP configuration modal.
  * @component MessageInput.McpConfigButton
@@ -515,44 +609,16 @@ const MessageInputMcpConfigButton = React.forwardRef<
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
-
-  const MCPIcon = () => {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        width="24"
-        height="24"
-        color="#000000"
-        fill="none"
-      >
-        <path
-          d="M3.49994 11.7501L11.6717 3.57855C12.7762 2.47398 14.5672 2.47398 15.6717 3.57855C16.7762 4.68312 16.7762 6.47398 15.6717 7.57855M15.6717 7.57855L9.49994 13.7501M15.6717 7.57855C16.7762 6.47398 18.5672 6.47398 19.6717 7.57855C20.7762 8.68312 20.7762 10.474 19.6717 11.5785L12.7072 18.543C12.3167 18.9335 12.3167 19.5667 12.7072 19.9572L13.9999 21.2499"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        ></path>
-        <path
-          d="M17.4999 9.74921L11.3282 15.921C10.2237 17.0255 8.43272 17.0255 7.32823 15.921C6.22373 14.8164 6.22373 13.0255 7.32823 11.921L13.4999 5.74939"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        ></path>
-      </svg>
-    );
-  };
 
   return (
     <TooltipProvider>
       <Tooltip
         content="Configure MCP Servers"
         side="right"
-        className="bg-muted text-primary"
+        className="bg-muted text-foreground"
       >
         <button
           ref={ref}
@@ -665,7 +731,7 @@ const MessageInputFileButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-muted text-primary rounded-lg hover:bg-muted/80 disabled:opacity-50 flex items-center justify-center cursor-pointer",
+    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,
   );
 
@@ -674,7 +740,7 @@ const MessageInputFileButton = React.forwardRef<
       <Tooltip
         content="Attach Images"
         side="top"
-        className="bg-muted text-primary"
+        className="bg-muted text-foreground"
       >
         <button
           ref={ref}
@@ -703,6 +769,98 @@ const MessageInputFileButton = React.forwardRef<
 MessageInputFileButton.displayName = "MessageInput.FileButton";
 
 /**
+ * Props for the ImageContextBadge component.
+ */
+interface ImageContextBadgeProps {
+  image: StagedImage;
+  displayName: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onRemove: () => void;
+}
+
+/**
+ * ContextBadge component that displays a staged image with expandable preview.
+ * Shows a compact badge with icon and name by default, expands to show image preview on click.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <ImageContextBadge
+ *   image={stagedImage}
+ *   displayName="Image"
+ *   isExpanded={false}
+ *   onToggle={() => setExpanded(!expanded)}
+ *   onRemove={() => removeImage(image.id)}
+ * />
+ * ```
+ */
+const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
+  image,
+  displayName,
+  isExpanded,
+  onToggle,
+  onRemove,
+}) => (
+  <div className="relative group flex-shrink-0">
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={isExpanded}
+      className={cn(
+        "relative flex items-center rounded-lg border overflow-hidden",
+        "border-border bg-background hover:bg-muted cursor-pointer",
+        "transition-[width,height,padding] duration-200 ease-in-out",
+        isExpanded ? "w-40 h-28 p-0" : "w-32 h-9 pl-3 pr-8 gap-2",
+      )}
+    >
+      {isExpanded && (
+        <div
+          className={cn(
+            "absolute inset-0 transition-opacity duration-150",
+            "opacity-100 delay-100",
+          )}
+        >
+          <div className="relative w-full h-full">
+            <Image
+              src={image.dataUrl}
+              alt={displayName}
+              fill
+              unoptimized
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
+              {displayName}
+            </div>
+          </div>
+        </div>
+      )}
+      <span
+        className={cn(
+          "flex items-center gap-1.5 text-sm text-foreground truncate leading-none transition-opacity duration-150",
+          isExpanded ? "opacity-0" : "opacity-100 delay-100",
+        )}
+      >
+        <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+        <span className="truncate">{displayName}</span>
+      </span>
+    </button>
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onRemove();
+      }}
+      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
+      aria-label={`Remove ${displayName}`}
+    >
+      <X className="w-3 h-3" />
+    </button>
+  </div>
+);
+
+/**
  * Props for the MessageInputStagedImages component.
  */
 export type MessageInputStagedImagesProps =
@@ -724,6 +882,9 @@ const MessageInputStagedImages = React.forwardRef<
   MessageInputStagedImagesProps
 >(({ className, ...props }, ref) => {
   const { images, removeImage } = useTamboThreadInput();
+  const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
+    null,
+  );
 
   if (images.length === 0) {
     return null;
@@ -733,31 +894,25 @@ const MessageInputStagedImages = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex flex-wrap gap-2 p-2 border-b border-gray-200 dark:border-gray-700",
+        "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border",
         className,
       )}
       data-slot="message-input-staged-images"
       {...props}
     >
-      {images.map((image: StagedImage) => (
-        <div key={image.id} className="relative group flex-shrink-0 w-20 h-20">
-          <div className="relative w-full h-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
-            <Image
-              src={image.dataUrl}
-              alt={image.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => removeImage(image.id)}
-            className="absolute -top-2 -right-2 w-5 h-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition-colors shadow-sm z-10"
-            aria-label={`Remove ${image.name}`}
-          >
-            <X className="w-3 h-3" />
-          </button>
-        </div>
+      {images.map((image, index) => (
+        <ImageContextBadge
+          key={image.id}
+          image={image}
+          displayName={
+            image.file[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
+          }
+          isExpanded={expandedImageId === image.id}
+          onToggle={() =>
+            setExpandedImageId(expandedImageId === image.id ? null : image.id)
+          }
+          onRemove={() => removeImage(image.id)}
+        />
       ))}
     </div>
   );

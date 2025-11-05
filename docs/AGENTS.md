@@ -93,7 +93,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - Components: Registration, schemas, lifecycle, interactables
    - Message Threads: Sending messages, responses, history management, status tracking
    - Tools: Function calling, schemas, orchestration
-   - Model Context Protocol: Client-side connections, tool discovery, server integration
+   - Model Context Protocol: Overview, providers overview (client-side and server-side comparison, rich content support), client-side connections, server-side connections, features overview (elicitations, tools, sampling, prompts)
    - Streaming: Real-time responses, component streaming, status monitoring
    - User Authentication: OAuth providers, session management, context keys
    - Additional Context: Dynamic helpers, page context, interactable tracking
@@ -119,6 +119,7 @@ In general, try to fit changes into the following categories. If you can't find 
 6. **Models** - Configuration and customization
    - Custom LLM parameters: Temperature, max tokens, model selection
    - Labels: Organizing and categorizing interactions
+   - Reasoning Models: Advanced thinking/reasoning capabilities for OpenAI and Gemini models
    - Provider-specific configurations
 
 7. **Examples & Templates** - Real-world implementations

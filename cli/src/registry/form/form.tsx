@@ -175,22 +175,14 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
     const { isIdle } = useTambo();
     const isGenerating = !isIdle;
 
-    /**
-     * Generates a unique identifier for the form based on field IDs
-     * This ensures persistence of state between re-renders
-     */
+    const baseId = React.useId();
     const formId = React.useMemo(() => {
-      try {
-        // Safely create a form ID, handling any potential issues with fields
-        const validFields = fields.filter(
-          (f) => f && typeof f === "object" && f.id,
-        );
-        return `form-${validFields.map((f) => f.id).join("-")}`;
-      } catch (err) {
-        console.error("Error generating form ID:", err);
-        return `form-${Date.now()}`;
-      }
-    }, [fields]);
+      const ids = (fields ?? [])
+        .map((f) => f.id)
+        .filter(Boolean)
+        .join("-");
+      return ids ? `form-${baseId}-${ids}` : `form-${baseId}`;
+    }, [baseId, fields]);
 
     /**
      * Component state managed by Tambo
@@ -435,7 +427,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
           {validFields.map((field) => (
             <div key={field.id} className="space-y-2">
               <label
-                className="block text-sm font-medium text-primary"
+                className="block text-sm font-medium text-foreground"
                 htmlFor={field.id}
               >
                 {field.label}
@@ -443,7 +435,9 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
               </label>
 
               {field.description && (
-                <p className="text-sm text-secondary">{field.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {field.description}
+                </p>
               )}
 
               {field.type === "text" && (
@@ -512,14 +506,14 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                       className={
                         state.selectedValues[field.id]
                           ? "text-foreground"
-                          : "text-secondary"
+                          : "text-muted-foreground"
                       }
                     >
                       {state.selectedValues[field.id] ?? field.placeholder}
                     </span>
                     <svg
                       className={cn(
-                        "h-4 w-4 text-secondary transition-transform duration-200",
+                        "h-4 w-4 text-muted-foreground transition-transform duration-200",
                         state.openDropdowns[field.id] && "transform rotate-180",
                       )}
                       xmlns="http://www.w3.org/2000/svg"
@@ -573,7 +567,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                         name={field.id}
                         value={option}
                         required={field.required}
-                        className="h-4 w-4 text-primary border-border focus:ring-ring"
+                        className="h-4 w-4 border-border focus:ring-ring accent-primary"
                       />
                       <span>{option}</span>
                     </label>
@@ -598,7 +592,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                           id={`${field.id}-${option}`}
                           checked={isChecked}
                           value={option}
-                          className="h-4 w-4 text-primary border-border focus:ring-ring accent-primary"
+                          className="h-4 w-4 border-border focus:ring-ring accent-primary"
                           onChange={(e) =>
                             handleCheckboxChange(
                               field.id,

@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 import { ChevronDownIcon, PlusIcon } from "lucide-react";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as React from "react";
 import { useCallback } from "react";
 
@@ -108,7 +108,7 @@ export const ThreadDropdown = React.forwardRef<
         <DropdownMenu.Portal>
           <div className="showcase-theme">
             <DropdownMenu.Content
-              className="z-50 min-w-[200px] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+              className="z-50 min-w-[200px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
               side="right"
               align="start"
               sideOffset={5}
@@ -132,7 +132,7 @@ export const ThreadDropdown = React.forwardRef<
                 </span>
               </DropdownMenu.Item>
 
-              <DropdownMenu.Separator className="my-1 h-px bg-border" />
+              <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
 
               {isLoading ? (
                 <DropdownMenu.Item

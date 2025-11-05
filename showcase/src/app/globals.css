@@ -8,50 +8,61 @@ html {
 
 @layer base {
   :root {
-    /* Main background and text colors */
-    --background: 150 30% 96%; /* #F2F8F6 */
-    --foreground: 162 30% 8%; /* #0E1A17 */
+    /* Background & Surfaces - NEUTRAL */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
 
-    /* Card and popover styling */
-    --card: 150 25% 92%; /* #E5F0ED */
-    --card-foreground: 162 30% 8%; /* #0E1A17 */
-    --popover: 150 30% 96%; /* #F2F8F6 */
-    --popover-foreground: 162 30% 8%; /* #0E1A17 */
+    /* Primary Actions - BRAND TEAL (PRESERVED!) */
+    --primary: 157 100% 75%;
+    --primary-foreground: 186 94% 13%;
 
-    /* Primary colors (from your logo) */
-    --primary: 157 100% 75%; /* #7FFFC4 */
-    --primary-foreground: 186 94% 13%; /* #023A41 */
+    /* Secondary - Filled neutral controls (chips, toggles) */
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    /* Muted - Subtle surfaces + subdued copy */
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    /* Secondary colors */
-    --secondary: 217 91% 67%; /* #5C94F7 */
-    --secondary-foreground: 0 0% 100%; /* #FFF */
+    /* Accent - NEUTRAL */
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
-    /* Muted colors */
-    --muted: 157 25% 88%; /* #D8E9E4 */
-    --muted-foreground: 186 94% 13%; /* #023A41 */
+    /* Borders & Input - NEUTRAL */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 50%;
 
-    /* Accent colors */
-    --accent: 320 100% 80%; /* Brighter pink for better contrast (orginal: #FFC4EB) */
-    --accent-foreground: 162 30% 8%; /* #0E1A17 */
-
-    /* Destructive colors (keeping your existing one) */
+    /* Destructive - KEEP AS-IS */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%; /* #FFF */
+    --destructive-foreground: 0 0% 98%;
 
-    /* Border and input styling */
-    --border: 157 25% 88%; /* #D8E9E4 */
-    --input: 157 25% 88%; /* #D8E9E4 */
-    --ring: 157 100% 75%; /* #7FFFC4 */
+    /* Sidebar (NEW) - NEUTRAL */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Radius */
-    --radius: 0.5rem;
+    /* Container & Backdrop (NEW) */
+    --container: 240 4.8% 95.9%; /* Light neutral gray - same as --muted */
+    --backdrop: 240 3.7% 15.9%; /* Dark gray for overlays */
 
-    /* Chart colors */
-    --chart-1: 157 100% 75%; /* #7FFFC4 */
-    --chart-2: 320 100% 88%; /* #FFC4EB */
-    --chart-3: 217 91% 67%; /* #5C94F7 */
-    --chart-4: 49 97% 51%; /* #FED807 */
-    --chart-5: 186 94% 13%; /* #023A41 */
+    /* Border Radius */
+    --radius: 0.6rem;
+
+    /* Chart colors - KEEP EXISTING */
+    --chart-1: 157 100% 75%;
+    --chart-2: 320 100% 88%;
+    --chart-3: 217 91% 67%;
+    --chart-4: 49 97% 51%;
+    --chart-5: 186 94% 13%;
 
     /* Color palette */
     --color-1: 157 100% 75%; /* #7FFFC4 */
@@ -63,6 +74,58 @@ html {
     --header-height: 3.5rem;
     font-family: Inter, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
+  }
+
+  .dark {
+    /* Background & Surfaces */
+    --background: 50 2% 9%;
+    --foreground: 0 0% 98%;
+    --card: 50 2% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary Actions */
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+
+    /* Secondary - Filled neutral controls (chips, toggles) */
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    /* Muted - Subtle surfaces + subdued copy */
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    /* Accent */
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    /* Borders & Input */
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+
+    /* Destructive */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Sidebar (NEW) */
+    --sidebar-background: 50 2% 7%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Container & Backdrop (NEW) */
+    --container: 240 3.7% 15.9%; /* Dark gray in dark mode */
+    --backdrop: 0 0% 98%; /* Light overlay in dark mode */
+  }
+
+  .border-flat {
+    border: 1px solid hsl(var(--border));
   }
 }
 
@@ -125,16 +188,13 @@ html {
 /* Icon animations */
 @keyframes icon-pulse {
   0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0.4);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
   }
   70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(127, 255, 196, 0);
+    box-shadow: 0 0 0 10px hsl(var(--primary) / 0);
   }
   100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
   }
 }
 

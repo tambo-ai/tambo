@@ -1,36 +1,37 @@
 "use client";
 
+import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
+  MessageInputError,
+  MessageInputFileButton,
+  MessageInputMcpPromptButton,
+  MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-  MessageInputFileButton,
-  MessageInputSubmitButton,
-  MessageInputError,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/ui/message-suggestions";
-import {
-  ThreadHistory,
-  ThreadHistoryHeader,
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-  ThreadHistoryList,
-} from "@/components/ui/thread-history";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
-import type { messageVariants } from "@/components/ui/message";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
+import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@/components/ui/thread-history";
+import { useMergeRefs } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
-import { useMergedRef } from "@/lib/thread-hooks";
+import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import type { Suggestion } from "@tambo-ai/react";
 
 /**
  * Props for the MessageThreadPanel component
@@ -70,7 +71,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
     const [width, setWidth] = React.useState(500);
     const isResizing = React.useRef(false);
     const panelRef = React.useRef<HTMLDivElement>(null);
-    const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
+    const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, panelRef);
 
     const handleMouseMove = React.useCallback((e: MouseEvent) => {
       if (!isResizing.current) return;
@@ -180,6 +181,7 @@ export const MessageThreadPanel = React.forwardRef<
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <MessageInputToolbar>
                 <MessageInputFileButton />
+                <MessageInputMcpPromptButton />
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />

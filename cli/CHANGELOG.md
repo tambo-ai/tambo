@@ -1,5 +1,107 @@
 # Changelog
 
+## [0.38.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.37.0...tambo-v0.38.0) (2025-11-04)
+
+
+### Features
+
+* Add showcase for elicitation ui ([#1233](https://github.com/tambo-ai/tambo/issues/1233)) ([89a91ab](https://github.com/tambo-ai/tambo/commit/89a91ab000722041ca8c183b7afdb5f8491b5ee3))
+* **ui:** Update Design Token Usage in Component Library ([#1221](https://github.com/tambo-ai/tambo/issues/1221)) ([b2d16f6](https://github.com/tambo-ai/tambo/commit/b2d16f67df80a6cf28cfbec66a5e76d9297cf131))
+
+
+### Bug Fixes
+
+* **cli-update:** Make sure cli `update` adds dependent components (like elicitation-ui) ([#1246](https://github.com/tambo-ai/tambo/issues/1246)) ([cf0126a](https://github.com/tambo-ai/tambo/commit/cf0126ac99e7db9183124a58e58657bda9ae0dfd))
+* **mcp:** Update default transport type from SSE to HTTP for MCP ([#1250](https://github.com/tambo-ai/tambo/issues/1250)) ([679f508](https://github.com/tambo-ai/tambo/commit/679f508a38b1c77eb643712d97a3c5da039b682a))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.1 to 0.76.0 ([#1241](https://github.com/tambo-ai/tambo/issues/1241)) ([62d792e](https://github.com/tambo-ai/tambo/commit/62d792e38cd34832e729219a4f1ea28424d85433))
+* **lint:** Proactively fix some React 19 issues ([#1251](https://github.com/tambo-ai/tambo/issues/1251)) ([b1984ed](https://github.com/tambo-ai/tambo/commit/b1984ed6d97631f342677826232a10fb0a87cd51))
+
+
+### Documentation
+
+* **mcp-features:** Add docs for Prompts and Sampling ([#1247](https://github.com/tambo-ai/tambo/issues/1247)) ([599faaf](https://github.com/tambo-ai/tambo/commit/599faaf4ad7669423a4f9d89dc5758c7b3917c42))
+
+
+### Tests
+
+* **cli:** Add testing infra for cli, test some simple commands ([#1248](https://github.com/tambo-ai/tambo/issues/1248)) ([cc20842](https://github.com/tambo-ai/tambo/commit/cc208425505cb1893a061ecf50d89685127a216a))
+
+## [0.37.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.36.0...tambo-v0.37.0) (2025-10-31)
+
+
+### Features
+
+* Add validation UI to elicitation ([#1220](https://github.com/tambo-ai/tambo/issues/1220)) ([417209d](https://github.com/tambo-ai/tambo/commit/417209de0edad1a17d42f527ed9320913b541a2d))
+
+## [0.36.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.35.1...tambo-v0.36.0) (2025-10-31)
+
+
+### Features
+
+* add context badge for images ([#1192](https://github.com/tambo-ai/tambo/issues/1192)) ([020cd5e](https://github.com/tambo-ai/tambo/commit/020cd5e19285921bf0ef3086d3d84777bf694685))
+* **mcp:** add prompts button, if there are prompts ([#1212](https://github.com/tambo-ai/tambo/issues/1212)) ([c4af432](https://github.com/tambo-ai/tambo/commit/c4af4323d0698d1a400ef3e07a2bcfd6bb3c390f))
+* **mcp:** Elicitation support + default UI in showcase ([#1217](https://github.com/tambo-ai/tambo/issues/1217)) ([7e9c54a](https://github.com/tambo-ai/tambo/commit/7e9c54a0a968a76b1e61612fe90de8909d949676))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#1203](https://github.com/tambo-ai/tambo/issues/1203)) ([5c44450](https://github.com/tambo-ai/tambo/commit/5c444508e2309ef8b4ec9c9050e408e19a8a6e48))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.0 to 0.75.1 ([#1208](https://github.com/tambo-ai/tambo/issues/1208)) ([76640d7](https://github.com/tambo-ai/tambo/commit/76640d7eab0202555ba699039152be7b656d40ef))
+* update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
+
+## [0.35.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.35.0...tambo-v0.35.1) (2025-10-21)
+
+
+### Bug Fixes
+
+* Update cli help behavior + show better docs ([#1166](https://github.com/tambo-ai/tambo/issues/1166)) ([f10732f](https://github.com/tambo-ai/tambo/commit/f10732f7a599872db92c187f89c0662b19fc97e8))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.73.0 to 0.75.0 ([#1179](https://github.com/tambo-ai/tambo/issues/1179)) ([e781957](https://github.com/tambo-ai/tambo/commit/e781957a758cdd3f5e820b24f8fe9266b3c86baf))
+* **deps:** bump streamdown from 1.3.0 to 1.4.0 ([#1181](https://github.com/tambo-ai/tambo/issues/1181)) ([441d3e0](https://github.com/tambo-ai/tambo/commit/441d3e0587d71fdfb63f2365c52d0aa88bfdbb21))
+* **deps:** bump ts-morph from 27.0.0 to 27.0.2 ([#1177](https://github.com/tambo-ai/tambo/issues/1177)) ([e19d7c1](https://github.com/tambo-ai/tambo/commit/e19d7c1d0ec0ecefd75967f609e87883e9c1cd47))
+
+## [0.35.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.34.1...tambo-v0.35.0) (2025-10-18)
+
+
+### Features
+
+* (ui) add ui for displaying MCP sampling requests ([#1167](https://github.com/tambo-ai/tambo/issues/1167)) ([ecdb9b1](https://github.com/tambo-ai/tambo/commit/ecdb9b1415cc6abe77ddaa44faff977c15159ae0))
+* (ui)show 'thought for x seconds' ([#1165](https://github.com/tambo-ai/tambo/issues/1165)) ([12d0ee1](https://github.com/tambo-ai/tambo/commit/12d0ee1edd8e1f132f00cb6e7f64216b80b9f090))
+
+
+### Bug Fixes
+
+* filter out system message from UI ([#1162](https://github.com/tambo-ai/tambo/issues/1162)) ([8852980](https://github.com/tambo-ai/tambo/commit/8852980ae6b0271fc1bde42168bb4d0085057ffd))
+* show 'done thinking' when reasoning message completes ([#1164](https://github.com/tambo-ai/tambo/issues/1164)) ([dd0e67d](https://github.com/tambo-ai/tambo/commit/dd0e67d3655a5f6c855bb5d913eee22c8991d39d))
+
+
+### Code Refactoring
+
+* **message:** simplify tool call request retrieval and enhance status message handling ([#1152](https://github.com/tambo-ai/tambo/issues/1152)) ([c866b67](https://github.com/tambo-ai/tambo/commit/c866b674e8fcc8524cf0de9e347902ac31efe81f))
+
+## [0.34.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.34.0...tambo-v0.34.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* **ui:** text pasting in the message input and update message component to use role instead of actionType ([#1139](https://github.com/tambo-ai/tambo/issues/1139)) ([48b9e5a](https://github.com/tambo-ai/tambo/commit/48b9e5ae11040f86a4a558c3c89e0b22bb8a6af4))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump typescript from 5.9.2 to 5.9.3 ([#1132](https://github.com/tambo-ai/tambo/issues/1132)) ([94b23a4](https://github.com/tambo-ai/tambo/commit/94b23a47d2d347033a15a2232b7c04216c982ad3))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.0 to 0.72.1 ([#1129](https://github.com/tambo-ai/tambo/issues/1129)) ([8d8cf9f](https://github.com/tambo-ai/tambo/commit/8d8cf9f2fe5c0661a576f8f77192d8b9c20ca62f))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.72.1 to 0.73.0 ([#1146](https://github.com/tambo-ai/tambo/issues/1146)) ([47432e7](https://github.com/tambo-ai/tambo/commit/47432e735d7ed3f6d6c99ac1cb727e86936d9c88))
+* **deps:** bump dotenv from 17.2.2 to 17.2.3 ([#1128](https://github.com/tambo-ai/tambo/issues/1128)) ([c18bf58](https://github.com/tambo-ai/tambo/commit/c18bf583c55fdbfe1925367076a737471f743db4))
+* **deps:** bump semver from 7.7.2 to 7.7.3 ([#1147](https://github.com/tambo-ai/tambo/issues/1147)) ([f448a98](https://github.com/tambo-ai/tambo/commit/f448a9857a559691ff384d780b1c5f816c942ff3))
+
 ## [0.34.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.33.0...tambo-v0.34.0) (2025-10-02)
 
 

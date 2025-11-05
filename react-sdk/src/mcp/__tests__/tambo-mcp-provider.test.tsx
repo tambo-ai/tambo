@@ -1,5 +1,12 @@
 import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {
+  ClientNotification,
+  ClientRequest,
+} from "@modelcontextprotocol/sdk/types.js";
+import { useTamboClient } from "../../providers/tambo-client-provider";
+import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { MCPClient, MCPTransport } from "../mcp-client";
 import {
@@ -7,7 +14,21 @@ import {
   TamboMcpProvider,
   useTamboMcpServers,
   type McpServer,
+  type ProviderMCPHandlers,
 } from "../tambo-mcp-provider";
+
+// Helper to create mock RequestHandlerExtra for testing
+function createMockExtra(): RequestHandlerExtra<
+  ClientRequest,
+  ClientNotification
+> {
+  return {
+    signal: new AbortController().signal,
+    requestId: "test-request-id",
+    sendNotification: (async () => {}) as any,
+    sendRequest: (async () => ({ _meta: {} })) as any,
+  };
+}
 
 // Mock the MCP client to avoid ES module issues
 jest.mock("../mcp-client", () => ({
@@ -21,6 +42,11 @@ jest.mock("../mcp-client", () => ({
 // Mock the registry provider to avoid dependency issues
 jest.mock("../../providers/tambo-registry-provider", () => ({
   useTamboRegistry: jest.fn(),
+}));
+
+// Mock the client provider to avoid dependency issues
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboClient: jest.fn(),
 }));
 
 describe("extractErrorMessage", () => {
@@ -173,10 +199,16 @@ describe("TamboMcpProvider server list changes", () => {
       registerTool: jest.fn(),
     });
 
-    // Ensure MCPClient.create exists and returns a fake client with listTools
-    (MCPClient as unknown as any).create = jest
-      .fn()
-      .mockResolvedValue({ listTools: jest.fn().mockResolvedValue([]) });
+    // Mock client with baseURL
+    (useTamboClient as unknown as jest.Mock).mockReturnValue({
+      baseURL: "https://api.tambo.co",
+    });
+
+    // Ensure MCPClient.create exists and returns a fake client with listTools and close
+    (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    });
   });
 
   const Capture: React.FC<{ onUpdate: (servers: McpServer[]) => void }> = ({
@@ -192,9 +224,11 @@ describe("TamboMcpProvider server list changes", () => {
   it("adds a new server when the list grows", async () => {
     let latest: McpServer[] = [];
     const { rerender, getByTestId } = render(
-      <TamboMcpProvider mcpServers={["https://a.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={["https://a.example"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     // Wait for initial connection
@@ -204,9 +238,13 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Add new server
     rerender(
-      <TamboMcpProvider mcpServers={["https://a.example", "https://b.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -220,9 +258,13 @@ describe("TamboMcpProvider server list changes", () => {
   it("removes a server when the list shrinks", async () => {
     let latest: McpServer[] = [];
     const { rerender, getByTestId } = render(
-      <TamboMcpProvider mcpServers={["https://a.example", "https://b.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -231,9 +273,11 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Remove one server
     rerender(
-      <TamboMcpProvider mcpServers={["https://a.example"]}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={["https://a.example"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -252,9 +296,11 @@ describe("TamboMcpProvider server list changes", () => {
     ];
 
     const { rerender } = render(
-      <TamboMcpProvider mcpServers={initial}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={initial}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -267,9 +313,11 @@ describe("TamboMcpProvider server list changes", () => {
       { url: "https://b.example", transport: MCPTransport.SSE },
     ];
     rerender(
-      <TamboMcpProvider mcpServers={same}>
-        <Capture onUpdate={(s) => (latest = s)} />
-      </TamboMcpProvider>,
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={same}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
     );
 
     await waitFor(() => {
@@ -277,5 +325,511 @@ describe("TamboMcpProvider server list changes", () => {
       const urls = latest.map((s) => s.url).sort();
       expect(urls).toEqual(["https://a.example", "https://b.example"].sort());
     });
+  });
+
+  it("reuses client when same server is passed with new array instance", async () => {
+    const createSpy = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const initial = [{ url: "https://a.example", transport: MCPTransport.SSE }];
+
+    const { rerender } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={initial}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Verify client was created once
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    const firstClient = latest[0].client;
+
+    // Pass a new array with same server
+    const same = [{ url: "https://a.example", transport: MCPTransport.SSE }];
+    rerender(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={same}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Client should NOT have been created again
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    // Should be the exact same client instance
+    expect(latest[0].client).toBe(firstClient);
+  });
+
+  it("calls close() on removed server clients", async () => {
+    const closeSpy = jest.fn();
+    const createSpy = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: closeSpy,
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const { rerender } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+    });
+
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // Remove one server
+    rerender(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider mcpServers={["https://a.example"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // close() should have been called once for the removed server
+    expect(closeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls close() on all clients when provider unmounts", async () => {
+    const closeSpy = jest.fn();
+    const createSpy = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([]),
+      close: closeSpy,
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const { unmount } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://a.example", "https://b.example"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+    });
+
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // Unmount the provider
+    unmount();
+
+    // close() should have been called for both clients
+    expect(closeSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("creates new client when customHeaders change", async () => {
+    const closeSpy = jest.fn();
+    let clientIdCounter = 0;
+    const createSpy = jest.fn().mockImplementation(async () => {
+      const id = ++clientIdCounter;
+      return {
+        id, // Add an ID so we can track which client is which
+        listTools: jest.fn().mockResolvedValue([]),
+        close: closeSpy,
+      };
+    });
+    (MCPClient as unknown as any).create = createSpy;
+
+    let latest: McpServer[] = [];
+    const { rerender } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={[
+            {
+              url: "https://a.example",
+              transport: MCPTransport.SSE,
+              customHeaders: { Authorization: "Bearer token1" },
+            },
+          ]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+      expect(createSpy).toHaveBeenCalledTimes(1);
+    });
+
+    const firstClientId = (latest[0].client as any)?.id;
+    expect(firstClientId).toBe(1);
+
+    // Change the customHeaders
+    rerender(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={[
+            {
+              url: "https://a.example",
+              transport: MCPTransport.SSE,
+              customHeaders: { Authorization: "Bearer token2" },
+            },
+          ]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    // Wait for old client to be closed and new client to be created
+    await waitFor(
+      () => {
+        expect(closeSpy).toHaveBeenCalledTimes(1);
+        expect(createSpy).toHaveBeenCalledTimes(2);
+        expect(latest.length).toBe(1);
+        const newClientId = (latest[0].client as any)?.id;
+        expect(newClientId).toBe(2); // Should be the new client
+      },
+      { timeout: 3000 },
+    );
+  });
+
+  // Note: Token changes for the internal Tambo server are covered by the
+  // "creates new client when customHeaders change" test above, since token
+  // changes result in different Authorization headers, which trigger client recreation.
+});
+
+describe("TamboMcpProvider handler support", () => {
+  let mockClient: any;
+  let createSpy: jest.Mock;
+
+  beforeEach(() => {
+    // Mock registry so tool registration is a no-op
+    (useTamboRegistry as unknown as jest.Mock).mockReturnValue({
+      registerTool: jest.fn(),
+    });
+
+    // Mock client with baseURL
+    (useTamboClient as unknown as jest.Mock).mockReturnValue({
+      baseURL: "https://api.tambo.co",
+    });
+
+    // Create a mock client with update methods
+    mockClient = {
+      listTools: jest.fn().mockResolvedValue([]),
+      updateElicitationHandler: jest.fn(),
+      updateSamplingHandler: jest.fn(),
+      close: jest.fn(),
+    };
+
+    // Mock MCPClient.create to return our mock client
+    createSpy = jest.fn().mockResolvedValue(mockClient);
+    (MCPClient as unknown as any).create = createSpy;
+  });
+
+  const Capture: React.FC<{ onUpdate: (servers: McpServer[]) => void }> = ({
+    onUpdate,
+  }) => {
+    const servers = useTamboMcpServers();
+    useEffect(() => {
+      onUpdate(servers);
+    }, [servers, onUpdate]);
+    return null;
+  };
+
+  it("should pass provider-level elicitation handler to MCPClient.create", async () => {
+    const mockElicitationHandler = jest.fn().mockResolvedValue({
+      content: [{ type: "text", text: "test" }],
+    });
+
+    const handlers: ProviderMCPHandlers = {
+      elicitation: mockElicitationHandler,
+    };
+
+    let latest: McpServer[] = [];
+    render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://test.example"]}
+          handlers={handlers}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Verify MCPClient.create was called
+    expect(createSpy).toHaveBeenCalledWith(
+      "https://test.example",
+      MCPTransport.HTTP,
+      undefined,
+      undefined,
+      undefined,
+      expect.objectContaining({
+        elicitation: expect.any(Function),
+      }),
+    );
+
+    // Get the actual handler that was passed
+    const passedHandlers = createSpy.mock.calls[0][5];
+    expect(passedHandlers.elicitation).toBeDefined();
+
+    // Call the wrapped handler and verify it receives serverInfo
+    const mockRequest = {
+      method: "sampling/createMessage" as const,
+      params: {},
+    };
+    const mockExtra = createMockExtra();
+    await passedHandlers.elicitation(mockRequest, mockExtra);
+
+    expect(mockElicitationHandler).toHaveBeenCalledWith(
+      mockRequest,
+      mockExtra,
+      expect.objectContaining({
+        url: "https://test.example",
+        transport: MCPTransport.HTTP,
+      }),
+    );
+  });
+
+  it("should pass provider-level sampling handler to MCPClient.create", async () => {
+    const mockSamplingHandler = jest.fn().mockResolvedValue({
+      model: "test-model",
+      stopReason: "endTurn",
+      role: "assistant",
+      content: { type: "text", text: "response" },
+    });
+
+    const handlers: ProviderMCPHandlers = {
+      sampling: mockSamplingHandler,
+    };
+
+    let latest: McpServer[] = [];
+    render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://test.example"]}
+          handlers={handlers}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Verify MCPClient.create was called with sampling handler
+    expect(createSpy).toHaveBeenCalledWith(
+      "https://test.example",
+      MCPTransport.HTTP,
+      undefined,
+      undefined,
+      undefined,
+      expect.objectContaining({
+        sampling: expect.any(Function),
+      }),
+    );
+
+    // Get the actual handler and verify it receives serverInfo
+    const passedHandlers = createSpy.mock.calls[0][5];
+    const mockRequest = {
+      method: "sampling/createMessage" as const,
+      params: {
+        messages: [],
+        modelPreferences: {},
+      },
+    };
+    const mockExtra = createMockExtra();
+    await passedHandlers.sampling(mockRequest, mockExtra);
+
+    expect(mockSamplingHandler).toHaveBeenCalledWith(
+      mockRequest,
+      mockExtra,
+      expect.objectContaining({
+        url: "https://test.example",
+        transport: MCPTransport.HTTP,
+      }),
+    );
+  });
+
+  it("should allow per-server handlers to override provider-level handlers", async () => {
+    const providerElicitationHandler = jest.fn().mockResolvedValue({
+      content: [{ type: "text", text: "provider" }],
+    });
+
+    const serverElicitationHandler = jest.fn().mockResolvedValue({
+      content: [{ type: "text", text: "server" }],
+    });
+
+    const handlers: ProviderMCPHandlers = {
+      elicitation: providerElicitationHandler,
+    };
+
+    let latest: McpServer[] = [];
+    render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={[
+            {
+              url: "https://test.example",
+              handlers: {
+                elicitation: serverElicitationHandler,
+              },
+            },
+          ]}
+          handlers={handlers}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Verify the per-server handler was used, not the provider handler
+    const passedHandlers = createSpy.mock.calls[0][5];
+    expect(passedHandlers.elicitation).toBe(serverElicitationHandler);
+  });
+
+  it("should pass different serverInfo to handlers for different servers", async () => {
+    const mockElicitationHandler = jest.fn().mockResolvedValue({
+      content: [{ type: "text", text: "test" }],
+    });
+
+    const handlers: ProviderMCPHandlers = {
+      elicitation: mockElicitationHandler,
+    };
+
+    let latest: McpServer[] = [];
+    render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={[
+            { url: "https://server-a.example", name: "Server A" },
+            { url: "https://server-b.example", name: "Server B" },
+          ]}
+          handlers={handlers}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(2);
+    });
+
+    // Verify both servers got handlers
+    expect(createSpy).toHaveBeenCalledTimes(2);
+
+    // Get handlers for both servers
+    const serverAHandlers = createSpy.mock.calls[0][5];
+    const serverBHandlers = createSpy.mock.calls[1][5];
+
+    const mockRequest = {
+      method: "sampling/createMessage" as const,
+      params: {},
+    };
+    const mockExtra = createMockExtra();
+
+    // Call handler for server A
+    await serverAHandlers.elicitation(mockRequest, mockExtra);
+    expect(mockElicitationHandler).toHaveBeenCalledWith(
+      mockRequest,
+      mockExtra,
+      expect.objectContaining({
+        url: "https://server-a.example",
+        name: "Server A",
+      }),
+    );
+
+    mockElicitationHandler.mockClear();
+
+    // Call handler for server B
+    await serverBHandlers.elicitation(mockRequest, mockExtra);
+    expect(mockElicitationHandler).toHaveBeenCalledWith(
+      mockRequest,
+      mockExtra,
+      expect.objectContaining({
+        url: "https://server-b.example",
+        name: "Server B",
+      }),
+    );
+  });
+
+  it("should update handlers when provider handlers change", async () => {
+    const initialHandler = jest.fn().mockResolvedValue({
+      content: [{ type: "text", text: "initial" }],
+    });
+
+    const updatedHandler = jest.fn().mockResolvedValue({
+      content: [{ type: "text", text: "updated" }],
+    });
+
+    let latest: McpServer[] = [];
+    const { rerender } = render(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://test.example"]}
+          handlers={{ elicitation: initialHandler }}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(latest.length).toBe(1);
+    });
+
+    // Update the handlers
+    rerender(
+      <TamboMcpTokenProvider>
+        <TamboMcpProvider
+          mcpServers={["https://test.example"]}
+          handlers={{ elicitation: updatedHandler }}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TamboMcpProvider>
+      </TamboMcpTokenProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockClient.updateElicitationHandler).toHaveBeenCalled();
+    });
+
+    // Verify the handler was updated
+    expect(mockClient.updateElicitationHandler).toHaveBeenCalledWith(
+      expect.any(Function),
+    );
   });
 });

@@ -1,6 +1,7 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import {
   ComponentContextTool,
+  TamboTool,
   TamboToolRegistry,
 } from "../model/component-metadata";
 import { mapTamboToolToContextTool } from "./registry";
@@ -9,7 +10,7 @@ import { mapTamboToolToContextTool } from "./registry";
  * Process a message from the thread, invoking the appropriate tool and returning the result.
  * @param message - The message to handle
  * @param toolRegistry - The tool registry
- * @returns The result of the tool call
+ * @returns The result of the tool call along with the tool definition
  */
 export const handleToolCall = async (
   message: TamboAI.Beta.Threads.ThreadMessage,
@@ -19,15 +20,19 @@ export const handleToolCall = async (
     args: TamboAI.ToolCallParameter[],
   ) => Promise<string>,
 ): Promise<{
-  result: string;
+  result: unknown;
   error?: string;
+  tamboTool?: TamboTool;
 }> => {
   if (!message?.toolCallRequest?.toolName) {
     throw new Error("Tool name is required");
   }
 
   try {
-    const tool = findTool(message.toolCallRequest.toolName, toolRegistry);
+    const { tool, tamboTool } = findTool(
+      message.toolCallRequest.toolName,
+      toolRegistry,
+    );
     if (!tool) {
       if (onCallUnregisteredTool) {
         const result = await onCallUnregisteredTool(
@@ -44,6 +49,7 @@ export const handleToolCall = async (
     }
     return {
       result: await runToolChoice(message.toolCallRequest, tool),
+      tamboTool,
     };
   } catch (error) {
     console.error("Error in calling tool: ", error);
@@ -54,17 +60,28 @@ export const handleToolCall = async (
   }
 };
 
-const findTool = (toolName: string, toolRegistry: TamboToolRegistry) => {
+const findTool = (
+  toolName: string,
+  toolRegistry: TamboToolRegistry,
+):
+  | {
+      tool: ComponentContextTool;
+      tamboTool: TamboTool;
+    }
+  | { tool: null; tamboTool: null } => {
   const registryTool = toolRegistry[toolName];
 
   if (!registryTool) {
-    return null;
+    return { tool: null, tamboTool: null };
   }
 
   const contextTool = mapTamboToolToContextTool(registryTool);
   return {
-    getComponentContext: registryTool.tool,
-    definition: contextTool,
+    tool: {
+      getComponentContext: registryTool.tool,
+      definition: contextTool,
+    },
+    tamboTool: registryTool,
   };
 };
 

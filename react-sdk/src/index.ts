@@ -13,6 +13,7 @@ export {
   type PropStatus,
   type StreamStatus,
 } from "./hooks/use-tambo-stream-status";
+export { useTamboVoice } from "./hooks/use-tambo-voice";
 
 // Re-export provider components
 export {
@@ -38,6 +39,7 @@ export {
   type TamboRegistryContext,
   type TamboStubProviderProps,
   type TamboThreadInputContextProps,
+  type TamboThreadProviderProps,
 } from "./providers";
 
 // Re-export types from Tambo Node SDK
@@ -65,6 +67,7 @@ export {
   type TamboThreadMessage,
 } from "./model/generate-component-response";
 export { type TamboThread } from "./model/tambo-thread";
+export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
 
 export type {
   TamboInteractableComponent as InteractableComponent,
@@ -76,8 +79,8 @@ export {
   type WithTamboInteractableProps,
 } from "./providers/hoc/with-tambo-interactable";
 export {
-  useTamboInteractable,
   useCurrentInteractablesSnapshot,
+  useTamboInteractable,
 } from "./providers/tambo-interactable-provider";
 
 // Context helpers exports
@@ -90,3 +93,6 @@ export type {
   ContextHelperFn,
   ContextHelpers,
 } from "./context-helpers";
+
+// Note MCP exports like TamboMcpProvider are available separately in the
+// @tambo-ai/react/mcp package

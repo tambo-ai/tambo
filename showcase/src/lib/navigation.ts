@@ -52,6 +52,10 @@ export const navigation: NavigationItem[] = [
             href: "/components/message-input",
           },
           {
+            title: "Elicitation",
+            href: "/components/elicitation",
+          },
+          {
             title: "Thread Content",
             href: "/components/thread-content",
           },
