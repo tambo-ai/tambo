@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext } from "react";
+import React, { PropsWithChildren, createContext, useContext } from "react";
 import { TamboInteractableContext } from "../model/tambo-interactable";
 import {
   TamboClientContextProps,
@@ -69,14 +69,14 @@ import {
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
-  TamboClientProviderProps &
-    TamboRegistryProviderProps &
-    TamboThreadProviderProps &
-    TamboContextHelpersProviderProps &
-    TamboThreadInputProviderProps &
-    Partial<Pick<ContextAttachmentProviderProps, "getContextHelperData">> & {
-      children?: any;
-    }
+  PropsWithChildren<
+    TamboClientProviderProps &
+      TamboRegistryProviderProps &
+      TamboThreadProviderProps &
+      TamboContextHelpersProviderProps &
+      TamboThreadInputProviderProps &
+      Partial<Pick<ContextAttachmentProviderProps, "getContextHelperData">>
+  >
 > = ({
   children,
   tamboUrl,
@@ -154,7 +154,7 @@ export const TamboContext = createContext<TamboContextProps>(
  * @param props.children - The children to wrap
  * @returns The wrapped component
  */
-export const TamboCompositeProvider: React.FC<{ children?: any }> = ({
+export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const threads = useTamboThread();

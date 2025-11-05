@@ -31,20 +31,14 @@ import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 export interface ContextAttachment {
   id: string;
   name: string;
-  icon?: any;
+  icon?: React.ReactNode;
   metadata?: Record<string, unknown>;
 }
 
 /**
  * Represents the data structure returned by a context helper
  */
-export interface ContextHelperData {
-  selectedComponent: {
-    name: string;
-    instruction?: string;
-    [key: string]: unknown;
-  };
-}
+export type ContextHelperData = Record<string, unknown>;
 
 /**
  * Context state interface for managing context attachments and custom suggestions.
@@ -87,7 +81,7 @@ const ContextAttachmentContext = createContext<ContextAttachmentState | null>(
  * ```
  */
 export interface ContextAttachmentProviderProps {
-  children?: any;
+  children?: React.ReactNode;
   getContextHelperData?: (
     context: ContextAttachment,
   ) => Promise<ContextHelperData> | ContextHelperData;
@@ -116,9 +110,10 @@ export interface ContextAttachmentProviderProps {
  * </TamboProvider>
  * ```
  * @example
- * Standalone usage with custom context data
+ * Using TamboProvider with custom context data
  * ```tsx
- * <ContextAttachmentProvider
+ * <TamboProvider
+ *   apiKey="..."
  *   getContextHelperData={(context) => ({
  *     selectedComponent: {
  *       name: context.name,
@@ -128,7 +123,7 @@ export interface ContextAttachmentProviderProps {
  *   })}
  * >
  *   <App />
- * </ContextAttachmentProvider>
+ * </TamboProvider>
  * ```
  */
 export function ContextAttachmentProvider({
@@ -141,71 +136,85 @@ export function ContextAttachmentProvider({
   >(null);
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
-  // Track latest attachments for cleanup without triggering effect re-runs
-  const attachmentsRef = useRef<ContextAttachment[]>([]);
-  useEffect(() => {
-    attachmentsRef.current = attachments;
-  }, [attachments]);
+  // Track which context helpers have been registered to avoid duplicates
+  const registeredIdsRef = useRef<Set<string>>(new Set());
 
-  // Cleanup: remove all context helpers on unmount only
+  // Sync context helpers with attachments using useEffect
   useEffect(() => {
+    const currentIds = new Set(attachments.map((a) => a.id));
+    const registeredIds = registeredIdsRef.current;
+
+    // Remove context helpers that are no longer in attachments
+    registeredIds.forEach((id) => {
+      if (!currentIds.has(id)) {
+        removeContextHelper(id);
+        registeredIds.delete(id);
+      }
+    });
+
+    // Add context helpers for new attachments
+    attachments.forEach((context) => {
+      if (!registeredIds.has(context.id)) {
+        addContextHelper(context.id, async (): Promise<ContextHelperData> => {
+          if (getContextHelperData) {
+            return await getContextHelperData(context);
+          }
+          return {
+            selectedComponent: {
+              name: context.name,
+              instruction:
+                "This is a Tambo interactable component that is currently selected and visible on the dashboard. You can read its current props and state, and update it by modifying its props. If multiple components are attached, you can interact with and modify any of them. Use the auto-registered interactable component tools (like get_interactable_component_by_id and update_interactable_component_<id>) to view and update the component's state.",
+              ...(context.metadata ?? {}),
+            },
+          };
+        });
+        registeredIds.add(context.id);
+      }
+    });
+  }, [
+    attachments,
+    addContextHelper,
+    removeContextHelper,
+    getContextHelperData,
+  ]);
+
+  // Cleanup: remove all context helpers on unmount
+  useEffect(() => {
+    const registeredIds = registeredIdsRef.current;
     return () => {
-      attachmentsRef.current.forEach((context) => {
-        removeContextHelper(context.id);
+      registeredIds.forEach((id) => {
+        removeContextHelper(id);
       });
+      registeredIds.clear();
     };
   }, [removeContextHelper]);
 
   const addContextAttachment = useCallback(
     (context: Omit<ContextAttachment, "id">) => {
-      // Check if context already exists
-      if (attachments.some((c) => c.name === context.name)) return;
+      setAttachments((prev) => {
+        if (prev.some((c) => c.name === context.name)) return prev;
 
-      const newId =
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `ctx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const newId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `ctx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-      const newContext = { ...context, id: newId };
-
-      // Add context helper first (side effect)
-      addContextHelper(newId, async (): Promise<ContextHelperData> => {
-        if (getContextHelperData) {
-          return await getContextHelperData(newContext);
-        }
-        return {
-          selectedComponent: {
-            name: newContext.name,
-            instruction:
-              "This is a Tambo interactable component that is currently selected and visible on the dashboard. You can read its current props and state, and update it by modifying its props. If multiple components are attached, you can interact with and modify any of them. Use the auto-registered interactable component tools (like get_interactable_component_by_id and update_interactable_component_<id>) to view and update the component's state.",
-            ...(newContext.metadata ?? {}),
-          },
-        };
+        const newContext = { ...context, id: newId };
+        return [...prev, newContext];
       });
-
-      // Then update state
-      setAttachments((prev) => [...prev, newContext]);
     },
-    [attachments, addContextHelper, getContextHelperData],
+    [],
   );
 
   // This is used to remove a context when the user clicks the remove button
-  const removeContextAttachment = useCallback(
-    (id: string) => {
-      removeContextHelper(id);
-      setAttachments((prev) => prev.filter((c) => c.id !== id));
-    },
-    [removeContextHelper],
-  );
+  const removeContextAttachment = useCallback((id: string) => {
+    setAttachments((prev) => prev.filter((c) => c.id !== id));
+  }, []);
 
   // This is used to clear the context when the user submits a message
   const clearContextAttachments = useCallback(() => {
-    // Remove all context helpers before clearing
-    attachments.forEach((context) => {
-      removeContextHelper(context.id);
-    });
     setAttachments([]);
-  }, [attachments, removeContextHelper]);
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -258,7 +267,9 @@ export function ContextAttachmentProvider({
 export function useContextAttachment() {
   const context = useContext(ContextAttachmentContext);
   if (!context) {
-    throw new Error("useContextAttachment must be used within a TamboProvider");
+    throw new Error(
+      "useContextAttachment must be used within a ContextAttachmentProvider",
+    );
   }
   return context;
 }
