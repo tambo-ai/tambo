@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.63.0](https://github.com/tambo-ai/tambo/compare/react-v0.62.0...react-v0.63.0) (2025-11-05)
+
+
+### Features
+
+* add tambo context attachment provider ([#1258](https://github.com/tambo-ai/tambo/issues/1258)) ([eb20883](https://github.com/tambo-ai/tambo/commit/eb2088322ff4a3d1efabd5621cf29e6f9563e963))
+
 ## [0.62.0](https://github.com/tambo-ai/tambo/compare/react-v0.61.0...react-v0.62.0) (2025-11-05)
 
 
