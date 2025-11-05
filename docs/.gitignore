@@ -5,6 +5,7 @@
 .contentlayer
 .content-collections
 .source
+/public/sitemap-*.xml
 
 # test & build
 /coverage
