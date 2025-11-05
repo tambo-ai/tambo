@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.62.0](https://github.com/tambo-ai/tambo/compare/react-v0.61.0...react-v0.62.0) (2025-11-05)
+
+
+### Features
+
+* add voice input ([#1234](https://github.com/tambo-ai/tambo/issues/1234)) ([88863aa](https://github.com/tambo-ai/tambo/commit/88863aa144572513261a2bd67e8c300c640298f1))
+* add ZodLazy schema support to assertNoZodRecord validation (attempt 2) ([#1245](https://github.com/tambo-ai/tambo/issues/1245)) ([73d6361](https://github.com/tambo-ai/tambo/commit/73d636178c7ef3ad8b5782e44ed520b79dacdd46))
+
+
+### Bug Fixes
+
+* Make sure to error-out on z.record inside z.function() ([#1255](https://github.com/tambo-ai/tambo/issues/1255)) ([bbc3097](https://github.com/tambo-ai/tambo/commit/bbc3097bdafdb9caa720c735442a0792b883f7ed))
+* **mcp:** Update default transport type from SSE to HTTP for MCP ([#1250](https://github.com/tambo-ai/tambo/issues/1250)) ([679f508](https://github.com/tambo-ai/tambo/commit/679f508a38b1c77eb643712d97a3c5da039b682a))
+
 ## [0.61.0](https://github.com/tambo-ai/tambo/compare/react-v0.60.0...react-v0.61.0) (2025-11-04)
 
 ### Features
