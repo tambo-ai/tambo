@@ -6,7 +6,7 @@ import {
   confirmAction,
   migrateComponentsDuringUpgrade,
 } from "../upgrade/utils.js";
-import { getComponentFilePath, resolveComponentPaths } from "./path-utils.js";
+import { resolveComponentPaths } from "./path-utils.js";
 
 /**
  * Location information for a component
@@ -49,7 +49,7 @@ export function findComponentLocation(
   isExplicitPrefix = false,
 ): ComponentLocation | null {
   try {
-    const { newPath, legacyPath, newDir } = resolveComponentPaths(
+    const { newPath, legacyPath } = resolveComponentPaths(
       projectRoot,
       installPath,
       componentName,
@@ -74,7 +74,7 @@ export function findComponentLocation(
     // Check legacy location (ui/)
     if (legacyPath && fs.existsSync(legacyPath)) {
       return {
-        componentPath: getComponentFilePath(newDir, componentName), // Return new path for upgrade destination
+        componentPath: newPath, // Return new path for upgrade destination
         installPath,
         needsCreation: true,
       };

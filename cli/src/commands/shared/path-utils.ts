@@ -54,13 +54,13 @@ export function getComponentFilePath(
 }
 
 /**
- * Calculates the lib directory path based on the install path and whether it's an explicit prefix
+ * Gets the lib directory path based on the install path and whether it's an explicit prefix
  * @param projectRoot - Project root directory
  * @param installPath - Component installation path
  * @param isExplicitPrefix - Whether the installPath was explicitly provided via --prefix
- * @returns The calculated lib directory path
+ * @returns The lib directory path
  */
-export function calculateLibDirectory(
+export function getLibDirectory(
   projectRoot: string,
   installPath: string,
   isExplicitPrefix: boolean,
@@ -87,12 +87,12 @@ export function calculateLibDirectory(
 }
 
 /**
- * Resolves component paths for both new and legacy locations
+ * Resolves component file paths for both new and legacy locations
  * @param projectRoot - Project root directory
  * @param installPath - Base installation path
  * @param componentName - Name of the component
  * @param isExplicitPrefix - Whether the prefix is explicitly provided
- * @returns Object with paths for new and legacy locations
+ * @returns Object with file paths for new and legacy locations
  */
 export function resolveComponentPaths(
   projectRoot: string,
@@ -102,8 +102,6 @@ export function resolveComponentPaths(
 ): {
   newPath: string;
   legacyPath: string | null;
-  newDir: string;
-  legacyDir: string | null;
 } {
   const newDir = getComponentDirectoryPath(
     projectRoot,
@@ -112,17 +110,15 @@ export function resolveComponentPaths(
   );
   const newPath = getComponentFilePath(newDir, componentName);
 
-  const legacyDir = isExplicitPrefix
+  const legacyPath = isExplicitPrefix
     ? null
-    : getLegacyComponentDirectoryPath(projectRoot, installPath);
-  const legacyPath = legacyDir
-    ? getComponentFilePath(legacyDir, componentName)
-    : null;
+    : getComponentFilePath(
+        getLegacyComponentDirectoryPath(projectRoot, installPath),
+        componentName,
+      );
 
   return {
     newPath,
     legacyPath,
-    newDir,
-    legacyDir,
   };
 }

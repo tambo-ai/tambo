@@ -5,8 +5,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
 import {
-  calculateLibDirectory,
   getComponentDirectoryPath,
+  getLibDirectory,
 } from "../shared/path-utils.js";
 import { updateImportPaths } from "../migrate.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
@@ -51,9 +51,9 @@ export async function installComponents(
   let libDir: string;
   if (options.baseInstallPath) {
     // When using legacy location, calculate lib based on the original base path
-    libDir = calculateLibDirectory(projectRoot, options.baseInstallPath, false);
+    libDir = getLibDirectory(projectRoot, options.baseInstallPath, false);
   } else {
-    libDir = calculateLibDirectory(projectRoot, installPath, isExplicitPrefix);
+    libDir = getLibDirectory(projectRoot, installPath, isExplicitPrefix);
   }
 
   fs.mkdirSync(componentDir, { recursive: true });
