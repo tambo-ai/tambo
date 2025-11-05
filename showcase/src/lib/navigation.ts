@@ -55,6 +55,7 @@ export const navigation: NavigationItem[] = [
           {
             title: "Elicitation",
             href: "/components/elicitation",
+            isNew: true,
           },
           {
             title: "Thread Content",
