@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/showcase",
-  "version": "0.28.0",
+  "version": "0.29.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,8 @@
     "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "eslint",
-    "clean": "rimraf .next"
+    "clean": "rimraf .next",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

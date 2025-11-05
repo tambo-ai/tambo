@@ -13,11 +13,13 @@ export {
   type PropStatus,
   type StreamStatus,
 } from "./hooks/use-tambo-stream-status";
+export { useTamboVoice } from "./hooks/use-tambo-voice";
 
 // Re-export provider components
 export {
   TamboClientProvider,
   TamboComponentProvider,
+  TamboContextAttachmentProvider,
   TamboContextHelpersProvider,
   TamboPropStreamProvider,
   TamboProvider,
@@ -27,12 +29,17 @@ export {
   useIsTamboTokenUpdating,
   useTambo,
   useTamboClient,
+  useTamboContextAttachment,
   useTamboContextHelpers,
   useTamboGenerationStage,
   useTamboStream,
   useTamboThread,
   useTamboThreadInput,
+  type ContextAttachment,
+  type ContextAttachmentState,
+  type ContextHelperData,
   type TamboComponent,
+  type TamboContextAttachmentProviderProps,
   type TamboContextHelpersContextProps,
   type TamboContextHelpersProviderProps,
   type TamboRegistryContext,

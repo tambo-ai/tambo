@@ -120,22 +120,14 @@ export const InputFields = React.forwardRef<HTMLDivElement, InputFieldsProps>(
     const { isIdle } = useTambo();
     const isGenerating = !isIdle;
 
-    /**
-     * Generates a unique identifier for the input fields based on field IDs
-     * This ensures persistence of state between re-renders
-     */
+    const baseId = React.useId();
     const inputFieldsId = React.useMemo(() => {
-      try {
-        // Safely create an input fields ID, handling any potential issues with fields
-        const validFields = fields.filter(
-          (f) => f && typeof f === "object" && f.id,
-        );
-        return `input-fields-${validFields.map((f) => f.id).join("-")}`;
-      } catch (err) {
-        console.error("Error generating input fields ID:", err);
-        return `input-fields-${Date.now()}`;
-      }
-    }, [fields]);
+      const ids = (fields ?? [])
+        .map((f) => f.id)
+        .filter(Boolean)
+        .join("-");
+      return ids ? `input-fields-${baseId}-${ids}` : `input-fields-${baseId}`;
+    }, [baseId, fields]);
 
     /**
      * Component state managed by Tambo

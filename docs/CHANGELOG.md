@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.18.0](https://github.com/tambo-ai/tambo/compare/docs-v1.17.0...docs-v1.18.0) (2025-11-05)
+
+
+### Features
+
+* add tambo context attachment provider ([#1258](https://github.com/tambo-ai/tambo/issues/1258)) ([eb20883](https://github.com/tambo-ai/tambo/commit/eb2088322ff4a3d1efabd5621cf29e6f9563e963))
+
+
+### Bug Fixes
+
+* **mcp:** Update default transport type from SSE to HTTP for MCP ([#1250](https://github.com/tambo-ai/tambo/issues/1250)) ([679f508](https://github.com/tambo-ai/tambo/commit/679f508a38b1c77eb643712d97a3c5da039b682a))
+
+
+### Miscellaneous Chores
+
+* **lint:** Proactively fix some React 19 issues ([#1251](https://github.com/tambo-ai/tambo/issues/1251)) ([b1984ed](https://github.com/tambo-ai/tambo/commit/b1984ed6d97631f342677826232a10fb0a87cd51))
+
+
+### Documentation
+
+* add prop syncing guidance for interactable components ([#1133](https://github.com/tambo-ai/tambo/issues/1133)) ([0c53d23](https://github.com/tambo-ai/tambo/commit/0c53d23b52bb944bd009854cdcb0e4addeabe97d))
+
+
+### Code Refactoring
+
+* optimize currentIds lookup and ignore generated sitemaps ([#1262](https://github.com/tambo-ai/tambo/issues/1262)) ([48ad0f6](https://github.com/tambo-ai/tambo/commit/48ad0f68aba709975747d0122b5396154750a889))
+
 ## [1.17.0](https://github.com/tambo-ai/tambo/compare/docs-v1.16.0...docs-v1.17.0) (2025-11-04)
 
 

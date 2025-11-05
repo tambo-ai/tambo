@@ -12,6 +12,7 @@ The Tambo CLI (`tambo`) is a command-line tool for scaffolding, managing, and ex
 # Development
 npm run dev              # Watch mode TypeScript compilation
 npm run build           # Build CLI executable
+npm run test            # Run Jest test suite
 npm run lint            # ESLint code checking
 npm run check-types     # TypeScript type checking
 
@@ -91,10 +92,37 @@ If you do update the components directly, you should also update the documentati
 3. Include component files and dependencies
 4. Test installation and generation
 
+## Testing
+
+Tests are in `tests/` directory using Jest with ESM support and memfs for filesystem mocking.
+
+### Running Tests
+
+```bash
+npm test                 # Run all tests
+npm test -- --watch     # Run tests in watch mode
+npm test -- add          # Run specific test file
+```
+
+### Writing Tests
+
+- Use `memfs` (`vol.fromJSON()`) to mock filesystem operations
+- Mock external dependencies: `child_process.execSync`, `inquirer.prompt`, registry utilities
+- Helper functions in `tests/helpers/mock-fs-setup.ts` for common test scenarios
+- See `tests/commands/list.test.ts` and `tests/commands/add.test.ts` for examples
+
+Key requirements:
+
+- Command handlers must have unit tests
+- Test both success and error cases
+- Mock external dependencies (don't hit real filesystem/network/npm)
+
 ## Important Development Rules
 
 - CLI is built as ESM module only
 - All components must be SSR compatible
 - Follow existing patterns for command structure
+- Write tests for new commands and logic changes
 - Test component generation end-to-end
 - Update help text for new commands/options
+- Always run tests before committing: `npm test`

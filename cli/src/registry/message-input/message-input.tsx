@@ -12,6 +12,7 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
+  useTamboVoice,
   type StagedImage,
 } from "@tambo-ai/react";
 import {
@@ -26,12 +27,15 @@ import {
   ArrowUp,
   FileText,
   Image as ImageIcon,
+  Loader2Icon,
+  Mic,
   Paperclip,
   Square,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
+import { useEffect, useState } from "react";
 
 /**
  * CSS variants for the message input container
@@ -575,6 +579,33 @@ const MessageInputSubmitButton = React.forwardRef<
 });
 MessageInputSubmitButton.displayName = "MessageInput.SubmitButton";
 
+const MCPIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      color="#000000"
+      fill="none"
+    >
+      <path
+        d="M3.49994 11.7501L11.6717 3.57855C12.7762 2.47398 14.5672 2.47398 15.6717 3.57855C16.7762 4.68312 16.7762 6.47398 15.6717 7.57855M15.6717 7.57855L9.49994 13.7501M15.6717 7.57855C16.7762 6.47398 18.5672 6.47398 19.6717 7.57855C20.7762 8.68312 20.7762 10.474 19.6717 11.5785L12.7072 18.543C12.3167 18.9335 12.3167 19.5667 12.7072 19.9572L13.9999 21.2499"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      ></path>
+      <path
+        d="M17.4999 9.74921L11.3282 15.921C10.2237 17.0255 8.43272 17.0255 7.32823 15.921C6.22373 14.8164 6.22373 13.0255 7.32823 11.921L13.4999 5.74939"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      ></path>
+    </svg>
+  );
+};
 /**
  * MCP Config Button component for opening the MCP configuration modal.
  * @component MessageInput.McpConfigButton
@@ -602,36 +633,8 @@ const MessageInputMcpConfigButton = React.forwardRef<
     className,
   );
 
-  const MCPIcon = () => {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        width="24"
-        height="24"
-        color="#000000"
-        fill="none"
-      >
-        <path
-          d="M3.49994 11.7501L11.6717 3.57855C12.7762 2.47398 14.5672 2.47398 15.6717 3.57855C16.7762 4.68312 16.7762 6.47398 15.6717 7.57855M15.6717 7.57855L9.49994 13.7501M15.6717 7.57855C16.7762 6.47398 18.5672 6.47398 19.6717 7.57855C20.7762 8.68312 20.7762 10.474 19.6717 11.5785L12.7072 18.543C12.3167 18.9335 12.3167 19.5667 12.7072 19.9572L13.9999 21.2499"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        ></path>
-        <path
-          d="M17.4999 9.74921L11.3282 15.921C10.2237 17.0255 8.43272 17.0255 7.32823 15.921C6.22373 14.8164 6.22373 13.0255 7.32823 11.921L13.4999 5.74939"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        ></path>
-      </svg>
-    );
-  };
-
   return (
-    <TooltipProvider>
+    <>
       <Tooltip
         content="Configure MCP Servers"
         side="right"
@@ -653,7 +656,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-    </TooltipProvider>
+    </>
   );
 });
 MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
@@ -753,34 +756,32 @@ const MessageInputFileButton = React.forwardRef<
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip
-        content="Attach Images"
-        side="top"
-        className="bg-muted text-foreground"
+    <Tooltip
+      content="Attach Images"
+      side="top"
+      className="bg-muted text-primary"
+    >
+      <button
+        ref={ref}
+        type="button"
+        onClick={handleClick}
+        className={buttonClasses}
+        aria-label="Attach Images"
+        data-slot="message-input-file-button"
+        {...props}
       >
-        <button
-          ref={ref}
-          type="button"
-          onClick={handleClick}
-          className={buttonClasses}
-          aria-label="Attach Images"
-          data-slot="message-input-file-button"
-          {...props}
-        >
-          <Paperclip className="w-4 h-4" />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            multiple={multiple}
-            onChange={handleFileChange}
-            className="hidden"
-            aria-hidden="true"
-          />
-        </button>
-      </Tooltip>
-    </TooltipProvider>
+        <Paperclip className="w-4 h-4" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleFileChange}
+          className="hidden"
+          aria-hidden="true"
+        />
+      </button>
+    </Tooltip>
   );
 });
 MessageInputFileButton.displayName = "MessageInput.FileButton";
@@ -808,7 +809,9 @@ export type MessageInputMcpPromptButtonProps =
  */
 const MessageInputMcpPromptButton = React.forwardRef<
   HTMLButtonElement,
-  MessageInputMcpPromptButtonProps
+  MessageInputMcpPromptButtonProps & {
+    className?: string;
+  }
 >(({ className, ...props }, ref) => {
   const { setValue, value } = useMessageInputContext();
   const { data: promptList, isLoading } = useTamboMcpPromptList();
@@ -851,71 +854,69 @@ const MessageInputMcpPromptButton = React.forwardRef<
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip
-        content="Insert MCP Prompt"
-        side="top"
-        className="bg-muted text-foreground"
-      >
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button
-              ref={ref}
-              type="button"
-              className={buttonClasses}
-              aria-label="Insert MCP Prompt"
-              data-slot="message-input-mcp-prompt-button"
-              {...props}
-            >
-              <FileText className="w-4 h-4" />
-            </button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content
-              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
-              side="top"
-              align="start"
-              sideOffset={5}
-            >
-              {isLoading ? (
+    <Tooltip
+      content="Insert MCP Prompt"
+      side="top"
+      className="bg-muted text-foreground"
+    >
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <button
+            ref={ref}
+            type="button"
+            className={buttonClasses}
+            aria-label="Insert MCP Prompt"
+            data-slot="message-input-mcp-prompt-button"
+            {...props}
+          >
+            <FileText className="w-4 h-4" />
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+            side="top"
+            align="start"
+            sideOffset={5}
+          >
+            {isLoading ? (
+              <DropdownMenu.Item
+                className="px-2 py-1.5 text-sm text-muted-foreground"
+                disabled
+              >
+                Loading prompts...
+              </DropdownMenu.Item>
+            ) : !promptList || promptList.length === 0 ? (
+              <DropdownMenu.Item
+                className="px-2 py-1.5 text-sm text-muted-foreground"
+                disabled
+              >
+                No prompts available
+              </DropdownMenu.Item>
+            ) : (
+              promptList.map((promptEntry) => (
                 <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
+                  key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
+                  className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  onSelect={() => {
+                    setSelectedPromptName(promptEntry.prompt.name);
+                  }}
                 >
-                  Loading prompts...
-                </DropdownMenu.Item>
-              ) : !promptList || promptList.length === 0 ? (
-                <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
-                >
-                  No prompts available
-                </DropdownMenu.Item>
-              ) : (
-                promptList.map((promptEntry) => (
-                  <DropdownMenu.Item
-                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
-                    className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                    onSelect={() => {
-                      setSelectedPromptName(promptEntry.prompt.name);
-                    }}
-                  >
-                    <span className="font-medium truncate max-w-full">
-                      {promptEntry.prompt.name}
+                  <span className="font-medium truncate max-w-full">
+                    {promptEntry.prompt.name}
+                  </span>
+                  {promptEntry.prompt.description && (
+                    <span className="text-xs text-muted-foreground truncate max-w-full">
+                      {promptEntry.prompt.description}
                     </span>
-                    {promptEntry.prompt.description && (
-                      <span className="text-xs text-muted-foreground truncate max-w-full">
-                        {promptEntry.prompt.description}
-                      </span>
-                    )}
-                  </DropdownMenu.Item>
-                ))
-              )}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
-      </Tooltip>
-    </TooltipProvider>
+                  )}
+                </DropdownMenu.Item>
+              ))
+            )}
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </Tooltip>
   );
 });
 MessageInputMcpPromptButton.displayName = "MessageInput.McpPromptButton";
@@ -1072,6 +1073,74 @@ const MessageInputStagedImages = React.forwardRef<
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";
 
 /**
+ * Button for dictating speech into the message input.
+ */
+const DictationButton = () => {
+  const {
+    startRecording,
+    stopRecording,
+    isRecording,
+    isTranscribing,
+    transcript,
+    transcriptionError,
+  } = useTamboVoice();
+  const { value, setValue } = useTamboThreadInput();
+  const [lastProcessedTranscript, setLastProcessedTranscript] =
+    useState<string>("");
+
+  const handleStartRecording = () => {
+    setLastProcessedTranscript("");
+    startRecording();
+  };
+
+  const handleStopRecording = () => {
+    stopRecording();
+  };
+
+  useEffect(() => {
+    if (transcript && transcript !== lastProcessedTranscript) {
+      setLastProcessedTranscript(transcript);
+      setValue(value + " " + transcript);
+    }
+  }, [transcript, lastProcessedTranscript, value, setValue]);
+
+  if (isTranscribing) {
+    return (
+      <div className="p-2 rounded-md">
+        <Loader2Icon className="h-5 w-5 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isRecording) {
+    return (
+      <button
+        type="button"
+        onClick={handleStopRecording}
+        className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
+      >
+        <Square className="h-4 w-4 text-red-500 fill-current animate-pulse" />
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-row items-center gap-2">
+      <span className="text-sm text-red-500">{transcriptionError}</span>
+      <Tooltip content="Dictate">
+        <button
+          type="button"
+          onClick={handleStartRecording}
+          className="p-2 rounded-md cursor-pointer hover:bg-gray-100 "
+        >
+          <Mic className="h-5 w-5" />
+        </button>
+      </Tooltip>
+    </div>
+  );
+};
+
+/**
  * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
@@ -1090,46 +1159,50 @@ const MessageInputToolbar = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex justify-between items-center mt-2 p-1 gap-2",
-        className,
-      )}
-      data-slot="message-input-toolbar"
-      {...props}
-    >
-      <div className="flex items-center gap-2">
-        {/* Left side - everything except submit button */}
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
-          ) {
-            return null; // Don't render submit button here
-          }
-          return child;
-        })}
+    <TooltipProvider>
+      <div
+        ref={ref}
+        className={cn(
+          "flex justify-between items-center mt-2 p-1 gap-2",
+          className,
+        )}
+        data-slot="message-input-toolbar"
+        {...props}
+      >
+        <div className="flex items-center gap-2">
+          {/* Left side - everything except submit button */}
+          {React.Children.map(children, (child): React.ReactNode => {
+            if (
+              React.isValidElement(child) &&
+              child.type === MessageInputSubmitButton
+            ) {
+              return null; // Don't render submit button here
+            }
+            return child;
+          })}
+        </div>
+        <div className="flex items-center gap-2">
+          <DictationButton />
+          {/* Right side - only submit button */}
+          {React.Children.map(children, (child): React.ReactNode => {
+            if (
+              React.isValidElement(child) &&
+              child.type === MessageInputSubmitButton
+            ) {
+              return child; // Only render submit button here
+            }
+            return null;
+          })}
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        {/* Right side - only submit button */}
-        {React.Children.map(children, (child): React.ReactNode => {
-          if (
-            React.isValidElement(child) &&
-            child.type === MessageInputSubmitButton
-          ) {
-            return child; // Only render submit button here
-          }
-          return null;
-        })}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 });
 MessageInputToolbar.displayName = "MessageInput.Toolbar";
 
 // --- Exports ---
 export {
+  DictationButton,
   MessageInput,
   MessageInputError,
   MessageInputFileButton,

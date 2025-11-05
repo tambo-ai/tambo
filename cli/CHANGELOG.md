@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.39.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.38.0...tambo-v0.39.0) (2025-11-05)
+
+
+### Features
+
+* add voice input ([#1234](https://github.com/tambo-ai/tambo/issues/1234)) ([88863aa](https://github.com/tambo-ai/tambo/commit/88863aa144572513261a2bd67e8c300c640298f1))
+
+## [0.38.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.37.0...tambo-v0.38.0) (2025-11-04)
+
+
+### Features
+
+* Add showcase for elicitation ui ([#1233](https://github.com/tambo-ai/tambo/issues/1233)) ([89a91ab](https://github.com/tambo-ai/tambo/commit/89a91ab000722041ca8c183b7afdb5f8491b5ee3))
+* **ui:** Update Design Token Usage in Component Library ([#1221](https://github.com/tambo-ai/tambo/issues/1221)) ([b2d16f6](https://github.com/tambo-ai/tambo/commit/b2d16f67df80a6cf28cfbec66a5e76d9297cf131))
+
+
+### Bug Fixes
+
+* **cli-update:** Make sure cli `update` adds dependent components (like elicitation-ui) ([#1246](https://github.com/tambo-ai/tambo/issues/1246)) ([cf0126a](https://github.com/tambo-ai/tambo/commit/cf0126ac99e7db9183124a58e58657bda9ae0dfd))
+* **mcp:** Update default transport type from SSE to HTTP for MCP ([#1250](https://github.com/tambo-ai/tambo/issues/1250)) ([679f508](https://github.com/tambo-ai/tambo/commit/679f508a38b1c77eb643712d97a3c5da039b682a))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.75.1 to 0.76.0 ([#1241](https://github.com/tambo-ai/tambo/issues/1241)) ([62d792e](https://github.com/tambo-ai/tambo/commit/62d792e38cd34832e729219a4f1ea28424d85433))
+* **lint:** Proactively fix some React 19 issues ([#1251](https://github.com/tambo-ai/tambo/issues/1251)) ([b1984ed](https://github.com/tambo-ai/tambo/commit/b1984ed6d97631f342677826232a10fb0a87cd51))
+
+
+### Documentation
+
+* **mcp-features:** Add docs for Prompts and Sampling ([#1247](https://github.com/tambo-ai/tambo/issues/1247)) ([599faaf](https://github.com/tambo-ai/tambo/commit/599faaf4ad7669423a4f9d89dc5758c7b3917c42))
+
+
+### Tests
+
+* **cli:** Add testing infra for cli, test some simple commands ([#1248](https://github.com/tambo-ai/tambo/issues/1248)) ([cc20842](https://github.com/tambo-ai/tambo/commit/cc208425505cb1893a061ecf50d89685127a216a))
+
 ## [0.37.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.36.0...tambo-v0.37.0) (2025-10-31)
 
 

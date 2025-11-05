@@ -6,6 +6,7 @@ import {
   type TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
+import { useMemo, useState } from "react";
 
 /**
  * JSON Schema types for elicitation fields
@@ -463,26 +464,26 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
   className,
 }) => {
   const singleEntry = isSingleEntryMode(request);
-  const fields = Object.entries(request.requestedSchema.properties);
-  const requiredFields = new Set(request.requestedSchema.required ?? []);
+  const fields = useMemo(
+    () => Object.entries(request.requestedSchema.properties),
+    [request.requestedSchema.properties],
+  );
+  const requiredFields = useMemo(
+    () => request.requestedSchema.required ?? [],
+    [request.requestedSchema.required],
+  );
+  const [formData, setFormData] = useState<Record<string, unknown>>(() => {
+    const initial: Record<string, unknown> = {};
+    fields.forEach(([name, schema]) => {
+      if (schema.default !== undefined) {
+        initial[name] = schema.default;
+      }
+    });
+    return initial;
+  });
 
   // Initialize form data with defaults
-  const [formData, setFormData] = React.useState<Record<string, unknown>>(
-    () => {
-      const initial: Record<string, unknown> = {};
-      fields.forEach(([name, schema]) => {
-        if (schema.default !== undefined) {
-          initial[name] = schema.default;
-        }
-      });
-      return initial;
-    },
-  );
-
-  // Track which fields have been touched (interacted with)
-  const [touchedFields, setTouchedFields] = React.useState<Set<string>>(
-    new Set(),
-  );
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   const handleFieldChange = (name: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -519,13 +520,11 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
   };
 
   // Check if form is valid (all fields pass validation)
-  const isValid = React.useMemo(() => {
-    return fields.every(([fieldName, fieldSchema]) => {
-      const value = formData[fieldName];
-      const isRequired = requiredFields.has(fieldName);
-      return validateField(value, fieldSchema, isRequired).valid;
-    });
-  }, [formData, fields, requiredFields]);
+  const isValid = fields.every(([fieldName, fieldSchema]) => {
+    const value = formData[fieldName];
+    const isRequired = requiredFields.includes(fieldName);
+    return validateField(value, fieldSchema, isRequired).valid;
+  });
 
   if (singleEntry) {
     const [fieldName, fieldSchema] = fields[0];
@@ -533,7 +532,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
       ? getValidationError(
           formData[fieldName],
           fieldSchema,
-          requiredFields.has(fieldName),
+          requiredFields.includes(fieldName),
         )
       : null;
 
@@ -552,7 +551,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
           schema={fieldSchema}
           value={formData[fieldName]}
           onChange={(value) => handleSingleEntryChange(fieldName, value)}
-          required={requiredFields.has(fieldName)}
+          required={requiredFields.includes(fieldName)}
           autoFocus
           validationError={validationError}
         />
@@ -593,7 +592,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
             ? getValidationError(
                 formData[name],
                 schema,
-                requiredFields.has(name),
+                requiredFields.includes(name),
               )
             : null;
 
@@ -604,7 +603,7 @@ export const ElicitationUI: React.FC<ElicitationUIProps> = ({
               schema={schema}
               value={formData[name]}
               onChange={(value) => handleFieldChange(name, value)}
-              required={requiredFields.has(name)}
+              required={requiredFields.includes(name)}
               autoFocus={index === 0}
               validationError={validationError}
             />
