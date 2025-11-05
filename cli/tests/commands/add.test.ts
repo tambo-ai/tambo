@@ -764,6 +764,47 @@ describe("handleAddComponents", () => {
       );
     });
 
+    it("should install to exact prefix path without adding tambo subdirectory", async () => {
+      // Setup
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: {},
+        }),
+        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
+        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
+          name: "message",
+          description: "Message component",
+          dependencies: [],
+          devDependencies: [],
+          requires: [],
+          files: [
+            {
+              name: "message.tsx",
+              content: "export const Message = () => <div>Message</div>;",
+            },
+          ],
+        }),
+      });
+
+      // Execute with prefix that ends with "tambo" - this was causing a bug
+      // where it would create components/ui/tambo/tambo instead of components/ui/tambo
+      await handleAddComponents(["message"], {
+        yes: true,
+        installPath: "components/ui/tambo",
+        isExplicitPrefix: true,
+      });
+
+      // Verify installation to exact path without extra tambo subdirectory
+      expect(
+        vol.existsSync("/mock-project/components/ui/tambo/message.tsx"),
+      ).toBe(true);
+      // Verify it did NOT create the nested tambo/tambo directory
+      expect(
+        vol.existsSync("/mock-project/components/ui/tambo/tambo/message.tsx"),
+      ).toBe(false);
+    });
+
     it("should respect --forceUpdate option and overwrite existing files", async () => {
       // Setup: Project with existing component
       vol.fromJSON({

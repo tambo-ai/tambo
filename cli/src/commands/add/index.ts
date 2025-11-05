@@ -6,12 +6,12 @@ import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../../constants/paths.js";
+import { resolveComponentDependencies } from "../../utils/dependency-resolution.js";
 import { getInstallationPath } from "../init.js";
 import { installComponents } from "./component.js";
 import { setupTailwindandGlobals } from "./tailwind-setup.js";
 import type { InstallComponentOptions } from "./types.js";
 import { getKnownComponentNames } from "./utils.js";
-import { resolveComponentDependencies } from "../../utils/dependency-resolution.js";
 
 /**
  * Main function to handle component installation
@@ -38,7 +38,9 @@ export async function handleAddComponents(
     // 2. Get installation path if not provided
     let installPath =
       options.installPath ?? (await getInstallationPath(options.yes));
-    let isExplicitPrefix = Boolean(options.installPath);
+    // Respect explicitly set isExplicitPrefix, otherwise infer from installPath being provided
+    let isExplicitPrefix =
+      options.isExplicitPrefix ?? Boolean(options.installPath);
     let baseInstallPath: string | undefined; // Track the original base path
 
     // Check if there are existing components in legacy location
