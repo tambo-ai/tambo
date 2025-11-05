@@ -9,6 +9,9 @@ import {
 import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
 
+// Evaluate once per file for predictable behavior
+const DEBUG_TESTS = process.env.DEBUG_TESTS === "1";
+
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
   ...memfsFs,
@@ -343,6 +346,10 @@ jest.unstable_mockModule("../../src/utils/dependency-resolution.js", () => {
 
 // Import after mocking
 const { handleUpdateComponents } = await import("../../src/commands/update.js");
+// Also grab the mocked Tailwind setup util so we can assert calls directly
+const { setupTailwindandGlobals } = await import(
+  "../../src/commands/add/tailwind-setup.js"
+);
 
 describe("handleUpdateComponents", () => {
   let originalCwd: () => string;
@@ -375,9 +382,11 @@ describe("handleUpdateComponents", () => {
     };
     console.error = (...args: unknown[]) => {
       errorLogs.push(args.map((arg) => String(arg)).join(" "));
-      // Also log to console for debugging
-      originalError(...args);
+      if (DEBUG_TESTS) originalError(...args);
     };
+
+    // Reset all jest.fn() call history between tests
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -673,9 +682,6 @@ describe("handleUpdateComponents", () => {
 
     it("should handle partial updates when some components fail", async () => {
       // Setup: Project with two components
-      // Note: We can't easily mock installComponents to fail dynamically in ESM Jest,
-      // so this test verifies the error handling structure exists
-      // In a real scenario, if installComponents throws, it would be caught and logged
       vol.fromJSON({
         "/mock-project/package.json": JSON.stringify({
           name: "test-project",
@@ -714,10 +720,56 @@ describe("handleUpdateComponents", () => {
           "export const Form = () => <div>Old</div>;",
       });
 
-      // Execute - both should succeed
-      await handleUpdateComponents(["message", "form"], { yes: true });
+      // Execute with an isolated module graph where installComponents fails for 'form'
+      await jest.isolateModulesAsync(async () => {
+        // Override just for this isolated import
+        jest.unstable_mockModule("../../src/commands/add/component.js", () => ({
+          installComponents: jest.fn(
+            async (
+              names: string[],
+              opts: { installPath?: string; isExplicitPrefix?: boolean } = {},
+            ) => {
+              // Simulate a failure for one component
+              if (names.includes("form")) throw new Error("boom");
 
-      // Verify both components were updated
+              // Very small simulation of the installer for success cases
+              const installPath = opts.installPath ?? "components";
+              const isExplicit = Boolean(opts.isExplicitPrefix);
+              const componentDir = isExplicit
+                ? `/mock-project/${installPath}`
+                : `/mock-project/${installPath}/tambo`;
+
+              for (const name of names) {
+                const cfgPath = `/mock-project/cli/src/registry/${name}/config.json`;
+                if (memfsFs.existsSync(cfgPath)) {
+                  const cfg = JSON.parse(
+                    memfsFs.readFileSync(cfgPath, "utf-8") as string,
+                  );
+                  const mainFile = (cfg.files || []).find(
+                    (f: any) =>
+                      typeof f.name === "string" && f.name.endsWith(".tsx"),
+                  );
+                  if (mainFile) {
+                    const target = `${componentDir}/${name}.tsx`;
+                    memfsFs.mkdirSync(componentDir, { recursive: true });
+                    memfsFs.writeFileSync(target, mainFile.content);
+                  }
+                }
+              }
+            },
+          ),
+        }));
+
+        const { handleUpdateComponents: runUpdate } = await import(
+          "../../src/commands/update.js"
+        );
+        await runUpdate(["message", "form"], { yes: true });
+      });
+
+      // Ensure no ESM mock state bleeds into other tests
+      jest.resetModules();
+
+      // Verify only the successful component was updated
       const messageContent = vol.readFileSync(
         "/mock-project/src/components/tambo/message.tsx",
         "utf-8",
@@ -728,11 +780,13 @@ describe("handleUpdateComponents", () => {
         "/mock-project/src/components/tambo/form.tsx",
         "utf-8",
       ) as string;
-      expect(formContent).toContain("Updated");
+      expect(formContent).toContain("Old");
 
-      // Verify success message
+      // Verify summary and error output
       const output = logs.join("\n");
-      expect(output).toContain("Successfully updated all");
+      expect(output).toMatch(/Updated\s+1\s+of\s+2\s+components/i);
+      const errs = errorLogs.join("\n");
+      expect(errs).toMatch(/Failed to update\s+form/i);
     });
   });
 
@@ -1276,17 +1330,11 @@ describe("handleUpdateComponents", () => {
           "export const Message = () => <div>Old</div>;",
       });
 
-      // Get the original setupTailwindandGlobals to verify it's called
-      // The mock is already set up at the top of the file, so we just need to verify
-      // that it gets called. Since we're using the same mock, we can check the output
-      // which should mention "Checking CSS configuration"
-
       // Execute
       await handleUpdateComponents(["message"], { yes: true });
 
-      // Verify Tailwind setup was called by checking the output
-      const output = logs.join("\n");
-      expect(output).toContain("Checking CSS configuration");
+      // Verify Tailwind setup was invoked exactly once
+      expect(setupTailwindandGlobals).toHaveBeenCalledTimes(1);
     });
 
     it("should show post-update notes for legacy components", async () => {
