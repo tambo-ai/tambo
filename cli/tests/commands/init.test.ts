@@ -149,6 +149,13 @@ jest.unstable_mockModule("../../src/commands/add/utils.js", () => ({
   getComponentList: () => [],
 }));
 
+// Mock tailwind setup (same as add.test.ts)
+jest.unstable_mockModule("../../src/commands/add/tailwind-setup.js", () => ({
+  setupTailwindandGlobals: jest.fn(async () => {
+    // No-op for tests
+  }),
+}));
+
 // Don't mock handleAddComponent - use the real implementation
 // It will use the mocked fs (memfs) and execSync, so it's safe to use in tests
 
@@ -443,6 +450,7 @@ describe("handleInit", () => {
         selectedComponents: ["message-thread-full", "control-bar"],
         proceedWithCss: true, // For setupTailwindandGlobals
         showDetailedDiff: false, // For setupTailwindandGlobals
+        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
       };
 
       // Execute
@@ -462,6 +470,10 @@ describe("handleInit", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ control-bar/
         │        │  ├─ config.json
         │        │  └─ control-bar.tsx
@@ -488,8 +500,8 @@ describe("handleInit", () => {
         │           └─ thread-history.tsx
         ├─ package.json
         └─ src/
-           ├─ app/
            ├─ components/
+           │  ├─ control-bar.tsx
            │  ├─ message-input.tsx
            │  ├─ message-suggestions.tsx
            │  ├─ message-thread-full.tsx
@@ -541,16 +553,19 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"], // Valid selection
+        proceedWithCss: true, // For setupTailwindandGlobals
+        showDetailedDiff: false, // For setupTailwindandGlobals
+        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
       };
 
       // Execute - should work with valid selection
       await handleInit({ fullSend: true });
 
       // Verify component was actually installed (check for component files)
+      // Components are installed at src/components/component-name.tsx when installPath is provided
+      // (because isExplicitPrefix becomes true when installPath is provided)
       expect(
-        vol.existsSync(
-          "/mock-project/src/components/tambo/message-thread-full/message-thread-full.tsx",
-        ),
+        vol.existsSync("/mock-project/src/components/message-thread-full.tsx"),
       ).toBe(true);
     });
 
@@ -571,6 +586,9 @@ describe("handleInit", () => {
         apiKey: "test-api-key",
         confirmReplace: true,
         selectedComponents: ["message-thread-full"],
+        proceedWithCss: true, // For setupTailwindandGlobals
+        showDetailedDiff: false, // For setupTailwindandGlobals
+        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
       };
 
       // Execute with --yes
@@ -587,6 +605,10 @@ describe("handleInit", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ message/
         │        │  ├─ config.json
         │        │  └─ message.tsx
@@ -610,7 +632,6 @@ describe("handleInit", () => {
         │           └─ thread-history.tsx
         ├─ package.json
         └─ src/
-           ├─ app/
            ├─ components/
            │  ├─ message-input.tsx
            │  ├─ message-suggestions.tsx
@@ -1054,6 +1075,9 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full", "control-bar"],
+        proceedWithCss: true, // For setupTailwindandGlobals
+        showDetailedDiff: false, // For setupTailwindandGlobals
+        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
       };
 
       // Execute
@@ -1085,6 +1109,9 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"],
+        proceedWithCss: true, // For setupTailwindandGlobals
+        showDetailedDiff: false, // For setupTailwindandGlobals
+        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
       };
 
       // Execute

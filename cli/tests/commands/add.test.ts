@@ -198,6 +198,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -245,6 +249,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ form/
         │        │  ├─ config.json
         │        │  └─ form.tsx
@@ -314,6 +322,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ form/
         │        │  ├─ config.json
         │        │  └─ form.tsx
@@ -358,6 +370,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -417,8 +433,12 @@ describe("handleAddComponents", () => {
         │        ├─ component-a/
         │        │  ├─ component-a.tsx
         │        │  └─ config.json
-        │        └─ component-b/
-        │           └─ config.json
+        │        ├─ component-b/
+        │        │  └─ config.json
+        │        └─ config/
+        │           ├─ globals-v3.css
+        │           ├─ globals-v4.css
+        │           └─ tailwind.config.ts
         ├─ package.json
         └─ src/
            ├─ components/
@@ -454,6 +474,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ form/
         │        │  ├─ config.json
         │        │  └─ form.tsx
@@ -533,6 +557,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ form/
         │        │  ├─ config.json
         │        │  └─ form.tsx
@@ -580,6 +608,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -619,6 +651,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -661,6 +697,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -701,6 +741,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -770,6 +814,10 @@ describe("handleAddComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx

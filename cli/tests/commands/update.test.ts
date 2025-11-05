@@ -680,6 +680,10 @@ describe("handleUpdateComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ markdown-components/
         │        │  └─ markdown-components.tsx
         │        └─ message/
@@ -745,6 +749,10 @@ describe("handleUpdateComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        ├─ markdown-components/
         │        │  └─ markdown-components.tsx
         │        └─ message/
@@ -887,6 +895,10 @@ describe("handleUpdateComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -932,6 +944,10 @@ describe("handleUpdateComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
@@ -979,6 +995,10 @@ describe("handleUpdateComponents", () => {
         │  │        └─ utils.js
         │  └─ src/
         │     └─ registry/
+        │        ├─ config/
+        │        │  ├─ globals-v3.css
+        │        │  ├─ globals-v4.css
+        │        │  └─ tailwind.config.ts
         │        └─ message/
         │           ├─ config.json
         │           └─ message.tsx
