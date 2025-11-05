@@ -5,6 +5,7 @@
     "registering-with-tambo-provider",
     "registering-components-dynamically",
     "component-state",
-    "interactable-components"
+    "interactable-components",
+    "syncing-editable-interactables"
   ]
 }
