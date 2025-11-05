@@ -66,24 +66,25 @@ export function getLibDirectory(
   isExplicitPrefix: boolean,
 ): string {
   if (isExplicitPrefix) {
-    // For explicit prefix, check if it starts with 'src' as a whole directory
-    const normalizedPath = path.normalize(installPath);
-    const pathParts = normalizedPath.split(path.sep).filter((p) => p !== "");
-    const firstSegment = pathParts.length > 0 ? pathParts[0] : "";
+    // Resolve explicit prefix relative to the project root (handles absolute and relative)
+    const resolved = path.isAbsolute(installPath)
+      ? installPath
+      : path.resolve(projectRoot, installPath);
+    const rel = path.relative(projectRoot, resolved);
 
-    if (firstSegment === "src") {
-      return path.join(projectRoot, "src", "lib");
-    }
-    return path.join(projectRoot, "lib");
+    // If the explicit prefix is under src/ (or exactly src), place tambo.ts in src/lib
+    const startsInSrc = rel === "src" || rel.startsWith(`src${path.sep}`);
+    return startsInSrc
+      ? path.join(projectRoot, "src", "lib")
+      : path.join(projectRoot, "lib");
   }
 
-  // For auto-detected paths, use the standard logic
-  // lib directory is at the same level as the parent of installPath
-  const installPathDir = path.dirname(installPath);
-  if (installPathDir === "." || installPathDir === "") {
-    return path.join(projectRoot, "lib");
-  }
-  return path.join(projectRoot, installPathDir, "lib");
+  // For auto-detected paths, use parent directory of installPath
+  // Example: "src/components" -> src/lib, "components" -> <root>/lib
+  const parent = path.dirname(installPath);
+  return parent === "." || parent === ""
+    ? path.join(projectRoot, "lib")
+    : path.join(projectRoot, parent, "lib");
 }
 
 /**

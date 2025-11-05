@@ -6,6 +6,7 @@ import open from "open";
 import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
+import { getLibDirectory } from "./shared/path-utils.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
 
@@ -15,11 +16,8 @@ import { handleAddComponent } from "./add/index.js";
  */
 async function createTamboTsFile(installPath: string): Promise<void> {
   const projectRoot = process.cwd();
-  // Extract first segment of installPath using path utilities
-  const normalizedPath = path.normalize(installPath);
-  const pathParts = normalizedPath.split(path.sep).filter((p) => p !== "");
-  const firstSegment = pathParts.length > 0 ? pathParts[0] : "";
-  const libDir = path.join(projectRoot, firstSegment, "lib");
+  // Derive lib directory consistently with other commands
+  const libDir = getLibDirectory(projectRoot, installPath, false);
   fs.mkdirSync(libDir, { recursive: true });
 
   const tamboTsPath = path.join(libDir, "tambo.ts");

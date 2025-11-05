@@ -751,10 +751,8 @@ describe("handleInit", () => {
       // Execute
       await handleInit({ fullSend: true });
 
-      // Verify tambo.ts was created in components/lib (first segment of installPath)
-      expect(vol.existsSync("/mock-project/components/lib/tambo.ts")).toBe(
-        true,
-      );
+      // Verify tambo.ts was created at project-root lib (not components/lib)
+      expect(vol.existsSync("/mock-project/lib/tambo.ts")).toBe(true);
     });
 
     it("should handle nested paths correctly", async () => {
