@@ -252,3 +252,164 @@ export function createProjectWithTamboTs(
       content ?? "export const components: TamboComponent[] = [];",
   };
 }
+
+/**
+ * Creates the registry files structure for tests
+ * The registry is always present in the CLI, so these files should always be available
+ * @param components Optional array of component names to include (defaults to common ones)
+ */
+export function createRegistryFiles(
+  components: string[] = [
+    "message-thread-full",
+    "message-thread-panel",
+    "message-thread-collapsible",
+    "control-bar",
+  ],
+): Record<string, string | null> {
+  const registry: Record<string, string | null> = {
+    "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
+  };
+
+  // Component configs - simplified versions for testing
+  const componentConfigs: Record<
+    string,
+    {
+      description: string;
+      componentName: string;
+      dependencies: string[];
+      requires: string[];
+      files: string[];
+    }
+  > = {
+    "message-thread-full": {
+      description:
+        "Full-screen chat interface with history and typing indicators",
+      componentName: "MessageThreadFull",
+      dependencies: ["@tambo-ai/react", "class-variance-authority"],
+      requires: [
+        "thread-content",
+        "message-input",
+        "message-suggestions",
+        "thread-history",
+        "message",
+        "scrollable-message-container",
+      ],
+      files: ["message-thread-full.tsx"],
+    },
+    "message-thread-panel": {
+      description: "Split-view chat with integrated workspace",
+      componentName: "MessageThreadPanel",
+      dependencies: ["@tambo-ai/react"],
+      requires: [],
+      files: ["message-thread-panel.tsx"],
+    },
+    "message-thread-collapsible": {
+      description: "Collapsible chat for sidebars",
+      componentName: "MessageThreadCollapsible",
+      dependencies: ["@tambo-ai/react"],
+      requires: [],
+      files: ["message-thread-collapsible.tsx"],
+    },
+    "control-bar": {
+      description: "Spotlight-style command palette",
+      componentName: "ControlBar",
+      dependencies: ["@tambo-ai/react", "radix-ui", "class-variance-authority"],
+      requires: [
+        "thread-content",
+        "message-input",
+        "message",
+        "scrollable-message-container",
+      ],
+      files: ["control-bar.tsx"],
+    },
+  };
+
+  // Set of all components we need to create (including dependencies)
+  const allComponentsToCreate = new Set(components);
+
+  // First pass: collect all required dependencies
+  components.forEach((componentName) => {
+    const config = componentConfigs[componentName];
+    if (config) {
+      config.requires.forEach((dep) => allComponentsToCreate.add(dep));
+    }
+  });
+
+  // Helper to create a component config and file
+  const createComponent = (componentName: string) => {
+    const config = componentConfigs[componentName];
+    if (!config) {
+      // Fallback for unknown components (e.g., dependencies)
+      const componentNamePascal =
+        componentName
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join("") || componentName;
+      registry[`/mock-project/cli/src/registry/${componentName}/config.json`] =
+        JSON.stringify({
+          name: componentName,
+          description: `Test component ${componentName}`,
+          componentName: componentNamePascal,
+          dependencies: ["@tambo-ai/react"],
+          devDependencies: [],
+          requires: [],
+          files: [
+            {
+              name: `${componentName}.tsx`,
+              content: `export const ${componentNamePascal} = () => <div>${componentNamePascal}</div>;`,
+            },
+          ],
+        });
+      registry[
+        `/mock-project/cli/src/registry/${componentName}/${componentName}.tsx`
+      ] =
+        `export const ${componentNamePascal} = () => <div>${componentNamePascal}</div>;`;
+    } else {
+      registry[`/mock-project/cli/src/registry/${componentName}/config.json`] =
+        JSON.stringify({
+          name: componentName,
+          description: config.description,
+          componentName: config.componentName,
+          dependencies: config.dependencies,
+          devDependencies: [],
+          requires: config.requires,
+          files: config.files.map((fileName) => ({
+            name: fileName,
+            content: `export const ${config.componentName} = () => <div>${config.componentName}</div>;`,
+          })),
+        });
+      // Add component file
+      config.files.forEach((fileName) => {
+        registry[
+          `/mock-project/cli/src/registry/${componentName}/${fileName}`
+        ] =
+          `export const ${config.componentName} = () => <div>${config.componentName}</div>;`;
+      });
+    }
+  };
+
+  // Create all components (including dependencies)
+  allComponentsToCreate.forEach((componentName) => {
+    createComponent(componentName);
+  });
+
+  return registry;
+}
+
+/**
+ * Creates a project with React dependency, src directory, and registry files
+ * This is the most common setup for full-send tests
+ */
+export function createProjectWithReactAndRegistry(
+  components: string[] = [
+    "message-thread-full",
+    "message-thread-panel",
+    "message-thread-collapsible",
+    "control-bar",
+  ],
+): Record<string, string | null> {
+  return {
+    ...createProjectWithReact(),
+    ...createRegistryFiles(components),
+  };
+}

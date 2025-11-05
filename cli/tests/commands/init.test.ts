@@ -12,8 +12,9 @@ import {
   createBasicProject,
   createProjectWithBothEnvFiles,
   createProjectWithEnv,
-  createProjectWithReact,
+  createProjectWithReactAndRegistry,
   createProjectWithTamboTs,
+  createRegistryFiles,
 } from "../helpers/mock-fs-setup.js";
 
 // Mock fs module before importing the command
@@ -104,12 +105,52 @@ jest.unstable_mockModule("ora", () => ({
   }),
 }));
 
-// Mock add component
-jest.unstable_mockModule("../../src/commands/add/index.js", () => ({
-  handleAddComponent: jest.fn(async () => {
-    // No-op for tests
+// Mock the registry utilities to use memfs paths (same as add.test.ts)
+jest.unstable_mockModule("../../src/commands/add/utils.js", () => ({
+  getRegistryPath: (componentName: string) =>
+    `/mock-project/cli/src/registry/${componentName}`,
+  getConfigPath: (componentName: string) =>
+    `/mock-project/cli/src/registry/${componentName}/config.json`,
+  componentExists: (componentName: string) => {
+    const configPath = `/mock-project/cli/src/registry/${componentName}/config.json`;
+    try {
+      return (
+        memfsFs.existsSync(configPath) &&
+        JSON.parse(memfsFs.readFileSync(configPath, "utf-8") as string)
+      );
+    } catch {
+      return false;
+    }
+  },
+  getTamboComponentInfo: () => ({
+    mainComponents: new Set([
+      "message-thread-full",
+      "message-thread-panel",
+      "message-thread-collapsible",
+      "control-bar",
+    ]),
+    supportComponents: new Set(),
+    allComponents: new Set([
+      "message-thread-full",
+      "message-thread-panel",
+      "message-thread-collapsible",
+      "control-bar",
+    ]),
   }),
+  getKnownComponentNames: () =>
+    new Set([
+      "message-thread-full",
+      "message-thread-panel",
+      "message-thread-collapsible",
+      "control-bar",
+    ]),
+  checkLegacyComponents: () => null,
+  getInstalledComponents: async () => [],
+  getComponentList: () => [],
 }));
+
+// Don't mock handleAddComponent - use the real implementation
+// It will use the mocked fs (memfs) and execSync, so it's safe to use in tests
 
 // Mock chalk (no-op for tests)
 jest.unstable_mockModule("chalk", () => ({
@@ -170,7 +211,8 @@ describe("handleInit", () => {
       logs.push(args.map((arg) => String(arg)).join(" "));
     };
     console.error = (...args: unknown[]) => {
-      errorLogs.push(args.map((arg) => String(arg)).join(" "));
+      const errorMsg = args.map((arg) => String(arg)).join(" ");
+      errorLogs.push(errorMsg);
       // Also log to console for debugging
       originalError(...args);
     };
@@ -383,7 +425,12 @@ describe("handleInit", () => {
 
   describe("full-send init", () => {
     beforeEach(() => {
-      vol.fromJSON(createProjectWithReact());
+      vol.fromJSON(
+        createProjectWithReactAndRegistry([
+          "message-thread-full",
+          "control-bar",
+        ]),
+      );
     });
 
     it("should complete full-send init with component selection", async () => {
@@ -394,6 +441,8 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full", "control-bar"],
+        proceedWithCss: true, // For setupTailwindandGlobals
+        showDetailedDiff: false, // For setupTailwindandGlobals
       };
 
       // Execute
@@ -406,33 +455,72 @@ describe("handleInit", () => {
       expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
         "mock-project/
         ├─ .env.local
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ control-bar/
+        │        │  ├─ config.json
+        │        │  └─ control-bar.tsx
+        │        ├─ message/
+        │        │  ├─ config.json
+        │        │  └─ message.tsx
+        │        ├─ message-input/
+        │        │  ├─ config.json
+        │        │  └─ message-input.tsx
+        │        ├─ message-suggestions/
+        │        │  ├─ config.json
+        │        │  └─ message-suggestions.tsx
+        │        ├─ message-thread-full/
+        │        │  ├─ config.json
+        │        │  └─ message-thread-full.tsx
+        │        ├─ scrollable-message-container/
+        │        │  ├─ config.json
+        │        │  └─ scrollable-message-container.tsx
+        │        ├─ thread-content/
+        │        │  ├─ config.json
+        │        │  └─ thread-content.tsx
+        │        └─ thread-history/
+        │           ├─ config.json
+        │           └─ thread-history.tsx
         ├─ package.json
         └─ src/
+           ├─ app/
+           ├─ components/
+           │  ├─ message-input.tsx
+           │  ├─ message-suggestions.tsx
+           │  ├─ message-thread-full.tsx
+           │  ├─ message.tsx
+           │  ├─ scrollable-message-container.tsx
+           │  ├─ thread-content.tsx
+           │  └─ thread-history.tsx
            └─ lib/
-              └─ tambo.ts"
+              ├─ tambo.ts
+              └─ utils.ts"
       `);
 
       // Verify success message
       const output = logs.join("\n");
+      const errorOutput = errorLogs.join("\n");
+      if (!output.includes("Full-send initialization complete")) {
+        console.log("Logs:", output);
+        console.log("Errors:", errorOutput);
+      }
       expect(output).toContain("Full-send initialization complete");
     });
 
     it("should handle component installation failures gracefully", async () => {
-      // Mock handleAddComponent to fail
-      const { handleAddComponent } = await import(
-        "../../src/commands/add/index.js"
-      );
-      jest
-        .mocked(handleAddComponent)
-        .mockRejectedValueOnce(new Error("Installation failed"));
-
+      // Use a non-existent component to trigger failure
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
         apiKey: "test-api-key",
         confirmReplace: true,
         useSrcDir: true,
-        selectedComponents: ["message-thread-full"],
+        selectedComponents: ["nonexistent-component"],
       };
 
       // Execute
@@ -458,11 +546,12 @@ describe("handleInit", () => {
       // Execute - should work with valid selection
       await handleInit({ fullSend: true });
 
-      // Verify component installation was attempted
-      const { handleAddComponent } = await import(
-        "../../src/commands/add/index.js"
-      );
-      expect(handleAddComponent).toHaveBeenCalled();
+      // Verify component was actually installed (check for component files)
+      expect(
+        vol.existsSync(
+          "/mock-project/src/components/tambo/message-thread-full/message-thread-full.tsx",
+        ),
+      ).toBe(true);
     });
 
     it("should respect --yes flag in full-send mode", async () => {
@@ -473,6 +562,7 @@ describe("handleInit", () => {
           name: "test-project",
           dependencies: { "@tambo-ai/react": "^1.0.0" },
         }),
+        ...createRegistryFiles(["message-thread-full"]),
       });
 
       // Set inquirer responses (fewer prompts with --yes)
@@ -490,10 +580,48 @@ describe("handleInit", () => {
       expect(toTreeSync(vol, { dir: "/mock-project" })).toMatchInlineSnapshot(`
         "mock-project/
         ├─ .env.local
+        ├─ cli/
+        │  ├─ dist/
+        │  │  └─ commands/
+        │  │     └─ add/
+        │  │        └─ utils.js
+        │  └─ src/
+        │     └─ registry/
+        │        ├─ message/
+        │        │  ├─ config.json
+        │        │  └─ message.tsx
+        │        ├─ message-input/
+        │        │  ├─ config.json
+        │        │  └─ message-input.tsx
+        │        ├─ message-suggestions/
+        │        │  ├─ config.json
+        │        │  └─ message-suggestions.tsx
+        │        ├─ message-thread-full/
+        │        │  ├─ config.json
+        │        │  └─ message-thread-full.tsx
+        │        ├─ scrollable-message-container/
+        │        │  ├─ config.json
+        │        │  └─ scrollable-message-container.tsx
+        │        ├─ thread-content/
+        │        │  ├─ config.json
+        │        │  └─ thread-content.tsx
+        │        └─ thread-history/
+        │           ├─ config.json
+        │           └─ thread-history.tsx
         ├─ package.json
         └─ src/
+           ├─ app/
+           ├─ components/
+           │  ├─ message-input.tsx
+           │  ├─ message-suggestions.tsx
+           │  ├─ message-thread-full.tsx
+           │  ├─ message.tsx
+           │  ├─ scrollable-message-container.tsx
+           │  ├─ thread-content.tsx
+           │  └─ thread-history.tsx
            └─ lib/
-              └─ tambo.ts"
+              ├─ tambo.ts
+              └─ utils.ts"
       `);
 
       // Verify auto-proceed message
@@ -514,16 +642,10 @@ describe("handleInit", () => {
       // Execute with --legacyPeerDeps
       await handleInit({ fullSend: true, legacyPeerDeps: true });
 
-      // Verify handleAddComponent was called with legacyPeerDeps
-      const { handleAddComponent } = await import(
-        "../../src/commands/add/index.js"
-      );
-      expect(handleAddComponent).toHaveBeenCalledWith(
-        "message-thread-full",
-        expect.objectContaining({
-          legacyPeerDeps: true,
-        }),
-      );
+      // Verify legacyPeerDeps flag was passed to npm install
+      expect(
+        execSyncCalls.some((call) => call.includes("--legacy-peer-deps")),
+      ).toBe(true);
     });
   });
 
@@ -628,11 +750,12 @@ describe("handleInit", () => {
 
     it("should skip creating tambo.ts when it already exists", async () => {
       // Setup: Add existing tambo.ts
-      vol.fromJSON(
-        createProjectWithTamboTs(
+      vol.fromJSON({
+        ...createProjectWithTamboTs(
           "export const components: TamboComponent[] = [];",
         ),
-      );
+        ...createRegistryFiles(["message-thread-full"]),
+      });
 
       // Set inquirer responses
       inquirerResponses = {
@@ -661,7 +784,10 @@ describe("handleInit", () => {
     it("should create tambo.ts in correct path based on installPath", async () => {
       // Setup: Remove src directory
       vol.reset();
-      vol.fromJSON(createBasicProject());
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message-thread-full"]),
+      });
 
       // Set inquirer responses (user chooses not to use src)
       inquirerResponses = {
@@ -912,7 +1038,12 @@ describe("handleInit", () => {
 
   describe("full-send instructions", () => {
     beforeEach(() => {
-      vol.fromJSON(createProjectWithReact());
+      vol.fromJSON(
+        createProjectWithReactAndRegistry([
+          "message-thread-full",
+          "control-bar",
+        ]),
+      );
     });
 
     it("should copy provider snippet to clipboard", async () => {
@@ -998,7 +1129,7 @@ describe("handleInit", () => {
 
     it("should respect --legacyPeerDeps flag", async () => {
       // Setup: Switch to React project
-      vol.fromJSON(createProjectWithReact());
+      vol.fromJSON(createProjectWithReactAndRegistry(["message-thread-full"]));
 
       // Set inquirer responses
       inquirerResponses = {
@@ -1012,16 +1143,10 @@ describe("handleInit", () => {
       // Execute with --legacyPeerDeps
       await handleInit({ fullSend: true, legacyPeerDeps: true });
 
-      // Verify handleAddComponent was called with legacyPeerDeps
-      const { handleAddComponent } = await import(
-        "../../src/commands/add/index.js"
-      );
-      expect(handleAddComponent).toHaveBeenCalledWith(
-        "message-thread-full",
-        expect.objectContaining({
-          legacyPeerDeps: true,
-        }),
-      );
+      // Verify legacyPeerDeps flag was passed to npm install
+      expect(
+        execSyncCalls.some((call) => call.includes("--legacy-peer-deps")),
+      ).toBe(true);
     });
   });
 });
