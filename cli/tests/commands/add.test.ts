@@ -8,6 +8,10 @@ import {
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
+import {
+  createBasicProject,
+  createProjectWithReact,
+} from "../helpers/mock-fs-setup.js";
 
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
@@ -176,10 +180,7 @@ describe("handleAddComponents", () => {
     it("should install a single component successfully", async () => {
       // Setup: Project with package.json and registry
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
+        ...createBasicProject(),
         // Registry: message component
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
@@ -239,10 +240,7 @@ describe("handleAddComponents", () => {
     it("should install multiple components", async () => {
       // Setup: Project with package.json and registry with multiple components
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
+        ...createBasicProject(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         // Message component
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
@@ -309,10 +307,7 @@ describe("handleAddComponents", () => {
     it("should skip already installed components", async () => {
       // Setup: Project with already installed component
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
@@ -350,10 +345,7 @@ describe("handleAddComponents", () => {
     it("should install only new components when some are already installed", async () => {
       // Setup: Project with one component already installed
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
@@ -424,10 +416,7 @@ describe("handleAddComponents", () => {
     it("should install component dependencies", async () => {
       // Setup: Component with dependencies
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
+        ...createBasicProject(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         // Message component requires markdown-components
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
@@ -565,10 +554,7 @@ describe("handleAddComponents", () => {
     it("should install to legacy location when components exist there", async () => {
       // Setup: Project with components in legacy ui/ directory
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
@@ -783,10 +769,7 @@ describe("handleAddComponents", () => {
     it("should respect --yes flag and skip prompts", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
+        ...createBasicProject(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
@@ -1179,10 +1162,7 @@ describe("handleAddComponents", () => {
     it("should install production dependencies", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
+        ...createBasicProject(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
@@ -1287,10 +1267,7 @@ describe("handleAddComponents", () => {
     it("should use --legacy-peer-deps when option is set", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
+        ...createBasicProject(),
         "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",

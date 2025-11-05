@@ -187,3 +187,68 @@ export function captureConsoleOutput(): {
     },
   };
 }
+
+/**
+ * Creates a basic project structure with just package.json
+ */
+export function createBasicProject(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: {},
+    }),
+  };
+}
+
+/**
+ * Creates a project with React dependency and src directory
+ */
+export function createProjectWithReact(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: { "@tambo-ai/react": "^1.0.0" },
+    }),
+    "/mock-project/src": null,
+  };
+}
+
+/**
+ * Creates a project with existing API key in .env.local
+ */
+export function createProjectWithEnv(
+  key: string,
+): Record<string, string | null> {
+  return {
+    ...createBasicProject(),
+    "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${key}\n`,
+  };
+}
+
+/**
+ * Creates a project with both .env and .env.local files
+ */
+export function createProjectWithBothEnvFiles(
+  localKey: string,
+  envKey: string,
+): Record<string, string | null> {
+  return {
+    ...createBasicProject(),
+    "/mock-project/.env": `NEXT_PUBLIC_TAMBO_API_KEY=${envKey}\n`,
+    "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${localKey}\n`,
+  };
+}
+
+/**
+ * Creates a project with existing tambo.ts file
+ */
+export function createProjectWithTamboTs(
+  content?: string,
+): Record<string, string | null> {
+  return {
+    ...createBasicProject(),
+    "/mock-project/src": null,
+    "/mock-project/src/lib/tambo.ts":
+      content ?? "export const components: TamboComponent[] = [];",
+  };
+}

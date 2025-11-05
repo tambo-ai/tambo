@@ -8,6 +8,13 @@ import {
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
+import {
+  createBasicProject,
+  createProjectWithBothEnvFiles,
+  createProjectWithEnv,
+  createProjectWithReact,
+  createProjectWithTamboTs,
+} from "../helpers/mock-fs-setup.js";
 
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
@@ -118,55 +125,6 @@ jest.unstable_mockModule("chalk", () => ({
 const { handleInit, getInstallationPath } = await import(
   "../../src/commands/init.js"
 );
-
-// Helper functions for common filesystem setups
-function createBasicProject(): Record<string, string | null> {
-  return {
-    "/mock-project/package.json": JSON.stringify({
-      name: "test-project",
-      dependencies: {},
-    }),
-  };
-}
-
-function createProjectWithReact(): Record<string, string | null> {
-  return {
-    "/mock-project/package.json": JSON.stringify({
-      name: "test-project",
-      dependencies: { "@tambo-ai/react": "^1.0.0" },
-    }),
-    "/mock-project/src": null,
-  };
-}
-
-function createProjectWithEnv(key: string): Record<string, string | null> {
-  return {
-    ...createBasicProject(),
-    "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${key}\n`,
-  };
-}
-
-function createProjectWithBothEnvFiles(
-  localKey: string,
-  envKey: string,
-): Record<string, string | null> {
-  return {
-    ...createBasicProject(),
-    "/mock-project/.env": `NEXT_PUBLIC_TAMBO_API_KEY=${envKey}\n`,
-    "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${localKey}\n`,
-  };
-}
-
-function createProjectWithTamboTs(
-  content?: string,
-): Record<string, string | null> {
-  return {
-    ...createBasicProject(),
-    "/mock-project/src": null,
-    "/mock-project/src/lib/tambo.ts":
-      content ?? "export const components: TamboComponent[] = [];",
-  };
-}
 
 describe("handleInit", () => {
   let originalCwd: () => string;

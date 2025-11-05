@@ -8,6 +8,10 @@ import {
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
+import {
+  createBasicProject,
+  createProjectWithReact,
+} from "../helpers/mock-fs-setup.js";
 
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
@@ -454,10 +458,7 @@ describe("handleUpdateComponents", () => {
     it("should update all installed components when 'installed' is specified", async () => {
       // Setup: Project with multiple installed components
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -515,12 +516,7 @@ describe("handleUpdateComponents", () => {
 
     it("should show message when no components are installed", async () => {
       // Setup: Project with package.json but no components
-      vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
-      });
+      vol.fromJSON(createBasicProject());
 
       // Execute
       await handleUpdateComponents(["installed"], { yes: true });
@@ -533,10 +529,7 @@ describe("handleUpdateComponents", () => {
     it("should list installed components when using 'installed' keyword", async () => {
       // Setup: Project with installed components
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -569,10 +562,7 @@ describe("handleUpdateComponents", () => {
     it("should update a single installed component", async () => {
       // Setup: Project with installed component
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -613,10 +603,7 @@ describe("handleUpdateComponents", () => {
     it("should update multiple components", async () => {
       // Setup: Project with multiple installed components
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -990,10 +977,7 @@ describe("handleUpdateComponents", () => {
     it("should respect --yes flag and skip confirmation", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -1134,10 +1118,7 @@ describe("handleUpdateComponents", () => {
     it("should respect --legacyPeerDeps option", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
+        ...createProjectWithReact(),
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
