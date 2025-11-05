@@ -1,6 +1,5 @@
 "use client";
 
-import { ContextAttachmentProvider } from "@/components/ui/tambo/context-attachment-provider";
 import { env } from "@/lib/env";
 import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
@@ -19,7 +18,7 @@ export function TamboProviderWrapper({ children }: TamboProviderWrapperProps) {
         userPage: currentPageContextHelper,
       }}
     >
-      <ContextAttachmentProvider>{children}</ContextAttachmentProvider>
+      {children}
     </TamboProvider>
   );
 }

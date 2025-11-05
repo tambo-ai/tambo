@@ -1,5 +1,4 @@
-import type { ContextHelperData } from "@/components/ui/tambo/context-attachment-provider";
-import type { TamboThreadMessage } from "@tambo-ai/react";
+import type { ContextHelperData, TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
 
@@ -229,7 +228,9 @@ export function getMessageContexts(
   for (const [key, value] of Object.entries(additionalContext)) {
     if (value && typeof value === "object") {
       const contextData = value as ContextHelperData;
-      const selectedComponent = contextData.selectedComponent;
+      const selectedComponent = contextData.selectedComponent as
+        | { name?: string; [key: string]: unknown }
+        | undefined;
 
       if (selectedComponent?.name) {
         contexts.push({

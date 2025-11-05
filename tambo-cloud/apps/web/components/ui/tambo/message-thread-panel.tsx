@@ -1,6 +1,5 @@
 "use client";
 
-import { useContextAttachment } from "@/components/ui/tambo/context-attachment-provider";
 import type { messageVariants } from "@/components/ui/tambo/message";
 import { Message, MessageContent } from "@/components/ui/tambo/message";
 import {
@@ -29,6 +28,7 @@ import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider
 import { api, useTRPCClient } from "@/trpc/react";
 import {
   useTambo,
+  useTamboContextAttachment,
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
@@ -188,7 +188,8 @@ export const MessageThreadPanel = forwardRef<
   const isUserLoggedIn = !!session;
   const { thread } = useTambo();
   const { isOpen, setIsOpen } = useMessageThreadPanel();
-  const contextAttachment = useContextAttachment();
+  const { customSuggestions, setCustomSuggestions } =
+    useTamboContextAttachment();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Update CSS variable and focus input when panel opens/closes
@@ -291,18 +292,14 @@ export const MessageThreadPanel = forwardRef<
   ];
 
   // Use custom suggestions if available, otherwise use defaults
-  const activeSuggestions =
-    contextAttachment.customSuggestions ?? defaultSuggestions;
+  const activeSuggestions = customSuggestions ?? defaultSuggestions;
 
   // Clear custom suggestions when a new message is sent
   useEffect(() => {
-    if (
-      thread?.messages?.length &&
-      contextAttachment.customSuggestions !== null
-    ) {
-      contextAttachment.setCustomSuggestions(null);
+    if (thread?.messages?.length && customSuggestions !== null) {
+      setCustomSuggestions(null);
     }
-  }, [thread?.messages?.length, contextAttachment]);
+  }, [thread?.messages?.length, customSuggestions, setCustomSuggestions]);
 
   return (
     <ResizablePanel ref={ref} className={className} isOpen={isOpen} {...props}>

@@ -1,7 +1,6 @@
 "use client";
 
 import { ContextAttachmentBadgeList } from "@/components/ui/tambo/context-attachment-badge";
-import { useContextAttachment } from "@/components/ui/tambo/context-attachment-provider";
 import { McpConfigModal } from "@/components/ui/tambo/mcp-config-modal";
 import {
   Tooltip,
@@ -10,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,
+  useTamboContextAttachment,
   useTamboThread,
   useTamboThreadInput,
 } from "@tambo-ai/react";
@@ -167,7 +167,7 @@ const MessageInputInternal = React.forwardRef<
     clearImages,
   } = useTamboThreadInput();
   const { cancel } = useTamboThread();
-  const contextAttachment = useContextAttachment();
+  const { attachments, clearContextAttachments } = useTamboContextAttachment();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -195,8 +195,8 @@ const MessageInputInternal = React.forwardRef<
       if (images.length > 0) {
         setTimeout(() => clearImages(), 0);
       }
-      if (contextAttachment.attachments.length > 0) {
-        setTimeout(() => contextAttachment.clearContextAttachments(), 0);
+      if (attachments.length > 0) {
+        setTimeout(() => clearContextAttachments(), 0);
       }
 
       try {
@@ -235,7 +235,8 @@ const MessageInputInternal = React.forwardRef<
       isSubmitting,
       images,
       clearImages,
-      contextAttachment,
+      attachments,
+      clearContextAttachments,
     ],
   );
 

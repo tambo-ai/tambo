@@ -1,10 +1,12 @@
 "use client";
 
-import { useContextAttachment } from "@/components/ui/tambo/context-attachment-provider";
 import { getMessageContexts, getMessageImages } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
-import { useTamboThreadInput } from "@tambo-ai/react";
+import {
+  useTamboContextAttachment,
+  useTamboThreadInput,
+} from "@tambo-ai/react";
 import { Cuboid, Image as ImageIcon, X } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
@@ -139,7 +141,7 @@ export const ContextAttachmentBadgeList = React.forwardRef<
 >(({ message, showRemoveButtons = false, className, ...props }, ref) => {
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const threadInput = useTamboThreadInput();
-  const contextAttachment = useContextAttachment();
+  const { attachments, removeContextAttachment } = useTamboContextAttachment();
 
   // Get images and contexts based on mode
   const imagesList = message
@@ -148,15 +150,11 @@ export const ContextAttachmentBadgeList = React.forwardRef<
       ).map((url, index) => ({ id: `image-${index}`, dataUrl: url }))
     : threadInput.images;
 
-  const contextsList = message
-    ? getMessageContexts(message)
-    : contextAttachment.attachments;
+  const contextsList = message ? getMessageContexts(message) : attachments;
 
   // Build attachments array
   const removeImage = message ? undefined : threadInput.removeImage;
-  const removeContext = message
-    ? undefined
-    : contextAttachment.removeContextAttachment;
+  const removeContext = message ? undefined : removeContextAttachment;
 
   const allAttachments = [
     ...imagesList.map((image, index) => ({

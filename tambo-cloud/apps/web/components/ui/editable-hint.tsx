@@ -1,11 +1,18 @@
 "use client";
 
-import { useContextAttachment } from "@/components/ui/tambo/context-attachment-provider";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
-import type { Suggestion } from "@tambo-ai/react";
-import { Sparkles } from "lucide-react";
-import { useCallback, useMemo, useState, type MouseEvent } from "react";
+import { type Suggestion, useTamboContextAttachment } from "@tambo-ai/react";
+import { Bot } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
+import { createPortal } from "react-dom";
 
 interface EditableHintProps {
   /** Suggestions to display when clicked */
@@ -19,10 +26,10 @@ interface EditableHintProps {
 }
 
 /**
- * Inline sparkle button that opens Tambo AI panel with custom suggestions.
+ * Inline AI hint button that opens Tambo AI panel with custom suggestions.
  * Shows a popover on hover and adds a context badge when clicked.
  *
- * Requires `ContextAttachmentProvider` and `MessageThreadPanelProvider`.
+ * Requires `TamboContextAttachmentProvider` and `MessageThreadPanelProvider`.
  *
  * @example
  * ```tsx
@@ -42,8 +49,12 @@ export function EditableHint({
   componentName,
 }: EditableHintProps) {
   const { setIsOpen } = useMessageThreadPanel();
-  const { setCustomSuggestions, addContextAttachment } = useContextAttachment();
+  const { setCustomSuggestions, addContextAttachment } =
+    useTamboContextAttachment();
   const [showPopover, setShowPopover] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const [isPositioned, setIsPositioned] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Generate a component name from description if not provided
   const contextName = useMemo(() => {
@@ -52,6 +63,20 @@ export function EditableHint({
     const words = description.split(" ").slice(0, 3);
     return words.join(" ");
   }, [componentName, description]);
+
+  // Calculate popover position when shown
+  useEffect(() => {
+    if (showPopover && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPopoverPosition({
+        top: rect.bottom + 8, // 8px spacing
+        left: rect.left,
+      });
+      setIsPositioned(true);
+    } else {
+      setIsPositioned(false);
+    }
+  }, [showPopover]);
 
   const handleClick = useCallback(
     (e: MouseEvent) => {
@@ -73,38 +98,50 @@ export function EditableHint({
   );
 
   return (
-    <span className="relative inline-flex items-center">
-      <button
-        type="button"
-        onClick={handleClick}
-        onMouseEnter={() => setShowPopover(true)}
-        onMouseLeave={() => setShowPopover(false)}
-        className={cn(
-          "inline-flex items-center justify-center ml-2 p-1 rounded-md",
-          "text-muted-foreground hover:text-primary",
-          "hover:bg-accent transition-colors duration-200",
-          "cursor-pointer",
-          className,
-        )}
-        aria-label={description}
-      >
-        <Sparkles className="h-4 w-4" />
-      </button>
-
-      {/* Hover popover */}
-      {showPopover && (
-        <div
+    <>
+      <span className="inline-flex items-center">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleClick}
+          onMouseEnter={() => setShowPopover(true)}
+          onMouseLeave={() => setShowPopover(false)}
           className={cn(
-            "absolute left-0 top-full mt-2 z-50",
-            "px-3 py-2 text-sm rounded-lg whitespace-nowrap",
-            "bg-popover text-popover-foreground border shadow-md",
-            "animate-in fade-in-0 zoom-in-95 duration-200",
+            "inline-flex items-center justify-center ml-2 p-1 rounded-md",
+            "text-muted-foreground/60 hover:text-primary",
+            "hover:bg-accent transition-colors duration-200",
+            "cursor-pointer",
+            className,
           )}
+          aria-label={description}
         >
-          <p className="font-medium">Edit with tambo</p>
-          <p className="text-xs text-muted-foreground mt-1">{description}</p>
-        </div>
-      )}
-    </span>
+          <Bot className="h-3.5 w-3.5" />
+        </button>
+      </span>
+
+      {/* Hover popover - rendered in portal */}
+      {showPopover &&
+        isPositioned &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className={cn(
+              "fixed z-50",
+              "px-3 py-2 text-sm rounded-lg whitespace-nowrap",
+              "bg-popover text-popover-foreground border shadow-md",
+              "animate-in fade-in-0 zoom-in-95 duration-200",
+              "pointer-events-none",
+            )}
+            style={{
+              top: `${popoverPosition.top}px`,
+              left: `${popoverPosition.left}px`,
+            }}
+          >
+            <p className="font-medium">Edit with tambo</p>
+            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
