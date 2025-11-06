@@ -1,6 +1,8 @@
 import {
   GetPromptResult,
   type ListPromptsResult,
+  type ListResourcesResult,
+  type ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
 import { useTamboQueries, useTamboQuery } from "../hooks";
@@ -15,6 +17,13 @@ export interface ListPromptEntry {
   // Only connected servers produce prompt entries, so expose the connected type
   server: ConnectedMcpServer;
   prompt: ListPromptItem;
+}
+
+export type ListResourceItem = ListResourcesResult["resources"][number];
+export interface ListResourceEntry {
+  // Only connected servers produce resource entries, so expose the connected type
+  server: ConnectedMcpServer;
+  resource: ListResourceItem;
 }
 
 /**
@@ -168,6 +177,101 @@ export function useTamboMcpPrompt(
       const result = await mcpServer.client.client.getPrompt({
         name: originalPromptName,
         arguments: args,
+      });
+      return result ?? null; // return null because react-query doesn't like undefined results
+    },
+  });
+}
+
+/**
+ * Hook to get the resources for all the registered MCP servers.
+ * @returns The resources for the MCP servers, including the server that the resource was found on.
+ */
+export function useTamboMcpResourceList() {
+  const mcpServers = useTamboMcpServers();
+
+  const queries = useTamboQueries({
+    queries: mcpServers.map((mcpServer) => ({
+      queryKey: ["mcp-resources", mcpServer.key],
+      // Only run for connected servers that have a client
+      enabled: isConnectedMcpServer(mcpServer),
+      queryFn: async (): Promise<ListResourceEntry[]> => {
+        // Fast path: if this server doesn't have a client, skip work
+        if (!isConnectedMcpServer(mcpServer)) return [];
+
+        const result = await mcpServer.client.client.listResources();
+        const resources: ListResourceItem[] = result?.resources ?? [];
+        // Return resources without prefixes - we'll apply prefixing in combine
+        const resourceEntries = resources.map((resource) => ({
+          server: mcpServer,
+          resource,
+        }));
+        return resourceEntries;
+      },
+    })),
+    combine: (results) => {
+      const combined = combineArrayResults(results);
+      // Apply prefixing based on current server count
+      const shouldPrefix = mcpServers.length > 1;
+      if (!shouldPrefix) {
+        return combined;
+      }
+
+      // Apply prefixes to all resources
+      return {
+        ...combined,
+        data: combined.data.map((entry) => ({
+          ...entry,
+          resource: {
+            ...entry.resource,
+            uri: `${entry.server.serverKey}:${entry.resource.uri}`,
+          },
+        })),
+      };
+    },
+  });
+
+  return queries;
+}
+
+/**
+ * Hook to get the resource for the specified URI.
+ * @param resourceUri - The URI of the resource to get. Can be prefixed with serverKey (e.g., "linear:file://foo") or unprefixed.
+ * @returns The resource for the specified URI.
+ */
+export function useTamboMcpResource(resourceUri: string | undefined) {
+  // figure out which server has the resource
+  const { data: resourceEntries } = useTamboMcpResourceList();
+  const resourceEntry = resourceEntries?.find(
+    (resource) => resource.resource.uri === resourceUri,
+  );
+  // Use the stable server key (and the server instance itself) instead of brittle
+  // name/url/transport matching.
+  const mcpServer = resourceEntry?.server;
+
+  // Strip the prefix to get the original resource URI for the MCP server call
+  // Only strip if we found a matching resource entry with a server
+  const originalResourceUri = resourceEntry
+    ? resourceUri?.replace(`${resourceEntry.server.serverKey}:`, "")
+    : resourceUri;
+
+  return useTamboQuery({
+    // Include server identity to prevent stale cache hits
+    queryKey: ["mcp-resource", resourceUri, mcpServer?.key],
+    // Only run when we have a resource URI and a connected server
+    enabled: Boolean(
+      resourceUri && mcpServer && isConnectedMcpServer(mcpServer),
+    ),
+    queryFn: async (): Promise<ReadResourceResult | null> => {
+      if (
+        !originalResourceUri ||
+        !mcpServer ||
+        !isConnectedMcpServer(mcpServer)
+      ) {
+        return null;
+      }
+      const result = await mcpServer.client.client.readResource({
+        uri: originalResourceUri,
       });
       return result ?? null; // return null because react-query doesn't like undefined results
     },
