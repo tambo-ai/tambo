@@ -12,7 +12,6 @@ import { HeadersEditor, type HeaderKV } from "./headers-editor";
 export function AgentSettings({
   agentProvider,
   setAgentProvider,
-  setHasUnsavedChanges,
   agentUrl,
   setAgentUrl,
   showValidationErrors,
@@ -23,7 +22,6 @@ export function AgentSettings({
 }: {
   agentProvider: AgentProviderType;
   setAgentProvider: (agentProvider: AgentProviderType) => void;
-  setHasUnsavedChanges: (hasUnsavedChanges: boolean) => void;
   agentUrl: string;
   setAgentUrl: (agentUrl: string) => void;
   showValidationErrors: boolean;
@@ -54,7 +52,6 @@ export function AgentSettings({
           value={agentProvider}
           onChange={(newProvider) => {
             setAgentProvider(newProvider);
-            setHasUnsavedChanges(true);
           }}
           placeholder="Select agent provider..."
           searchPlaceholder="Search agent providers..."
@@ -71,7 +68,6 @@ export function AgentSettings({
           value={agentUrl}
           onChange={(e) => {
             setAgentUrl(e.target.value);
-            setHasUnsavedChanges(true);
           }}
         />
         {showValidationErrors && !agentUrl.trim() && (
@@ -85,7 +81,6 @@ export function AgentSettings({
           headers={agentHeaders}
           onSave={(updated) => {
             setAgentHeaders(updated);
-            setHasUnsavedChanges(true);
           }}
         />
         <p className="text-xs text-foreground">
@@ -102,7 +97,6 @@ export function AgentSettings({
           value={agentName}
           onChange={(e) => {
             setAgentName(e.target.value);
-            setHasUnsavedChanges(true);
           }}
         />
         <p className="text-xs text-foreground">

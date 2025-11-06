@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { api, type RouterOutputs } from "@/trpc/react";
+import { api } from "@/trpc/react";
 import {
   AgentProviderType,
   AiProviderType,
   DEFAULT_OPENAI_MODEL,
 } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
+import { withInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLinkIcon, InfoIcon, Loader2 } from "lucide-react";
 import {
@@ -51,34 +52,103 @@ const providerKeySectionSuggestions: Suggestion[] = [
   },
 ];
 
-export const ProviderKeySectionSchema = z
-  .object({
-    id: z.string().describe("The unique identifier for the project."),
-    name: z.string().describe("The name of the project."),
-  })
-  .describe("Project data from the router output.");
-
-export const ProviderKeySectionProps = z.object({
-  project: z
-    .lazy(() =>
-      ProviderKeySectionSchema.describe(
-        "The project to configure LLM providers for.",
-      ),
-    )
+export const InteractableProviderKeySectionProps = z.object({
+  projectId: z.string().describe("The unique identifier for the project."),
+  changeMode: z
+    .enum(["llm", "agent"])
     .optional()
-    .describe("Props for the ProviderKeySection component."),
+    .describe(
+      "When set, switches the component to the specified AI mode. Use 'llm' for traditional LLM configuration or 'agent' for agent-based configuration. This will trigger the mode toggle and mark settings as changed.",
+    ),
+  changeProviderAndModel: z
+    .object({
+      provider: z
+        .string()
+        .describe(
+          "The provider API name (e.g., 'openai', 'anthropic', 'openai-compatible')",
+        ),
+      model: z
+        .string()
+        .optional()
+        .describe(
+          "The model API name (e.g., 'gpt-4o', 'claude-3-5-sonnet-20241022'). Use 'custom' or omit for custom providers.",
+        ),
+    })
+    .optional()
+    .describe(
+      "When set, changes the selected provider and model combination. The component will update the dropdown selection and reset related fields. This triggers the combined provider/model selector.",
+    ),
+  updateApiKey: z
+    .string()
+    .optional()
+    .describe(
+      "When set, enters edit mode for the API key field with this value pre-filled. Set to empty string to clear the key (for OpenAI/OpenAI-compatible only). After setting this value, the component will be in API key edit mode ready to save.",
+    ),
+  enterApiKeyEditMode: z
+    .boolean()
+    .optional()
+    .describe(
+      "When true, opens the API key editing interface, allowing the user to manually enter a new API key for the currently selected provider.",
+    ),
+  updateCustomModelName: z
+    .string()
+    .optional()
+    .describe(
+      "When set, updates the custom model name field for custom providers (like OpenAI-compatible). This is required when using custom providers.",
+    ),
+  updateBaseUrl: z
+    .string()
+    .optional()
+    .describe(
+      "When set, updates the base URL field for providers that require it (like OpenAI-compatible). Requests will be sent to <baseUrl>/chat/completions.",
+    ),
+  updateMaxInputTokens: z
+    .number()
+    .optional()
+    .describe(
+      "When set, updates the maximum input tokens limit. Tambo will limit the number of tokens sent to the model to this value. Must be positive and within the model's maximum limit.",
+    ),
+  saveSettings: z
+    .boolean()
+    .optional()
+    .describe(
+      "When true, triggers the save action for all current settings. This will validate all fields and save the LLM or Agent configuration based on the current mode.",
+    ),
+  updateAgentUrl: z
+    .string()
+    .optional()
+    .describe(
+      "When set, updates the agent URL field in agent mode. This is the endpoint URL where the agent is hosted. Required for agent mode.",
+    ),
+  updateAgentName: z
+    .string()
+    .optional()
+    .describe(
+      "When set, updates the agent name field in agent mode. This is an optional identifier for the agent configuration.",
+    ),
   onEdited: z
     .function()
     .args()
     .returns(z.void())
     .optional()
     .describe(
-      "Optional callback function triggered when settings are successfully updated.",
+      "Optional callback function triggered when settings are successfully updated or API keys are saved.",
     ),
 });
 
 interface ProviderKeySectionProps {
-  project?: RouterOutputs["project"]["getUserProjects"][number];
+  projectId: string;
+  // Interactable control props
+  changeMode?: "llm" | "agent";
+  changeProviderAndModel?: { provider: string; model?: string };
+  updateApiKey?: string;
+  enterApiKeyEditMode?: boolean;
+  updateCustomModelName?: string;
+  updateBaseUrl?: string;
+  updateMaxInputTokens?: number;
+  saveSettings?: boolean;
+  updateAgentUrl?: string;
+  updateAgentName?: string;
   onEdited?: () => void;
 }
 
@@ -128,8 +198,18 @@ function agentHeadersRecordToArray(
   return Object.entries(record).map(([header, value]) => ({ header, value }));
 }
 
-export function ProviderKeySection({
-  project,
+function ProviderKeySectionBase({
+  projectId,
+  changeMode,
+  changeProviderAndModel,
+  updateApiKey,
+  enterApiKeyEditMode,
+  updateCustomModelName: externalCustomModelName,
+  updateBaseUrl: externalBaseUrl,
+  updateMaxInputTokens: externalMaxInputTokens,
+  saveSettings: triggerSaveSettings,
+  updateAgentUrl: externalAgentUrl,
+  updateAgentName: externalAgentName,
   onEdited,
 }: ProviderKeySectionProps) {
   const modeLlmId = useId();
@@ -151,28 +231,28 @@ export function ProviderKeySection({
     isLoading: isLoadingSettings,
     refetch: refetchSettings,
   } = api.project.getProjectLlmSettings.useQuery(
-    { projectId: project?.id ?? "" },
-    { enabled: !!project?.id },
+    { projectId: projectId ?? "" },
+    { enabled: !!projectId },
   );
 
   const { data: messageUsage } = api.project.getProjectMessageUsage.useQuery(
-    { projectId: project?.id ?? "" },
-    { enabled: !!project?.id },
+    { projectId: projectId ?? "" },
+    { enabled: !!projectId },
   );
 
   const {
     data: storedApiKeys,
     isLoading: isLoadingKeys,
     refetch: refetchKeys,
-  } = api.project.getProviderKeys.useQuery(project?.id ?? "", {
-    enabled: !!project?.id,
+  } = api.project.getProviderKeys.useQuery(projectId ?? "", {
+    enabled: !!projectId,
   });
 
   const { data: projectMessageUsage } =
     api.project.getProjectMessageUsage.useQuery(
-      { projectId: project?.id ?? "" },
+      { projectId: projectId ?? "" },
       {
-        enabled: !!project?.id,
+        enabled: !!projectId,
       },
     );
 
@@ -184,7 +264,6 @@ export function ProviderKeySection({
   const [maxInputTokens, setMaxInputTokens] = useState<string>("");
   const [apiKeyInput, setApiKeyInput] = useState<string>("");
   const [isEditingApiKey, setIsEditingApiKey] = useState<boolean>(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
 
   // Agent settings state
@@ -292,7 +371,7 @@ export function ProviderKeySection({
     // switch between modes without losing previously entered settings, and avoid
     // clobbering in‑progress edits on refetch.
     const hydratedRef = agentHydratedRef.current;
-    if (hydratedRef !== project?.id) {
+    if (hydratedRef !== projectId) {
       if (projectLlmSettings.agentProviderType) {
         setAgentProvider(projectLlmSettings.agentProviderType);
       }
@@ -301,7 +380,7 @@ export function ProviderKeySection({
       setAgentHeaders(
         agentHeadersRecordToArray(projectLlmSettings.agentHeaders),
       );
-      agentHydratedRef.current = project?.id ?? null;
+      agentHydratedRef.current = projectId ?? null;
     }
 
     // LLM settings
@@ -332,9 +411,89 @@ export function ProviderKeySection({
         }
       }
     }
+  }, [projectId, projectLlmSettings, llmProviderConfigData]);
 
-    setHasUnsavedChanges(false);
-  }, [project?.id, projectLlmSettings, llmProviderConfigData]);
+  // --- Interactable Control Props Watchers ---
+
+  // Watch changeMode to switch between LLM and Agent modes
+  useEffect(() => {
+    if (changeMode !== undefined) {
+      const newMode =
+        changeMode === "llm" ? AiProviderType.LLM : AiProviderType.AGENT;
+      setMode(newMode);
+    }
+  }, [changeMode]);
+
+  // Watch changeProviderAndModel to update provider/model selection
+  useEffect(() => {
+    if (changeProviderAndModel !== undefined) {
+      const { provider, model } = changeProviderAndModel;
+      const combinedValue = model
+        ? `${provider}|${model}`
+        : `${provider}|custom`;
+      handleCombinedSelectChange(combinedValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [changeProviderAndModel]);
+
+  // Watch updateApiKey to enter edit mode with pre-filled value
+  useEffect(() => {
+    if (updateApiKey !== undefined) {
+      setApiKeyInput(updateApiKey);
+      setIsEditingApiKey(true);
+    }
+  }, [updateApiKey]);
+
+  // Watch enterApiKeyEditMode to open API key editing interface
+  useEffect(() => {
+    if (enterApiKeyEditMode === true) {
+      setApiKeyInput("");
+      setIsEditingApiKey(true);
+    }
+  }, [enterApiKeyEditMode]);
+
+  // Watch updateCustomModelName to update custom model name field
+  useEffect(() => {
+    if (externalCustomModelName !== undefined) {
+      setCustomModelName(externalCustomModelName);
+    }
+  }, [externalCustomModelName]);
+
+  // Watch updateBaseUrl to update base URL field
+  useEffect(() => {
+    if (externalBaseUrl !== undefined) {
+      setBaseUrl(externalBaseUrl);
+    }
+  }, [externalBaseUrl]);
+
+  // Watch updateMaxInputTokens to update token limit
+  useEffect(() => {
+    if (externalMaxInputTokens !== undefined) {
+      setMaxInputTokens(externalMaxInputTokens.toString());
+    }
+  }, [externalMaxInputTokens]);
+
+  // Watch saveSettings to trigger save action
+  useEffect(() => {
+    if (triggerSaveSettings === true) {
+      handleSaveDefaults().catch(console.error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerSaveSettings]);
+
+  // Watch updateAgentUrl to update agent URL field
+  useEffect(() => {
+    if (externalAgentUrl !== undefined) {
+      setAgentUrl(externalAgentUrl);
+    }
+  }, [externalAgentUrl]);
+
+  // Watch updateAgentName to update agent name field
+  useEffect(() => {
+    if (externalAgentName !== undefined) {
+      setAgentName(externalAgentName);
+    }
+  }, [externalAgentName]);
 
   // API key validation
   const [debouncedApiKey] = useDebounce(apiKeyInput, 500);
@@ -362,7 +521,6 @@ export function ProviderKeySection({
     api.project.updateProjectAgentSettings.useMutation({
       onSuccess: async () => {
         toast({ title: "Success", description: "Agent configuration saved." });
-        setHasUnsavedChanges(false);
         await refetchSettings();
         onEdited?.();
       },
@@ -381,7 +539,6 @@ export function ProviderKeySection({
           title: "Success",
           description: "LLM configuration saved.",
         });
-        setHasUnsavedChanges(false);
         await refetchSettings();
         onEdited?.();
       },
@@ -420,6 +577,83 @@ export function ProviderKeySection({
   const isUsingDefaultModel = parsedSelection.model === DEFAULT_OPENAI_MODEL;
   const canUseFreeMessages =
     parsedSelection.provider === "openai" && isUsingDefaultModel;
+
+  // Check if current state differs from saved state
+  const hasActualChanges = useMemo(() => {
+    if (!projectLlmSettings) return false;
+
+    // Check mode change
+    if (mode !== (projectLlmSettings.providerType ?? AiProviderType.LLM)) {
+      return true;
+    }
+
+    // Check LLM settings changes
+    if (mode === AiProviderType.LLM) {
+      const savedProvider =
+        projectLlmSettings.defaultLlmProviderName || "openai";
+      const savedModel =
+        projectLlmSettings.defaultLlmModelName || DEFAULT_OPENAI_MODEL;
+
+      // Build saved combined value
+      const savedCombinedValue =
+        savedProvider === "openai-compatible"
+          ? `${savedProvider}|custom`
+          : `${savedProvider}|${savedModel}`;
+
+      if (combinedSelectValue !== savedCombinedValue) return true;
+
+      // Check custom provider fields
+      if (parsedSelection.provider === "openai-compatible") {
+        if (customModelName !== (projectLlmSettings.customLlmModelName || ""))
+          return true;
+        if (baseUrl !== (projectLlmSettings.customLlmBaseURL || ""))
+          return true;
+      }
+
+      // Check max input tokens
+      const currentTokens = maxInputTokens.trim();
+      const savedTokens = projectLlmSettings.maxInputTokens?.toString() || "";
+      if (currentTokens !== savedTokens) return true;
+    }
+
+    // Check Agent settings changes
+    if (mode === AiProviderType.AGENT) {
+      if (
+        agentProvider !==
+        (projectLlmSettings.agentProviderType ?? AgentProviderType.CREWAI)
+      )
+        return true;
+      if (agentUrl !== (projectLlmSettings.agentUrl ?? "")) return true;
+      if (agentName !== (projectLlmSettings.agentName ?? "")) return true;
+
+      // Check agent headers - normalize by sorting to avoid order sensitivity
+      const normalizeHeaders = (arr: { header: string; value: string }[]) =>
+        [...arr].sort((a, b) => a.header.localeCompare(b.header));
+
+      const savedHeaders = agentHeadersRecordToArray(
+        projectLlmSettings.agentHeaders,
+      );
+      if (
+        JSON.stringify(normalizeHeaders(agentHeaders)) !==
+        JSON.stringify(normalizeHeaders(savedHeaders))
+      )
+        return true;
+    }
+
+    return false;
+  }, [
+    projectLlmSettings,
+    mode,
+    combinedSelectValue,
+    parsedSelection.provider,
+    customModelName,
+    baseUrl,
+    maxInputTokens,
+    agentProvider,
+    agentUrl,
+    agentName,
+    agentHeaders,
+  ]);
 
   const maskedApiKeyDisplay = isLoadingKeys
     ? "Loading..."
@@ -471,7 +705,6 @@ export function ProviderKeySection({
 
       setApiKeyInput("");
       setIsEditingApiKey(false);
-      setHasUnsavedChanges(true);
     },
     [
       providerModelOptions,
@@ -483,7 +716,7 @@ export function ProviderKeySection({
   );
 
   const handleSaveDefaults = useCallback(async () => {
-    if (!project?.id) {
+    if (!projectId) {
       toast({
         title: "Error",
         description: "No project selected.",
@@ -519,7 +752,7 @@ export function ProviderKeySection({
 
       setShowValidationErrors(false);
       await updateAgentSettingsAsync({
-        projectId: project.id,
+        projectId,
         providerType: AiProviderType.AGENT,
         agentProviderType: agentProvider,
         agentUrl: localAgentUrl,
@@ -640,15 +873,15 @@ export function ProviderKeySection({
     setShowValidationErrors(false);
     // Ensure providerType is set back to LLM when saving in LLM mode.
     // Do not clear any agent fields—preserve previously saved values.
-    if (project.providerType !== AiProviderType.LLM) {
+    if (projectLlmSettings?.providerType !== AiProviderType.LLM) {
       await updateAgentSettingsAsync({
-        projectId: project.id,
+        projectId,
         providerType: AiProviderType.LLM,
       });
     }
 
     updateLlmSettings({
-      projectId: project.id,
+      projectId,
       defaultLlmProviderName: provider,
       defaultLlmModelName: currentProviderConfig?.isCustomProvider
         ? null
@@ -663,8 +896,8 @@ export function ProviderKeySection({
       maxInputTokens: maxTokensToSave,
     });
   }, [
-    project?.id,
-    project?.providerType,
+    projectId,
+    projectLlmSettings,
     combinedSelectValue,
     parsedSelection,
     customModelName,
@@ -686,7 +919,7 @@ export function ProviderKeySection({
   ]);
 
   const handleSaveApiKey = useCallback(async () => {
-    if (!project?.id || !parsedSelection.provider) {
+    if (!projectId || !parsedSelection.provider) {
       toast({
         title: "Error",
         description: "No project or provider selected.",
@@ -717,7 +950,7 @@ export function ProviderKeySection({
     }
 
     addOrUpdateApiKey({
-      projectId: project.id,
+      projectId,
       provider: parsedSelection.provider,
       providerKey: apiKeyInput.trim() || undefined,
     });
@@ -726,7 +959,7 @@ export function ProviderKeySection({
     apiKeyInput,
     apiKeyValidation,
     addOrUpdateApiKey,
-    project?.id,
+    projectId,
     toast,
   ]);
 
@@ -748,7 +981,7 @@ export function ProviderKeySection({
     );
   }
 
-  if (!project) {
+  if (!projectId) {
     return (
       <Card className="border rounded-md overflow-hidden">
         <CardHeader>
@@ -773,7 +1006,7 @@ export function ProviderKeySection({
               componentName="LLM Providers"
             />
           </CardTitle>
-          {hasUnsavedChanges && (
+          {hasActualChanges && (
             <Button
               size="sm"
               className="font-sans bg-transparent border hover:bg-accent"
@@ -798,7 +1031,6 @@ export function ProviderKeySection({
             value={mode}
             onValueChange={(v) => {
               setMode(v as AiProviderType);
-              setHasUnsavedChanges(true);
             }}
             className="grid grid-cols-2 gap-3"
           >
@@ -946,7 +1178,6 @@ export function ProviderKeySection({
                             value={customModelName}
                             onChange={(e) => {
                               setCustomModelName(e.target.value);
-                              setHasUnsavedChanges(true);
                             }}
                           />
                           {showValidationErrors && !customModelName.trim() && (
@@ -966,7 +1197,6 @@ export function ProviderKeySection({
                               value={baseUrl}
                               onChange={(e) => {
                                 setBaseUrl(e.target.value);
-                                setHasUnsavedChanges(true);
                               }}
                             />
                             {showValidationErrors && !baseUrl.trim() && (
@@ -1000,7 +1230,6 @@ export function ProviderKeySection({
                               value={maxInputTokens}
                               onChange={(e) => {
                                 setMaxInputTokens(e.target.value);
-                                setHasUnsavedChanges(true);
                               }}
                             />
                             {showValidationErrors &&
@@ -1030,7 +1259,6 @@ export function ProviderKeySection({
                           value={maxInputTokens}
                           onChange={(e) => {
                             setMaxInputTokens(e.target.value);
-                            setHasUnsavedChanges(true);
                           }}
                         />
                         <p className="text-xs text-foreground">
@@ -1162,7 +1390,7 @@ export function ProviderKeySection({
                     <div className="space-y-2">
                       <Label>Custom LLM Parameters</Label>
                       <CustomLlmParametersEditor
-                        project={project}
+                        projectId={projectId}
                         selectedProvider={parsedSelection.provider}
                         selectedModel={parsedSelection.model}
                         onEdited={onEdited}
@@ -1199,7 +1427,6 @@ export function ProviderKeySection({
             <AgentSettings
               agentProvider={agentProvider}
               setAgentProvider={setAgentProvider}
-              setHasUnsavedChanges={setHasUnsavedChanges}
               agentUrl={agentUrl}
               setAgentUrl={setAgentUrl}
               showValidationErrors={showValidationErrors}
@@ -1214,3 +1441,14 @@ export function ProviderKeySection({
     </Card>
   );
 }
+
+// Export the interactable version
+export const InteractableProviderKeySection = withInteractable(
+  ProviderKeySectionBase,
+  {
+    componentName: "ProviderKeySection",
+    description:
+      "Manages LLM and Agent provider configuration for a project. Allows switching between LLM mode (traditional language models) and Agent mode (custom agent endpoints). In LLM mode, users can select providers (OpenAI, Anthropic, OpenAI-compatible, etc.), choose models, configure API keys, set custom model names and base URLs for compatible providers, and adjust input token limits. In Agent mode, users can configure custom agent URLs and metadata. This component validates API keys, handles free message limits for OpenAI's default model, and saves all configuration changes to the project.",
+    propsSchema: InteractableProviderKeySectionProps,
+  },
+);

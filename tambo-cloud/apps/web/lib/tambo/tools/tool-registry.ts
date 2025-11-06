@@ -3,7 +3,6 @@ import { registerApiKeyTools } from "./api-key-tools";
 import { registerDashboardTools } from "./dashboard-tools";
 import { registerLlmTools } from "./llm-tools";
 import { registerMcpTools } from "./mcp-tools";
-import { registerOAuthTools } from "./oauth-tools";
 import { registerProjectTools } from "./project-tools";
 import type { RegisterToolFn, ToolContext } from "./types";
 import { registerUserTools } from "./user-tools";
@@ -36,9 +35,6 @@ export function registerAllTools(
 
   // MCP server management
   registerMcpTools(registerTool, ctx);
-
-  // OAuth validation settings
-  registerOAuthTools(registerTool, ctx);
 
   // Agent-specific settings
   registerAgentTools(registerTool, ctx);

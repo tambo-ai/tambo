@@ -16,7 +16,7 @@ import { api } from "@/trpc/react";
 import type { Suggestion } from "@tambo-ai/react";
 import { withInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { z } from "zod";
 
 const toolCallLimitEditorSuggestions: Suggestion[] = [
@@ -49,13 +49,7 @@ export const InteractableToolCallLimitEditorProps = z.object({
     .number()
     .optional()
     .describe(
-      "When set, the component enters edit mode with this limit value pre-filled. This allows Tambo to propose a specific tool call limit change.",
-    ),
-  enterEditMode: z
-    .boolean()
-    .optional()
-    .describe(
-      "When true, the component enters edit mode with the current limit value, allowing the user to modify it manually.",
+      "When set, the component enters edit mode with this limit value pre-filled. Use cases: 1) To propose a specific limit change, set this to the desired new value (e.g., editedLimit: 2 to suggest changing to 2). 2) To enter edit mode without proposing a change (allowing the user to manually edit), set this to the current maxToolCallLimit value (e.g., if maxToolCallLimit is 10, set editedLimit: 10).",
     ),
   onEdited: z
     .function()
@@ -71,7 +65,6 @@ interface ToolCallLimitEditorProps {
   projectId: string;
   maxToolCallLimit: number;
   editedLimit?: number;
-  enterEditMode?: boolean;
   onEdited?: () => void;
 }
 
@@ -79,13 +72,15 @@ export function ToolCallLimitEditor({
   projectId,
   maxToolCallLimit,
   editedLimit,
-  enterEditMode,
   onEdited,
 }: ToolCallLimitEditorProps) {
   const maxToolCallLimitId = useId();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [limitValue, setLimitValue] = useState("");
+
+  // Track previous editedLimit to prevent unnecessary re-triggers
+  const prevEditedLimitRef = useRef<number | undefined>(undefined);
 
   const { mutateAsync: updateProject, isPending: isUpdating } =
     api.project.updateProject.useMutation();
@@ -99,19 +94,15 @@ export function ToolCallLimitEditor({
 
   // When Tambo sends editedLimit, enter edit mode with that value
   useEffect(() => {
-    if (editedLimit !== undefined) {
+    if (
+      editedLimit !== undefined &&
+      editedLimit !== prevEditedLimitRef.current
+    ) {
+      prevEditedLimitRef.current = editedLimit;
       setLimitValue(editedLimit.toString());
       setIsEditing(true);
     }
   }, [editedLimit]);
-
-  // When Tambo sends enterEditMode, enter edit mode with current value
-  useEffect(() => {
-    if (enterEditMode === true) {
-      setLimitValue(maxToolCallLimit.toString());
-      setIsEditing(true);
-    }
-  }, [enterEditMode, maxToolCallLimit]);
 
   const handleSave = async () => {
     const limit = parseInt(limitValue);
@@ -137,6 +128,8 @@ export function ToolCallLimitEditor({
       });
 
       setIsEditing(false);
+      // Reset ref so Tambo can trigger the same action again later
+      prevEditedLimitRef.current = undefined;
       onEdited?.();
     } catch (_error) {
       toast({
@@ -150,6 +143,8 @@ export function ToolCallLimitEditor({
   const handleCancel = () => {
     setLimitValue(maxToolCallLimit.toString());
     setIsEditing(false);
+    // Reset ref so Tambo can trigger the same action again later
+    prevEditedLimitRef.current = undefined;
   };
 
   return (

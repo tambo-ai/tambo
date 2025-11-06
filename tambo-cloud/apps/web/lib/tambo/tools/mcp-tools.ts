@@ -1,6 +1,4 @@
 import {
-  addMcpServerInput,
-  deleteMcpServerInput,
   inspectMcpServerInput,
   inspectMcpServerOutputSchema,
   listMcpServersInput,
@@ -14,6 +12,18 @@ import { invalidateMcpServersCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
+ * Tool-specific output schema for MCP server.
+ * Uses z.any() for customHeaders instead of z.record() because
+ * z.record() is not supported in Vercel AI SDK tool schemas.
+ */
+const mcpServerToolSchema = mcpServerSchema.extend({
+  customHeaders: z
+    .any()
+    .nullable()
+    .describe("Custom headers for the MCP server"),
+});
+
+/**
  * Zod schema for the `fetchProjectMcpServers` function.
  * Defines the argument as a project ID string and the return type as an array of MCP server objects.
  * The schema's return type is an array of MCP server objects.
@@ -21,17 +31,28 @@ import type { RegisterToolFn, ToolContext } from "./types";
 export const fetchProjectMcpServersSchema = z
   .function()
   .args(listMcpServersInput)
-  .returns(z.array(mcpServerSchema));
+  .returns(z.array(mcpServerToolSchema));
 
 /**
- * Zod schema for the `addMcpServer` function.
- * Defines the argument as an object containing parameters for adding an MCP server (project ID, URL, custom headers, MCP transport)
- * and the return type as an object representing the added MCP server's details.
+ * Tool-specific input schema for updateMcpServer.
+ * Uses z.any() for customHeaders instead of z.record() because
+ * z.record() is not supported in Vercel AI SDK tool schemas.
+ * The actual validation happens in the tRPC layer.
  */
-export const addMcpServerSchema = z
-  .function()
-  .args(addMcpServerInput)
-  .returns(mcpServerDetailSchema);
+const updateMcpServerToolInput = updateMcpServerInput.extend({
+  customHeaders: z.any().describe("Custom headers for the MCP server"),
+});
+
+/**
+ * Tool-specific output schema for MCP server details.
+ * Uses z.any() for customHeaders, mcpCapabilities, and mcpVersion
+ * instead of z.record() because z.record() is not supported in Vercel AI SDK tool schemas.
+ */
+const mcpServerDetailToolSchema = mcpServerDetailSchema.extend({
+  customHeaders: z.any().describe("Custom headers for the MCP server"),
+  mcpCapabilities: z.any().optional().describe("Server capabilities"),
+  mcpVersion: z.any().optional().describe("Server version information"),
+});
 
 /**
  * Zod schema for the `updateMcpServer` function.
@@ -39,18 +60,26 @@ export const addMcpServerSchema = z
  */
 export const updateMcpServerSchema = z
   .function()
-  .args(updateMcpServerInput)
-  .returns(mcpServerDetailSchema);
+  .args(updateMcpServerToolInput)
+  .returns(mcpServerDetailToolSchema);
 
 /**
- * Zod schema for the `deleteMcpServer` function.
- * Defines the argument as an object containing the project ID and server ID,
- * and the return type as an object with a success boolean.
+ * Tool-specific output schema for inspect MCP server.
+ * Uses z.any() for version and capabilities instead of z.record() because
+ * z.record() is not supported in Vercel AI SDK tool schemas.
  */
-export const deleteMcpServerSchema = z
-  .function()
-  .args(deleteMcpServerInput)
-  .returns(z.object({ success: z.boolean() }));
+const inspectMcpServerToolOutputSchema = inspectMcpServerOutputSchema.extend({
+  serverInfo: z
+    .object({
+      version: z.any().optional().describe("Server version information"),
+      instructions: z
+        .string()
+        .optional()
+        .describe("Instructions provided by the server"),
+      capabilities: z.any().optional().describe("Server capabilities"),
+    })
+    .describe("Information about the MCP server"),
+});
 
 /**
  * Zod schema for the `getMcpServerTools` function.
@@ -60,7 +89,7 @@ export const deleteMcpServerSchema = z
 export const getMcpServerToolsSchema = z
   .function()
   .args(inspectMcpServerInput)
-  .returns(inspectMcpServerOutputSchema);
+  .returns(inspectMcpServerToolOutputSchema);
 
 /**
  * Register MCP server management tools
@@ -72,45 +101,19 @@ export function registerMcpTools(
   /**
    * Registers a tool to fetch all MCP (Model Context Protocol) servers for a project.
    * Returns server configuration including URL, headers, and authentication status.
+   * IMPORTANT: Always call this first before deleting a server to get the correct server ID.
    * @param {Object} params - Parameters
    * @param {string} params.projectId - The project ID to fetch MCP servers for
-   * @returns {Array} MCP server details including ID, URL, headers, and auth status
+   * @returns {Array} MCP server details including ID (required for deletion), URL, headers, and auth status
    */
   registerTool({
     name: "fetchProjectMcpServers",
-    description: "Fetches MCP servers for a project.",
+    description:
+      "Fetches all MCP servers for a project. Returns an array of servers with their IDs, URLs, headers, and auth status. MUST be called before deleting a server to get the correct server ID - never guess or use the URL as the ID.",
     tool: async (params: { projectId: string }) => {
       return await ctx.trpcClient.tools.listMcpServers.query(params);
     },
     toolSchema: fetchProjectMcpServersSchema,
-  });
-
-  /**
-   * Registers a tool to add a new MCP server to a project.
-   * @param {string} projectId - The project ID to add the MCP server to
-   * @param {Object} server - MCP server configuration
-   * @param {string} server.url - The URL of the MCP server
-   * @param {Record<string, string>} server.customHeaders - Custom HTTP headers for the server
-   * @param {MCPTransport} server.mcpTransport - Transport mechanism (e.g., SSE, WebSocket)
-   * @returns {Object} Created MCP server details including capabilities and version info
-   */
-  registerTool({
-    name: "addMcpServer",
-    description: "Adds a new MCP server to a project.",
-    tool: async (params: {
-      projectId: string;
-      url: string;
-      customHeaders: Record<string, string>;
-      mcpTransport: MCPTransport;
-    }) => {
-      const result = await ctx.trpcClient.tools.addMcpServer.mutate(params);
-
-      // Invalidate the mcp server cache to refresh the component
-      await invalidateMcpServersCache(ctx, params.projectId);
-
-      return result;
-    },
-    toolSchema: addMcpServerSchema,
   });
 
   /**
@@ -141,27 +144,6 @@ export function registerMcpTools(
       return result;
     },
     toolSchema: updateMcpServerSchema,
-  });
-
-  /**
-   * Registers a tool to delete an MCP server from a project.
-   * @param {Object} params - Deletion parameters
-   * @param {string} params.projectId - The project ID containing the MCP server
-   * @param {string} params.serverId - The ID of the MCP server to delete
-   * @returns {Object} Success status indicating the server was deleted
-   */
-  registerTool({
-    name: "deleteMcpServer",
-    description: "Deletes an MCP server for a project.",
-    tool: async (params: { projectId: string; serverId: string }) => {
-      await ctx.trpcClient.tools.deleteMcpServer.mutate(params);
-
-      // Invalidate the mcp server cache to refresh the component
-      await invalidateMcpServersCache(ctx, params.projectId);
-
-      return { success: true };
-    },
-    toolSchema: deleteMcpServerSchema,
   });
 
   /**

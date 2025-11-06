@@ -8,7 +8,7 @@ import { InteractableAPIKeyList } from "@/components/dashboard-components/projec
 import { InteractableAvailableMcpServers } from "@/components/dashboard-components/project-details/available-mcp-servers";
 import { InteractableCustomInstructionsEditor } from "@/components/dashboard-components/project-details/custom-instructions-editor";
 import { InteractableOAuthSettings } from "@/components/dashboard-components/project-details/oauth-settings";
-import { ProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
+import { InteractableProviderKeySection } from "@/components/dashboard-components/project-details/provider-key-section";
 import { InteractableToolCallLimitEditor } from "@/components/dashboard-components/project-details/tool-call-limit-editor";
 import { SettingsPageSkeleton } from "@/components/skeletons/settings-skeletons";
 import { Button } from "@/components/ui/button";
@@ -463,8 +463,8 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
             </div>
 
             <div ref={llmProvidersRef} className="p-2">
-              <ProviderKeySection
-                project={project}
+              <InteractableProviderKeySection
+                projectId={project.id}
                 onEdited={handleRefreshProject}
               />
             </div>

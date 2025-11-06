@@ -5,7 +5,6 @@ import {
   projectDetailSchema,
   projectTableSchema,
   removeProjectInput,
-  updateProjectOutputSchema,
 } from "@/lib/schemas/project";
 import { z } from "zod";
 import { invalidateProjectCache } from "./helpers";
@@ -34,49 +33,6 @@ export const fetchProjectByIdSchema = z
       .describe("Arguments for fetching a specific project"),
   )
   .returns(projectDetailSchema);
-
-/**
- * Zod schema for the `updateProject` function.
- * Defines the argument as an object containing core project update parameters.
- * Use dedicated tools for LLM settings (updateProjectLlmSettings), agent settings (updateProjectAgentSettings),
- * and OAuth settings (updateOAuthValidationSettings).
- */
-export const updateProjectSchema = z
-  .function()
-  .args(
-    z.object({
-      projectId: z.string().describe("The ID of the project to update"),
-      name: z.string().optional().describe("The new name of the project"),
-      customInstructions: z
-        .string()
-        .optional()
-        .describe("The new custom instructions for the project"),
-      allowSystemPromptOverride: z
-        .boolean()
-        .optional()
-        .describe("Whether to allow system prompt override"),
-      maxToolCallLimit: z
-        .number()
-        .optional()
-        .describe("The new maximum number of tool calls allowed per response"),
-      isTokenRequired: z
-        .boolean()
-        .optional()
-        .describe(
-          "Whether authentication tokens are required for this project",
-        ),
-    }),
-  )
-  .returns(
-    updateProjectOutputSchema.pick({
-      id: true,
-      name: true,
-      userId: true,
-      customInstructions: true,
-      allowSystemPromptOverride: true,
-      maxToolCallLimit: true,
-    }),
-  );
 
 /**
  * Zod schema for the `createProject` function.
@@ -146,42 +102,6 @@ export function registerProjectTools(
       );
     },
     toolSchema: fetchProjectByIdSchema,
-  });
-
-  /**
-   * Registers a tool to update core project settings.
-   * For LLM settings, use updateProjectLlmSettings.
-   * For agent settings, use updateProjectAgentSettings.
-   * For OAuth settings, use updateOAuthValidationSettings.
-   * @param {Object} params - Project update parameters
-   * @param {string} params.projectId - The ID of the project to update
-   * @param {string} params.name - The new name for the project
-   * @param {string} params.customInstructions - Custom AI instructions for the project
-   * @param {boolean} params.allowSystemPromptOverride - Whether to allow system prompt override
-   * @param {number} params.maxToolCallLimit - Maximum tool calls allowed per response
-   * @param {boolean} params.isTokenRequired - Whether authentication tokens are required
-   * @returns {Object} Updated project details
-   */
-  registerTool({
-    name: "updateProject",
-    description:
-      "Updates core project settings like name, custom instructions, system prompt override, and tool call limits. For LLM settings use updateProjectLlmSettings, for agent settings use updateProjectAgentSettings, for OAuth settings use updateOAuthValidationSettings.",
-    tool: async (params: {
-      projectId: string;
-      name?: string;
-      customInstructions?: string;
-      allowSystemPromptOverride?: boolean;
-      maxToolCallLimit?: number;
-      isTokenRequired?: boolean;
-    }) => {
-      const result = await ctx.trpcClient.project.updateProject.mutate(params);
-
-      // Invalidate the project cache to refresh the component
-      await invalidateProjectCache(ctx);
-
-      return result;
-    },
-    toolSchema: updateProjectSchema,
   });
 
   /**

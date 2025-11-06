@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import { api, RouterOutputs } from "@/trpc/react";
+import { api } from "@/trpc/react";
 import {
   JSONValue,
   LlmParameterUIType,
@@ -20,7 +20,7 @@ import {
 } from "./utils";
 
 interface CustomLlmParametersEditorProps {
-  project?: RouterOutputs["project"]["getUserProjects"][number];
+  projectId: string;
   selectedProvider?: string | null;
   selectedModel?: string | null;
   onEdited?: () => void;
@@ -42,7 +42,7 @@ interface CustomLlmParametersEditorProps {
  * but it provides better UX for power users who need model-specific configs.
  */
 export function CustomLlmParametersEditor({
-  project,
+  projectId,
   selectedProvider,
   selectedModel,
   onEdited,
@@ -52,25 +52,32 @@ export function CustomLlmParametersEditor({
   const [parameters, setParameters] = useState<ParameterEntry[]>([]);
   const [activeEditIndex, setActiveEditIndex] = useState<number | null>(null);
 
-  const providerName =
-    selectedProvider || project?.defaultLlmProviderName || "openai";
+  // Fetch project data to get LLM settings and custom parameters
+  const { data: projectData, isLoading: isProjectLoading } =
+    api.project.getProjectById.useQuery(projectId, {
+      enabled: !!projectId,
+    });
 
-  const currentProvider = selectedProvider || project?.defaultLlmProviderName;
+  const providerName =
+    selectedProvider || projectData?.defaultLlmProviderName || "openai";
+
+  const currentProvider =
+    selectedProvider || projectData?.defaultLlmProviderName;
 
   const currentModel = useMemo(() => {
     if (selectedModel) return selectedModel;
 
     // For OpenAI-compatible providers, use customLlmModelName
     if (providerName === "openai-compatible") {
-      return project?.customLlmModelName;
+      return projectData?.customLlmModelName;
     }
 
     // For other providers, use defaultLlmModelName
-    return project?.defaultLlmModelName;
+    return projectData?.defaultLlmModelName;
   }, [
     selectedModel,
-    project?.defaultLlmModelName,
-    project?.customLlmModelName,
+    projectData?.defaultLlmModelName,
+    projectData?.customLlmModelName,
     providerName,
   ]);
 
@@ -81,13 +88,13 @@ export function CustomLlmParametersEditor({
   // Initialize parameters from project data
   useEffect(() => {
     const params = extractParameters(
-      project?.customLlmParameters,
+      projectData?.customLlmParameters,
       currentProvider,
       currentModel,
     );
     setParameters(params);
     setActiveEditIndex(null);
-  }, [project?.customLlmParameters, currentProvider, currentModel]);
+  }, [projectData?.customLlmParameters, currentProvider, currentModel]);
 
   const updateProject = api.project.updateProject.useMutation({
     onSuccess: () => {
@@ -124,7 +131,7 @@ export function CustomLlmParametersEditor({
   }, [parameters]);
 
   const handleSave = useCallback(() => {
-    if (!project || !currentProvider || !currentModel) return;
+    if (!projectId || !currentProvider || !currentModel) return;
 
     // Convert UI parameters back to their proper types
     const parametersObject = Object.fromEntries(
@@ -134,9 +141,9 @@ export function CustomLlmParametersEditor({
         .filter(([_, v]) => v !== undefined),
     );
 
-    const existingParams = project.customLlmParameters ?? {};
+    const existingParams = projectData?.customLlmParameters ?? {};
 
-    const customLlmParameters = {
+    const updatedCustomLlmParameters = {
       ...existingParams,
       [currentProvider]: {
         ...existingParams[currentProvider],
@@ -145,21 +152,28 @@ export function CustomLlmParametersEditor({
     };
 
     updateProject.mutate({
-      projectId: project.id,
-      customLlmParameters,
+      projectId,
+      customLlmParameters: updatedCustomLlmParameters,
     });
-  }, [project, currentProvider, currentModel, parameters, updateProject]);
+  }, [
+    projectId,
+    projectData?.customLlmParameters,
+    currentProvider,
+    currentModel,
+    parameters,
+    updateProject,
+  ]);
 
   const handleCancel = useCallback(() => {
     const params = extractParameters(
-      project?.customLlmParameters,
+      projectData?.customLlmParameters,
       currentProvider,
       currentModel,
     );
     setParameters(params);
     setIsEditing(false);
     setActiveEditIndex(null);
-  }, [project?.customLlmParameters, currentProvider, currentModel]);
+  }, [projectData?.customLlmParameters, currentProvider, currentModel]);
 
   const handleBeginEdit = useCallback((rowIndex: number) => {
     setActiveEditIndex(rowIndex);
@@ -282,8 +296,8 @@ export function CustomLlmParametersEditor({
           <ViewMode
             key="view-mode"
             parameters={parameters}
-            onEdit={() => project && setIsEditing(true)}
-            isLoading={!project}
+            onEdit={() => projectId && setIsEditing(true)}
+            isLoading={isProjectLoading}
           />
         )}
       </AnimatePresence>

@@ -59,6 +59,12 @@ export const InteractableCustomInstructionsEditorProps = z.object({
     .describe(
       "The value to overwrite the current custom instructions field with. When set, the component will be in 'editing mode' where the user can save this updated value or cancel it.",
     ),
+  editedAllowSystemPromptOverride: z
+    .boolean()
+    .optional()
+    .describe(
+      "The edited value for the system prompt override setting. When set along with editedValue, this will be staged in edit mode and saved together with the instructions.",
+    ),
 });
 
 interface CustomInstructionsEditorProps {
@@ -66,6 +72,7 @@ interface CustomInstructionsEditorProps {
   customInstructions?: string | null;
   allowSystemPromptOverride?: boolean | null;
   editedValue?: string;
+  editedAllowSystemPromptOverride?: boolean;
   onEdited?: () => void;
 }
 
@@ -74,6 +81,7 @@ export function CustomInstructionsEditor({
   customInstructions,
   allowSystemPromptOverride: allowSystemPromptOverrideProp,
   editedValue,
+  editedAllowSystemPromptOverride,
   onEdited,
 }: CustomInstructionsEditorProps) {
   const customInstructionsId = useId();
@@ -88,6 +96,12 @@ export function CustomInstructionsEditor({
       ? undefined
       : Boolean(allowSystemPromptOverrideProp),
   );
+  const [savedToggleValue, setSavedToggleValue] = useState<boolean | undefined>(
+    allowSystemPromptOverrideProp === undefined
+      ? undefined
+      : Boolean(allowSystemPromptOverrideProp),
+  );
+  const [hasEditedToggle, setHasEditedToggle] = useState(false);
 
   // Separate mutations to prevent state interference
   const updateInstructions = api.project.updateProject.useMutation();
@@ -104,10 +118,11 @@ export function CustomInstructionsEditor({
 
   // Sync toggle state from props (no auto-save, just state sync)
   useEffect(() => {
-    if (allowSystemPromptOverrideProp !== undefined) {
+    if (allowSystemPromptOverrideProp !== undefined && !isEditing) {
       setAllowSystemPromptOverride(Boolean(allowSystemPromptOverrideProp));
+      setSavedToggleValue(Boolean(allowSystemPromptOverrideProp));
     }
-  }, [allowSystemPromptOverrideProp]);
+  }, [allowSystemPromptOverrideProp, isEditing]);
 
   // When Tambo sends a new editedValue, enter edit mode automatically
   useEffect(() => {
@@ -117,11 +132,25 @@ export function CustomInstructionsEditor({
     }
   }, [editedValue]);
 
-  const updateAllowOverride = (val: boolean) => {
-    // Optimistically update local state
-    setAllowSystemPromptOverride(val);
+  // When Tambo sends a new editedAllowSystemPromptOverride, stage it for saving
+  useEffect(() => {
+    if (editedAllowSystemPromptOverride !== undefined) {
+      setAllowSystemPromptOverride(editedAllowSystemPromptOverride);
+      setHasEditedToggle(true);
+      setIsEditing(true);
+    }
+  }, [editedAllowSystemPromptOverride]);
 
-    // Save to backend (no toast)
+  const updateAllowOverride = (val: boolean) => {
+    // If in edit mode, just update local state (will be saved with instructions)
+    if (isEditing) {
+      setAllowSystemPromptOverride(val);
+      setHasEditedToggle(true);
+      return;
+    }
+
+    // Otherwise, save immediately
+    setAllowSystemPromptOverride(val);
     updateToggle.mutate(
       {
         projectId,
@@ -129,47 +158,65 @@ export function CustomInstructionsEditor({
       },
       {
         onSuccess: () => {
+          setSavedToggleValue(Boolean(val));
           if (onEdited) onEdited();
         },
         onError: () => {
-          // Revert on error
-          setAllowSystemPromptOverride(Boolean(allowSystemPromptOverrideProp));
+          setAllowSystemPromptOverride(savedToggleValue);
         },
       },
     );
   };
 
   const handleSave = () => {
-    updateInstructions.mutate(
-      {
-        projectId,
-        customInstructions: displayValue,
+    const updatePayload: {
+      projectId: string;
+      customInstructions: string;
+      allowSystemPromptOverride?: boolean;
+    } = {
+      projectId,
+      customInstructions: displayValue,
+    };
+
+    // Include toggle update if it was changed during edit mode
+    if (hasEditedToggle) {
+      updatePayload.allowSystemPromptOverride = Boolean(
+        allowSystemPromptOverride,
+      );
+    }
+
+    updateInstructions.mutate(updatePayload, {
+      onSuccess: () => {
+        setSavedValue(displayValue);
+        if (hasEditedToggle) {
+          setSavedToggleValue(Boolean(allowSystemPromptOverride));
+        }
+        setIsEditing(false);
+        setHasEditedToggle(false);
+        toast({
+          title: "Saved",
+          description: hasEditedToggle
+            ? "Custom instructions and settings updated successfully"
+            : "Custom instructions updated successfully",
+        });
+        if (onEdited) {
+          onEdited();
+        }
       },
-      {
-        onSuccess: () => {
-          setSavedValue(displayValue);
-          setIsEditing(false);
-          toast({
-            title: "Saved",
-            description: "Custom instructions updated successfully",
-          });
-          if (onEdited) {
-            onEdited();
-          }
-        },
-        onError: () => {
-          toast({
-            title: "Error",
-            description: "Failed to update custom instructions",
-            variant: "destructive",
-          });
-        },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "Failed to update custom instructions",
+          variant: "destructive",
+        });
       },
-    );
+    });
   };
 
   const handleCancel = () => {
     setDisplayValue(savedValue);
+    setAllowSystemPromptOverride(savedToggleValue);
+    setHasEditedToggle(false);
     setIsEditing(false);
   };
 

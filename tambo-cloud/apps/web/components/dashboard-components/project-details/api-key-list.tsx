@@ -56,6 +56,12 @@ export const InteractableAPIKeyListProps = z.object({
     .describe(
       "When true, automatically opens the create key form dialog, allowing the user to enter a key name manually.",
     ),
+  deleteKeyWithId: z
+    .string()
+    .optional()
+    .describe(
+      "When set, automatically opens the delete confirmation dialog for the API key with the specified ID. Must be the actual database ID, not the name. Use fetchProjectApiKeys tool to get the ID from the name first.",
+    ),
   onEdited: z
     .function()
     .args()
@@ -71,6 +77,7 @@ interface APIKeyListProps {
   isLoading?: boolean;
   createKeyWithName?: string;
   enterCreateMode?: boolean;
+  deleteKeyWithId?: string;
   onEdited?: () => void;
 }
 
@@ -79,6 +86,7 @@ export function APIKeyList({
   isLoading: externalLoading,
   createKeyWithName,
   enterCreateMode,
+  deleteKeyWithId,
   onEdited,
 }: APIKeyListProps) {
   const [isCreating, setIsCreating] = useState(false);
@@ -94,6 +102,7 @@ export function APIKeyList({
   const { toast } = useToast();
   const utils = api.useUtils();
   const lastCreateKeyRef = useRef<string | undefined>();
+  const lastDeleteKeyRef = useRef<string | undefined>();
 
   const {
     data: apiKeys,
@@ -211,6 +220,34 @@ export function APIKeyList({
     }
   }, [enterCreateMode]);
 
+  const handleDeleteKey = useCallback((id: string) => {
+    setAlertState({
+      show: true,
+      title: "Delete API Key",
+      description:
+        "Are you sure you want to delete this API key? This action cannot be undone.",
+      data: { id },
+    });
+  }, []);
+
+  // When Tambo sends deleteKeyWithId, open the delete confirmation dialog
+  useEffect(() => {
+    if (
+      deleteKeyWithId !== undefined &&
+      deleteKeyWithId !== lastDeleteKeyRef.current
+    ) {
+      lastDeleteKeyRef.current = deleteKeyWithId;
+      handleDeleteKey(deleteKeyWithId);
+    }
+  }, [deleteKeyWithId, handleDeleteKey]);
+
+  // Reset lastDeleteKeyRef when dialog closes to allow retriggering same ID later
+  useEffect(() => {
+    if (!alertState.show) {
+      lastDeleteKeyRef.current = undefined;
+    }
+  }, [alertState.show]);
+
   const handleDeleteApiKey = async () => {
     try {
       if (!alertState.data || !projectId) return;
@@ -233,16 +270,6 @@ export function APIKeyList({
     if (e.key === "Enter") {
       await handleCreateApiKey();
     }
-  };
-
-  const handleDeleteKey = (id: string) => {
-    setAlertState({
-      show: true,
-      title: "Delete API Key",
-      description:
-        "Are you sure you want to delete this API key? This action cannot be undone.",
-      data: { id },
-    });
   };
 
   const isLoading = apiKeysLoading || externalLoading;

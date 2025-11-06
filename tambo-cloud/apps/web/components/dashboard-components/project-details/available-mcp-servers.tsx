@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditableHint } from "@/components/ui/editable-hint";
 import { api } from "@/trpc/react";
 import { AiProviderType } from "@tambo-ai-cloud/core";
-import { withInteractable } from "@tambo-ai/react";
 import type { Suggestion } from "@tambo-ai/react";
+import { withInteractable } from "@tambo-ai/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
@@ -41,12 +41,33 @@ export const InteractableAvailableMcpServersProps = z.object({
     .describe(
       "When true, the component enters 'add new MCP server' mode, displaying an empty form to create a new server.",
     ),
+  url: z
+    .string()
+    .optional()
+    .describe(
+      "When provided with isAddingNew, pre-fills the MCP server URL field.",
+    ),
+  customHeaders: z
+    .any()
+    .optional()
+    .describe(
+      "When provided with isAddingNew, pre-fills the custom headers for the MCP server. Should be an object with header names as keys and header values as strings.",
+    ),
+  serverIdToDelete: z
+    .string()
+    .optional()
+    .describe(
+      "When provided, triggers deletion of the MCP server with this ID. IMPORTANT: You must first call fetchProjectMcpServers to get the list of servers and find the correct server ID before using this parameter. Never guess or use the URL as the ID - always use the 'id' field from the server list.",
+    ),
 });
 
 interface AvailableMcpServersProps {
   projectId: string;
   providerType?: AiProviderType | null;
   isAddingNew?: boolean;
+  url?: string;
+  customHeaders?: Record<string, string>;
+  serverIdToDelete?: string;
   onEdited?: () => void;
 }
 
@@ -54,9 +75,19 @@ export function AvailableMcpServers({
   projectId,
   providerType,
   isAddingNew: isAddingNewProp,
+  url: urlProp,
+  customHeaders: customHeadersProp,
+  serverIdToDelete: serverIdToDeleteProp,
   onEdited,
 }: AvailableMcpServersProps) {
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [initialUrl, setInitialUrl] = useState<string | undefined>(undefined);
+  const [initialHeaders, setInitialHeaders] = useState<
+    Record<string, string> | undefined
+  >(undefined);
+  const [serverIdToDelete, setServerIdToDelete] = useState<string | undefined>(
+    undefined,
+  );
   const router = useRouter();
 
   const isAgentMode = providerType === AiProviderType.AGENT;
@@ -65,8 +96,21 @@ export function AvailableMcpServers({
   useEffect(() => {
     if (isAddingNewProp !== undefined) {
       setIsAddingNew(isAddingNewProp);
+      if (urlProp) {
+        setInitialUrl(urlProp);
+      }
+      if (customHeadersProp) {
+        setInitialHeaders(customHeadersProp);
+      }
     }
-  }, [isAddingNewProp]);
+  }, [isAddingNewProp, urlProp, customHeadersProp]);
+
+  // When Tambo sends serverIdToDelete prop, set it for deletion
+  useEffect(() => {
+    if (serverIdToDeleteProp) {
+      setServerIdToDelete(serverIdToDeleteProp);
+    }
+  }, [serverIdToDeleteProp]);
 
   const { data: mcpServers, refetch } = api.tools.listMcpServers.useQuery(
     { projectId },
@@ -172,6 +216,8 @@ export function AvailableMcpServers({
               projectId={projectId}
               onRefresh={handleRefresh}
               redirectToAuth={redirectToAuth}
+              shouldDelete={serverIdToDelete === server.id}
+              onDeleteComplete={() => setServerIdToDelete(undefined)}
             />
           ))}
 
@@ -179,13 +225,17 @@ export function AvailableMcpServers({
             <McpServerRow
               server={{
                 id: "new",
-                url: "",
-                customHeaders: {},
+                url: initialUrl || "",
+                customHeaders: initialHeaders || {},
               }}
               projectId={projectId}
               onRefresh={handleRefresh}
               isNew
-              onCancel={() => setIsAddingNew(false)}
+              onCancel={() => {
+                setIsAddingNew(false);
+                setInitialUrl(undefined);
+                setInitialHeaders(undefined);
+              }}
               redirectToAuth={redirectToAuth}
             />
           )}
@@ -200,7 +250,7 @@ export const InteractableAvailableMcpServers = withInteractable(
   {
     componentName: "AvailableMcpServers",
     description:
-      "Manages and displays MCP (Model Context Protocol) servers for a project. Shows a list of configured MCP servers with options to add new servers, edit existing ones, or delete them. Each server can be configured with a URL and custom headers. The component can be controlled to enter 'add new server' mode where users can create new MCP server configurations.",
+      "Manages and displays MCP (Model Context Protocol) servers for a project. Shows a list of configured MCP servers with options to add new servers, edit existing ones, or delete them. Each server can be configured with a URL and custom headers. The component can be controlled to enter 'add new server' mode where users can create new MCP server configurations. To delete a server: (1) First call fetchProjectMcpServers to get the server list, (2) Find the server by matching the URL, (3) Use the server's 'id' field with serverIdToDelete parameter to trigger deletion.",
     propsSchema: InteractableAvailableMcpServersProps,
   },
 );

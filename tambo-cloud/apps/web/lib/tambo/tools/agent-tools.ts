@@ -1,6 +1,6 @@
 import {
-  updateProjectAgentSettingsInput,
   updateProjectAgentSettingsOutputSchema,
+  updateProjectAgentSettingsToolInput,
 } from "@/lib/schemas/agent";
 import { AgentProviderType, AiProviderType } from "@tambo-ai-cloud/core";
 import { z } from "zod";
@@ -13,7 +13,7 @@ import type { RegisterToolFn, ToolContext } from "./types";
  */
 export const updateProjectAgentSettingsSchema = z
   .function()
-  .args(updateProjectAgentSettingsInput)
+  .args(updateProjectAgentSettingsToolInput)
   .returns(updateProjectAgentSettingsOutputSchema);
 
 /**

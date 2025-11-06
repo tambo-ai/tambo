@@ -29,13 +29,29 @@ export const fetchProjectLlmSettingsSchema = z
   .returns(projectLlmSettingsSchema);
 
 /**
+ * Tool-specific input schema for updateProjectLlmSettings.
+ * Uses z.any() for customLlmParameters instead of z.record() because
+ * nested z.record() is not supported in Vercel AI SDK tool schemas.
+ * The actual validation happens in the tRPC layer.
+ */
+const updateProjectLlmSettingsToolInput = updateProjectLlmSettingsInput.extend({
+  customLlmParameters: z
+    .any()
+    .nullable()
+    .optional()
+    .describe(
+      'Custom LLM parameters. Structure: { "providerName": { "modelName": { "parameterName": parameterValue } } }',
+    ),
+});
+
+/**
  * Zod schema for the `updateProjectLlmSettings` function.
  * Defines arguments as the project ID string and an LLM settings object,
  * and the return type as an object representing the updated LLM settings.
  */
 export const updateProjectLlmSettingsSchema = z
   .function()
-  .args(updateProjectLlmSettingsInput)
+  .args(updateProjectLlmSettingsToolInput)
   .returns(updateProjectLlmSettingsOutputSchema);
 
 /**

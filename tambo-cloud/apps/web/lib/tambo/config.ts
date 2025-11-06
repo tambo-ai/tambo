@@ -1,6 +1,5 @@
 "use client";
 
-import { NextAuthAuthForm } from "@/components/auth/nextauth-auth-form";
 import {
   DailyMessagesChart,
   DailyMessagesChartSchema,
@@ -10,10 +9,6 @@ import {
   ProjectInfoProps,
 } from "@/components/dashboard-components/project-details/project-info";
 import {
-  ProviderKeySection,
-  ProviderKeySectionProps,
-} from "@/components/dashboard-components/project-details/provider-key-section";
-import {
   ProjectTableContainer,
   ProjectTableContainerSchema,
 } from "@/components/dashboard-components/project-table-container";
@@ -21,7 +16,6 @@ import {
   ThreadTableContainer,
   ThreadTableContainerSchema,
 } from "@/components/observability/thread-table/thread-table-container";
-import { z } from "zod";
 
 export const tamboRegisteredComponents = [
   {
@@ -37,20 +31,6 @@ export const tamboRegisteredComponents = [
       "Shows detailed information about a specific project including project name, unique ID (with copy button), owner details, and creation date. Features smooth animations and handles loading states. Use when displaying project overview information or when users need to reference project details like copying the project ID.",
     component: ProjectInfo,
     propsSchema: ProjectInfoProps,
-  },
-  {
-    name: "ProviderKeySection",
-    description:
-      "Comprehensive LLM provider configuration interface allowing users to select AI providers (OpenAI, Anthropic, etc.), configure models, set API keys, and manage custom endpoints. Handles free message limits, provider-specific settings, base URLs for custom providers, and validation. Shows real-time configuration status and supports both standard and OpenAI-compatible providers. Use when users need to configure or modify their AI model settings.",
-    component: ProviderKeySection,
-    propsSchema: ProviderKeySectionProps,
-  },
-  {
-    name: "AuthForm",
-    description:
-      "A form that allows users to authenticate with GitHub or Google. Use when users are not authenticated and need to log in to access features or when the fetchCurrentUser tool indicates the user is not logged in.",
-    component: NextAuthAuthForm,
-    propsSchema: z.object({}),
   },
   {
     name: "DailyMessagesChart",

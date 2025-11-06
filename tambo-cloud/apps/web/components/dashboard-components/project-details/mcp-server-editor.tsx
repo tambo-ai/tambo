@@ -14,6 +14,10 @@ import { TRPCClientErrorLike } from "@trpc/client";
 import { Check, Info, Loader2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import {
+  DeleteConfirmationDialog,
+  type AlertState,
+} from "../delete-confirmation-dialog";
 import { HeadersEditor, type HeaderKV } from "./headers-editor";
 import { McpServerToolsDialog } from "./mcp-server-tools-dialog";
 
@@ -35,6 +39,7 @@ interface McpServerEditorProps {
   isDeleting: boolean;
   errorMessage: string | null;
   hideEditButtons?: boolean;
+  showDeleteConfirmation?: boolean;
   onEdit: () => void;
   onCancel: () => void;
   onSave: (serverInfo: {
@@ -43,6 +48,7 @@ interface McpServerEditorProps {
     mcpTransport: MCPTransport;
   }) => Promise<MCPServerInfo | undefined>;
   onDelete: () => Promise<void>;
+  onCancelDelete?: () => void;
   projectId?: string;
   redirectToAuth?: (url: string) => void;
 }
@@ -56,10 +62,12 @@ export function McpServerEditor({
   isDeleting,
   errorMessage,
   hideEditButtons = false,
+  showDeleteConfirmation = false,
   onEdit,
   onCancel,
   onSave,
   onDelete,
+  onCancelDelete,
   projectId,
   redirectToAuth,
 }: McpServerEditorProps) {
@@ -74,6 +82,12 @@ export function McpServerEditor({
     })),
   );
   const [isInspecting, setIsInspecting] = useState(false);
+  const [deleteAlertState, setDeleteAlertState] = useState<AlertState>({
+    show: false,
+    title: "",
+    description: "",
+  });
+
   const {
     data: authResult,
     mutateAsync: startAuth,
@@ -111,6 +125,17 @@ export function McpServerEditor({
     );
   }, [server, isNew]);
 
+  // Show delete confirmation when triggered
+  useEffect(() => {
+    if (showDeleteConfirmation) {
+      setDeleteAlertState({
+        show: true,
+        title: "Delete MCP Server",
+        description: `Are you sure you want to delete this MCP server?\n\n${server.url}\n\nThis action cannot be undone.`,
+      });
+    }
+  }, [showDeleteConfirmation, server.url]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -140,6 +165,11 @@ export function McpServerEditor({
         .filter(([key]) => Boolean(key)),
     );
     mutateSave({ url: trimmedUrl, customHeaders, mcpTransport });
+  };
+
+  const handleConfirmDelete = async () => {
+    await onDelete();
+    setDeleteAlertState({ show: false, title: "", description: "" });
   };
 
   // Compute auth/editability state before defining debouncedSave
@@ -345,6 +375,18 @@ export function McpServerEditor({
           serverId={server.id}
         />
       )}
+
+      <DeleteConfirmationDialog
+        mode="single"
+        alertState={deleteAlertState}
+        setAlertState={(state) => {
+          setDeleteAlertState(state);
+          if (!state.show && onCancelDelete) {
+            onCancelDelete();
+          }
+        }}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

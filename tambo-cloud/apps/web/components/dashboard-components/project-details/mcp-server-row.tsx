@@ -1,6 +1,6 @@
 import { api } from "@/trpc/react";
 import { MCPTransport } from "@tambo-ai-cloud/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { McpServerEditor, MCPServerInfo } from "./mcp-server-editor";
 
 interface McpServerRowProps {
@@ -8,7 +8,9 @@ interface McpServerRowProps {
   projectId: string;
   onRefresh: () => Promise<void>;
   isNew?: boolean;
+  shouldDelete?: boolean;
   onCancel?: () => void;
+  onDeleteComplete?: () => void;
   redirectToAuth?: (url: string) => void;
 }
 
@@ -17,10 +19,20 @@ export function McpServerRow({
   projectId,
   onRefresh,
   isNew = false,
+  shouldDelete = false,
   onCancel,
+  onDeleteComplete,
   redirectToAuth,
 }: McpServerRowProps) {
   const [isEditing, setIsEditing] = useState(isNew);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  // When shouldDelete is true, show delete confirmation
+  useEffect(() => {
+    if (shouldDelete) {
+      setShowDeleteConfirmation(true);
+    }
+  }, [shouldDelete]);
 
   const {
     mutateAsync: updateServer,
@@ -98,6 +110,13 @@ export function McpServerRow({
       projectId,
       serverId: server.id,
     });
+    setShowDeleteConfirmation(false);
+    onDeleteComplete?.();
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    onDeleteComplete?.();
   };
 
   const isSaving = isNew ? isAdding : isUpdating;
@@ -117,10 +136,12 @@ export function McpServerRow({
       isSaving={isSaving}
       isDeleting={isDeleting}
       errorMessage={errorMessage}
+      showDeleteConfirmation={showDeleteConfirmation}
       onEdit={handleEdit}
       onCancel={handleCancel}
       onSave={handleSave}
       onDelete={handleDelete}
+      onCancelDelete={handleCancelDelete}
       redirectToAuth={redirectToAuth}
     />
   );

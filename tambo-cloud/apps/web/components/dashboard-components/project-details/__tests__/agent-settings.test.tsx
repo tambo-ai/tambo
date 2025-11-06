@@ -7,7 +7,6 @@ describe("AgentSettings", () => {
     const props = {
       agentProvider: "openai" as AgentProviderType,
       setAgentProvider: jest.fn(),
-      setHasUnsavedChanges: jest.fn(),
       agentUrl: "",
       setAgentUrl: jest.fn(),
       showValidationErrors: true,
@@ -25,11 +24,10 @@ describe("AgentSettings", () => {
     expect(screen.getByText(/Agent URL is required/i)).toBeInTheDocument();
   });
 
-  it("updates agent url and marks as unsaved on change", () => {
+  it("updates agent url on change", () => {
     const props = setup();
     const input = screen.getByLabelText(/Agent URL/i);
     fireEvent.change(input, { target: { value: "https://example.com" } });
     expect(props.setAgentUrl).toHaveBeenCalledWith("https://example.com");
-    expect(props.setHasUnsavedChanges).toHaveBeenCalledWith(true);
   });
 });
