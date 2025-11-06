@@ -122,18 +122,22 @@ describe("useTamboMcpPromptList - individual server caching", () => {
       expect(capturedPrompts.length).toBe(4);
     });
 
-    // Verify all prompts are present
+    // Verify all prompts are present (with prefixes since we have 2 servers)
     const promptNames = capturedPrompts.map((p) => p.prompt.name);
-    expect(promptNames).toContain("prompt-a1");
-    expect(promptNames).toContain("prompt-a2");
-    expect(promptNames).toContain("prompt-b1");
-    expect(promptNames).toContain("prompt-b2");
+    expect(promptNames).toContain("server-a:prompt-a1");
+    expect(promptNames).toContain("server-a:prompt-a2");
+    expect(promptNames).toContain("server-b:prompt-b1");
+    expect(promptNames).toContain("server-b:prompt-b2");
 
     // Verify each prompt has the correct server info
-    const promptA1 = capturedPrompts.find((p) => p.prompt.name === "prompt-a1");
+    const promptA1 = capturedPrompts.find(
+      (p) => p.prompt.name === "server-a:prompt-a1",
+    );
     expect(promptA1?.server.url).toBe("https://server-a.example");
 
-    const promptB1 = capturedPrompts.find((p) => p.prompt.name === "prompt-b1");
+    const promptB1 = capturedPrompts.find(
+      (p) => p.prompt.name === "server-b:prompt-b1",
+    );
     expect(promptB1?.server.url).toBe("https://server-b.example");
   });
 
@@ -226,10 +230,10 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     });
 
     const initialPromptNames = capturedPrompts.map((p) => p.prompt.name);
-    expect(initialPromptNames).toContain("prompt-a1");
-    expect(initialPromptNames).toContain("prompt-a2");
-    expect(initialPromptNames).toContain("prompt-b1");
-    expect(initialPromptNames).toContain("prompt-b2");
+    expect(initialPromptNames).toContain("server-a:prompt-a1");
+    expect(initialPromptNames).toContain("server-a:prompt-a2");
+    expect(initialPromptNames).toContain("server-b:prompt-b1");
+    expect(initialPromptNames).toContain("server-b:prompt-b2");
 
     // Remove server B
     rerender(
@@ -258,6 +262,7 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     );
 
     // Wait for prompts to be updated (server B prompts should disappear)
+    // When only 1 server remains, prompts should NOT be prefixed
     await waitFor(() => {
       expect(capturedPrompts.length).toBe(2);
     });
@@ -267,6 +272,7 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     expect(updatedPromptNames).toContain("prompt-a2");
     expect(updatedPromptNames).not.toContain("prompt-b1");
     expect(updatedPromptNames).not.toContain("prompt-b2");
+    expect(updatedPromptNames).not.toContain("server-a:prompt-a1"); // No prefix when only 1 server
 
     // Verify server B's client was closed
     expect(clientB.close).toHaveBeenCalled();
@@ -460,10 +466,10 @@ describe("useTamboMcpPromptList - individual server caching", () => {
       expect(mcpServersCount).toBe(2); // Both servers should be in the list
     });
 
-    // Verify only server A's prompts are present
+    // Verify only server A's prompts are present (with prefix since 2 servers configured)
     const promptNames = capturedPrompts.map((p) => p.prompt.name);
-    expect(promptNames).toContain("prompt-a");
-    expect(promptNames).not.toContain("prompt-b");
+    expect(promptNames).toContain("server-a:prompt-a");
+    expect(promptNames).not.toContain("server-b:prompt-b");
   });
 
   it("should add prompts when a new server is added", async () => {
@@ -576,12 +582,13 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     );
 
     // Wait for server B prompts to be added
+    // Now with 2 servers, prompts should be prefixed
     await waitFor(() => {
       expect(capturedPrompts.length).toBe(2);
     });
 
     const promptNames = capturedPrompts.map((p) => p.prompt.name);
-    expect(promptNames).toContain("prompt-a");
-    expect(promptNames).toContain("prompt-b");
+    expect(promptNames).toContain("server-a:prompt-a");
+    expect(promptNames).toContain("server-b:prompt-b");
   });
 });
