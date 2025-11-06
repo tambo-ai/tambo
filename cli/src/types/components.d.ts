@@ -144,6 +144,9 @@ declare module "@/components/tambo/message-input" {
   export type MessageInputMcpPromptButtonProps =
     React.HTMLAttributes<HTMLButtonElement>;
 
+  export type MessageInputMcpResourceButtonProps =
+    React.HTMLAttributes<HTMLButtonElement>;
+
   export type MessageInputStagedImagesProps =
     React.HTMLAttributes<HTMLDivElement>;
 
@@ -195,6 +198,10 @@ declare module "@/components/tambo/message-input" {
 
   export const MessageInputMcpPromptButton: React.ForwardRefExoticComponent<
     MessageInputMcpPromptButtonProps & React.RefAttributes<HTMLButtonElement>
+  >;
+
+  export const MessageInputMcpResourceButton: React.ForwardRefExoticComponent<
+    MessageInputMcpResourceButtonProps & React.RefAttributes<HTMLButtonElement>
   >;
 
   export const MessageInputStagedImages: React.ForwardRefExoticComponent<
@@ -393,6 +400,30 @@ declare module "@/components/tambo/elicitation-ui" {
   }
 
   export const ElicitationUI: React.FC<ElicitationUIProps>;
+}
+
+declare module "@/components/tambo/mcp-components" {
+  export interface McpPromptButtonProps
+    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    onInsertText: (text: string) => void;
+    value: string;
+    className?: string;
+  }
+
+  export interface McpResourceButtonProps
+    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    onInsertText: (text: string) => void;
+    value: string;
+    className?: string;
+  }
+
+  export const McpPromptButton: React.ForwardRefExoticComponent<
+    McpPromptButtonProps & React.RefAttributes<HTMLButtonElement>
+  >;
+
+  export const McpResourceButton: React.ForwardRefExoticComponent<
+    McpResourceButtonProps & React.RefAttributes<HTMLButtonElement>
+  >;
 }
 
 declare module "@/lib/thread-hooks" {
