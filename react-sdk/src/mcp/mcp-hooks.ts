@@ -23,6 +23,7 @@ export interface ListPromptEntry {
  */
 export function useTamboMcpPromptList() {
   const mcpServers = useTamboMcpServers();
+
   const queries = useTamboQueries({
     queries: mcpServers.map((mcpServer) => ({
       queryKey: ["mcp-prompts", mcpServer.key],
@@ -34,6 +35,7 @@ export function useTamboMcpPromptList() {
 
         const result = await mcpServer.client.client.listPrompts();
         const prompts: ListPromptItem[] = result?.prompts ?? [];
+        // Return prompts without prefixes - we'll apply prefixing in combine
         const promptsEntries = prompts.map((prompt) => ({
           server: mcpServer,
           prompt,
@@ -42,7 +44,24 @@ export function useTamboMcpPromptList() {
       },
     })),
     combine: (results) => {
-      return combineArrayResults(results);
+      const combined = combineArrayResults(results);
+      // Apply prefixing based on current server count
+      const shouldPrefix = mcpServers.length > 1;
+      if (!shouldPrefix) {
+        return combined;
+      }
+
+      // Apply prefixes to all prompts
+      return {
+        ...combined,
+        data: combined.data.map((entry) => ({
+          ...entry,
+          prompt: {
+            ...entry.prompt,
+            name: `${entry.server.serverKey}:${entry.prompt.name}`,
+          },
+        })),
+      };
     },
   });
 
@@ -105,7 +124,7 @@ function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
 
 /**
  * Hook to get the prompt for the specified name.
- * @param promptName - The name of the prompt to get. If the prompt won't return anything
+ * @param promptName - The name of the prompt to get. Can be prefixed with serverKey (e.g., "linear:issue") or unprefixed.
  * @param args - The arguments to pass to the prompt.
  * @returns The prompt for the specified name.
  */
@@ -122,6 +141,11 @@ export function useTamboMcpPrompt(
   // name/url/transport matching.
   const mcpServer = promptEntry?.server;
 
+  // Strip the prefix to get the original prompt name for the MCP server call
+  const originalPromptName = promptName?.includes(":")
+    ? promptName.split(":").slice(1).join(":")
+    : promptName;
+
   // Canonicalize args to avoid unstable cache keys from object identity/order
   const sortedArgsEntries = Object.keys(args)
     .sort()
@@ -134,11 +158,15 @@ export function useTamboMcpPrompt(
       promptName && mcpServer && isConnectedMcpServer(mcpServer),
     ),
     queryFn: async (): Promise<GetPromptResult | null> => {
-      if (!promptName || !mcpServer || !isConnectedMcpServer(mcpServer)) {
+      if (
+        !originalPromptName ||
+        !mcpServer ||
+        !isConnectedMcpServer(mcpServer)
+      ) {
         return null;
       }
       const result = await mcpServer.client.client.getPrompt({
-        name: promptName,
+        name: originalPromptName,
         arguments: args,
       });
       return result ?? null; // return null because react-query doesn't like undefined results

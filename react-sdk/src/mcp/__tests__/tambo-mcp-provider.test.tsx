@@ -17,6 +17,9 @@ import {
   type ProviderMCPHandlers,
 } from "../tambo-mcp-provider";
 
+// Import the private function for testing by re-exporting it for tests only
+// We'll need to export it temporarily or test it through public API
+
 // Helper to create mock RequestHandlerExtra for testing
 function createMockExtra(): RequestHandlerExtra<
   ClientRequest,
@@ -831,5 +834,231 @@ describe("TamboMcpProvider handler support", () => {
     expect(mockClient.updateElicitationHandler).toHaveBeenCalledWith(
       expect.any(Function),
     );
+  });
+});
+
+describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
+  let mockRegisterTool: jest.Mock;
+
+  beforeEach(() => {
+    mockRegisterTool = jest.fn();
+
+    (useTamboRegistry as unknown as jest.Mock).mockReturnValue({
+      registerTool: mockRegisterTool,
+    });
+
+    (useTamboClient as unknown as jest.Mock).mockReturnValue({
+      baseURL: "https://api.tambo.co",
+    });
+  });
+
+  const Capture: React.FC<{ onUpdate: (servers: McpServer[]) => void }> = ({
+    onUpdate,
+  }) => {
+    const servers = useTamboMcpServers();
+    useEffect(() => {
+      onUpdate(servers);
+    }, [servers, onUpdate]);
+    return null;
+  };
+
+  describe("serverKey derivation", () => {
+    it("should derive serverKey from URL when not provided", async () => {
+      (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+        listTools: jest.fn().mockResolvedValue([]),
+        close: jest.fn(),
+      });
+
+      let latest: McpServer[] = [];
+      render(
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider mcpServers={["https://mcp.linear.app/mcp"]}>
+            <Capture onUpdate={(s) => (latest = s)} />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>,
+      );
+
+      await waitFor(() => {
+        expect(latest.length).toBe(1);
+        expect(latest[0].serverKey).toBe("linear");
+      });
+    });
+
+    it("should use provided serverKey when specified", async () => {
+      (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+        listTools: jest.fn().mockResolvedValue([]),
+        close: jest.fn(),
+      });
+
+      let latest: McpServer[] = [];
+      render(
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider
+            mcpServers={[
+              {
+                url: "https://mcp.linear.app/mcp",
+                serverKey: "custom-key",
+              },
+            ]}
+          >
+            <Capture onUpdate={(s) => (latest = s)} />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>,
+      );
+
+      await waitFor(() => {
+        expect(latest.length).toBe(1);
+        expect(latest[0].serverKey).toBe("custom-key");
+      });
+    });
+
+    it("should derive serverKey correctly for various URL patterns", async () => {
+      (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+        listTools: jest.fn().mockResolvedValue([]),
+        close: jest.fn(),
+      });
+
+      const testCases = [
+        { url: "https://api.github.com", expected: "github" },
+        { url: "https://google.com", expected: "google" },
+        { url: "https://google.co.uk", expected: "google" },
+        { url: "https://mcp.company.co.uk", expected: "company" },
+        { url: "https://www.example.com", expected: "example" },
+      ];
+
+      for (const { url, expected } of testCases) {
+        let latest: McpServer[] = [];
+        const { unmount } = render(
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider mcpServers={[url]}>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>,
+        );
+
+        await waitFor(() => {
+          expect(latest.length).toBe(1);
+          expect(latest[0].serverKey).toBe(expected);
+        });
+
+        unmount();
+      }
+    });
+  });
+
+  describe("tool name prefixing", () => {
+    it("should NOT prefix tool names when only one server is present", async () => {
+      (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+        listTools: jest
+          .fn()
+          .mockResolvedValue([
+            { name: "test-tool", description: "A test tool" },
+          ]),
+        close: jest.fn(),
+      });
+
+      let latest: McpServer[] = [];
+      render(
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider mcpServers={["https://mcp.linear.app/mcp"]}>
+            <Capture onUpdate={(s) => (latest = s)} />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>,
+      );
+
+      await waitFor(() => {
+        expect(latest.length).toBe(1);
+        expect(mockRegisterTool).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: "test-tool", // NOT prefixed
+          }),
+        );
+      });
+    });
+
+    it("should prefix tool names when multiple servers are present", async () => {
+      (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+        listTools: jest
+          .fn()
+          .mockResolvedValue([
+            { name: "test-tool", description: "A test tool" },
+          ]),
+        close: jest.fn(),
+      });
+
+      let latest: McpServer[] = [];
+      render(
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider
+            mcpServers={[
+              "https://mcp.linear.app/mcp",
+              "https://api.github.com",
+            ]}
+          >
+            <Capture onUpdate={(s) => (latest = s)} />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>,
+      );
+
+      await waitFor(
+        () => {
+          expect(latest.length).toBe(2);
+          // Check that tools are registered with prefixed names
+          const calls = mockRegisterTool.mock.calls;
+          const toolNames = calls.map((call) => call[0].name);
+
+          // Debug: log the actual tool names registered
+          if (toolNames.length < 2) {
+            throw new Error(
+              `Only ${toolNames.length} tools registered: ${toolNames.join(", ")}`,
+            );
+          }
+
+          expect(
+            calls.some((call) => call[0].name === "linear__test-tool"),
+          ).toBe(true);
+          expect(
+            calls.some((call) => call[0].name === "github__test-tool"),
+          ).toBe(true);
+        },
+        { timeout: 5000 },
+      );
+    });
+
+    it("should use custom serverKey in prefix when provided", async () => {
+      (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+        listTools: jest
+          .fn()
+          .mockResolvedValue([
+            { name: "test-tool", description: "A test tool" },
+          ]),
+        close: jest.fn(),
+      });
+
+      let latest: McpServer[] = [];
+      render(
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider
+            mcpServers={[
+              {
+                url: "https://mcp.linear.app/mcp",
+                serverKey: "my-server",
+              },
+              "https://api.github.com",
+            ]}
+          >
+            <Capture onUpdate={(s) => (latest = s)} />
+          </TamboMcpProvider>
+        </TamboMcpTokenProvider>,
+      );
+
+      await waitFor(() => {
+        expect(latest.length).toBe(2);
+        const calls = mockRegisterTool.mock.calls;
+        expect(
+          calls.some((call) => call[0].name === "my-server__test-tool"),
+        ).toBe(true);
+      });
+    });
   });
 });
