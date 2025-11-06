@@ -7,6 +7,12 @@ import {
   jest,
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
+import { toTreeSync } from "memfs/lib/print";
+import {
+  createBasicProject,
+  createProjectWithReact,
+  createRegistryFiles,
+} from "../helpers/mock-fs-setup.js";
 
 // Mock fs module before importing the command
 jest.unstable_mockModule("fs", () => ({
@@ -175,37 +181,23 @@ describe("handleAddComponents", () => {
     it("should install a single component successfully", async () => {
       // Setup: Project with package.json and registry
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
-        // Registry: message component
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
       });
 
       // Execute with --yes flag to skip prompts
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify component file was created
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
-
-      // Verify lib/utils.ts was created
-      expect(vol.existsSync("/mock-project/src/lib/utils.ts")).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       // Verify npm install was called for missing dependencies
       expect(execSyncCalls.length).toBeGreaterThan(0);
@@ -225,51 +217,24 @@ describe("handleAddComponents", () => {
     it("should install multiple components", async () => {
       // Setup: Project with package.json and registry with multiple components
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        // Message component
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
-        // Form component
-        "/mock-project/cli/src/registry/form/config.json": JSON.stringify({
-          name: "form",
-          description: "Form component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "form.tsx",
-              content: "export const Form = () => <div>Form</div>;",
-            },
-          ],
-        }),
+        ...createBasicProject(),
+        ...createRegistryFiles(["message", "form"]),
       });
 
       // Execute with multiple components
       await handleAddComponents(["message", "form"], { yes: true });
 
-      // Verify both component files were created
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/form.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     ├─ form.tsx
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       // Verify success message mentions both
       const output = logs.join("\n");
@@ -279,24 +244,8 @@ describe("handleAddComponents", () => {
     it("should skip already installed components", async () => {
       // Setup: Project with already installed component
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createProjectWithReact(),
+        ...createRegistryFiles(["message"]),
         // Component already exists
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Existing</div>;",
@@ -320,37 +269,8 @@ describe("handleAddComponents", () => {
     it("should install only new components when some are already installed", async () => {
       // Setup: Project with one component already installed
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
-        "/mock-project/cli/src/registry/form/config.json": JSON.stringify({
-          name: "form",
-          description: "Form component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "form.tsx",
-              content: "export const Form = () => <div>Form</div>;",
-            },
-          ],
-        }),
+        ...createProjectWithReact(),
+        ...createRegistryFiles(["message", "form"]),
         // Message already exists
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Existing</div>;",
@@ -359,10 +279,17 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["message", "form"], { yes: true });
 
-      // Verify form was installed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/form.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     ├─ form.tsx
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       // Verify output mentions both
       const output = logs.join("\n");
@@ -375,54 +302,23 @@ describe("handleAddComponents", () => {
     it("should install component dependencies", async () => {
       // Setup: Component with dependencies
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        // Message component requires markdown-components
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: ["markdown-components"],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
-        // Markdown-components dependency
-        "/mock-project/cli/src/registry/markdown-components/config.json":
-          JSON.stringify({
-            name: "markdown-components",
-            description: "Markdown components",
-            dependencies: [],
-            devDependencies: [],
-            requires: [],
-            files: [
-              {
-                name: "markdown-components.tsx",
-                content: "export const Markdown = () => <div>Markdown</div>;",
-              },
-            ],
-          }),
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
       });
 
       // Execute
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify both components were installed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
-      expect(
-        vol.existsSync(
-          "/mock-project/src/components/tambo/markdown-components.tsx",
-        ),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       // Verify output mentions dependency resolution
       const output = logs.join("\n");
@@ -431,28 +327,14 @@ describe("handleAddComponents", () => {
 
     it("should handle circular dependencies gracefully", async () => {
       // Setup: Components with circular dependency
+      // Note: createRegistryFiles will create both components since component-a requires component-b
       vol.fromJSON({
         "/mock-project/package.json": JSON.stringify({
           name: "test-project",
           dependencies: {},
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        // Component A requires B
-        "/mock-project/cli/src/registry/component-a/config.json":
-          JSON.stringify({
-            name: "component-a",
-            description: "Component A",
-            dependencies: [],
-            devDependencies: [],
-            requires: ["component-b"],
-            files: [
-              {
-                name: "component-a.tsx",
-                content: "export const A = () => <div>A</div>;",
-              },
-            ],
-          }),
-        // Component B requires A (circular)
+        ...createRegistryFiles(["component-a"]),
+        // Override to set circular dependency
         "/mock-project/cli/src/registry/component-b/config.json":
           JSON.stringify({
             name: "component-b",
@@ -472,13 +354,16 @@ describe("handleAddComponents", () => {
       // Execute - should not hang or error
       await handleAddComponents(["component-a"], { yes: true });
 
-      // Verify both components were installed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/component-a.tsx"),
-      ).toBe(true);
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/component-b.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ component-a.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
     });
   });
 
@@ -486,37 +371,8 @@ describe("handleAddComponents", () => {
     it("should install to legacy location when components exist there", async () => {
       // Setup: Project with components in legacy ui/ directory
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: { "@tambo-ai/react": "^1.0.0" },
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
-        "/mock-project/cli/src/registry/form/config.json": JSON.stringify({
-          name: "form",
-          description: "Form component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "form.tsx",
-              content: "export const Form = () => <div>Form</div>;",
-            },
-          ],
-        }),
+        ...createProjectWithReact(),
+        ...createRegistryFiles(["message", "form"]),
         // Existing component in legacy location
         "/mock-project/src/components/ui/message.tsx":
           "export const Message = () => <div>Legacy</div>;",
@@ -525,10 +381,17 @@ describe("handleAddComponents", () => {
       // Execute - install form to maintain consistency
       await handleAddComponents(["form"], { yes: true });
 
-      // Verify new component was installed to legacy location
-      expect(vol.existsSync("/mock-project/src/components/ui/form.tsx")).toBe(
-        true,
-      );
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ ui/
+        │     ├─ form.tsx
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       // Verify warning about legacy location
       const output = logs.join("\n");
@@ -542,33 +405,7 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: { "@tambo-ai/react": "^1.0.0" },
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
-        "/mock-project/cli/src/registry/form/config.json": JSON.stringify({
-          name: "form",
-          description: "Form component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "form.tsx",
-              content: "export const Form = () => <div>Form</div>;",
-            },
-          ],
-        }),
+        ...createRegistryFiles(["message", "form"]),
         // Components in both locations
         "/mock-project/src/components/ui/message.tsx":
           "export const Message = () => <div>UI</div>;",
@@ -595,46 +432,7 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: { "@tambo-ai/react": "^1.0.0" },
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
-        "/mock-project/cli/src/registry/form/config.json": JSON.stringify({
-          name: "form",
-          description: "Form component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "form.tsx",
-              content: "export const Form = () => <div>Form</div>;",
-            },
-          ],
-        }),
-        "/mock-project/cli/src/registry/graph/config.json": JSON.stringify({
-          name: "graph",
-          description: "Graph component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "graph.tsx",
-              content: "export const Graph = () => <div>Graph</div>;",
-            },
-          ],
-        }),
+        ...createRegistryFiles(["message", "form", "graph"]),
         // Components in both locations
         "/mock-project/src/components/ui/message.tsx":
           "export const Message = () => <div>UI</div>;",
@@ -648,10 +446,19 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["graph"]);
 
-      // Verify installation proceeded
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/graph.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  ├─ tambo/
+        │  │  ├─ form.tsx
+        │  │  └─ graph.tsx
+        │  └─ ui/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       const output = logs.join("\n");
       expect(output).toContain("Installation complete");
@@ -662,33 +469,23 @@ describe("handleAddComponents", () => {
     it("should respect --yes flag and skip prompts", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
       });
 
       // Execute with --yes
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify installation completed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       const output = logs.join("\n");
       expect(output).toContain("Auto-proceeding with installation");
@@ -701,29 +498,22 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: {},
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createRegistryFiles(["message"]),
       });
 
       // Execute with --silent and --yes
       await handleAddComponents(["message"], { silent: true, yes: true });
 
-      // Verify installation completed
-      expect(
-        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
-      ).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
 
       // Verify minimal output (silent mode)
       expect(logs.length).toBe(0);
@@ -736,20 +526,7 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: {},
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createRegistryFiles(["message"]),
       });
 
       // Execute with custom install path
@@ -758,10 +535,51 @@ describe("handleAddComponents", () => {
         installPath: "custom/path",
       });
 
-      // Verify installation to custom path (explicit prefix means direct path)
-      expect(vol.existsSync("/mock-project/custom/path/message.tsx")).toBe(
-        true,
-      );
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/custom" }))
+        .toMatchInlineSnapshot(`
+        "custom/
+        └─ path/
+           └─ message.tsx"
+      `);
+      expect(toTreeSync(vol, { dir: "/mock-project/lib" }))
+        .toMatchInlineSnapshot(`
+        "lib/
+        └─ utils.ts"
+      `);
+    });
+
+    it("should install to exact prefix path without adding tambo subdirectory", async () => {
+      // Setup
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: {},
+        }),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with prefix that ends with "tambo" - this was causing a bug
+      // where it would create components/ui/tambo/tambo instead of components/ui/tambo
+      await handleAddComponents(["message"], {
+        yes: true,
+        installPath: "components/ui/tambo",
+        isExplicitPrefix: true,
+      });
+
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/components" }))
+        .toMatchInlineSnapshot(`
+        "components/
+        └─ ui/
+           └─ tambo/
+              └─ message.tsx"
+      `);
+      expect(toTreeSync(vol, { dir: "/mock-project/lib" }))
+        .toMatchInlineSnapshot(`
+        "lib/
+        └─ utils.ts"
+      `);
     });
 
     it("should respect --forceUpdate option and overwrite existing files", async () => {
@@ -771,20 +589,10 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: { "@tambo-ai/react": "^1.0.0" },
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Updated</div>;",
-            },
-          ],
-        }),
+        ...createRegistryFiles(["message"]),
+        // Override message content to have "Updated"
+        "/mock-project/cli/src/registry/message/message.tsx":
+          "export const Message = () => <div>Updated</div>;",
         // Existing component with different content
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -814,27 +622,22 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: {},
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createRegistryFiles(["message"]),
       });
 
       // Execute
       await handleAddComponents(["message"], { yes: true });
 
-      // Verify lib/utils.ts was created
-      expect(vol.existsSync("/mock-project/src/lib/utils.ts")).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ message.tsx
+        └─ lib/
+           └─ utils.ts"
+      `);
       const utilsContent = vol.readFileSync(
         "/mock-project/src/lib/utils.ts",
         "utf-8",
@@ -850,20 +653,7 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: {},
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createRegistryFiles(["message"]),
         // Existing custom utils
         "/mock-project/src/lib/utils.ts":
           "export const custom = () => 'custom';",
@@ -912,13 +702,17 @@ describe("handleAddComponents", () => {
       // Execute
       await handleAddComponents(["complex-component"], { yes: true });
 
-      // Verify nested directory was created
-      expect(
-        vol.existsSync(
-          "/mock-project/src/components/tambo/complex-component.tsx",
-        ),
-      ).toBe(true);
-      expect(vol.existsSync("/mock-project/src/lib/helper.ts")).toBe(true);
+      // Verify filesystem state
+      expect(toTreeSync(vol, { dir: "/mock-project/src" }))
+        .toMatchInlineSnapshot(`
+        "src/
+        ├─ components/
+        │  └─ tambo/
+        │     └─ complex-component.tsx
+        └─ lib/
+           ├─ helper.ts
+           └─ utils.ts"
+      `);
     });
   });
 
@@ -926,11 +720,9 @@ describe("handleAddComponents", () => {
     it("should install production dependencies", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+        // Override to add react-markdown dependency
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -969,7 +761,8 @@ describe("handleAddComponents", () => {
           name: "test-project",
           dependencies: {},
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
+        ...createRegistryFiles(["message"]),
+        // Override to add dev dependency
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -1005,7 +798,8 @@ describe("handleAddComponents", () => {
             "react-markdown": "^8.0.0",
           },
         }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
+        ...createRegistryFiles(["message"]),
+        // Override to add react-markdown dependency
         "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
           name: "message",
           description: "Message component",
@@ -1034,24 +828,8 @@ describe("handleAddComponents", () => {
     it("should use --legacy-peer-deps when option is set", async () => {
       // Setup
       vol.fromJSON({
-        "/mock-project/package.json": JSON.stringify({
-          name: "test-project",
-          dependencies: {},
-        }),
-        "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Message</div>;",
-            },
-          ],
-        }),
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
       });
 
       // Execute with legacyPeerDeps option

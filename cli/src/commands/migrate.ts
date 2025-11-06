@@ -1,14 +1,19 @@
 import chalk from "chalk";
+import path from "path";
 import fs from "fs";
 import inquirer from "inquirer";
 import ora from "ora";
-import path from "path";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../constants/paths.js";
 import { getTamboComponentInfo } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
+import {
+  getComponentDirectoryPath,
+  getLegacyComponentDirectoryPath,
+  getComponentFilePath,
+} from "./shared/path-utils.js";
 
 interface MigrateOptions {
   yes?: boolean;
@@ -44,13 +49,13 @@ export function updateImportPaths(
  */
 export async function handleMigrate(options: MigrateOptions = {}) {
   try {
+    const projectRoot = process.cwd();
     const installPath = await getInstallationPath(options.yes);
-    const legacyPath = path.join(
-      process.cwd(),
+    const legacyPath = getLegacyComponentDirectoryPath(
+      projectRoot,
       installPath,
-      LEGACY_COMPONENT_SUBDIR,
     );
-    const newPath = path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+    const newPath = getComponentDirectoryPath(projectRoot, installPath, false);
 
     if (!fs.existsSync(legacyPath)) {
       console.log(chalk.blue("ℹ No components found in legacy location."));
@@ -190,8 +195,9 @@ export async function handleMigrate(options: MigrateOptions = {}) {
       // Move files and update imports
       for (const file of tamboFiles) {
         try {
-          const oldFile = path.join(legacyPath, file);
-          const newFile = path.join(newPath, file);
+          const { name: componentName } = path.parse(file);
+          const oldFile = getComponentFilePath(legacyPath, componentName);
+          const newFile = getComponentFilePath(newPath, componentName);
 
           // Read content and update import paths
           const content = fs.readFileSync(oldFile, "utf-8");

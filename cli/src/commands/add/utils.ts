@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
 import {
-  COMPONENT_SUBDIR,
-  LEGACY_COMPONENT_SUBDIR,
-} from "../../constants/paths.js";
+  getComponentDirectoryPath,
+  getLegacyComponentDirectoryPath,
+} from "../shared/path-utils.js";
 
 // Get the current file URL and convert it to a path
 const __filename = fileURLToPath(import.meta.url);
@@ -200,12 +201,15 @@ export async function getInstalledComponents(
   isExplicitPrefix = false,
 ): Promise<string[]> {
   try {
-    const componentsPath = isExplicitPrefix
-      ? path.join(process.cwd(), installPath)
-      : path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+    const projectRoot = process.cwd();
+    const componentsPath = getComponentDirectoryPath(
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
+    );
 
     const legacyPath = !isExplicitPrefix
-      ? path.join(process.cwd(), installPath, LEGACY_COMPONENT_SUBDIR)
+      ? getLegacyComponentDirectoryPath(projectRoot, installPath)
       : null;
 
     const allComponents = new Set<string>();
