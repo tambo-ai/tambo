@@ -25,6 +25,10 @@
     {
       "name": "suggestions-tooltip.tsx",
       "content": "src/registry/message-suggestions/suggestions-tooltip.tsx"
+    },
+    {
+      "name": "dictation-button.tsx",
+      "content": "src/registry/message-input/dictation-button.tsx"
     }
   ]
 }
