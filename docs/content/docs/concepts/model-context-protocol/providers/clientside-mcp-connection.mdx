@@ -119,9 +119,7 @@ function ResourceViewer({ uri }: { uri: string }) {
   return (
     <div>
       {resource.contents.map((content, i) => (
-        <div key={i}>
-          {content.text || content.blob}
-        </div>
+        <div key={i}>{content.text || content.blob}</div>
       ))}
     </div>
   );
@@ -194,7 +192,7 @@ function PromptInserter({ promptName }: { promptName: string }) {
 
   // Extract text from prompt messages
   const promptText = prompt.messages
-    .map((msg) => msg.content.type === "text" ? msg.content.text : "")
+    .map((msg) => (msg.content.type === "text" ? msg.content.text : ""))
     .filter(Boolean)
     .join("\n");
 
