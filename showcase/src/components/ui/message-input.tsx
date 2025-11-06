@@ -27,8 +27,13 @@ import {
   Square,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import * as React from "react";
+// eslint-disable-next-line @typescript-eslint/promise-function-async
+const DictationButton = dynamic(() => import("./dictation-button"), {
+  ssr: false,
+});
 
 /**
  * CSS variants for the message input container
@@ -159,7 +164,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         variant={variant}
         {...props}
       >
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
       </MessageInputInternal>
     );
   },
@@ -546,7 +551,7 @@ const MessageInputSubmitButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-foreground text-background rounded-lg hover:bg-foreground/90 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
+    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
     className,
   );
 
@@ -627,7 +632,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
   );
 
   return (
-    <TooltipProvider>
+    <>
       <Tooltip
         content="Configure MCP Servers"
         side="right"
@@ -648,9 +653,8 @@ const MessageInputMcpConfigButton = React.forwardRef<
       <McpConfigModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        className="showcase-theme"
       />
-    </TooltipProvider>
+    </>
   );
 });
 MessageInputMcpConfigButton.displayName = "MessageInput.McpConfigButton";
@@ -750,34 +754,32 @@ const MessageInputFileButton = React.forwardRef<
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip
-        content="Attach Images"
-        side="top"
-        className="bg-muted text-foreground"
+    <Tooltip
+      content="Attach Images"
+      side="top"
+      className="bg-muted text-primary"
+    >
+      <button
+        ref={ref}
+        type="button"
+        onClick={handleClick}
+        className={buttonClasses}
+        aria-label="Attach Images"
+        data-slot="message-input-file-button"
+        {...props}
       >
-        <button
-          ref={ref}
-          type="button"
-          onClick={handleClick}
-          className={buttonClasses}
-          aria-label="Attach Images"
-          data-slot="message-input-file-button"
-          {...props}
-        >
-          <Paperclip className="w-4 h-4" />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            multiple={multiple}
-            onChange={handleFileChange}
-            className="hidden"
-            aria-hidden="true"
-          />
-        </button>
-      </Tooltip>
-    </TooltipProvider>
+        <Paperclip className="w-4 h-4" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleFileChange}
+          className="hidden"
+          aria-hidden="true"
+        />
+      </button>
+    </Tooltip>
   );
 });
 MessageInputFileButton.displayName = "MessageInput.FileButton";
@@ -850,71 +852,69 @@ const MessageInputMcpPromptButton = React.forwardRef<
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip
-        content="Insert MCP Prompt"
-        side="top"
-        className="bg-muted text-foreground"
-      >
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button
-              ref={ref}
-              type="button"
-              className={buttonClasses}
-              aria-label="Insert MCP Prompt"
-              data-slot="message-input-mcp-prompt-button"
-              {...props}
-            >
-              <FileText className="w-4 h-4" />
-            </button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content
-              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
-              side="top"
-              align="start"
-              sideOffset={5}
-            >
-              {isLoading ? (
+    <Tooltip
+      content="Insert MCP Prompt"
+      side="top"
+      className="bg-muted text-foreground"
+    >
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <button
+            ref={ref}
+            type="button"
+            className={buttonClasses}
+            aria-label="Insert MCP Prompt"
+            data-slot="message-input-mcp-prompt-button"
+            {...props}
+          >
+            <FileText className="w-4 h-4" />
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+            side="top"
+            align="start"
+            sideOffset={5}
+          >
+            {isLoading ? (
+              <DropdownMenu.Item
+                className="px-2 py-1.5 text-sm text-muted-foreground"
+                disabled
+              >
+                Loading prompts...
+              </DropdownMenu.Item>
+            ) : !promptList || promptList.length === 0 ? (
+              <DropdownMenu.Item
+                className="px-2 py-1.5 text-sm text-muted-foreground"
+                disabled
+              >
+                No prompts available
+              </DropdownMenu.Item>
+            ) : (
+              promptList.map((promptEntry) => (
                 <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
+                  key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
+                  className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  onSelect={() => {
+                    setSelectedPromptName(promptEntry.prompt.name);
+                  }}
                 >
-                  Loading prompts...
-                </DropdownMenu.Item>
-              ) : !promptList || promptList.length === 0 ? (
-                <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
-                >
-                  No prompts available
-                </DropdownMenu.Item>
-              ) : (
-                promptList.map((promptEntry) => (
-                  <DropdownMenu.Item
-                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
-                    className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                    onSelect={() => {
-                      setSelectedPromptName(promptEntry.prompt.name);
-                    }}
-                  >
-                    <span className="font-medium truncate max-w-full">
-                      {promptEntry.prompt.name}
+                  <span className="font-medium truncate max-w-full">
+                    {promptEntry.prompt.name}
+                  </span>
+                  {promptEntry.prompt.description && (
+                    <span className="text-xs text-muted-foreground truncate max-w-full">
+                      {promptEntry.prompt.description}
                     </span>
-                    {promptEntry.prompt.description && (
-                      <span className="text-xs text-muted-foreground truncate max-w-full">
-                        {promptEntry.prompt.description}
-                      </span>
-                    )}
-                  </DropdownMenu.Item>
-                ))
-              )}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
-      </Tooltip>
-    </TooltipProvider>
+                  )}
+                </DropdownMenu.Item>
+              ))
+            )}
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </Tooltip>
   );
 });
 MessageInputMcpPromptButton.displayName = "MessageInput.McpPromptButton";
@@ -1003,7 +1003,7 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
         e.stopPropagation();
         onRemove();
       }}
-      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-foreground rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-10"
+      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
       aria-label={`Remove ${displayName}`}
     >
       <X className="w-3 h-3" />
@@ -1111,6 +1111,7 @@ const MessageInputToolbar = React.forwardRef<
         })}
       </div>
       <div className="flex items-center gap-2">
+        <DictationButton />
         {/* Right side - only submit button */}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
@@ -1129,6 +1130,7 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 
 // --- Exports ---
 export {
+  DictationButton,
   MessageInput,
   MessageInputError,
   MessageInputFileButton,
