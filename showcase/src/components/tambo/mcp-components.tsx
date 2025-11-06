@@ -152,7 +152,6 @@ McpPromptButton.displayName = "McpPromptButton";
  * Props for the ResourceCombobox internal component
  */
 interface ResourceComboboxProps {
-  isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -166,92 +165,89 @@ interface ResourceComboboxProps {
  * Not exported - only used within McpResourceButton.
  */
 const ResourceCombobox: React.FC<ResourceComboboxProps> = ({
-  isOpen,
-  setIsOpen,
   searchQuery,
   setSearchQuery,
   filteredResources,
   isLoading,
   onSelectResource,
+  setIsOpen,
 }) => {
   return (
-    <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          className="z-50 w-[400px] max-h-[400px] overflow-hidden rounded-md border border-gray-200 bg-popover text-popover-foreground shadow-md"
-          side="top"
-          align="start"
-          sideOffset={5}
-          onCloseAutoFocus={(e) => {
-            // Prevent focus from moving when closing
-            e.preventDefault();
-          }}
-        >
-          {/* Search input */}
-          <div className="sticky top-0 bg-popover border-b border-border p-2 z-10">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Search resources..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => {
-                  // Prevent dropdown from closing on key events
-                  e.stopPropagation();
-                  if (e.key === "Escape") {
-                    setIsOpen(false);
-                  }
-                }}
-              />
-            </div>
+    <DropdownMenu.Portal>
+      <DropdownMenu.Content
+        className="z-50 w-[400px] max-h-[400px] overflow-hidden rounded-md border border-gray-200 bg-popover text-popover-foreground shadow-md"
+        side="top"
+        align="start"
+        sideOffset={5}
+        onCloseAutoFocus={(e) => {
+          // Prevent focus from moving when closing
+          e.preventDefault();
+        }}
+      >
+        {/* Search input */}
+        <div className="sticky top-0 bg-popover border-b border-border p-2 z-10">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                // Prevent dropdown from closing on key events
+                e.stopPropagation();
+                if (e.key === "Escape") {
+                  setIsOpen(false);
+                }
+              }}
+            />
           </div>
+        </div>
 
-          {/* Resource list */}
-          <div className="overflow-y-auto max-h-[320px] p-1">
-            {isLoading ? (
-              <div className="px-2 py-8 text-center text-sm text-muted-foreground">
-                Loading resources...
-              </div>
-            ) : !filteredResources || filteredResources.length === 0 ? (
-              <div className="px-2 py-8 text-center text-sm text-muted-foreground">
-                {searchQuery
-                  ? `No resources matching "${searchQuery}"`
-                  : "No resources available"}
-              </div>
-            ) : (
-              filteredResources.map((resourceEntry) => (
-                <DropdownMenu.Item
-                  key={`${resourceEntry.server.url}-${resourceEntry.resource.uri}`}
-                  className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
-                  onSelect={() => {
-                    onSelectResource(resourceEntry.resource.uri);
-                  }}
-                >
-                  <div className="flex items-start justify-between w-full gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">
-                        {resourceEntry.resource.name || "Unnamed Resource"}
-                      </div>
-                      <div className="text-xs text-muted-foreground truncate font-mono">
-                        {resourceEntry.resource.uri}
-                      </div>
-                      {resourceEntry.resource.description && (
-                        <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {resourceEntry.resource.description}
-                        </div>
-                      )}
+        {/* Resource list */}
+        <div className="overflow-y-auto max-h-[320px] p-1">
+          {isLoading ? (
+            <div className="px-2 py-8 text-center text-sm text-muted-foreground">
+              Loading resources...
+            </div>
+          ) : !filteredResources || filteredResources.length === 0 ? (
+            <div className="px-2 py-8 text-center text-sm text-muted-foreground">
+              {searchQuery
+                ? `No resources matching "${searchQuery}"`
+                : "No resources available"}
+            </div>
+          ) : (
+            filteredResources.map((resourceEntry) => (
+              <DropdownMenu.Item
+                key={`${resourceEntry.server.url}-${resourceEntry.resource.uri}`}
+                className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
+                onSelect={() => {
+                  onSelectResource(resourceEntry.resource.uri);
+                }}
+              >
+                <div className="flex items-start justify-between w-full gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">
+                      {resourceEntry.resource.name || "Unnamed Resource"}
                     </div>
+                    <div className="text-xs text-muted-foreground truncate font-mono">
+                      {resourceEntry.resource.uri}
+                    </div>
+                    {resourceEntry.resource.description && (
+                      <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                        {resourceEntry.resource.description}
+                      </div>
+                    )}
                   </div>
-                </DropdownMenu.Item>
-              ))
-            )}
-          </div>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+                </div>
+              </DropdownMenu.Item>
+            ))
+          )}
+        </div>
+      </DropdownMenu.Content>
+    </DropdownMenu.Portal>
   );
 };
 
@@ -333,27 +329,28 @@ export const McpResourceButton = React.forwardRef<
         side="top"
         className="bg-muted text-foreground"
       >
-        <DropdownMenu.Trigger asChild>
-          <button
-            ref={ref}
-            type="button"
-            className={buttonClasses}
-            aria-label="Insert MCP Resource"
-            data-slot="mcp-resource-button"
-            {...props}
-          >
-            <AtSign className="w-4 h-4" />
-          </button>
-        </DropdownMenu.Trigger>
-        <ResourceCombobox
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          filteredResources={filteredResources}
-          isLoading={isLoading}
-          onSelectResource={handleSelectResource}
-        />
+        <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
+          <DropdownMenu.Trigger asChild>
+            <button
+              ref={ref}
+              type="button"
+              className={buttonClasses}
+              aria-label="Insert MCP Resource"
+              data-slot="mcp-resource-button"
+              {...props}
+            >
+              <AtSign className="w-4 h-4" />
+            </button>
+          </DropdownMenu.Trigger>
+          <ResourceCombobox
+            setIsOpen={setIsOpen}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            filteredResources={filteredResources}
+            isLoading={isLoading}
+            onSelectResource={handleSelectResource}
+          />
+        </DropdownMenu.Root>
       </Tooltip>
     </TooltipProvider>
   );
