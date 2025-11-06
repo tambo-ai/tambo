@@ -6,6 +6,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -182,6 +183,7 @@ export const MessageThreadPanel = React.forwardRef<
               <MessageInputToolbar>
                 <MessageInputFileButton />
                 <MessageInputMcpPromptButton />
+                <MessageInputMcpResourceButton />
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />
