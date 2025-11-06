@@ -230,6 +230,16 @@ export async function addMessage(
   db: HydraDb,
   messageInput: typeof schema.messages.$inferInsert,
 ): Promise<typeof schema.messages.$inferSelect> {
+  // TODO: Handle File types in message content
+  // When File content parts are present:
+  // 1. Extract large text/blob content (>100KB threshold)
+  // 2. Upload to S3 with key: messages/{messageId}/files/{fileId}
+  // 3. Replace content with S3 URI reference (s3://bucket/key)
+  // 4. Store file metadata in a new 'message_files' table:
+  //    - messageId, fileId, name, mimeType, size, s3Key, originalUri
+  // 5. For external URIs: optionally fetch and cache in S3
+  // 6. Update content part to reference S3 location for retrieval
+
   const [message] = await db
     .insert(schema.messages)
     .values(messageInput)
@@ -285,6 +295,14 @@ export async function updateMessage(
     Omit<typeof schema.messages.$inferInsert, "id" | "createdAt" | "threadId">
   >,
 ): Promise<typeof schema.messages.$inferSelect> {
+  // TODO: Handle File types in message content updates
+  // When updating content with File parts:
+  // 1. Compare old and new file references
+  // 2. Upload new large files to S3
+  // 3. Clean up orphaned S3 objects from replaced files
+  // 4. Update message_files table entries
+  // 5. Maintain referential integrity for file metadata
+
   const [updatedMessage] = await db
     .update(schema.messages)
     .set(messageInput)

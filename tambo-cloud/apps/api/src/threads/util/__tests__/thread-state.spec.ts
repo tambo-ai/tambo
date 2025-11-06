@@ -393,6 +393,7 @@ describe("Thread State", () => {
         .mockResolvedValue([mockAssistantMessage, mockUserMessage]);
       jest.mocked(operations.updateMessage).mockResolvedValue({
         ...mockFinalMessage,
+        content: mockFinalMessage.content,
         parentMessageId: null,
         componentState: mockFinalMessage.componentState ?? {},
         toolCallId: null,

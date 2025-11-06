@@ -1,8 +1,8 @@
 import {
-  ChatCompletionContentPart,
   ChatCompletionContentPartText,
   ChatCompletionMessageParam,
   ComponentDecisionV2,
+  ContentPartType,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -291,22 +291,40 @@ function makeUserMessages(
   }
   const additionalContextMessage = generateAdditionalContext(message);
 
+  // TODO: Handle File types - filter them out before passing to AI SDK
+  // When File content parts are properly stored in S3 and converted to appropriate
+  // formats (text, image_url, etc.), this filter can be updated to convert instead of remove
+  const contentWithoutFiles = message.content.filter(
+    (p): p is OpenAI.Chat.Completions.ChatCompletionContentPart => {
+      if ((p.type as string) === "resource") {
+        console.warn("Filtering out legacy 'resource' content part");
+        return false;
+      }
+      if (p.type === ContentPartType.File) {
+        console.warn("Filtering out 'file' content part for provider call");
+        return false;
+      }
+      return true;
+    },
+  );
+
   // Only wrap text content with <User> tags, preserve other content types as-is
-  const wrappedContent: ChatCompletionContentPart[] =
+  const wrappedContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] =
     message.role === MessageRole.User
       ? [
           { type: "text", text: "<User>" },
-          ...message.content,
+          ...contentWithoutFiles,
           { type: "text", text: "</User>" },
         ]
-      : message.content;
+      : contentWithoutFiles;
 
   // Combine additional context (if any) with the wrapped content
-  const content: ChatCompletionContentPart[] = additionalContextMessage
+  const content = additionalContextMessage
     ? [additionalContextMessage, ...wrappedContent]
     : wrappedContent;
 
   // user messages support mixed content, system messages only support text
+  // Type assertion is safe here because we've filtered out File types above
   return [
     message.role === MessageRole.User
       ? {

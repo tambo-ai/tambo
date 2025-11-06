@@ -5,7 +5,9 @@ import {
 import { ChatCompletionContentPartDto } from "../dto/message.dto";
 
 /**
- * Convert a serialized content part to a content part that can be consumed by an LLM
+ * Convert a serialized content part to a content part that can be consumed by an LLM.
+ * Unsupported parts (e.g., legacy "resource" and our extended `file`) are removed
+ * inline here to avoid over-abstracting a one-off filter.
  */
 export function convertContentDtoToContentPart(
   content: string | ChatCompletionContentPartDto[],
@@ -13,7 +15,20 @@ export function convertContentDtoToContentPart(
   if (!Array.isArray(content)) {
     return [{ type: ContentPartType.Text, text: content }];
   }
-  return content
+  const filtered = content.filter((p) => {
+    // Filter legacy MCP 'resource' parts without leaking metadata
+    if ((p as any)?.type === "resource") {
+      console.warn("Filtering out legacy 'resource' content part");
+      return false;
+    }
+    // Filter our extended File parts before provider consumption
+    if (p.type === ContentPartType.File) {
+      console.warn("Filtering out 'file' content part for provider call");
+      return false;
+    }
+    return true;
+  });
+  return filtered
     .map((part): ChatCompletionContentPart | null => {
       switch (part.type) {
         case ContentPartType.Text:
@@ -25,29 +40,36 @@ export function convertContentDtoToContentPart(
             type: ContentPartType.Text,
             text: part.text,
           };
-        case ContentPartType.ImageUrl:
+        case ContentPartType.ImageUrl: {
+          if (
+            !part.image_url ||
+            typeof part.image_url.url !== "string" ||
+            part.image_url.url.length === 0
+          ) {
+            throw new Error(
+              "image_url with a non-empty 'url' is required for image_url type",
+            );
+          }
           return {
             type: ContentPartType.ImageUrl,
-            image_url: part.image_url ?? {
-              url: "",
-              detail: "auto",
-            },
+            image_url: part.image_url,
           };
-        case ContentPartType.InputAudio:
+        }
+        case ContentPartType.InputAudio: {
+          if (
+            !part.input_audio ||
+            typeof part.input_audio.data !== "string" ||
+            part.input_audio.data.length === 0
+          ) {
+            throw new Error(
+              "input_audio with base64 'data' is required for input_audio type",
+            );
+          }
           return {
             type: ContentPartType.InputAudio,
-            input_audio: part.input_audio ?? {
-              data: "",
-              format: "wav",
-            },
+            input_audio: part.input_audio,
           };
-        case "resource" as ContentPartType:
-          // TODO: we get back "resource" from MCP servers, but it is not supported yet
-          console.warn(
-            "Ignoring 'resource' content part: it is not supported yet",
-            part,
-          );
-          return null;
+        }
         default:
           throw new Error(`Unknown content part type: ${part.type}`);
       }

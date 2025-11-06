@@ -2,6 +2,7 @@ import {
   ActionType,
   AgentProviderType,
   AiProviderType,
+  ChatCompletionContentPart,
   ComponentDecisionV2,
   DeprecatedComposioAuthMode,
   GenerationStage,
@@ -31,7 +32,6 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid } from "drizzle-orm/supabase";
-import type OpenAI from "openai";
 import { customJsonb } from "./drizzleUtil";
 export { authenticatedRole, authUid } from "drizzle-orm/supabase";
 
@@ -451,10 +451,7 @@ export const messages = pgTable(
     role: text("role", {
       enum: Object.values<string>(MessageRole) as [MessageRole],
     }).notNull(),
-    content:
-      customJsonb<OpenAI.Chat.Completions.ChatCompletionContentPart[]>(
-        "content",
-      ).notNull(),
+    content: customJsonb<ChatCompletionContentPart[]>("content").notNull(),
     reasoning: customJsonb<string[]>("reasoning"),
     reasoningDurationMS: integer("reasoning_duration_ms"),
     additionalContext:

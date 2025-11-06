@@ -6,11 +6,11 @@ import {
   AgentProviderType,
   AiProviderType,
   AsyncQueue,
+  ChatCompletionContentPart,
   ContentPartType,
   GenerationStage,
   MessageRole,
   OAuthValidationMode,
-  type ChatCompletionContentPart,
 } from "@tambo-ai-cloud/core";
 import { schema, type operations as dbOperations } from "@tambo-ai-cloud/db";
 import {

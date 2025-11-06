@@ -1,11 +1,10 @@
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
-import {
-  ActionType,
+import type {
   ChatCompletionContentPartUnion,
-  ContentPartType,
-  InternalThreadMessage,
-  MessageRole,
+  FileResource,
+  FileResourceAnnotations,
 } from "@tambo-ai-cloud/core";
+import { ActionType, ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
 import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from "class-validator";
 import { type OpenAI } from "openai";
 import {
@@ -36,19 +35,122 @@ export class ImageUrl {
   detail?: ImageDetail;
 }
 
-/** DTO for the content part of a message. This may be safely cast to or from the ChatCompletionContentPart interface. */
+/**
+ * Annotations for file resources (MCP-specific metadata).
+ */
+@ApiSchema({ name: "FileResourceAnnotations" })
+export class FileResourceAnnotationsDto implements FileResourceAnnotations {
+  @ApiProperty({
+    description: "Target audience for this resource",
+  })
+  audience?: string[];
+
+  @ApiProperty({
+    description: "Priority level for this resource",
+  })
+  priority?: number;
+
+  // Additional custom properties (no decorator needed for index signature)
+  [key: string]: unknown;
+}
+
+/**
+ * MCP Resource-compatible file content.
+ * Based on https://modelcontextprotocol.io/specification/2025-06-18/schema#resource
+ *
+ * Note: This is a flattened representation for our API. File parts are stored in the
+ * database today. When sending to providers, they may be filtered or converted to
+ * provider-native content types.
+ */
+@ApiSchema({ name: "FileResource" })
+export class FileResourceDto implements FileResource {
+  @ApiProperty({
+    description:
+      "URI identifying the resource (e.g., file://, https://, s3://)",
+    example: "file:///path/to/document.pdf",
+  })
+  uri?: string;
+
+  @ApiProperty({
+    description: "Human-readable name for the resource",
+    example: "project-documentation.pdf",
+  })
+  name?: string;
+
+  @ApiProperty({
+    description: "Optional description of the resource",
+    example: "Project documentation for Q4 2024",
+  })
+  description?: string;
+
+  @ApiProperty({
+    description: "MIME type of the resource",
+    example: "application/pdf",
+  })
+  mimeType?: string;
+
+  @ApiProperty({
+    description: "Inline text content (alternative to uri)",
+    example: "The contents of the document...",
+  })
+  text?: string;
+
+  @ApiProperty({
+    description: "Base64-encoded blob data (alternative to uri or text)",
+    example: "SGVsbG8gV29ybGQh",
+  })
+  blob?: string;
+
+  @ApiProperty({
+    description:
+      "Annotations for additional metadata (MCP-specific). Can include audience, priority, or custom properties.",
+  })
+  annotations?: FileResourceAnnotationsDto;
+}
+
+/**
+ * DTO for the content part of a message.
+ *
+ * Note: This extends ChatCompletionContentPartUnion with our custom `file` type.
+ * File parts are stored in the database. Before LLM consumption, unsupported parts
+ * may be filtered or converted.
+ */
 @ApiSchema({ name: "ChatCompletionContentPart" })
 export class ChatCompletionContentPartDto
   implements ChatCompletionContentPartUnion
 {
+  @ApiProperty({
+    description: "The type of content part",
+    enum: ContentPartType,
+    enumName: "ContentPartType",
+  })
   @IsEnum(ContentPartType)
   type!: ContentPartType;
+
+  @ApiProperty({
+    description: "Text content (when type is 'text')",
+  })
   @ValidateIf((o) => o.type === ContentPartType.Text)
   text?: string;
+
+  @ApiProperty({
+    description: "Image URL content (when type is 'image_url')",
+  })
   @ValidateIf((o) => o.type === ContentPartType.ImageUrl)
   image_url?: ImageUrl;
+
+  @ApiProperty({
+    description: "Input audio content (when type is 'input_audio')",
+  })
   @ValidateIf((o) => o.type === ContentPartType.InputAudio)
   input_audio?: InputAudio;
+
+  @ApiProperty({
+    description:
+      "File/resource content (when type is 'file'). Supports MCP Resources with URI, text, or blob data.",
+  })
+  @ValidateIf((o) => o.type === ContentPartType.File)
+  file?: FileResourceDto;
 }
 
 @ApiSchema({ name: "ThreadMessage" })
@@ -111,7 +213,6 @@ generation of another message, such as during an agent call, MCP Elicitation, or
   error?: string;
 
   @ApiProperty({
-    required: false,
     type: Boolean,
     description: "Whether the message has been cancelled",
   })
@@ -131,7 +232,12 @@ generation of another message, such as during an agent call, MCP Elicitation, or
   additionalContext?: Record<string, any>;
 }
 
-export class MessageRequest implements InternalThreadMessage {
+/**
+ * Request DTO for creating or updating messages.
+ * Supports our extended `file` content type which is stored in the database and may
+ * be filtered or converted before LLM consumption.
+ */
+export class MessageRequest {
   @IsEnum(MessageRole)
   role!: MessageRole;
 
@@ -186,7 +292,6 @@ export class MessageRequest implements InternalThreadMessage {
 
   @IsOptional()
   @ApiProperty({
-    required: false,
     type: Boolean,
     description: "Whether the message has been cancelled",
   })
