@@ -31,6 +31,9 @@ function MyApp() {
           {
             // MCP server configuration
             url: "http://localhost:8123/",
+            // Optional stable prefix used when multiple MCP servers are configured
+            // If omitted, a key is derived from the URL hostname (e.g., "https://mcp.linear.app/mcp" -> "linear")
+            serverKey: "local",
             // Optional custom headers, eg.
             // { "Authorization": `Bearer ${token}` } or { "X-Api-Key": "1234567890" }
             customHeaders: {},
@@ -46,6 +49,15 @@ function MyApp() {
 ```
 
 The `TamboMcpProvider` establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
+
+> Note
+>
+> When more than one MCP server is configured, Tambo prefixes names to avoid collisions using the `serverKey`:
+>
+> - Prompts: `serverKey:promptName` (colon separator)
+> - Tools: `serverKey__toolName` (double-underscore separator)
+>
+> If you do not provide `serverKey`, Tambo derives one from the server URL (for example, `https://mcp.linear.app/mcp` becomes `linear`). To keep things predictable across environments, set `serverKey` explicitly. Avoid using `:` and `__` in the `serverKey` since prompts use `:` and tools use `__` as separators; prefer letters, numbers, `_`, and `-`.
 
 ## Control Flow
 
