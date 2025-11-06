@@ -247,8 +247,15 @@ const MessageAttachments = React.forwardRef<
     return null;
   }
 
-  const getFileIcon = (type: "pdf" | "text") => {
-    return type === "pdf" ? "📄" : "📝";
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType.startsWith("image/")) return "🖼️";
+    if (mimeType === "application/pdf") return "📄";
+    if (mimeType.includes("wordprocessingml")) return "📄";
+    if (mimeType.includes("presentation")) return "📊";
+    if (mimeType.includes("spreadsheet") || mimeType.includes("sheet"))
+      return "📈";
+    if (mimeType.startsWith("text/")) return "📝";
+    return "📁";
   };
 
   return (
@@ -263,7 +270,7 @@ const MessageAttachments = React.forwardRef<
           key={index}
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-sm"
         >
-          <span className="text-base">{getFileIcon(attachment.type)}</span>
+          <span className="text-base">{getFileIcon(attachment.mimeType)}</span>
           <span className="text-gray-700 dark:text-gray-300 font-medium">
             {attachment.name}
           </span>

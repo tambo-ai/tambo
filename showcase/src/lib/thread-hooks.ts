@@ -112,7 +112,13 @@ export function getSafeContent(
   content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
 ): string | React.ReactElement {
   if (!content) return "";
-  if (typeof content === "string") return content;
+  if (typeof content === "string") {
+    const trimmed = content.trim();
+    if (trimmed.startsWith(STORAGE_REFERENCE_PREFIX)) {
+      return "";
+    }
+    return content;
+  }
   if (React.isValidElement(content)) return content; // Pass elements through
   if (Array.isArray(content)) {
     // Filter out non-text items and file content markers, then join text
@@ -120,6 +126,9 @@ export function getSafeContent(
       .map((item) => {
         if (item && item.type === "text") {
           const text = item.text ?? "";
+          if (text.trim().startsWith(STORAGE_REFERENCE_PREFIX)) {
+            return "";
+          }
           // Filter out file content sections (everything after "--- File:")
           const fileMarkerIndex = text.indexOf("\n\n--- File:");
           if (fileMarkerIndex !== -1) {
@@ -155,7 +164,14 @@ function hasContentInItem(item: unknown): boolean {
 
   // Check for text content
   if (typedItem.type === "text") {
-    return !!typedItem.text?.trim();
+    const trimmed = typedItem.text?.trim();
+    if (!trimmed) {
+      return false;
+    }
+    if (trimmed.startsWith(STORAGE_REFERENCE_PREFIX)) {
+      return false;
+    }
+    return true;
   }
 
   // Check for image content
@@ -175,13 +191,109 @@ export function checkHasContent(
   content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
 ): boolean {
   if (!content) return false;
-  if (typeof content === "string") return content.trim().length > 0;
+  if (typeof content === "string") {
+    const trimmed = content.trim();
+    if (trimmed.startsWith(STORAGE_REFERENCE_PREFIX)) {
+      return false;
+    }
+    return trimmed.length > 0;
+  }
   if (React.isValidElement(content)) return true; // Assume elements have content
   if (Array.isArray(content)) {
     return content.some(hasContentInItem);
   }
   return false; // Default for unknown types
 }
+
+const STORAGE_REFERENCE_PREFIX = "storage://";
+
+const EXTENSION_MIME_MAP: Record<string, string> = {
+  pdf: "application/pdf",
+  txt: "text/plain",
+  text: "text/plain",
+  md: "text/markdown",
+  markdown: "text/markdown",
+  csv: "text/csv",
+  tsv: "text/tab-separated-values",
+  json: "application/json",
+  html: "text/html",
+  htm: "text/html",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  odt: "application/vnd.oasis.opendocument.text",
+  rtf: "application/rtf",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  py: "text/x-python",
+  js: "text/javascript",
+  mjs: "text/javascript",
+  cjs: "text/javascript",
+  ts: "text/x-typescript",
+  tsx: "text/x-typescript",
+  jsx: "text/javascript",
+  java: "text/x-java-source",
+  cpp: "text/x-c++src",
+  c: "text/x-c",
+  h: "text/x-c",
+  cs: "text/plain",
+  go: "text/x-go",
+  rb: "text/x-ruby",
+  php: "text/x-php",
+  swift: "text/x-swift",
+  kt: "text/x-kotlin",
+  scala: "text/x-scala",
+  rs: "text/rust",
+  sh: "text/x-shellscript",
+  sql: "text/x-sql",
+  yaml: "text/yaml",
+  yml: "text/yaml",
+  css: "text/css",
+};
+
+const inferMimeTypeFromFilename = (filename: string): string => {
+  const extension = filename.split(".").pop()?.toLowerCase();
+  if (!extension) {
+    return "application/octet-stream";
+  }
+  return EXTENSION_MIME_MAP[extension] ?? "application/octet-stream";
+};
+
+const toSafeFilename = (filename?: string, path?: string): string => {
+  if (filename && filename.trim()) {
+    return filename.trim();
+  }
+  if (!path) return "file";
+  const pathSegments = path.split("/");
+  const fallback = pathSegments[pathSegments.length - 1];
+  return fallback && fallback.trim() ? fallback.trim() : "file";
+};
+
+const parseStorageReference = (
+  raw: string,
+): { name: string; mimeType: string } | null => {
+  if (!raw.startsWith(STORAGE_REFERENCE_PREFIX)) {
+    return null;
+  }
+
+  const reference = raw.replace(STORAGE_REFERENCE_PREFIX, "");
+  const [path, rawMimeType, rawFilename] = reference.split("|");
+  if (!path) {
+    return null;
+  }
+
+  const name = toSafeFilename(rawFilename, path);
+  const trimmedMimeType = rawMimeType?.trim();
+  const mimeType =
+    trimmedMimeType && trimmedMimeType !== ""
+      ? trimmedMimeType
+      : inferMimeTypeFromFilename(name);
+
+  return { name, mimeType };
+};
 
 /**
  * Extracts image URLs from message content array.
@@ -203,23 +315,42 @@ export function getMessageImages(
  * @param content - The message content
  * @returns Array of file attachment info
  */
+export interface MessageAttachment {
+  readonly name: string;
+  readonly mimeType: string;
+  readonly source: "storage" | "inline";
+}
+
 export function getMessageAttachments(
   content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
-): Array<{ name: string; type: "pdf" | "text" }> {
+): MessageAttachment[] {
   if (!content) return [];
   if (!Array.isArray(content)) return [];
 
-  const attachments: Array<{ name: string; type: "pdf" | "text" }> = [];
+  const attachments: MessageAttachment[] = [];
 
   for (const item of content) {
     if (item && item.type === "text" && item.text) {
+      const storageAttachment = parseStorageReference(item.text);
+      if (storageAttachment) {
+        attachments.push({
+          name: storageAttachment.name,
+          mimeType: storageAttachment.mimeType,
+          source: "storage",
+        });
+        continue;
+      }
+
       // Look for file markers in text content
       const fileMarkerRegex = /\n\n--- File: (.+?) ---\n/g;
       let match;
       while ((match = fileMarkerRegex.exec(item.text)) !== null) {
         const fileName = match[1];
-        const type = fileName.toLowerCase().endsWith(".pdf") ? "pdf" : "text";
-        attachments.push({ name: fileName, type });
+        attachments.push({
+          name: fileName,
+          mimeType: inferMimeTypeFromFilename(fileName),
+          source: "inline",
+        });
       }
     }
   }

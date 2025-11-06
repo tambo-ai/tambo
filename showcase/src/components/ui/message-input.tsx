@@ -699,7 +699,43 @@ const MessageInputFileButton = React.forwardRef<
   (
     {
       className,
-      accept = "image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf",
+      accept = [
+        "image/*",
+        ".pdf",
+        ".txt",
+        ".md",
+        ".markdown",
+        ".csv",
+        ".tsv",
+        ".json",
+        ".docx",
+        ".pptx",
+        ".xlsx",
+        ".odt",
+        ".rtf",
+        ".html",
+        ".htm",
+        ".py",
+        ".js",
+        ".ts",
+        ".tsx",
+        ".jsx",
+        ".java",
+        ".cpp",
+        ".c",
+        ".cs",
+        ".go",
+        ".rb",
+        ".php",
+        ".swift",
+        ".kt",
+        ".scala",
+        ".rs",
+        ".sh",
+        ".sql",
+        ".yaml",
+        ".yml",
+      ].join(","),
       multiple = true,
       ...props
     },
@@ -863,13 +899,19 @@ export type MessageInputStagedFilesProps = React.HTMLAttributes<HTMLDivElement>;
  * Returns the appropriate icon for a file type
  */
 const getFileIcon = (file: StagedFile) => {
-  if (file.type === "application/pdf") {
-    return "📄";
-  } else if (file.type.startsWith("text/")) {
-    return "📝";
-  } else {
+  if (file.type.startsWith("image/")) {
     return "🖼️";
   }
+  if (file.type === "application/pdf") {
+    return "📄";
+  }
+  if (file.type.startsWith("application/")) {
+    return "📄";
+  }
+  if (file.type.startsWith("text/")) {
+    return "📝";
+  }
+  return "📁";
 };
 
 /**

@@ -35,15 +35,45 @@ const MAX_FILES = 10;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_TOTAL_SIZE = 100 * 1024 * 1024; // 100MB total
 
-// Supported MIME types for file uploads
-const ALLOWED_FILE_TYPES = [
-  "application/pdf",
-  "text/plain",
-  "text/markdown",
-  "text/csv",
-  "image/jpeg",
-  "image/png",
-] as const;
+const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/jpg", "image/png"]);
+
+const SUPPORTED_APPLICATION_TYPES = new Set(["application/pdf"]);
+
+const EXTENSION_MIME_MAP: Record<string, string> = {
+  pdf: "application/pdf",
+  txt: "text/plain",
+  text: "text/plain",
+  md: "text/markdown",
+  markdown: "text/markdown",
+  csv: "text/csv",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+};
+
+const SUPPORTED_TYPE_DESCRIPTION =
+  "PDF, plain text, Markdown, CSV, JPEG, and PNG files";
+
+function inferMimeType(file: File): string | undefined {
+  if (file.type) return file.type;
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  if (!extension) return undefined;
+  return EXTENSION_MIME_MAP[extension];
+}
+
+function isSupportedMimeType(mimeType: string | undefined): boolean {
+  if (!mimeType) return false;
+  if (SUPPORTED_IMAGE_TYPES.has(mimeType)) {
+    return true;
+  }
+  if (mimeType.startsWith("image/")) {
+    return SUPPORTED_IMAGE_TYPES.has(mimeType);
+  }
+  if (mimeType.startsWith("text/")) {
+    return true;
+  }
+  return SUPPORTED_APPLICATION_TYPES.has(mimeType);
+}
 
 /**
  * Determines if a file is a supported type
@@ -51,9 +81,8 @@ const ALLOWED_FILE_TYPES = [
  * @returns True if the file type is supported
  */
 function isSupportedFile(file: File): boolean {
-  return ALLOWED_FILE_TYPES.includes(
-    file.type as (typeof ALLOWED_FILE_TYPES)[number],
-  );
+  const mimeType = inferMimeType(file);
+  return isSupportedMimeType(mimeType);
 }
 
 /**
@@ -61,8 +90,8 @@ function isSupportedFile(file: File): boolean {
  * @param file - The file to analyze
  * @returns The content type ("image" or "text")
  */
-function getFileContentType(file: File): FileContentType {
-  if (file.type.startsWith("image/")) {
+function getFileContentTypeFromMimeType(mimeType: string): FileContentType {
+  if (mimeType.startsWith("image/")) {
     return "image";
   }
   return "text";
@@ -78,16 +107,20 @@ export function useMessageFiles(): UseMessageFilesReturn {
   const client = useTamboClient();
 
   const uploadFile = useCallback(
-    async (file: File): Promise<string> => {
+    async (file: File): Promise<{ storagePath: string; mimeType: string }> => {
       const formData = new FormData();
       formData.append("file", file);
 
       // Use the client's base URL for the API request
       const baseUrl = client.baseURL;
+      const apiKey = client.apiKey;
+      if (!apiKey) {
+        throw new Error("API key is required for file upload");
+      }
       const response = await fetch(`${baseUrl}/extract/pdf`, {
         method: "POST",
         headers: {
-          "X-API-Key": client.apiKey,
+          "X-API-Key": apiKey,
         },
         body: formData,
       });
@@ -97,8 +130,8 @@ export function useMessageFiles(): UseMessageFilesReturn {
         throw new Error(`File upload failed: ${error}`);
       }
 
-      const { storagePath } = await response.json();
-      return storagePath;
+      const { storagePath, mimeType } = await response.json();
+      return { storagePath, mimeType };
     },
     [client],
   );
@@ -127,11 +160,18 @@ export function useMessageFiles(): UseMessageFilesReturn {
 
       if (!isSupportedFile(file)) {
         throw new Error(
-          "Unsupported file type. Supported: PDF, TXT, MD, CSV, JPG, PNG",
+          `Unsupported file type. Supported: ${SUPPORTED_TYPE_DESCRIPTION}`,
         );
       }
 
-      const contentType = getFileContentType(file);
+      const initialMimeType = inferMimeType(file);
+      if (!initialMimeType) {
+        throw new Error(
+          `Unable to determine file type for "${file.name}". Supported: ${SUPPORTED_TYPE_DESCRIPTION}`,
+        );
+      }
+
+      const contentType = getFileContentTypeFromMimeType(initialMimeType);
       const fileId = crypto.randomUUID();
 
       // Add file in processing state immediately
@@ -140,7 +180,7 @@ export function useMessageFiles(): UseMessageFilesReturn {
         name: file.name,
         file,
         size: file.size,
-        type: file.type,
+        type: initialMimeType,
         contentType,
         isProcessing: true,
       };
@@ -148,8 +188,12 @@ export function useMessageFiles(): UseMessageFilesReturn {
       setFiles((prev) => [...prev, processingFile]);
 
       try {
-        const storagePath = await uploadFile(file);
+        const { storagePath, mimeType } = await uploadFile(file);
+        const resolvedMimeType = mimeType ?? initialMimeType;
         processingFile.storagePath = storagePath;
+        processingFile.type = resolvedMimeType;
+        processingFile.contentType =
+          getFileContentTypeFromMimeType(resolvedMimeType);
         processingFile.isProcessing = false;
 
         setFiles((prev) =>
@@ -167,8 +211,19 @@ export function useMessageFiles(): UseMessageFilesReturn {
 
   const addFiles = useCallback(
     async (filesToAdd: File[]) => {
-      // Filter and validate files
-      const supportedFiles = filesToAdd.filter((file) => isSupportedFile(file));
+      const filesWithMime = filesToAdd.map((file) => ({
+        file,
+        mimeType: inferMimeType(file),
+      }));
+
+      const supportedFiles = filesWithMime.filter(
+        (
+          entry,
+        ): entry is {
+          file: File;
+          mimeType: string;
+        } => isSupportedMimeType(entry.mimeType),
+      );
 
       if (supportedFiles.length === 0) {
         throw new Error("No supported files provided");
@@ -184,7 +239,7 @@ export function useMessageFiles(): UseMessageFilesReturn {
       // Check total size
       const currentTotalSize = files.reduce((sum, f) => sum + f.size, 0);
       const newTotalSize = supportedFiles.reduce(
-        (sum, f) => sum + f.size,
+        (sum, entry) => sum + entry.file.size,
         currentTotalSize,
       );
 
@@ -193,23 +248,35 @@ export function useMessageFiles(): UseMessageFilesReturn {
       }
 
       // Add all files in processing state
-      const processingFiles: StagedFile[] = supportedFiles.map((file) => ({
-        id: crypto.randomUUID(),
-        name: file.name,
-        file,
-        size: file.size,
-        type: file.type,
-        contentType: getFileContentType(file),
-        isProcessing: true,
-      }));
+      const processingFiles: StagedFile[] = supportedFiles.map(
+        ({ file, mimeType }) => {
+          const resolvedMimeType = mimeType!;
+          return {
+            id: crypto.randomUUID(),
+            name: file.name,
+            file,
+            size: file.size,
+            type: resolvedMimeType,
+            contentType: getFileContentTypeFromMimeType(resolvedMimeType),
+            isProcessing: true,
+          };
+        },
+      );
 
       setFiles((prev) => [...prev, ...processingFiles]);
 
       const processedFiles = await Promise.all(
         processingFiles.map(async (f) => {
           try {
-            const storagePath = await uploadFile(f.file);
-            return { ...f, storagePath, isProcessing: false };
+            const { storagePath, mimeType } = await uploadFile(f.file);
+            const resolvedMimeType = mimeType ?? f.type;
+            return {
+              ...f,
+              storagePath,
+              type: resolvedMimeType,
+              contentType: getFileContentTypeFromMimeType(resolvedMimeType),
+              isProcessing: false,
+            };
           } catch (error) {
             return {
               ...f,
