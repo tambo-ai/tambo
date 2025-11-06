@@ -29,7 +29,15 @@ export function getComponentDirectoryPath(
     }
     return absolute;
   }
-  return path.join(projectRoot, installPath, COMPONENT_SUBDIR);
+  // Non-explicit: compute path relative to project root and validate it doesn't escape
+  const base = path.resolve(projectRoot, installPath, COMPONENT_SUBDIR);
+  const relBase = path.relative(projectRoot, base);
+  if (relBase.startsWith("..") || path.isAbsolute(relBase)) {
+    throw new Error(
+      `Computed component directory escapes the project root: ${projectRoot} (got ${installPath})`,
+    );
+  }
+  return base;
 }
 
 /**
