@@ -9,7 +9,6 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  useTamboVoice,
   type StagedImage,
 } from "@tambo-ai/react";
 import {
@@ -24,15 +23,17 @@ import {
   ArrowUp,
   FileText,
   Image as ImageIcon,
-  Loader2Icon,
-  Mic,
   Paperclip,
   Square,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import * as React from "react";
-import { useEffect, useState } from "react";
+// eslint-disable-next-line @typescript-eslint/promise-function-async
+const DictationButton = dynamic(() => import("./dictation-button"), {
+  ssr: false,
+});
 
 /**
  * CSS variants for the message input container
@@ -163,7 +164,7 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
         variant={variant}
         {...props}
       >
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
       </MessageInputInternal>
     );
   },
@@ -1070,74 +1071,6 @@ const MessageInputStagedImages = React.forwardRef<
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";
 
 /**
- * Button for dictating speech into the message input.
- */
-const DictationButton = () => {
-  const {
-    startRecording,
-    stopRecording,
-    isRecording,
-    isTranscribing,
-    transcript,
-    transcriptionError,
-  } = useTamboVoice();
-  const { value, setValue } = useTamboThreadInput();
-  const [lastProcessedTranscript, setLastProcessedTranscript] =
-    useState<string>("");
-
-  const handleStartRecording = () => {
-    setLastProcessedTranscript("");
-    startRecording();
-  };
-
-  const handleStopRecording = () => {
-    stopRecording();
-  };
-
-  useEffect(() => {
-    if (transcript && transcript !== lastProcessedTranscript) {
-      setLastProcessedTranscript(transcript);
-      setValue(value + " " + transcript);
-    }
-  }, [transcript, lastProcessedTranscript, value, setValue]);
-
-  if (isTranscribing) {
-    return (
-      <div className="p-2 rounded-md">
-        <Loader2Icon className="h-5 w-5 animate-spin" />
-      </div>
-    );
-  }
-
-  if (isRecording) {
-    return (
-      <button
-        type="button"
-        onClick={handleStopRecording}
-        className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
-      >
-        <Square className="h-4 w-4 text-red-500 fill-current animate-pulse" />
-      </button>
-    );
-  }
-
-  return (
-    <div className="flex flex-row items-center gap-2">
-      <span className="text-sm text-red-500">{transcriptionError}</span>
-      <Tooltip content="Dictate">
-        <button
-          type="button"
-          onClick={handleStartRecording}
-          className="p-2 rounded-md cursor-pointer hover:bg-gray-100 "
-        >
-          <Mic className="h-5 w-5" />
-        </button>
-      </Tooltip>
-    </div>
-  );
-};
-
-/**
  * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
@@ -1156,43 +1089,41 @@ const MessageInputToolbar = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
   return (
-    <TooltipProvider>
-      <div
-        ref={ref}
-        className={cn(
-          "flex justify-between items-center mt-2 p-1 gap-2",
-          className,
-        )}
-        data-slot="message-input-toolbar"
-        {...props}
-      >
-        <div className="flex items-center gap-2">
-          {/* Left side - everything except submit button */}
-          {React.Children.map(children, (child): React.ReactNode => {
-            if (
-              React.isValidElement(child) &&
-              child.type === MessageInputSubmitButton
-            ) {
-              return null; // Don't render submit button here
-            }
-            return child;
-          })}
-        </div>
-        <div className="flex items-center gap-2">
-          <DictationButton />
-          {/* Right side - only submit button */}
-          {React.Children.map(children, (child): React.ReactNode => {
-            if (
-              React.isValidElement(child) &&
-              child.type === MessageInputSubmitButton
-            ) {
-              return child; // Only render submit button here
-            }
-            return null;
-          })}
-        </div>
+    <div
+      ref={ref}
+      className={cn(
+        "flex justify-between items-center mt-2 p-1 gap-2",
+        className,
+      )}
+      data-slot="message-input-toolbar"
+      {...props}
+    >
+      <div className="flex items-center gap-2">
+        {/* Left side - everything except submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return null; // Don't render submit button here
+          }
+          return child;
+        })}
       </div>
-    </TooltipProvider>
+      <div className="flex items-center gap-2">
+        <DictationButton />
+        {/* Right side - only submit button */}
+        {React.Children.map(children, (child): React.ReactNode => {
+          if (
+            React.isValidElement(child) &&
+            child.type === MessageInputSubmitButton
+          ) {
+            return child; // Only render submit button here
+          }
+          return null;
+        })}
+      </div>
+    </div>
   );
 });
 MessageInputToolbar.displayName = "MessageInput.Toolbar";
