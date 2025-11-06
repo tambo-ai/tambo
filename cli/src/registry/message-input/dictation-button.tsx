@@ -1,7 +1,7 @@
 import { Tooltip } from "@/components/tambo/suggestions-tooltip";
 import { useTamboThreadInput, useTamboVoice } from "@tambo-ai/react";
 import { Loader2Icon, Mic, Square } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 /**
  * Button for dictating speech into the message input.
