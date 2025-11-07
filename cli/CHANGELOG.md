@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.40.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.39.0...tambo-v0.40.0) (2025-11-07)
+
+
+### Features
+
+* Add dictation to showcase ([#1261](https://github.com/tambo-ai/tambo/issues/1261)) ([3adf26c](https://github.com/tambo-ai/tambo/commit/3adf26c65f72e93cfc82cab6e1bece92729c8584))
+* **mcp:** Add support for MCP Resources ([#1268](https://github.com/tambo-ai/tambo/issues/1268)) ([99b4f87](https://github.com/tambo-ai/tambo/commit/99b4f8748021a3333a1b772b6e280ad22ed389bc))
+
+
+### Code Refactoring
+
+* **cli:** Clean up the `tambo init` code and add tests for  it ([#1264](https://github.com/tambo-ai/tambo/issues/1264)) ([523d2e8](https://github.com/tambo-ai/tambo/commit/523d2e823124ce39e1ca4dc430d9987c9b5fa4f4))
+
 ## [0.39.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.38.0...tambo-v0.39.0) (2025-11-05)
 
 
