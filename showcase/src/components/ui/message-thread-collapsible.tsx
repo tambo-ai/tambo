@@ -1,33 +1,33 @@
 "use client";
 
+import type { messageVariants } from "@/components/ui/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
-  // MessageInputMcpConfigButton,
+  MessageInputMcpResourceButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@/components/ui/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/ui/message-suggestions";
-import type { messageVariants } from "@/components/ui/message";
+import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/ui/thread-content";
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
-import { ScrollableMessageContainer } from "@/components/ui/scrollable-message-container";
 import { cn } from "@/lib/utils";
-import { Collapsible } from "radix-ui";
-import { XIcon } from "lucide-react";
-import * as React from "react";
-import { type VariantProps } from "class-variance-authority";
 import type { Suggestion } from "@tambo-ai/react";
+import { type VariantProps } from "class-variance-authority";
+import { XIcon } from "lucide-react";
+import { Collapsible } from "radix-ui";
+import * as React from "react";
 
 /**
  * Props for the MessageThreadCollapsible component
@@ -272,6 +272,7 @@ export const MessageThreadCollapsible = React.forwardRef<
               <MessageInputToolbar>
                 <MessageInputFileButton />
                 <MessageInputMcpPromptButton />
+                <MessageInputMcpResourceButton />
                 {/* Uncomment this to enable client-side MCP config modal button */}
                 {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />
