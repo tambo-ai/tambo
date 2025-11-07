@@ -1,180 +1,75 @@
-# AGENTS.md - Component Documentation Pages
+# AGENTS.md - Component Pages
 
-Guidance for working with component documentation pages in the showcase.
+Quick reference for component documentation page patterns.
 
-## Directory Structure
+## Categories
 
-```
-components/
-├── (blocks)/                    # Full-featured components
-│   ├── control-bar/
-│   ├── message-thread-collapsible/
-│   ├── message-thread-full/
-│   └── message-thread-panel/
-├── (message-primitives)/        # Basic building blocks
-│   ├── message/
-│   ├── message-input/
-│   ├── thread-content/
-│   └── thread-history/
-├── (generative)/                # AI-generated UI
-│   ├── form/
-│   ├── graph/
-│   ├── input-fields/
-│   └── map/
-└── (canvas)/                    # Canvas-based
-    └── canvas-space/
-```
+- `(blocks)/` - Full-featured components
+- `(message-primitives)/` - Basic building blocks
+- `(generative)/` - AI-generated UI
+- `(canvas)/` - Canvas-based
 
-## Standard Page Structure
+## Page Structure
 
-Every component documentation page follows this pattern:
+**Container:** `prose max-w-8xl` (never use other widths)
 
-```tsx
-import { ComponentCodePreview } from "@/components/component-code-preview";
-import { InstallationSection } from "@/components/installation-section";
-import { YourComponent } from "@/components/ui/your-component";
+**Sections (in order):**
 
-export default function YourComponentPage() {
-  return (
-    <div className="prose max-w-6xl">
-      {/* Title & Description */}
-      <h1>Component Name</h1>
-      <p className="text-lg text-muted-foreground">
-        Brief description of what this component does.
-      </p>
+1. Title (h1) + description (text-lg text-muted-foreground)
+2. Examples (h2 mt-12) → ComponentCodePreview components
+3. Installation (h2 mt-12) → Wrap InstallationSection in `not-prose`
+4. Component API (h2 mt-12) → Props table
 
-      {/* Examples Section */}
-      <h2 className="mt-12">Examples</h2>
+## ComponentCodePreview Props
 
-      <ComponentCodePreview
-        title="Basic Usage"
-        component={<YourComponent />}
-        code={`import { YourComponent } from "@tambo-ai/react";
-
-export function Demo() {
-  return <YourComponent prop="value" />;
-}`}
-        previewClassName="p-8"
-      />
-
-      {/* Installation */}
-      <h2 className="mt-12">Installation</h2>
-
-      <div className="not-prose">
-        <InstallationSection cliCommand="npx tambo add your-component" />
-      </div>
-
-      {/* Component API */}
-      <h2 className="mt-12">Component API</h2>
-
-      <h3>YourComponent</h3>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Prop</th>
-            <th>Type</th>
-            <th>Default</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>prop1</td>
-            <td>string</td>
-            <td>-</td>
-            <td>Description</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
-```
-
-## ComponentCodePreview Patterns
-
-**Standard components:**
-
-```tsx
-<ComponentCodePreview
-  component={<YourComponent />}
-  code={`...`}
-  previewClassName="p-8" // 2rem padding
-/>
-```
-
-**Full-bleed block components:**
-
-```tsx
-<ComponentCodePreview
-  component={<MessageThread />}
-  code={`...`}
-  previewClassName="p-0" // No padding
-  minHeight={650}
-  enableFullscreen
-  fullscreenTitle="Message Thread"
-/>
-```
-
-**Chat/form interfaces:**
-
-```tsx
-<ComponentCodePreview
-  component={<FormChat />}
-  code={`...`}
-  previewClassName="p-8"
-  minHeight={650} // Enough space for interaction
-/>
-```
+- **Standard:** `previewClassName="p-8"`
+- **Full-bleed blocks:** `previewClassName="p-0" minHeight={650} enableFullscreen fullscreenTitle="..."`
+- **Chat/forms:** `previewClassName="p-8" minHeight={650}`
 
 ## Common Mistakes
 
-```tsx
-// ❌ WRONG: Manual spacing with prose
-<div className="prose">
-  <div className="flex flex-col gap-8">
-    <h1 className="mb-4">Title</h1>
-  </div>
-</div>
+- ❌ Manual spacing with prose (let prose handle it naturally)
+- ❌ Wrapping h2 in not-prose (keep headings in prose, wrap only custom components)
+- ❌ Using both className min-h and minHeight prop (use prop only)
 
-// ✅ RIGHT: Let prose handle spacing
-<div className="prose">
-  <h1>Title</h1>
-  <h2 className="mt-12">Section</h2>
-</div>
+## Adding Pages
 
-// ❌ WRONG: Wrapping h2 in not-prose
-<section className="not-prose mt-12">
-  <h2 className="text-xl font-500 mb-4">Installation</h2>
-  <InstallationSection />
-</section>
+1. Create `(category)/[component-name]/page.tsx`
+2. Update `/src/lib/navigation.ts` with `isNew: true`
+3. Remove `isNew` from previous newest component
+4. Add component to `/src/components/ui/` if new
+5. Add chat interface to `/src/components/generative/` if needed
 
-// ✅ RIGHT: Keep h2 in prose, wrap only InstallationSection
-<>
-  <h2 className="mt-12">Installation</h2>
-  <div className="not-prose">
-    <InstallationSection />
-  </div>
-</>
+## Interactive Examples Pattern
 
-// ❌ WRONG: Mixing height in className and prop
-<ComponentCodePreview
-  previewClassName="p-0 min-h-[650px]"
-  minHeight={650}
-/>
+**Structure:** `section` with `space-y-8` containing:
 
-// ✅ RIGHT: Use minHeight prop only
-<ComponentCodePreview
-  previewClassName="p-0"
-  minHeight={650}
-/>
-```
+- Optional note callout (rounded-lg border border-border bg-muted/40 p-4)
+- Numbered examples (h3: "1. Title", text-lg font-500)
+- Example cards (rounded-lg border border-border bg-card p-4)
 
-## Adding New Component Pages
+**For request/response demos:**
 
-1. Create directory in appropriate category: `(blocks)`, `(message-primitives)`, `(generative)`, or `(canvas)`
-2. Add `page.tsx` following the standard structure above
-3. Update `/src/lib/navigation.ts` to add the page to sidebar navigation
-4. If it's a new component, add implementation to `/src/components/ui/`
-5. If it needs a chat interface, add to `/src/components/generative/`
+- RequestDisclosure component (details with JSON in pre)
+- Response display (rounded-md border border-border bg-muted/40 p-3)
+
+## Design Tokens
+
+**Use only:**
+
+- Colors: `bg-muted`, `bg-card`, `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `border-accent`
+- Spacing: `space-y-12` (sections), `space-y-8` (examples), `space-y-4` (cards)
+- Typography: `text-lg`, `text-sm`, `text-xs`, `font-500`, `font-semibold`
+
+**Callout patterns:**
+
+- Overview: p-6 space-y-4 with lists
+- Notes: p-4 with "Note:" heading
+- Type docs: border-l-4 border-accent with strong/code
+
+## Rules
+
+- Interactive-first (live functional examples, not static)
+- Numbered examples ("1. Title") for multi-example pages
+- Wrap interactive sections in `not-prose`, keep markdown headings in prose
+- Never use arbitrary widths (stick to max-w-8xl)

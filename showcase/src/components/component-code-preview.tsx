@@ -41,8 +41,8 @@ export function ComponentCodePreview({
   enableFullscreen = false,
   fullscreenTitle = "Component Demo",
 }: ComponentCodePreviewProps) {
-  // For full-bleed components (p-0), use fixed height so children with h-full can fill properly
-  const isFullBleed = fullBleed || previewClassName.includes("p-0");
+  // For full-bleed components, use fixed height so children with h-full can fill properly
+  const isFullBleed = fullBleed;
   const heightStyle = isFullBleed
     ? { height: `${minHeight}px` }
     : { minHeight: `${minHeight}px` };

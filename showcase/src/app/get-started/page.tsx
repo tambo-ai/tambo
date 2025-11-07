@@ -4,7 +4,7 @@ import { existingProjectSteps, newProjectSteps } from "@/constants/steps";
 
 export default function GetStartedPage() {
   return (
-    <div className="p-4 md:p-8 max-w-[900px] mx-auto">
+    <div className="max-w-8xl">
       <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 font-sentient">
         Get Started
       </h1>

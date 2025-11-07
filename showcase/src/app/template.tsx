@@ -1,6 +1,5 @@
 "use client";
 
-import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { Sidebar } from "@/components/sidebar";
 import { MobileProvider } from "@/providers/mobile-provider";
@@ -44,7 +43,6 @@ export default function Template({
                 </TamboProvider>
               )}
             </main>
-            <Footer />
           </div>
         </div>
       </MobileProvider>

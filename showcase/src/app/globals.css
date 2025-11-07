@@ -8,6 +8,7 @@ html {
 
 @layer base {
   :root {
+    /* ===== PRIMARY COLOR TOKENS ===== */
     /* Background & Surfaces - NEUTRAL */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -19,9 +20,7 @@ html {
     /* Primary Actions - BRAND TEAL (PRESERVED!) */
     --primary: 157 100% 75%;
     --primary-foreground: 186 94% 13%;
-    /* Primary Actions - BRAND TEAL (PRESERVED!) */
-    --primary: 157 100% 75%;
-    --primary-foreground: 186 94% 13%;
+    --primary-link: 157 100% 35%;
 
     /* Secondary/Muted - NEUTRAL */
     --secondary: 240 4.8% 95.9%;
@@ -42,21 +41,7 @@ html {
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Sidebar (NEW) - NEUTRAL */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Container & Backdrop (NEW) */
-    --container: 240 4.8% 95.9%; /* Light neutral gray - same as --muted */
-    --backdrop: 240 3.7% 15.9%; /* Dark gray for overlays */
-    --destructive-foreground: 0 0% 98%;
-
+    /* ===== LAYOUT TOKENS ===== */
     /* Sidebar (NEW) - NEUTRAL */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -71,17 +56,10 @@ html {
     --container: 240 4.8% 95.9%; /* Light neutral gray - same as --muted */
     --backdrop: 240 3.7% 15.9%; /* Dark gray for overlays */
 
-    /* Border Radius */
-    --radius: 0.6rem;
+    /* ===== TYPOGRAPHY & RADIUS ===== */
     /* Border Radius */
     --radius: 0.6rem;
 
-    /* Chart colors - KEEP EXISTING */
-    --chart-1: 157 100% 75%;
-    --chart-2: 320 100% 88%;
-    --chart-3: 217 91% 67%;
-    --chart-4: 49 97% 51%;
-    --chart-5: 186 94% 13%;
     /* Chart colors - KEEP EXISTING */
     --chart-1: 157 100% 75%;
     --chart-2: 320 100% 88%;
@@ -102,6 +80,7 @@ html {
   }
 
   .dark {
+    /* ===== PRIMARY COLOR TOKENS ===== */
     /* Background & Surfaces */
     --background: 50 2% 9%;
     --foreground: 0 0% 98%;
@@ -110,9 +89,10 @@ html {
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary Actions */
+    /* Primary Actions - Light foreground for dark mode */
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
+    --primary-link: 157 100% 60%;
 
     /* Secondary/Muted */
     --secondary: 240 3.7% 15.9%;
@@ -133,6 +113,7 @@ html {
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
+    /* ===== LAYOUT TOKENS ===== */
     /* Sidebar (NEW) */
     --sidebar-background: 50 2% 7%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -209,18 +190,15 @@ html {
   }
 }
 
-/* Icon animations */
+/* ===== ANIMATIONS ===== */
 @keyframes icon-pulse {
   0% {
-    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
     box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
   }
   70% {
     box-shadow: 0 0 0 10px hsl(var(--primary) / 0);
-    box-shadow: 0 0 0 10px hsl(var(--primary) / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
     box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
   }
 }
@@ -261,6 +239,11 @@ html {
 
   .font-500 {
     font-weight: 500;
+  }
+
+  /* Link color utility */
+  .text-primary-link {
+    color: hsl(var(--primary-link));
   }
 
   /* Prose customization for markdown/doc content */

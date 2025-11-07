@@ -6,7 +6,7 @@ import { CanvasChatInterface } from "@/components/generative/CanvasChatInterface
 
 export default function CanvasSpacePage() {
   return (
-    <div className="prose max-w-full space-y-12">
+    <div className="prose max-w-8xl space-y-12">
       <header className="space-y-4">
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
           Canvas Space
