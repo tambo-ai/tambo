@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.121.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.0...repo-v0.121.1) (2025-11-07)
+
+
+### Bug Fixes
+
+* enable strict json mode ([#2046](https://github.com/tambo-ai/tambo-cloud/issues/2046)) ([c2b82e6](https://github.com/tambo-ai/tambo-cloud/commit/c2b82e6c80ea4ff167fa56cfef01743893787075))
+
 ## [0.121.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.8...repo-v0.121.0) (2025-11-07)
 
 
