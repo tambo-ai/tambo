@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.64.1](https://github.com/tambo-ai/tambo/compare/react-v0.64.0...react-v0.64.1) (2025-11-07)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 6 updates ([#1272](https://github.com/tambo-ai/tambo/issues/1272)) ([39eafea](https://github.com/tambo-ai/tambo/commit/39eafea6fb20f5b4a7c262cf6ec8353d486dde13))
+* **deps:** bump @modelcontextprotocol/sdk from 1.20.2 to 1.21.0 ([#1275](https://github.com/tambo-ai/tambo/issues/1275)) ([dd10756](https://github.com/tambo-ai/tambo/commit/dd107567963303382ea1cbe360c9217040b52250))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.76.0 to 0.77.0 ([#1278](https://github.com/tambo-ai/tambo/issues/1278)) ([5f46a57](https://github.com/tambo-ai/tambo/commit/5f46a576be373e7dac7f076a7c844db5faae27d8))
+* **deps:** bump @tanstack/react-query from 5.90.6 to 5.90.7 ([#1273](https://github.com/tambo-ai/tambo/issues/1273)) ([b2669d1](https://github.com/tambo-ai/tambo/commit/b2669d196f646a42f7b1ad35ddc8fd11113d7968))
+
 ## [0.64.0](https://github.com/tambo-ai/tambo/compare/react-v0.63.0...react-v0.64.0) (2025-11-07)
 
 
