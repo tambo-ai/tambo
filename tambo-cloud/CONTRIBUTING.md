@@ -101,6 +101,20 @@ npm test
 
 Refer to the README for AI assistant usage and links: [README](./README.md)
 
+## Working with Charlie (Code Review Agent)
+
+When Charlie leaves inline comments on your PR, reply to each comment so reviewers can see how you addressed the feedback—do not just dismiss or mark comments as resolved.
+
+When replying, choose one of the following approaches:
+
+- Ask Charlie to apply the fix by replying `@CharlieHelps yes please`.
+- Explain why you do not plan to make the suggested change (for example: the suggestion is incorrect, out of scope, or overly cautious).
+- Fix the issue yourself and reply with `fixed`, optionally adding context such as “fixed for empty strings, not null.”
+
+To have Charlie apply multiple fixes at once, use the “Files changed” tab, start a review, add each `@CharlieHelps yes please` comment to that review, then submit the review when you are ready.
+
+Expect to iterate with Charlie; it is often helpful to let Charlie review its own fixes, since follow-up reviews can uncover more impactful issues after the initial pass.
+
 ## Security and Secrets
 
 - Never commit secrets. Use environment files and the documented variables.
