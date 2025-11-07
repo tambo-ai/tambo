@@ -8,6 +8,13 @@ const config = {
   trailingSlash: false,
   async redirects() {
     return [
+      // Handle the trailing-slash variant explicitly to avoid a double redirect
+      // when `trailingSlash: false` normalizes "/docs/" -> "/docs" first.
+      {
+        source: "/docs/",
+        destination: "/",
+        permanent: true,
+      },
       {
         source: "/docs",
         destination: "/",

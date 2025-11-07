@@ -19,12 +19,15 @@ export const source = loader({
   },
 });
 
-const invalidDocsPrefixedPage = source
+// Guard against any content nested under a top-level "/docs" slug.
+// Aggregate all offenders into a single actionable error message.
+const docsPrefixedPages = source
   .getPages()
-  .find((page) => page.slugs[0] === "docs");
+  .filter((page) => page.slugs[0] === "docs");
 
-if (invalidDocsPrefixedPage) {
+if (docsPrefixedPages.length > 0) {
+  const list = docsPrefixedPages.map((p) => `- ${p.path}`).join("\n");
   throw new Error(
-    `Docs content cannot be placed under a '/docs' route. Found: ${invalidDocsPrefixedPage.path}`,
+    `Docs content cannot be placed under a '/docs' route. Found ${docsPrefixedPages.length} page(s):\n${list}`,
   );
 }
