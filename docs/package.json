@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "scripts": {
     "build": "next build",
     "check-types": "tsc --noEmit",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.76.0",
+    "@tambo-ai/typescript-sdk": "^0.77.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.0",
     "framer-motion": "^12.23.24",
@@ -20,7 +20,7 @@
     "fumadocs-ui": "15.8.5",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
-    "lucide-react": "^0.548.0",
+    "lucide-react": "^0.552.0",
     "mermaid": "^11.12.1",
     "next": "^15.5.6",
     "next-themes": "^0.4.6",

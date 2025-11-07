@@ -110,4 +110,45 @@ describe("assertNoZodRecord", () => {
       'z.record() is not supported in mySchema. Found at path "(root)". Replace it with z.object({ ... }) using explicit keys.',
     );
   });
+
+  it("should handle ZodLazy schemas", () => {
+    const schema = z.lazy(() => z.record(z.string()));
+
+    expect(() => assertNoZodRecord(schema)).toThrow(
+      'z.record() is not supported in schema. Found at path "(root)". Replace it with z.object({ ... }) using explicit keys.',
+    );
+  });
+
+  it("should allow z.function() with valid arguments", () => {
+    const schema = z
+      .function()
+      .args(z.string(), z.number())
+      .returns(z.string());
+
+    expect(() => assertNoZodRecord(schema)).not.toThrow();
+  });
+
+  it("should throw when z.function() arguments contain z.record()", () => {
+    const schema = z.function().args(z.record(z.string())).returns(z.string());
+
+    expect(() => assertNoZodRecord(schema)).toThrow(
+      'z.record() is not supported in schema. Found at path "args.0". Replace it with z.object({ ... }) using explicit keys.',
+    );
+  });
+
+  it("should throw when z.function() arguments contain nested z.record()", () => {
+    const schema = z
+      .function()
+      .args(
+        z.object({
+          name: z.string(),
+          metadata: z.record(z.string()),
+        }),
+      )
+      .returns(z.string());
+
+    expect(() => assertNoZodRecord(schema)).toThrow(
+      'z.record() is not supported in schema. Found at path "args.0.metadata". Replace it with z.object({ ... }) using explicit keys.',
+    );
+  });
 });

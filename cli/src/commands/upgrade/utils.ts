@@ -3,11 +3,13 @@ import fs from "fs";
 import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
-import {
-  COMPONENT_SUBDIR,
-  LEGACY_COMPONENT_SUBDIR,
-} from "../../constants/paths.js";
+import { COMPONENT_SUBDIR } from "../../constants/paths.js";
 import { updateImportPaths } from "../migrate.js";
+import {
+  getComponentDirectoryPath,
+  getLegacyComponentDirectoryPath,
+  getComponentFilePath,
+} from "../shared/path-utils.js";
 
 /**
  * Determines which template is being used in the current project
@@ -121,19 +123,19 @@ export async function migrateComponentsDuringUpgrade(
   const spinner = ora("Migrating components to new location...").start();
 
   try {
-    const legacyPath = path.join(
-      process.cwd(),
+    const projectRoot = process.cwd();
+    const legacyPath = getLegacyComponentDirectoryPath(
+      projectRoot,
       installPath,
-      LEGACY_COMPONENT_SUBDIR,
     );
-    const newPath = path.join(process.cwd(), installPath, COMPONENT_SUBDIR);
+    const newPath = getComponentDirectoryPath(projectRoot, installPath, false);
 
     // Create new directory
     fs.mkdirSync(newPath, { recursive: true });
 
     for (const componentName of componentNames) {
-      const oldFile = path.join(legacyPath, `${componentName}.tsx`);
-      const newFile = path.join(newPath, `${componentName}.tsx`);
+      const oldFile = getComponentFilePath(legacyPath, componentName);
+      const newFile = getComponentFilePath(newPath, componentName);
 
       if (fs.existsSync(oldFile)) {
         // Read, update import paths, write to new location

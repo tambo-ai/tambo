@@ -1,5 +1,5 @@
-import { vol, fs as memfsFs } from "memfs";
 import * as realFs from "fs";
+import { fs as memfsFs, vol } from "memfs";
 
 let fsPatched = false;
 
@@ -185,5 +185,235 @@ export function captureConsoleOutput(): {
     restore: () => {
       console.log = originalLog;
     },
+  };
+}
+
+/**
+ * Creates a basic project structure with just package.json
+ */
+export function createBasicProject(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: {},
+    }),
+  };
+}
+
+/**
+ * Creates a project with React dependency and src directory
+ */
+export function createProjectWithReact(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: { "@tambo-ai/react": "^1.0.0" },
+    }),
+    "/mock-project/src": null,
+  };
+}
+
+/**
+ * Creates a project with existing API key in .env.local
+ */
+export function createProjectWithEnv(
+  key: string,
+): Record<string, string | null> {
+  return {
+    ...createBasicProject(),
+    "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${key}\n`,
+  };
+}
+
+/**
+ * Creates a project with both .env and .env.local files
+ */
+export function createProjectWithBothEnvFiles(
+  localKey: string,
+  envKey: string,
+): Record<string, string | null> {
+  return {
+    ...createBasicProject(),
+    "/mock-project/.env": `NEXT_PUBLIC_TAMBO_API_KEY=${envKey}\n`,
+    "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${localKey}\n`,
+  };
+}
+
+/**
+ * Creates a project with existing tambo.ts file
+ */
+export function createProjectWithTamboTs(
+  content?: string,
+): Record<string, string | null> {
+  return {
+    ...createBasicProject(),
+    "/mock-project/src": null,
+    "/mock-project/src/lib/tambo.ts":
+      content ?? "export const components: TamboComponent[] = [];",
+  };
+}
+
+/**
+ * Creates the registry files structure for tests
+ * The registry is always present in the CLI, so these files should always be available
+ * @param components Optional array of component names to include (defaults to common ones)
+ */
+export function createRegistryFiles(
+  components: string[] = [
+    "message-thread-full",
+    "message-thread-panel",
+    "message-thread-collapsible",
+    "control-bar",
+  ],
+): Record<string, string | null> {
+  const registry: Record<string, string | null> = {
+    "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
+    // Add Tailwind config files to the registry mock
+    "/mock-project/cli/src/registry/config/tailwind.config.ts": `import type { Config } from "tailwindcss";\nconst config: Config = { darkMode: "class", content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"], };\nexport default config;`,
+    "/mock-project/cli/src/registry/config/globals-v3.css": `@import "tailwindcss";\n\nbody {\n  background: var(--background);\n  color: var(--foreground);\n  font-family: Arial, Helvetica, sans-serif;\n}\n\n@layer base {\n  :root {\n    --background: 0 0% 100%;\n    --foreground: 222.2 84% 4.9%;\n    --card: 0 0% 100%;\n    --card-foreground: 222.2 84% 4.9%;\n    --popover: 0 0% 100%;\n    --popover-foreground: 222.2 84% 4.9%;\n    --primary: 222.2 47.4% 11.2%;\n    --primary-foreground: 210 40% 98%;\n    --secondary: 210 40% 96.1%;\n    --secondary-foreground: 222.2 47.4% 11.2%;\n    --muted: 210 40% 96.1%;\n    --muted-foreground: 215.4 16.3% 46.9%;\n    --accent: 210 40% 96.1%;\n    --accent-foreground: 222.2 47.4% 11.2%;\n    --destructive: 0 84.2% 60.2%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 214.3 31.8% 91.4%;\n    --input: 214.3 31.8% 91.4%;\n    --ring: 222.2 84% 4.9%;\n    --radius: 0.5rem;\n  }\n\n  .dark {\n    --background: 222.2 47.4% 11.2%;\n    --foreground: 210 40% 98%;\n    --card: 222.2 47.4% 11.2%;\n    --card-foreground: 210 40% 98%;\n    --popover: 222.2 47.4% 11.2%;\n    --popover-foreground: 210 40% 98%;\n    --primary: 210 40% 98%;\n    --primary-foreground: 222.2 47.4% 11.2%;\n    --secondary: 217.2 32.6% 17.5%;\n    --secondary-foreground: 210 40% 98%;\n    --muted: 217.2 32.6% 17.5%;\n    --muted-foreground: 215 20.2% 65.1%;\n    --accent: 217.2 32.6% 17.5%;\n    --accent-foreground: 210 40% 98%;\n    --destructive: 0 62.8% 30.6%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 217.2 32.6% 17.5%;\n    --input: 217.2 32.6% 17.5%;\n    --ring: 212.7 26.8% 83.9%;\n  }\n}\n`,
+    "/mock-project/cli/src/registry/config/globals-v4.css": `@import "tailwindcss";\n\n@theme inline {\n  --background: 0 0% 100%;\n  --foreground: 222.2 84% 4.9%;\n  --card: 0 0% 100%;\n  --card-foreground: 222.2 84% 4.9%;\n  --popover: 0 0% 100%;\n  --popover-foreground: 222.2 84% 4.9%;\n  --primary: 222.2 47.4% 11.2%;\n  --primary-foreground: 210 40% 98%;\n  --secondary: 210 40% 96.1%;\n  --secondary-foreground: 222.2 47.4% 11.2%;\n  --muted: 210 40% 96.1%;\n  --muted-foreground: 215.4 16.3% 46.9%;\n  --accent: 210 40% 96.1%;\n  --accent-foreground: 222.2 47.4% 11.2%;\n  --destructive: 0 84.2% 60.2%;\n  --destructive-foreground: 210 40% 98%;\n  --border: 214.3 31.8% 91.4%;\n  --input: 214.3 31.8% 91.4%;\n  --ring: 222.2 84% 4.9%;\n  --radius: 0.5rem;\n\n  @media (prefers-color-scheme: dark) {\n    --background: 222.2 47.4% 11.2%;\n    --foreground: 210 40% 98%;\n    --card: 222.2 47.4% 11.2%;\n    --card-foreground: 210 40% 98%;\n    --popover: 222.2 47.4% 11.2%;\n    --popover-foreground: 210 40% 98%;\n    --primary: 210 40% 98%;\n    --primary-foreground: 222.2 47.4% 11.2%;\n    --secondary: 217.2 32.6% 17.5%;\n    --secondary-foreground: 210 40% 98%;\n    --muted: 217.2 32.6% 17.5%;\n    --muted-foreground: 215 20.2% 65.1%;\n    --accent: 217.2 32.6% 17.5%;\n    --accent-foreground: 210 40% 98%;\n    --destructive: 0 62.8% 30.6%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 217.2 32.6% 17.5%;\n    --input: 217.2 32.6% 17.5%;\n    --ring: 212.7 26.8% 83.9%;\n  }\n}\n\n@custom-variant light {\n  @media (prefers-color-scheme: light) {\n    &:root {\n      @apply light;\n    }\n  }\n}\n\n@custom-variant dark {\n  @media (prefers-color-scheme: dark) {\n    &:root {\n      @apply dark;\n    }\n  }\n}\n\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n`,
+  };
+
+  // Component configs - simplified versions for testing
+  const componentConfigs: Record<
+    string,
+    {
+      description: string;
+      componentName: string;
+      dependencies: string[];
+      requires: string[];
+      files: string[];
+    }
+  > = {
+    "message-thread-full": {
+      description:
+        "Full-screen chat interface with history and typing indicators",
+      componentName: "MessageThreadFull",
+      dependencies: ["@tambo-ai/react", "class-variance-authority"],
+      requires: [
+        "thread-content",
+        "message-input",
+        "message-suggestions",
+        "thread-history",
+        "message",
+        "scrollable-message-container",
+      ],
+      files: ["message-thread-full.tsx"],
+    },
+    "message-thread-panel": {
+      description: "Split-view chat with integrated workspace",
+      componentName: "MessageThreadPanel",
+      dependencies: ["@tambo-ai/react"],
+      requires: [],
+      files: ["message-thread-panel.tsx"],
+    },
+    "message-thread-collapsible": {
+      description: "Collapsible chat for sidebars",
+      componentName: "MessageThreadCollapsible",
+      dependencies: ["@tambo-ai/react"],
+      requires: [],
+      files: ["message-thread-collapsible.tsx"],
+    },
+    "control-bar": {
+      description: "Spotlight-style command palette",
+      componentName: "ControlBar",
+      dependencies: ["@tambo-ai/react", "radix-ui", "class-variance-authority"],
+      requires: [
+        "thread-content",
+        "message-input",
+        "message",
+        "scrollable-message-container",
+      ],
+      files: ["control-bar.tsx"],
+    },
+  };
+
+  // Set of all components we need to create (including dependencies)
+  const allComponentsToCreate = new Set(components);
+
+  // First pass: collect all required dependencies
+  components.forEach((componentName) => {
+    const config = componentConfigs[componentName];
+    if (config) {
+      config.requires.forEach((dep) => allComponentsToCreate.add(dep));
+    }
+  });
+
+  // Helper to create a component config and file
+  const createComponent = (componentName: string) => {
+    const config = componentConfigs[componentName];
+    if (!config) {
+      // Fallback for unknown components (e.g., dependencies)
+      const componentNamePascal =
+        componentName
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join("") || componentName;
+      registry[`/mock-project/cli/src/registry/${componentName}/config.json`] =
+        JSON.stringify({
+          name: componentName,
+          description: `Test component ${componentName}`,
+          componentName: componentNamePascal,
+          dependencies: ["@tambo-ai/react"],
+          devDependencies: [],
+          requires: [],
+          files: [
+            {
+              name: `${componentName}.tsx`,
+              content: `export const ${componentNamePascal} = () => <div>${componentNamePascal}</div>;`,
+            },
+          ],
+        });
+      registry[
+        `/mock-project/cli/src/registry/${componentName}/${componentName}.tsx`
+      ] =
+        `export const ${componentNamePascal} = () => <div>${componentNamePascal}</div>;`;
+    } else {
+      registry[`/mock-project/cli/src/registry/${componentName}/config.json`] =
+        JSON.stringify({
+          name: componentName,
+          description: config.description,
+          componentName: config.componentName,
+          dependencies: config.dependencies,
+          devDependencies: [],
+          requires: config.requires,
+          files: config.files.map((fileName) => ({
+            name: fileName,
+            content: `export const ${config.componentName} = () => <div>${config.componentName}</div>;`,
+          })),
+        });
+      // Add component file
+      config.files.forEach((fileName) => {
+        registry[
+          `/mock-project/cli/src/registry/${componentName}/${fileName}`
+        ] =
+          `export const ${config.componentName} = () => <div>${config.componentName}</div>;`;
+      });
+    }
+  };
+
+  // Create all components (including dependencies)
+  allComponentsToCreate.forEach((componentName) => {
+    createComponent(componentName);
+  });
+
+  return registry;
+}
+
+/**
+ * Creates a project with React dependency, src directory, and registry files
+ * This is the most common setup for full-send tests
+ */
+export function createProjectWithReactAndRegistry(
+  components: string[] = [
+    "message-thread-full",
+    "message-thread-panel",
+    "message-thread-collapsible",
+    "control-bar",
+  ],
+): Record<string, string | null> {
+  return {
+    ...createProjectWithReact(),
+    ...createRegistryFiles(components),
   };
 }

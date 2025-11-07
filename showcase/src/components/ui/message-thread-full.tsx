@@ -6,6 +6,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -31,7 +32,7 @@ import {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
 } from "@/components/ui/thread-history";
-import { useMergedRef } from "@/lib/thread-hooks";
+import { useMergeRefs } from "@/lib/thread-hooks";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
@@ -60,7 +61,7 @@ export const MessageThreadFull = React.forwardRef<
   MessageThreadFullProps
 >(({ className, contextKey, variant, ...props }, ref) => {
   const { containerRef, historyPosition } = useThreadContainerContext();
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
+  const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, containerRef);
 
   // Track sidebar width changes using state
   const [sidebarWidth, setSidebarWidth] = React.useState("16rem");
@@ -168,6 +169,7 @@ export const MessageThreadFull = React.forwardRef<
             <MessageInputToolbar>
               <MessageInputFileButton />
               <MessageInputMcpPromptButton />
+              <MessageInputMcpResourceButton />
               {/* Uncomment this to enable client-side MCP config modal button */}
               {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />

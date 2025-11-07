@@ -1,22 +1,27 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
 import ora from "ora";
-import path from "path";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../constants/paths.js";
+import {
+  displayDependencyInfo,
+  expandComponentsWithDependencies,
+  resolveDependenciesForComponents,
+} from "../utils/dependency-resolution.js";
 import { installComponents } from "./add/component.js";
+import { setupTailwindandGlobals } from "./add/tailwind-setup.js";
 import type { InstallComponentOptions } from "./add/types.js";
 import { componentExists, getInstalledComponents } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
-import { setupTailwindandGlobals } from "./add/tailwind-setup.js";
 import {
   detectCrossLocationDependencies,
   findComponentLocation,
   handleDependencyInconsistencies,
   type DependencyInconsistency,
 } from "./shared/component-utils.js";
+import { getLegacyComponentDirectoryPath } from "./shared/path-utils.js";
 
 interface UpdateComponentOptions {
   legacyPeerDeps?: boolean;
@@ -138,6 +143,67 @@ export async function handleUpdateComponents(
       return;
     }
 
+    // Resolve dependencies for components to update
+    if (!options.silent) {
+      console.log(chalk.blue("\nℹ Resolving component dependencies..."));
+    }
+
+    // Get list of all installed components to filter dependencies
+    const allInstalledComponents = await getInstalledComponents(
+      installPath,
+      isExplicitPrefix,
+    );
+    const installedComponentSet = new Set(allInstalledComponents);
+
+    // Resolve dependencies for all components
+    const dependencyResult = await resolveDependenciesForComponents(
+      verifiedComponents,
+      installedComponentSet,
+      { silent: options.silent },
+    );
+
+    // Display dependency information
+    if (!options.silent) {
+      displayDependencyInfo(dependencyResult, verifiedComponents);
+    }
+
+    // Expand verifiedComponents to include all dependencies with their locations
+    const expandedComponents = await expandComponentsWithDependencies(
+      verifiedComponents,
+      dependencyResult,
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
+    );
+
+    // Update verifiedComponents and categorize expanded dependencies
+    verifiedComponents.length = 0;
+    verifiedComponents.push(...expandedComponents);
+
+    // Re-categorize components after expansion
+    legacyComponents.length = 0;
+    newComponents.length = 0;
+
+    for (const component of verifiedComponents) {
+      const location = findComponentLocation(
+        component.name,
+        projectRoot,
+        installPath,
+        isExplicitPrefix,
+      );
+
+      if (location) {
+        if (location.needsCreation) {
+          legacyComponents.push(component.name);
+        } else {
+          newComponents.push(component.name);
+        }
+      } else {
+        // Missing dependencies go to the new location by default
+        newComponents.push(component.name);
+      }
+    }
+
     // Check for cross-location dependencies
     let inconsistencies: DependencyInconsistency[] = [];
     if (legacyComponents.length > 0 && newComponents.length > 0) {
@@ -174,9 +240,9 @@ export async function handleUpdateComponents(
         // Component stays in legacy location
         return {
           name: component.name,
-          installPath: path.join(
+          installPath: getLegacyComponentDirectoryPath(
+            projectRoot,
             component.installPath,
-            LEGACY_COMPONENT_SUBDIR,
           ),
           isLegacy: true,
           baseInstallPath: component.installPath,
@@ -226,9 +292,12 @@ export async function handleUpdateComponents(
           silent: true,
         };
 
-        if (component.isLegacy) {
+        // Set isExplicitPrefix when using explicit prefix or legacy location
+        if (isExplicitPrefix || component.isLegacy) {
           installOptions.isExplicitPrefix = true;
-          installOptions.baseInstallPath = component.baseInstallPath;
+          if (component.isLegacy) {
+            installOptions.baseInstallPath = component.baseInstallPath;
+          }
         }
 
         await installComponents([component.name], installOptions);

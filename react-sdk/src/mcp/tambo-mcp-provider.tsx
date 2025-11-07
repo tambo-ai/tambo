@@ -58,10 +58,21 @@ export interface McpServerInfo {
   url: string;
   /** Optional description of the MCP server */
   description?: string;
-  /** The transport type to use (SSE or HTTP). Defaults to SSE for string URLs */
+  /** The transport type to use (SSE or HTTP). Defaults to HTTP for string URLs */
   transport?: MCPTransport;
   /** Optional custom headers to include in requests */
   customHeaders?: Record<string, string>;
+  /**
+   * Optional short name for namespacing MCP resources, prompts, and tools.
+   * When multiple MCP servers are configured, this key is used to prefix:
+   * - prompts: `<serverKey>:<promptName>`
+   * - resources: `<serverKey>:<resourceUrl>`
+   * - tools: `<serverKey>__<toolName>`
+   *
+   * If not provided, a key will be derived from the URL hostname.
+   * For example, "https://mcp.linear.app/mcp" becomes "linear".
+   */
+  serverKey?: string;
   /**
    * Optional handlers for elicitation and sampling requests from the server.
    * Note: These callbacks should be stable (e.g., wrapped in useCallback or defined outside the component)
@@ -79,6 +90,11 @@ interface McpServerConfig extends McpServerInfo {
    * Present for all server states (connected or failed).
    */
   key: string;
+  /**
+   * Short name for namespacing, either provided by user or derived from URL.
+   * Used to prefix tools, prompts, and resources when multiple servers are present.
+   */
+  serverKey: string;
 }
 
 /**
@@ -286,25 +302,32 @@ export const TamboMcpProvider: FC<{
             // Register tools from this server (deduplicated by ownership)
             try {
               const tools = await client.listTools();
+              const shouldPrefix = currentServersMap.size > 1;
+
               tools.forEach((tool) => {
-                // Skip if another server already owns this tool
-                const currentOwner = toolOwnerRef.current.get(tool.name);
+                // Prefix tool name with serverKey if multiple servers are present
+                const toolName = shouldPrefix
+                  ? `${serverInfo.serverKey}__${tool.name}`
+                  : tool.name;
+
+                // Skip if another server already owns this tool (using final name for ownership)
+                const currentOwner = toolOwnerRef.current.get(toolName);
                 if (currentOwner && currentOwner !== key) {
                   return;
                 }
 
-                // Record ownership for this server key
+                // Record ownership for this server key (using final name)
                 if (!currentOwner) {
-                  toolOwnerRef.current.set(tool.name, key);
+                  toolOwnerRef.current.set(toolName, key);
                   if (!keyToToolsRef.current.has(key)) {
                     keyToToolsRef.current.set(key, new Set());
                   }
-                  keyToToolsRef.current.get(key)!.add(tool.name);
+                  keyToToolsRef.current.get(key)!.add(toolName);
                 }
 
                 registerTool({
                   description: tool.description ?? "",
-                  name: tool.name,
+                  name: toolName,
                   tool: async (args: Record<string, unknown> = {}) => {
                     const server = clientMap.get(key);
                     if (!server?.client) {
@@ -498,6 +521,73 @@ export const useTamboElicitationContext = () => {
 };
 
 /**
+ * Derives a short server key from a URL hostname using heuristics.
+ * Attempts to extract the "meaningful" part of the domain name.
+ *
+ * Examples:
+ * - "https://mcp.linear.app/mcp" -> "linear"
+ * - "https://api.github.com" -> "github"
+ * - "https://google.com" -> "google"
+ * - "https://google.co.uk" -> "google"
+ * - "https://mcp.company.co.uk" -> "company"
+ * @param url - The URL to derive a server key from
+ * @returns A short server key derived from the hostname
+ */
+
+function deriveServerKey(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname;
+
+    // Split hostname into parts
+    const parts = hostname.split(".");
+
+    // Remove common TLD patterns
+    // Handle cases like: .com, .org, .co.uk, .com.au, etc.
+    let relevantParts = [...parts];
+
+    // If we have 3+ parts and the last two are short (likely TLD like .co.uk)
+    if (
+      relevantParts.length >= 3 &&
+      relevantParts[relevantParts.length - 1].length <= 3 &&
+      relevantParts[relevantParts.length - 2].length <= 3
+    ) {
+      relevantParts = relevantParts.slice(0, -2);
+    }
+    // Otherwise just remove the last part (TLD like .com)
+    else if (relevantParts.length >= 2) {
+      relevantParts = relevantParts.slice(0, -1);
+    }
+
+    // From what's left, prefer the rightmost part that's not a common prefix
+    // Common prefixes: www, api, mcp, app, etc.
+    const commonPrefixes = new Set([
+      "www",
+      "api",
+      "mcp",
+      "app",
+      "staging",
+      "dev",
+      "prod",
+    ]);
+
+    // Work backwards through the parts to find a meaningful name
+    for (let i = relevantParts.length - 1; i >= 0; i--) {
+      const part = relevantParts[i];
+      if (part && !commonPrefixes.has(part.toLowerCase())) {
+        return part.toLowerCase();
+      }
+    }
+
+    // Fallback: use the last relevant part even if it's a common prefix
+    return relevantParts[relevantParts.length - 1]?.toLowerCase() || hostname;
+  } catch {
+    // If URL parsing fails, just return a sanitized version of the input
+    return url.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+  }
+}
+
+/**
  * Creates a stable identifier for an MCP server based on its connection properties.
  * Two servers with the same URL, transport, and headers will have the same key.
  * @returns A stable string key identifying the server
@@ -512,7 +602,7 @@ function getServerKey(
           .sort(([a], [b]) => a.localeCompare(b)),
       )
     : "";
-  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.SSE}|${headerStr}`;
+  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.HTTP}|${headerStr}`;
 }
 
 /**
@@ -522,8 +612,9 @@ function getServerKey(
 function normalizeServerInfo(server: McpServerInfo | string): McpServerConfig {
   const s =
     typeof server === "string"
-      ? { url: server, transport: MCPTransport.SSE }
+      ? { url: server, transport: MCPTransport.HTTP }
       : server;
   const key = getServerKey(s);
-  return { ...s, key };
+  const serverKey = s.serverKey ?? deriveServerKey(s.url);
+  return { ...s, key, serverKey };
 }

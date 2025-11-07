@@ -8,7 +8,18 @@ export type {
   TamboElicitationRequest,
   TamboElicitationResponse,
 } from "./elicitation";
-export { useTamboMcpPrompt, useTamboMcpPromptList } from "./mcp-hooks";
+export {
+  useTamboMcpPrompt,
+  useTamboMcpPromptList,
+  useTamboMcpResource,
+  useTamboMcpResourceList,
+} from "./mcp-hooks";
+export type {
+  ListPromptEntry,
+  ListPromptItem,
+  ListResourceEntry,
+  ListResourceItem,
+} from "./mcp-hooks";
 export {
   TamboMcpProvider,
   useTamboMcpServers,

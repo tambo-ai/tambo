@@ -7,3 +7,14 @@ global.Date.now = jest.fn(() => mockDate.getTime());
 
 // Add TextEncoder/TextDecoder polyfills for Node.js test environment
 Object.assign(global, { TextEncoder, TextDecoder });
+
+// Mock react-media-recorder for tests (browser APIs not available in Node.js)
+jest.mock("react-media-recorder", () => ({
+  useReactMediaRecorder: () => ({
+    status: "idle",
+    startRecording: jest.fn(),
+    stopRecording: jest.fn(),
+    mediaBlobUrl: null,
+    error: null,
+  }),
+}));
