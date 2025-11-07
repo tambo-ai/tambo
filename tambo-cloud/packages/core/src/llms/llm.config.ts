@@ -16,6 +16,7 @@ export const llmProviderConfig: LlmProviderConfig = {
       parallelToolCalls: false,
       reasoningSummary: "auto",
       reasoningEffort: "minimal",
+      strictJsonSchema: true,
     },
   },
   anthropic: {
