@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.64.0](https://github.com/tambo-ai/tambo/compare/react-v0.63.0...react-v0.64.0) (2025-11-07)
+
+
+### Features
+
+* Add dictation to showcase ([#1261](https://github.com/tambo-ai/tambo/issues/1261)) ([3adf26c](https://github.com/tambo-ai/tambo/commit/3adf26c65f72e93cfc82cab6e1bece92729c8584))
+* **mcp:** add prefixing to tools/prompts if there is &gt; 1 mcp server ([#1265](https://github.com/tambo-ai/tambo/issues/1265)) ([415d986](https://github.com/tambo-ai/tambo/commit/415d9868fff420286e2757f8bd580fa6b12f24f3))
+* **mcp:** Add support for MCP Resources ([#1268](https://github.com/tambo-ai/tambo/issues/1268)) ([99b4f87](https://github.com/tambo-ai/tambo/commit/99b4f8748021a3333a1b772b6e280ad22ed389bc))
+
+
+### Code Refactoring
+
+* optimize currentIds lookup and ignore generated sitemaps ([#1262](https://github.com/tambo-ai/tambo/issues/1262)) ([48ad0f6](https://github.com/tambo-ai/tambo/commit/48ad0f68aba709975747d0122b5396154750a889))
+
 ## [0.63.0](https://github.com/tambo-ai/tambo/compare/react-v0.62.0...react-v0.63.0) (2025-11-05)
 
 
