@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.121.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.8...repo-v0.121.0) (2025-11-07)
+
+
+### Features
+
+* add context badges for component selection ([#2013](https://github.com/tambo-ai/tambo-cloud/issues/2013)) ([798ac40](https://github.com/tambo-ai/tambo-cloud/commit/798ac405c9bcdd79f0eee0118411566ba06413b4))
+* **blog:** Improve blog design and simplify architecture ([#2015](https://github.com/tambo-ai/tambo-cloud/issues/2015)) ([9ad3434](https://github.com/tambo-ai/tambo-cloud/commit/9ad3434180f3fcc8e314ad142a967e281b5cabb8))
+* Introduce "file" type to message content parts ([#2041](https://github.com/tambo-ai/tambo-cloud/issues/2041)) ([74fe277](https://github.com/tambo-ai/tambo-cloud/commit/74fe2777156dd40a9cf64d8ec6b65e73fd89dec4))
+* make more settings components interactables ([#2037](https://github.com/tambo-ai/tambo-cloud/issues/2037)) ([fc31405](https://github.com/tambo-ai/tambo-cloud/commit/fc3140506b8fd66e605d8a13c3f7796a39df25e6))
+* **mcp:** Rename "File" to "Resource"  ([#2044](https://github.com/tambo-ai/tambo-cloud/issues/2044)) ([fe2201b](https://github.com/tambo-ai/tambo-cloud/commit/fe2201bc22f5ae026ece17d364ede87b4056d1ab))
+
+
+### Bug Fixes
+
+* **mcp:** Make "proxy" mcp server proxy elicitations ([#2019](https://github.com/tambo-ai/tambo-cloud/issues/2019)) ([2ba50ed](https://github.com/tambo-ai/tambo-cloud/commit/2ba50edc9b28f4e033e401e4f48983a658f05993))
+
+
+### Miscellaneous Chores
+
+* add charlie contribution notes ([#2042](https://github.com/tambo-ai/tambo-cloud/issues/2042)) ([f30283d](https://github.com/tambo-ai/tambo-cloud/commit/f30283df5209010e945ab8c9d19dbab804bd3e3f))
+* this file should not be checked in ([#2038](https://github.com/tambo-ai/tambo-cloud/issues/2038)) ([f333c70](https://github.com/tambo-ai/tambo-cloud/commit/f333c70d8161d83e9d8446f594c79c7c163f367c))
+
+
+### Code Refactoring
+
+* consolidate tools and make settings components more compatible with tambo assistant ([#2040](https://github.com/tambo-ai/tambo-cloud/issues/2040)) ([b322323](https://github.com/tambo-ai/tambo-cloud/commit/b32232320ea1aee00d81ed1cbb28be2e4f277dc0))
+* use context attachment hooks from the react sdk ([#2039](https://github.com/tambo-ai/tambo-cloud/issues/2039)) ([add81fe](https://github.com/tambo-ai/tambo-cloud/commit/add81fe384d4df235ac78388a0340351c443af5e))
+
 ## [0.120.8](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.120.7...repo-v0.120.8) (2025-11-04)
 
 
