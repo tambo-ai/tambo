@@ -142,10 +142,10 @@ declare module "@/components/tambo/message-input" {
     React.ButtonHTMLAttributes<HTMLButtonElement>;
 
   export type MessageInputMcpPromptButtonProps =
-    React.HTMLAttributes<HTMLButtonElement>;
+    React.ButtonHTMLAttributes<HTMLButtonElement>;
 
   export type MessageInputMcpResourceButtonProps =
-    React.HTMLAttributes<HTMLButtonElement>;
+    React.ButtonHTMLAttributes<HTMLButtonElement>;
 
   export type MessageInputStagedImagesProps =
     React.HTMLAttributes<HTMLDivElement>;
