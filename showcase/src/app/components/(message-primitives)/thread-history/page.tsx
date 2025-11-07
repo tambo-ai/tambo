@@ -50,7 +50,7 @@ const mockThreads: TamboThread[] = [
 
 export default function ThreadHistoryPage() {
   return (
-    <div className="prose max-w-full space-y-12">
+    <div className="prose max-w-8xl space-y-12">
       <header className="space-y-4">
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
           Thread History

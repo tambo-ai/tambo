@@ -7,7 +7,7 @@ import { TamboProvider } from "@tambo-ai/react";
 
 export default function InputFieldsComponentPage() {
   return (
-    <div className="prose max-w-full space-y-12">
+    <div className="prose max-w-8xl space-y-12">
       {/* Title & Description */}
       <header className="space-y-4">
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">

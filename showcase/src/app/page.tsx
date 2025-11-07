@@ -9,7 +9,7 @@ export default function DocsPage() {
   const userContextKey = useUserContextKey("message-thread-full-showcase");
 
   return (
-    <div className="max-w-4xl mx-auto px-4">
+    <div className="max-w-8xl">
       {/* Hero Section */}
       <div className="flex flex-col items-start text-left mb-16">
         <h1 className="font-sentient text-5xl font-450">
