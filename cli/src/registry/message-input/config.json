@@ -12,7 +12,7 @@
     "streamdown"
   ],
   "devDependencies": [],
-  "requires": ["elicitation-ui"],
+  "requires": ["elicitation-ui", "mcp-components"],
   "files": [
     {
       "name": "message-input.tsx",

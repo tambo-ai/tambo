@@ -6,7 +6,13 @@ import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider"
 import { TamboRegistryProvider } from "../../providers/tambo-registry-provider";
 import { MCPTransport } from "../mcp-client";
 import { TamboMcpProvider, useTamboMcpServers } from "../tambo-mcp-provider";
-import { useTamboMcpPromptList, type ListPromptEntry } from "../mcp-hooks";
+import {
+  useTamboMcpPromptList,
+  useTamboMcpResourceList,
+  useTamboMcpResource,
+  type ListPromptEntry,
+  type ListResourceEntry,
+} from "../mcp-hooks";
 
 // Mock the MCP client to avoid ES module issues
 let createImpl: jest.Mock<any, any> = jest.fn();
@@ -590,5 +596,581 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     const promptNames = capturedPrompts.map((p) => p.prompt.name);
     expect(promptNames).toContain("server-a:prompt-a");
     expect(promptNames).toContain("server-b:prompt-b");
+  });
+});
+
+describe("useTamboMcpResourceList - resource management", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    createImpl = jest.fn();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
+  it("should fetch and combine resources from multiple servers", async () => {
+    // Mock two servers with different resources
+    const serverAResources = {
+      resources: [
+        {
+          uri: "file:///home/user/doc1.txt",
+          name: "Document 1",
+          mimeType: "text/plain",
+        },
+        {
+          uri: "file:///home/user/doc2.txt",
+          name: "Document 2",
+          mimeType: "text/plain",
+        },
+      ],
+    };
+    const serverBResources = {
+      resources: [
+        {
+          uri: "file:///workspace/code.js",
+          name: "Code File",
+          mimeType: "text/javascript",
+        },
+        {
+          uri: "file:///workspace/README.md",
+          name: "Readme",
+          mimeType: "text/markdown",
+        },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverAResources),
+      close: jest.fn(),
+    };
+    const mockClientB = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverBResources),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+    const clientB = {
+      client: mockClientB,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async (url: string) => {
+      if (url === "https://server-a.example") return clientA;
+      if (url === "https://server-b.example") return clientB;
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC = () => {
+      const { data: resources } = useTamboMcpResourceList();
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider
+              mcpServers={[
+                {
+                  url: "https://server-a.example",
+                  transport: MCPTransport.SSE,
+                },
+                {
+                  url: "https://server-b.example",
+                  transport: MCPTransport.SSE,
+                },
+              ]}
+            >
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for all resources to be loaded
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(4);
+    });
+
+    // Verify all resources are present (with prefixes since we have 2 servers)
+    const resourceUris = capturedResources.map((r) => r.resource.uri);
+    expect(resourceUris).toContain("server-a:file:///home/user/doc1.txt");
+    expect(resourceUris).toContain("server-a:file:///home/user/doc2.txt");
+    expect(resourceUris).toContain("server-b:file:///workspace/code.js");
+    expect(resourceUris).toContain("server-b:file:///workspace/README.md");
+
+    // Verify each resource has the correct server info
+    const resource1 = capturedResources.find(
+      (r) => r.resource.uri === "server-a:file:///home/user/doc1.txt",
+    );
+    expect(resource1?.server.url).toBe("https://server-a.example");
+
+    const resource2 = capturedResources.find(
+      (r) => r.resource.uri === "server-b:file:///workspace/code.js",
+    );
+    expect(resource2?.server.url).toBe("https://server-b.example");
+  });
+
+  it("should not prefix resources when only one server exists", async () => {
+    const serverAResources = {
+      resources: [
+        {
+          uri: "file:///home/user/doc.txt",
+          name: "Document",
+          mimeType: "text/plain",
+        },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverAResources),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC = () => {
+      const { data: resources } = useTamboMcpResourceList();
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider
+              mcpServers={[
+                {
+                  url: "https://server-a.example",
+                  transport: MCPTransport.SSE,
+                },
+              ]}
+            >
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(1);
+    });
+
+    // No prefix when only 1 server
+    expect(capturedResources[0].resource.uri).toBe("file:///home/user/doc.txt");
+  });
+
+  it("should remove resource prefixes when a server is removed", async () => {
+    const serverAResources = {
+      resources: [
+        {
+          uri: "file:///home/user/doc1.txt",
+          name: "Document 1",
+          mimeType: "text/plain",
+        },
+        {
+          uri: "file:///home/user/doc2.txt",
+          name: "Document 2",
+          mimeType: "text/plain",
+        },
+      ],
+    };
+    const serverBResources = {
+      resources: [
+        {
+          uri: "file:///workspace/code.js",
+          name: "Code File",
+          mimeType: "text/javascript",
+        },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverAResources),
+      close: jest.fn(),
+    };
+    const mockClientB = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverBResources),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+    const clientB = {
+      client: mockClientB,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async (url: string) => {
+      if (url === "https://server-a.example") return clientA;
+      if (url === "https://server-b.example") return clientB;
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC = () => {
+      const { data: resources } = useTamboMcpResourceList();
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    const { rerender } = render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider
+              mcpServers={[
+                {
+                  url: "https://server-a.example",
+                  transport: MCPTransport.SSE,
+                },
+                {
+                  url: "https://server-b.example",
+                  transport: MCPTransport.SSE,
+                },
+              ]}
+            >
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for all resources to be loaded (prefixed)
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(3);
+    });
+
+    const initialUris = capturedResources.map((r) => r.resource.uri);
+    expect(initialUris).toContain("server-a:file:///home/user/doc1.txt");
+    expect(initialUris).toContain("server-b:file:///workspace/code.js");
+
+    // Now remove server B
+    rerender(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider
+              mcpServers={[
+                {
+                  url: "https://server-a.example",
+                  transport: MCPTransport.SSE,
+                },
+              ]}
+            >
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for server B resources to be removed and prefixes stripped
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(2);
+    });
+
+    const updatedUris = capturedResources.map((r) => r.resource.uri);
+    expect(updatedUris).toContain("file:///home/user/doc1.txt"); // No prefix
+    expect(updatedUris).toContain("file:///home/user/doc2.txt");
+    expect(updatedUris).not.toContain("server-a:file:///home/user/doc1.txt"); // No prefix when only 1 server
+    expect(updatedUris).not.toContain("server-b:file:///workspace/code.js"); // Server B removed
+  });
+});
+
+describe("useTamboMcpResource - read individual resource", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    createImpl = jest.fn();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
+  it("should read a resource from a single server (unprefixed)", async () => {
+    const serverAResources = {
+      resources: [
+        {
+          uri: "file:///home/user/doc.txt",
+          name: "Document",
+          mimeType: "text/plain",
+        },
+      ],
+    };
+
+    const resourceContents = {
+      contents: [
+        {
+          uri: "file:///home/user/doc.txt",
+          mimeType: "text/plain",
+          text: "Hello, world!",
+        },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverAResources),
+      readResource: jest.fn().mockResolvedValue(resourceContents),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    let capturedResourceData: any = null;
+    const Capture: React.FC = () => {
+      const { data: resourceData } = useTamboMcpResource(
+        "file:///home/user/doc.txt",
+      );
+      useEffect(() => {
+        if (resourceData) {
+          capturedResourceData = resourceData;
+        }
+      }, [resourceData]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider
+              mcpServers={[
+                {
+                  url: "https://server-a.example",
+                  transport: MCPTransport.SSE,
+                },
+              ]}
+            >
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(capturedResourceData).not.toBeNull();
+    });
+
+    expect(capturedResourceData.contents[0].text).toBe("Hello, world!");
+    expect(mockClientA.readResource).toHaveBeenCalledWith({
+      uri: "file:///home/user/doc.txt",
+    });
+  });
+
+  it("should read a resource from multiple servers (prefixed)", async () => {
+    const serverAResources = {
+      resources: [
+        {
+          uri: "file:///home/user/doc.txt",
+          name: "Document",
+          mimeType: "text/plain",
+        },
+      ],
+    };
+    const serverBResources = {
+      resources: [
+        {
+          uri: "file:///workspace/code.js",
+          name: "Code",
+          mimeType: "text/javascript",
+        },
+      ],
+    };
+
+    const resourceContentsA = {
+      contents: [
+        {
+          uri: "file:///home/user/doc.txt",
+          mimeType: "text/plain",
+          text: "From server A",
+        },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverAResources),
+      readResource: jest.fn().mockResolvedValue(resourceContentsA),
+      close: jest.fn(),
+    };
+
+    const mockClientB = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverBResources),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+    const clientB = {
+      client: mockClientB,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async (url: string) => {
+      if (url === "https://server-a.example") return clientA;
+      if (url === "https://server-b.example") return clientB;
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    let capturedResourceData: any = null;
+    const Capture: React.FC = () => {
+      // Request with prefix
+      const { data: resourceData } = useTamboMcpResource(
+        "server-a:file:///home/user/doc.txt",
+      );
+      useEffect(() => {
+        if (resourceData) {
+          capturedResourceData = resourceData;
+        }
+      }, [resourceData]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider
+              mcpServers={[
+                {
+                  url: "https://server-a.example",
+                  transport: MCPTransport.SSE,
+                },
+                {
+                  url: "https://server-b.example",
+                  transport: MCPTransport.SSE,
+                },
+              ]}
+            >
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(capturedResourceData).not.toBeNull();
+    });
+
+    expect(capturedResourceData.contents[0].text).toBe("From server A");
+    // Verify the prefix was stripped before calling the server
+    expect(mockClientA.readResource).toHaveBeenCalledWith({
+      uri: "file:///home/user/doc.txt",
+    });
   });
 });
