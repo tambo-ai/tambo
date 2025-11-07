@@ -6,8 +6,8 @@ import { ChatCompletionContentPartDto } from "../dto/message.dto";
 
 /**
  * Convert a serialized content part to a content part that can be consumed by an LLM.
- * Unsupported parts (e.g., legacy "resource" and our extended `file`) are removed
- * inline here to avoid over-abstracting a one-off filter.
+ * Unsupported parts (e.g., resource content) are removed inline here to avoid
+ * over-abstracting a one-off filter.
  */
 export function convertContentDtoToContentPart(
   content: string | ChatCompletionContentPartDto[],
@@ -16,14 +16,9 @@ export function convertContentDtoToContentPart(
     return [{ type: ContentPartType.Text, text: content }];
   }
   const filtered = content.filter((p) => {
-    // Filter legacy MCP 'resource' parts without leaking metadata
-    if ((p as any)?.type === "resource") {
-      console.warn("Filtering out legacy 'resource' content part");
-      return false;
-    }
-    // Filter our extended File parts before provider consumption
-    if (p.type === ContentPartType.File) {
-      console.warn("Filtering out 'file' content part for provider call");
+    // Filter our extended Resource parts before provider consumption
+    if (p.type === ContentPartType.Resource) {
+      console.warn("Filtering out 'resource' content part for provider call");
       return false;
     }
     return true;

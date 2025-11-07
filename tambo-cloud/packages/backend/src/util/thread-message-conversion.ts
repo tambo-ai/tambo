@@ -291,17 +291,13 @@ function makeUserMessages(
   }
   const additionalContextMessage = generateAdditionalContext(message);
 
-  // TODO: Handle File types - filter them out before passing to AI SDK
-  // When File content parts are properly stored in S3 and converted to appropriate
+  // TODO: Handle Resource types - filter them out before passing to AI SDK
+  // When Resource content parts are properly stored in S3 and converted to appropriate
   // formats (text, image_url, etc.), this filter can be updated to convert instead of remove
-  const contentWithoutFiles = message.content.filter(
+  const contentWithoutResources = message.content.filter(
     (p): p is OpenAI.Chat.Completions.ChatCompletionContentPart => {
-      if ((p.type as string) === "resource") {
-        console.warn("Filtering out legacy 'resource' content part");
-        return false;
-      }
-      if (p.type === ContentPartType.File) {
-        console.warn("Filtering out 'file' content part for provider call");
+      if (p.type === ContentPartType.Resource) {
+        console.warn("Filtering out 'resource' content part for provider call");
         return false;
       }
       return true;
@@ -313,10 +309,10 @@ function makeUserMessages(
     message.role === MessageRole.User
       ? [
           { type: "text", text: "<User>" },
-          ...contentWithoutFiles,
+          ...contentWithoutResources,
           { type: "text", text: "</User>" },
         ]
-      : contentWithoutFiles;
+      : contentWithoutResources;
 
   // Combine additional context (if any) with the wrapped content
   const content = additionalContextMessage
@@ -324,7 +320,7 @@ function makeUserMessages(
     : wrappedContent;
 
   // user messages support mixed content, system messages only support text
-  // Type assertion is safe here because we've filtered out File types above
+  // Type assertion is safe here because we've filtered out Resource types above
   return [
     message.role === MessageRole.User
       ? {

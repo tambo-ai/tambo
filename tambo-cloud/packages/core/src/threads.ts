@@ -43,10 +43,10 @@ export enum ContentPartType {
   ImageUrl = "image_url",
   InputAudio = "input_audio",
   /**
-   * File content part type - supports MCP Resources and other file types.
+   * Resource content part type - supports MCP Resources and other file types.
    * Can include URIs, text content, or base64-encoded blobs.
    */
-  File = "file",
+  Resource = "resource",
 }
 
 /**
@@ -69,7 +69,7 @@ export type ChatCompletionContentPartFile =
   OpenAI.Chat.Completions.ChatCompletionContentPart.File;
 
 /**
- * MCP Resource-compatible file content part.
+ * MCP Resource-compatible content part.
  * Based on https://modelcontextprotocol.io/specification/2025-06-18/schema#resource
  *
  * Supports multiple content formats:
@@ -77,21 +77,21 @@ export type ChatCompletionContentPartFile =
  * - Inline text content (may be stored in S3 for large content)
  * - Base64-encoded blob data (may be stored in S3 for large blobs)
  */
-export interface ChatCompletionContentPartFileResource {
-  type: ContentPartType.File;
-  file: FileResource;
+export interface ChatCompletionContentPartResource {
+  type: ContentPartType.Resource;
+  resource: Resource;
 }
 
 /**
  * Represents a single content part in a chat completion message
- * Can be text, image, audio, or file
+ * Can be text, image, audio, or resource
  *
- * Note: ChatCompletionContentPartFileResource is our custom extension for MCP resources
+ * Note: ChatCompletionContentPartResource is our custom extension for MCP resources
  * and should be converted to appropriate SDK-compatible types when passing to LLM providers.
  */
 export type ChatCompletionContentPart =
   | OpenAI.Chat.Completions.ChatCompletionContentPart
-  | ChatCompletionContentPartFileResource;
+  | ChatCompletionContentPartResource;
 
 export type ChatCompletionMessageParam =
   OpenAI.Chat.Completions.ChatCompletionMessageParam;
@@ -211,7 +211,7 @@ export interface Thread {
   updatedAt: Date;
 }
 
-export interface FileResource {
+export interface Resource {
   /** URI identifying the resource (e.g., file://, https://, s3://) */
   uri?: string;
   /** Human-readable name for the resource */
@@ -228,13 +228,13 @@ export interface FileResource {
    * Annotations for additional metadata (MCP-specific).
    * Can include audience, priority, or custom properties.
    */
-  annotations?: FileResourceAnnotations;
+  annotations?: ResourceAnnotations;
 }
 
 /**
- * Annotations for file resources (MCP-specific metadata).
+ * Annotations for resources (MCP-specific metadata).
  */
-export interface FileResourceAnnotations {
+export interface ResourceAnnotations {
   /** Target audience for this resource */
   audience?: string[];
   /** Priority level for this resource */

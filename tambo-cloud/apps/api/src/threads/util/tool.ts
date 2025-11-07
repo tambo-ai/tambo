@@ -13,15 +13,14 @@ import { ChatCompletionContentPartDto } from "../dto/message.dto";
 import { tryParseJson } from "./content";
 
 export function validateToolResponse(message: ThreadMessage): boolean {
-  // TODO: Handle File types - MCP servers return "resource" content parts that are now mapped to "file"
-  // Need to validate File content parts:
+  // TODO: Handle Resource types - MCP servers return resource content parts
+  // Need to validate Resource content parts:
   // - Check for required fields (at least one of: uri, text, or blob)
   // - Validate MIME types if present
   // - For large content, ensure it will be stored in S3 before sending to LLM
   const nonResourceContent = message.content.filter((part) => {
     // Do not log here (warn: false previously)
-    if ((part as any)?.type === "resource") return false;
-    if (part.type === ContentPartType.File) return false;
+    if (part.type === ContentPartType.Resource) return false;
     return true;
   });
   if (nonResourceContent.length === 0) {

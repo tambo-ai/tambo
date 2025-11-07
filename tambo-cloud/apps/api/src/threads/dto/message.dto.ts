@@ -1,8 +1,8 @@
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import type {
   ChatCompletionContentPartUnion,
-  FileResource,
-  FileResourceAnnotations,
+  Resource,
+  ResourceAnnotations,
 } from "@tambo-ai-cloud/core";
 import { ActionType, ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
 import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from "class-validator";
@@ -36,10 +36,10 @@ export class ImageUrl {
 }
 
 /**
- * Annotations for file resources (MCP-specific metadata).
+ * Annotations for resources (MCP-specific metadata).
  */
-@ApiSchema({ name: "FileResourceAnnotations" })
-export class FileResourceAnnotationsDto implements FileResourceAnnotations {
+@ApiSchema({ name: "ResourceAnnotations" })
+export class ResourceAnnotationsDto implements ResourceAnnotations {
   @ApiProperty({
     description: "Target audience for this resource",
   })
@@ -55,15 +55,15 @@ export class FileResourceAnnotationsDto implements FileResourceAnnotations {
 }
 
 /**
- * MCP Resource-compatible file content.
+ * MCP Resource-compatible content.
  * Based on https://modelcontextprotocol.io/specification/2025-06-18/schema#resource
  *
- * Note: This is a flattened representation for our API. File parts are stored in the
+ * Note: This is a flattened representation for our API. Resource parts are stored in the
  * database today. When sending to providers, they may be filtered or converted to
  * provider-native content types.
  */
-@ApiSchema({ name: "FileResource" })
-export class FileResourceDto implements FileResource {
+@ApiSchema({ name: "Resource" })
+export class ResourceDto implements Resource {
   @ApiProperty({
     description:
       "URI identifying the resource (e.g., file://, https://, s3://)",
@@ -105,14 +105,14 @@ export class FileResourceDto implements FileResource {
     description:
       "Annotations for additional metadata (MCP-specific). Can include audience, priority, or custom properties.",
   })
-  annotations?: FileResourceAnnotationsDto;
+  annotations?: ResourceAnnotationsDto;
 }
 
 /**
  * DTO for the content part of a message.
  *
- * Note: This extends ChatCompletionContentPartUnion with our custom `file` type.
- * File parts are stored in the database. Before LLM consumption, unsupported parts
+ * Note: This extends ChatCompletionContentPartUnion with our custom `resource` type.
+ * Resource parts are stored in the database. Before LLM consumption, unsupported parts
  * may be filtered or converted.
  */
 @ApiSchema({ name: "ChatCompletionContentPart" })
@@ -147,10 +147,10 @@ export class ChatCompletionContentPartDto
 
   @ApiProperty({
     description:
-      "File/resource content (when type is 'file'). Supports MCP Resources with URI, text, or blob data.",
+      "Resource content (when type is 'resource'). Supports MCP Resources with URI, text, or blob data.",
   })
-  @ValidateIf((o) => o.type === ContentPartType.File)
-  file?: FileResourceDto;
+  @ValidateIf((o) => o.type === ContentPartType.Resource)
+  resource?: ResourceDto;
 }
 
 @ApiSchema({ name: "ThreadMessage" })
