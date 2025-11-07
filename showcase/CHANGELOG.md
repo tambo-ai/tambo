@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.30.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.29.0...showcase-v0.30.0) (2025-11-07)
+
+
+### Features
+
+* Add dictation to showcase ([#1261](https://github.com/tambo-ai/tambo/issues/1261)) ([3adf26c](https://github.com/tambo-ai/tambo/commit/3adf26c65f72e93cfc82cab6e1bece92729c8584))
+* **mcp:** Add support for MCP Resources ([#1268](https://github.com/tambo-ai/tambo/issues/1268)) ([99b4f87](https://github.com/tambo-ai/tambo/commit/99b4f8748021a3333a1b772b6e280ad22ed389bc))
+
+
+### Bug Fixes
+
+* **mcp:** Update default transport type from SSE to HTTP for MCP ([#1250](https://github.com/tambo-ai/tambo/issues/1250)) ([679f508](https://github.com/tambo-ai/tambo/commit/679f508a38b1c77eb643712d97a3c5da039b682a))
+
+
+### Miscellaneous Chores
+
+* **lint:** Proactively fix some React 19 issues ([#1251](https://github.com/tambo-ai/tambo/issues/1251)) ([b1984ed](https://github.com/tambo-ai/tambo/commit/b1984ed6d97631f342677826232a10fb0a87cd51))
+
 ## [0.29.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.28.0...showcase-v0.29.0) (2025-11-04)
 
 
