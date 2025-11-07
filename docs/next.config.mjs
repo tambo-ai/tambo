@@ -6,6 +6,20 @@ const withMDX = createMDX();
 const config = {
   reactStrictMode: true,
   trailingSlash: false,
+  async redirects() {
+    return [
+      {
+        source: "/docs",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/docs/:path*",
+        destination: "/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

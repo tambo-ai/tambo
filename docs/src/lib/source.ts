@@ -18,3 +18,13 @@ export const source = loader({
       ) as React.ReactElement;
   },
 });
+
+const invalidDocsPrefixedPage = source
+  .getPages()
+  .find((page) => page.slugs[0] === "docs");
+
+if (invalidDocsPrefixedPage) {
+  throw new Error(
+    `Docs content cannot be placed under a '/docs' route. Found: ${invalidDocsPrefixedPage.path}`,
+  );
+}
