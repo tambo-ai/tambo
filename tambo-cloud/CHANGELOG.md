@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.121.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.2...repo-v0.121.3) (2025-11-08)
+
+
+### Documentation
+
+* **blog:** Add blogpost about fundamental ideas behind tambo ([#2045](https://github.com/tambo-ai/tambo-cloud/issues/2045)) ([8202549](https://github.com/tambo-ai/tambo-cloud/commit/82025492a3b730a6e9969b6330e2b880a7d7dd86))
+
 ## [0.121.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.1...repo-v0.121.2) (2025-11-08)
 
 
