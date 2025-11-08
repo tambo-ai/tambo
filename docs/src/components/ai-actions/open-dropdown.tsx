@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { GithubLogo, ChatGPTLogo, T3Logo, ClaudeLogo } from "./logos";
 import Image from "next/image";
-import octoIcon from "../../../public/logo/icon/Octo-Icon.svg";
 
 interface OpenDropdownProps {
   markdownUrl: string;
@@ -21,7 +20,7 @@ type LinkItem = {
 
 const TamboLogo = () => (
   <Image
-    src={octoIcon}
+    src="/logo/icon/Octo-Icon.svg"
     alt="Tambo"
     width={24}
     height={24}
