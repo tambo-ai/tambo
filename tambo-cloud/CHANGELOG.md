@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.121.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.1...repo-v0.121.2) (2025-11-08)
+
+
+### Bug Fixes
+
+* suggestions generating in random language ([#2049](https://github.com/tambo-ai/tambo-cloud/issues/2049)) ([8711002](https://github.com/tambo-ai/tambo-cloud/commit/87110029f640d59f684540549c974c6c731296ca))
+
 ## [0.121.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.0...repo-v0.121.1) (2025-11-07)
 
 
