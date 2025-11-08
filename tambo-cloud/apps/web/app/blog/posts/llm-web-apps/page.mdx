@@ -1,0 +1,115 @@
+---
+title: "Let LLMs Control Your UI"
+date: "2025-11-07"
+description: "Using natural language to control UI"
+author: "Michael Milstead"
+---
+
+## Natural Language Interfaces
+
+The rise of LLMs and the popularity of chat apps have made it clear that the ability to communicate with a computer using natural language is powerful.
+
+When software understands natural language, you can be vague about your end goals. When you don't know all the steps to get to your goal, or you don't have a clear idea of what exactly your end goal looks like, you can have the LLM guide you towards it. When tools are available, it can even infer what actions to take and perform them for you.
+
+After a few years of using LLM chat interfaces, though, it’s become clear that **natural language alone isn’t enough** for every use case. The next wave of applications will use a combination of natural language and LLM-controlled UI.
+
+## Why We Still Need UI
+
+When you give an AI a vague goal, it needs to fill in the gaps and assume the steps to get there. You usually don't want the AI to perform the actions based on guesses without asking for confirmation. When an LLM or an agent proposes an action, a UI helps you understand the context and input edits much more easily than language.
+
+For example, if a flight-booking AI tells me “Seat 23E is available,” I don’t have enough information to know whether I like the seat or not. Is that a middle seat? Are there other open seats in completely empty rows? Is that near the front or the back of the plane?
+
+If it shows me a **seat map**, I instantly know the full context of seat 23E.
+
+<ImageZoom>
+  <img
+    src="/assets/blog/llm-web-apps/seatmap.gif"
+    alt="seatmap"
+    className="max-w-md mx-auto rounded-lg"
+  />
+</ImageZoom>
+
+I can also edit the proposed selection through the UI much more easily than I could through words. Every proposed action is, in effect, a function with a set of partially guessed parameters, and an interactive UI lets me easily edit those parameters.
+
+When an AI can orchestrate text and UI components together into an interface tailored to your intent, the experience becomes both flexible and efficient.
+
+## We Don’t Need to Generate UI
+
+When people discuss "AI-driven UI," the term "generative UI" often comes up.
+To some, that means the AI decides what UI should exist and literally creates it from scratch, perhaps by generating code.
+
+That approach introduces risk and unpredictability. The user might see some oddly styled or broken UI, or the AI might accidentally enable some unsafe functionality for the user.
+
+Instead, you can let the LLM control pre-built UI components that would normally be placed somewhere on the page. Then the AI only has access to the components and functions you give it as the developer.
+
+This approach makes integration of natural language control into an existing app simple to think through. Just allow the AI to use the existing components and functionality on behalf of the user.
+
+## Going Further
+
+Once you start thinking this way, new design patterns emerge:
+
+- **Context selection:** UI that lets users choose what extra context the AI should consider for a response.
+- **Focus control:** UI that tells the LLM which component or area to focus on next.
+- **Intent signals:** The AI can infer intent from more than the latest message. Past actions, previous messages, and how users interact with components can all inform what it shows next, or even allow it to predict what to surface _before_ a user asks.
+
+There is plenty more to explore.
+
+## Putting It Into Practice
+
+At [Tambo](https://github.com/tambo-ai/tambo) we’re making it simple to integrate this type of natural language control into React apps. We’re packaging up the common patterns of LLM-based web apps so you don’t need to reinvent them.
+
+To “tell” the LLM about the UI it can use, specify when to use the component and what props the component expects.
+
+```typescript
+const components: TamboComponent[] = [
+  {
+    name: "WeatherDisplay",
+    description: "A display of the weather in a city",
+    component: WeatherDisplayComponent,
+    propsSchema: WeatherDisplayPropsSchema,
+  }
+];
+
+<TamboProvider components={components}>
+  <App />
+</TamboProvider>;
+```
+
+Similarly, give the LLM tools:
+
+```typescript
+const getWeather = (city: string) => {
+  const forecast = await weather.getCityForecast(city);
+  return forecast; // return the data, Tambo will format it for the user
+};
+
+export const tools: TamboTool[] = [
+  {
+    name: "getWeather",
+    description: "A tool to get the current weather conditions of a city",
+    tool: getWeather,
+    toolSchema: z
+      .function()
+      .args(z.string().describe("The city name to get weather information for"))
+      .returns(z.string()),
+  },
+];
+
+<TamboProvider tools={tools}>
+  <App />
+</TamboProvider>;
+```
+
+Then add a `<MessageInput>` component somewhere for users to submit messages, and decide how you want to display responses, including any used components or tool call information. Tambo handles everything else.
+
+<ImageZoom>
+  <img
+    src="/assets/blog/llm-web-apps/weather.gif"
+    alt="weather UX"
+    className="max-w-md mx-auto rounded-lg"
+  />
+</ImageZoom>
+
+With just those pieces, you can give your application a conversational interface powered by LLMs.
+
+From there, you can go much deeper with Tambo: [connect MCP servers](https://docs.tambo.co/concepts/model-context-protocol), integrate dynamic [context](https://docs.tambo.co/concepts/additional-context), or let Tambo [interact with components](https://docs.tambo.co/concepts/components/interactable-components) already rendered on the page.
