@@ -75,10 +75,16 @@ describe("suggestion-generator", () => {
               }
             }
 
+        CRITICAL LANGUAGE REQUIREMENT:
+        - You MUST detect the language used by the user in their messages
+        - ALL suggestions (both title and detailedSuggestion) MUST be written in EXACTLY the same language as the user's messages
+        - If the user writes in Spanish, respond in Spanish. If they write in French, respond in French. If they write in English, respond in English.
+        - Do NOT mix languages. Do NOT default to English if the user is using another language.
+        - Pay close attention to the user's messages in the conversation history to determine their language
+
         Your task is to suggest 3 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
-        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -92,7 +98,7 @@ describe("suggestion-generator", () => {
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
 
-        The suggestions should be written in the same language as the above conversation.
+        CRITICAL: The suggestions MUST be written in the EXACT same language as the user's messages in the conversation above. Detect the language from the user's messages and match it precisely. Do not default to English if the user is using another language.
 
         No component currently in use.",
             "role": "user",
@@ -154,10 +160,16 @@ describe("suggestion-generator", () => {
               }
             }
 
+        CRITICAL LANGUAGE REQUIREMENT:
+        - You MUST detect the language used by the user in their messages
+        - ALL suggestions (both title and detailedSuggestion) MUST be written in EXACTLY the same language as the user's messages
+        - If the user writes in Spanish, respond in Spanish. If they write in French, respond in French. If they write in English, respond in English.
+        - Do NOT mix languages. Do NOT default to English if the user is using another language.
+        - Pay close attention to the user's messages in the conversation history to determine their language
+
         Your task is to suggest 2 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
-        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -179,7 +191,7 @@ describe("suggestion-generator", () => {
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
 
-        The suggestions should be written in the same language as the above conversation.
+        CRITICAL: The suggestions MUST be written in the EXACT same language as the user's messages in the conversation above. Detect the language from the user's messages and match it precisely. Do not default to English if the user is using another language.
 
         No component currently in use.",
             "role": "user",
@@ -242,10 +254,16 @@ describe("suggestion-generator", () => {
               }
             }
 
+        CRITICAL LANGUAGE REQUIREMENT:
+        - You MUST detect the language used by the user in their messages
+        - ALL suggestions (both title and detailedSuggestion) MUST be written in EXACTLY the same language as the user's messages
+        - If the user writes in Spanish, respond in Spanish. If they write in French, respond in French. If they write in English, respond in English.
+        - Do NOT mix languages. Do NOT default to English if the user is using another language.
+        - Pay close attention to the user's messages in the conversation history to determine their language
+
         Your task is to suggest 2 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
-        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -263,7 +281,7 @@ describe("suggestion-generator", () => {
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
 
-        The suggestions should be written in the same language as the above conversation.
+        CRITICAL: The suggestions MUST be written in the EXACT same language as the user's messages in the conversation above. Detect the language from the user's messages and match it precisely. Do not default to English if the user is using another language.
 
         Current component: Button
         Current props: {
@@ -286,10 +304,16 @@ describe("suggestion-generator", () => {
         You may use only the following components:
         No components available, do not try and generate a component.
 
+        CRITICAL LANGUAGE REQUIREMENT:
+        - You MUST detect the language used by the user in their messages
+        - ALL suggestions (both title and detailedSuggestion) MUST be written in EXACTLY the same language as the user's messages
+        - If the user writes in Spanish, respond in Spanish. If they write in French, respond in French. If they write in English, respond in English.
+        - Do NOT mix languages. Do NOT default to English if the user is using another language.
+        - Pay close attention to the user's messages in the conversation history to determine their language
+
         Your task is to suggest 1 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
-        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -303,7 +327,7 @@ describe("suggestion-generator", () => {
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
 
-        The suggestions should be written in the same language as the above conversation.
+        CRITICAL: The suggestions MUST be written in the EXACT same language as the user's messages in the conversation above. Detect the language from the user's messages and match it precisely. Do not default to English if the user is using another language.
 
         No component currently in use.",
             "role": "user",
@@ -365,10 +389,16 @@ describe("suggestion-generator", () => {
               }
             }
 
+        CRITICAL LANGUAGE REQUIREMENT:
+        - You MUST detect the language used by the user in their messages
+        - ALL suggestions (both title and detailedSuggestion) MUST be written in EXACTLY the same language as the user's messages
+        - If the user writes in Spanish, respond in Spanish. If they write in French, respond in French. If they write in English, respond in English.
+        - Do NOT mix languages. Do NOT default to English if the user is using another language.
+        - Pay close attention to the user's messages in the conversation history to determine their language
+
         Your task is to suggest 1 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
-        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -382,7 +412,7 @@ describe("suggestion-generator", () => {
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
 
-        The suggestions should be written in the same language as the above conversation.
+        CRITICAL: The suggestions MUST be written in the EXACT same language as the user's messages in the conversation above. Detect the language from the user's messages and match it precisely. Do not default to English if the user is using another language.
 
         No component currently in use.",
             "role": "user",
@@ -462,10 +492,16 @@ describe("suggestion-generator", () => {
               }
             }
 
+        CRITICAL LANGUAGE REQUIREMENT:
+        - You MUST detect the language used by the user in their messages
+        - ALL suggestions (both title and detailedSuggestion) MUST be written in EXACTLY the same language as the user's messages
+        - If the user writes in Spanish, respond in Spanish. If they write in French, respond in French. If they write in English, respond in English.
+        - Do NOT mix languages. Do NOT default to English if the user is using another language.
+        - Pay close attention to the user's messages in the conversation history to determine their language
+
         Your task is to suggest 1 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
         Rules:
-        0. Make absolutely sure to respond in the same language as the user.
         1. Write each suggestion as a complete message that could be sent by the user
         2. Focus on practical requests that use the available components
         3. Make suggestions contextually relevant to the conversation and previous actions
@@ -487,7 +523,7 @@ describe("suggestion-generator", () => {
 
         The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
 
-        The suggestions should be written in the same language as the above conversation.
+        CRITICAL: The suggestions MUST be written in the EXACT same language as the user's messages in the conversation above. Detect the language from the user's messages and match it precisely. Do not default to English if the user is using another language.
 
         Current component: Input
         Current props: {
