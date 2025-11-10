@@ -26,7 +26,7 @@ Tambo is a generative UI framework for React. Unlike traditional React apps wher
 
 Register your components with schemas, and an AI agent renders and controls them through dialogue. Users describe what they want, your agent orchestrates your UI to make it happen.
 
-Built on **Model Context Protocol (MCP)** - a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way. This means plug-and-play integrations with Linear, Slack, and any MCP server without building custom adapters.
+**MCP-native** from the ground up - built with the Model Context Protocol, a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way. This means plug-and-play integrations with Linear, Slack, and any MCP server without building custom adapters.
 
 https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
 
@@ -329,10 +329,12 @@ suggestions.map((s) => <button onClick={() => accept(s)}>{s.title}</button>);
 ### Supported LLM Providers
 
 - **OpenAI** (GPT-4.1, GPT-5, O3, and more)
-- **Anthropic** (Claude 3.5/4)
-- **Google Gemini** (1.5 Pro, 2.0 Flash)
-- **Mistral** (Large, Medium, Magistral)
+- **Anthropic** (Claude 3.5, Claude 4.5, and more)
+- **Google Gemini** (1.5 Pro, 2.0 Flash, and more)
+- **Mistral** (Large, Medium, Magistral, and more)
 - Custom OpenAI-compatible providers
+
+Don't see your favorite? [Let us know →](https://github.com/tambo-ai/tambo/issues)
 
 [→ Learn more](https://docs.tambo.co/models)
 
