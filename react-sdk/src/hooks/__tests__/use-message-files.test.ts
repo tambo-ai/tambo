@@ -45,12 +45,13 @@ if (typeof File !== "undefined") {
 describe("useMessageFiles", () => {
   beforeEach(() => {
     // Mock fetch for PDF API calls
-    global.fetch = jest.fn(async () =>
-      await Promise.resolve({
-        ok: true,
-        json: async () => ({ text: "Mock PDF text", pages: 1 }),
-        text: async () => "",
-      } as any),
+    global.fetch = jest.fn(
+      async () =>
+        await Promise.resolve({
+          ok: true,
+          json: async () => ({ text: "Mock PDF text", pages: 1 }),
+          text: async () => "",
+        } as any),
     );
   });
 
@@ -82,7 +83,7 @@ describe("useMessageFiles", () => {
 
     expect(result.current.files).toHaveLength(1);
     expect(result.current.files[0].contentType).toBe("image");
-    expect(result.current.files[0].dataUrl).toBeDefined();
+    expect(result.current.files[0].storagePath).toBeDefined();
   });
 
   it("should accept PDF files", async () => {
@@ -97,7 +98,7 @@ describe("useMessageFiles", () => {
 
     expect(result.current.files).toHaveLength(1);
     expect(result.current.files[0].contentType).toBe("text");
-    expect(result.current.files[0].textContent).toBeDefined();
+    expect(result.current.files[0].storagePath).toBeDefined();
   });
 
   it("should accept text files", async () => {
@@ -112,7 +113,7 @@ describe("useMessageFiles", () => {
 
     expect(result.current.files).toHaveLength(1);
     expect(result.current.files[0].contentType).toBe("text");
-    expect(result.current.files[0].textContent).toBeDefined();
+    expect(result.current.files[0].storagePath).toBeDefined();
   });
 
   it("should clear all files", () => {

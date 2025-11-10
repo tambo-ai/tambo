@@ -186,7 +186,6 @@ export function useMessageFiles(): UseMessageFilesReturn {
       };
 
       setFiles((prev) => [...prev, processingFile]);
-
       try {
         const { storagePath, mimeType } = await uploadFile(file);
         const resolvedMimeType = mimeType ?? initialMimeType;
@@ -264,7 +263,6 @@ export function useMessageFiles(): UseMessageFilesReturn {
       );
 
       setFiles((prev) => [...prev, ...processingFiles]);
-
       const processedFiles = await Promise.all(
         processingFiles.map(async (f) => {
           try {

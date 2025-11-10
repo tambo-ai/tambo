@@ -8,7 +8,7 @@ describe("buildMessageContent", () => {
   ): StagedFile => ({
     id: "test-id",
     name: "test-image.png",
-    dataUrl: "data:image/png;base64,mock-data",
+    storagePath: "test-project/123-test-image.png",
     file: new File([""], "test-image.png", { type: "image/png" }),
     size: 1024,
     type: "image/png",
@@ -21,7 +21,7 @@ describe("buildMessageContent", () => {
   ): StagedFile => ({
     id: "test-text-id",
     name: "test.txt",
-    textContent: "Mock text content",
+    storagePath: "test-project/123-test.txt",
     file: new File(["Mock text content"], "test.txt", { type: "text/plain" }),
     size: 100,
     type: "text/plain",
@@ -34,7 +34,7 @@ describe("buildMessageContent", () => {
   ): StagedFile => ({
     id: "test-pdf-id",
     name: "test.pdf",
-    textContent: "Mock PDF text content",
+    storagePath: "test-project/123-test.pdf",
     file: new File(["PDF content"], "test.pdf", { type: "application/pdf" }),
     size: 500,
     type: "application/pdf",
@@ -55,7 +55,7 @@ describe("buildMessageContent", () => {
 
   it("should build content with images only", () => {
     const image = createMockStagedImage({
-      dataUrl: "data:image/png;base64,abc123",
+      storagePath: "test-project/123-image.png",
     });
 
     const result = buildMessageContent("", [image]);
@@ -64,7 +64,8 @@ describe("buildMessageContent", () => {
       {
         type: "image_url",
         image_url: {
-          url: "data:image/png;base64,abc123",
+          url: "storage://test-project/123-image.png",
+          detail: "auto",
         },
       },
     ]);
@@ -74,11 +75,11 @@ describe("buildMessageContent", () => {
     const images = [
       createMockStagedImage({
         id: "img1",
-        dataUrl: "data:image/png;base64,abc123",
+        storagePath: "test-project/img1.png",
       }),
       createMockStagedImage({
         id: "img2",
-        dataUrl: "data:image/jpeg;base64,def456",
+        storagePath: "test-project/img2.jpeg",
       }),
     ];
 
@@ -92,13 +93,15 @@ describe("buildMessageContent", () => {
       {
         type: "image_url",
         image_url: {
-          url: "data:image/png;base64,abc123",
+          url: "storage://test-project/img1.png",
+          detail: "auto",
         },
       },
       {
         type: "image_url",
         image_url: {
-          url: "data:image/jpeg;base64,def456",
+          url: "storage://test-project/img2.jpeg",
+          detail: "auto",
         },
       },
     ]);
@@ -123,7 +126,8 @@ describe("buildMessageContent", () => {
       {
         type: "image_url",
         image_url: {
-          url: "data:image/png;base64,mock-data",
+          url: "storage://test-project/123-test-image.png",
+          detail: "auto",
         },
       },
     ]);
@@ -134,17 +138,17 @@ describe("buildMessageContent", () => {
       createMockStagedImage({
         id: "img1",
         name: "photo1.jpg",
-        dataUrl: "data:image/jpeg;base64,photo1data",
+        storagePath: "test-project/photo1.jpg",
       }),
       createMockStagedImage({
         id: "img2",
         name: "photo2.png",
-        dataUrl: "data:image/png;base64,photo2data",
+        storagePath: "test-project/photo2.png",
       }),
       createMockStagedImage({
         id: "img3",
         name: "photo3.gif",
-        dataUrl: "data:image/gif;base64,photo3data",
+        storagePath: "test-project/photo3.gif",
       }),
     ];
 
@@ -158,19 +162,22 @@ describe("buildMessageContent", () => {
     expect(result[1]).toEqual({
       type: "image_url",
       image_url: {
-        url: "data:image/jpeg;base64,photo1data",
+        url: "storage://test-project/photo1.jpg",
+        detail: "auto",
       },
     });
     expect(result[2]).toEqual({
       type: "image_url",
       image_url: {
-        url: "data:image/png;base64,photo2data",
+        url: "storage://test-project/photo2.png",
+        detail: "auto",
       },
     });
     expect(result[3]).toEqual({
       type: "image_url",
       image_url: {
-        url: "data:image/gif;base64,photo3data",
+        url: "storage://test-project/photo3.gif",
+        detail: "auto",
       },
     });
   });
@@ -182,7 +189,7 @@ describe("buildMessageContent", () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       type: "text",
-      text: "\n\n--- File: test.txt ---\nMock text content",
+      text: "storage://test-project/123-test.txt|text/plain|test.txt",
     });
   });
 
@@ -193,7 +200,7 @@ describe("buildMessageContent", () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       type: "text",
-      text: "\n\n--- File: test.pdf ---\nMock PDF text content",
+      text: "storage://test-project/123-test.pdf|application/pdf|test.pdf",
     });
   });
 
@@ -202,12 +209,13 @@ describe("buildMessageContent", () => {
     const textFile = createMockStagedTextFile();
     const result = buildMessageContent("Check these files:", [image, textFile]);
 
-    // Text content and text files are combined into one text part, then images separately
-    expect(result).toHaveLength(2);
+    // Text content first, then file reference, then images
+    expect(result).toHaveLength(3);
     expect(result[0].type).toBe("text");
-    expect(result[0].text).toContain("Check these files:");
-    expect(result[0].text).toContain("--- File: test.txt ---");
-    expect(result[1].type).toBe("image_url");
+    expect(result[0].text).toBe("Check these files:");
+    expect(result[1].type).toBe("text");
+    expect(result[1].text).toContain("storage://");
+    expect(result[2].type).toBe("image_url");
   });
 
   it("should throw error when no content provided", () => {
@@ -258,11 +266,11 @@ describe("buildMessageContent", () => {
     const images = [
       createMockStagedImage({
         id: "first",
-        dataUrl: "data:image/png;base64,first",
+        storagePath: "test-project/first.png",
       }),
       createMockStagedImage({
         id: "second",
-        dataUrl: "data:image/png;base64,second",
+        storagePath: "test-project/second.png",
       }),
     ];
 
@@ -273,10 +281,12 @@ describe("buildMessageContent", () => {
     expect(result[2].type).toBe("image_url");
 
     if (result[1].type === "image_url") {
-      expect(result[1].image_url?.url).toBe("data:image/png;base64,first");
+      expect(result[1].image_url?.url).toBe("storage://test-project/first.png");
     }
     if (result[2].type === "image_url") {
-      expect(result[2].image_url?.url).toBe("data:image/png;base64,second");
+      expect(result[2].image_url?.url).toBe(
+        "storage://test-project/second.png",
+      );
     }
   });
 });
