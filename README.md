@@ -32,23 +32,23 @@ https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
 
 ## Why Tambo?
 
-What a user wants: To create a bar chart of Q4 sales.
+You don't want to write 200 lines of boilerplate to show a chart.
 
-**Without conversational interfaces:**
+Tambo handles:
 
-You'd build WYSIWYG chart editors, create instructional videos, and train users on complex UIs just to create visualizations.
+- ✅ AI orchestration (which component to render)
+- ✅ Streaming (progressive prop updates)
+- ✅ State management (persistence across conversation)
+- ✅ Error handling (retries, fallbacks)
+- ✅ Tool coordination (MCP servers, local functions)
 
-**Rolling your own AI solution:**
+You write:
 
-Even with AI, you're writing hundreds of lines per component:
+- Your existing React components
+- Zod schemas for props
+- React hooks for advanced AI features
 
-- State management and component wiring
-- Conditional rendering based on user intent
-- Streaming and progressive updates
-- Handling multiple components across different UI states and contexts
-- Repeat for every new component type
-
-**With Tambo:**
+That's the entire API.
 
 ```tsx
 // Register your chart component once
@@ -59,7 +59,6 @@ const components: TamboComponent[] = [{
   propsSchema: z.object({ data: z.array(...), type: z.enum(["line", "bar", "pie"]) })
 }];
 
-// We handle: orchestration, streaming, state, context switching
 // 10 lines of registration → infinite use cases
 ```
 
@@ -117,7 +116,7 @@ Tambo supports two component workflows:
 
 AI renders these once in response to user messages. Best for charts, data visualizations, and summary cards.
 
-https://github.com/user-attachments/assets/6cbc103b-9cc7-40f5-9746-12e04c976dff
+https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b
 
 ### Interactable Components
 
@@ -147,7 +146,7 @@ const components: TamboComponent[] = [
 ];
 ```
 
-[→ Learn more about generative components](https://docs.tambo.co/concepts/components/generative-components)
+[→ Learn more about generative components](https://docs.tambo.co/concepts/components/defining-tambo-components)
 
 **Interactable Components** - Persist and update across conversations:
 
@@ -278,7 +277,7 @@ const tools: TamboTool[] = [
 
 **When to use:** DOM interactions, wrapping authenticated fetch requests, or accessing React state. Runs entirely in the browser.
 
-[→ Learn more about local tools](https://docs.tambo.co/concepts/tools)
+[→ Learn more about local tools](https://docs.tambo.co/concepts/tools/adding-tools)
 
 ### Additional Context
 

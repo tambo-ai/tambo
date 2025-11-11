@@ -5,7 +5,7 @@ description: Allow Tambo to update your pre-placed components
 
 When you want to place specific components on screen rather than letting Tambo choose which to show, but still want to allow your users to interact with them using natural language, use Tambo's Interactable components.
 
-Unlike regular registered components that Tambo generates and renders from scratch when responding to messages, interactable components are pre-placed by you while still allowing Tambo to modify their props.
+Unlike generative components that Tambo creates on-demand when responding to messages, interactable components are pre-placed by you while still allowing Tambo to modify their props.
 
 ## Creating Interactable Components
 
@@ -142,7 +142,7 @@ Unlike regular components that need to be registered in the `TamboProvider` comp
 
 <Callout type="warn" title="Want Inline Generation Too?">
 
-If you want Tambo to be able to both modify pre-placed instances AND generate new instances inline, you'll need to register the component normally in the `TamboProvider` as well.
+If you want Tambo to be able to both modify pre-placed interactable instances AND generate new generative component instances inline, you'll need to register the component normally in the `TamboProvider` as well.
 
 </Callout>
 

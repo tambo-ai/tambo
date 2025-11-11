@@ -1,9 +1,9 @@
 ---
-title: Adding Tools
-description: Add tools to extend Tambo's capabilities
+title: Adding Local Tools
+description: Add local tools to extend Tambo's capabilities
 ---
 
-Define your tool function and register it with tambo. Tools are asynchronous functions that take in a single argument and return a single value.
+Define your tool function and register it with Tambo. Local tools are JavaScript functions that run in your React app. Use them for DOM interactions, wrapping authenticated fetch requests, or accessing React state.
 
 ```tsx
 //define the tool function. This is your own custom function and can perform any logic you want.
@@ -43,7 +43,9 @@ export const tools: TamboTool[] = [
 </TamboProvider>;
 ```
 
-Now tambo can fetch weather information for a city when responding to a message!
+Now Tambo can fetch weather information for a city when responding to a message!
+
+**When to use local tools:** DOM interactions, wrapping authenticated fetch requests, or accessing React state. Runs entirely in the browser. For server-side integrations with databases, APIs, or file systems, consider using [MCP servers](/concepts/model-context-protocol) instead.
 
 ## Returning Rich Content
 
