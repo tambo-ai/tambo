@@ -1,10 +1,12 @@
 "use client";
 
-import { navigation, NavigationItem } from "@/lib/navigation";
+import { externalLinks, navigation, NavigationItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { memo, useMemo } from "react";
 import { SidebarLink } from "./sidebar-link";
 import { useMobile } from "@/providers/mobile-provider";
+import { Icons } from "./icons";
+import Link from "next/link";
 
 interface SidebarProps {
   className?: string;
@@ -85,6 +87,24 @@ export function Sidebar({ className }: SidebarProps) {
             {otherNavItems.map((item) => (
               <NavSection key={item.title} item={item} />
             ))}
+
+            {/* Render external links */}
+            <div className="pt-2 border-t border-border/40">
+              {externalLinks.map((link) => (
+                <Link
+                  key={link.title}
+                  href={link.href}
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent text-sm"
+                >
+                  {link.icon === "github" && (
+                    <Icons.github className="h-4 w-4" />
+                  )}
+                  <span>{link.title}</span>
+                </Link>
+              ))}
+            </div>
           </nav>
         </div>
         <div className="pt-4 mt-auto border-t border-border/40">
