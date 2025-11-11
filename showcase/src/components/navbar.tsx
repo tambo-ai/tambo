@@ -216,7 +216,7 @@ export function Navbar() {
       {/* Backdrop for mobile dropdown */}
       {isMobile && isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30"
+          className="fixed inset-0 top-[var(--header-height)] bg-black/50 z-40"
           onClick={closeMobileMenu}
         />
       )}
