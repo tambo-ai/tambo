@@ -22,9 +22,9 @@
 
 ## What is Tambo?
 
-Tambo is a generative UI framework for React. Unlike traditional React apps where you define fixed routes and layouts, generative UI means the AI dynamically decides which components to render and what props to pass based on natural language conversations.
+Tambo is a generative UI framework for React. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
 
-Register your components with schemas, and an AI agent renders and controls them through dialogue. Users describe what they want, your agent orchestrates your UI to make it happen.
+Register your components once. The AI agent renders and controls them based on user messages and context.
 
 **MCP-native** from the ground up - built with the Model Context Protocol, a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
 
@@ -109,19 +109,19 @@ More templates coming soon. [Request a template →](https://github.com/tambo-ai
 
 ## How Tambo Works
 
-Tambo supports two common workflows based on how they persist and update:
+Tambo supports two component workflows:
 
-**AI can render components once** (like a chart in response to "show me Q4 sales") **or render components that stick around and update across the conversation** (like a shopping cart that persists while you add and remove items).
+**One-time components** (like charts) **or persistent components** (like shopping carts that update across the conversation).
 
 ### Generative Components
 
-AI creates and renders these from scratch in response to user messages. Best for dynamic, one-time UI generation like charts, data visualizations, or summary cards.
+AI renders these once in response to user messages. Best for charts, data visualizations, and summary cards.
 
 https://github.com/user-attachments/assets/6cbc103b-9cc7-40f5-9746-12e04c976dff
 
 ### Interactable Components
 
-AI-controllable components that remain on the page and update by ID across conversations. Unlike generative components that render once and disappear, these persist in your layout—perfect for shopping carts, spreadsheets, task boards, or dashboards that evolve through dialogue. Pre-place them in your code, or let AI generate and place them dynamically.
+Components that persist on the page and update by ID across conversations. Perfect for shopping carts, spreadsheets, task boards, or dashboards. Pre-place them in your code, or let AI generate them dynamically.
 
 https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062
 
@@ -129,7 +129,7 @@ https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062
 
 ### 1. Register Your Components
 
-Tell the AI which React components it can use. Once registered, the AI decides when to render each component based on user conversations and provides type-safe props through Zod schemas.
+Tell the AI which components it can use. The AI decides when to render each component and provides type-safe props through Zod schemas.
 
 **Generative Components** - AI creates these on-demand:
 
@@ -167,7 +167,7 @@ const InteractableNote = withInteractable(Note, {
 
 ### 2. Wrap Your App with TamboProvider
 
-The provider connects your app to AI, handles streaming, manages component state, and processes natural language requests.
+Connects your app to AI and handles streaming, state, and natural language processing.
 
 ```tsx
 <TamboProvider apiKey={process.env.TAMBO_API_KEY} components={components}>
@@ -180,7 +180,7 @@ The provider connects your app to AI, handles streaming, manages component state
 
 ### 3. Use Tambo Hooks
 
-Send messages to the AI and render responses with dynamically generated components. Props stream in progressively as the AI generates them.
+Send messages and render AI responses with dynamic components. Props stream in as they're generated.
 
 **Send messages:**
 
@@ -232,7 +232,7 @@ if (!streamStatus.isSuccess) return <Spinner />;
 
 ### MCP Integrations
 
-Connect any MCP server to your React app—whether it's a pre-built integration (Linear, Slack, databases) or your own custom MCP-wrapped APIs.
+Connect pre-built integrations (Linear, Slack, databases) or your own custom MCP servers.
 
 ```tsx
 const mcpServers = [
@@ -258,7 +258,7 @@ Supports full MCP protocol: tools, prompts, elicitations, and sampling. Client-s
 
 ### Local Tools
 
-For quick client-side operations—write JavaScript functions that execute directly in your React app. Useful for DOM manipulation, wrapping existing fetch calls, or accessing React state without the overhead of an MCP server.
+Write JavaScript functions that execute in your React app. Useful for DOM manipulation, wrapping fetch calls, or accessing React state without an MCP server.
 
 ```tsx
 const tools: TamboTool[] = [
@@ -276,13 +276,13 @@ const tools: TamboTool[] = [
 </TamboProvider>;
 ```
 
-**When to use local tools:** DOM interactions, quick wrappers around existing authenticated fetch requests, or accessing React state/context. Under the hood, local tools work similarly to MCP tools but run entirely in the browser.
+**When to use:** DOM interactions, wrapping authenticated fetch requests, or accessing React state. Runs entirely in the browser.
 
 [→ Learn more about local tools](https://docs.tambo.co/concepts/tools)
 
 ### Additional Context
 
-Enrich AI responses by sending metadata about user state, app settings, or environment—like shopping cart contents, user roles, current page, feature flags, or geolocation.
+Send metadata about user state, app settings, or environment to enrich AI responses.
 
 ```tsx
 const selectedItemsHelper = () => ({
