@@ -37,7 +37,7 @@ export interface TamboClientProviderProps {
    * Additional headers to include in all requests to the Tambo API.
    * These will be merged with the default headers.
    */
-  defaultHeaders?: Record<string, string>;
+  additionalHeaders?: Record<string, string>;
 }
 
 export interface TamboClientContextProps {
@@ -48,7 +48,7 @@ export interface TamboClientContextProps {
   /** Whether the session token is currently being updated */
   isUpdatingToken: boolean;
   /** Additional headers to include in all requests */
-  defaultHeaders?: Record<string, string>;
+  additionalHeaders?: Record<string, string>;
 }
 
 export const TamboClientContext = createContext<
@@ -64,7 +64,7 @@ export const TamboClientContext = createContext<
  * @param props.apiKey - The API key for the Tambo API
  * @param props.environment - The environment to use for the Tambo API
  * @param props.userToken - The oauth access token to use to identify the user in the Tambo API
- * @param props.defaultHeaders - Additional headers to include in all requests
+ * @param props.additionalHeaders - Additional headers to include in all requests
  * @returns The TamboClientProvider component
  */
 export const TamboClientProvider: React.FC<
@@ -75,16 +75,16 @@ export const TamboClientProvider: React.FC<
   apiKey,
   environment,
   userToken,
-  defaultHeaders,
+  additionalHeaders,
 }) => {
-  // Create merged headers with useMemo so it updates when defaultHeaders change
+  // Create merged headers with useMemo so it updates when additionalHeaders change
   const mergedHeaders = useMemo(() => {
     const headers = {
       "X-Tambo-React-Version": packageJson.version,
-      ...defaultHeaders, // Merge custom headers
+      ...additionalHeaders, // Merge custom headers
     };
     return headers;
-  }, [defaultHeaders]);
+  }, [additionalHeaders]);
 
   // Create client with useMemo so it updates when mergedHeaders change
   const client = useMemo(() => {
@@ -116,7 +116,7 @@ export const TamboClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
-        defaultHeaders: mergedHeaders,
+        additionalHeaders: mergedHeaders,
       }}
     >
       {children}
@@ -165,18 +165,4 @@ export const useIsTamboTokenUpdating = () => {
     );
   }
   return context.isUpdatingToken;
-};
-
-/**
- * Hook to access the default headers for Tambo API requests
- * @returns The default headers object
- */
-export const useTamboDefaultHeaders = () => {
-  const context = React.useContext(TamboClientContext);
-  if (context === undefined) {
-    throw new Error(
-      "useTamboDefaultHeaders must be used within a TamboClientProvider",
-    );
-  }
-  return context.defaultHeaders;
 };
