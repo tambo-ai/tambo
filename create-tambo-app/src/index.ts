@@ -6,7 +6,6 @@ import { spawn } from "child_process";
 const args = ["-y", "tambo@latest", "create-app", ...process.argv.slice(2)];
 const child = spawn("npx", args, {
   stdio: "inherit",
-  shell: true,
 });
 
 child.on("exit", (code) => {
