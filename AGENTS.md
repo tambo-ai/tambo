@@ -15,19 +15,12 @@ This is a Turborepo monorepo for the Tambo AI framework. The repository contains
 
 - **cli/** - Command-line interface (`tambo`)
   - Project scaffolding, component generation, and development utilities
-  - Component registry with templates for different UI frameworks. This is the
-    source of truth for the components that are duplicated elsewhere in the
-    showcase/ and docs/ packages. Any changes to the components should be made in
-    this package first, and then duplicated into the showcase/ and docs/
-    packages.
+  - Component registry auto-syncs to `/showcase/src/components/tambo/` from `/cli/src/registry/`
   - Built as ESM module with executable binary
 
 - **showcase/** - Demo application (`@tambo-ai/showcase`)
   - Next.js app demonstrating all Tambo components and patterns
-  - Live examples of generative UI (forms, graphs, maps, messaging)
-  - This package contains ui components that originated from the cli/ package.
-    Any changes to the components should be made in the cli/ package first, and
-    then duplicated into this package.
+  - Components auto-synced from CLI registry - edit CLI registry, not showcase components directly
   - Serves as both documentation and testing ground
 
 - **docs/** - Documentation site (`@tambo-ai/docs`)
@@ -105,8 +98,8 @@ npm run lint:fix        # Auto-fix linting issues
 When working across multiple packages:
 
 1. **react-sdk changes** → Run tests, rebuild, check showcase integration
-2. **cli changes** → Test component generation, verify registry updates
-3. **showcase changes** → Update corresponding CLI templates if needed
+2. **cli changes** → Test component generation, verify registry updates, sync to showcase
+3. **showcase changes** → Edit CLI registry (auto-syncs to showcase)
 4. **docs changes** → Ensure examples match current API
 
 ## Testing Strategy

@@ -15,7 +15,9 @@
     "test": "turbo test",
     "dev": "turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs",
     "dev-api": "turbo dev --filter=hydra-api",
-    "dev-web": "turbo dev --filter=tambo-ai-landing-page"
+    "dev-web": "turbo dev --filter=tambo-ai-landing-page",
+    "sync:showcase": "tsx scripts/sync-showcase-components.ts",
+    "sync:showcase:watch": "tsx scripts/sync-showcase-components.ts --watch"
   },
   "author": "",
   "license": "MIT",

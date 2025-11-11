@@ -59,14 +59,28 @@
     "WEATHER_API_KEY"
   ],
   "tasks": {
+    "//#sync:showcase": {
+      "cache": false,
+      "inputs": [
+        "cli/src/registry/**/*.tsx",
+        "cli/src/registry/**/*.ts",
+        "cli/src/registry/**/*.css",
+        "cli/src/registry/**/config.json"
+      ],
+      "outputs": ["showcase/src/components/tambo/**"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "//#sync:showcase"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
     "check-types": { "dependsOn": ["^check-types"] },
-    "dev": { "dependsOn": ["^build"], "cache": false, "persistent": true },
+    "dev": {
+      "dependsOn": ["^build", "//#sync:showcase"],
+      "cache": false,
+      "persistent": true
+    },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build", "^test"] }
