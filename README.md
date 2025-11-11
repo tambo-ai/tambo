@@ -2,7 +2,7 @@
   <img src="assets/octo-white-background-rounded.png" width="150">
   <h1>Tambo AI</h1>
   <h3>A React framework for natural language interfaces</h3>
-  <p>Build user interfaces that adapt to your users, not the other way around.</p>
+  <p>Build apps that adapt to your users, not the other way around.</p>
 </div>
 
 <p align="center">
