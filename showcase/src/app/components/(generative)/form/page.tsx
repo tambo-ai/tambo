@@ -1,8 +1,8 @@
 "use client";
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
-import { InstallationSection } from "@/components/installation-section";
 import { FormChatInterface } from "@/components/generative/FormChatInterface";
+import { InstallationSection } from "@/components/installation-section";
 import { TamboProvider } from "@tambo-ai/react";
 
 export default function FormComponentPage() {
@@ -82,7 +82,7 @@ export function ContactForm() {
     />
   );
 }`}
-            previewClassName="p-8"
+            previewClassName="p-0"
             minHeight={700}
           />
         </div>

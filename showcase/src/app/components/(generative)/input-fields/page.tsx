@@ -99,7 +99,7 @@ export function UserRegistrationFields() {
     />
   );
 }`}
-            previewClassName="p-8"
+            previewClassName="p-0"
             minHeight={700}
           />
         </div>

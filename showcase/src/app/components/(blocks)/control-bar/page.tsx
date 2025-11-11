@@ -58,7 +58,7 @@ export default function ControlBarPage() {
                 <DemoControlBar contextKey={userContextKey} />
               </div>
             }
-            code={`import { DemoControlBar } from "@tambo-ai/react";
+            code={`import { ControlBar } from "@tambo-ai/react";
 
 export function ChatInterface() {
   return (
@@ -69,7 +69,7 @@ export function ChatInterface() {
       </div>
 
       {/* Control bar floats on top */}
-      <DemoControlBar contextKey="demo" />
+      <ControlBar contextKey="demo" />
     </div>
   );
 }`}
@@ -91,7 +91,7 @@ export function ChatInterface() {
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold">Component API</h2>
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold">DemoControlBar</h3>
+          <h3 className="text-xl font-semibold">ControlBar</h3>
 
           <table>
             <thead>
