@@ -345,7 +345,7 @@ Don't see your favorite? [Let us know →](https://github.com/tambo-ai/tambo/iss
 | **Component orchestration**        | AI decides which components to render      | Manual tool-to-component mapping           | Via agent frameworks (LangGraph)           | Chat-focused tool UI              |
 | **MCP integration**                | Built-in from day one                      | Experimental (v4.2+)                       | Recently added                             | Requires AI SDK v5 (experimental) |
 | **Persistent stateful components** | ✅ Interactable components                 | ❌                                         | Shared state patterns                      | ❌                                |
-| **Local browser tools**            | ✅ Client-side functions                   | ❌                                         | ❌ (agent-side only)                       | ❌                                |
+| **Client-side tool execution**     | ✅ Declarative, automatic                  | ⚠️ Manual via onToolCall                   | ❌ (agent-side only)                       | ❌                                |
 | **Self-hostable**                  | ✅ MIT (React SDK + backend)               | ✅ Apache 2.0 (SDK only)                   | ✅ MIT                                     | ✅ MIT                            |
 | **Hosted option**                  | ✅ Tambo Cloud                             | ❌                                         | ✅ CopilotKit Cloud                        | ✅ Assistant Cloud                |
 | **Model providers**                | OpenAI, Anthropic, Google, Mistral, custom | OpenAI, Anthropic, Google, Mistral, custom | OpenAI, Anthropic, Google, Mistral, custom | Bring your own                    |
