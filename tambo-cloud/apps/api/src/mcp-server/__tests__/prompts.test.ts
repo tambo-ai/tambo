@@ -33,6 +33,7 @@ function createMockMCPClient(
       },
     } as unknown as MCPClient,
     serverId: "test-server-id",
+    serverKey: "test",
     url: "http://test.example.com",
   };
 }
@@ -103,7 +104,7 @@ describe("registerPromptHandlers", () => {
 
       // Verify specific prompts were registered with correct metadata
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "client1_prompt1",
+        "test:client1_prompt1",
         expect.objectContaining({
           title: "Client 1 Prompt 1",
           description: "First prompt from client 1",
@@ -112,7 +113,7 @@ describe("registerPromptHandlers", () => {
       );
 
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "client1_prompt2",
+        "test:client1_prompt2",
         expect.objectContaining({
           title: "Client 1 Prompt 2",
         }),
@@ -120,7 +121,7 @@ describe("registerPromptHandlers", () => {
       );
 
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "client2_prompt1",
+        "test:client2_prompt1",
         expect.objectContaining({
           title: "Client 2 Prompt 1",
         }),
@@ -154,7 +155,7 @@ describe("registerPromptHandlers", () => {
       await registerPromptHandlers(mockServer, [mockClient]);
 
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "test_prompt",
+        "test:test_prompt",
         {
           title: "Test Prompt Title",
           description: "A detailed description of the test prompt",
@@ -187,7 +188,7 @@ describe("registerPromptHandlers", () => {
       // Only 1 prompt should be registered (from the first client)
       expect(registerPromptSpy).toHaveBeenCalledTimes(1);
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "only_prompt",
+        "test:only_prompt",
         expect.any(Object),
         expect.any(Function),
       );
@@ -251,10 +252,10 @@ describe("registerPromptHandlers", () => {
 
       // Extract the handler functions that were registered
       const client1Handler = registerPromptSpy.mock.calls.find(
-        (call) => call[0] === "client1_prompt",
+        (call) => call[0] === "test:client1_prompt",
       )?.[2];
       const client2Handler = registerPromptSpy.mock.calls.find(
-        (call) => call[0] === "client2_prompt",
+        (call) => call[0] === "test:client2_prompt",
       )?.[2];
 
       expect(client1Handler).toBeDefined();
@@ -380,6 +381,7 @@ describe("registerPromptHandlers", () => {
           },
         } as unknown as MCPClient,
         serverId: "failing-server",
+        serverKey: "failing",
         url: "http://failing.example.com",
       };
 
@@ -403,7 +405,7 @@ describe("registerPromptHandlers", () => {
       // Verify the working client's prompt was still registered
       expect(registerPromptSpy).toHaveBeenCalledTimes(1);
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "working_prompt",
+        "test:working_prompt",
         expect.any(Object),
         expect.any(Function),
       );
@@ -419,6 +421,7 @@ describe("registerPromptHandlers", () => {
           },
         } as unknown as MCPClient,
         serverId: "failing-server-1",
+        serverKey: "failing1",
         url: "http://failing1.example.com",
       };
 
@@ -431,6 +434,7 @@ describe("registerPromptHandlers", () => {
           },
         } as unknown as MCPClient,
         serverId: "failing-server-2",
+        serverKey: "failing2",
         url: "http://failing2.example.com",
       };
 
@@ -473,12 +477,12 @@ describe("registerPromptHandlers", () => {
       // Both prompts should be registered
       expect(registerPromptSpy).toHaveBeenCalledTimes(2);
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "prompt1",
+        "test:prompt1",
         expect.any(Object),
         expect.any(Function),
       );
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "prompt2",
+        "test:prompt2",
         expect.any(Object),
         expect.any(Function),
       );
@@ -499,7 +503,7 @@ describe("registerPromptHandlers", () => {
       expect(registerPromptSpy).toHaveBeenCalledTimes(1);
       // Verify that minimal metadata gets defaults
       expect(registerPromptSpy).toHaveBeenCalledWith(
-        "minimal_prompt",
+        "test:minimal_prompt",
         {
           title: "minimal_prompt", // Defaults to name
           description: undefined,

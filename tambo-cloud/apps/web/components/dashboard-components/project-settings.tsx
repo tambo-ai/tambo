@@ -14,6 +14,7 @@ import { SettingsPageSkeleton } from "@/components/skeletons/settings-skeletons"
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
@@ -189,328 +190,331 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
   }
 
   return (
-    <motion.div
-      className="flex flex-col px-2 sm:px-4"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      {/* Header */}
-      <div className="bg-background w-full">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-2 px-2 gap-4">
-          {isEditingName ? (
-            <Input
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-              className="text-2xl sm:text-4xl font-semibold py-2 px-3 border-2 w-full sm:max-w-md placeholder:text-muted placeholder:font-normal min-h-[2.5rem] sm:min-h-[3.5rem]"
-              placeholder="Project name"
-              disabled={isUpdatingProject}
-              onKeyDown={async (e) => {
-                if (e.key === "Enter") {
-                  await handleSaveName();
-                } else if (e.key === "Escape") {
-                  handleCancelEdit();
-                }
-              }}
-              autoFocus
-            />
-          ) : (
-            <h1 className="text-2xl sm:text-4xl font-semibold min-h-[2.5rem] sm:min-h-[3.5rem] flex items-center">
-              {project.name}
-            </h1>
-          )}
+    <TooltipProvider>
+      <motion.div
+        className="flex flex-col px-2 sm:px-4"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        {/* Header */}
+        <div className="bg-background w-full">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-2 px-2 gap-4">
+            {isEditingName ? (
+              <Input
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                className="text-2xl sm:text-4xl font-semibold py-2 px-3 border-2 w-full sm:max-w-md placeholder:text-muted placeholder:font-normal min-h-[2.5rem] sm:min-h-[3.5rem]"
+                placeholder="Project name"
+                disabled={isUpdatingProject}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter") {
+                    await handleSaveName();
+                  } else if (e.key === "Escape") {
+                    handleCancelEdit();
+                  }
+                }}
+                autoFocus
+              />
+            ) : (
+              <h1 className="text-2xl sm:text-4xl font-semibold min-h-[2.5rem] sm:min-h-[3.5rem] flex items-center">
+                {project.name}
+              </h1>
+            )}
 
-          <div className="flex gap-2 sm:gap-3 self-end sm:self-auto">
-            <Button
-              variant="ghost"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 text-sm sm:text-base"
-              onClick={() =>
-                setAlertState({
-                  show: true,
-                  title: "Delete Project",
-                  description:
-                    "Are you sure you want to delete this project? This action cannot be undone.",
-                })
-              }
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
+            <div className="flex gap-2 sm:gap-3 self-end sm:self-auto">
+              <Button
+                variant="ghost"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 text-sm sm:text-base"
+                onClick={() =>
+                  setAlertState({
+                    show: true,
+                    title: "Delete Project",
+                    description:
+                      "Are you sure you want to delete this project? This action cannot be undone.",
+                  })
+                }
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </Button>
+              {isEditingName ? (
                 <>
-                  <span className="loading loading-spinner loading-sm mr-2" />
-                  Deleting...
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    disabled={isUpdatingProject}
+                    className="text-sm sm:text-base"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveName}
+                    disabled={isUpdatingProject || !editedName.trim()}
+                    className="text-sm sm:text-base"
+                  >
+                    Save
+                  </Button>
                 </>
               ) : (
-                "Delete"
-              )}
-            </Button>
-            {isEditingName ? (
-              <>
                 <Button
                   variant="outline"
-                  onClick={handleCancelEdit}
-                  disabled={isUpdatingProject}
+                  onClick={handleEditName}
                   className="text-sm sm:text-base"
                 >
-                  Cancel
+                  Edit
                 </Button>
-                <Button
-                  onClick={handleSaveName}
-                  disabled={isUpdatingProject || !editedName.trim()}
-                  className="text-sm sm:text-base"
-                >
-                  Save
-                </Button>
-              </>
-            ) : (
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        <div className="sm:hidden py-4">
+          <Button
+            variant="outline"
+            className="w-full justify-between"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <span>
+              Navigate to:{" "}
+              {activeSection.replace("-", " ").split(" ").join(" ")}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
+            />
+          </Button>
+
+          {isMobileMenuOpen && (
+            <div className="mt-2 space-y-1">
               <Button
-                variant="outline"
-                onClick={handleEditName}
-                className="text-sm sm:text-base"
+                variant="ghost"
+                className={`w-full justify-start gap-2 rounded-full ${
+                  activeSection === "api-keys" ? "bg-accent" : "hover:bg-accent"
+                }`}
+                onClick={() => {
+                  scrollToSection("api-keys");
+                  setIsMobileMenuOpen(false);
+                }}
               >
-                Edit
+                API keys
               </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation Menu */}
-      <div className="sm:hidden py-4">
-        <Button
-          variant="outline"
-          className="w-full justify-between"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          <span>
-            Navigate to: {activeSection.replace("-", " ").split(" ").join(" ")}
-          </span>
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
-          />
-        </Button>
-
-        {isMobileMenuOpen && (
-          <div className="mt-2 space-y-1">
-            <Button
-              variant="ghost"
-              className={`w-full justify-start gap-2 rounded-full ${
-                activeSection === "api-keys" ? "bg-accent" : "hover:bg-accent"
-              }`}
-              onClick={() => {
-                scrollToSection("api-keys");
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              API keys
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start gap-2 rounded-full ${
-                activeSection === "llm-providers"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => {
-                scrollToSection("llm-providers");
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              LLM providers
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start gap-2 rounded-full ${
-                activeSection === "custom-instructions"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => {
-                scrollToSection("custom-instructions");
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              Custom instructions
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start gap-2 rounded-full ${
-                activeSection === "mcp-servers"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => {
-                scrollToSection("mcp-servers");
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              MCP servers
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start gap-2 rounded-full ${
-                activeSection === "tool-call-limit"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => {
-                scrollToSection("tool-call-limit");
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              Tool Call Limit
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start gap-2 rounded-full ${
-                activeSection === "oauth-settings"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => {
-                scrollToSection("oauth-settings");
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              User Authentication
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Main Layout */}
-      <div className="flex gap-8 sm:gap-12 lg:gap-48 w-full">
-        {/* Sidebar Navigation */}
-        <div className="hidden sm:block py-6 w-48 lg:w-1/5 shrink-0">
-          <div className="flex flex-col gap-1">
-            <Button
-              variant="ghost"
-              className={`justify-start gap-2 rounded-full text-sm ${
-                activeSection === "api-keys" ? "bg-accent" : "hover:bg-accent"
-              }`}
-              onClick={() => scrollToSection("api-keys")}
-            >
-              API keys
-            </Button>
-            <Button
-              variant="ghost"
-              className={`justify-start gap-2 rounded-full text-sm ${
-                activeSection === "llm-providers"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => scrollToSection("llm-providers")}
-            >
-              LLM providers
-            </Button>
-            <Button
-              variant="ghost"
-              className={`justify-start gap-2 rounded-full text-sm ${
-                activeSection === "custom-instructions"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => scrollToSection("custom-instructions")}
-            >
-              Custom instructions
-            </Button>
-            <Button
-              variant="ghost"
-              className={`justify-start gap-2 rounded-full text-sm ${
-                activeSection === "mcp-servers"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => scrollToSection("mcp-servers")}
-            >
-              MCP servers
-            </Button>
-            <Button
-              variant="ghost"
-              className={`justify-start gap-2 rounded-full text-sm ${
-                activeSection === "tool-call-limit"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => scrollToSection("tool-call-limit")}
-            >
-              Tool Call Limit
-            </Button>
-            <Button
-              variant="ghost"
-              className={`justify-start gap-2 rounded-full text-sm ${
-                activeSection === "oauth-settings"
-                  ? "bg-accent"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => scrollToSection("oauth-settings")}
-            >
-              User Authentication
-            </Button>
-          </div>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start gap-2 rounded-full ${
+                  activeSection === "llm-providers"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => {
+                  scrollToSection("llm-providers");
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                LLM providers
+              </Button>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start gap-2 rounded-full ${
+                  activeSection === "custom-instructions"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => {
+                  scrollToSection("custom-instructions");
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                Custom instructions
+              </Button>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start gap-2 rounded-full ${
+                  activeSection === "mcp-servers"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => {
+                  scrollToSection("mcp-servers");
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                MCP servers
+              </Button>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start gap-2 rounded-full ${
+                  activeSection === "tool-call-limit"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => {
+                  scrollToSection("tool-call-limit");
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                Tool Call Limit
+              </Button>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start gap-2 rounded-full ${
+                  activeSection === "oauth-settings"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => {
+                  scrollToSection("oauth-settings");
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                User Authentication
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Scrollable Content */}
-        <div
-          ref={scrollContainerRef}
-          className="h-[calc(100vh-150px)] sm:h-[calc(100vh-200px)] w-full overflow-y-auto pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
-        >
-          <div className="space-y-4">
-            <div ref={apiKeysRef} className="p-2">
-              <InteractableAPIKeyList
-                projectId={project.id}
-                onEdited={handleRefreshProject}
-              />
+        {/* Main Layout */}
+        <div className="flex gap-8 sm:gap-12 lg:gap-48 w-full">
+          {/* Sidebar Navigation */}
+          <div className="hidden sm:block py-6 w-48 lg:w-1/5 shrink-0">
+            <div className="flex flex-col gap-1">
+              <Button
+                variant="ghost"
+                className={`justify-start gap-2 rounded-full text-sm ${
+                  activeSection === "api-keys" ? "bg-accent" : "hover:bg-accent"
+                }`}
+                onClick={() => scrollToSection("api-keys")}
+              >
+                API keys
+              </Button>
+              <Button
+                variant="ghost"
+                className={`justify-start gap-2 rounded-full text-sm ${
+                  activeSection === "llm-providers"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => scrollToSection("llm-providers")}
+              >
+                LLM providers
+              </Button>
+              <Button
+                variant="ghost"
+                className={`justify-start gap-2 rounded-full text-sm ${
+                  activeSection === "custom-instructions"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => scrollToSection("custom-instructions")}
+              >
+                Custom instructions
+              </Button>
+              <Button
+                variant="ghost"
+                className={`justify-start gap-2 rounded-full text-sm ${
+                  activeSection === "mcp-servers"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => scrollToSection("mcp-servers")}
+              >
+                MCP servers
+              </Button>
+              <Button
+                variant="ghost"
+                className={`justify-start gap-2 rounded-full text-sm ${
+                  activeSection === "tool-call-limit"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => scrollToSection("tool-call-limit")}
+              >
+                Tool Call Limit
+              </Button>
+              <Button
+                variant="ghost"
+                className={`justify-start gap-2 rounded-full text-sm ${
+                  activeSection === "oauth-settings"
+                    ? "bg-accent"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => scrollToSection("oauth-settings")}
+              >
+                User Authentication
+              </Button>
             </div>
+          </div>
 
-            <div ref={llmProvidersRef} className="p-2">
-              <InteractableProviderKeySection
-                projectId={project.id}
-                onEdited={handleRefreshProject}
-              />
-            </div>
+          {/* Scrollable Content */}
+          <div
+            ref={scrollContainerRef}
+            className="h-[calc(100vh-150px)] sm:h-[calc(100vh-200px)] w-full overflow-y-auto pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
+          >
+            <div className="space-y-4">
+              <div ref={apiKeysRef} className="p-2">
+                <InteractableAPIKeyList
+                  projectId={project.id}
+                  onEdited={handleRefreshProject}
+                />
+              </div>
 
-            <div ref={customInstructionsRef} className="p-2">
-              <InteractableCustomInstructionsEditor
-                projectId={project.id}
-                customInstructions={project.customInstructions}
-                allowSystemPromptOverride={project.allowSystemPromptOverride}
-                onEdited={handleRefreshProject}
-              />
-            </div>
+              <div ref={llmProvidersRef} className="p-2">
+                <InteractableProviderKeySection
+                  projectId={project.id}
+                  onEdited={handleRefreshProject}
+                />
+              </div>
 
-            <div ref={mcpServersRef} className="p-2">
-              <InteractableAvailableMcpServers
-                projectId={project.id}
-                providerType={project.providerType}
-                onEdited={handleRefreshProject}
-              />
-            </div>
+              <div ref={customInstructionsRef} className="p-2">
+                <InteractableCustomInstructionsEditor
+                  projectId={project.id}
+                  customInstructions={project.customInstructions}
+                  allowSystemPromptOverride={project.allowSystemPromptOverride}
+                  onEdited={handleRefreshProject}
+                />
+              </div>
 
-            <div ref={toolCallLimitRef} className="p-2">
-              <InteractableToolCallLimitEditor
-                projectId={project.id}
-                maxToolCallLimit={project.maxToolCallLimit}
-                onEdited={handleRefreshProject}
-              />
-            </div>
+              <div ref={mcpServersRef} className="p-2">
+                <InteractableAvailableMcpServers
+                  projectId={project.id}
+                  providerType={project.providerType}
+                  onEdited={handleRefreshProject}
+                />
+              </div>
 
-            <div ref={oauthSettingsRef} className="p-2">
-              <InteractableOAuthSettings
-                projectId={project.id}
-                isTokenRequired={project.isTokenRequired ?? false}
-                onEdited={handleRefreshProject}
-              />
+              <div ref={toolCallLimitRef} className="p-2">
+                <InteractableToolCallLimitEditor
+                  projectId={project.id}
+                  maxToolCallLimit={project.maxToolCallLimit}
+                  onEdited={handleRefreshProject}
+                />
+              </div>
+
+              <div ref={oauthSettingsRef} className="p-2">
+                <InteractableOAuthSettings
+                  projectId={project.id}
+                  isTokenRequired={project.isTokenRequired ?? false}
+                  onEdited={handleRefreshProject}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <DeleteConfirmationDialog
-        mode="single"
-        alertState={alertState}
-        setAlertState={setAlertState}
-        onConfirm={handleDeleteProject}
-      />
-    </motion.div>
+        <DeleteConfirmationDialog
+          mode="single"
+          alertState={alertState}
+          setAlertState={setAlertState}
+          onConfirm={handleDeleteProject}
+        />
+      </motion.div>
+    </TooltipProvider>
   );
 }

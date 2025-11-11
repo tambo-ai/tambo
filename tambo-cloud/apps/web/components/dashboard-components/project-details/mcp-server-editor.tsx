@@ -7,8 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tooltip } from "@/components/ui/tooltip";
 import { api } from "@/trpc/react";
-import { MCPTransport } from "@tambo-ai-cloud/core";
+import {
+  deriveServerKey,
+  MCPTransport,
+  isValidServerKey,
+} from "@tambo-ai-cloud/core";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { Check, Info, Loader2 } from "lucide-react";
@@ -24,6 +29,7 @@ import { McpServerToolsDialog } from "./mcp-server-tools-dialog";
 export interface MCPServerInfo {
   id: string;
   url: string | null;
+  serverKey: string;
   customHeaders: Record<string, string> | null;
   mcpTransport?: MCPTransport;
   mcpRequiresAuth?: boolean;
@@ -44,6 +50,7 @@ interface McpServerEditorProps {
   onCancel: () => void;
   onSave: (serverInfo: {
     url: string;
+    serverKey: string;
     customHeaders: Record<string, string>;
     mcpTransport: MCPTransport;
   }) => Promise<MCPServerInfo | undefined>;
@@ -75,6 +82,7 @@ export function McpServerEditor({
     server.mcpTransport || MCPTransport.HTTP,
   );
   const [url, setUrl] = useState(server.url || (isNew ? "https://" : ""));
+  const [serverKey, setServerKey] = useState(server.serverKey || "");
   const [headers, setHeaders] = useState<HeaderKV[]>(
     Object.entries(server.customHeaders ?? {}).map(([header, value]) => ({
       header,
@@ -104,6 +112,7 @@ export function McpServerEditor({
   const inputRef = useRef<HTMLInputElement>(null);
   // Dynamic IDs based on server ID
   const urlInputId = useId();
+  const serverKeyId = useId();
   const transportId = useId();
 
   useEffect(() => {
@@ -117,6 +126,7 @@ export function McpServerEditor({
   useEffect(() => {
     setMcpTransport(server.mcpTransport || MCPTransport.HTTP);
     setUrl(server.url || (isNew ? "https://" : ""));
+    setServerKey(server.serverKey || "");
     setHeaders(
       Object.entries(server.customHeaders ?? {}).map(([header, value]) => ({
         header,
@@ -124,6 +134,16 @@ export function McpServerEditor({
       })),
     );
   }, [server, isNew]);
+
+  // Auto-fill serverKey from URL when editing and serverKey is empty
+  useEffect(() => {
+    if (isEditing && !serverKey.trim() && url && url !== "https://") {
+      const derived = deriveServerKey(url);
+      if (derived && derived.length >= 2) {
+        setServerKey(derived);
+      }
+    }
+  }, [url, isEditing, serverKey]);
 
   // Show delete confirmation when triggered
   useEffect(() => {
@@ -149,22 +169,30 @@ export function McpServerEditor({
   } = useMutation({
     mutationFn: async (input: {
       url: string;
+      serverKey: string;
       customHeaders: Record<string, string>;
       mcpTransport: MCPTransport;
     }) => {
       if (!input.url.trim()) return;
+      if (!isValidServerKey(input.serverKey)) return;
       return await onSave(input);
     },
   });
 
   const handleSave = () => {
     const trimmedUrl = url.trim();
+    const trimmedServerKey = serverKey.trim();
     const customHeaders: Record<string, string> = Object.fromEntries(
       headers
         .map(({ header, value }) => [header.trim(), value] as const)
         .filter(([key]) => Boolean(key)),
     );
-    mutateSave({ url: trimmedUrl, customHeaders, mcpTransport });
+    mutateSave({
+      url: trimmedUrl,
+      serverKey: trimmedServerKey,
+      customHeaders,
+      mcpTransport,
+    });
   };
 
   const handleConfirmDelete = async () => {
@@ -207,6 +235,7 @@ export function McpServerEditor({
     !authResult?.redirectUrl &&
     projectId &&
     redirectToAuth;
+  const serverKeyValid = isValidServerKey(serverKey);
   return (
     <div className="flex flex-col gap-2 rounded-md w-full">
       <div className="flex flex-col gap-1">
@@ -232,7 +261,12 @@ export function McpServerEditor({
                     variant="outline"
                     size="sm"
                     onClick={() => handleSave()}
-                    disabled={isSaving || !url.trim()}
+                    disabled={
+                      isSaving ||
+                      !url.trim() ||
+                      !serverKey.trim() ||
+                      !serverKeyValid
+                    }
                     className="font-sans bg-transparent hover:bg-accent text-sm"
                   >
                     {isSaving ? (
@@ -290,11 +324,10 @@ export function McpServerEditor({
             </>
           )}
         </div>
-        {errorMessage && (
-          <p className="text-sm text-destructive px-2">{errorMessage}</p>
-        )}
-        {saveError && (
-          <p className="text-sm text-destructive px-2">{saveError.message}</p>
+        {(errorMessage || saveError?.message) && (
+          <p className="text-sm text-destructive px-2">
+            {saveError?.message || errorMessage}
+          </p>
         )}
         {server.mcpRequiresAuth && (
           <div className="flex flex-col gap-1 mt-1">
@@ -330,23 +363,63 @@ export function McpServerEditor({
           )}
         </div>
       </div>
-      <div>
-        <label htmlFor={transportId} className="block text-sm font-medium">
-          Server Type
-        </label>
-        <Select
-          value={mcpTransport}
-          onValueChange={handleTransportChange}
-          disabled={!isEditing}
-        >
-          <SelectTrigger className="w-full rounded-lg mt-1">
-            <SelectValue placeholder="Select transport type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={MCPTransport.HTTP}>HTTP Streamable</SelectItem>
-            <SelectItem value={MCPTransport.SSE}>SSE</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
+        <div className="flex-1">
+          <label htmlFor={transportId} className="block text-sm font-medium">
+            Server Type
+          </label>
+          <Select
+            value={mcpTransport}
+            onValueChange={handleTransportChange}
+            disabled={!isEditing}
+          >
+            <SelectTrigger className="w-full rounded-lg mt-1">
+              <SelectValue placeholder="Select transport type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={MCPTransport.HTTP}>HTTP Streamable</SelectItem>
+              <SelectItem value={MCPTransport.SSE}>SSE</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1 flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <label htmlFor={serverKeyId} className="block text-sm font-medium">
+              Server Key
+            </label>
+            <Tooltip
+              content="Unique name for this MCP server to disambiguate tools, prompts, and resources from other servers in this project"
+              side="top"
+            >
+              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+            </Tooltip>
+          </div>
+          <Input
+            id={serverKeyId}
+            value={serverKey}
+            disabled={!isEditing}
+            onChange={async (e) => {
+              setServerKey(e.target.value);
+              if (hideEditButtons && isEditing) {
+                await debouncedSave();
+              }
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g., github"
+            className="rounded-lg"
+          />
+          {!serverKey.trim() && isEditing && (
+            <p className="text-xs text-muted-foreground px-2">
+              Automatically derived from server URL if left blank. Use letters,
+              numbers, or underscores; minimum 2 characters.
+            </p>
+          )}
+          {serverKey.trim() && !serverKeyValid && (
+            <p className="text-xs text-destructive px-2">
+              Use only letters, numbers, and underscores (min 2 characters)
+            </p>
+          )}
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium mt-1">Custom Headers</label>

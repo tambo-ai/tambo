@@ -42,6 +42,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   AgentProviderType,
   AiProviderType,
+  deriveServerKey,
   encryptOAuthSecretKey,
   hashKey,
   llmProviderConfig,
@@ -383,6 +384,7 @@ export const projectRouter = createTRPCRouter({
           .array(
             z.object({
               url: z.string(),
+              serverKey: z.string().optional(),
               customHeaders: z.record(z.string(), z.string()),
               mcpTransport: z.nativeEnum(MCPTransport),
             }),
@@ -434,6 +436,7 @@ export const projectRouter = createTRPCRouter({
               mcpServer.customHeaders,
               mcpServer.mcpTransport,
               validity.requiresAuth,
+              mcpServer.serverKey || deriveServerKey(mcpServer.url),
             );
           }
         }

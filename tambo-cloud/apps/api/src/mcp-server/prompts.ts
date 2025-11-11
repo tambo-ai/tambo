@@ -14,10 +14,15 @@ function zodFromJsonSchema(jsonSchema: object): z.ZodTypeAny {
 
 export async function registerPromptHandlers(
   server: McpServer,
-  mcpClients: { client: MCPClient; serverId: string; url: string }[],
+  mcpClients: {
+    client: MCPClient;
+    serverId: string;
+    serverKey: string;
+    url: string;
+  }[],
 ) {
   const registrations = await Promise.allSettled(
-    mcpClients.map(async ({ client, serverId }) => {
+    mcpClients.map(async ({ client, serverId, serverKey }) => {
       try {
         // TODO: check if the server supports prompts, but capabilities is always returning undefined?
         // const capabilities = await client.client.getServerCapabilities();
@@ -35,7 +40,7 @@ export async function registerPromptHandlers(
             }) ?? [],
           );
           server.registerPrompt(
-            prompt.name,
+            serverKey ? `${serverKey}:${prompt.name}` : prompt.name,
             {
               title: prompt.title ?? prompt.name,
               description: prompt.description,
@@ -87,8 +92,6 @@ export async function registerPromptHandlers(
         url,
         result.reason,
       );
-    } else {
-      console.log("Registered prompts from:", serverId, url);
     }
   }
 

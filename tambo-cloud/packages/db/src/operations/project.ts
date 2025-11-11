@@ -496,6 +496,7 @@ export async function createMcpServer(
   customHeaders: Record<string, string> | undefined,
   mcpTransport: MCPTransport,
   mcpRequiresAuth: boolean,
+  serverKey: string,
 ) {
   const [server] = await db
     .insert(schema.toolProviders)
@@ -503,6 +504,7 @@ export async function createMcpServer(
       projectId,
       type: ToolProviderType.MCP,
       url,
+      serverKey,
       customHeaders: customHeaders || {},
       mcpTransport,
       mcpRequiresAuth,
@@ -512,6 +514,7 @@ export async function createMcpServer(
   return {
     id: server.id,
     url: server.url!,
+    serverKey: server.serverKey,
     customHeaders: server.customHeaders,
     mcpTransport: server.mcpTransport,
     mcpRequiresAuth: server.mcpRequiresAuth,
@@ -541,11 +544,13 @@ export async function updateMcpServer(
   customHeaders: Record<string, string> | undefined,
   mcpTransport: MCPTransport,
   mcpRequiresAuth: boolean,
+  serverKey: string,
 ) {
   const [server] = await db
     .update(schema.toolProviders)
     .set({
       url,
+      serverKey,
       customHeaders: customHeaders || {},
       mcpTransport,
       mcpRequiresAuth,
@@ -562,6 +567,7 @@ export async function updateMcpServer(
   return {
     id: server.id,
     url: server.url!,
+    serverKey: server.serverKey,
     customHeaders: server.customHeaders,
     mcpTransport: server.mcpTransport,
     mcpRequiresAuth: server.mcpRequiresAuth,

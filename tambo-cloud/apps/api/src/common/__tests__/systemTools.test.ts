@@ -148,6 +148,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -174,7 +175,7 @@ describe("systemTools", () => {
       expect(tools.mcpToolsSchema[0]).toEqual({
         type: "function",
         function: {
-          name: "mockMcpTool",
+          name: "mcp1__mockMcpTool",
           description: "A mock MCP tool",
           strict: true,
           parameters: {
@@ -189,7 +190,7 @@ describe("systemTools", () => {
           },
         },
       });
-      expect(tools.mcpToolSources.mockMcpTool).toBe(mockClient);
+      expect(tools.mcpToolSources["mcp1__mockMcpTool"]).toBe(mockClient);
       expect(tools.mcpHandlers).toBe(mcpHandlers);
     });
 
@@ -218,6 +219,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -231,6 +233,7 @@ describe("systemTools", () => {
         },
         {
           id: "mcp2",
+          serverKey: "",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -274,6 +277,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -304,6 +308,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -355,6 +360,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: { "X-Custom-Header": "value" },
@@ -414,6 +420,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -506,6 +513,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -556,6 +564,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -598,6 +607,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -648,6 +658,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders,
@@ -689,6 +700,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -702,6 +714,7 @@ describe("systemTools", () => {
         },
         {
           id: "mcp2",
+          serverKey: "mcp2",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},
@@ -754,6 +767,7 @@ describe("systemTools", () => {
       jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
         {
           id: "mcp1",
+          serverKey: "mcp1",
           deprecatedComposioAppId: null,
           createdAt: new Date(),
           customHeaders: {},

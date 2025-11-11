@@ -15,6 +15,7 @@ import {
   MCPClient,
   MCPTransport,
   ToolProviderType,
+  isValidServerKey,
   validateMcpServer,
 } from "@tambo-ai-cloud/core";
 import {
@@ -32,6 +33,21 @@ type McpServer = Awaited<
 >[number];
 
 type OAuthClientProvider = OAuthLocalProvider;
+
+/**
+ * Get all existing serverKeys for a project to validate uniqueness
+ */
+async function getExistingServerKeys(
+  db: HydraDb,
+  projectId: string,
+  excludeServerId?: string,
+): Promise<string[]> {
+  const servers = await operations.getProjectMcpServers(db, projectId, null);
+  return servers
+    .filter((server) => !excludeServerId || server.id !== excludeServerId)
+    .map((server) => server.serverKey)
+    .filter((key) => key !== ""); // Exclude empty serverKeys during transition
+}
 
 export const toolsRouter = createTRPCRouter({
   listMcpServers: protectedProcedure
@@ -52,6 +68,7 @@ export const toolsRouter = createTRPCRouter({
       return servers.map((server) => ({
         id: server.id,
         url: server.url,
+        serverKey: server.serverKey,
         customHeaders: server.customHeaders,
         mcpRequiresAuth: server.mcpRequiresAuth,
         mcpIsAuthed:
@@ -72,6 +89,13 @@ export const toolsRouter = createTRPCRouter({
             validateServerUrl,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
+        serverKey: z
+          .string()
+          .trim()
+          .refine(
+            isValidServerKey,
+            "Server key must be at least 2 characters and contain only alphanumeric characters and underscores",
+          ),
         customHeaders: customHeadersSchema,
         mcpTransport: z.nativeEnum(MCPTransport),
       }),
@@ -84,8 +108,21 @@ export const toolsRouter = createTRPCRouter({
         ctx.user.id,
       );
 
+      let { serverKey } = input;
       const { projectId, url, customHeaders, mcpTransport } = input;
       const parsedUrl = new URL(url);
+
+      // Normalize minor whitespace only (preserve original casing as requested)
+      serverKey = serverKey.trim();
+
+      // Check for duplicate serverKey in the project
+      const existingKeys = await getExistingServerKeys(ctx.db, projectId);
+      if (existingKeys.includes(serverKey)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Server key "${serverKey}" is already in use by another MCP server in this project`,
+        });
+      }
 
       // Perform additional safety checks
       const safetyCheck = await validateSafeURL(parsedUrl.hostname);
@@ -118,11 +155,13 @@ export const toolsRouter = createTRPCRouter({
         customHeaders,
         mcpTransport,
         validity.requiresAuth,
+        serverKey,
       );
 
       return {
         id: server.id,
         url: server.url,
+        serverKey: server.serverKey,
         customHeaders: server.customHeaders,
         mcpTransport: server.mcpTransport,
         mcpRequiresAuth: server.mcpRequiresAuth,
@@ -223,6 +262,13 @@ export const toolsRouter = createTRPCRouter({
             validateServerUrl,
             "URL appears to be unsafe: must not point to internal, local, or private networks",
           ),
+        serverKey: z
+          .string()
+          .trim()
+          .refine(
+            isValidServerKey,
+            "Server key must be at least 2 characters and contain only alphanumeric characters and underscores",
+          ),
         customHeaders: customHeadersSchema,
         mcpTransport: z.nativeEnum(MCPTransport),
       }),
@@ -235,7 +281,25 @@ export const toolsRouter = createTRPCRouter({
         ctx.user.id,
       );
 
+      let { serverKey } = input;
       const { projectId, serverId, url, customHeaders, mcpTransport } = input;
+
+      // Normalize minor whitespace only (preserve original casing as requested)
+      serverKey = serverKey.trim();
+
+      // Check for duplicate serverKey in the project (excluding current server)
+      const existingKeys = await getExistingServerKeys(
+        ctx.db,
+        projectId,
+        serverId,
+      );
+      if (existingKeys.includes(serverKey)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Server key "${serverKey}" is already in use by another MCP server in this project`,
+        });
+      }
+
       const validity = await getServerValidity(
         ctx.db,
         projectId,
@@ -256,10 +320,12 @@ export const toolsRouter = createTRPCRouter({
             customHeaders,
             mcpTransport,
             true,
+            serverKey,
           );
           return {
             id: server.id,
             url: server.url,
+            serverKey: server.serverKey,
             customHeaders: server.customHeaders,
             mcpTransport: server.mcpTransport,
             mcpRequiresAuth: server.mcpRequiresAuth,
@@ -282,10 +348,12 @@ export const toolsRouter = createTRPCRouter({
         customHeaders,
         mcpTransport,
         validity.requiresAuth,
+        serverKey,
       );
       return {
         id: server.id,
         url: server.url,
+        serverKey: server.serverKey,
         customHeaders: server.customHeaders,
         mcpTransport: server.mcpTransport,
         mcpRequiresAuth: server.mcpRequiresAuth,

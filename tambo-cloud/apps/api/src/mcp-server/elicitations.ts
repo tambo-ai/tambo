@@ -4,6 +4,7 @@ import type { MCPClient } from "@tambo-ai-cloud/core";
 export type ThreadMcpClient = {
   client: MCPClient;
   serverId: string;
+  serverKey: string;
   url: string;
 };
 

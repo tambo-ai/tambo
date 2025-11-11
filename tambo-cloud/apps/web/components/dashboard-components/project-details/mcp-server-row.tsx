@@ -80,6 +80,7 @@ export function McpServerRow({
 
   const handleSave = async (serverInfo: {
     url: string;
+    serverKey: string;
     customHeaders: Record<string, string>;
     mcpTransport: MCPTransport;
   }) => {
@@ -91,6 +92,7 @@ export function McpServerRow({
       return await addServer({
         projectId,
         url: serverInfo.url,
+        serverKey: serverInfo.serverKey,
         customHeaders: serverInfo.customHeaders,
         mcpTransport: serverInfo.mcpTransport,
       });
@@ -100,6 +102,7 @@ export function McpServerRow({
       projectId,
       serverId: server.id,
       url: serverInfo.url,
+      serverKey: serverInfo.serverKey,
       customHeaders: serverInfo.customHeaders,
       mcpTransport: serverInfo.mcpTransport,
     });

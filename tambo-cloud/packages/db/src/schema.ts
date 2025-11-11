@@ -607,6 +607,7 @@ export const toolProviders = pgTable(
       enum: Object.values(ToolProviderType) as [ToolProviderType],
     }).notNull(),
     url: text("url"),
+    serverKey: text("server_key").notNull().default(""),
     deprecatedComposioAppId: text("composio_app_id"),
     customHeaders: customJsonb<Record<string, string>>("custom_headers")
       .notNull()

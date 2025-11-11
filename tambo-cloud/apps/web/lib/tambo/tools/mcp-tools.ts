@@ -133,6 +133,7 @@ export function registerMcpTools(
       projectId: string;
       serverId: string;
       url: string;
+      serverKey: string;
       customHeaders: Record<string, string>;
       mcpTransport: MCPTransport;
     }) => {

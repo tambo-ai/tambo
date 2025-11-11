@@ -6,6 +6,7 @@ export * from "./json";
 export type * from "./llm-parameter-types";
 export * from "./mcp-auth";
 export * from "./mcp-client";
+export * from "./mcp-utils";
 export * from "./oauth";
 export * from "./oauth-validation";
 export * from "./project";

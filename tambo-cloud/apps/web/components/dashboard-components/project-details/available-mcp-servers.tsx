@@ -226,6 +226,7 @@ export function AvailableMcpServers({
               server={{
                 id: "new",
                 url: initialUrl || "",
+                serverKey: "",
                 customHeaders: initialHeaders || {},
               }}
               projectId={projectId}

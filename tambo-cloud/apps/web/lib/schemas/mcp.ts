@@ -1,4 +1,4 @@
-import { MCPTransport } from "@tambo-ai-cloud/core";
+import { MCPTransport, isValidServerKey } from "@tambo-ai-cloud/core";
 import { z } from "zod";
 
 /**
@@ -14,6 +14,16 @@ export const listMcpServersInput = z.object({
 export const addMcpServerInput = z.object({
   projectId: z.string().describe("The project ID"),
   url: z.string().url().describe("The URL of the MCP server"),
+  serverKey: z
+    .string()
+    .trim()
+    .refine(
+      isValidServerKey,
+      "Server key must be at least 2 characters and contain only alphanumeric characters and underscores",
+    )
+    .describe(
+      "The unique key for this server (used to namespace tools, resources, and prompts)",
+    ),
   customHeaders: z
     .record(z.string(), z.string())
     .describe("Custom headers for the MCP server"),
@@ -28,6 +38,16 @@ export const updateMcpServerInput = z.object({
   projectId: z.string().describe("The project ID"),
   serverId: z.string().describe("The ID of the MCP server to update"),
   url: z.string().url().describe("The URL of the MCP server"),
+  serverKey: z
+    .string()
+    .trim()
+    .refine(
+      isValidServerKey,
+      "Server key must be at least 2 characters and contain only alphanumeric characters and underscores",
+    )
+    .describe(
+      "The unique key for this server (used to namespace tools, resources, and prompts)",
+    ),
   customHeaders: z
     .record(z.string(), z.string())
     .describe("Custom headers for the MCP server"),
@@ -50,6 +70,7 @@ export const inspectMcpServerInput = z.object({
 export const mcpServerSchema = z.object({
   id: z.string().describe("The unique identifier for the MCP server"),
   url: z.string().nullable().describe("The URL of the MCP server"),
+  serverKey: z.string().describe("The unique key for this server"),
   customHeaders: z
     .record(z.string(), z.string())
     .nullable()
@@ -66,6 +87,7 @@ export const mcpServerSchema = z.object({
 export const mcpServerDetailSchema = z.object({
   id: z.string().describe("The unique identifier for the MCP server"),
   url: z.string().describe("The URL of the MCP server"),
+  serverKey: z.string().describe("The unique key for this server"),
   customHeaders: z
     .record(z.string(), z.string())
     .describe("Custom headers for the MCP server"),

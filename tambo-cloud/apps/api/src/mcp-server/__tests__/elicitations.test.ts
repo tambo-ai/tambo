@@ -39,6 +39,7 @@ describe("registerElicitationHandlers", () => {
       threadClient: {
         client,
         serverId,
+        serverKey: "test",
         url,
       },
       updateElicitationHandler,
