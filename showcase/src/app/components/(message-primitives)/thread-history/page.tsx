@@ -267,7 +267,8 @@ export function RightSidebarLayout() {
                     contextKey="demo-minimal"
                     position="left"
                     defaultCollapsed={false}
-                    className="relative bg-card border-r"
+                    className="bg-card border-r h-full"
+                    style={{ position: "absolute" }}
                   >
                     <ThreadHistoryHeader />
                     <ThreadHistoryList />
@@ -296,6 +297,7 @@ export function MinimalSidebar() {
 }`}
             previewClassName="p-0"
             fullBleed
+            minHeight={256}
           />
         </div>
       </section>
