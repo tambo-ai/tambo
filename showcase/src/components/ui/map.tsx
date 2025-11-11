@@ -272,7 +272,7 @@ export type MapProps = z.infer<typeof mapSchema> &
 function useValidMarkers(markers: MarkerData[] = []) {
   return React.useMemo(
     () =>
-      markers.filter(
+      (markers || []).filter(
         (m) =>
           typeof m.lat === "number" &&
           m.lat >= -90 &&

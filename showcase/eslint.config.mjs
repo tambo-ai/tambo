@@ -35,4 +35,16 @@ export default tseslint.config(
       "react/prop-types": "off",
     },
   },
+  {
+    files: ["scripts/**/*.mjs", "tests/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "@typescript-eslint/return-await": "off",
+      "@typescript-eslint/promise-function-async": "off",
+    },
+  },
 );

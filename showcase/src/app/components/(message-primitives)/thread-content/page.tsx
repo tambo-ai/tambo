@@ -1,7 +1,7 @@
 "use client";
 
-import { CLI } from "@/components/cli";
-import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+import { ComponentCodePreview } from "@/components/component-code-preview";
+import { InstallationSection } from "@/components/installation-section";
 import {
   ThreadContent,
   ThreadContentMessages,
@@ -77,174 +77,154 @@ const mockThread: TamboThread = {
   updatedAt: new Date().toISOString(),
   projectId: "1",
 };
+
+const emptyThread: TamboThread = {
+  id: "2",
+  messages: [],
+  createdAt: new Date().toISOString(),
+  projectId: "1",
+  updatedAt: new Date().toISOString(),
+};
+
 export default function ThreadContentPage() {
-  const usageCode = `import { ThreadContent, ThreadContentMessages } from "@/components/ui/thread-content";
-
-// Basic usage
-<ThreadContent variant="default">
-  <ThreadContentMessages />
-</ThreadContent>
-
-// With solid variant
-<ThreadContent variant="solid">
-  <ThreadContentMessages className="custom-messages-styling" />
-</ThreadContent>
-
-// Custom wrapper
-<ThreadContent>
-  <div className="custom-wrapper">
-    <ThreadContentMessages />
-  </div>
-</ThreadContent>`;
-
-  const installCommand = "npx tambo add thread-content";
-
   return (
-    <div className="py-8 max-w-4xl mx-auto">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-4">Thread Content</h1>
-          <p className="text-lg text-muted-foreground mb-6">
-            A primitive component that displays the main content area of a
-            conversation thread. Automatically connects to the Tambo context to
-            render messages with customizable styling variants.
-          </p>
-        </div>
+    <div className="prose max-w-8xl space-y-12">
+      <header className="space-y-4">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+          Thread Content
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          A primitive component that displays the main content area of a
+          conversation thread. Automatically connects to the Tambo context to
+          render messages with customizable styling variants.
+        </p>
+      </header>
 
-        {/* Installation */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
-          <div className="rounded-md">
-            <CLI command={installCommand} />
-          </div>
-          <p className="text-sm text-muted-foreground italic mt-2">
-            Note: This component is automatically included when you install any
-            of the &quot;Message Thread&quot; blocks.
-          </p>
-        </div>
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Examples</h2>
 
-        {/* Sub-components */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <ul className="space-y-3 text-sm">
-              <li>
-                <strong>
-                  <code>&lt;ThreadContentMessages /&gt;</code> -
-                </strong>{" "}
-                Renders the list of messages in the thread. Automatically
-                connects to the Tambo context to display messages with proper
-                alignment based on sender role. Handles loading indicators for
-                messages being generated and supports rendered components within
-                assistant messages.
-              </li>
-            </ul>
-          </div>
-        </div>
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="Default Variant"
+            component={
+              <TamboStubProvider thread={mockThread}>
+                <ThreadContent variant="default">
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
+            }
+            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
 
-        {/* Sample Code */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Usage</h2>
-          <SyntaxHighlighter code={usageCode} language="tsx" />
-        </div>
+export function ChatDemo() {
+  return (
+    <ThreadContent variant="default">
+      <ThreadContentMessages />
+    </ThreadContent>
+  );
+}`}
+            previewClassName="p-4"
+          />
 
-        {/* Default Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Default Thread Content</h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <TamboStubProvider thread={mockThread}>
-              <ThreadContent variant="default">
-                <ThreadContentMessages />
-              </ThreadContent>
-            </TamboStubProvider>
-          </div>
-        </div>
-        {/* Solid Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Solid Variant</h3>
-          <div className="p-4 border rounded-lg bg-card">
-            <TamboStubProvider thread={mockThread}>
-              <ThreadContent variant="solid">
-                <ThreadContentMessages />
-              </ThreadContent>
-            </TamboStubProvider>
-          </div>
-        </div>
+          <ComponentCodePreview
+            title="Solid Variant"
+            component={
+              <TamboStubProvider thread={mockThread}>
+                <ThreadContent variant="solid">
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
+            }
+            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
 
-        {/* Empty State Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">
-            Empty Thread (No Messages)
-          </h3>
-          <div className="p-4 h-48 border rounded-lg bg-card flex items-center justify-center">
-            <TamboStubProvider
-              thread={{
-                messages: [],
-                createdAt: new Date().toISOString(),
-                projectId: "1",
-                updatedAt: new Date().toISOString(),
-                id: "1",
-              }}
-            >
-              <ThreadContent>
-                <ThreadContentMessages />
-              </ThreadContent>
-            </TamboStubProvider>
-          </div>
+export function ChatDemo() {
+  return (
+    <ThreadContent variant="solid">
+      <ThreadContentMessages className="custom-messages-styling" />
+    </ThreadContent>
+  );
+}`}
+            previewClassName="p-4"
+          />
+
+          <ComponentCodePreview
+            title="Empty Thread (No Messages)"
+            component={
+              <TamboStubProvider thread={emptyThread}>
+                <ThreadContent>
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </TamboStubProvider>
+            }
+            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
+
+export function EmptyThread() {
+  return (
+    <ThreadContent>
+      <ThreadContentMessages />
+    </ThreadContent>
+  );
+}`}
+            previewClassName="p-4"
+            minHeight={200}
+          />
         </div>
+      </section>
 
-        {/* Props Documentation */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Props</h2>
+      <section>
+        <InstallationSection cliCommand="npx tambo add thread-content" />
+      </section>
 
-          <h3 className="text-lg font-medium mb-3">ThreadContent</h3>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <table className="w-full text-sm">
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Component API</h2>
+
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">ThreadContent</h3>
+
+            <table>
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Prop</th>
-                  <th className="text-left py-2">Type</th>
-                  <th className="text-left py-2">Description</th>
+                <tr>
+                  <th>Prop</th>
+                  <th>Type</th>
+                  <th>Default</th>
+                  <th>Description</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">variant</td>
-                  <td className="py-2">
-                    &quot;default&quot; | &quot;solid&quot;
-                  </td>
-                  <td className="py-2">
-                    Optional styling variant for the message container
-                  </td>
+                <tr>
+                  <td>variant</td>
+                  <td>&quot;default&quot; | &quot;solid&quot;</td>
+                  <td>&quot;default&quot;</td>
+                  <td>Optional styling variant for the message container</td>
                 </tr>
                 <tr>
-                  <td className="py-2 font-mono">children</td>
-                  <td className="py-2">React.ReactNode</td>
-                  <td className="py-2">
-                    The child elements to render within the container
-                  </td>
+                  <td>children</td>
+                  <td>React.ReactNode</td>
+                  <td>-</td>
+                  <td>The child elements to render within the container</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <h3 className="text-lg font-medium mb-3">
-            ThreadContentMessages Props
-          </h3>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <table className="w-full text-sm">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">ThreadContentMessages</h3>
+
+            <table>
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Prop</th>
-                  <th className="text-left py-2">Type</th>
-                  <th className="text-left py-2">Description</th>
+                <tr>
+                  <th>Prop</th>
+                  <th>Type</th>
+                  <th>Default</th>
+                  <th>Description</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="py-2 font-mono">className</td>
-                  <td className="py-2">string</td>
-                  <td className="py-2">
+                  <td>className</td>
+                  <td>string</td>
+                  <td>-</td>
+                  <td>
                     Optional CSS classes to apply to the messages container
                   </td>
                 </tr>
@@ -252,9 +232,10 @@ export default function ThreadContentPage() {
             </table>
           </div>
 
-          <h3 className="text-lg font-medium mb-3">Features</h3>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <ul className="space-y-2 text-sm">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Features</h3>
+
+            <ul>
               <li>
                 <strong>Automatic Context Integration:</strong> Connects to
                 Tambo thread context to display messages
@@ -278,7 +259,7 @@ export default function ThreadContentPage() {
             </ul>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -143,7 +143,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
         {/* Always show resize handle */}
         <div
           className={cn(
-            "absolute top-0 bottom-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors z-50",
+            "absolute top-0 bottom-0 w-1 cursor-ew-resize bg-border hover:bg-accent transition-colors z-50",
             isLeftPanel ? "right-0" : "left-0",
           )}
           onMouseDown={(e) => {

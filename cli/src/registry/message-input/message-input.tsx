@@ -636,11 +636,7 @@ const MessageInputMcpConfigButton = React.forwardRef<
 
   return (
     <>
-      <Tooltip
-        content="Configure MCP Servers"
-        side="right"
-        className="bg-muted text-foreground"
-      >
+      <Tooltip content="Configure MCP Servers" side="right">
         <button
           ref={ref}
           type="button"
@@ -757,11 +753,7 @@ const MessageInputFileButton = React.forwardRef<
   );
 
   return (
-    <Tooltip
-      content="Attach Images"
-      side="top"
-      className="bg-muted text-primary"
-    >
+    <Tooltip content="Attach Images" side="top">
       <button
         ref={ref}
         type="button"

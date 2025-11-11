@@ -47,11 +47,8 @@ export const MapChatInterface = () => {
   }, [registerComponent]);
 
   return (
-    <div className="relative h-full w-full flex flex-col">
-      <MessageThreadFull
-        contextKey={userContextKey}
-        className="rounded-lg flex-1"
-      />
+    <div className="flex flex-col" style={{ height: "700px" }}>
+      <MessageThreadFull contextKey={userContextKey} className="rounded-lg" />
     </div>
   );
 };

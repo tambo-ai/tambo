@@ -62,11 +62,10 @@ export const CanvasChatInterface = () => {
 
   return (
     <div className="rounded-lg border border-border/40 h-full relative flex flex-row overflow-hidden">
-      <CanvasSpace className="bg-background rounded-l-lg" />
+      <CanvasSpace className="bg-background rounded-l-lg flex-1" />
       <MessageThreadPanel
         contextKey={userContextKey}
         className="right rounded-r-lg"
-        style={{ width: "60%" }}
       />
     </div>
   );

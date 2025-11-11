@@ -27,7 +27,7 @@ export default function Template({
           <Navbar />
           <Sidebar />
           <div className="w-full md:pl-64 transition-all duration-300">
-            <main className="pb-16">
+            <main>
               {isNotFoundPage ? (
                 <div className="container mx-auto px-4 md:px-6 pt-6">
                   {children}

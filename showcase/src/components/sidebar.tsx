@@ -1,7 +1,10 @@
+"use client";
+
 import { navigation, NavigationItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { memo, useMemo } from "react";
 import { SidebarLink } from "./sidebar-link";
+import { useMobile } from "@/providers/mobile-provider";
 
 interface SidebarProps {
   className?: string;
@@ -53,6 +56,8 @@ const NavSection = memo(
 NavSection.displayName = "NavSection";
 
 export function Sidebar({ className }: SidebarProps) {
+  const { isMobile, isMobileMenuOpen, closeMobileMenu } = useMobile();
+
   // Memoize the sidebar content to prevent unnecessary re-renders
   const sidebarContent = useMemo(() => {
     // First find the "Home" and "Get Started" top-level items
@@ -67,39 +72,59 @@ export function Sidebar({ className }: SidebarProps) {
 
     return (
       <>
-        <nav className="flex flex-col space-y-6">
-          {/* Render "Home" and "Get Started" with reduced spacing */}
-          <div className="space-y-0.5">
-            {homeAndGetStarted.map((item) => (
+        <div className="flex flex-col flex-grow">
+          <nav className="flex flex-col space-y-6">
+            {/* Render "Home" and "Get Started" with reduced spacing */}
+            <div className="space-y-0.5">
+              {homeAndGetStarted.map((item) => (
+                <NavSection key={item.title} item={item} />
+              ))}
+            </div>
+
+            {/* Render other navigation items */}
+            {otherNavItems.map((item) => (
               <NavSection key={item.title} item={item} />
             ))}
-          </div>
-
-          {/* Render other navigation items */}
-          {otherNavItems.map((item) => (
-            <NavSection key={item.title} item={item} />
-          ))}
-        </nav>
+          </nav>
+        </div>
+        <div className="pt-4 mt-auto border-t border-border/40">
+          <p className="text-sm text-muted-foreground px-3">
+            Fractal Dynamics Inc © {new Date().getFullYear()}
+          </p>
+        </div>
       </>
     );
   }, []);
 
   return (
-    <div
-      className={cn(
-        // Base styles
-        "sidebar fixed top-[var(--header-height)] bottom-0 left-0 border-r border-border/40 p-4 overflow-y-auto flex flex-col bg-background z-40 w-64",
-        // Hide on mobile with CSS rather than conditional rendering to prevent flash
-        "max-md:hidden",
-        className,
+    <>
+      {/* Backdrop for mobile */}
+      {isMobile && isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30"
+          onClick={closeMobileMenu}
+        />
       )}
-    >
-      <div className="flex flex-col flex-grow">{sidebarContent}</div>
-      <div className="pt-4 mt-auto border-t border-border/40">
-        <p className="text-sm text-muted-foreground px-3">
-          Fractal Dynamics Inc © {new Date().getFullYear()}
-        </p>
-      </div>
-    </div>
+
+      {/* Single sidebar that adapts to mobile/desktop with CSS */}
+      <aside
+        className={cn(
+          // Base positioning and size
+          "fixed top-[var(--header-height)] bottom-0 left-0 w-64 z-40",
+          // Background and borders
+          "bg-background border-r border-border/40",
+          // Content layout
+          "p-4 overflow-y-auto flex flex-col",
+          // Mobile: transform off-screen by default, slide in when open
+          "transform transition-transform duration-200",
+          isMobile && !isMobileMenuOpen && "-translate-x-full",
+          // Desktop: always visible, no transform
+          "md:translate-x-0",
+          className,
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
