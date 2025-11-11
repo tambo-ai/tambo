@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-slot": "^1.2.4",
     "@react-leaflet/core": "^2.1.0",
     "@tambo-ai/react": "*",
