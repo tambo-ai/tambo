@@ -1,8 +1,8 @@
 <div align="center">
   <img src="assets/octo-white-background-rounded.png" width="150">
   <h1>Tambo AI</h1>
-  <h3>AI that renders your React components</h3>
-  <p>Register your components with schemas. AI decides which ones to render and what props to pass based on natural language. The AI agent orchestrates your UI—dynamically rendering components or updating persistent ones within your layout.</p>
+  <h3>A React framework for natural language interfaces</h3>
+  <p>Build user interfaces that adapt to your users, not the other way around.</p>
 </div>
 
 <p align="center">
@@ -26,13 +26,13 @@ Tambo is a generative UI framework for React. Unlike traditional React apps wher
 
 Register your components with schemas, and an AI agent renders and controls them through dialogue. Users describe what they want, your agent orchestrates your UI to make it happen.
 
-**MCP-native** from the ground up - built with the Model Context Protocol, a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way. This means plug-and-play integrations with Linear, Slack, and any MCP server without building custom adapters.
+**MCP-native** from the ground up - built with the Model Context Protocol, a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
 
 https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
 
 ## Why Tambo?
 
-User: "Show me a bar chart of Q4 sales"
+What a user wants: To create a bar chart of Q4 sales.
 
 **Without conversational interfaces:**
 
@@ -66,12 +66,12 @@ const components: TamboComponent[] = [{
 ## Key Benefits
 
 - **No AI Expertise Needed** - If you can write React, you can build generative UIs. Use your existing design system and components.
-- **MCP-Native** - Built-in support for Model Context Protocol means plug-and-play integrations with Linear, Slack, databases, and any MCP server.
+- **MCP-Native** - Built-in support for Model Context Protocol means plug-and-play integrations any MCP server. Your own, or external servers with Linear, Slack.
 - **Pre-built UI Primitives** - Copy/paste production-ready components for forms, charts, maps, messaging, and more. Customize everything.
 - **Bring Your Own LLM** - Works with OpenAI, Anthropic, Google, Mistral, or any OpenAI-compatible provider. Not locked into one vendor.
 - **Truly Open Source** - MIT licensed React SDK and backend. Self-host with full control, or use Tambo Cloud for zero-config deployment.
 
-## Get Started in 5 Minutes
+## Get Started in a Few Minutes
 
 ```bash
 # 1. Create your app
@@ -109,7 +109,7 @@ More templates coming soon. [Request a template →](https://github.com/tambo-ai
 
 ## How Tambo Works
 
-Tambo supports two component types based on how they persist and update:
+Tambo supports two common workflows based on how they persist and update:
 
 **AI can render components once** (like a chart in response to "show me Q4 sales") **or render components that stick around and update across the conversation** (like a shopping cart that persists while you add and remove items).
 
