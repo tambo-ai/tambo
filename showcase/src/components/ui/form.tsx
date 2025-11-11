@@ -61,9 +61,9 @@ export const formSchema = z.object({
   fields: z.array(formFieldSchema).describe("Array of form fields to display"),
   onSubmit: z
     .function()
-    .args(z.record(z.string()))
-    .returns(z.void())
-    .describe("Callback function called when the form is submitted"),
+    .describe(
+      "Callback function called when the form is submitted with form data as argument",
+    ),
   onError: z.string().optional().describe("Optional error message to display"),
   submitText: z
     .string()
