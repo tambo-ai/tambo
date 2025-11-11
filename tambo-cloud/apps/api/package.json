@@ -23,8 +23,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@ag-ui/crewai": "^0.0.2",
-    "@ag-ui/llamaindex": "^0.1.4",
+    "@ag-ui/crewai": "^0.0.3",
+    "@ag-ui/llamaindex": "^0.1.5",
     "@langfuse/otel": "^4.2.1",
     "@nestjs/common": "^11.1.8",
     "@nestjs/config": "^4.0.2",
