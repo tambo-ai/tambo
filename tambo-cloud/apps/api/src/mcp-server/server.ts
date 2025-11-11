@@ -9,6 +9,7 @@ import { getThreadMCPClients } from "src/common/systemTools";
 import { extractAndVerifyMcpAccessToken } from "../common/utils/oauth";
 import { registerElicitationHandlers } from "./elicitations";
 import { registerPromptHandlers } from "./prompts";
+import { registerResourceHandlers } from "./resources";
 
 const MCP_REQUEST_PROJECT_ID = Symbol("mcpProjectId");
 const MCP_REQUEST_THREAD_ID = Symbol("mcpThreadId");
@@ -56,6 +57,7 @@ export async function createMcpServer(
     mcpHandlers,
   );
   await registerPromptHandlers(server, mcpClients);
+  await registerResourceHandlers(server, mcpClients);
   registerElicitationHandlers(server, mcpClients);
   return {
     server,
