@@ -365,3 +365,226 @@ Function to set custom suggestions or clear them by passing `null`.
 `const snapshot = useCurrentInteractablesSnapshot()`
 
 Returns a cloned snapshot of the current interactable components.
+
+### useTamboThreadMessages
+
+This hook provides access to the current thread's messages and generation state.
+
+`const { messages, isGenerating, generationStage } = useTamboThreadMessages()`
+
+#### messages
+
+`const { messages } = useTamboThreadMessages()`
+
+Array of all messages in the current thread. Returns an empty array if no thread exists or the thread has no messages.
+
+#### isGenerating
+
+`const { isGenerating } = useTamboThreadMessages()`
+
+Boolean indicating whether the AI is currently generating a response. Returns `true` when `generationStage` is not in an idle state (not `IDLE`, `COMPLETE`, `ERROR`, or `CANCELLED`).
+
+#### generationStage
+
+`const { generationStage } = useTamboThreadMessages()`
+
+Current stage of AI generation. See [useTamboThread](#generationstage) for possible values.
+
+**Example usage:**
+
+```tsx
+import { useTamboThreadMessages } from "@tambo-ai/react";
+
+function MessageList() {
+  const { messages, isGenerating, generationStage } = useTamboThreadMessages();
+
+  return (
+    <div>
+      {messages.map((message) => (
+        <MessageItem key={message.id} message={message} />
+      ))}
+      {isGenerating && (
+        <div>AI is {generationStage.toLowerCase().replace(/_/g, " ")}...</div>
+      )}
+    </div>
+  );
+}
+```
+
+### useTamboMessageProps
+
+This hook extracts commonly used properties from a message, providing convenient access to content, attachments, images, reasoning, and tool calls.
+
+`const { content, hasContent, attachments, images, reasoning, toolCall } = useTamboMessageProps(message)`
+
+**Parameters:**
+
+- `message` - A `TamboThreadMessage` object to extract properties from
+
+**Returns:**
+
+An object containing:
+
+- `content` - The message's text content as a string (multiple text parts are joined with newlines). For React elements, returns the element itself.
+- `hasContent` - Boolean indicating whether the message has any content
+- `attachments` - Array of attachment objects with `kind`, `url`, and `mimeType` properties (supports images and audio)
+- `images` - Array of image URL strings extracted from the message content
+- `reasoning` - The AI's reasoning/thinking for the message, extracted from `component.reasoning` or `component.message` (null if not present)
+- `toolCall` - Tool call request object extracted from `toolCallRequest` or `component.toolCallRequest` (null if not present)
+
+**Example usage:**
+
+```tsx
+import { useTamboMessageProps } from "@tambo-ai/react";
+
+function MessageItem({ message }) {
+  const { content, hasContent, images, reasoning, toolCall } =
+    useTamboMessageProps(message);
+
+  return (
+    <div>
+      {hasContent && <p>{content}</p>}
+      {images.map((url, i) => (
+        <img key={i} src={url} alt={`Attachment ${i + 1}`} />
+      ))}
+      {reasoning && <details>
+        <summary>AI Reasoning</summary>
+        <p>{reasoning}</p>
+      </details>}
+      {toolCall && <div>Calling tool: {toolCall.toolName}</div>}
+    </div>
+  );
+}
+```
+
+### useTamboMessageLoading
+
+This hook determines whether a specific message is currently being generated. Returns `true` only if the message is the last message in the thread and generation is in progress.
+
+`const { isLoading, generationStage } = useTamboMessageLoading(message)`
+
+**Parameters:**
+
+- `message` - A `TamboThreadMessage` object to check loading status for
+
+**Returns:**
+
+An object containing:
+
+- `isLoading` - Boolean indicating if this specific message is currently loading
+- `generationStage` - Current generation stage (see [useTamboThread](#generationstage) for possible values)
+
+**Example usage:**
+
+```tsx
+import { useTamboMessageLoading } from "@tambo-ai/react";
+
+function MessageItem({ message }) {
+  const { isLoading, generationStage } = useTamboMessageLoading(message);
+
+  return (
+    <div>
+      <MessageContent message={message} />
+      {isLoading && (
+        <div className="loading-indicator">
+          {generationStage === "STREAMING_RESPONSE" && "Typing..."}
+          {generationStage === "FETCHING_CONTEXT" && "Gathering context..."}
+          {generationStage === "CHOOSING_COMPONENT" && "Choosing component..."}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### useTamboMessageReasoning
+
+This hook extracts reasoning or thinking text from a message. Reasoning is typically generated when using reasoning models like OpenAI's o1 or o3-mini, or when explicitly requesting reasoning output.
+
+`const { reasoning, hasReasoning } = useTamboMessageReasoning(message)`
+
+**Parameters:**
+
+- `message` - A `TamboThreadMessage` object to extract reasoning from
+
+**Returns:**
+
+An object containing:
+
+- `reasoning` - The reasoning text from `component.reasoning` or `component.message` (null if not present)
+- `hasReasoning` - Boolean indicating whether reasoning exists for this message
+
+**Example usage:**
+
+```tsx
+import { useTamboMessageReasoning } from "@tambo-ai/react";
+
+function MessageItem({ message }) {
+  const { reasoning, hasReasoning } = useTamboMessageReasoning(message);
+
+  if (!hasReasoning) {
+    return <MessageContent message={message} />;
+  }
+
+  return (
+    <div>
+      <MessageContent message={message} />
+      <details className="reasoning-section">
+        <summary>Show AI reasoning</summary>
+        <pre>{reasoning}</pre>
+      </details>
+    </div>
+  );
+}
+```
+
+### useTamboMessageToolCall
+
+This hook extracts tool call information from a message. Tool calls occur when the AI invokes registered tools to gather additional context or perform actions.
+
+`const { toolCall, hasToolCall } = useTamboMessageToolCall(message)`
+
+**Parameters:**
+
+- `message` - A `TamboThreadMessage` object to extract tool call from
+
+**Returns:**
+
+An object containing:
+
+- `toolCall` - Tool call object with `toolName` and `parameters` array (null if not present)
+- `hasToolCall` - Boolean indicating whether a tool call exists for this message
+
+**Example usage:**
+
+```tsx
+import { useTamboMessageToolCall } from "@tambo-ai/react";
+
+function MessageItem({ message }) {
+  const { toolCall, hasToolCall } = useTamboMessageToolCall(message);
+
+  if (!hasToolCall) {
+    return <MessageContent message={message} />;
+  }
+
+  return (
+    <div className="tool-call-message">
+      <div className="tool-header">
+        Calling tool: <code>{toolCall.toolName}</code>
+      </div>
+      {toolCall.parameters.length > 0 && (
+        <details>
+          <summary>Parameters</summary>
+          <ul>
+            {toolCall.parameters.map((param, i) => (
+              <li key={i}>
+                <strong>{param.parameterName}:</strong> {param.parameterValue}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+```

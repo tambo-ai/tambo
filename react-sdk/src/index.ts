@@ -14,6 +14,11 @@ export {
   type StreamStatus,
 } from "./hooks/use-tambo-stream-status";
 export { useTamboVoice } from "./hooks/use-tambo-voice";
+export { useTamboThreadMessages } from "./hooks/use-tambo-thread-messages";
+export { useTamboMessageProps } from "./hooks/use-tambo-message-props";
+export { useTamboMessageLoading } from "./hooks/use-tambo-message-loading";
+export { useTamboMessageReasoning } from "./hooks/use-tambo-message-reasoning";
+export { useTamboMessageToolCall } from "./hooks/use-tambo-message-tool-call";
 
 // Re-export provider components
 export {
@@ -99,6 +104,9 @@ export type {
   ContextHelperFn,
   ContextHelpers,
 } from "./context-helpers";
+
+// Message utilities
+export * from "./util/message-content";
 
 // Note MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package
