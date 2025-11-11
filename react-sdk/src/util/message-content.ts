@@ -267,7 +267,11 @@ export function getMessageAttachments(
       if (part.type === "input_audio" && part.input_audio) {
         const format = part.input_audio.format;
         const mimeType =
-          format === "wav" ? "audio/wav" : format === "mp3" ? "audio/mpeg" : undefined;
+          format === "wav"
+            ? "audio/wav"
+            : format === "mp3"
+              ? "audio/mpeg"
+              : undefined;
 
         attachments.push({
           kind: "audio",

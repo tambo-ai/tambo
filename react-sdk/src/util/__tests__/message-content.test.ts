@@ -170,9 +170,7 @@ describe("checkHasContent", () => {
 
   it("should return true for array with non-text content parts", () => {
     expect(
-      checkHasContent([
-        { type: "image_url", image_url: { url: "test.png" } },
-      ]),
+      checkHasContent([{ type: "image_url", image_url: { url: "test.png" } }]),
     ).toBe(true);
     expect(
       checkHasContent([

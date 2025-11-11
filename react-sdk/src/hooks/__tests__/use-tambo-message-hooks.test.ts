@@ -253,9 +253,7 @@ describe("useTamboMessageProps", () => {
 
     const { result } = renderHook(() => useTamboMessageProps(message));
 
-    expect(result.current.reasoning).toBe(
-      "I chose this component because...",
-    );
+    expect(result.current.reasoning).toBe("I chose this component because...");
   });
 
   it("should extract reasoning from component.message as fallback", () => {
