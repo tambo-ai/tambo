@@ -1,13 +1,10 @@
 "use client";
 
-import { getMessageContexts, getMessageImages } from "@/lib/thread-hooks";
+import { getMessageImages } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
-import {
-  useTamboContextAttachment,
-  useTamboThreadInput,
-} from "@tambo-ai/react";
-import { Cuboid, Image as ImageIcon, X } from "lucide-react";
+import { useTamboThreadInput } from "@tambo-ai/react";
+import { Image as ImageIcon, X } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 
@@ -123,9 +120,10 @@ export interface ContextAttachmentBadgeListProps
 }
 
 /**
- * Displays attachments (images and contexts) from either a sent message or input state.
+ * Displays attachments (images only) from either a sent message or input state.
  * - Pass `message` prop for display mode (sent messages)
  * - Don't pass `message` for input mode (uses hooks automatically)
+ *
  * @example
  * ```tsx
  * // Display mode
@@ -141,37 +139,24 @@ export const ContextAttachmentBadgeList = React.forwardRef<
 >(({ message, showRemoveButtons = false, className, ...props }, ref) => {
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const threadInput = useTamboThreadInput();
-  const { attachments, removeContextAttachment } = useTamboContextAttachment();
 
-  // Get images and contexts based on mode
+  // Get images based on mode
   const imagesList = message
     ? getMessageImages(
         Array.isArray(message.content) ? message.content : null,
       ).map((url, index) => ({ id: `image-${index}`, dataUrl: url }))
     : threadInput.images;
 
-  const contextsList = message ? getMessageContexts(message) : attachments;
-
   // Build attachments array
   const removeImage = message ? undefined : threadInput.removeImage;
-  const removeContext = message ? undefined : removeContextAttachment;
 
-  const allAttachments = [
-    ...imagesList.map((image, index) => ({
-      id: "id" in image ? image.id : `image-${index}`,
-      displayName: `Image ${index + 1}`,
-      icon: <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />,
-      image: { dataUrl: image.dataUrl },
-      onRemove: removeImage ? () => removeImage(image.id) : undefined,
-    })),
-    ...contextsList.map((context) => ({
-      id: context.id,
-      displayName: context.name,
-      icon: <Cuboid className="w-3.5 h-3.5 flex-shrink-0" />,
-      image: undefined,
-      onRemove: removeContext ? () => removeContext(context.id) : undefined,
-    })),
-  ];
+  const allAttachments = imagesList.map((image, index) => ({
+    id: "id" in image ? image.id : `image-${index}`,
+    displayName: `Image ${index + 1}`,
+    icon: <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />,
+    image: { dataUrl: image.dataUrl },
+    onRemove: removeImage ? () => removeImage(image.id) : undefined,
+  }));
 
   if (allAttachments.length === 0) return null;
 

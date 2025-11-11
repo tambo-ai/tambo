@@ -1,5 +1,6 @@
 import { getSafeContent } from "@/lib/thread-hooks";
 import { type RouterOutputs } from "@/trpc/react";
+import type { ContextHelperData } from "@tambo-ai/react";
 import { SortDirection, SortField } from "./hooks/useThreadList";
 import { MessageItem, ThreadStats } from "./messages/stats-header";
 
@@ -394,3 +395,65 @@ export const formatToolParameters = (
 
   return JSON.stringify(paramObj, null, 2);
 };
+
+// Message Content Utils ------------------------------------------------------------------
+
+/**
+ * Represents a component context item to display in messages
+ */
+export interface MessageComponentContext {
+  id: string;
+  name: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Minimal message shape needed to extract contexts
+ */
+export interface MessageWithContext {
+  role?: string;
+  additionalContext?: Record<string, unknown> | null;
+}
+
+/**
+ * Checks if a message was sent with component context.
+ * Context helpers store data in additionalContext.selectedComponent.
+ * @param message - The thread message or minimal message data
+ * @returns Array of component contexts (empty if none)
+ */
+export function getMessageContexts(
+  message: MessageType | MessageWithContext | undefined | null,
+): MessageComponentContext[] {
+  if (!message) return [];
+
+  // Only look for contexts on user messages
+  if (message.role !== "user") return [];
+
+  // Context helpers store data in additionalContext
+  const additionalContext = message.additionalContext;
+
+  if (!additionalContext) return [];
+
+  // Look through all additionalContext values for selectedComponent
+  // Context helpers can store data under any key (e.g., context ID)
+  const contexts: MessageComponentContext[] = [];
+
+  for (const [key, value] of Object.entries(additionalContext)) {
+    if (value && typeof value === "object") {
+      const contextData = value as ContextHelperData;
+      const selectedComponent = contextData.selectedComponent as
+        | { name?: string; [key: string]: unknown }
+        | undefined;
+
+      if (selectedComponent?.name) {
+        contexts.push({
+          id: key,
+          name: selectedComponent.name,
+          metadata: selectedComponent,
+        });
+      }
+    }
+  }
+
+  return contexts;
+}

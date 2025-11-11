@@ -19,6 +19,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { z } from "zod";
 
+const COMPONENT_NAME = "ToolCallLimit";
+
 const toolCallLimitEditorSuggestions: Suggestion[] = [
   {
     id: "fetch-tool-call-limit",
@@ -155,7 +157,7 @@ export function ToolCallLimitEditor({
           <EditableHint
             suggestions={toolCallLimitEditorSuggestions}
             description="Click to know more about how to manage the tool call limit for this project"
-            componentName="Tool Call Limit"
+            componentName={COMPONENT_NAME}
           />
         </CardTitle>
         <CardDescription className="text-sm font-sans text-foreground">
@@ -257,7 +259,7 @@ export function ToolCallLimitEditor({
 export const InteractableToolCallLimitEditor = withInteractable(
   ToolCallLimitEditor,
   {
-    componentName: "ToolCallLimitEditor",
+    componentName: COMPONENT_NAME,
     description:
       "Manages the maximum number of tool calls allowed per response for a project. This helps prevent infinite loops and controls resource usage. Users can view the current limit and edit it to a new value.",
     propsSchema: InteractableToolCallLimitEditorProps,

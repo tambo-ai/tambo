@@ -18,6 +18,8 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { z } from "zod";
 
+const COMPONENT_NAME = "CustomInstructions";
+
 const customInstructionsEditorSuggestions: Suggestion[] = [
   {
     id: "add-custom-instructions",
@@ -228,7 +230,7 @@ export function CustomInstructionsEditor({
           <EditableHint
             suggestions={customInstructionsEditorSuggestions}
             description="Click to know more about how to manage the custom instructions for this project"
-            componentName="Custom Instructions"
+            componentName={COMPONENT_NAME}
           />
         </CardTitle>
       </CardHeader>
@@ -356,7 +358,7 @@ export function CustomInstructionsEditor({
 export const InteractableCustomInstructionsEditor = withInteractable(
   CustomInstructionsEditor,
   {
-    componentName: "InstructionsEditor",
+    componentName: COMPONENT_NAME,
     description:
       "A component that allows users to edit custom instructions for their AI assistant project. Users can toggle edit mode, update the custom instructions text, and control whether system prompts can override these instructions.",
     propsSchema: InteractableCustomInstructionsEditorProps,

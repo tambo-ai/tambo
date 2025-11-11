@@ -1,8 +1,9 @@
 "use client";
 
+import { hasExistingMention } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
-import { type Suggestion, useTamboContextAttachment } from "@tambo-ai/react";
+import { useTamboContextAttachment, type Suggestion } from "@tambo-ai/react";
 import { Bot } from "lucide-react";
 import {
   useCallback,
@@ -21,13 +22,13 @@ interface EditableHintProps {
   description: string;
   /** Optional className for styling */
   className?: string;
-  /** Optional name for the context badge. Defaults to first 3 words of description */
+  /** Optional name for the component. If not provided, will try to auto-detect from interactable components */
   componentName?: string;
 }
 
 /**
  * Inline AI hint button that opens Tambo AI panel with custom suggestions.
- * Shows a popover on hover and adds a context badge when clicked.
+ * Shows a popover on hover and inserts @ComponentName into the editor when clicked.
  *
  * Requires `TamboContextAttachmentProvider` and `MessageThreadPanelProvider`.
  *
@@ -48,7 +49,7 @@ export function EditableHint({
   className,
   componentName,
 }: EditableHintProps) {
-  const { setIsOpen } = useMessageThreadPanel();
+  const { setIsOpen, editorRef } = useMessageThreadPanel();
   const { setCustomSuggestions, addContextAttachment } =
     useTamboContextAttachment();
   const [showPopover, setShowPopover] = useState(false);
@@ -56,10 +57,12 @@ export function EditableHint({
   const [isPositioned, setIsPositioned] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Generate a component name from description if not provided
+  // Get component name: use prop if provided, otherwise fallback to description
+  // The componentName prop should match the name used in withInteractable config
   const contextName = useMemo(() => {
     if (componentName) return componentName;
-    // Extract first 3 words from description
+
+    // Fallback: extract first 3 words from description
     const words = description.split(" ").slice(0, 3);
     return words.join(" ");
   }, [componentName, description]);
@@ -87,6 +90,39 @@ export function EditableHint({
         name: contextName,
       });
       setIsOpen(true);
+
+      // Insert @ComponentName into the editor after panel opens
+      setTimeout(() => {
+        const editor = editorRef.current;
+        if (editor) {
+          // Check if mention already exists to avoid duplicates
+          if (hasExistingMention(editor, contextName)) {
+            // Just focus the editor if mention already exists
+            editor.commands.focus();
+            return;
+          }
+
+          // Insert mention using TipTap's Mention extension
+          // The mention node structure: { type: 'mention', attrs: { id: string, label: string } }
+          editor
+            .chain()
+            .focus()
+            .insertContent([
+              {
+                type: "mention",
+                attrs: {
+                  id: contextName,
+                  label: contextName,
+                },
+              },
+              {
+                type: "text",
+                text: " ",
+              },
+            ])
+            .run();
+        }
+      }, 350); // Wait for panel animation to complete
     },
     [
       suggestions,
@@ -94,6 +130,7 @@ export function EditableHint({
       setCustomSuggestions,
       addContextAttachment,
       setIsOpen,
+      editorRef,
     ],
   );
 

@@ -1,11 +1,13 @@
 "use client";
 
+import type { Editor } from "@tiptap/react";
 import * as React from "react";
 
 interface MessageThreadPanelContextType {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   togglePanel: () => void;
+  editorRef: React.MutableRefObject<Editor | null>;
 }
 
 const MessageThreadPanelContext =
@@ -17,6 +19,7 @@ export function MessageThreadPanelProvider({
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const editorRef = React.useRef<Editor | null>(null);
 
   const togglePanel = React.useCallback(() => {
     setIsOpen((prev) => !prev);
@@ -27,6 +30,7 @@ export function MessageThreadPanelProvider({
       isOpen,
       setIsOpen,
       togglePanel,
+      editorRef,
     }),
     [isOpen, togglePanel],
   );

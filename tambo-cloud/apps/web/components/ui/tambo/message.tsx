@@ -4,7 +4,7 @@ import { markdownComponents } from "@/components/ui/tambo/markdown-components";
 import { checkHasContent, getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import type { TamboThreadMessage } from "@tambo-ai/react";
-import { useTambo } from "@tambo-ai/react";
+import { useCurrentInteractablesSnapshot, useTambo } from "@tambo-ai/react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
@@ -196,11 +196,21 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     ref,
   ) => {
     const { message, isLoading } = useMessageContext();
+    const interactables = useCurrentInteractablesSnapshot();
     const contentToRender = children ?? contentProp ?? message.content;
 
+    const interactableNames = React.useMemo(
+      () => interactables.map((i) => i.name),
+      [interactables],
+    );
+
     const safeContent = React.useMemo(
-      () => getSafeContent(contentToRender as TamboThreadMessage["content"]),
-      [contentToRender],
+      () =>
+        getSafeContent(
+          contentToRender as TamboThreadMessage["content"],
+          interactableNames,
+        ),
+      [contentToRender, interactableNames],
     );
     const hasContent = React.useMemo(
       () => checkHasContent(contentToRender as TamboThreadMessage["content"]),

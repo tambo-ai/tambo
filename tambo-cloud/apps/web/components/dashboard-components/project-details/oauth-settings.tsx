@@ -38,6 +38,8 @@ import {
 } from "react-icons/si";
 import { z } from "zod";
 
+const COMPONENT_NAME = "OAuthTokenValidation";
+
 const oauthSettingsSuggestions: Suggestion[] = [
   {
     id: "fetch-oauth-settings",
@@ -343,7 +345,7 @@ export function OAuthSettings({
           <EditableHint
             suggestions={oauthSettingsSuggestions}
             description="Click to know more about how to manage token required for this project"
-            componentName="OAuth Settings"
+            componentName={COMPONENT_NAME}
           />
         </CardTitle>
         <p className="text-sm font-sans text-foreground">
@@ -551,7 +553,7 @@ export function OAuthSettings({
 }
 
 export const InteractableOAuthSettings = withInteractable(OAuthSettings, {
-  componentName: "OAuthSettings",
+  componentName: COMPONENT_NAME,
   description:
     "Manages OAuth token validation settings for a project. Configure how OAuth bearer tokens are validated, including validation mode (None, Symmetric, Asymmetric Auto, Asymmetric Manual), token required setting, secret keys, and public keys. Users can view current settings and update them.",
   propsSchema: InteractableOAuthSettingsProps,

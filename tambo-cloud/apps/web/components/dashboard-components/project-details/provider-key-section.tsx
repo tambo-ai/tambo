@@ -30,6 +30,8 @@ import { z } from "zod";
 import { AgentSettings } from "./agent-settings";
 import { CustomLlmParametersEditor } from "./custom-llm-parameters/editor";
 
+const COMPONENT_NAME = "LLMProviders";
+
 const providerKeySectionSuggestions: Suggestion[] = [
   {
     id: "change-model",
@@ -1003,7 +1005,7 @@ function ProviderKeySectionBase({
             <EditableHint
               suggestions={providerKeySectionSuggestions}
               description="Click to know more about how to manage the LLM provider for this project"
-              componentName="LLM Providers"
+              componentName={COMPONENT_NAME}
             />
           </CardTitle>
           {hasActualChanges && (
@@ -1446,7 +1448,7 @@ function ProviderKeySectionBase({
 export const InteractableProviderKeySection = withInteractable(
   ProviderKeySectionBase,
   {
-    componentName: "ProviderKeySection",
+    componentName: COMPONENT_NAME,
     description:
       "Manages LLM and Agent provider configuration for a project. Allows switching between LLM mode (traditional language models) and Agent mode (custom agent endpoints). In LLM mode, users can select providers (OpenAI, Anthropic, OpenAI-compatible, etc.), choose models, configure API keys, set custom model names and base URLs for compatible providers, and adjust input token limits. In Agent mode, users can configure custom agent URLs and metadata. This component validates API keys, handles free message limits for OpenAI's default model, and saves all configuration changes to the project.",
     propsSchema: InteractableProviderKeySectionProps,

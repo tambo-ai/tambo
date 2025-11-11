@@ -1,4 +1,4 @@
-import type { ContextHelperData, TamboThreadMessage } from "@tambo-ai/react";
+import type { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
 
@@ -102,22 +102,61 @@ export function usePositioning(
 }
 
 /**
+ * Preprocesses content to convert @ComponentName mentions to HTML spans
+ * that can be styled as mention badges. Only converts mentions that match
+ * actual interactable component names.
+ * @param content - The content string to process
+ * @param interactableNames - Optional list of interactable component names to match against
+ * @returns Processed content string with mentions converted to HTML spans
+ */
+function preprocessMentions(
+  content: string,
+  interactableNames?: string[],
+): string {
+  // If no interactable names provided, don't process mentions
+  // (fallback to plain text to avoid false positives)
+  if (!interactableNames || interactableNames.length === 0) {
+    return content;
+  }
+
+  // Create a set for fast lookup (exact case matching)
+  const nameSet = new Set(interactableNames);
+
+  // Match @ComponentName patterns and only convert if they match an interactable
+  return content.replace(
+    /@([A-Za-z][A-Za-z0-9_-]*)/g,
+    (match, componentName) => {
+      // Check if this component name matches any interactable (exact match)
+      if (nameSet.has(componentName)) {
+        return `<span class="mention-badge-inline">${match}</span>`;
+      }
+      // Return original match if not an interactable
+      return match;
+    },
+  );
+}
+
+/**
  * Converts message content into a safely renderable format.
  * Primarily joins text blocks from arrays into a single string.
  * @param content - The message content (string, element, array, etc.)
+ * @param interactableNames - Optional list of interactable component names for mention processing
  * @returns A renderable string or React element.
  */
 export function getSafeContent(
   content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+  interactableNames?: string[],
 ): string | React.ReactElement {
   if (!content) return "";
-  if (typeof content === "string") return content;
+  if (typeof content === "string")
+    return preprocessMentions(content, interactableNames);
   if (React.isValidElement(content)) return content; // Pass elements through
   if (Array.isArray(content)) {
     // Filter out non-text items and join text
-    return content
+    const textContent = content
       .map((item) => (item && item.type === "text" ? (item.text ?? "") : ""))
       .join("");
+    return preprocessMentions(textContent, interactableNames);
   }
   // Handle potential edge cases or unknown types
   // console.warn("getSafeContent encountered unknown content type:", content);
@@ -183,64 +222,4 @@ export function getMessageImages(
   return content
     .filter((item) => item?.type === "image_url" && item.image_url?.url)
     .map((item) => item.image_url!.url!);
-}
-
-/**
- * Represents a component context item to display in messages
- */
-export interface MessageComponentContext {
-  id: string;
-  name: string;
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * Minimal message shape needed to extract contexts
- */
-export interface MessageWithContext {
-  role?: string;
-  additionalContext?: Record<string, unknown> | null;
-}
-
-/**
- * Checks if a message was sent with component context.
- * Context helpers store data in additionalContext.selectedComponent.
- * @param message - The thread message or minimal message data
- * @returns Array of component contexts (empty if none)
- */
-export function getMessageContexts(
-  message: TamboThreadMessage | MessageWithContext | undefined | null,
-): MessageComponentContext[] {
-  if (!message) return [];
-
-  // Only look for contexts on user messages
-  if (message.role !== "user") return [];
-
-  // Context helpers store data in additionalContext
-  const additionalContext = message.additionalContext;
-
-  if (!additionalContext) return [];
-
-  // Look through all additionalContext values for selectedComponent
-  // Context helpers can store data under any key (e.g., context ID)
-  const contexts: MessageComponentContext[] = [];
-
-  for (const [key, value] of Object.entries(additionalContext)) {
-    if (value && typeof value === "object") {
-      const contextData = value as ContextHelperData;
-      const selectedComponent = contextData.selectedComponent as
-        | { name?: string; [key: string]: unknown }
-        | undefined;
-
-      if (selectedComponent?.name) {
-        contexts.push({
-          id: key,
-          name: selectedComponent.name,
-          metadata: selectedComponent,
-        });
-      }
-    }
-  }
-
-  return contexts;
 }

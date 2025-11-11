@@ -10,6 +10,8 @@ import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { McpServerRow } from "./mcp-server-row";
 
+const COMPONENT_NAME = "McpServers";
+
 const availableMcpServersSuggestions: Suggestion[] = [
   {
     id: "fetch-mcp-servers",
@@ -193,7 +195,7 @@ export function AvailableMcpServers({
             <EditableHint
               suggestions={availableMcpServersSuggestions}
               description="Click to know more about how to manage MCP servers"
-              componentName="MCP Servers"
+              componentName={COMPONENT_NAME}
             />
           </CardTitle>
           {!isAddingNew && (
@@ -249,7 +251,7 @@ export function AvailableMcpServers({
 export const InteractableAvailableMcpServers = withInteractable(
   AvailableMcpServers,
   {
-    componentName: "AvailableMcpServers",
+    componentName: COMPONENT_NAME,
     description:
       "Manages and displays MCP (Model Context Protocol) servers for a project. Shows a list of configured MCP servers with options to add new servers, edit existing ones, or delete them. Each server can be configured with a URL and custom headers. The component can be controlled to enter 'add new server' mode where users can create new MCP server configurations. To delete a server: (1) First call fetchProjectMcpServers to get the server list, (2) Find the server by matching the URL, (3) Use the server's 'id' field with serverIdToDelete parameter to trigger deletion.",
     propsSchema: InteractableAvailableMcpServersProps,

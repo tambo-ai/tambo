@@ -32,6 +32,7 @@ import {
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
+import type { Editor } from "@tiptap/react";
 import type { VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -187,12 +188,21 @@ export const MessageThreadPanel = forwardRef<
   const { data: session } = useSession();
   const isUserLoggedIn = !!session;
   const { thread } = useTambo();
-  const { isOpen, setIsOpen } = useMessageThreadPanel();
+  const {
+    isOpen,
+    setIsOpen,
+    editorRef: providerEditorRef,
+  } = useMessageThreadPanel();
   const { customSuggestions, setCustomSuggestions } =
     useTamboContextAttachment();
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<Editor | null>(null);
 
-  // Update CSS variable and focus input when panel opens/closes
+  // Sync local editorRef with provider's editorRef whenever it changes
+  useEffect(() => {
+    providerEditorRef.current = editorRef.current;
+  });
+
+  // Update CSS variable and focus editor when panel opens/closes
   useEffect(() => {
     if (isOpen) {
       // Set the panel width CSS variable for layout adjustments
@@ -203,8 +213,8 @@ export const MessageThreadPanel = forwardRef<
 
       // Small delay to ensure the panel has finished animating before focusing
       const timeoutId = setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
+        if (editorRef.current) {
+          editorRef.current.commands.focus();
         }
       }, 320); // Slightly longer than the animation duration
 
@@ -348,7 +358,7 @@ export const MessageThreadPanel = forwardRef<
 
         {/* Message input */}
         <div className="p-4 flex-shrink-0">
-          <MessageInput contextKey={contextKey} inputRef={inputRef}>
+          <MessageInput contextKey={contextKey} inputRef={editorRef}>
             <MessageInputContexts />
             <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>

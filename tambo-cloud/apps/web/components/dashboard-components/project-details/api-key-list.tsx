@@ -17,6 +17,8 @@ import {
 import { APIKeyDialog } from "./api-key-dialog";
 import { APIKeyListItem } from "./api-key-list-item";
 
+const COMPONENT_NAME = "APIKeys";
+
 const apiKeyListSuggestions: Suggestion[] = [
   {
     id: "fetch-api-keys",
@@ -313,7 +315,7 @@ export function APIKeyList({
               <EditableHint
                 suggestions={apiKeyListSuggestions}
                 description="Click to know more about how to manage API keys"
-                componentName="API Keys"
+                componentName={COMPONENT_NAME}
               />
             </h4>
           </div>
@@ -528,7 +530,7 @@ export function APIKeyList({
 }
 
 export const InteractableAPIKeyList = withInteractable(APIKeyList, {
-  componentName: "APIKeyManager",
+  componentName: COMPONENT_NAME,
   description:
     "A component that allows users to manage API keys for their project. Users can view existing API keys, create new keys with custom names, and delete keys they no longer need. Each key is displayed with its creation date and preview, and newly created keys are shown once for copying.",
   propsSchema: InteractableAPIKeyListProps,

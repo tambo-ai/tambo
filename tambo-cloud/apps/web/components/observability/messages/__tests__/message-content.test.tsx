@@ -13,6 +13,7 @@ jest.mock("@/components/ui/tambo/markdown-components", () => ({
 // Mock the utils
 jest.mock("../../utils", () => ({
   formatTime: (_date: Date) => "12:00 PM",
+  getMessageContexts: () => [],
 }));
 
 // Mock the highlight components
@@ -56,6 +57,7 @@ jest.mock("@tambo-ai/react", () => ({
     attachments: [],
     removeContextAttachment: jest.fn(),
   }),
+  useCurrentInteractablesSnapshot: () => [],
   TamboContextAttachmentProvider: ({
     children,
   }: {

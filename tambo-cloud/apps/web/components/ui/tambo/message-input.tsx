@@ -6,6 +6,7 @@ import {
   Tooltip,
   TooltipProvider,
 } from "@/components/ui/tambo/suggestions-tooltip";
+import { TextEditor } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,
@@ -13,6 +14,7 @@ import {
   useTamboThread,
   useTamboThreadInput,
 } from "@tambo-ai/react";
+import type { Editor } from "@tiptap/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square } from "lucide-react";
 import * as React from "react";
@@ -59,7 +61,7 @@ const messageInputVariants = cva("w-full", {
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
  * @property {string|undefined} contextKey - The thread context key
- * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
+ * @property {Editor|null} editorRef - Reference to the TipTap editor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
  */
@@ -74,7 +76,7 @@ interface MessageInputContextValue {
   isPending: boolean;
   error: Error | null;
   contextKey?: string;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  editorRef: React.RefObject<Editor | null>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
 }
@@ -113,8 +115,8 @@ export interface MessageInputProps
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Optional ref to forward to the textarea element. */
-  inputRef?: React.RefObject<HTMLTextAreaElement>;
+  /** Optional ref to forward to the TipTap editor instance. */
+  inputRef?: React.RefObject<Editor | null>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -172,14 +174,11 @@ const MessageInputInternal = React.forwardRef<
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const editorRef = React.useRef<Editor | null>(null);
   const dragCounter = React.useRef(0);
 
   React.useEffect(() => {
     setDisplayValue(value);
-    if (value && textareaRef.current) {
-      textareaRef.current.focus();
-    }
   }, [value]);
 
   const handleSubmit = React.useCallback(
@@ -205,10 +204,6 @@ const MessageInputInternal = React.forwardRef<
           streamResponse: true,
         });
         setValue("");
-        // Images are cleared automatically by the TamboThreadInputProvider
-        setTimeout(() => {
-          textareaRef.current?.focus();
-        }, 0);
       } catch (error) {
         console.error("Failed to submit message:", error);
         setDisplayValue(value);
@@ -302,7 +297,7 @@ const MessageInputInternal = React.forwardRef<
       isPending: isPending ?? isSubmitting,
       error,
       contextKey,
-      textareaRef: inputRef ?? textareaRef,
+      editorRef: inputRef ?? editorRef,
       submitError,
       setSubmitError,
     }),
@@ -316,7 +311,7 @@ const MessageInputInternal = React.forwardRef<
       error,
       contextKey,
       inputRef,
-      textareaRef,
+      editorRef,
       submitError,
     ],
   );
@@ -360,35 +355,27 @@ MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
 
 /**
- * Symbol for marking pasted images.
- * Using Symbol.for to create a global symbol that can be accessed across modules.
- * @internal
- */
-export const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
-
-/**
- * Extend the File interface to include the IS_PASTED_IMAGE property.
- * This is a type-safe way to mark pasted images without using a broad index signature.
- */
-declare global {
-  interface File {
-    [IS_PASTED_IMAGE]?: boolean;
-  }
-}
-
-/**
  * Props for the MessageInputTextarea component.
- * Extends standard TextareaHTMLAttributes.
  */
 export interface MessageInputTextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
 }
 
 /**
- * Textarea component for entering message text.
- * Automatically connects to the context to handle value changes and key presses.
+ * Textarea component for entering message text with @ mention support.
+ *
+ * Uses the TipTap-based TextEditor component which provides:
+ * - @ mention autocomplete for interactable components
+ * - Keyboard navigation (Enter to submit, Shift+Enter for newline)
+ * - Image paste support
+ *
+ * **How @ mentions work here:**
+ * - When user types "@", suggestions appear from `interactables` (components that can be mentioned)
+ * - Selecting a mention adds it as a context attachment via `addContextAttachment`
+ * - Mentions appear as badges above the input (via ContextAttachmentBadgeList)
+ *
  * @component MessageInput.Textarea
  * @example
  * ```tsx
@@ -402,72 +389,26 @@ const MessageInputTextarea = ({
   placeholder = "What do you want to do?",
   ...props
 }: MessageInputTextareaProps) => {
-  const { value, setValue, textareaRef, handleSubmit } =
-    useMessageInputContext();
+  const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
-  const isPending = !isIdle;
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
-  };
-
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (value.trim()) {
-        await handleSubmit(e as unknown as React.FormEvent);
-      }
-    }
-  };
-
-  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = Array.from(e.clipboardData.items);
-    const imageItems = items.filter((item) => item.type.startsWith("image/"));
-
-    // Allow default paste if there is text, even when images exist
-    const hasText = e.clipboardData.getData("text/plain").length > 0;
-
-    if (imageItems.length === 0) {
-      return; // Allow default text paste
-    }
-
-    if (!hasText) {
-      e.preventDefault(); // Only prevent when image-only paste
-    }
-
-    for (const item of imageItems) {
-      const file = item.getAsFile();
-      if (file) {
-        try {
-          // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
-          file[IS_PASTED_IMAGE] = true;
-          await addImage(file);
-        } catch (error) {
-          console.error("Failed to add pasted image:", error);
-        }
-      }
-    }
-  };
 
   return (
-    <textarea
-      ref={textareaRef}
-      value={value}
-      onChange={handleChange}
-      onKeyDown={handleKeyDown}
-      onPaste={handlePaste}
-      className={cn(
-        "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
-        className,
-      )}
-      disabled={isPending || isUpdatingToken}
-      placeholder={placeholder}
-      aria-label="Chat Message Input"
+    <div
+      className={cn("flex-1", className)}
       data-slot="message-input-textarea"
       {...props}
-    />
+    >
+      <TextEditor
+        value={value}
+        onChange={setValue}
+        onSubmit={handleSubmit}
+        placeholder={placeholder}
+        disabled={!isIdle || isUpdatingToken}
+        editorRef={editorRef}
+        className="bg-background text-foreground"
+      />
+    </div>
   );
 };
 MessageInputTextarea.displayName = "MessageInput.Textarea";
