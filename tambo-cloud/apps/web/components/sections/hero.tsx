@@ -219,7 +219,10 @@ function HeroCommandBox() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
     >
-      <div className="flex items-center rounded-xl bg-slate-50 dark:bg-slate-900 p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div
+        onClick={handleCopy}
+        className="flex items-center rounded-xl bg-slate-50 dark:bg-slate-900 p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+      >
         <code className="font-mono text-xs sm:text-sm text-slate-800 dark:text-slate-200 mr-3 sm:mr-4 select-all">
           {command}
         </code>
@@ -228,14 +231,37 @@ function HeroCommandBox() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleCopy}
-          className="h-auto p-1.5 sm:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            void handleCopy();
+          }}
+          className="h-auto transition-transform active:scale-95 p-1.5 sm:p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
         >
-          {copied ? (
-            <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
-          ) : (
-            <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-600 dark:text-slate-400" />
-          )}
+          <AnimatePresence mode="wait">
+            {copied ? (
+              <motion.span
+                key="check"
+                initial={{ opacity: 0, filter: "blur(2px)", y: 4 }}
+                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                exit={{ opacity: 0, filter: "blur(2px)", y: -4 }}
+                transition={{ duration: 0.18, ease: "easeInOut" }}
+                className="flex items-center"
+              >
+                <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
+              </motion.span>
+            ) : (
+              <motion.span
+                key="copy"
+                initial={{ opacity: 0, filter: "blur(2px)", y: 4 }}
+                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                exit={{ opacity: 0, filter: "blur(2px)", y: -4 }}
+                transition={{ duration: 0.18, ease: "easeInOut" }}
+                className="flex items-center"
+              >
+                <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-600 dark:text-slate-400" />
+              </motion.span>
+            )}
+          </AnimatePresence>
         </Button>
       </div>
     </motion.div>
