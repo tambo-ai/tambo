@@ -11,3 +11,4 @@ export {
 } from "./use-tambo-stream-status";
 export { useTamboThreadList } from "./use-tambo-threads";
 export { useTamboVoice } from "./use-tambo-voice";
+export { useMessageFiles, type StagedFile } from "./use-message-files";
