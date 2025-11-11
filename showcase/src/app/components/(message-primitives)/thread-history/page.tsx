@@ -8,7 +8,7 @@ import {
   ThreadHistoryList,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-} from "@/components/ui/thread-history";
+} from "@/components/tambo/thread-history";
 import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 
 const mockThreads: TamboThread[] = [

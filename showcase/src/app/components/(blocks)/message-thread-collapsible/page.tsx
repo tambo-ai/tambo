@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { MessageThreadCollapsible } from "@/components/ui/message-thread-collapsible";
+import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
