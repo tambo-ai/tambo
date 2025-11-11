@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.121.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.3...repo-v0.121.4) (2025-11-11)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/pg from 8.15.5 to 8.15.6 ([#2062](https://github.com/tambo-ai/tambo-cloud/issues/2062)) ([5a8acba](https://github.com/tambo-ai/tambo-cloud/commit/5a8acba79571331210b7ce550ffc29037314850a))
+* **deps-dev:** bump the eslint group with 4 updates ([#2056](https://github.com/tambo-ai/tambo-cloud/issues/2056)) ([519e2a7](https://github.com/tambo-ai/tambo-cloud/commit/519e2a795d01043a7b95c0766d7dc36696d4f0f3))
+* **deps:** bump next-auth from 4.24.11 to 4.24.12 ([#2065](https://github.com/tambo-ai/tambo-cloud/issues/2065)) ([8bc075c](https://github.com/tambo-ai/tambo-cloud/commit/8bc075cae49d5e8d53331233a25e1fe5361af5e6))
+* **deps:** bump resend from 6.1.3 to 6.4.1 ([#2063](https://github.com/tambo-ai/tambo-cloud/issues/2063)) ([6437611](https://github.com/tambo-ai/tambo-cloud/commit/643761166a642bc7305155037f34400ffa36e99a))
+* **deps:** bump the ag-ui group across 1 directory with 5 updates ([#2054](https://github.com/tambo-ai/tambo-cloud/issues/2054)) ([beccd7c](https://github.com/tambo-ai/tambo-cloud/commit/beccd7caf65e178ff5ed83d61d1e854b18e2b62e))
+* **deps:** bump the ai-sdk group with 7 updates ([#2057](https://github.com/tambo-ai/tambo-cloud/issues/2057)) ([2d677a1](https://github.com/tambo-ai/tambo-cloud/commit/2d677a1ca17b8fef6f73a8af25ed7662b226df9d))
+* **deps:** bump the radix-ui group with 4 updates ([#2055](https://github.com/tambo-ai/tambo-cloud/issues/2055)) ([d7dba25](https://github.com/tambo-ai/tambo-cloud/commit/d7dba25ca8751d24d895ac16e2b82b30799bb8e4))
+* **deps:** bump the sentry group with 3 updates ([#2061](https://github.com/tambo-ai/tambo-cloud/issues/2061)) ([1fa635f](https://github.com/tambo-ai/tambo-cloud/commit/1fa635f54e32ecdd75b8ebae53d45f1c8c2fa6fb))
+* **deps:** bump the small-safe-packages group with 4 updates ([#2060](https://github.com/tambo-ai/tambo-cloud/issues/2060)) ([9e4e1d3](https://github.com/tambo-ai/tambo-cloud/commit/9e4e1d3af8ab265c481dbb42200014973d30ea62))
+* **deps:** bump the tambo-ai group with 2 updates ([#2059](https://github.com/tambo-ai/tambo-cloud/issues/2059)) ([711af1f](https://github.com/tambo-ai/tambo-cloud/commit/711af1fa5b2e914d715b15b807c3244936b27bc9))
+
 ## [0.121.3](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.2...repo-v0.121.3) (2025-11-08)
 
 
