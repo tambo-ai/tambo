@@ -9,6 +9,7 @@ Syncs component files from the CLI registry to the showcase application.
 ### Features
 
 - **Config-driven**: Reads `config.json` files from `cli/src/registry/{component}/`
+- **CSS syncing**: Automatically syncs `globals-v4.css` from registry to `showcase/src/app/components.css`
 - **Banner comments**: Adds auto-sync banners to all copied files with source location
 - **Dependency validation**: Validates component dependencies against showcase `package.json`
   - Supports subpath exports (e.g., `@tambo-ai/react/mcp`)
@@ -83,10 +84,22 @@ The script supports two config formats:
 ### File Paths
 
 - **Registry**: `cli/src/registry/`
+- **Registry CSS**: `cli/src/registry/config/globals-v4.css`
 - **Target**: `showcase/src/components/tambo/`
+- **Target CSS**: `showcase/src/app/components.css`
 - **Package.json**: `showcase/package.json`
 
 All paths are resolved relative to the monorepo root.
+
+### CSS Organization
+
+The showcase CSS is now split into two files:
+
+- **`components.css`**: Auto-synced from CLI registry (`globals-v4.css`) - contains component-specific styles with OKLCH colors and Tambo variables. **DO NOT EDIT MANUALLY**.
+- **`site.css`**: Site-specific styles for the showcase app (sidebar, prose, animations, etc.). Safe to edit.
+- **`globals.css`**: Imports both files and tailwindcss.
+
+This organization allows the sync script to automatically update component styles while preserving site-specific customizations.
 
 ### Banner Format
 
@@ -115,11 +128,12 @@ Watch mode monitors:
 
 - All `config.json` files in registry
 - All `.tsx` and `.ts` files in registry
+- `cli/src/registry/config/globals-v4.css` for CSS changes
 
 When changes are detected:
 
-1. Identifies the affected component
-2. Re-syncs only that component
+1. Identifies the affected component (or CSS file)
+2. Re-syncs only that component/CSS
 3. Reports results
 
-Useful for development when making frequent changes to registry components.
+Useful for development when making frequent changes to registry components or styles.
