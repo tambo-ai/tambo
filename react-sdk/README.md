@@ -1,6 +1,6 @@
 <div align="center">
   <h1>@tambo-ai/react</h1>
-  <h3>The core React SDK for natural language interfaces</h3>
+  <h3>The core React SDK for generative UI</h3>
   <p>Register your components once. The AI decides which to render and what props to pass based on user conversations.</p>
 </div>
 

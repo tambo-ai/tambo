@@ -1,7 +1,7 @@
 <div align="center">
   <img src="assets/octo-white-background-rounded.png" width="150">
   <h1>Tambo AI</h1>
-  <h3>A React framework for natural language interfaces</h3>
+  <h3>Generative UI for React</h3>
   <p>Build apps that adapt to your users, not the other way around.</p>
 </div>
 
@@ -22,7 +22,9 @@
 
 ## What is Tambo?
 
-Tambo is a generative UI framework for React. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
+Tambo is a generative UI SDK for React. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
+
+**Generative UI makes software truly adaptive**—your interface responds to what users need, not what you predicted they'd need. Users describe their intent, the software adapts.
 
 Register your components once. The AI agent renders and controls them based on user messages and context.
 
@@ -30,13 +32,21 @@ Register your components once. The AI agent renders and controls them based on u
 
 https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
 
-## Why Tambo?
+## Why Generative UI?
 
-You don't want to write 200 lines of boilerplate to show a chart.
+Traditional UIs force users to adapt to your software. Click here, then here, then here. Navigate the menus you designed. Learn your mental model.
 
-Tambo handles:
+**Generative UI flips this—software adapts to users:**
 
-- ✅ AI orchestration (which component to render)
+- Users describe what they want in natural language
+- The AI orchestrates components based on intent
+- The interface responds dynamically to each request
+
+No rigid navigation flows. No sprawling conditional logic. No "wrong path" errors.
+
+Tambo handles the complexity:
+
+- ✅ AI-driven adaptation (which component to render based on user intent)
 - ✅ Streaming (progressive prop updates)
 - ✅ State management (persistence across conversation)
 - ✅ Error handling (retries, fallbacks)
@@ -64,8 +74,9 @@ const components: TamboComponent[] = [{
 
 ## Key Benefits
 
+- **Software Adapts to Users** - Generative UI responds to what users _mean_, not just what they click. Your interface eliminates rigid navigation flows and lets users describe what they want in natural language.
 - **No AI Expertise Needed** - If you can write React, you can build generative UIs. Use your existing design system and components.
-- **MCP-Native** - Built-in support for Model Context Protocol means plug-and-play integrations any MCP server. Your own, or external servers with Linear, Slack.
+- **MCP-Native** - Built-in support for Model Context Protocol means plug-and-play integrations with any MCP server. Your own, or external servers with Linear, Slack.
 - **Pre-built UI Primitives** - Copy/paste production-ready components for forms, charts, maps, messaging, and more. Customize everything.
 - **Bring Your Own LLM** - Works with OpenAI, Anthropic, Google, Mistral, or any OpenAI-compatible provider. Not locked into one vendor.
 - **Truly Open Source** - MIT licensed React SDK and backend. Self-host with full control, or use Tambo Cloud for zero-config deployment.
@@ -108,9 +119,9 @@ More templates coming soon. [Request a template →](https://github.com/tambo-ai
 
 ## How Tambo Works
 
-Tambo supports two component workflows:
+Generative UI with Tambo supports two component patterns:
 
-**One-time components** (like charts) **or persistent components** (like shopping carts that update across the conversation).
+**One-time components** (like charts) that the AI renders in response to specific requests, **and persistent components** (like shopping carts) that update across the conversation as users refine their intent.
 
 ### Generative Components
 
@@ -120,7 +131,7 @@ https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b
 
 ### Interactable Components
 
-Components that persist on the page and update by ID across conversations. Perfect for shopping carts, spreadsheets, task boards, or dashboards. Pre-place them in your code, or let AI generate them dynamically.
+Components that persist on the page and update by ID across conversations. The AI modifies them as users refine their requests—perfect for shopping carts, spreadsheets, task boards, or dashboards. Pre-place them in your code, or let the AI generate them dynamically.
 
 https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062
 
@@ -339,16 +350,16 @@ Don't see your favorite? [Let us know →](https://github.com/tambo-ai/tambo/iss
 
 ## How Tambo Compares
 
-| Feature                            | Tambo                                      | Vercel AI SDK                              | CopilotKit                                 | Assistant UI                      |
-| ---------------------------------- | ------------------------------------------ | ------------------------------------------ | ------------------------------------------ | --------------------------------- |
-| **Component orchestration**        | AI decides which components to render      | Manual tool-to-component mapping           | Via agent frameworks (LangGraph)           | Chat-focused tool UI              |
-| **MCP integration**                | Built-in from day one                      | Experimental (v4.2+)                       | Recently added                             | Requires AI SDK v5 (experimental) |
-| **Persistent stateful components** | ✅ Interactable components                 | ❌                                         | Shared state patterns                      | ❌                                |
-| **Client-side tool execution**     | ✅ Declarative, automatic                  | ⚠️ Manual via onToolCall                   | ❌ (agent-side only)                       | ❌                                |
-| **Self-hostable**                  | ✅ MIT (React SDK + backend)               | ✅ Apache 2.0 (SDK only)                   | ✅ MIT                                     | ✅ MIT                            |
-| **Hosted option**                  | ✅ Tambo Cloud                             | ❌                                         | ✅ CopilotKit Cloud                        | ✅ Assistant Cloud                |
-| **Model providers**                | OpenAI, Anthropic, Google, Mistral, custom | OpenAI, Anthropic, Google, Mistral, custom | OpenAI, Anthropic, Google, Mistral, custom | Bring your own                    |
-| **Best for**                       | Full app UI orchestration                  | Flexible streaming & tool abstractions     | Complex multi-agent workflows              | Production chat interfaces        |
+| Feature                            | Tambo                                                | Vercel AI SDK                              | CopilotKit                                 | Assistant UI                      |
+| ---------------------------------- | ---------------------------------------------------- | ------------------------------------------ | ------------------------------------------ | --------------------------------- |
+| **Component orchestration**        | Generative UI: AI decides which components to render | Manual tool-to-component mapping           | Via agent frameworks (LangGraph)           | Chat-focused tool UI              |
+| **MCP integration**                | Built-in from day one                                | Experimental (v4.2+)                       | Recently added                             | Requires AI SDK v5 (experimental) |
+| **Persistent stateful components** | ✅ Interactable components                           | ❌                                         | Shared state patterns                      | ❌                                |
+| **Client-side tool execution**     | ✅ Declarative, automatic                            | ⚠️ Manual via onToolCall                   | ❌ (agent-side only)                       | ❌                                |
+| **Self-hostable**                  | ✅ MIT (React SDK + backend)                         | ✅ Apache 2.0 (SDK only)                   | ✅ MIT                                     | ✅ MIT                            |
+| **Hosted option**                  | ✅ Tambo Cloud                                       | ❌                                         | ✅ CopilotKit Cloud                        | ✅ Assistant Cloud                |
+| **Model providers**                | OpenAI, Anthropic, Google, Mistral, custom           | OpenAI, Anthropic, Google, Mistral, custom | OpenAI, Anthropic, Google, Mistral, custom | Bring your own                    |
+| **Best for**                       | Full app UI orchestration                            | Flexible streaming & tool abstractions     | Complex multi-agent workflows              | Production chat interfaces        |
 
 <p align="center">
   <a href="https://docs.tambo.co">→ See full documentation</a>
