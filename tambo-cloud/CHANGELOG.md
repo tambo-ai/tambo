@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.122.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.4...repo-v0.122.0) (2025-11-12)
+
+
+### Features
+
+* add "@" commands ([#2048](https://github.com/tambo-ai/tambo-cloud/issues/2048)) ([73cf400](https://github.com/tambo-ai/tambo-cloud/commit/73cf400522a3cdab33fb4e74369d9eed7942c4e9))
+* **mcp:** Add tool, prompt, resource prefixes to all MCP servers ([#2066](https://github.com/tambo-ai/tambo-cloud/issues/2066)) ([9145c77](https://github.com/tambo-ai/tambo-cloud/commit/9145c7755cf119f522b4e9ed272924c0e1174b83))
+* **mcp:** expose resources with serverKey suffix ([#2067](https://github.com/tambo-ai/tambo-cloud/issues/2067)) ([97ff1dd](https://github.com/tambo-ai/tambo-cloud/commit/97ff1dd7cd15355691af748a8547f26dc6f2038a))
+
+
+### Bug Fixes
+
+* **hero:** enhance command box interaction and visual feedback ([#2052](https://github.com/tambo-ai/tambo-cloud/issues/2052)) ([bb4ad5a](https://github.com/tambo-ai/tambo-cloud/commit/bb4ad5a00cfbd95477b65b46738e24b821634724))
+* run npm dedupe --legacy-peer-deps ([#2070](https://github.com/tambo-ai/tambo-cloud/issues/2070)) ([f653bf8](https://github.com/tambo-ai/tambo-cloud/commit/f653bf889806f714fb99cbf3bb924b2d643c4721))
+
 ## [0.121.4](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.3...repo-v0.121.4) (2025-11-11)
 
 
