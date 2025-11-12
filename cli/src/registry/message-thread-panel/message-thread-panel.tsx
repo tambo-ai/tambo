@@ -30,10 +30,10 @@ import type { messageVariants } from "@/components/tambo/message";
 import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import { cn } from "@/lib/utils";
 import {
-  useMergedRef,
+  useMergeRefs,
   useCanvasDetection,
   usePositioning,
-} from "@/lib/thread-hooks";
+} from "@/components/tambo/lib/thread-hooks";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { useRef } from "react";
@@ -199,7 +199,7 @@ export const MessageThreadPanel = React.forwardRef<
     canvasIsOnLeft,
     hasCanvasSpace,
   );
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
+  const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, panelRef);
 
   const defaultSuggestions: Suggestion[] = [
     {
