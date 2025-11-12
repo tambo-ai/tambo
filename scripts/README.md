@@ -85,7 +85,8 @@ The script supports two config formats:
 
 - **Registry**: `cli/src/registry/`
 - **Registry CSS**: `cli/src/registry/config/globals-v4.css`
-- **Target**: `showcase/src/components/tambo/`
+- **Component Target**: `showcase/src/components/tambo/`
+- **Lib Target**: `showcase/src/lib/`
 - **Target CSS**: `showcase/src/app/components.css`
 - **Package.json**: `showcase/package.json`
 

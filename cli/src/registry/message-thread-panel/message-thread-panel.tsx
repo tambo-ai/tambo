@@ -33,7 +33,7 @@ import {
   useMergeRefs,
   useCanvasDetection,
   usePositioning,
-} from "@/components/tambo/lib/thread-hooks";
+} from "@/lib/thread-hooks";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { useRef } from "react";

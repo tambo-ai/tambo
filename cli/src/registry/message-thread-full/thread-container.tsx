@@ -3,7 +3,7 @@ import {
   useCanvasDetection,
   usePositioning,
   useMergeRefs,
-} from "@/components/tambo/lib/thread-hooks";
+} from "@/lib/thread-hooks";
 import * as React from "react";
 import { useRef } from "react";
 
