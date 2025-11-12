@@ -1,6 +1,77 @@
-import { ReactElement } from "react";
+import { ReactElement, isValidElement } from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { isContentPart, toText } from "./content-parts";
+
+/**
+ * Map of file extensions to MIME types for image attachments
+ */
+const EXTENSION_MIME_MAP: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  svg: "image/svg+xml",
+};
+
+/**
+ * Helper function to process a content part and extract attachment information
+ */
+function processContentPart(
+  item: unknown,
+  attachments: TamboMessageAttachment[],
+): void {
+  const part = item as TamboAI.Beta.Threads.ChatCompletionContentPart;
+
+  // Handle image attachments
+  if (part.type === "image_url" && part.image_url?.url) {
+    // Try to infer MIME type from data URL or file extension
+    let mimeType: string | undefined;
+    const url = part.image_url.url;
+
+    if (url.startsWith("data:")) {
+      const match = /^data:([^;]+);/.exec(url);
+      if (match) {
+        mimeType = match[1];
+      }
+    } else {
+      // Try to infer from file extension
+      // Strip query string and fragment before extracting extension
+      const cleanUrl = url.split("?")[0].split("#")[0];
+      const ext = cleanUrl.split(".").pop()?.toLowerCase();
+      if (ext) {
+        mimeType = EXTENSION_MIME_MAP[ext];
+      }
+    }
+
+    attachments.push({
+      kind: "image",
+      type: mimeType,
+      url: part.image_url.url,
+      mimeType,
+      raw: part,
+    });
+  }
+
+  // Handle audio attachments
+  if (part.type === "input_audio" && part.input_audio) {
+    const format = part.input_audio.format;
+    const mimeType =
+      format === "wav"
+        ? "audio/wav"
+        : format === "mp3"
+          ? "audio/mpeg"
+          : undefined;
+
+    attachments.push({
+      kind: "audio",
+      type: mimeType,
+      url: undefined, // Audio data is embedded, not a URL
+      mimeType,
+      raw: part,
+    });
+  }
+}
 
 /**
  * Safely extracts displayable content from unknown message content.
@@ -25,13 +96,8 @@ export function getSafeContent(content: unknown): string | ReactElement {
   }
 
   // Handle ReactElement (already safe to render)
-  if (
-    typeof content === "object" &&
-    "type" in content &&
-    "props" in content &&
-    "key" in content
-  ) {
-    return content as ReactElement;
+  if (isValidElement(content)) {
+    return content;
   }
 
   // Handle array of content parts
@@ -98,12 +164,7 @@ export function checkHasContent(content: unknown): boolean {
   }
 
   // ReactElement is always considered as having content
-  if (
-    typeof content === "object" &&
-    "type" in content &&
-    "props" in content &&
-    "key" in content
-  ) {
+  if (isValidElement(content)) {
     return true;
   }
 
@@ -170,7 +231,7 @@ export interface TamboMessageAttachment {
 /**
  * Extracts all image URLs from message content.
  * Handles both single content parts and arrays of content parts.
- * @param content - Array of content parts to search for images
+ * @param content - Content part or array of content parts to search for images
  * @returns Array of image URLs found in the content
  * @example
  * ```tsx
@@ -180,13 +241,21 @@ export interface TamboMessageAttachment {
  * });
  * ```
  */
-export function getMessageImages(content: unknown[]): string[] {
+export function getMessageImages(content: unknown): string[] {
   const images: string[] = [];
 
+  // Handle single content part
   if (!Array.isArray(content)) {
+    if (isContentPart(content)) {
+      const part = content as TamboAI.Beta.Threads.ChatCompletionContentPart;
+      if (part.type === "image_url" && part.image_url?.url) {
+        images.push(part.image_url.url);
+      }
+    }
     return images;
   }
 
+  // Handle array of content parts
   for (const item of content) {
     if (isContentPart(item)) {
       const part = item as TamboAI.Beta.Threads.ChatCompletionContentPart;
@@ -202,7 +271,7 @@ export function getMessageImages(content: unknown[]): string[] {
 /**
  * Extracts all attachments from message content with metadata.
  * Returns structured attachment information including kind, type, and URL.
- * @param content - Array of content parts to search for attachments
+ * @param content - Content part or array of content parts to search for attachments
  * @returns Array of attachment objects with metadata
  * @example
  * ```tsx
@@ -215,72 +284,21 @@ export function getMessageImages(content: unknown[]): string[] {
  * ```
  */
 export function getMessageAttachments(
-  content: unknown[],
+  content: unknown,
 ): TamboMessageAttachment[] {
   const attachments: TamboMessageAttachment[] = [];
 
+  // Handle single content part
   if (!Array.isArray(content)) {
+    if (isContentPart(content)) {
+      processContentPart(content, attachments);
+    }
     return attachments;
   }
 
   for (const item of content) {
     if (isContentPart(item)) {
-      const part = item as TamboAI.Beta.Threads.ChatCompletionContentPart;
-
-      // Handle image attachments
-      if (part.type === "image_url" && part.image_url?.url) {
-        // Try to infer MIME type from data URL or file extension
-        let mimeType: string | undefined;
-        const url = part.image_url.url;
-
-        if (url.startsWith("data:")) {
-          const match = /^data:([^;]+);/.exec(url);
-          if (match) {
-            mimeType = match[1];
-          }
-        } else {
-          // Try to infer from file extension
-          const ext = url.split(".").pop()?.toLowerCase();
-          if (ext) {
-            const extensionMimeMap: Record<string, string> = {
-              jpg: "image/jpeg",
-              jpeg: "image/jpeg",
-              png: "image/png",
-              gif: "image/gif",
-              webp: "image/webp",
-              svg: "image/svg+xml",
-            };
-            mimeType = extensionMimeMap[ext];
-          }
-        }
-
-        attachments.push({
-          kind: "image",
-          type: mimeType,
-          url: part.image_url.url,
-          mimeType,
-          raw: part,
-        });
-      }
-
-      // Handle audio attachments
-      if (part.type === "input_audio" && part.input_audio) {
-        const format = part.input_audio.format;
-        const mimeType =
-          format === "wav"
-            ? "audio/wav"
-            : format === "mp3"
-              ? "audio/mpeg"
-              : undefined;
-
-        attachments.push({
-          kind: "audio",
-          type: mimeType,
-          url: undefined, // Audio data is embedded, not a URL
-          mimeType,
-          raw: part,
-        });
-      }
+      processContentPart(item, attachments);
     }
   }
 
