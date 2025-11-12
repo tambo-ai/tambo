@@ -24,6 +24,11 @@ const SHOWCASE_TARGET_PATH = path.join(
   "showcase/src/components/tambo",
 );
 const SHOWCASE_PACKAGE_JSON = path.join(MONOREPO_ROOT, "showcase/package.json");
+const CLI_REGISTRY_CSS = path.join(CLI_REGISTRY_PATH, "config/globals-v4.css");
+const SHOWCASE_COMPONENTS_CSS = path.join(
+  MONOREPO_ROOT,
+  "showcase/src/app/components.css",
+);
 
 interface FileConfig {
   name?: string;
@@ -280,12 +285,45 @@ function syncComponent(
 }
 
 /**
+ * Sync CSS file from registry to showcase
+ */
+function syncComponentsCSS(): boolean {
+  try {
+    if (!fs.existsSync(CLI_REGISTRY_CSS)) {
+      console.error(`CSS source not found: ${CLI_REGISTRY_CSS}`);
+      return false;
+    }
+
+    const cssContent = fs.readFileSync(CLI_REGISTRY_CSS, "utf-8");
+    const banner = `/*
+ * Component-specific CSS - Auto-synced from CLI registry
+ * DO NOT EDIT MANUALLY - This file is synced from cli/src/registry/config/globals-v4.css
+ * Edit the source file in the CLI registry instead.
+ */
+
+`;
+    const finalContent = banner + cssContent;
+
+    fs.writeFileSync(SHOWCASE_COMPONENTS_CSS, finalContent, "utf-8");
+    console.log("✓ CSS synced: components.css");
+    return true;
+  } catch (error) {
+    console.error(`Error syncing CSS: ${error}`);
+    return false;
+  }
+}
+
+/**
  * Sync all components from registry to showcase
  */
 function syncAllComponents(): void {
   console.log("Starting component sync...\n");
   console.log(`Registry: ${CLI_REGISTRY_PATH}`);
   console.log(`Target: ${SHOWCASE_TARGET_PATH}\n`);
+
+  // Sync CSS first
+  syncComponentsCSS();
+  console.log();
 
   const components = getAllComponents();
   const showcaseDeps = getShowcaseDependencies();
@@ -364,6 +402,7 @@ function startWatchMode(): void {
       `${CLI_REGISTRY_PATH}/**/config.json`,
       `${CLI_REGISTRY_PATH}/**/*.tsx`,
       `${CLI_REGISTRY_PATH}/**/*.ts`,
+      `${CLI_REGISTRY_PATH}/config/globals-v4.css`,
     ],
     {
       persistent: true,
@@ -379,6 +418,13 @@ function startWatchMode(): void {
     console.log(
       `\n📝 File changed: ${path.relative(CLI_REGISTRY_PATH, filePath)}`,
     );
+
+    // Check if it's the CSS file
+    if (filePath === CLI_REGISTRY_CSS) {
+      console.log("🎨 Syncing CSS...");
+      syncComponentsCSS();
+      return;
+    }
 
     // Extract component name from path
     const relativePath = path.relative(CLI_REGISTRY_PATH, filePath);
