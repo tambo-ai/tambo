@@ -41,7 +41,7 @@ import {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
 } from "@/components/tambo/thread-history";
-import { useMergeRefs } from "@/components/tambo/lib/thread-hooks";
+import { useMergeRefs } from "@/lib/thread-hooks";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
